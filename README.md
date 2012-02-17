@@ -38,7 +38,7 @@ Running the application (fluxtream-webapp)
 * replace `xxx` in property files under `src/main/resources` with appropriate values (you need only provide oauth keys for the connectors you want to use, obviously)
 * You need to set a global environment variable at the OS level of your system, named `TARGET_ENV`; use that value for the name of your environment-specific properties (it's called `local.properties` by default)
 * inside `TOMCAT_ROOT` / `JETTY_ROOT` there is a `webapps/` directory; either drop the `fluxtream-webapp/target/ROOT.war` there or, or create a symbolic version there pointing to `fluxtream-webapp/target/ROOT`
-* run tomcat, under `TOMCAT_ROOT/bin`, do `./startup.sh` or `./catalina.sh start`
+* run tomcat: under `TOMCAT_ROOT/bin`, do `./startup.sh` or `./catalina.sh start`
 * during development, and if you want to use JRebel (you should), create a symbolic link to the `target/ROOT` directory of the webapp module in Tomcat's or Jetty's `webapps/` directory
 
 Copyright and license
