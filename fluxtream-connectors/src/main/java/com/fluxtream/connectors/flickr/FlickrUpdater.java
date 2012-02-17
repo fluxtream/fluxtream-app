@@ -1,0 +1,163 @@
+package com.fluxtream.connectors.flickr;
+
+import static com.fluxtream.utils.HttpUtils.fetch;
+import static com.fluxtream.utils.Utils.hash;
+
+import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+import org.springframework.stereotype.Component;
+
+import com.fluxtream.connectors.annotations.JsonFacetCollection;
+import com.fluxtream.connectors.annotations.Updater;
+import com.fluxtream.connectors.updaters.AbstractUpdater;
+import com.fluxtream.connectors.updaters.RateLimitReachedException;
+import com.fluxtream.connectors.updaters.UpdateInfo;
+import com.fluxtream.domain.ApiUpdate;
+import com.fluxtream.services.GuestService;
+
+/**
+ * @author candide
+ * 
+ */
+@Component
+@Updater(prettyName = "Flickr", value = 11, objectTypes = FlickrPhotoFacet.class, extractor = FlickrFacetExtractor.class)
+@JsonFacetCollection(FlickrFacetVOCollection.class)
+public class FlickrUpdater extends AbstractUpdater {
+
+	public GuestService guestService;
+
+	private static final int ITEMS_PER_PAGE = 20;
+	private static final DateTimeFormatter dateFormat = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
+
+	public FlickrUpdater() {
+		super();
+	}
+
+	String sign(Map<String, String> parameters) throws NoSuchAlgorithmException {
+		String toSign = env.get("flickrConsumerSecret");
+		SortedSet<String> eachKey = new TreeSet<String>(parameters.keySet());
+		for (String key : eachKey)
+			toSign += key + parameters.get(key);
+		String sig = hash(toSign);
+		return sig;
+	}
+
+	@Override
+	protected void updateConnectorDataHistory(UpdateInfo updateInfo)
+			throws RateLimitReachedException, Exception {
+		// taking care of resetting the data if things went wrong before
+		if (!connectorUpdateService.isHistoryUpdateCompleted(
+				updateInfo.getGuestId(), connector().getName(), -1))
+			apiDataService.eraseApiData(updateInfo.getGuestId(), connector(),
+					-1);
+		int retrievedItems = ITEMS_PER_PAGE;
+		for (int page = 0; retrievedItems == ITEMS_PER_PAGE; page++) {
+			JSONObject feed = retrievePhotoHistory(updateInfo, 0,
+					System.currentTimeMillis(), page);
+			JSONObject photosWrapper = feed.getJSONObject("photos");
+
+			if (photosWrapper != null) {
+				JSONArray photos = photosWrapper.getJSONArray("photo");
+				retrievedItems = photos.size();
+				apiDataService.cacheApiDataJSON(updateInfo, feed, -1, -1);
+			} else
+				break;
+		}
+	}
+
+	@Override
+	public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
+		int retrievedItems = ITEMS_PER_PAGE;
+		ApiUpdate lastSuccessfulUpdate = connectorUpdateService
+				.getLastSuccessfulUpdate(updateInfo.apiKey.getGuestId(),
+						connector());
+		for (int page = 0; retrievedItems == ITEMS_PER_PAGE; page++) {
+			JSONObject feed = retrievePhotoHistory(updateInfo,
+					lastSuccessfulUpdate.ts, System.currentTimeMillis(), page);
+			JSONObject photosWrapper = feed.getJSONObject("photos");
+
+			if (photosWrapper != null) {
+				JSONArray photos = photosWrapper.getJSONArray("photo");
+				retrievedItems = photos.size();
+				apiDataService.cacheApiDataJSON(updateInfo, feed, -1, -1);
+			} else
+				break;
+		}
+	}
+
+	private JSONObject retrievePhotoHistory(UpdateInfo updateInfo, long from,
+			long to, int page) throws Exception {
+		long then = System.currentTimeMillis();
+
+		String api_key = env.get("flickrConsumerKey");
+		String nsid = guestService.getApiKeyAttribute(
+				updateInfo.apiKey.getGuestId(), connector(), "nsid");
+		String token = guestService.getApiKeyAttribute(
+				updateInfo.apiKey.getGuestId(), connector(), "token");
+
+		String startDate = dateFormat.print(from);
+		String endDate = dateFormat.print(to);
+
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("method", "flickr.people.getPhotos");
+		params.put("api_key", api_key);
+		params.put("user_id", nsid);
+		params.put("auth_token", token);
+		params.put("format", "json");
+		params.put("nojsoncallback", "1");
+		params.put("extras", "date_upload,date_taken,geo");
+		params.put("min_taken_date", startDate);
+		params.put("max_taken_date", endDate);
+		params.put("per_page", String.valueOf(ITEMS_PER_PAGE));
+		params.put("page", String.valueOf(page));
+
+		String api_sig = sign(params);
+
+		String searchPhotosUrl = "http://api.flickr.com/services/rest/"
+				+ "?method=flickr.people.getPhotos&api_key="
+				+ api_key
+				+ "&per_page="
+				+ ITEMS_PER_PAGE
+				+ "&per_page="
+				+ page
+				+ "&user_id="
+				+ nsid
+				+ "&min_taken_date="
+				+ startDate
+				+ "&max_taken_date="
+				+ endDate
+				+ "&auth_token="
+				+ token
+				+ "&api_sig="
+				+ api_sig
+				+ "&format=json&nojsoncallback=1&extras=date_upload,date_taken,geo";
+		searchPhotosUrl = searchPhotosUrl.replace(" ", "%20");
+		String photosJson = null;
+		try {
+			photosJson = fetch(searchPhotosUrl, env);
+			countSuccessfulApiCall(updateInfo.getGuestId(),
+					updateInfo.objectTypes, then, searchPhotosUrl);
+		} catch (Exception e) {
+			countFailedApiCall(updateInfo.getGuestId(), updateInfo.objectTypes,
+					then, searchPhotosUrl);
+			throw e;
+		}
+
+		if (photosJson == null || photosJson.equals(""))
+			throw new Exception(
+					"empty json string returned from flickr API call");
+
+		JSONObject feed = JSONObject.fromObject(photosJson);
+
+		return feed;
+	}
+}

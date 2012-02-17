@@ -1,0 +1,38 @@
+package com.fluxtream.connectors.twitter;
+
+import java.util.Date;
+
+import com.fluxtream.TimeInterval;
+import com.fluxtream.connectors.vos.AbstractInstantFacetVO;
+import com.fluxtream.domain.GuestSettings;
+import com.fluxtream.utils.SecurityUtils;
+
+public class TwitterDirectMessageFacetVO extends AbstractInstantFacetVO<TwitterDirectMessageFacet> {
+
+	public String profileImageUrl;
+	public String userName;
+	
+	@Override
+	public void fromFacet(TwitterDirectMessageFacet facet, TimeInterval timeInterval,
+			GuestSettings settings) {
+		Date date = new Date(facet.start);
+		
+		this.startMinute = toMinuteOfDay(date, timeInterval.timeZone);
+		if (SecurityUtils.isDemoUser())
+			this.description = "***demo - text content hidden***";
+		else
+			this.description = facet.text;
+		if (facet.sent==1) {
+			this.profileImageUrl = facet.recipientProfileImageUrl;
+			this.userName = facet.recipientName;
+		} else {
+			this.profileImageUrl = facet.senderProfileImageUrl;
+			this.userName = facet.senderName;
+		}
+	}
+	
+	protected String getSubtype(TwitterDirectMessageFacet facet) {
+		return (facet.sent==1)?"outgoing":"incoming";
+	}
+
+}

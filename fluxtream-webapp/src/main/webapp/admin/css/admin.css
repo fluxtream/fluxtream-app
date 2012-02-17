@@ -1,0 +1,20 @@
+div.topbar-wrapper {
+position: relative;
+height: 40px;
+margin: 5px 0 15px;
+}
+
+.row {
+	margin-bottom: 10px;
+}
+
+
+.connector {
+	margin-bottom: 20px;
+	min-height: 85px;
+}
+
+.btn.small span {
+float: right;
+line-height: 2.4;
+}

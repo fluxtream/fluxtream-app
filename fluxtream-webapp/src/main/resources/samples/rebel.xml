@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<application xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.zeroturnaround.com" xsi:schemaLocation="http://www.zeroturnaround.com http://www.zeroturnaround.com/alderaan/rebel-2_0.xsd">
+
+	<classpath>
+		<dir name="YOUR_WORKSPACE_ROOT/fluxtream-app/fluxtream-webapp/target/classes"/>
+		<dir name="YOUR_WORKSPACE_ROOT/fluxtream-app/fluxtream-core-webapp/target/classes"/>
+		<dir name="YOUR_WORKSPACE_ROOT/fluxtream-app/fluxtream-connectors/target/classes"/>
+		<dir name="YOUR_WORKSPACE_ROOT/fluxtream-app/fluxtream-core/target/classes"/>
+	</classpath>
+
+	<web>
+		<link target="/">
+			<dir name="YOUR_WORKSPACE_ROOT/fluxtream-app/fluxtream-webapp/src/main/webapp">
+			</dir>
+		</link>
+	</web>
+
+</application>
