@@ -35,11 +35,13 @@ Running requirements
 
 Running the application (fluxtream-webapp)
 ------------------------------------------
-* replace `xxx` in property files under `src/main/resources` with appropriate values (you need only provide oauth keys for the connectors you want to use, obviously)
-* You need to set a global environment variable at the OS level of your system, named `TARGET_ENV`; use that value for the name of your environment-specific properties (it's called `local.properties` by default)
-* inside `TOMCAT_ROOT` / `JETTY_ROOT` there is a `webapps/` directory; either drop the `fluxtream-webapp/target/ROOT.war` there or, or create a symbolic version there pointing to `fluxtream-webapp/target/ROOT`
-* run tomcat: under `TOMCAT_ROOT/bin`, do `./startup.sh` or `./catalina.sh start`
-* during development, and if you want to use JRebel (you should), create a symbolic link to the `target/ROOT` directory of the webapp module in Tomcat's or Jetty's `webapps/` directory
+* Replace `xxx` in property files under `src/main/resources/samples` with appropriate values (you need only provide oauth keys for the connectors you want to use, obviously); put files under `src/main/resources/samples` back under `src/main/resources`
+* You need to set a global environment variable at the OS level of your system, named `TARGET\_ENV`; use that value for the name of your environment-specific properties; i.e. if TARGET_ENV is set to 'local', create an environment-specific property file called `local.properties`
+* The database is going to be generated for you automatically; all you need to do is set the database name, username and password in your environment-specific property file (e.g. `local.properties`)
+* We are using [MaxMind's GeoLiteCity.dat](http://www.maxmind.com) database to map IP addresses to an approximate geolocation; you need to specify that file's location in your environment-specific property file, too (e.g. `local.properties`)
+* Inside `TOMCAT_ROOT` / `JETTY_ROOT` there is a `webapps/` directory; either drop the `fluxtream-webapp/target/ROOT.war` there or, or create a symbolic version there pointing to `fluxtream-webapp/target/ROOT`
+* Run tomcat: under `TOMCAT_ROOT/bin`, do `./startup.sh` or `./catalina.sh start`
+* During development, and if you want to use JRebel (you should), create a symbolic link to the `target/ROOT` directory of the webapp module in Tomcat's or Jetty's `webapps/` directory
 
 Copyright and license
 ---------------------
