@@ -37,6 +37,9 @@ import com.fluxtream.services.MetadataService;
 import com.fluxtream.utils.HttpUtils;
 import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.RandomString;
+import com.fluxtream.utils.SecurityUtils;
+import com.maxmind.geoip.Location;
+import com.maxmind.geoip.LookupService;
 
 @Transactional(readOnly = true)
 @Service
@@ -56,6 +59,8 @@ public class GuestServiceImpl implements GuestService {
 
 	@Autowired
 	ConnectorUpdateService connectorUpdateService;
+
+	LookupService geoIpLookupService;
 
 	private final RandomString randomString = new RandomString(64);
 
@@ -322,30 +327,35 @@ public class GuestServiceImpl implements GuestService {
 	@Override
 	@Transactional(readOnly = false)
 	public void checkIn(long guestId, String ipAddress) throws IOException {
-		System.out.println("environment: " + env.get("environment"));
-		if (env.get("environment").equals("local")) {
-			// for development
+		if (SecurityUtils.isStealth())
+			return;
+		if (geoIpLookupService == null) {
+			String dbLocation = env.get("geoIpDb.location");
+			geoIpLookupService = new LookupService(dbLocation,
+					LookupService.GEOIP_MEMORY_CACHE);
+		}
+		Location ipLocation = geoIpLookupService.getLocation(ipAddress);
+		if (ipLocation != null) {
+			metadataService.addGuestLocation(guestId,
+					System.currentTimeMillis(), ipLocation.latitude,
+					ipLocation.longitude);
+		} else if (env.get("environment").equals("local")) {
 			metadataService.addGuestLocation(guestId,
 					System.currentTimeMillis(), 50.846281f, 4.354727f);
-			return;
-		}
-		String ip2locationKey = env.get("ip2location.apiKey");
-		System.out.println("calling ipinfodb: " + ip2locationKey);
-		System.out.println("ipAddress: " + ipAddress);
-		String url = "http://api.ipinfodb.com/v3/ip-city/?key=" + ip2locationKey
-				+ "&ip=" + ipAddress + "&format=json";
-		System.out.println("fetching from: " + url);
-		String jsonString = HttpUtils.fetch(
-				url, env);
-		System.out.println("got their response");
-		JSONObject json = JSONObject.fromObject(jsonString);
-		String latitude = json.getString("latitude");
-		String longitude = json.getString("longitude");
-		if (latitude != null && longitude != null) {
-			float lat = Float.valueOf(latitude);
-			float lon = Float.valueOf(longitude);
-			metadataService.addGuestLocation(guestId,
-					System.currentTimeMillis(), lat, lon);
+		} else {
+			String ip2locationKey = env.get("ip2location.apiKey");
+			String jsonString = HttpUtils.fetch(
+					"http://api.ipinfodb.com/v3/ip-city/?key=" + ip2locationKey
+							+ "&ip=" + ipAddress + "&format=json", env);
+			JSONObject json = JSONObject.fromObject(jsonString);
+			String latitude = json.getString("latitude");
+			String longitude = json.getString("longitude");
+			if (latitude != null && longitude != null) {
+				float lat = Float.valueOf(latitude);
+				float lon = Float.valueOf(longitude);
+				metadataService.addGuestLocation(guestId,
+						System.currentTimeMillis(), lat, lon);
+			}
 		}
 	}
 
