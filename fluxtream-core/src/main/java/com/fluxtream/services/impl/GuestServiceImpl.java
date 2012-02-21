@@ -322,6 +322,7 @@ public class GuestServiceImpl implements GuestService {
 	@Override
 	@Transactional(readOnly = false)
 	public void checkIn(long guestId, String ipAddress) throws IOException {
+		System.out.println("environment: " + env.get("environment"));
 		if (env.get("environment").equals("local")) {
 			// for development
 			metadataService.addGuestLocation(guestId,
