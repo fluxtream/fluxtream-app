@@ -28,8 +28,6 @@ import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.NotificationsService;
-import com.fluxtream.utils.SecurityUtils;
-import com.fluxtream.utils.Utils;
 import com.google.gson.Gson;
 
 @Controller
@@ -157,13 +155,18 @@ public class MainController {
 		ModelAndView mav = new ModelAndView("redirect:main");
 		String targetEnvironment = env.get("environment");
 		mav.addObject("prod", targetEnvironment.equals("prod"));
-		if (request.getSession(false) == null)
+		if (request.getSession(false) == null) {
+			System.out.println("no session");
 			return mav;
+		}
 		
 		Authentication auth = SecurityContextHolder.getContext()
 				.getAuthentication();
-		if (auth == null || !auth.isAuthenticated())
+		System.out.println("auth: " + auth);
+		if (auth == null || !auth.isAuthenticated()) {
+			System.out.println("guest is not authenticated");
 			return mav;
+		}
 		mav.setViewName("main");
 
 		if (request.getSession().getAttribute("homeModel") == null)
@@ -171,15 +174,12 @@ public class MainController {
 					"Could not determine timeZone. Are cookies enabled?");
 		
 		Guest guest = guestService.getGuestById(guestId);
+		System.out.println("we've got the guest: " + guest);
 		
-		String verificationCode = Utils.sha1Hash("147543b0f2b72f9d00ff3a0d10c3ff28cb590dcc"+guest.email);
-		mav.addObject("testerHash", verificationCode);
 		String release = env.get("release");
 		request.setAttribute("guestName", guest.getGuestName());
-		if (SecurityUtils.isDemoUser())
-			request.setAttribute("demo", true);
-		if (release != null)
-			mav.addObject("release", release);
+		mav.addObject("release", release);
+		
 		return mav;
 	}
 
@@ -191,7 +191,9 @@ public class MainController {
 		String remoteAddr = request.getHeader("X-Forwarded-For");
 		if (remoteAddr == null)
 			remoteAddr = request.getRemoteAddr();
+		System.out.println("about to check in");
 		guestService.checkIn(guestId, remoteAddr);
+		System.out.println("initializing with time zone");
 		initializeWithTimeZone(request, guestId);
 		
 		return home(request, p);

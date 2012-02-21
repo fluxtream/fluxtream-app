@@ -88,7 +88,7 @@
 			and become a better person</p>
 			<p>Get a comprehensive view on your self-tracking devices and the services that you use to organize your life</p>
 			<p><a href="http://blog.fluxtream.com" style="width:210px" class="btn large secondary">Check our blog for updates &raquo;</a></p>
-			<p><a href="https://fluxtream.atlassian.net/wiki/display/FLX/Home" style="width:210px" class="btn large secondary">Fluxtream's Wiki &raquo;</a></p>
+			<p><a href="https://fluxtream.atlassian.net/wiki/display/FLX/Welcome" style="width:210px" class="btn large secondary">Fluxtream's Dev Wiki &raquo;</a></p>
 		</article>
 		 
 	</section>
