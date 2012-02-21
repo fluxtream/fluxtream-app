@@ -191,7 +191,8 @@ public class MainController {
 		String remoteAddr = request.getHeader("X-Forwarded-For");
 		if (remoteAddr == null)
 			remoteAddr = request.getRemoteAddr();
-		System.out.println("about to check in");
+		System.out.println("about to check in...");
+		System.out.println("guestService: " + guestService);
 		guestService.checkIn(guestId, remoteAddr);
 		System.out.println("initializing with time zone");
 		initializeWithTimeZone(request, guestId);

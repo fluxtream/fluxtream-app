@@ -329,10 +329,13 @@ public class GuestServiceImpl implements GuestService {
 			return;
 		}
 		String ip2locationKey = env.get("ip2location.apiKey");
-		System.out.println("calling ipinfodb");
+		System.out.println("calling ipinfodb: " + ip2locationKey);
+		System.out.println("ipAddress: " + ipAddress);
+		String url = "http://api.ipinfodb.com/v3/ip-city/?key=" + ip2locationKey
+				+ "&ip=" + ipAddress + "&format=json";
+		System.out.println("fetching from: " + url);
 		String jsonString = HttpUtils.fetch(
-				"http://api.ipinfodb.com/v3/ip-city/?key=" + ip2locationKey
-						+ "&ip=" + ipAddress + "&format=json", env);
+				url, env);
 		System.out.println("got their response");
 		JSONObject json = JSONObject.fromObject(jsonString);
 		String latitude = json.getString("latitude");
