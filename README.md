@@ -1,7 +1,7 @@
 Read me First
 -------------
 
-Fluxtream is based on Spring(-MVC) 3.1, Spring Security 3.1 and JPA for the persistence. We use Jersey (Rest-WS) for exposing the REST API
+Fluxtream is based on Spring(-MVC) 3.1, Spring Security 3.1 and JPA for the persistence. We use Jersey (JAX-WS) for exposing the REST API
 
 This is a maven project with 5 sub-modules.
 
