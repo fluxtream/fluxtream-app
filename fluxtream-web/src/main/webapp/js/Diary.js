@@ -1,41 +1,40 @@
 define(function() {
 
-	function toggleCommentExpandCollapse() {
-		if ($(".mainComment").hasClass("editing"))
-			setTimeout(doToggleCommentExpandCollapse, 200);
-		doToggleCommentExpandCollapse();
-	}
-
-	function doToggleCommentExpandCollapse() {
-		if ($('#commentMain').hasClass("collapsed"))
-			expandComment();
-		else
-			collapseComment();
-	}
-
-	function updateToggleWidget() {
-		if ($('#commentMain').hasClass("expanded"))
-			$(".iconExpandCollapse").removeClass("collapsed").addClass(
-					"expanded");
-		else
-			$(".iconExpandCollapse").removeClass("expanded").addClass(
-					"collapsed");
-	}
-
-	function resetMainComment(expanded) {
-		$(".mainComment").removeClass("editing");
-		if ($("#mainComment").hasClass("expanded"))
-			return;
-		$(".belowDate").removeClass("pointerCommFocus").addClass("pointerComm");
-	}
-
 	function handleComments() {
-		$('#commentMain').html($('#commentMain').attr("title"));
-		$(".iconExpandCollapse a").click(toggleCommentExpandCollapse);
-		collapseComment();
+		console.log("handleComments");
+		$(".diaryTitle").html($(".diaryTitle").attr("title"));
+		$.ajax({
+			url : "/diary/get/title",
+			success : function(comment) {
+				$(".diaryTitle").css("min-height", "20px");
+				$(".diaryTitle").empty();
+				$(".diaryTitle").val(comment);
+				$(".diaryTitle").unbind();
+				$(".diaryTitle").keypress(function(e) {
+		            code = (e.keyCode ? e.keyCode : e.which);
+		            if (code == 13) 
+		            	setDiaryTitle($(".diaryTitle").val());
+				});
+			}
+		});
+	}
+	
+	function setDiaryTitle(title) {
+		console.log("setting diary title statusCode");
+		$.ajax({
+			url: "/diary/set/title",
+			data: {"title": title},
+			type : "POST",
+			statusCode: {
+				200: function() {
+					applause(false);
+				}
+			}
+		});
 	}
 
-	function praise(persistent) {
+	function applause(persistent) {
+		console.log("applause");
 		// Use the last visible jGrowl qtip as our positioning target
 		var target = $('.qtip.jgrowl:visible:last');
 
@@ -127,83 +126,9 @@ define(function() {
 		}
 	}
 	
-	function expandComment() {
-		if ($(".mainComment").hasClass("editing"))
-			return;
-		$("#commentMain").unbind();
-		$.ajax({
-			url : "/diary/get/titleAndBody",
-			success : function(comment) {
-				$("#commentMain").empty();
-				$("#commentMain").removeClass("collapsed").addClass("expanded");
-				$("#commentMain").append("<div id=\"commentTitle\">" + comment.title + "</div>");
-			    $('#commentTitle').editable("/diary/set/title", {
-			    	loadtype: "POST",
-			    	name : "commentTitle",
-			    	style: "inherit",
-			    	callback: function(){
-			    		resetMainComment(true);
-			            window.createGrowl(false);
-			    	}
-			    });
-				$("#commentMain").append("<textarea id=\"commentContent\"></textarea>");
-				$('#commentContent').wysiwyg({
-					initialContent : comment.body,
-					autosave : true
-				});
-				updateToggleWidget();
-				$("#commentMain").append("<div class=\"commentButtons\">" +
-						"<a class=\"btn primary\" href=\"javascript:saveCommentBody()\">Save</a>" +
-						"</div>");
-			}
-		});
-	}
-
-	function collapseComment() {
-		if ($(".mainComment").hasClass("editing"))
-			return;
-		$.ajax({
-			url : "/diary/get/title",
-			success : function(comment) {
-				$("#commentMain").css("min-height", "20px");
-				$("#commentMain").empty();
-				$("#commentMain").html(comment);
-				$("#commentMain").removeClass("expanded").addClass(
-						"collapsed");
-				updateToggleWidget();
-				$("#commentMain").unbind();
-				$('#commentMain').editable("/diary/set/title", {
-					loadtype : "POST",
-					loadurl : "/diary/get/title",
-					name : "commentTitle",
-					style : "inherit",
-					callback : function() {
-						praise(false);
-						$(".mainComment").removeClass("editing");
-						resetMainComment();
-					}
-				});
-			}
-		});
-	}
-
 	var Diary = {};
 
 	Diary.handleComments = handleComments;
 
 	return Diary;
 })
-
-
-function saveCommentBody() {
-	$.ajax({
-		url : "/diary/set/body",
-		type : "POST",
-		data : {
-			commentBody : $("#commentContent").val()
-		},
-		success : function() {
-			praise(false);
-		}
-	});
-}

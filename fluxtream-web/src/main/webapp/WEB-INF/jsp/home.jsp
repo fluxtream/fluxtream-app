@@ -14,15 +14,10 @@
 
     <!-- Le styles -->
 	<link rel="stylesheet/less" href="/${release}/css/flx.less">
+	<link rel="stylesheet/less" href="/${release}/css/qtip/jquery.qtip.css">
+	<link rel="stylesheet/less" href="/static/less/bootstrap.less">
+	<link rel="stylesheet/less" href="/static/less/responsive.less">
 	<script src="/static/js/less-1.2.1.min.js"></script>
-    <style>
-      body {
-        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
-      }
-    </style>
-    
-	<link href="/static/css/bootstrap.min-2.0.css" rel="stylesheet">
-    <link href="/static/css/bootstrap-responsive-2.0.min.css" rel="stylesheet">
 
     <!-- Le fav and touch icons -->
     <link rel="shortcut icon" href="/favicon.ico">
@@ -33,7 +28,7 @@
 
     <div class="navbar navbar-fixed-top">
       <div class="navbar-inner">
-        <div class="container">
+        <div class="container-fluid">
           <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
@@ -67,24 +62,16 @@
 		</div>
 	</div>
 
-	<div class="row-fluid">
-		<div class="span4 clock"></div>
-		<div class="span8 timelines"></div>
+	<div id="widgets" class="row-fluid">
 	</div>
 
-	<div class="row">
-		<div class="span4 map"></div>
-		<div class="span4 weather"></div>
-		<div class="span4 breakdown"></div>
-	</div>
-	
     </div> <!-- /container -->
 
     <!-- Le javascript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-	<script>window.jQuery || document.write('<script src="js/libs/jquery-1.7.1.min.js"><\/script>')</script>
+	<script>window.jQuery || document.write('<script src="/static/js/jquery-1.7.1.min.js"><\/script>')</script>
     <script src="/static/js/bootstrap-2.0.min.js"></script>
 	<script src="/${release}/js/libs/underscore-1.2.4.js"></script>
 	<script src="/${release}/js/libs/backbone-0.5.3.js"></script>

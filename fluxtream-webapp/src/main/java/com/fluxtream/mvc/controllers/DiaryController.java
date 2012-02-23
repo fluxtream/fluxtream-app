@@ -37,7 +37,7 @@ public class DiaryController {
 	@RequestMapping(value = "/diary/set/title")
 	public void setCommentTitle(HttpServletRequest request,
 			HttpServletResponse response) throws IOException {
-		String commentTitle = request.getParameter("commentTitle");
+		String commentTitle = request.getParameter("title");
 
 		logger.info("action=setDiaryTitle");
 

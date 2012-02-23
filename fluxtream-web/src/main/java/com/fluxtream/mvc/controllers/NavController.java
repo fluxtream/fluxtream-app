@@ -32,7 +32,7 @@ public class NavController {
 	@Autowired
 	Configuration env;
 
-	@RequestMapping(value = "/home/model.json")
+	@RequestMapping(value = "/nav/model.json")
 	public void getModel(HttpServletRequest request,
 			HttpServletResponse response) throws IOException {
 		response.setContentType("application/json; charset=utf-8");
@@ -53,7 +53,7 @@ public class NavController {
 		homeModel.setTitle(metadata.title!=null?metadata.title:"");
 	}
 
-	@RequestMapping(value = "/home/setVisualizationType.json")
+	@RequestMapping(value = "/nav/setVisualizationType.json")
 	public void setVisualizationType(
 			@RequestParam("visualizationType") String value,
 			HttpServletRequest request, HttpServletResponse response)
@@ -67,7 +67,7 @@ public class NavController {
 		response.getWriter().write(homeModel.toJSONString(env, getConfigState(request)));
 	}
 
-	@RequestMapping(value = "/home/setToToday.json")
+	@RequestMapping(value = "/nav/setToToday.json")
 	public void setToToday(HttpServletRequest request,
 			HttpServletResponse response) throws IOException {
 		logger.info("action=setToToday");
@@ -79,7 +79,7 @@ public class NavController {
 		response.getWriter().write(homeModel.toJSONString(env, getConfigState(request)));
 	}
 
-	@RequestMapping(value = "/home/setDate.json")
+	@RequestMapping(value = "/nav/setDate.json")
 	public void setDate(@RequestParam("date") String date,
 			HttpServletRequest request, HttpServletResponse response)
 			throws IOException {
@@ -92,7 +92,7 @@ public class NavController {
 		response.getWriter().write(homeModel.toJSONString(env, getConfigState(request)));
 	}
 
-	@RequestMapping(value = "/home/decrementTimespan.json")
+	@RequestMapping(value = "/nav/decrementTimespan.json")
 	public void decrementTimespan(HttpServletRequest request,
 			HttpServletResponse response) throws IOException {
 		response.setContentType("application/json; charset=utf-8");
@@ -104,7 +104,7 @@ public class NavController {
 		response.getWriter().write(homeModel.toJSONString(env, getConfigState(request)));
 	}
 
-	@RequestMapping(value = "/home/incrementTimespan.json")
+	@RequestMapping(value = "/nav/incrementTimespan.json")
 	public void incrementTimespan(HttpServletRequest request,
 			HttpServletResponse response) throws IOException {
 		response.setContentType("application/json; charset=utf-8");
@@ -116,7 +116,7 @@ public class NavController {
 		response.getWriter().write(homeModel.toJSONString(env, getConfigState(request)));
 	}
 
-	@RequestMapping(value = "/home/setDayTimeUnit.json")
+	@RequestMapping(value = "/nav/setDayTimeUnit.json")
 	public void setDayTimeUnit(HttpServletRequest request,
 			HttpServletResponse response) throws IOException {
 		response.setContentType("application/json; charset=utf-8");
@@ -128,7 +128,7 @@ public class NavController {
 		response.getWriter().write(homeModel.toJSONString(env, getConfigState(request)));
 	}
 
-	@RequestMapping(value = "/home/setWeekTimeUnit.json")
+	@RequestMapping(value = "/nav/setWeekTimeUnit.json")
 	public void setWeekTimeUnit(HttpServletRequest request,
 			HttpServletResponse response) throws IOException {
 		response.setContentType("application/json; charset=utf-8");
@@ -140,7 +140,7 @@ public class NavController {
 		response.getWriter().write(homeModel.toJSONString(env, getConfigState(request)));
 	}
 
-	@RequestMapping(value = "/home/setMonthTimeUnit.json")
+	@RequestMapping(value = "/nav/setMonthTimeUnit.json")
 	public void setMonthTimeUnit(HttpServletRequest request,
 			HttpServletResponse response) throws IOException {
 		response.setContentType("application/json; charset=utf-8");
@@ -152,7 +152,7 @@ public class NavController {
 		response.getWriter().write(homeModel.toJSONString(env, getConfigState(request)));
 	}
 
-	@RequestMapping(value = "/home/setYearTimeUnit.json")
+	@RequestMapping(value = "/nav/setYearTimeUnit.json")
 	public void setYearTimeUnit(HttpServletRequest request,
 			HttpServletResponse response) throws IOException {
 		response.setContentType("application/json; charset=utf-8");

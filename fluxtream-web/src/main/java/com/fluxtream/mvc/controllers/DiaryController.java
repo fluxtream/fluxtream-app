@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.fluxtream.domain.metadata.DayMetadataFacet;
 import com.fluxtream.mvc.models.CommentModel;
@@ -35,20 +36,20 @@ public class DiaryController {
 
 	@RequestMapping(value = "/diary/set/title")
 	public void setCommentTitle(HttpServletRequest request,
+			@RequestParam String title,
 			HttpServletResponse response) throws IOException {
-		String commentTitle = request.getParameter("commentTitle");
-
+		
 		logger.info("action=setDiaryTitle");
 
 		response.setContentType("application/json; charset=utf-8");
 		HomeModel homeModel = statsHelper.getHomeModel(request);
 		long guestId = ControllerHelper.getGuestId();
 
-		homeModel.setTitle(commentTitle);
+		homeModel.setTitle(title);
 		metadataService.setDayCommentTitle(guestId, homeModel.getDate(),
-				commentTitle);
+				title);
 
-		response.getWriter().write(commentTitle);
+		response.getWriter().write(title);
 	}
 
 	@RequestMapping(value = "/diary/set/body")
@@ -69,7 +70,8 @@ public class DiaryController {
 	public void getCommentCollapsed(HttpServletRequest request,
 			HttpServletResponse response) throws IOException {
 		HomeModel homeModel = statsHelper.getHomeModel(request);
-		String title = homeModel.getTitle();
+		long guestId = ControllerHelper.getGuestId();
+		String title = getDiaryTitle(guestId, homeModel);
 		if (title == null)
 			title = "";
 		String lines[] = title.split("[\\r\\n]+");

@@ -8,7 +8,7 @@ define([], function() {
 		},
 
 		showDate: function(date) {
-			Flx.App.gotoDate(date, false);
+			window.App.gotoDate(date, false);
 		}
 		
 	});

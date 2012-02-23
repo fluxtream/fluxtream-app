@@ -16,11 +16,6 @@
 	<link rel="stylesheet/less" href="/static/less/bootstrap.less">
 	<link rel="stylesheet/less" href="/${release}/css/flx.less">
 	<script src="/static/js/less-1.2.1.min.js"></script>
-    <style>
-      body {
-        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
-      }
-    </style>
     
     <link href="/static/css/bootstrap-responsive-2.0.css" rel="stylesheet">
 
@@ -67,7 +62,7 @@
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-	<script>window.jQuery || document.write('<script src="js/libs/jquery-1.7.1.min.js"><\/script>')</script>
+	<script>window.jQuery || document.write('<script src="/static/js/jquery-1.7.1.min.js"><\/script>')</script>
     <script src="/static/js/bootstrap-2.0.min.js"></script>
     <script src="/${release}/js/welcome.js"></script>
 
