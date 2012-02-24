@@ -3,18 +3,25 @@ define([], function() {
 	var application;
 	
 	function initialize() {
-		require([ "applications/calendar/Calendar",
-				"text!applications/calendar/template.html" ], function(
-				Calendar, html) {
+		loadApplication("calendar");
+	}
+	
+	function loadApplication(appName) {
+		console.log("loading application: " + appName);
+		require([ "applications/"+ appName + "/App",
+				"text!applications/" + appName + "/template.html" ], function(
+				app, html) {
 			$(".application").empty();
 			$(".application").append(html);
-			application = Calendar;
-			Calendar.initialize();
+//			application.destroy();
+			application = app;
+			app.initialize();
 		});
 	}
 
 	var App = {};
 	App.initialize = initialize;
+	App.loadApplication = loadApplication;
 	App.gotoDate = function(date) {
 		console.log("application.name: " + application.name);
 		if (application.name=="calendar")
