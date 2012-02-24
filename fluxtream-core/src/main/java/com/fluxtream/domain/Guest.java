@@ -8,6 +8,7 @@ import javax.persistence.Entity;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 
+import org.apache.commons.lang.StringUtils;
 import org.hibernate.annotations.Index;
 
 @Entity(name="Guest")
@@ -54,8 +55,11 @@ public class Guest extends AbstractEntity {
 	}
 
 	public Object getGuestName() {
-		if (firstname!=null)
-			return firstname;
+		if (!StringUtils.isEmpty(firstname)){
+			if (!StringUtils.isEmpty(lastname))
+				return firstname + " " + lastname;
+			else return firstname;
+		}
 		else return username;
 	}
 

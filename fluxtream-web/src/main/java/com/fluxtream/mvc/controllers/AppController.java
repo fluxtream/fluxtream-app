@@ -81,6 +81,8 @@ public class AppController {
 		mav.setViewName("home");
 
 		Guest guest = guestService.getGuestById(guestId);
+		
+		mav.addObject("fullname", guest.getGuestName());
 
 		String release = env.get("release");
 		request.setAttribute("guestName", guest.getGuestName());

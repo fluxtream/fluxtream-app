@@ -1,7 +1,6 @@
 define(function() {
 
 	function handleComments() {
-		console.log("handleComments");
 		$(".diaryTitle").html($(".diaryTitle").attr("title"));
 		$.ajax({
 			url : "/diary/get/title",
