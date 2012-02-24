@@ -1,8 +1,9 @@
-define([], function() {
+define(["applications/calendar/Router"], function(Router) {
 
 	var application;
 	
 	function initialize() {
+		Router.initialize();
 		loadApplication("calendar");
 	}
 	

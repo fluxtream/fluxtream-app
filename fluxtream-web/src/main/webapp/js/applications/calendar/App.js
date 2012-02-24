@@ -41,7 +41,6 @@ define(["core/Application",
 	});
 	
 	function initialize() {
-		Router.initialize();
 		nav = new NavModel();
 		disableSelection();
 		var now = new Date(),
