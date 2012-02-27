@@ -1,10 +1,9 @@
-define(["applications/calendar/Router"], function(Router) {
+define([], function() {
 
 	var application;
 	
 	function initialize() {
-		Router.initialize();
-		loadApplication("calendar");
+		loadApplication("log");
 	}
 	
 	function loadApplication(appName) {
@@ -23,11 +22,6 @@ define(["applications/calendar/Router"], function(Router) {
 	var App = {};
 	App.initialize = initialize;
 	App.loadApplication = loadApplication;
-	App.gotoDate = function(date) {
-		console.log("application.name: " + application.name);
-		if (application.name=="calendar")
-			application.gotoDate(date);
-	}
 	window.App = App;
 	return App;
 

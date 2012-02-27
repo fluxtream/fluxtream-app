@@ -41,7 +41,7 @@
 					<ul class="nav pull-right">
 						<li><div class="btn-group">
 								<a class="btn" href="#"><i class="icon-random" onclick="App.loadApplication('bodytrack')"></i></a>
-								<a class="btn" href="#"><i class="icon-calendar" onclick="App.loadApplication('calendar')"></i></a>
+								<a class="btn" href="#"><i class="icon-calendar" onclick="App.loadApplication('log')"></i></a>
 								<a class="btn" href="#"><i class="icon-pencil" onclick="App.loadApplication('diary')"></i></a>
 							</div></li>
 						<li class="divider-vertical"></li>

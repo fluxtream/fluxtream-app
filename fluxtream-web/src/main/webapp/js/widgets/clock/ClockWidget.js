@@ -9,6 +9,7 @@ define(["widgets/clock/ClockdrawingUtils", "widgets/clock/ClockConfig"], functio
 		},
 		
 		render: function() {
+			console.log("rendering clock widget");	
 			this.el.append("<div id=\"clockWidget\"class=\"span12\"><div id=\"paper\"></div></div>");
 			var availableWidth = $("#clockWidget").width();
 			var edgeWidth =  Math.min(availableWidth, 600);
