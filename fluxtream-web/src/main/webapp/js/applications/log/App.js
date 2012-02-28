@@ -28,7 +28,10 @@ define(["core/Application",
 		fetchState: function(navigate) {
 			nav.fetch({
 				success : function(model, response) {
-					if (navigate) router.navigate("/log/" + response.state);
+					if (navigate) {
+						router.navigate("/home/" + response.state);
+						FlxState.logState = response.state;
+					}
 					$("#currentTimespanLabel").html(response.currentTimespanLabel);
 					Diary.handleComments();
 					updateWidgets();
@@ -46,7 +49,7 @@ define(["core/Application",
 		var now = new Date(),
 			format = 'Y-m-d',
 			today = now.format(format);
-		router.route("/log/date/:date", function(date) {gotoDate(date, true);})
+		router.route("/home/date/:date", function(date) {gotoDate(date, true);})
 		var options = {
 				format: format,
 				date:today,
@@ -59,10 +62,20 @@ define(["core/Application",
 		};
 		bindNavigationEvents();
 		Diary.handleComments();
-		gotoToday();
+		restoreState();
 		if (!window.historyStarted) {
 			Backbone.history.start({pushState: true});
 			window.historyStarted = true;
+		}
+	}
+	
+	function restoreState() {
+		if (typeof(FlxState.logState)=="undefined")
+			gotoToday();
+		else {
+			console.log("restoring state: " + FlxState.logState)
+			nav.url = "/nav/" + FlxState.logState;
+			nav.fetchState(true);
 		}
 	}
 	
