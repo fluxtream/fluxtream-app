@@ -28,8 +28,8 @@ define(["core/Application",
 			nav.fetch({
 				success : function(model, response) {
 					if (navigate) {
-						router.navigate("/home/" + response.state);
-						FlxState.logState = response.state;
+						router.navigate("/app/log/" + response.state);
+						FlxState.saveState("log", response.state);
 					}
 					$("#currentTimespanLabel").html(response.currentTimespanLabel);
 					Diary.handleComments();
@@ -48,7 +48,7 @@ define(["core/Application",
 		var now = new Date(),
 			format = 'Y-m-d',
 			today = now.format(format);
-		router.route("/home/date/:date", function(date) {gotoDate(date, true);})
+		router.route("/app/log/date/:date", function(date) {gotoDate(date, true);})
 		var options = {
 				format: format,
 				date:today,
@@ -69,10 +69,12 @@ define(["core/Application",
 	}
 	
 	function restoreState() {
-		if (typeof(FlxState.logState)=="undefined")
+		var savedState = FlxState.getState("log");
+		console.log("savedState: " + savedState);
+		if (savedState==null) {
 			gotoToday();
-		else {
-			nav.url = "/nav/" + FlxState.logState;
+		} else {
+			nav.url = "/nav/" + FlxState.getState("log");
 			nav.fetchState(true);
 		}
 	}

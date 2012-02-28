@@ -14,9 +14,13 @@ define([], function() {
 		}
 		console.log("path: " + parts.path)
 		var splits = parts.path.split("/");
-		if (splits.length>2&&typeof(splits[1])!="undefined") {
-			console.log("loading " + splits[0]);
-			loadApplication(splits[0]);
+		if (splits[0]==="app"&&typeof(splits[1])!="undefined") {
+			console.log("loading " + splits[1]);
+			var appState = parts.path.substring("app/".length+splits[1].length+1);
+			var appName = splits[1];
+			console.log("appState: " + appState);
+			FlxState.saveState(appName, appState);
+			loadApplication(appName);
 		} else
 			loadApplication("log");
 	}

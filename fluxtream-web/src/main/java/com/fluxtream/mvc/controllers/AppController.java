@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -48,12 +47,12 @@ public class AppController {
 	@Autowired
 	BeanFactory beanFactory;
 
-	@RequestMapping(value = { "main", "", "/", "/welcome" })
+	@RequestMapping(value = {"", "/", "/welcome" })
 	public ModelAndView index(HttpServletRequest request) {
 		Authentication auth = SecurityContextHolder.getContext()
 				.getAuthentication();
 		if (auth != null && auth.isAuthenticated())
-			return new ModelAndView("redirect:/home");
+			return new ModelAndView("redirect:/app");
 		ModelAndView mav = new ModelAndView("index");
 		String release = env.get("release");
 		if (release != null)
@@ -93,27 +92,11 @@ public class AppController {
 		return mav;
 	}
 
-	@RequestMapping(value = "/home")
+	@RequestMapping(value = {"/app*", "/app/**"})
 	public ModelAndView welcomeHome(HttpServletRequest request)
 			throws IOException, NoSuchAlgorithmException {
 		long guestId = ControllerHelper.getGuestId();
 		checkIn(request, guestId);
-		return home(request);
-	}
-
-	@RequestMapping(value = "/home/date/{date}")
-	public ModelAndView date(@PathVariable("date") String date,
-			HttpServletRequest request) throws IOException,
-			NoSuchAlgorithmException {
-
-		long guestId = ControllerHelper.getGuestId();
-		if (request.getSession().getAttribute("homeModel")==null) {
-			checkIn(request, guestId);
-		}
-		HomeModel homeModel = (HomeModel) request.getSession().getAttribute(
-				"homeModel");
-		homeModel.setDate(date);
-
 		return home(request);
 	}
 

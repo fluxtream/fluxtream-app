@@ -3,7 +3,7 @@ define(["core/Application"], function(Application) {
 	var router = new Backbone.Router();
 	
 	function initialize() {
-		router.navigate("/diary");
+		router.navigate("/app/diary");
 		if (!window.historyStarted) {
 			Backbone.history.start({pushState: true});
 			window.historyStarted = true;
