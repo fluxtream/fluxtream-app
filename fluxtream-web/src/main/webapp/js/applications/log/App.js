@@ -11,7 +11,7 @@ define(["core/Application",
 	function updateWidgets() {
 		console.log("updating widgets...");
 		$("#widgets").empty();
-		require(["widgets/clock/ClockWidget"], function(clock) {
+		require(["applications/log/widgets/clock/ClockWidget"], function(clock) {
 			clock.render();
 		});
 	}
@@ -28,7 +28,6 @@ define(["core/Application",
 		fetchState: function(navigate) {
 			nav.fetch({
 				success : function(model, response) {
-					console.log("fetched model");
 					if (navigate) router.navigate("/log/" + response.state);
 					$("#currentTimespanLabel").html(response.currentTimespanLabel);
 					Diary.handleComments();
@@ -66,7 +65,6 @@ define(["core/Application",
 			window.historyStarted = true;
 		}
 	}
-	
 	
 	function incrementTimespan() {
 		nav.url = "/nav/incrementTimespan.json";

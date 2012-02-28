@@ -39,7 +39,7 @@
 						<input type="text" class="search-query" placeholder="Search">
 					</form>
 					<ul class="nav pull-right">
-						<li><div class="btn-group">
+						<li><div class="btn-group" id="apps-menu">
 								<a class="btn" href="javascript:App.loadApplication('bodytrack')"><i class="icon-random"></i></a>
 								<a class="btn" href="javascript:App.loadApplication('log')"><i class="icon-calendar"></i></a>
 								<a class="btn" href="javascript:App.loadApplication('diary')"><i class="icon-pencil"></i></a>
