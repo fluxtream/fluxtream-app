@@ -9,7 +9,6 @@ define(["core/Application",
 	var router = new Backbone.Router();
 	
 	function updateWidgets() {
-		console.log("updating widgets...");
 		$("#widgets").empty();
 		require(["applications/log/widgets/clock/ClockWidget"], function(clock) {
 			clock.render();
@@ -73,7 +72,6 @@ define(["core/Application",
 		if (typeof(FlxState.logState)=="undefined")
 			gotoToday();
 		else {
-			console.log("restoring state: " + FlxState.logState)
 			nav.url = "/nav/" + FlxState.logState;
 			nav.fetchState(true);
 		}
