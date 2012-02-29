@@ -1,13 +1,7 @@
-define(["core/Application"], function(Application) {
-
-	var router = new Backbone.Router();
+define(["core/Application", "core/FlxState"], function(Application, FlxState) {
 	
 	function initialize() {
-		router.navigate("/app/diary");
-		if (!window.historyStarted) {
-			Backbone.history.start({pushState: true});
-			window.historyStarted = true;
-		}
+		FlxState.router.navigate("/app/diary");
 	}
 	
 	var Diary = {};

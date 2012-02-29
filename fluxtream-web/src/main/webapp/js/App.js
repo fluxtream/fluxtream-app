@@ -1,4 +1,4 @@
-define([], function() {
+define(["core/FlxState"], function(FlxState) {
 
 	var application;
 	
@@ -14,6 +14,7 @@ define([], function() {
 		}
 		console.log("path: " + parts.path)
 		var splits = parts.path.split("/");
+		FlxState.router.route("/app/:appName", loadApplication);
 		if (splits[0]==="app"&&typeof(splits[1])!="undefined") {
 			console.log("loading " + splits[1]);
 			var appState = parts.path.substring("app/".length+splits[1].length+1);
@@ -22,10 +23,11 @@ define([], function() {
 			FlxState.saveState(appName, appState);
 			loadApplication(appName);
 		} else
-			loadApplication("log");
+			loadApplication(FlxState.defaultApplication);
 	}
 	
 	function loadApplication(appName) {
+		console.log("loading application: " + appName)
 		require([ "applications/"+ appName + "/App",
 				"text!applications/" + appName + "/template.html" ], function(
 				app, html) {
@@ -34,6 +36,11 @@ define([], function() {
 //			application.destroy();
 			application = app;
 			app.initialize();
+			if (!FlxState.historyStarted) {
+				Backbone.history.start({pushState: true});
+				FlxState.historyStarted = true;
+				console.log("historyStarted: " + Backbone.history);
+			}
 		});
 	}
 

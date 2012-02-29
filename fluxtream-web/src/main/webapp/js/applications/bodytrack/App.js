@@ -1,13 +1,7 @@
-define(["core/Application"], function(Application) {
-
-	var router = new Backbone.Router();
+define(["core/Application", "core/FlxState"], function(Application, FlxState) {
 	
 	function initialize() {
-		router.navigate("/app/bodyTrack");
-		if (!window.historyStarted) {
-			Backbone.history.start({pushState: true});
-			window.historyStarted = true;
-		}
+		FlxState.router.navigate("/app/bodytrack");
 	}
 	
 	var BodyTrack = {};
@@ -16,4 +10,4 @@ define(["core/Application"], function(Application) {
 	BodyTrack.initialize = initialize;
 	return BodyTrack;
 	
-})
+});
