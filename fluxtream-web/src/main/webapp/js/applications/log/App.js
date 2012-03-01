@@ -27,7 +27,7 @@ define(["core/Application",
 			nav.fetch({
 				success : function(model, response) {
 					if (navigate) {
-						FlxState.router.navigate("/app/log/" + response.state);
+						FlxState.router.navigate("app/log/" + response.state);
 						FlxState.saveState("log", response.state);
 					}
 					$("#currentTimespanLabel").html(response.currentTimespanLabel);
@@ -42,12 +42,16 @@ define(["core/Application",
 	});
 	
 	function initialize() {
+		console.log("initializing log app");
+		FlxState.router.route("app/log/date/:date", "", function(date) {gotoDate(date, true);})
+	}
+	
+	function render() {
 		nav = new NavModel();
 		disableSelection();
 		var now = new Date(),
 			format = 'Y-m-d',
 			today = now.format(format);
-		FlxState.router.route("/app/log/date/:date", function(date) {gotoDate(date, true);})
 		var options = {
 				format: format,
 				date:today,
@@ -105,11 +109,10 @@ define(["core/Application",
 			gotoToday(); });
 	}
 	
-	var Log = {};
-	_.extend(Log, Application);
-	Log.name = "log";
+	var Log = new Application("log", "Candide Kemmler", "icon-calendar");
 	Log.gotoDate = gotoDate;
 	Log.initialize = initialize;
+	Log.render = render;
 	return Log;
 
 });

@@ -1,7 +1,8 @@
 define([], function() {
-		
+	
+	console.log("INITIALIZING STATE");
+	
 	var storage = {};
-	var router = new Backbone.Router();
 	
 	function store(appName, urlState) {
 		if (typeof(storage[appName])=="undefined")
@@ -20,9 +21,9 @@ define([], function() {
 	var state = {};
 	state.saveState = store;
 	state.getState = restore;
-	state.router = router;
-	state.historyStarted = false;
-	state.defaultApplication = "diary";
+	state.router = new Backbone.Router();
+	state.apps = ["bodytrack", "log", "diary"];
+	state.defaultApp = "bodytrack";
 	
 	return state;
 });
