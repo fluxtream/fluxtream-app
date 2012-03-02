@@ -17,6 +17,7 @@ define(["core/FlxState"], function(FlxState) {
 	 */
 	Application.prototype.render = function(state) {
 		console.log("showing up application " + this.name);
+		$("#"+this.name+"MenuButton").button('toggle');
 		if (state==="last")
 			state = FlxState.getState(this.name);
 		that = this;

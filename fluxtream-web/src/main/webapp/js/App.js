@@ -35,9 +35,9 @@ define(["core/FlxState"], function(FlxState) {
 	function createAppsMenu(appName, appIcon) {
 		for (var i=0; i<FlxState.apps.length; i++) {
 			var app = apps[FlxState.apps[i]];
-			$("#apps-menu").append("<a class=\"btn\" "
-				+ "href=\"javascript:App.renderApp('" + app.name + "')\">"
-				+ "<i class=\"" + app.icon + "\"></i></a>")
+			$("#apps-menu").append("<button id=\"" + app.name + "MenuButton\" class=\"btn\" "
+				+ "onclick=\"javascript:App.renderApp('" + app.name + "')\">"
+				+ "<i class=\"" + app.icon + "\"></i></button>")
 		}
 	}
 	

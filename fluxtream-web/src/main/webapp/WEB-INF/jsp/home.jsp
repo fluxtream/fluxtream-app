@@ -32,7 +32,7 @@
 						<input type="text" class="search-query" placeholder="Search">
 					</form>
 					<ul class="nav pull-right">
-						<li><div class="btn-group" id="apps-menu">
+						<li><div class="btn-group" id="apps-menu" data-toggle="buttons-radio">
 							</div></li>
 						<li class="divider-vertical"></li>
 						<li class="dropdown"><a href="#" class="dropdown-toggle"
