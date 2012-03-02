@@ -29,7 +29,7 @@ define([], function() {
 					config.clockCircles.push(function() {
 						var path = paper.path(coords);
 						path.attr("stroke-width", config.STROKE_WIDTH)
-						path.attr("stroke", "rgba(0,0,0," + opacity + ")");
+						path.attr("stroke", color);
 						return path;
 					}());
 				}

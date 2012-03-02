@@ -8,19 +8,12 @@
 <meta name="description" content="">
 <meta name="author" content="">
 
-<!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
-<!--[if lt IE 9]>
-      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-
-<!-- Le styles -->
 <link rel="stylesheet/less" href="/${release}/css/flx.less">
 <link rel="stylesheet/less" href="/${release}/css/qtip/jquery.qtip.css">
 <link rel="stylesheet/less" href="/static/less/bootstrap.less">
 <link rel="stylesheet/less" href="/static/less/responsive.less">
 <script src="/static/js/less-1.2.1.min.js"></script>
 
-<!-- Le fav and touch icons -->
 <link rel="shortcut icon" href="/favicon.ico">
 
 </head>
@@ -46,8 +39,8 @@
 							data-toggle="dropdown"><%=request.getAttribute("fullname")%>
 								<b class="caret"></b></a>
 							<ul class="dropdown-menu">
-								<li><a href="#">Settings</a></li>
-								<li><a href="#">Connectors</a></li>
+								<li><a href="javascript:App.settings()">Settings</a></li>
+								<li><a href="javascript:App.connectors()">Connectors</a></li>
 								<li class="divider"></li>
 								<li><a href="/logout">Logout</a></li>
 							</ul></li>
@@ -59,14 +52,12 @@
 
 	<div class="container-fluid application">
 	
-		<!-- here is where the applications go -->
+		<!-- here is where fluxtream apps go -->
 	
 	</div>
-	<!-- /container -->
+	
+	<div id="modal"></div>
 
-	<!-- Le javascript
-    ================================================== -->
-	<!-- Placed at the end of the document so the pages load faster -->
 	<script
 		src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
 	<script>
@@ -74,7 +65,10 @@
 				|| document
 						.write('<script src="/static/js/jquery-1.7.1.min.js"><\/script>')
 	</script>
-	<script src="/static/js/bootstrap-2.0.min.js"></script>
+	<script src="/static/js/bootstrap-button-2.0.1.js"></script>
+	<script src="/static/js/bootstrap-dropdown-2.0.1.js"></script>
+	<script src="/static/js/bootstrap-modal-2.0.1.js"></script>
+	<script src="/static/js/bootstrap-transition-2.0.1.js"></script>
 	<script src="/static/js/raphael-2.0.2.js"></script>
 	<script src="/${release}/js/libs/underscore-1.2.4.js"></script>
 	<script src="/${release}/js/libs/backbone-0.5.3.js"></script>

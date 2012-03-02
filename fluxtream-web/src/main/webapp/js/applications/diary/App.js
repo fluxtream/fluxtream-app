@@ -1,17 +1,16 @@
 define(["core/Application", "core/FlxState"], function(Application, FlxState) {
 	
-	function initialize() {
-		FlxState.router.route("app/diary", "", function() { console.log("hahahahaa"); App.renderApp("diary"); });
+	var Diary = new Application("diary", "Candide Kemmler", "icon-pencil");
+	
+	Diary.initialize = function() {
+		_.bindAll(this);
+		FlxState.router.route("app/diary", "", function() { Diary.render(""); });
 		console.log("initializing diary app");
 	}
 	
-	function render() {
+	Diary.renderState = function(state) {
 		FlxState.router.navigate("app/diary");
 	}
-	
-	var Diary = new Application("diary", "Candide Kemmler", "icon-pencil");
-	Diary.initialize = initialize;
-	Diary.render = render;
 	return Diary;
 	
 })

@@ -1,17 +1,17 @@
 define(["core/Application", "core/FlxState"], function(Application, FlxState) {
+
+	var BodyTrack = new Application("bodytrack", "Anne R. Wright", "icon-random");
 	
-	function initialize() {
-		FlxState.router.route("app/bodytrack", "", function() { App.renderApp("bodytrack"); });
+	BodyTrack.initialize = function () {
+		_.bindAll(this);
 		console.log("initializing bodytrack app");
+		FlxState.router.route("app/bodytrack", "", function() { BodyTrack.render(""); });
 	}
 	
-	function render() {
+	BodyTrack.renderState = function(state) {
 		FlxState.router.navigate("app/bodytrack");
 	}
 	
-	var BodyTrack = new Application("bodytrack", "Anne R. Wright", "icon-random");
-	BodyTrack.initialize = initialize;
-	BodyTrack.render = render;
 	return BodyTrack;
 	
 });

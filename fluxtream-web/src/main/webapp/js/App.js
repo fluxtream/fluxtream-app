@@ -1,6 +1,8 @@
 define(["core/FlxState"], function(FlxState) {
 
+	var App = {};
 	var toLoad = 0, loaded = 0;
+	var apps = {};
 	
 	function initialize() {
 		_.bindAll(this);
@@ -17,12 +19,12 @@ define(["core/FlxState"], function(FlxState) {
 	 */
 	function loadApps() {
 		toLoad = FlxState.apps.length;
+		console.log("loading apps " + apps);
 		for (var i=0; i<FlxState.apps.length; i++) {
 			require([ "applications/"+ FlxState.apps[i] + "/App"], function(app) {
-				console.log("pre-loading app...");
-				App.apps[app.name] = app;
+				apps[app.name] = app;
 				app.initialize();
-				appLoaded();
+				appLoaded(app.name);
 			});
 		}
 	}
@@ -32,7 +34,7 @@ define(["core/FlxState"], function(FlxState) {
 	 */
 	function createAppsMenu(appName, appIcon) {
 		for (var i=0; i<FlxState.apps.length; i++) {
-			var app = App.apps[FlxState.apps[i]];
+			var app = apps[FlxState.apps[i]];
 			$("#apps-menu").append("<a class=\"btn\" "
 				+ "href=\"javascript:App.renderApp('" + app.name + "')\">"
 				+ "<i class=\"" + app.icon + "\"></i></a>")
@@ -42,11 +44,13 @@ define(["core/FlxState"], function(FlxState) {
 	/**
 	 * Application-is-loaded callback
 	 */
-	function appLoaded() {
+	function appLoaded(appName) {
+		console.log("app loaded: " + appName + "/" + apps);
 		// we keep track of how many apps have been loaded
 		loaded++;
 		// when all apps are loaded...
 		if (loaded===toLoad) {
+			App.apps = apps;
 			// we create the top apps menu
 			createAppsMenu();
 			console.log("Backbone.history.start");
@@ -61,6 +65,7 @@ define(["core/FlxState"], function(FlxState) {
 	 * Render main app or the one that's specified in the location bar's contents
 	 */
 	function renderMainApp() {
+		console.log("renderMainApp " + apps);
 		var parse_url = /^(?:([A-Za-z]+):)?(\/{0,3})([0-9.\-A-Za-z]+)(?::(\d+))?(?:\/([^?#]*))?(?:\?([^#]*))?(?:#(.*))?$/;
 		var result = parse_url.exec(window.location.href);
 		var names = ['url', 'scheme', 'slash', 'host', 'port', 'path', 'query', 'hash'];
@@ -76,34 +81,52 @@ define(["core/FlxState"], function(FlxState) {
 			var appName = splits[1];
 			console.log("appState: " + appState);
 			FlxState.saveState(appName, appState);
-			renderApp(appName);
-		} else
-			renderApp(FlxState.defaultApp);
+			App.activeApp = apps[appName];
+			App.activeApp.render(appState);
+		} else {
+			App.activeApp = apps[FlxState.defaultApp];
+			apps[FlxState.defaultApp].render("");
+		}
 	}
 	
-	/**
-	 * Retrieve and dom-insert the html fragment that's associated
-	 * with this app (the one called 'appName'), destroy (unwire) the
-	 * previous app and call render() on the new one
-	 */
 	function renderApp(appName) {
-		console.log("showing up application " + appName);
-		require([ "text!applications/"+ appName + "/template.html"], function(html) {
-			$(".application").empty();
-			$(".application").append(html);
-			if (typeof(App.activeApp)!="undefined")
-				App.activeApp.destroy();
-			App.activeApp = App.apps[appName];
-			App.activeApp.render();
+		App.apps[appName].render("last");
+	}
+	
+	App.settings = function() {
+		$.ajax({
+			url:"/settings/main",
+			success: function(html) {
+				$("#modal").empty();
+				$("#modal").append(html);
+				$("#modal").css("display", "block");
+				var dialog = $(".modal").modal({show: false});
+				dialog.modal("show");
+			}
 		});
 	}
 	
-	var App = {};
+	App.eraseEverything = function() {
+		var confirmed = confirm("Are you sure?");
+	}
+	
+	App.connectors = function() {
+		$.ajax({
+			url:"/connectors/main",
+			success: function(html) {
+				$("#modal").empty();
+				$("#modal").append(html);
+				$("#modal").css("display", "block");
+				var dialog = $(".modal").modal({show: false});
+				dialog.modal("show");
+			}
+		});
+	}
+		
 	App.initialize = initialize;
 	App.renderApp = renderApp;
-	App.apps = {};
-	App.activeApp;
 	window.App = App;
+	console.log("RETURNING GLOBAL APP OBJECT")
 	return App;
 
 });
