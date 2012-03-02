@@ -1,4 +1,4 @@
-define(["core/FlxState"], function(FlxState) {
+define(["core/FlxState", "libs/jquery.form"], function(FlxState) {
 
 	var App = {};
 	var toLoad = 0, loaded = 0;
@@ -99,6 +99,7 @@ define(["core/FlxState"], function(FlxState) {
 			success: function(html) {
 				$("#modal").empty();
 				$("#modal").append(html);
+				$("#settingsForm").ajaxForm(function() {$(".modal").modal("hide");})
 				$("#modal").css("display", "block");
 				var dialog = $(".modal").modal({show: false});
 				dialog.modal("show");
