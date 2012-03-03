@@ -19,7 +19,6 @@ define(function() {
 	}
 	
 	function setDiaryTitle(title) {
-		console.log("setting diary title statusCode");
 		$.ajax({
 			url: "/diary/set/title",
 			data: {"title": title},
@@ -33,7 +32,6 @@ define(function() {
 	}
 
 	function applause(persistent) {
-		console.log("applause");
 		// Use the last visible jGrowl qtip as our positioning target
 		var target = $('.qtip.jgrowl:visible:last');
 

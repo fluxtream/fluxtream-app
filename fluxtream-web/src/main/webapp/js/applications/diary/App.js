@@ -5,7 +5,6 @@ define(["core/Application", "core/FlxState"], function(Application, FlxState) {
 	Diary.initialize = function() {
 		_.bindAll(this);
 		FlxState.router.route("app/diary", "", function() { Diary.render(""); });
-		console.log("initializing diary app");
 	}
 	
 	Diary.renderState = function(state) {

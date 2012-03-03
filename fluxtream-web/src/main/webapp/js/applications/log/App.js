@@ -40,6 +40,9 @@ define(["core/Application",
 	var nav, NavModel = Backbone.Model.extend({
 		url : "/nav/model.json",
 		fetchState: function() {
+			$(".calendar-navigation-button").toggleClass("disabled");
+			$(".loading").show();
+			$("#widgets").css("opacity", ".3");
 			nav.fetch({
 				success : function(model, response) {
 					FlxState.router.navigate("app/log/" + response.state);
@@ -62,6 +65,9 @@ define(["core/Application",
 			log.fetch({
 				success : function(model, response) {
 					updateWidgets(response);
+					$("#widgets").css("opacity", "1");
+					$(".calendar-navigation-button").toggleClass("disabled");
+					$(".loading").hide();
 				},
 				error: function() {
 					alert("error fetching log");
@@ -85,10 +91,10 @@ define(["core/Application",
 	}
 	
 	function initialize() {
-		console.log("initializing log app");
 		nav = new NavModel();
 		log = new LogModel();
 		FlxState.router.route("app/log/date/:date", "", function(date) {
+			console.log("routing-triggered render");
 			Log.render("date/" + date);
 		})
 	}
@@ -109,7 +115,6 @@ define(["core/Application",
 	}
 	
 	function gotoDate(date) {
-		console.log("gotoDate");
 		nav.url = "/nav/setDate.json?date=" + date;
 		nav.fetchState();
 	}

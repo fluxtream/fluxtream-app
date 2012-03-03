@@ -19,7 +19,6 @@ define(["core/FlxState", "libs/jquery.form"], function(FlxState) {
 	 */
 	function loadApps() {
 		toLoad = FlxState.apps.length;
-		console.log("loading apps " + apps);
 		for (var i=0; i<FlxState.apps.length; i++) {
 			require([ "applications/"+ FlxState.apps[i] + "/App"], function(app) {
 				apps[app.name] = app;
@@ -45,7 +44,6 @@ define(["core/FlxState", "libs/jquery.form"], function(FlxState) {
 	 * Application-is-loaded callback
 	 */
 	function appLoaded(appName) {
-		console.log("app loaded: " + appName + "/" + apps);
 		// we keep track of how many apps have been loaded
 		loaded++;
 		// when all apps are loaded...
@@ -53,7 +51,6 @@ define(["core/FlxState", "libs/jquery.form"], function(FlxState) {
 			App.apps = apps;
 			// we create the top apps menu
 			createAppsMenu();
-			console.log("Backbone.history.start");
 			// we start the history
 			Backbone.history.start({pushState: true});
 			// finally we render the default - or url-specified - app
@@ -76,13 +73,11 @@ define(["core/FlxState", "libs/jquery.form"], function(FlxState) {
 			parts[names[i]] = result[i];
 		var splits = parts.path.split("/");
 		if (splits[0]==="app"&&typeof(splits[1])!="undefined") {
-			console.log("loading " + splits[1]);
 			var appState = parts.path.substring("app/".length+splits[1].length+1);
 			var appName = splits[1];
 			console.log("appState: " + appState);
 			FlxState.saveState(appName, appState);
 			App.activeApp = apps[appName];
-			App.activeApp.render(appState);
 		} else {
 			App.activeApp = apps[FlxState.defaultApp];
 			apps[FlxState.defaultApp].render("");
@@ -127,7 +122,6 @@ define(["core/FlxState", "libs/jquery.form"], function(FlxState) {
 	App.initialize = initialize;
 	App.renderApp = renderApp;
 	window.App = App;
-	console.log("RETURNING GLOBAL APP OBJECT")
 	return App;
 
 });

@@ -1,6 +1,7 @@
 define(["applications/log/widgets/clock/ClockdrawingUtils",
         "applications/log/widgets/clock/ClockConfig"], function(DrawingUtils, Config) {
 	
+	var paper = null;
 	var ClockWidget = Backbone.View.extend({
 		
 		el: $("#widgets"),
@@ -11,11 +12,10 @@ define(["applications/log/widgets/clock/ClockdrawingUtils",
 		
 		render : function(digest) {
 			$("#widgets").append("<div id=\"clockWidget\"class=\"span12\"><div id=\"paper\"></div></div>");
-			console.log("added clock widget");
 			var availableWidth = $("#clockWidget").width();
 			var edgeWidth =  Math.min(availableWidth, 600);
 			$("#paper").width(edgeWidth);
-			var paper = Raphael("paper", edgeWidth, edgeWidth);
+			paper = Raphael("paper", edgeWidth, edgeWidth);
 			var config = Config.getConfig(edgeWidth);
 			var drawingUtils = DrawingUtils.getDrawingUtils(config);
 			config.clockCircles = paper.set();
@@ -97,7 +97,6 @@ define(["applications/log/widgets/clock/ClockdrawingUtils",
 						else
 							span = paintSpan(paper, start,(start<=end?end:1440), orbit, color, .9, config);
 						span.node.item = item;
-						console.log("adding an event span, color: " + color);
 						return span;
 					}()
 				);

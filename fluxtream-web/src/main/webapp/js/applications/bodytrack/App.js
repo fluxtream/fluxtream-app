@@ -4,7 +4,6 @@ define(["core/Application", "core/FlxState"], function(Application, FlxState) {
 	
 	BodyTrack.initialize = function () {
 		_.bindAll(this);
-		console.log("initializing bodytrack app");
 		FlxState.router.route("app/bodytrack", "", function() { BodyTrack.render(""); });
 	}
 	

@@ -3,7 +3,6 @@ define([], function() {
 	return {
 
 		getConfig : function(edgeWidth) {
-			console.log("getConfig: " + edgeWidth);
 			var ORBIT_RATIO = edgeWidth / 600;
 
 			return {

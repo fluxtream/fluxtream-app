@@ -56,6 +56,8 @@
 	
 	</div>
 	
+	<%@ include file="footer.jsp"%>
+	
 	<div id="modal"></div>
 
 	<script
