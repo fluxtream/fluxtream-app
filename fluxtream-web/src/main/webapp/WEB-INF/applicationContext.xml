@@ -22,13 +22,6 @@
 	<task:executor id="executorWithPoolSizeRange" pool-size="5-25"
 		rejection-policy="CALLER_RUNS" queue-capacity="100" />
 		
-<!-- 	<bean id="jedisConnectionFactory" class="org.springframework.data.keyvalue.redis.connection.jedis.JedisConnectionFactory" -->
-<!-- 		p:use-pool="true"/> -->
-	  
-<!-- 	redis template definition -->
-<!-- 	<bean id="redisTemplate" class="org.springframework.data.keyvalue.redis.core.RedisTemplate" -->
-<!-- 		p:connection-factory-ref="jedisConnectionFactory"/> -->
-
 	<import resource="spring-quartz.xml" />
 	
     <bean id="velocityEngine" class="org.springframework.ui.velocity.VelocityEngineFactoryBean" 
@@ -77,11 +70,20 @@
 		<property name="entityManagerFactory" ref="entityManagerFactory" />
 	</bean>
 
-	<util:properties id="commonProperties" location="classpath:common.properties"/>
-	<util:properties id="targetEnvProperties" location="classpath:${TARGET_ENV}.properties"/>
-	<util:properties id="connectorsProperties" location="classpath:connectors.properties"/>
-	<util:properties id="oauthProperties" location="classpath:oauth.properties"/>
 	<util:properties id="countries" location="classpath:countries.properties"/>
+
+	<bean id="commonProperties" class="com.fluxtream.AutoReloadProperties">
+		<constructor-arg value="common.properties"/>
+   	</bean>
+	<bean id="targetEnvProperties" class="com.fluxtream.AutoReloadProperties">
+		<constructor-arg value="${TARGET_ENV}.properties"/>
+   	</bean>
+	<bean id="connectorsProperties" class="com.fluxtream.AutoReloadProperties">
+		<constructor-arg value="connectors.properties"/>
+   	</bean>
+	<bean id="oauthProperties" class="com.fluxtream.AutoReloadProperties">
+		<constructor-arg value="oauth.properties"/>
+   	</bean>
 	
 	<bean id="configuration" class="com.fluxtream.Configuration">
 		<property name="commonProperties" ref="commonProperties"/>

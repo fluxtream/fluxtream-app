@@ -95,6 +95,8 @@ public class AppController {
 	@RequestMapping(value = {"/app*", "/app/**"})
 	public ModelAndView welcomeHome(HttpServletRequest request)
 			throws IOException, NoSuchAlgorithmException {
+		if (ControllerHelper.getGuest()==null)
+			return new ModelAndView("redirect:/welcome");
 		long guestId = ControllerHelper.getGuestId();
 		checkIn(request, guestId);
 		return home(request);

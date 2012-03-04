@@ -69,8 +69,8 @@ public class SearchController {
 			facetVos.add(facetVo);
 		}
 
-		int from = page * Integer.valueOf(env.props.get("SEARCH_PAGE_SIZE"));
-		int to = (page + 1) * Integer.valueOf(env.props.get("SEARCH_PAGE_SIZE"));
+		int from = page * Integer.valueOf(env.get("SEARCH_PAGE_SIZE"));
+		int to = (page + 1) * Integer.valueOf(env.get("SEARCH_PAGE_SIZE"));
 		to = to < facetVos.size() ? to : facetVos.size();
 		
 		ModelAndView mav = new ModelAndView("views/digest");
@@ -79,8 +79,8 @@ public class SearchController {
 		facetVos = facetVos.subList(from, to);
 
 		mav.addObject("facets", facetVos);
-		mav.addObject("pageSize", Integer.valueOf(env.props.get("SEARCH_PAGE_SIZE")));
-		mav.addObject("manyPages", Integer.valueOf(env.props.get("MANY_PAGES")));
+		mav.addObject("pageSize", Integer.valueOf(env.get("SEARCH_PAGE_SIZE")));
+		mav.addObject("manyPages", Integer.valueOf(env.get("MANY_PAGES")));
 		mav.addObject("from", from);
 		mav.addObject("to", to);
 		mav.addObject("page", page);

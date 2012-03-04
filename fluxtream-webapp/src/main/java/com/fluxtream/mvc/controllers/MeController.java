@@ -173,8 +173,8 @@ public class MeController {
 		mav.addObject("settings", settings);
 		mav.addObject("helper", facetsHelper);
 		mav.addObject("pageSize",
-				Integer.valueOf(env.props.get("LIST_PAGE_SIZE")));
-		mav.addObject("manyPages", Integer.valueOf(env.props.get("MANY_PAGES")));
+				Integer.valueOf(env.get("LIST_PAGE_SIZE")));
+		mav.addObject("manyPages", Integer.valueOf(env.get("MANY_PAGES")));
 		mav.addObject("format", DateTimeFormat.forPattern("HH:mm"));
 
 		mav.setViewName("views/digest");
@@ -200,8 +200,8 @@ public class MeController {
 	private List<AbstractInstantFacetVO<AbstractFacet>> setPageLimits(int page,
 			ModelAndView mav,
 			List<AbstractInstantFacetVO<AbstractFacet>> facetVos) {
-		int from = page * Integer.valueOf(env.props.get("LIST_PAGE_SIZE"));
-		int to = (page + 1) * Integer.valueOf(env.props.get("LIST_PAGE_SIZE"));
+		int from = page * Integer.valueOf(env.get("LIST_PAGE_SIZE"));
+		int to = (page + 1) * Integer.valueOf(env.get("LIST_PAGE_SIZE"));
 		to = to < facetVos.size() ? to : facetVos.size();
 		mav.addObject("total", facetVos.size());
 		facetVos = facetVos.subList(from, to);

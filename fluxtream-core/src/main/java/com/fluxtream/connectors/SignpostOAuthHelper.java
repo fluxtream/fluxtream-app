@@ -26,7 +26,6 @@ public class SignpostOAuthHelper extends ApiClientSupport {
 			long then = System.currentTimeMillis();
 			URL url = new URL(urlString);
 			HttpURLConnection request = (HttpURLConnection) url.openConnection();
-			env.setProxyAuthHeaders(request);
 			
 			OAuthConsumer consumer = new DefaultOAuthConsumer(
 					getConsumerKey(connector), getConsumerSecret(connector));

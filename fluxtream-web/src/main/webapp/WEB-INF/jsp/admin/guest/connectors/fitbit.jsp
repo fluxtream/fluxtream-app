@@ -19,15 +19,6 @@
 	FitbitAdminHelper fitbitHelper = (FitbitAdminHelper) helper.getHelper("fitbit");
 	String jsonString = "";
 	JSONArray toSleep, toActivity, listOfActivityDays, listOfSleepDays;
-	try {
-		toSleep = helper.loggly.search(guestId, "connector=fitbit AND item=to_sleep");
-		toActivity = helper.loggly.search(guestId, "connector=fitbit AND item=to_activity");
-		listOfActivityDays = helper.loggly.search(guestId, "connector=fitbit AND item=listOfActivityDays");
-		listOfSleepDays = helper.loggly.search(guestId, "connector=fitbit AND item=listOfSleepDays");
-	} catch (Exception e) {
-		String trace = Utils.stackTrace(e);
-		out.print(trace);
-	}
 %>
 
 <div class="row">

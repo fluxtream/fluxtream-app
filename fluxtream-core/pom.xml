@@ -6,7 +6,12 @@
 		<groupId>com.fluxtream</groupId>
 		<version>1.0</version>
 	</parent>
-	<groupId>com.fluxtream</groupId>
 	<artifactId>fluxtream-core</artifactId>
-	<version>1.0</version>
+	<dependencies>
+		<dependency>
+			<groupId>commons-configuration</groupId>
+			<artifactId>commons-configuration</artifactId>
+			<version>1.8</version>
+		</dependency>
+	</dependencies>
 </project>

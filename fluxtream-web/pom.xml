@@ -6,34 +6,10 @@
 		<groupId>com.fluxtream</groupId>
 		<version>1.0</version>
 	</parent>
-	<groupId>com.fluxtream</groupId>
 	<artifactId>fluxtream-web</artifactId>
 	<version>1.0-alpha</version>
 	<packaging>war</packaging>
 	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>buildnumber-maven-plugin</artifactId>
-				<version>1.0-beta-1</version>
-				<executions>
-					<execution>
-						<phase>validate</phase>
-						<goals>
-							<goal>create</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<doCheck>false</doCheck>
-					<doUpdate>true</doUpdate>
-					<format>{0, number}</format>
-					<items>
-						<item>buildNumber0</item>
-					</items>
-				</configuration>
-			</plugin>
-		</plugins>
 		<resources>
 			<resource>
 				<directory>src/main/resources</directory>
@@ -54,4 +30,7 @@
 			<version>1.0</version>
 		</dependency>
 	</dependencies>
+	<properties>
+		<buildNumber>20120403</buildNumber>
+	</properties>
 </project>

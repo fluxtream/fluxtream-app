@@ -59,7 +59,6 @@ public class TwitterOAuthController {
         		"https://api.twitter.com/oauth/access_token",
         		"https://api.twitter.com/oauth/authorize",
         		httpClient);
-        env.setProxyAuthHeaders(provider);
         
 		request.getSession().setAttribute(TWITTER_OAUTH_CONSUMER, consumer);
 		request.getSession().setAttribute(TWITTER_OAUTH_PROVIDER, provider);

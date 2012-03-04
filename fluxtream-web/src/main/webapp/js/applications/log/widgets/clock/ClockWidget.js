@@ -2,38 +2,30 @@ define(["applications/log/widgets/clock/ClockdrawingUtils",
         "applications/log/widgets/clock/ClockConfig"], function(DrawingUtils, Config) {
 	
 	var paper = null;
-	var ClockWidget = Backbone.View.extend({
-		
-		el: $("#widgets"),
-		
-		initialize: function() {
-			_.bindAll(this);
-		},
-		
-		render : function(digest) {
-			$("#widgets").append("<div id=\"clockWidget\"class=\"span12\"><div id=\"paper\"></div></div>");
-			var availableWidth = $("#clockWidget").width();
-			var edgeWidth =  Math.min(availableWidth, 600);
-			$("#paper").width(edgeWidth);
-			paper = Raphael("paper", edgeWidth, edgeWidth);
-			var config = Config.getConfig(edgeWidth);
-			var drawingUtils = DrawingUtils.getDrawingUtils(config);
-			config.clockCircles = paper.set();
-			drawingUtils.paintCircle(paper, config.BODY_CATEGORY.orbit, "#ffffff", 1);
-			drawingUtils.paintCircle(paper, config.AT_HOME_CATEGORY.orbit, "#ffffff", 1);
-			drawingUtils.paintCircle(paper, config.OUTSIDE_CATEGORY.orbit, "#ffffff", 1);
-			drawingUtils.paintCircle(paper, config.MIND_CATEGORY.orbit, "#ffffff", 1);
-			drawingUtils.paintCircle(paper, config.SOCIAL_CATEGORY.orbit, "#ffffff", 1);
-			drawingUtils.paintCircle(paper, config.MEDIA_CATEGORY.orbit, "#ffffff", 1);
-			for(name in digest.cachedData) {
-				if (digest.cachedData[name]==null||typeof(digest.cachedData[name])=="undefined")
-					continue;
-				updateDataDisplay(digest.cachedData[name], name, paper, config);
-			}
+
+	function render(digest) {
+		console.log("this is the newest ClockWidget");
+		$("#widgets").append("<div id=\"clockWidget\"class=\"span12\"><div id=\"paper\"></div></div><div id=\"tooltip\"></div><div id=\"tooltips\"></div>");
+		$("#tooltips").load("/log/tooltips");
+		var availableWidth = $("#clockWidget").width();
+		var edgeWidth =  Math.min(availableWidth, 600);
+		$("#paper").width(edgeWidth);
+		paper = Raphael("paper", edgeWidth, edgeWidth);
+		var config = Config.getConfig(edgeWidth);
+		var drawingUtils = DrawingUtils.getDrawingUtils(config);
+		config.clockCircles = paper.set();
+		drawingUtils.paintCircle(paper, config.BODY_CATEGORY.orbit, "#ffffff", 1);
+		drawingUtils.paintCircle(paper, config.AT_HOME_CATEGORY.orbit, "#ffffff", 1);
+		drawingUtils.paintCircle(paper, config.OUTSIDE_CATEGORY.orbit, "#ffffff", 1);
+		drawingUtils.paintCircle(paper, config.MIND_CATEGORY.orbit, "#ffffff", 1);
+		drawingUtils.paintCircle(paper, config.SOCIAL_CATEGORY.orbit, "#ffffff", 1);
+		drawingUtils.paintCircle(paper, config.MEDIA_CATEGORY.orbit, "#ffffff", 1);
+		for(name in digest.cachedData) {
+			if (digest.cachedData[name]==null||typeof(digest.cachedData[name])=="undefined")
+				continue;
+			updateDataDisplay(digest.cachedData[name], name, paper, config);
 		}
-
-	});
-
+	}
 	
 	function updateDataDisplay(connectorData, connectorInfoId, paper, config) {
 		switch(connectorInfoId) {
@@ -97,6 +89,14 @@ define(["applications/log/widgets/clock/ClockdrawingUtils",
 						else
 							span = paintSpan(paper, start,(start<=end?end:1440), orbit, color, .9, config);
 						span.node.item = item;
+						$(span.node).css("cursor", "pointer");
+						$(span.node).click(function() {
+							showEventInfo(event);
+						});
+						$(span.node).mouseout(function() {
+							hideEventInfo();
+							this.style.cursor = "default";
+						});
 						return span;
 					}()
 				);
@@ -105,6 +105,47 @@ define(["applications/log/widgets/clock/ClockdrawingUtils",
 					console.log("there was an error parsing this json: " + e);
 			}
 		}
+	}
+	
+	var ttpdiv, lastHoveredEvent;
+	
+	function showEventInfo(event) {
+		ttpdiv = $("#tooltip");
+		lastHoveredEvent = event;
+		var span = event.target;
+		var facetId = span.item.id;
+		var facetType = span.item.type;
+		if (facetType=="google_latitude") 
+			return;
+		var tip_y = event.pageY;
+		var tip_x = event.pageX;
+		var tooltip = $("#" + facetType + "_" + facetId);
+		ttpdiv.qtip({
+		   content: {
+		      text: tooltip.html()
+		   },
+		   style: {
+		      classes: 'ui-tooltip-light ui-tooltip-shadow ui-tooltip-rounded',
+		   },
+		   position: {
+	           target: [tip_x,tip_y], // ... in the window
+		   	   my: "top center",
+		   	   adjust: { y: 13 }
+		   },
+	       show: {
+	          ready: true, // Show it straight away
+	       },
+	       hide: {
+			  effect: function(offset) {
+			      $(this).slideDown(100); // "this" refers to the tooltip
+			  },
+			  inactive : 4500	
+	       }
+		});
+	}
+	
+	function hideEventInfo() {
+		ttpdiv.qtip('hide');
 	}
 
 	function arc(center, radius, startAngle, endAngle) {
@@ -138,7 +179,8 @@ define(["applications/log/widgets/clock/ClockdrawingUtils",
 		return path;
 	}	
 	
-	var clockWidget = new ClockWidget();
+	var clockWidget = {};
+	clockWidget.render = render;
 	return clockWidget;
 	
 });
