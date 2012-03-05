@@ -75,7 +75,7 @@ define(["core/FlxState", "libs/jquery.form"], function(FlxState) {
 		if (splits[0]==="app"&&typeof(splits[1])!="undefined") {
 			var appState = parts.path.substring("app/".length+splits[1].length+1);
 			var appName = splits[1];
-			console.log("appState: " + appState);
+			console.log("Main app: appState: " + appState);
 			FlxState.saveState(appName, appState);
 			App.activeApp = apps[appName];
 		} else {
@@ -121,6 +121,7 @@ define(["core/FlxState", "libs/jquery.form"], function(FlxState) {
 		
 	App.initialize = initialize;
 	App.renderApp = renderApp;
+	App.state = FlxState;
 	window.App = App;
 	return App;
 

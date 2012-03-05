@@ -4,8 +4,6 @@ define(["applications/log/widgets/clock/ClockdrawingUtils",
 	var paper = null;
 
 	function render(digest) {
-		console.log("this is the newest ClockWidget");
-		$("#widgets").append("<div id=\"clockWidget\"class=\"span12\"><div id=\"paper\"></div></div><div id=\"tooltip\"></div><div id=\"tooltips\"></div>");
 		$("#tooltips").load("/log/tooltips");
 		var availableWidth = $("#clockWidget").width();
 		var edgeWidth =  Math.min(availableWidth, 600);

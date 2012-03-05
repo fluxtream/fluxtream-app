@@ -18,7 +18,7 @@ define([], function() {
 	state.saveState = store;
 	state.getState = restore;
 	state.router = new Backbone.Router();
-	state.apps = ["bodytrack", "log", "diary"];
+	state.apps = ["bodytrack", "log"];
 	state.defaultApp = "bodytrack";
 	
 	return state;

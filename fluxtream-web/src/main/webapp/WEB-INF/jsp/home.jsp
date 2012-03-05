@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,6 +12,9 @@
 <link rel="stylesheet/less" href="/static/less/bootstrap.less">
 <link rel="stylesheet/less" href="/static/less/responsive.less">
 <script src="/static/js/less-1.2.1.min.js"></script>
+<script
+	src="https://maps-api-ssl.google.com/maps/api/js?libraries=geometry&v=3&sensor=false"
+	type="text/javascript"></script>
 
 <link rel="shortcut icon" href="/favicon.ico">
 
@@ -32,8 +34,8 @@
 						<input type="text" class="search-query" placeholder="Search">
 					</form>
 					<ul class="nav pull-right">
-						<li><div class="btn-group" id="apps-menu" data-toggle="buttons-radio">
-							</div></li>
+						<li><div class="btn-group" id="apps-menu"
+								data-toggle="buttons-radio"></div></li>
 						<li class="divider-vertical"></li>
 						<li class="dropdown"><a href="#" class="dropdown-toggle"
 							data-toggle="dropdown"><%=request.getAttribute("fullname")%>
@@ -51,13 +53,13 @@
 	</div>
 
 	<div class="container-fluid application">
-	
+
 		<!-- here is where fluxtream apps go -->
-	
+
 	</div>
-	
+
 	<%@ include file="footer.jsp"%>
-	
+
 	<div id="modal"></div>
 
 	<script
@@ -65,12 +67,13 @@
 	<script>
 		window.jQuery
 				|| document
-						.write('<script src="/static/js/jquery-1.7.1.min.js"><\/script>')
+						.write('_$tag_________________________________________$tag_____')
 	</script>
 	<script src="/static/js/bootstrap-button-2.0.1.js"></script>
 	<script src="/static/js/bootstrap-dropdown-2.0.1.js"></script>
 	<script src="/static/js/bootstrap-modal-2.0.1.js"></script>
 	<script src="/static/js/bootstrap-transition-2.0.1.js"></script>
+	<script src="/static/js/bootstrap-tab-2.0.1.js"></script>
 	<script src="/static/js/raphael-2.0.2.js"></script>
 	<script src="/${release}/js/libs/underscore-1.2.4.js"></script>
 	<script src="/${release}/js/libs/backbone-0.5.3.js"></script>

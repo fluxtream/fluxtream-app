@@ -16,12 +16,14 @@ define(["core/FlxState"], function(FlxState) {
 	 * previous app and call renderState() on the new one
 	 */
 	Application.prototype.render = function(state) {
-		console.log("showing up application " + this.name);
+		console.log("Application.render: showing up application " + this.name);
 		$("#"+this.name+"MenuButton").button('toggle');
 		if (state==="last")
 			state = FlxState.getState(this.name);
 		that = this;
+		console.log("Application.render: state=" + state);
 		if ($(".application").attr("id")!=this.name) {
+			console.log("Application.Render: loading app " + this.name);
 			require([ "text!applications/"+ this.name + "/template.html"], function(html) {
 				$(".application").attr("id", that.name);
 				$(".application").empty();
@@ -29,11 +31,22 @@ define(["core/FlxState"], function(FlxState) {
 				if (typeof(App.activeApp)!="undefined")
 					App.activeApp.destroy();
 				App.activeApp = App.apps[that.name];
+				App.activeApp.setup();
 				App.activeApp.renderState(state);
 			});
 		} else {
+			console.log("Application.Render: app is already loaded");
 			this.renderState(state);
 		}
+	}
+
+	/**
+	 * Bind controls for intra-app interaction. This is called by the
+	 * render function, when the app's template is loaded
+	 * and dom-inserted
+	 */
+	Application.prototype.setup = function() {
+		console.log("WARNING: SETUP IS NOT IMPLEMENTED")
 	}
 	
 	Application.prototype.renderState = function(state) {

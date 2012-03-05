@@ -3,17 +3,13 @@
 		<a class="btn menuTodayButton calendar-navigation-button">Today</a>&nbsp; <a
 			class="btn menuPrevButton calendar-navigation-button">&lt;</a> <span id="currentTimespanLabel"></span>
 		<a class="btn menuNextButton calendar-navigation-button">&gt;</a>
+		<img class="loading" src="/static/img/loading.gif"/>
 	</div>
 </div>
 <br />
 
-<div class="row-fluid">
-	<div class="span12 editor">
-		<input class="diaryTitle" type="text" placeholder="This day..."></input>
-	</div>
-</div>
-
-<div>
-	<div class="row-fluid loading"><img src="/static/img/ajax-loader.gif"/></div>
+<div id="log-container">
+	<ul class="nav nav-tabs" id="widgetsTab">
+	</ul>
 	<div id="widgets" class="row-fluid"></div>
 </div>
