@@ -3,26 +3,29 @@ define(["applications/log/widgets/clock/ClockdrawingUtils",
 	
 	var paper = null;
 
-	function render(digest) {
-		$("#tooltips").load("/log/tooltips");
-		var availableWidth = $("#clockWidget").width();
-		var edgeWidth =  Math.min(availableWidth, 600);
-		$("#paper").width(edgeWidth);
-		paper = Raphael("paper", edgeWidth, edgeWidth);
-		var config = Config.getConfig(edgeWidth);
-		var drawingUtils = DrawingUtils.getDrawingUtils(config);
-		config.clockCircles = paper.set();
-		drawingUtils.paintCircle(paper, config.BODY_CATEGORY.orbit, "#ffffff", 1);
-		drawingUtils.paintCircle(paper, config.AT_HOME_CATEGORY.orbit, "#ffffff", 1);
-		drawingUtils.paintCircle(paper, config.OUTSIDE_CATEGORY.orbit, "#ffffff", 1);
-		drawingUtils.paintCircle(paper, config.MIND_CATEGORY.orbit, "#ffffff", 1);
-		drawingUtils.paintCircle(paper, config.SOCIAL_CATEGORY.orbit, "#ffffff", 1);
-		drawingUtils.paintCircle(paper, config.MEDIA_CATEGORY.orbit, "#ffffff", 1);
-		for(name in digest.cachedData) {
-			if (digest.cachedData[name]==null||typeof(digest.cachedData[name])=="undefined")
-				continue;
-			updateDataDisplay(digest.cachedData[name], name, paper, config);
-		}
+	function render(digest, timeUnit) {
+		require(["text!applications/log/widgets/clock/clock.html"], function(template) {
+			$("#widgets").append(template);
+			$("#tooltips").load("/log/tooltips");
+			var availableWidth = $("#clockWidget").width();
+			var edgeWidth =  Math.min(availableWidth, 600);
+			$("#paper").width(edgeWidth);
+			paper = Raphael("paper", edgeWidth, edgeWidth);
+			var config = Config.getConfig(edgeWidth);
+			var drawingUtils = DrawingUtils.getDrawingUtils(config);
+			config.clockCircles = paper.set();
+			drawingUtils.paintCircle(paper, config.BODY_CATEGORY.orbit, "#ffffff", 1);
+			drawingUtils.paintCircle(paper, config.AT_HOME_CATEGORY.orbit, "#ffffff", 1);
+			drawingUtils.paintCircle(paper, config.OUTSIDE_CATEGORY.orbit, "#ffffff", 1);
+			drawingUtils.paintCircle(paper, config.MIND_CATEGORY.orbit, "#ffffff", 1);
+			drawingUtils.paintCircle(paper, config.SOCIAL_CATEGORY.orbit, "#ffffff", 1);
+			drawingUtils.paintCircle(paper, config.MEDIA_CATEGORY.orbit, "#ffffff", 1);
+			for(name in digest.cachedData) {
+				if (digest.cachedData[name]==null||typeof(digest.cachedData[name])=="undefined")
+					continue;
+				updateDataDisplay(digest.cachedData[name], name, paper, config);
+			}
+		});
 	}
 	
 	function updateDataDisplay(connectorData, connectorInfoId, paper, config) {
