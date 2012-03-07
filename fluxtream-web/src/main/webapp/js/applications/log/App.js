@@ -16,6 +16,7 @@ define(["core/Application",
 	var Log = new Application("log", "Candide Kemmler", "icon-calendar");
 	
 	Log.currentWidget = widgets["DAY"][0];
+	Log.widgets = widgets;
 	Log.initialize = initialize;
 	Log.timeUnit = "DAY";
 	
@@ -29,8 +30,12 @@ define(["core/Application",
 			console.log("log app: we have state [" + state + "] thus going to specified date");
 			var splits = state.split("/");
 			console.log("log app: " + splits[0]);
-			if (splits[0]!=this.currentWidget)
-				this.currentWidget = splits[0];
+			this.currentWidget = splits[0];
+			if (toTimeUnit(splits[1])!=this.timeUnit) {
+				createTimeUnitsMenu();
+				createWidgetTabs();
+				this.timeUnit = toTimeUnit(splits[1]);
+			}
 			if ("date"===splits[1]) {
 				gotoDate(splits[2]);
 			} else if ("week"===splits[1]) {
@@ -38,6 +43,11 @@ define(["core/Application",
 			} else if ("year"===splits[1]) {
 			}
 		}
+	}
+	
+	function toTimeUnit(urlTimeUnit) {
+		if (urlTimeUnit==="date") return "DAY";
+		return urlTimeUnit.toUpperCase();
 	}
 	
 	Log.setup = function() {
@@ -55,7 +65,39 @@ define(["core/Application",
 					gotoDate($('#currentTimespanLabel').DatePickerGetDate(true));
 				}
 		};
+		console.log("Log.setup!");
 		bindNavigationEvents();
+		$("#calendar-menubar").empty();
+		$("#widgetsTab").empty();
+		createTimeUnitsMenu();
+		createWidgetTabs();
+	}
+	
+	function createTimeUnitsMenu() {
+		var timeUnits = {DAY:1, WEEK:2, MONTH: 3, YEAR:4};
+		delete timeUnits[Log.timeUnit];
+		var markup = "<div class=\"btn-group\" id=\"time-menu\">\
+		<a class=\"btn\" href=\"#\">"
+				+ capitalizeFirstLetter(Log.timeUnit.toLowerCase()) + "</a> <a class=\"btn dropdown-toggle\"\
+			data-toggle=\"dropdown\" href=\"#\"> <span class=\"caret\"></span>\
+		</a>\
+		<ul class=\"dropdown-menu\" id=\"timeUnits\">";
+		for (name in timeUnits) {
+			markup += "<li><a href=\"#\" class=\"" + name + "\">"
+				+ capitalizeFirstLetter(name.toLowerCase())
+				+"</a></li>";
+		}
+		markup += "</ul></div>"
+		$("#calendar-menubar").prepend(markup);
+		for (name in timeUnits) {
+			$("#time-menu a." + name).click(function(event) {
+				Log.timeUnit = $(event.target).attr("class");
+				Log.setup();
+			});
+		}
+	}
+	
+	function createWidgetTabs() {
 		for (var i=0; i<widgets[Log.timeUnit].length; i++) {
 			var tab = "<li>";
 			tab += "<a class=\"" + widgets[Log.timeUnit][i] + "-tab\" widget=" + widgets[Log.timeUnit][i] + " data-toggle=\"tab\">"
@@ -71,7 +113,6 @@ define(["core/Application",
 				Log.renderState(widget+state);
 			});
 		}
-		console.log("showing tab");
 	}
 		
 	var nav, NavModel = Backbone.Model.extend({
