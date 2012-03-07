@@ -21,17 +21,15 @@ define(["core/Application",
 	Log.timeUnit = "DAY";
 	
 	Log.renderState = function(state) {
-		console.log("log app: renderState");
 		if (state==null||state==="") {
-			console.log("log app: no state -> gotoToday()");
 			gotoToday();
 		}
 		else {
-			console.log("log app: we have state [" + state + "] thus going to specified date");
 			var splits = state.split("/");
-			console.log("log app: " + splits[0]);
 			this.currentWidget = splits[0];
 			if (toTimeUnit(splits[1])!=this.timeUnit) {
+				$("#time-menu").remove();
+				$("#widgetsTab").empty();
 				createTimeUnitsMenu();
 				createWidgetTabs();
 				this.timeUnit = toTimeUnit(splits[1]);
@@ -65,9 +63,8 @@ define(["core/Application",
 					gotoDate($('#currentTimespanLabel').DatePickerGetDate(true));
 				}
 		};
-		console.log("Log.setup!");
 		bindNavigationEvents();
-		$("#calendar-menubar").empty();
+		$("#time-menu").remove();
 		$("#widgetsTab").empty();
 		createTimeUnitsMenu();
 		createWidgetTabs();
@@ -113,6 +110,7 @@ define(["core/Application",
 				Log.renderState(widget+state);
 			});
 		}
+		$("."+this.currentWidget + "-tab").parent().addClass("active");
 	}
 		
 	var nav, NavModel = Backbone.Model.extend({
