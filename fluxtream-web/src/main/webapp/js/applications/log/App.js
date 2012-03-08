@@ -75,14 +75,14 @@ define(["core/Application",
 		delete timeUnits[Log.timeUnit];
 		var markup = "<div class=\"btn-group\" id=\"time-menu\">\
 		<a class=\"btn\" href=\"#\">"
-				+ capitalizeFirstLetter(Log.timeUnit.toLowerCase()) + "</a> <a class=\"btn dropdown-toggle\"\
+				+ capitalizeFirstLetter(Log.timeUnit.toLowerCase()) + " View</a> <a class=\"btn dropdown-toggle\"\
 			data-toggle=\"dropdown\" href=\"#\"> <span class=\"caret\"></span>\
 		</a>\
 		<ul class=\"dropdown-menu\" id=\"timeUnits\">";
 		for (name in timeUnits) {
 			markup += "<li><a href=\"#\" class=\"" + name + "\">"
 				+ capitalizeFirstLetter(name.toLowerCase())
-				+"</a></li>";
+				+" View</a></li>";
 		}
 		markup += "</ul></div>"
 		$("#calendar-menubar").prepend(markup);
