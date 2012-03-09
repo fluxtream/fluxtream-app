@@ -79,11 +79,40 @@ public class LogResource {
 	LogHelper logHelper;
 
 	Gson gson = new Gson();
-	
+
+	@GET
+	@Path("/all/week/{year}/{week}")
+	@Produces({ MediaType.APPLICATION_JSON })
+	public String getAllConnectorsWeekData(@PathParam("year") String year,
+			@PathParam("week") String week, @QueryParam("filter") String filter)
+			throws InstantiationException, IllegalAccessException,
+			ClassNotFoundException {
+		return "{}";
+	}
+
+	@GET
+	@Path("/all/month/{year}/{month}")
+	@Produces({ MediaType.APPLICATION_JSON })
+	public String getAllConnectorsMonthData(@PathParam("year") String year,
+			@PathParam("month") String month,
+			@QueryParam("filter") String filter) throws InstantiationException,
+			IllegalAccessException, ClassNotFoundException {
+		return "{}";
+	}
+
+	@GET
+	@Path("/all/year/{year}")
+	@Produces({ MediaType.APPLICATION_JSON })
+	public String getAllConnectorsYearData(@PathParam("year") String year,
+			@QueryParam("filter") String filter) throws InstantiationException,
+			IllegalAccessException, ClassNotFoundException {
+		return "{}";
+	}
+
 	@GET
 	@Path("/all/date/{date}")
 	@Produces({ MediaType.APPLICATION_JSON })
-	public String getAllConnectorsData(@PathParam("date") String date,
+	public String getAllConnectorsDayData(@PathParam("date") String date,
 			@QueryParam("filter") String filter) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
 		DigestModel digest = new DigestModel();
@@ -115,7 +144,7 @@ public class LogResource {
 		setCurrentAddress(digest, guestId, dayMetadata.start);
 		digest.settings = new SettingsModel(settings);
 
-//		NewRelic.setTransactionName(null, "/api/log/all/date");
+		// NewRelic.setTransactionName(null, "/api/log/all/date");
 		return gson.toJson(digest);
 	}
 
@@ -152,7 +181,8 @@ public class LogResource {
 		}
 
 		String json = gson.toJson(day);
-//		NewRelic.setTransactionName(null, "/api/log/" + connectorName + "/date");
+		// NewRelic.setTransactionName(null, "/api/log/" + connectorName +
+		// "/date");
 		return json;
 	}
 
