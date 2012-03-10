@@ -87,18 +87,46 @@ public class NavController {
 		setDate(date, request, response);
 	}
 
-//	@RequestMapping(value = "/nav/setYear.json")
-//	public void setYear(@RequestParam("year") String year,
-//			HttpServletRequest request, HttpServletResponse response)
-//			throws IOException {
-//		logger.info("action=setYear year=" + year);
-//		response.setContentType("application/json; charset=utf-8");
-//		HomeModel homeModel = (HomeModel) request.getSession().getAttribute(
-//				"homeModel");
-//		homeModel.setDate(date);
-//		updateComment(homeModel, request);
-//		response.getWriter().write(homeModel.toJSONString(env, getConfigState(request)));
-//	}
+	@RequestMapping(value = "/nav/setWeek.json")
+	public void setYear(@RequestParam("year") int year,
+			@RequestParam("week") int week,
+			HttpServletRequest request, HttpServletResponse response)
+			throws IOException {
+		logger.info("action=setYear year=" + year);
+		response.setContentType("application/json; charset=utf-8");
+		HomeModel homeModel = (HomeModel) request.getSession().getAttribute(
+				"homeModel");
+		homeModel.setWeek(year, week);
+		updateComment(homeModel, request);
+		response.getWriter().write(homeModel.toJSONString(env, getConfigState(request)));
+	}
+
+	@RequestMapping(value = "/nav/setMonth.json")
+	public void setMonth(@RequestParam("year") int year,
+			@RequestParam("month") int month,
+			HttpServletRequest request, HttpServletResponse response)
+			throws IOException {
+		logger.info("action=setYear year=" + year);
+		response.setContentType("application/json; charset=utf-8");
+		HomeModel homeModel = (HomeModel) request.getSession().getAttribute(
+				"homeModel");
+		homeModel.setMonth(year, month);
+		updateComment(homeModel, request);
+		response.getWriter().write(homeModel.toJSONString(env, getConfigState(request)));
+	}
+
+	@RequestMapping(value = "/nav/setYear.json")
+	public void setYear(@RequestParam("year") int year,
+			HttpServletRequest request, HttpServletResponse response)
+			throws IOException {
+		logger.info("action=setYear year=" + year);
+		response.setContentType("application/json; charset=utf-8");
+		HomeModel homeModel = (HomeModel) request.getSession().getAttribute(
+				"homeModel");
+		homeModel.setYear(year);
+		updateComment(homeModel, request);
+		response.getWriter().write(homeModel.toJSONString(env, getConfigState(request)));
+	}
 
 	@RequestMapping(value = "/nav/setDate.json")
 	public void setDate(@RequestParam("date") String date,

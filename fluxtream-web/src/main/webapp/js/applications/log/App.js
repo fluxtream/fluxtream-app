@@ -188,17 +188,17 @@ define(["core/Application",
 	
 	function gotoWeek(year, week) {
 		console.log("gotoWeek");
-//		fetchState("/nav/setWeek.json?year=" + year + "&week=" + week);
+		fetchState("/nav/setWeek.json?year=" + year + "&week=" + week);
 	}
 	
 	function gotoMonth(year, month) {
 		console.log("gotoMonth");
-//		fetchState("/nav/setMonth.json?year=" + year + "&month=" + month);
+		fetchState("/nav/setMonth.json?year=" + year + "&month=" + month);
 	}
 	
 	function gotoYear(year) {
 		console.log("gotoYear");
-//		fetchState("/nav/setYear.json?year=" + date);
+		fetchState("/nav/setYear.json?year=" + date);
 	}
 	
 	function bindNavigationEvents() {
