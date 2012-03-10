@@ -87,6 +87,19 @@ public class NavController {
 		setDate(date, request, response);
 	}
 
+//	@RequestMapping(value = "/nav/setYear.json")
+//	public void setYear(@RequestParam("year") String year,
+//			HttpServletRequest request, HttpServletResponse response)
+//			throws IOException {
+//		logger.info("action=setYear year=" + year);
+//		response.setContentType("application/json; charset=utf-8");
+//		HomeModel homeModel = (HomeModel) request.getSession().getAttribute(
+//				"homeModel");
+//		homeModel.setDate(date);
+//		updateComment(homeModel, request);
+//		response.getWriter().write(homeModel.toJSONString(env, getConfigState(request)));
+//	}
+
 	@RequestMapping(value = "/nav/setDate.json")
 	public void setDate(@RequestParam("date") String date,
 			HttpServletRequest request, HttpServletResponse response)

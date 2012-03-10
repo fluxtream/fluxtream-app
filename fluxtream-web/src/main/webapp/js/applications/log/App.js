@@ -27,20 +27,24 @@ define(["core/Application",
 		else {
 			var splits = state.split("/");
 			this.currentWidget = splits[0];
-			if (toTimeUnit(splits[1])!=this.timeUnit) {
-				$("#time-menu").remove();
-				$("#widgetsTab").empty();
-				createTimeUnitsMenu();
-				createWidgetTabs();
-				this.timeUnit = toTimeUnit(splits[1]);
-			}
 			if ("date"===splits[1]) {
 				gotoDate(splits[2]);
 			} else if ("week"===splits[1]) {
+				gotoWeek(splits[2]);
 			} else if ("month"===splits[1]) {
+				gotoMonth(splits[2]);
 			} else if ("year"===splits[1]) {
+				gotoYear(splits[2]);
 			}
 		}
+	}
+	
+	Log.setupTimeUnit = function() {
+		console.log("creating time unit widgets...");
+		$("#time-menu").remove();
+		$("#widgetsTab").empty();
+		createTimeUnitsMenu();
+		createWidgetTabs();
 	}
 	
 	function toTimeUnit(urlTimeUnit) {
@@ -49,17 +53,14 @@ define(["core/Application",
 	}
 	
 	Log.setup = function() {
-		nav = new NavModel();
 		bindNavigationEvents();
-		$("#time-menu").remove();
-		$("#widgetsTab").empty();
-		createTimeUnitsMenu();
-		createWidgetTabs();
+		Log.setupTimeUnit();
 	}
 	
 	function createTimeUnitsMenu() {
 		var timeUnits = {DAY:1, WEEK:2, MONTH: 3, YEAR:4};
 		delete timeUnits[Log.timeUnit];
+		console.log("Log.timeUnit:" + Log.timeUnit);
 		var markup = "<div class=\"btn-group\" id=\"time-menu\">\
 		<a class=\"btn\" href=\"#\">"
 				+ capitalizeFirstLetter(Log.timeUnit.toLowerCase()) + " View</a> <a class=\"btn dropdown-toggle\"\
@@ -72,13 +73,13 @@ define(["core/Application",
 				+" View</a></li>";
 		}
 		markup += "</ul></div>"
-		$("#calendar-menubar").prepend(markup);
+		$("#calendar-menubar").append(markup);
 		for (name in timeUnits) {
 			$("#time-menu a." + name).click(function(event) {
 				var timeUnit = $(event.target).attr("class");
-				var capitalized = capitalizeFirstLetter(timeUnit.toLowerCase());
-				nav.url = "/nav/set" + capitalized + "TimeUnit.json";
-				nav.fetchState(true);
+				Log.timeUnit = timeUnit;
+				Log.setupTimeUnit();
+				fetchState("/nav/set" + capitalizeFirstLetter(timeUnit.toLowerCase()) + "TimeUnit.json");
 			});
 		}
 	}
@@ -95,6 +96,7 @@ define(["core/Application",
 			$(currentWidgetTab).click(function(event) {
 				var widget = $(event.target).attr("widget");
 				var state = App.state.getState("log");
+				console.log("clicking a tab, state is " + state);
 				state = state.substring(state.indexOf("/"));
 				Log.renderState(widget+state);
 			});
@@ -102,44 +104,37 @@ define(["core/Application",
 		$("."+this.currentWidget + "-tab").parent().addClass("active");
 	}
 	
-	var nav, NavModel = Backbone.Model.extend({
-		url : "/nav/model.json",
-		lastUrl: null,
-		fetchState: function() {
-			$(".calendar-navigation-button").toggleClass("disabled");
-			$(".loading").show();
-			$("#widgets").css("opacity", ".3");
-			nav.fetch({
-				success : function(model, response) {
-					FlxState.router.navigate("app/log/" + Log.currentWidget + "/" + response.state);
-					FlxState.saveState("log", Log.currentWidget + "/" + response.state);
-					$("#currentTimespanLabel").html(response.currentTimespanLabel);
-					log.url = "/api/log/all/" + response.state;
-					log.fetchLog();
-				},
-				error : function() {
-					alert("error");
-				}
-			});
-		}
-	});
+	function fetchState(url) {
+		$(".calendar-navigation-button").toggleClass("disabled");
+		$(".loading").show();
+		$("#widgets").css("opacity", ".3");
+		$.ajax({ url:url,
+			success : function(response) {
+				FlxState.router.navigate("app/log/" + Log.currentWidget + "/" + response.state, {trigger: false});
+				FlxState.saveState("log", Log.currentWidget + "/" + response.state);
+				$("#currentTimespanLabel").html(response.currentTimespanLabel);
+				fetchLog("/api/log/all/" + response.state);
+			},
+			error : function() {
+				alert("error");
+			}
+		});
+	}
+
 	
-	var log, LogModel = Backbone.Model.extend({
-		url : "",
-		fetchLog: function() {
-			log.fetch({
-				success : function(model, response) {
-					updateWidget(response);
-					$("#widgets").css("opacity", "1");
-					$(".calendar-navigation-button").toggleClass("disabled");
-					$(".loading").hide();
-				},
-				error: function() {
-					alert("error fetching log");
-				}
-			});
-		}
-	});
+	function fetchLog(url) {
+		$.ajax({ url: url,
+			success : function(response) {
+				updateWidget(response);
+				$("#widgets").css("opacity", "1");
+				$(".calendar-navigation-button").toggleClass("disabled");
+				$(".loading").hide();
+			},
+			error: function() {
+				alert("error fetching log");
+			}
+		});
+	}
 	
 	function updateWidget(digest) {
 		$("#widgets").empty();
@@ -158,34 +153,52 @@ define(["core/Application",
 
 	function initialize() {
 		_.bindAll(this);
-		nav = new NavModel();
-		log = new LogModel();
 		for (var i=0; i<widgets[Log.timeUnit].length; i++) {
-			var route = "app/log/:widget/date/:date";
-			FlxState.router.route(route, "", function(widget, date) {
-				Log.render(widget + "/" + "date/" + date);
+			FlxState.router.route("app/log/:widget/date/:date", "", function(widget, date) {
+				Log.render(widget + "/date/" + date);
+			})
+			FlxState.router.route("app/log/:widget/year/:year", "", function(widget, year) {
+				Log.render(widget + "/year/" + year);
+			})
+			FlxState.router.route("app/log/:widget/month/:year/:month", "", function(widget, year, month) {
+				Log.render(widget + "/month/" + year + "/" + month);
+			})
+			FlxState.router.route("app/log/:widget/week/:year/:week", "", function(widget, year, week) {
+				Log.render(widget + "/week/" + year + "/" + week);
 			})
 		}
 	}
 	
 	function incrementTimespan() {
-		nav.url = "/nav/incrementTimespan.json";
-		nav.fetchState(true);
+		fetchState("/nav/incrementTimespan.json");
 	}
 	
 	function decrementTimespan() {
-		nav.url = "/nav/decrementTimespan.json";
-		nav.fetchState(true);
+		fetchState("/nav/decrementTimespan.json");
 	}
 	
 	function gotoToday() {
-		nav.url = "/nav/setToToday.json";
-		nav.fetchState(true);
+		fetchState("/nav/setToToday.json");
 	}
 	
 	function gotoDate(date) {
-		nav.url = "/nav/setDate.json?date=" + date;
-		nav.fetchState();
+		console.log("gotoDate");
+		fetchState("/nav/setDate.json?date=" + date);
+	}
+	
+	function gotoWeek(year, week) {
+		console.log("gotoWeek");
+//		fetchState("/nav/setWeek.json?year=" + year + "&week=" + week);
+	}
+	
+	function gotoMonth(year, month) {
+		console.log("gotoMonth");
+//		fetchState("/nav/setMonth.json?year=" + year + "&month=" + month);
+	}
+	
+	function gotoYear(year) {
+		console.log("gotoYear");
+//		fetchState("/nav/setYear.json?year=" + date);
 	}
 	
 	function bindNavigationEvents() {
