@@ -30,9 +30,9 @@ define(["core/Application",
 			if ("date"===splits[1]) {
 				gotoDate(splits[2]);
 			} else if ("week"===splits[1]) {
-				gotoWeek(splits[2]);
+				gotoWeek(splits[2], splits[3]);
 			} else if ("month"===splits[1]) {
-				gotoMonth(splits[2]);
+				gotoMonth(splits[2], splits[3]);
 			} else if ("year"===splits[1]) {
 				gotoYear(splits[2]);
 			}
@@ -40,7 +40,6 @@ define(["core/Application",
 	}
 	
 	Log.setupTimeUnit = function() {
-		console.log("creating time unit widgets...");
 		$("#time-menu").remove();
 		$("#widgetsTab").empty();
 		createTimeUnitsMenu();
@@ -60,7 +59,6 @@ define(["core/Application",
 	function createTimeUnitsMenu() {
 		var timeUnits = {DAY:1, WEEK:2, MONTH: 3, YEAR:4};
 		delete timeUnits[Log.timeUnit];
-		console.log("Log.timeUnit:" + Log.timeUnit);
 		var markup = "<div class=\"btn-group\" id=\"time-menu\">\
 		<a class=\"btn\" href=\"#\">"
 				+ capitalizeFirstLetter(Log.timeUnit.toLowerCase()) + " View</a> <a class=\"btn dropdown-toggle\"\
@@ -96,7 +94,6 @@ define(["core/Application",
 			$(currentWidgetTab).click(function(event) {
 				var widget = $(event.target).attr("widget");
 				var state = App.state.getState("log");
-				console.log("clicking a tab, state is " + state);
 				state = state.substring(state.indexOf("/"));
 				Log.renderState(widget+state);
 			});
@@ -182,23 +179,19 @@ define(["core/Application",
 	}
 	
 	function gotoDate(date) {
-		console.log("gotoDate");
 		fetchState("/nav/setDate.json?date=" + date);
 	}
 	
 	function gotoWeek(year, week) {
-		console.log("gotoWeek");
 		fetchState("/nav/setWeek.json?year=" + year + "&week=" + week);
 	}
 	
 	function gotoMonth(year, month) {
-		console.log("gotoMonth");
 		fetchState("/nav/setMonth.json?year=" + year + "&month=" + month);
 	}
 	
 	function gotoYear(year) {
-		console.log("gotoYear");
-		fetchState("/nav/setYear.json?year=" + date);
+		fetchState("/nav/setYear.json?year=" + year);
 	}
 	
 	function bindNavigationEvents() {
