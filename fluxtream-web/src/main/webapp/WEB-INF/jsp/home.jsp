@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="/static/css/bootstrap-2.0.2.min.css">
 <link rel="stylesheet" href="/static/css/bootstrap-responsive-2.0.2.min.css">
 <link rel="stylesheet" href="/${release}/css/flx.css">
-<link rel="stylesheet" href="/${release}/css/qtip/jquery.qtip.css">
+<link rel="stylesheet" href="/${release}/css/qtip/jquery.qtip.min.css">
 <script
 	src="https://maps-api-ssl.google.com/maps/api/js?libraries=geometry&v=3&sensor=false"
 	type="text/javascript"></script>

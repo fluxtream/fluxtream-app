@@ -1,6 +1,6 @@
 define(["core/Application",
         "core/FlxState",
-        "libs/jquery.qtip"],
+        "libs/jquery.qtip.min"],
         function(Application, FlxState)
 {
 	
