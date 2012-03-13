@@ -1,4 +1,4 @@
-package com.fluxtream.mvc.models;
+package com.fluxtream.mvc.models.guest;
 
 import com.fluxtream.domain.Guest;
 

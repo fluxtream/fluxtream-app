@@ -1,7 +1,8 @@
 define([], function() {
 	
 	function render(digest, timeUnit) {
-		require(["text!applications/log/widgets/summary/summary.html"], function(template) {
+		console.log("timeUnit: " + timeUnit);
+		require(["text!applications/log/widgets/summary/" + timeUnit.toLowerCase() + "Summary.html"], function(template) {
 			$("#widgets").append(template);
 		});
 	}

@@ -98,7 +98,6 @@ define(["core/Application",
 				Log.renderState(widget+state);
 			});
 		}
-		$("."+this.currentWidget + "-tab").parent().addClass("active");
 	}
 	
 	function fetchState(url) {
@@ -152,18 +151,32 @@ define(["core/Application",
 		_.bindAll(this);
 		for (var i=0; i<widgets[Log.timeUnit].length; i++) {
 			FlxState.router.route("app/log/:widget/date/:date", "", function(widget, date) {
-				Log.render(widget + "/date/" + date);
-			})
+				var w = widgetExistsForTimeUnit(widget, Log.timeUnit)?widget:widgets[Log.timeUnit][0];
+				Log.render(w + "/date/" + date);
+			});
 			FlxState.router.route("app/log/:widget/year/:year", "", function(widget, year) {
-				Log.render(widget + "/year/" + year);
-			})
+				var w = widgetExistsForTimeUnit(widget, Log.timeUnit)?widget:widgets[Log.timeUnit][0];
+				Log.render(w + "/year/" + year);
+			});
 			FlxState.router.route("app/log/:widget/month/:year/:month", "", function(widget, year, month) {
-				Log.render(widget + "/month/" + year + "/" + month);
-			})
+				var w = widgetExistsForTimeUnit(widget, Log.timeUnit)?widget:widgets[Log.timeUnit][0];
+				Log.render(w + "/month/" + year + "/" + month);
+			});
 			FlxState.router.route("app/log/:widget/week/:year/:week", "", function(widget, year, week) {
-				Log.render(widget + "/week/" + year + "/" + week);
-			})
+				var w = widgetExistsForTimeUnit(widget, Log.timeUnit)?widget:widgets[Log.timeUnit][0];
+				Log.render(w + "/week/" + year + "/" + week);
+			});
 		}
+	}
+	
+	function widgetExistsForTimeUnit(widget, unit) {
+		var widgetExistsForTimeUnit = false;
+		for (var i=0; i<widgets[unit].length; i++) {
+			if (widgets[unit][i]===widget)
+				widgetExistsForTimeUnit = true;
+		}
+		console.log("widgetExistsForTimeUnit: " + widgetExistsForTimeUnit);
+		return widgetExistsForTimeUnit;
 	}
 	
 	function incrementTimespan() {
@@ -191,7 +204,7 @@ define(["core/Application",
 	}
 	
 	function gotoYear(year) {
-		fetchState("/nav/setYear.json?year=" + year);
+		fetchState("/nav/setYear.json?year=" + year));
 	}
 	
 	function bindNavigationEvents() {

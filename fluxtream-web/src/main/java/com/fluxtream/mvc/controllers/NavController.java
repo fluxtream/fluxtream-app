@@ -88,16 +88,15 @@ public class NavController {
 	}
 
 	@RequestMapping(value = "/nav/setWeek.json")
-	public void setYear(@RequestParam("year") int year,
+	public void setWeek(@RequestParam("year") int year,
 			@RequestParam("week") int week,
 			HttpServletRequest request, HttpServletResponse response)
 			throws IOException {
-		logger.info("action=setYear year=" + year);
+		logger.info("action=setWeek year=" + year + " week=" + week);
 		response.setContentType("application/json; charset=utf-8");
 		HomeModel homeModel = (HomeModel) request.getSession().getAttribute(
 				"homeModel");
 		homeModel.setWeek(year, week);
-		updateComment(homeModel, request);
 		response.getWriter().write(homeModel.toJSONString(env, getConfigState(request)));
 	}
 
@@ -106,12 +105,11 @@ public class NavController {
 			@RequestParam("month") int month,
 			HttpServletRequest request, HttpServletResponse response)
 			throws IOException {
-		logger.info("action=setYear year=" + year);
+		logger.info("action=setMonth year=" + year + " month=" + month);
 		response.setContentType("application/json; charset=utf-8");
 		HomeModel homeModel = (HomeModel) request.getSession().getAttribute(
 				"homeModel");
 		homeModel.setMonth(year, month);
-		updateComment(homeModel, request);
 		response.getWriter().write(homeModel.toJSONString(env, getConfigState(request)));
 	}
 
@@ -124,7 +122,6 @@ public class NavController {
 		HomeModel homeModel = (HomeModel) request.getSession().getAttribute(
 				"homeModel");
 		homeModel.setYear(year);
-		updateComment(homeModel, request);
 		response.getWriter().write(homeModel.toJSONString(env, getConfigState(request)));
 	}
 

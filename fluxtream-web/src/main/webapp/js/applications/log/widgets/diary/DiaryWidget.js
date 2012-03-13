@@ -1,7 +1,7 @@
 define(["applications/log/widgets/diary/Status"], function(status) {
 	
-	function render(digest) {
-		require(["text!applications/log/widgets/diary/diary.html"], function(template) {
+	function render(digest, timeUnit) {
+		require(["text!applications/log/widgets/diary/" + timeUnit.toLowerCase() + "Diary.html"], function(template) {
 			$("#widgets").append(template);
 			status.handleComments();
 		});
