@@ -87,6 +87,7 @@ define(["core/Application",
 		for (var i=0; i<widgets[Log.timeUnit].length; i++) {
 			var tab = "<li>";
 			tab += "<a class=\"" + widgets[Log.timeUnit][i] + "-tab\" widget=" + widgets[Log.timeUnit][i] + " data-toggle=\"tab\">"
+				+ "<i class=\"icon-camera-retro\"></i>"
 				+ capitalizeFirstLetter(widgets[Log.timeUnit][i])
 				+ "</a></li>";
 			$("#widgetsTab").append(tab);
