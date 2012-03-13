@@ -10,6 +10,7 @@
 <link rel="stylesheet" href="/static/css/bootstrap-2.0.2.min.css">
 <link rel="stylesheet" href="/static/css/bootstrap-responsive-2.0.2.min.css">
 <link rel="stylesheet" href="/${release}/css/flx.css">
+<link rel="stylesheet" href="/${release}/css/bodytrack.css">
 <link rel="stylesheet" href="/${release}/css/font-awesome.css">
 <link rel="stylesheet" href="/${release}/css/qtip/jquery.qtip.min.css">
 <script
@@ -38,13 +39,13 @@
 								data-toggle="buttons-radio"></div></li>
 						<li class="divider-vertical"></li>
 						<li class="dropdown"><a href="#" class="dropdown-toggle"
-							data-toggle="dropdown"><%=request.getAttribute("fullname")%>
+							data-toggle="dropdown"><%=request.getAttribute("fullname")%> <i class="icon-user"></i>
 								<b class="caret"></b></a>
 							<ul class="dropdown-menu">
-								<li><a href="javascript:App.settings()">Settings</a></li>
+								<li><a href="javascript:App.settings()">Settings <i class="icon-cogs"></i></a></li>
 								<li><a href="javascript:App.connectors()">Connectors</a></li>
 								<li class="divider"></li>
-								<li><a href="/logout">Logout</a></li>
+								<li><a href="/logout">Logout <i style="float-right" class="icon-signout"></i></a></li>
 							</ul></li>
 					</ul>
 				</div>

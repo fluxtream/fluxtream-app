@@ -10,8 +10,20 @@ define(["core/Application",
 		"DAY":["clock", "summary", "map", "diary", "photos"],
 		"WEEK":["summary", "map", "diary", "photos"],
 		"MONTH":["summary", "map", "diary", "photos"],
-		"YEAR":["summary", "map", "diary", "photos"]
+		"YEAR":["summary", "map", "diary", "photos"],
+		"CONTINUOUS":["timeline", "views", "list"]
 	};
+	
+	var widget_icons = {
+		clock: "icon-time",
+		summary: "icon-bar-chart",
+		map: "icon-map-marker",
+		diary: "icon-pencil",
+		photos: "icon-camera",
+		timeline: "icon-star",
+		views: "icon-star",
+		list: "icon-star"
+	}
 	
 	var Log = new Application("log", "Candide Kemmler", "icon-calendar");
 	
@@ -58,7 +70,7 @@ define(["core/Application",
 	
 	function createTimeUnitsMenu() {
 		console.log("creating time units menu...");
-		var timeUnits = {DAY:1, WEEK:2, MONTH: 3, YEAR:4};
+		var timeUnits = {DAY:1, WEEK:2, MONTH: 3, YEAR:4, CONTINUOUS:5};
 		delete timeUnits[Log.timeUnit];
 		var markup = "<div class=\"btn-group\" id=\"time-menu\">\
 		<a class=\"btn\" href=\"#\">"
@@ -87,7 +99,7 @@ define(["core/Application",
 		for (var i=0; i<widgets[Log.timeUnit].length; i++) {
 			var tab = "<li>";
 			tab += "<a class=\"" + widgets[Log.timeUnit][i] + "-tab\" widget=" + widgets[Log.timeUnit][i] + " data-toggle=\"tab\">"
-				+ "<i class=\"icon-camera-retro\"></i>"
+				+ "<i class=\"" + widget_icons[widgets[Log.timeUnit][i]] + "\"></i> "
 				+ capitalizeFirstLetter(widgets[Log.timeUnit][i])
 				+ "</a></li>";
 			$("#widgetsTab").append(tab);
