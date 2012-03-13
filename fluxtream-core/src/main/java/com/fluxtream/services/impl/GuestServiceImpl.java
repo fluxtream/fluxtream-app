@@ -98,6 +98,7 @@ public class GuestServiceImpl implements GuestService {
 		guest.lastname = lastname;
 		setPassword(guest, password);
 		em.persist(guest);
+//		createBodyTrackUser()....
 		return guest;
 	}
 

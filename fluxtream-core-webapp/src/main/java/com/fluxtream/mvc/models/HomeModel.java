@@ -113,6 +113,10 @@ public class HomeModel {
 		return tz;
 	}
 
+	public void setContinuous() {
+		this.timeUnit = TimeUnit.YEAR;
+	}
+
 	public void setYear(int year) {
 		setYearTimeUnit();
 		fromCalendar.set(Calendar.YEAR, year);
@@ -289,6 +293,9 @@ public class HomeModel {
 			currentTimespanLabel = currentYearFormatter.withZone(
 					DateTimeZone.forTimeZone(tz)).print(
 					fromCalendar.getTimeInMillis());
+			break;
+		case CONTINUOUS:
+			currentTimespanLabel = "";
 			break;
 		}
 

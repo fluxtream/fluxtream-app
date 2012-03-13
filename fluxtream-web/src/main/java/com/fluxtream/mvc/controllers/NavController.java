@@ -209,5 +209,17 @@ public class NavController {
 		updateComment(homeModel, request);
 		response.getWriter().write(homeModel.toJSONString(env, getConfigState(request)));
 	}
+
+	@RequestMapping(value = "/nav/setContinuousTimeUnit.json")
+	public void setContinuousTimeUnit(HttpServletRequest request,
+			HttpServletResponse response) throws IOException {
+		response.setContentType("application/json; charset=utf-8");
+		HomeModel homeModel = (HomeModel) request.getSession().getAttribute(
+				"homeModel");
+		homeModel.setContinuous();
+		logger.info("action=setContinuousTimeUnit");
+		updateComment(homeModel, request);
+		response.getWriter().write(homeModel.toJSONString(env, getConfigState(request)));
+	}
 	
 }
