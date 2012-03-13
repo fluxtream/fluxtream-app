@@ -66,6 +66,7 @@ public class PicasaUpdater extends AbstractGoogleOAuthUpdater {
 					new OAuthHmacSha1Signer());
 			Query myQuery = new Query(feedUrl);
 			myQuery.setStringCustomParameter("kind", "photo");
+			myQuery.setStringCustomParameter("max-results", "1000000");
 
 			AlbumFeed resultFeed = myService.query(myQuery, AlbumFeed.class);
 
