@@ -25,6 +25,7 @@ define(["core/FlxState"], function(FlxState) {
 		if ($(".application").attr("id")!=this.name) {
 			console.log("Application.Render: loading app " + this.name);
 			require([ "text!applications/"+ this.name + "/template.html"], function(html) {
+				console.log("loaded application template");
 				$(".application").attr("id", that.name);
 				$(".application").empty();
 				$(".application").append(html);

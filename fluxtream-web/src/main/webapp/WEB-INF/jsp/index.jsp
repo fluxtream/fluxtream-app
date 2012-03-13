@@ -14,11 +14,10 @@
     <![endif]-->
 
     <!-- Le styles -->
-	<link rel="stylesheet/less" href="/static/less/bootstrap.less">
-	<link rel="stylesheet/less" href="/${release}/css/flx.less">
-	<script src="/static/js/less-1.2.1.min.js"></script>
-    
-    <link href="/static/css/bootstrap-responsive-2.0.css" rel="stylesheet">
+	<link rel="stylesheet" href="/static/css/bootstrap-2.0.2.min.css">
+	<link rel="stylesheet" href="/static/css/bootstrap-responsive-2.0.2.min.css">
+	<link rel="stylesheet" href="/${release}/css/flx.css">
+	<link rel="stylesheet" href="/${release}/css/qtip/jquery.qtip.css">
 
     <!-- Le fav and touch icons -->
     <link rel="shortcut icon" href="/favicon.ico">
@@ -64,7 +63,7 @@
     <!-- Placed at the end of the document so the pages load faster -->
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
 	<script>window.jQuery || document.write('<script src="/static/js/jquery-1.7.1.min.js"><\/script>')</script>
-    <script src="/static/js/bootstrap-2.0.min.js"></script>
+    <script src="/static/js/bootstrap-2.0.2.min.js"></script>
     <script src="/${release}/js/welcome.js"></script>
 
   </body>

@@ -57,6 +57,7 @@ define(["core/Application",
 	}
 	
 	function createTimeUnitsMenu() {
+		console.log("creating time units menu...");
 		var timeUnits = {DAY:1, WEEK:2, MONTH: 3, YEAR:4};
 		delete timeUnits[Log.timeUnit];
 		var markup = "<div class=\"btn-group\" id=\"time-menu\">\
@@ -204,7 +205,7 @@ define(["core/Application",
 	}
 	
 	function gotoYear(year) {
-		fetchState("/nav/setYear.json?year=" + year));
+		fetchState("/nav/setYear.json?year=" + year);
 	}
 	
 	function bindNavigationEvents() {

@@ -7,11 +7,10 @@
 <meta name="description" content="">
 <meta name="author" content="">
 
-<link rel="stylesheet/less" href="/${release}/css/flx.less">
-<link rel="stylesheet/less" href="/${release}/css/qtip/jquery.qtip.css">
-<link rel="stylesheet/less" href="/static/less/bootstrap.less">
-<link rel="stylesheet/less" href="/static/less/responsive.less">
-<script src="/static/js/less-1.2.1.min.js"></script>
+<link rel="stylesheet" href="/static/css/bootstrap-2.0.2.min.css">
+<link rel="stylesheet" href="/static/css/bootstrap-responsive-2.0.2.min.css">
+<link rel="stylesheet" href="/${release}/css/flx.css">
+<link rel="stylesheet" href="/${release}/css/qtip/jquery.qtip.css">
 <script
 	src="https://maps-api-ssl.google.com/maps/api/js?libraries=geometry&v=3&sensor=false"
 	type="text/javascript"></script>
@@ -70,11 +69,7 @@
 				|| document
 						.write('_$tag_________________________________________$tag_____')
 	</script>
-	<script src="/static/js/bootstrap-button-2.0.1.js"></script>
-	<script src="/static/js/bootstrap-dropdown-2.0.1.js"></script>
-	<script src="/static/js/bootstrap-modal-2.0.1.js"></script>
-	<script src="/static/js/bootstrap-transition-2.0.1.js"></script>
-	<script src="/static/js/bootstrap-tab-2.0.1.js"></script>
+	<script src="/static/js/bootstrap-2.0.2.min.js"></script>
 	<script src="/static/js/raphael-2.0.2.js"></script>
 	<script src="/${release}/js/libs/underscore-1.2.4.js"></script>
 	<script src="/${release}/js/libs/backbone-0.5.3.js"></script>

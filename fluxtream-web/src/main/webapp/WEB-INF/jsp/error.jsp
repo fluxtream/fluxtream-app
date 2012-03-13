@@ -3,7 +3,7 @@
 %><%@ page isELIgnored="false"
 %><%@ page import="com.fluxtream.*" %>
 <html><head>
-  	<link type="text/css" rel="stylesheet" href="/${release}/css/flx.css">
+  	<link type="text/css" rel="stylesheet" href="/${release}/css/flux.css">
 	<script>
 	
 	function toggleMessageDetails() {
