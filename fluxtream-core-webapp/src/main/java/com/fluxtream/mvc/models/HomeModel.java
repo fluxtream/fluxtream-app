@@ -113,10 +113,6 @@ public class HomeModel {
 		return tz;
 	}
 
-	public void setContinuous() {
-		this.timeUnit = TimeUnit.YEAR;
-	}
-
 	public void setYear(int year) {
 		setYearTimeUnit();
 		fromCalendar.set(Calendar.YEAR, year);
@@ -243,6 +239,8 @@ public class HomeModel {
 					+ fromCalendar.get(Calendar.MONTH);
 		else if (timeUnit == TimeUnit.YEAR)
 			return "year/" + fromCalendar.get(Calendar.YEAR);
+		else if (timeUnit == TimeUnit.CONTINUOUS)
+			return "continuous";
 		return "UNKNOWN_DATE";
 	}
 
@@ -410,4 +408,9 @@ public class HomeModel {
 		toCalendar = TimeUtils.setToMidnight(toCalendar);
 		this.viewType = this.aggregatedVisualizationType;
 	}
+	
+	public void setContinuousTimeUnit() {
+		this.timeUnit = TimeUnit.CONTINUOUS;
+	}
+	
 }

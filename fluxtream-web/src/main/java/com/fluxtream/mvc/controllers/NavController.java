@@ -194,7 +194,6 @@ public class NavController {
 				"homeModel");
 		homeModel.setMonthTimeUnit();
 		logger.info("action=setMonthTimeUnit");
-		updateComment(homeModel, request);
 		response.getWriter().write(homeModel.toJSONString(env, getConfigState(request)));
 	}
 
@@ -206,7 +205,6 @@ public class NavController {
 				"homeModel");
 		homeModel.setYearTimeUnit();
 		logger.info("action=setYearTimeUnit");
-		updateComment(homeModel, request);
 		response.getWriter().write(homeModel.toJSONString(env, getConfigState(request)));
 	}
 
@@ -216,9 +214,8 @@ public class NavController {
 		response.setContentType("application/json; charset=utf-8");
 		HomeModel homeModel = (HomeModel) request.getSession().getAttribute(
 				"homeModel");
-		homeModel.setContinuous();
+		homeModel.setContinuousTimeUnit();
 		logger.info("action=setContinuousTimeUnit");
-		updateComment(homeModel, request);
 		response.getWriter().write(homeModel.toJSONString(env, getConfigState(request)));
 	}
 	

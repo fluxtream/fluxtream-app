@@ -18,8 +18,8 @@ define([], function() {
 	state.saveState = store;
 	state.getState = restore;
 	state.router = new Backbone.Router();
-	state.apps = ["bodytrack", "log"];
-	state.defaultApp = "bodytrack";
+	state.apps = ["objectives", "log"];
+	state.defaultApp = "log";
 	
 	return state;
 });

@@ -71,10 +71,11 @@
 				|| document
 						.write('_$tag_________________________________________$tag_____')
 	</script>
+	<script src="/static/js/json2.js"></script>
 	<script src="/static/js/bootstrap-2.0.2.min.js"></script>
 	<script src="/static/js/raphael-2.0.2.js"></script>
-	<script src="/${release}/js/libs/underscore-1.2.4.js"></script>
-	<script src="/${release}/js/libs/backbone-0.5.3.js"></script>
+	<script src="/${release}/js/libs/underscore-1.3.1-min.js"></script>
+	<script src="/${release}/js/libs/backbone-0.9.1-min.js"></script>
 	<script data-main="/${release}/js/main.js" src="/static/js/require.js"></script>
 
 </body>

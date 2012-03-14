@@ -81,6 +81,15 @@ public class LogResource {
 	Gson gson = new Gson();
 
 	@GET
+	@Path("/all/continuous")
+	@Produces({ MediaType.APPLICATION_JSON })
+	public String getAllConnectorsContinuous()
+			throws InstantiationException, IllegalAccessException,
+			ClassNotFoundException {
+		return "{}";
+	}
+
+	@GET
 	@Path("/all/week/{year}/{week}")
 	@Produces({ MediaType.APPLICATION_JSON })
 	public String getAllConnectorsWeekData(@PathParam("year") String year,
