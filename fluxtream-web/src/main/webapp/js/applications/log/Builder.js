@@ -3,16 +3,16 @@ define([], function() {
 	var Builder = {};
 	
 	var widgets = {
-		"DAY":["clock", "summary", "map", "diary", "photos", "list"],
-		"WEEK":["summary", "map", "diary", "photos", "list"],
-		"MONTH":["summary", "map", "diary", "photos", "list"],
-		"YEAR":["summary", "map", "diary", "photos", "list"],
+		"DAY":["clock", "stats", "map", "diary", "photos", "list"],
+		"WEEK":["stats", "map", "diary", "photos", "list"],
+		"MONTH":["stats", "map", "diary", "photos", "list"],
+		"YEAR":["stats", "map", "diary", "photos", "list"],
 		"CONTINUOUS":["timeline", "views", "list"]
 	};
 	
 	var widget_icons = {
 		clock: "icon-time",
-		summary: "icon-bar-chart",
+		stats: "icon-bar-chart",
 		map: "icon-map-marker",
 		diary: "icon-pencil",
 		photos: "icon-camera",

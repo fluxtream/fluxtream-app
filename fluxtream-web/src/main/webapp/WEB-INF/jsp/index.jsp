@@ -30,47 +30,37 @@
 		style="position: absolute; top: 0; right: 0; border: 0;"
 		src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"
 		alt="Fork me on GitHub"></a>
-	<div class="container">
+		
+	<div class="container-fluid">
 
 
-		<div class="row">
-			<div class="span6">&nbsp;</div>
-			<div class="span4">
-
-				<form class="well" action="signIn" method="POST">
-
-					<div class="control-group">
-						<div class="controls">
-							<div class="input-prepend">
-								<span class="add-on"><i class="icon-envelope"></i></span> <input
-									autocomplete="on" class="span3"
-									onkeypress="if(event.which==13) document.forms[0].submit();"
-									class="title" id="f_username" name="f_username"
-									placeholder="Username"
-									value="<%=request.getParameter("username") != null ? request
-					.getParameter("username") : ""%>"
-									type="text">
+		<div class="row-fluid">
+			<div class="span4 offset8">
+				<form action="signIn" class="form-inline well" method="POST">
+					<fieldset>
+						<div class="control-group">
+							<label class="control-label" for="f_username">Username:</label>
+							<div class="controls">
+								<div class="input-prepend">
+								<span class="add-on"><i class="icon-envelope"></i></span><input autocomplete="on" class="span3" onkeypress="if(event.which==13) document.forms[0].submit();" id="f_username" name="f_username" placeholder="Username" value="<%=request.getParameter("username") != null ? request.getParameter("username") : ""%>" type="text"></input>
+								</div>
 							</div>
 						</div>
-					</div>
-
-					<div class="control-group">
-						<div class="controls">
-							<div class="input-prepend">
-								<span class="add-on"><i class="icon-key"></i></span> <input
-									value="" class="span3"
-									onkeypress="if(event.which==13) document.forms[0].submit();"
-									class="title" id="f_password" name="f_password"
-									placeholder="Password" type="password"
-									style="margin-bottom: 20px;">
+	
+						<div class="control-group">
+							<label class="control-label" for="f_username">Password:</label>
+							<div class="controls">
+								<div class="input-prepend">
+								<span class="add-on"><i class="icon-key"></i></span><input value="" class="span3" onkeypress="if(event.which==13) document.forms[0].submit();" id="f_password" name="f_password" placeholder="Password" type="password"></input>
+								</div>
 							</div>
 						</div>
-					</div>
-
-					<br /> <input type="submit" class="btn" id="signinButton"
-						class="btn primary large" style="width: 100px;"
-						value="&raquo; Sign In" /> &nbsp; <a href="support/lostPassword">&raquo;
-						Password forgotten?</a>
+						
+						<div class="form-actions">
+							<button type="submit" style="width:100px" id="signinButton" class="btn btn-primary">&raquo; Sign In</button>
+							<br/><br/><a href="support/lostPassword">&raquo; Password forgotten?</a>
+						</div>
+					</fieldset>
 				</form>
 
 			</div>

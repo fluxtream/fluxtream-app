@@ -116,19 +116,12 @@ public class HomeModel {
 	public void setYear(int year) {
 		setYearTimeUnit();
 		fromCalendar.set(Calendar.YEAR, year);
+		fromCalendar.set(Calendar.DAY_OF_WEEK, 0);
 		fromCalendar.set(Calendar.WEEK_OF_YEAR, 0);
-		fromCalendar.set(Calendar.HOUR_OF_DAY, 0);
-		fromCalendar.set(Calendar.MINUTE, 0);
-		fromCalendar.set(Calendar.SECOND, 0);
-		fromCalendar.set(Calendar.MILLISECOND, 0);
 		fromCalendar = TimeUtils.setFromMidnight(fromCalendar);
 		toCalendar.set(Calendar.YEAR, year);
 		toCalendar.set(Calendar.MONTH, Calendar.DECEMBER);
 		toCalendar.set(Calendar.DAY_OF_MONTH, 31);
-		toCalendar.set(Calendar.HOUR_OF_DAY, 23);
-		toCalendar.set(Calendar.MINUTE, 59);
-		toCalendar.set(Calendar.SECOND, 59);
-		toCalendar.set(Calendar.MILLISECOND, 999);
 		toCalendar = TimeUtils.setToMidnight(fromCalendar);
 	}
 
@@ -360,9 +353,11 @@ public class HomeModel {
 
 	public void setYearTimeUnit() {
 		this.timeUnit = TimeUnit.YEAR;
+		fromCalendar.set(Calendar.YEAR, fromCalendar.get(Calendar.YEAR));
 		fromCalendar.set(Calendar.DAY_OF_MONTH, 1);
 		fromCalendar.set(Calendar.MONTH, Calendar.JANUARY);
 		fromCalendar = TimeUtils.setFromMidnight(fromCalendar);
+		toCalendar.set(Calendar.YEAR, toCalendar.get(Calendar.YEAR));
 		toCalendar.set(Calendar.MONTH, Calendar.DECEMBER);
 		toCalendar.set(Calendar.DAY_OF_MONTH,
 				toCalendar.getActualMaximum(Calendar.DAY_OF_MONTH));
