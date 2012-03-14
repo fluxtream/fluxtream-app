@@ -36,7 +36,7 @@ define(["core/FlxState", "libs/jquery.form"], function(FlxState) {
 			var app = apps[FlxState.apps[i]];
 			$("#apps-menu").append("<button id=\"" + app.name + "MenuButton\" class=\"btn\" "
 				+ "onclick=\"javascript:App.renderApp('" + app.name + "')\">"
-				+ "<i class=\"" + app.icon + "\"></i></button>")
+				+ "<i class=\"" + app.icon + "  icon-large\"></i></button>")
 		}
 	}
 	

@@ -84,7 +84,7 @@ define(["core/Application", "core/FlxState", "applications/log/Builder"], functi
 			success : function(response) {
 				FlxState.router.navigate("app/log/" + Log.currentWidget + "/" + response.state);
 				FlxState.saveState("log", Log.currentWidget + "/" + response.state);
-				$("#currentTimespanLabel").html(response.currentTimespanLabel);
+				$("#currentTimespanLabel span").html(response.currentTimespanLabel);
 				fetchLog("/api/log/all/" + response.state);
 			},
 			error : function() {

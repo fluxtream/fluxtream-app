@@ -39,13 +39,13 @@
 								data-toggle="buttons-radio"></div></li>
 						<li class="divider-vertical"></li>
 						<li class="dropdown"><a href="#" class="dropdown-toggle"
-							data-toggle="dropdown"><%=request.getAttribute("fullname")%> <i class="icon-user"></i>
+							data-toggle="dropdown"><%=request.getAttribute("fullname")%> <i class="icon-user icon-large"></i>
 								<b class="caret"></b></a>
 							<ul class="dropdown-menu">
-								<li><a href="javascript:App.settings()">Settings <i class="icon-cogs"></i></a></li>
+								<li><a href="javascript:App.settings()">Settings <i class="icon-cogs icon-large" style="float:right;"></i></a></li>
 								<li><a href="javascript:App.connectors()">Connectors</a></li>
 								<li class="divider"></li>
-								<li><a href="/logout">Logout <i style="float-right" class="icon-signout"></i></a></li>
+								<li><a href="/logout">Logout <i style="float:right" class="icon-signout icon-large"></i></a></li>
 							</ul></li>
 					</ul>
 				</div>
