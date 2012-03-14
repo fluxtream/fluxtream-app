@@ -29,7 +29,7 @@
 				<a class="btn btn-navbar" data-toggle="collapse"
 					data-target=".nav-collapse"> <span class="icon-bar"></span> <span
 					class="icon-bar"></span> <span class="icon-bar"></span>
-				</a> <a class="brand" href="#">Fluxtream</a>
+				</a> <a class="brand" href="/app"><img src="/${release}/images/header-logo-v4.png"/></a>
 				<div class="nav-collapse">
 					<form class="navbar-search">
 						<input type="text" class="search-query" placeholder="Search">
@@ -71,6 +71,7 @@
 				|| document
 						.write('_$tag_________________________________________$tag_____')
 	</script>
+	<script src="/static/tiny_mce/jquery.tinymce.js"></script>
 	<script src="/static/js/json2.js"></script>
 	<script src="/static/js/bootstrap-2.0.2.min.js"></script>
 	<script src="/static/js/raphael-2.0.2.js"></script>
