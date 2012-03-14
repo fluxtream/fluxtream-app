@@ -46,20 +46,24 @@ define(["core/Application", "core/FlxState", "applications/log/Builder"], functi
 		}
 	}
 		
-	Log.renderState = function(state) {
-		if (FlxState.getState("log")===state)
+	Log.renderState = function(state, force) {
+		if (!force&&FlxState.getState("log")===state) {
+			console.log("ignoring renderState");
 			return;
+		}
 		if (state==null||state==="") {
 			Builder.createTimeUnitsMenu(Log);
 			Builder.createWidgetTabs(Log);
 			fetchState("/nav/setToToday.json");
 		}
 		else {
+			console.log("hahahahah");
 			var splits = state.split("/");
 			Log.currentWidget = splits[0];
 			Log.timeUnit = toTimeUnit(splits[1]);
 			var w = Builder.widgetExistsForTimeUnit(Log.currentWidget, Log.timeUnit)?Log.currentWidget:Builder.widgets[Log.timeUnit][0];
 			Log.currentWidget = w;
+			console.log("current widget: " + Log.currentWidget);
 			Builder.createTimeUnitsMenu(Log);
 			Builder.createWidgetTabs(Log);
 			if ("DAY"===Log.timeUnit) {

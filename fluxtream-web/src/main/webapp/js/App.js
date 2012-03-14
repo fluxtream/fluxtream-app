@@ -1,4 +1,4 @@
-define(["core/FlxState", "libs/jquery.form"], function(FlxState) {
+define(["core/FlxState", "libs/jquery.form", "libs/jquery.qtip.min"], function(FlxState) {
 
 	var App = {};
 	var toLoad = 0, loaded = 0;

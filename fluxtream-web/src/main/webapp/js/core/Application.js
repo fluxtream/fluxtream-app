@@ -33,11 +33,11 @@ define(["core/FlxState"], function(FlxState) {
 					App.activeApp.destroy();
 				App.activeApp = App.apps[that.name];
 				App.activeApp.setup();
-				App.activeApp.renderState(state);
+				App.activeApp.renderState(state, true);
 			});
 		} else {
 			console.log("Application.Render: app is already loaded");
-			this.renderState(state);
+			this.renderState(state, true);
 		}
 	}
 
