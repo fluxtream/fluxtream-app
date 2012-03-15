@@ -42,7 +42,7 @@
 							data-toggle="dropdown"><%=request.getAttribute("fullname")%> <i class="icon-user icon-large"></i>
 								<b class="caret"></b></a>
 							<ul class="dropdown-menu">
-								<li><a href="javascript:App.settings()">Settings <i class="icon-cogs icon-large" style="float:right;"></i></a></li>
+								<li><a href="javascript:App.settings()">Settings <i class="icon-cog icon-large" style="float:right;"></i></a></li>
 								<li><a href="javascript:App.connectors()">Connectors</a></li>
 								<li class="divider"></li>
 								<li><a href="/logout">Logout <i style="float:right" class="icon-signout icon-large"></i></a></li>
