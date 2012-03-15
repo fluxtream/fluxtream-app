@@ -52,6 +52,7 @@ define([], function() {
 		$("#time-menu").remove();
 		var timeUnits = {DAY:1, WEEK:2, MONTH: 3, YEAR:4, CONTINUOUS:5};
 		delete timeUnits[Log.timeUnit];
+		$(".loading").remove();
 		var markup = "<div class=\"btn-group\" id=\"time-menu\">\
 		<a class=\"btn\">"
 				+ capitalizeFirstLetter(Log.timeUnit.toLowerCase()) + " View</a> <a class=\"btn dropdown-toggle\"\
@@ -63,9 +64,8 @@ define([], function() {
 				+ capitalizeFirstLetter(name.toLowerCase())
 				+" View</a></li>";
 		}
-		markup += "</ul></div>"
-		if (!$(".loading")[0])
-			markup += "<span class=\"loading\"><img src=\"/static/img/loading.gif\"/></span>";
+		markup += "</ul></div>";
+		markup += "<span class=\"loading\"><img src=\"/static/img/loading.gif\"/></span>";
 		$("#calendar-menubar").append(markup);
 		for (name in timeUnits) {
 			$("#time-menu a." + name).click(function(event) {
