@@ -63,8 +63,9 @@ define([], function() {
 				+ capitalizeFirstLetter(name.toLowerCase())
 				+" View</a></li>";
 		}
-		markup += "</ul></div>\
-			<span class=\"loading\"><img src=\"/static/img/loading.gif\"/></span>";
+		markup += "</ul></div>"
+		if (!$(".loading")[0])
+			markup += "<span class=\"loading\"><img src=\"/static/img/loading.gif\"/></span>";
 		$("#calendar-menubar").append(markup);
 		for (name in timeUnits) {
 			$("#time-menu a." + name).click(function(event) {
