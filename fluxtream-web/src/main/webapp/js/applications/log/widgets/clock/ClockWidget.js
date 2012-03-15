@@ -20,12 +20,66 @@ define(["applications/log/widgets/clock/ClockdrawingUtils",
 			drawingUtils.paintCircle(paper, config.MIND_CATEGORY.orbit, "#ffffff", 1);
 			drawingUtils.paintCircle(paper, config.SOCIAL_CATEGORY.orbit, "#ffffff", 1);
 			drawingUtils.paintCircle(paper, config.MEDIA_CATEGORY.orbit, "#ffffff", 1);
+			paintSolarInfo(digest.solarInfo, paper, config);
 			for(name in digest.cachedData) {
 				if (digest.cachedData[name]==null||typeof(digest.cachedData[name])=="undefined")
 					continue;
 				updateDataDisplay(digest.cachedData[name], name, paper, config);
 			}
 		});
+	}
+
+	function fillRegion(center, radius1, radius2, startAngle, endAngle) {
+		var startCoords = toCoords(center, radius1, startAngle),
+			outerStart = toCoords(center, radius2, startAngle),
+			endCoords = toCoords(center, radius1, endAngle),
+			outerEnd = toCoords(center, radius2, endAngle),
+			path = "M "+ startCoords[0] + "," + startCoords[1];
+		path += "A " + radius1 + "," + radius1 + " 0 0,0 " + endCoords[0] + "," + endCoords[1] +" ";
+		path += "L " + outerEnd[0] + "," + outerEnd[1];
+		path += "A " + radius2 + "," + radius2 + " 0 0,1 " + outerStart[0] + "," + outerStart[1] + " Z";
+		return path;
+	}
+	
+	function paintSolarInfo(solarInfo, paper, config) {
+		if (solarInfo!=null) {
+			var startAngle =  solarInfo.sunrise / config.RATIO + config.START_AT,
+				endAngle = solarInfo.sunset / config.RATIO + config.START_AT,
+				midAngle = endAngle*0.2;
+			if (endAngle < 390 ) {
+				var coords = fillRegion(config.CLOCK_CENTER, config.BODY_CATEGORY.orbit-15, config.MEDIA_CATEGORY.orbit+15, startAngle, midAngle);
+				config.clockCircles.push(
+					function() {
+						var path = paper.path(coords);
+						path.attr("stroke", "rgba(199,199,199,.5)");
+						path.attr("fill", "rgba(199,199,199,.5)");
+						path.toBack();
+						return path;
+					}()
+				);
+				coords = fillRegion(config.CLOCK_CENTER, config.BODY_CATEGORY.orbit-15, config.MEDIA_CATEGORY.orbit+15, midAngle, endAngle);
+				config.clockCircles.push(
+					function() {
+						var path = paper.path(coords);
+						path.attr("stroke", "rgba(199,199,199,.5)");
+						path.attr("fill", "rgba(199,199,199,.5)");
+						path.toBack();
+						return path;
+					}()
+				);
+			} else {
+				var coords = fillRegion(config.CLOCK_CENTER, config.BODY_CATEGORY.orbit-15, config.MEDIA_CATEGORY.orbit+15, startAngle, endAngle);
+				config.clockCircles.push(
+					function() {
+						var path = paper.path(coords);
+						path.attr("stroke", "rgba(199,199,199,.5)");
+						path.attr("fill", "rgba(199,199,199,.5)");
+						path.toBack();
+						return path;
+					}()
+				);
+			}
+		}
 	}
 	
 	function updateDataDisplay(connectorData, connectorInfoId, paper, config) {
