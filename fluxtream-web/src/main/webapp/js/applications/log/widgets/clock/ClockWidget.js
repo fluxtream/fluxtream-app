@@ -25,8 +25,45 @@ define(["applications/log/widgets/clock/ClockdrawingUtils",
 				if (digest.cachedData[name]==null||typeof(digest.cachedData[name])=="undefined")
 					continue;
 				updateDataDisplay(digest.cachedData[name], name, paper, config);
+				if (name==="fitbit-activity_summary" && digest.cachedData["fitbit-activity_summary"][0]) {
+					drawCalories(digest.cachedData["fitbit-activity_summary"][0].caloriesPerMinute, paper, config);
+				}
 			}
 		});
+	}
+	
+	function drawCalories(caloriesPerMinute, paper, config) {
+		if (!caloriesPerMinute)
+			return;
+		for (i=0;i<caloriesPerMinute.length;i++) {
+			var item = caloriesPerMinute[i];
+			if (item.level==0) continue;
+			var color = 0, height = 0;
+			switch(item.level) {
+			case 1: color = "#33cccc"; break;
+			case 2: color = "#ffbb33"; break;
+			case 3: color = "#ff3366"; break;
+			}
+			start = item.minute;
+			span = paintClockSpike(paper, start, 83, color, config.STROKE_WIDTH+item.calories*2.5, config);
+			config.clockCircles.push(span);
+		}
+	}
+
+	function paintClockSpike(paper, time, radius, color, height, config) {
+		var coords = clockSpike(config.CLOCK_CENTER, radius, time / config.RATIO + config.START_AT, height),
+		path = paper.path(coords);
+		path.attr("stroke-width", 1)
+		path.attr("stroke", color);
+		return path;
+	}
+
+	function clockSpike(center, radius, angle, height) {
+		var coords1 = toCoords(center, radius, angle),
+			coords2 = toCoords(center, radius + height, angle),
+			path = "M " + coords1[0] + " " + coords1[1];
+		path += " L " + coords2[0] + " " + coords2[1];
+		return path;
 	}
 
 	function fillRegion(center, radius1, radius2, startAngle, endAngle) {
