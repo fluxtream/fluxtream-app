@@ -41,8 +41,8 @@
 						<div class="control-group">
 							<label class="control-label" for="f_username">Username:</label>
 							<div class="controls">
-								<div class="input-prepend">
-								<span class="add-on"><i class="icon-envelope"></i></span><input autocomplete="on" class="span3" onkeypress="if(event.which==13) document.forms[0].submit();" id="f_username" name="f_username" placeholder="Username" value="<%=request.getParameter("username") != null ? request.getParameter("username") : ""%>" type="text"></input>
+								<div class="input">
+								<!-- <span class="add-on"><i class="icon-envelope"></i></span> --><input autocomplete="on" class="span3" onkeypress="if(event.which==13) document.forms[0].submit();" id="f_username" name="f_username" placeholder="Username" value="<%=request.getParameter("username") != null ? request.getParameter("username") : ""%>" type="text"></input>
 								</div>
 							</div>
 						</div>
@@ -50,8 +50,8 @@
 						<div class="control-group">
 							<label class="control-label" for="f_username">Password:</label>
 							<div class="controls">
-								<div class="input-prepend">
-								<span class="add-on"><i class="icon-key"></i></span><input value="" class="span3" onkeypress="if(event.which==13) document.forms[0].submit();" id="f_password" name="f_password" placeholder="Password" type="password"></input>
+								<div class="input">
+								<!-- <span class="add-on"><i class="icon-key"></i></span> --><input value="" class="span3" onkeypress="if(event.which==13) document.forms[0].submit();" id="f_password" name="f_password" placeholder="Password" type="password"></input>
 								</div>
 							</div>
 						</div>
