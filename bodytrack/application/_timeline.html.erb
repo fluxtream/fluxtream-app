@@ -1,0 +1,3430 @@
+<script src="/grapher4/grapher2.nocache.js"></script>
+
+<script>
+  var _TIMELINE;
+
+  (function($) {
+    /// A helper to create a data fetcher for the specified URL prefix
+    ///
+    /// @param urlPrefix
+    ///  The shared part of the URLs to fetch from.  Each fetch will come
+    ///  from the URL (urlPrefix + level + "." + offset + ".json)
+    /// @param urlParams
+    ///  Optional parameter - if present, must be a dictionary.  This
+    ///  is joined together and URL encoded to form the URL parameters
+    ///  on each request
+    /// @return
+    ///  A function matching the requestData specification from the
+    ///  grapher API specification, taking a level, an offset, a success
+    ///  callback, and a failure callback, making a request to a URL
+    ///  built from the URL prefix, level, and offset, and calling the
+    ///  success continuation on success or the failure continuation on
+    ///  failure
+    function __createDatasource(urlPrefix, urlParams) {
+      if (!urlParams) {
+        urlParams = {};
+      }
+      return function(level, offset, success_callback, failure_callback) {
+        console.log("channelDatasource(" + urlPrefix + ", " + level
+            + ", " + offset + ", " + JSON.stringify(urlParams) + ")");
+        var onerr = function(jqXHR, textStatus, errorThrown) {
+          // TODO: do something better here...
+          console.log("channelDatasource.onErr(): FAILURE! errorThrown:"
+              + errorThrown);
+          try {
+            if (failure_callback) {
+              failure_callback(errorThrown);
+            }
+          }
+          catch (ex) {
+            // TODO: do something better here...
+            console.log("channelDatasource.onErr(): FAILURE! ex:" + ex);
+          }
+        };
+        $.ajax({
+          url     : urlPrefix + level + "." + offset + ".json",
+          data    : urlParams,
+          success : function(data, textStatus, jqXHR) {
+            try {
+              if (success_callback) {
+                // we must always send the JSON as a String...
+                success_callback(typeof data === 'string'
+                    ? data : JSON.stringify(data));
+              }
+            }
+            catch (ex) {
+              onerr(jqXHR, "JSON parse error", ex);
+            }
+          },
+          failure : onerr
+        });
+      }
+    }
+
+    _TIMELINE = {
+      newViewName  : "Untitled View",
+      channelIdx   : 0,     // counter used to uniquely identify channels
+      dragSourceId : null,  // DOM id of source is stored here during drag
+      dateAxis     : null,  // TIMELINE's dateAxis needed for addChannel()
+      sourcesMap   : {},    // maps DOM element ID to available source
+      channelsMap  : {},    // maps DOM element ID to view's y_axes
+      plotsMap     : {},    // maps DOM element ID to grapher widget
+      plotContainersMap    : {},    // maps DOM element ID to plot container
+      plotContainers       : [],    // array of plot containers
+      hasUnsavedChanges    : false, // used by unsaved changes dialog handler
+      loadedViewStr        : "",    // JSON string of loaded view
+      addPaneChannelsState : [],    // add channels pane channel visibility
+      init : function(callback) {
+
+	// Unsaved changes dialog handler
+	$(window).bind("beforeunload", function() {
+	  _TIMELINE.updateViewData();
+	  var newvdata = JSON.stringify(VIEWS.data);
+	  if (_TIMELINE.loadedViewStr != newvdata) {
+	    _TIMELINE.hasUnsavedChanges = true;
+	  }
+
+	  if (_TIMELINE.hasUnsavedChanges) {
+	    return "You have unsaved changes";
+	  }
+	});
+	$("form").submit(function() {
+	  $(window).unbind("beforeunload");
+	});
+
+	// Deal with window resize events
+	TOOLS.onWindowResizeResizeElementHeight("#_timeline_addChannelsArea #_timeline_sources_list");
+	TOOLS.onWindowResizeResizeElementHeight("#_timeline_channelsWrapper");
+	TOOLS.onWindowResizeListener(function() {
+          console.log("onWindowResizeListener start");
+          // borderOffset is used to account for:
+          // * 1 pixel of border on #_timeline_channels
+          // * 1 pixel of border on ._timeline_channel
+          var borderOffset = 2;
+
+          var widthOfAreaLeftOfPlotContainer = $("._timeline_channeltd").width() + borderOffset;
+          var widthOfAreaRightOfPlotContainer = $("._timeline_yaxistd").width() + borderOffset;
+
+          // the .plotContainer has a 1 pixel border around it, so set this to 2 to account for the left and right sides
+          var widthOfPlotContainerLeftAndRightBorder = 2;
+
+          // compute the desired size of plot containers based on the current width of the _timeline_channelsArea (which
+          // will automatically shrink if the Add Channels and/or Details pane is visible, so we don't explicitly need
+          // to account for them here).
+          var plotContainerWidth = $("#_timeline_channelsArea").width() - widthOfAreaLeftOfPlotContainer - widthOfAreaRightOfPlotContainer - widthOfPlotContainerLeftAndRightBorder - 20;
+
+          // resize plot containers
+          var plotContainerEventId = SequenceNumber.getNext();
+          for (var i = 0; i < _TIMELINE.plotContainers.length; i++) {
+            var plotContainer = _TIMELINE.plotContainers[i];
+            var plotContainerHeight = $("#" + plotContainer.getPlaceholder()).height();
+            plotContainer.setSize(plotContainerWidth, plotContainerHeight, plotContainerEventId);
+          }
+
+          // resize date axis
+          if (_TIMELINE.dateAxis) {
+            _TIMELINE.dateAxis.setSize(plotContainerWidth, $("#_timeline_dateAxis").height(), SequenceNumber.getNext());
+          }
+
+          // resize y axes
+          var yAxisWidth = $("._timeline_yAxis").width();
+          for (var plotKey in _TIMELINE.plotsMap) {
+            var plot = _TIMELINE.plotsMap[plotKey];
+            if (plot) {
+              var yAxis = plot.getVerticalAxis();
+              var yAxisHeight = $("#" + yAxis.getPlaceholder()).height();
+              if (yAxis) {
+                yAxis.setSize(yAxisWidth, yAxisHeight);
+              }
+            }
+          }
+
+          console.log("onWindowResizeListener end");
+        });
+
+        // Make the channel list sortable
+        $("#_timeline_channels").sortable({
+          handle      : '._timeline_channelTab',
+          axis        : 'y',
+          tolerance   : 'pointer',
+          containment : '#_timeline_channels',
+	  receive     : function(event, ui) {	// received new channel to add
+	    var i, l, c;
+	    var src = _TIMELINE.sourcesMap[_TIMELINE.dragSourceId];
+
+	    // Iterate through channels and call addChannel on
+	    // entries with no id
+	    // NOTE: We assume the only reason the id is blank is if the
+	    //       element is new (user dragged into channels)
+	    c = $("#_timeline_channels").children();
+	    l = c.length;
+	    for (i = 0; i < l; i++) {
+	      if (c[i].id == "") {
+		_TIMELINE.addChannel(src, c[i]);
+	      }
+	    }
+	  }
+	});
+        $("#_timeline_channels").disableSelection();
+
+	$("#_timeline_new_view_btn").click(_TIMELINE.newView);
+        $("#_timeline_load_view_btn").click(_TIMELINE.toggleLoadDialog);
+
+	// Load data sources
+	_TIMELINE.getSources();
+
+        // configure the photo dialog
+        $("#_timeline_photo_dialog")['dialog'](
+            {
+              autoOpen  : false,
+              modal     : true,
+              width     : 'auto',
+              height    : 'auto',
+              minWidth  : 340,
+              resizable : false
+            }
+        );
+
+	callback();
+
+      }, // init
+
+      getSources : function() {
+	SOURCES.getAvailableList(function(data) {
+
+	  var i, j, l, m;
+	  var src;
+	  var idx = 0;
+	  var min, max, style;
+
+	  // Add unique identifier for each source channel
+	  // and populate sourcesMap
+	  l = SOURCES.availableList.length;
+	  for (i = 0; i < l; i++) {
+	    src = SOURCES.availableList[i];
+	    m = src.channels.length;
+	    for (j = 0; j < m; j++) {
+	      src.channels[j]["id"] = "src_" + idx;
+
+              _TIMELINE.sourcesMap["src_" + idx] = {
+		"device_name"  : src["name"],
+		"channel_name" : src.channels[j]["name"],
+		"min"          : src.channels[j]["min"],
+		"max"          : src.channels[j]["max"],
+		"style"        : src.channels[j]["style"]
+	      };
+
+	      if ((src.channels[j].hasOwnProperty("min_time")) &&
+		  (src.channels[j].hasOwnProperty("max_time"))) {
+		_TIMELINE.sourcesMap["src_" + idx]["min_time"] 
+		  = src.channels[j]["min_time"];
+		_TIMELINE.sourcesMap["src_" + idx]["max_time"] 
+		  = src.channels[j]["max_time"];
+	      }
+
+	      idx += 1;
+	    }
+	  }
+
+	  // Render add channels area
+	  $("#_timeline_addChannelsArea").html(render($("#_timeline_sources_template"), {
+	    sources: SOURCES.availableList
+	  }));
+
+	  // Drag event handler for channels
+	  $("#_timeline_addChannelsArea ul ._timeline_sources_channel").draggable({
+	    connectToSortable : "#_timeline_channels",
+	    revert: "invalid",
+	    helper: function() {
+	      // Create mock grapher widget to show while dragging
+	      var src = _TIMELINE.sourcesMap[this.id];
+	      _TIMELINE.dragSourceId = this.id;
+	      var templateValues = {
+	      	"deviceName"       : src["device_name"],
+	      	"channelName"      : src["channel_name"],
+	      	"plotElementId"    : "_timeline_channel_helper",
+	      	"channelElementId" : "_timeline_plot_helper",
+	      	"yAxisElementId"   : "_timeline_yAxis_helper"
+	      };
+	      return render($("#_timeline_channel_template"), templateValues);
+	    },
+	    start : function(event, ui) { 
+	      // Set height to match grapher widget so that hovering
+	      // over channels pane shifts existing widgets by correct amount
+	      console.log($(this).height());
+	      $(this).height("74px");
+	    },
+	    stop : function(event, ui) { 
+	      // Restore height
+	      $(this).height("16px");
+	    }
+	  });
+	  $("#_timeline_addChannelsArea ul ._timeline_sources_channel").disableSelection();
+
+	  // Create new grapher widget if source receives a click
+	  $("#_timeline_addChannelsArea ul li ._timeline_sources_channel").click(function() {
+	    var c = _TIMELINE.sourcesMap[this.id];
+	    _TIMELINE.addChannel(c, null);
+	    $("#_timeline_channelsWrapper").animate({scrollTop:$("#_timeline_channelsWrapper").prop("scrollHeight")}, 500);
+	  });
+
+	  // Add channels pane reset button
+	  $("#_timeline_addChannelsArea #_timeline_sources_find_btn").click(function() {
+	    $("#_timeline_addChannelsArea input[type=text]").val("");
+
+	    _TIMELINE.addPaneRestoreState();
+	    return false;
+	  });
+
+	  // Add channels pane search functionality
+	  $("#_timeline_addChannelsArea input[type=text]").keyup(function(event) {
+	    var search_str = $("#_timeline_addChannelsArea input[type=text]").val();
+	    var regexp = new RegExp(search_str, 'i');
+	    var i, l;
+
+	    if (search_str.length === 0) {
+	      _TIMELINE.addPaneRestoreState();
+	      return;
+	    }
+
+	    $("._timeline_sources_name").each(function() {
+	      var ul = $(this).parent().find("ul");
+	      var arrow = $(this).children("._timeline_sources_name_arrow");
+	      if (ul.css("display") === "none") {
+		ul.show();
+		arrow.html("&#9660;");
+	      }
+	    });
+
+	    $("#_timeline_addChannelsArea #_timeline_sources_list ._timeline_sources_channel").each(function() {
+	      if ($.trim($(this).html()).search(regexp) == -1) {
+		$(this).hide();
+	      }
+	      else {
+		$(this).show();
+	      }
+	    });
+	  });
+
+	  // Collapsible devices
+	  $("._timeline_sources_name").click(function() {
+	    var ul = $(this).parent().find("ul");
+	    var arrow = $(this).children("._timeline_sources_name_arrow");
+
+	    if (ul.css("display") === "none") {
+	      ul.show();
+	      arrow.html("&#9660;");
+	    }
+	    else {
+	      ul.hide();
+	      arrow.html("&#9658;");
+	    }
+
+	    _TIMELINE.addPaneSaveState();
+	  });
+
+	  _TIMELINE.addPaneSaveState();
+	  
+	  $("#_timeline_messageArea").hide();
+	  $("#_timeline_mainContentArea").show();
+	});
+      }, // getSources
+
+      addPaneRestoreState : function() {	  
+	var i = 0;
+	var l = _TIMELINE.addPaneChannelsState.length;
+
+	$("#_timeline_addChannelsArea #_timeline_sources_list ._timeline_sources_channel").each(function() {
+	  $(this).show();
+	});
+
+	if (l > 0) {
+	  $("._timeline_sources_name").each(function() {
+	    var ul = $(this).parent().find("ul");
+	    var arrow = $(this).children("._timeline_sources_name_arrow");
+	    var state = _TIMELINE.addPaneChannelsState[i];
+	    if (state == false) {
+	      ul.hide();
+	      arrow.html("&#9658;");
+	    }
+	    else {
+	      ul.show();
+	      arrow.html("&#9660;");
+	    }
+	    i++;
+	  });
+	}
+      },
+
+      addPaneSaveState : function() {
+	_TIMELINE.addPaneChannelsState = [];
+	$("._timeline_sources_name").each(function() {
+	  var ul = $(this).parent().find("ul");
+	  var arrow = $(this).children("._timeline_sources_name_arrow");
+	  if (ul.css("display") === "none") {
+	    _TIMELINE.addPaneChannelsState.push(false);
+	  }
+	  else {
+	    _TIMELINE.addPaneChannelsState.push(true);
+	  }
+	});
+      },
+      
+      newView : function() {
+	var now = new Date();
+	now = now.getTime()/1000.0;
+
+	VIEWS.data = {
+	  "name" : _TIMELINE.newViewName,
+	  "v2" : {
+	    "x_axis" : {
+	      "min" : now - 86400.0,
+	      "max" : now
+	    },
+	    y_axes : []
+	  }
+	};
+	_TIMELINE.loadedViewStr = JSON.stringify(VIEWS.data);
+	_TIMELINE.hasUnsavedChanges = true;
+	_TIMELINE.renderView(VIEWS.data);
+
+	if ($("#_timeline_addChannelsArea").css("display") === "none") {
+	  _TIMELINE.toggleAddChannelsPane();
+	}
+      },
+
+      loadView : function(name, mode) {
+	$("#_timeline_save_view_btn").addClass("button_disabled").unbind("click");
+	VIEWS.load(name, function(data) {
+	  _TIMELINE.loadedViewStr = JSON.stringify(data);
+	  _TIMELINE.hasUnsavedChanges = false;
+	  _TIMELINE.renderView(data, mode);
+	});
+      },
+
+      loadViewWithTimeRange : function(name, min, max) {
+	$("#_timeline_save_view_btn").addClass("button_disabled").unbind("click");
+	VIEWS.load(name, function(data) {
+	  _TIMELINE.loadedViewStr = JSON.stringify(data);
+	  _TIMELINE.hasUnsavedChanges = true;
+	  data["v2"]["x_axis"]["min"] = min;
+	  data["v2"]["x_axis"]["max"] = max;
+	  _TIMELINE.renderView(data);
+	});
+      },
+
+      // Save view then load saved view
+      saveView : function(name) {
+	_TIMELINE.updateViewData();
+	VIEWS.save(name, function(data) {
+	  _TIMELINE.loadedViewStr = JSON.stringify(VIEWS.data);
+	  _TIMELINE.hasUnsavedChanges = false;
+	  window.location.href = "#timeline/views/" + name;
+	});
+      },
+
+      // Load all channels associated with device_name into a new view
+      loadSource : function(device_name) {
+	SOURCES.getDefaultGraphSpecs(device_name, function(data) {
+	  var i, l;
+	  var style = {};
+
+	  VIEWS.data = {
+	    "name" : _TIMELINE.newViewName,
+	    "v2" : {
+	      "x_axis" : {
+		"min" : data["min_time"],
+		"max" : data["max_time"]
+	      },
+	      "y_axes" : []
+	    }
+	  }
+
+	  l = data.channels.length;
+	  for (i = 0; i < l; i++) {
+	    VIEWS.data["v2"]["y_axes"].push({
+	      "device_name"    : device_name,
+	      "channel_name"   : data.channels[i]["name"],
+	      "min"            : data.channels[i]["min"],
+	      "max"            : data.channels[i]["max"],
+	      "style"          : data.channels[i]["style"],
+	      "channel_height" : data.channels[i]["channel_height"]
+	    });
+	  }
+
+	  _TIMELINE.loadedViewStr = JSON.stringify(VIEWS.data);
+	  _TIMELINE.hasUnsavedChanges = true;
+	  _TIMELINE.renderView(VIEWS.data);
+
+	  if ($("#_timeline_addChannelsArea").css("display") !== "none") {
+	    _TIMELINE.toggleAddChannelsPane();
+	  }
+
+	});
+      },
+      
+      loadViewDialogModeHandler : function(viewName) {
+	var mode = $("._timeline_load_dialog_head_content input:checked").val();
+	var min, max;
+
+	// Cancel load if user clicks cancel on load dialog
+	if (TOOLS.checkForTimelineChanges() === false) {
+	  return false;
+	}
+
+	// Update x-axis of existing view
+	if (mode === "time") {
+	  _TIMELINE.loadView(viewName, mode);
+	  return false;
+	}
+
+	// Load new view with existing x-axis range
+	else if (mode === "channel") {
+	  if (VIEWS.data === "") {
+	    alert("Existing view not found");
+	    return false;
+	  }
+	  min = VIEWS.data["v2"]["x_axis"]["min"]
+	  max = VIEWS.data["v2"]["x_axis"]["max"]
+	  
+	  window.location.href = "#timeline/views/" + viewName + "/" + min + "/" + max;
+	  return false;
+	}
+
+	// Otherwise, just follow the link
+	return true;
+      },
+      
+      toggleAddChannelsPane : function() {
+	var area = $("#_timeline_addChannelsArea");
+	if (area.css("display") === "none") {
+	  $("#_timeline_add_channels_btn").addClass("button_toggle");
+	  area.show();
+	  TOOLS.resizeElementHeight($("#_timeline_addChannelsArea #_timeline_sources_list"));
+	}
+	else {
+	  $("#_timeline_add_channels_btn").removeClass("button_toggle");
+	  area.hide();
+	}
+
+
+        // call the resize handler to ensure that the grapher gets resized
+        TOOLS.resizeHandler();
+
+	return false;
+      },
+
+      toggleLoadDialog : function() {
+	// Close save dialog first if open
+	if ($("#_timeline_save_view_btn").hasClass("button_toggle")) {
+	  _TIMELINE.toggleSaveDialog();
+	}
+
+	// Load dialog is closed
+        if ($("#_timeline_view_dialog").css("display") === "none") {
+
+	  $("#_timeline_load_view_btn").addClass("button_toggle");
+          $("#_timeline_view_dialog").html(render($("#_timeline_view_load_template"), {
+            available_views: VIEWS.availableList
+          })).show();
+	  
+	  $("#_timeline_view_dialog .close_btn").unbind('click').click(function() {
+	    _TIMELINE.toggleLoadDialog();
+	  });
+
+          $("#_timeline_view_dialog ul li a").unbind('click').click(function() {
+	    // hide dialog then allow browser to follow link
+	    $("#_timeline_load_view_btn").removeClass("button_toggle");
+            $("#_timeline_view_dialog").hide();
+	  });
+        }
+	// Load dialog is open
+        else {
+	  $("#_timeline_load_view_btn").removeClass("button_toggle");
+          $("#_timeline_view_dialog").hide();
+        }
+	return false;
+      },
+
+      toggleSaveDialog : function() {
+	var viewName;
+
+	// Close load dialog first if open
+	if ($("#_timeline_load_view_btn").hasClass("button_toggle")) {
+	  _TIMELINE.toggleLoadDialog();
+	}
+
+	// Save dialog is closed
+        if ($("#_timeline_view_dialog").css("display") === "none") {
+	  $("#_timeline_save_view_btn").addClass("button_toggle");
+          $("#_timeline_view_dialog").html(render($("#_timeline_view_save_template"), {
+            available_views: VIEWS.availableList
+          })).show();
+
+	  // Fill in default save name 
+	  viewName = VIEWS.data["name"];
+	  if (viewName != _TIMELINE.newViewName) {
+	    $("#_timeline_view_dialog input").val(VIEWS.data["name"]);
+	  }
+
+	  $("#_timeline_view_dialog input").focus();
+
+	  $("#_timeline_view_dialog .close_btn").unbind('click').click(function() {
+	    _TIMELINE.toggleSaveDialog();
+	  });
+
+          $("#_timeline_view_dialog div .button").unbind('click').click(function() {
+	    var name = $("#_timeline_view_dialog input").val();
+	    if (name != "") {
+	      _TIMELINE.saveView(name);
+	      $("#_timeline_save_view_btn").removeClass("button_toggle");
+	      $("#_timeline_view_dialog").hide();
+	    }
+	    else {
+	      $("._timeline_view_dialog_status").html("Please enter a name for this view");
+	    }
+	    return false;
+	  });
+
+          $("#_timeline_view_dialog ul li a").unbind('click').click(function() {
+	    $("#_timeline_view_dialog input").val(this.text);
+	    return false;
+          });
+        }
+	// Save dialog is open
+        else {
+	  $("#_timeline_save_view_btn").removeClass("button_toggle");
+          $("#_timeline_view_dialog").hide();
+        }
+	return false;
+      },
+
+      toggleDetailsPane : function() {
+	var area = $("#_timeline_detailsArea");
+	if (area.css("display") === "none") {
+	  $("#_timeline_show_details_btn").addClass("button_toggle");
+	  area.show();
+	}
+	else {
+	  $("#_timeline_show_details_btn").removeClass("button_toggle");
+	  area.hide();
+	}
+
+        // call the resize handler to ensure that the grapher gets resized
+        TOOLS.resizeHandler();
+
+	return false;
+      },
+
+      // Add new channel to target
+      addChannel : function(channel, target) {
+	var max_time;
+
+        // VERY important to clone the given channel here!
+        channel = TOOLS.clone(channel);
+
+	id = _TIMELINE.channelIdx;
+	_TIMELINE.channelIdx += 1;
+
+	// If this is a new view, set xAxis range to be the latest 
+	// 24 hrs of data from the first added channel
+	if ((VIEWS.data["name"] == _TIMELINE.newViewName) &&
+	    channel.hasOwnProperty("max_time") &&
+	    ($("#_timeline_channels ._timeline_channel").length == 0)) {
+	  max_time = channel["max_time"];
+	  _TIMELINE.dateAxis.setRange(max_time - 86400.0, max_time);
+	}
+
+	var channelElementId = "_timeline_channel_" + id;
+	var plotElementId = "_timeline_plot_" + id;
+	var yAxisElementId = "_timeline_yAxis_" + id;
+	var templateValues = {
+	  "deviceName"       : channel["device_name"],
+	  "channelName"      : channel["channel_name"],
+	  "channelHeight"    : channel["channel_height"],
+	  "plotId"           : id,
+	  "plotElementId"    : plotElementId,
+	  "channelElementId" : channelElementId,
+	  "yAxisElementId"   : yAxisElementId
+	};
+
+	// Render template
+	var html = render($("#_timeline_channel_template"), templateValues);
+	if (target == null || target == undefined || target == "") {
+	  $("#_timeline_channels").append(html);
+	}
+	else {
+	  $(target).replaceWith(html);
+	}
+
+	// When creating a yAxis, second guess the range:
+	// * check to see if the range is zero and set range to 1 if so
+	// * expand the min and max a bit so that the top and bottom 
+	//   of the data don't get cut off
+	var y_min = channel["min"];
+	var y_max = channel["max"];
+
+	// Not enough range, set range to 1
+	if(y_max - y_min < 1e-10) {
+	  y_min = channel["min"] - 0.5;
+	  y_max = channel["min"] + 0.5;
+	}
+	else {
+	  // Do have enough range, expand range a bit
+	  var range_padding = (y_max - y_min)/10.0;
+	  y_min = y_min - range_padding;
+	  y_max = y_max + range_padding;
+	}
+	
+	var yAxis = new NumberAxis(yAxisElementId, "vertical", {
+	  "min" : y_min,
+	  "max" : y_max
+	});
+
+        // TODO: The following should be keying off of "type" rather than "name" fields
+	var plot = null;
+        if ("photos" == channel["channel_name"]) {
+          var tags = [];
+          var willJoinUsingAnd = false;
+          var photoStyle = channel['style'];
+          if (typeof photoStyle !== 'undefined' &&
+              typeof photoStyle['filters'] !== 'undefined' &&
+              typeof photoStyle['filters']['tag'] !== 'undefined') {
+
+            if (jQuery.isArray(photoStyle['filters']['tag']['tags'])) {
+              tags = photoStyle['filters']['tag']['tags'];
+            }
+            willJoinUsingAnd = !!photoStyle['filters']['tag']['isAndJoin'];
+          }
+          var photoDatasource = _TIMELINE.photoDatasource(LOGIN.user_id,
+                                                          channel["device_name"],
+                                                          tags,
+                                                          willJoinUsingAnd);
+          plot = new PhotoSeriesPlot(photoDatasource,
+                                     _TIMELINE.dateAxis,
+                                     yAxis,
+                                     LOGIN.user_id,
+                                     channel["style"]);
+          plot.addDataPointListener(_TIMELINE.photoDataPointListener(channelElementId));
+       } else if ("comments" == channel["channel_name"]) {
+          var tags = [];
+          var willJoinUsingAnd = false;
+          var commentStyle = channel['style'];
+          if (typeof commentStyle !== 'undefined' &&
+              typeof commentStyle['filters'] !== 'undefined' &&
+              typeof commentStyle['filters']['tag'] !== 'undefined') {
+
+            if (jQuery.isArray(commentStyle['filters']['tag']['tags'])) {
+              tags = commentStyle['filters']['tag']['tags'];
+            }
+            willJoinUsingAnd = !!commentStyle['filters']['tag']['isAndJoin'];
+          }
+          alert("Implement commentDatasource and CommentSeriesPlot");
+//          var commentDatasource = _TIMELINE.commentDatasource(LOGIN.user_id,
+//                                                          channel["device_name"],
+//                                                          tags,
+//                                                          willJoinUsingAnd);
+//          plot = new CommentSeriesPlot(commentDatasource,
+//                                     _TIMELINE.dateAxis,
+//                                     yAxis,
+//                                     LOGIN.user_id,
+//                                     channel["style"]);
+//          plot.addDataPointListener(_TIMELINE.commentDataPointListener(channelElementId));
+        } else {
+          // Set up the plot and axes for this channel using the grapher API
+          var channelDatasource = _TIMELINE.channelDatasource(LOGIN.user_id,
+                                                              channel["device_name"],
+                                                              channel["channel_name"]);
+          plot = new DataSeriesPlot(channelDatasource,
+                                    _TIMELINE.dateAxis,
+                                    yAxis,
+                                    channel["style"]);
+          plot.addDataPointListener(_TIMELINE.dataPointListener);
+        }
+
+        var plotContainer = new PlotContainer(plotElementId, [plot]);
+
+	_TIMELINE.channelsMap[channelElementId] = channel;
+	_TIMELINE.plotsMap[channelElementId] = plot;
+	_TIMELINE.plotContainersMap[channelElementId] = plotContainer;
+	_TIMELINE.plotContainers.push(plotContainer);
+
+        // Gear button
+        $("._timeline_btnGear").unbind("click").click(function() {
+          var channelConfigElement = $(this).parents("._timeline_channel")
+              .children("._timeline_channelConfig");
+
+          channelConfigElement.toggle();
+
+	  if (channelConfigElement.css("display") === "none") {
+	    $(this).find("img").attr("src", "/images/gear_b.png");
+	  }
+	  else {
+	    $(this).find("img").attr("src", "/images/gear_green.png");
+	  }
+        });
+
+        // Delete buton
+        $("#" + channelElementId + "_delete_btn")
+            .unbind('click')
+            .click(function() {
+              var channelElement = $(this).parents("._timeline_channel").parent();
+              plotContainer.removePlot(plot);
+              $(channelElement).remove();
+            });
+
+	// Style configuration
+        if (plot instanceof DataSeriesPlot) {
+
+          // Define a function which handles updating a channel's style
+          // whenever anything in the channel configuration changes
+          var updateDataSeriesPlotChannelConfig = function() {
+            var channelElement = $(this).parents("._timeline_channel").parent();
+            var plot = _TIMELINE.plotsMap[channelElement.attr("id")];
+
+            var newStyle = plot.getStyle();
+
+            console.log("----------------------------------------------------------------\nOLD JSON: " + JSON.stringify(newStyle,null,3));
+
+            newStyle['styles'] = [];                // completely overwrite the existing styles array
+            newStyle['highlight'] = {};             // completely overwrite the existing highlight object
+            newStyle['highlight']['styles'] = [];   // initialize the highlight styles array
+
+            var isZeo = $("#" + channelElementId + "-config-zeo-show").is(':checked');
+            var highlightLineWidth = 0;
+
+            if (isZeo) {
+              newStyle['styles'][newStyle['styles'].length] = {
+                "type" : "zeo",
+                "show" : true
+              };
+              highlightLineWidth = 1;
+            } else {
+              var linesStyle = {
+                "type"      : "line",
+                "show"      : $("#" + channelElementId + "-config-lines-show").is(':checked'),
+                "color"     : $("#" + channelElementId + "-config-lines-color").next(".color_picker").css("background-color"),
+                "lineWidth" : TOOLS.parseInt($("#" + channelElementId + "-config-lines-lineWidth").val(), 1)
+              };
+
+              var pointsStyleType = $("#" + channelElementId + "-config-points-type").val();
+              var pointsStyleFill = pointsStyleType.endsWith('-filled');
+              var pointsStyle = {
+                "type"      : pointsStyleType.replace('-filled', ''),
+                "show"      : $("#" + channelElementId + "-config-points-show").is(':checked'),
+                "lineWidth" : 1,
+                "radius"    : TOOLS.parseInt($("#" + channelElementId + "-config-points-radius").val(), 2),
+                "color"     : $("#" + channelElementId + "-config-points-color").next(".color_picker").css("background-color"),
+                "fill"      : pointsStyleFill,
+                "fillColor" : $("#" + channelElementId + "-config-points-fillColor").next(".color_picker").css("background-color")
+              };
+
+              var barsStyle = {
+                "type"      : "lollipop",
+                "show"      : $("#" + channelElementId + "-config-bars-show").is(':checked'),
+                "lineWidth" : TOOLS.parseInt($("#" + channelElementId + "-config-bars-lineWidth").val(), 1),
+                "radius"    : 0,
+                "color"     : $("#" + channelElementId + "-config-bars-color").next(".color_picker").css("background-color"),
+                "fill"      : false
+              };
+
+              // Add the styles to the array--note that ordering here isn't arbitrary.  Styles are rendered in the order
+              // they appear in the array.  Thus, we put points AFTER lines and bars so that the point gets rendered on top.
+              // Value is placed last so that it's on top of everything.
+              newStyle['styles'][newStyle['styles'].length] = linesStyle;
+              newStyle['styles'][newStyle['styles'].length] = barsStyle;
+              newStyle['styles'][newStyle['styles'].length] = pointsStyle;
+
+              // Compute the lineWidth value for highlights by taking the max line width from the lines and bars
+              // styles (but only if they're visible) and incrementing by 1.
+              if (linesStyle['show']) {
+                highlightLineWidth = Math.max(highlightLineWidth, linesStyle['lineWidth']);
+              }
+              if (barsStyle['show']) {
+                highlightLineWidth = Math.max(highlightLineWidth, barsStyle['lineWidth']);
+              }
+              highlightLineWidth += 1;
+            }
+
+            // build the values style (we decide next where to stick it)
+            var valuesStyle = {
+              "type"           : "value",
+              "show"           : $("#" + channelElementId + "-config-values-show").is(':checked'),
+              "fillColor"      : $("#" + channelElementId + "-config-values-fillColor").next(".color_picker").css("background-color"),
+              "marginWidth"    : TOOLS.parseInt($("#" + channelElementId + "-config-values-marginWidth").val(), 5),
+              "verticalOffset" : TOOLS.parseInt($("#" + channelElementId + "-config-values-verticalOffset").val(), 7),
+              "numberFormat"   : $("#" + channelElementId + "-config-values-numberFormat").val()
+            };
+
+            // We'll always put the values style in both the styles array AND the highlight styles array.  The "show"
+            // field will be false for both if Values option is unchecked.  The "show" field will be true for both if the
+            // Values option is checked and the showOnlyOnHighlight option is false.  If the showOnlyOnHighlight option is
+            // true, then the instance in the styles array will have show set to false
+            newStyle['highlight']['styles'][newStyle['highlight']['styles'].length] = valuesStyle;
+            var onlyShowValuesOnHighlight = $("#" + channelElementId + "-config-values-showOnlyOnHighlight").val() === 'true';
+            if (onlyShowValuesOnHighlight) {
+              // clone the valuesStyle instance
+              var valuesStyleCopy = TOOLS.clone(valuesStyle);
+              valuesStyleCopy["show"] = false;
+              newStyle['styles'][newStyle['styles'].length] = valuesStyleCopy;
+            } else {
+              newStyle['styles'][newStyle['styles'].length] = valuesStyle;
+            }
+
+            // set the highlight line width
+            newStyle['highlight']['lineWidth'] = highlightLineWidth;
+
+            // Finally, build the comments style (this completely overwrites the existing comments object)
+            var commentsStyleType = $("#" + channelElementId + "-config-comments-type").val();
+            var commentsStyleFill = commentsStyleType.endsWith('-filled');
+            newStyle['comments'] = {
+              "show"           : $("#" + channelElementId + "-config-comments-show").is(':checked'),
+              "styles"         : [
+                {
+                  "type"      : commentsStyleType.replace('-filled', ''),
+                  "show"      : $("#" + channelElementId + "-config-comments-show").is(':checked'),
+                  "lineWidth" : 1,
+                  "radius"    : TOOLS.parseInt($("#" + channelElementId + "-config-comments-radius").val(), 3),
+                  "color"     : $("#" + channelElementId + "-config-comments-color").next(".color_picker").css("background-color"),
+                  "fill"      : commentsStyleFill,
+                  "fillColor" : $("#" + channelElementId + "-config-comments-fillColor").next(".color_picker").css("background-color")
+                }
+              ],
+              "verticalMargin" : 4
+            };
+
+            console.log("NEW JSON: " + JSON.stringify(newStyle,null,3));
+
+            plot.setStyle(newStyle);
+          };
+
+          // Show DataSeriesPlot config
+          $("#" + channelElementId + " ._timeline_data_series_plot_config").show();
+
+          // First, record whether this is a Zeo plot
+          var isZeo = channel["channel_name"] == "Sleep_Graph";
+
+          // Check for styles array
+          if (!channel["style"].hasOwnProperty("styles")) {
+            channel["style"]["styles"] = [];
+          }
+          // Check for highlight object
+          if (!channel["style"].hasOwnProperty("highlight")) {
+            channel["style"]["highlight"] = {};
+          }
+          // Check for highlight styles array
+          if (!channel["style"]["highlight"].hasOwnProperty("styles")) {
+            channel["style"]["highlight"]["styles"] = [];
+          }
+          // Check for comments object
+          if (!channel["style"].hasOwnProperty("comments")) {
+            channel["style"]["comments"] = {};
+          }
+          // Check for comments styles array
+          if (!channel["style"]["comments"].hasOwnProperty("styles")) {
+            channel["style"]["comments"]["styles"] = [];
+          }
+
+          // get the next default color
+          var defaultColor = "#" + jQuery.fn.colorPicker.getNextColor();
+
+          // Load up the existing styles (if any) from the styles array
+          var linesStyle = {"type" : "line", "show" : false, "lineWidth" : 1, "color" : defaultColor};
+          var pointsStyle = {"type" : "point", "show" : false, "radius" : 2, "fill" : true, "color" : defaultColor, "fillColor" : defaultColor};
+          var barsStyle = {"type" : "lollipop", "show" : false, "color" : defaultColor};
+          var valuesStyle1 = {"type" : "value", "show" : false, "fillColor" : defaultColor};
+          var valuesStyle2 = {"type" : "value", "show" : false, "fillColor" : defaultColor};
+          var commentsStyle = {"type" : "point", "show" : true, "radius" : 3, "fill" : true, "color" : defaultColor, "fillColor" : defaultColor};
+
+          for (var styleTypeIndex = 0; styleTypeIndex < channel["style"]["styles"].length; styleTypeIndex++) {
+            var theStyle = channel["style"]["styles"][styleTypeIndex];
+            if (typeof theStyle["type"] !== 'undefined') {
+              if (theStyle["type"] == "line") {
+                linesStyle = theStyle;
+              } else if (theStyle["type"] == "point" ||
+                         theStyle["type"] == "square" ||
+                         theStyle["type"] == "cross" ||
+                         theStyle["type"] == "plus") {
+                // fill defaults to true if unspecified
+                if (typeof theStyle["fill"] === 'undefined') {
+                  theStyle["fill"] = true;
+                }
+                pointsStyle = theStyle;
+              } else if (theStyle["type"] == "lollipop") {
+                // fill defaults to true if unspecified
+                if (typeof theStyle["fill"] === 'undefined') {
+                  theStyle["fill"] = true;
+                }
+                barsStyle = theStyle;
+              } else if (theStyle["type"] == "value") {
+                valuesStyle1 = theStyle;
+              }
+
+              // show defaults to true if unspecified
+              if (typeof theStyle["show"] === 'undefined') {
+                theStyle["show"] = true;
+              }
+            }
+          }
+
+          // build the type-ui field
+          pointsStyle['type-ui'] = pointsStyle['type'];
+          if (pointsStyle['fill'] && (pointsStyle['type'] == 'point' || pointsStyle['type'] == 'square')) {
+            pointsStyle['type-ui'] += '-filled';
+          }
+
+          // Load up the existing styles (if any) from the highlight styles array--we currently only support the values style
+          for (var highlightStyleTypeIndex = 0; highlightStyleTypeIndex < channel["style"]["highlight"]["styles"].length; highlightStyleTypeIndex++) {
+            var theHighlightStyle = channel["style"]["highlight"]["styles"][highlightStyleTypeIndex];
+            if (theHighlightStyle["type"] == "value") {
+              valuesStyle2 = theHighlightStyle;
+            }
+
+            // show defaults to true if unspecified
+            if (typeof theHighlightStyle["show"] === 'undefined') {
+              theHighlightStyle["show"] = true;
+            }
+          }
+
+          // now merge valuesStyle1 and valuesStyle2 (they should be identical, except for the "show" field)
+          var valuesStyle = jQuery.extend(true, {}, valuesStyle1, valuesStyle2);
+          valuesStyle["show"] = valuesStyle1["show"] || valuesStyle2["show"];
+
+          // map the verticalOffset in valuesStyle to one of the three options we support.
+          valuesStyle["verticalOffset"] = TOOLS.parseInt(valuesStyle["verticalOffset"], 7);
+          if (valuesStyle["verticalOffset"] > -3) {
+            valuesStyle["verticalOffset"] = 7;
+          } else if (valuesStyle["verticalOffset"] < -3) {
+            valuesStyle["verticalOffset"] = -13;
+          }
+
+          // determine whether values should always be shown, or only on highlight (mouseover).  Note that the
+          // concatenation here ensures that it's a string, which is required for when we set the selected index
+          // of the select menu below.
+          var showValuesOnlyOnHighlight = "" + (!valuesStyle1["show"] && valuesStyle2["show"]);
+
+          // Load up the existing styles (if any) from the comments styles array--we currently only support a single point style
+          for (var commentsStyleTypeIndex = 0; commentsStyleTypeIndex < channel["style"]["comments"]["styles"].length; commentsStyleTypeIndex++) {
+            var theCommentsStyle = channel["style"]["comments"]["styles"][commentsStyleTypeIndex];
+            if (theCommentsStyle["type"] == "point" ||
+                theCommentsStyle["type"] == "square" ||
+                theCommentsStyle["type"] == "cross" ||
+                theCommentsStyle["type"] == "plus") {
+              commentsStyle = theCommentsStyle;
+            }
+
+            // show defaults to true if unspecified
+            if (typeof commentsStyle["show"] === 'undefined') {
+              commentsStyle["show"] = true;
+            }
+          }
+
+          // build the type-ui field
+          commentsStyle['type-ui'] = commentsStyle['type'];
+          if (commentsStyle['fill'] && (commentsStyle['type'] == 'point' || commentsStyle['type'] == 'square')) {
+            commentsStyle['type-ui'] += '-filled';
+          }
+
+          /* add event handler for the Save As Default Style link --------------------------------------------------- */
+          $("#" + channelElementId + "-save-default-style > a").click(
+              function(){
+
+                $("#" + channelElementId + "-save-default-style").hide();
+                $("#" + channelElementId + "-save-default-style-status").html("Saving...").show();
+                _TIMELINE.saveDefaultChannelStyle(channel, plot.getStyle(), {
+                  success : function() {
+                    _TIMELINE.getSources();
+                    $("#" + channelElementId + "-save-default-style-status").html("Default style saved.").delay(1000).fadeOut(1000,
+                        function() {
+                          $("#" + channelElementId + "-save-default-style").show();
+                        }
+                    );
+                  },
+                  error:function(textStatus, errorThrown){
+                    console.log("_TIMELINE.saveDefaultChannelStyle(): Failed due to ["+textStatus+"].  Error thrown: " + errorThrown);
+                    $("#" + channelElementId + "-save-default-style-status").html("Failed to save default style.").delay(1000).fadeOut(1000,
+                        function() {
+                          $("#" + channelElementId + "-save-default-style").show();
+                        }
+                    );
+                  }
+                });
+              }
+          );
+
+          /* add event handler for the Show all Y range link */
+          $("#" + channelElementId + "-show-all-y-range > a").click(
+            function() {
+              var plot = _TIMELINE.plotsMap[channelElementId];
+              if (!(plot && !!plot.getStatistics)) {
+                // Photo plots don't have a getStatistics method
+                return false;
+              }
+
+              var xAxis = plot.getHorizontalAxis();
+              var yAxis = plot.getVerticalAxis();
+              var xMin = xAxis.getMin();
+              var xMax = xAxis.getMax();
+
+              var afterload = function(stats) {
+                if (stats["has_data"]) {
+                  var yMin = stats["y_min"];
+                  var yMax = stats["y_max"];
+                  var ydiff = yMax - yMin;
+                  yAxis.setRange(yMin - 0.1 * ydiff,
+                      yMax + 0.1 * ydiff);
+                  plot.setStyle(plot.getStyle()); // Trigger a repaint
+                }
+              }
+
+              var initialStats = plot.getStatistics(xMin, xMax,
+                  ["has_data", "y_min", "y_max"],
+                  afterload);
+              if (!("data_pending" in initialStats)
+                  || (!initialStats["data_pending"])) {
+                afterload(initialStats);
+              }
+              // Else the getStatistics method will call afterload when
+              // the data arrives
+
+              return false;
+            }
+          );
+
+
+          /* Configure the Zeo options ------------------------------------------------------------------------------ */
+          $("#" + channelElementId + "-config-zeo-show").prop("checked", isZeo);
+
+          /* Configure the Color Override options ------------------------------------------------------------------- */
+          $("#" + channelElementId + "-config-color-override-color").colorPicker();
+          $("#" + channelElementId + "-config-color-override-color").val("#000000"); // we always want this one to start out black
+          $("#" + channelElementId + "-config-color-override-color").change();
+          $("#" + channelElementId + "-config-color-override-color").change(
+              function() {
+                var overrideColor = $("#" + channelElementId + "-config-color-override-color").next(".color_picker").css("background-color");
+
+                $("#" + channelElementId + "-config-lines-color").val(overrideColor).change();
+                $("#" + channelElementId + "-config-points-color").val(overrideColor).change();
+                $("#" + channelElementId + "-config-points-fillColor").val(overrideColor).change();
+                $("#" + channelElementId + "-config-bars-color").val(overrideColor).change();
+                $("#" + channelElementId + "-config-values-fillColor").val(overrideColor).change();
+                $("#" + channelElementId + "-config-comments-color").val(overrideColor).change();
+                $("#" + channelElementId + "-config-comments-fillColor").val(overrideColor).change();
+              }
+          );
+
+          /* Configure the Lines options ---------------------------------------------------------------------------- */
+
+          // don't show this section if this is a Zeo plot
+          $("#" + channelElementId + "-config-lines").toggle(!isZeo);
+
+          // Set the initial value of the show checkbox
+          $("#" + channelElementId + "-config-lines-show").prop("checked", linesStyle["show"] && !isZeo);
+          $("#" + channelElementId + "-config-lines-show").change(updateDataSeriesPlotChannelConfig);
+
+          // Set the initial value of the lineWidth select menu
+          $("#" + channelElementId + "-config-lines-lineWidth").val(TOOLS.parseInt(linesStyle["lineWidth"], 1));
+          $("#" + channelElementId + "-config-lines-lineWidth").change(updateDataSeriesPlotChannelConfig);
+          $("#" + channelElementId + "-config-lines-lineWidth").msDropDown();
+
+          // Create the color colorpicker, and set its initial value
+          $("#" + channelElementId + "-config-lines-color").colorPicker();
+          $("#" + channelElementId + "-config-lines-color").val(typeof linesStyle["color"] === 'undefined' ? defaultColor : linesStyle["color"]);
+          $("#" + channelElementId + "-config-lines-color").change();
+          $("#" + channelElementId + "-config-lines-color").change(updateDataSeriesPlotChannelConfig);
+
+          /* Configure the Points options --------------------------------------------------------------------------- */
+
+          // don't show this section if this is a Zeo plot
+          $("#" + channelElementId + "-config-points").toggle(!isZeo);
+
+          // Set the initial value of the show checkbox
+          $("#" + channelElementId + "-config-points-show").prop("checked", pointsStyle["show"] && !isZeo);
+          $("#" + channelElementId + "-config-points-show").change(updateDataSeriesPlotChannelConfig);
+
+          // Set the initial value of the type select menu and the initial state of the fillColor color picker
+          $("#" + channelElementId + "-config-points-type").val(pointsStyle['type-ui']);
+          $("#" + channelElementId + "-config-points-type").change(updateDataSeriesPlotChannelConfig);
+          $("#" + channelElementId + "-config-points-type").change(
+              function() {
+                var isFilledType = $("#" + channelElementId + "-config-points-type").val().endsWith("-filled");
+                $("#" + channelElementId + "-config-points-fillColor-container").toggle(isFilledType);
+              }
+          );
+          $("#" + channelElementId + "-config-points-type").msDropDown();
+          $("#" + channelElementId + "-config-points-fillColor-container").toggle(pointsStyle['fill']);
+
+          // Set the initial value of the radius select menu
+          $("#" + channelElementId + "-config-points-radius").val(TOOLS.parseInt(pointsStyle["radius"], 2));
+          $("#" + channelElementId + "-config-points-radius").change(updateDataSeriesPlotChannelConfig);
+          $("#" + channelElementId + "-config-points-radius").msDropDown();
+
+          // Create the color colorpicker, and set its initial value
+          $("#" + channelElementId + "-config-points-color").colorPicker();
+          $("#" + channelElementId + "-config-points-color").val(typeof pointsStyle["color"] === 'undefined' ? defaultColor : pointsStyle["color"]);
+          $("#" + channelElementId + "-config-points-color").change();
+          $("#" + channelElementId + "-config-points-color").change(updateDataSeriesPlotChannelConfig);
+
+          // Create the fillColor colorpicker, and set its initial value
+          $("#" + channelElementId + "-config-points-fillColor").colorPicker();
+          $("#" + channelElementId + "-config-points-fillColor").val(typeof pointsStyle["fillColor"] === 'undefined' ? defaultColor : pointsStyle["fillColor"]);
+          $("#" + channelElementId + "-config-points-fillColor").change();
+          $("#" + channelElementId + "-config-points-fillColor").change(updateDataSeriesPlotChannelConfig);
+
+          /* Configure the Bars options ----------------------------------------------------------------------------- */
+
+          // don't show this section if this is a Zeo plot
+          $("#" + channelElementId + "-config-bars").toggle(!isZeo);
+
+          // Set the initial value of the show checkbox
+          $("#" + channelElementId + "-config-bars-show").prop("checked", barsStyle["show"] && !isZeo);
+          $("#" + channelElementId + "-config-bars-show").change(updateDataSeriesPlotChannelConfig);
+
+          // Set the initial value of the lineWidth select menu
+          $("#" + channelElementId + "-config-bars-lineWidth").val(TOOLS.parseInt(barsStyle["lineWidth"], 1));
+          $("#" + channelElementId + "-config-bars-lineWidth").change(updateDataSeriesPlotChannelConfig);
+          $("#" + channelElementId + "-config-bars-lineWidth").msDropDown();
+
+          // Create the color colorpicker, and set its initial value
+          $("#" + channelElementId + "-config-bars-color").colorPicker();
+          $("#" + channelElementId + "-config-bars-color").val(typeof barsStyle["color"] === 'undefined' ? defaultColor : barsStyle["color"]);
+          $("#" + channelElementId + "-config-bars-color").change();
+          $("#" + channelElementId + "-config-bars-color").change(updateDataSeriesPlotChannelConfig);
+
+          /* Configure the Values options --------------------------------------------------------------------------- */
+
+          // Set the initial value of the show checkbox
+          $("#" + channelElementId + "-config-values-show").prop("checked", valuesStyle["show"]);
+          $("#" + channelElementId + "-config-values-show").change(updateDataSeriesPlotChannelConfig);
+
+          // Create the fillColor colorpicker, and set its initial value
+          $("#" + channelElementId + "-config-values-fillColor").colorPicker();
+          $("#" + channelElementId + "-config-values-fillColor").val(typeof valuesStyle["fillColor"] === 'undefined' ? defaultColor : valuesStyle["fillColor"]);
+          $("#" + channelElementId + "-config-values-fillColor").change();
+          $("#" + channelElementId + "-config-values-fillColor").change(updateDataSeriesPlotChannelConfig);
+
+          // Set the initial value of the numberFormat select menu
+          $("#" + channelElementId + "-config-values-numberFormat").val(typeof valuesStyle["numberFormat"] === 'undefined' ? "###,##0.0##" : valuesStyle["numberFormat"]);
+          $("#" + channelElementId + "-config-values-numberFormat").change(updateDataSeriesPlotChannelConfig);
+          $("#" + channelElementId + "-config-values-numberFormat").msDropDown();
+
+          // Set the initial value of the verticalOffset select menu
+          $("#" + channelElementId + "-config-values-verticalOffset").val(TOOLS.parseInt(valuesStyle["verticalOffset"], 7));
+          $("#" + channelElementId + "-config-values-verticalOffset").change(updateDataSeriesPlotChannelConfig);
+          $("#" + channelElementId + "-config-values-verticalOffset").msDropDown();
+
+          // Set the initial value of the showOnlyOnHighlight select menu and the initial visibility of the marginWidth select menu
+          $("#" + channelElementId + "-config-values-showOnlyOnHighlight").val(showValuesOnlyOnHighlight);
+          $("#" + channelElementId + "-config-values-showOnlyOnHighlight").change(updateDataSeriesPlotChannelConfig);
+          $("#" + channelElementId + "-config-values-showOnlyOnHighlight").change(
+              function() {
+                var shouldShowMarginMenu = $("#" + channelElementId + "-config-values-showOnlyOnHighlight").val() == 'false';
+                $("#" + channelElementId + "-config-values-marginWidth-label-container").toggle(shouldShowMarginMenu);
+                $("#" + channelElementId + "-config-values-marginWidth-container").toggle(shouldShowMarginMenu);
+              }
+          );
+          $("#" + channelElementId + "-config-values-showOnlyOnHighlight").msDropDown();
+          var showValuesOnlyOnHighlightBoolean = showValuesOnlyOnHighlight == 'true';
+          $("#" + channelElementId + "-config-values-marginWidth-label-container").toggle(!showValuesOnlyOnHighlightBoolean);
+          $("#" + channelElementId + "-config-values-marginWidth-container").toggle(!showValuesOnlyOnHighlightBoolean);
+
+          // Set the initial value of the marginWidth select menu
+          $("#" + channelElementId + "-config-values-marginWidth").val(TOOLS.parseInt(valuesStyle["marginWidth"], 5));
+          $("#" + channelElementId + "-config-values-marginWidth").change(updateDataSeriesPlotChannelConfig);
+          $("#" + channelElementId + "-config-values-marginWidth").msDropDown();
+
+          /* Configure the Comments options ------------------------------------------------------------------------- */
+
+          // Set the initial value of the show checkbox
+          $("#" + channelElementId + "-config-comments-show").prop("checked", commentsStyle["show"]);
+          $("#" + channelElementId + "-config-comments-show").change(updateDataSeriesPlotChannelConfig);
+
+          // Set the initial value of the type select menu and the initial state of the fillColor color picker
+          $("#" + channelElementId + "-config-comments-type").val(commentsStyle['type-ui']);
+          $("#" + channelElementId + "-config-comments-type").change(updateDataSeriesPlotChannelConfig);
+          $("#" + channelElementId + "-config-comments-type").change(
+              function() {
+                var isFilledType = $("#" + channelElementId + "-config-comments-type").val().endsWith("-filled");
+                $("#" + channelElementId + "-config-comments-fillColor-container").toggle(isFilledType);
+              }
+          );
+          $("#" + channelElementId + "-config-comments-type").msDropDown();
+          $("#" + channelElementId + "-config-comments-fillColor-container").toggle(commentsStyle['fill']);
+
+          // Set the initial value of the radius select menu
+          $("#" + channelElementId + "-config-comments-radius").val(TOOLS.parseInt(commentsStyle["radius"], 3));
+          $("#" + channelElementId + "-config-comments-radius").change(updateDataSeriesPlotChannelConfig);
+          $("#" + channelElementId + "-config-comments-radius").msDropDown();
+
+          // Create the color colorpicker, and set its initial value
+          $("#" + channelElementId + "-config-comments-color").colorPicker();
+          $("#" + channelElementId + "-config-comments-color").val(typeof commentsStyle["color"] === 'undefined' ? defaultColor : commentsStyle["color"]);
+          $("#" + channelElementId + "-config-comments-color").change();
+          $("#" + channelElementId + "-config-comments-color").change(updateDataSeriesPlotChannelConfig);
+
+          // Create the fillColor colorpicker, and set its initial value
+          $("#" + channelElementId + "-config-comments-fillColor").colorPicker();
+          $("#" + channelElementId + "-config-comments-fillColor").val(typeof commentsStyle["fillColor"] === 'undefined' ? defaultColor : commentsStyle["fillColor"]);
+          $("#" + channelElementId + "-config-comments-fillColor").change();
+          $("#" + channelElementId + "-config-comments-fillColor").change(updateDataSeriesPlotChannelConfig);
+
+          // Finally, trigger a call updateDataSeriesPlotChannelConfig() so that the grapher properly represents the config settings
+          $("#" + channelElementId + "-config-comments-fillColor").change();
+        } else if (plot instanceof PhotoSeriesPlot) {
+
+          // returns the array of tags already selected for this photo
+          var getUserSelectedTags = function() {
+            var tags = [];
+            $.each($("#" + channelElementId + "-photo-tags-filter .tagedit-listelement-old input"),
+                   function(index, inputElement) {
+                     var val = inputElement['value'];
+                     if (typeof val === 'string' && val != '') {
+                       tags[tags.length] = val;
+                     }
+                   }
+            );
+            return tags;
+          };
+
+          var updatePhotoSeriesPlotChannelConfig = function() {
+            var channelElement = $(this).parents("._timeline_channel").parent();
+            var plot = _TIMELINE.plotsMap[channelElement.attr("id")];
+            var newStyle = plot.getStyle();
+            //console.log("----------------------------------------\nOLD JSON: " + JSON.stringify(newStyle,null,3));
+
+            // completely overwrite the existing tag filters object
+            if (typeof newStyle['filters'] === 'undefined') {
+              newStyle['filters'] = {};
+            }
+
+            var isAndJoin = $("#" + channelElementId + "-photo-tags-isAndJoin").val() === 'true';
+            var userSelectedTags = getUserSelectedTags();
+            newStyle['filters']["tag"] = {
+              "tags" : userSelectedTags,
+              "isAndJoin" : isAndJoin
+            };
+
+            // Display the filter settings in the channel tab
+            if (userSelectedTags.length > 0) {
+              var filterHtml = render($("#_timeline_channel_tab_filter_template"), {"value":userSelectedTags.join(", ")});
+              $("#" + channelElementId + "-timeline-channel-filter").html(filterHtml).shorten();
+            } else {
+              $("#" + channelElementId + "-timeline-channel-filter").text('').hide();
+            }
+
+            //console.log("NEW JSON: " + JSON.stringify(newStyle,null,3));
+
+            plot.setStyle(newStyle);
+
+            plot.setDatasource(_TIMELINE.photoDatasource(LOGIN.user_id,
+                                                         channel["device_name"],
+                                                         newStyle['filters']["tag"]["tags"],
+                                                         newStyle['filters']["tag"]["isAndJoin"]
+            ));
+          };
+
+          // Check for filters object
+          if (!channel["style"].hasOwnProperty("filters")) {
+            channel["style"]["filters"] = {};
+          }
+          // Check for filters.tag object
+          if (!channel["style"]["filters"].hasOwnProperty("tag")) {
+            channel["style"]["filters"]["tag"] = {};
+          }
+          // Check for filters.tag.tags array
+          if (!channel["style"]["filters"]["tag"].hasOwnProperty("tags")) {
+            channel["style"]["filters"]["tag"]["tags"] = [];
+          }
+          // Check for filters.tag.isAndJoin property
+          if (!channel["style"]["filters"]["tag"].hasOwnProperty("isAndJoin")) {
+            channel["style"]["filters"]["tag"]["isAndJoin"] = false;  // default to joining with OR
+          }
+
+          // Load up the existing tag filter (if any)
+          var tagFilter = channel["style"]["filters"]["tag"];
+
+          // Set the initial value of the isAndJoin select menu
+          $("#" + channelElementId + "-photo-tags-isAndJoin").val("" + tagFilter["isAndJoin"]);
+          $("#" + channelElementId + "-photo-tags-isAndJoin").change(updatePhotoSeriesPlotChannelConfig);
+
+          // seed the tag filter editor with the tags currently saved in the channel (if any)
+          if (tagFilter['tags'].length > 0) {
+            $.each(tagFilter['tags'],
+                   function(index, value) {
+                     var tagHtml = render($("#_timeline_photo_dialog_tags_editor_tag_template"), {"value" : value});
+                     $("#" + channelElementId + "-photo-tags-filter").append(tagHtml);
+                   });
+          } else {
+            var tagHtml = render($("#_timeline_photo_dialog_tags_editor_tag_template"), {"value" : ""});
+            $("#" + channelElementId + "-photo-tags-filter").append(tagHtml);
+          }
+
+          // construct the tag filter editor
+          var tagFilterOptions = {
+            autocompleteOptions : {
+              "minLength" : 0, // TODO: make this 1 or 2 if the list of tags is huge
+              "delay"     : 0,
+              "autoFocus" : false,
+              source      : function(request, response) {
+                var tagsToExclude = getUserSelectedTags();
+                var cachedTagsData = TAG_MANAGER.getCachedTagsForTagEditor(tagsToExclude);
+                return response($.ui.autocomplete.filter(cachedTagsData, request.term));
+              }
+            },
+            // return, comma, space, period, semicolon
+            breakKeyCodes       : [ 13, 44, 32, 59 ],
+            additionalListClass : '_timeline_photo_tags_filter',
+            animSpeed           : 100,
+            allowAdd            : false,
+            allowEdit           : false,
+            allowDelete         : false,
+            texts               : {
+              removeLinkTitle    : 'Remove this tag from the list',
+              saveEditLinkTitle  : 'Save changes',
+              breakEditLinkTitle : 'Undo changes'
+            }
+          };
+          $("#" + channelElementId + "-photo-tags-filter input.tag").tagedit(tagFilterOptions);
+          $("#" + channelElementId + "-photo-tags-filter").bind('tagsChanged', updatePhotoSeriesPlotChannelConfig);
+          //$("#" + channelElementId + "-photo-tags-filter").bind('tagAdded', function(){console.log('tagAdded')});
+          //$("#" + channelElementId + "-photo-tags-filter").bind('tagEdited', function(){console.log('tagEdited')});
+          //$("#" + channelElementId + "-photo-tags-filter").bind('tagRemoved', function(){console.log('tagRemoved')});
+
+          // Show PhotoSeriesPlot config
+          $("#" + channelElementId + " ._timeline_photo_series_plot_config").show();
+
+          // Finally, trigger a call updatePhotoSeriesPlotChannelConfig() so that the grapher properly represents the config settings
+          $("#" + channelElementId + "-photo-tags-isAndJoin").change();
+        }
+
+        // Update scroll area
+	TOOLS.resizeHandler();
+
+	return html;
+      },
+
+      // Fetch ordering and latest values from channelsMap and 
+      // update VIEWS.data
+      updateViewData : function() {
+	var i, l;
+	var channelIds;
+	var xAxis, yAxis, plot;
+	var channel, yAxes = [];
+
+	channelIds = $("#_timeline_channels").sortable('toArray');
+
+	l = channelIds.length;
+
+	// Update xAxis min/max
+	if (l > 0) {
+	  plot = _TIMELINE.plotsMap[channelIds[0]];
+	  xAxis = plot.getHorizontalAxis();
+	  VIEWS.data["v2"]["x_axis"]["min"] = xAxis.getMin();
+	  VIEWS.data["v2"]["x_axis"]["max"] = xAxis.getMax();
+	}
+
+	// Update yAxis min/max, order, height
+	for (i = 0; i < l; i++) {
+	  plot = _TIMELINE.plotsMap[channelIds[i]];
+	  yAxis = plot.getVerticalAxis();
+	  channel = _TIMELINE.channelsMap[channelIds[i]];
+	  if (plot instanceof DataSeriesPlot || plot instanceof PhotoSeriesPlot) {
+	    channel["style"] = plot.getStyle();
+	    channel["channel_height"] = $("#" + yAxis.getPlaceholder()).height();
+	  }
+	  channel["min"] = yAxis.getMin();
+	  channel["max"] = yAxis.getMax();
+
+	  yAxes.push(channel);
+	}
+	VIEWS.data["v2"]["y_axes"] = yAxes;
+
+	// Update status of add channels pane
+	if ($("#_timeline_addChannelsArea").css("display") === "none") {
+	  VIEWS.data["v2"]["show_add_pane"] = false;
+	}
+	else {
+	  VIEWS.data["v2"]["show_add_pane"] = true;
+	}
+      }, 
+
+      // Render view to page
+      renderView : function(view, mode) {
+	var yAxes, i, l;
+	mode = mode || "both";
+
+	if ((typeof view === 'undefined') ||
+	    (view == null) ||
+	    (!_TIMELINE.validateView(view))) {
+	  alert("Invalid view: " + ((view == null) ? null : view["name"]));
+	  return;
+	}
+	
+	// Update existing view with new x-axis range only
+	if (mode === "time") {
+	  if (typeof _TIMELINE.dateAxis === "undefined") {
+	    alert("Existing view not found");
+	    return;
+	  }
+          $("#_timeline_save_view_btn").unbind('click')
+	    .click(_TIMELINE.toggleSaveDialog)
+	    .removeClass("button_disabled"); 
+	  $("#_timeline_add_channels_btn").unbind('click')
+	    .click(_TIMELINE.toggleAddChannelsPane)
+	    .removeClass("button_disabled");
+	  $("#_timeline_show_details_btn").unbind('click')
+	    .click(_TIMELINE.toggleDetailsPane)
+	    .removeClass("button_disabled");
+
+	  _TIMELINE.dateAxis.setRange(view["v2"]["x_axis"]["min"],
+				      view["v2"]["x_axis"]["max"]);
+	  return;
+	}
+	else {	
+	  // Reset view specific data
+	  _TIMELINE.channelsMap = {};
+	  _TIMELINE.plotsMap = {};
+	  _TIMELINE.plotContainersMap = {};
+	  _TIMELINE.plotContainers = [];
+	  
+	  // Reset colorpicker color cycling
+          jQuery.fn.colorPicker.resetGetNextColor();
+	  
+	  // Clear the channels area
+	  $("#_timeline_dateAxis").empty();
+          $('#_timeline_channels').empty();
+          $('#_timeline_dateAxisAndChannelsArea').show();
+          $('#_timeline_channelsArea').show();
+
+	  // Set view name and add click handlers for various buttons
+	  $("#_timeline_viewName").html(view["name"]).shorten();
+	  // TODO: only enable this when the view has changed
+          $("#_timeline_save_view_btn").unbind('click')
+	    .click(_TIMELINE.toggleSaveDialog)
+	    .removeClass("button_disabled"); 
+	  $("#_timeline_add_channels_btn").unbind('click')
+	    .click(_TIMELINE.toggleAddChannelsPane)
+	    .removeClass("button_disabled");
+	  $("#_timeline_show_details_btn").unbind('click')
+	    .click(_TIMELINE.toggleDetailsPane)
+	    .removeClass("button_disabled");
+
+	  // Show/hide add channels pane
+	  if ((typeof view["v2"]["show_add_pane"] === "undefined") ||
+	      (view["v2"]["show_add_pane"] === false)) {
+	    if ($("#_timeline_addChannelsArea").css("display") !== "none") {
+	      _TIMELINE.toggleAddChannelsPane();
+	    }
+	  }
+	  else {
+	    if ($("#_timeline_addChannelsArea").css("display") === "none") {
+	      _TIMELINE.toggleAddChannelsPane();
+	    }
+	  }
+
+	  // Create x-axis
+	  _TIMELINE.dateAxis = new DateAxis("_timeline_dateAxis", "horizontal", {
+	    "min" : view["v2"]["x_axis"]["min"],
+	    "max" : view["v2"]["x_axis"]["max"]
+	  });
+	   
+	  // Create y-axes
+	  yAxes = view["v2"]["y_axes"];
+	  l = yAxes.length;
+	  for (i = 0; i < l; i++) {
+	    _TIMELINE.addChannel(yAxes[i], null);
+          }
+        }
+      },
+      
+      // Helper function which converts the given channels object to an array
+      // of channels, sorted in the order specified by the value of each
+      // channel's y_axis property.
+      validateView : function(view) {
+	var xAxes, yAxes;
+	var viewName, channels;
+	var deviceName, deviceChannels, channelName;
+	var obj, styles;
+	var i, l;
+
+	if (typeof view === 'undefined' ||
+            view == null ||
+	    typeof view['error'] !== 'undefined') {
+	  return false;
+	}
+
+	/* V2 structure
+	{
+	  "name" : "test",
+	  "v2"   : {
+            "show_add_pane" : true,
+	    "x_axis" : {
+	      "min" : 0.00,
+	      "max" : 0.00
+	    },
+	    "y_axes" : [
+	      {
+		"device_name" : "",
+		"channel_name" : "",
+		"min" : 0.00,
+		"max" : 0.00,
+		"style" : {},
+		"y_range" : {"min_val" : 0, "max_val" : 0}, // optional
+		"channel_height" : 0 // pixels, optional
+	      },
+	      {
+	      }
+	    ]
+	  }
+	}
+	*/
+	if (typeof view['v2'] !== 'undefined') {
+	  if (typeof view['v2']['x_axis'] !== 'object' || 
+	      typeof view['v2']['y_axes'] !== 'object') {
+	    return false;
+	  }
+
+	  // Rename style-types to styles if present
+	  yAxes = view['v2']['y_axes'];
+	  l = yAxes.length;
+	  for (i = 0; i < l; i++) {
+	    if (yAxes[i].hasOwnProperty("style")) {
+	      if (!yAxes[i]['style'].hasOwnProperty("styles")) {
+		console.log("Patching v2 view");
+		view['v2']['y_axes'][i]['style']['styles'] = yAxes[i]['style']['style-types'];
+	      }
+	    }
+	  }
+	  return true;
+	}
+	
+	/*** Upgrade view data to v2 format ***/
+	console.log("Upgrading view to v2");
+
+	// Validate fields
+	xAxes = view['x_axes'];
+	yAxes = view['y_axes'];
+	viewName = view['name'];
+	channels = view['channels'];
+	
+	if (typeof xAxes !== 'object' || typeof xAxes[0] !== 'object' ||
+            typeof yAxes !== 'object' || typeof yAxes[0] !== 'object' ||
+            typeof viewName !== 'string' || viewName.length === 0 ||
+            typeof channels !== 'object') {
+	  return false;
+	}
+
+	// Create v2 structure
+	view["v2"] = {
+	  "x_axis" : {
+	    "min" : xAxes[0]["min_time"],
+	    "max" : xAxes[0]["max_time"]
+	  },
+	  "y_axes" : []
+	};
+
+	for (deviceName in channels) {
+	  if (channels.hasOwnProperty(deviceName)) {
+	    deviceChannels = channels[deviceName];
+	    for (channelName in deviceChannels) {
+	      if (deviceChannels.hasOwnProperty(channelName)) {
+		obj = channels[deviceName][channelName];
+		index = obj['y_axis'];
+
+		// Customize default style for zeo
+		if (channelName == "Sleep_Graph") {
+		  styles = [{
+		    "type" : "zeo"
+		  }];
+		}
+		else {
+		  styles = [{
+		    "type"      : "line",
+		    "color"     : obj['color'],
+		    "lineWidth" : 1
+		  }];
+		}
+		view["v2"]["y_axes"][index] = {
+		  'device_name'  : deviceName,
+		  'channel_name' : channelName,
+		  'min'          : yAxes[index]['min_val'],
+		  'max'          : yAxes[index]['max_val'],
+		  'style'        : { "styles" : styles }
+		};
+	      }
+	    }
+	  }
+	}
+	return true;
+      },
+
+      channelDatasource : function(userId, deviceName, channelName) {
+        var urlPrefix = "/tiles/" + userId + "/" + deviceName + "."
+          + channelName + "/";
+        return __createDatasource(urlPrefix);
+      },
+
+      // If allTags is true, we require all tags to be present.
+      // Otherwise, any tag in tags is OK (the default)
+      photoDatasource : function(userId, deviceName, tags, allTags, nsfw) {
+        var urlPrefix = "/photos/" + userId + "/";
+        var urlParams = {};
+        if (deviceName != null && deviceName.toLowerCase() != "all") {
+          urlParams["dev_nickname"] = deviceName;
+        }
+        if (tags != null && tags.length > 0) {
+          if (!!allTags) {
+            urlParams["all_tags"] = tags.join(",");
+          } else {
+            urlParams["any_tags"] = tags.join(",");
+          }
+
+          // TODO: This line is only for compatibility with the server
+          // until the server supports any_tags and all_tags.  This
+          // can be safely removed, with no impact on correctness,
+          // when that server support is added
+          urlParams["tags_filter"] = tags.join(",");
+        }
+        if (!!nsfw) {
+          urlParams["nsfw"] = "1";
+        }
+        return __createDatasource(urlPrefix, urlParams);
+      },
+
+      dataPointListener : function(pointObj, sourceInfo) {
+        if (pointObj) {
+          $("#_timeline_dataPointValueLabel").html(render($("#_timeline_data_point_value_label_template"), pointObj));
+        } else {
+          $("#_timeline_dataPointValueLabel").html("");
+        }
+      },
+
+      loadNeighboringPhotoMetadata : function(currentPhotoId,
+                                              currentPhotoTimestamp,
+                                              tagsFilterArray,
+                                              isAndJoin,
+                                              shouldLoadPreviousNeighbor,   // flag which determines whether the previous or following neighbor will be loaded
+                                              callbacks) {
+        currentPhotoId = TOOLS.parseInt(currentPhotoId, -1);
+        if (currentPhotoId >= 0) {
+          if (typeof callbacks === 'undefined') {
+            callbacks = {};
+          }
+          var successCallback = callbacks['success'];
+          var errorCallback = callbacks['error'];
+          var completeCallback = callbacks['complete'];
+
+          shouldLoadPreviousNeighbor = !!shouldLoadPreviousNeighbor;
+          isAndJoin = !!isAndJoin;
+
+          var url = "/users/" + LOGIN.user_id + "/log_items/get";
+          var urlParams = {
+            "id":currentPhotoId,
+            "time":currentPhotoTimestamp,
+            "type":"photos",
+            "descending":shouldLoadPreviousNeighbor,
+            "exclusive":true,
+            "count":shouldLoadPreviousNeighbor ? 1 : 2      // get 2 if loading following neighbors due to bug in server-side code
+          };
+
+          if (isAndJoin) {
+            urlParams["all_tags"] = tagsFilterArray.join(",");
+          } else {
+            urlParams["any_tags"] = tagsFilterArray.join(",");
+          }
+
+          TOOLS.loadJson(url, urlParams, {
+            "success" : function(photos) {
+              if ($.isArray(photos)) {
+                if (typeof successCallback === 'function') {
+                  var photo = photos[0];
+                  // we might need to skip the first index due to bug in server-side code
+                  if (photos.length > 0 && TOOLS.parseInt(photos[0]['id'], -1) == currentPhotoId) {
+                    photo = photos.length > 1 ? photos[1] : {};
+                  }
+
+                  if (typeof photo === 'undefined') {
+                    photo = {};
+                  }
+                  successCallback({
+                                    "photoId"         : photo['id'],
+                                    "comment"         : photo['comment'],
+                                    "tags"            : photo['tags'],
+                                    "timestamp"       : photo['end_d'],
+                                    "timestampString" : photo['end']
+                                  });
+                }
+              } else if (typeof errorCallback == 'function') {
+                errorCallback("_TIMELINE.loadNeighboringPhotoMetadata(): Returned data is not an array");
+              }
+            },
+            "error"   : errorCallback,
+            "complete":completeCallback
+          });
+        }
+      },
+
+      loadLogrecMetadata : function(logrecId, callbacks) {
+        logrecId = TOOLS.parseInt(logrecId, -1);
+        if (logrecId >= 0) {
+
+          var url = "/users/" + LOGIN.user_id + "/logrecs/" + logrecId + "/get";
+
+          TOOLS.loadJson(url, {}, callbacks);
+        }
+      },
+
+      photoDataPointListener : function(channelElementId) {
+        return function(pointObj, sourceInfo) {
+          if (pointObj && sourceInfo && sourceInfo['info']) {
+
+            // returns the array of tags currently selected for this photo
+            var getUserSelectedTags = function() {
+              var tags = [];
+              $.each($("#_timeline_photo_dialog_tags_editor .tagedit-listelement-old input"),
+                     function(index, inputElement) {
+                       var val = inputElement['value'];
+                       if (typeof val === 'string' && val != '') {
+                         tags[tags.length] = val;
+                       }
+                     }
+              );
+              return tags;
+            };
+
+            // returns the array of tags selected for this channel's filter
+            var getTagFilterForChannel = function() {
+              var tags = [];
+              $.each($("#" + channelElementId + "-photo-tags-filter .tagedit-listelement-old input"),
+                     function(index, inputElement) {
+                       var val = inputElement['value'];
+                       if (typeof val === 'string' && val != '') {
+                         tags[tags.length] = val;
+                       }
+                     }
+              );
+              return tags;
+            };
+            // get the channel's current settings for tag filtering
+            var isAndJoin = $("#" + channelElementId + "-photo-tags-isAndJoin").val() === 'true';
+            var channelFilterTags = getTagFilterForChannel();
+
+            var createPhotoDialog = function(photoId, timestamp) {
+
+              $("#_timeline_photo_dialog").html(render($("#_timeline_photo_dialog_template"), {"photoId" : photoId, "userId" : LOGIN.user_id}));
+
+              var updateGoToNeighborOnSaveWidgets = function() {
+                var isEnabled = $("#_timeline_photo_dialog_save_should_goto_neighbor").is(':checked');
+                var direction = TOOLS.parseInt($("#_timeline_photo_dialog_save_should_goto_neighbor_choice").val(),0);
+                PREFS.set("photo_dialog.goto_neighbor_on_save.enabled", isEnabled);
+                PREFS.set("photo_dialog.goto_neighbor_on_save.direction", direction);
+
+                if (isEnabled) {
+                  $("#_timeline_photo_dialog_save_should_goto_neighbor_choice").removeAttr("disabled");
+                  $("#_timeline_photo_dialog_save_preferences label").css("color", "#000000");
+                  if (direction < 0) {
+                    $("#_timeline_photo_dialog_save_button").html("Save &amp; Previous");
+                  } else {
+                    $("#_timeline_photo_dialog_save_button").html("Save &amp; Next");
+                  }
+                } else {
+                  $("#_timeline_photo_dialog_save_should_goto_neighbor_choice").attr("disabled", "disabled");
+                  $("#_timeline_photo_dialog_save_preferences label").css("color", "#aaaaaa");
+                  $("#_timeline_photo_dialog_save_button").text("Save");
+                }
+              };
+
+              // set the widgets for the Save button behavior based on saved prefs
+              var goToNeighborOnSaveEnabled = !!PREFS.get("photo_dialog.goto_neighbor_on_save.enabled", false);
+              var goToNeighborOnSaveDirection = TOOLS.parseInt(PREFS.get("photo_dialog.goto_neighbor_on_save.direction", 0), 0);
+              $("#_timeline_photo_dialog_save_should_goto_neighbor").prop("checked", goToNeighborOnSaveEnabled);
+              $("#_timeline_photo_dialog_save_should_goto_neighbor").change(updateGoToNeighborOnSaveWidgets);
+              $("#_timeline_photo_dialog_save_should_goto_neighbor_choice").val(goToNeighborOnSaveDirection == 0 ? 1 : goToNeighborOnSaveDirection);
+              $("#_timeline_photo_dialog_save_should_goto_neighbor_choice").change(updateGoToNeighborOnSaveWidgets);
+
+              // display Loading status message
+              $("#_timeline_photo_dialog_form_status").text("Loading...").show();
+
+              // set previous and next buttons initially hidden
+              $("#_timeline_photo_dialog_previous_button").hide();
+              $("#_timeline_photo_dialog_next_button").hide();
+
+              var previousPhotoMetadata;
+              var nextPhotoMetadata;
+
+              // Fetch the metadata via AJAX and then insert it into the dialog upon success
+              var loadPhotoMetadata = function() {
+                _TIMELINE.loadLogrecMetadata(photoId,
+                                             {
+                                               success : function(data) {
+
+                                                 var isPreviousPhoto = typeof previousPhotoMetadata !== 'undefined' && typeof previousPhotoMetadata['photoId'] !== 'undefined';
+                                                 if (isPreviousPhoto) {
+                                                   $("#_timeline_photo_dialog_previous_button").show().click(function() {
+                                                     createPhotoDialog(previousPhotoMetadata['photoId'],
+                                                                       previousPhotoMetadata['timestamp'])
+                                                   });
+                                                 }
+
+                                                 var isNextPhoto = typeof nextPhotoMetadata !== 'undefined' && typeof nextPhotoMetadata['photoId'] !== 'undefined';
+                                                 if (isNextPhoto) {
+                                                   $("#_timeline_photo_dialog_next_button").show().click(function() {
+                                                     createPhotoDialog(nextPhotoMetadata['photoId'],
+                                                                       nextPhotoMetadata['timestamp'])
+                                                   });
+                                                 }
+
+                                                 if (typeof data === 'string') {
+                                                   data = JSON.parse(data);
+                                                 }
+
+                                                 // treat undefined or null comment as an empty comment
+                                                 if (typeof data['comment'] === 'undefined' || data['comment'] == null) {
+                                                   data['comment'] = '';
+                                                 }
+
+                                                 // treat undefined or null tags as an empty array
+                                                 if (typeof data['tags'] === 'undefined' || data['tags'] == null) {
+                                                   data['tags'] = [];
+                                                 }
+
+                                                 var createCommentAndTagForm = function(comment, tags) {
+
+                                                   var isDirty = function() {
+                                                     // first check the comment, since it's easy and cheap
+                                                     if ($("#_timeline_photo_dialog_comment").val() != comment) {
+                                                       return true;
+                                                     }
+
+                                                     // if the comment isn't dirty, then check the tags
+                                                     var newTags = getUserSelectedTags();
+
+                                                     // start by checking the length
+                                                     if (newTags.length != tags.length) {
+                                                       return true;
+                                                     }
+
+                                                     // now compare individual tags
+                                                     for (var i = 0; i < newTags.length; i++) {
+                                                       if (newTags[i] != tags[i]) {
+                                                         return true;
+                                                       }
+                                                     }
+
+                                                     return false;
+                                                   };
+
+                                                   var setEnabledStateOfRevertAndSaveButtons = function() {
+                                                     if (isDirty()) {
+                                                       $("#_timeline_photo_dialog_save_button").removeAttr("disabled");
+                                                       $("#_timeline_photo_dialog_revert_button").removeAttr("disabled");
+                                                     } else {
+                                                       $("#_timeline_photo_dialog_save_button").attr("disabled", "disabled");
+                                                       $("#_timeline_photo_dialog_revert_button").attr("disabled", "disabled");
+                                                     }
+                                                   };
+
+                                                   // build the form for the metadata editor
+                                                   var photoMetadataForm = render($("#_timeline_photo_dialog_form_template"), {});
+                                                   $("#_timeline_photo_dialog_form").html(photoMetadataForm);
+
+                                                   // fill in the timestamp
+                                                   if (typeof data['end'] === 'undefined') {
+                                                     $("#_timeline_photo_dialog_timestamp").html("&nbsp;");
+                                                   } else {
+                                                     $("#_timeline_photo_dialog_timestamp").text(new Date(data['end']).toString());
+                                                   }
+
+                                                   // fill in the comment, if any
+                                                   if (typeof comment === 'undefined' || comment == null) {
+                                                     $("#_timeline_photo_dialog_comment").val('');
+                                                   } else {
+                                                     $("#_timeline_photo_dialog_comment").val(comment);
+                                                   }
+
+                                                   // Set up focus and blur event handlers for the comment field, to toggle
+                                                   // close on ESC for the photo dialog.  We don't want the ESC key to close
+                                                   // the dialog when the user is editing the comment.
+                                                   $("#_timeline_photo_dialog_comment").focus(function() {
+                                                     $("#_timeline_photo_dialog")['dialog']("option", "closeOnEscape", false);
+                                                   });
+                                                   $("#_timeline_photo_dialog_comment").blur(function() {
+                                                     $("#_timeline_photo_dialog")['dialog']("option", "closeOnEscape", true);
+                                                   });
+                                                   $("#_timeline_photo_dialog_comment").keyup(setEnabledStateOfRevertAndSaveButtons);
+
+                                                   // add the tags, if any
+                                                   if ($.isArray(tags) && tags.length > 0) {
+                                                     $.each(tags,
+                                                            function(index, value) {
+                                                              var tagHtml = render($("#_timeline_photo_dialog_tags_editor_tag_template"), {"value" : value});
+                                                              $("#_timeline_photo_dialog_tags_editor").append(tagHtml);
+                                                            });
+                                                   } else {
+                                                     var tagHtml = render($("#_timeline_photo_dialog_tags_editor_tag_template"), {"value" : ""});
+                                                     $("#_timeline_photo_dialog_tags_editor").append(tagHtml);
+                                                   }
+
+                                                   // construct the tag editor
+                                                   var tagEditorOptions = {
+                                                     autocompleteOptions : {
+                                                       "minLength" : 0, // TODO: make this 1 or 2 if the list of tags is huge
+                                                       "delay"     : 0,
+                                                       "autoFocus" : false,
+                                                       source      : function(request, response) {
+                                                         var tagsToExclude = getUserSelectedTags();
+                                                         var cachedTagsData = TAG_MANAGER.getCachedTagsForTagEditor(tagsToExclude);
+                                                         return response($.ui.autocomplete.filter(cachedTagsData, request.term));
+                                                       }
+                                                     },
+                                                     // return, comma, space, period, semicolon
+                                                     breakKeyCodes       : [ 13, 44, 32, 59 ],
+                                                     additionalListClass : '_timeline_photo_tags_input',
+                                                     animSpeed           : 100,
+                                                     allowAdd            : true,
+                                                     allowEdit           : true,
+                                                     allowDelete         : false,
+                                                     texts               : {
+                                                       removeLinkTitle    : 'Remove this tag from the list',
+                                                       saveEditLinkTitle  : 'Save changes',
+                                                       breakEditLinkTitle : 'Undo changes'
+                                                     }
+                                                   };
+                                                   $('#_timeline_photo_dialog_tags_editor input.tag').tagedit(tagEditorOptions);
+                                                   $('#_timeline_photo_dialog_tags_editor').bind('tagsChanged', setEnabledStateOfRevertAndSaveButtons);
+                                                   $('#_timeline_photo_dialog_tags_editor').bind('receivedFocus', function() {
+                                                     $("#_timeline_photo_dialog")['dialog']("option", "closeOnEscape", false);
+                                                   });
+                                                   $('#_timeline_photo_dialog_tags_editor').bind('tabToNextElement', function(event) {
+                                                     $("#_timeline_photo_dialog")['dialog']("option", "closeOnEscape", true);
+
+                                                     $("#_timeline_photo_dialog_tags_editor_tabhelper_post_proxy_forward").focus();
+                                                     return false;
+                                                   });
+                                                   $('#_timeline_photo_dialog_tags_editor').bind('tabToPreviousElement', function(event) {
+                                                     $("#_timeline_photo_dialog")['dialog']("option", "closeOnEscape", true);
+
+                                                     $("#_timeline_photo_dialog_comment").select().focus();
+                                                     return false;
+                                                   });
+
+                                                   // set form buttons to initially disabled
+                                                   $("#_timeline_photo_dialog_save_button").attr("disabled", "disabled");
+                                                   $("#_timeline_photo_dialog_revert_button").attr("disabled", "disabled");
+
+                                                   // configure the Revert button
+                                                   $("#_timeline_photo_dialog_revert_button").click(
+                                                       function() {
+                                                         $("#_timeline_photo_dialog_form").hide();
+                                                         $("#_timeline_photo_dialog_form_status").text("Loading...").show();
+
+                                                         // recreate the comment and tag form
+                                                         createCommentAndTagForm(comment, tags);
+                                                         $("#_timeline_photo_dialog_form_status").hide();
+                                                         $("#_timeline_photo_dialog_form").show();
+
+                                                         // focus on the comment
+                                                         $("#_timeline_photo_dialog_comment").select().focus();
+                                                       }
+                                                   );
+
+                                                   // configure the Save button
+                                                   $("#_timeline_photo_dialog_save_button").click(
+                                                       function() {
+
+                                                         // set form buttons to disabled while saving
+                                                         $("#_timeline_photo_dialog_save_button").attr("disabled", "disabled");
+                                                         $("#_timeline_photo_dialog_revert_button").attr("disabled", "disabled");
+
+                                                         $("#_timeline_photo_dialog_form").hide();
+                                                         $("#_timeline_photo_dialog_form_status").text("Saving...").show();
+
+                                                         $.ajax({
+                                                                  cache    : false,
+                                                                  type     : "POST",
+                                                                  url      : "/users/" + LOGIN.user_id + "/logrecs/" + photoId + "/set",
+                                                                  data     : {
+                                                                    "tags"    : getUserSelectedTags().join(','),
+                                                                    "comment" : $("#_timeline_photo_dialog_comment").val()
+                                                                  },
+                                                                  dataType : "json",
+                                                                  success  : function(savedData, textStatus, jqXHR) {
+                                                                    if (typeof savedData === 'object') {
+                                                                      console.log("Successfully saved comment and tags for photo [" + photoId + "]");
+                                                                      TAG_MANAGER.refreshTagCache(function() {
+
+                                                                        $("#_timeline_photo_dialog_form_status")
+                                                                            .text("Saved.")
+                                                                            .delay(250)
+                                                                            .fadeOut(500,
+                                                                                     function() {
+                                                                                       // read the desired direction from the prefs
+                                                                                       goToNeighborOnSaveEnabled = !!PREFS.get("photo_dialog.goto_neighbor_on_save.enabled", false);
+                                                                                       goToNeighborOnSaveDirection = TOOLS.parseInt(PREFS.get("photo_dialog.goto_neighbor_on_save.direction", 0), 0);
+
+                                                                                       // now determine what action to take upon save
+                                                                                       if (goToNeighborOnSaveEnabled && isPreviousPhoto && goToNeighborOnSaveDirection < 0) {
+                                                                                         $("#_timeline_photo_dialog_previous_button").click();
+                                                                                       } else if (goToNeighborOnSaveEnabled && isNextPhoto && goToNeighborOnSaveDirection > 0) {
+                                                                                         $("#_timeline_photo_dialog_next_button").click();
+                                                                                       } else {
+                                                                                         // recreate the comment and tag form
+                                                                                         createCommentAndTagForm(savedData['comment'], savedData['tags']);
+
+                                                                                         $("#_timeline_photo_dialog_form").show();
+
+                                                                                         // focus on the comment
+                                                                                         $("#_timeline_photo_dialog_comment").select().focus();
+                                                                                       }
+                                                                                     }
+                                                                        );
+                                                                      });
+                                                                    } else {
+                                                                      console.log("Unexpected response when saving comment and tags for photo [" + photoId + "]:  savedData=[" + savedData + "] textStatus=[" + textStatus + "]");
+                                                                      $("#_timeline_photo_dialog_form_status").text("Saved failed.").show();
+                                                                    }
+
+                                                                  },
+                                                                  error    : function(jqXHR, textStatus, errorThrown) {
+                                                                    console.log("Failed to save comment and tags for photo [" + photoId + "]:  textStatus=[" + textStatus + "] errorThrown=[" + errorThrown + "]");
+                                                                    $("#_timeline_photo_dialog_form_status").text("Saved failed.").show();
+                                                                  }
+                                                                }
+                                                         );
+                                                      }
+                                                   );
+
+                                                   updateGoToNeighborOnSaveWidgets();
+
+                                                   // set up tabbing and focus handling
+                                                   $("#_timeline_photo_dialog_form #tagedit-input").attr("tabindex", 102);
+                                                   $("#_timeline_photo_dialog_tabhelper_pre_proxy_backward").focus(function() {
+                                                     if ($("#_timeline_photo_dialog_save_should_goto_neighbor_choice").is(":enabled")) {
+                                                       $("#_timeline_photo_dialog_save_should_goto_neighbor_choice").focus();
+                                                     } else {
+                                                       $("#_timeline_photo_dialog_save_should_goto_neighbor").focus();
+                                                     }
+                                                     return false;
+                                                   });
+                                                   $("#_timeline_photo_dialog_previous_button").focus(
+                                                       function() {
+                                                         $(this).css("background-position", "0 -38px");
+                                                       }).blur(
+                                                       function() {
+                                                         $(this).css("background-position", "0 0");
+                                                       });
+                                                   $("#_timeline_photo_dialog_next_button").focus(
+                                                       function() {
+                                                         $(this).css("background-position", "0 -38px");
+                                                       }).blur(
+                                                       function() {
+                                                         $(this).css("background-position", "0 0");
+                                                       });
+                                                   $("#_timeline_photo_dialog_comment_tabhelper_pre_proxy_forward").focus(function() {
+                                                     $("#_timeline_photo_dialog_comment").focus().select();
+                                                     return false;
+                                                   });
+                                                   $("#_timeline_photo_dialog_comment_tabhelper_pre_proxy_backward").focus(function() {
+                                                     if (isNextPhoto) {
+                                                       $("#_timeline_photo_dialog_next_button").focus();
+                                                     } else if (isPreviousPhoto) {
+                                                       $("#_timeline_photo_dialog_previous_button").focus();
+                                                     } else {
+                                                       $("#_timeline_photo_dialog_tabhelper_pre_proxy_backward").focus();
+                                                     }
+                                                     return false;
+                                                   });
+                                                   $("#_timeline_photo_dialog_comment").focus(function() {
+                                                     return false;
+                                                   });
+                                                   $("#_timeline_photo_dialog_tags_editor_tabhelper_pre_proxy_forward").focus(function() {
+                                                     $("#_timeline_photo_dialog_tags_editor ul").click();
+                                                   });
+                                                   $("#_timeline_photo_dialog_tags_editor_tabhelper_post_proxy_forward").focus(function() {
+                                                     if ($("#_timeline_photo_dialog_save_button").is(":disabled")) {
+                                                       $("#_timeline_photo_dialog_save_should_goto_neighbor").focus();
+                                                     } else {
+                                                       $("#_timeline_photo_dialog_save_button").focus();
+                                                     }
+                                                     return false;
+                                                   });
+                                                   $("#_timeline_photo_dialog_tags_editor_tabhelper_post_proxy_backward").focus(function() {
+                                                     $("#_timeline_photo_dialog_tags_editor ul").click();
+                                                   });
+                                                   $("#_timeline_photo_dialog_revert_button").focus(
+                                                       function() {
+                                                         $(this).css("color", "#18B054");
+                                                       }).blur(
+                                                       function() {
+                                                         $(this).css("color", "#000000");
+                                                       });
+                                                   $("#_timeline_photo_dialog_save_button").focus(
+                                                       function(event) {
+                                                         $(this).css("color", "#18B054");
+                                                       }).blur(
+                                                       function(event) {
+                                                         $(this).css("color", "#000000");
+                                                       });
+                                                   $("#_timeline_photo_dialog_post_proxy_forward").focus(function() {
+                                                     if (isPreviousPhoto) {
+                                                       $("#_timeline_photo_dialog_previous_button").focus();
+                                                     } else if (isNextPhoto) {
+                                                       $("#_timeline_photo_dialog_next_button").focus();
+                                                     } else {
+                                                       $("#_timeline_photo_dialog_comment").focus().select();
+                                                     }
+                                                     return false;
+                                                   });
+
+                                                   // set focus on the comment input, and select all the text
+                                                   $("#_timeline_photo_dialog_comment").select().focus();
+
+                                                 };
+
+                                                 // create the comment and tag form, hide the status area, and show the form
+                                                 createCommentAndTagForm(data['comment'], data['tags']);
+                                                 $("#_timeline_photo_dialog_form_status").hide();
+                                                 $("#_timeline_photo_dialog_form").show();
+                                               },
+                                               error   : function(textStatus, errorThrown) {
+                                                 console.log("_TIMELINE.photoDataPointListener(): failed to obtain metadata for photo [" + photoId + "].  Message: [" + textStatus + "] Error: [" + errorThrown + "]");
+                                               }
+                                             });
+              };
+
+              var loadNextPhotoMetadata = function() {
+                _TIMELINE.loadNeighboringPhotoMetadata(photoId,
+                                                       timestamp,
+                                                       channelFilterTags,
+                                                       isAndJoin,
+                                                       false,
+                                                       {
+                                                         "success" : function(theNextPhotoMetadata) {
+                                                           if (typeof theNextPhotoMetadata === 'object') {
+                                                             nextPhotoMetadata = theNextPhotoMetadata;
+                                                           }
+                                                           loadPhotoMetadata();
+                                                         }
+                                                       });
+
+              };
+              var loadPreviousPhotoMetadata = function() {
+                _TIMELINE.loadNeighboringPhotoMetadata(photoId,
+                                                       timestamp,
+                                                       channelFilterTags,
+                                                       isAndJoin,
+                                                       true,
+                                                       {
+                                                         "success" : function(thePreviousPhotoMetadata) {
+                                                           if (typeof thePreviousPhotoMetadata === 'object') {
+                                                             previousPhotoMetadata = thePreviousPhotoMetadata;
+                                                           }
+                                                           loadNextPhotoMetadata();
+                                                         }
+                                                       });
+              };
+
+              loadPreviousPhotoMetadata();
+
+            };
+
+            createPhotoDialog(sourceInfo['info']['imageId'], pointObj['date']);
+
+            // Open the dialog
+            $("#_timeline_photo_dialog")['dialog']('open');
+          }
+        }
+      },
+
+      saveDefaultChannelStyle : function(channel, defaultStyleObj, callbacks) {
+        if (typeof channel === 'object' &&
+            typeof defaultStyleObj === 'object' &&
+            typeof channel["device_name"] === 'string' &&
+            typeof channel["channel_name"] === 'string') {
+
+          if (typeof callbacks === 'undefined') {
+            callbacks = {};
+          }
+          var successCallback = callbacks['success'];
+          var errorCallback = callbacks['error'];
+          var completeCallback = callbacks['complete'];
+
+          var url = "/users/" + LOGIN.user_id + "/channels/" + encodeURIComponent(channel["device_name"]) + "." + encodeURIComponent(channel["channel_name"]) + "/set";
+          //console.log("saving default style to URL [" + url + "]:\n" + JSON.stringify(defaultStyleObj, null, 3));
+          $.ajax({
+                   cache    : false,
+                   type     : "POST",
+                   url      : url,
+                   data     : {"user_default_style" : JSON.stringify(defaultStyleObj)},
+                   success  : function(data, textStatus, jqXHR) {
+                     try {
+                       if (typeof successCallback === 'function') {
+                         successCallback(data);
+                       }
+                     }
+                     catch (ex) {
+                       console.log("_TIMELINE.saveDefaultChannelStyle.success: JSON parse error, or failure in the successCallback: " + ex);
+                     }
+                   },
+                   error    : function(jqXHR, textStatus, errorThrown) {
+                     try {
+                       if (typeof errorCallback === 'function') {
+                         errorCallback(textStatus, errorThrown);
+                       }
+                     }
+                     catch (ex) {
+                       console.log("_TIMELINE.saveDefaultChannelStyle.error: Failure in the errorCallback: " + ex);
+                     }
+                   },
+                   complete : function(jqXHR, textStatus) {
+                     try {
+                       if (typeof completeCallback === 'function') {
+                         completeCallback(textStatus);
+                       }
+                     }
+                     catch (ex) {
+                       console.log("_TIMELINE.saveDefaultChannelStyle.complete: Failure in the completeCallback: " + ex);
+                     }
+                   }
+                 });
+        }
+      },
+
+      dragAreaOnMouseDown: function(plotId, channelElementId,
+                                    plotElementId, yAxisElementId) {
+        var mostRecentY = null;
+        var resizeTimer = null;
+        var dylist = [];
+
+        var resizePlot = function(dy) {
+          var container = _TIMELINE.plotContainersMap[channelElementId];
+          var cPlaceholder = $("#" + container.getPlaceholder());
+          var containerW = cPlaceholder.width();
+          var containerH = cPlaceholder.height();
+
+          var plot = _TIMELINE.plotsMap[channelElementId];
+          var yAxis = plot.getVerticalAxis();
+          var yAixsW = $("#" + yAxis.getPlaceholder()).width();
+
+          var dragAreaH = $("._timeline_dragArea").height();
+
+          if ((dy > 0) || (Math.abs(dy) < containerH)) {
+            // There is a min height of 70, which is taken from the
+            // min height of the channel label
+            if (containerH + dy + dragAreaH < 70) {
+              dy = 70 - containerH - dragAreaH;
+            }
+
+            // Set the size of the plot container itself
+            $("#" + plotElementId).height(containerH + dy);
+            container.setSize(containerW, containerH + dy,
+              SequenceNumber.getNext());
+
+            // Set the size of the Y-axis
+            $("#" + yAxisElementId).height(containerH + dy);
+            yAxis.setSize(yAixsW, containerH + dy,
+              SequenceNumber.getNext());
+
+            // Set the size of the channel label
+            $("#_timeline_channelTab_" + plotId).height(containerH + dy);
+
+            // Update the view data to match the new channel height
+            if ((!!VIEWS.data) && (!!VIEWS.data["v2"])
+                && (!!VIEWS.data["v2"]["y_axes"])
+                && (VIEWS.data["v2"]["y_axes"].length > plotId)) {
+              VIEWS.data["v2"]["y_axes"][plotId]["channel_height"] =
+                containerH + dy;
+            }
+          }
+
+          mostRecentY = mostRecentY + dy;
+          return false;
+        };
+        var mouseup = null;
+        var mousemove = null;
+        var updatePlotSize = function() {
+          if (dylist.length > 0) {
+            resizePlot(dylist[dylist.length - 1]);
+            dylist = [];
+          }
+        };
+        var stopListening = function() {
+          $(window).unbind({
+            mousemove: mousemove,
+            mouseup: mouseup
+          });
+          clearInterval(resizeTimer);
+          return false;
+        };
+        mousemove = function(event) {
+          if (mostRecentY == null) {
+            mostRecentY = event.pageY;
+          } else {
+            dylist.push(event.pageY - mostRecentY);
+          }
+          return false; // Stops the event from propagating
+        };
+        mouseup = function(event) {
+          console.log("mouseup called");
+          if (mostRecentY == null) {
+            return stopListening();
+          }
+          stopListening();
+          resizePlot(event.pageY - mostRecentY);
+          return false; // Stops the event from propagating
+        };
+
+        // TODO: Add mouseout event handler as well?
+        $(window).bind({
+            mousemove: mousemove,
+            mouseup: mouseup
+        });
+        resizeTimer = setInterval(updatePlotSize, 100);
+
+        return false;
+      }
+    }; // _TIMELINE
+  }(jQuery));
+
+</script>
+
+<style>
+body {
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
+
+#_timeline_mainContentArea {
+    position: relative;
+}
+
+#_timeline_mainContentArea #_timeline_dataTable {
+    margin-top: 10px;
+    border-spacing: 0px;
+    table-layout: fixed;
+    width: 100%;
+}
+
+#_timeline_mainContentArea #_timeline_dataTable td {
+}
+
+#_timeline_viewName {
+    float: left;
+    width: 200px;
+    font-size: 1.2em;
+    padding: 3px 5px 3px 0px;
+    vertical-align: middle;
+    overflow: hidden;
+}
+
+._timeline_pane {
+    /* necessary to be opaque over canvas */
+    position: relative;
+    margin: 0px;
+    padding: 0px;
+    display: none;
+    width: 200px;
+    border: 3px solid #d1d2d3;
+    background-color: #ededed;
+    vertical-align: top;
+    z-index: 99;
+}
+
+._timeline_pane_title {
+    font-size: 1.2em;
+    font-weight: bold;
+    padding: 7px 10px;
+}
+
+#_timeline_addChannelsArea #_timeline_sources_find {
+    text-align: center;
+    margin-bottom: 5px;
+}
+
+#_timeline_addChannelsArea span input {
+    width: 100px;
+    border: 1px solid #d1d2d3;
+    font-size: 1em;
+    vertical-align: middle;
+}
+
+#_timeline_addChannelsArea ul {
+    min-height: 100%;
+    height: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+    list-style: none;
+    margin: 0px;
+    padding: 0px;
+    border-top: 3px solid #D1D2D3;
+}
+
+#_timeline_addChannelsArea ul li {
+    width: 100%;
+}
+
+#_timeline_addChannelsArea ul li ._timeline_sources_name {
+    font-weight: bold;
+    background-color: #d1d2d3;
+    padding: 5px 9px;
+    cursor: default;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+}
+
+#_timeline_addChannelsArea ul li ._timeline_sources_name ._timeline_sources_name_arrow {
+    font-size: 1.0em;
+}
+
+#_timeline_addChannelsArea ul li ul {
+    display: none;
+}
+
+#_timeline_addChannelsArea ul li ul ._timeline_sources_channel {
+    padding: 2px 5px 2px 9px;
+    cursor: pointer;
+}
+
+#_timeline_channelsArea {
+    vertical-align: top;
+    padding: 0 1px;
+    width: auto;
+}
+
+#_timeline_channelsWrapper {
+    min-height: 100%;
+    height: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+#_timeline_channels {
+    border: 1px solid #D1D2D3;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+
+#_timeline_channelsWrapper_footer {
+  /* This footer allows the user to scroll the page enough so that
+   * channel config widgets don't get chopped off by the bottom of
+   * the window. */
+  height: 120px;
+  min-height: 120px;
+  max-height: 120px;
+  background-color: #ffffff;
+}
+
+._timeline_channel {
+    margin: 0;
+    padding: 0;
+    border: 1px solid #D1D2D3;
+}
+
+._timeline_channel table {
+    width: 100%;
+}
+
+._timeline_channel table ._timeline_channeltd {
+  width: 200px;
+}
+
+._timeline_channel table ._timeline_plottd {
+  width: auto;
+}
+
+._timeline_channel table ._timeline_yaxistd {
+  width: 30px;
+}
+
+._timeline_channelTabAndPlot {
+  position: relative;
+}
+
+._timeline_channelTab {
+    border: 1px solid #D1D2D3;
+    width: 200px;
+    height: 67px;
+    min-height: 67px;
+    cursor: pointer;
+    background: #e7e8e9;
+}
+
+._timeline_channelTable {
+  height: 100%;
+}
+
+._timeline_btnGear {
+  float: right;
+  margin-left: 6px;
+  margin-right: 2px;
+  padding: 0;
+}
+
+._timeline_delete_btn {
+  margin-left: 6px;
+  margin-right: 6px;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  background: url(/images/delete.png) no-repeat 0 0;
+}
+
+._timeline_delete_btn:hover {
+  background-position: 0 -20px;
+}
+
+._timeline_channelName {
+  font-family: "Arial", verdana, sans-serif;
+  font-size: 1.1em;
+  font-weight: bold;
+}
+
+._timeline_channelSource {
+  font-family: "Arial", verdana, sans-serif;
+  font-size: 0.7em;
+  font-weight: bold;
+  color: #4D4D4D;
+}
+
+._timeline_channelFilter {
+  display:none;
+  overflow: hidden;
+  margin-top: 5px;
+  padding: 0;
+  font-family: "Arial", verdana, sans-serif;
+  font-style: italic;
+  font-size: 9px;
+  font-weight: normal;
+  color: #363636;
+  width: 141px;
+}
+
+._timeline_channelFilter_label {
+  font-weight: bold;
+}
+
+.close_btn {
+  position: absolute;
+  right: -17px;
+  top: -16px;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  background: url(/images/closebox.png) no-repeat 0 0;
+}
+
+._timeline_plotContainer {
+    border-top: 1px solid #CCCCCC;
+    border-left: 1px solid #CCCCCC;
+    border-right: 1px solid #CCCCCC;
+}
+
+._timeline_channelPlot {
+    height: 67px;
+    min-height: 67px;
+}
+
+._timeline_channelConfig {
+    height: auto;
+    border: 1px solid #D1D2D3;
+    display: none;
+}
+
+._timeline_channelConfig table td {
+  font-family: "Arial", verdana, sans-serif;
+  padding: 1px 0 1px 0;
+}
+
+._timeline_channelConfig select {
+  font-family: "Arial", verdana, sans-serif;
+  font-size: 0.9em;
+}
+
+._timeline_channelConfig ._timeline_sectionTitle {
+  font-weight: bold;
+  display: inline;
+  font-size: 8pt;
+}
+
+._timeline_channelConfig_table_cell_padding {
+  width:10px;
+  min-width:5px;
+}
+
+._timeline_channelConfig_image_menu {
+  width:45px;
+}
+
+._timeline_channelConfig label {
+  display: inline;
+  font-weight: normal;
+  font-size: 7pt;
+}
+
+._timeline_photo_series_plot_config {
+  display: none;
+  padding-left: 202px;
+}
+
+._timeline_data_series_plot_config {
+  display: none;
+}
+
+._timeline_data_series_plot_config_left_area {
+  font-size: 8pt;
+  width: 202px;
+  min-width: 202px;
+  max-width: 202px;
+}
+
+._timeline_data_series_plot_config_left_area > div {
+  padding-left: 5px;
+}
+
+._timeline_data_series_plot_config_right_area {
+  width: auto;
+}
+
+#_timeline_dateAxisAndChannelsArea {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  width: auto;
+}
+
+#_timeline_dateAxisContainer {
+  width: auto;
+  height:70px;
+  margin: 0 53px 0 205px;
+  padding: 0;
+  border: 1px solid #CCCCCC;
+  border-bottom-width: 0;
+}
+
+#_timeline_dateAxis {
+    width: auto;
+    height: 70px;
+    z-index: 2;
+}
+
+#_timeline_dataPointValueLabel {
+    width: auto;
+    min-width: 200px;
+    text-align: right;
+    padding: 0 5px 0 5px;
+    margin-top: -20px;
+    z-index: 1;
+}
+
+.ui-dialog .ui-dialog-content {
+  padding: 5px;
+}
+
+#_timeline_photo_dialog {
+  display:none;
+}
+
+._timeline_photo_dialog_table {
+  min-width: 300px;
+  min-height: 300px;
+  height: auto;
+}
+
+._timeline_photo_dialog_photo_table {
+  min-width: 300px;
+  min-height: 300px;
+  width: 300px;
+  height: 300px;
+  background-color: black;
+}
+
+#_timeline_photo_dialog_timestamp {
+  font-size: 9pt;
+  width: 300px;
+  min-width: 300px;
+  border-bottom: 1px solid #aaaaaa;
+  padding-bottom:2px;
+}
+
+#_timeline_photo_dialog_comment {
+  margin: 12px 0 0 0;
+  padding: 0 2px 0 2px;
+  width: 294px;
+  max-width: 300px;
+  height: auto;
+  font-size: .85em;
+  border: 1px solid #c6c6c6;
+}
+
+#_timeline_photo_dialog_tags_editor_area {
+  display:none;
+}
+
+#_timeline_photo_dialog_previous_button {
+  margin:140px 10px 0 0;
+}
+
+#_timeline_photo_dialog_next_button {
+  margin:140px 0 0 10px;
+}
+
+._timeline_left_arrow{
+  padding: 0;
+  border: none;
+  width:10px;
+  height:19px;
+  cursor: pointer;
+  background: url(/images/leftArrow.png) no-repeat 0 0;
+}
+
+._timeline_left_arrow:hover{
+  background-position: 0 -19px;
+}
+
+._timeline_right_arrow{
+  padding: 0;
+  border: none;
+  width:10px;
+  height:19px;
+  cursor: pointer;
+  background: url(/images/rightArrow.png) no-repeat 0 0;
+}
+
+._timeline_right_arrow:hover{
+  background-position: 0 -19px;
+}
+
+._timeline_photo_tags_input {
+  width: 288px;
+  max-width: 288px;
+}
+
+._timeline_photo_tags_filter {
+  width: auto;
+}
+
+.ui-menu-item {
+  font-size: 0.75em;
+}
+
+.ui-autocomplete {
+  max-height: 160px;
+  overflow-y: auto;
+  /* prevent horizontal scrollbar */
+  overflow-x: hidden;
+  /* add padding to account for vertical scrollbar */
+  padding-right: 20px;
+}
+
+#_timeline_photo_dialog_form_status{
+  line-height:100px;
+  min-height:100px;
+  height:100px;
+  width:300px;
+  text-align: center;
+  vertical-align: middle;
+  display:none;
+}
+
+#_timeline_photo_dialog_tags_editor {
+  margin-top: 10px;
+}
+
+#_timeline_photo_dialog_form_buttons {
+  margin-top: 10px;
+  font-size:smaller;
+  text-align:right;
+}
+
+#_timeline_photo_dialog_revert_button {
+}
+
+#_timeline_photo_dialog_save_button {
+}
+
+#_timeline_photo_dialog_save_preferences {
+  clear: both;
+  margin-top: 10px;
+  padding-top: 5px;
+  border-top: 1px solid #aaaaaa;
+  text-align: center;
+}
+
+#_timeline_photo_dialog_save_preferences label {
+  font-size: 8pt;
+  font-weight: normal;
+  display: inline;
+  color: #aaaaaa;
+}
+
+#_timeline_photo_dialog_save_should_goto_neighbor_choice {
+  font-size: 7pt;
+}
+
+._timeline_yAxisContainer {
+    min-height: 67px;
+    height: 67px;
+    display: table-cell;
+    vertical-align: middle;
+}
+
+._timeline_yAxis {
+    width: 30px;
+    min-height: 67px;
+    height: 67px;
+}
+
+._timeline_dragArea {
+    height: 3px;
+    cursor: ns-resize;
+    border-left: 1px solid #CCCCCC;
+    background: #D1D2D3;
+}
+
+.g2d-Surface canvas {
+    border-style: none;
+    border-radius: 0;
+}
+
+canvas {
+    border-style: none;
+    border-radius: 0;
+}
+
+/* Disable the outline when clicking on plots/axes */
+:focus {
+    outline: none;
+}
+
+::-moz-focus-inner {
+    border: 0;
+}
+
+.button {
+    background-color:#c9c9c9;
+    -moz-border-radius:6px;
+    -webkit-border-radius:6px;
+    border-radius:6px;
+    border:1px solid #dcdcdc;
+    display:inline-block;
+    color:#333;
+    font-family:arial;
+    font-size:12px;
+    font-weight:bold;
+    padding:6px 17px;
+    text-decoration:none;
+    vertical-align: middle;
+}
+.button:active {
+    position:relative;
+    top:1px;
+}
+
+.button_disabled {
+    background-color: #d1d2d3;
+    color: #999;
+}
+
+.button_toggle {
+  background-color: #18b054;
+  color: #fff;
+}
+
+#_timeline_view_dialog {
+    position: absolute;
+    left: 320px;
+    top: 40px;
+    width: 260px;
+    border: 5px solid #d1d2d3;
+    display: none;
+    z-index: 100;
+    background-color: #fff;
+}
+
+#_timeline_view_dialog ul {
+    list-style: none;
+    max-height: 350px;
+    overflow-y: auto;
+    margin: 0px;
+    padding: 15px 20px;
+}
+
+#_timeline_view_dialog ._timeline_save_dialog_head {
+    width: 100%;
+    height: 36px;
+    text-align: center;
+    background-color: #ededed;
+    padding-top: 10px;
+}
+
+#_timeline_view_dialog ._timeline_load_dialog_head {
+    width: 100%;
+    height: 36px;
+    text-align: center;
+    background-color: #ededed;
+    padding-top: 10px;
+}
+
+#_timeline_view_dialog ._timeline_load_dialog_head_content {
+    margin-top: 4px;
+    text-align: left;
+    margin-left: 18px;
+}
+
+#_timeline_view_dialog ._timeline_load_dialog_head_content input {
+    margin-left: 2px;
+}
+
+#_timeline_view_dialog div span input {
+    width: 150px;
+    border: 1px solid #d1d2d3;
+    font-size: 1.2em;
+    vertical-align: middle;
+}
+
+</style>
+
+<script id="tmpl-tab-timeline" type="text/x-mustache-tmpl">
+  <div id="_timeline_messageArea">Loading...</div>
+
+  <div id="_timeline_mainContentArea" style="display:none">
+    <span>
+      <span id="_timeline_viewName"></span>
+
+      <a href="#" class="button" id="_timeline_new_view_btn">New View</a>
+      <a href="#" class="button button_disabled" id="_timeline_save_view_btn">Save View</a>
+      <a href="#" class="button" id="_timeline_load_view_btn">Load View</a>
+      <a href="#" class="button button_disabled" id="_timeline_add_channels_btn">Add Channels</a>
+      <a href="#" class="button button_disabled" id="_timeline_show_details_btn">Show Details</a>
+    </span>
+    <div id="_timeline_view_dialog"></div>
+
+    <table id="_timeline_dataTable" border="0" cellpadding="0" cellspacing="0">
+      <tr valign="top">
+        <td id="_timeline_addChannelsArea" class="_timeline_pane"></td>
+        <td id="_timeline_dateAxisAndChannelsArea" style="display: none;">
+          <div id="_timeline_dateAxisContainer">
+            <div id="_timeline_dateAxis"></div>
+            <div id="_timeline_dataPointValueLabel"></div>
+          </div>
+          <div id="_timeline_channelsArea" style="display: none;">
+            <div id="_timeline_channelsWrapper">
+              <table border="0" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td>
+                    <ul id="_timeline_channels"></ul>
+                    <div id="_timeline_channelsWrapper_footer"></div>
+                  </td>
+                  <td width="20" style="width:20px;"><!-- This area is for the scrollbar when you have lots of channels --></td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </td>
+        <td id="_timeline_detailsArea" class="_timeline_pane">
+          <div class="_timeline_pane_title">Details</div>
+        </td>
+      </tr>
+    </table>
+
+  </div>
+  <div id="_timeline_photo_dialog"></div>
+</script>
+
+<script id="_timeline_channel_template" type="text/x-mustache-tmpl">
+  <li id="{{channelElementId}}">
+    <div class="_timeline_channel">
+      <div class="_timeline_channelTabAndPlot">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr>
+            <td class="_timeline_channeltd">
+              <div class="_timeline_channelTab"
+                id="_timeline_channelTab_{{plotId}}"
+                style="height: {{channelHeight}}px">
+                <table border="0" cellpadding="0" cellspacing="0" class="_timeline_channelTable">
+                  <tr>
+                    <td valign="middle" style="width:32px"><div id="{{channelElementId}}_delete_btn" class="_timeline_delete_btn"></div></td>
+                    <td valign="middle" style="width:auto">
+                      <div class="_timeline_channelName">{{channelName}}</div>
+                      <div class="_timeline_channelSource">{{deviceName}}</div>
+                      <div id="{{channelElementId}}-timeline-channel-filter" class="_timeline_channelFilter"></div>
+                    </td>
+                    <td valign="bottom" style="width:27px"><div class="_timeline_btnGear"><img src="/images/gear_b.png"></div></td>
+                  </tr>
+                </table>
+              </div>
+            </td>
+            <td class="_timeline_plottd">
+              <div id="{{plotElementId}}_container" class="_timeline_plotContainer">
+                <div id="{{plotElementId}}" class="_timeline_channelPlot"
+                  style="height: {{channelHeight}}px"></div>
+              </div>
+            </td>
+            <td class="_timeline_yaxistd">
+              <div id="{{yAxisElementId}}_container" class="_timeline_yAxisContainer">
+                <div id="{{yAxisElementId}}" class="_timeline_yAxis"
+                  style="height: {{channelHeight}}px"></div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td colspan="3">
+              <div class="_timeline_dragArea"
+                  id="{{channelElementId}}_dragArea"
+                  onmousedown="_TIMELINE.dragAreaOnMouseDown({{plotId}}, '{{channelElementId}}', '{{plotElementId}}', '{{yAxisElementId}}')"/>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div class="_timeline_channelConfig">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr>
+            <td>
+              <table border="0" cellpadding="0" cellspacing="0" style="width:auto" class="_timeline_photo_series_plot_config">
+                <tr>
+                  <td style="font-size:8pt">
+                    Show photos that contain
+                    <select id="{{channelElementId}}-photo-tags-isAndJoin">
+                      <option value="false">any</option>
+                      <option value="true">all</option>
+                    </select>
+                    of the tags selected below.<br><br>
+                    <form id="{{channelElementId}}-photo-tags-filter" style="margin-right:10px" action="" method="post" onsubmit="return false;">
+                      <input type="text" name="tag[]" value="" class="tag"/>
+                    </form>
+                  </td>
+                </tr>
+              </table>
+              <table border="0" cellpadding="0" cellspacing="0" style="width:auto" class="_timeline_data_series_plot_config">
+                <tr>
+                  <td class="_timeline_data_series_plot_config_left_area">
+                    <div id="{{channelElementId}}-save-default-style">
+                      <a href="" onclick="return false;">Save as default style for {{channelName}}</a>
+                    </div>
+                    <div id="{{channelElementId}}-save-default-style-status" style="display:none"></div>
+                    <div id="{{channelElementId}}-show-all-y-range">
+                      <a href="" onclick="return false;">Show all Y range</a>
+                    </div>
+                  </td>
+                  <td class="_timeline_data_series_plot_config_right_area">
+                    <table border="0" cellpadding="0" cellspacing="0">
+                      <tr id="{{channelElementId}}-config-color-override">
+                        <td>
+                          <label class="_timeline_sectionTitle">Channel Color</label>
+                        </td>
+                        <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                        <td><input id="{{channelElementId}}-config-color-override-color" type="text"/></td>
+                        <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                        <td colspan="3"><label>Changing this color will set all the colors below to match</label></td>
+                      </tr>
+                      <tr id="{{channelElementId}}-config-lines">
+                        <td>
+                          <input id="{{channelElementId}}-config-lines-show" type="checkbox" value="true"/><label for="{{channelElementId}}-config-lines-show" class="_timeline_sectionTitle">Lines</label>
+                        </td>
+                        <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                        <td><input id="{{channelElementId}}-config-lines-color" type="text"/></td>
+                        <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                        <td>
+                          <select id="{{channelElementId}}-config-lines-lineWidth" class="_timeline_channelConfig_image_menu">
+                            <option value="1" title="/images/msdropdown/lineWidth1.png"></option>
+                            <option value="2" title="/images/msdropdown/lineWidth2.png"></option>
+                            <option value="3" title="/images/msdropdown/lineWidth3.png"></option>
+                            <option value="4" title="/images/msdropdown/lineWidth4.png"></option>
+                            <option value="5" title="/images/msdropdown/lineWidth5.png"></option>
+                          </select>
+                        </td>
+                        <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                        <td>&nbsp;</td>
+                      </tr>
+                      <tr id="{{channelElementId}}-config-points">
+                        <td>
+                          <input id="{{channelElementId}}-config-points-show" type="checkbox" value="true"/><label for="{{channelElementId}}-config-points-show" class="_timeline_sectionTitle">Points</label>
+                        </td>
+                        <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                        <td><input id="{{channelElementId}}-config-points-color" type="text"/></td>
+                        <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                        <td>
+                          <select id="{{channelElementId}}-config-points-radius" class="_timeline_channelConfig_image_menu">
+                            <option value="1" title="/images/msdropdown/pointSize1.png"></option>
+                            <option value="2" title="/images/msdropdown/pointSize2.png"></option>
+                            <option value="3" title="/images/msdropdown/pointSize3.png"></option>
+                            <option value="4" title="/images/msdropdown/pointSize4.png"></option>
+                            <option value="5" title="/images/msdropdown/pointSize5.png"></option>
+                          </select>
+                        </td>
+                        <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                        <td>
+                          <table border="0" cellpadding="0" cellspacing="0" style="width:auto">
+                            <tr>
+                              <td style="padding-right:3px">
+                                <select id="{{channelElementId}}-config-points-type" class="_timeline_channelConfig_image_menu">
+                                  <option value="point-filled" title="/images/msdropdown/pointStyleCircleFilled.png"></option>
+                                  <option value="square-filled" title="/images/msdropdown/pointStyleSquareFilled.png"></option>
+                                  <option value="point" title="/images/msdropdown/pointStyleCircle.png"></option>
+                                  <option value="square" title="/images/msdropdown/pointStyleSquare.png"></option>
+                                  <option value="cross" title="/images/msdropdown/pointStyleCross.png"></option>
+                                  <option value="plus" title="/images/msdropdown/pointStylePlus.png"></option>
+                                </select>
+                              </td>
+                              <td id="{{channelElementId}}-config-points-fillColor-container">
+                                <input id="{{channelElementId}}-config-points-fillColor" type="text"/>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                      <tr id="{{channelElementId}}-config-bars">
+                        <td>
+                          <input id="{{channelElementId}}-config-bars-show" type="checkbox" value="true"/><label for="{{channelElementId}}-config-bars-show" class="_timeline_sectionTitle">Bars</label>
+                        </td>
+                        <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                        <td><input id="{{channelElementId}}-config-bars-color" type="text"/></td>
+                        <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                        <td>
+                          <select id="{{channelElementId}}-config-bars-lineWidth" class="_timeline_channelConfig_image_menu">
+                            <option value="1" title="/images/msdropdown/barWidth1.png"></option>
+                            <option value="2" title="/images/msdropdown/barWidth2.png"></option>
+                            <option value="3" title="/images/msdropdown/barWidth3.png"></option>
+                            <option value="4" title="/images/msdropdown/barWidth4.png"></option>
+                            <option value="5" title="/images/msdropdown/barWidth5.png"></option>
+                          </select>
+                        </td>
+                        <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                        <td>&nbsp;</td>
+                      </tr>
+                      <tr id="{{channelElementId}}-config-values">
+                        <td>
+                          <input id="{{channelElementId}}-config-values-show" type="checkbox" value="true"/><label for="{{channelElementId}}-config-values-show" class="_timeline_sectionTitle">Values</label>
+                        </td>
+                        <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                        <td><input id="{{channelElementId}}-config-values-fillColor" type="text"/></td>
+                        <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                        <td>
+                          <select id="{{channelElementId}}-config-values-numberFormat" class="_timeline_channelConfig_image_menu">
+                            <option value="###,##0.0##">#.###</option>
+                            <option value="###,##0.0#">#.##</option>
+                            <option value="###,##0.0">#.#</option>
+                            <option value="###,##0">#</option>
+                          </select>
+                        </td>
+                        <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                        <td>
+                          <table border="0" cellpadding="0" cellspacing="0">
+                            <tr>
+                              <td><label for="{{channelElementId}}-config-values-verticalOffset">Position:</label></td>
+                              <td style="padding-left:2px">
+                                <select id="{{channelElementId}}-config-values-verticalOffset" class="_timeline_channelConfig_image_menu">
+                                  <option value="7">Above</option>
+                                  <option value="-3">On</option>
+                                  <option value="-13">Below</option>
+                                </select>
+                              </td>
+                              <td style="padding-left:10px"><label for="{{channelElementId}}-config-values-showOnlyOnHighlight">Visible:</label></td>
+                              <td style="padding-left:2px">
+                                <select id="{{channelElementId}}-config-values-showOnlyOnHighlight" style="width:70px">
+                                  <option value="false">Always</option>
+                                  <option value="true">Mouseover</option>
+                                </select>
+                              </td>
+                              <td id="{{channelElementId}}-config-values-marginWidth-label-container" style="padding-left:10px"><label for="{{channelElementId}}-config-values-marginWidth">Margin:</label></td>
+                              <td id="{{channelElementId}}-config-values-marginWidth-container" style="padding-left:2px">
+                                <select id="{{channelElementId}}-config-values-marginWidth" class="_timeline_channelConfig_image_menu">
+                                  <option value="5">5</option>
+                                  <option value="10">10</option>
+                                  <option value="15">15</option>
+                                  <option value="20">20</option>
+                                  <option value="25">25</option>
+                                </select>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                      <tr id="{{channelElementId}}-config-comments">
+                        <td>
+                          <input id="{{channelElementId}}-config-comments-show" type="checkbox" value="true"/><label for="{{channelElementId}}-config-comments-show" class="_timeline_sectionTitle">Comments</label>
+                        </td>
+                        <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                        <td><input id="{{channelElementId}}-config-comments-color" type="text"/></td>
+                        <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                        <td>
+                          <select id="{{channelElementId}}-config-comments-radius" class="_timeline_channelConfig_image_menu">
+                            <option value="1" title="/images/msdropdown/pointSize1.png"></option>
+                            <option value="2" title="/images/msdropdown/pointSize2.png"></option>
+                            <option value="3" title="/images/msdropdown/pointSize3.png"></option>
+                            <option value="4" title="/images/msdropdown/pointSize4.png"></option>
+                            <option value="5" title="/images/msdropdown/pointSize5.png"></option>
+                          </select>
+                        </td>
+                        <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                        <td>
+                          <table border="0" cellpadding="0" cellspacing="0" style="width:auto">
+                            <tr>
+                              <td style="padding-right:3px">
+                                <select id="{{channelElementId}}-config-comments-type" class="_timeline_channelConfig_image_menu">
+                                  <option value="point-filled" title="/images/msdropdown/pointStyleCircleFilled.png"></option>
+                                  <option value="square-filled" title="/images/msdropdown/pointStyleSquareFilled.png"></option>
+                                  <option value="point" title="/images/msdropdown/pointStyleCircle.png"></option>
+                                  <option value="square" title="/images/msdropdown/pointStyleSquare.png"></option>
+                                  <option value="cross" title="/images/msdropdown/pointStyleCross.png"></option>
+                                  <option value="plus" title="/images/msdropdown/pointStylePlus.png"></option>
+                                </select>
+                              </td>
+                              <td id="{{channelElementId}}-config-comments-fillColor-container">
+                                <input id="{{channelElementId}}-config-comments-fillColor" type="text"/>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                      <tr id="{{channelElementId}}-config-zeo" style="display:none">
+                        <td>
+                          <input id="{{channelElementId}}-config-zeo-show" type="checkbox" value="true"/><label for="{{channelElementId}}-config-zeo-show" class="_timeline_sectionTitle">Zeo</label>
+                        </td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </li>
+</script>
+
+<script id="_timeline_view_save_template" type="text/x-mustache-tmpl">
+  <div class="close_btn"></div>
+  <div id="_timeline_view_save_spinner" style="display: none;">
+    <img src="/images/loading.gif" />
+  </div>
+  <div id="_timeline_view_save_content">
+    <div class="_timeline_save_dialog_head">
+      <span>
+	<input type="text" />
+	<a href="#" class="button">Save</a>
+      </span>
+    </div>
+    <ul>
+      {{#available_views}}
+      <li><a href="#">{{ name }}</a></li>
+      {{/available_views}}
+      {{^available_views}}
+      {{/available_views}}
+    </ul>
+  </div>
+  <div class="_timeline_view_dialog_status"></div>
+</script>
+
+<script id="_timeline_view_load_template" type="text/x-mustache-tmpl">
+  <div class="close_btn"></div>
+  <div class="_timeline_load_dialog_head">
+    <div class="_timeline_load_dialog_head_content"> 
+      <input type="radio" name="_timeline_time_channel_sel" value="both" checked> Both
+      <input type="radio" name="_timeline_time_channel_sel" value="time"> Time only
+      <input type="radio" name="_timeline_time_channel_sel" value="channel"> Channel only
+    </div>
+  </div>
+  <ul>
+    {{#available_views}}
+    <li><a href="#timeline/views/{{ name }}" 
+	   onclick="return _TIMELINE.loadViewDialogModeHandler('{{ name }}')">{{ name }}</a>
+    </li>
+    {{/available_views}}
+    {{^available_views}}
+    <li>No saved views</li>
+    {{/available_views}}
+  </ul>
+</script>
+
+<script id="_timeline_sources_template" type="text/x-mustache-tmpl">
+  <div class="_timeline_pane_title">Add Channels</div>
+  <div id="_timeline_sources_find">
+    <span>
+      <input type="text" />
+      <a href="#" class="button" id="_timeline_sources_find_btn">Reset</a>
+    </span>
+  </div>
+  <ul id="_timeline_sources_list">
+    {{#sources}}
+    <li>
+      <div class="_timeline_sources_name">
+	<span class="_timeline_sources_name_arrow">&#9658;</span>
+	<span>{{ name }}</span>
+      </div>
+      <ul>
+	{{#channels}}
+	<li class="_timeline_sources_channel" id="{{ id }}">{{ name }}</li>
+	{{/channels}}
+      </ul>
+    </li>
+    {{/sources}}
+  </ul>
+</script>
+
+<script id="_timeline_data_point_value_label_template" type="text/x-mustache-tmpl">
+  {{dateString}} {{valueString}}
+</script>
+
+<script id="_timeline_photo_dialog_template" type="text/x-mustache-tmpl">
+  <div style="width:1px;height:1px;"><img id="_timeline_photo_dialog_tabhelper_pre_proxy_backward" src="/images/clear.gif" width="1" height="1" tabindex="95"/></div>
+  <table border="0" cellpadding="0" cellspacing="0" class="_timeline_photo_dialog_table">
+    <tr valign="top">
+      <td rowspan="2" style="width:20px"><button id="_timeline_photo_dialog_previous_button" tabindex="96" class="_timeline_left_arrow"></button></td>
+      <td>
+        <table border="0" cellpadding="0" cellspacing="0" class="_timeline_photo_dialog_photo_table">
+          <tr valign="middle">
+            <td align="center"><img src="/users/{{userId}}/logphotos/{{photoId}}.300.jpg"></td>
+          </tr>
+        </table>
+      </td>
+      <td rowspan="2" style="width:20px"><button id="_timeline_photo_dialog_next_button" tabindex="97" class="_timeline_right_arrow"></button></td>
+    </tr>
+    <tr valign="top">
+      <td>
+        <div id="_timeline_photo_dialog_form_status"></div>
+        <div id="_timeline_photo_dialog_form"></div>
+        <div id="_timeline_photo_dialog_save_preferences">
+          <input id="_timeline_photo_dialog_save_should_goto_neighbor" type="checkbox" value="true" tabindex="107"><label for="_timeline_photo_dialog_save_should_goto_neighbor">After saving, go to the </label><select id="_timeline_photo_dialog_save_should_goto_neighbor_choice" tabindex="108" disabled="disabled"><option value="1">next</option><option value="-1">previous</option></select><label for="_timeline_photo_dialog_save_should_goto_neighbor"> photo.</label><img id="_timeline_photo_dialog_post_proxy_forward" src="/images/clear.gif" width="1" height="1" tabindex="109"/>
+        </div>
+      </td>
+    </tr>
+  </table>
+</script>
+
+<script id="_timeline_photo_dialog_form_template" type="text/x-mustache-tmpl">
+  <div style="width:1px; height:1px">
+    <img id="_timeline_photo_dialog_comment_tabhelper_pre_proxy_forward" src="/images/clear.gif" width="1" height="1" tabindex="98"/>
+    <img id="_timeline_photo_dialog_comment_tabhelper_pre_proxy_backward" src="/images/clear.gif" width="1" height="1" tabindex="99"/>
+  </div>
+  <div id="_timeline_photo_dialog_timestamp"></div>
+  <textarea rows="2" id="_timeline_photo_dialog_comment" tabindex="100"></textarea>
+  <div style="width:1px;height:1px;">
+    <img id="_timeline_photo_dialog_tags_editor_tabhelper_pre_proxy_forward" src="/images/clear.gif" width="1" height="1" tabindex="101"/>
+  </div>
+  <form id="_timeline_photo_dialog_tags_editor" action="" method="post" onsubmit="return false;"></form>
+  <form id="_timeline_photo_dialog_form_buttons" action="" method="post" onsubmit="return false;">
+    <div style="width:1px; height:1px">
+      <img id="_timeline_photo_dialog_tags_editor_tabhelper_post_proxy_forward" src="/images/clear.gif" width="1" height="1" tabindex="103"/>
+      <img id="_timeline_photo_dialog_tags_editor_tabhelper_post_proxy_backward" src="/images/clear.gif" width="1" height="1" tabindex="104"/>
+    </div>
+    <button id="_timeline_photo_dialog_revert_button" tabindex="106">Revert</button>
+    <button id="_timeline_photo_dialog_save_button" tabindex="105">Save</button>
+  </form>
+</script>
+
+<script id="_timeline_photo_dialog_tags_editor_tag_template" type="text/x-mustache-tmpl">
+  <input type="text" name="tag[]" value="{{value}}" class="tag"/>
+</script>
+
+<script id="_timeline_channel_tab_filter_template" type="text/x-mustache-tmpl"><span class="_timeline_channelFilter_label">Tags</span>: {{value}}</script>

@@ -1,0 +1,29 @@
+div.color_picker {
+  height: 18px;
+  width: 18px;
+  padding: 0 !important;
+  background: url(colorPickerTrigger4.png) center no-repeat;
+  cursor: pointer;
+  display: inline-block;
+  outline: none;
+}
+
+div#color_selector {
+  display: none;
+  width: 104px;
+  position: absolute;
+  border: 1px solid #000000;
+  background-color: #eeeeee;
+  padding: 2px 1px 1px 2px;
+}
+
+div.color_swatch {
+  float: left;
+  height: 10px;
+  width: 10px;
+  border: 1px solid #000;
+  margin-bottom: 1px;
+  margin-right: 1px;
+  cursor: pointer;
+  line-height: 10px;
+}
