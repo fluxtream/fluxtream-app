@@ -15,6 +15,7 @@ Build requirements
 ------------------
 
 * you will need maven 3.x.x
+* for interactive development, we use Eclipse Indigo with EE support (/WTP)
 
 Build instructions
 ------------------

@@ -24,7 +24,7 @@ define(["applications/log/widgets/clock/ClockdrawingUtils",
 			for(name in digest.cachedData) {
 				if (digest.cachedData[name]==null||typeof(digest.cachedData[name])=="undefined")
 					continue;
-				updateDataDisplay(digest.cachedData[name], name, paper, config);
+				updateDataDisplay(digest.cachedData[name], name, paper, config, digest);
 				if (name==="fitbit-activity_summary" && digest.cachedData["fitbit-activity_summary"][0]) {
 					drawCalories(digest.cachedData["fitbit-activity_summary"][0].caloriesPerMinute, paper, config);
 				}
@@ -119,15 +119,14 @@ define(["applications/log/widgets/clock/ClockdrawingUtils",
 		}
 	}
 	
-	function updateDataDisplay(connectorData, connectorInfoId, paper, config) {
+	function updateDataDisplay(connectorData, connectorInfoId, paper, config, digest) {
 		switch(connectorInfoId) {
 		case "fitbit-activity_summary":
 //			drawFitbitInfo(connectorData);
 			break;
 		case "google_latitude":
-//			FlxState.locationHistory = connectorData;
-//			if (connectorData!=null&&typeof(connectorData)!="undefined")
-//				drawLatitudeInfo();
+			if (connectorData!=null&&typeof(connectorData)!="undefined")
+				locationBreakdown(connectorData, digest, config);
 			break;
 		case "withings-weight":
 //			drawWeightInfo(connectorData);
@@ -269,8 +268,167 @@ define(["applications/log/widgets/clock/ClockdrawingUtils",
 		path.attr("stroke", color);
 		path.attr("opacity", opacity);
 		return path;
-	}	
+	}
 	
+	function showLocationBreakdown(items, color, config) {
+		if (typeof(items)=="undefined"||items==null)
+			return;
+		showWheelBreakdown(items, color, config);
+	}
+
+	function showWheelBreakdown(items, color, config) {
+		if (typeof(items)=="undefined") return;
+		for (i = 0; i < items.length; i++) {
+			try {
+				var item = items[i],
+					instantWidth=10;
+				config.clockCircles.push(
+					function() {
+						var start = item.startMinute;
+						var end = item.endMinute;
+						if (start>end) { start = 0; }
+						console.log("painting span: " + start + ", " + end);
+						var span = paintSpan(paper, start,(start<=end?end:1440), config.AT_HOME_CATEGORY.orbit, color, 1, config);
+						span.node.item = item;
+						$(span.node).mouseover(function(event) {
+							this.style.cursor = "pointer";
+							showLocationBreakdownInfo(event);
+						});
+						$(span.node).mouseout(function() {
+							hideEventInfo();
+							this.style.cursor = "default";
+						});
+						return span;
+					}()
+				);
+			} catch (e) {
+				if (typeof(console)!="undefined"&&console.log)
+					console.log("there was an error parsing this json: " + e);
+			}
+		}
+	}
+
+	function locationBreakdown(positions, digest, config) {
+		var pos1 = new google.maps.LatLng(digest.homeAddress.latitude, digest.homeAddress.longitude),
+			i=0, checkin, pos2, notAtHome, lastCollection, currentCollection,
+			mergedAtHome = new Array(), mergedOutside = new Array(), farAwayPositionsCount = 0;
+		for (; i<positions.length; i++) {
+			pos2 = new google.maps.LatLng(positions[i].position[0], positions[i].position[1]);
+			var distance = google.maps.geometry.spherical.computeDistanceBetween(pos1, pos2);
+			if (distance<500) {
+				positions[i].at = "home";
+			} else if (distance>1000*300) {
+				farAwayPositionsCount++;
+			}
+		}
+		if (farAwayPositionsCount==positions.length) {
+			config.traveling = true;
+		} else {
+			config.traveling = false;
+		}
+		notAtHome = new Array();
+		atHome = new Array();
+		for (i=0; i<positions.length; i++) {
+			if (positions[i].at!="home")
+				currentCollection = notAtHome;
+			else
+				currentCollection = atHome;
+			currentCollection.push(positions[i]);
+			if (currentCollection==lastCollection)
+				continue;
+			else {
+				if (lastCollection!=null) {
+					lastCollection.push(positions[i]);
+					lastCollection.push("stop")
+				}
+				lastCollection = currentCollection;
+			}
+		}
+		atHome = mergePositionFamilies(atHome, "home");
+		notAtHome = mergePositionFamilies(notAtHome, "out");
+		showLocationBreakdown(atHome, "#4c99c5", config);
+		showLocationBreakdown(notAtHome, "#5cae5c", config);
+	}
+
+	function mergePositionFamilies(positionFamilies, where) {
+		var result = [];
+		var positions = [];
+		for (var i=0; i<positionFamilies.length; i++) {
+			if (positionFamilies[i]==="stop") {
+				result.push(mergePositions(positions, where));
+				positions = [];
+				continue;
+			}
+			positions.push(positionFamilies[i]);
+		}
+		result.push(mergePositions(positions, where));
+		return result;
+	}
+
+	function mergePositions(positions, where) {
+		if (positions.length===0) return positions;
+		var first = positions[0];
+		var last = positions[positions.length-1];
+		return {
+			start: first.start,
+			end : last.start,
+			description: "You were " + where
+				+ " from " + minutesToWallClockTime(first.startMinute)
+				+ " to " + minutesToWallClockTime(last.startMinute),
+			startMinute: first.startMinute,
+			endMinute: last.startMinute,
+			type: "google_latitude"
+		};
+	}
+
+	function minutesToWallClockTime(minutes) {
+		if (minutes<60) {
+			if (minutes<10) minutes = "0" + minutes;
+			return "0:"+minutes + " AM";
+		}
+		else {
+			var hour = Math.floor(minutes/60);
+			var minutes = Math.floor(minutes%60);
+			if (minutes<10) minutes = "0" + minutes;
+			if (hour<12)
+				return hour + ":" + minutes + " AM";
+			else
+				return hour + ":" + minutes + " PM";
+		}
+	}
+	
+	function showLocationBreakdownInfo(event) {
+		ttpdiv = $("#tooltip");
+		config.lastHoveredEvent = event;
+		var span = event.target;
+		var facetId = span.item.id;
+		var tip_y = event.pageY;
+		var tip_x = event.pageX;
+		ttpdiv.qtip({
+		   content: {
+		      text: span.item.description
+		   },
+		   style: {
+		      classes: 'ui-tooltip-light ui-tooltip-shadow ui-tooltip-rounded',
+		   },
+		   position: {
+	           target: [tip_x,tip_y], // ... in the window
+		   	   my: "top center",
+		   	   adjust: { y: 13 }
+		   },
+	       show: {
+	          ready: true, // Show it straight away
+	       },
+	       hide: {
+			  effect: function(offset) {
+			      $(this).slideDown(100); // "this" refers to the tooltip
+			  },
+			  inactive : 4500
+	       }
+		});
+	}
+	
+	console.log("HAHAHHAHAHAHAHAHHAHAHA");
 	var clockWidget = {};
 	clockWidget.render = render;
 	return clockWidget;

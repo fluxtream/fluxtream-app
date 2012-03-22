@@ -12,6 +12,8 @@ define([], function() {
 				RATIO : (60 * 24) / 360,
 				CLOCK_WIDTH : edgeWidth,
 				CLOCK_HEIGHT : edgeWidth,
+				locationHistory: null,
+				traveling: false,
 				CLOCK_CENTER : [ edgeWidth / 2, edgeWidth / 2 ],
 
 				NO_CATEGORY : {

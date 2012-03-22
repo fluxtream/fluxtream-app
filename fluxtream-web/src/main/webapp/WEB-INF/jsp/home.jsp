@@ -66,11 +66,6 @@
 	<script
 		src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
 	<script>window.jQuery || document.write('<script src="/static/js/jquery-1.7.1.min.js"><\/script>')</script>
-	<script>
-		window.jQuery
-				|| document
-						.write('_$tag_________________________________________$tag_____')
-	</script>
 	<script src="/static/tiny_mce/jquery.tinymce.js"></script>
 	<script src="/static/js/json2.js"></script>
 	<script src="/static/js/bootstrap-2.0.2.min.js"></script>
