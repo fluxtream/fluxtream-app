@@ -1,0 +1,26 @@
+<style>
+  #_views_pane {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+</style>
+
+<script id="tmpl-tab-views" type="text/x-mustache-tmpl">
+   <div id="_views_pane">
+    <table>
+      <tr>
+	<th>Name</th>
+	<th>Last used</th>
+      </tr>
+
+      {{#views}}
+      <tr>
+	<td><a href="#timeline/views/{{ name }}"
+	       onclick="return TOOLS.checkForTimelineChanges()">{{ name }}
+	</td>
+	<td>{{ last_used }}</td>
+      </tr>
+      {{/views}}
+    </table>
+  </div>
+</script>
