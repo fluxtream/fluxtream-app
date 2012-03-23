@@ -68,6 +68,8 @@
 	<script>window.jQuery || document.write('<script src="/static/js/jquery-1.7.1.min.js"><\/script>')</script>
 	<script src="/static/tiny_mce/jquery.tinymce.js"></script>
 	<script src="/static/js/json2.js"></script>
+	<script src="/static/js/jquery.mustache-1.0.js"></script>
+	<script src="/static/grapher4/grapher2.nocache.js"></script>
 	<script src="/static/js/bootstrap-2.0.2.min.js"></script>
 	<script src="/static/js/raphael-2.0.2.js"></script>
 	<script src="/${release}/js/libs/underscore-1.3.1-min.js"></script>
