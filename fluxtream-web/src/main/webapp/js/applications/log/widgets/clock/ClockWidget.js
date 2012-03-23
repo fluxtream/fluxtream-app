@@ -182,7 +182,7 @@ define(["applications/log/widgets/clock/ClockdrawingUtils",
 						span.node.item = item;
 						$(span.node).css("cursor", "pointer");
 						$(span.node).click(function() {
-							showEventInfo(event);
+							showEventInfo(event, config);
 						});
 						$(span.node).mouseout(function() {
 							hideEventInfo();
@@ -200,7 +200,7 @@ define(["applications/log/widgets/clock/ClockdrawingUtils",
 	
 	var ttpdiv, lastHoveredEvent;
 	
-	function showEventInfo(event) {
+	function showEventInfo(event, config) {
 		ttpdiv = $("#tooltip");
 		lastHoveredEvent = event;
 		var span = event.target;
@@ -290,7 +290,7 @@ define(["applications/log/widgets/clock/ClockdrawingUtils",
 						console.log("painting span: " + start + ", " + end);
 						var span = paintSpan(paper, start,(start<=end?end:1440), config.AT_HOME_CATEGORY.orbit, color, 1, config);
 						span.node.item = item;
-						$(span.node).mouseover(function(event) {
+						$(span.node).click(function(event) {
 							this.style.cursor = "pointer";
 							showLocationBreakdownInfo(event);
 						});
@@ -399,7 +399,6 @@ define(["applications/log/widgets/clock/ClockdrawingUtils",
 	
 	function showLocationBreakdownInfo(event) {
 		ttpdiv = $("#tooltip");
-		config.lastHoveredEvent = event;
 		var span = event.target;
 		var facetId = span.item.id;
 		var tip_y = event.pageY;
@@ -428,7 +427,6 @@ define(["applications/log/widgets/clock/ClockdrawingUtils",
 		});
 	}
 	
-	console.log("HAHAHHAHAHAHAHAHHAHAHA");
 	var clockWidget = {};
 	clockWidget.render = render;
 	return clockWidget;

@@ -5,6 +5,8 @@ define(["core/Application", "core/FlxState", "applications/log/Builder"], functi
 	Log.currentWidget = Builder.widgets["DAY"][0];
 	Log.timeUnit = "DAY";
 	
+	var start, end;
+	
 	Log.setup = function() {
 		$(".menuNextButton").click(function(e) {
 			fetchState("/nav/incrementTimespan.json"); });

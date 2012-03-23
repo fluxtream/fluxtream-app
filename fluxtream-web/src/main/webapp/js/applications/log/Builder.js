@@ -133,7 +133,7 @@ define([], function() {
 			button.addClass("disabled");
 		else {
 			button.removeClass("disabled");
-			button.click(function() {
+			button.click(function(event) {
 				var timeUnit = $(event.target).attr("class"),
 				url = "/nav/set" + capitalizeFirstLetter(targetTimeUnit.toLowerCase()) + "TimeUnit.json";
 				$.ajax({ url:url,

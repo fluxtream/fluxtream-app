@@ -3,3 +3,21 @@
 	height: 70px;
 	z-index: 2;
 }
+
+#timeline_table {
+	width: 100%;
+}
+
+._timeline_yAxistd {
+	width: 30px;
+}
+
+._timeline_pctd {
+	width: auto;
+	height: 67px;
+}
+
+#_timeline_pc_1, #_timeline_pc_2, #_timeline_pc_3 {
+	width: auto;
+	height: 67px;
+}
