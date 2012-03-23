@@ -26,9 +26,11 @@ define([], function() {
 			"max" : viewModel["v2"]["x_axis"]["max"]
 		});
 	        yAxis = new NumberAxis("_timeline_yAxis", "vertical", {
-	        	"min" : 0,
-	    		"max" : 1
+	        	"min" : viewModel["v2"]["y_axes"][0]["min"],
+	    		"max" : viewModel["v2"]["y_axes"][0]["max"]
 	        });
+                var deviceName = viewModel["v2"]["y_axes"][0]["device_name"];
+                var channelName = viewModel["v2"]["y_axes"][0]["channel_name"];
                 dataSource = function(level, offset, success_callback, failure_callback) {
 		  var urlPrefix = "/bodytrack/tiles/3/" + deviceName + "." + channelName + "/";
                   var onerr = function(jqXHR, textStatus, errorThrown) {
