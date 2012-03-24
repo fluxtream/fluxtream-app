@@ -1,7 +1,9 @@
 package com.fluxtream.mvc.controllers;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.httpclient.HttpException;
@@ -49,7 +51,39 @@ public class BodyTrackController {
 		String tunnelUrl = "http://localhost:3000/users/" + UID + "/views/get?name=" + name;
 		writeTunnelResponse(tunnelUrl, response);
 	}
-	
+
+	@RequestMapping(value = "/users/{UID}/sources")
+	public void bodyTrackSources(HttpServletResponse response,
+			@PathVariable("UID") String UID) throws HttpException, IOException {
+		String tunnelUrl = "http://localhost:3000/users/" + UID + "/sources";
+		writeTunnelResponse(tunnelUrl, response);
+	}
+
+	@RequestMapping(value = "/users/{UID}/sources/list")
+	public void bodyTrackSourcesList(HttpServletResponse response,
+			@PathVariable("UID") String UID) throws HttpException, IOException {
+		String tunnelUrl = "http://localhost:3000/users/" + UID + "/sources/list";
+		writeTunnelResponse(tunnelUrl, response);
+	}
+
+	@RequestMapping(value = "/users/{UID}/sources/default_graph_specs")
+	public void bodyTrackGetDefaultGraphSpecs(HttpServletResponse response,
+			@PathVariable("UID") String UID, @RequestParam("name") String name) throws HttpException, IOException {
+		String tunnelUrl = "http://localhost:3000/users/" + UID + "/sources/default_graph_specs?name=" + name;
+		writeTunnelResponse(tunnelUrl, response);
+	}
+
+	@RequestMapping(value = "/users/{UID}/channels/{DeviceNickname}.{ChannelName}/set")
+	public void bodyTrackChannelSet(HttpServletResponse response,
+			@PathVariable("UID") String uid,
+			@PathVariable("DeviceNickname") String deviceNickname,
+			@PathVariable("ChannelName") String channelName,
+			@RequestParam("user_default_style") String style) throws HttpException, IOException {
+		String bodyTrackUrl = "http://localhost:3000/users/" + uid + "/channels/"
+				+ deviceNickname + "." + channelName + "/set?user_default_style=" + URLEncoder.encode(style,"utf-8");
+		writeTunnelResponse(bodyTrackUrl, response);
+	}
+
 	private void writeTunnelResponse(String tunnelUrl, HttpServletResponse response) throws HttpException, IOException {
 		String contents = HttpUtils.fetch(tunnelUrl, env);
 		response.getWriter().write(contents);
