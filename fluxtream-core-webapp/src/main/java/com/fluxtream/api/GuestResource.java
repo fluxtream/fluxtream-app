@@ -18,7 +18,6 @@ import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.mvc.controllers.ControllerHelper;
 import com.fluxtream.mvc.models.StatusModel;
-import com.fluxtream.mvc.models.guest.CreateGuestModel;
 import com.fluxtream.mvc.models.guest.GuestModel;
 import com.fluxtream.mvc.models.guest.OAuthTokensModel;
 import com.fluxtream.services.GuestService;
