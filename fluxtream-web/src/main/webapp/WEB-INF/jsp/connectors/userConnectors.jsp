@@ -12,8 +12,8 @@
 		<article>
 			<div role="button" class="v-button v-button- removeConnectorButton" tabindex="0"> 
 				<span class="v-button-wrap "> 
-					<span class="v-button-caption"><c:out value="${api.prettyName}"></c:out>
-						<div class="iconRemove" onclick='javascript:removeConnector("<c:out value="${api.connectorName}"/>")'></div>
+					<span class="btn"><c:out value="${api.prettyName}"></c:out>
+						<span class="iconRemove" onclick='javascript:App.removeConnector("<c:out value="${api.connectorName}"/>")'><i class="icon-trash"></i></span>
 <%-- 						<div class="iconSettings" onclick='javascript:connectorSettings("<c:out value="${api.connectorName}"/>")'></div> --%>
 					</span> 
 				</span>

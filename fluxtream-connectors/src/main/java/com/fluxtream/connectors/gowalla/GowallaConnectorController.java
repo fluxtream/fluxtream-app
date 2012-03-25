@@ -74,6 +74,6 @@ public class GowallaConnectorController {
 		guestService.setApiKeyAttribute(guest.getId(), connector,
 				"accessToken", token.getString("access_token"));
 		
-		return "redirect:/home/from/"+connector.getName();
+		return "redirect:/app/from/"+connector.getName();
 	}
 }

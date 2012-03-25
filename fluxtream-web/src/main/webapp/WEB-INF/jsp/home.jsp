@@ -1,4 +1,6 @@
-<!DOCTYPE html>
+<%@ page pageEncoding="utf-8" contentType="text/html; charset=UTF-8"
+%><%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"
+%><!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -59,9 +61,16 @@
 
 	</div>
 
-	<%@ include file="footer.jsp"%>
+	<c:catch var="e">
+		<jsp:include page="footer_custom.jsp" />
+	</c:catch>
+	<c:if test="${!empty e}">
+		<jsp:include page="footer.jsp" />
+	</c:if>
 
 	<div id="modal"></div>
+
+	<script>window.FLX_RELEASE_NUMBER="${release}";</script>
 
 	<script
 		src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>

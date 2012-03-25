@@ -1,34 +1,26 @@
 <div id="bodyTrackWidget" class="span12">
+	
+	<script id="timeline_channel_tmpl" type="x-mustache-tmpl">
+		<tr class="timeline_channel">
+<!--
+			<td class="timeline_channel_info_td">
+				<div class="timeline_channel_info" id="timeline_channel_info_{{index}}"></div>
+			</td>
+-->
+			<td class="timeline_channel_plot_td">
+				<div class="timeline_channel_plot" id="timeline_channel_plot_{{index}}"></div>
+			</td>
+			<td class="timeline_channel_yaxis_td">
+				<div class="timeline_channel_yaxis" id="timeline_channel_yaxis_{{index}}"></div>
+			</td>
+		</tr>	
+	</script>
 
 	<table style="width: 100%" id="timeline_table">
-		<tbody>
-			<tr>
+		<tbody id="timeline_channels">
+			<tr class="timeline_channel">
 				<td>
-					<div id="_timeline_dateAxis"></div>
-				</td>
-			</tr>
-			<tr>
-				<td class="_timeline_pctd">
-					<div id="_timeline_pc_1"></div>
-				</td>
-				<td class="_timeline_yAxistd">
-					<div id="_timeline_yAxis_1"></div>
-				</td>
-			</tr>
-			<tr>
-				<td class="_timeline_pctd">
-					<div id="_timeline_pc_2"></div>
-				</td>
-				<td class="_timeline_yAxistd">
-					<div id="_timeline_yAxis_2"></div>
-				</td>
-			</tr>
-			<tr>
-				<td class="_timeline_pctd">
-					<div id="_timeline_pc_3"></div>
-				</td>
-				<td class="_timeline_yAxistd">
-					<div id="_timeline_yAxis_3"></div>
+					<div id="timeline_channel_dateaxis"></div>
 				</td>
 			</tr>
 		</tbody>

@@ -81,7 +81,7 @@ public class TwitterOAuthController {
 		guestService.setApiKeyAttribute(guest.getId(), Connector.getConnector("TWITTER"), "accessToken", consumer.getToken());
 		guestService.setApiKeyAttribute(guest.getId(), Connector.getConnector("TWITTER"), "tokenSecret", consumer.getTokenSecret());
 		
-		return "redirect:/home/from/"+Connector.getConnector("TWITTER").getName();
+		return "redirect:/app/from/"+Connector.getConnector("TWITTER").getName();
 	}
 
 	String getConsumerKey() {

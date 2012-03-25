@@ -1,6 +1,8 @@
 package com.fluxtream.api;
 
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -66,6 +68,43 @@ public class GuestResource {
 			StatusModel result = new StatusModel(false, "Guest does not have that connector: " + connectorName);
 			return gson.toJson(result);
 		}
+	}
+	
+	@GET
+	@Path("/init")
+	@Produces({ MediaType.APPLICATION_JSON })
+	public String init() throws InstantiationException,
+			IllegalAccessException, ClassNotFoundException {
+		try {
+			guestService.init();
+			StatusModel result = new StatusModel(true, "Root user was successfully created");
+			return gson.toJson(result);
+		} catch (Exception e) {
+			StatusModel result = new StatusModel(false, "Could not create guest: " + e.getMessage());
+			return gson.toJson(result);
+		}
+		
+	}
+	
+	@POST
+	@Path("/create")
+	@Produces({ MediaType.APPLICATION_JSON })
+	public String createGuest(@FormParam("username") String username,
+			@FormParam("firstname") String firstname,
+			@FormParam("lastname") String lastname,
+			@FormParam("password") String password,
+			@FormParam("email") String email) throws InstantiationException,
+			IllegalAccessException, ClassNotFoundException {
+		try {
+			guestService.createGuest(username, firstname,
+					lastname, password, email);
+			StatusModel result = new StatusModel(true, "User " + username + " was successfully created");
+			return gson.toJson(result);
+		} catch (Exception e) {
+			StatusModel result = new StatusModel(false, "Could not create guest: " + e.getMessage());
+			return gson.toJson(result);
+		}
+		
 	}
 
 	

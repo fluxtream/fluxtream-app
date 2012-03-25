@@ -82,7 +82,7 @@ public class FreshbooksOAuthController {
 		guestService.setApiKeyAttribute(guest.getId(), Connector.getConnector("FRESHBOOKS"), "accessToken", consumer.getToken());
 		guestService.setApiKeyAttribute(guest.getId(), Connector.getConnector("FRESHBOOKS"), "tokenSecret", consumer.getTokenSecret());
 
-		return "redirect:/home/from/"+Connector.getConnector("FRESHBOOKS").getName();
+		return "redirect:/app/from/"+Connector.getConnector("FRESHBOOKS").getName();
 	}
 
 	String getConsumerKey() {

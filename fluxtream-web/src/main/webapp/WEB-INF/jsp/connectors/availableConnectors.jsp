@@ -23,11 +23,11 @@
 						connectUrl = "ajax:" + env.get("homeBaseUrl") + connectUrl;
 					}
 				%><h5><%= connectorName %></h5> 
-				<a  href="javascript:addConnector('<%=connectUrl%>')">
+				<a  href="javascript:App.addConnector('<%=connectUrl%>')">
 					<img src="<%=connectorImage%>" alt="" width=178 Height=120>
 				</a>
 				<p><%=connectorText%></p> 
-				<div onclick="javascript:addConnector('<%=connectUrl%>')" role="button" class="v-button v-button- addConnectorButton" tabindex="0"> 
+				<div onclick="javascript:App.addConnector('<%=connectUrl%>')" role="button" class="v-button v-button- addConnectorButton" tabindex="0"> 
 					<span class="v-button-wrap "> 
 						<span class="v-button-caption">Add</span> 
 					</span> 

@@ -85,7 +85,7 @@ public class KhanAcademyOAuthController {
 		guestService.setApiKeyAttribute(guest.getId(), Connector.getConnector("khanacademy"), "accessToken", consumer.getToken());
 		guestService.setApiKeyAttribute(guest.getId(), Connector.getConnector("khanacademy"), "tokenSecret", consumer.getTokenSecret());
 
-		return "redirect:/home/from/"+Connector.getConnector("khanacademy").getName();
+		return "redirect:/app/from/"+Connector.getConnector("khanacademy").getName();
 	}
 
 	String getConsumerKey() {

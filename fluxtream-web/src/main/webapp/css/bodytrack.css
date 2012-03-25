@@ -1,4 +1,4 @@
-#_timeline_dateAxis {
+#timeline_channel_dateaxis {
 	width: auto;
 	height: 70px;
 	z-index: 2;
@@ -8,16 +8,25 @@
 	width: 100%;
 }
 
-._timeline_yAxistd {
+.timeline_channel {
+	margin: 0px;
+	padding: 0px;
+	border: 1px solid #D1D2D3;
+}
+
+.timeline_channel_info_td {
+	width: 50px;
+}
+
+.timeline_channel_info {
+	width: 50px;
+}
+
+.timeline_channel_plot_td, .timeline_channel_plot {
+	width: auto;
+	height: 67px;
+}
+
+.timeline_channel_yaxis_td, .timeline_channel_yaxis {
 	width: 30px;
-}
-
-._timeline_pctd {
-	width: auto;
-	height: 67px;
-}
-
-#_timeline_pc_1, #_timeline_pc_2, #_timeline_pc_3 {
-	width: auto;
-	height: 67px;
 }

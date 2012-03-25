@@ -77,7 +77,7 @@ public class DropboxController {
 		guestService.setApiKeyAttribute(guest.getId(), Connector.getConnector("DROPBOX"), "accessToken", consumer.getToken());
 		guestService.setApiKeyAttribute(guest.getId(), Connector.getConnector("DROPBOX"), "tokenSecret", consumer.getTokenSecret());
 		
-		return "redirect:/home/from/"+Connector.getConnector("DROPBOX").getName() ;
+		return "redirect:/app/from/"+Connector.getConnector("DROPBOX").getName() ;
 	}
 	
 	String getConsumerKey() {

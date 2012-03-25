@@ -163,7 +163,7 @@ public class FitbitOAuthController {
 		subscribeToNotifications(consumer.getToken(),
 				consumer.getTokenSecret(), guest.getId());
 
-		return "redirect:/home/from/" + connector().getName();
+		return "redirect:/app/from/" + connector().getName();
 	}
 
 	private Connector connector() {

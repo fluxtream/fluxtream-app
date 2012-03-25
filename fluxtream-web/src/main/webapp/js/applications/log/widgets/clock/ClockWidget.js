@@ -5,6 +5,7 @@ define(["applications/log/widgets/clock/ClockdrawingUtils",
 
 	function render(digest, timeUnit) {
 		require(["text!applications/log/widgets/clock/clock.html"], function(template) {
+			template = $.mustache(template, {release: window.FLX_RELEASE_NUMBER});
 			$("#widgets").append(template);
 			$("#tooltips").load("/log/tooltips");
 			var availableWidth = $("#clockWidget").width();

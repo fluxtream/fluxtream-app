@@ -92,7 +92,7 @@ public class PicasaOAuthController {
 		guestService().setApiKeyAttribute(guest.getId(), Connector.getConnector("PICASA"),
 				"tokenSecret", credentials.tokenSecret);
 
-		return "redirect:/home/from/"+Connector.getConnector("PICASA").getName();
+		return "redirect:/app/from/"+Connector.getConnector("PICASA").getName();
 	}
 
 	private OAuthParameters createOAuthParameters(
