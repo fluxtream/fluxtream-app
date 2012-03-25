@@ -3,7 +3,6 @@ package com.fluxtream.mvc.controllers;
 import java.io.IOException;
 import java.net.URLEncoder;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.httpclient.HttpException;
@@ -42,7 +41,7 @@ public class BodyTrackController {
 		writeTunnelResponse(bodyTrackUrl, response);
 	}
 	
-	@RequestMapping(value = "/users/{UID}/views")
+ 	@RequestMapping(value = "/users/{UID}/views")
 	public void bodyTrackViews(HttpServletResponse response,
 			@PathVariable("UID") String UID) throws HttpException, IOException {
 		String tunnelUrl = "http://localhost:3000/users/" + UID + "/views";

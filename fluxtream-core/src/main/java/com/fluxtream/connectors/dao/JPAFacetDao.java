@@ -38,6 +38,7 @@ public class JPAFacetDao implements FacetDao {
 	@Override
 	public List<AbstractFacet> getFacetsBetween(Connector connector, long guestId, ObjectType objectType, TimeInterval timeInterval) {
 		ArrayList<AbstractFacet> facets = new ArrayList<AbstractFacet>();
+		if (!connector.hasFacets()) return facets;
 		
 		if (objectType!=null) {
 			String queryName = connector.getName().toLowerCase()

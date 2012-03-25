@@ -1,5 +1,6 @@
 package com.fluxtream.services.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,6 +31,7 @@ import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.AbstractUserProfile;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 import com.fluxtream.services.ApiDataService;
+import com.fluxtream.services.BodyTrackStorageService;
 import com.fluxtream.services.GuestService;
 
 @Service
@@ -56,6 +58,9 @@ public class ApiDataServiceImpl implements ApiDataService {
 	@Autowired
 	BeanFactory beanFactory;
 
+	@Autowired
+	BodyTrackStorageService bodyTrackStorageService;
+
 	@Override
 	@Transactional(readOnly = false)
 	public void cacheApiDataObject(UpdateInfo updateInfo, long start, long end,
@@ -64,6 +69,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 		payload.objectType = updateInfo.objectTypes;
 		payload.guestId = updateInfo.apiKey.getGuestId();
 		payload.timeUpdated = System.currentTimeMillis();
+		
 		em.persist(payload);
 	}
 
@@ -201,24 +207,32 @@ public class ApiDataServiceImpl implements ApiDataService {
 		facetExtractor.setUpdateInfo(updateInfo);
 		List<ObjectType> connectorTypes = ObjectType.getObjectTypes(
 				apiData.updateInfo.apiKey.getConnector(), objectTypes);
+		List<AbstractFacet> newFacets = new ArrayList<AbstractFacet>();
 		if (connectorTypes != null) {
 			for (ObjectType objectType : connectorTypes) {
 				List<AbstractFacet> facets = facetExtractor.extractFacets(
 						apiData, objectType);
-				for (AbstractFacet facet : facets)
-					persistFacet(facet);
+				for (AbstractFacet facet : facets) {
+					AbstractFacet newFacet = persistFacet(facet);
+					if (newFacet!=null)
+						newFacets.add(newFacet);
+				}
 			}
 		} else {
 			List<AbstractFacet> facets = facetExtractor.extractFacets(apiData,
 					null);
-			for (AbstractFacet facet : facets)
-				persistFacet(facet);
+			for (AbstractFacet facet : facets) {
+				AbstractFacet newFacet = persistFacet(facet);
+				if (newFacet!=null)
+					newFacets.add(newFacet);
+			}
 		}
+		bodyTrackStorageService.storeApiData(updateInfo.getGuestId(), newFacets);
 	}
 	
 	private static Map<String, String> facetEntityNames = new ConcurrentHashMap<String,String>();
 	
-	private void persistFacet(AbstractFacet facet) {
+	private AbstractFacet persistFacet(AbstractFacet facet) {
 		String entityName = facetEntityNames.get(facet.getClass().getName());
 		if (entityName==null) {
 			Entity entityAnnotation = facet.getClass().getAnnotation(Entity.class);
@@ -233,8 +247,11 @@ public class ApiDataServiceImpl implements ApiDataService {
 		List existing = query.getResultList();
 		if (existing.size()>0) {
 			logDuplicateFacet(facet);
-		} else
+			return null;
+		} else {
 			em.persist(facet);
+			return facet;
+		}
 	}
 
 	private void logDuplicateFacet(AbstractFacet facet) {

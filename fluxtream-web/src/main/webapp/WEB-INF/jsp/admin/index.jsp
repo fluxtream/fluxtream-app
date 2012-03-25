@@ -14,10 +14,11 @@
     <![endif]-->
 
 <!-- Le styles -->
-<link href="/${release}/css/bootstrap/bootstrap.min.css" rel="stylesheet">
+<link href="/static/css/bootstrap-2.0.2.min.css" rel="stylesheet">
 <link href="/${release}/admin/css/admin.css" rel="stylesheet">
 
-<script src="/${release}/admin/js/jquery-1.6.4.js"></script>
+<script src="/static/js/jquery-1.7.1.min.js"></script>
+<script src="/static/js/bootstrap-2.0.2.min.js"></script>
 <script src="/${release}/admin/js/admin.js"></script>
 
 </head>
