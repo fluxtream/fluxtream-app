@@ -1,6 +1,6 @@
 define(
-		[],
-		function() {
+		["applications/log/widgets/timeline/MyModule"],
+		function(MyModule) {
 			var viewModel, dateAxis, dataSource;
 			var yAxisIndex = 0;
 						
