@@ -4,9 +4,6 @@ define([], function() {
 	
 	var widgets = {
 		"DAY":["clock", "stats", "map", "diary", "photos", "list"],
-		"WEEK":["stats", "map", "diary", "photos", "list"],
-		"MONTH":["stats", "map", "diary", "photos", "list"],
-		"YEAR":["stats", "map", "diary", "photos", "list"],
 		"CONTINUOUS":["timeline", "views", "list"]
 	};
 	
@@ -43,14 +40,14 @@ define([], function() {
 				Log.renderState(widget+state);
 			});
 		}
-		var w = widgetExistsForTimeUnit(Log.currentWidget, Log.timeUnit)?Log.currentWidget:widgets[Log.timeUnit][0];
+		var w = widgetExistsForTimeUnit(Log.currentWidgetName, Log.timeUnit)?Log.currentWidgetName:widgets[Log.timeUnit][0];
 		var currentWidgetTab = "#widgetsTab a." + w+"-tab";
 		$(currentWidgetTab).tab("show");
 	}
 	
 	function createTimeUnitsMenu(Log) {
 		$("#time-menu").remove();
-		var timeUnits = {DAY:1, WEEK:2, MONTH: 3, YEAR:4, CONTINUOUS:5};
+		var timeUnits = {DAY:1, /*WEEK:2, MONTH: 3, YEAR:4,*/ CONTINUOUS:5};
 		delete timeUnits[Log.timeUnit];
 		$(".loading").remove();
 		var markup = "<div class=\"btn-group\" id=\"time-menu\">\
@@ -73,9 +70,9 @@ define([], function() {
 					url = "/nav/set" + capitalizeFirstLetter(timeUnit.toLowerCase()) + "TimeUnit.json";
 				$.ajax({ url:url,
 					success : function(response) {
-						var w = widgetExistsForTimeUnit(Log.currentWidget, timeUnit)?Log.currentWidget:widgets[timeUnit][0];
-						Log.currentWidget = w;
-						Log.renderState(Log.currentWidget + "/" + response.state);
+						var w = widgetExistsForTimeUnit(Log.currentWidgetName, timeUnit)?Log.currentWidgetName:widgets[timeUnit][0];
+						Log.currentWidgetName = w;
+						Log.renderState(Log.currentWidgetName + "/" + response.state);
 					},
 					error : function() {
 						alert("error");
@@ -138,7 +135,7 @@ define([], function() {
 				url = "/nav/set" + capitalizeFirstLetter(targetTimeUnit.toLowerCase()) + "TimeUnit.json";
 				$.ajax({ url:url,
 					success : function(response) {
-						Log.renderState(Log.currentWidget + "/" + response.state);
+						Log.renderState(Log.currentWidgetName + "/" + response.state);
 					},
 					error : function() {
 						alert("error");
@@ -150,10 +147,11 @@ define([], function() {
 	
 	function updateWidget(digest, Log) {
 		$("#widgets").empty();
-		require([ "applications/log/widgets/" + Log.currentWidget + "/"
-				+ capitalizeFirstLetter(Log.currentWidget) + "Widget"],
+		require([ "applications/log/widgets/" + Log.currentWidgetName + "/"
+				+ capitalizeFirstLetter(Log.currentWidgetName) + "Widget"],
 				function(widget) {
-			var currentWidgetTab = "#widgetsTab a." + Log.currentWidget+"-tab";
+			Log.currentWidget = widget;
+			var currentWidgetTab = "#widgetsTab a." + Log.currentWidgetName+"-tab";
 			$(currentWidgetTab).tab("show");
 			widget.render(digest, Log.timeUnit);
 		});

@@ -1,5 +1,6 @@
 define(["applications/log/widgets/clock/ClockdrawingUtils",
-        "applications/log/widgets/clock/ClockConfig"], function(DrawingUtils, Config) {
+        "applications/log/widgets/clock/ClockConfig",
+        "applications/log/widgets/Widget"], function(DrawingUtils, Config, Widget) {
 	
 	var paper = null;
 
@@ -428,7 +429,7 @@ define(["applications/log/widgets/clock/ClockdrawingUtils",
 		});
 	}
 	
-	var clockWidget = {};
+	var clockWidget = new Widget("clock", "Candide Kemmler", "icon-time");
 	clockWidget.render = render;
 	return clockWidget;
 	

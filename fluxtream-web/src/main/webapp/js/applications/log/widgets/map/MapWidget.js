@@ -1,4 +1,4 @@
-define([], function() {
+define(["applications/log/widgets/Widget"], function(Widget) {
 
 	var map = null;
 	
@@ -23,7 +23,7 @@ define([], function() {
 		map.setZoom(zoomLevel);
 	}
 
-	var mapWidget = {};
+	var mapWidget = new Widget("clock", "Candide Kemmler", "icon-map-marker");
 	mapWidget.render = render;
 	return mapWidget;
 

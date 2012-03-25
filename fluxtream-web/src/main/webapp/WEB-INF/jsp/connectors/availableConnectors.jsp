@@ -28,9 +28,7 @@
 				</a>
 				<p><%=connectorText%></p> 
 				<div onclick="javascript:App.addConnector('<%=connectUrl%>')" role="button" class="v-button v-button- addConnectorButton" tabindex="0"> 
-					<span class="v-button-wrap "> 
-						<span class="v-button-caption">Add</span> 
-					</span> 
+					<span class="btn">Add</span> 
 				</div> 
 			</article> 
 			

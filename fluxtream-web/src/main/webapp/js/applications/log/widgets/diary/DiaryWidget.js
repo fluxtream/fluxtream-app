@@ -1,4 +1,5 @@
-define(["applications/log/widgets/diary/Status"], function(status) {
+define(["applications/log/widgets/diary/Status",
+        "applications/log/widgets/Widget"], function(status, Widget) {
 	
 	function render(digest, timeUnit) {
 		require(["text!applications/log/widgets/diary/" + timeUnit.toLowerCase() + "Diary.html"], function(template) {
@@ -31,7 +32,7 @@ define(["applications/log/widgets/diary/Status"], function(status) {
 		});
 	}
 	
-	var diaryWidget = {};
+	var diaryWidget = new Widget("clock", "Candide Kemmler", "icon-pencil");
 	diaryWidget.render = render;
 	return diaryWidget;
 	

@@ -2,7 +2,8 @@ define(["core/Application", "core/FlxState", "applications/log/Builder"], functi
 
 	var Log = new Application("log", "Candide Kemmler", "icon-calendar");
 	
-	Log.currentWidget = Builder.widgets["DAY"][0];
+	Log.currentWidgetName = Builder.widgets["DAY"][0];
+	Log.currentWidget = null;
 	Log.timeUnit = "DAY";
 	
 	var start, end;
@@ -14,8 +15,8 @@ define(["core/Application", "core/FlxState", "applications/log/Builder"], functi
 			fetchState("/nav/decrementTimespan.json"); });
 		$(".menuTodayButton").click(function(e) {
 			Log.timeUnit = "DAY";
-			var w = Builder.widgetExistsForTimeUnit(Log.currentWidget, Log.timeUnit)?Log.currentWidget:Builder.widgets[Log.timeUnit][0];
-			Log.currentWidget = w;
+			var w = Builder.widgetExistsForTimeUnit(Log.currentWidgetName, Log.timeUnit)?Log.currentWidgetName:Builder.widgets[Log.timeUnit][0];
+			Log.currentWidgetName = w;
 			Builder.createTimeUnitsMenu(Log);
 			Builder.createWidgetTabs(Log);
 			fetchState("/nav/setToToday.json");
@@ -59,10 +60,10 @@ define(["core/Application", "core/FlxState", "applications/log/Builder"], functi
 		}
 		else {
 			var splits = state.split("/");
-			Log.currentWidget = splits[0];
+			Log.currentWidgetName = splits[0];
 			Log.timeUnit = toTimeUnit(splits[1]);
-			var w = Builder.widgetExistsForTimeUnit(Log.currentWidget, Log.timeUnit)?Log.currentWidget:Builder.widgets[Log.timeUnit][0];
-			Log.currentWidget = w;
+			var w = Builder.widgetExistsForTimeUnit(Log.currentWidgetName, Log.timeUnit)?Log.currentWidgetName:Builder.widgets[Log.timeUnit][0];
+			Log.currentWidgetName = w;
 			Builder.createTimeUnitsMenu(Log);
 			Builder.createWidgetTabs(Log);
 			if ("DAY"===Log.timeUnit) {
@@ -85,8 +86,12 @@ define(["core/Application", "core/FlxState", "applications/log/Builder"], functi
 		$("#widgets").css("opacity", ".3");
 		$.ajax({ url:url,
 			success : function(response) {
-				FlxState.router.navigate("app/log/" + Log.currentWidget + "/" + response.state);
-				FlxState.saveState("log", Log.currentWidget + "/" + response.state);
+				if (Log.currentWidget) {
+					console.log("HEY, CURRENT WIDGET IS " + Log.currentWidget.name);
+					Log.currentWidget.saveState();
+				}
+				FlxState.router.navigate("app/log/" + Log.currentWidgetName + "/" + response.state);
+				FlxState.saveState("log", Log.currentWidgetName + "/" + response.state);
 				$("#currentTimespanLabel span").html(response.currentTimespanLabel);
 				fetchLog("/api/log/all/" + response.state);
 			},

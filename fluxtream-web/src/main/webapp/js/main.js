@@ -1,3 +1,3 @@
-require(['App'], function(App) {
+require(['App', 'Connectors'], function(App, Connectors) {
 	App.initialize();
 });

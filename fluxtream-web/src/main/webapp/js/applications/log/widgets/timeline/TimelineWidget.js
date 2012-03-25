@@ -1,6 +1,6 @@
 define(
-		["applications/log/widgets/timeline/MyModule"],
-		function(MyModule) {
+		["applications/log/widgets/timeline/BodyTrack", "applications/log/widgets/Widget"],
+		function(BodyTrack, Widget) {
 			var viewModel, dateAxis, dataSource;
 			var yAxisIndex = 0;
 						
@@ -87,7 +87,7 @@ define(
 				container = new PlotContainer("timeline_channel_plot_" + index, [plot]);
 			}
 			
-			var widget = {};
+			var widget = new Widget("clock", "Eric Park", "icon-film");
 			widget.render = render;
 			return widget;
 		});

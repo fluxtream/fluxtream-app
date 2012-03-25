@@ -1,4 +1,4 @@
-define([], function() {
+define(["applications/log/widgets/Widget"], function(Widget) {
 
 	function render(digest, timeUnit) {
 		require(["text!applications/log/widgets/photos/photos.html"], function(template) {
@@ -6,7 +6,7 @@ define([], function() {
 		});
 	}
 	
-	var photosWidget = {};
+	var photosWidget = new Widget("clock", "Candide Kemmler", "icon-camera");
 	photosWidget.render = render;
 	return photosWidget;
 
