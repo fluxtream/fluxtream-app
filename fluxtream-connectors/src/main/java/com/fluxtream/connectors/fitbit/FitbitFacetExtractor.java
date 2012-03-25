@@ -47,6 +47,14 @@ public class FitbitFacetExtractor extends AbstractFacetExtractor {
 
 		return facets;
 	}
+	
+	public void updateWeekFacets() {
+		
+	}
+	
+	public void updateMonthFacets() {
+		
+	}
 
 	private void extractSummaryActivityInfo(ApiData apiData,
 			JSONObject fitbitResponse, List<AbstractFacet> facets) {

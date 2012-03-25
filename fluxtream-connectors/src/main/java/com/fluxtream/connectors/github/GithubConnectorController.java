@@ -73,6 +73,6 @@ public class GithubConnectorController {
 //		guestService.setApiKeyAttribute(guest.getId(), connector,
 //				"refreshToken", token.getString("refresh_token"));
 		
-		return "redirect:/home/from/"+connector.getName();
+		return "redirect:/app/from/"+connector.getName();
 	}
 }

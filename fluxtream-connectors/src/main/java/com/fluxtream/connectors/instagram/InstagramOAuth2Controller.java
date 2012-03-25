@@ -88,6 +88,6 @@ public class InstagramOAuth2Controller {
 		guestService.setApiKeyAttribute(guest.getId(), Connector.getConnector("INSTAGRAM"),
 			"profile_picture", userObject.getString("profile_picture"));
 
-		return "redirect:/home/from/"+Connector.getConnector("INSTAGRAM").getName();
+		return "redirect:/app/from/"+Connector.getConnector("INSTAGRAM").getName();
 	}
 }

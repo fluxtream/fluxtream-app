@@ -73,7 +73,7 @@ public class LastFmController {
 		guestService.setApiKeyAttribute(guest.getId(), Connector.getConnector("lastfm"), "sessionKey", sessionKey);
 		guestService.setApiKeyAttribute(guest.getId(), Connector.getConnector("lastfm"), "username", username);
 		
-		return "redirect:/home/from/"+Connector.getConnector("LASTFM").getName();
+		return "redirect:/app/from/"+Connector.getConnector("LASTFM").getName();
 	}
 
 	Map<String, String> toMap(String... params) {

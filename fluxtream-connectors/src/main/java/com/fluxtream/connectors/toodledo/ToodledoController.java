@@ -7,16 +7,17 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.fluxtream.Configuration;
+import com.fluxtream.auth.FlxUserDetails;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.updaters.RateLimitReachedException;
-import com.fluxtream.domain.Guest;
 import com.fluxtream.services.GuestService;
-import com.fluxtream.services.impl.ServiceUtils;
 
 @Controller
 @RequestMapping(value="/toodledo")
@@ -58,20 +59,26 @@ public class ToodledoController {
 			mav.addObject("required", required);
 			return mav;
 		}
-		Guest guest = ServiceUtils.getCurrentGuest();
-		String userid = updater.getToodledoUserid(guest.getId(), email, password);
+		Long guestId = getGuestId();
+		String userid = updater.getToodledoUserid(guestId, email, password);
 		
 		if (userid==null) {
 			mav.setViewName("connectors/toodledo/error");
 			return mav;
 		}
 
-		guestService.setApiKeyAttribute(guest.getId(), Connector.getConnector("toodledo"), "email", email);
-		guestService.setApiKeyAttribute(guest.getId(), Connector.getConnector("toodledo"), "password", password);
-		guestService.setApiKeyAttribute(guest.getId(), Connector.getConnector("toodledo"), "userid", userid);
+		guestService.setApiKeyAttribute(guestId, Connector.getConnector("toodledo"), "email", email);
+		guestService.setApiKeyAttribute(guestId, Connector.getConnector("toodledo"), "password", password);
+		guestService.setApiKeyAttribute(guestId, Connector.getConnector("toodledo"), "userid", userid);
 		
 		mav.setViewName("connectors/toodledo/success");
 		return mav;
 	}
-	
+
+	public static long getGuestId() {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		long guestId = ((FlxUserDetails)auth.getPrincipal()).getGuest().getId();
+		return guestId;
+	}
+
 }

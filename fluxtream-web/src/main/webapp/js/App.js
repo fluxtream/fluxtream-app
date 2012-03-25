@@ -118,6 +118,48 @@ define(["core/FlxState", "libs/jquery.form", "libs/jquery.qtip.min"], function(F
 			}
 		});
 	}
+	
+	App.removeConnector = function(api) {
+		var c = confirm("If you wrote comments on events related to this connector, " +
+				"you will loose them forever.\n" +
+				"Are your sure you want to continue?");
+		if (c) {
+			$.ajax({
+				url: "/connectors/removeConnector?api="+api,
+				dataType: "json",
+				success: function(data) {
+					if (data.result=="ok") {
+						$("#userConnectors").load("/connectors/userConnectors");
+						showConnectorsPage(0);
+					}
+				}
+			});
+		}
+	}
+	
+	function startsWith(s, prefix) {
+		return s.substr(0, prefix.length) === prefix;
+	}
+	
+	App.addConnector = function(url) {
+		if (startsWith(url, "ajax:")) {
+			savedConnectorContent = $(".addConnectorsMain").html();
+			$.ajax({ url: url.substring(5), success: function(html) {
+					$(".addConnectorsMain").html(html);
+					$(".focushere").focus();
+				}
+			});
+		} else {
+			var loading = $("#loading").clone().show();
+			$(".addConnectorsMain").empty();
+			$(".addConnectorsMain").append(loading);
+			setTimeout("window.location='"+url + "'", 500);
+		}
+	}
+	
+	function showConnectorsPage(page) {
+		$("#availableConnectors").load("/connectors/availableConnectors?page="+page);
+	}
 		
 	App.initialize = initialize;
 	App.renderApp = renderApp;

@@ -96,7 +96,7 @@ public class GoogleLatitudeOAuthController {
 		guestService().setApiKeyAttribute(guest.getId(), Connector.getConnector("GOOGLE_LATITUDE"), "accessToken", credentials.token);
 		guestService().setApiKeyAttribute(guest.getId(), Connector.getConnector("GOOGLE_LATITUDE"), "tokenSecret", credentials.tokenSecret);
 		
-		return "redirect:/home/from/"+Connector.getConnector("GOOGLE_LATITUDE").getName();
+		return "redirect:/app/from/"+Connector.getConnector("GOOGLE_LATITUDE").getName();
 	}
 
 	private OAuthParameters createOAuthParameters(OAuthCredentialsResponse credentials) {

@@ -12,11 +12,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.fluxtream.Configuration;
+import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.Guest;
+import com.fluxtream.domain.Notification.Type;
 import com.fluxtream.mvc.models.HomeModel;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.GuestService;
@@ -100,6 +103,18 @@ public class AppController {
 		long guestId = ControllerHelper.getGuestId();
 		checkIn(request, guestId);
 		return home(request);
+	}
+
+	@RequestMapping(value = "/app/from/{connectorName}")
+	public String home(HttpServletRequest request,
+			@PathVariable("connectorName") String connectorName) {
+		long guestId = ControllerHelper.getGuestId();
+		String message = "You have successfully added a new connector: "
+				+ Connector.getConnector(connectorName).prettyName()
+				+". Your data is now being retrieved. "
+				+ "It may take a little while until it becomes visible.";
+		notificationsService.addNotification(guestId, Type.INFO, message);
+		return "redirect:/app";
 	}
 
 	private void checkIn(HttpServletRequest request, long guestId)

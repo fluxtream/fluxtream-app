@@ -13,6 +13,8 @@ import org.hibernate.annotations.Index;
 
 @Entity(name="Guest")
 @NamedQueries ( {
+	@NamedQuery(name = "guests.count",
+			query = "SELECT COUNT(guest) FROM Guest"),
 	@NamedQuery( name="guest.byEmail",
 			query="SELECT guest FROM Guest guest WHERE guest.email=?"),
 	@NamedQuery( name="guest.byUsername",

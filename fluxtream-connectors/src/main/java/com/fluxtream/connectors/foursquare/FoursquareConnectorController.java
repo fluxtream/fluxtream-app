@@ -74,6 +74,6 @@ public class FoursquareConnectorController {
 		guestService.setApiKeyAttribute(guest.getId(), scopedApi,
 				"accessToken", token.getString("access_token"));
 		
-		return "redirect:/home/from/"+scopedApi.getName();
+		return "redirect:/app/from/"+scopedApi.getName();
 	}
 }

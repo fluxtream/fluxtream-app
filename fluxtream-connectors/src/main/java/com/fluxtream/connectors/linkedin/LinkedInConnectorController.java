@@ -83,7 +83,7 @@ public class LinkedInConnectorController {
 		guestService.setApiKeyAttribute(guest.getId(), Connector.getConnector("linkedin"), "accessToken", consumer.getToken());
 		guestService.setApiKeyAttribute(guest.getId(), Connector.getConnector("linkedin"), "tokenSecret", consumer.getTokenSecret());
 
-		return "redirect:/home/from/"+Connector.getConnector("linkedin").getName();
+		return "redirect:/app/from/"+Connector.getConnector("linkedin").getName();
 	}
 
 

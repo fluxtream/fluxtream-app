@@ -109,7 +109,7 @@ public class FacebookConnectorController {
 				guestService.setApiKeyAttribute(guest.getId(), connector,
 						"expires", expires);
 				
-				return new ModelAndView("redirect:/home/from/"+connector.getName());
+				return new ModelAndView("redirect:/app/from/"+connector.getName());
 			}
 		}
 

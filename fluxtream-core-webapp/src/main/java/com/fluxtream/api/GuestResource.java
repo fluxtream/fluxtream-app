@@ -70,6 +70,22 @@ public class GuestResource {
 		}
 	}
 	
+	@GET
+	@Path("/init")
+	@Produces({ MediaType.APPLICATION_JSON })
+	public String init() throws InstantiationException,
+			IllegalAccessException, ClassNotFoundException {
+		try {
+			guestService.init();
+			StatusModel result = new StatusModel(true, "Root user was successfully created");
+			return gson.toJson(result);
+		} catch (Exception e) {
+			StatusModel result = new StatusModel(false, "Could not create guest: " + e.getMessage());
+			return gson.toJson(result);
+		}
+		
+	}
+	
 	@POST
 	@Path("/create")
 	@Produces({ MediaType.APPLICATION_JSON })
