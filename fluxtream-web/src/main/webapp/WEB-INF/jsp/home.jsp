@@ -15,6 +15,12 @@
 <link rel="stylesheet" href="/${release}/css/bodytrack.css">
 <link rel="stylesheet" href="/${release}/css/font-awesome.css">
 <link rel="stylesheet" href="/${release}/css/qtip/jquery.qtip.min.css">
+<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css">
+
+<link rel="stylesheet" href="/static/css/jquery-colorPicker/jquery.colorPicker.css">
+<link rel="stylesheet" href="/static/css/msdropdown/dd.css">
+<link rel="stylesheet" href="/static/css/tagedit/css/jquery.tagedit.css">
+
 <script
 	src="https://maps-api-ssl.google.com/maps/api/js?libraries=geometry&v=3&sensor=false"
 	type="text/javascript"></script>
@@ -78,6 +84,12 @@
 	<script src="/static/tiny_mce/jquery.tinymce.js"></script>
 	<script src="/static/js/json2.js"></script>
 	<script src="/static/js/jquery.mustache-1.0.js"></script>
+	<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
+	<script src="/static/js/jquery.autoGrowInput.js"></script>
+	<script src="/static/js/jquery.colorPicker.js"></script>
+	<script src="/static/js/jquery.dd-uncompressed.js"></script>
+	<script src="/static/js/jquery.shorten.js"></script>
+	<script src="/static/js/jquery.tagedit.js"></script>
 	<script src="/static/grapher4/grapher2.nocache.js"></script>
 	<script src="/static/js/bootstrap-2.0.2.min.js"></script>
 	<script src="/static/js/raphael-2.0.2.js"></script>
