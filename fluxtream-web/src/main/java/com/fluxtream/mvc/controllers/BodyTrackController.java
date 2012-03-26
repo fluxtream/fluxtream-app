@@ -106,6 +106,32 @@ public class BodyTrackController {
 		writeTunnelResponse(tunnelUrl, response);
 	}
 
+	@RequestMapping(value = "/users/{UID}/tags")
+	public void bodyTrackTags(HttpServletResponse response,
+			@PathVariable("UID") String UID) throws HttpException, IOException {
+		String tunnelUrl = "http://localhost:3000/users/" + UID + "/tags";
+		writeTunnelResponse(tunnelUrl, response);
+	}
+
+	@RequestMapping(value = "/users/{UID}/tags/{LOGREC_ID}/get")
+	public void bodyTrackGetTags(HttpServletResponse response,
+			@PathVariable("UID") String UID,
+			@PathVariable("LOGREC_ID") String LOGREC_ID) throws HttpException, IOException {
+		String tunnelUrl = "http://localhost:3000/users/" + UID + "/tags/" + LOGREC_ID + "/get";
+		writeTunnelResponse(tunnelUrl, response);
+	}
+
+	@RequestMapping(value = "/users/{UID}/tags/{LOGREC_ID}/set")
+	public void bodyTrackSetTags(HttpServletResponse response,
+			@PathVariable("UID") String UID,
+			@PathVariable("LOGREC_ID") String LOGREC_UID,
+			@RequestParam("tags") String tags) throws HttpException, IOException {
+		Map<String,String> params = new HashMap<String,String>();
+		params.put("tags", tags);
+		String tunnelUrl = "http://localhost:3000/users/" + UID + "/tags/" + LOGREC_ID + "/set";
+		postTunnelRequest(tunnelUrl, response, params);
+	}
+
 	@RequestMapping(value = "/users/{UID}/channels/{DeviceNickname}.{ChannelName}/set")
 	public void bodyTrackChannelSet(HttpServletResponse response,
 			@PathVariable("UID") String uid,
