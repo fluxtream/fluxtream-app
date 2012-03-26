@@ -8,6 +8,8 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import net.sf.json.JSONObject;
+
 import org.apache.commons.httpclient.HttpException;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.fluxtream.Configuration;
+import com.fluxtream.connectors.Connector;
+import com.fluxtream.services.GuestService;
 import com.fluxtream.utils.HttpUtils;
 
 // This controller tunnels BodyTrack API calls to a BodyTrack server running on localhost:3000
@@ -31,17 +35,17 @@ public class BodyTrackController {
 	@Autowired
 	Configuration env;
 
-	@RequestMapping(value = "/tiles/{UID}/{DeviceNickname}.{ChannelName}/{Level}.{Offset}.json")
+	@Autowired
+	GuestService guestService;
+	
+	@RequestMapping(value = "/UID")
 	public void bodyTrackTileFetch(HttpServletResponse response,
-			@PathVariable("UID") String uid,
-			@PathVariable("DeviceNickname") String deviceNickname,
-			@PathVariable("ChannelName") String channelName,
-			@PathVariable("Level") String level,
-			@PathVariable("Offset") String offset) throws HttpException, IOException {
-		String bodyTrackUrl = "http://localhost:3000/tiles/" + uid + "/"
-				+ deviceNickname + "." + channelName + "/" + level + "."
-				+ offset + ".json";
-		writeTunnelResponse(bodyTrackUrl, response);
+			@PathVariable("UID") String uid) throws HttpException, IOException {
+		long guestId = ControllerHelper.getGuestId();
+		String user_id = guestService.getApiKeyAttribute(guestId, Connector.getConnector("bodytrack"), "user_id");
+		JSONObject json = new JSONObject();
+		json.accumulate("user_id", user_id);
+		response.getWriter().write(json.toString());
 	}
 	
 	@RequestMapping(value = "/photos/{UID}/{Level}.{Offset}.json")
