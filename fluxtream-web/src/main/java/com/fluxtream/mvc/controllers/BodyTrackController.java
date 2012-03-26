@@ -30,7 +30,7 @@ public class BodyTrackController {
 	Configuration env;
 
 	@RequestMapping(value = "/tiles/{UID}/{DeviceNickname}.{ChannelName}/{Level}.{Offset}.json")
-	public void index(HttpServletResponse response,
+	public void bodyTrackTileFetch(HttpServletResponse response,
 			@PathVariable("UID") String uid,
 			@PathVariable("DeviceNickname") String deviceNickname,
 			@PathVariable("ChannelName") String channelName,
@@ -43,7 +43,7 @@ public class BodyTrackController {
 	}
 	
 	@RequestMapping(value = "/photos/{UID}/{Level}.{Offset}.json")
-	public void index(HttpServletResponse response,
+	public void bodyTrackPhotoTileFetch(HttpServletResponse response,
 			HttpServletRequest request,
 			@PathVariable("UID") String uid,
 			@PathVariable("Level") String level,
