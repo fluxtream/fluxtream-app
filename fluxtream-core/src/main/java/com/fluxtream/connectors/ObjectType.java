@@ -14,6 +14,8 @@ public class ObjectType {
 	
 	private static Map<Connector,Map<String,ObjectType>> connectorNamedObjectTypes = new Hashtable<Connector,Map<String,ObjectType>>();
 	
+	private static Map<Connector,Map<Integer,ObjectType>> connectorObjectTypeValues = new Hashtable<Connector,Map<Integer,ObjectType>>();
+	
 	private static Map<String, ObjectType> customObjectTypes = new Hashtable<String, ObjectType>();
 	
 	/**
@@ -34,13 +36,21 @@ public class ObjectType {
 		return customObjectTypes.get(name);
 	}
 	
+	public static ObjectType getObjectType(Connector connector, int objectType) {
+		Map<Integer, ObjectType> connectorObjectTypes = connectorObjectTypeValues.get(connector);
+		ObjectType type = connectorObjectTypes.get(objectType);
+		return type;
+	}
+	
 	static void addObjectType(String name, Connector connector, ObjectType value) {
 		if (!connectorObjectTypes.containsKey(connector))
 			connectorObjectTypes.put(connector, new Vector<ObjectType>());
 		connectorObjectTypes.get(connector).add(value);
 		if (!connectorNamedObjectTypes.containsKey(connector))
 			connectorNamedObjectTypes.put(connector, new Hashtable<String,ObjectType>());
-		connectorNamedObjectTypes.get(connector).put(value.getName(), value);
+		if (!connectorObjectTypeValues.containsKey(connector))
+			connectorObjectTypeValues.put(connector, new Hashtable<Integer,ObjectType>());
+		connectorObjectTypeValues.get(connector).put(value.value(), value);
 	}
 	
 	public static ObjectType getObjectType(Connector connector, String name) {

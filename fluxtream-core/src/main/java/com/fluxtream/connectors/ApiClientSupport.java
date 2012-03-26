@@ -14,10 +14,10 @@ public class ApiClientSupport {
 	protected ConnectorUpdateService connectorUpdateService;
 
 	protected final boolean hasReachedRateLimit(Connector connector, long guestId) {
-		String rateLimitString = env.connectors.get(connector.getName()
+		String rateLimitString = (String) env.connectors.getProperty(connector.getName()
 				+ ".rateLimit");
 		if (rateLimitString == null)
-			rateLimitString = env.connectors.get("rateLimit");
+			rateLimitString = (String) env.connectors.getProperty("rateLimit");
 		int count = Integer.valueOf(rateLimitString.split("/")[0]);
 		int millis = Integer.valueOf(rateLimitString.split("/")[1]);
 		long then = System.currentTimeMillis() - millis;
