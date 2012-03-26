@@ -164,11 +164,11 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 		Map<String, List<AbstractFacet>> facetsByDeviceNickname = new HashMap<String, List<AbstractFacet>>();
 		for (AbstractFacet facet : facets) {
 			Connector connector = Connector.fromValue(facet.api);
-			String connectorName = connector.getName();
-			String objectTypeName = ObjectType.getObjectType(connector,
+			String connectorAndObjectType = connector.getName();
+			if (connector.objectTypes()!=null&&connector.objectTypes().length>0) {
+				connectorAndObjectType += "." + ObjectType.getObjectType(connector,
 					facet.objectType).getName();
-			String connectorAndObjectType = connectorName + "."
-					+ objectTypeName;
+			}
 			String deviceNickname = getDeviceNickname(connectorAndObjectType);
 			if (deviceNickname==null) {
 				logger.info("No Device Nickname for " + connectorAndObjectType);

@@ -66,9 +66,18 @@
 			</div>
 			<div class="span1">&nbsp;</div>
 		</div>
+		
+		<div class="row-fluid">
+			<div class="span4 offset8 well">
+				<h3>Sign Up!</h3>
+				<a href="javascript:createAccount()" class="btn">Register</a>
+			</div>
+		</div>
 
 	</div>
 	<!-- /container -->
+	
+	<div id="modal"></div>
 
 	<!-- Le javascript
     ================================================== -->

@@ -40,9 +40,7 @@ function submitCreateAccountForm() {
 		password2 = $("input#password2").val(),
 		username = $("input#username").val(),
 		firstname = $("input#firstname").val(),
-		lastname = $("input#lastname").val(),
-		recaptchaChallenge = Recaptcha.get_challenge(),
-		recaptchaResponse = Recaptcha.get_response();
+		lastname = $("input#lastname").val()
 	$.ajax({
 		url:"/createAccount",
 		type: "POST",
@@ -51,7 +49,11 @@ function submitCreateAccountForm() {
 			username: username, firstname: firstname,
 			lastname: lastname},
 		success: function(html) {
-			jQuery.facebox(html);
+			$("#modal").empty();
+			$("#modal").append(html);
+			$("#modal").css("display", "block");
+			var dialog = $(".modal").modal({show: false});
+			dialog.modal("show");
 		}
 	});
 }
@@ -60,7 +62,11 @@ function createAccount() {
 	$.ajax({
 		url: "/createAccountForm",
 		success: function(html) {
-			jQuery.facebox(html);
+			$("#modal").empty();
+			$("#modal").append(html);
+			$("#modal").css("display", "block");
+			var dialog = $(".modal").modal({show: false});
+			dialog.modal("show");
 		}
 	})
 }
