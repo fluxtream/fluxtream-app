@@ -423,7 +423,7 @@ define(["applications/log/widgets/timeline/BodyTrack", "applications/log/widgets
 			VIEWS.save(name, function(data) {
 				loadedViewStr = JSON.stringify(VIEWS.data);
 				hasUnsavedChanges = false;
-				window.location.href = "#timeline/views/" + name;
+				loadView(name);
 			});
 		}
 
@@ -490,11 +490,12 @@ define(["applications/log/widgets/timeline/BodyTrack", "applications/log/widgets
 				min = VIEWS.data["v2"]["x_axis"]["min"]
 				max = VIEWS.data["v2"]["x_axis"]["max"]
 
-				window.location.href = "#timeline/views/" + viewName + "/" + min + "/" + max;
+				loadViewWithTimeRange(viewName, min, max);
 				return false;
 			}
 
 			// Otherwise, just follow the link
+			loadView(viewName);
 			return true;
 		}
 
@@ -529,7 +530,7 @@ define(["applications/log/widgets/timeline/BodyTrack", "applications/log/widgets
 				$("#_timeline_view_dialog").html($.mustache($("#_timeline_view_load_template").html(), {
 					available_views: VIEWS.availableList
 				})).show();
-
+				
 				$("#_timeline_view_dialog .close_btn").unbind('click').click(function() {
 					toggleLoadDialog();
 				});
@@ -538,6 +539,7 @@ define(["applications/log/widgets/timeline/BodyTrack", "applications/log/widgets
 					// hide dialog then allow browser to follow link
 					$("#_timeline_load_view_btn").removeClass("button_toggle");
 					$("#_timeline_view_dialog").hide();
+					loadViewDialogModeHandler($(this).html());
 				});
 			}
 			// Load dialog is open

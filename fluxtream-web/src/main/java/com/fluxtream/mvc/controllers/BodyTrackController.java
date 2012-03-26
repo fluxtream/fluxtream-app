@@ -79,9 +79,9 @@ public class BodyTrackController {
 			@PathVariable("UID") String UID,
 			@RequestParam("name") String name, @RequestParam("data") String data) throws HttpException, IOException {
 		Map<String,String> params = new HashMap<String,String>();
-		params.put(name, name);
-		params.put(data, data);
-		String tunnelUrl = "http://localhost:3000/users/" + UID + "/views/set?name=" + name;
+		params.put("name", name);
+		params.put("data", data);
+		String tunnelUrl = "http://localhost:3000/users/" + UID + "/views/set";
 		postTunnelRequest(tunnelUrl, response, params);
 	}
 

@@ -344,8 +344,8 @@
   </div>
   <ul>
     {{#available_views}}
-    <li><a href="#timeline/views/{{ name }}" 
-	   onclick="return _TIMELINE.loadViewDialogModeHandler('{{ name }}')">{{ name }}</a>
+    <li>
+	  <a href="javascript:void(0)">{{ name }}</a>
     </li>
     {{/available_views}}
     {{^available_views}}
