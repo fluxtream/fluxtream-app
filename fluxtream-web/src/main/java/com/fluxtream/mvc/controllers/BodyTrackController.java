@@ -5,6 +5,7 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.httpclient.HttpException;
@@ -31,7 +32,7 @@ public class BodyTrackController {
 	Configuration env;
 
 	@RequestMapping(value = "/tiles/{UID}/{DeviceNickname}.{ChannelName}/{Level}.{Offset}.json")
-	public void index(HttpServletResponse response,
+	public void bodyTrackTileFetch(HttpServletResponse response,
 			@PathVariable("UID") String uid,
 			@PathVariable("DeviceNickname") String deviceNickname,
 			@PathVariable("ChannelName") String channelName,
@@ -42,6 +43,22 @@ public class BodyTrackController {
 				+ offset + ".json";
 		writeTunnelResponse(bodyTrackUrl, response);
 	}
+	
+	@RequestMapping(value = "/photos/{UID}/{Level}.{Offset}.json")
+	public void bodyTrackPhotoTileFetch(HttpServletResponse response,
+			HttpServletRequest request,
+			@PathVariable("UID") String uid,
+			@PathVariable("Level") String level,
+			@PathVariable("Offset") String offset) throws HttpException, IOException {
+		String bodyTrackUrl = "http://localhost:3000/photos/" + uid + "/" + level + "."
+				+ offset + ".json";
+		String pstr = request.getQueryString();
+		if(pstr != null) {
+				bodyTrackUrl += "?" + pstr;
+		}
+		writeTunnelResponse(bodyTrackUrl, response);
+	}
+
 	
  	@RequestMapping(value = "/users/{UID}/views")
 	public void bodyTrackViews(HttpServletResponse response,
