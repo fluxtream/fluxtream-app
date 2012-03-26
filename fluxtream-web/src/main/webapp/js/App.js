@@ -157,7 +157,7 @@ define(["core/FlxState", "libs/jquery.form", "libs/jquery.qtip.min"], function(F
 		}
 	}
 	
-	function showConnectorsPage(page) {
+	App.showConnectorsPage = function(page) {
 		$("#availableConnectors").load("/connectors/availableConnectors?page="+page);
 	}
 		

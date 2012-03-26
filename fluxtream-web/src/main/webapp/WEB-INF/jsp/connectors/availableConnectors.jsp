@@ -38,7 +38,7 @@
 <div class="clear floatR pagination">
 	<span class="paginaText">${showing}</span>
 	<% for (int i=0; i<pages; i++) { %>
-		<div onclick="showConnectorsPage(<%=i %>)" class="v-button v-button- textBut">
+		<div onclick="javascript:App.showConnectorsPage(<%=i %>)" class="v-button v-button- textBut">
 			<span class="v-button-wrap ">
 				<%if (i!=currentPage) out.print("<u>"); %>
 					<span class="v-button-caption"><%=(i+1) %></span>
