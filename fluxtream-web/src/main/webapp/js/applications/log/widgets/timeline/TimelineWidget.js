@@ -191,7 +191,7 @@ define(["applications/log/widgets/timeline/BodyTrack", "applications/log/widgets
 					return confirm("You have unsaved changes. Do you wish to continue?");
 				}
 			}	
-		},
+		}
 		
 		function getSources() {
 			SOURCES.getAvailableList(function(data) {
@@ -769,6 +769,11 @@ define(["applications/log/widgets/timeline/BodyTrack", "applications/log/widgets
 				$(channelElement).remove();
 			});
 
+			// Drag to resize
+			$("#" + channelElementId + "_dragArea").unbind("mousedown").mousedown(function() {
+				dragAreaOnMouseDown(id, channelElementId, plotElementId, yAxisElementId);
+			});
+			
 			// Style configuration
 			if (plot instanceof DataSeriesPlot) {
 
@@ -802,7 +807,7 @@ define(["applications/log/widgets/timeline/BodyTrack", "applications/log/widgets
 						};	
 
 						var pointsStyleType = $("#" + channelElementId + "-config-points-type").val();
-						var pointsStyleFill = pointsStyleType.endsWith('-filled');
+						var pointsStyleFill = pointsStyleType.match(/-filled$/) !== null;
 						var pointsStyle = {
 							"type"      : pointsStyleType.replace('-filled', ''),
   	      					"show"      : $("#" + channelElementId + "-config-points-show").is(':checked'),
@@ -870,7 +875,7 @@ define(["applications/log/widgets/timeline/BodyTrack", "applications/log/widgets
 
 					// Finally, build the comments style (this completely overwrites the existing comments object)
 					var commentsStyleType = $("#" + channelElementId + "-config-comments-type").val();
-					var commentsStyleFill = commentsStyleType.endsWith('-filled');
+					var commentsStyleFill = commentsStyleType.match(/-filled$/) !== null;
 					newStyle['comments'] = {
 						"show"   : $("#" + channelElementId + "-config-comments-show").is(':checked'),
 						"styles" : [{
@@ -1127,7 +1132,7 @@ define(["applications/log/widgets/timeline/BodyTrack", "applications/log/widgets
 				$("#" + channelElementId + "-config-points-type").val(pointsStyle['type-ui']);
 				$("#" + channelElementId + "-config-points-type").change(updateDataSeriesPlotChannelConfig);
 				$("#" + channelElementId + "-config-points-type").change(function() {
-					var isFilledType = $("#" + channelElementId + "-config-points-type").val().endsWith("-filled");
+					var isFilledType = $("#" + channelElementId + "-config-points-type").val().match(/-filled$/) !== null;
 					$("#" + channelElementId + "-config-points-fillColor-container").toggle(isFilledType);
 				});
 				$("#" + channelElementId + "-config-points-type").msDropDown();
@@ -1220,7 +1225,7 @@ define(["applications/log/widgets/timeline/BodyTrack", "applications/log/widgets
 				$("#" + channelElementId + "-config-comments-type").val(commentsStyle['type-ui']);
 				$("#" + channelElementId + "-config-comments-type").change(updateDataSeriesPlotChannelConfig);
 				$("#" + channelElementId + "-config-comments-type").change(function() {
-					var isFilledType = $("#" + channelElementId + "-config-comments-type").val().endsWith("-filled");
+					var isFilledType = $("#" + channelElementId + "-config-comments-type").val().match(/-filled$/) !== null;
 					$("#" + channelElementId + "-config-comments-fillColor-container").toggle(isFilledType);
 				});
 				$("#" + channelElementId + "-config-comments-type").msDropDown();
