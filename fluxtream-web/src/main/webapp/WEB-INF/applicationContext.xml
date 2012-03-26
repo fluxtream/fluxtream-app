@@ -72,17 +72,26 @@
 
 	<util:properties id="countries" location="classpath:countries.properties"/>
 
-	<bean id="commonProperties" class="com.fluxtream.AutoReloadProperties">
+	<bean id="commonProperties" class="org.apache.commons.configuration.PropertiesConfiguration">
 		<constructor-arg value="common.properties"/>
    	</bean>
-	<bean id="targetEnvProperties" class="com.fluxtream.AutoReloadProperties">
+   	<bean id="autoReloadStrategy" class="org.apache.commons.configuration.reloading.FileChangedReloadingStrategy"></bean>
+	<bean id="targetEnvProperties" class="org.apache.commons.configuration.PropertiesConfiguration">
+		<property name="reloadingStrategy" ref="autoReloadStrategy"/>
 		<constructor-arg value="${TARGET_ENV}.properties"/>
    	</bean>
-	<bean id="connectorsProperties" class="com.fluxtream.AutoReloadProperties">
+	<bean id="connectorsProperties" class="org.apache.commons.configuration.PropertiesConfiguration">
+		<property name="reloadingStrategy" ref="autoReloadStrategy"/>
 		<constructor-arg value="connectors.properties"/>
    	</bean>
-	<bean id="oauthProperties" class="com.fluxtream.AutoReloadProperties">
+	<bean id="oauthProperties" class="org.apache.commons.configuration.PropertiesConfiguration">
+		<property name="reloadingStrategy" ref="autoReloadStrategy"/>
 		<constructor-arg value="oauth.properties"/>
+   	</bean>
+	<bean id="bodytrackProperties" class="org.apache.commons.configuration.PropertiesConfiguration">
+		<property name="reloadingStrategy" ref="autoReloadStrategy"/>
+		<property name="listDelimiter" value="0"/>
+		<constructor-arg value="bodytrack.properties"/>
    	</bean>
 	
 	<bean id="configuration" class="com.fluxtream.Configuration">
@@ -91,6 +100,7 @@
 		<property name="connectorsProperties" ref="connectorsProperties"/>
 		<property name="oauthProperties" ref="oauthProperties"/>
 		<property name="countries" ref="countries"/>
+		<property name="bodytrackProperties" ref="bodytrackProperties"/>
 	</bean>
 
 	<tx:annotation-driven transaction-manager="transactionManager" />

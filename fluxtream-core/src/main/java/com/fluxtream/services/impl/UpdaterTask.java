@@ -214,28 +214,28 @@ class UpdaterTask implements Runnable {
 	private int getMaxRetries(Connector connector) {
 		String key = connector.getName() + ".maxRetries";
 		if (env.connectors.containsKey(key)) {
-			int retries = Integer.valueOf(env.connectors.get(key));
+			int retries = Integer.valueOf((String) env.connectors.getProperty(key));
 			return retries;
 		} else
-			return Integer.valueOf(env.connectors.get("maxRetries"));
+			return Integer.valueOf((String) env.connectors.getProperty("maxRetries"));
 	}
 
 	private int getShortRetryDelay(Connector connector) {
 		String key = connector.getName() + ".shortRetryDelay";
 		if (env.connectors.containsKey(key)) {
-			int delay = Integer.valueOf(env.connectors.get(key));
+			int delay = Integer.valueOf((String) env.connectors.getProperty(key));
 			return delay;
 		} else
-			return Integer.valueOf(env.connectors.get("shortRetryDelay"));
+			return Integer.valueOf((String) env.connectors.getProperty("shortRetryDelay"));
 	}
 
 	private int getLongRetryDelay(Connector connector) {
 		String key = connector.getName() + ".longRetryDelay";
 		if (env.connectors.containsKey(key)) {
-			Integer delay = Integer.valueOf(env.connectors.get(key));
+			Integer delay = Integer.valueOf((String) env.connectors.getProperty(key));
 			return delay;
 		} else
-			return Integer.valueOf(env.connectors.get("longRetryDelay"));
+			return Integer.valueOf((String) env.connectors.getProperty("longRetryDelay"));
 	}
 
 }

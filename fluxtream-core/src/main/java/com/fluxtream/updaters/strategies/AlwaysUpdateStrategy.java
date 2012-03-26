@@ -56,7 +56,7 @@ public class AlwaysUpdateStrategy extends AbstractUpdateStrategy {
 	final TimeInterval getGreedyInterval(Connector api,
 			TimeInterval timeInterval) {
 		String intervalKey = api.getName().toLowerCase() + ".intervalSize";
-		String intervalSize = env.connectors.get(intervalKey);
+		String intervalSize = (String) env.connectors.getProperty(intervalKey);
 		if (intervalSize == null)
 			intervalSize = "DAY";
 		TimeUnit granularity = TimeUnit.fromValue(intervalSize);

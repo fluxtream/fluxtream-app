@@ -1,14 +1,16 @@
 <project name="copy properties" default="copy" basedir=".">
-    <description>
-        simple example build file
+	<description>
+    during development, copy property files from eclipse to the runtime
+	environment
     </description>
-  <!-- set global properties for this build -->
-  <property file="ant.properties"/>
+	<!-- set global properties for this build -->
+	<property file="ant.properties" />
 
-  <target name="copy"
-        description="clean up" >
-    <!-- Delete the ${build} and ${dist} directory trees -->
-    <delete dir="${build}"/>
-    <delete dir="${dist}"/>
-  </target>
+	<target name="copy">
+		<copy todir="${webapp.root}/WEB-INF/classes">
+			<fileset dir="src/main/resources">
+				<exclude name=".gitignore"/>
+			</fileset>
+		</copy>
+	</target>
 </project>

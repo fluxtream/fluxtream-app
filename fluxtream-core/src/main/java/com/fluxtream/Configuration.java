@@ -6,6 +6,7 @@ import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang.WordUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -20,32 +21,38 @@ public class Configuration implements InitializingBean {
 
 	private DesEncrypter encrypter;
 	
-	public AutoReloadProperties commonProperties;
+	public PropertiesConfiguration commonProperties;
 	
-	public AutoReloadProperties targetEnvironmentProps;
+	public PropertiesConfiguration bodytrackProperties;
 	
-	public AutoReloadProperties connectors;
+	public PropertiesConfiguration targetEnvironmentProps;
 	
-	public AutoReloadProperties oauth;
+	public PropertiesConfiguration connectors;
+	
+	public PropertiesConfiguration oauth;
 	
 	private Map<String,String> countries;
 	
 	private Map<String,String> countryCodes;
 	
-	public void setCommonProperties(AutoReloadProperties properties) throws IOException {
+	public void setCommonProperties(PropertiesConfiguration properties) throws IOException {
 		this.commonProperties = properties;
 	}
 	
-	public void setTargetEnvProperties(AutoReloadProperties properties) throws IOException {
+	public void setTargetEnvProperties(PropertiesConfiguration properties) throws IOException {
 		this.targetEnvironmentProps = properties;
 	}
 	
-	public void setConnectorsProperties(AutoReloadProperties properties) throws IOException {
+	public void setConnectorsProperties(PropertiesConfiguration properties) throws IOException {
 		this.connectors = properties;
 	}
 	
-	public void setOauthProperties(AutoReloadProperties properties) throws IOException {
+	public void setOauthProperties(PropertiesConfiguration properties) throws IOException {
 		this.oauth = properties;
+	}
+	
+	public void setBodytrackProperties(PropertiesConfiguration properties) throws IOException {
+		this.bodytrackProperties = properties;
 	}
 	
 	public void setCountries(Properties properties) throws IOException {
@@ -70,13 +77,15 @@ public class Configuration implements InitializingBean {
 	}
 	
 	public String get(String key) {
-		String property = (String)commonProperties.get(key);
+		String property = (String)commonProperties.getProperty(key);
 		if (property==null)
-			property = targetEnvironmentProps.get(key);
+			property = (String) targetEnvironmentProps.getProperty(key);
 		if (property==null)
-			property = oauth.get(key);
+			property = (String) oauth.getProperty(key);
 		if (property==null)
-			property = connectors.get(key);
+			property = (String) connectors.getProperty(key);
+		if (property==null)
+			property = (String) bodytrackProperties.getProperty(key);
 		if (property!=null) return property.trim();
 		return property;
 	}
