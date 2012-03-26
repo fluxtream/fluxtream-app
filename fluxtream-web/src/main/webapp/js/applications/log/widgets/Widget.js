@@ -11,7 +11,7 @@ define([ "core/FlxState" ], function(FlxState) {
 	 * or widget
 	 */
 	Widget.prototype.saveState = function() {
-		FlxState.saveWidgetState(getCurrentState());
+		FlxState.saveWidgetState(this.getCurrentState());
 	}
 
 	/**

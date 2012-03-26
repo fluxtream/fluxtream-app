@@ -84,6 +84,8 @@
 	<script src="/static/tiny_mce/jquery.tinymce.js"></script>
 	<script src="/static/js/json2.js"></script>
 	<script src="/static/js/jquery.mustache-1.0.js"></script>
+
+	<!--  TODO: validate version numbers for these libs -->
 	<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
 	<script src="/static/js/jquery.autoGrowInput.js"></script>
 	<script src="/static/js/jquery.colorPicker.js"></script>
@@ -91,6 +93,7 @@
 	<script src="/static/js/jquery.shorten.js"></script>
 	<script src="/static/js/jquery.tagedit.js"></script>
 	<script src="/static/grapher4/grapher2.nocache.js"></script>
+
 	<script src="/static/js/bootstrap-2.0.2.min.js"></script>
 	<script src="/static/js/raphael-2.0.2.js"></script>
 	<script src="/${release}/js/libs/underscore-1.3.1-min.js"></script>

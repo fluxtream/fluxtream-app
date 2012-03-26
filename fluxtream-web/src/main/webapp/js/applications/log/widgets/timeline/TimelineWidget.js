@@ -2352,25 +2352,18 @@ define(["applications/log/widgets/timeline/BodyTrack", "applications/log/widgets
 
 				APP.init(function() {
 					init(function() {
-						loadView("zeo-armband1");
+						newView();
 					});
 				});
-
-//				$.ajax({
-//					url : "/bodytrack/users/3/views/get?name=zeo-armband1",
-//					success : function(data, textStatus,
-//							jqXHR) {
-//						loadView("zeo-armband1");
-//					}
-//				});
-				// ------------------------------------------------------------------------
-
 			});
 		}
 
-		var widget = new Widget("clock", "Eric Park", "icon-film");
+		function getCurrentState() {
+			console.log("Saving timeline state");
+		}
+		
+		var widget = new Widget("timeline", "Eric Park", "icon-film");
 		widget.render = render;
+		widget.getCurrentState = getCurrentState;
 		return widget;
 });
-
-
