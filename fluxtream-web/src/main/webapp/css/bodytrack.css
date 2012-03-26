@@ -1,32 +1,601 @@
-#timeline_channel_dateaxis {
-	width: auto;
-	height: 70px;
-	z-index: 2;
+body {
+  overflow-x: hidden;
+  overflow-y: hidden;
 }
 
-#timeline_table {
-	width: 100%;
+#_timeline_mainContentArea {
+    position: relative;
 }
 
-.timeline_channel {
-	margin: 0px;
-	padding: 0px;
-	border: 1px solid #D1D2D3;
+#_timeline_mainContentArea #_timeline_dataTable {
+    margin-top: 10px;
+    border-spacing: 0px;
+    table-layout: fixed;
+    width: 100%;
 }
 
-.timeline_channel_info_td {
-	width: 50px;
+#_timeline_mainContentArea #_timeline_dataTable td {
 }
 
-.timeline_channel_info {
-	width: 50px;
+#_timeline_viewName {
+    float: left;
+    width: 200px;
+    font-size: 1.2em;
+    padding: 3px 5px 3px 0px;
+    vertical-align: middle;
+    overflow: hidden;
 }
 
-.timeline_channel_plot_td, .timeline_channel_plot {
-	width: auto;
-	height: 67px;
+._timeline_pane {
+    /* necessary to be opaque over canvas */
+    position: relative;
+    margin: 0px;
+    padding: 0px;
+    display: none;
+    width: 200px;
+    border: 3px solid #d1d2d3;
+    background-color: #ededed;
+    vertical-align: top;
+    z-index: 99;
 }
 
-.timeline_channel_yaxis_td, .timeline_channel_yaxis {
-	width: 30px;
+._timeline_pane_title {
+    font-size: 1.2em;
+    font-weight: bold;
+    padding: 7px 10px;
 }
+
+#_timeline_addChannelsArea #_timeline_sources_find {
+    text-align: center;
+    margin-bottom: 5px;
+}
+
+#_timeline_addChannelsArea span input {
+    width: 100px;
+    border: 1px solid #d1d2d3;
+    font-size: 1em;
+    vertical-align: middle;
+}
+
+#_timeline_addChannelsArea ul {
+    min-height: 100%;
+    height: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+    list-style: none;
+    margin: 0px;
+    padding: 0px;
+    border-top: 3px solid #D1D2D3;
+}
+
+#_timeline_addChannelsArea ul li {
+    width: 100%;
+}
+
+#_timeline_addChannelsArea ul li ._timeline_sources_name {
+    font-weight: bold;
+    background-color: #d1d2d3;
+    padding: 5px 9px;
+    cursor: default;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+}
+
+#_timeline_addChannelsArea ul li ._timeline_sources_name ._timeline_sources_name_arrow {
+    font-size: 1.0em;
+}
+
+#_timeline_addChannelsArea ul li ul {
+    display: none;
+}
+
+#_timeline_addChannelsArea ul li ul ._timeline_sources_channel {
+    padding: 2px 5px 2px 9px;
+    cursor: pointer;
+}
+
+#_timeline_channelsArea {
+    vertical-align: top;
+    padding: 0 1px;
+    width: auto;
+}
+
+#_timeline_channelsWrapper {
+    min-height: 100%;
+    height: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+#_timeline_channels {
+    border: 1px solid #D1D2D3;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+
+#_timeline_channelsWrapper_footer {
+  /* This footer allows the user to scroll the page enough so that
+   * channel config widgets don't get chopped off by the bottom of
+   * the window. */
+  height: 120px;
+  min-height: 120px;
+  max-height: 120px;
+  background-color: #ffffff;
+}
+
+._timeline_channel {
+    margin: 0;
+    padding: 0;
+    border: 1px solid #D1D2D3;
+}
+
+._timeline_channel table {
+    width: 100%;
+}
+
+._timeline_channel table ._timeline_channeltd {
+  width: 200px;
+}
+
+._timeline_channel table ._timeline_plottd {
+  width: auto;
+}
+
+._timeline_channel table ._timeline_yaxistd {
+  width: 30px;
+}
+
+._timeline_channelTabAndPlot {
+  position: relative;
+}
+
+._timeline_channelTab {
+    border: 1px solid #D1D2D3;
+    width: 200px;
+    height: 67px;
+    min-height: 67px;
+    cursor: pointer;
+    background: #e7e8e9;
+}
+
+._timeline_channelTable {
+  height: 100%;
+}
+
+._timeline_btnGear {
+  float: right;
+  margin-left: 6px;
+  margin-right: 2px;
+  padding: 0;
+}
+
+._timeline_delete_btn {
+  margin-left: 6px;
+  margin-right: 6px;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  background: url(/static/images/delete.png) no-repeat 0 0;
+}
+
+._timeline_delete_btn:hover {
+  background-position: 0 -20px;
+}
+
+._timeline_channelName {
+  font-family: "Arial", verdana, sans-serif;
+  font-size: 1.1em;
+  font-weight: bold;
+}
+
+._timeline_channelSource {
+  font-family: "Arial", verdana, sans-serif;
+  font-size: 0.7em;
+  font-weight: bold;
+  color: #4D4D4D;
+}
+
+._timeline_channelFilter {
+  display:none;
+  overflow: hidden;
+  margin-top: 5px;
+  padding: 0;
+  font-family: "Arial", verdana, sans-serif;
+  font-style: italic;
+  font-size: 9px;
+  font-weight: normal;
+  color: #363636;
+  width: 141px;
+}
+
+._timeline_channelFilter_label {
+  font-weight: bold;
+}
+
+.close_btn {
+  position: absolute;
+  right: -17px;
+  top: -16px;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  background: url(/static/images/closebox.png) no-repeat 0 0;
+}
+
+._timeline_plotContainer {
+    border-top: 1px solid #CCCCCC;
+    border-left: 1px solid #CCCCCC;
+    border-right: 1px solid #CCCCCC;
+}
+
+._timeline_channelPlot {
+    height: 67px;
+    min-height: 67px;
+}
+
+._timeline_channelConfig {
+    height: auto;
+    border: 1px solid #D1D2D3;
+    display: none;
+}
+
+._timeline_channelConfig table td {
+  font-family: "Arial", verdana, sans-serif;
+  padding: 1px 0 1px 0;
+}
+
+._timeline_channelConfig select {
+  font-family: "Arial", verdana, sans-serif;
+  font-size: 0.9em;
+}
+
+._timeline_channelConfig ._timeline_sectionTitle {
+  font-weight: bold;
+  display: inline;
+  font-size: 8pt;
+}
+
+._timeline_channelConfig_table_cell_padding {
+  width:10px;
+  min-width:5px;
+}
+
+._timeline_channelConfig_image_menu {
+  width:45px;
+}
+
+._timeline_channelConfig label {
+  display: inline;
+  font-weight: normal;
+  font-size: 7pt;
+}
+
+._timeline_photo_series_plot_config {
+  display: none;
+  padding-left: 202px;
+}
+
+._timeline_data_series_plot_config {
+  display: none;
+}
+
+._timeline_data_series_plot_config_left_area {
+  font-size: 8pt;
+  width: 202px;
+  min-width: 202px;
+  max-width: 202px;
+}
+
+._timeline_data_series_plot_config_left_area > div {
+  padding-left: 5px;
+}
+
+._timeline_data_series_plot_config_right_area {
+  width: auto;
+}
+
+#_timeline_dateAxisAndChannelsArea {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  width: auto;
+}
+
+#_timeline_dateAxisContainer {
+  width: auto;
+  height:70px;
+  margin: 0 53px 0 205px;
+  padding: 0;
+  border: 1px solid #CCCCCC;
+  border-bottom-width: 0;
+}
+
+#_timeline_dateAxis {
+    width: auto;
+    height: 70px;
+    z-index: 2;
+}
+
+#_timeline_dataPointValueLabel {
+    width: auto;
+    min-width: 200px;
+    text-align: right;
+    padding: 0 5px 0 5px;
+    margin-top: -20px;
+    z-index: 1;
+}
+
+.ui-dialog .ui-dialog-content {
+  padding: 5px;
+}
+
+#_timeline_photo_dialog {
+  display:none;
+}
+
+._timeline_photo_dialog_table {
+  min-width: 300px;
+  min-height: 300px;
+  height: auto;
+}
+
+._timeline_photo_dialog_photo_table {
+  min-width: 300px;
+  min-height: 300px;
+  width: 300px;
+  height: 300px;
+  background-color: black;
+}
+
+#_timeline_photo_dialog_timestamp {
+  font-size: 9pt;
+  width: 300px;
+  min-width: 300px;
+  border-bottom: 1px solid #aaaaaa;
+  padding-bottom:2px;
+}
+
+#_timeline_photo_dialog_comment {
+  margin: 12px 0 0 0;
+  padding: 0 2px 0 2px;
+  width: 294px;
+  max-width: 300px;
+  height: auto;
+  font-size: .85em;
+  border: 1px solid #c6c6c6;
+}
+
+#_timeline_photo_dialog_tags_editor_area {
+  display:none;
+}
+
+#_timeline_photo_dialog_previous_button {
+  margin:140px 10px 0 0;
+}
+
+#_timeline_photo_dialog_next_button {
+  margin:140px 0 0 10px;
+}
+
+._timeline_left_arrow{
+  padding: 0;
+  border: none;
+  width:10px;
+  height:19px;
+  cursor: pointer;
+  background: url(/static/images/leftArrow.png) no-repeat 0 0;
+}
+
+._timeline_left_arrow:hover{
+  background-position: 0 -19px;
+}
+
+._timeline_right_arrow{
+  padding: 0;
+  border: none;
+  width:10px;
+  height:19px;
+  cursor: pointer;
+  background: url(/static/images/rightArrow.png) no-repeat 0 0;
+}
+
+._timeline_right_arrow:hover{
+  background-position: 0 -19px;
+}
+
+._timeline_photo_tags_input {
+  width: 288px;
+  max-width: 288px;
+}
+
+._timeline_photo_tags_filter {
+  width: auto;
+}
+
+.ui-menu-item {
+  font-size: 0.75em;
+}
+
+.ui-autocomplete {
+  max-height: 160px;
+  overflow-y: auto;
+  /* prevent horizontal scrollbar */
+  overflow-x: hidden;
+  /* add padding to account for vertical scrollbar */
+  padding-right: 20px;
+}
+
+#_timeline_photo_dialog_form_status{
+  line-height:100px;
+  min-height:100px;
+  height:100px;
+  width:300px;
+  text-align: center;
+  vertical-align: middle;
+  display:none;
+}
+
+#_timeline_photo_dialog_tags_editor {
+  margin-top: 10px;
+}
+
+#_timeline_photo_dialog_form_buttons {
+  margin-top: 10px;
+  font-size:smaller;
+  text-align:right;
+}
+
+#_timeline_photo_dialog_revert_button {
+}
+
+#_timeline_photo_dialog_save_button {
+}
+
+#_timeline_photo_dialog_save_preferences {
+  clear: both;
+  margin-top: 10px;
+  padding-top: 5px;
+  border-top: 1px solid #aaaaaa;
+  text-align: center;
+}
+
+#_timeline_photo_dialog_save_preferences label {
+  font-size: 8pt;
+  font-weight: normal;
+  display: inline;
+  color: #aaaaaa;
+}
+
+#_timeline_photo_dialog_save_should_goto_neighbor_choice {
+  font-size: 7pt;
+}
+
+._timeline_yAxisContainer {
+    min-height: 67px;
+    height: 67px;
+    display: table-cell;
+    vertical-align: middle;
+}
+
+._timeline_yAxis {
+    width: 30px;
+    min-height: 67px;
+    height: 67px;
+}
+
+._timeline_dragArea {
+    height: 3px;
+    cursor: ns-resize;
+    border-left: 1px solid #CCCCCC;
+    background: #D1D2D3;
+}
+
+.g2d-Surface canvas {
+    border-style: none;
+    border-radius: 0;
+}
+
+canvas {
+    border-style: none;
+    border-radius: 0;
+}
+
+/* Disable the outline when clicking on plots/axes */
+:focus {
+    outline: none;
+}
+
+::-moz-focus-inner {
+    border: 0;
+}
+
+.button {
+    background-color:#c9c9c9;
+    -moz-border-radius:6px;
+    -webkit-border-radius:6px;
+    border-radius:6px;
+    border:1px solid #dcdcdc;
+    display:inline-block;
+    color:#333;
+    font-family:arial;
+    font-size:12px;
+    font-weight:bold;
+    padding:6px 17px;
+    text-decoration:none;
+    vertical-align: middle;
+}
+.button:active {
+    position:relative;
+    top:1px;
+}
+
+.button_disabled {
+    background-color: #d1d2d3;
+    color: #999;
+}
+
+.button_toggle {
+  background-color: #18b054;
+  color: #fff;
+}
+
+#_timeline_view_dialog {
+    position: absolute;
+    left: 320px;
+    top: 40px;
+    width: 260px;
+    border: 5px solid #d1d2d3;
+    display: none;
+    z-index: 100;
+    background-color: #fff;
+}
+
+#_timeline_view_dialog ul {
+    list-style: none;
+    max-height: 350px;
+    overflow-y: auto;
+    margin: 0px;
+    padding: 15px 20px;
+}
+
+#_timeline_view_dialog ._timeline_save_dialog_head {
+    width: 100%;
+    height: 36px;
+    text-align: center;
+    background-color: #ededed;
+    padding-top: 10px;
+}
+
+#_timeline_view_dialog ._timeline_load_dialog_head {
+    width: 100%;
+    height: 36px;
+    text-align: center;
+    background-color: #ededed;
+    padding-top: 10px;
+}
+
+#_timeline_view_dialog ._timeline_load_dialog_head_content {
+    margin-top: 4px;
+    text-align: left;
+    margin-left: 18px;
+}
+
+#_timeline_view_dialog ._timeline_load_dialog_head_content input {
+    margin-left: 2px;
+}
+
+#_timeline_view_dialog div span input {
+    width: 150px;
+    border: 1px solid #d1d2d3;
+    font-size: 1.2em;
+    vertical-align: middle;
+}
+
+
+
