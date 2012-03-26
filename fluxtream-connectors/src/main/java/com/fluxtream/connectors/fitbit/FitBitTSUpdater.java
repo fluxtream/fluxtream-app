@@ -124,6 +124,7 @@ public class FitBitTSUpdater extends AbstractUpdater {
 			loadTimeSeries("activities/log/activityCalories",
 					updateInfo.apiKey, activityOT, "activityCalories");
 		}
+		
 	}
 
 	public void updateCaloriesIntraday(FitbitActivityFacet facet, ApiKey apiKey)

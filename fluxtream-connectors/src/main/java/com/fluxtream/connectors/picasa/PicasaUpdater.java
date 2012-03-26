@@ -27,8 +27,6 @@ public class PicasaUpdater extends AbstractGoogleOAuthUpdater {
 
 	public GuestService guestService;
 
-	
-	
 	public PicasaUpdater() {
 		super();
 	}

@@ -42,7 +42,23 @@ public class BodyTrackController {
 		writeTunnelResponse(bodyTrackUrl, response);
 	}
 	
-	@RequestMapping(value = "/users/{UID}/views")
+	@RequestMapping(value = "/photos/{UID}/{Level}.{Offset}.json")
+	public void index(HttpServletResponse response,
+			HttpServletRequest request,
+			@PathVariable("UID") String uid,
+			@PathVariable("Level") String level,
+			@PathVariable("Offset") String offset) throws HttpException, IOException {
+		String bodyTrackUrl = "http://localhost:3000/photos/" + uid + "/" + level + "."
+				+ offset + ".json";
+		String pstr = request.getQueryString();
+		if(pstr != null) {
+				bodyTrackUrl += "?" + pstr;
+		}
+		writeTunnelResponse(bodyTrackUrl, response);
+	}
+
+	
+ 	@RequestMapping(value = "/users/{UID}/views")
 	public void bodyTrackViews(HttpServletResponse response,
 			@PathVariable("UID") String UID) throws HttpException, IOException {
 		String tunnelUrl = "http://localhost:3000/users/" + UID + "/views";

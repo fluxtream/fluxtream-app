@@ -129,6 +129,7 @@ public class Connector {
 				connector.value = updaterAnnotation.value();
 				connector.updateStrategyType = updaterAnnotation
 						.updateStrategyType();
+				connector.hasFacets = updaterAnnotation.hasFacets();
 				// set connectors' object types
 				Class<? extends AbstractFacet>[] facetTypes = updaterAnnotation
 						.objectTypes();
@@ -259,6 +260,7 @@ public class Connector {
 	private String name;
 	private String prettyName;
 	private int[] objectTypeValues;
+	private boolean hasFacets;
 
 	private Connector() {
 	}
@@ -342,6 +344,10 @@ public class Connector {
 				result.add(objectType);
 		}
 		return result.toArray(new ObjectType[0]);
+	}
+	
+	public boolean hasFacets() {
+		return hasFacets;
 	}
 
 	public static Connector getConnector(String apiName) {

@@ -13,6 +13,7 @@ import com.fluxtream.connectors.dao.FacetDao;
 import com.fluxtream.connectors.updaters.UpdateInfo.UpdateType;
 import com.fluxtream.domain.AbstractUserProfile;
 import com.fluxtream.services.ApiDataService;
+import com.fluxtream.services.BodyTrackStorageService;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.JPADaoService;
@@ -37,6 +38,9 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 
 	@Autowired
 	protected NotificationsService notificationsService;
+
+	@Autowired
+	protected BodyTrackStorageService bodyTrackStorageService;
 
 	private static Vector<RunningUpdate> runningUpdates = new Vector<RunningUpdate>();
 
@@ -94,34 +98,43 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 
 		try {
 			updateConnectorDataHistory(updateInfo);
+			bodyTrackStorageService.storeInitialHistory(
+					updateInfo.getGuestId(), updateInfo.apiKey.getConnector()
+							.getName());
 		} catch (RateLimitReachedException e) {
-			logger.info("guestId=" + updateInfo.apiKey.getGuestId() +
-					" action=bg_update stage=return_results result=rateLimitReached");
+			logger.info("guestId="
+					+ updateInfo.apiKey.getGuestId()
+					+ " action=bg_update stage=return_results result=rateLimitReached");
 			return UpdateResult.rateLimitReachedResult();
 		} catch (Throwable t) {
 			String stackTrace = stackTrace(t);
-			logger.info("guestId=" + updateInfo.apiKey.getGuestId() +
-					" action=bg_update stage=return_results result=failed \n"
-							+ stackTrace);
+			logger.info("guestId=" + updateInfo.apiKey.getGuestId()
+					+ " action=bg_update stage=return_results result=failed \n"
+					+ stackTrace);
 			return UpdateResult.failedResult(stackTrace);
 		}
 
-//		String message = "Your " + connector().prettyName() + " history has been imported";
-//		if (updateInfo.objectTypes()!=null&&updateInfo.objectTypes().size()>0)
-//			message = "Your " + connector().prettyName() + " (" + objectTypesString(updateInfo.objectTypes()) + ") history has been imported";
-//		notificationsService.addNotification(updateInfo.apiKey.getGuestId(), Notification.Type.INFO, message);
-		
+		// String message = "Your " + connector().prettyName() +
+		// " history has been imported";
+		// if
+		// (updateInfo.objectTypes()!=null&&updateInfo.objectTypes().size()>0)
+		// message = "Your " + connector().prettyName() + " (" +
+		// objectTypesString(updateInfo.objectTypes()) +
+		// ") history has been imported";
+		// notificationsService.addNotification(updateInfo.apiKey.getGuestId(),
+		// Notification.Type.INFO, message);
+
 		return UpdateResult.successResult();
 	}
-	
-//	private String objectTypesString(List<ObjectType> list) {
-//		StringBuffer result = new StringBuffer();
-//		for (int i=0; i<list.size(); i++) {
-//			if (i>0) result.append(", ");
-//			result.append(list.get(i).prettyname());
-//		}
-//		return result.toString();
-//	}
+
+	// private String objectTypesString(List<ObjectType> list) {
+	// StringBuffer result = new StringBuffer();
+	// for (int i=0; i<list.size(); i++) {
+	// if (i>0) result.append(", ");
+	// result.append(list.get(i).prettyname());
+	// }
+	// return result.toString();
+	// }
 
 	@SuppressWarnings("unchecked")
 	protected final <T extends AbstractUserProfile> T saveUserProfile(

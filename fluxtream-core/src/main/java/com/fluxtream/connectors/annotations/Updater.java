@@ -25,4 +25,6 @@ public @interface Updater {
 	public Class<? extends AbstractFacetExtractor> extractor() default AbstractFacetExtractor.class;
 	
 	public Class<? extends AbstractUserProfile> userProfile() default AbstractUserProfile.class;
+	
+	public boolean hasFacets() default true;
 }
