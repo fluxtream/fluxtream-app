@@ -2,6 +2,8 @@ package com.fluxtream.mvc.controllers;
 
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -54,6 +56,17 @@ public class BodyTrackController {
 		String tunnelUrl = "http://localhost:3000/users/" + UID + "/views/get?name=" + name;
 		writeTunnelResponse(tunnelUrl, response);
 	}
+	
+	@RequestMapping(value = "/users/{UID}/views/set")
+	public void bodyTrackSetView(HttpServletResponse response,
+			@PathVariable("UID") String UID,
+			@RequestParam("name") String name, @RequestParam("data") String data) throws HttpException, IOException {
+		Map<String,String> params = new HashMap<String,String>();
+		params.put(name, name);
+		params.put(data, data);
+		String tunnelUrl = "http://localhost:3000/users/" + UID + "/views/set?name=" + name;
+		postTunnelRequest(tunnelUrl, response, params);
+	}
 
 	@RequestMapping(value = "/users/{UID}/sources")
 	public void bodyTrackSources(HttpServletResponse response,
@@ -89,6 +102,11 @@ public class BodyTrackController {
 
 	private void writeTunnelResponse(String tunnelUrl, HttpServletResponse response) throws HttpException, IOException {
 		String contents = HttpUtils.fetch(tunnelUrl, env);
+		response.getWriter().write(contents);
+	}
+
+	private void postTunnelRequest(String tunnelUrl, HttpServletResponse response, Map<String,String> params) throws HttpException, IOException {
+		String contents = HttpUtils.fetch(tunnelUrl, params, env);
 		response.getWriter().write(contents);
 	}
 
