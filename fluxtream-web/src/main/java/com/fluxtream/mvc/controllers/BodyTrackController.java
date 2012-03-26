@@ -8,6 +8,8 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import net.sf.json.JSONObject;
+
 import org.apache.commons.httpclient.HttpException;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.fluxtream.Configuration;
+import com.fluxtream.connectors.Connector;
+import com.fluxtream.services.GuestService;
 import com.fluxtream.utils.HttpUtils;
 
 // This controller tunnels BodyTrack API calls to a BodyTrack server running on localhost:3000
@@ -31,54 +35,57 @@ public class BodyTrackController {
 	@Autowired
 	Configuration env;
 
-	@RequestMapping(value = "/tiles/{UID}/{DeviceNickname}.{ChannelName}/{Level}.{Offset}.json")
-	public void bodyTrackTileFetch(HttpServletResponse response,
-			@PathVariable("UID") String uid,
-			@PathVariable("DeviceNickname") String deviceNickname,
-			@PathVariable("ChannelName") String channelName,
-			@PathVariable("Level") String level,
-			@PathVariable("Offset") String offset) throws HttpException, IOException {
-		String bodyTrackUrl = "http://localhost:3000/tiles/" + uid + "/"
-				+ deviceNickname + "." + channelName + "/" + level + "."
-				+ offset + ".json";
-		writeTunnelResponse(bodyTrackUrl, response);
+	@Autowired
+	GuestService guestService;
+
+	@RequestMapping(value = "/UID")
+	public void bodyTrackTileFetch(HttpServletResponse response)
+			throws HttpException, IOException {
+		long guestId = ControllerHelper.getGuestId();
+		String user_id = guestService.getApiKeyAttribute(guestId,
+				Connector.getConnector("bodytrack"), "user_id");
+		JSONObject json = new JSONObject();
+		json.accumulate("user_id", user_id);
+		response.getWriter().write(json.toString());
 	}
-	
+
 	@RequestMapping(value = "/photos/{UID}/{Level}.{Offset}.json")
 	public void bodyTrackPhotoTileFetch(HttpServletResponse response,
-			HttpServletRequest request,
-			@PathVariable("UID") String uid,
+			HttpServletRequest request, @PathVariable("UID") String uid,
 			@PathVariable("Level") String level,
-			@PathVariable("Offset") String offset) throws HttpException, IOException {
-		String bodyTrackUrl = "http://localhost:3000/photos/" + uid + "/" + level + "."
-				+ offset + ".json";
+			@PathVariable("Offset") String offset) throws HttpException,
+			IOException {
+		String bodyTrackUrl = "http://localhost:3000/photos/" + uid + "/"
+				+ level + "." + offset + ".json";
 		String pstr = request.getQueryString();
-		if(pstr != null) {
-				bodyTrackUrl += "?" + pstr;
+		if (pstr != null) {
+			bodyTrackUrl += "?" + pstr;
 		}
 		writeTunnelResponse(bodyTrackUrl, response);
 	}
 
-	
- 	@RequestMapping(value = "/users/{UID}/views")
+	@RequestMapping(value = "/users/{UID}/views")
 	public void bodyTrackViews(HttpServletResponse response,
 			@PathVariable("UID") String UID) throws HttpException, IOException {
 		String tunnelUrl = "http://localhost:3000/users/" + UID + "/views";
 		writeTunnelResponse(tunnelUrl, response);
 	}
-	
+
 	@RequestMapping(value = "/users/{UID}/views/get")
 	public void bodyTrackView(HttpServletResponse response,
-			@PathVariable("UID") String UID, @RequestParam("name") String name) throws HttpException, IOException {
-		String tunnelUrl = "http://localhost:3000/users/" + UID + "/views/get?name=" + name;
+			@PathVariable("UID") String UID, @RequestParam("name") String name)
+			throws HttpException, IOException {
+		String tunnelUrl = "http://localhost:3000/users/" + UID
+				+ "/views/get?name=" + name;
 		writeTunnelResponse(tunnelUrl, response);
 	}
-	
+
 	@RequestMapping(value = "/users/{UID}/views/set")
 	public void bodyTrackSetView(HttpServletResponse response,
-			@PathVariable("UID") String UID,
-			@RequestParam("name") String name, @RequestParam("data") String data) throws HttpException, IOException {
-		Map<String,String> params = new HashMap<String,String>();
+			@PathVariable("UID") String UID, @RequestParam("name") String name,
+			@RequestParam("data") String data) throws HttpException,
+			IOException {
+		Map<String, String> params = new HashMap<String, String>();
 		params.put("name", name);
 		params.put("data", data);
 		String tunnelUrl = "http://localhost:3000/users/" + UID + "/views/set";
@@ -95,14 +102,17 @@ public class BodyTrackController {
 	@RequestMapping(value = "/users/{UID}/sources/list")
 	public void bodyTrackSourcesList(HttpServletResponse response,
 			@PathVariable("UID") String UID) throws HttpException, IOException {
-		String tunnelUrl = "http://localhost:3000/users/" + UID + "/sources/list";
+		String tunnelUrl = "http://localhost:3000/users/" + UID
+				+ "/sources/list";
 		writeTunnelResponse(tunnelUrl, response);
 	}
 
 	@RequestMapping(value = "/users/{UID}/sources/default_graph_specs")
 	public void bodyTrackGetDefaultGraphSpecs(HttpServletResponse response,
-			@PathVariable("UID") String UID, @RequestParam("name") String name) throws HttpException, IOException {
-		String tunnelUrl = "http://localhost:3000/users/" + UID + "/sources/default_graph_specs?name=" + name;
+			@PathVariable("UID") String UID, @RequestParam("name") String name)
+			throws HttpException, IOException {
+		String tunnelUrl = "http://localhost:3000/users/" + UID
+				+ "/sources/default_graph_specs?name=" + name;
 		writeTunnelResponse(tunnelUrl, response);
 	}
 
@@ -116,8 +126,10 @@ public class BodyTrackController {
 	@RequestMapping(value = "/users/{UID}/tags/{LOGREC_ID}/get")
 	public void bodyTrackGetTags(HttpServletResponse response,
 			@PathVariable("UID") String UID,
-			@PathVariable("LOGREC_ID") String LOGREC_ID) throws HttpException, IOException {
-		String tunnelUrl = "http://localhost:3000/users/" + UID + "/tags/" + LOGREC_ID + "/get";
+			@PathVariable("LOGREC_ID") String LOGREC_ID) throws HttpException,
+			IOException {
+		String tunnelUrl = "http://localhost:3000/users/" + UID + "/tags/"
+				+ LOGREC_ID + "/get";
 		writeTunnelResponse(tunnelUrl, response);
 	}
 
@@ -125,10 +137,12 @@ public class BodyTrackController {
 	public void bodyTrackSetTags(HttpServletResponse response,
 			@PathVariable("UID") String UID,
 			@PathVariable("LOGREC_ID") String LOGREC_ID,
-			@RequestParam("tags") String tags) throws HttpException, IOException {
-		Map<String,String> params = new HashMap<String,String>();
+			@RequestParam("tags") String tags) throws HttpException,
+			IOException {
+		Map<String, String> params = new HashMap<String, String>();
 		params.put("tags", tags);
-		String tunnelUrl = "http://localhost:3000/users/" + UID + "/tags/" + LOGREC_ID + "/set";
+		String tunnelUrl = "http://localhost:3000/users/" + UID + "/tags/"
+				+ LOGREC_ID + "/set";
 		postTunnelRequest(tunnelUrl, response, params);
 	}
 
@@ -137,18 +151,24 @@ public class BodyTrackController {
 			@PathVariable("UID") String uid,
 			@PathVariable("DeviceNickname") String deviceNickname,
 			@PathVariable("ChannelName") String channelName,
-			@RequestParam("user_default_style") String style) throws HttpException, IOException {
-		String bodyTrackUrl = "http://localhost:3000/users/" + uid + "/channels/"
-				+ deviceNickname + "." + channelName + "/set?user_default_style=" + URLEncoder.encode(style,"utf-8");
+			@RequestParam("user_default_style") String style)
+			throws HttpException, IOException {
+		String bodyTrackUrl = "http://localhost:3000/users/" + uid
+				+ "/channels/" + deviceNickname + "." + channelName
+				+ "/set?user_default_style="
+				+ URLEncoder.encode(style, "utf-8");
 		writeTunnelResponse(bodyTrackUrl, response);
 	}
 
-	private void writeTunnelResponse(String tunnelUrl, HttpServletResponse response) throws HttpException, IOException {
+	private void writeTunnelResponse(String tunnelUrl,
+			HttpServletResponse response) throws HttpException, IOException {
 		String contents = HttpUtils.fetch(tunnelUrl, env);
 		response.getWriter().write(contents);
 	}
 
-	private void postTunnelRequest(String tunnelUrl, HttpServletResponse response, Map<String,String> params) throws HttpException, IOException {
+	private void postTunnelRequest(String tunnelUrl,
+			HttpServletResponse response, Map<String, String> params)
+			throws HttpException, IOException {
 		String contents = HttpUtils.fetch(tunnelUrl, params, env);
 		response.getWriter().write(contents);
 	}

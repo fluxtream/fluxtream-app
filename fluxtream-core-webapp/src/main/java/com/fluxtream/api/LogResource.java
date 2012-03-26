@@ -363,9 +363,10 @@ public class LogResource {
 	private List<ApiKey> getApiKeySelection(long guestId, String filter) {
 		List<ApiKey> userKeys = guestService.getApiKeys(guestId);
 		String[] uncheckedConnectors = filter.split(",");
-		List<String> filteredOutConnectors = new ArrayList<String>(
-				Arrays.asList(uncheckedConnectors));
-
+		List<String> filteredOutConnectors = new ArrayList<String>();
+		if (uncheckedConnectors!=null&&uncheckedConnectors.length>0)
+			filteredOutConnectors = new ArrayList<String>(
+					Arrays.asList(uncheckedConnectors));
 		List<ApiKey> apiKeySelection = getCheckedApiKeys(userKeys,
 				filteredOutConnectors);
 		return apiKeySelection;
