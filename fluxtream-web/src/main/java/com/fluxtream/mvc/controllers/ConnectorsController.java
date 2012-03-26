@@ -65,11 +65,11 @@ public class ConnectorsController {
 		long guestId = ControllerHelper.getGuestId();
 		List<ApiKey> userApis = guestService.getApiKeys(guestId);
 
-		if (userApis.size() == 0 && request.getParameter("all") == null) {
-			mav.addObject("release", env.get("release"));
-			mav.setViewName("connectors/welcome");
-			return mav;
-		}
+//		if (userApis.size() == 0 && request.getParameter("all") == null) {
+//			mav.addObject("release", env.get("release"));
+//			mav.setViewName("connectors/welcome");
+//			return mav;
+//		}
 		
 		mav.addObject(
 				"userConnectorRows",
