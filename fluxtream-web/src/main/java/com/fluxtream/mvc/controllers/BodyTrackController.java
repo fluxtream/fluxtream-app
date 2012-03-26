@@ -124,7 +124,7 @@ public class BodyTrackController {
 	@RequestMapping(value = "/users/{UID}/tags/{LOGREC_ID}/set")
 	public void bodyTrackSetTags(HttpServletResponse response,
 			@PathVariable("UID") String UID,
-			@PathVariable("LOGREC_ID") String LOGREC_UID,
+			@PathVariable("LOGREC_ID") String LOGREC_ID,
 			@RequestParam("tags") String tags) throws HttpException, IOException {
 		Map<String,String> params = new HashMap<String,String>();
 		params.put("tags", tags);
