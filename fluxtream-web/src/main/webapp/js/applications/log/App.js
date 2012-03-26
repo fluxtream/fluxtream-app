@@ -87,7 +87,6 @@ define(["core/Application", "core/FlxState", "applications/log/Builder"], functi
 		$.ajax({ url:url,
 			success : function(response) {
 				if (Log.currentWidget) {
-					console.log("HEY, CURRENT WIDGET IS " + Log.currentWidget.name);
 					Log.currentWidget.saveState();
 				}
 				FlxState.router.navigate("app/log/" + Log.currentWidgetName + "/" + response.state);
