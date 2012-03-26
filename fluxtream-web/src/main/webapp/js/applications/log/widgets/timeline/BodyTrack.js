@@ -2,9 +2,6 @@ define(function() {
 	var APP, PREFS, TOOLS, LOGIN, TAG_MANAGER, VIEWS, SOURCES;
 	var BodyTrack = {};
 
-	function privateFunction() {		
-	}
-	
 	APP = {
 		init : function(callback) {
 
@@ -273,30 +270,19 @@ define(function() {
 	};
 
 	LOGIN = {
-		name    : "",
 		user_id : -1,
-		login   : "",
 
-		// populate login data fields
+		// populate user_id field
 		getStatus : function(callback) {
-			LOGIN.user_id = 3;
-			LOGIN.name = "Test User";
-			LOGIN.login = "userguy";
-			callback();
-			return;
-			// TODO: fix this call
-			
 			$.ajax({
 				cache   : false,
 				type    : "GET",
-				url     : "/bodytrack/login_status.json",
+				url     : "/bodytrack/UID",
 				success : function(data, textStatus, jqXHR) {
 					var parsed = JSON.parse(data);
 					if ((typeof parsed !== "undefined") &&
 							(typeof parsed["user_id"] !== "undefined")) {
 						LOGIN.user_id = parsed["user_id"];
-						LOGIN.name    = parsed["name"];
-						LOGIN.login   = parsed["login"];
 					}
 					if (typeof callback === "function") {
 						callback(parsed);
@@ -457,10 +443,6 @@ define(function() {
 		}
 	}; // SOURCES
 
-	BodyTrack.publicFunction = function() {
-		privateFunction();
-	}
-
 	BodyTrack.APP 		  = APP;
 	BodyTrack.PREFS 	  = PREFS;
 	BodyTrack.TOOLS 	  = TOOLS;
@@ -469,7 +451,9 @@ define(function() {
 	BodyTrack.VIEWS 	  = VIEWS;
 	BodyTrack.SOURCES 	  = SOURCES;
 
+	// for debugging
 	window.BodyTrack = BodyTrack;
+	
 	return BodyTrack;
 	
 });

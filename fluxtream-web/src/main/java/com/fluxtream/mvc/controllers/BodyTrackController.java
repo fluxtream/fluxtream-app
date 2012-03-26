@@ -39,7 +39,7 @@ public class BodyTrackController {
 	GuestService guestService;
 
 	@RequestMapping(value = "/UID")
-	public void bodyTrackTileFetch(HttpServletResponse response)
+	public void bodyTrackUIDFetch(HttpServletResponse response)
 			throws HttpException, IOException {
 		long guestId = ControllerHelper.getGuestId();
 		String user_id = guestService.getApiKeyAttribute(guestId,
@@ -47,6 +47,19 @@ public class BodyTrackController {
 		JSONObject json = new JSONObject();
 		json.accumulate("user_id", user_id);
 		response.getWriter().write(json.toString());
+	}
+
+	@RequestMapping(value = "/tiles/{UID}/{DeviceNickname}.{ChannelName}/{Level}.{Offset}.json")
+	public void bodyTrackTileFetch(HttpServletResponse response,
+			@PathVariable("UID") String uid,
+			@PathVariable("DeviceNickname") String deviceNickname,
+			@PathVariable("ChannelName") String channelName,
+			@PathVariable("Level") String level,
+			@PathVariable("Offset") String offset) throws HttpException, IOException {
+		String bodyTrackUrl = "http://localhost:3000/tiles/" + uid + "/"
+				+ deviceNickname + "." + channelName + "/" + level + "."
+				+ offset + ".json";
+		writeTunnelResponse(bodyTrackUrl, response);
 	}
 
 	@RequestMapping(value = "/photos/{UID}/{Level}.{Offset}.json")
