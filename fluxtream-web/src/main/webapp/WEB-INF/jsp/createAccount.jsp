@@ -33,7 +33,7 @@
 	if (request.getAttribute("lastname") != null)
 		lastname = (String) request.getAttribute("lastname");
 %>
-<div class="modal fade hide">
+<div class="modal hide">
 	<div class="modal-header">
 		<a class="close" data-dismiss="modal">×</a>
 		<h3>Create your account</h3>

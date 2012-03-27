@@ -49,14 +49,17 @@ function submitCreateAccountForm() {
 			username: username, firstname: firstname,
 			lastname: lastname},
 		success: function(html) {
+			registerDialog.modal("hide");
 			$("#modal").empty();
 			$("#modal").append(html);
 			$("#modal").css("display", "block");
-			var dialog = $(".modal").modal({show: false});
-			dialog.modal("show");
+			registerDialog = $(".modal").modal({show: false});
+			registerDialog.modal("show");
 		}
 	});
 }
+
+var registerDialog;
 
 function createAccount() {
 	$.ajax({
@@ -65,8 +68,8 @@ function createAccount() {
 			$("#modal").empty();
 			$("#modal").append(html);
 			$("#modal").css("display", "block");
-			var dialog = $(".modal").modal({show: false});
-			dialog.modal("show");
+			registerDialog = $(".modal").modal({show: false});
+			registerDialog.modal("show");
 		}
 	})
 }
