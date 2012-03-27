@@ -11,6 +11,7 @@ define(["applications/log/widgets/clock/ClockdrawingUtils",
 			$("#tooltips").load("/log/tooltips");
 			var availableWidth = $("#clockWidget").width();
 			var edgeWidth =  Math.min(availableWidth, 600);
+			$("#clockWidget div:first-child").width(edgeWidth+"px");
 			$("#paper").width(edgeWidth);
 			paper = Raphael("paper", edgeWidth, edgeWidth);
 			var config = Config.getConfig(edgeWidth);
