@@ -1,6 +1,8 @@
 package com.fluxtream.api;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.StringTokenizer;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
@@ -14,6 +16,7 @@ import javax.ws.rs.core.MediaType;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -126,20 +129,109 @@ public class GuestResource {
 	@GET
 	@Path("/all")
 	@Produces({ MediaType.APPLICATION_JSON })
-	public String list()
-			throws InstantiationException, IllegalAccessException,
+	public String list() throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException {
 		List<Guest> list = guestService.getAllGuests();
 		JSONArray array = new JSONArray();
 		for (Guest guest : list) {
 			JSONObject guestJson = new JSONObject();
 			guestJson.accumulate("username", guest.username)
-				.accumulate("firstname", guest.firstname)
-				.accumulate("lastname", guest.lastname)
-				.accumulate("roles", guest.getUserRoles());
+					.accumulate("firstname", guest.firstname)
+					.accumulate("lastname", guest.lastname)
+					.accumulate("roles", guest.getUserRoles());
 			array.add(guestJson);
 		}
 		return array.toString();
+	}
+
+	@GET
+	@Path("/{username}/roles")
+	@Produces({ MediaType.APPLICATION_JSON })
+	public String getRoles(@PathParam("username") String username)
+			throws InstantiationException, IllegalAccessException,
+			ClassNotFoundException {
+		try {
+			Guest guest = guestService.getGuest(username);
+			JSONArray array = getGuestRolesJsonArray(guest);
+			return array.toString();
+		} catch (Exception e) {
+			StatusModel result = new StatusModel(false,
+					"Could not create guest: " + e.getMessage());
+			return gson.toJson(result);
+		}
+
+	}
+
+	@POST
+	@Path("/{username}/roles")
+	@Produces({ MediaType.APPLICATION_JSON })
+	public String setRoles(@PathParam("username") String username,
+			@FormParam("roles") String roles) throws InstantiationException,
+			IllegalAccessException, ClassNotFoundException {
+		try {
+			Guest guest = guestService.getGuest(username);
+			StringTokenizer st = new StringTokenizer(roles, ",");
+			List<String> addedRoles = new ArrayList<String>();
+			while (st.hasMoreTokens()) {
+				String newRole = st.nextToken();
+				List<String> userRoles = guest.getUserRoles();
+				for (String existingRole : userRoles) {
+					if (existingRole.toLowerCase()
+							.equals(newRole.toLowerCase()))
+						continue;
+				}
+				guestService.addRole(guest.getId(), newRole);
+			}
+
+			guest = guestService.getGuest(username);
+			JSONArray array = getGuestRolesJsonArray(guest);
+			JSONObject result = new JSONObject();
+			result.accumulate("result", "OK")
+					.accumulate(
+							"message",
+							"successfully added role "
+									+ StringUtils.join(addedRoles, ", "))
+					.accumulate("user_roles:", array);
+			return result.toString();
+		} catch (Exception e) {
+			StatusModel result = new StatusModel(false,
+					"Could not grant role: " + e.getMessage());
+			return gson.toJson(result);
+		}
+
+	}
+
+	@DELETE
+	@Path("/{username}/roles/{role}")
+	@Produces({ MediaType.APPLICATION_JSON })
+	public String revokeRole(@PathParam("username") String username,
+			@PathParam("role") String role) throws InstantiationException,
+			IllegalAccessException, ClassNotFoundException {
+		try {
+			Guest guest = guestService.getGuest(username);
+			guestService.removeRole(guest.getId(), role);
+
+			guest = guestService.getGuest(username);
+			JSONArray array = getGuestRolesJsonArray(guest);
+			JSONObject result = new JSONObject();
+			result.accumulate("result", "OK")
+					.accumulate("message", "successfully removed role " + role)
+					.accumulate("user_roles:", array);
+			return result.toString();
+		} catch (Exception e) {
+			StatusModel result = new StatusModel(false,
+					"Could not revoke role: " + e.getMessage());
+			return gson.toJson(result);
+		}
+
+	}
+
+	private JSONArray getGuestRolesJsonArray(Guest guest) {
+		JSONArray array = new JSONArray();
+		List<String> userRoles = guest.getUserRoles();
+		for (String userRole : userRoles)
+			array.add(userRole);
+		return array;
 	}
 
 }

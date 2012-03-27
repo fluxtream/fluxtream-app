@@ -1,5 +1,6 @@
 <%@ page pageEncoding="utf-8" contentType="text/html; charset=UTF-8"
 %><%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"
+%><%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags"
 %><!DOCTYPE html>
 <html lang="en">
 <head>
@@ -52,8 +53,9 @@
 							<ul class="dropdown-menu">
 								<li><a href="javascript:App.settings()">Settings <i class="icon-cog icon-large" style="float:right;"></i></a></li>
 								<li><a href="javascript:App.connectors()">Connectors</a></li>
+								<sec:authorize access="hasRole('ROLE_ADMIN')"><li><a href="/admin/index">Admin <i class="icon-key icon-large" style="float:right;"></i></li></sec:authorize>
 								<li class="divider"></li>
-								<li><a href="/logout">Logout <i style="float:right" class="icon-signout icon-large"></i></a></li>
+								<li><a href="/logout">Logout <i style="float:right" class="icon-off icon-large"></i></a></li>
 							</ul></li>
 					</ul>
 				</div>
