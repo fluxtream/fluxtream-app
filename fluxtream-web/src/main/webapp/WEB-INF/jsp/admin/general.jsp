@@ -1,8 +1,8 @@
 <%@ page isELIgnored="false"%>
 
-<div class="row">
+<div class="row-fluid">
 	<div class="span16">
-		<ul class="tabs">
+		<ul class="nav nav-tabs">
 			<li <%if(request.getParameter("activeTab").equals("stats")) out.println("class=\"active\""); %>><a href="/admin/general/stats">Stats</a></li>
 			<li <%if(request.getParameter("activeTab").equals("tasks")) out.println("class=\"active\""); %>><a href="/admin/general/tasks">Tasks</a></li>
 			<li <%if(request.getParameter("activeTab").equals("lucene")) out.println("class=\"active\""); %>><a href="/admin/general/lucene">Lucene Index</a></li>

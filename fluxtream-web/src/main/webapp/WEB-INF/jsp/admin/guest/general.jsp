@@ -8,23 +8,23 @@
 	Long guestId = (Long) request.getAttribute("guestId");
 	Guest guest = helper.guestService.getGuestById(guestId);
 	helper.guestService.getApiKeys(guest.getId());
-%><div class="row">
+%><div class="row-fluid">
 	<div class="span3">Username:</div>
 	<div class="span13"><%= guest.username %></div>
 </div>
-<div class="row">
+<div class="row-fluid">
 	<div class="span3">Id:</div>
 	<div class="span13"><%= guest.getId() %></div>
 </div>
-<div class="row">
+<div class="row-fluid">
 	<div class="span3">E-mail:</div>
 	<div class="span13"><%= guest.email %></div>
 </div>
-<div class="row">
+<div class="row-fluid">
 	<div class="span3">Number of days with data:</div>
 	<div class="span13"><%=helper.apiDataService.getNumberOfDays(guestId) %></div>
 </div>
-<div class="row">
+<div class="row-fluid">
 	<div class="span3">Last login from:</div>
 	<% DayMetadataFacet lastDay = helper.metadataService.getLastDayMetadata(guestId); %>
 	<% String city = null;
@@ -41,7 +41,7 @@
 	<% } %>
 </div>
 
-<div class="row">
+<div class="row-fluid">
 	<div class="span16">
 		<a href="/admin/guests/${guestId}/erase" class="btn primary">Erase this guest</a>
 	</div>

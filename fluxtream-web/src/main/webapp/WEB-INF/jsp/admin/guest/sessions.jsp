@@ -6,6 +6,6 @@
 	Long guestId = (Long) request.getAttribute("guestId");
 	Guest guest = helper.guestService.getGuestById(guestId);
 	helper.guestService.getApiKeys(guest.getId());
-%><div class="row">
+%><div class="row-fluid">
 	<div class="span3">Last session:</div>
 </div>

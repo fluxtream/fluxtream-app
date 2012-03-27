@@ -5,7 +5,7 @@
 
 <% AdminHelper helper = (AdminHelper) request.getAttribute("helper"); %>
 
-<div class="row">
+<div class="row-fluid">
 	<div class="span16">
 		<pre><%Collection<Connector> connectors = Connector.getAllConnectors();for(Connector connector : connectors) {out.println(connector.toString().trim());}%></pre>
 	</div>

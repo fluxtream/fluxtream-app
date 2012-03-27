@@ -36,7 +36,7 @@
 	<jsp:include page="${connectorName}.jsp" />
 </c:catch>
 
-<div class="row">
+<div class="row-fluid">
 	<div class="span4">Last Updates</div>
 	<div class="span12">
 		<ul>
@@ -64,7 +64,7 @@
 <%
 	if (lastNotifications.size() > 0) {
 %>
-<div class="row">
+<div class="row-fluid">
 	<div class="span4">Last Notifications</div>
 	<div class="span12">
 		<ul>

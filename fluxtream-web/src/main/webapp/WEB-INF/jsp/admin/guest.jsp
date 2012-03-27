@@ -7,9 +7,9 @@
 	long guestId = (Long) request.getAttribute("guestId");
 	String activeTab = (String) request.getAttribute("activeTab");
 %><% if (request.getAttribute("activeTab")!=null) { %>
-<div class="row">
+<div class="row-fluid">
 	<div class="span16">
-		<ul class="tabs">
+		<ul class="nav nav-tabs">
 			<li <%if(request.getAttribute("activeTab").equals("general")) out.println("class=\"active\""); %>><a href="/admin/guests/${guestId}/general">General</a></li>
 			<li <%if(request.getAttribute("activeTab").equals("connectors")) out.println("class=\"active\""); %>><a href="/admin/guests/${guestId}/connectors">Connectors</a></li>
 			<li <%if(request.getAttribute("activeTab").equals("sessions")) out.println("class=\"active\""); %>><a href="/admin/guests/${guestId}/sessions">Sessions</a></li>

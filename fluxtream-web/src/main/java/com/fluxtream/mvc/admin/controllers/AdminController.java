@@ -26,6 +26,7 @@ import com.fluxtream.connectors.updaters.UpdateResult;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.ScheduledUpdate;
+import com.fluxtream.mvc.controllers.ControllerHelper;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
@@ -56,6 +57,8 @@ public class AdminController {
 		mav.addObject("childView", "general.jsp");
 		mav.addObject("activeTab", "stats");
 		mav.addObject("helper", helper);
+		Guest guest = ControllerHelper.getGuest();
+		mav.addObject("fullname", guest.getGuestName());
 		return mav;
 	}
 

@@ -9,7 +9,7 @@
 	long guestId=0;
 	if (request.getAttribute("guestId")!=null)
 		guestId = (Long) request.getAttribute("guestId");
-%><div class="row">
+%><div class="row-fluid">
 	<div class="span16">
 		<select name="guestSelect" id="guestSelect" onchange="selectGuest()">
 			<option value="">Please choose a guest...</option>

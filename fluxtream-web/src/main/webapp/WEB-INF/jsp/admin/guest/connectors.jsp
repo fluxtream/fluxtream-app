@@ -10,7 +10,7 @@
 	Guest guest = helper.guestService.getGuestById(guestId);
 	List<ApiKey> apiKeys = helper.guestService.getApiKeys(guest.getId());
 	DateTimeFormatter format = DateTimeFormat.forPattern("dd/MM/yyy, H:mm");
-%><div class="row">
+%><div class="row-fluid">
 	<% if (request.getAttribute("successMessage")!=null) { %>
 	<div id="messageBox" class="span16">
 		<div class="alert-message success">
@@ -33,9 +33,9 @@
 	<div class="span4">
 		<img src="/${release}/admin/images/connectors/<%=apiKey.getConnector().getName()%>.jpeg"/>
 		<p><a href="/admin/guests/<%=guestId%>/connectors/<%=apiKey.getConnector().getName() %>">More...</a></a></p>
-		<% if (helper.env.connectors.get(apiKey.getConnector().getName()+".rateLimit")!=null) { %>
+		<% if (helper.env.connectors.getProperty(apiKey.getConnector().getName()+".rateLimit")!=null) { %>
 		<p>
-			Rate Limit: <%= helper.env.connectors.get(apiKey.getConnector().getName()+".rateLimit") %>
+			Rate Limit: <%= helper.env.connectors.getProperty(apiKey.getConnector().getName()+".rateLimit") %>
 		</p>
 		<% } %>
 		

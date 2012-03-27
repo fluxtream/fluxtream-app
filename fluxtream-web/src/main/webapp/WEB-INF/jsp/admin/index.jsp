@@ -16,6 +16,9 @@
 <!-- Le styles -->
 <link href="/static/css/bootstrap-2.0.2.min.css" rel="stylesheet">
 <link href="/${release}/admin/css/admin.css" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/bootstrap-responsive-2.0.2.min.css">
+<link rel="stylesheet" href="/${release}/css/flx.css">
+<link rel="stylesheet" href="/${release}/css/font-awesome.css">
 
 <script src="/static/js/jquery-1.7.1.min.js"></script>
 <script src="/static/js/bootstrap-2.0.2.min.js"></script>
@@ -25,23 +28,34 @@
 
 <body>
 
-	<div class="topbar">
-		<div class="fill">
-			<div class="container">
-				<a class="brand" href="/admin/index">Fluxtream Admin</a>
-				<ul class="nav">
-					<li><a href="/admin/general">General</a></li>
-					<li><a href="/admin/guests">Guests</a></li>
-				</ul>
-				<form class="pull-right" method="GET" action="../logout">
-					<a href="/home">[&larr; App]&nbsp;&nbsp;</a>
-					<button class="btn" type="submit">Logout</button>
-				</form>
+	<div class="navbar navbar-fixed-top">
+		<div class="navbar-inner">
+			<div class="container-fluid">
+				<a class="btn btn-navbar" data-toggle="collapse"
+					data-target=".nav-collapse"> <span class="icon-bar"></span> <span
+					class="icon-bar"></span> <span class="icon-bar"></span>
+				</a> <a class="brand" href="/app"><img src="/${release}/images/header-logo-v4.png"/></a>
+				<div class="nav-collapse">
+					<ul class="nav pull-right">
+						<li><div class="btn-group" id="apps-menu"
+								data-toggle="buttons-radio"></div></li>
+						<li><a href="/admin/general">General</a></li>
+						<li><a href="/admin/guests">Guests</a></li>
+						<li class="divider-vertical"></li>
+						<li class="dropdown"><a href="#" class="dropdown-toggle"
+							data-toggle="dropdown"><%=request.getAttribute("fullname")%> <i class="icon-user icon-large"></i>
+								<b class="caret"></b></a>
+							<ul class="dropdown-menu">
+								<li><a href="/logout">Logout <i style="float:right" class="icon-off icon-large"></i></a></li>
+							</ul></li>
+					</ul>
+				</div>
 			</div>
 		</div>
-		<!-- /topbar-inner -->
 	</div>
-	<div class="container" style="padding-top:50px">
+
+
+	<div class="container-fluid" style="padding-top:50px">
 		
 		<jsp:include page="${childView}">
 			<jsp:param name="activeTab" value="${activeTab}"/>

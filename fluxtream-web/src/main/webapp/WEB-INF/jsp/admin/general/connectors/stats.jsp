@@ -51,23 +51,23 @@
 	</div>
 	<div class="span12">
 		<div class="well">
-			<div class="row">
+			<div class="row-fluid">
 				<div class="span4">Number of guests:</div>
 				<div class="span7"><%= helper.connectorUpdateService.getTotalNumberOfGuestsUsingConnector(connector) %></div>
 			</div>
-			<div class="row">
+			<div class="row-fluid">
 				<div class="span4">Total number of API calls:</div>
 				<div class="span7"><%= helper.connectorUpdateService.getTotalNumberOfUpdates(connector) %></div>
 			</div>
-			<div class="row">
+			<div class="row-fluid">
 				<div class="span4">Number of API calls /last hour:</div>
 				<div class="span7"><%= helper.connectorUpdateService.getTotalNumberOfUpdatesSince(connector, oneHourAgo) %></div>
 			</div>
-			<div class="row">
+			<div class="row-fluid">
 				<div class="span4">Number of API calls /last 24 hours:</div>
 				<div class="span7"><%= helper.connectorUpdateService.getTotalNumberOfUpdatesSince(connector, twentyFourHoursAgo) %></div>
 			</div>
-			<div class="row">
+			<div class="row-fluid">
 				<div class="span7">
 				<a href="/admin/reinitializeConnectors?connectorName=<%=connector.getName() %>" class="btn small"><img src="/${release}/admin/images/icons/timer.png"/><span>Re-initialize all guests' data</span></a>
 				</div>

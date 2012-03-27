@@ -16,7 +16,7 @@
 	DateTimeFormatter format = DateTimeFormat.forPattern("dd/MM/yyy, H:mm");
 %>
 
-<div class="row">
+<div class="row-fluid">
 	<div class="span4">Recent photos</div>
 	<div class="span12">
 		<ul class="media-grid">

@@ -21,7 +21,7 @@
 	JSONArray toSleep, toActivity, listOfActivityDays, listOfSleepDays;
 %>
 
-<div class="row">
+<div class="row-fluid">
 	<div class="span3">
 		to_sleep
 	</div>
@@ -32,7 +32,7 @@
 	</pre>
 	</div>
 </div>
-<div class="row">
+<div class="row-fluid">
 	<div class="span3">
 		to_activity
 	</div>
@@ -43,7 +43,7 @@
 	</pre>
 	</div>
 </div>
-<div class="row">
+<div class="row-fluid">
 	<div class="span3">
 		listOfSleepDays
 	</div>
@@ -54,7 +54,7 @@
 	</pre>
 	</div>
 </div>
-<div class="row">
+<div class="row-fluid">
 	<div class="span3">
 		listOfActivityDays
 	</div>

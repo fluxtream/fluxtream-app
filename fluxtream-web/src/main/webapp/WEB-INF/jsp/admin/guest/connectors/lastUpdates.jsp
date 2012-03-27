@@ -13,7 +13,7 @@
 	DateTimeFormatter format = DateTimeFormat.forPattern("dd/MM/yyy, H:mm");
 %>
 
-<div class="row">
+<div class="row-fluid">
 	<div class="span4">Last Updates:</div>
 	<div class="span12">
 		<ul>

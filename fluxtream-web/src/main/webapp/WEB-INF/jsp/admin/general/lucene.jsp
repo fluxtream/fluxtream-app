@@ -9,7 +9,7 @@
 	List<Guest> guests = helper.guestService.getAllGuests();
 %>
 
-<div class="row">
+<div class="row-fluid">
 	<div class="span3">
 		<h2>Re-Index:</h2>
 	</div>
@@ -18,7 +18,7 @@
 	</div>
 </div>
 
-<div class="row">
+<div class="row-fluid">
 	<div class="span3" style="padding-top:20px">
 		<p>Search Facets:</p>
 	</div>
@@ -45,7 +45,7 @@
 	</div>
 </div>
 
-<div class="row">
+<div class="row-fluid">
 
 	<div class="span16" id="searchResults"></div>	
 
