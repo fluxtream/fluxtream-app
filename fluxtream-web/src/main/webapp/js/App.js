@@ -96,8 +96,8 @@ define(["core/FlxState", "libs/jquery.form", "libs/jquery.qtip.min"], function(F
 				$("#modal").append(html);
 				$("#settingsForm").ajaxForm(function() {$(".modal").modal("hide");})
 				$("#modal").css("display", "block");
-				var dialog = $(".modal").modal({show: false});
-				dialog.modal("show");
+				App.dialog = $(".modal").modal({show: false});
+				App.dialog.modal("show");
 			}
 		});
 	}
@@ -113,8 +113,8 @@ define(["core/FlxState", "libs/jquery.form", "libs/jquery.qtip.min"], function(F
 				$("#modal").empty();
 				$("#modal").append(html);
 				$("#modal").css("display", "block");
-				var dialog = $(".modal").modal({show: false});
-				dialog.modal("show");
+				App.dialog = $(".modal").modal({show: false});
+				App.dialog.modal("show");
 			}
 		});
 	}

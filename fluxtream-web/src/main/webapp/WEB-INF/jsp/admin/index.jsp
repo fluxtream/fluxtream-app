@@ -51,6 +51,9 @@
 							data-toggle="dropdown"><%=helper.getGuestname()%>
 								<i class="icon-user icon-large"></i> <b class="caret"></b></a>
 							<ul class="dropdown-menu">
+								<li><a href="/app">Go to app <i style="float: right"
+										class="icon-home icon-large"></i></a></li>
+								<li class="divider"></li>
 								<li><a href="/logout">Logout <i style="float: right"
 										class="icon-off icon-large"></i></a></li>
 							</ul></li>

@@ -42,7 +42,7 @@
 		</div>
 	</div>
 	<div class="modal-footer">
-		<a class="btn" href="javascript:$('#modal').modal('hide');">Close</a>
+		<a class="btn" href="javascript:App.dialog.modal('hide');">Close</a>
 	</div>
 </div>
 
