@@ -130,6 +130,7 @@ define(["core/FlxState", "libs/jquery.form", "libs/jquery.qtip.min"], function(F
 				success: function(data) {
 					if (data.result=="ok") {
 						$("#userConnectors").load("/connectors/userConnectors");
+						$("#availableConnectors").load("/connectors/availableConnectors");
 						showConnectorsPage(0);
 					}
 				}

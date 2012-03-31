@@ -9,7 +9,7 @@
 <jsp:useBean id="userConnectorRows" type="java.util.List"
 	scope="request" />
 
-<div class="modal hide fade">
+<div class="modal hide fade" style="width: 650px">
 
 	<div class="modal-header">
 		<a class="close" data-dismiss="modal">×</a>
@@ -27,17 +27,16 @@
 				<%@ include file="userConnectors.jsp"%>
 			</div>
 			<hr class="space">
-			<%
-				}
-				if (availableConnectorRows.size() > 0) {
+			<% }
+			   if (availableConnectorRows.size() > 0) {
 			%><h3>Add other Connectors</h3>
+			<% } %>
 
 			<div id="availableConnectors">
+				<% if (availableConnectorRows.size() > 0) { %>
 				<%@ include file="availableConnectors.jsp"%>
+				<% } %>
 			</div>
-			<%
-				}
-			%>
 
 		</div>
 	</div>

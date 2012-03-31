@@ -4,7 +4,7 @@
 	import="com.fluxtream.domain.*"%><%@ page import="java.util.List"%><%@ page
 	import="java.util.ArrayList"%>
 
-<div class="container" style="width:530px">
+<div class="container-fluid" style="width:530px">
 	<c:forEach items="${userConnectorRows}" var="row">
 		<div class="row-fluid" style="margin: 5px 0">
 			<c:forEach items="${row}" var="api">
