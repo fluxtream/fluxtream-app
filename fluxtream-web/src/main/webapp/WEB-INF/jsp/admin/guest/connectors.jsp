@@ -12,16 +12,16 @@
 	DateTimeFormatter format = DateTimeFormat.forPattern("dd/MM/yyy, H:mm");
 %><div class="row-fluid">
 	<% if (request.getAttribute("successMessage")!=null) { %>
-	<div id="messageBox" class="span16">
-		<div class="alert-message success">
+	<div id="messageBox" class="span12">
+		<div class="alert alert-success">
 		<a class="close" href="javascript:$('#messageBox').hide()">×</a>
 		<p><%=request.getAttribute("successMessage") %></p>
 		</div>
 	</div>
 	<script>setTimeout("hideMessageBox()", 5000)</script>
 	<% } else if (request.getAttribute("errorMessage")!=null) { %>
-	<div id="messageBox" class="span16">
-		<div class="alert-message error">
+	<div id="messageBox" class="span12">
+		<div class="alert alert-error">
 		<a class="close" href="javascript:$('#messageBox').hide()">×</a>
 		<p><%=request.getAttribute("errorMessage") %></p>
 		<p><%=request.getAttribute("stackTrace") %></p>
@@ -29,8 +29,8 @@
 	</div>
 	<% } %>
 </div><% for (ApiKey apiKey : apiKeys) { %>
-<div class="row connector">
-	<div class="span4">
+<div class="row-fluid connector">
+	<div class="span3">
 		<img src="/${release}/admin/images/connectors/<%=apiKey.getConnector().getName()%>.jpeg"/>
 		<p><a href="/admin/guests/<%=guestId%>/connectors/<%=apiKey.getConnector().getName() %>">More...</a></a></p>
 		<% if (helper.env.connectors.getProperty(apiKey.getConnector().getName()+".rateLimit")!=null) { %>
@@ -44,7 +44,7 @@
 		<p>Count: <%=count %></p>
 		
 	</div>
-	<div class="span12">
+	<div class="span8">
 	<table>
 		<tr><td width="200px">Initial History completed:</td><td>
 		<%

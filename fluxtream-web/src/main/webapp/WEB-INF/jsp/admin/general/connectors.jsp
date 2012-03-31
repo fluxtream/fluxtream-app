@@ -8,7 +8,7 @@
 %>
 
 <% if (request.getAttribute("settings")==null) { %>
-<ul class="pills" style="margin-top:-30px">
+<ul class="nav nav-pills" >
 	<li <%if(request.getAttribute("activePill").equals("stats")) out.println("class=\"active\""); %>><a href="/admin/general/connectors/stats">Overview</a></li>
 	<li <%if(request.getAttribute("activePill").equals("layout")) out.println("class=\"active\""); %>><a href="/admin/general/connectors/layout">Layout</a></li>
 </ul>

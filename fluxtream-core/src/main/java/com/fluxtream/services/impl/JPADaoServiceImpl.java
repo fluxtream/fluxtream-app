@@ -44,6 +44,7 @@ public class JPADaoServiceImpl implements JPADaoService {
 
 	@Override
 	public long countFacets(Connector connector, long guestId) {
+		if (!connector.hasFacets()) return 0;
 		ObjectType[] objectTypes = connector.objectTypes();
 		long count = 0;
 		if (objectTypes!=null&&objectTypes.length>0) {

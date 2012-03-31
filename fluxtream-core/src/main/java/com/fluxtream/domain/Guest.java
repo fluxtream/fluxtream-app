@@ -56,7 +56,7 @@ public class Guest extends AbstractEntity {
 		return userRoles;
 	}
 
-	public Object getGuestName() {
+	public String getGuestName() {
 		if (!StringUtils.isEmpty(firstname)){
 			if (!StringUtils.isEmpty(lastname))
 				return firstname + " " + lastname;

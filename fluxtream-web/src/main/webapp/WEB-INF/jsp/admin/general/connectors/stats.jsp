@@ -32,12 +32,12 @@
 		long twentyFourHoursAgo = (now - 24*60*60*1000);
 %>
 
-<div class="row connector">
-	<div class="span4" style="padding-top:5px">
+<div class="row-fluid connector">
+	<div class="span3">
 		<img src="/${release}/admin/images/connectors/<%=connector.getName()%>.jpeg" />
-		<% if (helper.env.connectors.get(connector.getName()+".rateLimit")!=null) { %>
+		<% if (helper.env.connectors.getProperty(connector.getName()+".rateLimit")!=null) { %>
 			<p>
-				<%= helper.env.connectors.get(connector.getName()+".rateLimit") %>
+				<%= helper.env.connectors.getProperty(connector.getName()+".rateLimit") %>
 			</p>
 		<% } %>
 		
@@ -49,26 +49,26 @@
 </c:if>
 		
 	</div>
-	<div class="span12">
+	<div class="span9">
 		<div class="well">
 			<div class="row-fluid">
-				<div class="span4">Number of guests:</div>
-				<div class="span7"><%= helper.connectorUpdateService.getTotalNumberOfGuestsUsingConnector(connector) %></div>
+				<div class="span2">Number of guests:</div>
+				<div class="span6"><%= helper.connectorUpdateService.getTotalNumberOfGuestsUsingConnector(connector) %></div>
 			</div>
 			<div class="row-fluid">
-				<div class="span4">Total number of API calls:</div>
-				<div class="span7"><%= helper.connectorUpdateService.getTotalNumberOfUpdates(connector) %></div>
+				<div class="span2">Total number of API calls:</div>
+				<div class="span6"><%= helper.connectorUpdateService.getTotalNumberOfUpdates(connector) %></div>
 			</div>
 			<div class="row-fluid">
-				<div class="span4">Number of API calls /last hour:</div>
-				<div class="span7"><%= helper.connectorUpdateService.getTotalNumberOfUpdatesSince(connector, oneHourAgo) %></div>
+				<div class="span2">Number of API calls /last hour:</div>
+				<div class="span6"><%= helper.connectorUpdateService.getTotalNumberOfUpdatesSince(connector, oneHourAgo) %></div>
 			</div>
 			<div class="row-fluid">
-				<div class="span4">Number of API calls /last 24 hours:</div>
-				<div class="span7"><%= helper.connectorUpdateService.getTotalNumberOfUpdatesSince(connector, twentyFourHoursAgo) %></div>
+				<div class="span2">Number of API calls /last 24 hours:</div>
+				<div class="span6"><%= helper.connectorUpdateService.getTotalNumberOfUpdatesSince(connector, twentyFourHoursAgo) %></div>
 			</div>
 			<div class="row-fluid">
-				<div class="span7">
+				<div class="span6">
 				<a href="/admin/reinitializeConnectors?connectorName=<%=connector.getName() %>" class="btn small"><img src="/${release}/admin/images/icons/timer.png"/><span>Re-initialize all guests' data</span></a>
 				</div>
 			</div>

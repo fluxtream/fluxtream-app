@@ -1,6 +1,9 @@
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"
-%><%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"
-%><%@ page isELIgnored="false"%><!DOCTYPE html>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%><%@ taglib
+	prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%><%@ page
+	isELIgnored="false"%><%@ page
+	import="com.fluxtream.mvc.admin.controllers.*"%><%
+	AdminHelper helper = (AdminHelper) request.getAttribute("helper");
+%><!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -16,7 +19,8 @@
 <!-- Le styles -->
 <link href="/static/css/bootstrap-2.0.2.min.css" rel="stylesheet">
 <link href="/${release}/admin/css/admin.css" rel="stylesheet">
-<link rel="stylesheet" href="/static/css/bootstrap-responsive-2.0.2.min.css">
+<link rel="stylesheet"
+	href="/static/css/bootstrap-responsive-2.0.2.min.css">
 <link rel="stylesheet" href="/${release}/css/flx.css">
 <link rel="stylesheet" href="/${release}/css/font-awesome.css">
 
@@ -34,7 +38,8 @@
 				<a class="btn btn-navbar" data-toggle="collapse"
 					data-target=".nav-collapse"> <span class="icon-bar"></span> <span
 					class="icon-bar"></span> <span class="icon-bar"></span>
-				</a> <a class="brand" href="/app"><img src="/${release}/images/header-logo-v4.png"/></a>
+				</a> <a class="brand" href="/app"><img
+					src="/${release}/images/header-logo-v4.png" /></a>
 				<div class="nav-collapse">
 					<ul class="nav pull-right">
 						<li><div class="btn-group" id="apps-menu"
@@ -43,10 +48,11 @@
 						<li><a href="/admin/guests">Guests</a></li>
 						<li class="divider-vertical"></li>
 						<li class="dropdown"><a href="#" class="dropdown-toggle"
-							data-toggle="dropdown"><%=request.getAttribute("fullname")%> <i class="icon-user icon-large"></i>
-								<b class="caret"></b></a>
+							data-toggle="dropdown"><%=helper.getGuestname()%>
+								<i class="icon-user icon-large"></i> <b class="caret"></b></a>
 							<ul class="dropdown-menu">
-								<li><a href="/logout">Logout <i style="float:right" class="icon-off icon-large"></i></a></li>
+								<li><a href="/logout">Logout <i style="float: right"
+										class="icon-off icon-large"></i></a></li>
 							</ul></li>
 					</ul>
 				</div>
@@ -55,13 +61,16 @@
 	</div>
 
 
-	<div class="container-fluid" style="padding-top:50px">
-		
-		<jsp:include page="${childView}">
-			<jsp:param name="activeTab" value="${activeTab}"/>
-			<jsp:param name="helper" value="${helper}"/>
-		</jsp:include>
-		
+	<div class="container-fluid">
+
+		<div style="min-height: 300px">
+
+			<jsp:include page="${childView}">
+				<jsp:param name="activeTab" value="${activeTab}" />
+				<jsp:param name="helper" value="${helper}" />
+			</jsp:include>
+		</div>
+
 		<footer>
 			<%
 				int currentYear = java.util.Calendar.getInstance().get(
@@ -73,7 +82,6 @@
 			<p>
 				&copy; Palacehotel Software sprl, 2010<%=until%></p>
 		</footer>
-
 	</div>
 	<!-- /container -->
 

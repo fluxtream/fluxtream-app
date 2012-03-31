@@ -427,7 +427,6 @@ public class MetadataServiceImpl implements MetadataService {
 
 	@Override
 	public TimeZone getTimeZone(long guestId, long time) {
-		System.out.println("here");
 		DayMetadataFacet thatDay = JPAUtils.findUnique(em,
 				DayMetadataFacet.class, "context.day.when", guestId, time);
 		if (thatDay != null)

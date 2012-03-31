@@ -9,6 +9,8 @@ import org.springframework.stereotype.Component;
 import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
+import com.fluxtream.domain.Guest;
+import com.fluxtream.mvc.controllers.ControllerHelper;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
@@ -50,6 +52,11 @@ public class AdminHelper implements BeanFactoryAware {
 		}
 		else
 			return "(default)";
+	}
+	
+	public String getGuestname() {
+		Guest guest = ControllerHelper.getGuest();
+		return guest.getGuestName();
 	}
 	
 	public Object getHelper(String connectorName) {
