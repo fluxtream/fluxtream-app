@@ -9,11 +9,11 @@
 <jsp:useBean id="pages" type="java.lang.Integer" scope="request"/>
 <jsp:useBean id="currentPage" type="java.lang.Integer" scope="request"/>
 <jsp:useBean id="env" type="com.fluxtream.Configuration" scope="request"/>
-<div class="container-fluid">
+<div class="container-fluid" style="width:530px">
 <% 
 	List<List<ConnectorInfo>> rows = (List<List<ConnectorInfo>>) request.getAttribute("availableConnectorRows");
 	for(List<ConnectorInfo> row: rows) {
-%><div class="row-fluid" style="width:530px">
+%><div class="row-fluid">
 		<% for (ConnectorInfo connector : row) {
 			String connectorImage = connector.image;
 			String connectorName = connector.name;

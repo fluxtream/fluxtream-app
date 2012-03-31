@@ -77,6 +77,8 @@
 	</c:if>
 
 	<div id="modal"></div>
+	
+	<div id="loading" style="display:none;min-height:300px"><img style="border:none" src="/${release}/images/loading.gif"/></div>
 
 	<script>window.FLX_RELEASE_NUMBER="${release}";</script>
 

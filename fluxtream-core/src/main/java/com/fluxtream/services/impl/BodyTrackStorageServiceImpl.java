@@ -78,7 +78,9 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 		List<AbstractFacet> deviceFacets = facetsByDeviceNickname.get(deviceName);
 		List<String> channelValues = extractChannelValuesFromFacets(
 				channelNamesMapping, deviceFacets);
-		params.put("data", makeJSONArray(channelValues, false));
+		String jsonArray = makeJSONArray(channelValues, false);
+		System.out.println("jsonArray: " + jsonArray);
+		params.put("data", jsonArray);
 
 		try {
 			String result = HttpUtils.fetch("http://" + host + "/users/"
@@ -104,22 +106,18 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 			Iterator<String> eachFieldName = channelNamesMapping.keySet().iterator();
 			StringBuilder sb = new StringBuilder();
 			sb.append("[");
-			sb.append((long)((double)deviceFacet.start)/1000d);
+			sb.append(deviceFacet.start/1000);
 			while (eachFieldName.hasNext()) {
 				String fieldName = (String) eachFieldName.next();
-				// TODO: handle special cases
+//				// TODO: handle special cases
 				if (fieldName.startsWith("#"))
 					continue;
 				sb.append(",");
 				Field field;
 				try {
 					field = deviceFacet.getClass().getField(fieldName);
-					Class<?> type = field.getType();
 					Object channelValue = field.get(deviceFacet);
-					if (type==String.class) {
-						sb.append("\"").append(channelValue).append("\"");
-					} else
-						sb.append(channelValue.toString());
+					sb.append(channelValue.toString());
 				} catch (Exception e) {
 					throw new RuntimeException("No such Field: " + fieldName);
 				}
