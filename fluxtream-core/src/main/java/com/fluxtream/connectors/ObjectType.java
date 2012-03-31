@@ -48,6 +48,7 @@ public class ObjectType {
 		connectorObjectTypes.get(connector).add(value);
 		if (!connectorNamedObjectTypes.containsKey(connector))
 			connectorNamedObjectTypes.put(connector, new Hashtable<String,ObjectType>());
+		connectorNamedObjectTypes.get(connector).put(value.name(), value);
 		if (!connectorObjectTypeValues.containsKey(connector))
 			connectorObjectTypeValues.put(connector, new Hashtable<Integer,ObjectType>());
 		connectorObjectTypeValues.get(connector).put(value.value(), value);
