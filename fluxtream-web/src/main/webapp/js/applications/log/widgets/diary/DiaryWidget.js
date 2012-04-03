@@ -1,5 +1,6 @@
 define(["applications/log/widgets/diary/Status",
-        "applications/log/widgets/Widget"], function(status, Widget) {
+        "applications/log/widgets/Widget",
+        "applications/log/App"], function(status, Widget, Log) {
 	
 	function render(digest, timeUnit) {
 		require(["text!applications/log/widgets/diary/" + timeUnit.toLowerCase() + "Diary.html"], function(template) {
@@ -13,7 +14,7 @@ define(["applications/log/widgets/diary/Status",
 				theme : "advanced",
 				plugins : "style",
 				width : "100%",
-				height: "300px",
+				height: "100%",
 
 				// Theme options
 				theme_advanced_buttons1 : "save,newdocument,|,bold,italic,underline,strikethrough,|,justifyleft,justifycenter,justifyright,justifyfull,styleselect,formatselect,fontselect,fontsizeselect",
@@ -29,6 +30,7 @@ define(["applications/log/widgets/diary/Status",
 				content_css : "/static/tiny_mce/css/content.css",
 			});
 			
+			Log.fullHeight();
 		});
 	}
 	

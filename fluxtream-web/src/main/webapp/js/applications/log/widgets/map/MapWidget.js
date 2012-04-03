@@ -1,4 +1,5 @@
-define(["applications/log/widgets/Widget"], function(Widget) {
+define(["applications/log/widgets/Widget",
+        "applications/log/App"], function(Widget, Log) {
 
 	var map = null;
 	
@@ -14,6 +15,7 @@ define(["applications/log/widgets/Widget"], function(Widget) {
 			map = new google.maps.Map(document.getElementById("the_map"),
 					myOptions);
 			setMapPosition(50.858519,4.484482, 9);
+			Log.fullHeight();
 		});
 	}
 	

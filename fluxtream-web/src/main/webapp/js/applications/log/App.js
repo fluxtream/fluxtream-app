@@ -10,6 +10,10 @@ define(["core/Application", "core/FlxState", "applications/log/Builder"], functi
 	var start, end;
 	
 	Log.setup = function() {
+		console.log("we are setting up...");
+		$(window).resize(function() {
+			console.log("we are resizing");
+		});
 		$(".menuNextButton").click(function(e) {
 			fetchState("/nav/incrementTimespan.json"); });
 		$(".menuPrevButton").click(function(e) {
@@ -22,7 +26,21 @@ define(["core/Application", "core/FlxState", "applications/log/Builder"], functi
 			Builder.createWidgetTabs(Log);
 			fetchState("/nav/setToToday.json");
 		});
+		$(window).resize(function() {
+			fullHeight();
+		});
 	}
+	
+	function fullHeight() {
+		if ($(".fullHeight").length>0) {
+			widgetsY = $("#widgets").position().top;
+			windowHeight = $(window).height();
+			footerHeight = $("#footer").height();
+			fHeight = (windowHeight-widgetsY-footerHeight);
+			$(".fullHeight").height(fHeight);
+		}
+	}
+	Log.fullHeight = fullHeight;
 	
 	Log.initialize = function () {
 		_.bindAll(this);

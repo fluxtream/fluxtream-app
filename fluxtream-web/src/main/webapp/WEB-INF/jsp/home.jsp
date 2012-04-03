@@ -1,7 +1,6 @@
-<%@ page pageEncoding="utf-8" contentType="text/html; charset=UTF-8"
-%><%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"
-%><%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags"
-%><!DOCTYPE html>
+<%@ page pageEncoding="utf-8" contentType="text/html; charset=UTF-8"%><%@ taglib
+	prefix="c" uri="http://java.sun.com/jsp/jstl/core"%><%@ taglib
+	prefix="sec" uri="http://www.springframework.org/security/tags"%><!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -11,14 +10,17 @@
 <meta name="author" content="">
 
 <link rel="stylesheet" href="/static/css/bootstrap-2.0.2.min.css">
-<link rel="stylesheet" href="/static/css/bootstrap-responsive-2.0.2.min.css">
+<link rel="stylesheet"
+	href="/static/css/bootstrap-responsive-2.0.2.min.css">
 <link rel="stylesheet" href="/${release}/css/flx.css">
 <link rel="stylesheet" href="/${release}/css/bodytrack.css">
 <link rel="stylesheet" href="/${release}/css/font-awesome.css">
 <link rel="stylesheet" href="/${release}/css/qtip/jquery.qtip.min.css">
-<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css">
+<link rel="stylesheet"
+	href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css">
 
-<link rel="stylesheet" href="/static/css/jquery-colorPicker/jquery.colorPicker.css">
+<link rel="stylesheet"
+	href="/static/css/jquery-colorPicker/jquery.colorPicker.css">
 <link rel="stylesheet" href="/static/css/msdropdown/dd.css">
 <link rel="stylesheet" href="/static/css/tagedit/css/jquery.tagedit.css">
 
@@ -32,47 +34,64 @@
 
 <body>
 
-	<div class="navbar navbar-fixed-top">
-		<div class="navbar-inner">
-			<div class="container-fluid">
-				<a class="btn btn-navbar" data-toggle="collapse"
-					data-target=".nav-collapse"> <span class="icon-bar"></span> <span
-					class="icon-bar"></span> <span class="icon-bar"></span>
-				</a> <a class="brand" href="/app"><img src="/${release}/images/header-logo-v4.png"/></a>
-				<div class="nav-collapse">
-					<form class="navbar-search">
-						<input type="text" class="search-query" placeholder="Search">
-					</form>
-					<ul class="nav pull-right">
-						<li><div class="btn-group" id="apps-menu"
-								data-toggle="buttons-radio"></div></li>
-						<li class="divider-vertical"></li>
-						<li class="dropdown"><a href="#" class="dropdown-toggle"
-							data-toggle="dropdown"><%=request.getAttribute("fullname")%> <i class="icon-user icon-large"></i>
-								<b class="caret"></b></a>
-							<ul class="dropdown-menu">
-								<li><a href="javascript:App.settings()">Settings <i class="icon-cog icon-large" style="float:right;"></i></a></li>
-								<li><a href="javascript:App.connectors()">Connectors</a></li>
-								<sec:authorize access="hasRole('ROLE_ADMIN')"><li><a href="/admin/index">Admin <i class="icon-key icon-large" style="float:right;"></i></li></sec:authorize>
-								<li class="divider"></li>
-								<li><a href="/logout">Logout <i style="float:right" class="icon-off icon-large"></i></a></li>
-							</ul></li>
-					</ul>
+	<div id="content">
+
+		<div class="navbar">
+			<div class="navbar-inner">
+				<div class="container-fluid">
+					<a class="btn btn-navbar" data-toggle="collapse"
+						data-target=".nav-collapse"> <span class="icon-bar"></span> <span
+						class="icon-bar"></span> <span class="icon-bar"></span>
+					</a> <a class="brand" href="/app"><img
+						src="/${release}/images/header-logo-v4.png" /></a>
+					<div class="nav-collapse">
+						<form class="navbar-search">
+							<input type="text" class="search-query" placeholder="Search">
+						</form>
+						<ul class="nav pull-right">
+							<li><div class="btn-group" id="apps-menu"
+									data-toggle="buttons-radio"></div></li>
+							<li class="divider-vertical"></li>
+							<li class="dropdown"><a href="#" class="dropdown-toggle"
+								data-toggle="dropdown"><%=request.getAttribute("fullname")%>
+									<i class="icon-user icon-large"></i> <b class="caret"></b></a>
+								<ul class="dropdown-menu">
+									<li><a href="javascript:App.settings()">Settings <i
+											class="icon-cog icon-large" style="float: right;"></i></a></li>
+									<li><a href="javascript:App.connectors()">Connectors</a></li>
+									<sec:authorize access="hasRole('ROLE_ADMIN')">
+										<li><a href="/admin/index">Admin <i
+												class="icon-key icon-large" style="float: right;"></i></li>
+									</sec:authorize>
+									<li class="divider"></li>
+									<li><a href="/logout">Logout <i style="float: right"
+											class="icon-off icon-large"></i></a></li>
+								</ul></li>
+						</ul>
+					</div>
 				</div>
 			</div>
 		</div>
-	</div>
 
-	<div class="container-fluid">
+		<div class="container-fluid">
 
-		<div id="notifications" class="alert alert-success fade in" style="display:none">
-			<a onclick="App.discardNotifications()" class="close">&times;</a>
-			<p id="notificationIds" style="display: none"></p>
+			<div id="notifications" class="alert alert-success fade in"
+				style="display: none">
+				<a onclick="App.discardNotifications()" class="close">&times;</a>
+				<p id="notificationIds" style="display: none"></p>
+			</div>
+
+			<!-- here is where fluxtream apps go -->
+
+			<div class="application"></div>
+
 		</div>
 
-		<!-- here is where fluxtream apps go -->
-		
-		<div class="application"></div>
+		<div id="modal"></div>
+
+		<div id="loading" style="display: none; min-height: 300px">
+			<img style="border: none" src="/${release}/images/loading.gif" />
+		</div>
 
 	</div>
 
@@ -83,21 +102,24 @@
 		<jsp:include page="footer.jsp" />
 	</c:if>
 
-	<div id="modal"></div>
-	
-	<div id="loading" style="display:none;min-height:300px"><img style="border:none" src="/${release}/images/loading.gif"/></div>
-
-	<script>window.FLX_RELEASE_NUMBER="${release}";</script>
+	<script>
+		window.FLX_RELEASE_NUMBER = "${release}";
+	</script>
 
 	<script
 		src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-	<script>window.jQuery || document.write('<script src="/static/js/jquery-1.7.1.min.js"><\/script>')</script>
+	<script>
+		window.jQuery
+				|| document
+						.write('<script src="/static/js/jquery-1.7.1.min.js"><\/script>')
+	</script>
 	<script src="/static/tiny_mce/jquery.tinymce.js"></script>
 	<script src="/static/js/json2.js"></script>
 	<script src="/static/js/jquery.mustache-1.0.js"></script>
 
 	<!--  TODO: validate version numbers for these libs -->
-	<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
+	<script
+		src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
 	<script src="/static/js/jquery.autoGrowInput.js"></script>
 	<script src="/static/js/jquery.colorPicker.js"></script>
 	<script src="/static/js/jquery.dd-uncompressed.js"></script>

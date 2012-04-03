@@ -91,6 +91,5 @@
 	</script>
 	<script src="/static/js/bootstrap-2.0.2.min.js"></script>
 	<script src="/${release}/js/welcome.js"></script>
-
 </body>
 </html>
