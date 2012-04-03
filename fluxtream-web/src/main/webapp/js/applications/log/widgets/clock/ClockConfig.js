@@ -2,10 +2,12 @@ define([], function() {
 
 	return {
 
-		getConfig : function(edgeWidth) {
+		getConfig : function(edgeWidth, start, end) {
 			var ORBIT_RATIO = edgeWidth / 600;
 
 			return {
+				start : start,
+				end : end,
 				START_AT : 90,
 				STROKE_WIDTH : 16,
 				HOUR : 60,

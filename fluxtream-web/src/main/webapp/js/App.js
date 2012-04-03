@@ -11,11 +11,10 @@ define(["core/FlxState", "libs/jquery.form", "libs/jquery.qtip.min"], function(F
 	}
 	
 	/**
-	 * Preload all applications dynamically; we do this because
-	 * a) the applications list can/will be user-dependent
-	 * b) we need to preload in order to setup the (global) router
-	 *    object and (in the future) to let every application
-	 *    know of the existence of others
+	 * Preload all applications dynamically; we do this because a) the
+	 * applications list can/will be user-dependent b) we need to preload in
+	 * order to setup the (global) router object and (in the future) to let
+	 * every application know of the existence of others
 	 */
 	function loadApps() {
 		toLoad = FlxState.apps.length;
@@ -59,7 +58,8 @@ define(["core/FlxState", "libs/jquery.form", "libs/jquery.qtip.min"], function(F
 	}
 	
 	/**
-	 * Render main app or the one that's specified in the location bar's contents
+	 * Render main app or the one that's specified in the location bar's
+	 * contents
 	 */
 	function renderMainApp() {
 		console.log("renderMainApp " + apps);
@@ -131,7 +131,7 @@ define(["core/FlxState", "libs/jquery.form", "libs/jquery.qtip.min"], function(F
 					if (data.result=="ok") {
 						$("#userConnectors").load("/connectors/userConnectors");
 						$("#availableConnectors").load("/connectors/availableConnectors");
-						showConnectorsPage(0);
+						App.showConnectorsPage(0);
 					}
 				}
 			});
@@ -161,7 +161,17 @@ define(["core/FlxState", "libs/jquery.form", "libs/jquery.qtip.min"], function(F
 	App.showConnectorsPage = function(page) {
 		$("#availableConnectors").load("/connectors/availableConnectors?page="+page);
 	}
-		
+	
+	App.discardNotifications = function() {
+		var ids = $("#notificationIds").html();
+		$.ajax({
+			url:"/notifications/discard?ids=" + ids,
+			success: function() {
+				$("#notifications").alert("close");
+			}
+		});
+	}
+	
 	App.initialize = initialize;
 	App.renderApp = renderApp;
 	App.state = FlxState;

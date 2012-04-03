@@ -4,6 +4,7 @@ define(["core/Application", "core/FlxState", "applications/log/Builder"], functi
 	
 	Log.currentWidgetName = Builder.widgets["DAY"][0];
 	Log.currentWidget = null;
+	Log.widgetState = null;
 	Log.timeUnit = "DAY";
 	
 	var start, end;
@@ -89,6 +90,7 @@ define(["core/Application", "core/FlxState", "applications/log/Builder"], functi
 				if (Log.currentWidget) {
 					Log.currentWidget.saveState();
 				}
+				Log.widgetState = response.state;
 				FlxState.router.navigate("app/log/" + Log.currentWidgetName + "/" + response.state);
 				FlxState.saveState("log", Log.currentWidgetName + "/" + response.state);
 				$("#currentTimespanLabel span").html(response.currentTimespanLabel);
@@ -113,7 +115,7 @@ define(["core/Application", "core/FlxState", "applications/log/Builder"], functi
 			}
 		});
 	}
-	
+
 	function toTimeUnit(urlTimeUnit) {
 		if (urlTimeUnit==="date") return "DAY";
 		return urlTimeUnit.toUpperCase();

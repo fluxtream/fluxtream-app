@@ -50,7 +50,7 @@ public class AppController {
 	@Autowired
 	BeanFactory beanFactory;
 
-	@RequestMapping(value = {"", "/", "/welcome" })
+	@RequestMapping(value = { "", "/", "/welcome" })
 	public ModelAndView index(HttpServletRequest request) {
 		Authentication auth = SecurityContextHolder.getContext()
 				.getAuthentication();
@@ -83,7 +83,7 @@ public class AppController {
 		mav.setViewName("home");
 
 		Guest guest = guestService.getGuestById(guestId);
-		
+
 		mav.addObject("fullname", guest.getGuestName());
 
 		String release = env.get("release");
@@ -95,10 +95,10 @@ public class AppController {
 		return mav;
 	}
 
-	@RequestMapping(value = {"/app*", "/app/**"})
+	@RequestMapping(value = { "/app*", "/app/**" })
 	public ModelAndView welcomeHome(HttpServletRequest request)
 			throws IOException, NoSuchAlgorithmException {
-		if (ControllerHelper.getGuest()==null)
+		if (!hasTimezoneCookie(request))
 			return new ModelAndView("redirect:/welcome");
 		long guestId = ControllerHelper.getGuestId();
 		checkIn(request, guestId);
@@ -111,7 +111,7 @@ public class AppController {
 		long guestId = ControllerHelper.getGuestId();
 		String message = "You have successfully added a new connector: "
 				+ Connector.getConnector(connectorName).prettyName()
-				+". Your data is now being retrieved. "
+				+ ". Your data is now being retrieved. "
 				+ "It may take a little while until it becomes visible.";
 		notificationsService.addNotification(guestId, Type.INFO, message);
 		return "redirect:/app";
@@ -124,6 +124,16 @@ public class AppController {
 			remoteAddr = request.getRemoteAddr();
 		guestService.checkIn(guestId, remoteAddr);
 		initializeWithTimeZone(request, guestId);
+	}
+	
+	private boolean hasTimezoneCookie(HttpServletRequest request) {
+		Cookie[] cookies = request.getCookies();
+		for (Cookie cookie : cookies) {
+			if (cookie.getName().equalsIgnoreCase("timeZone")) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private void initializeWithTimeZone(HttpServletRequest request, long guestId) {

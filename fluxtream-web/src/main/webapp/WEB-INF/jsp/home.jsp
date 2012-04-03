@@ -63,9 +63,16 @@
 		</div>
 	</div>
 
-	<div class="container-fluid application">
+	<div class="container-fluid">
+
+		<div id="notifications" class="alert alert-success fade in" style="display:none">
+			<a onclick="App.discardNotifications()" class="close">&times;</a>
+			<p id="notificationIds" style="display: none"></p>
+		</div>
 
 		<!-- here is where fluxtream apps go -->
+		
+		<div class="application"></div>
 
 	</div>
 

@@ -1,8 +1,10 @@
 define(["applications/log/widgets/clock/ClockdrawingUtils",
         "applications/log/widgets/clock/ClockConfig",
-        "applications/log/widgets/Widget"], function(DrawingUtils, Config, Widget) {
+        "applications/log/widgets/Widget",
+        "applications/log/App"], function(DrawingUtils, Config, Widget, Log) {
 	
 	var paper = null;
+	var config = null;
 
 	function render(digest, timeUnit) {
 		require(["text!applications/log/widgets/clock/clock.html"], function(template) {
@@ -14,7 +16,7 @@ define(["applications/log/widgets/clock/ClockdrawingUtils",
 			$("#clockWidget div:first-child").width(edgeWidth+"px");
 			$("#paper").width(edgeWidth);
 			paper = Raphael("paper", edgeWidth, edgeWidth);
-			var config = Config.getConfig(edgeWidth);
+			config = Config.getConfig(edgeWidth, digest.tbounds.start, digest.tbounds.end);
 			var drawingUtils = DrawingUtils.getDrawingUtils(config);
 			config.clockCircles = paper.set();
 			drawingUtils.paintCircle(paper, config.BODY_CATEGORY.orbit, "#ffffff", 1);
@@ -23,19 +25,38 @@ define(["applications/log/widgets/clock/ClockdrawingUtils",
 			drawingUtils.paintCircle(paper, config.MIND_CATEGORY.orbit, "#ffffff", 1);
 			drawingUtils.paintCircle(paper, config.SOCIAL_CATEGORY.orbit, "#ffffff", 1);
 			drawingUtils.paintCircle(paper, config.MEDIA_CATEGORY.orbit, "#ffffff", 1);
-			paintSolarInfo(digest.solarInfo, paper, config);
+			paintSolarInfo(digest.solarInfo);
 			for(name in digest.cachedData) {
 				if (digest.cachedData[name]==null||typeof(digest.cachedData[name])=="undefined")
 					continue;
-				updateDataDisplay(digest.cachedData[name], name, paper, config, digest);
+				updateDataDisplay(digest.cachedData[name], name, digest);
 				if (name==="fitbit-activity_summary" && digest.cachedData["fitbit-activity_summary"][0]) {
-					drawCalories(digest.cachedData["fitbit-activity_summary"][0].caloriesPerMinute, paper, config);
+					drawCalories(digest.cachedData["fitbit-activity_summary"][0].caloriesPerMinute);
 				}
+			}
+			for(i=0;i<digest.updateNeeded.length;i++) {
+				getDayInfo(digest.updateNeeded[i], digest);
+			}
+		});
+	}
+
+	function outsideTimeBoundaries(o) {
+		if (typeof(o.tbounds)!="undefined") {
+			return (o.tbounds.start!=config.start || o.tbounds.end!=config.end);
+		}
+		return (o.start!=config.start || o.end!=config.end);
+	}
+
+	function getDayInfo(connectorName, digest) {
+		$.ajax({ url: "/api/log/" + connectorName + "/"+Log.widgetState, dataType: "json",
+			success: function(jsonData) {
+				if (!outsideTimeBoundaries(jsonData))
+					updateDataDisplay(jsonData, jsonData.name, digest);
 			}
 		});
 	}
 	
-	function drawCalories(caloriesPerMinute, paper, config) {
+	function drawCalories(caloriesPerMinute) {
 		if (!caloriesPerMinute)
 			return;
 		for (i=0;i<caloriesPerMinute.length;i++) {
@@ -48,12 +69,12 @@ define(["applications/log/widgets/clock/ClockdrawingUtils",
 			case 3: color = "#ff3366"; break;
 			}
 			start = item.minute;
-			span = paintClockSpike(paper, start, 83, color, config.STROKE_WIDTH+item.calories*2.5, config);
+			span = paintClockSpike(paper, start, 83, color, config.STROKE_WIDTH+item.calories*2.5);
 			config.clockCircles.push(span);
 		}
 	}
 
-	function paintClockSpike(paper, time, radius, color, height, config) {
+	function paintClockSpike(paper, time, radius, color, height) {
 		var coords = clockSpike(config.CLOCK_CENTER, radius, time / config.RATIO + config.START_AT, height),
 		path = paper.path(coords);
 		path.attr("stroke-width", 1)
@@ -81,7 +102,7 @@ define(["applications/log/widgets/clock/ClockdrawingUtils",
 		return path;
 	}
 	
-	function paintSolarInfo(solarInfo, paper, config) {
+	function paintSolarInfo(solarInfo) {
 		if (solarInfo!=null) {
 			var startAngle =  solarInfo.sunrise / config.RATIO + config.START_AT,
 				endAngle = solarInfo.sunset / config.RATIO + config.START_AT,
@@ -122,14 +143,14 @@ define(["applications/log/widgets/clock/ClockdrawingUtils",
 		}
 	}
 	
-	function updateDataDisplay(connectorData, connectorInfoId, paper, config, digest) {
+	function updateDataDisplay(connectorData, connectorInfoId, digest) {
 		switch(connectorInfoId) {
 		case "fitbit-activity_summary":
 //			drawFitbitInfo(connectorData);
 			break;
 		case "google_latitude":
 			if (connectorData!=null&&typeof(connectorData)!="undefined")
-				locationBreakdown(connectorData, digest, config);
+				locationBreakdown(connectorData, digest);
 			break;
 		case "withings-weight":
 //			drawWeightInfo(connectorData);
@@ -137,34 +158,34 @@ define(["applications/log/widgets/clock/ClockdrawingUtils",
 		case "picasa":
 		case "flickr":
 		case "lastfm-recent_track":
-			drawTimedData(connectorData, config.MEDIA_CATEGORY, paper, config);
+			drawTimedData(connectorData, config.MEDIA_CATEGORY);
 			break;
 		case "sms_backup-sms":
 		case "sms_backup-call_log":
 		case "twitter-dm":
 		case "twitter-tweet":
 		case "twitter-mention":
-			drawTimedData(connectorData, config.SOCIAL_CATEGORY, paper, config);
+			drawTimedData(connectorData, config.SOCIAL_CATEGORY);
 			break;
 		case "google_calendar":
 		case "toodledo-task":
-			drawTimedData(connectorData, config.MIND_CATEGORY, paper, config);
+			drawTimedData(connectorData, config.MIND_CATEGORY);
 			break;
 		case "zeo":
 //			updateSleepWidgetZeo(connectorData);
 		case "fitbit-sleep":
 		case "withings-bpm":
-			drawTimedData(connectorData, config.BODY_CATEGORY, paper, config);
+			drawTimedData(connectorData, config.BODY_CATEGORY);
 			break;
 		}
 	}
 
-	function drawTimedData(payload, category, paper, config) {
+	function drawTimedData(payload, category) {
 		if ((typeof(payload)!="undefined")&&payload!=null)
-			drawEvents(payload, category.orbit, category.color, paper, config);
+			drawEvents(payload, category.orbit, category.color);
 	}
 
-	function drawEvents(items, orbit, color, paper, config) {
+	function drawEvents(items, orbit, color) {
 		if (typeof(items)=="undefined") return;
 		for (i = 0; i < items.length; i++) {
 			try {
@@ -179,13 +200,13 @@ define(["applications/log/widgets/clock/ClockdrawingUtils",
 						instantaneous = typeof(item.endMinute)=="undefined"||item.endMinute===item.startMinute;
 						var span;
 						if (instantaneous)
-							span = paintSpan(paper, start,start+instantWidth, orbit, color, .9, config);
+							span = paintSpan(paper, start,start+instantWidth, orbit, color, .9);
 						else
-							span = paintSpan(paper, start,(start<=end?end:1440), orbit, color, .9, config);
+							span = paintSpan(paper, start,(start<=end?end:1440), orbit, color, .9);
 						span.node.item = item;
 						$(span.node).css("cursor", "pointer");
 						$(span.node).click(function() {
-							showEventInfo(event, config);
+							showEventInfo(event);
 						});
 						$(span.node).mouseout(function() {
 							hideEventInfo();
@@ -203,7 +224,7 @@ define(["applications/log/widgets/clock/ClockdrawingUtils",
 	
 	var ttpdiv, lastHoveredEvent;
 	
-	function showEventInfo(event, config) {
+	function showEventInfo(event) {
 		ttpdiv = $("#tooltip");
 		lastHoveredEvent = event;
 		var span = event.target;
@@ -263,7 +284,7 @@ define(["applications/log/widgets/clock/ClockdrawingUtils",
 		return [ x, y ];
 	}
 	
-	function paintSpan(paper, startTime, endTime, radius, color, opacity, config) {
+	function paintSpan(paper, startTime, endTime, radius, color, opacity) {
 		var coords = arc(config.CLOCK_CENTER, radius, startTime / config.RATIO + config.START_AT, endTime
 				/ config.RATIO + config.START_AT),
 		path = paper.path(coords);
@@ -273,13 +294,13 @@ define(["applications/log/widgets/clock/ClockdrawingUtils",
 		return path;
 	}
 	
-	function showLocationBreakdown(items, color, config) {
+	function showLocationBreakdown(items, color) {
 		if (typeof(items)=="undefined"||items==null)
 			return;
-		showWheelBreakdown(items, color, config);
+		showWheelBreakdown(items, color);
 	}
 
-	function showWheelBreakdown(items, color, config) {
+	function showWheelBreakdown(items, color) {
 		if (typeof(items)=="undefined") return;
 		for (i = 0; i < items.length; i++) {
 			try {
@@ -311,7 +332,7 @@ define(["applications/log/widgets/clock/ClockdrawingUtils",
 		}
 	}
 
-	function locationBreakdown(positions, digest, config) {
+	function locationBreakdown(positions, digest) {
 		var pos1 = new google.maps.LatLng(digest.homeAddress.latitude, digest.homeAddress.longitude),
 			i=0, checkin, pos2, notAtHome, lastCollection, currentCollection,
 			mergedAtHome = new Array(), mergedOutside = new Array(), farAwayPositionsCount = 0;
@@ -349,8 +370,8 @@ define(["applications/log/widgets/clock/ClockdrawingUtils",
 		}
 		atHome = mergePositionFamilies(atHome, "home");
 		notAtHome = mergePositionFamilies(notAtHome, "out");
-		showLocationBreakdown(atHome, "#4c99c5", config);
-		showLocationBreakdown(notAtHome, "#5cae5c", config);
+		showLocationBreakdown(atHome, "#4c99c5");
+		showLocationBreakdown(notAtHome, "#5cae5c");
 	}
 
 	function mergePositionFamilies(positionFamilies, where) {

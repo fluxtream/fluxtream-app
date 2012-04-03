@@ -144,8 +144,25 @@ define([], function() {
 			});
 		}
 	}
+
+	function handleNotifications(digestInfo) {
+		$(".notification").remove();
+		$("#notificationIds").empty();
+		if (typeof(digestInfo.notifications)!="undefined") {
+			$(".alert-message").addClass("success");
+			for (n=0; n<digestInfo.notifications.length; n++) {
+				var notification = digestInfo.notifications[n];
+				$("#notifications").append("<p class=\"notification\">" + notification.message + "</p>");
+				if (n>0)
+					$("#notificationIds").append(",");
+				$("#notificationIds").append(notification.id);
+			}
+			$("#notifications").show();
+		}
+	}
 	
 	function updateWidget(digest, Log) {
+		handleNotifications(digest);
 		$("#widgets").empty();
 		require([ "applications/log/widgets/" + Log.currentWidgetName + "/"
 				+ capitalizeFirstLetter(Log.currentWidgetName) + "Widget"],
@@ -153,7 +170,7 @@ define([], function() {
 			Log.currentWidget = widget;
 			var currentWidgetTab = "#widgetsTab a." + Log.currentWidgetName+"-tab";
 			$(currentWidgetTab).tab("show");
-			widget.render(digest, Log.timeUnit);
+			widget.render(digest, Log.timeUnit, Log.widgetState);
 		});
 	}
 	

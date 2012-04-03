@@ -39,7 +39,7 @@
 	<div class="pagination">
 		<ul>
 	<% for (int i=0; i<pages; i++) { %>
-		<li><a onclick="javascript:App.showConnectorsPage(<%=i %>)" <%if (i==currentPage) out.print("class=\"active\""); %>><%=(i+1) %></a>
+		<li><a onclick="javascript:App.showConnectorsPage(<%=i %>)" <%if (i==currentPage) out.print("class=\"active\" style=\"color:gray\""); else out.print(" style=\"cursor:pointer\""); %>><%=(i+1) %></a>
 		</li>
 	<% } %>
 	</ul>
