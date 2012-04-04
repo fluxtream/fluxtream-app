@@ -311,7 +311,6 @@ define(["applications/log/widgets/clock/ClockdrawingUtils",
 						var start = item.startMinute;
 						var end = item.endMinute;
 						if (start>end) { start = 0; }
-						console.log("painting span: " + start + ", " + end);
 						var span = paintSpan(paper, start,(start<=end?end:1440), config.AT_HOME_CATEGORY.orbit, color, 1, config);
 						span.node.item = item;
 						$(span.node).click(function(event) {

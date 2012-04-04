@@ -1,12 +1,18 @@
-define(["applications/log/widgets/Widget"], function(Widget) {
+define(["applications/log/widgets/Widget",
+        "applications/log/App"], function(Widget, Log) {
 
 	function render(digest, timeUnit) {
-		require(["text!applications/log/widgets/photos/photos.html"], function(template) {
-			$("#widgets").append(template);
+		var url =  "/widgets/photos/" + Log.widgetState;
+		console.log("rendering photos widgets: " + url);
+		$.ajax({
+			url : url,
+			success: function(html) {
+				$("#widgets").append(html);
+			}
 		});
 	}
 	
-	var photosWidget = new Widget("clock", "Candide Kemmler", "icon-camera");
+	var photosWidget = new Widget("photos", "Candide Kemmler", "icon-camera");
 	photosWidget.render = render;
 	return photosWidget;
 

@@ -4,6 +4,7 @@ define([], function() {
 	
 	var widgets = {
 		"DAY":["clock", "stats", "map", "diary", "photos", "list"],
+		"WEEK":["stats", "map", "diary", "photos", "list"],
 		"CONTINUOUS":["timeline", "views", "list"]
 	};
 	
@@ -47,7 +48,7 @@ define([], function() {
 	
 	function createTimeUnitsMenu(Log) {
 		$("#time-menu").remove();
-		var timeUnits = {DAY:1, /*WEEK:2, MONTH: 3, YEAR:4,*/ CONTINUOUS:5};
+		var timeUnits = {DAY:1, WEEK:2, /*MONTH: 3, YEAR:4,*/ CONTINUOUS:5};
 		delete timeUnits[Log.timeUnit];
 		$(".loading").remove();
 		var markup = "<div class=\"btn-group\" id=\"time-menu\">\
@@ -93,21 +94,21 @@ define([], function() {
 		case "WEEK":
 			nextPrevEnable(true);
 			timeNavBtn(Log, "down", true, "DAY");
-			timeNavBtn(Log, "up", true, "MONTH");
-			break;
-		case "MONTH":
-			nextPrevEnable(true);
-			timeNavBtn(Log, "down", true, "WEEK");
-			timeNavBtn(Log, "up", true, "YEAR");
-			break;
-		case "YEAR":
-			nextPrevEnable(true);
-			timeNavBtn(Log, "down", true, "MONTH");
 			timeNavBtn(Log, "up", true, "CONTINUOUS");
 			break;
+//		case "MONTH":
+//			nextPrevEnable(true);
+//			timeNavBtn(Log, "down", true, "WEEK");
+//			timeNavBtn(Log, "up", true, "YEAR");
+//			break;
+//		case "YEAR":
+//			nextPrevEnable(true);
+//			timeNavBtn(Log, "down", true, "MONTH");
+//			timeNavBtn(Log, "up", true, "CONTINUOUS");
+//			break;
 		case "CONTINUOUS":
 			nextPrevEnable(false);
-			timeNavBtn(Log, "down", true, "YEAR");
+			timeNavBtn(Log, "down", true, "WEEK");
 			timeNavBtn(Log, "up", false);
 			break;
 		}

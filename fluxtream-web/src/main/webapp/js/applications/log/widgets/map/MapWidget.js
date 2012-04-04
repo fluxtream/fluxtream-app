@@ -5,7 +5,6 @@ define(["applications/log/widgets/Widget",
 	
 	function render(digest, timeUnit) {
 		require(["text!applications/log/widgets/map/map.html"], function(template) {
-			console.log("rendering map widget");
 			$("#widgets").append(template);
 			Log.fullHeight();
 			var myOptions = {
@@ -26,7 +25,7 @@ define(["applications/log/widgets/Widget",
 		map.setZoom(zoomLevel);
 	}
 
-	var mapWidget = new Widget("clock", "Candide Kemmler", "icon-map-marker");
+	var mapWidget = new Widget("map", "Candide Kemmler", "icon-map-marker");
 	mapWidget.render = render;
 	return mapWidget;
 

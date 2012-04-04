@@ -10,10 +10,6 @@ define(["core/Application", "core/FlxState", "applications/log/Builder"], functi
 	var start, end;
 	
 	Log.setup = function() {
-		console.log("we are setting up...");
-		$(window).resize(function() {
-			console.log("we are resizing");
-		});
 		$(".menuNextButton").click(function(e) {
 			fetchState("/nav/incrementTimespan.json"); });
 		$(".menuPrevButton").click(function(e) {

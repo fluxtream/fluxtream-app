@@ -7,7 +7,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name = "viewport" content = "width=device-width">
+<meta name="viewport" content="width=device-width">
 <title>Fluxtream - Personal Analytics</title>
 <meta name="description" content="">
 <meta name="author" content="">
