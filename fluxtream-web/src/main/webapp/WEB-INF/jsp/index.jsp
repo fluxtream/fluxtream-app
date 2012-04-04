@@ -4,7 +4,10 @@
 <head>
 <meta charset="utf-8">
 <title>Fluxtream - Personal Analytics</title>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="viewport" content = "width=device-width">
 <meta name="description" content="">
 <meta name="author" content="">
 
@@ -42,7 +45,7 @@
 							<label class="control-label" for="f_username">Username:</label>
 							<div class="controls">
 								<div class="input">
-								<!-- <span class="add-on"><i class="icon-envelope"></i></span> --><input autocomplete="on" class="span3" onkeypress="if(event.which==13) document.forms[0].submit();" id="f_username" name="f_username" placeholder="Username" value="<%=request.getParameter("username") != null ? request.getParameter("username") : ""%>" type="text"></input>
+								<!-- <span class="add-on"><i class="icon-envelope"></i></span> --><input autocorrect="off" autocapitalize="off" autocomplete="on" class="span3" onkeypress="if(event.which==13) document.forms[0].submit();" id="f_username" name="f_username" placeholder="Username" value="<%=request.getParameter("username") != null ? request.getParameter("username") : ""%>" type="text"></input>
 								</div>
 							</div>
 						</div>

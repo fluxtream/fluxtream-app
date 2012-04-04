@@ -44,7 +44,7 @@
 		<table class="modalFormNewAccount">
 			<tr>
 				<td valign="top"><label>E-mail</label></td>
-				<td><input id="email" name="email" value="<%=email%>"
+				<td><input autocorrect="off" autocapitalize="off" id="email" name="email" value="<%=email%>"
 					type="text"></input> <%
  	if (required.contains("email")) {
  %>
@@ -63,7 +63,7 @@
 			</tr>
 			<tr>
 				<td valign="top"><label>Username</label></td>
-				<td><input id="username" name="username" value="<%=username%>"></input>
+				<td><input autocorrect="off" autocapitalize="off" id="username" name="username" value="<%=username%>"></input>
 					<br> <%
  	if (required.contains("username")) {
  %>

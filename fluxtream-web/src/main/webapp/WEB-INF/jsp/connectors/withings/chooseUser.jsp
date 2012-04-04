@@ -3,7 +3,7 @@
 %><%@ page isELIgnored="false"%><p>Please choose the user you wish to link to this account</p>
 
 <c:forEach items="${scaleUsers}" var="scaleUser">
-	<input id="withings-chosenUser" name="withings-chosenUser" type="radio"
+	<input autocorrect="off" autocapitalize="off" id="withings-chosenUser" name="withings-chosenUser" type="radio"
 		value="${scaleUser.publickey}">${scaleUser.firstname} ${scaleUser.lastname}
 </c:forEach>
 

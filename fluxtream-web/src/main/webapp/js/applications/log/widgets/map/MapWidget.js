@@ -5,7 +5,9 @@ define(["applications/log/widgets/Widget",
 	
 	function render(digest, timeUnit) {
 		require(["text!applications/log/widgets/map/map.html"], function(template) {
+			console.log("rendering map widget");
 			$("#widgets").append(template);
+			Log.fullHeight();
 			var myOptions = {
 				zoom : 11,
 				scrollwheel : false,
@@ -15,7 +17,6 @@ define(["applications/log/widgets/Widget",
 			map = new google.maps.Map(document.getElementById("the_map"),
 					myOptions);
 			setMapPosition(50.858519,4.484482, 9);
-			Log.fullHeight();
 		});
 	}
 	

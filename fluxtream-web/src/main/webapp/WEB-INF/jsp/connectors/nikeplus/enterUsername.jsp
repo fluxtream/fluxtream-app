@@ -16,7 +16,7 @@
 		<tr><td colspan="2"><span class="formError"><%=errorMessage%></span></td></tr>
 	<% } %>
 	<tr>
-	<td>Username:</td><td><input onkeypress="if(event.which==13) submitNikePlusCredentials()" class="focushere" id="nikeplus-username" value="<%=username%>"></input></td>
+	<td>Username:</td><td><input autocorrect="off" autocapitalize="off" onkeypress="if(event.which==13) submitNikePlusCredentials()" class="focushere" id="nikeplus-username" value="<%=username%>"></input></td>
 	<% if (required.contains("username")) { %>
 	<td>
 		<span class="formError">* username is required</span>

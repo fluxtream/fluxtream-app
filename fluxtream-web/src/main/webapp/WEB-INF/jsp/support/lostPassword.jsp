@@ -35,7 +35,7 @@
 							<% } %>
 							<br>
 								<form action="sendResetRequest">
-									<input name="email" type="text" class="placeholder focushere" style="font-size:0.905em; width:300px; margin-right:10px;" title="Your email address"  value="Your email address"> 
+									<input autocorrect="off" autocapitalize="off" ="email" type="text" class="placeholder focushere" style="font-size:0.905em; width:300px; margin-right:10px;" title="Your email address"  value="Your email address"> 
 																
 									<input type="submit"  class="btn primary" value="Reset my Password"></input><br>
 									<a href="/" class="btn floatR">Back to home page &raquo;</a>

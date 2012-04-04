@@ -17,7 +17,7 @@
 		<tr><td colspan="2"><span class="formError"><%=errorMessage%></span></td></tr>
 	<% } %>
 	<tr>
-	<td>Username:</td><td><input class="focushere" id="withings-username" value="<%=username%>"></input></td>
+	<td>Username:</td><td><input autocorrect="off" autocapitalize="off" class="focushere" id="withings-username" value="<%=username%>"></input></td>
 	<% if (required.contains("username")) { %>
 	<td>
 		<span class="formError">* username is required</span>
@@ -25,7 +25,7 @@
 	<% } %>
 	</tr>
 	<tr>
-	<td>Password:</td><td><input onkeypress="if(event.which==13) submitWithingsUsernameAndPassword()" id="withings-password" type="password"></input></td>
+	<td>Password:</td><td><input autocorrect="off" autocapitalize="off" onkeypress="if(event.which==13) submitWithingsUsernameAndPassword()" id="withings-password" type="password"></input></td>
 	<% if (required.contains("password")) { %>
 	<td>
 		<span class="formError">* password is required</span>

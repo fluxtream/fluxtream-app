@@ -16,7 +16,7 @@
 		<tr><td colspan="2"><span class="formError"><%=errorMessage%></span></td></tr>
 	<% } %>
 	<tr>
-	<td>Username:</td><td><input class="focushere" id="toodledo-username" value="<%=username%>"></input></td>
+	<td>Username:</td><td><input autocorrect="off" autocapitalize="off" class="focushere" id="toodledo-username" value="<%=username%>"></input></td>
 	<% if (required.contains("username")) { %>
 	<td>
 		<span class="formError">* username is required</span>
@@ -24,7 +24,7 @@
 	<% } %>
 	</tr>
 	<tr>
-	<td>Password:</td><td><input id="toodledo-password" type="password" onkeypress="if(event.which==13) submitToodledoCredentials()"></input></td>
+	<td>Password:</td><td><input autocorrect="off" autocapitalize="off" id="toodledo-password" type="password" onkeypress="if(event.which==13) submitToodledoCredentials()"></input></td>
 	<% if (required.contains("password")) { %>
 	<td>
 		<span class="formError">* password is required</span>

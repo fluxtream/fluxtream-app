@@ -98,7 +98,7 @@ public class AppController {
 	@RequestMapping(value = { "/app*", "/app/**" })
 	public ModelAndView welcomeHome(HttpServletRequest request)
 			throws IOException, NoSuchAlgorithmException {
-		if (!hasTimezoneCookie(request))
+		if (!hasTimezoneCookie(request)||ControllerHelper.getGuest()==null)
 			return new ModelAndView("redirect:/welcome");
 		long guestId = ControllerHelper.getGuestId();
 		checkIn(request, guestId);

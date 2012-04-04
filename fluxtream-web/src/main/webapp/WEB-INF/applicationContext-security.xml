@@ -16,6 +16,7 @@
 	<http pattern="/welcome*" security="none" />
 	<http pattern="/notSupported" security="none" />
 	<http pattern="/favicon.ico" security="none" />
+	<http pattern="/apple-touch-icon-precomposed.png" security="none" />
 	<http pattern="/get-invitation*" security="none" />
 	<http pattern="/createAccount*" security="none" />
 	<http pattern="/createAccountForm*" security="none" />

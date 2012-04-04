@@ -19,12 +19,16 @@ public class ControllerHelper {
 	
 	public static String getGuestConnectorConfigStateKey() {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		if (auth==null)
+			return null;
 		String key = ((FlxUserDetails)auth.getPrincipal()).getGuest().connectorConfigStateKey;
 		return key;
 	}
 	
 	public static Guest getGuest() {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		if (auth==null)
+			return null;
 		Guest guest = ((FlxUserDetails)auth.getPrincipal()).getGuest();
 		return guest;
 	}

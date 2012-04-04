@@ -4,8 +4,11 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name = "viewport" content = "width=device-width">
 <title>Fluxtream - Personal Analytics</title>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="description" content="">
 <meta name="author" content="">
 
@@ -46,7 +49,7 @@
 						src="/${release}/images/header-logo-v4.png" /></a>
 					<div class="nav-collapse">
 						<form class="navbar-search">
-							<input type="text" class="search-query" placeholder="Search">
+							<input autocorrect="off" autocapitalize="off" type="text" class="search-query" placeholder="Search">
 						</form>
 						<ul class="nav pull-right">
 							<li><div class="btn-group" id="apps-menu"

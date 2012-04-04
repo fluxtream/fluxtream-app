@@ -19,7 +19,7 @@
 		<tr><td colspan="2"><span class="formError"><%=errorMessage%></span></td></tr>
 	<% } %>
 	<tr>
-	<td>Login:</td><td><input class="focushere" id="bodytrack-username" value="<%=username%>"></input></td>
+	<td>Login:</td><td><input autocorrect="off" autocapitalize="off" class="focushere" id="bodytrack-username" value="<%=username%>"></input></td>
 	<% if (required.contains("username")) { %>
 	<td>
 		<span class="formError">* login is required</span>
@@ -27,7 +27,7 @@
 	<% } %>
 	</tr>
 	<tr>
-	<td>Password:</td><td><input id="bodytrack-password" type="password" onkeypress="if(event.which==13) Connectors.submitBodytrackCredentials()"></input></td>
+	<td>Password:</td><td><input autocorrect="off" autocapitalize="off" id="bodytrack-password" type="password" onkeypress="if(event.which==13) Connectors.submitBodytrackCredentials()"></input></td>
 	<% if (required.contains("password")) { %>
 	<td>
 		<span class="formError">* password is required</span>
@@ -35,7 +35,7 @@
 	<% } %>
 	</tr>
 	<tr>
-	<td>Server:</td><td><input class="focushere" id="bodytrack-host" value="<%=host%>"></input></td>
+	<td>Server:</td><td><input autocorrect="off" autocapitalize="off" class="focushere" id="bodytrack-host" value="<%=host%>"></input></td>
 	<% if (required.contains("host")) { %>
 	<td>
 		<span class="formError">* server is required</span>

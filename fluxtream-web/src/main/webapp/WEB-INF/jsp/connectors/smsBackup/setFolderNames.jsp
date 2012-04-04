@@ -21,7 +21,7 @@
 		<tr><td colspan="2"><span class="formError"><%=errorMessage%></span></td></tr>
 	<% } %>
 	<tr>
-	<td>Sms label (in gmail):</td><td><input class="focushere" id="smsBackup-smsFolderName" value="<%=smsFolderName%>"
+	<td>Sms label (in gmail):</td><td><input autocorrect="off" autocapitalize="off" class="focushere" id="smsBackup-smsFolderName" value="<%=smsFolderName%>"
 		onkeypress="if(event.which==13) submitSmsBackupFolderNames()"></input></td>
 	<% if (required.contains("smsFolderName")) { %>
 	<td>
@@ -30,7 +30,7 @@
 	<% } %>
 	</tr>
 	<tr>
-	<td>Call log label (in gmail):</td><td><input id="smsBackup-callLogFolderName" value="<%=callLogFolderName%>"
+	<td>Call log label (in gmail):</td><td><input autocorrect="off" autocapitalize="off" id="smsBackup-callLogFolderName" value="<%=callLogFolderName%>"
 		onkeypress="if(event.which==13) submitSmsBackupFolderNames()"></input></td>
 	<% if (required.contains("callLogFolderName")) { %>
 	<td>
