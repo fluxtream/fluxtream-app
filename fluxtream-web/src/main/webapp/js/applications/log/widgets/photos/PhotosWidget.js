@@ -2,7 +2,7 @@ define(["applications/log/widgets/Widget",
         "applications/log/App"], function(Widget, Log) {
 
 	function render(digest, timeUnit) {
-		var url =  "/widgets/photos/" + Log.widgetState;
+		var url =  "/widgets/photos";
 		console.log("rendering photos widgets: " + url);
 		$.ajax({
 			url : url,

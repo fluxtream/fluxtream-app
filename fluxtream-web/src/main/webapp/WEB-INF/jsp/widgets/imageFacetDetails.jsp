@@ -2,20 +2,15 @@
 	import="com.fluxtream.connectors.vos.*"%><%@ page
 	import="com.fluxtream.connectors.picasa.*"%><%@ page
 	import="com.fluxtream.connectors.flickr.*"%>
-<%
-	/* PICASA ------------------------------------------------------------ */
-%>
-<li class="span3"><a href="#" class="thumbnail">
-		<%
+<li class="span2"><a href="#" class="thumbnail"> <%
 			if (facet instanceof PicasaPhotoFacetVO) {
+				/* PICASA ------------------------------------------------------------ */
 				PicasaPhotoFacetVO pf = (PicasaPhotoFacetVO) facet;
 		%><img style="cursor: pointer"
-		onclick="showPicture('<%=pf.photoUrl%>')" src="<%=pf.thumbnailUrl%>" />
-		<%
-			/* FLICKR ------------------------------------------------------------ */
-		%>
+		onclick="App.showPicture('<%=pf.photoUrl%>')" src="<%=pf.getThumbnail(1)%>" />
 		<%
 			} else if (facet instanceof FlickrPhotoFacetVO) {
+				/* FLICKR ------------------------------------------------------------ */
 				FlickrPhotoFacetVO pf = (FlickrPhotoFacetVO) facet;
 		%><img style="cursor: pointer" src="<%=pf.photoUrl%>" /> <%
  	}

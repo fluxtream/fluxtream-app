@@ -4,6 +4,9 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+
 import org.springframework.stereotype.Component;
 
 import com.fluxtream.connectors.annotations.JsonFacetCollection;
@@ -17,6 +20,7 @@ import com.google.gdata.client.Query;
 import com.google.gdata.client.authn.oauth.OAuthHmacSha1Signer;
 import com.google.gdata.client.photos.PicasawebService;
 import com.google.gdata.data.media.mediarss.MediaContent;
+import com.google.gdata.data.media.mediarss.MediaThumbnail;
 import com.google.gdata.data.photos.AlbumFeed;
 import com.google.gdata.data.photos.PhotoEntry;
 
@@ -35,9 +39,9 @@ public class PicasaUpdater extends AbstractGoogleOAuthUpdater {
 	protected void updateConnectorDataHistory(UpdateInfo updateInfo)
 			throws Exception {
 		if (!connectorUpdateService.isHistoryUpdateCompleted(
-				updateInfo.getGuestId(), connector().getName(), updateInfo.objectTypes))
-			apiDataService.eraseApiData(updateInfo.getGuestId(),
-					connector());
+				updateInfo.getGuestId(), connector().getName(),
+				updateInfo.objectTypes))
+			apiDataService.eraseApiData(updateInfo.getGuestId(), connector());
 		loadHistory(updateInfo, 0, System.currentTimeMillis());
 	}
 
@@ -69,20 +73,21 @@ public class PicasaUpdater extends AbstractGoogleOAuthUpdater {
 			AlbumFeed resultFeed = myService.query(myQuery, AlbumFeed.class);
 
 			List<PhotoEntry> allEntries = resultFeed.getPhotoEntries();
-			
-			if (from!=0) {
+
+			if (from != 0) {
 				entries = new ArrayList<PhotoEntry>();
 				for (PhotoEntry photoEntry : allEntries) {
-					if (photoEntry.getTimestamp().getTime()>from)
+					if (photoEntry.getTimestamp().getTime() > from)
 						entries.add(photoEntry);
 				}
 			} else
 				entries = allEntries;
-			
+
 		} catch (Exception e) {
 			countFailedApiCall(updateInfo.apiKey.getGuestId(),
 					updateInfo.objectTypes, then, queryUrl);
-			throw new Exception("Could not get Picasa photos: " + e.getMessage() + "\n" + Utils.stackTrace(e));
+			throw new Exception("Could not get Picasa photos: "
+					+ e.getMessage() + "\n" + Utils.stackTrace(e));
 		}
 
 		countSuccessfulApiCall(updateInfo.apiKey.getGuestId(),
@@ -93,9 +98,22 @@ public class PicasaUpdater extends AbstractGoogleOAuthUpdater {
 				PicasaPhotoFacet sentry = new PicasaPhotoFacet();
 				sentry.description = photoEntry.getTitle().getPlainText();
 				sentry.photoId = photoEntry.getId();
-				sentry.thumbnailUrl = photoEntry.getMediaThumbnails().get(0)
-						.getUrl();
-				List<MediaContent> mediaContents = photoEntry.getMediaContents();
+				List<MediaThumbnail> mediaThumbnails = photoEntry
+						.getMediaThumbnails();
+				sentry.thumbnailUrl = mediaThumbnails.get(0).getUrl();
+				JSONArray thumbnailsArray = new JSONArray();
+				for (MediaThumbnail mediaThumbnail : mediaThumbnails) {
+					JSONObject jsonThumbnail = new JSONObject();
+					int height = mediaThumbnail.getHeight();
+					int width = mediaThumbnail.getWidth();
+					String url = mediaThumbnail.getUrl();
+					jsonThumbnail.accumulate("height", height)
+							.accumulate("width", width).accumulate("url", url);
+					thumbnailsArray.add(jsonThumbnail);
+				}
+				sentry.thumbnailsJson = thumbnailsArray.toString();
+				List<MediaContent> mediaContents = photoEntry
+						.getMediaContents();
 				for (MediaContent mediaContent : mediaContents) {
 					if (mediaContent.getMedium().equals("image")) {
 						sentry.photoUrl = mediaContent.getUrl();
@@ -103,9 +121,7 @@ public class PicasaUpdater extends AbstractGoogleOAuthUpdater {
 				}
 				sentry.start = photoEntry.getTimestamp().getTime();
 				sentry.end = photoEntry.getTimestamp().getTime();
-				apiDataService.cacheApiDataObject(
-						updateInfo, -1, -1,
-						sentry);
+				apiDataService.cacheApiDataObject(updateInfo, -1, -1, sentry);
 			}
 		} else
 			throw new Exception("Null entries when loading picasa history");

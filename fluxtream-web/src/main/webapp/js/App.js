@@ -195,6 +195,10 @@ define(
 					}
 				});
 			}
+			
+			App.showPicture = function(photoUrl) {
+				
+			}
 
 			App.initialize = initialize;
 			App.renderApp = renderApp;

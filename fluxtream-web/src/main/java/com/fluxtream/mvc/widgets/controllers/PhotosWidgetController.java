@@ -7,7 +7,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -37,9 +36,8 @@ public class PhotosWidgetController {
 	@Autowired
 	FacetsHelper facetsHelper;
 
-	@RequestMapping("/widgets/photos/date/{date}")
-	public ModelAndView getTooltips(HttpServletRequest request,
-			@PathVariable("date") String date) throws ClassNotFoundException,
+	@RequestMapping("/widgets/photos")
+	public ModelAndView getTooltips(HttpServletRequest request) throws ClassNotFoundException,
 			InstantiationException, IllegalAccessException {
 		HomeModel homeModel = ControllerHelper.getHomeModel(request);
 		ModelAndView mav = new ModelAndView("widgets/photos");

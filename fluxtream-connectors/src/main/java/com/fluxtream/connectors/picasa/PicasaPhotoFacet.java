@@ -3,6 +3,7 @@ package com.fluxtream.connectors.picasa;
 import java.io.Serializable;
 
 import javax.persistence.Entity;
+import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 
@@ -26,7 +27,10 @@ public class PicasaPhotoFacet extends AbstractFacet implements Serializable {
 	public String thumbnailUrl;
 	public String photoUrl;
 	public String title;
+	@Lob
 	public String description;
+	@Lob
+	public String thumbnailsJson;
 	
 	public PicasaPhotoFacet() {}
 
