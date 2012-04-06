@@ -1,22 +1,25 @@
 package com.fluxtream.connectors.picasa;
 
-import java.util.Arrays;
+import java.awt.Dimension;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 import com.fluxtream.TimeInterval;
-import com.fluxtream.connectors.vos.AbstractInstantFacetVO;
+import com.fluxtream.connectors.vos.AbstractPhotoFacetVO;
 import com.fluxtream.domain.GuestSettings;
 
-public class PicasaPhotoFacetVO extends
-		AbstractInstantFacetVO<PicasaPhotoFacet> {
+public class PicasaPhotoFacetVO extends AbstractPhotoFacetVO<PicasaPhotoFacet> {
 
 	public String thumbnailUrl;
-	public String photoUrl;
-	
+
 	private String thumbnailsJson;
 	private JSONArray thumbnails;
 
@@ -30,38 +33,46 @@ public class PicasaPhotoFacetVO extends
 		description = facet.title;
 		thumbnailsJson = facet.thumbnailsJson;
 	}
-	
-	public int getNumberOfThumbnailSizes() {
-		if (thumbnails==null)
-			thumbnails = JSONArray.fromObject(thumbnailsJson);
-		return thumbnails.size();
-	}
-	
-	@SuppressWarnings("rawtypes")
+
 	public String getThumbnail(int index) {
-		if (thumbnails==null)
+		if (thumbnails == null)
 			thumbnails = JSONArray.fromObject(thumbnailsJson);
-		if (index>thumbnails.size())
+		if (index > thumbnails.size())
 			return null;
-		int[] widths = getThumbnailsWidths();
-		Arrays.sort(widths);
-		for (Iterator eachThumbnail = thumbnails.iterator(); eachThumbnail.hasNext();) {
-			JSONObject thumbnail = (JSONObject) eachThumbnail.next();
-			if (thumbnail.getInt("width")==widths[index])
-				return thumbnail.getString("url");
-		}
-		return null;
+		List<JSONObject> sortedThumbnails = getSortedThumbnails();
+		return sortedThumbnails.get(index).getString("url");
 	}
 
-	@SuppressWarnings("rawtypes")
-	private int[] getThumbnailsWidths() {
-		Iterator eachThumbnail = thumbnails.iterator();
-		int[] widths = new int[thumbnails.size()];
-		for (int i=0; eachThumbnail.hasNext(); i++) {
-			JSONObject thumbnail = (JSONObject) eachThumbnail.next();
-			widths[i] = thumbnail.getInt("width");
+	@Override
+	public List<Dimension> getThumbnailSizes() {
+		Collection<JSONObject> sortedThumbnails = getSortedThumbnails();
+		List<Dimension> dimensions = new ArrayList<Dimension>();
+		Iterator<JSONObject> eachThumbnail = sortedThumbnails.iterator();
+		while (eachThumbnail.hasNext()) {
+			JSONObject jsonThumbnail = eachThumbnail.next();
+			dimensions.add(new Dimension(jsonThumbnail.getInt("width"),
+					jsonThumbnail.getInt("height")));
 		}
-		return widths;
+		return dimensions;
+	}
+
+	private List<JSONObject> getSortedThumbnails() {
+		if (thumbnails == null)
+			thumbnails = JSONArray.fromObject(thumbnailsJson);
+		List<JSONObject> toSort = new ArrayList<JSONObject>();
+		for (int i=0; i<thumbnails.size(); i++)
+			toSort.add(thumbnails.getJSONObject(i));
+		
+		Comparator<JSONObject> comparator = new Comparator<JSONObject>() {
+
+			@Override
+			public int compare(JSONObject t1, JSONObject t2) {
+				return t1.getInt("width") - t2.getInt("width");
+			}
+
+		};
+		Collections.sort(toSort, comparator);
+		return toSort;
 	}
 
 }

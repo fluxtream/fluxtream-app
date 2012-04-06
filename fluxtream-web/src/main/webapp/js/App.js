@@ -196,8 +196,14 @@ define(
 				});
 			}
 			
-			App.showPicture = function(photoUrl) {
-				
+			App.showCarousel = function(photoId) {
+				$(".carousel-inner div.item").removeClass("active");
+				$(".carousel-inner #photo-"+photoId).addClass("active");
+				App.carousel = $("#carouselModal").modal();
+				App.carousel.modal("show");
+				$('#carouselModal').on('hidden', function () {
+					App.carousel = null;
+				});
 			}
 
 			App.initialize = initialize;
