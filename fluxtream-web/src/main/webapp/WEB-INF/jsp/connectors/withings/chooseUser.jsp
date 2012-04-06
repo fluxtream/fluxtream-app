@@ -7,4 +7,4 @@
 		value="${scaleUser.publickey}">${scaleUser.firstname} ${scaleUser.lastname}
 </c:forEach>
 
-<br/><button onclick="chooseWithingsUser()">Send</button>
+<br/><button onclick="Connectors.chooseWithingsUser()">Send</button>

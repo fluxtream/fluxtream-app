@@ -6,6 +6,7 @@ define(["applications/log/widgets/Widget",
 		$.ajax({
 			url : url,
 			success: function(html) {
+				html = $.mustache(html, digest);
 				$("#widgets").append(html);
 			}
 		});

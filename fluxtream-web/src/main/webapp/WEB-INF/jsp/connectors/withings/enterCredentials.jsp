@@ -25,7 +25,7 @@
 	<% } %>
 	</tr>
 	<tr>
-	<td>Password:</td><td><input autocorrect="off" autocapitalize="off" onkeypress="if(event.which==13) submitWithingsUsernameAndPassword()" id="withings-password" type="password"></input></td>
+	<td>Password:</td><td><input autocorrect="off" autocapitalize="off" onkeypress="if(event.which==13) Connectors.submitWithingsUsernameAndPassword()" id="withings-password" type="password"></input></td>
 	<% if (required.contains("password")) { %>
 	<td>
 		<span class="formError">* password is required</span>
@@ -33,6 +33,6 @@
 	<% } %>
 	</tr>
 	<tr>
-	<td colspan="2"><button onclick="submitWithingsUsernameAndPassword()">Send</button></td>
+	<td colspan="2"><button onclick="Connectors.submitWithingsUsernameAndPassword()">Send</button></td>
 	</tr>
 </table>

@@ -92,18 +92,6 @@ public class ZeoRestUpdater extends AbstractUpdater {
 				now);
 	}
 
-	@RequestMapping(value = "/zeo/{guestId}/userSubscribed")
-	public String userSubscribed(@PathVariable final Long guestId,
-			HttpServletRequest request, HttpServletResponse response)
-			throws Exception {
-		System.out.println("zeo user is subscribed");
-
-		guestService.setApiKeyAttribute(guestId, Connector.getConnector("zeo"),
-				"subscribed-since", String.valueOf(System.currentTimeMillis()));
-
-		return "forward:/home/from/zeo";
-	}
-
 	private void getBulkSleepRecordsSinceDate(UpdateInfo updateInfo, String date)
 			throws HttpException, IOException, Exception {
 		String zeoApiKey = env.get("zeoApiKey");

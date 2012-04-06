@@ -44,6 +44,8 @@ Running the application (fluxtream-webapp)
 * Run tomcat: under `TOMCAT_ROOT/bin`, do `./startup.sh` or `./catalina.sh start`
 * Do the following only once: when the welcome (/login) screen has appeared it means the application is fully initialized and so should the mysql database; it is now time to import the cities1000.sql at the root of the fluxtream-app project. A simple way to do this is using the command-line: `mysql -u username -ppassword flx <cities1000.sql`
 * During development, and if you want to use JRebel (you should), create a symbolic link to the `target/ROOT` directory of the webapp module in Tomcat's or Jetty's `webapps/` directory
+* Set some Java options for Tomcat to run happily (`bin/catalina.sh`)
+export JAVA_OPTS="-XX:MaxPermSize=256m -Xms256m -Xmx2048m -Djavax.servlet.request.encoding=UTF-8 -Dfile.encoding=UTF-8 $JAVA_OPTS"
 
 Copyright and license
 ---------------------

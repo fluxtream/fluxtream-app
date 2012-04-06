@@ -8,9 +8,11 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.fluxtream.Configuration;
+import com.fluxtream.connectors.Connector;
 import com.fluxtream.mvc.controllers.ControllerHelper;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.GuestService;
@@ -58,6 +60,18 @@ public class ZeoRestController {
 				+ "&redir=" + redirUrl;
 
 		response.sendRedirect(url);
+	}
+	
+	@RequestMapping(value = "/{guestId}/userSubscribed")
+	public String userSubscribed(@PathVariable final Long guestId,
+			HttpServletRequest request, HttpServletResponse response)
+			throws Exception {
+		System.out.println("zeo user is subscribed");
+
+		guestService.setApiKeyAttribute(guestId, Connector.getConnector("zeo"),
+				"subscribed-since", String.valueOf(System.currentTimeMillis()));
+
+		return "forward:/app/from/zeo";
 	}
 
 }
