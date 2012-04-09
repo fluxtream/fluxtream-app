@@ -18,7 +18,6 @@ public class FitbitActivityFacetVO extends AbstractFacetVO<FitbitActivityFacet>{
 	List<FitbitCaloriesVO> caloriesPerMinute;
 	int activeScore;
 	float MET;
-	
 	@Override
 	public void fromFacet(FitbitActivityFacet facet, TimeInterval timeInterval, GuestSettings settings) {
 		steps = facet.steps;
