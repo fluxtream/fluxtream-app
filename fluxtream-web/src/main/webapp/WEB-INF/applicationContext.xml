@@ -23,6 +23,7 @@
 		rejection-policy="CALLER_RUNS" queue-capacity="100" />
 		
 	<import resource="spring-quartz.xml" />
+	<import resource="widgets.xml" />
 	
     <bean id="velocityEngine" class="org.springframework.ui.velocity.VelocityEngineFactoryBean" 
           p:resourceLoaderPath="classpath:/com/fluxtream/mvc/controllers" 

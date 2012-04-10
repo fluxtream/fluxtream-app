@@ -7,12 +7,13 @@
 
 <%
 	List<String> userWidgets = (List<String>) request.getAttribute("userWidgets");
+	String timeUnit = (String) request.getAttribute("timeUnit");
 %>
 
 <div id="statsWidget" class="span12">
 
 	<% for (int i=0; i<userWidgets.size(); i++) { %>
-		<jsp:include page="<%=\"day/\"+userWidgets.get(i)+\".jsp\"%>" />
+		<jsp:include page="<%=timeUnit+\"StatsWidgets/\"+userWidgets.get(i)+\".jsp\"%>" />
 	<% } %>
 
 </div>

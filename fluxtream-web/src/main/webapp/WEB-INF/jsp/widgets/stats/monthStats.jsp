@@ -1,1 +1,0 @@
-<div id="statsWidget"class="span12">Hello, this is the month stats widget</div>
