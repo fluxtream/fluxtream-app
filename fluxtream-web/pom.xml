@@ -29,6 +29,11 @@
 			<artifactId>fluxtream-core-webapp</artifactId>
 			<version>1.0</version>
 		</dependency>
+		<dependency>
+			<groupId>com.fluxtream</groupId>
+			<artifactId>fluxtream-connectors</artifactId>
+			<version>1.0</version>
+		</dependency>
 	</dependencies>
 	<properties>
 		<buildNumber>20120403</buildNumber>

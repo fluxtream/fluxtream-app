@@ -16,7 +16,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.fluxtream.TimeInterval;
 import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.services.GuestService;
+import com.fluxtream.services.SettingsService;
 import com.fluxtream.widgets.dataproviders.AbstractWidgetDataProvider;
 
 public class StatsHelper {
@@ -26,6 +28,9 @@ public class StatsHelper {
 
 	@Autowired
 	BeanFactory beanFactory;
+	
+	@Autowired
+	SettingsService settingsService;
 
 	PropertiesConfiguration widgetProperties;
 	Map<String, AbstractWidgetDataProvider> widgetDataProviders = new Hashtable<String, AbstractWidgetDataProvider>();
@@ -73,6 +78,7 @@ public class StatsHelper {
 	public void provideWidgetsData(List<String> userWidgets, long guestId,
 			TimeInterval timeInterval, JSONObject o) {
 		String timeUnit = timeInterval.timeUnit.name().toLowerCase();
+		GuestSettings settings = settingsService.getSettings(guestId);
 		for (String userWidget : userWidgets) {
 			String dataProviderName = timeUnit + "/" + userWidget;
 			if (!this.widgetDataProviders.containsKey(dataProviderName)) {
@@ -81,7 +87,7 @@ public class StatsHelper {
 				this.widgetDataProviders
 						.put(dataProviderName, dataProviderBean);
 			}
-			this.widgetDataProviders.get(dataProviderName).provideData(guestId,
+			this.widgetDataProviders.get(dataProviderName).provideData(guestId, settings,
 					timeInterval, o);
 		}
 	}
