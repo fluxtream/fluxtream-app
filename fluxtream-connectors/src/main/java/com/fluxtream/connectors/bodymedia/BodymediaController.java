@@ -70,16 +70,17 @@ public class BodymediaController {
 		HttpClient httpClient = env.getHttpClient();
 
 		OAuthProvider provider = new CommonsHttpOAuthProvider(
-				"https://api.bodymedia.com/oauth/request_token",
-				"https://api.bodymedia.com/oauth/access_token",
-				"https://api.bodymedia.com/oauth/authorize", httpClient);
+				"https://api.bodymedia.com/oauth/request_token?api_key="+apiKey,
+				"https://api.bodymedia.com/oauth/access_token?api_key="+apiKey,
+				"https://api.bodymedia.com/oauth/authorize?api_key="+apiKey, httpClient);
 
 		request.getSession().setAttribute(BODYMEDIA_OAUTH_CONSUMER, consumer);
 		request.getSession().setAttribute(BODYMEDIA_OAUTH_PROVIDER, provider);
-		System.out.println("the token secret is: " + consumer.getTokenSecret());
 
 		String approvalPageUrl = provider.retrieveRequestToken(consumer,
 				oauthCallback);
+		
+		System.out.println("the token secret is: " + consumer.getTokenSecret());
 		approvalPageUrl+="&oauth_api=" + apiKey;
 		approvalPageUrl = URLDecoder.decode(approvalPageUrl, "UTF-8");
 
