@@ -98,12 +98,7 @@
 
 	</div>
 
-	<c:catch var="e">
-		<jsp:include page="footer_custom.jsp" />
-	</c:catch>
-	<c:if test="${!empty e}">
-		<jsp:include page="footer.jsp" />
-	</c:if>
+	<jsp:include page="footer.jsp" />
 
 	<script>
 		window.FLX_RELEASE_NUMBER = "${release}";
