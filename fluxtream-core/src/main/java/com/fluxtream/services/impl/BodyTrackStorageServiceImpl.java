@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,7 +26,6 @@ import com.fluxtream.services.BodyTrackStorageService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.utils.HttpUtils;
-import com.ibm.icu.util.StringTokenizer;
 
 @Service
 public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
@@ -143,17 +143,12 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 		return sb.toString();
 	}
 
-	@SuppressWarnings("unchecked")
 	private Map<String,String> getChannelNamesMapping(String deviceName) {
-		List<String> channelNamesMappings = (List<String>) env.bodytrackProperties.getProperty(deviceName);
+		String[] channelNamesMappings = env.bodytrackProperties.getStringArray(deviceName);
 		Map<String,String> mappings = new HashMap<String,String>();
-		for (Iterator<String> iterator = channelNamesMappings.iterator(); iterator
-				.hasNext();) {
-			String mapping = (String) iterator.next();
-			StringTokenizer tokenizer = new StringTokenizer(mapping, ":");
-			String channelName = tokenizer.nextToken();
-			String facetFieldName = tokenizer.nextToken();
-			mappings.put(facetFieldName, channelName);
+		for (String mapping : channelNamesMappings) {
+			String[] terms = StringUtils.split(mapping, ":");
+			mappings.put(terms[1], terms[0]);
 		}
 		return mappings;
 	}

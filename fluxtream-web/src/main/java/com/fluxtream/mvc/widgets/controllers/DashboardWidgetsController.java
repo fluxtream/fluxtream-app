@@ -19,20 +19,20 @@ import com.fluxtream.mvc.models.HomeModel;
 import com.fluxtream.services.ApiDataService;
 
 @Controller
-public class StatsWidgetsController {
+public class DashboardWidgetsController {
 
 	@Autowired
 	ApiDataService apiDataService;
 
 	@Autowired
 	@Qualifier("dayWidgetsStatsHelper")
-	StatsHelper dayStatsHelper;
+	DashboardWidgetsHelper dayStatsHelper;
 
 	@Autowired
 	@Qualifier("weekWidgetsStatsHelper")
-	StatsHelper weekStatsHelper;
+	DashboardWidgetsHelper weekStatsHelper;
 
-	@RequestMapping("/widgets/stats")
+	@RequestMapping("/widgets/dashboard")
 	public ModelAndView getUserWidgets(HttpServletRequest request) {
 		HomeModel homeModel = ControllerHelper.getHomeModel(request);
 		long guestId = ControllerHelper.getGuestId();
@@ -45,7 +45,7 @@ public class StatsWidgetsController {
 		return mav;
 	}
 
-	@RequestMapping("/widgets/stats.json")
+	@RequestMapping("/widgets/dashboard.json")
 	public void getDayStatsWidgetJson(HttpServletResponse response,
 			HttpServletRequest request) throws IOException {
 		HomeModel homeModel = ControllerHelper.getHomeModel(request);
@@ -53,7 +53,7 @@ public class StatsWidgetsController {
 		JSONObject o = new JSONObject();
 		switch (homeModel.getTimeInterval().timeUnit) {
 		case DAY:
-			List<StatsHelper.Widget> availableUserWidgets = dayStatsHelper
+			List<DashboardWidgetsHelper.DashboardWidget> availableUserWidgets = dayStatsHelper
 					.getAvailableUserWidgets(guestId);
 			dayStatsHelper.provideWidgetsData(availableUserWidgets, guestId,
 					homeModel.getTimeInterval(), o);

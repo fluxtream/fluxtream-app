@@ -1,4 +1,4 @@
-package com.fluxtream.widgets.dataproviders;
+package com.fluxtream.dashboard.dataproviders;
 
 import org.springframework.beans.factory.annotation.Autowired;
 

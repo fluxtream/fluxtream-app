@@ -3,8 +3,8 @@ define([], function() {
 	var Builder = {};
 	
 	var widgets = {
-		"DAY":["clock", "stats", "map", "diary", "photos", "list"],
-		"WEEK":["stats", "map", "diary", "photos", "list"],
+		"DAY":["clock", "dashboard", "map", "diary", "photos", "list"],
+		"WEEK":["dashboard", "map", "diary", "photos", "list"],
 		"CONTINUOUS":["timeline", "views", "list"]
 	};
 	
@@ -17,7 +17,7 @@ define([], function() {
 		timeline: "icon-film",
 		views: "icon-eye-open",
 		list: "icon-list"
-	}
+	};
 	
 	function capitalizeFirstLetter(string) {
 	    return string.charAt(0).toUpperCase() + string.slice(1);
@@ -112,17 +112,17 @@ define([], function() {
 			timeNavBtn(Log, "up", false);
 			break;
 		}
-	}
+	};
 	
 	function nextPrevEnable(b) {
 		if (b) {
-			$(".menuNextButton").removeClass("disabled")
-			$(".menuPrevButton").removeClass("disabled")
+			$(".menuNextButton").removeClass("disabled");
+			$(".menuPrevButton").removeClass("disabled");
 		} else {
-			$(".menuNextButton").addClass("disabled")
-			$(".menuPrevButton").addClass("disabled")
+			$(".menuNextButton").addClass("disabled");
+			$(".menuPrevButton").addClass("disabled");
 		}
-	}
+	};
 	
 	function timeNavBtn(Log, downOrUp, enabled, targetTimeUnit) {
 		var button = $(".menu"+capitalizeFirstLetter(downOrUp)+"Button");

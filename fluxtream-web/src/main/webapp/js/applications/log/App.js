@@ -62,7 +62,7 @@ define(["core/Application", "core/FlxState", "applications/log/Builder"], functi
 				Log.render(w + "/continuous");
 			});
 		}
-	}
+	};
 		
 	Log.renderState = function(state, force) {
 		if (!force&&FlxState.getState("log")===state) {
@@ -93,7 +93,7 @@ define(["core/Application", "core/FlxState", "applications/log/Builder"], functi
 				fetchState("/nav/setContinuousTimeUnit.json");
 			}
 		}
-	}
+	};
 	
 	function fetchState(url) {
 		$(".calendar-navigation-button").toggleClass("disabled");

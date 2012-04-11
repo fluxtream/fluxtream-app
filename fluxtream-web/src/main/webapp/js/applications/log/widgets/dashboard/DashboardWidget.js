@@ -3,14 +3,14 @@ define(["applications/log/widgets/Widget",
 	
 	function render(digest, timeUnit) {
 		$.ajax({
-			url : "/widgets/stats",
+			url : "/widgets/dashboard",
 			success: populateTemplate
 		});
 	}
 	
 	function populateTemplate(html) {
 		$.ajax({
-			url : "/widgets/stats.json",
+			url : "/widgets/dashboard.json",
 			success: function(json) {
 				html = $.mustache(html, json);
 				$("#widgets").append(html);
@@ -18,8 +18,8 @@ define(["applications/log/widgets/Widget",
 		});
 	}
 	
-	var statsWidget = new Widget("stats", "Candide Kemmler", "icon-chart");
-	statsWidget.render = render;
-	return statsWidget;
+	var dashboardWidget = new Widget("dashboard", "Candide Kemmler", "icon-chart");
+	dashboardWidget.render = render;
+	return dashboardWidget;
 	
 });

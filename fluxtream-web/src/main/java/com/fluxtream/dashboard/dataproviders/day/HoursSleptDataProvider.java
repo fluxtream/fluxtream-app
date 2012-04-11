@@ -1,4 +1,4 @@
-package com.fluxtream.widgets.dataproviders.day;
+package com.fluxtream.dashboard.dataproviders.day;
 
 import java.util.List;
 
@@ -11,9 +11,9 @@ import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.fitbit.FitbitSleepFacet;
 import com.fluxtream.connectors.zeo.ZeoSleepStatsFacet;
+import com.fluxtream.dashboard.dataproviders.AbstractWidgetDataProvider;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.GuestSettings;
-import com.fluxtream.widgets.dataproviders.AbstractWidgetDataProvider;
 
 @Component("day/hoursSlept")
 public class HoursSleptDataProvider extends AbstractWidgetDataProvider {

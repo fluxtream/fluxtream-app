@@ -15,13 +15,13 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.fluxtream.TimeInterval;
+import com.fluxtream.dashboard.dataproviders.AbstractWidgetDataProvider;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.SettingsService;
-import com.fluxtream.widgets.dataproviders.AbstractWidgetDataProvider;
 
-public class StatsHelper {
+public class DashboardWidgetsHelper {
 
 	@Autowired
 	GuestService guestService;
@@ -32,7 +32,7 @@ public class StatsHelper {
 	@Autowired
 	SettingsService settingsService;
 	
-	public class Widget {
+	public class DashboardWidget {
 		public int columns;
 		public String name;
 	}
@@ -40,22 +40,22 @@ public class StatsHelper {
 	PropertiesConfiguration widgetProperties;
 	Map<String, AbstractWidgetDataProvider> widgetDataProviders = new Hashtable<String, AbstractWidgetDataProvider>();
 
-	public StatsHelper(PropertiesConfiguration widgetProperties) {
+	public DashboardWidgetsHelper(PropertiesConfiguration widgetProperties) {
 		this.widgetProperties = widgetProperties;
 	}
 	
-	protected List<Widget> getAvailableUserWidgets(long guestId) {
-		List<Widget> allWidgets = getAllWidgets();
+	protected List<DashboardWidget> getAvailableUserWidgets(long guestId) {
+		List<DashboardWidget> allWidgets = getAllWidgets();
 		List<ApiKey> apiKeys = guestService.getApiKeys(guestId);
-		List<Widget> availableUserWidgets = new ArrayList<Widget>();
-		for (Widget widget : allWidgets) {
+		List<DashboardWidget> availableUserWidgets = new ArrayList<DashboardWidget>();
+		for (DashboardWidget widget : allWidgets) {
 			if (isAvailableToUser(widget, apiKeys))
 				availableUserWidgets.add(widget);
 		}
 		return availableUserWidgets;
 	}
 
-	private boolean isAvailableToUser(Widget widget, List<ApiKey> apiKeys) {
+	private boolean isAvailableToUser(DashboardWidget widget, List<ApiKey> apiKeys) {
 		String[] requiredConnectors = widgetProperties.getStringArray(widget.name
 				+ ".requiredConnectors");
 		for (String requiredConnector : requiredConnectors) {
@@ -68,7 +68,7 @@ public class StatsHelper {
 		return false;
 	}
 
-	private List<Widget> getAllWidgets() {
+	private List<DashboardWidget> getAllWidgets() {
 		Iterator<String> keys = widgetProperties.getKeys();
 		Set<String> widgetNames = new HashSet<String>();
 		while (keys.hasNext()) {
@@ -77,10 +77,10 @@ public class StatsHelper {
 			String widgetName = splits[0];
 			widgetNames.add(widgetName);
 		}
-		List<Widget> allWidgets = new ArrayList<Widget>();
+		List<DashboardWidget> allWidgets = new ArrayList<DashboardWidget>();
 		for (String widgetName : widgetNames) {
 			int columns = widgetProperties.getInt(widgetName+".columns");
-			Widget widget = new Widget();
+			DashboardWidget widget = new DashboardWidget();
 			widget.name = widgetName;
 			widget.columns = columns;
 			allWidgets.add(widget);
@@ -88,11 +88,11 @@ public class StatsHelper {
 		return allWidgets;
 	}
 
-	public void provideWidgetsData(List<Widget> userWidgets, long guestId,
+	public void provideWidgetsData(List<DashboardWidget> userWidgets, long guestId,
 			TimeInterval timeInterval, JSONObject o) {
 		String timeUnit = timeInterval.timeUnit.name().toLowerCase();
 		GuestSettings settings = settingsService.getSettings(guestId);
-		for (Widget userWidget : userWidgets) {
+		for (DashboardWidget userWidget : userWidgets) {
 			String dataProviderName = timeUnit + "/" + userWidget.name;
 			if (!this.widgetDataProviders.containsKey(dataProviderName)) {
 				AbstractWidgetDataProvider dataProviderBean = (AbstractWidgetDataProvider) beanFactory
