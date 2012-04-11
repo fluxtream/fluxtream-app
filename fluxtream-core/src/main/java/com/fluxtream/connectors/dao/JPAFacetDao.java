@@ -13,10 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
-import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.domain.AbstractFacet;
-import com.fluxtream.domain.ApiKey;
-import com.fluxtream.domain.Updatable;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.utils.JPAUtils;
@@ -58,15 +55,6 @@ public class JPAFacetDao implements FacetDao {
 				String queryName = connector.getName().toLowerCase()
 						+ ".between";
 				facets.addAll(JPAUtils.find(em, connector.facetClass(), queryName, guestId, timeInterval.start, timeInterval.end));
-			}
-		}
-		ApiKey apiKey = null;
-		AbstractUpdater updater = null;
-		for (AbstractFacet facet : facets) {
-			if (facet instanceof Updatable) {
-				if (apiKey==null) apiKey = guestService.getApiKey(guestId, connector);
-				if (updater==null) updater = connectorUpdateService.getUpdater(connector);
-				((Updatable)facet).update(updater, apiKey);
 			}
 		}
 		return facets;

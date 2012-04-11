@@ -100,7 +100,8 @@ public class StatsHelper {
 				this.widgetDataProviders
 						.put(dataProviderName, dataProviderBean);
 			}
-			JSONObject widgetData = this.widgetDataProviders.get(dataProviderName).provideData(guestId, settings,
+			AbstractWidgetDataProvider dataProvider = this.widgetDataProviders.get(dataProviderName);
+			JSONObject widgetData = dataProvider.provideData(guestId, settings,
 					timeInterval);
 			widgetData.accumulate("columns", userWidget.columns);
 			o.accumulate(userWidget.name, widgetData);

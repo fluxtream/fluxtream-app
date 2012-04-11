@@ -31,10 +31,13 @@ public class CaloriesBurnedDataProvider extends AbstractWidgetDataProvider {
 		Connector fitbitConnector = Connector.getConnector("fitbit");
 		if (!guestService.hasApiKey(guestId, fitbitConnector))
 			return false;
+		long then = System.currentTimeMillis();
 		List<AbstractFacet> apiDataFacets = apiDataService.getApiDataFacets(
 				guestId, fitbitConnector,
 				ObjectType.getObjectType(fitbitConnector, "activity_summary"),
 				timeInterval);
+		long now = System.currentTimeMillis();
+		System.out.println("time to do this query: " + (now-then));
 		if (apiDataFacets.size() > 0) {
 			FitbitActivityFacet fitbitActivitySummary = (FitbitActivityFacet) apiDataFacets
 					.get(0);
