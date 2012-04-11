@@ -131,7 +131,7 @@ public class SystemServiceImpl implements SystemService {
 				"/images/connectors/connector-flickr.jpeg", flickrDesc,
 				"/flickr/token", Connector.getConnector("flickr"), 13, false));
 		em.persist(new ConnectorInfo("BodyMedia",
-				"/images/connectors/connector-bodymedia.jpeg", res.getString("bodymedia"),
+				"/images/connectors/connector-bodymedia.jpg", res.getString("bodymedia"),
 				"/bodymedia/token", Connector.getConnector("bodymedia"), 13, true));
 		// em.persist(new ConnectorInfo("Dropbox",
 		// "/images/connectors/connector-dropbox.jpg",
