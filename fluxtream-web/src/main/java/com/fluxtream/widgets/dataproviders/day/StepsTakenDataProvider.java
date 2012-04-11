@@ -14,21 +14,21 @@ import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.widgets.dataproviders.AbstractWidgetDataProvider;
 
-@Component("day/caloriesBurned")
-public class CaloriesBurnedDataProvider extends AbstractWidgetDataProvider {
+@Component("day/stepsTaken")
+public class StepsTakenDataProvider extends AbstractWidgetDataProvider {
 
 	@Override
 	public void provideData(long guestId, GuestSettings settings, TimeInterval timeInterval,
 			JSONObject o) {
-		JSONObject caloriesBurned = new JSONObject();
-		if (!tryFitbit(guestId, timeInterval, caloriesBurned)) {
-			caloriesBurned.accumulate("kcals", "?");
+		JSONObject stepsTaken = new JSONObject();
+		if (!tryFitbit(guestId, timeInterval, stepsTaken)) {
+			stepsTaken.accumulate("steps", "?");
 		}
-		o.accumulate("caloriesBurned", caloriesBurned);
+		o.accumulate("stepsTaken", stepsTaken);
 	}
 	
 	private boolean tryFitbit(long guestId, TimeInterval timeInterval,
-			JSONObject caloriesBurned) {
+			JSONObject stepsTaken) {
 		Connector fitbitConnector = Connector.getConnector("fitbit");
 		if (!guestService.hasApiKey(guestId, fitbitConnector))
 			return false;
@@ -39,10 +39,11 @@ public class CaloriesBurnedDataProvider extends AbstractWidgetDataProvider {
 		if (apiDataFacets.size() > 0) {
 			FitbitActivityFacet fitbitActivitySummary = (FitbitActivityFacet) apiDataFacets
 					.get(0);
-			caloriesBurned.accumulate("kcals", fitbitActivitySummary.caloriesOut);
-			caloriesBurned.accumulate("device", "fitbit");
+			stepsTaken.accumulate("steps", fitbitActivitySummary.steps);
+			stepsTaken.accumulate("device", "fitbit");
 			return true;
 		}
 		return false;
 	}
+	
 }

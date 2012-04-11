@@ -33,6 +33,8 @@ public class HoursSleptDataProvider extends AbstractWidgetDataProvider {
 	private boolean tryFitbit(long guestId, TimeInterval timeInterval,
 			JSONObject hoursSlept) {
 		Connector fitbitConnector = Connector.getConnector("fitbit");
+		if (!guestService.hasApiKey(guestId, fitbitConnector))
+			return false;
 		List<AbstractFacet> apiDataFacets = apiDataService.getApiDataFacets(
 				guestId, fitbitConnector,
 				ObjectType.getObjectType(fitbitConnector, "sleep"),
@@ -45,6 +47,7 @@ public class HoursSleptDataProvider extends AbstractWidgetDataProvider {
 			minutes = minutes % 60;
 			hoursSlept.accumulate("hours", hours);
 			hoursSlept.accumulate("minutes", minutes);
+			hoursSlept.accumulate("device", "fitbit");
 			return true;
 		}
 		return false;
@@ -53,6 +56,8 @@ public class HoursSleptDataProvider extends AbstractWidgetDataProvider {
 	private boolean tryZeo(long guestId, TimeInterval timeInterval,
 			JSONObject hoursSlept) {
 		Connector zeoConnector = Connector.getConnector("zeo");
+		if (!guestService.hasApiKey(guestId, zeoConnector))
+			return false;
 		List<AbstractFacet> apiDataFacets = apiDataService.getApiDataFacets(
 				guestId, zeoConnector, null, timeInterval);
 		if (apiDataFacets.size() > 0) {
@@ -63,6 +68,7 @@ public class HoursSleptDataProvider extends AbstractWidgetDataProvider {
 			minutes = minutes % 60;
 			hoursSlept.accumulate("hours", hours);
 			hoursSlept.accumulate("minutes", minutes);
+			hoursSlept.accumulate("device", "zeo");
 			return true;
 		}
 		return false;

@@ -5,9 +5,10 @@
 <div class="statsWell span6">
 
 	<div class="statsWell-inner">
-		<div class="statLabel">You burnt</div>
+		<div class="flx-icon-{{caloriesBurned.device}}"></div>
+		<div class="statLabel">You burned</div>
 		<div class="bigFigure">
-			{{caloriesBurnt}} <small>kcal</small>
+			{{caloriesBurned.kcals}} <small>kcal</small>
 		</div>
 	</div>
 
