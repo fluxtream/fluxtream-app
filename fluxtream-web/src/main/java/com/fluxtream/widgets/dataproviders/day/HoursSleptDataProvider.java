@@ -45,6 +45,7 @@ public class HoursSleptDataProvider extends AbstractWidgetDataProvider {
 			minutes = minutes % 60;
 			hoursSlept.accumulate("hours", hours);
 			hoursSlept.accumulate("minutes", minutes);
+			hoursSlept.accumulate("device", "fitbit");
 			return true;
 		}
 		return false;
@@ -63,6 +64,7 @@ public class HoursSleptDataProvider extends AbstractWidgetDataProvider {
 			minutes = minutes % 60;
 			hoursSlept.accumulate("hours", hours);
 			hoursSlept.accumulate("minutes", minutes);
+			hoursSlept.accumulate("device", "zeo");
 			return true;
 		}
 		return false;
