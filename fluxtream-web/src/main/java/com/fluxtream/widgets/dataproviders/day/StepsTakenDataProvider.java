@@ -18,13 +18,12 @@ import com.fluxtream.widgets.dataproviders.AbstractWidgetDataProvider;
 public class StepsTakenDataProvider extends AbstractWidgetDataProvider {
 
 	@Override
-	public void provideData(long guestId, GuestSettings settings, TimeInterval timeInterval,
-			JSONObject o) {
+	public JSONObject provideData(long guestId, GuestSettings settings, TimeInterval timeInterval) {
 		JSONObject stepsTaken = new JSONObject();
 		if (!tryFitbit(guestId, timeInterval, stepsTaken)) {
 			stepsTaken.accumulate("steps", "?");
 		}
-		o.accumulate("stepsTaken", stepsTaken);
+		return stepsTaken;
 	}
 	
 	private boolean tryFitbit(long guestId, TimeInterval timeInterval,

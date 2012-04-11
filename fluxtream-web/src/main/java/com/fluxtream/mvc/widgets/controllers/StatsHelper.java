@@ -31,6 +31,11 @@ public class StatsHelper {
 	
 	@Autowired
 	SettingsService settingsService;
+	
+	public class Widget {
+		public int columns;
+		public String name;
+	}
 
 	PropertiesConfiguration widgetProperties;
 	Map<String, AbstractWidgetDataProvider> widgetDataProviders = new Hashtable<String, AbstractWidgetDataProvider>();
@@ -39,19 +44,19 @@ public class StatsHelper {
 		this.widgetProperties = widgetProperties;
 	}
 	
-	protected List<String> getAvailableUserWidgets(long guestId) {
-		List<String> allWidgets = getAllWidgets();
+	protected List<Widget> getAvailableUserWidgets(long guestId) {
+		List<Widget> allWidgets = getAllWidgets();
 		List<ApiKey> apiKeys = guestService.getApiKeys(guestId);
-		List<String> availableUserWidgets = new ArrayList<String>();
-		for (String widget : allWidgets) {
+		List<Widget> availableUserWidgets = new ArrayList<Widget>();
+		for (Widget widget : allWidgets) {
 			if (isAvailableToUser(widget, apiKeys))
 				availableUserWidgets.add(widget);
 		}
 		return availableUserWidgets;
 	}
 
-	private boolean isAvailableToUser(String widget, List<ApiKey> apiKeys) {
-		String[] requiredConnectors = widgetProperties.getStringArray(widget
+	private boolean isAvailableToUser(Widget widget, List<ApiKey> apiKeys) {
+		String[] requiredConnectors = widgetProperties.getStringArray(widget.name
 				+ ".requiredConnectors");
 		for (String requiredConnector : requiredConnectors) {
 			for (ApiKey apiKey : apiKeys) {
@@ -63,7 +68,7 @@ public class StatsHelper {
 		return false;
 	}
 
-	private List<String> getAllWidgets() {
+	private List<Widget> getAllWidgets() {
 		Iterator<String> keys = widgetProperties.getKeys();
 		Set<String> widgetNames = new HashSet<String>();
 		while (keys.hasNext()) {
@@ -72,23 +77,33 @@ public class StatsHelper {
 			String widgetName = splits[0];
 			widgetNames.add(widgetName);
 		}
-		return new ArrayList<String>(widgetNames);
+		List<Widget> allWidgets = new ArrayList<Widget>();
+		for (String widgetName : widgetNames) {
+			int columns = widgetProperties.getInt(widgetName+".columns");
+			Widget widget = new Widget();
+			widget.name = widgetName;
+			widget.columns = columns;
+			allWidgets.add(widget);
+		}
+		return allWidgets;
 	}
 
-	public void provideWidgetsData(List<String> userWidgets, long guestId,
+	public void provideWidgetsData(List<Widget> userWidgets, long guestId,
 			TimeInterval timeInterval, JSONObject o) {
 		String timeUnit = timeInterval.timeUnit.name().toLowerCase();
 		GuestSettings settings = settingsService.getSettings(guestId);
-		for (String userWidget : userWidgets) {
-			String dataProviderName = timeUnit + "/" + userWidget;
+		for (Widget userWidget : userWidgets) {
+			String dataProviderName = timeUnit + "/" + userWidget.name;
 			if (!this.widgetDataProviders.containsKey(dataProviderName)) {
 				AbstractWidgetDataProvider dataProviderBean = (AbstractWidgetDataProvider) beanFactory
 						.getBean(dataProviderName);
 				this.widgetDataProviders
 						.put(dataProviderName, dataProviderBean);
 			}
-			this.widgetDataProviders.get(dataProviderName).provideData(guestId, settings,
-					timeInterval, o);
+			JSONObject widgetData = this.widgetDataProviders.get(dataProviderName).provideData(guestId, settings,
+					timeInterval);
+			widgetData.accumulate("columns", userWidget.columns);
+			o.accumulate(userWidget.name, widgetData);
 		}
 	}
 	

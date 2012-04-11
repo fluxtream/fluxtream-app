@@ -18,13 +18,12 @@ import com.fluxtream.widgets.dataproviders.AbstractWidgetDataProvider;
 public class CaloriesBurnedDataProvider extends AbstractWidgetDataProvider {
 
 	@Override
-	public void provideData(long guestId, GuestSettings settings, TimeInterval timeInterval,
-			JSONObject o) {
+	public JSONObject provideData(long guestId, GuestSettings settings, TimeInterval timeInterval) {
 		JSONObject caloriesBurned = new JSONObject();
 		if (!tryFitbit(guestId, timeInterval, caloriesBurned)) {
 			caloriesBurned.accumulate("kcals", "?");
 		}
-		o.accumulate("caloriesBurned", caloriesBurned);
+		return caloriesBurned;
 	}
 	
 	private boolean tryFitbit(long guestId, TimeInterval timeInterval,

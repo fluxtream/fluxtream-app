@@ -19,15 +19,15 @@ import com.fluxtream.widgets.dataproviders.AbstractWidgetDataProvider;
 public class HoursSleptDataProvider extends AbstractWidgetDataProvider {
 
 	@Override
-	public void provideData(long guestId, GuestSettings settings,
-			TimeInterval timeInterval, JSONObject o) {
+	public JSONObject provideData(long guestId, GuestSettings settings,
+			TimeInterval timeInterval) {
 		JSONObject hoursSlept = new JSONObject();
 		if (!(tryZeo(guestId, timeInterval, hoursSlept) ||
 			tryFitbit(guestId, timeInterval, hoursSlept))){
 			hoursSlept.accumulate("hours", "?");
 			hoursSlept.accumulate("minutes", "?");
 		}
-		o.accumulate("hoursSlept", hoursSlept);
+		return hoursSlept;
 	}
 
 	private boolean tryFitbit(long guestId, TimeInterval timeInterval,

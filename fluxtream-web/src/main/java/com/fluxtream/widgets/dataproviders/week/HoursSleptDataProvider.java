@@ -12,12 +12,12 @@ import com.fluxtream.widgets.dataproviders.AbstractWidgetDataProvider;
 public class HoursSleptDataProvider extends AbstractWidgetDataProvider {
 
 	@Override
-	public void provideData(long guestId, GuestSettings settings,
-			TimeInterval timeInterval, JSONObject o) {
+	public JSONObject provideData(long guestId, GuestSettings settings,
+			TimeInterval timeInterval) {
 		JSONObject hoursSlept = new JSONObject();
 		hoursSlept.accumulate("minutes", 33);
 		hoursSlept.accumulate("hours", 7);
-		o.accumulate("hoursSlept", hoursSlept);
+		return hoursSlept;
 	}
 
 }

@@ -12,9 +12,10 @@ import com.fluxtream.widgets.dataproviders.AbstractWidgetDataProvider;
 public class CaloriesBurnedDataProvider extends AbstractWidgetDataProvider {
 
 	@Override
-	public void provideData(long guestId, GuestSettings settings,
-			TimeInterval timeInterval, JSONObject o) {
-		o.accumulate("caloriesBurnt", 2213);
+	public JSONObject provideData(long guestId, GuestSettings settings,
+			TimeInterval timeInterval) {
+		JSONObject o = new JSONObject();
+		return o;
 	}
 
 }

@@ -53,7 +53,7 @@ public class StatsWidgetsController {
 		JSONObject o = new JSONObject();
 		switch (homeModel.getTimeInterval().timeUnit) {
 		case DAY:
-			List<String> availableUserWidgets = dayStatsHelper
+			List<StatsHelper.Widget> availableUserWidgets = dayStatsHelper
 					.getAvailableUserWidgets(guestId);
 			dayStatsHelper.provideWidgetsData(availableUserWidgets, guestId,
 					homeModel.getTimeInterval(), o);

@@ -17,7 +17,7 @@ public abstract class AbstractWidgetDataProvider {
 	@Autowired
 	protected GuestService guestService;
 
-	public abstract void provideData(long guestId, GuestSettings settings,
-			TimeInterval timeInterval, JSONObject o);
+	public abstract JSONObject provideData(long guestId, GuestSettings settings,
+			TimeInterval timeInterval);
 
 }

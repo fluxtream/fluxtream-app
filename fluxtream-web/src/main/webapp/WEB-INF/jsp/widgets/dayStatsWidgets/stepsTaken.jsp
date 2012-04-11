@@ -2,7 +2,7 @@
 	prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%><%@ page
 	isELIgnored="false"%><%@ page import="com.fluxtream.*"%>
 	
-<div class="statsWell span3">
+<div class="statsWell span{{stepsTaken.columns}}">
 
 	<div class="statsWell-inner">
 		<div class="flx-icon-{{stepsTaken.device}}"></div>
