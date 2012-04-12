@@ -119,6 +119,7 @@ define(["core/Application", "core/FlxState", "applications/log/Builder"], functi
 	function fetchLog(url) {
 		$.ajax({ url: url,
 			success : function(response) {
+				$("#modal").empty();
 				Builder.updateWidget(response, Log);
 				$("#widgets").css("opacity", "1");
 				$(".calendar-navigation-button").toggleClass("disabled");

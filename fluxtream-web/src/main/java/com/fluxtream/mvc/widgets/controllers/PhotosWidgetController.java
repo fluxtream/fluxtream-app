@@ -37,10 +37,33 @@ public class PhotosWidgetController {
 	FacetsHelper facetsHelper;
 
 	@RequestMapping("/widgets/photos")
-	public ModelAndView getTooltips(HttpServletRequest request) throws ClassNotFoundException,
+	public ModelAndView getPhotos(HttpServletRequest request) throws ClassNotFoundException,
 			InstantiationException, IllegalAccessException {
 		HomeModel homeModel = ControllerHelper.getHomeModel(request);
 		ModelAndView mav = new ModelAndView("widgets/photos");
+		List<AbstractFacetVO<AbstractFacet>> facetVos = getImageFacetVOs(
+				request, homeModel);
+
+		mav.addObject("facets", facetVos);
+		return mav;
+	}
+
+	@RequestMapping("/widgets/photos/carousel")
+	public ModelAndView getPhotosCarousel(HttpServletRequest request) throws ClassNotFoundException,
+			InstantiationException, IllegalAccessException {
+		HomeModel homeModel = ControllerHelper.getHomeModel(request);
+		ModelAndView mav = new ModelAndView("widgets/photosCarousel");
+		List<AbstractFacetVO<AbstractFacet>> facetVos = getImageFacetVOs(
+				request, homeModel);
+
+		mav.addObject("facets", facetVos);
+		return mav;
+	}
+
+	private List<AbstractFacetVO<AbstractFacet>> getImageFacetVOs(
+			HttpServletRequest request, HomeModel homeModel)
+			throws ClassNotFoundException, InstantiationException,
+			IllegalAccessException {
 		long guestId = ControllerHelper.getGuestId();
 
 		List<ApiKey> userKeys = guestService.getApiKeys(guestId);
@@ -63,8 +86,7 @@ public class PhotosWidgetController {
 				facetVos.add(facetVo);
 			}
 		}
-
-		mav.addObject("facets", facetVos);
-		return mav;
+		return facetVos;
 	}
+
 }

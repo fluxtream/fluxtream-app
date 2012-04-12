@@ -18,7 +18,7 @@ if (facets.size()>0) {
 %>
 
 
-<li class="span2"><a href="#" class="thumbnail"> <%
+<li class="span2"><a class="thumbnail"> <%
 			if (facet instanceof PicasaPhotoFacetVO) {
 				/* PICASA ------------------------------------------------------------ */
 				PicasaPhotoFacetVO pf = (PicasaPhotoFacetVO) facet;
@@ -39,28 +39,3 @@ if (facets.size()>0) {
 <% } else { %>
 <div class="emptyList">(empty list)</div>
 <% } %>
-
-<div class="modal fade" style="display:none" id="carouselModal">
-	<div class="modal-header">
-		<a href="#" class="close" data-dismiss="modal">&times;</a>
-	</div>
-	<div class="modal-body" style="overflow:hidden">
-		<div id="photosCarousel" class="carousel">
-			<div class="carousel-inner">
-			<% for (int i=0; i<facets.size(); i++) {
-				AbstractPhotoFacetVO facet = facets.get(i);
-			%>
-				<div id="photo-<%=i%>" class="item<% if (i==0) out.print(" active");%>" style="overflow:none">
-					<img src="<%=facet.photoUrl%>"/>
-				</div>
-		  	<% } %></div>
-		  <!-- Carousel nav -->
-		  <% if (facets.size()>1) { %>
-		  <a class="carousel-control left" href="#photosCarousel" data-slide="prev">&lsaquo;</a>
-		  <a class="carousel-control right" href="#photosCarousel" data-slide="next">&rsaquo;</a>
-		  <% } %>
-		</div>
-	</div>
-	<div class="modal-footer">
-	</div>
-</div>

@@ -9,7 +9,7 @@
 <jsp:useBean id="userConnectorRows" type="java.util.List"
 	scope="request" />
 
-<div class="modal hide fade" style="width: 650px">
+<div id="modal" class="modal hide fade" style="width: 650px">
 
 	<div class="modal-header">
 		<a class="close" data-dismiss="modal">×</a>

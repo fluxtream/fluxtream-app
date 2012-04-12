@@ -10,7 +10,7 @@ define(
 				_.bindAll(this);
 				// start loading all applications
 				loadApps();
-			}
+			};
 
 			/**
 			 * Preload all applications dynamically; we do this because a) the
@@ -28,7 +28,7 @@ define(
 								appLoaded(app.name);
 							});
 				}
-			}
+			};
 
 			/**
 			 * Add the buttons to the top apps menu
@@ -46,7 +46,7 @@ define(
 											+ "<i class=\"" + app.icon
 											+ "  icon-large\"></i></button>")
 				}
-			}
+			};
 
 			/**
 			 * Application-is-loaded callback
@@ -66,7 +66,7 @@ define(
 					// finally we render the default - or url-specified - app
 					renderMainApp();
 				}
-			}
+			};
 
 			/**
 			 * Render main app or the one that's specified in the location bar's
@@ -95,48 +95,41 @@ define(
 					App.activeApp = apps[FlxState.defaultApp];
 					apps[FlxState.defaultApp].render("");
 				}
-			}
+			};
 
 			function renderApp(appName) {
 				App.apps[appName].render("last");
-			}
+			};
 
 			App.settings = function() {
 				$.ajax({
 					url : "/settings/main",
 					success : function(html) {
-						$("#modal").empty();
-						$("#modal").append(html);
+						makeModal(html);
 						$("#settingsForm").ajaxForm(function() {
-							$(".modal").modal("hide");
-						})
-						$("#modal").css("display", "block");
-						App.dialog = $(".modal").modal({
-							show : false
+							$("#modal").empty();
 						});
-						App.dialog.modal("show");
 					}
 				});
+			};
+			
+			function makeModal(html) {
+				$("#modal").replaceWith(html);
+				$("#modal").modal();
 			}
 
 			App.eraseEverything = function() {
 				var confirmed = confirm("Are you sure?");
-			}
+			};
 
 			App.connectors = function() {
 				$.ajax({
 					url : "/connectors/main",
 					success : function(html) {
-						$("#modal").empty();
-						$("#modal").append(html);
-						$("#modal").css("display", "block");
-						App.dialog = $(".modal").modal({
-							show : false
-						});
-						App.dialog.modal("show");
+						makeModal(html);
 					}
 				});
-			}
+			};
 
 			App.removeConnector = function(api) {
 				var c = confirm("If you wrote comments on events related to this connector, "
@@ -157,11 +150,11 @@ define(
 						}
 					});
 				}
-			}
+			};
 
 			function startsWith(s, prefix) {
 				return s.substr(0, prefix.length) === prefix;
-			}
+			};
 
 			App.addConnector = function(url) {
 				if (startsWith(url, "ajax:")) {
@@ -179,12 +172,12 @@ define(
 					$(".addConnectorsMain").append(loading);
 					setTimeout("window.location='" + url + "'", 500);
 				}
-			}
+			};
 
 			App.showConnectorsPage = function(page) {
 				$("#availableConnectors").load(
 						"/connectors/availableConnectors?page=" + page);
-			}
+			};
 
 			App.discardNotifications = function() {
 				var ids = $("#notificationIds").html();
@@ -194,16 +187,27 @@ define(
 						$("#notifications").alert("close");
 					}
 				});
-			}
+			};
 			
 			App.showCarousel = function(photoId) {
+				if ($("#photosCarousel").length==0) {
+					console.log("no carousel yet, here...");
+					$.ajax({
+						url : "/widgets/photos/carousel",
+						success: function(html) {
+							makeModal(html);
+							carousel(photoId);
+						}
+					});
+				} else {
+					carousel(photoId);
+				}
+			};
+			
+			function carousel(photoId) {
 				$(".carousel-inner div.item").removeClass("active");
 				$(".carousel-inner #photo-"+photoId).addClass("active");
-				App.carousel = $("#carouselModal").modal();
-				App.carousel.modal("show");
-				$('#carouselModal').on('hidden', function () {
-					App.carousel = null;
-				});
+				$("#modal").modal("show");
 			}
 
 			App.initialize = initialize;

@@ -10,7 +10,7 @@
 	String firstname = (String) request.getAttribute("firstname");
 	String lastname = (String) request.getAttribute("lastname");
 %>
-<div class="modal fade hide">
+<div id="modal" class="modal fade hide">
 	<div class="modal-header">
 		<a class="close" data-dismiss="modal">×</a>
 		<h3>Settings</h3>
