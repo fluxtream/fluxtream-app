@@ -25,7 +25,7 @@ define(["core/Application", "core/FlxState", "applications/log/Builder"], functi
 		$(window).resize(function() {
 			fullHeight();
 		});
-	}
+	};
 	
 	function fullHeight() {
 		if ($(".fullHeight").length>0) {

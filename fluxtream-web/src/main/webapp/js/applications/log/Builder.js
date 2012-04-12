@@ -10,7 +10,7 @@ define([], function() {
 	
 	var widget_icons = {
 		clock: "icon-time",
-		stats: "icon-bar-chart",
+		dashboard: "icon-bar-chart",
 		map: "icon-map-marker",
 		diary: "icon-pencil",
 		photos: "icon-camera",

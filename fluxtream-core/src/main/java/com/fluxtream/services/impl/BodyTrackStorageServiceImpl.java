@@ -110,7 +110,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 			while (eachFieldName.hasNext()) {
 				String fieldName = (String) eachFieldName.next();
 //				// TODO: handle special cases
-				if (fieldName.startsWith("#"))
+				if (channelNamesMapping.get(fieldName).startsWith("#"))
 					continue;
 				sb.append(",");
 				Field field;
@@ -148,7 +148,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 		Map<String,String> mappings = new HashMap<String,String>();
 		for (String mapping : channelNamesMappings) {
 			String[] terms = StringUtils.split(mapping, ":");
-			mappings.put(terms[1], terms[0]);
+			mappings.put(terms[0], terms[1]);
 		}
 		return mappings;
 	}
