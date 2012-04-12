@@ -1,4 +1,4 @@
-define(["core/Application", "core/FlxState", "applications/log/Builder"], function(Application, FlxState, Builder) {
+define(["core/Application", "core/FlxState", "applications/log/Builder", "libs/bootstrap-datepicker"], function(Application, FlxState, Builder) {
 
 	var Log = new Application("log", "Candide Kemmler", "icon-calendar");
 	
@@ -108,12 +108,30 @@ define(["core/Application", "core/FlxState", "applications/log/Builder"], functi
 				FlxState.router.navigate("app/log/" + Log.currentWidgetName + "/" + response.state);
 				FlxState.saveState("log", Log.currentWidgetName + "/" + response.state);
 				$("#currentTimespanLabel span").html(response.currentTimespanLabel);
+				if (Log.timeUnit==="DAY") {
+					setDatepicker(response.state.split("/")[1]);
+				}
 				fetchLog("/api/log/all/" + response.state);
 			},
 			error : function() {
 				alert("error");
 			}
 		});
+	}
+	
+	function setDatepicker(currentDate) {
+		$("#datepicker").attr("data-date", currentDate);
+		$("#datepicker").unbind("changeDate");
+		$("#datepicker").datepicker().on(
+			"changeDate", function(event) {
+				var curr_date = event.date.getDate();
+				var curr_month = event.date.getMonth() + 1;
+				var curr_year = event.date.getFullYear();
+				var formatted = curr_year + "-" + curr_month + "-" + curr_date;
+				fetchState("/nav/setDate.json?date=" + formatted);
+				$(".datepicker").hide();
+			}
+		);
 	}
 	
 	function fetchLog(url) {
