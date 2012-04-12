@@ -117,7 +117,10 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 				try {
 					field = deviceFacet.getClass().getField(fieldName);
 					Object channelValue = field.get(deviceFacet);
-					sb.append(channelValue.toString());
+					if (channelValue instanceof java.util.Date)
+						sb.append(((java.util.Date)channelValue).getTime());
+					else
+						sb.append(channelValue.toString());
 				} catch (Exception e) {
 					throw new RuntimeException("No such Field: " + fieldName);
 				}
