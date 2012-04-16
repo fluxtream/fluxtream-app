@@ -22,6 +22,7 @@
 	<link rel="stylesheet" href="/css/bodytrack.css">
 	<link rel="stylesheet" href="/css/datepicker.css">
 	<link rel="stylesheet" href="/css/qtip/jquery.qtip.min.css">
+	<link rel="stylesheet" href="/css/qtip/jquery.jqplot.min.css">
 	
 	<link rel="stylesheet"
 		href="/static/css/jquery-colorPicker/jquery.colorPicker.css">
@@ -130,6 +131,10 @@
 		<script src="/static/js/jquery.dd-uncompressed.js"></script>
 		<script src="/static/js/jquery.tagedit.js"></script>
 		<script src="/static/js/jquery.shorten.js"></script>
+		<script src="/static/js/jquery.jqplot.min.js"></script>
+		<script src="/static/js/jqplot-plugins/jqplot.categoryAxisRenderer.min.js"></script>
+		<script src="/static/js/jqplot-plugins/jqplot.pointLabels.min.js"></script>
+		<script src="/static/js/jqplot-plugins/jqplot.barRenderer.min.js"></script>
 		<script src="/static/js/bootstrap-2.0.2.min.js"></script>
 		<script src="/static/js/raphael-2.1.0.js"></script>
 		<script src="/static/js/underscore-1.3.3-min.js"></script>

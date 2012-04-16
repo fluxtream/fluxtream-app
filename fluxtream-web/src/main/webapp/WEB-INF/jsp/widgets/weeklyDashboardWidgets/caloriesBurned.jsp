@@ -4,11 +4,7 @@
 
 <div class="statsWell span6">
 
-	<div class="statsWell-inner">
-		<div class="statLabel">You burnt</div>
-		<div class="bigFigure">
-			a lot of <small>kcal</small>
-		</div>
+	<div id="chart1">
 	</div>
 
 </div>
