@@ -11,10 +11,10 @@
 	String timeUnit = (String) request.getAttribute("timeUnit");
 %>
 
-<div id="statsWidget" class="row-fluid">
+<div id="dashboardWidget" class="row-fluid">
 
 	<% for (int i=0; i<userWidgets.size(); i++) {
-		String widgetsDir = timeUnit + "lyDashboardWidgets";
+		String widgetsDir = timeUnit + "lyDashboardWidgets/";
 		if (timeUnit.equalsIgnoreCase("day"))
 			widgetsDir = "dailyDashboardWidgets/";%>
 		<jsp:include page="<%=widgetsDir+userWidgets.get(i).name+\".jsp\"%>" />

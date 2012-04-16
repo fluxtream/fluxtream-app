@@ -17,6 +17,7 @@ public class HoursSleptDataProvider extends AbstractWidgetDataProvider {
 		JSONObject hoursSlept = new JSONObject();
 		hoursSlept.accumulate("minutes", 33);
 		hoursSlept.accumulate("hours", 7);
+		addRequiredJS(hoursSlept, "caloriesBurned");
 		return hoursSlept;
 	}
 

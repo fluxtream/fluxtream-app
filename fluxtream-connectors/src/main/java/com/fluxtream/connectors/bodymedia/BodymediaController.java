@@ -103,6 +103,8 @@ public class BodymediaController {
 		Guest guest = ControllerHelper.getGuest();
 		
 		guestService.setApiKeyAttribute(guest.getId(), connector(),
+				"api_key", env.get("bodymediaConsumerKey"));
+		guestService.setApiKeyAttribute(guest.getId(), connector(),
 				"accessToken", consumer.getToken());
 		guestService.setApiKeyAttribute(guest.getId(), connector(),
 				"tokenSecret", consumer.getTokenSecret());

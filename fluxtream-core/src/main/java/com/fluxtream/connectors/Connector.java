@@ -261,6 +261,7 @@ public class Connector {
 	private String prettyName;
 	private int[] objectTypeValues;
 	private boolean hasFacets;
+	private String[] additionalParameters;
 
 	private Connector() {
 	}
@@ -356,6 +357,14 @@ public class Connector {
 
 	public static Connector fromValue(int api) {
 		return connectorsByValue.get(api);
+	}
+
+	public boolean hasAdditionalParameters() {
+		return additionalParameters.length>0;
+	}
+
+	public String[] getAdditionalParameters() {
+		return additionalParameters;
 	}
 
 }

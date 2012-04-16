@@ -1,7 +1,10 @@
 define(["applications/log/widgets/Widget",
-        "applications/log/App"], function(Widget, Log) {
+        "applications/log/App"], function(Widget, Log, CaloriesBurned) {
 	
-	function render(digest, timeUnit) {
+	var digest;
+	
+	function render(digestInfo, timeUnit) {
+		digest = digestInfo;
 		$.ajax({
 			url : "/widgets/dashboard",
 			success: populateTemplate
@@ -11,9 +14,14 @@ define(["applications/log/widgets/Widget",
 	function populateTemplate(html) {
 		$.ajax({
 			url : "/widgets/dashboard.json",
-			success: function(json) {
-				html = $.mustache(html, json);
+			success: function(dashboardData) {
+				html = $.mustache(html, dashboardData);
 				$("#widgets").append(html);
+				for(var i=0; i<dashboardData.required.length; i++) {
+					require([dashboardData.required[i]], function(dashboardWidgetModule) {
+						dashboardWidgetModule.render(digest, dashboardData);
+					});
+				}
 			}
 		});
 	}

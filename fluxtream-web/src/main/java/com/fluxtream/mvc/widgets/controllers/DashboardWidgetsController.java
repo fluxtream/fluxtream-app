@@ -40,8 +40,16 @@ public class DashboardWidgetsController {
 		mav.setViewName("widgets/stats");
 		mav.addObject("timeUnit", homeModel.getTimeInterval().timeUnit
 				.toString().toLowerCase());
-		mav.addObject("userWidgets",
-				dayStatsHelper.getAvailableUserWidgets(guestId));
+		switch (homeModel.getTimeInterval().timeUnit) {
+		case DAY:
+			mav.addObject("userWidgets",
+					dayStatsHelper.getAvailableUserWidgets(guestId));
+			break;
+		case WEEK:
+			mav.addObject("userWidgets",
+					weekStatsHelper.getAvailableUserWidgets(guestId));
+			break;
+		}
 		return mav;
 	}
 

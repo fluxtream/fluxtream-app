@@ -6,6 +6,7 @@ import java.net.URL;
 
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.basic.DefaultOAuthConsumer;
+import oauth.signpost.http.HttpParameters;
 
 import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Component;
@@ -33,7 +34,10 @@ public class SignpostOAuthHelper extends ApiClientSupport {
 			consumer.setTokenWithSecret(
 					apiKey.getAttributeValue("accessToken", env),
 					apiKey.getAttributeValue("tokenSecret", env));
-	
+			if (connector.hasAdditionalParameters()) {
+				addAdditionalParameters(consumer, apiKey, connector.getAdditionalParameters());
+			}
+			
 			// sign the request (consumer is a Signpost DefaultOAuthConsumer)
 			try {
 				consumer.sign(request);
@@ -61,6 +65,15 @@ public class SignpostOAuthHelper extends ApiClientSupport {
 			}
 		} catch (IOException e) {
 			throw new RuntimeException("IOException trying to make rest call: " + e.getMessage());
+		}
+	}
+
+	private void addAdditionalParameters(OAuthConsumer consumer, ApiKey apiKey,
+			String[] additionalParameters) {
+		for (String additionalParameterName : additionalParameters) {
+			HttpParameters additionalParameter = new HttpParameters();
+			additionalParameter.put("api_key", apiKey.getAttributeValue(additionalParameterName, env));
+			consumer.setAdditionalParameters(additionalParameter);
 		}
 	}
 

@@ -1,5 +1,6 @@
 package com.fluxtream.dashboard.dataproviders.day;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import net.sf.json.JSONObject;
@@ -29,16 +30,30 @@ public class HoursSleptDataProvider extends AbstractWidgetDataProvider {
 		}
 		return hoursSlept;
 	}
-
-	private boolean tryFitbit(long guestId, TimeInterval timeInterval,
-			JSONObject hoursSlept) {
+	
+	private List<AbstractFacet> getFitbitSleepFacets(long guestId, TimeInterval timeInterval) {
 		Connector fitbitConnector = Connector.getConnector("fitbit");
 		if (!guestService.hasApiKey(guestId, fitbitConnector))
-			return false;
+			return new ArrayList<AbstractFacet>();
 		List<AbstractFacet> apiDataFacets = apiDataService.getApiDataFacets(
 				guestId, fitbitConnector,
 				ObjectType.getObjectType(fitbitConnector, "sleep"),
 				timeInterval);
+		return apiDataFacets;
+	}
+	
+	private List<AbstractFacet> getZeoSleepFacets(long guestId, TimeInterval timeInterval) {
+		Connector zeoConnector = Connector.getConnector("zeo");
+		if (!guestService.hasApiKey(guestId, zeoConnector))
+			return new ArrayList<AbstractFacet>();
+		List<AbstractFacet> apiDataFacets = apiDataService.getApiDataFacets(
+				guestId, zeoConnector, null, timeInterval);
+		return apiDataFacets;
+	}
+
+	private boolean tryFitbit(long guestId, TimeInterval timeInterval,
+			JSONObject hoursSlept) {
+		List<AbstractFacet> apiDataFacets = getFitbitSleepFacets(guestId, timeInterval);
 		if (apiDataFacets.size() > 0) {
 			FitbitSleepFacet fitbitSleep = (FitbitSleepFacet) apiDataFacets
 					.get(0);
@@ -55,11 +70,7 @@ public class HoursSleptDataProvider extends AbstractWidgetDataProvider {
 
 	private boolean tryZeo(long guestId, TimeInterval timeInterval,
 			JSONObject hoursSlept) {
-		Connector zeoConnector = Connector.getConnector("zeo");
-		if (!guestService.hasApiKey(guestId, zeoConnector))
-			return false;
-		List<AbstractFacet> apiDataFacets = apiDataService.getApiDataFacets(
-				guestId, zeoConnector, null, timeInterval);
+		List<AbstractFacet> apiDataFacets = getZeoSleepFacets(guestId, timeInterval);
 		if (apiDataFacets.size() > 0) {
 			ZeoSleepStatsFacet zeoSleep = (ZeoSleepStatsFacet) apiDataFacets
 					.get(0);

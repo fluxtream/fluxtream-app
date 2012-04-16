@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -92,6 +93,7 @@ public class DashboardWidgetsHelper {
 			TimeInterval timeInterval, JSONObject o) {
 		String timeUnit = timeInterval.timeUnit.name().toLowerCase();
 		GuestSettings settings = settingsService.getSettings(guestId);
+		o.accumulate(AbstractWidgetDataProvider.REQUIRED, new JSONArray());
 		for (DashboardWidget userWidget : userWidgets) {
 			String dataProviderName = timeUnit + "/" + userWidget.name;
 			if (!this.widgetDataProviders.containsKey(dataProviderName)) {
@@ -103,8 +105,19 @@ public class DashboardWidgetsHelper {
 			AbstractWidgetDataProvider dataProvider = this.widgetDataProviders.get(dataProviderName);
 			JSONObject widgetData = dataProvider.provideData(guestId, settings,
 					timeInterval);
+			handleRequired(o, widgetData);
 			widgetData.accumulate("columns", userWidget.columns);
 			o.accumulate(userWidget.name, widgetData);
+		}
+	}
+
+	private void handleRequired(JSONObject o, JSONObject widgetData) {
+		if (widgetData.has(AbstractWidgetDataProvider.REQUIRED)) {
+			JSONArray required = o.getJSONArray(AbstractWidgetDataProvider.REQUIRED);
+			JSONArray widgetRequired = widgetData.getJSONArray(AbstractWidgetDataProvider.REQUIRED);
+			for (int i=0; i<widgetRequired.size(); i++)
+				required.add(widgetRequired.getString(i));
+			widgetData.remove(AbstractWidgetDataProvider.REQUIRED);
 		}
 	}
 	
