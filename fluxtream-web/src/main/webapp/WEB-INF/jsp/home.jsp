@@ -56,8 +56,8 @@
 					</a> <a class="brand" href="/app"><img
 						src="/${release}/images/header-logo-v4.png" /></a>
 					<div class="nav-collapse">
-						<form class="navbar-search">
-							<input autocorrect="off" autocapitalize="off" type="text"
+						<form class="navbar-search" action="javascript:App.search()">
+							<input onkeypress="if(event.which==13) App.search()" autocorrect="off" autocapitalize="off" type="text"
 								class="search-query" placeholder="Search">
 						</form>
 						<ul class="nav pull-right">

@@ -204,6 +204,10 @@ define(
 				}
 			};
 			
+			App.search = function() {
+				$(".application").load("/search/0?q=" + $(".search-query").val());
+			};
+			
 			function carousel(photoId) {
 				$(".carousel-inner div.item").removeClass("active");
 				$(".carousel-inner #photo-"+photoId).addClass("active");
