@@ -57,10 +57,6 @@ define(["core/Application", "core/FlxState", "applications/log/Builder", "libs/b
 				var w = Builder.widgetExistsForTimeUnit(widget, Log.timeUnit)?widget:Builder.widgets[Log.timeUnit][0];
 				Log.render(w + "/week/" + year + "/" + week);
 			});
-			FlxState.router.route("app/log/:widget/continuous", "", function(widget) {
-				var w = Builder.widgetExistsForTimeUnit(widget, Log.timeUnit)?widget:Builder.widgets[Log.timeUnit][0];
-				Log.render(w + "/continuous");
-			});
 		}
 	};
 		
@@ -89,8 +85,6 @@ define(["core/Application", "core/FlxState", "applications/log/Builder", "libs/b
 				fetchState("/nav/setMonth.json?year=" + splits[2] + "&month=" + splits[3]);
 			} else if ("YEAR"===Log.timeUnit) {
 				fetchState("/nav/setYear.json?year=" + splits[2]);
-			} else if ("CONTINUOUS"===Log.timeUnit) {
-				fetchState("/nav/setContinuousTimeUnit.json");
 			}
 		}
 	};

@@ -36,7 +36,7 @@ public class LocationFacet extends AbstractFacet implements Comparable<LocationF
 	private static final long serialVersionUID = 2882496521084143121L;
 
 	public static enum Source {
-		GOOGLE_LATITUDE, GEO_IP
+		GOOGLE_LATITUDE, GEO_IP, OPEN_PATH
 	}
 	
 	public Source source = Source.GOOGLE_LATITUDE;
@@ -70,6 +70,12 @@ public class LocationFacet extends AbstractFacet implements Comparable<LocationF
 
 	@Key
 	public int placeid;
+
+	public String device;
+
+	public String version;
+
+	public String os;
 	
 	public boolean equals(Object o) {
 		if (!(o instanceof LocationFacet))

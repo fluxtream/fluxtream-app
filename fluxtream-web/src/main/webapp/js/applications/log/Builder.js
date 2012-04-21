@@ -4,8 +4,7 @@ define([], function() {
 	
 	var widgets = {
 		"DAY":["clock", "dashboard", "map", "diary", "photos", "list"],
-		"WEEK":["dashboard", "map", "diary", "photos", "list"],
-		"CONTINUOUS":["timeline", "views", "list"]
+		"WEEK":["dashboard", "map", "diary", "photos", "list"]
 	};
 	
 	var widget_icons = {
@@ -14,7 +13,6 @@ define([], function() {
 		map: "icon-map-marker",
 		diary: "icon-pencil",
 		photos: "icon-camera",
-		timeline: "icon-film",
 		views: "icon-eye-open",
 		list: "icon-list"
 	};
@@ -48,7 +46,7 @@ define([], function() {
 	
 	function createTimeUnitsMenu(Log) {
 		$("#time-menu").remove();
-		var timeUnits = {DAY:1, WEEK:2, /*MONTH: 3, YEAR:4,*/ CONTINUOUS:5};
+		var timeUnits = {DAY:1, WEEK:2, /*MONTH: 3, YEAR:4*/};
 		delete timeUnits[Log.timeUnit];
 		$(".loading").remove();
 		var markup = "<div class=\"btn-group\" id=\"time-menu\">\
@@ -94,7 +92,7 @@ define([], function() {
 		case "WEEK":
 			nextPrevEnable(true);
 			timeNavBtn(Log, "down", true, "DAY");
-			timeNavBtn(Log, "up", true, "CONTINUOUS");
+			timeNavBtn(Log, "up", false, "MONTH");
 			break;
 //		case "MONTH":
 //			nextPrevEnable(true);
@@ -104,13 +102,8 @@ define([], function() {
 //		case "YEAR":
 //			nextPrevEnable(true);
 //			timeNavBtn(Log, "down", true, "MONTH");
-//			timeNavBtn(Log, "up", true, "CONTINUOUS");
+//			timeNavBtn(Log, "up", false, "CONTINUOUS");
 //			break;
-		case "CONTINUOUS":
-			nextPrevEnable(false);
-			timeNavBtn(Log, "down", true, "WEEK");
-			timeNavBtn(Log, "up", false);
-			break;
 		}
 	};
 	

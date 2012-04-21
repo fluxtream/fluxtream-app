@@ -7,8 +7,8 @@ define(["core/FlxState"], function(FlxState) {
 	}
 	
 	Application.prototype.destroy = function() {
-		console.log("WARNING: DESTROY IS NOT IMPLEMENTED!!!")
-	}
+		console.log("WARNING: DESTROY IS NOT IMPLEMENTED!!!");
+	};
 	
 	/**
 	 * Retrieve and dom-insert the html fragment that's associated
@@ -39,7 +39,7 @@ define(["core/FlxState"], function(FlxState) {
 			console.log("Application.Render: app is already loaded");
 			this.renderState(state, true);
 		}
-	}
+	};
 
 	/**
 	 * Bind controls for intra-app interaction. This is called by the
@@ -47,12 +47,12 @@ define(["core/FlxState"], function(FlxState) {
 	 * and dom-inserted
 	 */
 	Application.prototype.setup = function() {
-		console.log("WARNING: SETUP IS NOT IMPLEMENTED")
-	}
+		console.log("WARNING: SETUP IS NOT IMPLEMENTED");
+	};
 	
 	Application.prototype.renderState = function(state) {
-		console.log("WARNING: RENDERSTATE IS NOT IMPLEMENTED!!!")
-	}
+		console.log("WARNING: RENDERSTATE IS NOT IMPLEMENTED!!!");
+	};
 
 	return Application;
 	

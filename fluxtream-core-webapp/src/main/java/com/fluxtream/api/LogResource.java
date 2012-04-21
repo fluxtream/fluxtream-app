@@ -141,6 +141,7 @@ public class LogResource {
 		List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter);
 		digest.selectedConnectors = connectorNames(apiKeySelection);
 		List<ApiKey> allApiKeys = guestService.getApiKeys(guestId);
+		allApiKeys = removeConnectorsWithoutFacets(allApiKeys);
 		digest.nApis = allApiKeys.size();
 		GuestSettings settings = settingsService.getSettings(guestId);
 
@@ -155,6 +156,15 @@ public class LogResource {
 
 		// NewRelic.setTransactionName(null, "/api/log/all/date");
 		return gson.toJson(digest);
+	}
+
+	private List<ApiKey> removeConnectorsWithoutFacets(List<ApiKey> allApiKeys) {
+		List<ApiKey> apiKeys = new ArrayList<ApiKey>();
+		for (ApiKey apiKey : allApiKeys) {
+			if (apiKey.getConnector().hasFacets())
+				apiKeys.add(apiKey);
+		}
+		return apiKeys;
 	}
 
 	@SuppressWarnings("rawtypes")

@@ -3,8 +3,10 @@ define(function() {
 	var BodyTrack = {};
 
 	APP = {
+		isInitialized : false,
+		
 		init : function(callback) {
-
+			
 			// Wait for grapher to load before initializing tabs
 			//window.grapherLoad = function() {
 			
@@ -68,7 +70,7 @@ define(function() {
 			}
 			return false;
 		}
-	}
+	};
 
 	TOOLS = {
 		resizeTimer : null,
@@ -422,7 +424,7 @@ define(function() {
 					}
 				},
 				error   : function(jqXHR, textStatus, errorThrown) {
-					SOURCES.discoveryList = []
+					SOURCES.discoveryList = [];
 				}
 			});
 		},

@@ -57,31 +57,32 @@ public class SystemServiceImpl implements SystemService {
 
 	private void initializeConnectorList() {
 		ResourceBundle res = ResourceBundle.getBundle("messages/connectors");
+		em.persist(new ConnectorInfo("OpenPath",
+				"/images/connectors/connector-openpath.jpg", res.getString("openpath"),
+				"ajax:/openPath/enterCredentials", Connector.getConnector("openpath"), 0, true));
 		em.persist(new ConnectorInfo("Toodledo",
 				"/images/connectors/connector-toodledo.png", res
 						.getString("toodledo"),
 				"ajax:/toodledo/enterCredentials", Connector
-						.getConnector("toodledo"), Connector.getConnector(
-						"toodledo").value(), true));
+						.getConnector("toodledo"), 1, true));
 		em.persist(new ConnectorInfo("BodyTrack",
 				"/images/connectors/connector-bodytrack.png", res
 						.getString("bodytrack"),
 				"ajax:/bodytrack/enterCredentials", Connector
-						.getConnector("bodytrack"), Connector.getConnector(
-						"bodytrack").value(), true));
+						.getConnector("bodytrack"), 2, true));
 		em.persist(new ConnectorInfo("Zeo",
 				"/images/connectors/connector-focus-zeo.jpg", res
 						.getString("zeo"), "/zeo/subscribe", Connector
-						.getConnector("zeo"), 1, true));
+						.getConnector("zeo"), 3, true));
 		em.persist(new ConnectorInfo("Withings B Scale",
 				"/images/connectors/connector-focus-whithings-balance.jpg", res
 						.getString("withings"),
 				"ajax:/withings/enterCredentials", Connector
-						.getConnector("WITHINGS"), 2, true));
+						.getConnector("WITHINGS"), 4, true));
 		em.persist(new ConnectorInfo("Google Calendar",
 				"/images/connectors/connector-google-calendar.jpg", res
 						.getString("google_calendar"), "/calendar/token",
-				Connector.getConnector("google_calendar"), 3, true));
+				Connector.getConnector("google_calendar"), 5, true));
 		// em.persist(new ConnectorInfo("Withings BPM",
 		// "/images/connectors/connector-focus-whithings.jpg", "Text " +
 		// moreLink(Connector.getConnector("WITHINGS")),
@@ -90,7 +91,7 @@ public class SystemServiceImpl implements SystemService {
 		em.persist(new ConnectorInfo("Fitbit",
 				"/images/connectors/connector-focus-fitbit.jpg", res
 						.getString("fitbit"), "/fitbit/token", Connector
-						.getConnector("fitbit"), 5, true));
+						.getConnector("fitbit"), 7, true));
 		// em.persist(new ConnectorInfo("Freshbooks",
 		// "/images/connectors/connector-freshbooks.jpeg",
 		// res.getString("freshbooks"), "/freshbooks/token",
@@ -132,7 +133,7 @@ public class SystemServiceImpl implements SystemService {
 				"/flickr/token", Connector.getConnector("flickr"), 13, false));
 		em.persist(new ConnectorInfo("BodyMedia",
 				"/images/connectors/connector-bodymedia.jpg", res.getString("bodymedia"),
-				"/bodymedia/token", Connector.getConnector("bodymedia"), 13, true));
+				"/bodymedia/token", Connector.getConnector("bodymedia"), 14, true));
 		// em.persist(new ConnectorInfo("Dropbox",
 		// "/images/connectors/connector-dropbox.jpg",
 		// res.getString("dropbox"),

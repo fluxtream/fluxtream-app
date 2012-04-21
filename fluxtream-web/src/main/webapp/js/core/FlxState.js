@@ -33,7 +33,7 @@ define([], function() {
 	state.saveWidgetState = storeWidget;
 	state.getWidgetState = restoreWidget;
 	state.router = new Backbone.Router();
-	state.apps = ["objectives", "log"];
+	state.apps = ["timeline", "log"];
 	state.defaultApp = "log";
 	
 	return state;

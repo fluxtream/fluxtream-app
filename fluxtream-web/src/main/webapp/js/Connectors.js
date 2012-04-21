@@ -97,6 +97,19 @@ define(function() {
 		});
 	}
 	
+	function submitOpenPathKeypair() {
+		var accessKey = $("input#openpath-accessKey").val(),
+			secretKey = $("input#openpath-secretKey").val();
+		$.ajax({
+			url:"/openPath/check",
+			type: "POST",
+			data: {accessKey: accessKey, secretKey: secretKey},
+			success: function(html) {
+				$(".addConnectorsMain").html(html);
+				$(".focushere").focus();
+			}
+		});
+	}
 	
 	Connectors.chooseWithingsUser = chooseWithingsUser;
 	Connectors.submitSmsBackupUsernameAndPassword = submitSmsBackupUsernameAndPassword;
@@ -105,6 +118,7 @@ define(function() {
 	Connectors.submitZeoCredentials = submitZeoCredentials;
 	Connectors.submitToodledoCredentials = submitToodledoCredentials;
 	Connectors.submitNikePlusCredentials = submitNikePlusCredentials;
+	Connectors.submitOpenPathKeypair = submitOpenPathKeypair;
 	
 	Connectors.submitBodytrackCredentials = function() {
 		var username = $("input#bodytrack-username").val(),
@@ -119,7 +133,7 @@ define(function() {
 				$(".focushere").focus();
 			}
 		});
-	}
+	};
 	
 	window.Connectors = Connectors;
 	

@@ -44,7 +44,7 @@ define(
 											+ "onclick=\"javascript:App.renderApp('"
 											+ app.name + "')\">"
 											+ "<i class=\"" + app.icon
-											+ "  icon-large\"></i></button>")
+											+ "  icon-large\"></i></button>");
 				}
 			};
 

@@ -24,7 +24,7 @@
 	<% } %>
 	</tr>
 	<tr>
-	<td>Password:</td><td><input autocorrect="off" autocapitalize="off" id="smsBackup-password" type="password" onkeypress="if(event.which==13) submitSmsBackupFolderNames()"></input></td>
+	<td>Password:</td><td><input autocorrect="off" autocapitalize="off" id="smsBackup-password" type="password" onkeypress="if(event.which==13) Connectors.submitSmsBackupFolderNames()"></input></td>
 	<% if (required.contains("password")) { %>
 	<td>
 		<span class="formError">* password is required</span>
@@ -32,6 +32,6 @@
 	<% } %>
 	</tr>
 	<tr>
-	<td colspan="2"><button onclick="submitSmsBackupUsernameAndPassword()">Send</button></td>
+	<td colspan="2"><button onclick="Connectors.submitSmsBackupUsernameAndPassword()">Send</button></td>
 	</tr>
 </table>
