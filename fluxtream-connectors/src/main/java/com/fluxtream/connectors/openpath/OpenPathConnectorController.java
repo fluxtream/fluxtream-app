@@ -6,6 +6,7 @@ import java.util.List;
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,6 +27,9 @@ public class OpenPathConnectorController {
 
 	@Autowired
 	ConnectorUpdateService connectorUpdateService;
+	
+	@Autowired
+	BeanFactory beanFactory;
 
 	@RequestMapping(value = "/enterCredentials")
 	public ModelAndView signin(HttpServletRequest request) {
@@ -54,7 +58,8 @@ public class OpenPathConnectorController {
 		long guestId = ControllerHelper.getGuestId();
 		boolean worked = false;
 		try {
-			worked = (new OpenPathHelper(accessKey, secretKey)).testConnection();
+			OpenPathUpdater updater = beanFactory.getBean(OpenPathUpdater.class);
+			worked = updater.testConnection(guestId, accessKey, secretKey);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

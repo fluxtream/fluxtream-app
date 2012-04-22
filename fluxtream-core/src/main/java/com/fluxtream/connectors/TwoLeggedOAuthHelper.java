@@ -3,6 +3,7 @@ package com.fluxtream.connectors;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Map;
 
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.basic.DefaultOAuthConsumer;
@@ -12,15 +13,15 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Component;
 
 import com.fluxtream.connectors.updaters.RateLimitReachedException;
-import com.fluxtream.domain.ApiKey;
 
 @Component
-public class SignpostOAuthHelper extends ApiClientSupport {
+public class TwoLeggedOAuthHelper extends ApiClientSupport {
 	
-	public final String makeRestCall(Connector connector, ApiKey apiKey,
+	public final String makeRestCall(Connector connector, long guestId,
+			String accessToken, String tokenSecret, Map<String,String> additionalParameters,
 			int objectTypes, String urlString) throws RateLimitReachedException {
 
-		if (hasReachedRateLimit(connector, apiKey.getGuestId()))
+		if (hasReachedRateLimit(connector, guestId))
 			throw new RateLimitReachedException();
 
 		try {
@@ -29,14 +30,13 @@ public class SignpostOAuthHelper extends ApiClientSupport {
 			HttpURLConnection request = (HttpURLConnection) url.openConnection();
 			
 			OAuthConsumer consumer = new DefaultOAuthConsumer(
-					getConsumerKey(connector), getConsumerSecret(connector));
+					"", "");
+			if (additionalParameters!=null && additionalParameters.size()>0)
+				addAdditionalParameters(consumer, additionalParameters);
 	
 			consumer.setTokenWithSecret(
-					apiKey.getAttributeValue("accessToken", env),
-					apiKey.getAttributeValue("tokenSecret", env));
-			if (connector.hasAdditionalParameters()) {
-				addAdditionalParameters(consumer, apiKey, connector.getAdditionalParameters());
-			}
+					accessToken,
+					tokenSecret);
 			
 			// sign the request (consumer is a Signpost DefaultOAuthConsumer)
 			try {
@@ -46,15 +46,15 @@ public class SignpostOAuthHelper extends ApiClientSupport {
 			}
 			request.connect();
 			if (request.getResponseCode() == 200) {
-				String json = IOUtils.toString(request.getInputStream());
-				connectorUpdateService.addApiUpdate(apiKey.getGuestId(), connector,
+				String response = IOUtils.toString(request.getInputStream());
+				connectorUpdateService.addApiUpdate(guestId, connector,
 						objectTypes, then, System.currentTimeMillis() - then,
 						urlString, true);
 				// logger.info(apiKey.getGuestId(), "REST call success: " +
 				// urlString);
-				return json;
+				return response;
 			} else {
-				connectorUpdateService.addApiUpdate(apiKey.getGuestId(), connector,
+				connectorUpdateService.addApiUpdate(guestId, connector,
 						objectTypes, then, System.currentTimeMillis() - then,
 						urlString, false);
 				throw new RuntimeException(
@@ -68,23 +68,13 @@ public class SignpostOAuthHelper extends ApiClientSupport {
 		}
 	}
 
-	private void addAdditionalParameters(OAuthConsumer consumer, ApiKey apiKey,
-			String[] additionalParameters) {
-		for (String additionalParameterName : additionalParameters) {
+	private void addAdditionalParameters(OAuthConsumer consumer,
+			Map<String, String> additionalParameters) {
+		for (String additionalParameterName : additionalParameters.keySet()) {
 			HttpParameters additionalParameter = new HttpParameters();
-			additionalParameter.put(additionalParameterName, apiKey.getAttributeValue(additionalParameterName, env));
+			additionalParameter.put(additionalParameterName, additionalParameters.get(additionalParameterName));
 			consumer.setAdditionalParameters(additionalParameter);
 		}
-	}
-
-	private String getConsumerSecret(Connector connector) {
-		String consumerSecret = env.get(connector.getName() + "ConsumerSecret");
-		return consumerSecret == null ? "" : consumerSecret;
-	}
-
-	private String getConsumerKey(Connector connector) {
-		String consumerKey = env.get(connector.getName() + "ConsumerKey");
-		return consumerKey == null ? "" : consumerKey;
 	}
 
 }

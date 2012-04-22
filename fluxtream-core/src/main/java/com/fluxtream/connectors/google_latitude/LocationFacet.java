@@ -22,9 +22,12 @@ import com.google.api.client.util.Key;
 				"Facet_GoogleLatitudeLocation facet WHERE " +
 				"facet.guestId=? AND facet.timestampMs>? " +
 				"ORDER BY facet.timestampMs ASC"),
+		@NamedQuery(name = "openpath.deleteAll", query = "DELETE FROM " +
+				"Facet_GoogleLatitudeLocation facet WHERE " +
+				"facet.source=2 AND facet.guestId=?"),
 		@NamedQuery(name = "google_latitude.deleteAll", query = "DELETE FROM " +
 				"Facet_GoogleLatitudeLocation facet WHERE " +
-				"facet.guestId=?"),
+				"facet.source=0 AND facet.guestId=?"),
 		@NamedQuery(name = "google_latitude.between", query = "SELECT facet FROM " +
 				"Facet_GoogleLatitudeLocation facet WHERE " +
 				"facet.guestId=? AND facet.timestampMs>=? AND " +

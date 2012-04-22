@@ -128,6 +128,8 @@ public class ApiDataServiceImpl implements ApiDataService {
 	@Override
 	@Transactional(readOnly = false)
 	public void eraseApiData(long guestId, Connector connector, int objectTypes) {
+		if (!connector.hasFacets())
+			return;
 		if (objectTypes == -1)
 			eraseApiData(guestId, connector);
 		else {
@@ -179,6 +181,8 @@ public class ApiDataServiceImpl implements ApiDataService {
 	@Override
 	@Transactional(readOnly = false)
 	public void eraseApiData(long guestId, Connector connector) {
+		if (!connector.hasFacets())
+			return;
 		jpaDao.deleteAllFacets(connector, guestId);
 		Class<? extends AbstractUserProfile> userProfileClass = connector
 				.userProfileClass();

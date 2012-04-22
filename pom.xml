@@ -9,7 +9,7 @@
 		<module>fluxtream-core</module>
 		<module>fluxtream-core-webapp</module>
 		<module>fluxtream-connectors</module>
-		<module>fluxtream-webapp</module>
+<!-- 		<module>fluxtream-webapp</module> -->
 		<module>fluxtream-web</module>
 	</modules>
 	<build>
