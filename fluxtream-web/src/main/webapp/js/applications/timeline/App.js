@@ -164,9 +164,6 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 		$("#_timeline_new_view_btn").click(newView);
 		$("#_timeline_load_view_btn").click(toggleLoadDialog);
 
-		// Load data sources
-		getSources();
-
 		// configure the photo dialog
 		$("#_timeline_photo_dialog")['dialog'](
 				{
@@ -178,7 +175,16 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 					resizable : false
 				}
 		);
-		callback();
+
+		// Load sources
+		getSources(function() {
+			$("#_timeline_messageArea").hide();
+			$("#_timeline_mainContentArea").show();
+
+			if (typeof callback === "function") {
+				callback();
+			}
+		});
 	} // init
 
 	// Check for unsaved changes to timeline and prompt user if needed
@@ -194,7 +200,7 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 		}	
 	}
 	
-	function getSources() {
+	function getSources(callback) {
 		SOURCES.getAvailableList(function(data) {
 
 			var i, j, l, m;
@@ -329,9 +335,9 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 			});
 
 			addPaneSaveState();
-
-			$("#_timeline_messageArea").hide();
-			$("#_timeline_mainContentArea").show();
+			if (typeof callback === "function") {
+				callback();
+			}
 		});
 	} // getSources
 
@@ -407,7 +413,7 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 		});
 	}
 
-	function loadViewWithTimeRange(name, min, max) {
+	function loadViewWithTimeRange(name, min, max, callback) {
 		$("#_timeline_save_view_btn").addClass("button_disabled").unbind("click");
 		VIEWS.load(name, function(data) {
 			loadedViewStr = JSON.stringify(data);
@@ -415,6 +421,9 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 			data["v2"]["x_axis"]["min"] = min;
 			data["v2"]["x_axis"]["max"] = max;
 			renderView(data);
+			if (typeof callback === "function") {
+				callback();
+			}
 		});
 	}
 
@@ -429,7 +438,7 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 	}
 
 	// Load all channels associated with device_name into a new view
-	function loadSource(device_name) {
+	function loadSource(device_name, callback) {
 		SOURCES.getDefaultGraphSpecs(device_name, function(data) {
 			var i, l;
 			var style = {};
@@ -464,6 +473,10 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 			if ($("#_timeline_addChannelsArea").css("display") !== "none") {
 				toggleAddChannelsPane();
 			}
+			
+			if (typeof callback === "function") {
+				callback();
+			}
 		});
 	}
 
@@ -491,7 +504,9 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 			min = VIEWS.data["v2"]["x_axis"]["min"]
 			max = VIEWS.data["v2"]["x_axis"]["max"]
 
-			loadViewWithTimeRange(viewName, min, max);
+			loadViewWithTimeRange(viewName, min, max, function() {
+				TOOLS.resizeHandler();
+			});
 			return false;
 		}
 
@@ -631,15 +646,6 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 		id = channelIdx;
 		channelIdx += 1;
 
-		// If this is a new view, set xAxis range to be the latest 
-		// 24 hrs of data from the first added channel
-		if ((VIEWS.data["name"] == newViewName) &&
-				channel.hasOwnProperty("max_time") &&
-				($("#_timeline_channels ._timeline_channel").length == 0)) {
-			max_time = channel["max_time"];
-			dateAxis.setRange(max_time - 86400.0, max_time);
-		}
-
 		var channelElementId = "_timeline_channel_" + id;
 		var plotElementId = "_timeline_plot_" + id;
 		var yAxisElementId = "_timeline_yAxis_" + id;
@@ -662,29 +668,20 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 			$(target).replaceWith(html);
 		}
 
-		// When creating a yAxis, second guess the range:
-		// * check to see if the range is zero and set range to 1 if so
-		// * expand the min and max a bit so that the top and bottom 
-		//   of the data don't get cut off
-		var y_min = channel["min"];
-		var y_max = channel["max"];
-
-		// Not enough range, set range to 1
-		if(y_max - y_min < 1e-10) {
-			y_min = channel["min"] - 0.5;
-			y_max = channel["min"] + 0.5;
-		}
-		else {
-			// Do have enough range, expand range a bit
-			var range_padding = (y_max - y_min)/10.0;
-			y_min = y_min - range_padding;
-			y_max = y_max + range_padding;
-		}
-
 		var yAxis = new NumberAxis(yAxisElementId, "vertical", {
 			"min" : y_min,
 			"max" : y_max
 		});
+
+        // Now that yAxis is initialized, if this is a new view,
+        // set xAxis range to be the latest 24 hrs of data from the
+        // first added channel
+        if ((VIEWS.data["name"] == newViewName) &&
+            channel.hasOwnProperty("max_time") &&
+            ($("#_timeline_channels ._timeline_channel").length == 0)) {
+          max_time = channel["max_time"];
+          dateAxis.setRange(max_time - 86400.0, max_time);
+        }
 
 		// TODO: The following should be keying off of "type" rather than "name" fields
 		var plot = null;
