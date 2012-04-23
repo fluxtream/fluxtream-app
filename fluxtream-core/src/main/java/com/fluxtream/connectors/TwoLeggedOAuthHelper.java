@@ -24,6 +24,9 @@ public class TwoLeggedOAuthHelper extends ApiClientSupport {
 		if (hasReachedRateLimit(connector, guestId))
 			throw new RateLimitReachedException();
 
+		accessToken = "SA4RSBZB7FN735A3CEU6SHSAB6UAA5PS2AELCFAJSW55LZQTDATQ";
+		tokenSecret = "CDIMNTEGJTUNL3QIWYBPNRUQ4WL5DMT998BLT2QQ0BUISG7TYZV51WVLM8FM7T84";
+		
 		try {
 			long then = System.currentTimeMillis();
 			URL url = new URL(urlString);

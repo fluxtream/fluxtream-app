@@ -26,11 +26,11 @@ define(["applications/log/widgets/clock/ClockdrawingUtils",
 			drawingUtils.paintCircle(paper, config.SOCIAL_CATEGORY.orbit, "#ffffff", 1);
 			drawingUtils.paintCircle(paper, config.MEDIA_CATEGORY.orbit, "#ffffff", 1);
 			paintSolarInfo(digest.solarInfo);
-			for(name in digest.cachedData) {
-				if (digest.cachedData[name]==null||typeof(digest.cachedData[name])=="undefined")
+			for(var objectTypeName in digest.cachedData) {
+				if (digest.cachedData[objectTypeName]==null||typeof(digest.cachedData[objectTypeName])=="undefined")
 					continue;
-				updateDataDisplay(digest.cachedData[name], name, digest);
-				if (name==="fitbit-activity_summary" && digest.cachedData["fitbit-activity_summary"][0]) {
+				updateDataDisplay(digest.cachedData[objectTypeName], objectTypeName, digest);
+				if (objectTypeName==="fitbit-activity_summary" && digest.cachedData["fitbit-activity_summary"][0]) {
 					drawCalories(digest.cachedData["fitbit-activity_summary"][0].caloriesPerMinute);
 				}
 			}

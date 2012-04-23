@@ -452,7 +452,7 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 					},
 					"y_axes" : []
 				}
-			}
+			};
 
 			l = data.channels.length;
 			for (i = 0; i < l; i++) {
@@ -501,8 +501,8 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 				alert("Existing view not found");
 				return false;
 			}
-			min = VIEWS.data["v2"]["x_axis"]["min"]
-			max = VIEWS.data["v2"]["x_axis"]["max"]
+			min = VIEWS.data["v2"]["x_axis"]["min"];
+			max = VIEWS.data["v2"]["x_axis"]["max"];
 
 			loadViewWithTimeRange(viewName, min, max, function() {
 				TOOLS.resizeHandler();
@@ -669,8 +669,8 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 		}
 
 		var yAxis = new NumberAxis(yAxisElementId, "vertical", {
-			"min" : y_min,
-			"max" : y_max
+			"min" : channel["min"],
+			"max" : channel["max"]
 		});
 
         // Now that yAxis is initialized, if this is a new view,
@@ -1602,10 +1602,10 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 			"y_axes" : []
 		};
 
-		for (deviceName in channels) {
+		for (var deviceName in channels) {
 			if (channels.hasOwnProperty(deviceName)) {
 				deviceChannels = channels[deviceName];
-				for (channelName in deviceChannels) {
+				for (var channelName in deviceChannels) {
 					if (deviceChannels.hasOwnProperty(channelName)) {
 						obj = channels[deviceName][channelName];
 						index = obj['y_axis'];
@@ -2350,32 +2350,35 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 		});
 	};
 	
-	Timeline.destroy = function() {
-		console.log("saving the state of the timeline application");
+	Timeline.saveState = function() {
+		console.log("saving the state of the timeline application again, App.activeApp.name: " + App.activeApp.name);
 		updateViewData();
-		FlxState.saveState(this.name, VIEWS.data);
-		console.log(VIEWS.data);
+		FlxState.saveState(App.activeApp.name, VIEWS.data);
+		console.log(FlxState.getState(App.activeApp.name));
 	};
 	
 	Timeline.renderState = function(state) {
 		FlxState.router.navigate("app/timeline");
 		APP.init(function() {
 			init(function() {
-				if (FlxState.getState(this.name)!=null) {
-					VIEWS.data = FlxState.getState(this.name);
+				if (FlxState.getState(App.activeApp.name)!=null) {
+					VIEWS.data = FlxState.getState(App.activeApp.name);
 					loadedViewStr = JSON.stringify(VIEWS.data);
-					hasUnsavedChanges = true;
+					hasUnsavedChanges = false;
 					console.log(VIEWS.data);
 					renderView(VIEWS.data);
-
-					if ($("#_timeline_addChannelsArea").css("display") === "none") {
-						toggleAddChannelsPane();
-					}
-					console.log(FlxState.getState("timeline"));
 				}
-				else
+				else {
 					newView();
+				}
 			});
+		});
+	};
+	
+	Timeline.setup = function() {
+		$(window).resize(function(){
+			clearTimeout(BodyTrack.TOOLS.resizeTimer);
+			BodyTrack.TOOLS.resizeTimer = setTimeout(BodyTrack.TOOLS.resizeHandler, 100);
 		});
 	};
 	

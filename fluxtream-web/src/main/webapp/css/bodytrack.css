@@ -58,7 +58,7 @@
 }
 
 #_timeline_addChannelsArea ul {
-    min-height: 100%;
+/*     min-height: 100%; */
     height: auto;
     overflow-x: hidden;
     overflow-y: auto;
@@ -105,7 +105,7 @@
 }
 
 #_timeline_channelsWrapper {
-    min-height: 100%;
+/*     min-height: 100%; */
     height: auto;
     overflow-x: hidden;
     overflow-y: auto;
@@ -165,7 +165,7 @@
 }
 
 ._timeline_channelTable {
-  height: 100%;
+/*   height: 100%; */
 }
 
 ._timeline_btnGear {

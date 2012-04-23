@@ -6,7 +6,7 @@ define(["applications/log/widgets/diary/Status",
 		require(["text!applications/log/widgets/diary/" + timeUnit.toLowerCase() + "Diary.html"], function(template) {
 			$("#widgets").append(template);
 			status.handleComments();
-			Log.fullHeight();
+			App.fullHeight();
 			$('textarea.tinymce').tinymce({
 				// Location of TinyMCE script
 				script_url : '/static/tiny_mce/tiny_mce.js',

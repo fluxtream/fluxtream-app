@@ -73,7 +73,7 @@
 									<li><a href="javascript:App.connectors()">Connectors</a></li>
 									<sec:authorize access="hasRole('ROLE_ADMIN')">
 										<li><a href="/admin/index">Admin <i
-												class="icon-key icon-large" style="float: right;"></i></li>
+												class="icon-key icon-large" style="float: right;"></i></a></li>
 									</sec:authorize>
 									<li class="divider"></li>
 									<li><a href="/logout">Logout <i style="float: right"
@@ -85,7 +85,7 @@
 			</div>
 		</div>
 
-		<div class="container-fluid">
+		<div id="applications" class="container-fluid">
 
 			<div id="notifications" class="alert alert-success fade in"
 				style="display: none">
@@ -94,8 +94,6 @@
 			</div>
 
 			<!-- here is where fluxtream apps go -->
-
-			<div class="application"></div>
 
 		</div>
 

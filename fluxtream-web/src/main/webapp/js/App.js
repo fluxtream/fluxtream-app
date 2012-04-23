@@ -96,8 +96,24 @@ define(
 					apps[FlxState.defaultApp].render("");
 				}
 			};
+			
+			function fullHeight() {
+				console.log("Full Height Magic!");
+				if ($(".fullHeight").length>0) {
+					widgetsY = $("#widgets").position().top;
+					windowHeight = $(window).height();
+					footerHeight = $("#footer").height();
+					fHeight = (windowHeight-widgetsY-footerHeight);
+					$(".fullHeight").height(fHeight);
+				}
+				$(window).resize(function() {
+					App.fullHeight();
+				});
+			}
 
 			function renderApp(appName) {
+				App.activeApp.saveState();
+				App.activeApp=App.apps[appName];
 				App.apps[appName].render("last");
 			};
 
@@ -217,6 +233,7 @@ define(
 			App.initialize = initialize;
 			App.renderApp = renderApp;
 			App.state = FlxState;
+			App.fullHeight = fullHeight;
 			window.App = App;
 			return App;
 

@@ -46,7 +46,7 @@ define([], function() {
 	
 	function createTimeUnitsMenu(Log) {
 		$("#time-menu").remove();
-		var timeUnits = {DAY:1, WEEK:2, /*MONTH: 3, YEAR:4*/};
+		var timeUnits = {"DAY":1, "WEEK":2, /*"MONTH": 3, "YEAR":4*/};
 		delete timeUnits[Log.timeUnit];
 		$(".loading").remove();
 		var markup = "<div class=\"btn-group\" id=\"time-menu\">\
@@ -55,16 +55,16 @@ define([], function() {
 			data-toggle=\"dropdown\" href=\"#\"> <span class=\"caret\"></span>\
 		</a>\
 		<ul class=\"dropdown-menu\" id=\"timeUnits\">";
-		for (name in timeUnits) {
-			markup += "<li><a href=\"#\" class=\"" + name + "\">"
-				+ capitalizeFirstLetter(name.toLowerCase())
+		for (var timeUnitName in timeUnits) {
+			markup += "<li><a href=\"#\" class=\"" + timeUnitName + "\">"
+				+ capitalizeFirstLetter(timeUnitName.toLowerCase())
 				+" View</a></li>";
 		}
 		markup += "</ul></div>";
 		markup += "<span class=\"loading\"><img src=\"/static/img/loading.gif\"/></span>";
 		$("#calendar-menubar").append(markup);
-		for (name in timeUnits) {
-			$("#time-menu a." + name).click(function(event) {
+		for (timeUnitName in timeUnits) {
+			$("#time-menu a." + timeUnitName).click(function(event) {
 				var timeUnit = $(event.target).attr("class"),
 					url = "/nav/set" + capitalizeFirstLetter(timeUnit.toLowerCase()) + "TimeUnit.json";
 				$.ajax({ url:url,

@@ -12,14 +12,14 @@ define([ "core/FlxState" ], function(FlxState) {
 	 */
 	Widget.prototype.saveState = function() {
 		FlxState.saveWidgetState(this.getCurrentState());
-	}
+	};
 
 	/**
 	 * This lets the widget retrieve its last saved state
 	 */
 	Widget.prototype.getSavedState = function() {
-		return FlxState.getWidgetState(name);
-	}
+		return FlxState.getWidgetState(this.name);
+	};
 
 	/**
 	 * This needs to be overridden in "subclasses"

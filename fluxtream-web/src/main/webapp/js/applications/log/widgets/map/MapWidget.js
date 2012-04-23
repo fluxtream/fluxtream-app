@@ -6,13 +6,13 @@ define(["applications/log/widgets/Widget",
 	function render(digest, timeUnit) {
 		require(["text!applications/log/widgets/map/map.html"], function(template) {
 			$("#widgets").append(template);
-			Log.fullHeight();
+			App.fullHeight();
 			var myOptions = {
 				zoom : 11,
 				scrollwheel : false,
 				streetViewControl : false,
 				mapTypeId : google.maps.MapTypeId.ROADMAP
-			}
+			};
 			map = new google.maps.Map(document.getElementById("the_map"),
 					myOptions);
 			setMapPosition(50.858519,4.484482, 9);

@@ -1,8 +1,5 @@
 package com.fluxtream.connectors.openpath;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import net.sf.json.JSONObject;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,10 +30,8 @@ public class OpenPathUpdater extends AbstractUpdater {
 	public boolean testConnection(long guestId, String accessKey,
 			String secretKey) throws RateLimitReachedException {
 		try {
-			Map<String, String> additionalParameters = new HashMap<String, String>();
-			additionalParameters.put("oauth_consumer_key", accessKey);
 			String restResponse = twoLeggedOAuthHelper.makeRestCall(connector,
-					guestId, accessKey, secretKey, additionalParameters, -1,
+					guestId, accessKey, secretKey, null, -1,
 					"https://openpaths.cc/api/1");
 			System.out.println("restResponse: " + restResponse);
 			JSONObject.fromObject(restResponse);
