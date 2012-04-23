@@ -1,4 +1,4 @@
-define(["applications/log/widgets/clock/ClockdrawingUtils",
+define(["applications/log/widgets/clock/ClockDrawingUtils",
         "applications/log/widgets/clock/ClockConfig",
         "applications/log/widgets/Widget",
         "applications/log/App"], function(DrawingUtils, Config, Widget, Log) {
