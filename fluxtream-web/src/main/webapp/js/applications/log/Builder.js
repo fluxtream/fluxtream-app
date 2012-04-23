@@ -157,7 +157,6 @@ define([], function() {
 	
 	function updateWidget(digest, Log) {
 		handleNotifications(digest);
-		$("#widgets").empty();
 		require([ "applications/log/widgets/" + Log.currentWidgetName + "/"
 				+ capitalizeFirstLetter(Log.currentWidgetName) + "Widget"],
 				function(widget) {
