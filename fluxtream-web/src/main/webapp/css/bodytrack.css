@@ -181,7 +181,7 @@
   width: 20px;
   height: 20px;
   cursor: pointer;
-  background: url(/static/images/delete.png) no-repeat 0 0;
+  background: url(../static/images/delete.png) no-repeat 0 0;
 }
 
 ._timeline_delete_btn:hover {
@@ -225,7 +225,7 @@
   width: 30px;
   height: 30px;
   cursor: pointer;
-  background: url(/static/images/closebox.png) no-repeat 0 0;
+  background: url(../static/images/closebox.png) no-repeat 0 0;
 }
 
 ._timeline_plotContainer {
@@ -389,7 +389,7 @@
   width:10px;
   height:19px;
   cursor: pointer;
-  background: url(/static/images/leftArrow.png) no-repeat 0 0;
+  background: url(../static/images/leftArrow.png) no-repeat 0 0;
 }
 
 ._timeline_left_arrow:hover{
@@ -402,7 +402,7 @@
   width:10px;
   height:19px;
   cursor: pointer;
-  background: url(/static/images/rightArrow.png) no-repeat 0 0;
+  background: url(../static/images/rightArrow.png) no-repeat 0 0;
 }
 
 ._timeline_right_arrow:hover{
