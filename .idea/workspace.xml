@@ -7,7 +7,31 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e7c795f8-2116-4304-ad9d-58db7f694dc1" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/list/list.html" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/views/ViewsWidget.js" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/views/views.html" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-connectors/src/main/java/com/fluxtream/connectors/openpath/OpenPathUpdater.java" afterPath="$PROJECT_DIR$/fluxtream-connectors/src/main/java/com/fluxtream/connectors/openpath/OpenPathUpdater.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-core/src/main/java/com/fluxtream/connectors/TwoLeggedOAuthHelper.java" afterPath="$PROJECT_DIR$/fluxtream-core/src/main/java/com/fluxtream/connectors/TwoLeggedOAuthHelper.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/home.jsp" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/home.jsp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/css/bodytrack.css" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/css/bodytrack.css" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/css/flx.css" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/css/flx.css" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/App.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/App.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/App.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/App.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/Builder.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/Builder.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/Widget.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/Widget.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/clock/ClockWidget.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/clock/ClockWidget.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/dashboard/DashboardWidget.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/dashboard/DashboardWidget.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/diary/DiaryWidget.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/diary/DiaryWidget.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/list/ListWidget.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/list/ListWidget.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/map/MapWidget.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/map/MapWidget.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/photos/PhotosWidget.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/photos/PhotosWidget.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/timeline/App.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/timeline/App.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/timeline/BodyTrack.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/timeline/BodyTrack.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/timeline/template.html" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/timeline/template.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/core/Application.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/core/Application.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/welcome.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/welcome.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/less/flx.less" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/less/flx.less" />
     </list>
     <ignored path="fluxtream-app.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -86,16 +110,16 @@
       <file leaf-file-name="OpenPathUpdater.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/fluxtream-connectors/src/main/java/com/fluxtream/connectors/openpath/OpenPathUpdater.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="37" column="61" selection-start="1292" selection-end="1292" vertical-scroll-proportion="0.0">
+            <state line="32" column="61" selection-start="1104" selection-end="1104" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="TwoLeggedOAuthHelper.java" pinned="false" current="false" current-in-tab="false">
+      <file leaf-file-name="TwoLeggedOAuthHelper.java" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/fluxtream-core/src/main/java/com/fluxtream/connectors/TwoLeggedOAuthHelper.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="28" column="0" selection-start="921" selection-end="973" vertical-scroll-proportion="0.0">
+            <state line="71" column="5" selection-start="2589" selection-end="2589" vertical-scroll-proportion="1.3014706">
               <folding />
             </state>
           </provider>
@@ -112,10 +136,10 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="AppController.java" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="AppController.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/java/com/fluxtream/mvc/controllers/AppController.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="62" column="58" selection-start="1983" selection-end="1983" vertical-scroll-proportion="0.34411764">
+            <state line="62" column="58" selection-start="1983" selection-end="1983" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -146,9 +170,9 @@
         <option value="$PROJECT_DIR$/fluxtream-web/src/main/resources/rebel.xml" />
         <option value="/Fluxtream database" />
         <option value="$PROJECT_DIR$/.gitignore" />
-        <option value="$PROJECT_DIR$/fluxtream-core/src/main/java/com/fluxtream/connectors/TwoLeggedOAuthHelper.java" />
         <option value="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/timeline/App.js" />
         <option value="$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/index.jsp" />
+        <option value="$PROJECT_DIR$/fluxtream-core/src/main/java/com/fluxtream/connectors/TwoLeggedOAuthHelper.java" />
       </list>
     </option>
   </component>
@@ -344,6 +368,76 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="controllers" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fluxtream-app" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fluxtream-app" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fluxtream-core" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fluxtream-app" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fluxtream-app" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fluxtream-core" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="main" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="java" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fluxtream-app" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fluxtream-app" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fluxtream-core" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="main" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="java" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="connectors" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -781,7 +875,7 @@
     <editor active="false" />
     <layout>
       <window_info id="Data Sources" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32852563" sideWeight="0.6707663" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Changes" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.328585" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.328585" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="JavaEE:App" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.14690171" sideWeight="0.32734153" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.2497332" sideWeight="0.6707663" order="1" side_tool="false" content_ui="tabs" />
@@ -796,7 +890,7 @@
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32923368" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.21581197" sideWeight="0.32734153" order="1" side_tool="true" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32852563" sideWeight="0.6707663" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.17948718" sideWeight="0.67141503" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.17948718" sideWeight="0.67141503" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32923368" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="IDEtalk Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="IDEtalk" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32911393" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
@@ -914,7 +1008,9 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/fluxtream-connectors/src/main/java/com/fluxtream/connectors/openpath/OpenPathUpdater.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="37" column="61" selection-start="1292" selection-end="1292" vertical-scroll-proportion="0.0" />
+        <state line="32" column="61" selection-start="1104" selection-end="1104" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/timeline/BodyTrack.js">
@@ -932,13 +1028,6 @@
     <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/index.jsp">
       <provider selected="true" editor-type-id="text-editor">
         <state line="44" column="79" selection-start="1508" selection-end="1508" vertical-scroll-proportion="0.50933784">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/fluxtream-core/src/main/java/com/fluxtream/connectors/TwoLeggedOAuthHelper.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="28" column="0" selection-start="921" selection-end="973" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
@@ -975,7 +1064,14 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/java/com/fluxtream/mvc/controllers/AppController.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="62" column="58" selection-start="1983" selection-end="1983" vertical-scroll-proportion="0.34411764">
+        <state line="62" column="58" selection-start="1983" selection-end="1983" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/fluxtream-core/src/main/java/com/fluxtream/connectors/TwoLeggedOAuthHelper.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="71" column="5" selection-start="2589" selection-end="2589" vertical-scroll-proportion="1.3014706">
           <folding />
         </state>
       </provider>

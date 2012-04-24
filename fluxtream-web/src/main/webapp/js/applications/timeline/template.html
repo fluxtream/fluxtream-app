@@ -1,22 +1,35 @@
 
 <div id="log-container" class="row-fluid">
 	<div id="widgets">
-		<div id="bodyTrackWidget" class="span12">
+		<div id="bodyTrackWidget" class="row-fluid">
 		  <div id="_timeline_messageArea">Loading...</div>
 		
-		  <div id="_timeline_mainContentArea" style="display:none">
-		    <span>
-		      <span id="_timeline_viewName"></span>
-		
-		      <a href="#" class="button" id="_timeline_new_view_btn">New View</a>
-		      <a href="#" class="button button_disabled" id="_timeline_save_view_btn">Save View</a>
-		      <a href="#" class="button" id="_timeline_load_view_btn">Load View</a>
-		      <a href="#" class="button button_disabled" id="_timeline_add_channels_btn">Add Channels</a>
-		      <a href="#" class="button button_disabled" id="_timeline_show_details_btn">Show Details</a>
-		    </span>
+		  <div id="_timeline_mainContentArea" style="display:none" class="span12">
+		    
+		    	<div class="timeline-button"><button class="btn active" data-toggle="button">Hide channels</button></div>&nbsp;
+				<div class="btn-group timeline-button">
+					<button class="btn">Untitled Graph Set</button>
+					<button class="btn dropdown-toggle"
+						data-toggle="dropdown">
+						<span class="caret"></span>
+					</button>
+					<ul class="dropdown-menu">
+						<li><a href="#">Graph Set One</a></li>
+						<li><a href="#">Graph Set Two</a></li>
+						<li><a href="#">Graph Set Three</a></li>
+						<li class="divider"></li>
+						<li><a href="#">New Graph Set...</a></li>
+					</ul>
+				</div>
+<!-- 		      <span id="_timeline_viewName"></span> -->
+<!-- 		      <a href="#" class="button" id="_timeline_new_view_btn">New View</a> -->
+<!-- 		      <a href="#" class="button button_disabled" id="_timeline_save_view_btn">Save View</a> -->
+<!-- 		      <a href="#" class="button" id="_timeline_load_view_btn">Load View</a> -->
+<!-- 		      <a href="#" class="button button_disabled" id="_timeline_add_channels_btn">Add Channels</a> -->
+<!-- 		      <a href="#" class="button button_disabled" id="_timeline_show_details_btn">Show Details</a> -->
 		    <div id="_timeline_view_dialog"></div>
 		
-		    <table id="_timeline_dataTable" border="0" cellpadding="0" cellspacing="0">
+		    <table id="_timeline_dataTable" border="0" cellpadding="0" cellspacing="0" class="fullHeight">
 		      <tr valign="top">
 		        <td id="_timeline_addChannelsArea" class="_timeline_pane"></td>
 		        <td id="_timeline_dateAxisAndChannelsArea" style="display: none;">

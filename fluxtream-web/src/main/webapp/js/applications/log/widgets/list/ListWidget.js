@@ -1,7 +1,7 @@
 define(["applications/log/widgets/Widget"], function(Widget) {
 	
 	function render(digest, timeUnit) {
-		getFacets(0);
+		this.getUrl("/widgets/list/0", "list", bindPaginationElements, true);
 	}
 	
 	function getFacets(page) {
@@ -11,24 +11,26 @@ define(["applications/log/widgets/Widget"], function(Widget) {
 		$.ajax({ url: "/widgets/list/"+page,
 			data: checkedConnectors,
 			dataType: "html",
-			success: function(html) {
-				$("#widgets").html(html);
-				$(".btnListChecked").click(function(e) {
-					$(this).removeClass("btnListChecked");
-					$(this).addClass("btn-inverse");
-					getFacets(0);
-				});
-				$(".btn-inverse").click(function(e) {
-					$(this).addClass("btnListChecked");
-					$(this).removeClass("btn-inverse");
-					getFacets(0);
-				});
-				$(".paginationLink").click(function(e) {
-					var valueAttr = $(this).attr("pageNumber");
-					var value = parseInt(valueAttr);
-					getFacets(value);
-				});
-			}
+			success: bindPaginationElements
+		});
+	}
+	
+	function bindPaginationElements() {
+		console.log("binding pagination elements...");
+		$(".btnListChecked").click(function(e) {
+			$(this).removeClass("btnListChecked");
+			$(this).addClass("btn-inverse");
+			getFacets(0);
+		});
+		$(".btn-inverse").click(function(e) {
+			$(this).addClass("btnListChecked");
+			$(this).removeClass("btn-inverse");
+			getFacets(0);
+		});
+		$(".paginationLink").click(function(e) {
+			var valueAttr = $(this).attr("pageNumber");
+			var value = parseInt(valueAttr);
+			getFacets(value);
 		});
 	}
 
@@ -56,8 +58,7 @@ define(["applications/log/widgets/Widget"], function(Widget) {
 		return {"filter" : uncheckedConnectorNames};
 	}
 	
-	
-	var widget = new Widget("clock", "Candide Kemmler", "icon-list");
+	var widget = new Widget("list", "Candide Kemmler", "icon-list");
 	widget.render = render;
 	return widget;
 	

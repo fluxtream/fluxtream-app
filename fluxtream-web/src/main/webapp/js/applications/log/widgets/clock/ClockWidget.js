@@ -1,4 +1,4 @@
-define(["applications/log/widgets/clock/ClockdrawingUtils",
+define(["applications/log/widgets/clock/ClockDrawingUtils",
         "applications/log/widgets/clock/ClockConfig",
         "applications/log/widgets/Widget",
         "applications/log/App"], function(DrawingUtils, Config, Widget, Log) {
@@ -7,37 +7,40 @@ define(["applications/log/widgets/clock/ClockdrawingUtils",
 	var config = null;
 
 	function render(digest, timeUnit) {
-		require(["text!applications/log/widgets/clock/clock.html"], function(template) {
-			template = $.mustache(template, {release: window.FLX_RELEASE_NUMBER});
-			$("#widgets").append(template);
-			$("#tooltips").load("/log/tooltips");
-			var availableWidth = $("#clockWidget").width();
-			var edgeWidth =  Math.min(availableWidth, 600);
-			$("#clockWidget div:first-child").width(edgeWidth+"px");
-			$("#paper").width(edgeWidth);
-			paper = Raphael("paper", edgeWidth, edgeWidth);
-			config = Config.getConfig(edgeWidth, digest.tbounds.start, digest.tbounds.end);
-			var drawingUtils = DrawingUtils.getDrawingUtils(config);
-			config.clockCircles = paper.set();
-			drawingUtils.paintCircle(paper, config.BODY_CATEGORY.orbit, "#ffffff", 1);
-			drawingUtils.paintCircle(paper, config.AT_HOME_CATEGORY.orbit, "#ffffff", 1);
-			drawingUtils.paintCircle(paper, config.OUTSIDE_CATEGORY.orbit, "#ffffff", 1);
-			drawingUtils.paintCircle(paper, config.MIND_CATEGORY.orbit, "#ffffff", 1);
-			drawingUtils.paintCircle(paper, config.SOCIAL_CATEGORY.orbit, "#ffffff", 1);
-			drawingUtils.paintCircle(paper, config.MEDIA_CATEGORY.orbit, "#ffffff", 1);
-			paintSolarInfo(digest.solarInfo);
-			for(name in digest.cachedData) {
-				if (digest.cachedData[name]==null||typeof(digest.cachedData[name])=="undefined")
-					continue;
-				updateDataDisplay(digest.cachedData[name], name, digest);
-				if (name==="fitbit-activity_summary" && digest.cachedData["fitbit-activity_summary"][0]) {
-					drawCalories(digest.cachedData["fitbit-activity_summary"][0].caloriesPerMinute);
-				}
-			}
-			for(i=0;i<digest.updateNeeded.length;i++) {
-				getDayInfo(digest.updateNeeded[i], digest);
-			}
+		this.getTemplate("text!applications/log/widgets/clock/clock.html", "clock", function() {
+			setup(digest, timeUnit);
 		});
+	}
+	
+	function setup(digest, timeUnit) {
+		$("#tooltips").load("/log/tooltips");
+		var availableWidth = $("#clockWidget").width();
+		var edgeWidth =  Math.min(availableWidth, 600);
+		$("#clockWidget div:first-child").width(edgeWidth+"px");
+		$("#paper").empty();
+		$("#paper").width(edgeWidth);
+		paper = Raphael("paper", edgeWidth, edgeWidth);
+		config = Config.getConfig(edgeWidth, digest.tbounds.start, digest.tbounds.end);
+		var drawingUtils = DrawingUtils.getDrawingUtils(config);
+		config.clockCircles = paper.set();
+		drawingUtils.paintCircle(paper, config.BODY_CATEGORY.orbit, "#ffffff", 1);
+		drawingUtils.paintCircle(paper, config.AT_HOME_CATEGORY.orbit, "#ffffff", 1);
+		drawingUtils.paintCircle(paper, config.OUTSIDE_CATEGORY.orbit, "#ffffff", 1);
+		drawingUtils.paintCircle(paper, config.MIND_CATEGORY.orbit, "#ffffff", 1);
+		drawingUtils.paintCircle(paper, config.SOCIAL_CATEGORY.orbit, "#ffffff", 1);
+		drawingUtils.paintCircle(paper, config.MEDIA_CATEGORY.orbit, "#ffffff", 1);
+		paintSolarInfo(digest.solarInfo);
+		for(var objectTypeName in digest.cachedData) {
+			if (digest.cachedData[objectTypeName]==null||typeof(digest.cachedData[objectTypeName])=="undefined")
+				continue;
+			updateDataDisplay(digest.cachedData[objectTypeName], objectTypeName, digest);
+			if (objectTypeName==="fitbit-activity_summary" && digest.cachedData["fitbit-activity_summary"][0]) {
+				drawCalories(digest.cachedData["fitbit-activity_summary"][0].caloriesPerMinute);
+			}
+		}
+		for(i=0;i<digest.updateNeeded.length;i++) {
+			getDayInfo(digest.updateNeeded[i], digest);
+		}
 	}
 
 	function outsideTimeBoundaries(o) {
@@ -77,7 +80,7 @@ define(["applications/log/widgets/clock/ClockdrawingUtils",
 	function paintClockSpike(paper, time, radius, color, height) {
 		var coords = clockSpike(config.CLOCK_CENTER, radius, time / config.RATIO + config.START_AT, height),
 		path = paper.path(coords);
-		path.attr("stroke-width", 1)
+		path.attr("stroke-width", 1);
 		path.attr("stroke", color);
 		return path;
 	}
@@ -288,7 +291,7 @@ define(["applications/log/widgets/clock/ClockdrawingUtils",
 		var coords = arc(config.CLOCK_CENTER, radius, startTime / config.RATIO + config.START_AT, endTime
 				/ config.RATIO + config.START_AT),
 		path = paper.path(coords);
-		path.attr("stroke-width", config.STROKE_WIDTH)
+		path.attr("stroke-width", config.STROKE_WIDTH);
 		path.attr("stroke", color);
 		path.attr("opacity", opacity);
 		return path;
@@ -362,7 +365,7 @@ define(["applications/log/widgets/clock/ClockdrawingUtils",
 			else {
 				if (lastCollection!=null) {
 					lastCollection.push(positions[i]);
-					lastCollection.push("stop")
+					lastCollection.push("stop");
 				}
 				lastCollection = currentCollection;
 			}

@@ -16,29 +16,46 @@ define(["core/FlxState"], function(FlxState) {
 	 * previous app and call renderState() on the new one
 	 */
 	Application.prototype.render = function(state) {
-		console.log("Application.render: showing up application " + this.name);
 		$("#"+this.name+"MenuButton").button('toggle');
 		if (state==="last")
 			state = FlxState.getState(this.name);
 		that = this;
-		console.log("Application.render: state=" + state);
-		if ($(".application").attr("id")!=this.name) {
-			console.log("Application.Render: loading app " + this.name);
-			require([ "text!applications/"+ this.name + "/template.html"], function(html) {
-				console.log("loaded application template");
-				$(".application").attr("id", that.name);
-				$(".application").empty();
-				$(".application").append(html);
-				if (typeof(App.activeApp)!="undefined")
-					App.activeApp.destroy();
-				App.activeApp = App.apps[that.name];
-				App.activeApp.setup();
-				App.activeApp.renderState(state, true);
-			});
+		var nextAppId = this.name + "-app",
+			nextAppDiv = $("#"+nextAppId);
+		var noApp = $(".application").length==0;
+		var appChanged = $(".application").length>0
+			&& $(".application.active").length>0
+			&& $(".application.active").attr("id")!=nextAppId;
+		if ( noApp || appChanged) {
+			if (typeof(App.activeApp)!="undefined")
+				App.activeApp.destroy();
+			if (appChanged) {
+				var currentAppDiv = $(".application.active");
+				currentAppDiv.removeClass("active");
+				currentAppDiv.addClass("dormant");
+			}
+			if (nextAppDiv.length==0) {
+				require([ "text!applications/"+ this.name + "/template.html"], function(html) {
+					html = "<div class=\"application active\" id=\"" + nextAppId + "\">"
+						 + html + "</div>";
+					
+					$("#applications").append(html);
+					
+					App.activeApp = App.apps[that.name];
+					App.activeApp.renderState(state, true);
+					App.activeApp.setup();
+				});
+			} else {
+				nextAppDiv.removeClass("dormant");
+				nextAppDiv.addClass("active");
+			}
 		} else {
-			console.log("Application.Render: app is already loaded");
 			this.renderState(state, true);
 		}
+	};
+	
+	Application.prototype.saveState = function() {
+		console.log("WARNING: SAVE STATE IS NOT IMPLEMENTED");
 	};
 
 	/**

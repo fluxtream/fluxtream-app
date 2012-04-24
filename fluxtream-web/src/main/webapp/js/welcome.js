@@ -24,7 +24,7 @@ jQuery(document).ready(function($) {
 		currentYear = d.getFullYear();
 	setCookie("timeZone", timezone.name(), 1);
 	setCookie("date", currentYear + "-" + currentMonth + "-" + currentDate, 1);
-})
+});
 
 function setCookie(c_name,value,exdays) {
 	var exdate=new Date();
@@ -40,7 +40,7 @@ function submitCreateAccountForm() {
 		password2 = $("input#password2").val(),
 		username = $("input#username").val(),
 		firstname = $("input#firstname").val(),
-		lastname = $("input#lastname").val()
+		lastname = $("input#lastname").val();
 	$.ajax({
 		url:"/createAccount",
 		type: "POST",

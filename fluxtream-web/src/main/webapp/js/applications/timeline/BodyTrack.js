@@ -104,6 +104,7 @@ define(function() {
 		
 		// http://stackoverflow.com/questions/33080/setting-the-height-of-a-div-dynamically
 		resizeElementHeight : function(element) {
+			console.log("resizing element height");
 			if (element != null && element.length > 0) {
 				var height = 0;
 				var body = window.document.body;
@@ -114,7 +115,7 @@ define(function() {
 				} else if (body && body.clientHeight) {
 					height = body.clientHeight;
 				}
-				element.height((height - element.offset().top - 5) + "px");
+				element.height((height - element.offset().top - 85) + "px");
 			}
 		},
 
@@ -312,7 +313,7 @@ define(function() {
 					}
 				},
 				error   : function(jqXHR, textStatus, errorThrown) {
-					VIEWS.availableList = []
+					VIEWS.availableList = [];
 				}
 			});
 		},
@@ -388,7 +389,7 @@ define(function() {
 					}
 				},
 				error   : function(jqXHR, textStatus, errorThrown) {
-					SOURCES.availableList = []
+					SOURCES.availableList = [];
 				}
 			});
 		},
@@ -406,7 +407,7 @@ define(function() {
 					}
 				},
 				error   : function(jqXHR, textStatus, errorThrown) {
-					SOURCES.configuredList = []
+					SOURCES.configuredList = [];
 				}
 			});
 		},
