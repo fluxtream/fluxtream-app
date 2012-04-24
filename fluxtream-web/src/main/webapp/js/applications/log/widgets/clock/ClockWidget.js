@@ -5,10 +5,9 @@ define(["applications/log/widgets/clock/ClockDrawingUtils",
 	
 	var paper = null;
 	var config = null;
-	var clockWidget = new Widget("clock", "Candide Kemmler", "icon-time");
 
 	function render(digest, timeUnit) {
-		clockWidget.getTemplate("text!applications/log/widgets/clock/clock.html", function() {
+		this.getTemplate("text!applications/log/widgets/clock/clock.html", "clock", function() {
 			setup(digest, timeUnit);
 		});
 	}
@@ -18,6 +17,7 @@ define(["applications/log/widgets/clock/ClockDrawingUtils",
 		var availableWidth = $("#clockWidget").width();
 		var edgeWidth =  Math.min(availableWidth, 600);
 		$("#clockWidget div:first-child").width(edgeWidth+"px");
+		$("#paper").empty();
 		$("#paper").width(edgeWidth);
 		paper = Raphael("paper", edgeWidth, edgeWidth);
 		config = Config.getConfig(edgeWidth, digest.tbounds.start, digest.tbounds.end);
@@ -291,7 +291,7 @@ define(["applications/log/widgets/clock/ClockDrawingUtils",
 		var coords = arc(config.CLOCK_CENTER, radius, startTime / config.RATIO + config.START_AT, endTime
 				/ config.RATIO + config.START_AT),
 		path = paper.path(coords);
-		path.attr("stroke-width", config.STROKE_WIDTH)
+		path.attr("stroke-width", config.STROKE_WIDTH);
 		path.attr("stroke", color);
 		path.attr("opacity", opacity);
 		return path;
@@ -365,7 +365,7 @@ define(["applications/log/widgets/clock/ClockDrawingUtils",
 			else {
 				if (lastCollection!=null) {
 					lastCollection.push(positions[i]);
-					lastCollection.push("stop")
+					lastCollection.push("stop");
 				}
 				lastCollection = currentCollection;
 			}
@@ -453,6 +453,7 @@ define(["applications/log/widgets/clock/ClockDrawingUtils",
 		});
 	}
 	
+	var clockWidget = new Widget("clock", "Candide Kemmler", "icon-time");
 	clockWidget.render = render;
 	return clockWidget;
 	

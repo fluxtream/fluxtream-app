@@ -1,9 +1,9 @@
 define([ "core/FlxState" ], function(FlxState) {
 
-	function Widget(name, author, icon) {
-		this.name = name;
-		this.author = author;
-		this.icon = icon;
+	function Widget(aname, anauthor, anicon) {
+		this.name = aname;
+		this.author = anauthor;
+		this.icon = anicon;
 	}
 
 	/**
@@ -22,45 +22,68 @@ define([ "core/FlxState" ], function(FlxState) {
 	};
 	
 	
-	Widget.prototype.getTemplate = function(templatePath, domReady) {
-		console.log("getting template: " + templatePath);
+	Widget.prototype.getUrl = function(url, id, domReady, forceLoad) {
+		this.getWidgetContents(url, id, typeof(domReady)==="undefined"?null:domReady, false, forceLoad);
+	};
+	
+	Widget.prototype.getTemplate = function(templatePath, id, domReady) {
+		this.getWidgetContents(templatePath, id, typeof(domReady)==="undefined"?null:domReady, true, false);
+	};
+
+	Widget.prototype.getWidgetContents = function(uri, id, domReady, isResource, forceLoad) {
+		var nextWidgetId = id + "-widget";
 		
-		var nextWidgetId = this.name + "-widget",
 		nextWidgetDiv = $("#"+nextWidgetId);
 		var noWidget = $(".widget").length==0;
 		var widgetChanged = $(".widget").length>0
 			&& $(".widget.active").length>0
 			&& $(".widget.active").attr("id")!=nextWidgetId;
-		if ( noWidget || widgetChanged) {
+		if ( noWidget || widgetChanged || forceLoad) {
 			if (widgetChanged) {
 				var currentWidgetDiv = $(".widget.active");
 				currentWidgetDiv.removeClass("active");
 				currentWidgetDiv.addClass("dormant");
 			}
-			if (nextWidgetDiv.length==0) {
-				console.log(nextWidgetId + " is not yet loaded...");
-				console.log("-> loading widget " + this.name);
-				require([templatePath], function(template) {
-					console.log("loaded widget template");
-					template = $.mustache(template, {release: window.FLX_RELEASE_NUMBER});
-					template = "<div class=\"widget active\" id=\"" + nextWidgetId + "\">"
-						 + template + "</div>";
-					$("#widgets").append(template);
-					domReady();
-				});
+			if (nextWidgetDiv.length==0 || forceLoad) {
+				if (isResource)
+					require([uri], function(template) {
+						insertWidgetContents(template, nextWidgetId, domReady, forceLoad);
+					});
+				else
+					$.ajax({
+						url : uri,
+						success: function(html) {
+							insertWidgetContents(html, nextWidgetId, domReady, forceLoad);
+						}
+					});
 			} else {
-				console.log("using cached widget dom");
 				nextWidgetDiv.removeClass("dormant");
 				nextWidgetDiv.addClass("active");
-				domReady();
+				if (domReady!=null)
+					domReady();
 			}
 		} else {
-			console.log("Widget.getTemplate: widget template is already loaded");
-			this.renderState(state, true);
-			domReady();
+			if (domReady!=null)
+				domReady();
 		}		
 		
 	};
+	
+	function insertWidgetContents(template, nextWidgetId, domReady, forceLoad) {
+		template = $.mustache(template, {release: window.FLX_RELEASE_NUMBER});
+		template = "<div class=\"widget active\" id=\"" + nextWidgetId + "\">"
+			 + template + "</div>";
+		console.log("forceLoad: " + forceLoad + ", nextWidgetId: " + nextWidgetId);
+		if (forceLoad && $("#"+nextWidgetId).length>0) {
+			console.log("replacing");
+			$("#"+nextWidgetId).replaceWith(template);
+		} else {
+			console.log("appending");
+			$("#widgets").append(template);
+		}
+		if (domReady!=null)
+			domReady(template);
+	}
 
 	/**
 	 * This needs to be overridden in "subclasses"
@@ -71,7 +94,7 @@ define([ "core/FlxState" ], function(FlxState) {
 	}
 
 	Widget.prototype.getCurrentState = getCurrentState;
-
+	
 	return Widget;
 
 });

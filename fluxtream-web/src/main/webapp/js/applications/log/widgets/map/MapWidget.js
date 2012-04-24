@@ -1,11 +1,10 @@
 define(["applications/log/widgets/Widget",
         "applications/log/App"], function(Widget, Log) {
 
-	var mapWidget = new Widget("map", "Candide Kemmler", "icon-map-marker");
 	var map = null;
 	
 	function render(digest, timeUnit) {
-		mapWidget.getTemplate("text!applications/log/widgets/map/map.html", setup);
+		this.getTemplate("text!applications/log/widgets/map/map.html", "map", setup);
 	}
 	
 	function setup() {
@@ -27,6 +26,7 @@ define(["applications/log/widgets/Widget",
 		map.setZoom(zoomLevel);
 	}
 
+	var mapWidget = new Widget("map", "Candide Kemmler", "icon-map-marker");
 	mapWidget.render = render;
 	return mapWidget;
 

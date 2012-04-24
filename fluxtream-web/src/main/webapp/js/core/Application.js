@@ -16,12 +16,10 @@ define(["core/FlxState"], function(FlxState) {
 	 * previous app and call renderState() on the new one
 	 */
 	Application.prototype.render = function(state) {
-		console.log("Application.render: showing up application " + this.name);
 		$("#"+this.name+"MenuButton").button('toggle');
 		if (state==="last")
 			state = FlxState.getState(this.name);
 		that = this;
-		console.log("Application.render: state=" + state);
 		var nextAppId = this.name + "-app",
 			nextAppDiv = $("#"+nextAppId);
 		var noApp = $(".application").length==0;
@@ -37,11 +35,7 @@ define(["core/FlxState"], function(FlxState) {
 				currentAppDiv.addClass("dormant");
 			}
 			if (nextAppDiv.length==0) {
-				console.log(nextAppId + " is not yet loaded...");
-				console.log("-> loading app " + this.name);
 				require([ "text!applications/"+ this.name + "/template.html"], function(html) {
-					console.log("loaded application template");
-					
 					html = "<div class=\"application active\" id=\"" + nextAppId + "\">"
 						 + html + "</div>";
 					
@@ -52,12 +46,10 @@ define(["core/FlxState"], function(FlxState) {
 					App.activeApp.setup();
 				});
 			} else {
-				console.log("using cached application dom");
 				nextAppDiv.removeClass("dormant");
 				nextAppDiv.addClass("active");
 			}
 		} else {
-			console.log("Application.Render: app is already loaded");
 			this.renderState(state, true);
 		}
 	};

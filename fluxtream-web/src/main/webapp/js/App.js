@@ -73,7 +73,6 @@ define(
 			 * contents
 			 */
 			function renderMainApp() {
-				console.log("renderMainApp " + apps);
 				var parse_url = /^(?:([A-Za-z]+):)?(\/{0,3})([0-9.\-A-Za-z]+)(?::(\d+))?(?:\/([^?#]*))?(?:\?([^#]*))?(?:#(.*))?$/;
 				var result = parse_url.exec(window.location.href);
 				var names = [ 'url', 'scheme', 'slash', 'host', 'port', 'path',
@@ -88,7 +87,6 @@ define(
 					var appState = parts.path.substring("app/".length
 							+ splits[1].length + 1);
 					var appName = splits[1];
-					console.log("Main app: appState: " + appState);
 					FlxState.saveState(appName, appState);
 					App.activeApp = apps[appName];
 				} else {
@@ -98,7 +96,6 @@ define(
 			};
 			
 			function fullHeight() {
-				console.log("Full Height Magic!");
 				if ($(".fullHeight").length>0) {
 					widgetsY = $("#widgets").position().top;
 					windowHeight = $(window).height();

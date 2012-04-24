@@ -1,6 +1,7 @@
 define([], function() {
 	
 	var Builder = {};
+	var widgets = {};
 	
 	var widgets = {
 		"DAY":["clock", "dashboard", "map", "diary", "photos", "list"],
@@ -36,6 +37,7 @@ define([], function() {
 				var widget = $(event.target).attr("widget");
 				var state = App.state.getState("log");
 				state = state.substring(state.indexOf("/"));
+				console.log("tab hit: " + widget);
 				Log.renderState(widget+state);
 			});
 		}
@@ -157,14 +159,24 @@ define([], function() {
 	
 	function updateWidget(digest, Log) {
 		handleNotifications(digest);
-		require([ "applications/log/widgets/" + Log.currentWidgetName + "/"
-				+ capitalizeFirstLetter(Log.currentWidgetName) + "Widget"],
+		if (widgets[Log.currentWidgetName]==null) {
+			require([ "applications/log/widgets/" + Log.currentWidgetName + "/"
+					+ capitalizeFirstLetter(Log.currentWidgetName) + "Widget"],
 				function(widget) {
-			Log.currentWidget = widget;
-			var currentWidgetTab = "#widgetsTab a." + Log.currentWidgetName+"-tab";
-			$(currentWidgetTab).tab("show");
-			widget.render(digest, Log.timeUnit, Log.widgetState);
-		});
+					widgets[Log.currentWidgetName] = widget;
+					renderWidget(widget, digest, Log);
+				}
+			);
+		} else {
+			renderWidget(widgets[Log.currentWidgetName], digest, Log);
+		}
+	}
+	
+	function renderWidget(widget, digest, Log) {
+		Log.currentWidget = widget;
+		var currentWidgetTab = "#widgetsTab a." + Log.currentWidgetName+"-tab";
+		$(currentWidgetTab).tab("show");
+		widget.render(digest, Log.timeUnit, Log.widgetState);
 	}
 	
 	function widgetExistsForTimeUnit(widget, unit) {
