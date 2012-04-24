@@ -24,22 +24,19 @@ public class TwoLeggedOAuthHelper extends ApiClientSupport {
         if (hasReachedRateLimit(connector, guestId))
             throw new RateLimitReachedException();
 
-		accessToken = "SA4RSBZB7FN735A3CEU6SHSAB6UAA5PS2AELCFAJSW55LZQTDATQ";
-		tokenSecret = "CDIMNTEGJTUNL3QIWYBPNRUQ4WL5DMT998BLT2QQ0BUISG7TYZV51WVLM8FM7T84";
-		
 		try {
 			long then = System.currentTimeMillis();
 			URL url = new URL(urlString);
 			HttpURLConnection request = (HttpURLConnection) url.openConnection();
 			
 			OAuthConsumer consumer = new DefaultOAuthConsumer(
-					"", "");
+					accessToken, tokenSecret);
 			if (additionalParameters!=null && additionalParameters.size()>0)
 				addAdditionalParameters(consumer, additionalParameters);
 	
 			consumer.setTokenWithSecret(
-					accessToken,
-					tokenSecret);
+					"",
+					"");
 			
 			// sign the request (consumer is a Signpost DefaultOAuthConsumer)
 			try {

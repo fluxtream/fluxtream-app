@@ -11,6 +11,7 @@ import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.SignpostOAuthHelper;
@@ -19,6 +20,7 @@ import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
 
+@Component
 @Updater(prettyName = "BodyMedia", value = 88, objectTypes = {
 		BodymediaBurnFacet.class, BodymediaSleepFacet.class,
 		BodymediaStepsFacet.class }, hasFacets = true, additionalParameters={"api_key"})
@@ -33,6 +35,7 @@ public class BodymediaUpdater extends AbstractUpdater {
 
 	public void updateConnectorDataHistory(UpdateInfo updateInfo)
 			throws Exception {
+		setupConsumer(updateInfo.apiKey);
 		ObjectType burnOT = ObjectType.getObjectType(connector(), "burn");
 		String userRegistrationDate = getUserRegistrationDate(updateInfo);
 		if (updateInfo.objectTypes().contains(burnOT)) {
