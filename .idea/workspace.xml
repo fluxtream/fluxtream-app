@@ -7,8 +7,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e7c795f8-2116-4304-ad9d-58db7f694dc1" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gitignore" afterPath="$PROJECT_DIR$/.gitignore" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-connectors/src/main/java/com/fluxtream/connectors/bodymedia/BodymediaUpdater.java" afterPath="$PROJECT_DIR$/fluxtream-connectors/src/main/java/com/fluxtream/connectors/bodymedia/BodymediaUpdater.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-connectors/src/main/java/com/fluxtream/connectors/openpath/OpenPathUpdater.java" afterPath="$PROJECT_DIR$/fluxtream-connectors/src/main/java/com/fluxtream/connectors/openpath/OpenPathUpdater.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-core/src/main/java/com/fluxtream/connectors/Connector.java" afterPath="$PROJECT_DIR$/fluxtream-core/src/main/java/com/fluxtream/connectors/Connector.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-core/src/main/java/com/fluxtream/connectors/TwoLeggedOAuthHelper.java" afterPath="$PROJECT_DIR$/fluxtream-core/src/main/java/com/fluxtream/connectors/TwoLeggedOAuthHelper.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/App.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/App.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/Builder.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/Builder.js" />
     </list>
     <ignored path="fluxtream-app.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -36,32 +42,6 @@
   </component>
   <component name="DebuggerManager">
     <line_breakpoints>
-      <breakpoint url="file://$PROJECT_DIR$/fluxtream-core/src/main/java/com/fluxtream/connectors/TwoLeggedOAuthHelper.java" line="23" class="com.fluxtream.connectors.TwoLeggedOAuthHelper" package="com.fluxtream.connectors">
-        <option name="ENABLED" value="true" />
-        <option name="LOG_ENABLED" value="false" />
-        <option name="LOG_EXPRESSION_ENABLED" value="false" />
-        <option name="SUSPEND_POLICY" value="SuspendAll" />
-        <option name="COUNT_FILTER_ENABLED" value="false" />
-        <option name="COUNT_FILTER" value="0" />
-        <option name="CONDITION_ENABLED" value="false" />
-        <option name="CLASS_FILTERS_ENABLED" value="false" />
-        <option name="INSTANCE_FILTERS_ENABLED" value="false" />
-        <option name="CONDITION" value="&#13;&#13;JAVA" />
-        <option name="LOG_MESSAGE" value="&#13;&#13;JAVA" />
-      </breakpoint>
-      <breakpoint url="file://$PROJECT_DIR$/fluxtream-core/src/main/java/com/fluxtream/connectors/TwoLeggedOAuthHelper.java" line="33" class="com.fluxtream.connectors.TwoLeggedOAuthHelper" package="com.fluxtream.connectors">
-        <option name="ENABLED" value="true" />
-        <option name="LOG_ENABLED" value="false" />
-        <option name="LOG_EXPRESSION_ENABLED" value="false" />
-        <option name="SUSPEND_POLICY" value="SuspendAll" />
-        <option name="COUNT_FILTER_ENABLED" value="false" />
-        <option name="COUNT_FILTER" value="0" />
-        <option name="CONDITION_ENABLED" value="false" />
-        <option name="CLASS_FILTERS_ENABLED" value="false" />
-        <option name="INSTANCE_FILTERS_ENABLED" value="false" />
-        <option name="CONDITION" value="" />
-        <option name="LOG_MESSAGE" value="" />
-      </breakpoint>
       <breakpoint url="file://$PROJECT_DIR$/fluxtream-connectors/src/main/java/com/fluxtream/connectors/openpath/OpenPathConnectorController.java" line="44" class="com.fluxtream.connectors.openpath.OpenPathConnectorController" package="com.fluxtream.connectors.openpath">
         <option name="ENABLED" value="true" />
         <option name="LOG_ENABLED" value="false" />
@@ -123,8 +103,8 @@
       <property name="field_breakpoints_groupByClasses" value="true" />
       <property name="method_breakpoints_groupByClasses" value="true" />
       <property name="exception_breakpoints_viewId" value="TABLE" />
-      <property name="field_breakpoints_viewId" value="TABLE" />
       <property name="exception_breakpoints_groupByClasses" value="true" />
+      <property name="field_breakpoints_viewId" value="TABLE" />
       <property name="method_breakpoints_groupByMethods" value="false" />
     </ui_properties>
   </component>
@@ -151,28 +131,19 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="OpenPathUpdater.java" pinned="false" current="false" current-in-tab="false">
+      <file leaf-file-name="OpenPathUpdater.java" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/fluxtream-connectors/src/main/java/com/fluxtream/connectors/openpath/OpenPathUpdater.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="38" column="31" selection-start="1341" selection-end="1341" vertical-scroll-proportion="0.0">
+            <state line="39" column="25" selection-start="1374" selection-end="1374" vertical-scroll-proportion="0.58272326">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="TwoLeggedOAuthHelper.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/fluxtream-core/src/main/java/com/fluxtream/connectors/TwoLeggedOAuthHelper.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="64" column="13" selection-start="2311" selection-end="2311" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="workspace.xml" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="workspace.xml" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/.idea/workspace.xml">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
+            <state line="8" column="0" selection-start="258" selection-end="258" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -223,8 +194,8 @@
         <option value="$PROJECT_DIR$/.gitignore" />
         <option value="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/timeline/App.js" />
         <option value="$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/index.jsp" />
-        <option value="$PROJECT_DIR$/fluxtream-core/src/main/java/com/fluxtream/connectors/TwoLeggedOAuthHelper.java" />
         <option value="$PROJECT_DIR$/.idea/workspace.xml" />
+        <option value="$PROJECT_DIR$/fluxtream-core/src/main/java/com/fluxtream/connectors/TwoLeggedOAuthHelper.java" />
       </list>
     </option>
   </component>
@@ -681,7 +652,7 @@
     <property name="project.structure.proportion" value="0.15" />
     <property name="options.splitter.main.proportions" value="0.3" />
     <property name="recentsLimit" value="5" />
-    <property name="options.lastSelected" value="preferences.editor" />
+    <property name="options.lastSelected" value="preferences.keymap" />
     <property name="MemberChooser.sorted" value="false" />
     <property name="project.structure.side.proportion" value="0.27262813" />
     <property name="GoToClass.includeJavaFiles" value="false" />
@@ -690,9 +661,9 @@
     <property name="FullScreen" value="false" />
     <property name="MemberChooser.showClasses" value="true" />
     <property name="GoToClass.includeLibraries" value="false" />
-    <property name="dynamic.classpath" value="false" />
-    <property name="options.splitter.details.proportions" value="0.2" />
     <property name="options.searchVisible" value="true" />
+    <property name="options.splitter.details.proportions" value="0.2" />
+    <property name="dynamic.classpath" value="false" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
@@ -806,6 +777,17 @@
         <option name="Maven.BeforeRunTask" enabled="false" />
       </method>
     </configuration>
+    <configuration default="true" type="JavascriptDebugSession" factoryName="Local">
+      <JSDebuggerConfigurationSettings>
+        <option name="engineId" value="embedded" />
+        <option name="fileUrl" />
+      </JSDebuggerConfigurationSettings>
+      <method>
+        <option name="AntTarget" enabled="false" />
+        <option name="BuildArtifacts" enabled="false" />
+        <option name="Maven.BeforeRunTask" enabled="false" />
+      </method>
+    </configuration>
     <configuration default="true" type="JUnit" factoryName="JUnit">
       <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
       <module name="" />
@@ -829,17 +811,6 @@
         <option name="AntTarget" enabled="false" />
         <option name="BuildArtifacts" enabled="false" />
         <option name="Make" enabled="true" />
-        <option name="Maven.BeforeRunTask" enabled="false" />
-      </method>
-    </configuration>
-    <configuration default="true" type="JavascriptDebugSession" factoryName="Local">
-      <JSDebuggerConfigurationSettings>
-        <option name="engineId" value="embedded" />
-        <option name="fileUrl" />
-      </JSDebuggerConfigurationSettings>
-      <method>
-        <option name="AntTarget" enabled="false" />
-        <option name="BuildArtifacts" enabled="false" />
         <option name="Maven.BeforeRunTask" enabled="false" />
       </method>
     </configuration>
@@ -1071,7 +1042,7 @@
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32923368" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.21581197" sideWeight="0.32734153" order="1" side_tool="true" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32852563" sideWeight="0.6707663" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.116987176" sideWeight="0.6717124" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.11645299" sideWeight="0.6717124" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32923368" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="IDEtalk Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="IDEtalk" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32911393" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
@@ -1206,6 +1177,13 @@
         <state line="131" column="0" selection-start="5623" selection-end="5623" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/.idea/workspace.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="8" column="0" selection-start="258" selection-end="258" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/fluxtream-core/src/main/java/com/fluxtream/connectors/SignpostOAuthHelper.java">
       <provider selected="true" editor-type-id="text-editor">
         <state line="34" column="57" selection-start="1106" selection-end="1117" vertical-scroll-proportion="0.0" />
@@ -1221,23 +1199,16 @@
         <state line="10" column="0" selection-start="296" selection-end="296" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/fluxtream-connectors/src/main/java/com/fluxtream/connectors/openpath/OpenPathUpdater.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="38" column="31" selection-start="1341" selection-end="1341" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/fluxtream-core/src/main/java/com/fluxtream/connectors/TwoLeggedOAuthHelper.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="64" column="13" selection-start="2311" selection-end="2311" vertical-scroll-proportion="0.0">
+        <state line="32" column="48" selection-start="1190" selection-end="1190" vertical-scroll-proportion="0.43923867">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/.idea/workspace.xml">
+    <entry file="file://$PROJECT_DIR$/fluxtream-connectors/src/main/java/com/fluxtream/connectors/openpath/OpenPathUpdater.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
+        <state line="39" column="25" selection-start="1374" selection-end="1374" vertical-scroll-proportion="0.58272326">
           <folding />
         </state>
       </provider>

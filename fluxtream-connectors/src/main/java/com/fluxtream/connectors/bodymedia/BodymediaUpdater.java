@@ -3,7 +3,6 @@ package com.fluxtream.connectors.bodymedia;
 import net.sf.json.JSONObject;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.commonshttp.CommonsHttpOAuthConsumer;
-import oauth.signpost.http.HttpParameters;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -11,6 +10,7 @@ import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.SignpostOAuthHelper;
@@ -19,6 +19,7 @@ import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
 
+@Component
 @Updater(prettyName = "BodyMedia", value = 88, objectTypes = {
 		BodymediaBurnFacet.class, BodymediaSleepFacet.class,
 		BodymediaStepsFacet.class }, hasFacets = true, additionalParameters={"api_key"})
@@ -33,8 +34,11 @@ public class BodymediaUpdater extends AbstractUpdater {
 
 	public void updateConnectorDataHistory(UpdateInfo updateInfo)
 			throws Exception {
+		setupConsumer(updateInfo.apiKey);
+		String api_key = env.get("bodymediaConsumerKey");
+		
 		ObjectType burnOT = ObjectType.getObjectType(connector(), "burn");
-		String userRegistrationDate = getUserRegistrationDate(updateInfo);
+		String userRegistrationDate = getUserRegistrationDate(updateInfo, api_key);
 		if (updateInfo.objectTypes().contains(burnOT)) {
 			retrieveBurnHistory(updateInfo, userRegistrationDate);
 		}		
@@ -54,10 +58,7 @@ public class BodymediaUpdater extends AbstractUpdater {
 		consumer = new CommonsHttpOAuthConsumer(
 				api_key,
 				bodymediaConsumerSecret);
-		HttpParameters additionalParameter = new HttpParameters();
-		additionalParameter.put("api_key", api_key);
-		consumer.setAdditionalParameters(additionalParameter);
-
+		
 		String accessToken = apiKey.getAttributeValue("accessToken", env);
 		String tokenSecret = apiKey.getAttributeValue("tokenSecret", env);
 		
@@ -69,16 +70,17 @@ public class BodymediaUpdater extends AbstractUpdater {
 		
 	}
 	
-	public String getUserRegistrationDate(UpdateInfo updateInfo)
+	public String getUserRegistrationDate(UpdateInfo updateInfo, String api_key)
 			throws Exception {
 		long then = System.currentTimeMillis();
-		String requestUrl = "http://api.bodymedia.com/v2/json/user/info";
+		String requestUrl = "http://api.bodymedia.com/v2/json/user/info?api_key=" + api_key;
 
 		HttpGet request = new HttpGet(requestUrl);
 		consumer.sign(request);
 		HttpClient client = env.getHttpClient();
 		HttpResponse response = client.execute(request);
-		if (response.getStatusLine().getStatusCode() == 200) {
+		int statusCode = response.getStatusLine().getStatusCode();
+		if (statusCode == 200) {
 			countSuccessfulApiCall(updateInfo.apiKey.getGuestId(),
 					updateInfo.objectTypes, then, requestUrl);
 			ResponseHandler<String> responseHandler = new BasicResponseHandler();

@@ -37,7 +37,6 @@ define([], function() {
 				var widget = $(event.target).attr("widget");
 				var state = App.state.getState("log");
 				state = state.substring(state.indexOf("/"));
-				console.log("tab hit: " + widget);
 				Log.renderState(widget+state);
 			});
 		}

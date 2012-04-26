@@ -32,7 +32,7 @@ public class OpenPathUpdater extends AbstractUpdater {
 		try {
 			String restResponse = twoLeggedOAuthHelper.makeRestCall(connector,
 					guestId, accessKey, secretKey, null, -1,
-					"https://openpaths.cc/api/1");
+					"https://openpaths.cc/api/1?num_points=2000");
 			System.out.println("restResponse: " + restResponse);
 			JSONObject.fromObject(restResponse);
 			return true;
