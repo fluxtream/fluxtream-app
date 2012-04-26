@@ -360,7 +360,7 @@ public class Connector {
 	}
 
 	public boolean hasAdditionalParameters() {
-		return additionalParameters.length>0;
+		return additionalParameters != null && additionalParameters.length > 0;
 	}
 
 	public String[] getAdditionalParameters() {
