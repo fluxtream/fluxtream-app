@@ -55,10 +55,23 @@ define(["core/Application", "core/FlxState", "applications/log/Builder", "libs/b
 			Builder.createWidgetTabs(Log);
 			fetchState("/nav/setToToday.json");
 		}
-		else {
-			var splits = state.split("/");
-			Log.currentWidgetName = splits[0];
-			Log.timeUnit = toTimeUnit(splits[1]);
+		var splits = state.split("/");
+		Log.currentWidgetName = splits[0];
+		Log.timeUnit = toTimeUnit(splits[1]);
+		var nextWidgetState = state.substring(splits[0].length+1);
+		console.log("nextWidgetState: [" + nextWidgetState + "], Log.widgetState: [" + Log.widgetState + "]");
+		if (Log.widgetState==nextWidgetState) {
+			// time didn't change
+			console.log("haha, time didn't change!");
+			var w = Builder.widgetExistsForTimeUnit(Log.currentWidgetName, Log.timeUnit)?Log.currentWidgetName:Builder.widgets[Log.timeUnit][0];
+			Log.currentWidgetName = w;
+			Builder.createWidgetTabs(Log);
+			Builder.updateWidget(state, Log);
+			FlxState.router.navigate("app/log/" + state);
+			FlxState.saveState("log", state);
+			return;
+		} else {
+			console.log("haha, time did change this time!");
 			var w = Builder.widgetExistsForTimeUnit(Log.currentWidgetName, Log.timeUnit)?Log.currentWidgetName:Builder.widgets[Log.timeUnit][0];
 			Log.currentWidgetName = w;
 			Builder.createTimeUnitsMenu(Log);
