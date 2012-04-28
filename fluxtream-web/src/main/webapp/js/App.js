@@ -10,7 +10,7 @@ define(
 				_.bindAll(this);
 				// start loading all applications
 				loadApps();
-			};
+			}
 
 			/**
 			 * Preload all applications dynamically; we do this because a) the
@@ -28,7 +28,7 @@ define(
 								appLoaded(app.name);
 							});
 				}
-			};
+			}
 
 			/**
 			 * Add the buttons to the top apps menu
@@ -46,7 +46,7 @@ define(
 											+ "<i class=\"" + app.icon
 											+ "  icon-large\"></i></button>");
 				}
-			};
+			}
 
 			/**
 			 * Application-is-loaded callback
@@ -66,7 +66,7 @@ define(
 					// finally we render the default - or url-specified - app
 					renderMainApp();
 				}
-			};
+			}
 
 			/**
 			 * Render main app or the one that's specified in the location bar's
@@ -93,7 +93,7 @@ define(
 					App.activeApp = apps[FlxState.defaultApp];
 					apps[FlxState.defaultApp].render("");
 				}
-			};
+			}
 			
 			function fullHeight() {
 				if ($(".fullHeight").length>0) {
@@ -112,7 +112,7 @@ define(
 				App.activeApp.saveState();
 				App.activeApp=App.apps[appName];
 				App.apps[appName].render("last");
-			};
+			}
 
 			App.settings = function() {
 				$.ajax({
@@ -204,7 +204,6 @@ define(
 			
 			App.showCarousel = function(photoId) {
 				if ($("#photosCarousel").length==0) {
-					console.log("no carousel yet, here...");
 					$.ajax({
 						url : "/widgets/photos/carousel",
 						success: function(html) {

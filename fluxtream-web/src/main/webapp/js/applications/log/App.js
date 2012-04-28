@@ -5,8 +5,9 @@ define(["core/Application", "core/FlxState", "applications/log/Builder", "libs/b
 	Log.currentWidgetName = Builder.widgets["DAY"][0];
 	Log.currentWidget = null;
 	Log.widgetState = null;
-	Log.timeUnit = "DAY";
-	
+    Log.digest = null;
+    Log.timeUnit = "DAY";
+
 	var start, end;
 	
 	Log.setup = function() {
@@ -54,24 +55,22 @@ define(["core/Application", "core/FlxState", "applications/log/Builder", "libs/b
 			Builder.createTimeUnitsMenu(Log);
 			Builder.createWidgetTabs(Log);
 			fetchState("/nav/setToToday.json");
+            return;
 		}
 		var splits = state.split("/");
 		Log.currentWidgetName = splits[0];
 		Log.timeUnit = toTimeUnit(splits[1]);
 		var nextWidgetState = state.substring(splits[0].length+1);
-		console.log("nextWidgetState: [" + nextWidgetState + "], Log.widgetState: [" + Log.widgetState + "]");
 		if (Log.widgetState==nextWidgetState) {
 			// time didn't change
-			console.log("haha, time didn't change!");
 			var w = Builder.widgetExistsForTimeUnit(Log.currentWidgetName, Log.timeUnit)?Log.currentWidgetName:Builder.widgets[Log.timeUnit][0];
 			Log.currentWidgetName = w;
 			Builder.createWidgetTabs(Log);
-			Builder.updateWidget(state, Log);
+			Builder.updateWidget(Log.digest, Log);
 			FlxState.router.navigate("app/log/" + state);
 			FlxState.saveState("log", state);
 			return;
 		} else {
-			console.log("haha, time did change this time!");
 			var w = Builder.widgetExistsForTimeUnit(Log.currentWidgetName, Log.timeUnit)?Log.currentWidgetName:Builder.widgets[Log.timeUnit][0];
 			Log.currentWidgetName = w;
 			Builder.createTimeUnitsMenu(Log);
@@ -131,6 +130,7 @@ define(["core/Application", "core/FlxState", "applications/log/Builder", "libs/b
 		$.ajax({ url: url,
 			success : function(response) {
 				$("#modal").empty();
+                Log.digest = response;
 				Builder.updateWidget(response, Log);
 				$("#widgets").css("opacity", "1");
 				$(".calendar-navigation-button").toggleClass("disabled");

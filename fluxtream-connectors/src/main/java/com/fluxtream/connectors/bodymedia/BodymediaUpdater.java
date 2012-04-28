@@ -1,5 +1,6 @@
 package com.fluxtream.connectors.bodymedia;
 
+import com.fluxtream.connectors.updaters.RateLimitReachedException;
 import net.sf.json.JSONObject;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.commonshttp.CommonsHttpOAuthConsumer;
@@ -45,9 +46,13 @@ public class BodymediaUpdater extends AbstractUpdater {
 	}
 
 	private void retrieveBurnHistory(UpdateInfo updateInfo,
-			String userRegistrationDate) {
-		
-	}
+			String userRegistrationDate) throws Exception {
+        ObjectType burnOT = ObjectType.getObjectType(connector(), "burn");
+        String burnMinutesUrl = "http://api.bodymedia.com/v2/burn/day/minute/intensity/" + userRegistrationDate + "?api_key=" +
+                updateInfo.apiKey.getAttributeValue("api_key", env);
+        String jsonResponse = signpostHelper.makeRestCall(connector(), updateInfo.apiKey, burnOT.value(), burnMinutesUrl);
+        apiDataService.cacheApiDataJSON(updateInfo, jsonResponse, -1, -1);
+    }
 
 	OAuthConsumer consumer;
 	

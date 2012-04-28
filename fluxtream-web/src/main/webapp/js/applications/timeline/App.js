@@ -262,7 +262,6 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 				start : function(event, ui) { 
 					// Set height to match grapher widget so that hovering
 					// over channels pane shifts existing widgets by correct amount
-					console.log($(this).height());
 					$(this).height("74px");
 				},
 				stop : function(event, ui) { 

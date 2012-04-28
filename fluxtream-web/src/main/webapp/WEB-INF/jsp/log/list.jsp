@@ -97,7 +97,7 @@
       	</article>
 	      </div>
       </div>
-
+      <div class="flx-spacer"></div>
 	<% } %>
 	
 <% } else if (request.getAttribute("searchTerms")==null) { %>
@@ -123,4 +123,3 @@
 	<li><a class="paginationLink disabled" pageNumber="<%=pageNumber%>">Next &raquo;</a></li>
 <% }} %>
 </ul></div>
-<div class="flx-spacer"></div>

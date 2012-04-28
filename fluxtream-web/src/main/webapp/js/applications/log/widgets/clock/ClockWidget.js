@@ -8,7 +8,7 @@ define(["applications/log/widgets/clock/ClockDrawingUtils",
 
 	function render(digest, timeUnit) {
 		this.getTemplate("text!applications/log/widgets/clock/clock.html", "clock", function() {
-			setup(digest, timeUnit);
+			 setup(digest, timeUnit);
 		});
 	}
 	

@@ -18,12 +18,13 @@
 		</property>
 	</bean>
 
-	<mvc:resources mapping="/index.html" location="/index.html" cache-period="31556926" />
+	<!--<mvc:resources mapping="/index.html" location="/index.html" cache-period="31556926" />-->
 	<mvc:resources mapping="/${release}/js/**" location="/js/" cache-period="31556926" />
 	<mvc:resources mapping="/${release}/less/**" location="/less/" cache-period="31556926" />
 	<mvc:resources mapping="/${release}/css/**" location="/css/" cache-period="31556926" />
 	<mvc:resources mapping="/css/**" location="/css/" cache-period="31556926" />
-	<mvc:resources mapping="/static/**" location="/static/" cache-period="31556926" />
+    <mvc:resources mapping="/images/**" location="/images/" cache-period="31556926" />
+    <mvc:resources mapping="/static/**" location="/static/" cache-period="31556926" />
 	<mvc:resources mapping="/${release}/images/**" location="/images/" cache-period="31556926" />
 
 	<mvc:resources mapping="/${release}/admin/js/**" location="/admin/js/" cache-period="31556926" />
@@ -32,8 +33,8 @@
 
 	<mvc:resources mapping="${release}/widgets/dashboard/week/**" location="/WEB-INF/jsp/widgets/weeklyDashboardWidgets/" cache-period="31556926" />
 	<mvc:resources mapping="${release}/widgets/dashboard/day/**" location="/WEB-INF/jsp/widgets/dailyDashboardWidgets/" cache-period="31556926" />
-	<mvc:resources mapping="${release}/widgets/dashboard/month/**" location="/WEB-INF/jsp/widgets/monthlyDashboardWidgets/" cache-period="31556926" />
-	<mvc:resources mapping="${release}/widgets/dashboard/year/**" location="/WEB-INF/jsp/widgets/yearlyDashboardWidgets/" cache-period="31556926" />
+	<!--<mvc:resources mapping="${release}/widgets/dashboard/month/**" location="/WEB-INF/jsp/widgets/monthlyDashboardWidgets/" cache-period="31556926" />-->
+	<!--<mvc:resources mapping="${release}/widgets/dashboard/year/**" location="/WEB-INF/jsp/widgets/yearlyDashboardWidgets/" cache-period="31556926" />-->
 
 	<bean id="viewResolver"
 		class="org.springframework.web.servlet.view.UrlBasedViewResolver">

@@ -11,7 +11,7 @@
 List<AbstractPhotoFacetVO> facets = (List<AbstractPhotoFacetVO>)request.getAttribute("facets");
 if (facets.size()>0) {
 %>
-
+<div>
 <ul class="thumbnails">
 <% for (int i=0; i<facets.size(); i++) {
 	AbstractPhotoFacetVO facet = facets.get(i);
@@ -36,6 +36,8 @@ if (facets.size()>0) {
 
 <%}%>
 </ul>
+</div>
+<div class="flx-spacer"></div>
 <% } else { %>
 <div class="emptyList">(empty list)</div>
 <% } %>

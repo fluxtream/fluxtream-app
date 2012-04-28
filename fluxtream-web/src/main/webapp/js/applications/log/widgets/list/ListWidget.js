@@ -16,7 +16,6 @@ define(["applications/log/widgets/Widget"], function(Widget) {
 	}
 	
 	function bindPaginationElements() {
-		console.log("binding pagination elements...");
 		$(".btnListChecked").click(function(e) {
 			$(this).removeClass("btnListChecked");
 			$(this).addClass("btn-inverse");

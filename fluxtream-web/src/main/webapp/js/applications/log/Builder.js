@@ -47,7 +47,7 @@ define([], function() {
 	
 	function createTimeUnitsMenu(Log) {
 		$("#time-menu").remove();
-		var timeUnits = {"DAY":1, "WEEK":2, /*"MONTH": 3, "YEAR":4*/};
+		var timeUnits = {"DAY":1, "WEEK":2 /*,"MONTH": 3, "YEAR":4*/};
 		delete timeUnits[Log.timeUnit];
 		$(".loading").remove();
 		var markup = "<div class=\"btn-group\" id=\"time-menu\">\

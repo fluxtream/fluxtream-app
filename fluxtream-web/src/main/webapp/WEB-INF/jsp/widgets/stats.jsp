@@ -20,4 +20,5 @@
 		<jsp:include page="<%=widgetsDir+userWidgets.get(i).name+\".jsp\"%>" />
 	<% } %>
 
+    <div class="flx-spacer"></div>
 </div>
