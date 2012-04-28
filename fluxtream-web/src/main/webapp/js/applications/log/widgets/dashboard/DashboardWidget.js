@@ -4,18 +4,21 @@ define(["applications/log/widgets/Widget",
 	var digest, dashboardData;
 
 	function render(digestInfo, timeUnit) {
+        console.log("rendering widget...");
 		digest = digestInfo;
         var that = this;
         $.ajax({
             url : "/widgets/dashboard.json",
             success: function(widgetData) {
+                console.log("haha some data...");
                 dashboardData = widgetData;
-                that.getUrl("/widgets/dashboard", "dashboard-" + timeUnit, populateTemplate, false, widgetData);
+                that.getUrl("/widgets/dashboard", "dashboard-" + timeUnit, populateTemplate, true, widgetData);
             }
         });
 	}
 	
 	function populateTemplate(html) {
+        console.log("populating with data...");
         for(var i=0; i<dashboardData.required.length; i++) {
             require([dashboardData.required[i]], function(dashboardWidgetModule) {
                 dashboardWidgetModule.render(digest, dashboardData);

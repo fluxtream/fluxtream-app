@@ -69,9 +69,12 @@ define([ "core/FlxState" ], function(FlxState) {
 	};
 	
 	function insertWidgetContents(template, nextWidgetId, domReady, forceLoad, widgetData) {
-        if (typeof(widgetData)!="undefined" && widgetData!=null)
+        console.log("insertWidgetContents, widgetData");
+        console.log(widgetData);
+        if (typeof(widgetData)!="undefined" && widgetData!=null) {
+            console.log("applying the mustache template");
             template = $.mustache(template, widgetData);
-        else
+        } else
             template = $.mustache(template, {release: window.FLX_RELEASE_NUMBER});
         template = "<div class=\"widget active\" id=\"" + nextWidgetId + "\">"
 			 + template + "</div>";
