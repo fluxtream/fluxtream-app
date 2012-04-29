@@ -75,32 +75,11 @@
 <% if (facets.size()>0) { %>
 		<% for (AbstractInstantFacetVO<?> facet : facets) { %>
       <div class="listViewItem facet-<%=facet.type%>" type="<%=facet.type%>" id="<%=facet.id%>">
-      	<a class="listViewAddCom"><div class="iconComment"></div></a>
-      	  
 		  <%@ include file="facetDetails.jsp" %>
-		  
-	      <div class="listViewItemComm" <% if (facet.comment!=null) out.println("style=\"display:block\""); %>>
-		    
-		    <div class="listViewItemCommNew" <% if (facet.comment!=null) out.println("style=\"display:none\""); %>>
-					<div class="iconCommArrow"></div>
-					<div class="iconCommDelete"></div>
-					<div class="iconCommCont"><div class="iconComm"></div></div>
-	      	<input onkeypress="if(event.which==13) setEventComment(this)"
-	      			class="commentList placeholder empty" title="Comment this event..."
-	      			type="text" id="" pageNumber="Comment this event...">
-	      </div>
-      	<article <% if (facet.comment==null) out.println("style=\"display:none\""); %> onclick="editEventComment(this);" >
-      	  		<div class="listCommArrow"></div>
-      	  		<div class="listCommArrow-border"></div>
-      	  		<div class="iconComment"></div>
-      	    	<div class="CommContent"><%=facet.comment%></div>
-      	</article>
-	      </div>
       </div>
-      <div class="flx-spacer"></div>
 	<% } %>
-	
-<% } else if (request.getAttribute("searchTerms")==null) { %>
+    <div class="flx-spacer"></div>
+    <% } else if (request.getAttribute("searchTerms")==null) { %>
 	<span class="nodata">Sorry, no data today</span>
 <% } %>
 </div>

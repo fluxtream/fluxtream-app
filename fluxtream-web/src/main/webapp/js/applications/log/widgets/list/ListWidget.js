@@ -1,21 +1,22 @@
 define(["applications/log/widgets/Widget"], function(Widget) {
-	
-	function render(digest, timeUnit) {
+
+    var listWidget = new Widget("list", "Candide Kemmler", "icon-list");
+
+    function render(digest, timeUnit) {
 		this.getUrl("/widgets/list/0", "list", bindPaginationElements, true);
 	}
 	
 	function getFacets(page) {
 
 		var checkedConnectors = getCheckedConnectors();
-		
-		$.ajax({ url: "/widgets/list/"+page,
-			data: checkedConnectors,
-			dataType: "html",
-			success: bindPaginationElements
-		});
+
+        listWidget.getUrl("/widgets/list/" + page +
+            "?filter=" + checkedConnectors, "list", bindPaginationElements, true);
 	}
 	
 	function bindPaginationElements() {
+        console.log("binding pagination events");
+        $(".btnListChecked")
 		$(".btnListChecked").click(function(e) {
 			$(this).removeClass("btnListChecked");
 			$(this).addClass("btn-inverse");
@@ -28,7 +29,7 @@ define(["applications/log/widgets/Widget"], function(Widget) {
 		});
 		$(".paginationLink").click(function(e) {
 			var valueAttr = $(this).attr("pageNumber");
-			var value = parseInt(valueAttr);
+            var value = parseInt(valueAttr);
 			getFacets(value);
 		});
 	}
@@ -54,11 +55,10 @@ define(["applications/log/widgets/Widget"], function(Widget) {
 			});
 		}
 		
-		return {"filter" : uncheckedConnectorNames};
+		return uncheckedConnectorNames;
 	}
-	
-	var widget = new Widget("list", "Candide Kemmler", "icon-list");
-	widget.render = render;
-	return widget;
+
+    listWidget.render = render;
+	return listWidget;
 	
 });
