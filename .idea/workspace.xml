@@ -8,10 +8,6 @@
   <component name="ChangeListManager">
     <list default="true" id="e7c795f8-2116-4304-ad9d-58db7f694dc1" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/log/list.jsp" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/log/list.jsp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/Widget.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/Widget.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/dashboard/DashboardWidget.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/dashboard/DashboardWidget.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/list/ListWidget.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/list/ListWidget.js" />
     </list>
     <ignored path="fluxtream-app.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -1318,7 +1314,7 @@
     <option name="SHOW_VCS_ERROR_NOTIFICATIONS" value="true" />
     <option name="FORCE_NON_EMPTY_COMMENT" value="false" />
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="false" />
-    <option name="LAST_COMMIT_MESSAGE" value="Merge branch 'master' of github.com:fluxtream/fluxtream-app&#10;&#10;Conflicts:&#10;&#9;fluxtream-core/src/main/java/com/fluxtream/connectors/TwoLeggedOAuthHelper.java&#10;Lots of navigation fixes and optimizations" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixed List Widget" />
     <option name="MAKE_NEW_CHANGELIST_ACTIVE" value="false" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_FILES_UP_TO_DATE_BEFORE_COMMIT" value="false" />
@@ -1334,6 +1330,7 @@
     <MESSAGE value="added intellij project descriptors" />
     <MESSAGE value="Merge branch 'master' of github.com:fluxtream/fluxtream-app&#10;&#10;Conflicts:&#10;&#9;fluxtream-core/src/main/java/com/fluxtream/connectors/TwoLeggedOAuthHelper.java&#10;" />
     <MESSAGE value="Merge branch 'master' of github.com:fluxtream/fluxtream-app&#10;&#10;Conflicts:&#10;&#9;fluxtream-core/src/main/java/com/fluxtream/connectors/TwoLeggedOAuthHelper.java&#10;Lots of navigation fixes and optimizations" />
+    <MESSAGE value="Fixed List Widget" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
