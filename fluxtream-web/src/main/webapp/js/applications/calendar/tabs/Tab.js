@@ -1,0 +1,97 @@
+define([ "core/FlxState" ], function(FlxState) {
+
+	function Tab(aname, anauthor, anicon) {
+		this.name = aname;
+		this.author = anauthor;
+		this.icon = anicon;
+	}
+
+	/**
+	 * This method is called every time the user is selecting a different view
+	 * or tab
+	 */
+    Tab.prototype.saveState = function() {
+		FlxState.saveTabState(this.getCurrentState());
+	};
+
+	/**
+	 * This lets the tab retrieve its last saved state
+	 */
+    Tab.prototype.getSavedState = function() {
+		return FlxState.getTabState(this.name);
+	};
+
+    Tab.prototype.getUrl = function(url, id, domReady, forceLoad, tabData) {
+		this.getTabContents(url, id, typeof(domReady)==="undefined"?null:domReady, false, forceLoad, tabData);
+	};
+
+    Tab.prototype.getTemplate = function(templatePath, id, domReady) {
+		this.getTabContents(templatePath, id, typeof(domReady)==="undefined"?null:domReady, true, false);
+	};
+
+    Tab.prototype.getTabContents = function(uri, id, domReady, isResource, forceLoad, tabData) {
+		var nextTabId = id + "-tab",
+            nextTabDiv = $("#"+nextTabId);
+		var noTab = $(".tab").length==0;
+		var tabChanged = $(".tab").length>0
+			&& $(".tab.active").length>0
+			&& $(".tab.active").attr("id")!=nextTabId;
+		if ( noTab || tabChanged || forceLoad) {
+			if (tabChanged) {
+				var currentTabDiv = $(".tab.active");
+				currentTabDiv.removeClass("active");
+				currentTabDiv.addClass("dormant");
+			}
+			if (nextTabDiv.length==0 || forceLoad) {
+				if (isResource)
+					require([uri], function(template) {
+						insertTabContents(template, nextTabId, domReady, forceLoad, tabData);
+					});
+				else
+					$.ajax({
+						url : uri,
+						success: function(html) {
+							insertTabContents(html, nextTabId, domReady, forceLoad, tabData);
+						}
+					});
+			} else {
+				nextTabDiv.removeClass("dormant");
+				nextTabDiv.addClass("active");
+				if (domReady!=null)
+					domReady();
+			}
+		} else {
+			if (domReady!=null)
+				domReady();
+		}		
+		
+	};
+	
+	function insertTabContents(template, nextTabId, domReady, forceLoad, tabData) {
+        if (typeof(tabData)!="undefined" && tabData!=null) {
+            template = $.mustache(template, tabData);
+        } else
+            template = $.mustache(template, {release: window.FLX_RELEASE_NUMBER});
+        template = "<div class=\"tab active\" id=\"" + nextTabId + "\">"
+			 + template + "</div>";
+		if (forceLoad && $("#"+nextTabId).length>0) {
+			$("#"+nextTabId).replaceWith(template);
+		} else {
+			$("#tabs").append(template);
+		}
+		if (domReady!=null)
+			domReady(template);
+	}
+
+	/**
+	 * This needs to be overridden in "subclasses"
+	 */
+	function getCurrentState() {
+		return {};
+	}
+
+    Tab.prototype.getCurrentState = getCurrentState;
+	
+	return Tab;
+
+});

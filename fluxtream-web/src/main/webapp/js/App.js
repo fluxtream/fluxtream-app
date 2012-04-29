@@ -97,10 +97,10 @@ define(
 			
 			function fullHeight() {
 				if ($(".fullHeight").length>0) {
-					widgetsY = $("#widgets").position().top;
+					tabsY = $("#tabs").position().top;
 					windowHeight = $(window).height();
 					footerHeight = $("#footer").height();
-					fHeight = (windowHeight-widgetsY-footerHeight);
+					fHeight = (windowHeight-tabsY-footerHeight);
 					$(".fullHeight").height(fHeight);
 				}
 				$(window).resize(function() {
@@ -205,7 +205,7 @@ define(
 			App.showCarousel = function(photoId) {
 				if ($("#photosCarousel").length==0) {
 					$.ajax({
-						url : "/widgets/photos/carousel",
+						url : "/tabs/photos/carousel",
 						success: function(html) {
 							makeModal(html);
 							carousel(photoId);

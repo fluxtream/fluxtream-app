@@ -31,10 +31,10 @@
 	<mvc:resources mapping="/${release}/admin/css/**" location="/admin/css/" cache-period="31556926" />
 	<mvc:resources mapping="/${release}/admin/images/**" location="/admin/images/" cache-period="31556926" />
 
-	<mvc:resources mapping="${release}/widgets/dashboard/week/**" location="/WEB-INF/jsp/widgets/weeklyDashboardWidgets/" cache-period="31556926" />
-	<mvc:resources mapping="${release}/widgets/dashboard/day/**" location="/WEB-INF/jsp/widgets/dailyDashboardWidgets/" cache-period="31556926" />
-	<!--<mvc:resources mapping="${release}/widgets/dashboard/month/**" location="/WEB-INF/jsp/widgets/monthlyDashboardWidgets/" cache-period="31556926" />-->
-	<!--<mvc:resources mapping="${release}/widgets/dashboard/year/**" location="/WEB-INF/jsp/widgets/yearlyDashboardWidgets/" cache-period="31556926" />-->
+	<mvc:resources mapping="${release}/tabs/dashboard/week/**" location="/WEB-INF/jsp/tabs/weeklyDashboardWidgets/" cache-period="31556926" />
+	<mvc:resources mapping="${release}/tabs/dashboard/day/**" location="/WEB-INF/jsp/tabs/dailyDashboardWidgets/" cache-period="31556926" />
+	<!--<mvc:resources mapping="${release}/tabs/dashboard/month/**" location="/WEB-INF/jsp/tabs/monthlyDashboardWidgets/" cache-period="31556926" />-->
+	<!--<mvc:resources mapping="${release}/tabs/dashboard/year/**" location="/WEB-INF/jsp/tabs/yearlyDashboardWidgets/" cache-period="31556926" />-->
 
 	<bean id="viewResolver"
 		class="org.springframework.web.servlet.view.UrlBasedViewResolver">

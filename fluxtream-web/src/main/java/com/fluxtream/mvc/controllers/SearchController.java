@@ -73,7 +73,7 @@ public class SearchController {
 		int to = (page + 1) * Integer.valueOf(env.get("SEARCH_PAGE_SIZE"));
 		to = to < facetVos.size() ? to : facetVos.size();
 		
-		ModelAndView mav = new ModelAndView("log/list");
+		ModelAndView mav = new ModelAndView("calendar/list");
 		
 		mav.addObject("total", facetVos.size());
 		facetVos = facetVos.subList(from, to);
@@ -87,7 +87,7 @@ public class SearchController {
 		mav.addObject("format", DateTimeFormat.forPattern("EEE, d MMM yyyy, HH:mm"));
 
 		request.setAttribute("searchTerms", terms);
-		mav.setViewName("log/list");
+		mav.setViewName("calendar/list");
 		return mav;
 	}
 	
