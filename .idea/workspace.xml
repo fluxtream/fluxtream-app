@@ -7,72 +7,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e7c795f8-2116-4304-ad9d-58db7f694dc1" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/dictionaries/candide.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/fluxtream-core-webapp/src/main/java/spring-config.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/fluxtream-core/src/main/java/spring-config.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/diary/monthDiary.html" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/diary/weekDiary.html" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/diary/yearDiary.html" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/map/map.html" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/timeline/TimelineTab.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/pinboard/App.js" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/diary/monthDiary.html" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/diary/weekDiary.html" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/diary/yearDiary.html" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/map/map.html" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/timeline/App.js" afterPath="" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/fluxtream-core-webapp/src/main/java/com/fluxtream/api/LogHelper.java" afterPath="$PROJECT_DIR$/fluxtream-core-webapp/src/main/java/com/fluxtream/api/CalendarHelper.java" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/fluxtream-core-webapp/src/main/java/com/fluxtream/api/LogResource.java" afterPath="$PROJECT_DIR$/fluxtream-core-webapp/src/main/java/com/fluxtream/api/CalendarResource.java" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/java/com/fluxtream/mvc/widgets/controllers/DashboardWidgetsController.java" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/java/com/fluxtream/mvc/tabs/controllers/DashboardTabController.java" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/java/com/fluxtream/mvc/widgets/controllers/DashboardWidgetsHelper.java" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/java/com/fluxtream/mvc/tabs/controllers/DashboardWidgetsHelper.java" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/java/com/fluxtream/mvc/widgets/controllers/PhotosWidgetController.java" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/java/com/fluxtream/mvc/tabs/controllers/PhotosTabController.java" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/log/facetDetails.jsp" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/calendar/facetDetails.jsp" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/log/list.jsp" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/calendar/list.jsp" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/log/tooltips.jsp" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/calendar/tooltips.jsp" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/widgets/dailyDashboardWidgets/caloriesBurned.jsp" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/tabs/dailyDashboardWidgets/caloriesBurned.jsp" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/widgets/dailyDashboardWidgets/hoursSlept.jsp" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/tabs/dailyDashboardWidgets/hoursSlept.jsp" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/widgets/dailyDashboardWidgets/stepsTaken.jsp" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/tabs/dailyDashboardWidgets/stepsTaken.jsp" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/widgets/photos.jsp" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/tabs/photos.jsp" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/widgets/photosCarousel.jsp" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/tabs/photosCarousel.jsp" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/widgets/stats.jsp" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/tabs/stats.jsp" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/widgets/weeklyDashboardWidgets/caloriesBurned.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/tabs/weeklyDashboardWidgets/caloriesBurned.js" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/widgets/weeklyDashboardWidgets/caloriesBurned.jsp" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/tabs/weeklyDashboardWidgets/caloriesBurned.jsp" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/widgets/weeklyDashboardWidgets/hoursSlept.jsp" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/tabs/weeklyDashboardWidgets/hoursSlept.jsp" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/App.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/App.js" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/Builder.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/Builder.js" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/template.html" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/template.html" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/Widget.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/Tab.js" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/clock/ClockConfig.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/clock/ClockConfig.js" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/clock/ClockDrawingUtils.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/clock/ClockDrawingUtils.js" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/clock/ClockWidget.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/clock/ClockTab.js" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/clock/clock-bg.svg" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/clock/clock-bg.svg" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/clock/clock.html" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/clock/clock.html" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/dashboard/DashboardWidget.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/dashboard/DashboardTab.js" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/diary/DiaryWidget.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/diary/DiaryTab.js" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/diary/Status.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/diary/Status.js" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/diary/dayDiary.html" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/diary/dayDiary.html" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/list/ListWidget.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/list/ListTab.js" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/map/MapWidget.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/map/MapTab.js" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/log/widgets/photos/PhotosWidget.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/photos/PhotosTab.js" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/timeline/BodyTrack.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/timeline/BodyTrack.js" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/timeline/template.html" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/timeline/template.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/modules.xml" afterPath="$PROJECT_DIR$/.idea/modules.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-core-webapp/fluxtream-core-webapp.iml" afterPath="$PROJECT_DIR$/fluxtream-core-webapp/fluxtream-core-webapp.iml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-core/fluxtream-core.iml" afterPath="$PROJECT_DIR$/fluxtream-core/fluxtream-core.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/java/com/fluxtream/dashboard/dataproviders/AbstractWidgetDataProvider.java" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/java/com/fluxtream/dashboard/dataproviders/AbstractWidgetDataProvider.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/java/com/fluxtream/mvc/controllers/ListController.java" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/java/com/fluxtream/mvc/controllers/ListController.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/java/com/fluxtream/mvc/controllers/SearchController.java" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/java/com/fluxtream/mvc/controllers/SearchController.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/java/com/fluxtream/mvc/controllers/TooltipsController.java" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/java/com/fluxtream/mvc/controllers/TooltipsController.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/springmvc-servlet.xml" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/springmvc-servlet.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/widgets.xml" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/widgets.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/css/flx.css" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/css/flx.css" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/App.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/App.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/core/FlxState.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/core/FlxState.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/less/flx.less" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/less/flx.less" />
     </list>
     <ignored path="fluxtream-app.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -161,8 +98,8 @@
       <property name="field_breakpoints_groupByClasses" value="true" />
       <property name="method_breakpoints_groupByClasses" value="true" />
       <property name="exception_breakpoints_viewId" value="TABLE" />
-      <property name="field_breakpoints_viewId" value="TABLE" />
       <property name="exception_breakpoints_groupByClasses" value="true" />
+      <property name="field_breakpoints_viewId" value="TABLE" />
       <property name="method_breakpoints_groupByMethods" value="false" />
     </ui_properties>
   </component>
@@ -184,9 +121,7 @@
         <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/java/com/fluxtream/mvc/controllers/ListController.java">
           <provider selected="true" editor-type-id="text-editor">
             <state line="42" column="14" selection-start="1484" selection-end="1484" vertical-scroll-proportion="0.0">
-              <folding>
-                <element signature="e#4290#4320#0" expanded="true" />
-              </folding>
+              <folding />
             </state>
           </provider>
         </entry>
@@ -204,10 +139,7 @@
         <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/Builder.js">
           <provider selected="true" editor-type-id="text-editor">
             <state line="8" column="6" selection-start="203" selection-end="203" vertical-scroll-proportion="0.0">
-              <folding>
-                <marker date="1335723162000" expanded="true" signature="1779:1800" placeholder="..." />
-                <marker date="1335723162000" expanded="true" signature="1909:1987" placeholder="..." />
-              </folding>
+              <folding />
             </state>
           </provider>
         </entry>
@@ -233,7 +165,7 @@
       <file leaf-file-name="AbstractWidgetDataProvider.java" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/java/com/fluxtream/dashboard/dataproviders/AbstractWidgetDataProvider.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="37" column="59" selection-start="1170" selection-end="1170" vertical-scroll-proportion="0.6136364">
+            <state line="25" column="22" selection-start="669" selection-end="669" vertical-scroll-proportion="0.22321428">
               <folding />
             </state>
           </provider>
@@ -242,7 +174,7 @@
       <file leaf-file-name="caloriesBurned.jsp" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/tabs/weeklyDashboardWidgets/caloriesBurned.jsp">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="-0.0">
+            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -251,7 +183,7 @@
       <file leaf-file-name="hoursSlept.jsp" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/tabs/weeklyDashboardWidgets/hoursSlept.jsp">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="-0.0">
+            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -394,26 +326,6 @@
       <sortByType />
     </navigator>
     <panes>
-      <pane id="Scope">
-        <subPane subId="Project Files">
-          <PATH>
-            <PATH_ELEMENT USER_OBJECT="Root">
-              <option name="myItemId" value="" />
-              <option name="myItemType" value="" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT USER_OBJECT="fluxtream-web">
-              <option name="myItemId" value="" />
-              <option name="myItemType" value="" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT USER_OBJECT="Root">
-              <option name="myItemId" value="" />
-              <option name="myItemType" value="" />
-            </PATH_ELEMENT>
-          </PATH>
-        </subPane>
-      </pane>
       <pane id="PackagesPane">
         <subPane>
           <PATH>
@@ -434,6 +346,26 @@
           </PATH>
         </subPane>
       </pane>
+      <pane id="Scope">
+        <subPane subId="Project Files">
+          <PATH>
+            <PATH_ELEMENT USER_OBJECT="Root">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT USER_OBJECT="fluxtream-web">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT USER_OBJECT="Root">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+          </PATH>
+        </subPane>
+      </pane>
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -450,12 +382,12 @@
     <property name="GoToClass.includeJavaFiles" value="false" />
     <property name="MemberChooser.copyJavadoc" value="false" />
     <property name="GoToClass.toSaveIncludeLibraries" value="false" />
-    <property name="FullScreen" value="false" />
     <property name="MemberChooser.showClasses" value="true" />
+    <property name="FullScreen" value="false" />
     <property name="GoToClass.includeLibraries" value="false" />
-    <property name="dynamic.classpath" value="false" />
-    <property name="options.splitter.details.proportions" value="0.2" />
     <property name="options.searchVisible" value="true" />
+    <property name="options.splitter.details.proportions" value="0.2" />
+    <property name="dynamic.classpath" value="false" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
@@ -573,6 +505,17 @@
         <option name="Maven.BeforeRunTask" enabled="false" />
       </method>
     </configuration>
+    <configuration default="true" type="JavascriptDebugSession" factoryName="Local">
+      <JSDebuggerConfigurationSettings>
+        <option name="engineId" value="embedded" />
+        <option name="fileUrl" />
+      </JSDebuggerConfigurationSettings>
+      <method>
+        <option name="AntTarget" enabled="false" />
+        <option name="BuildArtifacts" enabled="false" />
+        <option name="Maven.BeforeRunTask" enabled="false" />
+      </method>
+    </configuration>
     <configuration default="true" type="JUnit" factoryName="JUnit">
       <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
       <module name="" />
@@ -596,17 +539,6 @@
         <option name="AntTarget" enabled="false" />
         <option name="BuildArtifacts" enabled="false" />
         <option name="Make" enabled="true" />
-        <option name="Maven.BeforeRunTask" enabled="false" />
-      </method>
-    </configuration>
-    <configuration default="true" type="JavascriptDebugSession" factoryName="Local">
-      <JSDebuggerConfigurationSettings>
-        <option name="engineId" value="embedded" />
-        <option name="fileUrl" />
-      </JSDebuggerConfigurationSettings>
-      <method>
-        <option name="AntTarget" enabled="false" />
-        <option name="BuildArtifacts" enabled="false" />
         <option name="Maven.BeforeRunTask" enabled="false" />
       </method>
     </configuration>
@@ -820,14 +752,13 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="22" width="1920" height="1178" extended-state="0" />
-    <editor active="false" />
+    <frame x="0" y="22" width="1920" height="1178" extended-state="6" />
+    <editor active="true" />
     <layout>
       <window_info id="Data Sources" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32852563" sideWeight="0.6707663" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3282876" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="JavaEE:App" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.14690171" sideWeight="0.32734153" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.23651844" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.24946581" sideWeight="0.6707663" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="JavaRebel Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="14" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33396405" sideWeight="0.99572647" order="3" side_tool="false" content_ui="tabs" />
@@ -835,13 +766,12 @@
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.14690171" sideWeight="0.21948913" order="4" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.15799433" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="JavaRebel" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="13" side_tool="false" content_ui="tabs" />
       <window_info id="Web" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.14690171" sideWeight="0.22232734" order="3" side_tool="true" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32923368" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.21581197" sideWeight="0.32734153" order="1" side_tool="true" content_ui="tabs" />
-      <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.26549146" sideWeight="0.6707663" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.22115384" sideWeight="0.6707663" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32923368" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.26495728" sideWeight="0.6707663" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.22061966" sideWeight="0.6707663" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32902032" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="IDEtalk Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="IDEtalk" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32911393" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
@@ -849,6 +779,8 @@
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="JetGradle" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32911393" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.23651844" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="13" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.39967984" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
     </layout>
@@ -954,9 +886,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/diary/dayDiary.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/clock/ClockTab.js">
@@ -990,9 +920,7 @@
     <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/java/com/fluxtream/mvc/controllers/ListController.java">
       <provider selected="true" editor-type-id="text-editor">
         <state line="42" column="14" selection-start="1484" selection-end="1484" vertical-scroll-proportion="0.0">
-          <folding>
-            <element signature="e#4290#4320#0" expanded="true" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -1006,16 +934,6 @@
     <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/Builder.js">
       <provider selected="true" editor-type-id="text-editor">
         <state line="8" column="6" selection-start="203" selection-end="203" vertical-scroll-proportion="0.0">
-          <folding>
-            <marker date="1335723162000" expanded="true" signature="1779:1800" placeholder="..." />
-            <marker date="1335723162000" expanded="true" signature="1909:1987" placeholder="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/resources/widgets/week.properties">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="1" column="20" selection-start="71" selection-end="71" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
@@ -1023,6 +941,13 @@
     <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/resources/widgets/day.properties">
       <provider selected="true" editor-type-id="text-editor">
         <state line="4" column="24" selection-start="148" selection-end="148" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/tabs/weeklyDashboardWidgets/caloriesBurned.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="10" column="56" selection-start="386" selection-end="386" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
@@ -1041,16 +966,16 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/tabs/weeklyDashboardWidgets/caloriesBurned.js">
+    <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/resources/widgets/week.properties">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="10" column="56" selection-start="386" selection-end="386" vertical-scroll-proportion="0.0">
+        <state line="1" column="20" selection-start="71" selection-end="71" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/java/com/fluxtream/dashboard/dataproviders/AbstractWidgetDataProvider.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="37" column="59" selection-start="1170" selection-end="1170" vertical-scroll-proportion="0.6136364">
+        <state line="25" column="22" selection-start="669" selection-end="669" vertical-scroll-proportion="0.22321428">
           <folding />
         </state>
       </provider>
