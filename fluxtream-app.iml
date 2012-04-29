@@ -1,5 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module org.jetbrains.idea.maven.project.MavenProjectsManager.isMavenModule="true" type="JAVA_MODULE" version="4">
+  <component name="FacetManager">
+    <facet type="Spring" name="Spring">
+      <configuration>
+        <fileset id="fileset1" name="Xml Application Context" removed="false">
+          <file>file://$MODULE_DIR$/fluxtream-webapp/src/main/webapp/WEB-INF/applicationContext-security.xml</file>
+          <file>file://$MODULE_DIR$/fluxtream-webapp/target/ROOT/WEB-INF/applicationContext-security.xml</file>
+          <file>file://$MODULE_DIR$/fluxtream-webapp/src/main/webapp/WEB-INF/applicationContext.xml</file>
+          <file>file://$MODULE_DIR$/fluxtream-webapp/target/ROOT/WEB-INF/applicationContext.xml</file>
+          <file>file://$MODULE_DIR$/fluxtream-webapp/target/ROOT/WEB-INF/spring-quartz.xml</file>
+          <file>file://$MODULE_DIR$/fluxtream-webapp/target/ROOT/WEB-INF/springmvc-servlet.xml</file>
+          <file>file://$MODULE_DIR$/fluxtream-webapp/src/main/webapp/WEB-INF/spring-quartz.xml</file>
+          <file>file://$MODULE_DIR$/fluxtream-webapp/src/main/webapp/WEB-INF/springmvc-servlet.xml</file>
+        </fileset>
+      </configuration>
+    </facet>
+  </component>
   <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_6" inherit-compiler-output="false">
     <output url="file://$MODULE_DIR$/target/classes" />
     <output-test url="file://$MODULE_DIR$/target/test-classes" />
@@ -7,7 +23,7 @@
     <content url="file://$MODULE_DIR$">
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
-    <orderEntry type="jdk" jdkName="1.6" jdkType="JavaSDK" />
+    <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="Maven: com.ocpsoft:ocpsoft-pretty-time:1.0.7" level="project" />
     <orderEntry type="library" name="Maven: com.postmark:postmark-client:0.3.1" level="project" />
