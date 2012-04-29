@@ -8,7 +8,6 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 	var VIEWS 		= BodyTrack.VIEWS;
 	var SOURCES 	= BodyTrack.SOURCES;
 
-	BodyTrack.timeline = this;
 	var newViewName  		 = "Untitled View";
 	var channelIdx   		 = 0;     // counter used to uniquely identify channels
 	var dragSourceId 		 = null;  // DOM id of source is stored here during drag
@@ -21,7 +20,6 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 	var hasUnsavedChanges    = false; // used by unsaved changes dialog handler
 	var loadedViewStr        = "";    // JSON string of loaded view
 	var addPaneChannelsState = [];    // add channels pane channel visibility
-
 
 	/// A helper to create a data fetcher for the specified URL prefix
 	///
@@ -161,10 +159,18 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 		});
 		$("#_timeline_channels").disableSelection();
 
+		// Click handlers
 		$("#_timeline_new_view_btn").click(newView);
 		$("#_timeline_load_view_btn").click(toggleLoadDialog);
 
-		// configure the photo dialog
+		$("#_timeline_gotoBeginning_button").click(function() { gotoTime("beginning"); });
+		$("#_timeline_gotoBack_button").click(function() { gotoTime("back"); });
+		$("#_timeline_gotoForward_button").click(function() { gotoTime("forward"); });
+		$("#_timeline_gotoEnd_button").click(function() { gotoTime("end"); });
+		$("#_timeline_zoomOut_button").click(function() { zoomTime("out"); });
+		$("#_timeline_zoomIn_button").click(function() { zoomTime("in"); });
+		
+		// Configure the photo dialog
 		$("#_timeline_photo_dialog")['dialog'](
 				{
 					autoOpen  : false,
@@ -200,13 +206,36 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 		}	
 	}
 	
+	function getSourceChannelByName(device_name, channel_name) {
+		var i, j, l, m;
+		var src, channel;
+
+		l = SOURCES.availableList.length;
+		for (i = 0; i < l; i++) {
+			src = SOURCES.availableList[i];
+
+			// Match device_name
+			if (device_name === src["name"]) {
+				m = src.channels.length;
+				for (j = 0; j < m; j++) {
+					channel = src.channels[j];
+
+					// Match channel_name
+					if (channel_name === channel["name"]) {
+						return channel;
+					}
+				}
+			}	  
+		}
+		return null;
+	}; // getTimeFromSource
+
 	function getSources(callback) {
 		SOURCES.getAvailableList(function(data) {
 
 			var i, j, l, m;
 			var src;
 			var idx = 0;
-			var min, max, style;
 
 			// Add unique identifier for each source channel
 			// and populate sourcesMap
@@ -290,7 +319,6 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 			$("#_timeline_addChannelsArea input[type=text]").keyup(function(event) {
 				var search_str = $("#_timeline_addChannelsArea input[type=text]").val();
 				var regexp = new RegExp(search_str, 'i');
-				var i, l;
 
 				if (search_str.length === 0) {
 					addPaneRestoreState();
@@ -370,7 +398,6 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 		addPaneChannelsState = [];
 		$("._timeline_sources_name").each(function() {
 			var ul = $(this).parent().find("ul");
-			var arrow = $(this).children("._timeline_sources_name_arrow");
 			if (ul.css("display") === "none") {
 				addPaneChannelsState.push(false);
 			}
@@ -403,18 +430,21 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 		}
 	}
 
-	function loadView(name, mode) {
+	function loadView(id, mode, callback) {
 		$("#_timeline_save_view_btn").addClass("button_disabled").unbind("click");
-		VIEWS.load(name, function(data) {
+		VIEWS.load(id, function(data) {
 			loadedViewStr = JSON.stringify(data);
 			hasUnsavedChanges = false;
 			renderView(data, mode);
+			if (typeof callback === "function") {
+				callback();
+			}
 		});
 	}
 
-	function loadViewWithTimeRange(name, min, max, callback) {
+	function loadViewWithTimeRange(id, min, max, callback) {
 		$("#_timeline_save_view_btn").addClass("button_disabled").unbind("click");
-		VIEWS.load(name, function(data) {
+		VIEWS.load(id, function(data) {
 			loadedViewStr = JSON.stringify(data);
 			hasUnsavedChanges = true;
 			data["v2"]["x_axis"]["min"] = min;
@@ -429,10 +459,10 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 	// Save view then load saved view
 	function saveView(name) {
 		updateViewData();
-		VIEWS.save(name, function(data) {
+		VIEWS.save(name, function(data, id) {
 			loadedViewStr = JSON.stringify(VIEWS.data);
 			hasUnsavedChanges = false;
-			loadView(name);
+			loadView(id);
 		});
 	}
 
@@ -440,7 +470,6 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 	function loadSource(device_name, callback) {
 		SOURCES.getDefaultGraphSpecs(device_name, function(data) {
 			var i, l;
-			var style = {};
 
 			VIEWS.data = {
 				"name" : newViewName,
@@ -472,14 +501,14 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 			if ($("#_timeline_addChannelsArea").css("display") !== "none") {
 				toggleAddChannelsPane();
 			}
-			
+
 			if (typeof callback === "function") {
 				callback();
 			}
 		});
 	}
 
-	function loadViewDialogModeHandler(viewName) {
+	function loadViewDialogModeHandler(view_id) {
 		var mode = $("._timeline_load_dialog_head_content input:checked").val();
 		var min, max;
 
@@ -490,7 +519,7 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 
 		// Update x-axis of existing view
 		if (mode === "time") {
-			loadView(viewName, mode);
+			loadView(view_id, mode);
 			return false;
 		}
 
@@ -503,14 +532,14 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 			min = VIEWS.data["v2"]["x_axis"]["min"];
 			max = VIEWS.data["v2"]["x_axis"]["max"];
 
-			loadViewWithTimeRange(viewName, min, max, function() {
+			loadViewWithTimeRange(view_id, min, max, function() {
 				TOOLS.resizeHandler();
 			});
 			return false;
 		}
 
-		// Otherwise, just follow the link
-		loadView(viewName);
+		// Otherwise, load the entire view
+		loadView(view_id);
 		return true;
 	}
 
@@ -530,7 +559,7 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 		TOOLS.resizeHandler();
 
 		return false;
-	}	
+	}
 
 	function toggleLoadDialog() {
 		// Close save dialog first if open
@@ -545,7 +574,7 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 			$("#_timeline_view_dialog").html($.mustache($("#_timeline_view_load_template").html(), {
 				available_views: VIEWS.availableList
 			})).show();
-			
+
 			$("#_timeline_view_dialog .close_btn").unbind('click').click(function() {
 				toggleLoadDialog();
 			});
@@ -554,7 +583,8 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 				// hide dialog then allow browser to follow link
 				$("#_timeline_load_view_btn").removeClass("button_toggle");
 				$("#_timeline_view_dialog").hide();
-				loadViewDialogModeHandler($(this).html());
+				// extract view number from DOM element ID _timeline_view_{{ id }}
+				loadViewDialogModeHandler($(this).attr("id").substr(15));
 			});
 		}
 		// Load dialog is open
@@ -649,14 +679,14 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 		var plotElementId = "_timeline_plot_" + id;
 		var yAxisElementId = "_timeline_yAxis_" + id;
 		var templateValues = {
-	      		"deviceName"       : channel["device_name"],
-	      		"channelName"      : channel["channel_name"],
-	      		"channelHeight"    : channel["channel_height"],
-	      		"plotId"           : id,
-	      		"plotElementId"    : plotElementId,
-	      		"channelElementId" : channelElementId,
-	      		"yAxisElementId"   : yAxisElementId
-	      	};
+			"deviceName"       : channel["device_name"],
+			"channelName"      : channel["channel_name"],
+			"channelHeight"    : channel["channel_height"],
+			"plotId"           : id,
+			"plotElementId"    : plotElementId,
+			"channelElementId" : channelElementId,
+			"yAxisElementId"   : yAxisElementId
+		};
 
 		// Render template
 		var html = $.mustache($("#_timeline_channel_template").html(), templateValues);
@@ -667,20 +697,25 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 			$(target).replaceWith(html);
 		}
 
+		// Make sure the view name doesn't overflow the bounds of the box
+		$("#" + channelElementId + "-timeline-channel-name")
+		.html(channel["channel_name"])
+		.shorten();
+
 		var yAxis = new NumberAxis(yAxisElementId, "vertical", {
 			"min" : channel["min"],
 			"max" : channel["max"]
 		});
 
-        // Now that yAxis is initialized, if this is a new view,
-        // set xAxis range to be the latest 24 hrs of data from the
-        // first added channel
-        if ((VIEWS.data["name"] == newViewName) &&
-            channel.hasOwnProperty("max_time") &&
-            ($("#_timeline_channels ._timeline_channel").length == 0)) {
-          max_time = channel["max_time"];
-          dateAxis.setRange(max_time - 86400.0, max_time);
-        }
+		// Now that yAxis is initialized, if this is a new view, 
+		// set xAxis range to be the latest 24 hrs of data from the 
+		// first added channel
+		if ((VIEWS.data["name"] == newViewName) &&
+				channel.hasOwnProperty("max_time") &&
+				($("#_timeline_channels ._timeline_channel").length == 0)) {
+			max_time = channel["max_time"];
+			dateAxis.setRange(max_time - 86400.0, max_time);
+		}
 
 		// TODO: The following should be keying off of "type" rather than "name" fields
 		var plot = null;
@@ -697,20 +732,17 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 				}
 				willJoinUsingAnd = !!photoStyle['filters']['tag']['isAndJoin'];
 			}
-
-			plot = new PhotoSeriesPlot(photoDatasource(LOGIN.user_id, channel["device_name"], tags, willJoinUsingAnd),
-				dateAxis,
-				yAxis,
-				LOGIN.user_id,
-				channel["style"]);
+			plot = new PhotoSeriesPlot(photoDatasource(LOGIN.user_id, channel["device_name"], tags,	willJoinUsingAnd),
+					dateAxis,
+					yAxis,
+					LOGIN.user_id,
+					channel["style"]);
 			plot.addDataPointListener(photoDataPointListener(channelElementId));
 		} else if ("comments" == channel["channel_name"]) {
-			var tags = [];
-			var willJoinUsingAnd = false;
 			var commentStyle = channel['style'];
 			if (typeof commentStyle !== 'undefined' &&
-				typeof commentStyle['filters'] !== 'undefined' &&
-				typeof commentStyle['filters']['tag'] !== 'undefined') {
+					typeof commentStyle['filters'] !== 'undefined' &&
+					typeof commentStyle['filters']['tag'] !== 'undefined') {
 
 				if (jQuery.isArray(commentStyle['filters']['tag']['tags'])) {
 					tags = commentStyle['filters']['tag']['tags'];
@@ -718,22 +750,22 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 				willJoinUsingAnd = !!commentStyle['filters']['tag']['isAndJoin'];
 			}
 			alert("Implement commentDatasource and CommentSeriesPlot");
-//      			var commentDatasource = _TIMELINE.commentDatasource(LOGIN.user_id,
-//      			channel["device_name"],
-//      			tags,
-//      			willJoinUsingAnd);
-//      			plot = new CommentSeriesPlot(commentDatasource,
-//      			_TIMELINE.dateAxis,
-//      			yAxis,
-//      			LOGIN.user_id,
-//      			channel["style"]);
-//      			plot.addDataPointListener(_TIMELINE.commentDataPointListener(channelElementId));
+//			var commentDatasource = commentDatasource(LOGIN.user_id,
+//			channel["device_name"],
+//			tags,
+//			willJoinUsingAnd);
+//			plot = new CommentSeriesPlot(commentDatasource,
+//			dateAxis,
+//			yAxis,
+//			LOGIN.user_id,
+//			channel["style"]);
+//			plot.addDataPointListener(commentDataPointListener(channelElementId));
 		} else {
 			// Set up the plot and axes for this channel using the grapher API
 			plot = new DataSeriesPlot(channelDatasource(LOGIN.user_id, channel["device_name"], channel["channel_name"]),
-				dateAxis,
-				yAxis,
-				channel["style"]);
+					dateAxis,
+					yAxis,
+					channel["style"]);
 			plot.addDataPointListener(dataPointListener);
 		}
 
@@ -799,31 +831,31 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 					highlightLineWidth = 1;
 				} else {
 					var linesStyle = {
-	      					"type"      : "line",
-	      					"show"      : $("#" + channelElementId + "-config-lines-show").is(':checked'),
-	      					"color"     : $("#" + channelElementId + "-config-lines-color").next(".color_picker").css("background-color"),
-	      					"lineWidth" : TOOLS.parseInt($("#" + channelElementId + "-config-lines-lineWidth").val(), 1)
-					};	
+						"type"      : "line",
+						"show"      : $("#" + channelElementId + "-config-lines-show").is(':checked'),
+						"color"     : $("#" + channelElementId + "-config-lines-color").next(".color_picker").css("background-color"),
+						"lineWidth" : TOOLS.parseInt($("#" + channelElementId + "-config-lines-lineWidth").val(), 1)
+					};
 
 					var pointsStyleType = $("#" + channelElementId + "-config-points-type").val();
 					var pointsStyleFill = pointsStyleType.match(/-filled$/) !== null;
 					var pointsStyle = {
 						"type"      : pointsStyleType.replace('-filled', ''),
-	      					"show"      : $("#" + channelElementId + "-config-points-show").is(':checked'),
-	      					"lineWidth" : 1,
-	      					"radius"    : TOOLS.parseInt($("#" + channelElementId + "-config-points-radius").val(), 2),
-	      					"color"     : $("#" + channelElementId + "-config-points-color").next(".color_picker").css("background-color"),
-	      					"fill"      : pointsStyleFill,
-	      					"fillColor" : $("#" + channelElementId + "-config-points-fillColor").next(".color_picker").css("background-color")
+						"show"      : $("#" + channelElementId + "-config-points-show").is(':checked'),
+						"lineWidth" : 1,
+						"radius"    : TOOLS.parseInt($("#" + channelElementId + "-config-points-radius").val(), 2),
+						"color"     : $("#" + channelElementId + "-config-points-color").next(".color_picker").css("background-color"),
+						"fill"      : pointsStyleFill,
+						"fillColor" : $("#" + channelElementId + "-config-points-fillColor").next(".color_picker").css("background-color")
 					};
 
 					var barsStyle = {
-	      					"type"      : "lollipop",
-	      					"show"      : $("#" + channelElementId + "-config-bars-show").is(':checked'),
-	      					"lineWidth" : TOOLS.parseInt($("#" + channelElementId + "-config-bars-lineWidth").val(), 1),
-	      					"radius"    : 0,
-	      					"color"     : $("#" + channelElementId + "-config-bars-color").next(".color_picker").css("background-color"),
-	      					"fill"      : false
+						"type"      : "lollipop",
+						"show"      : $("#" + channelElementId + "-config-bars-show").is(':checked'),
+						"lineWidth" : TOOLS.parseInt($("#" + channelElementId + "-config-bars-lineWidth").val(), 1),
+						"radius"    : 0,
+						"color"     : $("#" + channelElementId + "-config-bars-color").next(".color_picker").css("background-color"),
+						"fill"      : false
 					};
 
 					// Add the styles to the array--note that ordering here isn't arbitrary.  Styles are rendered in the order
@@ -876,17 +908,17 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 				var commentsStyleType = $("#" + channelElementId + "-config-comments-type").val();
 				var commentsStyleFill = commentsStyleType.match(/-filled$/) !== null;
 				newStyle['comments'] = {
-					"show"   : $("#" + channelElementId + "-config-comments-show").is(':checked'),
-					"styles" : [{
-						"type"      : commentsStyleType.replace('-filled', ''),
-						"show"      : $("#" + channelElementId + "-config-comments-show").is(':checked'),
-						"lineWidth" : 1,
-						"radius"    : TOOLS.parseInt($("#" + channelElementId + "-config-comments-radius").val(), 3),
-						"color"     : $("#" + channelElementId + "-config-comments-color").next(".color_picker").css("background-color"),
-						"fill"      : commentsStyleFill,
-						"fillColor" : $("#" + channelElementId + "-config-comments-fillColor").next(".color_picker").css("background-color")
-					}],
-					"verticalMargin" : 4
+						"show"           : $("#" + channelElementId + "-config-comments-show").is(':checked'),
+						"styles"         : [{
+						                    	"type"      : commentsStyleType.replace('-filled', ''),
+						                    	"show"      : $("#" + channelElementId + "-config-comments-show").is(':checked'),
+						                    	"lineWidth" : 1,
+						                    	"radius"    : TOOLS.parseInt($("#" + channelElementId + "-config-comments-radius").val(), 3),
+						                    	"color"     : $("#" + channelElementId + "-config-comments-color").next(".color_picker").css("background-color"),
+						                    	"fill"      : commentsStyleFill,
+						                    	"fillColor" : $("#" + channelElementId + "-config-comments-fillColor").next(".color_picker").css("background-color")
+						                    }],
+						                    "verticalMargin" : 4
 				};
 
 				plot.setStyle(newStyle);
@@ -1001,9 +1033,9 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 			for (var commentsStyleTypeIndex = 0; commentsStyleTypeIndex < channel["style"]["comments"]["styles"].length; commentsStyleTypeIndex++) {
 				var theCommentsStyle = channel["style"]["comments"]["styles"][commentsStyleTypeIndex];
 				if (theCommentsStyle["type"] == "point" ||
-					theCommentsStyle["type"] == "square" ||
-					theCommentsStyle["type"] == "cross" ||
-					theCommentsStyle["type"] == "plus") {
+						theCommentsStyle["type"] == "square" ||
+						theCommentsStyle["type"] == "cross" ||
+						theCommentsStyle["type"] == "plus") {
 					commentsStyle = theCommentsStyle;
 				}
 
@@ -1032,7 +1064,7 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 						}
 						);
 					},
-					error:function(textStatus, errorThrown) {
+					error:function(textStatus, errorThrown){
 						console.log("saveDefaultChannelStyle(): Failed due to ["+textStatus+"].  Error thrown: " + errorThrown);
 						$("#" + channelElementId + "-save-default-style-status").html("Failed to save default style.").delay(1000).fadeOut(1000,
 								function() {
@@ -1041,9 +1073,9 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 					}
 				});
 			});
-
+			
 			/* add event handler for the Show all Y range link */
-			$("#" + channelElementId + "-show-all-y-range > a").click(function() {
+			$("#" + channelElementId + " ._timeline_btnShowAllY").click(function() {
 				var plot = plotsMap[channelElementId];
 				if (!(plot && !!plot.getStatistics)) {
 					// Photo plots don't have a getStatistics method
@@ -1059,12 +1091,16 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 					if (stats["has_data"]) {
 						var yMin = stats["y_min"];
 						var yMax = stats["y_max"];
-						var ydiff = yMax - yMin;
-						yAxis.setRange(yMin - 0.1 * ydiff,
-								yMax + 0.1 * ydiff);
+						var yDiff = yMax - yMin;
+						if(yDiff < 1e-10) {
+							yAxis.setRange(yMin - 0.5, yMin + 0.5);
+						} else {
+							var padding = 0.1 * yDiff;
+							yAxis.setRange(yMin - padding, yMax + padding);
+						}
 						plot.setStyle(plot.getStyle()); // Trigger a repaint
 					}
-				}
+				};
 
 				var initialStats = plot.getStatistics(xMin, xMax,
 						["has_data", "y_min", "y_max"],
@@ -1088,7 +1124,6 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 			$("#" + channelElementId + "-config-color-override-color").change();
 			$("#" + channelElementId + "-config-color-override-color").change(function() {
 				var overrideColor = $("#" + channelElementId + "-config-color-override-color").next(".color_picker").css("background-color");
-
 				$("#" + channelElementId + "-config-lines-color").val(overrideColor).change();
 				$("#" + channelElementId + "-config-points-color").val(overrideColor).change();
 				$("#" + channelElementId + "-config-points-fillColor").val(overrideColor).change();
@@ -1279,8 +1314,8 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 				var isAndJoin = $("#" + channelElementId + "-photo-tags-isAndJoin").val() === 'true';
 				var userSelectedTags = getUserSelectedTags();
 				newStyle['filters']["tag"] = {
-					"tags" : userSelectedTags,
-					"isAndJoin" : isAndJoin
+						"tags" : userSelectedTags,
+						"isAndJoin" : isAndJoin
 				};
 
 				// Display the filter settings in the channel tab
@@ -1296,9 +1331,9 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 				plot.setStyle(newStyle);
 
 				plot.setDatasource(photoDatasource(LOGIN.user_id,
-					channel["device_name"],
-					newStyle['filters']["tag"]["tags"],
-					newStyle['filters']["tag"]["isAndJoin"]
+						channel["device_name"],
+						newStyle['filters']["tag"]["tags"],
+						newStyle['filters']["tag"]["isAndJoin"]
 				));
 			};
 
@@ -1339,28 +1374,28 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 
 			// construct the tag filter editor
 			var tagFilterOptions = {
-				autocompleteOptions : {
-					"minLength" : 0, // TODO: make this 1 or 2 if the list of tags is huge
-					"delay"     : 0,
-					"autoFocus" : false,
-					source      : function(request, response) {
-						var tagsToExclude = getUserSelectedTags();
-						var cachedTagsData = TAG_MANAGER.getCachedTagsForTagEditor(tagsToExclude);
-						return response($.ui.autocomplete.filter(cachedTagsData, request.term));
+					autocompleteOptions : {
+						"minLength" : 0, // TODO: make this 1 or 2 if the list of tags is huge
+						"delay"     : 0,
+						"autoFocus" : false,
+						source      : function(request, response) {
+							var tagsToExclude = getUserSelectedTags();
+							var cachedTagsData = TAG_MANAGER.getCachedTagsForTagEditor(tagsToExclude);
+							return response($.ui.autocomplete.filter(cachedTagsData, request.term));
+						}
+					},
+					// return, comma, space, period, semicolon
+					breakKeyCodes       : [ 13, 44, 32, 59 ],
+					additionalListClass : '_timeline_photo_tags_filter',
+					animSpeed           : 100,
+					allowAdd            : false,
+					allowEdit           : false,
+					allowDelete         : false,
+					texts               : {
+						removeLinkTitle    : 'Remove this tag from the list',
+						saveEditLinkTitle  : 'Save changes',
+						breakEditLinkTitle : 'Undo changes'
 					}
-				},
-				// return, comma, space, period, semicolon
-				breakKeyCodes       : [ 13, 44, 32, 59 ],
-				additionalListClass : '_timeline_photo_tags_filter',
-				animSpeed           : 100,
-				allowAdd            : false,
-				allowEdit           : false,
-				allowDelete         : false,
-				texts               : {
-					removeLinkTitle    : 'Remove this tag from the list',
-					saveEditLinkTitle  : 'Save changes',
-					breakEditLinkTitle : 'Undo changes'
-				}
 			};
 			$("#" + channelElementId + "-photo-tags-filter input.tag").tagedit(tagFilterOptions);
 			$("#" + channelElementId + "-photo-tags-filter").bind('tagsChanged', updatePhotoSeriesPlotChannelConfig);
@@ -1429,6 +1464,7 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 	// Render view to page
 	function renderView(view, mode) {
 		var yAxes, i, l;
+		var channel;
 		mode = mode || "both";
 
 		if ((typeof view === 'undefined') ||
@@ -1510,6 +1546,16 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 			yAxes = view["v2"]["y_axes"];
 			l = yAxes.length;
 			for (i = 0; i < l; i++) {
+
+				// Update min_time, max_time for each channel with latest from 
+				// SOURCES if available
+				channel = getSourceChannelByName(yAxes[i]["device_name"], yAxes[i]["channel_name"]);
+				if (!!channel && channel.hasOwnProperty("min_time")
+						&& channel.hasOwnProperty("max_time")) {
+					yAxes[i]["min_time"] = channel["min_time"];
+					yAxes[i]["max_time"] = channel["max_time"];
+				}
+
 				addChannel(yAxes[i], null);
 			}
 		}
@@ -1521,7 +1567,7 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 	function validateView(view) {
 		var xAxes, yAxes;
 		var viewName, channels;
-		var deviceName, deviceChannels, channelName;
+		var deviceChannels, channelName;
 		var obj, styles;
 		var i, l;
 
@@ -1532,29 +1578,29 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 		}
 
 		/* V2 structure
-	    		{
-	    		  "name" : "test",
-	    		  "v2"   : {
-	    	            "show_add_pane" : true,
-	    		    "x_axis" : {
-	    		      "min" : 0.00,
-	    		      "max" : 0.00
-	    		    },
-	    		    "y_axes" : [
-	    		      {
-	    			"device_name" : "",
-	    			"channel_name" : "",
-	    			"min" : 0.00,
-	    			"max" : 0.00,
-	    			"style" : {},
-	    			"y_range" : {"min_val" : 0, "max_val" : 0}, // optional
-	    			"channel_height" : 0 // pixels, optional
-	    		      },
-	    		      {
-	    		      }
-	    		    ]
-	    		  }
-	    		}
+				{
+	  				"name" : "test",
+	  				"v2"   : {
+            			"show_add_pane" : true,
+	    				"x_axis" : {
+	      				  "min" : 0.00,
+	      				  "max" : 0.00
+	    			},
+	    			"y_axes" : [
+	      			  {
+					"device_name" : "",
+					"channel_name" : "",
+					"min" : 0.00,
+					"max" : 0.00,
+					"style" : {},
+					"y_range" : {"min_val" : 0, "max_val" : 0}, // optional
+					"channel_height" : 0 // pixels, optional
+	      				},	
+	      				{
+	      				}
+	    			]
+	  			}
+			}
 		 */
 		if (typeof view['v2'] !== 'undefined') {
 			if (typeof view['v2']['x_axis'] !== 'object' || 
@@ -1594,17 +1640,17 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 
 		// Create v2 structure
 		view["v2"] = {
-			"x_axis" : {
-				"min" : xAxes[0]["min_time"],
-				"max" : xAxes[0]["max_time"]
-			},
-			"y_axes" : []
+				"x_axis" : {
+					"min" : xAxes[0]["min_time"],
+					"max" : xAxes[0]["max_time"]
+				},
+				"y_axes" : []
 		};
 
 		for (var deviceName in channels) {
 			if (channels.hasOwnProperty(deviceName)) {
 				deviceChannels = channels[deviceName];
-				for (var channelName in deviceChannels) {
+				for (channelName in deviceChannels) {
 					if (deviceChannels.hasOwnProperty(channelName)) {
 						obj = channels[deviceName][channelName];
 						index = obj['y_axis'];
@@ -1623,11 +1669,11 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 							}];
 						}
 						view["v2"]["y_axes"][index] = {
-							'device_name'  : deviceName,
-							'channel_name' : channelName,
-							'min'          : yAxes[index]['min_val'],
-							'max'          : yAxes[index]['max_val'],
-							'style'        : { "styles" : styles }
+								'device_name'  : deviceName,
+								'channel_name' : channelName,
+								'min'          : yAxes[index]['min_val'],
+								'max'          : yAxes[index]['max_val'],
+								'style'        : { "styles" : styles }
 						};
 					}
 				}
@@ -1669,6 +1715,274 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 		return __createDatasource(urlPrefix, urlParams);
 	}
 
+	function createPhotoDialogCache(channelFilterTags, isAndJoin) {
+		var cache = {
+				photos                             : [],
+				photosById                         : {}, // maps photo ID to an index in the photos array
+				isLoadingPreceding                 : false,
+				isLoadingFollowing                 : false,
+				NUM_PHOTOS_TO_FETCH                : 20,
+				DISTANCE_FROM_END_TO_TRIGGER_FETCH : 10,
+				__loadNeighboringPhotoMetadata     : function(currentPhotoId,
+						currentPhotoTimestamp,
+						tagsFilterArray,
+						isAndJoin,
+						shouldLoadPreviousNeighbor, // flag which determines whether the previous or following neighbor will be loaded
+						callbacks) {
+					currentPhotoId = TOOLS.parseInt(currentPhotoId, -1);
+					if (currentPhotoId >= 0) {
+						if (typeof callbacks === 'undefined') {
+							callbacks = {};
+						}
+						var successCallback = callbacks['success'];
+						var errorCallback = callbacks['error'];
+						var completeCallback = callbacks['complete'];
+
+						shouldLoadPreviousNeighbor = !!shouldLoadPreviousNeighbor;
+						isAndJoin = !!isAndJoin;
+
+						var url = "/bodytrack/users/" + LOGIN.user_id + "/log_items/get";
+						var urlParams = {
+							"id"         : currentPhotoId,
+							"time"       : currentPhotoTimestamp,
+							"type"       : "photos",
+							"descending" : shouldLoadPreviousNeighbor,
+							"exclusive"  : false,
+							"count"      : cache.NUM_PHOTOS_TO_FETCH
+						};
+
+						if (isAndJoin) {
+							urlParams["all_tags"] = tagsFilterArray.join(",");
+						} else {
+							urlParams["any_tags"] = tagsFilterArray.join(",");
+						}
+
+						TOOLS.loadJson(url, urlParams, {
+							"success"  : function(photos) {
+								if ($.isArray(photos)) {
+									if (typeof successCallback === 'function') {
+										var photosMetadata = [];
+										$.each(photos, function(index, photo) {
+											photosMetadata[index] = {
+													"photoId"         : photo['id'],
+													"comment"         : photo['comment'],
+													"tags"            : photo['tags'],
+													"timestamp"       : photo['end_d'],
+													"timestampString" : photo['end']
+											};
+										});
+
+										// mark the last photo as the end if we got fewer photos than we wanted
+										if (photos.length < cache.NUM_PHOTOS_TO_FETCH) {
+											console.log("PhotoDialogCache.__loadNeighboringPhotoMetadata(): Requested ["+cache.NUM_PHOTOS_TO_FETCH+"] photos, but only got ["+photos.length+"].  Marking the last photo as the end to prevent spurious fetches.");
+											photosMetadata[photosMetadata.length-1]['isEndingPhoto'] = true;
+										}
+
+										successCallback(photosMetadata);
+									}
+								} else if (typeof errorCallback == 'function') {
+									errorCallback("loadNeighboringPhotoMetadata(): Returned data is not an array");
+								}
+							},
+							"error"    : errorCallback,
+							"complete" : completeCallback
+						});
+					}
+				}, __loadPreceding                 : function(photoId, timestamp, successCallback) {
+					if (cache.isLoadingPreceding) {
+						console.log("PhotoDialogCache.__loadPreceding(): doing nothing since we're already loading");
+					} else {
+						cache.isLoadingPreceding = true;
+						cache.__loadNeighboringPhotoMetadata(photoId,
+								timestamp,
+								channelFilterTags,
+								isAndJoin,
+								true,
+								{
+							"success" : successCallback,
+							"complete": function() {
+								cache.isLoadingPreceding = false;
+							}
+								});
+					}
+				},
+				__loadFollowing                    : function(photoId, timestamp, successCallback) {
+					if (cache.isLoadingFollowing) {
+						console.log("PhotoDialogCache.__loadFollowing(): doing nothing since we're already loading");
+					} else {
+						cache.isLoadingFollowing = true;
+						cache.__loadNeighboringPhotoMetadata(photoId,
+								timestamp,
+								channelFilterTags,
+								isAndJoin,
+								false,
+								{
+							"success" : successCallback,
+							"complete": function() {
+								cache.isLoadingFollowing = false;
+							}
+								});
+					}
+				},
+				initialize                         : function(photoId, timestamp, callback) {
+					//console.log("PhotoDialogCache.initialize()------------------------------------------");
+
+					// To build up the initial cache, fetch the photos BEFORE this photo, then the photos AFTER it.
+					cache.__loadPreceding(photoId,
+							timestamp,
+							function(precedingPhotosMetadata) {
+						cache.__loadFollowing(photoId,
+								timestamp,
+								function(followingPhotosMetadata) {
+							// Create the initial cache.  We do this by first reversing the array
+							// containing the preceding photos, then slicing off the first element
+							// of the array containing the following photos (since it's a dupe
+							// of the last element in the reverse precedingPhotosMetadata
+							// array) and then concatenating the two together.
+							cache.photos = precedingPhotosMetadata.reverse().concat(followingPhotosMetadata.slice(1));
+
+							// now create the map which maps photo ID to photo array element index
+							$.each(cache.photos, function(index, photo) {
+								cache.photosById[photo['photoId']] = index;
+							});
+
+							// now that the cache is created, we can call the callback
+							if (typeof callback === 'function') {
+								callback();
+							}
+						})
+					});
+				},
+
+				__getPhotoMetadata : function(photoId, offset) {
+					if (photoId in cache.photosById) {
+						var indexOfRequestedPhoto = cache.photosById[photoId] + offset;
+						if (indexOfRequestedPhoto >= 0 && indexOfRequestedPhoto < cache.photos.length) {
+							return cache.photos[indexOfRequestedPhoto];
+						}
+					}
+					//console.log("PhotoDialogCache.__getPhotoMetadata(): Failed to get photo offset [" + offset + "] for ID [" + photoId + "]");
+					return null;
+				},
+
+				getPreviousPhotoMetadata : function(photoId) {
+					var photo = cache.__getPhotoMetadata(photoId, -1);
+
+					if (photo != null) {
+						// Check how close we are to the beginning of the array.  If it's within __DISTANCE_FROM_END_TO_TRIGGER_FETCH,
+						// then spawn an asyncrhonous job to fetch more photos
+						var distance = cache.photosById[photoId];
+						if (distance < cache.DISTANCE_FROM_END_TO_TRIGGER_FETCH) {
+							var endingPhoto = cache.photos[0];
+							if ('isEndingPhoto' in endingPhoto) {
+								console.log("PhotoDialogCache.getPreviousPhotoMetadata(): No need to fetch more photos since we've already loaded up to the end [" + endingPhoto['photoId'] + "]");
+							} else {
+								console.log("PhotoDialogCache.getPreviousPhotoMetadata(): Fetching more photos preceding id ["+endingPhoto['photoId']+"]");
+								cache.__loadPreceding(endingPhoto['photoId'],
+										endingPhoto['timestamp'],
+										function(photosMetadata) {
+									console.log("PhotoDialogCache.getPreviousPhotoMetadata(): Fetched ["+photosMetadata.length+"] more previous photos.");
+
+									// make sure that the cache didn't change while we were doing the fetch
+									if (endingPhoto['photoId'] == cache.photos[0]['photoId']) {
+										// create a new photos array for the cache
+										var newPhotos = photosMetadata.slice(1).reverse().concat(cache.photos);
+										var newPhotosById = {};
+
+										// now recreate the map which maps photo ID to photo array element index
+										$.each(newPhotos, function(index, photo) {
+											newPhotosById[photo['photoId']] = index;
+										});
+
+										//var s = "";
+										//$.each(newPhotos, function(index, photo) {
+										//  s += photo['photoId'] + ","
+										//});
+										//console.log("length=[" + newPhotos.length + "," + cache.photos.length + "]: " + s);
+
+										// update the cache's array and map
+										cache.photos = newPhotos;
+										cache.photosById = newPhotosById;
+									} else {
+										console.log("PhotoDialogCache.getPreviousPhotoMetadata(): cache has changed, won't update");
+									}
+								});
+							}
+						}
+					}
+
+					return photo;
+				},
+
+				getNextPhotoMetadata : function(photoId) {
+					var photo = cache.__getPhotoMetadata(photoId, 1);
+
+					if (photo != null) {
+						// Check how close we are to the beginning of the array.  If it's within __DISTANCE_FROM_END_TO_TRIGGER_FETCH,
+						// then spawn an asyncrhonous job to fetch more photos
+						var distance = cache.photos.length - 1 - cache.photosById[photoId];
+						if (distance < cache.DISTANCE_FROM_END_TO_TRIGGER_FETCH) {
+							var endingPhoto = cache.photos[cache.photos.length - 1];
+							if ('isEndingPhoto' in endingPhoto) {
+								console.log("PhotoDialogCache.getNextPhotoMetadata(): No need to fetch more photos since we've already loaded up to the end [" + endingPhoto['photoId'] + "]");
+							} else {
+								console.log("PhotoDialogCache.getNextPhotoMetadata(): Fetching more photos following id ["+endingPhoto['photoId']+"]");
+								cache.__loadFollowing(endingPhoto['photoId'],
+										endingPhoto['timestamp'],
+										function(photosMetadata) {
+									console.log("PhotoDialogCache.getNextPhotoMetadata(): Fetched ["+photosMetadata.length+"] more following photos.");
+
+									// make sure that the cache didn't change while we were doing the fetch
+									if (endingPhoto['photoId'] == cache.photos[cache.photos.length - 1]['photoId']) {
+										// create a new photos array for the cache
+										var newPhotos = cache.photos.concat(photosMetadata.slice(1));
+										var newPhotosById = {};
+
+										// now recreate the map which maps photo ID to photo array element index
+										$.each(newPhotos, function(index, photo) {
+											newPhotosById[photo['photoId']] = index;
+										});
+
+										//var s = "";
+										//$.each(newPhotos, function(index, photo) {
+										//  s += photo['photoId'] + ","
+										//});
+										//console.log("length=[" + newPhotos.length + "," + cache.photos.length + "]: " + s);
+
+										// update the cache's array and map
+										cache.photos = newPhotos;
+										cache.photosById = newPhotosById;
+									} else {
+										console.log("PhotoDialogCache.getNextPhotoMetadata(): cache has changed, won't update");
+									}
+								});
+							}
+						}
+					}
+
+					return photo;
+				},
+
+				getPhotoMetadata : function(photoId) {
+					return cache.__getPhotoMetadata(photoId, 0);
+				},
+
+				update : function(photoId, newData) {
+					if (photoId in cache.photosById) {
+						var index = cache.photosById[photoId];
+						cache.photos[index] = {
+								"photoId"         : newData['id'],
+								"comment"         : newData['comment'],
+								"tags"            : newData['tags'],
+								"timestamp"       : newData['end_d'],
+								"timestampString" : newData['end']
+						};
+					}
+				}
+		};
+		return cache;
+	}
+
 	function dataPointListener(pointObj, sourceInfo) {
 		if (pointObj) {
 			$("#_timeline_dataPointValueLabel").html($.mustache($("#_timeline_data_point_value_label_template").html(), pointObj));
@@ -1677,76 +1991,12 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 		}
 	}
 
-	function loadNeighboringPhotoMetadata(currentPhotoId,
-			currentPhotoTimestamp,
-			tagsFilterArray,
-			isAndJoin,
-			shouldLoadPreviousNeighbor,   // flag which determines whether the previous or following neighbor will be loaded
-			callbacks) {
-
-		currentPhotoId = TOOLS.parseInt(currentPhotoId, -1);
-		if (currentPhotoId >= 0) {
-			if (typeof callbacks === 'undefined') {
-				callbacks = {};
-			}
-			var successCallback = callbacks['success'];
-			var errorCallback = callbacks['error'];
-			var completeCallback = callbacks['complete'];
-
-			shouldLoadPreviousNeighbor = !!shouldLoadPreviousNeighbor;
-			isAndJoin = !!isAndJoin;
-
-			var url = "/users/" + LOGIN.user_id + "/log_items/get";
-			var urlParams = {
-				"id":currentPhotoId,
-				"time":currentPhotoTimestamp,
-				"type":"photos",
-				"descending":shouldLoadPreviousNeighbor,
-				"exclusive":true,
-				"count":shouldLoadPreviousNeighbor ? 1 : 2      // get 2 if loading following neighbors due to bug in server-side code
-			};
-
-			if (isAndJoin) {
-				urlParams["all_tags"] = tagsFilterArray.join(",");
-			} else {
-				urlParams["any_tags"] = tagsFilterArray.join(",");
-			}
-
-			TOOLS.loadJson(url, urlParams, {
-				"success" : function(photos) {
-					if ($.isArray(photos)) {
-						if (typeof successCallback === 'function') {
-							var photo = photos[0];
-							// we might need to skip the first index due to bug in server-side code
-							if (photos.length > 0 && TOOLS.parseInt(photos[0]['id'], -1) == currentPhotoId) {
-								photo = photos.length > 1 ? photos[1] : {};
-							}
-
-							if (typeof photo === 'undefined') {
-								photo = {};
-							}
-							successCallback({
-								"photoId"         : photo['id'],
-								"comment"         : photo['comment'],
-								"tags"            : photo['tags'],
-								"timestamp"       : photo['end_d'],
-								"timestampString" : photo['end']
-							});
-						}
-					} else if (typeof errorCallback == 'function') {
-						errorCallback("loadNeighboringPhotoMetadata(): Returned data is not an array");
-					}
-				},
-				"error"   : errorCallback,
-				"complete":completeCallback
-			});
-		}
-	}
-
 	function loadLogrecMetadata(logrecId, callbacks) {
 		logrecId = TOOLS.parseInt(logrecId, -1);
 		if (logrecId >= 0) {
+
 			var url = "/bodytrack/users/" + LOGIN.user_id + "/logrecs/" + logrecId + "/get";
+
 			TOOLS.loadJson(url, {}, callbacks);
 		}
 	}
@@ -1780,14 +2030,18 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 					});
 					return tags;
 				};
-
 				// get the channel's current settings for tag filtering
 				var isAndJoin = $("#" + channelElementId + "-photo-tags-isAndJoin").val() === 'true';
 				var channelFilterTags = getTagFilterForChannel();
 
-				var createPhotoDialog = function(photoId, timestamp) {
+				// create the photo cache
+				var photoCache = createPhotoDialogCache(channelFilterTags, isAndJoin);
 
-					$("#_timeline_photo_dialog").html($.mustache($("#_timeline_photo_dialog_template").html(), {"photoId" : photoId, "userId" : LOGIN.user_id}));
+				var createPhotoDialog = function(photoId, timestamp, completionCallback) {
+
+					var mediumResImageUrl = $.mustache($("#_timeline_photo_dialog_medium_res_image_url_template").html(), {"photoId" : photoId, "userId" : LOGIN.user_id});
+					var highResImageUrl = $.mustache($("#_timeline_photo_dialog_high_res_image_url_template").html(), {"photoId" : photoId, "userId" : LOGIN.user_id});
+					$("#_timeline_photo_dialog").html($.mustache($("#_timeline_photo_dialog_template").html(), {"photoUrl" : mediumResImageUrl}));
 
 					var updateGoToNeighborOnSaveWidgets = function() {
 						var isEnabled = $("#_timeline_photo_dialog_save_should_goto_neighbor").is(':checked');
@@ -1825,379 +2079,382 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 					$("#_timeline_photo_dialog_previous_button").hide();
 					$("#_timeline_photo_dialog_next_button").hide();
 
-					var previousPhotoMetadata;
-					var nextPhotoMetadata;
+					// Fetch the metadata for the preceding, following, and current photos from the cache.
+					var previousPhotoMetadata = photoCache.getPreviousPhotoMetadata(photoId);
+					var nextPhotoMetadata = photoCache.getNextPhotoMetadata(photoId);
+					var data = photoCache.getPhotoMetadata(photoId);
 
-					// Fetch the metadata via AJAX and then insert it into the dialog upon success
-					var loadPhotoMetadata = function() {
-						loadLogrecMetadata(photoId, {
-							success : function(data) {
-
-								var isPreviousPhoto = typeof previousPhotoMetadata !== 'undefined' && typeof previousPhotoMetadata['photoId'] !== 'undefined';
-								if (isPreviousPhoto) {
-									$("#_timeline_photo_dialog_previous_button").show().click(function() {
-										createPhotoDialog(previousPhotoMetadata['photoId'], previousPhotoMetadata['timestamp']);
-									});
-								}
-
-								var isNextPhoto = typeof nextPhotoMetadata !== 'undefined' && typeof nextPhotoMetadata['photoId'] !== 'undefined';
-								if (isNextPhoto) {
-									$("#_timeline_photo_dialog_next_button").show().click(function() {
-										createPhotoDialog(nextPhotoMetadata['photoId'],
-												nextPhotoMetadata['timestamp']);
-									});
-								}
-
-								if (typeof data === 'string') {
-									data = JSON.parse(data);
-								}
-
-								// treat undefined or null comment as an empty comment
-								if (typeof data['comment'] === 'undefined' || data['comment'] == null) {
-									data['comment'] = '';
-								}
-
-								// treat undefined or null tags as an empty array
-								if (typeof data['tags'] === 'undefined' || data['tags'] == null) {
-									data['tags'] = [];
-								}
-
-								var createCommentAndTagForm = function(comment, tags) {
-
-									var isDirty = function() {
-										// first check the comment, since it's easy and cheap
-										if ($("#_timeline_photo_dialog_comment").val() != comment) {
-											return true;
-										}
-
-										// if the comment isn't dirty, then check the tags
-										var newTags = getUserSelectedTags();
-
-										// start by checking the length
-										if (newTags.length != tags.length) {
-											return true;
-										}
-
-										// now compare individual tags
-										for (var i = 0; i < newTags.length; i++) {
-											if (newTags[i] != tags[i]) {
-												return true;
-											}
-										}
-
-										return false;
-									};
-
-									var setEnabledStateOfRevertAndSaveButtons = function() {
-										if (isDirty()) {
-											$("#_timeline_photo_dialog_save_button").removeAttr("disabled");
-											$("#_timeline_photo_dialog_revert_button").removeAttr("disabled");
-										} else {
-											$("#_timeline_photo_dialog_save_button").attr("disabled", "disabled");
-											$("#_timeline_photo_dialog_revert_button").attr("disabled", "disabled");
-										}
-									};
-
-									// build the form for the metadata editor
-									var photoMetadataForm = $.mustache($("#_timeline_photo_dialog_form_template").html(), {});
-									$("#_timeline_photo_dialog_form").html(photoMetadataForm);
-
-									// fill in the timestamp
-									if (typeof data['end'] === 'undefined') {
-										$("#_timeline_photo_dialog_timestamp").html("&nbsp;");
-									} else {
-										$("#_timeline_photo_dialog_timestamp").text(new Date(data['end']).toString());
-									}
-
-									// fill in the comment, if any
-									if (typeof comment === 'undefined' || comment == null) {
-										$("#_timeline_photo_dialog_comment").val('');
-									} else {
-										$("#_timeline_photo_dialog_comment").val(comment);
-									}
-
-									// Set up focus and blur event handlers for the comment field, to toggle
-									// close on ESC for the photo dialog.  We don't want the ESC key to close
-									// the dialog when the user is editing the comment.
-									$("#_timeline_photo_dialog_comment").focus(function() {
-										$("#_timeline_photo_dialog")['dialog']("option", "closeOnEscape", false);
-									});
-									$("#_timeline_photo_dialog_comment").blur(function() {
-										$("#_timeline_photo_dialog")['dialog']("option", "closeOnEscape", true);
-									});
-									$("#_timeline_photo_dialog_comment").keyup(setEnabledStateOfRevertAndSaveButtons);
-
-									// add the tags, if any
-									if ($.isArray(tags) && tags.length > 0) {
-										$.each(tags,
-												function(index, value) {
-											var tagHtml = $.mustache($("#_timeline_photo_dialog_tags_editor_tag_template").html(), {"value" : value});
-											$("#_timeline_photo_dialog_tags_editor").append(tagHtml);
-										});
-									} else {
-										var tagHtml = $.mustache($("#_timeline_photo_dialog_tags_editor_tag_template").html(), {"value" : ""});
-										$("#_timeline_photo_dialog_tags_editor").append(tagHtml);
-									}
-
-									// construct the tag editor
-									var tagEditorOptions = {
-										autocompleteOptions : {
-											"minLength" : 0, // TODO: make this 1 or 2 if the list of tags is huge
-											"delay"     : 0,
-											"autoFocus" : false,
-											source      : function(request, response) {
-												var tagsToExclude = getUserSelectedTags();
-												var cachedTagsData = TAG_MANAGER.getCachedTagsForTagEditor(tagsToExclude);
-												return response($.ui.autocomplete.filter(cachedTagsData, request.term));
-											}
-										},
-										// return, comma, space, period, semicolon
-										breakKeyCodes       : [ 13, 44, 32, 59 ],
-										additionalListClass : '_timeline_photo_tags_input',
-										animSpeed           : 100,
-										allowAdd            : true,
-										allowEdit           : true,
-										allowDelete         : false,
-										texts               : {
-											removeLinkTitle    : 'Remove this tag from the list',
-											saveEditLinkTitle  : 'Save changes',
-											breakEditLinkTitle : 'Undo changes'
-										}
-									};
-									$('#_timeline_photo_dialog_tags_editor input.tag').tagedit(tagEditorOptions);
-									$('#_timeline_photo_dialog_tags_editor').bind('tagsChanged', setEnabledStateOfRevertAndSaveButtons);
-									$('#_timeline_photo_dialog_tags_editor').bind('receivedFocus', function() {
-										$("#_timeline_photo_dialog")['dialog']("option", "closeOnEscape", false);
-									});
-									$('#_timeline_photo_dialog_tags_editor').bind('tabToNextElement', function(event) {
-										$("#_timeline_photo_dialog")['dialog']("option", "closeOnEscape", true);
-
-										$("#_timeline_photo_dialog_tags_editor_tabhelper_post_proxy_forward").focus();
-										return false;
-									});
-									$('#_timeline_photo_dialog_tags_editor').bind('tabToPreviousElement', function(event) {
-										$("#_timeline_photo_dialog")['dialog']("option", "closeOnEscape", true);
-
-										$("#_timeline_photo_dialog_comment").select().focus();
-										return false;
-									});
-
-									// set form buttons to initially disabled
-									$("#_timeline_photo_dialog_save_button").attr("disabled", "disabled");
-									$("#_timeline_photo_dialog_revert_button").attr("disabled", "disabled");
-
-									// configure the Revert button
-									$("#_timeline_photo_dialog_revert_button").click(function() {
-										$("#_timeline_photo_dialog_form").hide();
-										$("#_timeline_photo_dialog_form_status").text("Loading...").show();
-
-										// recreate the comment and tag form
-										createCommentAndTagForm(comment, tags);
-										$("#_timeline_photo_dialog_form_status").hide();
-										$("#_timeline_photo_dialog_form").show();
-
-										// focus on the comment
-										$("#_timeline_photo_dialog_comment").select().focus();
-									});
-
-									// configure the Save button
-									$("#_timeline_photo_dialog_save_button").click(function() {
-
-										// set form buttons to disabled while saving
-										$("#_timeline_photo_dialog_save_button").attr("disabled", "disabled");
-										$("#_timeline_photo_dialog_revert_button").attr("disabled", "disabled");
-
-										$("#_timeline_photo_dialog_form").hide();
-										$("#_timeline_photo_dialog_form_status").text("Saving...").show();
-
-										$.ajax({
-											cache    : false,
-											type     : "POST",
-											url      : "/users/" + LOGIN.user_id + "/logrecs/" + photoId + "/set",
-											data     : {
-												"tags"    : getUserSelectedTags().join(','),
-												"comment" : $("#_timeline_photo_dialog_comment").val()
-											},
-											dataType : "json",
-											success  : function(savedData, textStatus, jqXHR) {
-												if (typeof savedData === 'object') {
-													console.log("Successfully saved comment and tags for photo [" + photoId + "]");
-													TAG_MANAGER.refreshTagCache(function() {
-
-														$("#_timeline_photo_dialog_form_status")
-														.text("Saved.")
-														.delay(250)
-														.fadeOut(500, function() {
-															// read the desired direction from the prefs
-															goToNeighborOnSaveEnabled = !!PREFS.get("photo_dialog.goto_neighbor_on_save.enabled", false);
-															goToNeighborOnSaveDirection = TOOLS.parseInt(PREFS.get("photo_dialog.goto_neighbor_on_save.direction", 0), 0);
-
-															// now determine what action to take upon save
-															if (goToNeighborOnSaveEnabled && isPreviousPhoto && goToNeighborOnSaveDirection < 0) {
-																$("#_timeline_photo_dialog_previous_button").click();
-															} else if (goToNeighborOnSaveEnabled && isNextPhoto && goToNeighborOnSaveDirection > 0) {
-																$("#_timeline_photo_dialog_next_button").click();
-															} else {
-																// recreate the comment and tag form
-																createCommentAndTagForm(savedData['comment'], savedData['tags']);
-
-																$("#_timeline_photo_dialog_form").show();
-
-																// focus on the comment
-																$("#_timeline_photo_dialog_comment").select().focus();
-															}
-														});
-													});
-												} else {
-													console.log("Unexpected response when saving comment and tags for photo [" + photoId + "]:  savedData=[" + savedData + "] textStatus=[" + textStatus + "]");
-													$("#_timeline_photo_dialog_form_status").text("Saved failed.").show();
-												}
-											},
-											error : function(jqXHR, textStatus, errorThrown) {
-												console.log("Failed to save comment and tags for photo [" + photoId + "]:  textStatus=[" + textStatus + "] errorThrown=[" + errorThrown + "]");
-												$("#_timeline_photo_dialog_form_status").text("Saved failed.").show();
-											}
-										});
-									});
-
-									updateGoToNeighborOnSaveWidgets();
-
-									// set up tabbing and focus handling
-									$("#_timeline_photo_dialog_form #tagedit-input").attr("tabindex", 102);
-									$("#_timeline_photo_dialog_tabhelper_pre_proxy_backward").focus(function() {
-										if ($("#_timeline_photo_dialog_save_should_goto_neighbor_choice").is(":enabled")) {
-											$("#_timeline_photo_dialog_save_should_goto_neighbor_choice").focus();
-										} else {
-											$("#_timeline_photo_dialog_save_should_goto_neighbor").focus();
-										}
-										return false;
-									});
-									$("#_timeline_photo_dialog_previous_button").focus(function() {
-										$(this).css("background-position", "0 -38px");
-									}).blur(function() {
-										$(this).css("background-position", "0 0");
-									});
-									$("#_timeline_photo_dialog_next_button").focus(function() {
-										$(this).css("background-position", "0 -38px");
-									}).blur(function() {
-										$(this).css("background-position", "0 0");
-									});
-									$("#_timeline_photo_dialog_comment_tabhelper_pre_proxy_forward").focus(function() {
-										$("#_timeline_photo_dialog_comment").focus().select();
-										return false;
-									});
-									$("#_timeline_photo_dialog_comment_tabhelper_pre_proxy_backward").focus(function() {
-										if (isNextPhoto) {
-											$("#_timeline_photo_dialog_next_button").focus();
-										} else if (isPreviousPhoto) {
-											$("#_timeline_photo_dialog_previous_button").focus();
-										} else {
-											$("#_timeline_photo_dialog_tabhelper_pre_proxy_backward").focus();
-										}
-										return false;
-									});
-									$("#_timeline_photo_dialog_comment").focus(function() {
-										return false;
-									});
-									$("#_timeline_photo_dialog_tags_editor_tabhelper_pre_proxy_forward").focus(function() {
-										$("#_timeline_photo_dialog_tags_editor ul").click();
-									});
-									$("#_timeline_photo_dialog_tags_editor_tabhelper_post_proxy_forward").focus(function() {
-										if ($("#_timeline_photo_dialog_save_button").is(":disabled")) {
-											$("#_timeline_photo_dialog_save_should_goto_neighbor").focus();
-										} else {
-											$("#_timeline_photo_dialog_save_button").focus();
-										}
-										return false;
-									});
-									$("#_timeline_photo_dialog_tags_editor_tabhelper_post_proxy_backward").focus(function() {
-										$("#_timeline_photo_dialog_tags_editor ul").click();
-									});
-									$("#_timeline_photo_dialog_revert_button").focus(function() {
-										$(this).css("color", "#18B054");
-									}).blur(function() {
-										$(this).css("color", "#000000");
-									});
-									$("#_timeline_photo_dialog_save_button").focus(function(event) {
-										$(this).css("color", "#18B054");
-									}).blur(function(event) {
-										$(this).css("color", "#000000");
-									});
-									$("#_timeline_photo_dialog_post_proxy_forward").focus(function() {
-										if (isPreviousPhoto) {
-											$("#_timeline_photo_dialog_previous_button").focus();
-										} else if (isNextPhoto) {
-											$("#_timeline_photo_dialog_next_button").focus();
-										} else {
-											$("#_timeline_photo_dialog_comment").focus().select();
-										}
-										return false;
-									});
-
-									// set focus on the comment input, and select all the text
-									$("#_timeline_photo_dialog_comment").select().focus();
-
-								};
-
-								// create the comment and tag form, hide the status area, and show the form
-								createCommentAndTagForm(data['comment'], data['tags']);
-								$("#_timeline_photo_dialog_form_status").hide();
-								$("#_timeline_photo_dialog_form").show();
-							},
-							error   : function(textStatus, errorThrown) {
-								console.log("photoDataPointListener(): failed to obtain metadata for photo [" + photoId + "].  Message: [" + textStatus + "] Error: [" + errorThrown + "]");
-							}
+					var isPreviousPhoto = previousPhotoMetadata != null &&
+					typeof previousPhotoMetadata !== 'undefined' &&
+					typeof previousPhotoMetadata['photoId'] !== 'undefined';
+					if (isPreviousPhoto) {
+						$("#_timeline_photo_dialog_previous_button").show().click(function() {
+							createPhotoDialog(previousPhotoMetadata['photoId'],
+									previousPhotoMetadata['timestamp']);
 						});
+					}
+
+					var isNextPhoto = nextPhotoMetadata != null &&
+					typeof nextPhotoMetadata !== 'undefined' &&
+					typeof nextPhotoMetadata['photoId'] !== 'undefined';
+					if (isNextPhoto) {
+						$("#_timeline_photo_dialog_next_button").show().click(function() {
+							createPhotoDialog(nextPhotoMetadata['photoId'],
+									nextPhotoMetadata['timestamp']);
+						});
+					}
+
+					if (typeof data === 'string') {
+						data = JSON.parse(data);
+					}
+
+					// treat undefined or null comment as an empty comment
+					if (typeof data['comment'] === 'undefined' || data['comment'] == null) {
+						data['comment'] = '';
+					}
+
+					// treat undefined or null tags as an empty array
+					if (typeof data['tags'] === 'undefined' || data['tags'] == null) {
+						data['tags'] = [];
+					}
+
+					// add click handler for photo to allow viewing of high-res version
+					$("#_timeline_photo_dialog_image").click(function() {
+						var theImage = $(this);
+						var formContainer = $("#_timeline_photo_dialog_form_container");
+						if ($("#_timeline_photo_dialog_form_container").is(":visible")) {
+							formContainer.fadeOut(100, function() {
+								var imageHeight = $("body").height() - 60;
+								theImage.attr("src",highResImageUrl).attr("height",imageHeight);
+								centerPhotoDialog();
+							});
+						} else {
+							formContainer.fadeIn(100, function() {
+								theImage.attr("height","300");
+								centerPhotoDialog();
+								theImage.attr("src", mediumResImageUrl);
+							});
+						}
+					});
+
+					var createCommentAndTagForm = function(comment, tags) {
+
+						var isDirty = function() {
+							// first check the comment, since it's easy and cheap
+							if ($("#_timeline_photo_dialog_comment").val() != comment) {
+								return true;
+							}
+
+							// if the comment isn't dirty, then check the tags
+							var newTags = getUserSelectedTags();
+
+							// start by checking the length
+							if (newTags.length != tags.length) {
+								return true;
+							}
+
+							// now compare individual tags
+							for (var i = 0; i < newTags.length; i++) {
+								if (newTags[i] != tags[i]) {
+									return true;
+								}
+							}
+
+							return false;
+						};
+
+						var setEnabledStateOfRevertAndSaveButtons = function() {
+							if (isDirty()) {
+								//$("#_timeline_photo_dialog_save_button").removeAttr("disabled");
+								$("#_timeline_photo_dialog_revert_button").removeAttr("disabled");
+							} else {
+								//$("#_timeline_photo_dialog_save_button").attr("disabled", "disabled");
+								$("#_timeline_photo_dialog_revert_button").attr("disabled", "disabled");
+							}
+						};
+
+						// build the form for the metadata editor
+						var photoMetadataForm = $.mustache($("#_timeline_photo_dialog_form_template").html(), {});
+						$("#_timeline_photo_dialog_form").html(photoMetadataForm);
+
+						// fill in the timestamp
+						if (typeof data['timestampString'] === 'undefined') {
+							$("#_timeline_photo_dialog_timestamp").html("&nbsp;");
+						} else {
+							$("#_timeline_photo_dialog_timestamp").text(new Date(data['timestampString']).toString());
+						}
+
+						// fill in the comment, if any
+						if (typeof comment === 'undefined' || comment == null) {
+							$("#_timeline_photo_dialog_comment").val('');
+						} else {
+							$("#_timeline_photo_dialog_comment").val(comment);
+						}
+
+						// Set up focus and blur event handlers for the comment field, to toggle
+						// close on ESC for the photo dialog.  We don't want the ESC key to close
+						// the dialog when the user is editing the comment.
+						$("#_timeline_photo_dialog_comment").focus(function() {
+							$("#_timeline_photo_dialog")['dialog']("option", "closeOnEscape", false);
+						});
+						$("#_timeline_photo_dialog_comment").blur(function() {
+							$("#_timeline_photo_dialog")['dialog']("option", "closeOnEscape", true);
+						});
+						$("#_timeline_photo_dialog_comment").keyup(setEnabledStateOfRevertAndSaveButtons);
+
+						// add the tags, if any
+						if ($.isArray(tags) && tags.length > 0) {
+							$.each(tags,
+									function(index, value) {
+								var tagHtml = $.mustache($("#_timeline_photo_dialog_tags_editor_tag_template").html(), {"value" : value});
+								$("#_timeline_photo_dialog_tags_editor").append(tagHtml);
+							});
+						} else {
+							var tagHtml = $.mustache($("#_timeline_photo_dialog_tags_editor_tag_template").html(), {"value" : ""});
+							$("#_timeline_photo_dialog_tags_editor").append(tagHtml);
+						}
+
+						// construct the tag editor
+						var tagEditorOptions = {
+								autocompleteOptions : {
+									"minLength" : 0, // TODO: make this 1 or 2 if the list of tags is huge
+									"delay"     : 0,
+									"autoFocus" : false,
+									source      : function(request, response) {
+										var tagsToExclude = getUserSelectedTags();
+										var cachedTagsData = TAG_MANAGER.getCachedTagsForTagEditor(tagsToExclude);
+										return response($.ui.autocomplete.filter(cachedTagsData, request.term));
+									}
+								},
+								// return, comma, space, period, semicolon
+								breakKeyCodes       : [ 13, 44, 32, 59 ],
+								additionalListClass : '_timeline_photo_tags_input',
+								animSpeed           : 100,
+								allowAdd            : true,
+								allowEdit           : true,
+								allowDelete         : false,
+								texts               : {
+									removeLinkTitle    : 'Remove this tag from the list',
+									saveEditLinkTitle  : 'Save changes',
+									breakEditLinkTitle : 'Undo changes'
+								}
+						};
+						$('#_timeline_photo_dialog_tags_editor input.tag').tagedit(tagEditorOptions);
+						$('#_timeline_photo_dialog_tags_editor').bind('tagsChanged', setEnabledStateOfRevertAndSaveButtons);
+						$('#_timeline_photo_dialog_tags_editor').bind('receivedFocus', function() {
+							$("#_timeline_photo_dialog")['dialog']("option", "closeOnEscape", false);
+						});
+						$('#_timeline_photo_dialog_tags_editor').bind('tabToNextElement', function(event) {
+							$("#_timeline_photo_dialog")['dialog']("option", "closeOnEscape", true);
+
+							$("#_timeline_photo_dialog_tags_editor_tabhelper_post_proxy_forward").focus();
+							return false;
+						});
+						$('#_timeline_photo_dialog_tags_editor').bind('tabToPreviousElement', function(event) {
+							$("#_timeline_photo_dialog")['dialog']("option", "closeOnEscape", true);
+
+							$("#_timeline_photo_dialog_comment").select().focus();
+							return false;
+						});
+
+						// set form buttons to initially disabled
+						//$("#_timeline_photo_dialog_save_button").attr("disabled", "disabled");
+						$("#_timeline_photo_dialog_revert_button").attr("disabled", "disabled");
+
+						// configure the Revert button
+						$("#_timeline_photo_dialog_revert_button").click(function() {
+							$("#_timeline_photo_dialog_form").hide();
+							$("#_timeline_photo_dialog_form_status").text("Loading...").show();
+
+							// recreate the comment and tag form
+							createCommentAndTagForm(comment, tags);
+							$("#_timeline_photo_dialog_form_status").hide();
+							$("#_timeline_photo_dialog_form").show();
+
+							// focus on the comment
+							$("#_timeline_photo_dialog_comment").select().focus();
+						});
+
+						// configure the Save button
+						$("#_timeline_photo_dialog_save_button").click(function() {
+
+							// set form buttons to disabled while saving
+							//$("#_timeline_photo_dialog_save_button").attr("disabled", "disabled");
+							$("#_timeline_photo_dialog_revert_button").attr("disabled", "disabled");
+
+							$("#_timeline_photo_dialog_form").hide();
+							$("#_timeline_photo_dialog_form_status").text("Saving...").show();
+
+							$.ajax({
+								cache    : false,
+								type     : "POST",
+								url      : "/bodytrack/users/" + LOGIN.user_id + "/logrecs/" + photoId + "/set",
+								data     : {
+									"tags"    : getUserSelectedTags().join(','),
+									"comment" : $("#_timeline_photo_dialog_comment").val()
+								},
+								dataType : "json",
+								success  : function(savedData, textStatus, jqXHR) {
+									if (typeof savedData === 'object') {
+										console.log("Successfully saved comment and tags for photo [" + photoId + "]");
+										console.log(savedData);
+										photoCache.update(photoId, savedData);
+										TAG_MANAGER.refreshTagCache(function() {
+
+											$("#_timeline_photo_dialog_form_status")
+											.text("Saved.")
+											.delay(250)
+											.fadeOut(500, function() {
+												// read the desired direction from the prefs
+												goToNeighborOnSaveEnabled = !!PREFS.get("photo_dialog.goto_neighbor_on_save.enabled", false);
+												goToNeighborOnSaveDirection = TOOLS.parseInt(PREFS.get("photo_dialog.goto_neighbor_on_save.direction", 0), 0);
+
+												// now determine what action to take upon save
+												if (goToNeighborOnSaveEnabled && isPreviousPhoto && goToNeighborOnSaveDirection < 0) {
+													$("#_timeline_photo_dialog_previous_button").click();
+												} else if (goToNeighborOnSaveEnabled && isNextPhoto && goToNeighborOnSaveDirection > 0) {
+													$("#_timeline_photo_dialog_next_button").click();
+												} else {
+													// recreate the comment and tag form
+													createCommentAndTagForm(savedData['comment'], savedData['tags']);
+
+													$("#_timeline_photo_dialog_form").show();
+
+													// focus on the comment
+													$("#_timeline_photo_dialog_comment").select().focus();
+												}
+											});
+										});
+									} else {
+										console.log("Unexpected response when saving comment and tags for photo [" + photoId + "]:  savedData=[" + savedData + "] textStatus=[" + textStatus + "]");
+										$("#_timeline_photo_dialog_form_status").text("Saved failed.").show();
+									}
+								},
+								error    : function(jqXHR, textStatus, errorThrown) {
+									console.log("Failed to save comment and tags for photo [" + photoId + "]:  textStatus=[" + textStatus + "] errorThrown=[" + errorThrown + "]");
+									$("#_timeline_photo_dialog_form_status").text("Saved failed.").show();
+								}
+							});
+						});
+
+						updateGoToNeighborOnSaveWidgets();
+
+						// set up tabbing and focus handling
+						$("#_timeline_photo_dialog_form #tagedit-input").attr("tabindex", 102);
+						$("#_timeline_photo_dialog_tabhelper_pre_proxy_backward").focus(function() {
+							if ($("#_timeline_photo_dialog_save_should_goto_neighbor_choice").is(":enabled")) {
+								$("#_timeline_photo_dialog_save_should_goto_neighbor_choice").focus();
+							} else {
+								$("#_timeline_photo_dialog_save_should_goto_neighbor").focus();
+							}
+							return false;
+						});
+						$("#_timeline_photo_dialog_previous_button").focus(function() {
+							$(this).css("background-position", "0 -38px");
+						}).blur(function() {
+							$(this).css("background-position", "0 0");
+						});
+						$("#_timeline_photo_dialog_next_button").focus(function() {
+							$(this).css("background-position", "0 -38px");
+						}).blur(function() {
+							$(this).css("background-position", "0 0");
+						});
+						$("#_timeline_photo_dialog_comment_tabhelper_pre_proxy_forward").focus(function() {
+							$("#_timeline_photo_dialog_comment").focus().select();
+							return false;
+						});
+						$("#_timeline_photo_dialog_comment_tabhelper_pre_proxy_backward").focus(function() {
+							if (isNextPhoto) {
+								$("#_timeline_photo_dialog_next_button").focus();
+							} else if (isPreviousPhoto) {
+								$("#_timeline_photo_dialog_previous_button").focus();
+							} else {
+								$("#_timeline_photo_dialog_tabhelper_pre_proxy_backward").focus();
+							}
+							return false;
+						});
+						$("#_timeline_photo_dialog_comment").focus(function() {
+							return false;
+						});
+						$("#_timeline_photo_dialog_tags_editor_tabhelper_pre_proxy_forward").focus(function() {
+							$("#_timeline_photo_dialog_tags_editor ul").click();
+						});
+						$("#_timeline_photo_dialog_tags_editor_tabhelper_post_proxy_forward").focus(function() {
+							if ($("#_timeline_photo_dialog_save_button").is(":disabled")) {
+								$("#_timeline_photo_dialog_save_should_goto_neighbor").focus();
+							} else {
+								$("#_timeline_photo_dialog_save_button").focus();
+							}
+							return false;
+						});
+						$("#_timeline_photo_dialog_tags_editor_tabhelper_post_proxy_backward").focus(function() {
+							$("#_timeline_photo_dialog_tags_editor ul").click();
+						});
+						$("#_timeline_photo_dialog_revert_button").focus(function() {
+							$(this).css("color", "#18B054");
+						}).blur(function() {
+							$(this).css("color", "#000000");
+						});
+						$("#_timeline_photo_dialog_save_button").focus(function(event) {
+							$(this).css("color", "#18B054");
+						}).blur(function(event) {
+							$(this).css("color", "#000000");
+						});
+						$("#_timeline_photo_dialog_post_proxy_forward").focus(function() {
+							if (isPreviousPhoto) {
+								$("#_timeline_photo_dialog_previous_button").focus();
+							} else if (isNextPhoto) {
+								$("#_timeline_photo_dialog_next_button").focus();
+							} else {
+								$("#_timeline_photo_dialog_comment").focus().select();
+							}
+							return false;
+						});
+
+						// set focus on the comment input, and select all the text
+						$("#_timeline_photo_dialog_comment").select().focus();
+
 					};
 
-					var loadNextPhotoMetadata = function() {
-						loadNeighboringPhotoMetadata(photoId,
-							timestamp,
-							channelFilterTags,
-							isAndJoin,
-							false,
-							{
-								"success" : function(theNextPhotoMetadata) {
-									if (typeof theNextPhotoMetadata === 'object') {
-										nextPhotoMetadata = theNextPhotoMetadata;
-									}
-									loadPhotoMetadata();
-								}
-							}
-						);
-					};
-					var loadPreviousPhotoMetadata = function() {
-						loadNeighboringPhotoMetadata(photoId,
-							timestamp,
-							channelFilterTags,
-							isAndJoin,
-							true,
-							{
-								"success" : function(thePreviousPhotoMetadata) {
-									if (typeof thePreviousPhotoMetadata === 'object') {
-										previousPhotoMetadata = thePreviousPhotoMetadata;
-									}
-									loadNextPhotoMetadata();
-								}
-							}
-						);
-					};
-					loadPreviousPhotoMetadata();
+					// create the comment and tag form, hide the status area, and show the form
+					createCommentAndTagForm(data['comment'], data['tags']);
+					$("#_timeline_photo_dialog_form_status").hide();
+					$("#_timeline_photo_dialog_form").show();
+
+					// Finally, call the completion callback, if any
+					if (typeof completionCallback === 'function') {
+						completionCallback();
+					}
 				};
 
-				createPhotoDialog(sourceInfo['info']['imageId'], pointObj['date']);
+				// initialize the photo cache--when it's done preloading then open the photo dialog
+				photoCache.initialize(sourceInfo['info']['imageId'],
+						pointObj['date'],
+						function() {
+					createPhotoDialog(sourceInfo['info']['imageId'],
+							pointObj['date'],
+							function() {
+						centerPhotoDialog();
+					});
+				});
 
 				// Open the dialog
+				$("#_timeline_photo_dialog").html($.mustache($("#_timeline_photo_dialog_loading_template").html()));
 				$("#_timeline_photo_dialog")['dialog']('open');
 			}
 		};
 	}
 
+	function centerPhotoDialog() {
+		// center the dialog
+		$("#_timeline_photo_dialog")['dialog']("option", "position", 'center');
+	}
+
 	function saveDefaultChannelStyle(channel, defaultStyleObj, callbacks) {
 		if (typeof channel === 'object' &&
-			typeof defaultStyleObj === 'object' &&
-			typeof channel["device_name"] === 'string' &&
-			typeof channel["channel_name"] === 'string') {
+				typeof defaultStyleObj === 'object' &&
+				typeof channel["device_name"] === 'string' &&
+				typeof channel["channel_name"] === 'string') {
 
 			if (typeof callbacks === 'undefined') {
 				callbacks = {};
@@ -2295,7 +2552,6 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 			mostRecentY = mostRecentY + dy;
 			return false;
 		};
-
 		var mouseup = null;
 		var mousemove = null;
 		var updatePlotSize = function() {
@@ -2338,24 +2594,106 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 		resizeTimer = setInterval(updatePlotSize, 100);
 
 		return false;
-	}	
-	
-	
+	}
+
+	function gotoTime(action) {
+		var xAxis = dateAxis;
+		if (!xAxis) {
+			console.log("Missing date axis: cannot goto another time");
+			return false;
+		}
+		var xMin = xAxis.getMin();
+		var xMax = xAxis.getMax();
+		var xWidth = xMax - xMin;
+
+		if (action == "beginning") {
+			var minTime = Number.MAX_VALUE;
+			for (var channelKey in channelsMap) {
+				var channel = channelsMap[channelKey];
+				if (!!channel && channel.hasOwnProperty("min_time")) {
+					minTime = Math.min(minTime, channel["min_time"]);
+				}
+			}
+
+			if (minTime < 0.99 * Number.MAX_VALUE) {
+				xAxis.setRange(minTime, minTime + xWidth);
+			}
+		} else if (action == "back") {
+			xAxis.setRange(xMin - xWidth, xMin);
+		} else if (action == "forward") {
+			xAxis.setRange(xMax, xMax + xWidth);
+		} else if (action == "end") {
+			var maxTime = -Number.MAX_VALUE;
+			for (var channelKey in channelsMap) {
+				var channel = channelsMap[channelKey];
+				if (!!channel && channel.hasOwnProperty("max_time")) {
+					maxTime = Math.max(maxTime, channel["max_time"]);
+				}
+			}
+
+			if (maxTime > -0.99 * Number.MAX_VALUE) {
+				xAxis.setRange(maxTime - xWidth, maxTime);
+			}
+		} else {
+			return false; // No change, so don't need to repaint plots
+		}
+
+		repaintAllPlots();
+
+		return false;
+	}
+
+	function zoomTime(action) {
+		var xAxis = dateAxis;
+		if (!xAxis) {
+			console.log("Missing date axis: cannot goto another time");
+			return false;
+		}
+		var xMin = xAxis.getMin();
+		var xMax = xAxis.getMax();
+		var xWidth = xMax - xMin;
+		var newXWidth = xWidth; // Just so newXWidth is always initialized
+
+		if (action == "out") {
+			newXWidth = xWidth * 1.4;
+		} else if (action == "in") {
+			newXWidth = xWidth / 1.4;
+		} else {
+			return false; // No change, so don't need to repaint plots
+		}
+
+		var dEndpoint = (newXWidth - xWidth) / 2.0;
+		xAxis.setRange(xMin - dEndpoint, xMax + dEndpoint);
+
+		repaintAllPlots();
+
+		return false;
+	}
+
+	function repaintAllPlots() {
+		for (var plotKey in plotsMap) {
+			var plot = plotsMap[plotKey];
+			if (plot) {
+				plot.setStyle(plot.getStyle());
+			}
+		}
+	}
+
 	var Timeline = new Application("timeline", "Eric Park", "icon-film");
-	
+
 	Timeline.initialize = function () {
 		FlxState.router.route("app/timeline", "", function() {
 			Timeline.render("");
 		});
 	};
-	
+
 	Timeline.saveState = function() {
 		console.log("saving the state of the timeline application again, App.activeApp.name: " + App.activeApp.name);
 		updateViewData();
 		FlxState.saveState(App.activeApp.name, VIEWS.data);
 		console.log(FlxState.getState(App.activeApp.name));
 	};
-	
+
 	Timeline.renderState = function(state) {
 		FlxState.router.navigate("app/timeline");
 		APP.init(function() {
@@ -2373,13 +2711,13 @@ define(["core/Application", "core/FlxState", "applications/timeline/BodyTrack"],
 			});
 		});
 	};
-	
+
 	Timeline.setup = function() {
 		$(window).resize(function(){
 			clearTimeout(BodyTrack.TOOLS.resizeTimer);
 			BodyTrack.TOOLS.resizeTimer = setTimeout(BodyTrack.TOOLS.resizeHandler, 100);
 		});
 	};
-	
+
 	return Timeline;
 });

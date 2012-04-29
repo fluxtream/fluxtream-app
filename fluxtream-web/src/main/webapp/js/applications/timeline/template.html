@@ -1,42 +1,47 @@
-
 <div id="log-container" class="row-fluid">
 	<div id="widgets">
 		<div id="bodyTrackWidget" class="row-fluid">
 		  <div id="_timeline_messageArea">Loading...</div>
-		
-		  <div id="_timeline_mainContentArea" style="display:none" class="span12">
-		    
-		    	<div class="timeline-button"><button class="btn active" data-toggle="button">Hide channels</button></div>&nbsp;
-				<div class="btn-group timeline-button">
-					<button class="btn">Untitled Graph Set</button>
-					<button class="btn dropdown-toggle"
-						data-toggle="dropdown">
-						<span class="caret"></span>
-					</button>
-					<ul class="dropdown-menu">
-						<li><a href="#">Graph Set One</a></li>
-						<li><a href="#">Graph Set Two</a></li>
-						<li><a href="#">Graph Set Three</a></li>
-						<li class="divider"></li>
-						<li><a href="#">New Graph Set...</a></li>
-					</ul>
-				</div>
-<!-- 		      <span id="_timeline_viewName"></span> -->
-<!-- 		      <a href="#" class="button" id="_timeline_new_view_btn">New View</a> -->
-<!-- 		      <a href="#" class="button button_disabled" id="_timeline_save_view_btn">Save View</a> -->
-<!-- 		      <a href="#" class="button" id="_timeline_load_view_btn">Load View</a> -->
-<!-- 		      <a href="#" class="button button_disabled" id="_timeline_add_channels_btn">Add Channels</a> -->
-<!-- 		      <a href="#" class="button button_disabled" id="_timeline_show_details_btn">Show Details</a> -->
-		    <div id="_timeline_view_dialog"></div>
-		
+
+		  <div id="_timeline_mainContentArea" style="display:none">
+		    <span>
+	    	  <span id="_timeline_viewName"></span>
+	
+		      <a href="#" class="button" id="_timeline_new_view_btn">New View</a>
+	      	  <a href="#" class="button button_disabled" id="_timeline_save_view_btn">Save View</a>
+	      	  <a href="#" class="button" id="_timeline_load_view_btn">Load View</a>
+	      	  <a href="#" class="button button_disabled" id="_timeline_add_channels_btn">Add Channels</a>
+	      	  <a href="#" class="button button_disabled" id="_timeline_show_details_btn">Show Details</a>
+	    	</span>
+	    	<div id="_timeline_view_dialog"></div>
+
 		    <table id="_timeline_dataTable" border="0" cellpadding="0" cellspacing="0" class="fullHeight">
 		      <tr valign="top">
 		        <td id="_timeline_addChannelsArea" class="_timeline_pane"></td>
 		        <td id="_timeline_dateAxisAndChannelsArea" style="display: none;">
-		          <div id="_timeline_dateAxisContainer">
-		            <div id="_timeline_dateAxis"></div>
-		            <div id="_timeline_dataPointValueLabel"></div>
-		          </div>
+		          <table border="0" cellpadding="0" cellspacing="0">
+		            <tr>
+		              <td>
+		                <div id="_timeline_gotozoom">
+		                  <button id="_timeline_gotoBeginning_button" class="_timeline_gotozoom_button" />
+		                  <button id="_timeline_gotoBack_button" class="_timeline_gotozoom_button" />
+		                  <button id="_timeline_gotoForward_button" class="_timeline_gotozoom_button" />
+		                  <button id="_timeline_gotoEnd_button" class="_timeline_gotozoom_button" />
+		                  <img id="_timeline_gotozoom_separator"
+		                    src="/static/images/dotted_line.png"
+		                    alt="" />
+		                  <button id="_timeline_zoomOut_button" class="_timeline_gotozoom_button" />
+		                  <button id="_timeline_zoomIn_button" class="_timeline_gotozoom_button" />
+		                </div>
+		              </td>
+		              <td>
+		                <div id="_timeline_dateAxisContainer">
+		                  <div id="_timeline_dateAxis"></div>
+		                  <div id="_timeline_dataPointValueLabel"></div>
+		                </div>
+		              </td>
+		            </tr>
+		          </table>
 		          <div id="_timeline_channelsArea" style="display: none;">
 		            <div id="_timeline_channelsWrapper">
 		              <table border="0" cellpadding="0" cellspacing="0">
@@ -56,13 +61,14 @@
 		        </td>
 		      </tr>
 		    </table>
-		
+
 		  </div>
-		  <div id="_timeline_photo_dialog"></div>
-			
-		</div>
-		
-		<script id="_timeline_channel_template" type="text/x-mustache-tmpl">
+  		<div id="_timeline_photo_dialog"></div>
+  	    </div>
+	</div>
+</div>
+
+<script id="_timeline_channel_template" type="text/x-mustache-tmpl">
   <li id="{{channelElementId}}">
     <div class="_timeline_channel">
       <div class="_timeline_channelTabAndPlot">
@@ -75,12 +81,32 @@
                 <table border="0" cellpadding="0" cellspacing="0" class="_timeline_channelTable">
                   <tr>
                     <td valign="middle" style="width:32px"><div id="{{channelElementId}}_delete_btn" class="_timeline_delete_btn"></div></td>
-                    <td valign="middle" style="width:auto">
-                      <div class="_timeline_channelName">{{channelName}}</div>
+                    <td valign="middle"
+                        style="width: auto; max-width: 141">
+                      <div id="{{channelElementId}}-timeline-channel-name"
+                          class="_timeline_channelName">
+                        {{channelName}}
+                      </div>
                       <div class="_timeline_channelSource">{{deviceName}}</div>
                       <div id="{{channelElementId}}-timeline-channel-filter" class="_timeline_channelFilter"></div>
                     </td>
-                    <td valign="bottom" style="width:27px"><div class="_timeline_btnGear"><img src="/static/images/gear_b.png"></div></td>
+                    <td valign="bottom" style="width: 27px">
+                      <table border="0" cellpadding="0" cellspacing="0">
+                        <tr style="height: auto"></tr>
+                        <tr style="height: 17px; margin-bottom: 5px">
+                          <td>
+                            <button class="_timeline_btnShowAllY"/>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <div class="_timeline_btnGear">
+                              <img src="/static/images/gear_b.png">
+                            </div>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
                   </tr>
                 </table>
               </div>
@@ -131,9 +157,6 @@
                       <a href="" onclick="return false;">Save as default style for {{channelName}}</a>
                     </div>
                     <div id="{{channelElementId}}-save-default-style-status" style="display:none"></div>
-                    <div id="{{channelElementId}}-show-all-y-range">
-                      <a href="" onclick="return false;">Show all Y range</a>
-                    </div>
                   </td>
                   <td class="_timeline_data_series_plot_config_right_area">
                     <table border="0" cellpadding="0" cellspacing="0">
@@ -324,9 +347,9 @@
       </div>
     </div>
   </li>
-	</script>
-		
-		<script id="_timeline_view_save_template" type="text/x-mustache-tmpl">
+</script>
+
+<script id="_timeline_view_save_template" type="text/x-mustache-tmpl">
   <div class="close_btn"></div>
   <div id="_timeline_view_save_spinner" style="display: none;">
     <img src="/static/images/loading.gif" />
@@ -347,9 +370,9 @@
     </ul>
   </div>
   <div class="_timeline_view_dialog_status"></div>
-	</script>
-		
-		<script id="_timeline_view_load_template" type="text/x-mustache-tmpl">
+</script>
+
+<script id="_timeline_view_load_template" type="text/x-mustache-tmpl">
   <div class="close_btn"></div>
   <div class="_timeline_load_dialog_head">
     <div class="_timeline_load_dialog_head_content"> 
@@ -360,17 +383,16 @@
   </div>
   <ul>
     {{#available_views}}
-    <li>
-	  <a href="javascript:void(0)">{{ name }}</a>
+    <li><a href="javascript:void(0)" id="_timeline_view_{{ id }}">{{ name }}</a>
     </li>
     {{/available_views}}
     {{^available_views}}
     <li>No saved views</li>
     {{/available_views}}
   </ul>
-	</script>
-		
-		<script id="_timeline_sources_template" type="text/x-mustache-tmpl">
+</script>
+
+<script id="_timeline_sources_template" type="text/x-mustache-tmpl">
   <div class="_timeline_pane_title">Add Channels</div>
   <div id="_timeline_sources_find">
     <span>
@@ -393,13 +415,29 @@
     </li>
     {{/sources}}
   </ul>
-	</script>
-		
-		<script id="_timeline_data_point_value_label_template" type="text/x-mustache-tmpl">
+</script>
+
+<script id="_timeline_data_point_value_label_template" type="text/x-mustache-tmpl">
   {{dateString}} {{valueString}}
-	</script>
-		
-		<script id="_timeline_photo_dialog_template" type="text/x-mustache-tmpl">
+</script>
+
+<script id="_timeline_photo_dialog_loading_template" type="text/x-mustache-tmpl">
+  <table border="0" cellpadding="0" cellspacing="0" class="_timeline_photo_dialog_loading_table">
+    <tr valign="middle">
+      <td align="center"><img src="/static/images/loading.gif" /><br>Loading...</td>
+    </tr>
+  </table>
+</script>
+
+<script id="_timeline_photo_dialog_medium_res_image_url_template" type="text/x-mustache-tmpl">
+  /bodytrack/users/{{userId}}/logphotos/{{photoId}}.300.jpg
+</script>
+
+<script id="_timeline_photo_dialog_high_res_image_url_template" type="text/x-mustache-tmpl">
+  /bodytrack/users/{{userId}}/logphotos/{{photoId}}.jpg
+</script>
+
+<script id="_timeline_photo_dialog_template" type="text/x-mustache-tmpl">
   <div style="width:1px;height:1px;"><img id="_timeline_photo_dialog_tabhelper_pre_proxy_backward" src="/static/images/clear.gif" width="1" height="1" tabindex="95"/></div>
   <table border="0" cellpadding="0" cellspacing="0" class="_timeline_photo_dialog_table">
     <tr valign="top">
@@ -407,13 +445,15 @@
       <td>
         <table border="0" cellpadding="0" cellspacing="0" class="_timeline_photo_dialog_photo_table">
           <tr valign="middle">
-            <td align="center"><img src="/users/{{userId}}/logphotos/{{photoId}}.300.jpg"></td>
+            <td align="center">
+              <img id="_timeline_photo_dialog_image" src="{{photoUrl}}">
+            </td>
           </tr>
         </table>
       </td>
       <td rowspan="2" style="width:20px"><button id="_timeline_photo_dialog_next_button" tabindex="97" class="_timeline_right_arrow"></button></td>
     </tr>
-    <tr valign="top">
+    <tr valign="top" id="_timeline_photo_dialog_form_container">
       <td>
         <div id="_timeline_photo_dialog_form_status"></div>
         <div id="_timeline_photo_dialog_form"></div>
@@ -423,9 +463,9 @@
       </td>
     </tr>
   </table>
-	</script>
-		
-		<script id="_timeline_photo_dialog_form_template" type="text/x-mustache-tmpl">
+</script>
+
+<script id="_timeline_photo_dialog_form_template" type="text/x-mustache-tmpl">
   <div style="width:1px; height:1px">
     <img id="_timeline_photo_dialog_comment_tabhelper_pre_proxy_forward" src="/static/images/clear.gif" width="1" height="1" tabindex="98"/>
     <img id="_timeline_photo_dialog_comment_tabhelper_pre_proxy_backward" src="/static/images/clear.gif" width="1" height="1" tabindex="99"/>
@@ -444,12 +484,10 @@
     <button id="_timeline_photo_dialog_revert_button" tabindex="106">Revert</button>
     <button id="_timeline_photo_dialog_save_button" tabindex="105">Save</button>
   </form>
-	</script>
-		
-		<script id="_timeline_photo_dialog_tags_editor_tag_template" type="text/x-mustache-tmpl">
+</script>
+
+<script id="_timeline_photo_dialog_tags_editor_tag_template" type="text/x-mustache-tmpl">
   <input type="text" name="tag[]" value="{{value}}" class="tag"/>
-	</script>
-		
-		<script id="_timeline_channel_tab_filter_template" type="text/x-mustache-tmpl"><span class="_timeline_channelFilter_label">Tags</span>: {{value}}</script>
-	</div>
-</div>
+</script>
+
+<script id="_timeline_channel_tab_filter_template" type="text/x-mustache-tmpl"><span class="_timeline_channelFilter_label">Tags</span>: {{value}}</script>

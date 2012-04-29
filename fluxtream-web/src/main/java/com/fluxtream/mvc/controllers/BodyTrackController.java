@@ -86,10 +86,10 @@ public class BodyTrackController {
 
 	@RequestMapping(value = "/users/{UID}/views/get")
 	public void bodyTrackView(HttpServletResponse response,
-			@PathVariable("UID") String UID, @RequestParam("name") String name)
+			@PathVariable("UID") String UID, @RequestParam("id") String id)
 			throws HttpException, IOException {
 		String tunnelUrl = "http://localhost:3000/users/" + UID
-				+ "/views/get?name=" + name;
+				+ "/views/get?id=" + id;
 		writeTunnelResponse(tunnelUrl, response);
 	}
 
