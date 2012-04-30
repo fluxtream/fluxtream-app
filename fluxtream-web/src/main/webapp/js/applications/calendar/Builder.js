@@ -161,7 +161,7 @@ define([], function() {
 		handleNotifications(digest);
 		if (tabs[Calendar.currentTabName]==null) {
 			require([ "applications/calendar/tabs/" + Calendar.currentTabName + "/"
-					+ capitalizeFirstLetter(Calendar.currentTabName) + "tab"],
+					+ capitalizeFirstLetter(Calendar.currentTabName) + "Tab"],
 				function(tab) {
 					tabs[Calendar.currentTavName] = tab;
 					renderTab(tab, digest, Calendar);
