@@ -16,7 +16,7 @@ define(["applications/calendar/tabs/Tab",
                 $("#the_map").empty();
             var myOptions = {
                 zoom : 11,
-                scrollwheel : false,
+                scrollwheel : true,
                 streetViewControl : false,
                 mapTypeId : google.maps.MapTypeId.ROADMAP
             };
