@@ -16,7 +16,7 @@ define([], function() {
 		photos: "icon-camera",
 		views: "icon-eye-open",
 		list: "icon-list",
-        timeline: "icon-camera"
+      timeline: "icon-camera"
     };
 	
 	function capitalizeFirstLetter(string) {

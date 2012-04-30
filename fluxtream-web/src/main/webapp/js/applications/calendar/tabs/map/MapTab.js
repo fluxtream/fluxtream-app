@@ -9,7 +9,8 @@ define(["applications/calendar/tabs/Tab",
 	
 	function setup(digest) {
 		App.fullHeight();
-        if (typeof(digest.cachedData.google_latitude)!="undefined"
+        if (digest!=null && digest.cachedData!=null &&
+            typeof(digest.cachedData.google_latitude)!="undefined"
             && digest.cachedData.google_latitude !=null &&
             digest.cachedData.google_latitude.length>0) {
             if ($("#the_map > .emptyList").length>0)
