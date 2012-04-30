@@ -4,10 +4,10 @@ define(["applications/log/widgets/Widget",
 	var map = null;
 	
 	function render(digest, timeUnit) {
-		this.getTemplate("text!applications/log/widgets/map/map.html", "map", setup);
+		this.getTemplate("text!applications/log/widgets/map/map.html", "map", function(){setup(digest);});
 	}
 	
-	function setup() {
+	function setup(digest) {
 		App.fullHeight();
 		var myOptions = {
 			zoom : 11,
@@ -17,7 +17,16 @@ define(["applications/log/widgets/Widget",
 		};
 		map = new google.maps.Map(document.getElementById("the_map"),
 				myOptions);
-		setMapPosition(50.858519,4.484482, 9);
+		setMapPosition(digest.cachedData.google_latitude[0].position[0],digest.cachedData.google_latitude[0].position[1], 9);
+        var i = 0;
+        for (i = 0; i < digest.cachedData.google_latitude.length; i++){
+            var myLatlng = new google.maps.LatLng(digest.cachedData.google_latitude[i].position[0],digest.cachedData.google_latitude[i].position[1]);
+            new google.maps.Marker({
+                position: myLatlng,
+                map: map,
+                title:"latitude point: " + i
+            });
+        }
 	}
 	
 	function setMapPosition(pos_x, pos_y, zoomLevel) {
