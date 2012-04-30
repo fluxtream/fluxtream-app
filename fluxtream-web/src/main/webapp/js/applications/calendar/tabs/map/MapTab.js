@@ -9,23 +9,33 @@ define(["applications/calendar/tabs/Tab",
 	
 	function setup(digest) {
 		App.fullHeight();
-		var myOptions = {
-			zoom : 11,
-			scrollwheel : false,
-			streetViewControl : false,
-			mapTypeId : google.maps.MapTypeId.ROADMAP
-		};
-		map = new google.maps.Map(document.getElementById("the_map"),
-				myOptions);
-		setMapPosition(digest.cachedData.google_latitude[0].position[0],digest.cachedData.google_latitude[0].position[1], 9);
-        var i = 0;
-        for (i = 0; i < digest.cachedData.google_latitude.length; i++){
-            var myLatlng = new google.maps.LatLng(digest.cachedData.google_latitude[i].position[0],digest.cachedData.google_latitude[i].position[1]);
-            new google.maps.Marker({
-                position: myLatlng,
-                map: map,
-                title:"latitude point: " + i
-            });
+        if (typeof(digest.cachedData.google_latitude)!="undefined"
+            && digest.cachedData.google_latitude !=null &&
+            digest.cachedData.google_latitude.length>0) {
+            if ($("#the_map > .emptyList").length>0)
+                $("#the_map").empty();
+            var myOptions = {
+                zoom : 11,
+                scrollwheel : false,
+                streetViewControl : false,
+                mapTypeId : google.maps.MapTypeId.ROADMAP
+            };
+            map = new google.maps.Map(document.getElementById("the_map"),
+                myOptions);
+            setMapPosition(digest.cachedData.google_latitude[0].position[0],digest.cachedData.google_latitude[0].position[1], 9);
+            var i = 0;
+            for (i = 0; i < digest.cachedData.google_latitude.length; i++){
+                var myLatlng = new google.maps.LatLng(digest.cachedData.google_latitude[i].position[0],digest.cachedData.google_latitude[i].position[1]);
+                new google.maps.Marker({
+                    position: myLatlng,
+                    map: map,
+                    title:"latitude point: " + i
+                });
+            }
+        } else {
+            $("#the_map").empty();
+            $("#the_map").removeAttr("style");
+            $("#the_map").append("<div class=\"emptyList\">(no location data)</div>");
         }
 	}
 	
