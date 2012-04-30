@@ -1,7 +1,7 @@
 define([], function() {
 	
 	var storage = {};
-	var widgetStateStorage = {};
+	var tabStateStorage = {};
 	
 	function store(appName, urlState) {
 		if (typeof(storage[appName])=="undefined")
@@ -15,26 +15,26 @@ define([], function() {
 		return storage[appName].state;
 	}
 	
-	function storeWidget(widgetName, widgetState) {
-		if (typeof(widgetStateStorage[widgetName])=="undefined")
-			widgetStateStorage[widgetName] = {};
-		widgetStateStorage[widgetName].state = widgetState;
+	function storeTab(tabName, tabState) {
+		if (typeof(tabStateStorage[tabName])=="undefined")
+			tabStateStorage[tabName] = {};
+		tabStateStorage[tabName].state = tabState;
 	}
 
-	function restoreWidget(widgetName) {
-		if (typeof(widgetStateStorage[widgetName])=="undefined")
+	function restoreTab(tabName) {
+		if (typeof(tabStateStorage[tabName])=="undefined")
 			return null;
-		return widgetStateStorage[widgetName].state;
+		return tabStateStorage[tabName].state;
 	}
 	
 	var state = {};
 	state.saveState = store;
 	state.getState = restore;
-	state.saveWidgetState = storeWidget;
-	state.getWidgetState = restoreWidget;
+	state.saveTabState = storeTab;
+	state.getTabState = restoreTab;
 	state.router = new Backbone.Router();
-	state.apps = ["timeline", "log"];
-	state.defaultApp = "log";
+	state.apps = ["pinboard", "calendar"];
+	state.defaultApp = "calendar";
 	
 	return state;
 });

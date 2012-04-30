@@ -35,7 +35,7 @@ public abstract class AbstractWidgetDataProvider {
 		String dashboardWidgetName = component.value();
 		String timeUnit = dashboardWidgetName.split("/")[0];
 		o.getJSONArray(REQUIRED).add(
-				"/" + env.get("release") + "/widgets/dashboard/" + timeUnit
+				"/" + env.get("release") + "/tabs/dashboard/" + timeUnit
 						+ "/" + scriptName + ".js");
 	}
 

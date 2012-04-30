@@ -4,9 +4,9 @@
    height: auto !important;
 	}
     .container-fluid {
-  	  width: 960px;
-  	  margin-left: auto;
-  	  margin-right: auto;
+        padding-right: 10px;
+        padding-left: 10px;
+        width: 99%;
     }
 }
 
@@ -25,9 +25,9 @@
   }
   
   .container-fluid {
-  	width: 960px;
-  	margin-left: auto;
-  	margin-right: auto;
+      padding-right: 10px;
+      padding-left: 10px;
+      width: 99%;
   }
 
 }
@@ -36,12 +36,13 @@
 
 body {
 	background-image: url('bg.gif');
-	margin: 0 auto;
 	height: 100%;
+    overflow-x: hidden;
 }
 
 html {
 	height: 100%;
+    overflow-x: hidden;
 }
 
 #content {
@@ -201,10 +202,18 @@ a.paginationLink {
 	display: none;	
 }
 
-.widget.active {
+.tab.active {
 	display: block;
 }
 
-.widget.dormant {
+.tab.dormant {
 	display: none;	
+}
+
+.fullwidth {
+    width: 100%;
+}
+
+.leftAligned {
+    width: 960px;
 }

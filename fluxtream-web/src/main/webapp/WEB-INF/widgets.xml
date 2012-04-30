@@ -5,16 +5,16 @@
         http://www.springframework.org/schema/beans 
         http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
-	<bean id="dayWidgetsStatsHelper" class="com.fluxtream.mvc.widgets.controllers.DashboardWidgetsHelper">
+	<bean id="dayWidgetsStatsHelper" class="com.fluxtream.mvc.tabs.controllers.DashboardWidgetsHelper">
 		<constructor-arg ref="dayWidgetsProperties"></constructor-arg>
 	</bean>
-	<bean id="weekWidgetsStatsHelper" class="com.fluxtream.mvc.widgets.controllers.DashboardWidgetsHelper">
+	<bean id="weekWidgetsStatsHelper" class="com.fluxtream.mvc.tabs.controllers.DashboardWidgetsHelper">
 		<constructor-arg ref="weekWidgetsProperties"></constructor-arg>
 	</bean>
-	<bean id="monthWidgetsStatsHelper" class="com.fluxtream.mvc.widgets.controllers.DashboardWidgetsHelper">
+	<bean id="monthWidgetsStatsHelper" class="com.fluxtream.mvc.tabs.controllers.DashboardWidgetsHelper">
 		<constructor-arg ref="monthWidgetsProperties"></constructor-arg>
 	</bean>
-	<bean id="yearWidgetsStatsHelper" class="com.fluxtream.mvc.widgets.controllers.DashboardWidgetsHelper">
+	<bean id="yearWidgetsStatsHelper" class="com.fluxtream.mvc.tabs.controllers.DashboardWidgetsHelper">
 		<constructor-arg ref="yearWidgetsProperties"></constructor-arg>
 	</bean>
 

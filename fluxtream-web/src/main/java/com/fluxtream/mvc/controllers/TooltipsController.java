@@ -46,12 +46,12 @@ public class TooltipsController {
 	Configuration env;
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	@RequestMapping("/log/tooltips")
+	@RequestMapping("/calendar/tooltips")
 	public ModelAndView getTooltips(HttpServletRequest request)
 			throws ClassNotFoundException, InstantiationException,
 			IllegalAccessException {
 		HomeModel homeModel = facetsHelper.getHomeModel(request);
-		ModelAndView mav = new ModelAndView("log/tooltips");
+		ModelAndView mav = new ModelAndView("calendar/tooltips");
 		long guestId = ControllerHelper.getGuestId();
 		GuestSettings settings = settingsService.getSettings(guestId);
 		List<ApiKey> userKeys = guestService.getApiKeys(guestId);

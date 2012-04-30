@@ -61,7 +61,7 @@ public class ListController {
 	@Autowired
 	NotificationsService notificationsService;
 	
-	@RequestMapping("/widgets/list/{page}")
+	@RequestMapping("/tabs/list/{page}")
 	public ModelAndView loadListDigest(HttpServletRequest request,
 			HttpServletResponse response, @PathVariable("page") int page)
 			throws ClassNotFoundException, InstantiationException,
@@ -121,7 +121,7 @@ public class ListController {
 		mav.addObject("manyPages", Integer.valueOf(env.get("MANY_PAGES")));
 		mav.addObject("format", DateTimeFormat.forPattern("HH:mm"));
 
-		mav.setViewName("log/list");
+		mav.setViewName("calendar/list");
 		response.setHeader(X_FLX_EXECUTION_TIME,
 				String.valueOf(System.currentTimeMillis() - then));
 		return mav;
