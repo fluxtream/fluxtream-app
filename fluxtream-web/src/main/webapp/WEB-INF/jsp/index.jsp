@@ -42,7 +42,7 @@
 				<form action="signIn" class="form-inline well" method="POST">
 					<fieldset>
 						<div class="control-group">
-							<label class="control-label" for="f_username">User name:</label>
+							<label class="control-label" for="f_username">Username:</label>
 							<div class="controls">
 								<div class="input">
 								<!-- <span class="add-on"><i class="icon-envelope"></i></span> --><input autocorrect="off" autocapitalize="off" autocomplete="on" class="span3" onkeypress="if(event.which==13) document.forms[0].submit();" id="f_username" name="f_username" placeholder="Username" value="<%=request.getParameter("username") != null ? request.getParameter("username") : ""%>" type="text"></input>
