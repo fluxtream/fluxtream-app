@@ -1,4 +1,4 @@
-define(function() {
+define([], function() {
 	var APP, PREFS, TOOLS, LOGIN, TAG_MANAGER, VIEWS, SOURCES;
 	var BodyTrack = {};
 

@@ -4,8 +4,8 @@ define([], function() {
 	var tabs = {};
 	
 	var tabs = {
-		"DAY":["clock", "dashboard", "map", "diary", "photos", "list"],
-		"WEEK":["dashboard", "map", "diary", "photos", "list"]
+		"DAY":["clock", "dashboard", "map", "diary", "photos", "list", "timeline"],
+		"WEEK":["dashboard", "map", "diary", "photos", "list", "timeline"]
 	};
 	
 	var tab_icons = {
@@ -15,8 +15,9 @@ define([], function() {
 		diary: "icon-pencil",
 		photos: "icon-camera",
 		views: "icon-eye-open",
-		list: "icon-list"
-	};
+		list: "icon-list",
+        timeline: "icon-camera"
+    };
 	
 	function capitalizeFirstLetter(string) {
 	    return string.charAt(0).toUpperCase() + string.slice(1);

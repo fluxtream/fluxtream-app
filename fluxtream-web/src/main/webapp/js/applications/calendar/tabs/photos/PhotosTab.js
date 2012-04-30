@@ -5,7 +5,7 @@ define(["applications/calendar/tabs/Tab",
 		this.getUrl("/tabs/photos", "photos", null, true);
 	}
 	
-	var photosTab = new Tab("photos", "Candide Kemmler", "icon-camera");
+	var photosTab = new Tab("photos", "Candide Kemmler", "icon-camera", true);
 	photosTab.render = render;
 	return photosTab;
 

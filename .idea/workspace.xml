@@ -8,8 +8,17 @@
   <component name="ChangeListManager">
     <list default="true" id="e7c795f8-2116-4304-ad9d-58db7f694dc1" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-core-webapp/fluxtream-core-webapp.iml" afterPath="$PROJECT_DIR$/fluxtream-core-webapp/fluxtream-core-webapp.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-core/fluxtream-core.iml" afterPath="$PROJECT_DIR$/fluxtream-core/fluxtream-core.iml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/App.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/App.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/Builder.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/Builder.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/Tab.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/Tab.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/clock/ClockTab.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/clock/ClockTab.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/dashboard/DashboardTab.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/dashboard/DashboardTab.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/diary/DiaryTab.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/diary/DiaryTab.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/list/ListTab.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/list/ListTab.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/map/MapTab.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/map/MapTab.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/photos/PhotosTab.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/photos/PhotosTab.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/timeline/BodyTrack.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/timeline/BodyTrack.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/timeline/TimelineTab.js" afterPath="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/timeline/TimelineTab.js" />
     </list>
     <ignored path="fluxtream-app.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -98,8 +107,8 @@
       <property name="field_breakpoints_groupByClasses" value="true" />
       <property name="method_breakpoints_groupByClasses" value="true" />
       <property name="exception_breakpoints_viewId" value="TABLE" />
-      <property name="exception_breakpoints_groupByClasses" value="true" />
       <property name="field_breakpoints_viewId" value="TABLE" />
+      <property name="exception_breakpoints_groupByClasses" value="true" />
       <property name="method_breakpoints_groupByMethods" value="false" />
     </ui_properties>
   </component>
@@ -108,71 +117,80 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="flx.less" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/less/flx.less">
+      <file leaf-file-name="ClockTab.js" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/clock/ClockTab.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="205" column="0" selection-start="2657" selection-end="2657" vertical-scroll-proportion="0.0">
+            <state line="455" column="72" selection-start="14353" selection-end="14353" vertical-scroll-proportion="1.5207667">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="ListController.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/java/com/fluxtream/mvc/controllers/ListController.java">
+      <file leaf-file-name="DashboardTab.js" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/dashboard/DashboardTab.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="42" column="14" selection-start="1484" selection-end="1484" vertical-scroll-proportion="0.0">
+            <state line="25" column="81" selection-start="874" selection-end="874" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="DiaryTab.js" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/diary/DiaryTab.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="37" column="74" selection-start="1218" selection-end="1218" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ListTab.js" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/list/ListTab.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="2" column="70" selection-start="130" selection-end="130" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="MapTab.js" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/map/MapTab.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="28" column="74" selection-start="785" selection-end="785" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="PhotosTab.js" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/photos/PhotosTab.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="7" column="76" selection-start="275" selection-end="275" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="TimelineTab.js" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/timeline/TimelineTab.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="2695" column="79" selection-start="131017" selection-end="131017" vertical-scroll-proportion="-27.692308">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Tab.js" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/Tab.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="41" column="4" selection-start="1333" selection-end="1333" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
       <file leaf-file-name="App.js" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/App.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="29" column="70" selection-start="1142" selection-end="1142" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Builder.js" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/Builder.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="8" column="6" selection-start="203" selection-end="203" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="day.properties" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/resources/widgets/day.properties">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="4" column="24" selection-start="148" selection-end="148" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="caloriesBurned.js" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/tabs/weeklyDashboardWidgets/caloriesBurned.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="10" column="56" selection-start="386" selection-end="386" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="AbstractWidgetDataProvider.java" pinned="false" current="true" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/java/com/fluxtream/dashboard/dataproviders/AbstractWidgetDataProvider.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="25" column="22" selection-start="669" selection-end="669" vertical-scroll-proportion="0.22321428">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="caloriesBurned.jsp" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/tabs/weeklyDashboardWidgets/caloriesBurned.jsp">
+        <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/pinboard/App.js">
           <provider selected="true" editor-type-id="text-editor">
             <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
               <folding />
@@ -180,19 +198,10 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="hoursSlept.jsp" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/tabs/weeklyDashboardWidgets/hoursSlept.jsp">
+      <file leaf-file-name="App.js" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/App.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="week.properties" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/resources/widgets/week.properties">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="1" column="20" selection-start="71" selection-end="71" vertical-scroll-proportion="0.0">
+            <state line="34" column="15" selection-start="928" selection-end="928" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -211,22 +220,22 @@
   <component name="IdeDocumentHistory">
     <option name="changedFiles">
       <list>
-        <option value="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/list/ListTab.js" />
-        <option value="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/map/MapTab.js" />
-        <option value="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/photos/PhotosTab.js" />
-        <option value="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/timeline/template.html" />
-        <option value="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/timeline/TimelineTab.js" />
-        <option value="$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/springmvc-servlet.xml" />
-        <option value="$PROJECT_DIR$/fluxtream-core-webapp/src/main/java/com/fluxtream/api/CalendarResource.java" />
         <option value="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/App.js" />
-        <option value="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/dashboard/DashboardTab.js" />
-        <option value="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/Builder.js" />
-        <option value="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/Tab.js" />
-        <option value="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/clock/ClockTab.js" />
         <option value="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/clock/clock.html" />
         <option value="$PROJECT_DIR$/fluxtream-web/src/main/webapp/less/flx.less" />
         <option value="$PROJECT_DIR$/fluxtream-web/src/main/java/com/fluxtream/mvc/controllers/ListController.java" />
         <option value="$PROJECT_DIR$/fluxtream-web/src/main/java/com/fluxtream/dashboard/dataproviders/AbstractWidgetDataProvider.java" />
+        <option value="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/Builder.js" />
+        <option value="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/timeline/BodyTrack.js" />
+        <option value="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/clock/ClockTab.js" />
+        <option value="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/dashboard/DashboardTab.js" />
+        <option value="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/diary/DiaryTab.js" />
+        <option value="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/list/ListTab.js" />
+        <option value="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/map/MapTab.js" />
+        <option value="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/photos/PhotosTab.js" />
+        <option value="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/timeline/TimelineTab.js" />
+        <option value="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/Tab.js" />
+        <option value="$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/App.js" />
       </list>
     </option>
   </component>
@@ -249,10 +258,6 @@
           <option name="myItemId" value="" />
           <option name="myItemType" value="org.jetbrains.idea.maven.navigator.MavenProjectsStructure$RootNode" />
         </PATH_ELEMENT>
-        <PATH_ELEMENT>
-          <option name="myItemId" value="fluxtream-web" />
-          <option name="myItemType" value="org.jetbrains.idea.maven.navigator.MavenProjectsStructure$ProjectNode" />
-        </PATH_ELEMENT>
       </PATH>
       <PATH>
         <PATH_ELEMENT>
@@ -260,43 +265,37 @@
           <option name="myItemType" value="org.jetbrains.idea.maven.navigator.MavenProjectsStructure$RootNode" />
         </PATH_ELEMENT>
         <PATH_ELEMENT>
-          <option name="myItemId" value="fluxtream-web" />
+          <option name="myItemId" value="fluxtream-app" />
           <option name="myItemType" value="org.jetbrains.idea.maven.navigator.MavenProjectsStructure$ProjectNode" />
-        </PATH_ELEMENT>
-        <PATH_ELEMENT>
-          <option name="myItemId" value="Lifecycle" />
-          <option name="myItemType" value="org.jetbrains.idea.maven.navigator.MavenProjectsStructure$LifecycleNode" />
-        </PATH_ELEMENT>
-      </PATH>
-      <PATH>
-        <PATH_ELEMENT>
-          <option name="myItemId" value="" />
-          <option name="myItemType" value="org.jetbrains.idea.maven.navigator.MavenProjectsStructure$RootNode" />
         </PATH_ELEMENT>
       </PATH>
     </treeState>
   </component>
   <component name="ProjectFrameBounds">
     <option name="y" value="22" />
-    <option name="width" value="1920" />
-    <option name="height" value="1178" />
+    <option name="width" value="1280" />
+    <option name="height" value="774" />
   </component>
   <component name="ProjectInspectionProfilesVisibleTreeState">
     <entry key="Project Default">
       <profile-state>
         <expanded-state>
           <State>
-            <id />
+            <id>CSS</id>
           </State>
           <State>
-            <id>Spelling</id>
+            <id>Data flow issuesJavaScript</id>
+          </State>
+          <State>
+            <id>JavaScript</id>
+          </State>
+          <State>
+            <id>Naming conventionsJavaScript</id>
+          </State>
+          <State>
+            <id>Probable BugsJavaScript</id>
           </State>
         </expanded-state>
-        <selected-state>
-          <State>
-            <id>Spelling</id>
-          </State>
-        </selected-state>
       </profile-state>
     </entry>
   </component>
@@ -326,6 +325,492 @@
       <sortByType />
     </navigator>
     <panes>
+      <pane id="ProjectPane">
+        <subPane>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fluxtream-app" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fluxtream-app" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fluxtream-web" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fluxtream-app" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fluxtream-web" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="main" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="webapp" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fluxtream-app" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fluxtream-web" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="main" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="webapp" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="js" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fluxtream-app" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fluxtream-web" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="main" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="webapp" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="js" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="applications" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="pinboard" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fluxtream-app" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fluxtream-web" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="main" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="webapp" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="js" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="applications" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="calendar" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fluxtream-app" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fluxtream-web" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="main" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="webapp" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="js" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="applications" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="calendar" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="tabs" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fluxtream-app" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fluxtream-web" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="main" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="webapp" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="js" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="applications" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="calendar" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="tabs" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="timeline" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fluxtream-app" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fluxtream-web" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="main" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="webapp" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="js" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="applications" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="calendar" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="tabs" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="photos" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fluxtream-app" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fluxtream-web" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="main" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="webapp" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="js" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="applications" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="calendar" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="tabs" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="map" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fluxtream-app" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fluxtream-web" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="main" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="webapp" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="js" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="applications" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="calendar" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="tabs" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="list" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fluxtream-app" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fluxtream-web" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="main" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="webapp" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="js" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="applications" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="calendar" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="tabs" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="diary" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fluxtream-app" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fluxtream-web" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="main" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="webapp" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="js" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="applications" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="calendar" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="tabs" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dashboard" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fluxtream-app" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fluxtream-web" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="main" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="webapp" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="js" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="applications" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="calendar" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="tabs" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="clock" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fluxtream-app" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fluxtream-web" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="main" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+        </subPane>
+      </pane>
       <pane id="PackagesPane">
         <subPane>
           <PATH>
@@ -333,15 +818,15 @@
               <option name="myItemId" value="fluxtream-app" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewProjectNode" />
             </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fluxtream-web" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode" />
+            </PATH_ELEMENT>
           </PATH>
-        </subPane>
-      </pane>
-      <pane id="ProjectPane">
-        <subPane>
           <PATH>
             <PATH_ELEMENT>
               <option name="myItemId" value="fluxtream-app" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewProjectNode" />
             </PATH_ELEMENT>
           </PATH>
         </subPane>
@@ -376,18 +861,18 @@
     <property name="project.structure.proportion" value="0.15" />
     <property name="options.splitter.main.proportions" value="0.3" />
     <property name="recentsLimit" value="5" />
-    <property name="options.lastSelected" value="project.propVCSSupport.Mappings" />
+    <property name="options.lastSelected" value="preferences.keymap" />
     <property name="MemberChooser.sorted" value="false" />
     <property name="project.structure.side.proportion" value="0.27262813" />
     <property name="GoToClass.includeJavaFiles" value="false" />
     <property name="MemberChooser.copyJavadoc" value="false" />
     <property name="GoToClass.toSaveIncludeLibraries" value="false" />
-    <property name="MemberChooser.showClasses" value="true" />
     <property name="FullScreen" value="false" />
+    <property name="MemberChooser.showClasses" value="true" />
     <property name="GoToClass.includeLibraries" value="false" />
-    <property name="options.searchVisible" value="true" />
-    <property name="options.splitter.details.proportions" value="0.2" />
     <property name="dynamic.classpath" value="false" />
+    <property name="options.splitter.details.proportions" value="0.2" />
+    <property name="options.searchVisible" value="true" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
@@ -505,17 +990,6 @@
         <option name="Maven.BeforeRunTask" enabled="false" />
       </method>
     </configuration>
-    <configuration default="true" type="JavascriptDebugSession" factoryName="Local">
-      <JSDebuggerConfigurationSettings>
-        <option name="engineId" value="embedded" />
-        <option name="fileUrl" />
-      </JSDebuggerConfigurationSettings>
-      <method>
-        <option name="AntTarget" enabled="false" />
-        <option name="BuildArtifacts" enabled="false" />
-        <option name="Maven.BeforeRunTask" enabled="false" />
-      </method>
-    </configuration>
     <configuration default="true" type="JUnit" factoryName="JUnit">
       <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
       <module name="" />
@@ -539,6 +1013,17 @@
         <option name="AntTarget" enabled="false" />
         <option name="BuildArtifacts" enabled="false" />
         <option name="Make" enabled="true" />
+        <option name="Maven.BeforeRunTask" enabled="false" />
+      </method>
+    </configuration>
+    <configuration default="true" type="JavascriptDebugSession" factoryName="Local">
+      <JSDebuggerConfigurationSettings>
+        <option name="engineId" value="embedded" />
+        <option name="fileUrl" />
+      </JSDebuggerConfigurationSettings>
+      <method>
+        <option name="AntTarget" enabled="false" />
+        <option name="BuildArtifacts" enabled="false" />
         <option name="Maven.BeforeRunTask" enabled="false" />
       </method>
     </configuration>
@@ -752,7 +1237,7 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="22" width="1920" height="1178" extended-state="6" />
+    <frame x="0" y="22" width="1280" height="774" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="Data Sources" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32852563" sideWeight="0.6707663" order="7" side_tool="false" content_ui="tabs" />
@@ -769,9 +1254,9 @@
       <window_info id="Web" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.14690171" sideWeight="0.22232734" order="3" side_tool="true" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32923368" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.21581197" sideWeight="0.32734153" order="1" side_tool="true" content_ui="tabs" />
-      <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.26495728" sideWeight="0.6707663" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.22061966" sideWeight="0.6707663" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32902032" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.42694804" sideWeight="0.6416539" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.18262987" sideWeight="0.6416539" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.3583461" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="IDEtalk Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="IDEtalk" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32911393" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
@@ -857,125 +1342,117 @@
     </buildFile>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/springmvc-servlet.xml">
+    <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/resources/widgets/week.properties">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="32" column="0" selection-start="1875" selection-end="1875" vertical-scroll-proportion="-21.818182">
-          <folding>
-            <element signature="e#977#996#0" expanded="true" />
-            <element signature="e#1064#1085#0" expanded="true" />
-            <element signature="e#1155#1175#0" expanded="true" />
-            <element signature="e#1496#1519#0" expanded="true" />
-            <element signature="e#1592#1617#0" expanded="true" />
-            <element signature="e#1691#1717#0" expanded="true" />
-            <element signature="e#1792#1821#0" expanded="true" />
-            <element signature="e#1900#1935#0" expanded="true" />
-            <element signature="e#2040#2074#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-      <provider editor-type-id="com.intellij.spring.perspectives.SpringBeansStructureEditorProvider">
-        <state />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/dashboard/DashboardTab.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="16" column="4" selection-start="519" selection-end="519" vertical-scroll-proportion="0.0">
+        <state line="1" column="20" selection-start="71" selection-end="71" vertical-scroll-proportion="0.014563107">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/diary/dayDiary.html">
+    <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/timeline/template.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/clock/ClockTab.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="53" column="36" selection-start="2312" selection-end="2312" vertical-scroll-proportion="0.0">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/clock/clock.html">
+    <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/clock/ClockConfig.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="9" column="0" selection-start="357" selection-end="357" vertical-scroll-proportion="-5.625">
+        <state line="22" column="37" selection-start="490" selection-end="490" vertical-scroll-proportion="0.42628774">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/Tab.js">
+    <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/clock/ClockDrawingUtils.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="39" column="29" selection-start="1262" selection-end="1262" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/less/flx.less">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="205" column="0" selection-start="2657" selection-end="2657" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/java/com/fluxtream/mvc/controllers/ListController.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="42" column="14" selection-start="1484" selection-end="1484" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/App.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="29" column="70" selection-start="1142" selection-end="1142" vertical-scroll-proportion="0.0">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/Builder.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="8" column="6" selection-start="203" selection-end="203" vertical-scroll-proportion="0.0">
-          <folding />
+        <state line="19" column="6" selection-start="462" selection-end="462" vertical-scroll-proportion="-3.8945456">
+          <folding>
+            <marker date="1335740854000" expanded="true" signature="-1:-1" placeholder="..." />
+            <marker date="1335740854000" expanded="true" signature="-1:-1" placeholder="..." />
+          </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/resources/widgets/day.properties">
+    <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/timeline/BodyTrack.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="4" column="24" selection-start="148" selection-end="148" vertical-scroll-proportion="0.0">
+        <state line="7" column="16" selection-start="145" selection-end="149" vertical-scroll-proportion="240.88461">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/tabs/weeklyDashboardWidgets/caloriesBurned.js">
+    <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/dashboard/DashboardTab.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="10" column="56" selection-start="386" selection-end="386" vertical-scroll-proportion="0.0">
+        <state line="25" column="81" selection-start="874" selection-end="874" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/tabs/weeklyDashboardWidgets/caloriesBurned.jsp">
+    <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/diary/DiaryTab.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="37" column="74" selection-start="1218" selection-end="1218" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/list/ListTab.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="2" column="70" selection-start="130" selection-end="130" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/map/MapTab.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="28" column="74" selection-start="785" selection-end="785" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/timeline/TimelineTab.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="2695" column="79" selection-start="131017" selection-end="131017" vertical-scroll-proportion="-27.692308">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/Tab.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="41" column="4" selection-start="1333" selection-end="1333" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/pinboard/App.js">
       <provider selected="true" editor-type-id="text-editor">
         <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/WEB-INF/jsp/tabs/weeklyDashboardWidgets/hoursSlept.jsp">
+    <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/App.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
+        <state line="34" column="15" selection-start="928" selection-end="928" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/resources/widgets/week.properties">
+    <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/photos/PhotosTab.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="1" column="20" selection-start="71" selection-end="71" vertical-scroll-proportion="0.0">
+        <state line="7" column="76" selection-start="275" selection-end="275" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/java/com/fluxtream/dashboard/dataproviders/AbstractWidgetDataProvider.java">
+    <entry file="file://$PROJECT_DIR$/fluxtream-web/src/main/webapp/js/applications/calendar/tabs/clock/ClockTab.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="25" column="22" selection-start="669" selection-end="669" vertical-scroll-proportion="0.22321428">
+        <state line="455" column="72" selection-start="14353" selection-end="14353" vertical-scroll-proportion="1.5207667">
           <folding />
         </state>
       </provider>

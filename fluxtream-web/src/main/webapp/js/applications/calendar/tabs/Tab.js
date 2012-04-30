@@ -1,9 +1,10 @@
 define([ "core/FlxState" ], function(FlxState) {
 
-	function Tab(aname, anauthor, anicon) {
+	function Tab(aname, anauthor, anicon, needsTemplating) {
 		this.name = aname;
 		this.author = anauthor;
 		this.icon = anicon;
+        this.needsTemplating = needsTemplating;
 	}
 
 	/**
@@ -31,7 +32,8 @@ define([ "core/FlxState" ], function(FlxState) {
 
     Tab.prototype.getTabContents = function(uri, id, domReady, isResource, forceLoad, tabData) {
 		var nextTabId = id + "-tab",
-            nextTabDiv = $("#"+nextTabId);
+            nextTabDiv = $("#"+nextTabId),
+            that = this;
 		var noTab = $(".tab").length==0;
 		var tabChanged = $(".tab").length>0
 			&& $(".tab.active").length>0
@@ -45,13 +47,13 @@ define([ "core/FlxState" ], function(FlxState) {
 			if (nextTabDiv.length==0 || forceLoad) {
 				if (isResource)
 					require([uri], function(template) {
-						insertTabContents(template, nextTabId, domReady, forceLoad, tabData);
+                        that.insertTabContents(template, nextTabId, domReady, forceLoad, tabData);
 					});
 				else
 					$.ajax({
 						url : uri,
 						success: function(html) {
-							insertTabContents(html, nextTabId, domReady, forceLoad, tabData);
+							that.insertTabContents(html, nextTabId, domReady, forceLoad, tabData);
 						}
 					});
 			} else {
@@ -67,10 +69,10 @@ define([ "core/FlxState" ], function(FlxState) {
 		
 	};
 	
-	function insertTabContents(template, nextTabId, domReady, forceLoad, tabData) {
+	Tab.prototype.insertTabContents = function(template, nextTabId, domReady, forceLoad, tabData) {
         if (typeof(tabData)!="undefined" && tabData!=null) {
             template = $.mustache(template, tabData);
-        } else
+        } else if (this.needsTemplating)
             template = $.mustache(template, {release: window.FLX_RELEASE_NUMBER});
         template = "<div class=\"tab active\" id=\"" + nextTabId + "\">"
 			 + template + "</div>";
@@ -81,7 +83,7 @@ define([ "core/FlxState" ], function(FlxState) {
 		}
 		if (domReady!=null)
 			domReady(template);
-	}
+	};
 
 	/**
 	 * This needs to be overridden in "subclasses"

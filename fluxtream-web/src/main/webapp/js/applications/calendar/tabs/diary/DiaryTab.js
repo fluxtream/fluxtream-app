@@ -35,7 +35,7 @@ define(["applications/calendar/tabs/diary/Status",
 		});
 	}
 	
-	var diaryTab = new Tab("diary", "Candide Kemmler", "icon-pencil");
+	var diaryTab = new Tab("diary", "Candide Kemmler", "icon-pencil", true);
 	diaryTab.render = render;
 	return diaryTab;
 	

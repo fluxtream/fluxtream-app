@@ -23,7 +23,7 @@ define(["applications/calendar/tabs/Tab",
         }
     }
 	
-	var dashboardTab = new Tab("dashboard", "Candide Kemmler", "icon-chart");
+	var dashboardTab = new Tab("dashboard", "Candide Kemmler", "icon-chart", true);
 	dashboardTab.render = render;
 	return dashboardTab;
 	

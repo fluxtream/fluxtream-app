@@ -171,7 +171,7 @@ define(
 
 			App.addConnector = function(url) {
 				if (startsWith(url, "ajax:")) {
-					savedConnectorContent = $(".addConnectorsMain").html();
+					var savedConnectorContent = $(".addConnectorsMain").html();
 					$.ajax({
 						url : url.substring(5),
 						success : function(html) {

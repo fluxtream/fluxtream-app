@@ -26,7 +26,7 @@ define(["applications/calendar/tabs/Tab",
 		map.setZoom(zoomLevel);
 	}
 
-	var mapTab = new Tab("map", "Candide Kemmler", "icon-map-marker");
+	var mapTab = new Tab("map", "Candide Kemmler", "icon-map-marker", true);
 	mapTab.render = render;
 	return mapTab;
 

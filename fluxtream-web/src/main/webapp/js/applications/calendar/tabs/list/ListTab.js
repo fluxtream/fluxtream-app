@@ -1,6 +1,6 @@
 define(["applications/calendar/tabs/Tab"], function(Tab) {
 
-    var listTab = new Tab("list", "Candide Kemmler", "icon-list");
+    var listTab = new Tab("list", "Candide Kemmler", "icon-list", true);
 
     function render(digest, timeUnit) {
 		this.getUrl("/tabs/list/0", "list", bindPaginationElements, true);

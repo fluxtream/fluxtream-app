@@ -453,7 +453,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		});
 	}
 	
-	var clockTab = new Tab("clock", "Candide Kemmler", "icon-time");
+	var clockTab = new Tab("clock", "Candide Kemmler", "icon-time", true);
 	clockTab.render = render;
 	return clockTab;
 	
