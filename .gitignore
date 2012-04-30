@@ -36,3 +36,5 @@ tasks.xml
 .svn
 .CVS
 
+# Files to ignore
+GeoLiteCity.dat
