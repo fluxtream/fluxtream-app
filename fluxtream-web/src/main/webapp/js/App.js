@@ -104,7 +104,7 @@ define(
 					$(".fullHeight").height(fHeight);
 				}
 				$(window).resize(function() {
-					App.fullHeight();
+					setTimeout(App.fullHeight, 100);
 				});
 			}
 

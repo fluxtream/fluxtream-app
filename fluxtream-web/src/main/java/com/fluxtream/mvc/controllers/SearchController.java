@@ -43,7 +43,13 @@ public class SearchController {
 	@Autowired
 	Configuration env;
 
-	@RequestMapping("/search/{page}")
+    @RequestMapping("/search/test")
+    public void searchTest(HttpServletRequest request,
+                                   HttpServletResponse response) throws Exception {
+
+    }
+
+    @RequestMapping("/search/{page}")
 	public ModelAndView search(HttpServletRequest request,
 			HttpServletResponse response, @PathVariable("page") int page,
 			@RequestParam("q") String terms) throws Exception {
