@@ -17,9 +17,9 @@
     <![endif]-->
 
 <!-- Le styles -->
-<link rel="stylesheet" href="/static/css/bootstrap-2.0.2.min.css">
+<link rel="stylesheet" href="/static/css/bootstrap-2.0.3.min.css">
 <link rel="stylesheet"
-	href="/static/css/bootstrap-responsive-2.0.2.min.css">
+	href="/static/css/bootstrap-responsive-2.0.3.min.css">
 <link rel="stylesheet" href="/${release}/css/flx.css">
 <link rel="stylesheet" href="/${release}/css/font-awesome.css">
 

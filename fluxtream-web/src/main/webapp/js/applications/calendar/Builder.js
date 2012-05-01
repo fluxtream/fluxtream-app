@@ -26,23 +26,23 @@ define([], function() {
 	function createTabs(Calendar) {
 		$("#calendarTabs").empty();
 		for (var i=0; i<tabs[Calendar.timeUnit].length; i++) {
-			var tab = "<li>";
-			tab += "<a class=\"" + tabs[Calendar.timeUnit][i] + "-tab\" tab=" + tabs[Calendar.timeUnit][i] + " data-toggle=\"tab\">"
-				+ "<i class=\"" + tab_icons[tabs[Calendar.timeUnit][i]] + "\"></i> "
-				+ capitalizeFirstLetter(tabs[Calendar.timeUnit][i])
-				+ "</a></li>";
+			var tab = "<li style=\"cursor:pointer\">";
+			tab += "<a class=\"" + tabs[Calendar.timeUnit][i] + "-tab\" tabname=\"" + tabs[Calendar.timeUnit][i] + "\" data-toggle=\"tab\">"
+				+ "<i class=\"" + tab_icons[tabs[Calendar.timeUnit][i]] + "\"></i> " + capitalizeFirstLetter(tabs[Calendar.timeUnit][i]) + "</a></li>";
 			$("#calendarTabs").append(tab);
 			var currentTab = "#calendarTabs a." + tabs[Calendar.timeUnit][i] +"-tab";
-			$(currentTab).css("cursor", "pointer");
 			$(currentTab).click(function(event) {
-				var tab = $(event.target).attr("tab");
+                event.preventDefault();
+				var tab = $(event.target).attr("tabname");
+                if (typeof(tab)==="undefined")
+                    return;
 				var state = App.state.getState("calendar");
 				state = state.substring(state.indexOf("/"));
 				Calendar.renderState(tab+state);
 			});
 		}
 		var t = tabExistsForTimeUnit(Calendar.currentTabName, Calendar.timeUnit)?Calendar.currentTabName:tabs[Calendar.timeUnit][0];
-		var currentTab = "#calendarTabs a." + t+"-tab";
+		var currentTab = "#calendarTabs a." + t + "-tab";
 		$(currentTab).tab("show");
 	}
 	

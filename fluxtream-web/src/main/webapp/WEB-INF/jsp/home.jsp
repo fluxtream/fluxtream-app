@@ -15,9 +15,9 @@
 <meta name="author" content="">
 
 <g:compress>
-	<link rel="stylesheet" href="/static/css/bootstrap-2.0.2.min.css">
+	<link rel="stylesheet" href="/static/css/bootstrap-2.0.3.min.css">
 	<link rel="stylesheet"
-		href="/static/css/bootstrap-responsive-2.0.2.min.css">
+		href="/static/css/bootstrap-responsive-2.0.3.min.css">
 	<link rel="stylesheet" href="/css/flx.css">
 	<link rel="stylesheet" href="/css/bodytrack.css">
 	<link rel="stylesheet" href="/css/datepicker.css">
