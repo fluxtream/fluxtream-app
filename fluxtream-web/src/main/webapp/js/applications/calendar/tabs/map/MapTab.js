@@ -74,6 +74,17 @@ define(["applications/calendar/tabs/Tab",
 
     function addDataToMap(connectorData, connectorInfoId, latLngs, timestamps){
         switch (connectorInfoId){
+            case "sms_backup-sms":
+            case "sms_backup-call_Calendar":
+            case "twitter-dm":
+            case "twitter-tweet":
+            case "twitter-mention":
+            case "google_calendar":
+            case "toodledo-task":
+            case "fitbit-sleep":
+            case "withings-bpm":
+            case "picasa":
+            case "flickr":
             case "lastfm-recent_track":
                 addItemsToMap(connectorData,latLngs,timestamps)
 
