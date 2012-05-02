@@ -24,15 +24,13 @@ define(["applications/calendar/tabs/Tab",
             map = new google.maps.Map(document.getElementById("the_map"),
                 myOptions);
             setMapPosition(digest.cachedData.google_latitude[0].position[0],digest.cachedData.google_latitude[0].position[1], 9);
-            var i = 0;
+            var myLatLngs=new Array();
+            var i;
             for (i = 0; i < digest.cachedData.google_latitude.length; i++){
-                var myLatlng = new google.maps.LatLng(digest.cachedData.google_latitude[i].position[0],digest.cachedData.google_latitude[i].position[1]);
-                new google.maps.Marker({
-                    position: myLatlng,
-                    map: map,
-                    title:"latitude point: " + i
-                });
+                myLatLngs[i] = new google.maps.LatLng(digest.cachedData.google_latitude[i].position[0],digest.cachedData.google_latitude[i].position[1]);
             }
+            new google.maps.Polyline({map:map, path:myLatLngs});
+
         } else {
             $("#the_map").empty();
             $("#the_map").removeAttr("style");

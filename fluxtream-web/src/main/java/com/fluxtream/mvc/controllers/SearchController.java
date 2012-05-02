@@ -40,21 +40,14 @@ public class SearchController {
 	@Autowired
 	MetadataService metadataService;
 
-	@Autowired
-	Configuration env;
-
-    @RequestMapping("/search/test")
-    public void searchTest(HttpServletRequest request,
-                                   HttpServletResponse response) throws Exception {
-
-    }
+    @Autowired
+    Configuration env;
 
     @RequestMapping("/search/{page}")
-	public ModelAndView search(HttpServletRequest request,
-			HttpServletResponse response, @PathVariable("page") int page,
-			@RequestParam("q") String terms) throws Exception {
-
-		logger.info("action=search");
+    public ModelAndView search(HttpServletRequest request,
+                               HttpServletResponse response, @PathVariable("page") int page,
+                               @RequestParam("q") String terms) throws Exception {
+        logger.info("action=search");
 		
 		long guestId = ControllerHelper.getGuestId();
 
