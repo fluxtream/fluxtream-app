@@ -2,12 +2,14 @@ define(["applications/calendar/tabs/Tab",
         "applications/calendar/App"], function(Tab, Calendar) {
 
 	var map = null;
+    var infoWindow = null;
 	
 	function render(digest, timeUnit) {
 		this.getTemplate("text!applications/calendar/tabs/map/map.html", "map", function(){setup(digest);});
 	}
 	
 	function setup(digest) {
+        $("#tooltips").load("/calendar/tooltips");
 		App.fullHeight();
         if (digest!=null && digest.cachedData!=null &&
             typeof(digest.cachedData.google_latitude)!="undefined"
@@ -23,6 +25,7 @@ define(["applications/calendar/tabs/Tab",
             };
             map = new google.maps.Map(document.getElementById("the_map"),
                 myOptions);
+            infoWindow = new google.maps.InfoWindow();
             var myLatLngs=new Array();
             var associatedTimes=new Array();
             var averageLat = 0;
@@ -102,7 +105,14 @@ define(["applications/calendar/tabs/Tab",
     }
 
     function addItemToMap(item,latlng){
-        new google.maps.Marker({map:map, position:latlng});
+        var marker = new google.maps.Marker({map:map, position:latlng});
+        google.maps.event.addListener(marker, "click", function(){
+            var tooltip = $("#" + item.type + "_" + item.id).html();
+            if (tooltip == null)
+                tooltip = "no description available";
+            infoWindow.setContent(tooltip);
+            infoWindow.open(map,marker);
+        });
     }
 
 	var mapTab = new Tab("map", "Candide Kemmler", "icon-map-marker", true);
