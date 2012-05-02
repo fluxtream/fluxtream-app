@@ -173,6 +173,7 @@
           <element id="archive" name="fluxtream-core-webapp-1.0.jar">
             <element id="module-output" name="fluxtream-core-webapp" />
           </element>
+          <element id="library" level="project" name="Maven: commons-lang:commons-lang:2.6" />
         </element>
       </element>
     </root>

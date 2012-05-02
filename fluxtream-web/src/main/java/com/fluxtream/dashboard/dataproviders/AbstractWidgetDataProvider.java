@@ -23,7 +23,7 @@ public abstract class AbstractWidgetDataProvider {
 	protected GuestService guestService;
 
 	@Autowired
-	Configuration env;
+	protected Configuration env;
 
 	public abstract JSONObject provideData(long guestId,
 			GuestSettings settings, TimeInterval timeInterval);
