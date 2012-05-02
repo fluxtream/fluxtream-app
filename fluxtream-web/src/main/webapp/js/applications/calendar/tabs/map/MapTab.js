@@ -12,7 +12,7 @@ define(["applications/calendar/tabs/Tab",
         if (digest!=null && digest.cachedData!=null &&
             typeof(digest.cachedData.google_latitude)!="undefined"
             && digest.cachedData.google_latitude !=null &&
-            digest.cachedData.google_latitude.length>0) {
+            digest.cachedData.google_latitude.length>0) { //make sure gps data is available before showing the map
             if ($("#the_map > .emptyList").length>0)
                 $("#the_map").empty();
             var myOptions = {
@@ -23,12 +23,32 @@ define(["applications/calendar/tabs/Tab",
             };
             map = new google.maps.Map(document.getElementById("the_map"),
                 myOptions);
-            setMapPosition(digest.cachedData.google_latitude[0].position[0],digest.cachedData.google_latitude[0].position[1], 9);
             var myLatLngs=new Array();
             var i;
+            var averageLat = 0;
+            var averageLon = 0;
+            var minLat = 90; //initialized to the largest valid latitude
+            var maxLat = 0; //initialized to the smallest valid latitude
+            var minLon = 180; //initialized to the largest valid longitude
+            var maxLon = -180; //initialized to the smallest valid longitude
             for (i = 0; i < digest.cachedData.google_latitude.length; i++){
-                myLatLngs[i] = new google.maps.LatLng(digest.cachedData.google_latitude[i].position[0],digest.cachedData.google_latitude[i].position[1]);
+                var lat = digest.cachedData.google_latitude[i].position[0];
+                var lon = digest.cachedData.google_latitude[i].position[1];
+                myLatLngs[i] = new google.maps.LatLng(lat,lon);
+                averageLat += (lat - averageLat) / (i + 1); //incremental average calculation
+                averageLon += (lon - averageLon) / (i + 1); //incremental average calculation
+                if (lat < minLat)
+                    minLat = lat;
+                if (lat > maxLat)
+                    maxLat = lat;
+                if (lon < minLon)
+                    minLon = lon;
+                if (lon > maxLon)
+                    maxLon = lon;
             }
+            setMapPosition(averageLat,averageLon, 9); //center the map to the average gps location
+            //bound the map to the area which the gps data spans
+            map.fitBounds(new google.maps.LatLngBounds(new google.maps.LatLng(minLat,minLon), new google.maps.LatLng(maxLat,maxLon)));
             new google.maps.Polyline({map:map, path:myLatLngs});
 
         } else {
