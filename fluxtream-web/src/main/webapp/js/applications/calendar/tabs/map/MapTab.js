@@ -3,6 +3,7 @@ define(["applications/calendar/tabs/Tab",
 
 	var map = null;
     var infoWindow = null;
+    var currentHighlightedLine = null;
 	
 	function render(digest, timeUnit) {
 		this.getTemplate("text!applications/calendar/tabs/map/map.html", "map", function(){setup(digest);});
@@ -11,6 +12,7 @@ define(["applications/calendar/tabs/Tab",
 	function setup(digest) {
         $("#tooltips").load("/calendar/tooltips");
 		App.fullHeight();
+        currentHighlightedLine = null;
         if (digest!=null && digest.cachedData!=null &&
             typeof(digest.cachedData.google_latitude)!="undefined"
             && digest.cachedData.google_latitude !=null &&
@@ -93,8 +95,45 @@ define(["applications/calendar/tabs/Tab",
 
     function addItemsToMap(items,latlngs,timestamps){
         for (var i = 0; i < items.length; i++){
-            var timestamp = items[i].start;
-            if (timestamp < timestamps[0] || timestamp > timestamps[timestamps.length - 1])
+            var startTimestamp = items[i].start;
+            var endTimestamp = items[i].end;
+            if (startTimestamp > timestamps[timestamps.length - 1] || (endTimestamp == null && startTimestamp < timestamps[0]))
+                continue;
+
+            var startFinishIndex;
+            for (startFinishIndex = 0; startFinishIndex < timestamps.length && timestamps[startFinishIndex] < startTimestamp; startFinishIndex++);
+            var startBeginIndex = startFinishIndex - 1;
+
+            var percentThrough = (startTimestamp - timestamps[startBeginIndex]) / (timestamps[startFinishIndex] - timestamps[startBeginIndex]);
+            var lat = (latlngs[startFinishIndex].lat() - latlngs[startBeginIndex].lat()) * percentThrough + latlngs[startBeginIndex].lat();
+            var lon = (latlngs[startFinishIndex].lng() - latlngs[startBeginIndex].lng()) * percentThrough + latlngs[startBeginIndex].lng();
+            var startLatLng = new google.maps.LatLng(lat,lon);
+
+            if (endTimestamp == null){
+                addItemToMap(items[i],startLatLng,null,null,null,null);
+            }
+            else{
+                var endFinishIndex, endBeginIndex;
+                if (endTimestamp > timestamps[timestamps.length - 1]){
+                    endFinishIndex = endBeginIndex = timestamps.length - 1;
+                }
+                else{
+                    for (endFinishIndex = 0; endFinishIndex < timestamps.length && timestamps[endFinishIndex] < endTimestamp; endFinishIndex++);
+                    endBeginIndex = endFinishIndex - 1;
+                }
+                var endLatLng;
+                if (endFinishIndex == endBeginIndex)
+                    endLatLng = latlngs[endFinishIndex];
+                else{
+                    percentThrough = (endTimestamp - timestamps[endBeginIndex]) / (timestamps[endFinishIndex] - timestamps[endBeginIndex]);
+                    lat = (latlngs[endFinishIndex].lat() - latlngs[endBeginIndex].lat()) * percentThrough + latlngs[endBeginIndex].lat();
+                    lon = (latlngs[endFinishIndex].lng() - latlngs[endBeginIndex].lng()) * percentThrough + latlngs[endBeginIndex].lng();
+                    endLatLng = new google.maps.LatLng(lat,lon);
+                }
+                addItemToMap(items[i],startLatLng,startFinishIndex,endLatLng,endBeginIndex,latlngs);
+            }
+
+            /*if (timestamp < timestamps[0] || timestamp > timestamps[timestamps.length - 1])
                 continue;
             var endIndex;
             for (endIndex = 1; endIndex < timestamps.length; endIndex++){
@@ -110,20 +149,42 @@ define(["applications/calendar/tabs/Tab",
                 var percentThrough = (timestamp - timestamps[startIndex]) / (timestamps[endIndex] - timestamps[startIndex]);
                 var lat = (latlngs[endIndex].lat() - latlngs[startIndex].lat()) * percentThrough + latlngs[startIndex].lat();
                 var lon = (latlngs[endIndex].lng() - latlngs[startIndex].lng()) * percentThrough + latlngs[startIndex].lng();
-                addItemToMap(items[i],new google.maps.LatLng(lat,lon));
-            }
+                addItemToMap(items[i],new google.maps.LatLng(lat,lon),endIndex,,latlngs);
+            }*/
         }
     }
 
-    function addItemToMap(item,latlng){
-        var marker = new google.maps.Marker({map:map, position:latlng});
+    function addItemToMap(item,startLatLng,startIndex,endLatLng,endIndex,latlngs){
+        var marker = new google.maps.Marker({map:map, position:startLatLng});
         google.maps.event.addListener(marker, "click", function(){
             var tooltip = $("#" + item.type + "_" + item.id).html();
             if (tooltip == null)
                 tooltip = "no description available";
             infoWindow.setContent(tooltip);
             infoWindow.open(map,marker);
+            if (currentHighlightedLine != null){
+                currentHighlightedLine.setMap(null);
+                currentHighlightedLine = null
+            }
+            if (latlngs != null){
+                var newlatlngs = Array();
+                newlatlngs[0] = startLatLng;
+                for (var i = 0; startIndex + i <= endIndex; i++){
+                    newlatlngs[i+1] = latlngs[startIndex + i];
+                }
+                newlatlngs[newlatlngs.length] = endLatLng;
+
+                currentHighlightedLine = new google.maps.Polyline({map: map, strokeColor:"orange", path: newlatlngs, zIndex: 100});
+            }
         });
+        /*var marker = new google.maps.Marker({map:map, position:latlng});
+        google.maps.event.addListener(marker, "click", function(){
+            var tooltip = $("#" + item.type + "_" + item.id).html();
+            if (tooltip == null)
+                tooltip = "no description available";
+            infoWindow.setContent(tooltip);
+            infoWindow.open(map,marker);
+        });*/
     }
 
 	var mapTab = new Tab("map", "Candide Kemmler", "icon-map-marker", true);
