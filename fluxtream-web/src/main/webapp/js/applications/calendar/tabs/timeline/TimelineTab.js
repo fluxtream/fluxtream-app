@@ -809,7 +809,9 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
 
         // Drag to resize
         $("#" + channelElementId + "_dragArea").unbind("mousedown").mousedown(function() {
-            dragAreaOnMouseDown(id, channelElementId, plotElementId, yAxisElementId);
+        	var channelElement = $(this).parents("._timeline_channel").parent();
+        	// Extract plotId from channelElement id attribute
+            dragAreaOnMouseDown(channelElement.attr("id").slice(18));
         });
 
         // Style configuration
@@ -2511,8 +2513,12 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
         }
     }
 
-    function dragAreaOnMouseDown(plotId, channelElementId, plotElementId, yAxisElementId) {
-        var mostRecentY = null;
+    function dragAreaOnMouseDown(plotId) {
+        var channelElementId = "_timeline_channel_" + plotId;
+        var plotElementId = "_timeline_plot_" + plotId;
+        var yAxisElementId = "_timeline_yAxis_" + plotId;
+    	
+    	var mostRecentY = null;
         var resizeTimer = null;
         var dylist = [];
 
@@ -2585,7 +2591,6 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
             return false; // Stops the event from propagating
         };
         mouseup = function(event) {
-            console.log("mouseup called");
             if (mostRecentY == null) {
                 return stopListening();
             }
