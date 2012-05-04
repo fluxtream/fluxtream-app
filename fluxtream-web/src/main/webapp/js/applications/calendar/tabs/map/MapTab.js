@@ -1,9 +1,11 @@
 define(["applications/calendar/tabs/Tab",
-        "applications/calendar/App"], function(Tab, Calendar) {
+        "applications/calendar/App",
+       "applications/calendar/tabs/map/MapConfig"], function(Tab, Calendar, Config) {
 
 	var map = null;
     var infoWindow = null;
     var currentHighlightedLine = null;
+    var config = null;
 	
 	function render(digest, timeUnit) {
 		this.getTemplate("text!applications/calendar/tabs/map/map.html", "map", function(){setup(digest);});
@@ -13,6 +15,7 @@ define(["applications/calendar/tabs/Tab",
         $("#tooltips").load("/calendar/tooltips");
 		App.fullHeight();
         currentHighlightedLine = null;
+        config = Config.getConfig();
         if (digest!=null && digest.cachedData!=null &&
             typeof(digest.cachedData.google_latitude)!="undefined"
             && digest.cachedData.google_latitude !=null &&
@@ -81,19 +84,25 @@ define(["applications/calendar/tabs/Tab",
             case "twitter-dm":
             case "twitter-tweet":
             case "twitter-mention":
+                addItemsToMap(connectorData,latLngs,timestamps,config.SOCIAL_CATEGORY);
+                break;
             case "google_calendar":
             case "toodledo-task":
+                addItemsToMap(connectorData,latLngs,timestamps,config.MIND_CATEGORY);
+                break;
             case "fitbit-sleep":
             case "withings-bpm":
+                addItemsToMap(connectorData,latLngs,timestamps,config.BODY_CATEGORY);
+                break;
             case "picasa":
             case "flickr":
             case "lastfm-recent_track":
-                addItemsToMap(connectorData,latLngs,timestamps)
-
+                addItemsToMap(connectorData,latLngs,timestamps,config.MEDIA_CATEGORY);
+                break;
         }
     }
 
-    function addItemsToMap(items,latlngs,timestamps){
+    function addItemsToMap(items,latlngs,timestamps,category){
         for (var i = 0; i < items.length; i++){
             var startTimestamp = items[i].start;
             var endTimestamp = items[i].end;
@@ -110,7 +119,7 @@ define(["applications/calendar/tabs/Tab",
             var startLatLng = new google.maps.LatLng(lat,lon);
 
             if (endTimestamp == null){
-                addItemToMap(items[i],startLatLng,null,null,null,null);
+                addItemToMap(items[i],startLatLng,null,null,null,null,category);
             }
             else{
                 var endFinishIndex, endBeginIndex;
@@ -130,7 +139,7 @@ define(["applications/calendar/tabs/Tab",
                     lon = (latlngs[endFinishIndex].lng() - latlngs[endBeginIndex].lng()) * percentThrough + latlngs[endBeginIndex].lng();
                     endLatLng = new google.maps.LatLng(lat,lon);
                 }
-                addItemToMap(items[i],startLatLng,startFinishIndex,endLatLng,endBeginIndex,latlngs);
+                addItemToMap(items[i],startLatLng,startFinishIndex,endLatLng,endBeginIndex,latlngs,category);
             }
 
             /*if (timestamp < timestamps[0] || timestamp > timestamps[timestamps.length - 1])
@@ -154,8 +163,8 @@ define(["applications/calendar/tabs/Tab",
         }
     }
 
-    function addItemToMap(item,startLatLng,startIndex,endLatLng,endIndex,latlngs){
-        var marker = new google.maps.Marker({map:map, position:startLatLng});
+    function addItemToMap(item,startLatLng,startIndex,endLatLng,endIndex,latlngs,category){
+        var marker = new google.maps.Marker({map:map, position:startLatLng, icon:category.icon, shadow:category.shadow});
         google.maps.event.addListener(marker, "click", function(){
             var tooltip = $("#" + item.type + "_" + item.id).html();
             if (tooltip == null)
