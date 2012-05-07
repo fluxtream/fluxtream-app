@@ -1,5 +1,9 @@
 <style type="text/css">
+    #the_map{position:absolute; left:0px; right:0px; bottom:0px; top:2.5em;}
      #the_map img{max-width: none;}
 </style><!--This piece of css fixes incompatibility between bootstrap and google maps-->
-<div id="the_map" class="fullHeight fullwidth"></div>
+<div id="mapwrapper" class="fullHeight fullWidth" style="position:relative">
+    <div id="selectedConnectors"></div>
+    <div id="the_map"></div>
+</div>
 <div id="tooltips"></div>

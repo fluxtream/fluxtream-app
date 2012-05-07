@@ -6,6 +6,7 @@ define(["applications/calendar/tabs/Tab",
     var infoWindow = null;
     var currentHighlightedLine = null;
     var config = null;
+    var connectorSelected = null;
 	
 	function render(digest, timeUnit) {
 		this.getTemplate("text!applications/calendar/tabs/map/map.html", "map", function(){setup(digest);});
@@ -15,6 +16,8 @@ define(["applications/calendar/tabs/Tab",
         $("#tooltips").load("/calendar/tooltips");
 		App.fullHeight();
         currentHighlightedLine = null;
+        connectorSelected = null;
+        dataMarkers = [];
         config = Config.getConfig();
         if (digest!=null && digest.cachedData!=null &&
             typeof(digest.cachedData.google_latitude)!="undefined"
@@ -22,6 +25,7 @@ define(["applications/calendar/tabs/Tab",
             digest.cachedData.google_latitude.length>0) { //make sure gps data is available before showing the map
             if ($("#the_map > .emptyList").length>0)
                 $("#the_map").empty();
+            $("#selectedConnectors").empty();
             var myOptions = {
                 zoom : 11,
                 scrollwheel : true,
@@ -59,13 +63,24 @@ define(["applications/calendar/tabs/Tab",
             //bound the map to the area which the gps data spans
             map.fitBounds(new google.maps.LatLngBounds(new google.maps.LatLng(minLat,minLon), new google.maps.LatLng(maxLat,maxLon)));
             new google.maps.Polyline({map:map, path:myLatLngs});
+
+
+            var checkedContainer = $("#selectedConnectors");
             for(var objectTypeName in digest.cachedData) {
                 if (digest.cachedData[objectTypeName]==null||typeof(digest.cachedData[objectTypeName])=="undefined")
                     continue;
-                addDataToMap(digest.cachedData[objectTypeName], objectTypeName, myLatLngs, associatedTimes);
+                var markerArray = addDataToMap(digest.cachedData[objectTypeName], objectTypeName, myLatLngs, associatedTimes);
+                if (markerArray != null){
+                    var button = $('<button class="btnList btn btnListChecked enabled">' + objectTypeName + '</button>');
+                    button.click({button:button,markerArray:markerArray,objectTypeName:objectTypeName},function(event){
+                        buttonClicked(event.data.button,event.data.markerArray,event.data.objectTypeName);
+                    });
+                    checkedContainer.append(button);
+                }
             }
         } else {
             $("#the_map").empty();
+            $("#selectedConnectors").empty();
             $("#the_map").removeAttr("style");
             $("#the_map").append("<div class=\"emptyList\">(no location data)</div>");
         }
@@ -78,31 +93,36 @@ define(["applications/calendar/tabs/Tab",
 	}
 
     function addDataToMap(connectorData, connectorInfoId, latLngs, timestamps){
+        var category;
         switch (connectorInfoId){
             case "sms_backup-sms":
             case "sms_backup-call_Calendar":
             case "twitter-dm":
             case "twitter-tweet":
             case "twitter-mention":
-                addItemsToMap(connectorData,latLngs,timestamps,config.SOCIAL_CATEGORY);
+                category = config.SOCIAL_CATEGORY;
                 break;
             case "google_calendar":
             case "toodledo-task":
-                addItemsToMap(connectorData,latLngs,timestamps,config.MIND_CATEGORY);
+                category = config.MIND_CATEGORY;
                 break;
             case "fitbit-sleep":
             case "withings-bpm":
-                addItemsToMap(connectorData,latLngs,timestamps,config.BODY_CATEGORY);
+                category = config.BODY_CATEGORY;
                 break;
             case "picasa":
             case "flickr":
             case "lastfm-recent_track":
-                addItemsToMap(connectorData,latLngs,timestamps,config.MEDIA_CATEGORY);
+                category = config.MEDIA_CATEGORY;
                 break;
+            default:
+                return null;
         }
+        return addItemsToMap(connectorData,latLngs,timestamps,category);
     }
 
     function addItemsToMap(items,latlngs,timestamps,category){
+        var markerArray = new Array();
         for (var i = 0; i < items.length; i++){
             var startTimestamp = items[i].start;
             var endTimestamp = items[i].end;
@@ -119,7 +139,7 @@ define(["applications/calendar/tabs/Tab",
             var startLatLng = new google.maps.LatLng(lat,lon);
 
             if (endTimestamp == null){
-                addItemToMap(items[i],startLatLng,null,null,null,null,category);
+                markerArray[markerArray.length] = addItemToMap(items[i],startLatLng,null,null,null,null,category);
             }
             else{
                 var endFinishIndex, endBeginIndex;
@@ -139,33 +159,18 @@ define(["applications/calendar/tabs/Tab",
                     lon = (latlngs[endFinishIndex].lng() - latlngs[endBeginIndex].lng()) * percentThrough + latlngs[endBeginIndex].lng();
                     endLatLng = new google.maps.LatLng(lat,lon);
                 }
-                addItemToMap(items[i],startLatLng,startFinishIndex,endLatLng,endBeginIndex,latlngs,category);
+                markerArray[markerArray.length] = addItemToMap(items[i],startLatLng,startFinishIndex,endLatLng,endBeginIndex,latlngs,category);
             }
-
-            /*if (timestamp < timestamps[0] || timestamp > timestamps[timestamps.length - 1])
-                continue;
-            var endIndex;
-            for (endIndex = 1; endIndex < timestamps.length; endIndex++){
-                if (timestamps[endIndex] >= timestamp)
-                    break;
-            }
-            var startIndex = endIndex - 1;
-            if (startIndex < 0)
-                startIndex = 0;
-            if (startIndex == endIndex)
-                addItemToMap(items[i],latlngs[startIndex]);
-            else{
-                var percentThrough = (timestamp - timestamps[startIndex]) / (timestamps[endIndex] - timestamps[startIndex]);
-                var lat = (latlngs[endIndex].lat() - latlngs[startIndex].lat()) * percentThrough + latlngs[startIndex].lat();
-                var lon = (latlngs[endIndex].lng() - latlngs[startIndex].lng()) * percentThrough + latlngs[startIndex].lng();
-                addItemToMap(items[i],new google.maps.LatLng(lat,lon),endIndex,,latlngs);
-            }*/
         }
+        if (markerArray.length == 0)
+            markerArray = null;
+        return markerArray;
     }
 
     function addItemToMap(item,startLatLng,startIndex,endLatLng,endIndex,latlngs,category){
         var marker = new google.maps.Marker({map:map, position:startLatLng, icon:category.icon, shadow:category.shadow});
         google.maps.event.addListener(marker, "click", function(){
+            connectorSelected = item.type;
             var tooltip = $("#" + item.type + "_" + item.id).html();
             if (tooltip == null)
                 tooltip = "no description available";
@@ -186,14 +191,39 @@ define(["applications/calendar/tabs/Tab",
                 currentHighlightedLine = new google.maps.Polyline({map: map, strokeColor:"orange", path: newlatlngs, zIndex: 100});
             }
         });
-        /*var marker = new google.maps.Marker({map:map, position:latlng});
-        google.maps.event.addListener(marker, "click", function(){
-            var tooltip = $("#" + item.type + "_" + item.id).html();
-            if (tooltip == null)
-                tooltip = "no description available";
-            infoWindow.setContent(tooltip);
-            infoWindow.open(map,marker);
-        });*/
+        return marker;
+    }
+
+    function buttonClicked(button,markers,connectorName){
+        if (button.hasClass("disabled"))
+            return;
+        button.removeClass("enabled");
+        button.addClass("disabled");
+        if (button.hasClass("btnListChecked")){
+            button.removeClass("btnListChecked");
+            button.addClass("btn-inverse");
+            if (connectorSelected === connectorName){
+                connectorSelected = null;
+                if (currentHighlightedLine != null){
+                    currentHighlightedLine.setMap(null);
+                    currentHighlightedLine = null;
+                }
+                infoWindow.close();
+            }
+            for (var i = 0; i < markers.length; i++){
+                markers[i].setMap(null);
+            }
+        }
+        else{
+            button.removeClass("btn-inverse");
+            button.addClass("btnListChecked");
+            for (var i = 0; i < markers.length; i++){
+                markers[i].setMap(map);
+            }
+        }
+
+        button.removeClass("disabled");
+        button.addClass("enabled");
     }
 
 	var mapTab = new Tab("map", "Candide Kemmler", "icon-map-marker", true);
