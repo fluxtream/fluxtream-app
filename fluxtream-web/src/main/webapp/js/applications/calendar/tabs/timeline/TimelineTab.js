@@ -1551,6 +1551,9 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
                 "min" : view["v2"]["x_axis"]["min"],
                 "max" : view["v2"]["x_axis"]["max"]
             });
+            dateAxis.addAxisChangeListener(function() {
+                console.log("dateAxis range changed to " + dateAxis.getMin() + ", " + dateAxis.getMax());
+            });
 
             // Create y-axes
             yAxes = view["v2"]["y_axes"];
