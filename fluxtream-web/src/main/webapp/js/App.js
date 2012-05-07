@@ -131,6 +131,10 @@ define(
 				$("#modal").modal();
 			}
 
+            App.closeModal = function(){
+                $("#modal").modal("hide");
+            }
+
 			App.eraseEverything = function() {
 				var confirmed = confirm("Are you sure?");
 			};
