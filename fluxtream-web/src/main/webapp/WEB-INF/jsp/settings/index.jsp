@@ -93,7 +93,7 @@
 		</div>
 		<div class="modal-footer">
 			<input type="submit" value="Save Settings"
-									class="btn btn-primary" />
+									class="btn btn-primary" onclick="App.closeModal()" />
 			<a href="javascript:App.eraseEverything();" id="eraseDataButton"
 				style="font-size: 13px">Erase all my data</a>
 		</div>
