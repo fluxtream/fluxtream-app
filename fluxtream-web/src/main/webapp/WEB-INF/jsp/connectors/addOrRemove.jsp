@@ -12,7 +12,7 @@
 <div id="modal" class="modal hide fade" style="width: 650px">
 
 	<div class="modal-header">
-		<a class="close" data-dismiss="modal">ï¿½</a>
+		<a class="close" data-dismiss="modal">×</a>
 		<h3>Add and remove Connectors</h3>
 	</div>
 
