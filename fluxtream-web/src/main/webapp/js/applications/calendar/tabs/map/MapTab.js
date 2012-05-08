@@ -31,6 +31,7 @@ define(["applications/calendar/tabs/Tab",
             typeof(digest.cachedData.google_latitude)!="undefined"
                 && digest.cachedData.google_latitude !=null &&
             digest.cachedData.google_latitude.length>0) { //make sure gps data is available before showing the map
+            $("#mapFit").show();
             if ($("#the_map > .emptyList").length>0)
                 $("#the_map").empty();
             $("#selectedConnectors").empty();
@@ -85,7 +86,14 @@ define(["applications/calendar/tabs/Tab",
                     checkedContainer.append("&nbsp;");
                 }
             }
+
+            $("#mapFit").unbind("click");
+            $("#mapFit").click(function(){
+                zoomOnTimespan(gpsTimestamps[0],gpsTimestamps[gpsTimestamps.length-1]);
+            });
+
         } else {
+            $("#mapFit").hide();
             $("#the_map").empty();
             $("#selectedConnectors").empty();
             $("#the_map").removeAttr("style");
@@ -268,6 +276,39 @@ define(["applications/calendar/tabs/Tab",
         }
         newPoints[newPoints.length] = getLatLngOnGPSLine(end);
         highlightSection = new google.maps.Polyline({map: gpsLine.getMap(), strokeColor:"black", path: newPoints, zIndex: 99});
+    }
+
+    function zoomOnTimespan(start,end){
+        var minLat, maxLat, minLng, maxLng;
+        var startPoint = getLatLngOnGPSLine(start);
+        var endPoint = getLatLngOnGPSLine(end);
+        if (startPoint.lat() < endPoint.lat()){
+            minLat = startPoint.lat();
+            maxLat = endPoint.lat();
+        }
+        else{
+            minLat = endPoint.lat();
+            maxLat = startPoint.lat();
+        }
+        if (startPoint.lng() < endPoint.lng()){
+            minLng = startPoint.lng();
+            maxLng = endPoint.lng();
+        }
+        else{
+            minLng = endPoint.lng();
+            maxLng = endPoint.lng();
+        }
+        for (var i = 0; i < gpsPositions.length; i++){
+            if (gpsPositions[i].lat() < minLat)
+                minLat = gpsPositions[i].lat();
+            else if (gpsPositions[i].lat() > maxLat)
+                maxLat = gpsPositions[i].lat();
+            if (gpsPositions[i].lng() < minLng)
+                minLng = gpsPositions[i].lng();
+            else if (gpsPositions[i].lng() > maxLng)
+                maxLng = gpsPositions[i].lng();
+        }
+        map.fitBounds(new google.maps.LatLngBounds(new google.maps.LatLng(minLat,minLng), new google.maps.LatLng(maxLat,maxLng)));
     }
 
     var mapTab = new Tab("map", "Candide Kemmler", "icon-map-marker", true);
