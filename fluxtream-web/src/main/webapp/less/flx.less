@@ -1,3 +1,10 @@
+
+::selection 	 	{background: rgb(255,255,158);}
+::-moz-selection 	{background: rgb(255,255,158);}
+img::selection 		{background: transparent;}
+img::-moz-selection	{background: transparent;}
+body {-webkit-tap-highlight-color: rgb(255,255,158);}
+
 @media (min-width: 980px) {
 
    .nav-collapse.collapse {
@@ -9,8 +16,6 @@
         width: 99%;
     }
 }
-
-
 
 // LARGE DESKTOP & UP
 // ------------------
@@ -221,4 +226,24 @@ a.paginationLink {
 /* HACK: should "just work" as per the Twitter Bootstrap framework */
 .nav-tabs > li {
     margin-bottom: -2px;
+}
+
+#mainCity span.ephemeris {font-size:12px; color:#878787; line-height: 11px; }
+
+*[class|='flx-pict'] {
+    background-image: url('../images/icons.png');
+    display: inline-block;
+    height: 20px;
+}
+.flx-pict-temp {
+    background-position: -53px -20px;
+    width: 11px;
+}
+.flx-pict-moon {
+    background-position: -163px -24px;
+    width: 20px;
+}
+.flx-pict-sun {
+    background-position: -80px -24px;
+    width: 20px;
 }
