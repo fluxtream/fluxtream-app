@@ -7,6 +7,7 @@ define(["applications/calendar/tabs/Tab",
     var currentHighlightedLine = null;
     var config = null;
     var connectorSelected = null;
+    var gpsLine = null;
 	
 	function render(digest, timeUnit) {
 		this.getTemplate("text!applications/calendar/tabs/map/map.html", "map", function(){setup(digest);});
@@ -17,6 +18,7 @@ define(["applications/calendar/tabs/Tab",
 		App.fullHeight();
         currentHighlightedLine = null;
         connectorSelected = null;
+        gpsLine= null;
         dataMarkers = [];
         config = Config.getConfig();
         if (digest!=null && digest.cachedData!=null &&
@@ -62,7 +64,7 @@ define(["applications/calendar/tabs/Tab",
             setMapPosition(averageLat,averageLon, 9); //center the map to the average gps location
             //bound the map to the area which the gps data spans
             map.fitBounds(new google.maps.LatLngBounds(new google.maps.LatLng(minLat,minLon), new google.maps.LatLng(maxLat,maxLon)));
-            new google.maps.Polyline({map:map, path:myLatLngs});
+            gpsLine = new google.maps.Polyline({map:map, path:myLatLngs});
 
 
             var checkedContainer = $("#selectedConnectors");
@@ -70,12 +72,13 @@ define(["applications/calendar/tabs/Tab",
                 if (digest.cachedData[objectTypeName]==null||typeof(digest.cachedData[objectTypeName])=="undefined")
                     continue;
                 var markerArray = addDataToMap(digest.cachedData[objectTypeName], objectTypeName, myLatLngs, associatedTimes);
-                if (markerArray != null){
+                if (markerArray != null || objectTypeName == "google_latitude"){
                     var button = $('<button class="btnList btn btnListChecked enabled">' + objectTypeName + '</button>');
-                    button.click({button:button,markerArray:markerArray,objectTypeName:objectTypeName},function(event){
-                        buttonClicked(event.data.button,event.data.markerArray,event.data.objectTypeName);
+                    button.click({button:button,markerArray:markerArray,objectTypeName:objectTypeName,isGoogleLatitude:objectTypeName == "google_latitude"},function(event){
+                        buttonClicked(event.data.button,event.data.markerArray,event.data.objectTypeName,event.data.isGoogleLatitude);
                     });
                     checkedContainer.append(button);
+                    checkedContainer.append("&nbsp;");
                 }
             }
         } else {
@@ -188,13 +191,13 @@ define(["applications/calendar/tabs/Tab",
                 }
                 newlatlngs[newlatlngs.length] = endLatLng;
 
-                currentHighlightedLine = new google.maps.Polyline({map: map, strokeColor:"orange", path: newlatlngs, zIndex: 100});
+                currentHighlightedLine = new google.maps.Polyline({map: gpsLine.getMap(), strokeColor:"orange", path: newlatlngs, zIndex: 100});
             }
         });
         return marker;
     }
 
-    function buttonClicked(button,markers,connectorName){
+    function buttonClicked(button,markers,connectorName,isGoogleLatitude){
         if (button.hasClass("disabled"))
             return;
         button.removeClass("enabled");
@@ -210,15 +213,29 @@ define(["applications/calendar/tabs/Tab",
                 }
                 infoWindow.close();
             }
-            for (var i = 0; i < markers.length; i++){
-                markers[i].setMap(null);
+            if (isGoogleLatitude){
+                gpsLine.setMap(null);
+                if (currentHighlightedLine != null)
+                    currentHighlightedLine.setMap(null);
+            }
+            else{
+                for (var i = 0; i < markers.length; i++){
+                    markers[i].setMap(null);
+                }
             }
         }
         else{
             button.removeClass("btn-inverse");
             button.addClass("btnListChecked");
-            for (var i = 0; i < markers.length; i++){
-                markers[i].setMap(map);
+            if (isGoogleLatitude){
+                gpsLine.setMap(map);
+                if (currentHighlightedLine != null)
+                    currentHighlightedLine.setMap(map);
+            }
+            else{
+                for (var i = 0; i < markers.length; i++){
+                    markers[i].setMap(map);
+                }
             }
         }
 
