@@ -61,21 +61,18 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 		Calendar.currentTabName = splits[0];
 		Calendar.timeUnit = toTimeUnit(splits[1]);
 		var nextTabState = state.substring(splits[0].length+1);
-		if (Calendar.tabState==nextTabState) {
+        var w = Builder.tabExistsForTimeUnit(Calendar.currentTabName, Calendar.timeUnit)?Calendar.currentTabName:Builder.tabs[Calendar.timeUnit][0];
+        Calendar.currentTabName = w;
+        Builder.createTabs(Calendar);
+        if (Calendar.tabState==nextTabState) {
 			// time didn't change
-			var w = Builder.tabExistsForTimeUnit(Calendar.currentTabName, Calendar.timeUnit)?Calendar.currentTabName:Builder.tabs[Calendar.timeUnit][0];
-			Calendar.currentTabName = w;
-			Builder.createTabs(Calendar);
 			Builder.updateTab(Calendar.digest, Calendar);
 			FlxState.router.navigate("app/calendar/" + state);
 			FlxState.saveState("calendar", state);
 			return;
 		} else {
-			var w = Builder.tabExistsForTimeUnit(Calendar.currentTabName, Calendar.timeUnit)?Calendar.currentTabName:Builder.tabs[Calendar.timeUnit][0];
-			Calendar.currentTabName = w;
-			Builder.createTimeUnitsMenu(Calendar);
-			Builder.createTabs(Calendar);
-			if ("DAY"===Calendar.timeUnit) {
+            Builder.createTimeUnitsMenu(Calendar);
+            if ("DAY"===Calendar.timeUnit) {
 				fetchState("/nav/setDate.json?date=" + splits[2]);
 			} else if ("WEEK"===Calendar.timeUnit) {
 				fetchState("/nav/setWeek.json?year=" + splits[2] + "&week=" + splits[3]);
@@ -130,6 +127,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 		$.ajax({ url: url,
 			success : function(response) {
 				$("#modal").empty();
+                if (Calendar.timeUnit==="DAY")
+                    handleCityInfo(response);
+                else
+                    $("#mainCity").empty();
                 Calendar.digest = response;
 				Builder.updateTab(response, Calendar);
 				$("#tabs").css("opacity", "1");
@@ -142,7 +143,62 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 		});
 	}
 
-	function toTimeUnit(urlTimeUnit) {
+    function handleCityInfo(digestInfo) {
+        $("#mainCity").empty();
+        if (digestInfo.cities&&digestInfo.cities.length>0) {
+            $("#mainCity").html(cityLabel(digestInfo.cities[0]) +
+                                temperaturesLabel(digestInfo))
+        }
+    }
+
+    function ephemerisLabel(digestInfo) {
+        var sunriseH = Math.floor(digestInfo.solarInfo.sunrise/60);
+        var sunriseM = digestInfo.solarInfo.sunrise%60;
+        var sunsetH = Math.floor(digestInfo.solarInfo.sunset/60);
+        var sunsetM = digestInfo.solarInfo.sunset%60;
+        if (sunriseM<10) sunriseM = "0" + sunriseM;
+        if (sunsetM<10) sunsetM = "0" + sunsetM;
+        return "<span class=\"ephemeris\"><i class=\"flx-pict-sun\">&nbsp;</i><span>" + sunriseH + ":" + sunriseM + " am"+
+               "</span>&nbsp;<i class=\"flx-pict-moon\">&nbsp;</i><span>" + sunsetH + ":" + sunsetM + " pm</span></span>";
+    }
+
+    function temperaturesLabel(digestInfo) {
+        if (digestInfo.maxTempC == -10000) {
+            return "";
+        }
+        else if (digestInfo.settings.temperatureUnit != "CELSIUS") {
+            return ephemerisLabel(digestInfo) + "<i class=\"flx-pict-temp\">&nbsp;</i>"
+                       + "<span class=\"ephemeris\" style=\"font-weight:normal;\">&nbsp;"
+                       + digestInfo.minTempF
+                       + " / "
+                       + digestInfo.maxTempF
+                       + "&deg;F"
+                + "</span>";
+        }
+        else {
+            return ephemerisLabel(digestInfo) + "<i class=\"flx-pict-temp\">&nbsp;</i>"
+                       + "<span class=\"ephemeris\" style=\"font-weight:normal;\">&nbsp;"
+                       + digestInfo.minTempC
+                       + " / "
+                       + digestInfo.maxTempC
+                       + "&deg;C"
+                + "</span>";
+        }
+    }
+
+    function cityLabel(cityInfo) {
+        var s = "";
+        s += cityInfo.name;
+        if (cityInfo.state) s += ", " + cityInfo.state;
+        s += ", " + cityInfo.country;
+        //if (traveling)
+        //    s += " <i>- on holiday</i>";
+        //if (FlxState.cities.length>20)
+        //    s += " <i>- in transit</i>";
+        return s;
+    }
+
+    function toTimeUnit(urlTimeUnit) {
 		if (urlTimeUnit==="date") return "DAY";
 		return urlTimeUnit.toUpperCase();
 	}
