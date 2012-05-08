@@ -8,22 +8,28 @@ define(["applications/calendar/tabs/Tab",
     var config = null;
     var connectorSelected = null;
     var gpsLine = null;
-	
-	function render(digest, timeUnit) {
-		this.getTemplate("text!applications/calendar/tabs/map/map.html", "map", function(){setup(digest);});
-	}
-	
-	function setup(digest) {
+    var gpsTimestamps = null;
+    var gpsPositions = null;
+    var highlightSection = null;
+
+    function render(digest, timeUnit) {
+        this.getTemplate("text!applications/calendar/tabs/map/map.html", "map", function(){setup(digest);});
+    }
+
+    function setup(digest) {
         $("#tooltips").load("/calendar/tooltips");
-		App.fullHeight();
+        App.fullHeight();
         currentHighlightedLine = null;
         connectorSelected = null;
         gpsLine= null;
+        gpsTimestamps = null;
+        gpsPositions = null;
+        highlightSection = null;
         dataMarkers = [];
         config = Config.getConfig();
         if (digest!=null && digest.cachedData!=null &&
             typeof(digest.cachedData.google_latitude)!="undefined"
-            && digest.cachedData.google_latitude !=null &&
+                && digest.cachedData.google_latitude !=null &&
             digest.cachedData.google_latitude.length>0) { //make sure gps data is available before showing the map
             if ($("#the_map > .emptyList").length>0)
                 $("#the_map").empty();
@@ -35,10 +41,10 @@ define(["applications/calendar/tabs/Tab",
                 mapTypeId : google.maps.MapTypeId.ROADMAP
             };
             map = new google.maps.Map(document.getElementById("the_map"),
-                myOptions);
+                                      myOptions);
             infoWindow = new google.maps.InfoWindow();
-            var myLatLngs=new Array();
-            var associatedTimes=new Array();
+            gpsPositions =new Array();
+            gpsTimestamps =new Array();
             var averageLat = 0;
             var averageLon = 0;
             var minLat = 90; //initialized to the largest valid latitude
@@ -48,8 +54,8 @@ define(["applications/calendar/tabs/Tab",
             for (var i = 0; i < digest.cachedData.google_latitude.length; i++){
                 var lat = digest.cachedData.google_latitude[i].position[0];
                 var lon = digest.cachedData.google_latitude[i].position[1];
-                myLatLngs[i] = new google.maps.LatLng(lat,lon);
-                associatedTimes[i] = digest.cachedData.google_latitude[i].start;
+                gpsPositions[i] = new google.maps.LatLng(lat,lon);
+                gpsTimestamps[i] = digest.cachedData.google_latitude[i].start;
                 averageLat += (lat - averageLat) / (i + 1); //incremental average calculation
                 averageLon += (lon - averageLon) / (i + 1); //incremental average calculation
                 if (lat < minLat)
@@ -61,17 +67,15 @@ define(["applications/calendar/tabs/Tab",
                 if (lon > maxLon)
                     maxLon = lon;
             }
-            setMapPosition(averageLat,averageLon, 9); //center the map to the average gps location
             //bound the map to the area which the gps data spans
             map.fitBounds(new google.maps.LatLngBounds(new google.maps.LatLng(minLat,minLon), new google.maps.LatLng(maxLat,maxLon)));
-            gpsLine = new google.maps.Polyline({map:map, path:myLatLngs});
-
+            gpsLine = new google.maps.Polyline({map:map, path:gpsPositions});
 
             var checkedContainer = $("#selectedConnectors");
             for(var objectTypeName in digest.cachedData) {
                 if (digest.cachedData[objectTypeName]==null||typeof(digest.cachedData[objectTypeName])=="undefined")
                     continue;
-                var markerArray = addDataToMap(digest.cachedData[objectTypeName], objectTypeName, myLatLngs, associatedTimes);
+                var markerArray = addDataToMap(digest.cachedData[objectTypeName], objectTypeName);
                 if (markerArray != null || objectTypeName == "google_latitude"){
                     var button = $('<button class="btnList btn btnListChecked enabled">' + objectTypeName + '</button>');
                     button.click({button:button,markerArray:markerArray,objectTypeName:objectTypeName,isGoogleLatitude:objectTypeName == "google_latitude"},function(event){
@@ -88,14 +92,8 @@ define(["applications/calendar/tabs/Tab",
             $("#the_map").append("<div class=\"emptyList\">(no location data)</div>");
         }
 	}
-	
-	function setMapPosition(pos_x, pos_y, zoomLevel) {
-		var center = new google.maps.LatLng(pos_x, pos_y);
-		map.setCenter(center);
-		map.setZoom(zoomLevel);
-	}
 
-    function addDataToMap(connectorData, connectorInfoId, latLngs, timestamps){
+    function addDataToMap(connectorData, connectorInfoId){
         var category;
         switch (connectorInfoId){
             case "sms_backup-sms":
@@ -121,48 +119,23 @@ define(["applications/calendar/tabs/Tab",
             default:
                 return null;
         }
-        return addItemsToMap(connectorData,latLngs,timestamps,category);
+        return addItemsToMap(connectorData,category);
     }
 
-    function addItemsToMap(items,latlngs,timestamps,category){
+    function addItemsToMap(items,category){
         var markerArray = new Array();
         for (var i = 0; i < items.length; i++){
             var startTimestamp = items[i].start;
             var endTimestamp = items[i].end;
-            if (startTimestamp > timestamps[timestamps.length - 1] || (endTimestamp == null && startTimestamp < timestamps[0]))
+            if (startTimestamp > gpsTimestamps[gpsTimestamps.length - 1] || (endTimestamp == null && startTimestamp < gpsTimestamps[0]))
                 continue;
 
-            var startFinishIndex;
-            for (startFinishIndex = 0; startFinishIndex < timestamps.length && timestamps[startFinishIndex] < startTimestamp; startFinishIndex++);
-            var startBeginIndex = startFinishIndex - 1;
-
-            var percentThrough = (startTimestamp - timestamps[startBeginIndex]) / (timestamps[startFinishIndex] - timestamps[startBeginIndex]);
-            var lat = (latlngs[startFinishIndex].lat() - latlngs[startBeginIndex].lat()) * percentThrough + latlngs[startBeginIndex].lat();
-            var lon = (latlngs[startFinishIndex].lng() - latlngs[startBeginIndex].lng()) * percentThrough + latlngs[startBeginIndex].lng();
-            var startLatLng = new google.maps.LatLng(lat,lon);
-
             if (endTimestamp == null){
-                markerArray[markerArray.length] = addItemToMap(items[i],startLatLng,null,null,null,null,category);
+                markerArray[markerArray.length] = addItemToMap(items[i],getLatLngOnGPSLine(startTimestamp),null,null,null,category);
             }
             else{
-                var endFinishIndex, endBeginIndex;
-                if (endTimestamp > timestamps[timestamps.length - 1]){
-                    endFinishIndex = endBeginIndex = timestamps.length - 1;
-                }
-                else{
-                    for (endFinishIndex = 0; endFinishIndex < timestamps.length && timestamps[endFinishIndex] < endTimestamp; endFinishIndex++);
-                    endBeginIndex = endFinishIndex - 1;
-                }
-                var endLatLng;
-                if (endFinishIndex == endBeginIndex)
-                    endLatLng = latlngs[endFinishIndex];
-                else{
-                    percentThrough = (endTimestamp - timestamps[endBeginIndex]) / (timestamps[endFinishIndex] - timestamps[endBeginIndex]);
-                    lat = (latlngs[endFinishIndex].lat() - latlngs[endBeginIndex].lat()) * percentThrough + latlngs[endBeginIndex].lat();
-                    lon = (latlngs[endFinishIndex].lng() - latlngs[endBeginIndex].lng()) * percentThrough + latlngs[endBeginIndex].lng();
-                    endLatLng = new google.maps.LatLng(lat,lon);
-                }
-                markerArray[markerArray.length] = addItemToMap(items[i],startLatLng,startFinishIndex,endLatLng,endBeginIndex,latlngs,category);
+                var endLatLng = getLatLngOnGPSLine(endTimestamp);
+                markerArray[markerArray.length] = addItemToMap(items[i],getLatLngOnGPSLine(startTimestamp),getFirstIndexAfter(startTimestamp),endLatLng,getFirstIndexBefore(endTimestamp),category);
             }
         }
         if (markerArray.length == 0)
@@ -170,7 +143,7 @@ define(["applications/calendar/tabs/Tab",
         return markerArray;
     }
 
-    function addItemToMap(item,startLatLng,startIndex,endLatLng,endIndex,latlngs,category){
+    function addItemToMap(item,startLatLng,startIndex,endLatLng,endIndex,category){
         var marker = new google.maps.Marker({map:map, position:startLatLng, icon:category.icon, shadow:category.shadow});
         google.maps.event.addListener(marker, "click", function(){
             connectorSelected = item.type;
@@ -183,11 +156,11 @@ define(["applications/calendar/tabs/Tab",
                 currentHighlightedLine.setMap(null);
                 currentHighlightedLine = null
             }
-            if (latlngs != null){
+            if (endLatLng != null){
                 var newlatlngs = Array();
                 newlatlngs[0] = startLatLng;
                 for (var i = 0; startIndex + i <= endIndex; i++){
-                    newlatlngs[i+1] = latlngs[startIndex + i];
+                    newlatlngs[i+1] = gpsPositions[startIndex + i];
                 }
                 newlatlngs[newlatlngs.length] = endLatLng;
 
@@ -217,6 +190,8 @@ define(["applications/calendar/tabs/Tab",
                 gpsLine.setMap(null);
                 if (currentHighlightedLine != null)
                     currentHighlightedLine.setMap(null);
+                if (highlightSection != null)
+                    highlightSection.setMap(null);
             }
             else{
                 for (var i = 0; i < markers.length; i++){
@@ -231,6 +206,8 @@ define(["applications/calendar/tabs/Tab",
                 gpsLine.setMap(map);
                 if (currentHighlightedLine != null)
                     currentHighlightedLine.setMap(map);
+                if (highlightSection != null)
+                    highlightSection.setMap(map);
             }
             else{
                 for (var i = 0; i < markers.length; i++){
@@ -243,8 +220,58 @@ define(["applications/calendar/tabs/Tab",
         button.addClass("enabled");
     }
 
-	var mapTab = new Tab("map", "Candide Kemmler", "icon-map-marker", true);
-	mapTab.render = render;
-	return mapTab;
+    function getLatLngOnGPSLine(time){
+        if (time <= gpsTimestamps[0])
+            return gpsPositions[0];
+        if (time >= gpsTimestamps[gpsTimestamps.length - 1])
+            return gpsPositions[gpsPositions.length-1];
+        var endIndex;
+        for (endIndex = 1; endIndex < gpsTimestamps.length && gpsTimestamps[endIndex] < time; endIndex++);
+        var startIndex = endIndex - 1;
+        var percentThrough = (time - gpsTimestamps[startIndex]) / (gpsTimestamps[endIndex] - gpsTimestamps[startIndex]);
+        var lat = (gpsPositions[endIndex].lat() - gpsPositions[startIndex].lat()) * percentThrough + gpsPositions[startIndex].lat();
+        var lon = (gpsPositions[endIndex].lng() - gpsPositions[startIndex].lng()) * percentThrough + gpsPositions[startIndex].lng();
+        return new google.maps.LatLng(lat,lon);
+    }
+
+    function getFirstIndexAfter(time){
+        var endIndex;
+        for (endIndex = 0; endIndex < gpsTimestamps.length && gpsTimestamps[endIndex] < time; endIndex++);
+        return endIndex;
+    }
+
+    function getFirstIndexBefore(time){
+        if (time <= gpsTimestamps[0])
+            return -1;
+        var endIndex;
+        for (endIndex = 1; endIndex < gpsTimestamps.length && gpsTimestamps[endIndex] < time; endIndex++);
+        return endIndex - 1;
+    }
+
+
+    function highlightTimespan(start,end){
+        if (highlightSection != null){
+            highlightSection.setMap(null);
+            highlightSection = null;
+        }
+        if (start <= gpsTimestamps[0] && end >= gpsTimestamps[gpsTimestamps.length]){
+            gpsLine.setOptions({strokeColor: "black"});
+            return;
+        }
+        gpsLine.setOptions({strokeColor: "grey"});
+        var newPoints = new Array();
+        newPoints[0] = getLatLngOnGPSLine(start);
+        var startIndex = getFirstIndexAfter(start);
+        var endIndex = getFirstIndexBefore(end);
+        for (var i = 0; i + startIndex <= endIndex; i++){
+            newPoints[i+1] = gpsPositions[i+startIndex];
+        }
+        newPoints[newPoints.length] = getLatLngOnGPSLine(end);
+        highlightSection = new google.maps.Polyline({map: gpsLine.getMap(), strokeColor:"black", path: newPoints, zIndex: 99});
+    }
+
+    var mapTab = new Tab("map", "Candide Kemmler", "icon-map-marker", true);
+    mapTab.render = render;
+    return mapTab;
 
 });
