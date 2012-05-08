@@ -173,8 +173,6 @@
           <element id="archive" name="fluxtream-connectors-1.0.jar">
             <element id="module-output" name="fluxtream-connectors" />
           </element>
-          <element id="library" level="project" name="Maven: commons-lang:commons-lang:2.6" />
-          <element id="library" level="module" name="granule1.0.9.jar" module-name="fluxtream-web" />
         </element>
       </element>
     </root>
