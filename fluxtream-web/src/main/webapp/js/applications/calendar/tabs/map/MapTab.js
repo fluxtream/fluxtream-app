@@ -27,22 +27,28 @@ define(["applications/calendar/tabs/Tab",
         highlightSection = null;
         dataMarkers = [];
         config = Config.getConfig();
+        $("#the_map").empty();
+        $("#selectedConnectors").empty();
+        $("#mapFit").unbind("click");
+        var myOptions = {
+            zoom : 8,
+            scrollwheel : true,
+            streetViewControl : false,
+            mapTypeId : google.maps.MapTypeId.ROADMAP
+        };
+        if (digest.homeAddress != null && digest.homeAddress.isSet){
+           myOptions.center = new google.maps.LatLng(digest.homeAddress.latitude,digest.homeAddress.longitude);
+        }
+        else{
+            myOptions.center = new google.maps.LatLng(0,0);
+        }
+
+        map = new google.maps.Map(document.getElementById("the_map"), myOptions);
         if (digest!=null && digest.cachedData!=null &&
             typeof(digest.cachedData.google_latitude)!="undefined"
                 && digest.cachedData.google_latitude !=null &&
-            digest.cachedData.google_latitude.length>0) { //make sure gps data is available before showing the map
-            $("#mapFit").show();
-            if ($("#the_map > .emptyList").length>0)
-                $("#the_map").empty();
-            $("#selectedConnectors").empty();
-            var myOptions = {
-                zoom : 11,
-                scrollwheel : true,
-                streetViewControl : false,
-                mapTypeId : google.maps.MapTypeId.ROADMAP
-            };
-            map = new google.maps.Map(document.getElementById("the_map"),
-                                      myOptions);
+            digest.cachedData.google_latitude.length>0) { //make sure gps data is available before trying to display it
+
             infoWindow = new google.maps.InfoWindow();
             gpsPositions =new Array();
             gpsTimestamps =new Array();
@@ -87,17 +93,14 @@ define(["applications/calendar/tabs/Tab",
                 }
             }
 
-            $("#mapFit").unbind("click");
+            $("#mapFit").show();
             $("#mapFit").click(function(){
                 zoomOnTimespan(gpsTimestamps[0],gpsTimestamps[gpsTimestamps.length-1]);
             });
 
         } else {
             $("#mapFit").hide();
-            $("#the_map").empty();
-            $("#selectedConnectors").empty();
-            $("#the_map").removeAttr("style");
-            $("#the_map").append("<div class=\"emptyList\">(no location data)</div>");
+            $("#selectedConnectors").append("<div class=\"emptyList\">(no location data)</div>");
         }
 	}
 
