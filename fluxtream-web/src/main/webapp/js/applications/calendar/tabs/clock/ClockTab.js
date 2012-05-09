@@ -225,7 +225,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		}
 	}
 	
-	var ttpdiv, lastHoveredEvent;
+	var ttpdiv = null, lastHoveredEvent;
 	
 	function showEventInfo(event) {
 		ttpdiv = $("#tooltip");
@@ -263,7 +263,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 	}
 	
 	function hideEventInfo() {
-		ttpdiv.qtip('hide');
+        if (ttpdiv != null)
+            ttpdiv.qtip('hide');
 	}
 
 	function arc(center, radius, startAngle, endAngle) {
