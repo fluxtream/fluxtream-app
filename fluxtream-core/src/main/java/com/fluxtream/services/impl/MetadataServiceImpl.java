@@ -54,15 +54,18 @@ public class MetadataServiceImpl implements MetadataService {
 	GuestService guestService;
 
 	@Autowired
-	WWOHelper wwoHelper;
-
-	@Autowired
 	NotificationsService notificationsService;
 
-	private static final DateTimeFormatter formatter = DateTimeFormat
-			.forPattern("yyyy-MM-dd");
+    @Autowired
+    WWOHelper wwoHelper;
 
-	@Override
+    @Autowired
+    ServicesHelper servicesHelper;
+
+    private static final DateTimeFormatter formatter = DateTimeFormat
+            .forPattern("yyyy-MM-dd");
+
+    @Override
 	public TimeZone getTimeZone(double latitude, double longitude) {
 		City closestCity = getClosestCity(latitude, longitude);
 		TimeZone timeZone = TimeZone.getTimeZone(closestCity.geo_timezone);
@@ -72,7 +75,7 @@ public class MetadataServiceImpl implements MetadataService {
 	@Override
 	public TimeZone getCurrentTimeZone(long guestId) {
 		LocationFacet lastLocation = getLastLocation(guestId,
-				System.currentTimeMillis());
+                                                     System.currentTimeMillis());
 		if (lastLocation != null) {
 			TimeZone timeZone = getTimeZone(lastLocation.latitude,
 					lastLocation.longitude);
@@ -85,87 +88,8 @@ public class MetadataServiceImpl implements MetadataService {
 	@Transactional(readOnly = false)
 	public void setTimeZone(long guestId, String date, String timeZone) {
 		DayMetadataFacet context = getDayMetadata(guestId, date, true);
-		setTimeZone(context, timeZone);
+		servicesHelper.setTimeZone(context, timeZone);
 		em.merge(context);
-	}
-
-	private boolean setTimeZone(DayMetadataFacet info, String timeZone) {
-		boolean sameTz = false;
-		if (timeZone != null) {
-			if (info.timeZone == null) {
-				info.timeZone = timeZone;
-				return true;
-			} else if (!info.timeZone.equals(timeZone)) {
-				info.otherTimeZone = timeZone;
-				TimeZone otherTz = TimeZone.getTimeZone(info.otherTimeZone);
-				TimeZone tz = TimeZone.getTimeZone(timeZone);
-				int otherOffset = otherTz.getRawOffset();
-				int offset = tz.getRawOffset();
-				int otherDSTSavings = otherTz.getDSTSavings();
-				int dSTSavings = tz.getDSTSavings();
-				sameTz = otherOffset == offset && otherDSTSavings == dSTSavings;
-				if (sameTz)
-					info.otherTimeZone = null;
-			}
-		}
-		// TODO: we are using the "main" timezone but... shouldn't we be
-		// more cautious?
-		TimeZone tz = TimeZone.getTimeZone(info.timeZone);
-		DateTime time = formatter.withZone(DateTimeZone.forTimeZone(tz))
-				.parseDateTime(info.date);
-		info.start = TimeUtils.fromMidnight(time.getMillis(), tz);
-		info.end = TimeUtils.toMidnight(time.getMillis(), tz);
-		return sameTz;
-	}
-
-	private String addCity(DayMetadataFacet info, City city) {
-		String country = env.getCountry(city.geo_country_code);
-		if (country == null)
-			return city.geo_name;
-		country = WordUtils.capitalize(country.toLowerCase());
-		String state = city.geo_admin1_code;
-		if (state == null || state.equals(""))
-			state = "-";
-		String cityLabel = city.geo_name;
-		if ("US".equals(city.geo_country_code))
-			cityLabel = city.geo_name + "/" + state + "/" + country;
-		else
-			cityLabel = city.geo_name + "/" + country;
-
-		if (info.cities == null || info.cities.length() == 0) {
-			info.cities = cityLabel + "/" + city.population + "/1";
-		} else if (info.cities.indexOf(cityLabel) == -1) {
-			info.cities += "|" + cityLabel + "/" + city.population + "/1";
-		} else {
-			info.cities = incrementCityCount(info.cities, cityLabel);
-		}
-		return city.geo_name;
-	}
-
-	private String incrementCityCount(String cities, String cityLabel) {
-		StringTokenizer st = new StringTokenizer(cities, "|");
-		List<String> citiesList = new ArrayList<String>();
-		while (st.hasMoreTokens()) {
-			String city = st.nextToken();
-			if (city.startsWith(cityLabel)) {
-				String populationAndCount = city
-						.substring(cityLabel.length() + 1);
-				String population = populationAndCount.split("/")[0];
-				String countString = populationAndCount.split("/")[1];
-				int count = Integer.valueOf(countString);
-				citiesList
-						.add(cityLabel + "/" + population + "/" + (count + 1));
-			} else {
-				citiesList.add(city);
-			}
-		}
-		StringBuffer sb = new StringBuffer();
-		for (String city : citiesList) {
-			if (sb.length() > 0)
-				sb.append("|");
-			sb.append(city);
-		}
-		return sb.toString();
 	}
 
 	@Override
@@ -188,7 +112,7 @@ public class MetadataServiceImpl implements MetadataService {
 	public DayMetadataFacet getDayMetadata(long guestId, String date,
 			boolean create) {
 		DayMetadataFacet info = JPAUtils.findUnique(em, DayMetadataFacet.class,
-				"context.byDate", guestId, date);
+                                                    "context.byDate", guestId, date);
 		if (info != null)
 			return info;
 		else if (create)
@@ -216,23 +140,19 @@ public class MetadataServiceImpl implements MetadataService {
 		} else {
 			City mainCity = getMainCity(guestId, next);
 			if (mainCity != null) {
-				addCity(info, mainCity);
-				setTimeZone(info, next.timeZone);
+				servicesHelper.addCity(info, mainCity);
+				servicesHelper.setTimeZone(info, next.timeZone);
 				TimeZone tz = TimeZone.getTimeZone(next.timeZone);
 				List<WeatherInfo> weatherInfo = getWeatherInfo(
 						mainCity.geo_latitude, mainCity.geo_longitude, date,
-						toMinuteOfDay(info.start, tz),
-						toMinuteOfDay(info.end, tz));
+                        AbstractFacetVO.toMinuteOfDay(new Date(info.start), tz),
+                        AbstractFacetVO.toMinuteOfDay(new Date(info.end), tz));
 				setWeatherInfo(info, weatherInfo);
 			}
-			setTimeZone(info, next.timeZone);
+			servicesHelper.setTimeZone(info, next.timeZone);
 		}
 		em.persist(info);
 		return info;
-	}
-
-	private int toMinuteOfDay(long time, TimeZone timeZone) {
-		return AbstractFacetVO.toMinuteOfDay(new Date(time), timeZone);
 	}
 
 	private DayMetadataFacet getNextExistingDayMetadata(long guestId,
@@ -262,11 +182,6 @@ public class MetadataServiceImpl implements MetadataService {
 		return city;
 	}
 
-	private void updateFloatingTimeZoneFacets(long guestId, long time) {
-		// TODO Auto-generated method stub
-
-	}
-
 	private void setWeatherInfo(DayMetadataFacet info,
 			List<WeatherInfo> weatherInfo) {
 		if (weatherInfo.size() == 0)
@@ -286,32 +201,9 @@ public class MetadataServiceImpl implements MetadataService {
 	}
 
 	@Override
-	@Transactional(readOnly = false)
-	public void addGuestLocation(long guestId, long time, float latitude,
-			float longitude) {
-		City city = getClosestCity(latitude, longitude);
-		String date = formatter.withZone(DateTimeZone.forID(city.geo_timezone))
-				.print(time);
-
-		DayMetadataFacet info = getDayMetadata(guestId, date, true);
-		addCity(info, city);
-		boolean timeZoneWasSet = setTimeZone(info, city.geo_timezone);
-		if (timeZoneWasSet)
-			updateFloatingTimeZoneFacets(guestId, time);
-
-		TimeZone tz = TimeZone.getTimeZone(info.timeZone);
-		List<WeatherInfo> weatherInfo = getWeatherInfo(city.geo_latitude,
-				city.geo_longitude, info.date, toMinuteOfDay(info.start, tz),
-				toMinuteOfDay(info.end, tz));
-		setWeatherInfo(info, weatherInfo);
-
-		em.merge(info);
-	}
-
-	@Override
 	public LocationFacet getLastLocation(long guestId, long time) {
 		LocationFacet lastSeen = JPAUtils.findUnique(em, LocationFacet.class,
-				"google_latitude.lastSeen", guestId, time);
+                                                     "google_latitude.lastSeen", guestId, time);
 		return lastSeen;
 	}
 
@@ -320,90 +212,6 @@ public class MetadataServiceImpl implements MetadataService {
 		LocationFacet lastSeen = JPAUtils.findUnique(em, LocationFacet.class,
 				"google_latitude.nextSeen", guestId, time);
 		return lastSeen;
-	}
-
-	@Override
-	public List<WeatherInfo> getWeatherInfo(double latitude, double longitude,
-			String date, int startMinute, int endMinute) {
-		City closestCity = getClosestCity(latitude, longitude);
-		List<WeatherInfo> weather = JPAUtils.find(em, WeatherInfo.class,
-				"weather.byDateAndCity.between", closestCity.geo_name, date,
-				startMinute, endMinute);
-
-		if (weather != null && weather.size() > 0)
-			return weather;
-		else {
-			try {
-				fetchWeatherInfo(latitude, longitude, closestCity.geo_name,
-						date);
-			} catch (Exception e) {
-				logger.warn("action=fetchWeather error");
-			}
-			weather = JPAUtils.find(em, WeatherInfo.class,
-					"weather.byDateAndCity.between", closestCity.geo_name,
-					date, startMinute, endMinute);
-			return weather;
-		}
-	}
-
-	@Override
-	public List<City> getClosestCities(double latitude, double longitude,
-			double dist) {
-
-		double lon1 = longitude - dist
-				/ Math.abs(Math.cos(Math.toRadians(latitude)) * 69d);
-		double lon2 = longitude + dist
-				/ Math.abs(Math.cos(Math.toRadians(latitude)) * 69d);
-		double lat1 = latitude - (dist / 69.d);
-		double lat2 = latitude + (dist / 69.d);
-
-		Query query = em
-				.createNativeQuery(
-						"SELECT cities1000.geo_id, cities1000.geo_name, "
-								+ "cities1000.geo_timezone, cities1000.geo_latitude, "
-								+ "cities1000.geo_longitude, cities1000.geo_country_code, "
-								+ "cities1000.geo_admin1_code, cities1000.population, "
-								+ "3956 * 2 * ASIN(SQRT(POWER(SIN((:mylat - geo_latitude) * pi()/180 / 2), 2) + COS(:mylat * pi()/180) *COS(geo_latitude * pi()/180) * POWER(SIN((:mylon -geo_longitude) * pi()/180 / 2), 2))) as distance "
-								+ "FROM cities1000 "
-								+ "WHERE geo_longitude between :lon1 and :lon2 "
-								+ "and geo_latitude between :lat1 and :lat2 "
-								+ "HAVING distance < :dist ORDER BY distance limit 1;",
-						City.class);
-
-		query.setParameter("mylat", latitude);
-		query.setParameter("mylon", longitude);
-		query.setParameter("lon1", lon1);
-		query.setParameter("lon2", lon2);
-		query.setParameter("lat1", lat1);
-		query.setParameter("lat2", lat2);
-		query.setParameter("dist", dist);
-
-		@SuppressWarnings("unchecked")
-		List<City> resultList = query.getResultList();
-		return resultList;
-	}
-
-	@Transactional(readOnly = false)
-	private void fetchWeatherInfo(double latitude, double longitude,
-			String city, String date) throws HttpException, IOException {
-		List<WeatherInfo> weatherInfo = wwoHelper.getWeatherInfo(latitude,
-				longitude, date);
-		for (WeatherInfo info : weatherInfo) {
-			info.city = city;
-			info.fdate = date;
-			em.persist(info);
-		}
-	}
-
-	@Override
-	public City getClosestCity(double latitude, double longitude) {
-
-		List<City> cities = new ArrayList<City>();
-		for (int dist = 10, i = 1; cities.size() == 0;)
-			cities = getClosestCities(latitude, longitude,
-					Double.valueOf(dist ^ i++));
-
-		return cities.get(0);
 	}
 
 	@Override
@@ -454,5 +262,89 @@ public class MetadataServiceImpl implements MetadataService {
 		thatDay.comment = body;
 		em.merge(thatDay);
 	}
+
+    @Override
+    public City getClosestCity(double latitude, double longitude) {
+
+        List<City> cities = new ArrayList<City>();
+        for (int dist = 10, i = 1; cities.size() == 0;)
+            cities = getClosestCities(latitude, longitude,
+                                      Double.valueOf(dist ^ i++));
+
+        return cities.get(0);
+    }
+
+    @Override
+    public List<City> getClosestCities(double latitude, double longitude,
+                                       double dist) {
+
+        double lon1 = longitude - dist
+                                  / Math.abs(Math.cos(Math.toRadians(latitude)) * 69d);
+        double lon2 = longitude + dist
+                                  / Math.abs(Math.cos(Math.toRadians(latitude)) * 69d);
+        double lat1 = latitude - (dist / 69.d);
+        double lat2 = latitude + (dist / 69.d);
+
+        Query query = em
+                .createNativeQuery(
+                        "SELECT cities1000.geo_id, cities1000.geo_name, "
+                        + "cities1000.geo_timezone, cities1000.geo_latitude, "
+                        + "cities1000.geo_longitude, cities1000.geo_country_code, "
+                        + "cities1000.geo_admin1_code, cities1000.population, "
+                        + "3956 * 2 * ASIN(SQRT(POWER(SIN((:mylat - geo_latitude) * pi()/180 / 2), 2) + COS(:mylat * pi()/180) *COS(geo_latitude * pi()/180) * POWER(SIN((:mylon -geo_longitude) * pi()/180 / 2), 2))) as distance "
+                        + "FROM cities1000 "
+                        + "WHERE geo_longitude between :lon1 and :lon2 "
+                        + "and geo_latitude between :lat1 and :lat2 "
+                        + "HAVING distance < :dist ORDER BY distance limit 1;",
+                        City.class);
+
+        query.setParameter("mylat", latitude);
+        query.setParameter("mylon", longitude);
+        query.setParameter("lon1", lon1);
+        query.setParameter("lon2", lon2);
+        query.setParameter("lat1", lat1);
+        query.setParameter("lat2", lat2);
+        query.setParameter("dist", dist);
+
+        @SuppressWarnings("unchecked")
+        List<City> resultList = query.getResultList();
+        return resultList;
+    }
+
+    @Override
+    public List<WeatherInfo> getWeatherInfo(double latitude, double longitude,
+                                            String date, int startMinute, int endMinute) {
+        City closestCity = getClosestCity(latitude, longitude);
+        List<WeatherInfo> weather = JPAUtils.find(em, WeatherInfo.class,
+                                                  "weather.byDateAndCity.between", closestCity.geo_name, date,
+                                                  startMinute, endMinute);
+
+        if (weather != null && weather.size() > 0)
+            return weather;
+        else {
+            try {
+                fetchWeatherInfo(latitude, longitude, closestCity.geo_name,
+                                 date);
+            } catch (Exception e) {
+                logger.warn("action=fetchWeather error");
+            }
+            weather = JPAUtils.find(em, WeatherInfo.class,
+                                    "weather.byDateAndCity.between", closestCity.geo_name,
+                                    date, startMinute, endMinute);
+            return weather;
+        }
+    }
+
+    @Transactional(readOnly = false)
+    private void fetchWeatherInfo(double latitude, double longitude,
+                                  String city, String date) throws HttpException, IOException {
+        List<WeatherInfo> weatherInfo = wwoHelper.getWeatherInfo(latitude,
+                                                                 longitude, date);
+        for (WeatherInfo info : weatherInfo) {
+            info.city = city;
+            info.fdate = date;
+            em.persist(info);
+        }
+    }
 
 }
