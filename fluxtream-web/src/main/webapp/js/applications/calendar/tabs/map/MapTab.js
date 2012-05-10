@@ -16,10 +16,10 @@ define(["applications/calendar/tabs/Tab",
         $("#mapFit").unbind("click");
 
         if (digest.homeAddress != null && digest.homeAddress.isSet){
-            map = MapUtils.newMap(new google.maps.LatLng(digest.homeAddress.latitude,digest.homeAddress.longitude),8,"the_map");
+            map = MapUtils.newMap(new google.maps.LatLng(digest.homeAddress.latitude,digest.homeAddress.longitude),8,"the_map",false);
         }
         else{
-            map = MapUtils.newMap(new google.maps.LatLng(0,0),8,"the_map");
+            map = MapUtils.newMap(new google.maps.LatLng(0,0),8,"the_map",false);
         }
 
         if (digest!=null && digest.cachedData!=null &&

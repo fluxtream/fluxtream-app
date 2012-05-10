@@ -1,3 +1,8 @@
+<style type="text/css">
+        .ui-tooltip-default{
+            max-width: none;
+        }
+</style>
 <div id="clockTab" class="fullwidth">
 	<div class="centered" id="tabContents">
 		<img style="position:absolute; z-index:1" src="/{{release}}/js/applications/calendar/tabs/clock/clock-bg.svg" />
@@ -6,4 +11,7 @@
     <div class="flx-spacer"></div>
 </div>
 <div id="tooltip"></div>
+<div style="position:fixed; left: -400px; width:400px; height:400px; z-index:100000" id="clockMapContainer">
+    <div style="width:400px; height:400px" id="clockMap"></div>
+</div>
 <div id="tooltips"></div>

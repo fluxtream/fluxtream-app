@@ -26,8 +26,41 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     function addData(map,connectorData, connectorInfoId, clickable){
-        var category;
         switch (connectorInfoId){
+            case "sms_backup-sms":
+            case "sms_backup-call_Calendar":
+            case "twitter-dm":
+            case "twitter-tweet":
+            case "twitter-mention":
+            case "google_calendar":
+            case "toodledo-task":
+            case "fitbit-sleep":
+            case "withings-bpm":
+            case "picasa":
+            case "flickr":
+            case "lastfm-recent_track":
+                break;
+            default:
+                return false;
+        }
+        map.markers[connectorInfoId] = addItemsToMap(map,connectorData,clickable);
+        return map.markers[connectorInfoId] != null;
+    }
+
+    function addItemsToMap(map,items,clickable){
+        var markerArray = new Array();
+        for (var i = 0; i < items.length; i++){
+            markerArray[markerArray.length] = addItemToMap(map,items[i],clickable);
+        }
+        if (markerArray.length == 0)
+            markerArray = null;
+        return markerArray;
+    }
+
+    //creates a marker with extended functionality
+    function addItemToMap(map,item,clickable){
+        var category;
+        switch (item.type){
             case "sms_backup-sms":
             case "sms_backup-call_Calendar":
             case "twitter-dm":
@@ -51,34 +84,40 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             default:
                 return false;
         }
-        map.markers[connectorInfoId] = addItemsToMap(map,connectorData,category,clickable);
-        return map.markers[connectorInfoId] != null;
-    }
-
-    function addItemsToMap(map,items,category,clickable){
-        var markerArray = new Array();
-        for (var i = 0; i < items.length; i++){
-            var startTimestamp = items[i].start;
-            var endTimestamp = items[i].end;
-            if (startTimestamp > map.gpsTimestamps[map.gpsTimestamps.length - 1] || (endTimestamp == null && startTimestamp < map.gpsTimestamps[0]))
-                continue;
-
-            if (endTimestamp == null){
-                markerArray[markerArray.length] = addItemToMap(map,items[i],startTimestamp,null,category,clickable);
+        var start = item.start;
+        var end = item.end;
+        if (start > map.gpsTimestamps[map.gpsTimestamps.length - 1] || (end == null && start < map.gpsTimestamps[0]))
+            return;
+        var marker = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(start), icon:category.icon, shadow:category.shadow});
+        marker._oldSetMap = marker.setMap;
+        marker.setMap = function(newMap){
+            if (marker.line != null && marker.line === map.currentHighlightedLine){
+                if (newMap == null){
+                   map.currentHighlightedLine.setMap(null);
+                }
+                else if(map == newMap){
+                    map.currentHighlightedLine.setMap(map);
+                }
             }
             else{
-                markerArray[markerArray.length] = addItemToMap(map,items[i],startTimestamp,endTimestamp,category,clickable);
+                marker.line = null;
+            }
+            marker._oldSetMap(newMap);
+        }
+        marker.doHighlighting = function(){
+            if (map.currentHighlightedLine != null){
+                map.currentHighlightedLine.setMap(null);
+                map.currentHighlightedLine = null
+            }
+            if (end != null){
+                map.currentHighlightedLine = map.createPolyLineSegment(start, end, {strokeColor:"orange", zIndex: 100});
+                marker.line = map.currentHighlightedLine;
+                if (map.gpsLine.getMap() == null)
+                    map.currentHighlightedLine.setMap(null);
             }
         }
-        if (markerArray.length == 0)
-            markerArray = null;
-        return markerArray;
-    }
-
-    function addItemToMap(map,item,start,end,category, clickable){
-        var marker = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(start), icon:category.icon, shadow:category.shadow});
         if (!clickable)
-            return;
+            return marker;
         google.maps.event.addListener(marker, "click", function(){
             map.connectorSelected = item.type;
             var tooltip = $("#" + item.type + "_" + item.id).html();
@@ -86,15 +125,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 tooltip = "no description available";
             map.infoWindow.setContent(tooltip);
             map.infoWindow.open(map,marker);
-            if (map.currentHighlightedLine != null){
-                map.currentHighlightedLine.setMap(null);
-                map.currentHighlightedLine = null
-            }
-            if (end != null){
-                map.currentHighlightedLine = map.createPolyLineSegment(start, end, {strokeColor:"orange", zIndex: 100});
-                if (map.gpsLine.getMap() == null)
-                    map.currentHighlightedLine.setMap(null);
-            }
+            marker.doHighlighting();
         });
         return marker;
     }
@@ -191,16 +222,17 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         map.fitBounds(new google.maps.LatLngBounds(new google.maps.LatLng(minLat,minLng), new google.maps.LatLng(maxLat,maxLng)));
     }
 
+    function zoomOnPoint(map, point){
+        map.setCenter(point);
+        map.setZoom(18);
+    }
+
     function hideData(map,connectorId){
         if (map.markers[connectorId] == null)
             return;
         if (map.connectorSelected == connectorId){
             map.infoWindow.close();
             map.connectorSelected = null;
-            if (map.currentHighlightedLine != null){
-                map.currentHighlightedLine.setMap(null);
-                map.currentHighlightedLine = null;
-            }
         }
         for (var i = 0; i < map.markers[connectorId].length; i++){
             map.markers[connectorId][i].setMap(null);
@@ -265,14 +297,18 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     return {
-        newMap: function(center,zoom,divId){ //creates and returns a google map with extended functionality
-            var map = new google.maps.Map(document.getElementById(divId),{
+        newMap: function(center,zoom,divId,hideControls){ //creates and returns a google map with extended functionality
+            var options = {
                 zoom : zoom,
                 center: center,
                 scrollwheel : true,
                 streetViewControl : false,
                 mapTypeId : google.maps.MapTypeId.ROADMAP
-            });
+            };
+            if (hideControls){
+                options.disableDefaultUI = true;
+            }
+            var map = new google.maps.Map(document.getElementById(divId),options);
             map.infoWindow = new google.maps.InfoWindow();
             map.currentHighlightedLine = null;
             map.highlightSection = null;
@@ -290,6 +326,8 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             map.hideData = function(connectorId){hideData(map,connectorId)};
             map.showGPSData = function(){showGPSData(map)};
             map.hideGPSData = function(){hideGPSData(map)};
+            map.addItem = function(item,clickable){return addItemToMap(map,item,clickable)}
+            map.zoomOnPoint = function(point){zoomOnPoint(map,point)};
             return map;
         }
     }

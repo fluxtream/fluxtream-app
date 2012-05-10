@@ -1,10 +1,12 @@
 define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         "applications/calendar/tabs/clock/ClockConfig",
         "applications/calendar/tabs/Tab",
-        "applications/calendar/App"], function(DrawingUtils, Config, Tab, Log) {
+        "applications/calendar/App",
+       "applications/calendar/tabs/map/MapUtils"], function(DrawingUtils, Config, Tab, Log, MapUtils) {
 	
 	var paper = null;
 	var config = null;
+    var map = null;
 
 	function render(digest, timeUnit) {
 		this.getTemplate("text!applications/calendar/tabs/clock/clock.html", "clock", function() {
@@ -14,6 +16,12 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 	
 	function setup(digest, timeUnit) {
 		$("#tooltips").load("/calendar/tooltips");
+        map = MapUtils.newMap(new google.maps.LatLng(0,0),8,"clockMap",true);
+        if (digest.cachedData != null && digest.cachedData.google_latitude != null){
+            map.addGPSData(digest.cachedData.google_latitude);
+            map.fitBounds(map.gpsBounds);
+        }
+
 		var availableWidth = $("#clockTab").width();
 		var edgeWidth =  Math.min(availableWidth, 600);
 		$("#clockTab div:first-child").width(edgeWidth+"px");
@@ -225,9 +233,10 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		}
 	}
 	
-	var ttpdiv = null, lastHoveredEvent;
+	var ttpdiv = null, lastHoveredEvent, timeout = null, marker = null;
 	
 	function showEventInfo(event) {
+        hideEventInfo();
 		ttpdiv = $("#tooltip");
 		lastHoveredEvent = event;
 		var span = event.target;
@@ -237,10 +246,16 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 			return;
 		var tip_y = event.pageY;
 		var tip_x = event.pageX;
+
+        marker = map.addItem(span.item,false);
+        if (marker != null)
+            marker.doHighlighting();
+        map.zoomOnPoint(marker.getPosition());
+
 		var tooltip = $("#" + facetType + "_" + facetId);
 		ttpdiv.qtip({
 		   content: {
-		      text: tooltip.html()
+		      text: tooltip.html() + '<div id="mapPlaceHolder" style="width:400px; height:400px; position:relative;"></div><script>document.qTipUpdate()</script></script>'
 		   },
 		   style: {
 		      classes: 'ui-tooltip-light ui-tooltip-shadow ui-tooltip-rounded'
@@ -260,11 +275,53 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 			  inactive : 4500	
 	       }
 		});
+        timeout = setTimeout("document.hideQTipMap()",4600);
 	}
+
+    function showLocationBreakdownInfo(event) {
+        hideEventInfo();
+        ttpdiv = $("#tooltip");
+        var mapdiv = document.getElementById("clockMapContainer");
+        var span = event.target;
+        var facetId = span.item.id;
+        var tip_y = event.pageY;
+        var tip_x = event.pageX;
+        ttpdiv.qtip({
+                        content: {
+                            text: span.item.description + '<div id="mapPlaceHolder" style="width:400px; height:400px; position:relative;"></div><script>document.qTipUpdate()</script></script>'
+                        },
+                        style: {
+                            classes: 'ui-tooltip-light ui-tooltip-shadow ui-tooltip-rounded'
+                        },
+                        position: {
+                            target: [tip_x,tip_y], // ... in the window
+                            my: "top center",
+                            adjust: { y: 13 }
+                        },
+                        show: {
+                            ready: true // Show it straight away
+                        },
+                        hide: {
+                            effect: function(offset) {
+                                $(this).slideDown(100); // "this" refers to the tooltip
+                            },
+                            inactive : 4500
+                        }
+                    });
+        timeout = setTimeout("document.hideQTipMap()",4600);
+    }
 	
 	function hideEventInfo() {
-        if (ttpdiv != null)
+        if (ttpdiv != null){
             ttpdiv.qtip('hide');
+            clearTimeout(timeout);
+            hideQTipMap();
+            if (marker != null){
+                marker.setMap(null);
+                marker = null;
+            }
+            map.fitBounds(map.gpsBounds);
+        }
 	}
 
 	function arc(center, radius, startAngle, endAngle) {
@@ -423,38 +480,30 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 				return hour + ":" + minutes + " PM";
 		}
 	}
-	
-	function showLocationBreakdownInfo(event) {
-		ttpdiv = $("#tooltip");
-		var span = event.target;
-		var facetId = span.item.id;
-		var tip_y = event.pageY;
-		var tip_x = event.pageX;
-		ttpdiv.qtip({
-		   content: {
-		      text: span.item.description
-		   },
-		   style: {
-		      classes: 'ui-tooltip-light ui-tooltip-shadow ui-tooltip-rounded'
-		   },
-		   position: {
-	           target: [tip_x,tip_y], // ... in the window
-		   	   my: "top center",
-		   	   adjust: { y: 13 }
-		   },
-	       show: {
-	          ready: true // Show it straight away
-	       },
-	       hide: {
-			  effect: function(offset) {
-			      $(this).slideDown(100); // "this" refers to the tooltip
-			  },
-			  inactive : 4500
-	       }
-		});
-	}
-	
+
+    function hideQTipMap(){
+        var mapdiv = document.getElementById("clockMapContainer");
+        mapdiv.style.left = "-400px";
+        mapdiv.style.top = "0px";
+    }
+
+
+    function qTipUpdate(){
+        if ($("#mapPlaceHolder").offset().left != $("#mapPlaceHolder").position().left){
+            var mapdiv = document.getElementById("clockMapContainer");
+            var left = $("#mapPlaceHolder").offset().left;
+            var top = $("#mapPlaceHolder").offset().top;
+            mapdiv.style.top = top + "px";
+            mapdiv.style.left = left + "px";
+        }
+        else{
+            setTimeout("document.qTipUpdate();",10);
+        }
+    }
+
 	var clockTab = new Tab("clock", "Candide Kemmler", "icon-time", true);
+    document.qTipUpdate = qTipUpdate;
+    document.hideQTipMap = hideQTipMap;
 	clockTab.render = render;
 	return clockTab;
 	
