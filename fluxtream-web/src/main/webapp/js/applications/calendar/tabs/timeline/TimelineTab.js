@@ -1,5 +1,6 @@
-define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calendar/tabs/timeline/BodyTrack"],
-    function(Tab, FlxState, BodyTrack) {
+define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calendar/tabs/timeline/BodyTrack",
+        "applications/calendar/App"],
+    function(Tab, FlxState, BodyTrack, Calendar) {
 
     var APP 		= BodyTrack.APP;
     var PREFS 		= BodyTrack.PREFS;
@@ -1551,8 +1552,15 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
                 "min" : view["v2"]["x_axis"]["min"],
                 "max" : view["v2"]["x_axis"]["max"]
             });
+            var prevDateString = null;
             dateAxis.addAxisChangeListener(function() {
-                console.log("dateAxis range changed to " + dateAxis.getMin() + ", " + dateAxis.getMax());
+                var center = (dateAxis.getMin() + dateAxis.getMax()) / 2.0;
+                var date = new Date(center * 1000);
+                var dateString = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate();
+                if (dateString != prevDateString) {
+                    Calendar.dateChanged(dateString, "day");
+                    prevDateString = dateString;
+                }
             });
 
             // Create y-axes
