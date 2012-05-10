@@ -202,7 +202,13 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 		if (urlTimeUnit==="date") return "DAY";
 		return urlTimeUnit.toUpperCase();
 	}
-	
+
+    Calendar.dateChanged = function(date, rangeType) {
+        // date is expected to be midnight at the start of the range, in seconds since the epoch (UTC)
+        // rangeType is expected to be either "day" or "week"
+        console.log("Calendar.dateChanged(" + date + ", " + rangeType + ")");
+    };
+
 	return Calendar;
 	
 });
