@@ -1,6 +1,20 @@
 <style type="text/css">
     #the_map{position:absolute; left:0px; right:0px; bottom:0px; top:2.5em;}
      #the_map img{max-width: none;}
+    .mapImageOverlay{
+        left: 16px;
+        top: 16px;
+        max-width:32px !important;
+        max-height:32px;
+        opacity: 0.5;
+    }
+    .mapImageOverlay:hover{
+        left:0px;
+        top:0px;
+        max-width:64px !important;
+        max-height:64px;
+        opacity: 1;
+    }
 </style><!--This piece of css fixes incompatibility between bootstrap and google maps-->
 <div id="mapwrapper" class="fullHeight fullWidth" style="position:relative">
     <button id="mapFit" class="btnList btn btnListChecked enabled" style="float: right;">Fit to View</button>

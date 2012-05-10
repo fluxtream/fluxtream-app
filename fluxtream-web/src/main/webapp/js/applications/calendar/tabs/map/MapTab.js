@@ -142,11 +142,11 @@ define(["applications/calendar/tabs/Tab",
                 continue;
 
             if (endTimestamp == null){
-                markerArray[markerArray.length] = addItemToMap(items[i],getLatLngOnGPSLine(startTimestamp),null,null,null,category);
+                markerArray[markerArray.length] = addItemToMap(items[i],startTimestamp,null,category);
             }
             else{
                 var endLatLng = getLatLngOnGPSLine(endTimestamp);
-                markerArray[markerArray.length] = addItemToMap(items[i],getLatLngOnGPSLine(startTimestamp),getFirstIndexAfter(startTimestamp),endLatLng,getFirstIndexBefore(endTimestamp),category);
+                markerArray[markerArray.length] = addItemToMap(items[i],startTimestamp,endTimestamp,category);
             }
         }
         if (markerArray.length == 0)
@@ -154,8 +154,8 @@ define(["applications/calendar/tabs/Tab",
         return markerArray;
     }
 
-    function addItemToMap(item,startLatLng,startIndex,endLatLng,endIndex,category){
-        var marker = new google.maps.Marker({map:map, position:startLatLng, icon:category.icon, shadow:category.shadow});
+    function addItemToMap(item,start,end,category){
+        var marker = new google.maps.Marker({map:map, position:getLatLngOnGPSLine(start), icon:category.icon, shadow:category.shadow});
         google.maps.event.addListener(marker, "click", function(){
             connectorSelected = item.type;
             var tooltip = $("#" + item.type + "_" + item.id).html();
@@ -167,15 +167,8 @@ define(["applications/calendar/tabs/Tab",
                 currentHighlightedLine.setMap(null);
                 currentHighlightedLine = null
             }
-            if (endLatLng != null){
-                var newlatlngs = Array();
-                newlatlngs[0] = startLatLng;
-                for (var i = 0; startIndex + i <= endIndex; i++){
-                    newlatlngs[i+1] = gpsPositions[startIndex + i];
-                }
-                newlatlngs[newlatlngs.length] = endLatLng;
-
-                currentHighlightedLine = new google.maps.Polyline({map: gpsLine.getMap(), strokeColor:"orange", path: newlatlngs, zIndex: 100});
+            if (end != null){
+                currentHighlightedLine = createPolyLineSegment(start, end, {strokeColor:"orange", zIndex: 100});
             }
         });
         return marker;
@@ -270,6 +263,12 @@ define(["applications/calendar/tabs/Tab",
             return;
         }
         gpsLine.setOptions({strokeColor: "grey"});
+        highlightSection = createPolyLineSegment({strokeColor:"black", path: newPoints, zIndex: 99});
+    }
+
+    function createPolyLineSegment(start, end, options){
+        if (options.map == null)
+            options.map = gpsLine.getMap();
         var newPoints = new Array();
         newPoints[0] = getLatLngOnGPSLine(start);
         var startIndex = getFirstIndexAfter(start);
@@ -278,7 +277,8 @@ define(["applications/calendar/tabs/Tab",
             newPoints[i+1] = gpsPositions[i+startIndex];
         }
         newPoints[newPoints.length] = getLatLngOnGPSLine(end);
-        highlightSection = new google.maps.Polyline({map: gpsLine.getMap(), strokeColor:"black", path: newPoints, zIndex: 99});
+        options.path = newPoints;
+        return new google.maps.Polyline(options);
     }
 
     function zoomOnTimespan(start,end){
@@ -312,6 +312,39 @@ define(["applications/calendar/tabs/Tab",
                 maxLng = gpsPositions[i].lng();
         }
         map.fitBounds(new google.maps.LatLngBounds(new google.maps.LatLng(minLat,minLng), new google.maps.LatLng(maxLat,maxLng)));
+    }
+
+    //Image display overlay definition
+    function ImageDisplayOverlay(map,latlng,imgUrl){
+        this._map = map;
+        this._latlng = latlng;
+        this._imgUrl = imgUrl;
+        this._img = null;
+
+        this.setMap(map);
+    }
+    ImageDisplayOverlay.prototype = new google.maps.OverlayView();
+    ImageDisplayOverlay.prototype.onAdd = function() {
+        this._img = document.createElement("div");
+        this._img.style.position = "absolute";
+        this._img.style.width = "64px";
+        this._img.style.height = "64px";
+        img = document.createElement("img");
+        img.style.position = "relative";
+        img.className = "mapImageOverlay";
+        img.src = this._imgUrl;
+        this._img.appendChild(img);
+        this.getPanes().overlayLayer.appendChild(this._img);
+    }
+    ImageDisplayOverlay.prototype.onRemove = function() {
+        this._img.parentNode.removeChild(this._img);
+        this._img = null;
+    }
+    ImageDisplayOverlay.prototype.draw = function() {
+        var overlayProjection = this.getProjection();
+        var position = this.getProjection().fromLatLngToDivPixel(this._latlng);
+        this._img.style.left = position.x - 32 + "px";
+        this._img.style.top = position.y - 32 + "px";
     }
 
     var mapTab = new Tab("map", "Candide Kemmler", "icon-map-marker", true);
