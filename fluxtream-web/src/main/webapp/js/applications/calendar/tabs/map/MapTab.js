@@ -1,16 +1,8 @@
 define(["applications/calendar/tabs/Tab",
         "applications/calendar/App",
-       "applications/calendar/tabs/map/MapConfig"], function(Tab, Calendar, Config) {
+       "applications/calendar/tabs/map/MapUtils"], function(Tab, Calendar, MapUtils) {
 
 	var map = null;
-    var infoWindow = null;
-    var currentHighlightedLine = null;
-    var config = null;
-    var connectorSelected = null;
-    var gpsLine = null;
-    var gpsTimestamps = null;
-    var gpsPositions = null;
-    var highlightSection = null;
 
     function render(digest, timeUnit) {
         this.getTemplate("text!applications/calendar/tabs/map/map.html", "map", function(){setup(digest);});
@@ -19,74 +11,33 @@ define(["applications/calendar/tabs/Tab",
     function setup(digest) {
         $("#tooltips").load("/calendar/tooltips");
         App.fullHeight();
-        currentHighlightedLine = null;
-        connectorSelected = null;
-        gpsLine= null;
-        gpsTimestamps = null;
-        gpsPositions = null;
-        highlightSection = null;
-        dataMarkers = [];
-        config = Config.getConfig();
         $("#the_map").empty();
         $("#selectedConnectors").empty();
         $("#mapFit").unbind("click");
-        var myOptions = {
-            zoom : 8,
-            scrollwheel : true,
-            streetViewControl : false,
-            mapTypeId : google.maps.MapTypeId.ROADMAP
-        };
+
         if (digest.homeAddress != null && digest.homeAddress.isSet){
-           myOptions.center = new google.maps.LatLng(digest.homeAddress.latitude,digest.homeAddress.longitude);
+            map = MapUtils.newMap(new google.maps.LatLng(digest.homeAddress.latitude,digest.homeAddress.longitude),8,"the_map",false);
         }
         else{
-            myOptions.center = new google.maps.LatLng(0,0);
+            map = MapUtils.newMap(new google.maps.LatLng(0,0),8,"the_map",false);
         }
 
-        map = new google.maps.Map(document.getElementById("the_map"), myOptions);
         if (digest!=null && digest.cachedData!=null &&
             typeof(digest.cachedData.google_latitude)!="undefined"
                 && digest.cachedData.google_latitude !=null &&
             digest.cachedData.google_latitude.length>0) { //make sure gps data is available before trying to display it
-
-            infoWindow = new google.maps.InfoWindow();
-            gpsPositions =new Array();
-            gpsTimestamps =new Array();
-            var averageLat = 0;
-            var averageLon = 0;
-            var minLat = 90; //initialized to the largest valid latitude
-            var maxLat = 0; //initialized to the smallest valid latitude
-            var minLon = 180; //initialized to the largest valid longitude
-            var maxLon = -180; //initialized to the smallest valid longitude
-            for (var i = 0; i < digest.cachedData.google_latitude.length; i++){
-                var lat = digest.cachedData.google_latitude[i].position[0];
-                var lon = digest.cachedData.google_latitude[i].position[1];
-                gpsPositions[i] = new google.maps.LatLng(lat,lon);
-                gpsTimestamps[i] = digest.cachedData.google_latitude[i].start;
-                averageLat += (lat - averageLat) / (i + 1); //incremental average calculation
-                averageLon += (lon - averageLon) / (i + 1); //incremental average calculation
-                if (lat < minLat)
-                    minLat = lat;
-                if (lat > maxLat)
-                    maxLat = lat;
-                if (lon < minLon)
-                    minLon = lon;
-                if (lon > maxLon)
-                    maxLon = lon;
-            }
-            //bound the map to the area which the gps data spans
-            map.fitBounds(new google.maps.LatLngBounds(new google.maps.LatLng(minLat,minLon), new google.maps.LatLng(maxLat,maxLon)));
-            gpsLine = new google.maps.Polyline({map:map, path:gpsPositions});
+            map.addGPSData(digest.cachedData.google_latitude);
+            map.fitBounds(map.gpsBounds);
 
             var checkedContainer = $("#selectedConnectors");
             for(var objectTypeName in digest.cachedData) {
                 if (digest.cachedData[objectTypeName]==null||typeof(digest.cachedData[objectTypeName])=="undefined")
                     continue;
-                var markerArray = addDataToMap(digest.cachedData[objectTypeName], objectTypeName);
-                if (markerArray != null || objectTypeName == "google_latitude"){
+                var dataAdded = map.addData(digest.cachedData[objectTypeName], objectTypeName, true);
+                if (dataAdded || objectTypeName == "google_latitude"){
                     var button = $('<button class="btnList btn btnListChecked enabled">' + objectTypeName + '</button>');
-                    button.click({button:button,markerArray:markerArray,objectTypeName:objectTypeName,isGoogleLatitude:objectTypeName == "google_latitude"},function(event){
-                        buttonClicked(event.data.button,event.data.markerArray,event.data.objectTypeName,event.data.isGoogleLatitude);
+                    button.click({button:button,objectTypeName:objectTypeName,isGoogleLatitude:objectTypeName == "google_latitude"},function(event){
+                        buttonClicked(event.data.button,event.data.objectTypeName,event.data.isGoogleLatitude);
                     });
                     checkedContainer.append(button);
                     checkedContainer.append("&nbsp;");
@@ -104,77 +55,7 @@ define(["applications/calendar/tabs/Tab",
         }
 	}
 
-    function addDataToMap(connectorData, connectorInfoId){
-        var category;
-        switch (connectorInfoId){
-            case "sms_backup-sms":
-            case "sms_backup-call_Calendar":
-            case "twitter-dm":
-            case "twitter-tweet":
-            case "twitter-mention":
-                category = config.SOCIAL_CATEGORY;
-                break;
-            case "google_calendar":
-            case "toodledo-task":
-                category = config.MIND_CATEGORY;
-                break;
-            case "fitbit-sleep":
-            case "withings-bpm":
-                category = config.BODY_CATEGORY;
-                break;
-            case "picasa":
-            case "flickr":
-            case "lastfm-recent_track":
-                category = config.MEDIA_CATEGORY;
-                break;
-            default:
-                return null;
-        }
-        return addItemsToMap(connectorData,category);
-    }
-
-    function addItemsToMap(items,category){
-        var markerArray = new Array();
-        for (var i = 0; i < items.length; i++){
-            var startTimestamp = items[i].start;
-            var endTimestamp = items[i].end;
-            if (startTimestamp > gpsTimestamps[gpsTimestamps.length - 1] || (endTimestamp == null && startTimestamp < gpsTimestamps[0]))
-                continue;
-
-            if (endTimestamp == null){
-                markerArray[markerArray.length] = addItemToMap(items[i],startTimestamp,null,category);
-            }
-            else{
-                var endLatLng = getLatLngOnGPSLine(endTimestamp);
-                markerArray[markerArray.length] = addItemToMap(items[i],startTimestamp,endTimestamp,category);
-            }
-        }
-        if (markerArray.length == 0)
-            markerArray = null;
-        return markerArray;
-    }
-
-    function addItemToMap(item,start,end,category){
-        var marker = new google.maps.Marker({map:map, position:getLatLngOnGPSLine(start), icon:category.icon, shadow:category.shadow});
-        google.maps.event.addListener(marker, "click", function(){
-            connectorSelected = item.type;
-            var tooltip = $("#" + item.type + "_" + item.id).html();
-            if (tooltip == null)
-                tooltip = "no description available";
-            infoWindow.setContent(tooltip);
-            infoWindow.open(map,marker);
-            if (currentHighlightedLine != null){
-                currentHighlightedLine.setMap(null);
-                currentHighlightedLine = null
-            }
-            if (end != null){
-                currentHighlightedLine = createPolyLineSegment(start, end, {strokeColor:"orange", zIndex: 100});
-            }
-        });
-        return marker;
-    }
-
-    function buttonClicked(button,markers,connectorName,isGoogleLatitude){
+    function buttonClicked(button,connectorName,isGoogleLatitude){
         if (button.hasClass("disabled"))
             return;
         button.removeClass("enabled");
@@ -182,169 +63,26 @@ define(["applications/calendar/tabs/Tab",
         if (button.hasClass("btnListChecked")){
             button.removeClass("btnListChecked");
             button.addClass("btn-inverse");
-            if (connectorSelected === connectorName){
-                connectorSelected = null;
-                if (currentHighlightedLine != null){
-                    currentHighlightedLine.setMap(null);
-                    currentHighlightedLine = null;
-                }
-                infoWindow.close();
-            }
             if (isGoogleLatitude){
-                gpsLine.setMap(null);
-                if (currentHighlightedLine != null)
-                    currentHighlightedLine.setMap(null);
-                if (highlightSection != null)
-                    highlightSection.setMap(null);
+                map.hideGPSData();
             }
             else{
-                for (var i = 0; i < markers.length; i++){
-                    markers[i].setMap(null);
-                }
+                map.hideData(connectorName);
             }
         }
         else{
             button.removeClass("btn-inverse");
             button.addClass("btnListChecked");
             if (isGoogleLatitude){
-                gpsLine.setMap(map);
-                if (currentHighlightedLine != null)
-                    currentHighlightedLine.setMap(map);
-                if (highlightSection != null)
-                    highlightSection.setMap(map);
+                map.showGPSData();
             }
             else{
-                for (var i = 0; i < markers.length; i++){
-                    markers[i].setMap(map);
-                }
+                map.showData(connectorName);
             }
         }
 
         button.removeClass("disabled");
         button.addClass("enabled");
-    }
-
-    function getLatLngOnGPSLine(time){
-        if (time <= gpsTimestamps[0])
-            return gpsPositions[0];
-        if (time >= gpsTimestamps[gpsTimestamps.length - 1])
-            return gpsPositions[gpsPositions.length-1];
-        var endIndex;
-        for (endIndex = 1; endIndex < gpsTimestamps.length && gpsTimestamps[endIndex] < time; endIndex++);
-        var startIndex = endIndex - 1;
-        var percentThrough = (time - gpsTimestamps[startIndex]) / (gpsTimestamps[endIndex] - gpsTimestamps[startIndex]);
-        var lat = (gpsPositions[endIndex].lat() - gpsPositions[startIndex].lat()) * percentThrough + gpsPositions[startIndex].lat();
-        var lon = (gpsPositions[endIndex].lng() - gpsPositions[startIndex].lng()) * percentThrough + gpsPositions[startIndex].lng();
-        return new google.maps.LatLng(lat,lon);
-    }
-
-    function getFirstIndexAfter(time){
-        var endIndex;
-        for (endIndex = 0; endIndex < gpsTimestamps.length && gpsTimestamps[endIndex] < time; endIndex++);
-        return endIndex;
-    }
-
-    function getFirstIndexBefore(time){
-        if (time <= gpsTimestamps[0])
-            return -1;
-        var endIndex;
-        for (endIndex = 1; endIndex < gpsTimestamps.length && gpsTimestamps[endIndex] < time; endIndex++);
-        return endIndex - 1;
-    }
-
-
-    function highlightTimespan(start,end){
-        if (highlightSection != null){
-            highlightSection.setMap(null);
-            highlightSection = null;
-        }
-        if (start <= gpsTimestamps[0] && end >= gpsTimestamps[gpsTimestamps.length]){
-            gpsLine.setOptions({strokeColor: "black"});
-            return;
-        }
-        gpsLine.setOptions({strokeColor: "grey"});
-        highlightSection = createPolyLineSegment({strokeColor:"black", path: newPoints, zIndex: 99});
-    }
-
-    function createPolyLineSegment(start, end, options){
-        if (options.map == null)
-            options.map = gpsLine.getMap();
-        var newPoints = new Array();
-        newPoints[0] = getLatLngOnGPSLine(start);
-        var startIndex = getFirstIndexAfter(start);
-        var endIndex = getFirstIndexBefore(end);
-        for (var i = 0; i + startIndex <= endIndex; i++){
-            newPoints[i+1] = gpsPositions[i+startIndex];
-        }
-        newPoints[newPoints.length] = getLatLngOnGPSLine(end);
-        options.path = newPoints;
-        return new google.maps.Polyline(options);
-    }
-
-    function zoomOnTimespan(start,end){
-        var minLat, maxLat, minLng, maxLng;
-        var startPoint = getLatLngOnGPSLine(start);
-        var endPoint = getLatLngOnGPSLine(end);
-        if (startPoint.lat() < endPoint.lat()){
-            minLat = startPoint.lat();
-            maxLat = endPoint.lat();
-        }
-        else{
-            minLat = endPoint.lat();
-            maxLat = startPoint.lat();
-        }
-        if (startPoint.lng() < endPoint.lng()){
-            minLng = startPoint.lng();
-            maxLng = endPoint.lng();
-        }
-        else{
-            minLng = endPoint.lng();
-            maxLng = endPoint.lng();
-        }
-        for (var i = 0; i < gpsPositions.length; i++){
-            if (gpsPositions[i].lat() < minLat)
-                minLat = gpsPositions[i].lat();
-            else if (gpsPositions[i].lat() > maxLat)
-                maxLat = gpsPositions[i].lat();
-            if (gpsPositions[i].lng() < minLng)
-                minLng = gpsPositions[i].lng();
-            else if (gpsPositions[i].lng() > maxLng)
-                maxLng = gpsPositions[i].lng();
-        }
-        map.fitBounds(new google.maps.LatLngBounds(new google.maps.LatLng(minLat,minLng), new google.maps.LatLng(maxLat,maxLng)));
-    }
-
-    //Image display overlay definition
-    function ImageDisplayOverlay(map,latlng,imgUrl){
-        this._map = map;
-        this._latlng = latlng;
-        this._imgUrl = imgUrl;
-        this._img = null;
-
-        this.setMap(map);
-    }
-    ImageDisplayOverlay.prototype = new google.maps.OverlayView();
-    ImageDisplayOverlay.prototype.onAdd = function() {
-        this._img = document.createElement("div");
-        this._img.style.position = "absolute";
-        this._img.style.width = "64px";
-        this._img.style.height = "64px";
-        img = document.createElement("img");
-        img.style.position = "relative";
-        img.className = "mapImageOverlay";
-        img.src = this._imgUrl;
-        this._img.appendChild(img);
-        this.getPanes().overlayLayer.appendChild(this._img);
-    }
-    ImageDisplayOverlay.prototype.onRemove = function() {
-        this._img.parentNode.removeChild(this._img);
-        this._img = null;
-    }
-    ImageDisplayOverlay.prototype.draw = function() {
-        var overlayProjection = this.getProjection();
-        var position = this.getProjection().fromLatLngToDivPixel(this._latlng);
-        this._img.style.left = position.x - 32 + "px";
-        this._img.style.top = position.y - 32 + "px";
     }
 
     var mapTab = new Tab("map", "Candide Kemmler", "icon-map-marker", true);
