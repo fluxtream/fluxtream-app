@@ -7,6 +7,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 	var paper = null;
 	var config = null;
     var map = null;
+    var dayStart, dayEnd;
 
 	function render(digest, timeUnit) {
 		this.getTemplate("text!applications/calendar/tabs/clock/clock.html", "clock", function() {
@@ -16,6 +17,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 	
 	function setup(digest, timeUnit) {
 		$("#tooltips").load("/calendar/tooltips");
+        dayStart = digest.tbounds.start;
+        dayEnd = digest.tbounds.end;
         map = MapUtils.newMap(new google.maps.LatLng(0,0),8,"clockMap",true);
         if (digest.cachedData != null && digest.cachedData.google_latitude != null){
             map.addGPSData(digest.cachedData.google_latitude);
@@ -281,11 +284,15 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
     function showLocationBreakdownInfo(event) {
         hideEventInfo();
         ttpdiv = $("#tooltip");
-        var mapdiv = document.getElementById("clockMapContainer");
         var span = event.target;
         var facetId = span.item.id;
         var tip_y = event.pageY;
         var tip_x = event.pageX;
+
+        map.highlightTimespan(span.item.start,span.item.end);
+        map.zoomOnTimespan(span.item.start,span.item.end);
+        marker = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(event.timeTarget)});
+
         ttpdiv.qtip({
                         content: {
                             text: span.item.description + '<div id="mapPlaceHolder" style="width:400px; height:400px; position:relative;"></div><script>document.qTipUpdate()</script></script>'
@@ -321,6 +328,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                 marker = null;
             }
             map.fitBounds(map.gpsBounds);
+            map.highlightTimespan(dayStart,dayEnd);
         }
 	}
 
@@ -354,6 +362,41 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		path.attr("opacity", opacity);
 		return path;
 	}
+
+    function toPolar(center, x, y){
+        x -= center[0];
+        y -= center[1];
+        var r = Math.sqrt(x * x + y * y);
+        var theta;
+        if (x == 0){
+            if (y > 0)
+                theta = Math.PI / 2;
+            else
+                theta = 3 * Math.PI / 2;
+        }
+        else if (y == 0){
+            if (x > 0)
+                theta = 0;
+            else
+                theta = Math.PI;
+        }
+        else if (x > 0)
+            theta = Math.atan(y/x);
+        else
+            theta = Math.PI + Math.atan(y/x);
+        theta *= 180 / Math.PI;
+        if (theta < 0)
+            theta += 360;
+        return [r,theta];
+    }
+
+    function getSpanTimeTarget(startTime,endTime,startMinute,endMinute,x,y){
+        var angleClick = toPolar(config.CLOCK_CENTER,x,y)[1];
+        var angleStart = startMinute / config.RATIO + config.START_AT;
+        var angleEnd =  endMinute / config.RATIO + config.START_AT;
+        var ratio = (angleClick - angleStart) / (angleEnd - angleStart);
+        return ratio * (endTime - startTime) + startTime;
+    }
 	
 	function showLocationBreakdown(items, color) {
 		if (typeof(items)=="undefined"||items==null)
@@ -375,6 +418,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 						var span = paintSpan(paper, start,(start<=end?end:1440), config.AT_HOME_CATEGORY.orbit, color, 1, config);
 						span.node.item = item;
 						$(span.node).click(function(event) {
+                            event.timeTarget = getSpanTimeTarget(event.target.item.start,event.target.item.end,start,end,event.offsetX,event.offsetY);
 							this.style.cursor = "pointer";
 							showLocationBreakdownInfo(event);
 						});
