@@ -300,7 +300,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         for (i = 0; i < hourlyWeatherData.length && hourlyWeatherData[i].minuteOfDay < minuteOfDay; i++);
         var weatherInfo = hourlyWeatherData[i];
         var output = "<img src=\"";
-        if (weatherInfo.minuteOfDay < solarInfo.sunrise || weatherInfo.minuteOfDay > solarInfo.sunset){//night
+        if (minuteOfDay < solarInfo.sunrise || minuteOfDay > solarInfo.sunset){//night
             output += weatherInfo.weatherIconUrlNight;
         }
         else{//day
@@ -430,7 +430,10 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 
     function getMinuteOfDay(x,y){
         var angleClick = toPolar(config.CLOCK_CENTER,x,y)[1];
-        return (angleClick - config.START_AT) * config.RATIO;
+        var minute = (angleClick - config.START_AT) * config.RATIO;
+        if (minute < 0)
+            minute += 24 * 60;
+        return minute;
     }
 	
 	function showLocationBreakdown(items, color) {
