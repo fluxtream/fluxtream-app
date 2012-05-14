@@ -77,7 +77,10 @@ public class WWOHelper {
 					JSONArray weatherDesc = hourlyRecord.getJSONArray("weatherDesc");
 					JSONArray weatherIconUrl = hourlyRecord.getJSONArray("weatherIconUrl");
 					weatherInfo.weatherDesc = weatherDesc.getJSONObject(0).getString("value");
-					weatherInfo.weatherIconUrl = weatherIconUrl.getJSONObject(0).getString("value");
+                    weatherInfo.weatherIconUrl = null;
+                    weatherInfo.weatherIconUrlDay = null;
+                    weatherInfo.weatherIconUrlNight = null;
+                    weatherInfo.weatherIconUrl = weatherIconUrl.getJSONObject(0).getString("value");
 					weatherInfo.winddirDegree = Integer.valueOf(hourlyRecord.getString("winddirDegree"));
 					weatherInfo.windspeedMiles = Integer.valueOf(hourlyRecord.getString("windspeedMiles"));
 					
