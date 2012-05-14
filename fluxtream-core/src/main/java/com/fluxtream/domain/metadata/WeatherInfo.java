@@ -38,7 +38,9 @@ public class WeatherInfo extends AbstractEntity implements Comparable<WeatherInf
 	public int visibility;
 	public int weatherCode;
 	public String weatherDesc;
-	public String weatherIconUrl;
+    public String weatherIconUrl;
+	public String weatherIconUrlDay;
+    public String weatherIconUrlNight;
 	public String winddir16Point;
 	public int winddirDegree;
 	public int windspeedKmph;

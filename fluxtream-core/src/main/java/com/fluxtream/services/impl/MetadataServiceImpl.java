@@ -342,6 +342,115 @@ public class MetadataServiceImpl implements MetadataService {
 			weather = JPAUtils.find(em, WeatherInfo.class,
 					"weather.byDateAndCity.between", closestCity.geo_name,
 					date, startMinute, endMinute);
+            for (WeatherInfo weatherInfo : weather){
+                switch (weatherInfo.weatherCode){
+                    case 395://Moderate or heavy snow in area with thunder
+                        weatherInfo.weatherIconUrl = "/static/images/climacons/CS.png";
+                        weatherInfo.weatherIconUrlDay = "/static/images/climacons/CSS.png";
+                        weatherInfo.weatherIconUrlNight = "/static/images/climacons/CSM.png";
+                        break;
+                    case 389://Moderate or heavy rain in area with thunder
+                        weatherInfo.weatherIconUrl = "/static/images/climacons/CL.png";
+                        weatherInfo.weatherIconUrlDay = "/static/images/climacons/CL.png";
+                        weatherInfo.weatherIconUrlNight = "/static/images/climacons/CL.png";
+                        break;
+                    case 200://Thundery outbreaks in nearby
+                    case 386://Patchy light rain in area with thunder
+                    case 392://Patchy light snow in area with thunder
+                        weatherInfo.weatherIconUrl = "/static/images/climacons/CL.png";
+                        weatherInfo.weatherIconUrlDay = "/static/images/climacons/CLS.png";
+                        weatherInfo.weatherIconUrlNight = "/static/images/climacons/CLM.png";
+                        break;
+                    case 113://Clear/Sunny
+                        weatherInfo.weatherIconUrl = "/static/images/climacons/Sun.png";
+                        weatherInfo.weatherIconUrlDay = "/static/images/climacons/Sun.png";
+                        weatherInfo.weatherIconUrlNight = "/static/images/climacons/Moon.png";
+                        break;
+                    case 116://Partly Cloudy
+                        weatherInfo.weatherIconUrl = "/static/images/climacons/Cloud.png";
+                        weatherInfo.weatherIconUrlDay = "/static/images/climacons/CS%231.png";//CS#1.png
+                        weatherInfo.weatherIconUrlNight = "/static/images/climacons/CM.png";
+                        break;
+                    case 122://Overcast
+                    case 119://Cloudy
+                        weatherInfo.weatherIconUrl = "/static/images/climacons/Cloud.png";
+                        weatherInfo.weatherIconUrlDay = "/static/images/climacons/Cloud.png";
+                        weatherInfo.weatherIconUrlNight = "/static/images/climacons/Cloud.png";
+                        break;
+                    case 299://Moderate rain at times
+                    case 302://Moderate rain
+                    case 305://Heavy rain at times
+                    case 308://Heavy rain
+                    case 296: //Light rain
+                    case 293: //Patchy light rain
+                    case 266://Light drizzle
+                    case 353://Light rain shower
+                    case 356://Moderate or heavy rain shower
+                    case 359://Torrentail rain shower
+                        weatherInfo.weatherIconUrl = "/static/images/climacons/CD.png";
+                        weatherInfo.weatherIconUrlDay = "/static/images/climacons/CDS.png";
+                        weatherInfo.weatherIconUrlNight = "/static/images/climacons/CDM.png";
+                        break;
+                    case 263://patchy light drizzle
+                    case 176://patchy rain nearby
+                    case 143://Mist
+                        weatherInfo.weatherIconUrl = "/static/images/climacons/CD%20Alt.png";
+                        weatherInfo.weatherIconUrlDay = "/static/images/climacons/CDS%20Alt.png";
+                        weatherInfo.weatherIconUrlNight = "/static/images/climacons/CDM%20Alt.png";
+                        break;
+                    case 227://Blowing snow
+                    case 230://Blizzard
+                    case 329://Patchy moderate snow
+                    case 332://Moderate snow
+                    case 335://Patchy heavy snow
+                    case 338://Heavy snow
+                    case 368://Light snow showers
+                    case 371://Moderate or heavy snow showers
+                        weatherInfo.weatherIconUrl = "/static/images/climacons/CS.png";
+                        weatherInfo.weatherIconUrlDay = "/static/images/climacons/CSS.png";
+                        weatherInfo.weatherIconUrlNight = "/static/images/climacons/CSM.png";
+                        break;
+                    case 179://Patchy snow nearby
+                    case 323://Patchy Light snow
+                    case 325://Light snow
+                        weatherInfo.weatherIconUrl = "/static/images/climacons/CSA.png";
+                        weatherInfo.weatherIconUrlDay = "/static/images/climacons/CSSA.png";
+                        weatherInfo.weatherIconUrlNight = "/static/images/climacons/CSMA.png";
+                        break;
+                    case 281://Freezing drizzle
+                    case 185: //Patchy freezing drizzle nearby
+                    case 182://Patchy sleet nearby
+                    case 311://Light freezing rain
+                    case 317://Light sleet
+                        weatherInfo.weatherIconUrl = "/static/images/climacons/CH.png";
+                        weatherInfo.weatherIconUrlDay = "/static/images/climacons/CHS.png";
+                        weatherInfo.weatherIconUrlNight = "/static/images/climacons/CHM.png";
+                        break;
+                    case 260://Freezing Fog
+                    case 248://Fog
+                        weatherInfo.weatherIconUrl = "/static/images/climacons/Fog.png";
+                        weatherInfo.weatherIconUrlDay = "/static/images/climacons/FS.png";
+                        weatherInfo.weatherIconUrlNight = "/static/images/climacons/FM.png";
+                        break;
+                    case 314://Moderate or Heavy freezing rain
+                    case 320://Moderate or heavy sleet
+                    case 284://Heavy freezing drizzle
+                    case 350://Ice pellets
+                    case 362://Light sleet showers
+                    case 365://Moderate or heavy sleet
+                    case 374://Light showrs of ice pellets
+                    case 377://Moderate or heavy showres of ice pellets
+                        weatherInfo.weatherIconUrl = "/static/images/climacons/CH%20Alt.png";
+                        weatherInfo.weatherIconUrlDay = "/static/images/climacons/CHS%20Alt.png";
+                        weatherInfo.weatherIconUrlNight = "/static/images/climacons/CHM%20Alt.png";
+                        break;
+                    default:
+                        weatherInfo.weatherIconUrl = "/static/images/climacons/WC.png";
+                        weatherInfo.weatherIconUrlDay = "/static/images/climacons/WC.png";
+                        weatherInfo.weatherIconUrlNight = "/static/images/climacons/WC.png";
+                        break;
+                }
+            }
 			return weather;
 		}
 	}
