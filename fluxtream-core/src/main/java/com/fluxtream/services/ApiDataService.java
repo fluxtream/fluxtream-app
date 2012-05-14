@@ -2,6 +2,7 @@ package com.fluxtream.services;
 
 import java.util.List;
 
+import com.fluxtream.connectors.google_latitude.LocationFacet;
 import net.sf.json.JSONObject;
 
 import org.dom4j.Document;
@@ -34,6 +35,9 @@ public interface ApiDataService {
 
 	public void setFacetComment(long guestId, Connector connector,
 			long facetId, String text);
+
+    public void addGuestLocation(long guestId, long time, float latitude,
+            float longitude, LocationFacet.Source source);
 
 	public List<AbstractFacet> getApiDataFacets(long guestId, Connector api,
 			ObjectType objectType, TimeInterval timeInterval);

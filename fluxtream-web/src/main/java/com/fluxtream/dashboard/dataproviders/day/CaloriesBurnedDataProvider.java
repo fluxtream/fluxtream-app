@@ -37,7 +37,6 @@ public class CaloriesBurnedDataProvider extends AbstractWidgetDataProvider {
 				ObjectType.getObjectType(fitbitConnector, "activity_summary"),
 				timeInterval);
 		long now = System.currentTimeMillis();
-		System.out.println("time to do this query: " + (now-then));
 		if (apiDataFacets.size() > 0) {
 			FitbitActivityFacet fitbitActivitySummary = (FitbitActivityFacet) apiDataFacets
 					.get(0);

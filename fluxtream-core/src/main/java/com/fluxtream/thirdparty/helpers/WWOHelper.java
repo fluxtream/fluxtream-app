@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import com.fluxtream.domain.metadata.DayMetadataFacet;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
@@ -23,7 +24,26 @@ public class WWOHelper {
 	@Autowired
 	private Configuration env;
 
-	public List<WeatherInfo> getWeatherInfo(double latitude, double longitude, String fdate) throws HttpException, IOException {
+
+    public void setWeatherInfo(DayMetadataFacet info,
+                                List<WeatherInfo> weatherInfo) {
+        if (weatherInfo.size() == 0)
+            return;
+
+        for (WeatherInfo weather : weatherInfo) {
+            if (weather.tempC < info.minTempC)
+                info.minTempC = weather.tempC;
+            if (weather.tempF < info.minTempF)
+                info.minTempF = weather.tempF;
+            if (weather.tempC > info.maxTempC)
+                info.maxTempC = weather.tempC;
+            if (weather.tempF > info.maxTempF)
+                info.maxTempF = weather.tempF;
+        }
+
+    }
+
+    public List<WeatherInfo> getWeatherInfo(double latitude, double longitude, String fdate) throws HttpException, IOException {
 		String wwoUrl = "http://www.worldweatheronline.com/feed/premium-weather-v2.ashx?" +
 "key=" + env.get("wwo.key") + "&feedkey=" + env.get("wwo.feedkey") + "&format=json&q=" + latitude + "," + longitude + "&date=" + fdate;
 		String wwoJson = fetch(wwoUrl, env);
@@ -57,7 +77,10 @@ public class WWOHelper {
 					JSONArray weatherDesc = hourlyRecord.getJSONArray("weatherDesc");
 					JSONArray weatherIconUrl = hourlyRecord.getJSONArray("weatherIconUrl");
 					weatherInfo.weatherDesc = weatherDesc.getJSONObject(0).getString("value");
-					weatherInfo.weatherIconUrl = weatherIconUrl.getJSONObject(0).getString("value");
+                    weatherInfo.weatherIconUrl = null;
+                    weatherInfo.weatherIconUrlDay = null;
+                    weatherInfo.weatherIconUrlNight = null;
+                    weatherInfo.weatherIconUrl = weatherIconUrl.getJSONObject(0).getString("value");
 					weatherInfo.winddirDegree = Integer.valueOf(hourlyRecord.getString("winddirDegree"));
 					weatherInfo.windspeedMiles = Integer.valueOf(hourlyRecord.getString("windspeedMiles"));
 					

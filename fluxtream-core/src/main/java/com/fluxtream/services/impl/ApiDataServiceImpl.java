@@ -1,38 +1,48 @@
 package com.fluxtream.services.impl;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
+import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
-
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.sql.DataSource;
-
-import net.sf.json.JSONObject;
-
-import org.apache.log4j.Logger;
-import org.dom4j.Document;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.fluxtream.ApiData;
 import com.fluxtream.Configuration;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.dao.FacetDao;
+import com.fluxtream.connectors.google_latitude.LocationFacet;
 import com.fluxtream.connectors.updaters.UpdateInfo;
+import com.fluxtream.connectors.vos.AbstractFacetVO;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.AbstractUserProfile;
+import com.fluxtream.domain.metadata.City;
+import com.fluxtream.domain.metadata.DayMetadataFacet;
+import com.fluxtream.domain.metadata.WeatherInfo;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.BodyTrackStorageService;
 import com.fluxtream.services.GuestService;
+import com.fluxtream.services.MetadataService;
+import com.fluxtream.thirdparty.helpers.WWOHelper;
+import net.sf.json.JSONObject;
+import org.apache.commons.lang.WordUtils;
+import org.apache.log4j.Logger;
+import org.dom4j.Document;
+import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(readOnly = true)
@@ -61,7 +71,19 @@ public class ApiDataServiceImpl implements ApiDataService {
 	@Autowired
 	BodyTrackStorageService bodyTrackStorageService;
 
-	@Override
+    @Autowired
+    MetadataService metadataService;
+
+    @Autowired
+    WWOHelper wwoHelper;
+
+    @Autowired
+    ServicesHelper servicesHelper;
+
+    private static final DateTimeFormatter formatter = DateTimeFormat
+            .forPattern("yyyy-MM-dd");
+
+    @Override
 	@Transactional(readOnly = false)
 	public void cacheApiDataObject(UpdateInfo updateInfo, long start, long end,
 			AbstractFacet payload) {
@@ -69,7 +91,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 		payload.objectType = updateInfo.objectTypes;
 		payload.guestId = updateInfo.apiKey.getGuestId();
 		payload.timeUpdated = System.currentTimeMillis();
-		
+
 		em.persist(payload);
 	}
 
@@ -233,9 +255,9 @@ public class ApiDataServiceImpl implements ApiDataService {
 		}
 		bodyTrackStorageService.storeApiData(updateInfo.getGuestId(), newFacets);
 	}
-	
+
 	private static Map<String, String> facetEntityNames = new ConcurrentHashMap<String,String>();
-	
+
 	private AbstractFacet persistFacet(AbstractFacet facet) {
 		String entityName = facetEntityNames.get(facet.getClass().getName());
 		if (entityName==null) {
@@ -321,7 +343,56 @@ public class ApiDataServiceImpl implements ApiDataService {
 		em.merge(facet);
 	}
 
-	@Override
+    @Override
+    @Transactional(readOnly = false)
+    public void addGuestLocation(final long guestId, final long time, final float latitude, final float longitude,
+                                 final LocationFacet.Source source) {
+        LocationFacet payload = new LocationFacet();
+        payload.source = source;
+        payload.latitude = latitude;
+        payload.longitude = longitude;
+        payload.start = time;
+        payload.end = time;
+        payload.api = Connector.getConnector("google_latitude").value();
+        payload.objectType = -1;
+        payload.guestId = guestId;
+        payload.timeUpdated = System.currentTimeMillis();
+
+        updateDayMetadata(guestId, time, latitude, longitude);
+
+        em.persist(payload);
+    }
+
+    @Transactional(readOnly = false)
+    private void updateDayMetadata(long guestId, long time, float latitude,
+                                  float longitude) {
+        City city = metadataService.getClosestCity((double)latitude, (double)longitude);
+        String date = formatter.withZone(DateTimeZone.forID(city.geo_timezone))
+                .print(time);
+
+        DayMetadataFacet info = metadataService.getDayMetadata(guestId, date, true);
+        servicesHelper.addCity(info, city);
+        boolean timeZoneWasSet = servicesHelper.setTimeZone(info, city.geo_timezone);
+        if (timeZoneWasSet)
+            updateFloatingTimeZoneFacets(guestId, time);
+
+        TimeZone tz = TimeZone.getTimeZone(info.timeZone);
+        List<WeatherInfo> weatherInfo = metadataService.getWeatherInfo(city.geo_latitude,
+                                                                       city.geo_longitude, info.date,
+                                                                       AbstractFacetVO.toMinuteOfDay(new Date(info.start), tz),
+                                                                       AbstractFacetVO.toMinuteOfDay(new Date(info.end), tz));
+        wwoHelper.setWeatherInfo(info, weatherInfo);
+
+        em.merge(info);
+    }
+
+    private void updateFloatingTimeZoneFacets(long guestId, long time) {
+        // TODO Auto-generated method stub
+
+    }
+
+
+    @Override
 	public long getNumberOfDays(long guestId) {
 		Query query = em.createQuery("select count(md) from ContextualInfo md WHERE md.guestId=" + guestId);
 		Object singleResult = query.getSingleResult();

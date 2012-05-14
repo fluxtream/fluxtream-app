@@ -24,22 +24,21 @@ import com.google.api.client.util.Key;
 				"ORDER BY facet.timestampMs ASC"),
 		@NamedQuery(name = "openpath.deleteAll", query = "DELETE FROM " +
 				"Facet_GoogleLatitudeLocation facet WHERE " +
-				"facet.source=2 AND facet.guestId=?"),
+				"facet.source=5 AND facet.guestId=?"),
 		@NamedQuery(name = "google_latitude.deleteAll", query = "DELETE FROM " +
 				"Facet_GoogleLatitudeLocation facet WHERE " +
-				"facet.source=0 AND facet.guestId=?"),
+				"facet.source=2 AND facet.guestId=?"),
 		@NamedQuery(name = "google_latitude.between", query = "SELECT facet FROM " +
 				"Facet_GoogleLatitudeLocation facet WHERE " +
 				"facet.guestId=? AND facet.timestampMs>=? AND " +
-				"facet.timestampMs<=? AND " +
-				"(facet.source=0 or facet.source=null)")
+				"facet.timestampMs<=?")
 })
 public class LocationFacet extends AbstractFacet implements Comparable<LocationFacet>, Serializable {
 
 	private static final long serialVersionUID = 2882496521084143121L;
 
 	public static enum Source {
-		GOOGLE_LATITUDE, GEO_IP, OPEN_PATH
+		OTHER, USER, GOOGLE_LATITUDE, GEO_IP_DB, IP_TO_LOCATION, OPEN_PATH
 	}
 	
 	public Source source = Source.GOOGLE_LATITUDE;
