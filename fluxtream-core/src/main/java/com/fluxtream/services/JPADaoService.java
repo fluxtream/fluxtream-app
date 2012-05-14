@@ -14,8 +14,10 @@ public interface JPADaoService {
 	public <T> T findOne(String queryName, Class<T> clazz, Object... params);
 	
 	public long countFacets(Connector connector, long guestId);
-	
-	public void persist(Object o);
+
+    public int execute(String jpql);
+
+    public void persist(Object o);
 
 	public void remove(Class<?> clazz, long id);
 }

@@ -90,6 +90,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             return;
         var marker = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(start), icon:category.icon, shadow:category.shadow});
         marker._oldSetMap = marker.setMap;
+        marker.targetMap = null;
         marker.setMap = function(newMap){
             if (marker.line != null && marker.line === map.currentHighlightedLine){
                 if (newMap == null){
@@ -102,7 +103,22 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             else{
                 marker.line = null;
             }
-            marker._oldSetMap(newMap);
+            marker.targetMap = newMap;
+            if (!marker.hidden)
+                marker._oldSetMap(newMap);
+        }
+        marker.hidden = false;
+        marker.hideMarker = function(){
+            if (!marker.hidden){
+                marker.hidden = true;
+                marker._oldSetMap(null);
+            }
+        }
+        marker.showMarker = function(){
+            if (marker.hidden){
+                marker.hidden = false;
+                marker._oldSetMap(marker.targetMap);
+            }
         }
         marker.doHighlighting = function(){
             if (map.currentHighlightedLine != null){
@@ -175,7 +191,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         if (time <= map.gpsTimestamps[0])
             return map.gpsPositions[0];
         if (time >= map.gpsTimestamps[map.gpsTimestamps.length - 1])
-            return map.gpsPositions[gpsPositions.length-1];
+            return map.gpsPositions[map.gpsPositions.length-1];
         var endIndex;
         for (endIndex = 1; endIndex < map.gpsTimestamps.length && map.gpsTimestamps[endIndex] < time; endIndex++);
         var startIndex = endIndex - 1;
@@ -210,14 +226,14 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         var endIndex = map.getFirstIndexBefore(end);
 
         for (var i = startIndex; i < endIndex; i++){
-            if (gpsPositions[i].lat() < minLat)
-                minLat = gpsPositions[i].lat();
-            else if (gpsPositions[i].lat() > maxLat)
-                maxLat = gpsPositions[i].lat();
-            if (gpsPositions[i].lng() < minLng)
-                minLng = gpsPositions[i].lng();
-            else if (gpsPositions[i].lng() > maxLng)
-                maxLng = gpsPositions[i].lng();
+            if (map.gpsPositions[i].lat() < minLat)
+                minLat = map.gpsPositions[i].lat();
+            else if (map.gpsPositions[i].lat() > maxLat)
+                maxLat = map.gpsPositions[i].lat();
+            if (map.gpsPositions[i].lng() < minLng)
+                minLng = map.gpsPositions[i].lng();
+            else if (map.gpsPositions[i].lng() > maxLng)
+                maxLng = map.gpsPositions[i].lng();
         }
         map.fitBounds(new google.maps.LatLngBounds(new google.maps.LatLng(minLat,minLng), new google.maps.LatLng(maxLat,maxLng)));
     }

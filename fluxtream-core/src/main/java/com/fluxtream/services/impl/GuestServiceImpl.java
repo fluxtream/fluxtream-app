@@ -12,6 +12,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
+import com.fluxtream.connectors.google_latitude.LocationFacet;
 import net.sf.json.JSONObject;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -337,12 +338,14 @@ public class GuestServiceImpl implements GuestService {
 		}
 		Location ipLocation = geoIpLookupService.getLocation(ipAddress);
 		if (ipLocation != null) {
-			metadataService.addGuestLocation(guestId,
+			apiDataService.addGuestLocation(guestId,
 					System.currentTimeMillis(), ipLocation.latitude,
-					ipLocation.longitude);
+					ipLocation.longitude, LocationFacet.Source.GEO_IP_DB);
 		} else if (env.get("environment").equals("local")) {
-			metadataService.addGuestLocation(guestId,
-					System.currentTimeMillis(), 50.846281f, 4.354727f);
+            apiDataService.addGuestLocation(guestId,
+					System.currentTimeMillis(), env.getFloat("defaultLocation.latitude"),
+                    env.getFloat("defaultLocation.longitude"),
+                    LocationFacet.Source.OTHER);
 		} else {
 			String ip2locationKey = env.get("ip2location.apiKey");
 			String jsonString = HttpUtils.fetch(
@@ -354,8 +357,9 @@ public class GuestServiceImpl implements GuestService {
 			if (latitude != null && longitude != null) {
 				float lat = Float.valueOf(latitude);
 				float lon = Float.valueOf(longitude);
-				metadataService.addGuestLocation(guestId,
-						System.currentTimeMillis(), lat, lon);
+                apiDataService.addGuestLocation(guestId,
+						System.currentTimeMillis(), lat, lon,
+                        LocationFacet.Source.IP_TO_LOCATION);
 			}
 		}
 	}

@@ -187,13 +187,28 @@ define([], function() {
 		}
 		return tabExistsForTimeUnit;
 	}
+
+    function isValidTabName(tabName) {
+        for (var name in tab_icons) {
+            if (name===tabName)
+                return true;
+        }
+        return false;
+    }
+
+    function isValidTimeUnit(timeUnit) {
+        return timeUnit==="date"||timeUnit==="week"||
+               timeUnit==="month"||timeUnit==="year";
+    }
 	
 	Builder.tabExistsForTimeUnit = tabExistsForTimeUnit;
 	Builder.tabs = tabs;
 	Builder.createTimeUnitsMenu = createTimeUnitsMenu;
 	Builder.createTabs = createTabs;
-	Builder.updateTab= updateTab;
-	
-	return Builder;
+	Builder.updateTab = updateTab;
+    Builder.isValidTabName = isValidTabName;
+    Builder.isValidTimeUnit = isValidTimeUnit;
+
+    return Builder;
 	
 });

@@ -44,7 +44,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 				var w = Builder.tabExistsForTimeUnit(tab, Calendar.timeUnit)?tab:Builder.tabs[Calendar.timeUnit][0];
 				Calendar.render(w + "/week/" + year + "/" + week);
 			});
-		}
+            FlxState.router.route(/^app\/calendar(\/?)(.*?)/, "", function() {
+                App.invalidPath();
+            });
+        }
 	};
 		
 	Calendar.renderState = function(state, force) {
@@ -59,7 +62,15 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 		}
 		var splits = state.split("/");
 		Calendar.currentTabName = splits[0];
-		Calendar.timeUnit = toTimeUnit(splits[1]);
+        if (!Builder.isValidTabName(splits[0])) {
+            App.invalidPath();
+            return;
+        }
+        if (!Builder.isValidTimeUnit(splits[1])) {
+            App.invalidPath();
+            return;
+        }
+        Calendar.timeUnit = toTimeUnit(splits[1]);
 		var nextTabState = state.substring(splits[0].length+1);
         var w = Builder.tabExistsForTimeUnit(Calendar.currentTabName, Calendar.timeUnit)?Calendar.currentTabName:Builder.tabs[Calendar.timeUnit][0];
         Calendar.currentTabName = w;

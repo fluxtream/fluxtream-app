@@ -94,7 +94,11 @@ public class Configuration implements InitializingBean {
 		return Integer.valueOf(get(key));
 	}
 
-	public HttpClient getHttpClient() {
+    public float getFloat(String key) {
+        return Float.valueOf(get(key));
+    }
+
+    public HttpClient getHttpClient() {
 		DefaultHttpClient client = new DefaultHttpClient();
 		return client;
 	}
