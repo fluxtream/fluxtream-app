@@ -61,7 +61,8 @@ public class JPADaoServiceImpl implements JPADaoService {
 
     @Override
     public int execute(final String jpql) {
-        int results = JPAUtils.execute(em, jpql);
+        Query query = em.createQuery(jpql);
+        int results = query.executeUpdate();
         return results;
     }
 

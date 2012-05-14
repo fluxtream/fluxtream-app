@@ -34,32 +34,24 @@ public class ServicesHelper {
             .forPattern("yyyy-MM-dd");
 
     public boolean setTimeZone(DayMetadataFacet info, String timeZone) {
-        boolean timezoneWasSet = true;
-        if (timeZone != null) {
-            if (info.timeZone == null) {
-                info.timeZone = timeZone;
-            } else if (!info.timeZone.equals(timeZone)) {
-                // timeZone strings can be different but stand for the exact same time offset
-                info.otherTimeZone = timeZone;
-                TimeZone otherTz = TimeZone.getTimeZone(info.otherTimeZone);
-                TimeZone tz = TimeZone.getTimeZone(timeZone);
-                int otherOffset = otherTz.getRawOffset();
-                int offset = tz.getRawOffset();
-                int otherDSTSavings = otherTz.getDSTSavings();
-                int dSTSavings = tz.getDSTSavings();
-                timezoneWasSet = !(otherOffset == offset && otherDSTSavings == dSTSavings);
-                if (!timezoneWasSet)
-                    info.otherTimeZone = null;
-            }
-            // TODO: we are using the "main" timezone but... shouldn't we be
-            // more cautious?
-            TimeZone tz = TimeZone.getTimeZone(info.timeZone);
-            DateTime time = formatter.withZone(DateTimeZone.forTimeZone(tz))
-                    .parseDateTime(info.date);
-            info.start = TimeUtils.fromMidnight(time.getMillis(), tz);
-            info.end = TimeUtils.toMidnight(time.getMillis(), tz);
+        boolean changedTimezone = true;
+        TimeZone tz = TimeZone.getTimeZone(timeZone);
+        if (info.timeZone!=null) {
+            TimeZone previousTz = TimeZone.getTimeZone(info.timeZone);
+            int previousOffset = previousTz.getRawOffset();
+            int offset = tz.getRawOffset();
+            int previousDSTSavings = previousTz.getDSTSavings();
+            int dSTSavings = tz.getDSTSavings();
+            changedTimezone = !(previousOffset == offset && previousDSTSavings == dSTSavings);
         }
-        return timezoneWasSet;
+
+        info.timeZone = timeZone;
+        DateTime time = formatter.withZone(DateTimeZone.forTimeZone(tz))
+                .parseDateTime(info.date);
+        info.start = TimeUtils.fromMidnight(time.getMillis(), tz);
+        info.end = TimeUtils.toMidnight(time.getMillis(), tz);
+
+        return changedTimezone;
     }
 
     String addCity(DayMetadataFacet info, City city) {

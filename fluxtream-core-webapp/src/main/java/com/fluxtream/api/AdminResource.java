@@ -1,5 +1,6 @@
 package com.fluxtream.api;
 
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -62,14 +63,21 @@ public class AdminResource {
     @POST
     @Path("/executeUpdate")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String resetMetadata(@QueryParam("jpql") String jpql)
+    public String executeUpdate(@FormParam("jpql") String jpql,
+                                @FormParam("test") String test)
             throws InstantiationException, IllegalAccessException,
                    ClassNotFoundException {
 
-        int results = jpaDaoService.execute(jpql);
+        try {
+            System.out.println("test: " + test);
+            int results = jpaDaoService.execute(jpql);
+            StatusModel result = new StatusModel(true, results + " rows affected");
+            return gson.toJson(result);
+        } catch (Exception e) {
+            StatusModel failure = new StatusModel(false, "Could not execute query: " + e.getMessage());
+            return gson.toJson(failure);
+        }
 
-        StatusModel result = new StatusModel(true, results + " rows affected");
-        return gson.toJson(result);
     }
 
 }

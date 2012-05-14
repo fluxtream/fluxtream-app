@@ -88,6 +88,8 @@ define(
 							+ splits[1].length + 1);
 					var appName = splits[1];
 					FlxState.saveState(appName, appState);
+                    if (typeof(apps[appName])=="undefined")
+                        App.invalidPath();
 					App.activeApp = apps[appName];
 				} else {
 					App.activeApp = apps[FlxState.defaultApp];
@@ -230,10 +232,19 @@ define(
 				$("#modal").modal("show");
 			}
 
+            function invalidPath() {
+                require([ "text!applications/invalidPath.html"], function(html) {
+                    $(".application").removeClass("active");
+                    $(".application").addClass("dormant");
+                    $("#applications").append(html);
+                });
+            }
+
 			App.initialize = initialize;
 			App.renderApp = renderApp;
 			App.state = FlxState;
 			App.fullHeight = fullHeight;
+            App.invalidPath = invalidPath;
 			window.App = App;
 			return App;
 
