@@ -52,7 +52,6 @@ public class GoogleLatitudeOAuthController {
 		temporaryToken.signer = signer;
 		temporaryToken.consumerKey = getConsumerKey();
 		temporaryToken.scope = GOOGLE_LATITUDE_SCOPE;
-		temporaryToken.displayName = "fluxtream";
 		temporaryToken.callback = oauthCallback;
 		OAuthCredentialsResponse tempCredentials = temporaryToken.execute();
 		signer.tokenSharedSecret = tempCredentials.tokenSecret;

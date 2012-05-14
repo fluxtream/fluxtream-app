@@ -34,12 +34,12 @@ public class ServicesHelper {
             .forPattern("yyyy-MM-dd");
 
     public boolean setTimeZone(DayMetadataFacet info, String timeZone) {
-        boolean sameTz = false;
+        boolean timezoneWasSet = true;
         if (timeZone != null) {
             if (info.timeZone == null) {
                 info.timeZone = timeZone;
-                return true;
             } else if (!info.timeZone.equals(timeZone)) {
+                // timeZone strings can be different but stand for the exact same time offset
                 info.otherTimeZone = timeZone;
                 TimeZone otherTz = TimeZone.getTimeZone(info.otherTimeZone);
                 TimeZone tz = TimeZone.getTimeZone(timeZone);
@@ -47,19 +47,19 @@ public class ServicesHelper {
                 int offset = tz.getRawOffset();
                 int otherDSTSavings = otherTz.getDSTSavings();
                 int dSTSavings = tz.getDSTSavings();
-                sameTz = otherOffset == offset && otherDSTSavings == dSTSavings;
-                if (sameTz)
+                timezoneWasSet = !(otherOffset == offset && otherDSTSavings == dSTSavings);
+                if (!timezoneWasSet)
                     info.otherTimeZone = null;
             }
+            // TODO: we are using the "main" timezone but... shouldn't we be
+            // more cautious?
+            TimeZone tz = TimeZone.getTimeZone(info.timeZone);
+            DateTime time = formatter.withZone(DateTimeZone.forTimeZone(tz))
+                    .parseDateTime(info.date);
+            info.start = TimeUtils.fromMidnight(time.getMillis(), tz);
+            info.end = TimeUtils.toMidnight(time.getMillis(), tz);
         }
-        // TODO: we are using the "main" timezone but... shouldn't we be
-        // more cautious?
-        TimeZone tz = TimeZone.getTimeZone(info.timeZone);
-        DateTime time = formatter.withZone(DateTimeZone.forTimeZone(tz))
-                .parseDateTime(info.date);
-        info.start = TimeUtils.fromMidnight(time.getMillis(), tz);
-        info.end = TimeUtils.toMidnight(time.getMillis(), tz);
-        return sameTz;
+        return timezoneWasSet;
     }
 
     String addCity(DayMetadataFacet info, City city) {

@@ -26,12 +26,6 @@
         <option name="ENABLE_JAVADOC_FORMATTING" value="false" />
         <option name="LINE_COMMENT_AT_FIRST_COLUMN" value="false" />
         <option name="BLOCK_COMMENT_AT_FIRST_COLUMN" value="false" />
-        <JSCodeStyleSettings>
-          <option name="SPACE_BEFORE_PROPERTY_COLON" value="true" />
-          <option name="SPACE_AFTER_PROPERTY_COLON" value="true" />
-          <option name="ALIGN_OBJECT_PROPERTIES" value="2" />
-          <option name="SPACE_BEFORE_FUNCTION_LEFT_PARENTH" value="false" />
-        </JSCodeStyleSettings>
         <XML>
           <option name="XML_LEGACY_SETTINGS_IMPORTED" value="true" />
         </XML>

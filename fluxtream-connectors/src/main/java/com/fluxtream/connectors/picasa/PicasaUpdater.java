@@ -61,7 +61,7 @@ public class PicasaUpdater extends AbstractGoogleOAuthUpdater {
 			URL feedUrl = new URL(
 					"https://picasaweb.google.com/data/feed/api/user/default");
 
-			PicasawebService myService = new PicasawebService("fluxtream");
+			PicasawebService myService = new PicasawebService("");
 
 			myService.setOAuthCredentials(
 					getOAuthParameters(updateInfo.apiKey),

@@ -1,11 +1,14 @@
 package com.fluxtream.api;
 
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.fluxtream.services.JPADaoService;
 import net.sf.json.JSONObject;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +34,9 @@ public class AdminResource {
 
 	Gson gson = new Gson();
 
+    @Autowired
+    JPADaoService jpaDaoService;
+
 	@Autowired
 	Configuration env;
 
@@ -52,5 +58,18 @@ public class AdminResource {
 				+ propertyName);
 		return gson.toJson(failure);
 	}
+
+    @POST
+    @Path("/executeUpdate")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String resetMetadata(@QueryParam("jpql") String jpql)
+            throws InstantiationException, IllegalAccessException,
+                   ClassNotFoundException {
+
+        int results = jpaDaoService.execute(jpql);
+
+        StatusModel result = new StatusModel(true, results + " rows affected");
+        return gson.toJson(result);
+    }
 
 }

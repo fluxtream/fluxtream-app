@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.fluxtream.domain.metadata.DayMetadataFacet;
+import com.fluxtream.domain.metadata.WeatherInfo;
 
 public class DigestModel {
 
@@ -28,6 +29,7 @@ public class DigestModel {
 	public Set<String> haveDataConnectors = new HashSet<String>();
 	public Set<String> haveNoDataConnectors = new HashSet<String>();
 	public List<String> selectedConnectors = new ArrayList<String>();
+    public List<WeatherInfo> hourlyWeatherData = null;
 	@SuppressWarnings("rawtypes")
 	public Map<String,Collection> cachedData
 		= new HashMap<String,Collection>();
