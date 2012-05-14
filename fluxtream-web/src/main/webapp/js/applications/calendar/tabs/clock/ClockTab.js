@@ -7,6 +7,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 	var paper = null;
 	var config = null;
     var map = null;
+    var hourlyWeatherData = null;
+    var solarInfo = null;
     var dayStart, dayEnd;
 
 	function render(digest, timeUnit) {
@@ -16,6 +18,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 	}
 	
 	function setup(digest, timeUnit) {
+        hourlyWeatherData = digest.hourlyWeatherData;
+        solarInfo = digest.solarInfo;
 		$("#tooltips").load("/calendar/tooltips");
         dayStart = digest.tbounds.start;
         dayEnd = digest.tbounds.end;
@@ -224,6 +228,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                                 event.timeTarget = getSpanTimeTarget(event.target.item.start,event.target.item.end,start,end,event.offsetX,event.offsetY);
                             else
                                 event.timeTarget = event.target.item.start;
+                            event.minuteOfDay = getMinuteOfDay(event.offsetX,event.offsetY);
 							showEventInfo(event);
 						});
 						$(span.node).mouseout(function() {
@@ -287,6 +292,25 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		});
         timeout = setTimeout("document.hideQTipMap()",4600);
 	}
+    //hourlyWeatherData
+    function getHTMLForWeather(minuteOfDay){
+        if (hourlyWeatherData == null)
+            return "";
+        var i;
+        for (i = 0; i < hourlyWeatherData.length && hourlyWeatherData[i].minuteOfDay < minuteOfDay; i++);
+        var weatherInfo = hourlyWeatherData[i];
+        var output = "<img src=\"";
+        if (weatherInfo.minuteOfDay < solarInfo.sunrise || weatherInfo.minuteOfDay > solarInfo.sunset){//night
+            output += weatherInfo.weatherIconUrlNight;
+        }
+        else{//day
+            output += weatherInfo.weatherIconUrlDay;
+        }
+        output += "\"></img>";
+        output +=  weatherInfo.tempF + "°F";
+        output += " " + weatherInfo.weatherDesc;
+        return output;
+    }
 
     function showLocationBreakdownInfo(event) {
         hideEventInfo();
@@ -299,10 +323,9 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         map.highlightTimespan(span.item.start,span.item.end);
         map.zoomOnTimespan(span.item.start,span.item.end);
         markers[0] = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(event.timeTarget)});
-
         ttpdiv.qtip({
                         content: {
-                            text: span.item.description + '<div id="mapPlaceHolder" style="width:400px; height:400px; position:relative;"></div><script>document.qTipUpdate()</script></script>'
+                            text: span.item.description + '<div id="mapPlaceHolder" style="width:400px; height:400px; position:relative;"></div>' + getHTMLForWeather(event.minuteOfDay) + '<script>document.qTipUpdate()</script></script>'
                         },
                         style: {
                             classes: 'ui-tooltip-light ui-tooltip-shadow ui-tooltip-rounded'
@@ -404,6 +427,11 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         var ratio = (angleClick - angleStart) / (angleEnd - angleStart);
         return ratio * (endTime - startTime) + startTime;
     }
+
+    function getMinuteOfDay(x,y){
+        var angleClick = toPolar(config.CLOCK_CENTER,x,y)[1];
+        return (angleClick - config.START_AT) * config.RATIO;
+    }
 	
 	function showLocationBreakdown(items, color) {
 		if (typeof(items)=="undefined"||items==null)
@@ -426,6 +454,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 						span.node.item = item;
 						$(span.node).click(function(event) {
                             event.timeTarget = getSpanTimeTarget(event.target.item.start,event.target.item.end,start,end,event.offsetX,event.offsetY);
+                            event.minuteOfDay = getMinuteOfDay(event.offsetX,event.offsetY);
 							this.style.cursor = "pointer";
 							showLocationBreakdownInfo(event);
 						});
