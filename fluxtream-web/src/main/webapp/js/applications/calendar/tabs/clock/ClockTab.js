@@ -9,6 +9,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
     var map = null;
     var hourlyWeatherData = null;
     var solarInfo = null;
+    var tempratureUnit = null;
     var dayStart, dayEnd;
 
 	function render(digest, timeUnit) {
@@ -20,6 +21,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 	function setup(digest, timeUnit) {
         hourlyWeatherData = digest.hourlyWeatherData;
         solarInfo = digest.solarInfo;
+        tempratureUnit = digest.settings.temperatureUnit;
 		$("#tooltips").load("/calendar/tooltips");
         dayStart = digest.tbounds.start;
         dayEnd = digest.tbounds.end;
@@ -270,7 +272,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		var tooltip = $("#" + facetType + "_" + facetId);
 		ttpdiv.qtip({
 		   content: {
-		      text: tooltip.html() + '<div id="mapPlaceHolder" style="width:400px; height:400px; position:relative;"></div><script>document.qTipUpdate()</script></script>'
+		      text: tooltip.html() + '<div style="text-align:center"><div id="mapPlaceHolder" style="display:inline-block; width:400px; height:400px; position:relative;"></div></div>' + getHTMLForWeather(event.minuteOfDay) + '<script>document.qTipUpdate()</script></script>'
 		   },
 		   style: {
 		      classes: 'ui-tooltip-light ui-tooltip-shadow ui-tooltip-rounded'
@@ -299,16 +301,27 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         var i;
         for (i = 0; i < hourlyWeatherData.length && hourlyWeatherData[i].minuteOfDay < minuteOfDay; i++);
         var weatherInfo = hourlyWeatherData[i];
-        var output = "<img src=\"";
+        var output = '<div id="weatherInfo"><img src="'
         if (minuteOfDay < solarInfo.sunrise || minuteOfDay > solarInfo.sunset){//night
             output += weatherInfo.weatherIconUrlNight;
         }
         else{//day
             output += weatherInfo.weatherIconUrlDay;
         }
-        output += "\"></img>";
-        output +=  weatherInfo.tempF + "°F";
-        output += " " + weatherInfo.weatherDesc;
+        output += '">'
+        output += weatherInfo.weatherDesc + ' ';
+
+        if (tempratureUnit === "FAHRENHEIT")
+            output += weatherInfo.tempF + '°F ';
+        else
+            output += weatherInfo.tempC + '°C ';
+        output += '<div><div class="upperLabel">Wind Speed</div><div class="lowerLabel">';
+        output += weatherInfo.windspeedMiles + 'MPH';
+        output += '</div></div> <div><div class="upperLabel">Humidity</div><div class="lowerLabel">';
+        output += weatherInfo.humidity + '%';
+        output += '</div></div> <div><div class="upperLabel">Precipitation</div><div class="lowerLabel">';
+        output += weatherInfo.precipMM + 'mm';
+        output += '</div></div></div>';
         return output;
     }
 
@@ -325,7 +338,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         markers[0] = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(event.timeTarget)});
         ttpdiv.qtip({
                         content: {
-                            text: span.item.description + '<div id="mapPlaceHolder" style="width:400px; height:400px; position:relative;"></div>' + getHTMLForWeather(event.minuteOfDay) + '<script>document.qTipUpdate()</script></script>'
+                            text: span.item.description + '<div style="text-align:center"><div id="mapPlaceHolder" style="display:inline-block; width:400px; height:400px; position:relative;"></div></div>' + getHTMLForWeather(event.minuteOfDay) + '<script>document.qTipUpdate()</script></script>'
                         },
                         style: {
                             classes: 'ui-tooltip-light ui-tooltip-shadow ui-tooltip-rounded'
