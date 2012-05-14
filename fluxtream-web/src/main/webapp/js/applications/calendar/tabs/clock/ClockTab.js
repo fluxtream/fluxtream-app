@@ -219,7 +219,11 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 							span = paintSpan(paper, start,(start<=end?end:1440), orbit, color, .9);
 						span.node.item = item;
 						$(span.node).css("cursor", "pointer");
-						$(span.node).click(function() {
+						$(span.node).click({instantaneous:instantaneous}, function(event) {
+                            if (!event.data.instantaneous)
+                                event.timeTarget = getSpanTimeTarget(event.target.item.start,event.target.item.end,start,end,event.offsetX,event.offsetY);
+                            else
+                                event.timeTarget = event.target.item.start;
 							showEventInfo(event);
 						});
 						$(span.node).mouseout(function() {
@@ -236,7 +240,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		}
 	}
 	
-	var ttpdiv = null, lastHoveredEvent, timeout = null, marker = null;
+	var ttpdiv = null, lastHoveredEvent, timeout = null, markers = new Array();
 	
 	function showEventInfo(event) {
         hideEventInfo();
@@ -250,10 +254,13 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		var tip_y = event.pageY;
 		var tip_x = event.pageX;
 
-        marker = map.addItem(span.item,false);
-        if (marker != null)
-            marker.doHighlighting();
-        map.zoomOnPoint(marker.getPosition());
+        markers[0] = map.addItem(span.item,false);
+        if (markers[0] != null){
+            markers[0].doHighlighting();
+            markers[0].hideMarker();
+            markers[1] = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(event.timeTarget)});
+            map.zoomOnPoint(markers[1].getPosition());
+        }
 
 		var tooltip = $("#" + facetType + "_" + facetId);
 		ttpdiv.qtip({
@@ -291,7 +298,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 
         map.highlightTimespan(span.item.start,span.item.end);
         map.zoomOnTimespan(span.item.start,span.item.end);
-        marker = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(event.timeTarget)});
+        markers[0] = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(event.timeTarget)});
 
         ttpdiv.qtip({
                         content: {
@@ -323,10 +330,10 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             ttpdiv.qtip('hide');
             clearTimeout(timeout);
             hideQTipMap();
-            if (marker != null){
-                marker.setMap(null);
-                marker = null;
+            for (var i = 0; i < markers.length; i++){
+                markers[i].setMap(null);
             }
+            markers = new Array();
             map.fitBounds(map.gpsBounds);
             map.highlightTimespan(dayStart,dayEnd);
         }

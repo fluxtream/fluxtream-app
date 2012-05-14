@@ -90,6 +90,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             return;
         var marker = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(start), icon:category.icon, shadow:category.shadow});
         marker._oldSetMap = marker.setMap;
+        marker.targetMap = null;
         marker.setMap = function(newMap){
             if (marker.line != null && marker.line === map.currentHighlightedLine){
                 if (newMap == null){
@@ -102,7 +103,22 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             else{
                 marker.line = null;
             }
-            marker._oldSetMap(newMap);
+            marker.targetMap = newMap;
+            if (!marker.hidden)
+                marker._oldSetMap(newMap);
+        }
+        marker.hidden = false;
+        marker.hideMarker = function(){
+            if (!marker.hidden){
+                marker.hidden = true;
+                marker._oldSetMap(null);
+            }
+        }
+        marker.showMarker = function(){
+            if (marker.hidden){
+                marker.hidden = false;
+                marker._oldSetMap(marker.targetMap);
+            }
         }
         marker.doHighlighting = function(){
             if (map.currentHighlightedLine != null){
