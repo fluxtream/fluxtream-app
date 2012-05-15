@@ -167,7 +167,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 			}
 			String deviceNickname = getDeviceNickname(connectorAndObjectType);
 			if (deviceNickname==null) {
-				logger.info("No Device Nickname for " + connectorAndObjectType);
+//				logger.info("No Device Nickname for " + connectorAndObjectType);
 				continue;
 			}
 			if (facetsByDeviceNickname.get(deviceNickname)==null)

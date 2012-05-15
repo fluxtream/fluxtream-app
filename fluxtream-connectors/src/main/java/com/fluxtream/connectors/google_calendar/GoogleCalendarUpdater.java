@@ -55,7 +55,7 @@ public class GoogleCalendarUpdater extends AbstractGoogleOAuthUpdater {
 
             requestUrl = myQuery.getFeedUrl().getQuery();
 
-            CalendarService myService = new CalendarService("fluxtream");
+            CalendarService myService = new CalendarService("");
             myService.setOAuthCredentials(getOAuthParameters(updateInfo.apiKey),
                                           new OAuthHmacSha1Signer());
 

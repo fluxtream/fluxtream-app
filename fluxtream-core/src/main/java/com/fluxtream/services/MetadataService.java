@@ -11,42 +11,39 @@ import com.fluxtream.domain.metadata.WeatherInfo;
 
 public interface MetadataService {
 
-	public void setTimeZone(long guestId, String date, String timeZone);
+	void setTimeZone(long guestId, String date, String timeZone);
 
-	public TimeZone getCurrentTimeZone(long guestId);
+	TimeZone getCurrentTimeZone(long guestId);
 
-	public TimeZone getTimeZone(long guestId, long time);
+	TimeZone getTimeZone(long guestId, long time);
 
-	public TimeZone getTimeZone(long guestId, String date);
+	TimeZone getTimeZone(long guestId, String date);
 	
-	public void addTimeSpentAtHome(long guestId, long startTime, long endTime);
+	void addTimeSpentAtHome(long guestId, long startTime, long endTime);
 
-	public City getMainCity(long guestId, DayMetadataFacet context);
+	City getMainCity(long guestId, DayMetadataFacet context);
 
-	public DayMetadataFacet getDayMetadata(long guestId, String date, boolean create);
+	DayMetadataFacet getDayMetadata(long guestId, String date, boolean create);
 
-	public void addGuestLocation(long guestId, long time, float latitude, float longitude);
+	void setTraveling(long guestId, String date, TravelType travelType);
 
-	public void setTraveling(long guestId, String date, TravelType travelType);
+	LocationFacet getLastLocation(long guestId, long time);
 
-	public LocationFacet getLastLocation(long guestId, long time);
+	LocationFacet getNextLocation(long guestId, long time);
 
-	public LocationFacet getNextLocation(long guestId, long time);
+	TimeZone getTimeZone(double latitude, double longitude);
 
-	public City getClosestCity(double latitude, double longitude);
-
-	public List<City> getClosestCities(double latitude, double longitude,
-			double dist);
-
-	public TimeZone getTimeZone(double latitude, double longitude);
-
-	public List<WeatherInfo> getWeatherInfo(double latitude, double longitude,
-			String date, int startMinute, int endMinute);
+	DayMetadataFacet getLastDayMetadata(long guestId);
 	
-	public DayMetadataFacet getLastDayMetadata(long guestId);
+	void setDayCommentTitle(long guestId, String date, String title);
 	
-	public void setDayCommentTitle(long guestId, String date, String title);
-	
-	public void setDayCommentBody(long guestId, String date, String body);
+	void setDayCommentBody(long guestId, String date, String body);
 
+    public City getClosestCity(double latitude, double longitude);
+
+    List<City> getClosestCities(double latitude, double longitude,
+                                double dist);
+
+    List<WeatherInfo> getWeatherInfo(double latitude, double longitude,
+                                     String date, int startMinute, int endMinute);
 }

@@ -58,8 +58,15 @@ public class JPADaoServiceImpl implements JPADaoService {
 		}
 		return count;
 	}
-	
-	private long countFacets(Class<? extends AbstractFacet> facetClass,
+
+    @Override
+    public int execute(final String jpql) {
+        Query query = em.createQuery(jpql);
+        int results = query.executeUpdate();
+        return results;
+    }
+
+    private long countFacets(Class<? extends AbstractFacet> facetClass,
 			long guestId) {
 		Entity entityAnnotation = facetClass.getAnnotation(Entity.class);
 		String entityName = entityAnnotation.name();

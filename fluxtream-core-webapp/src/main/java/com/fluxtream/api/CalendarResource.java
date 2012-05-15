@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.NavigableSet;
 import java.util.TimeZone;
@@ -125,8 +126,9 @@ public class CalendarResource {
 			@QueryParam("filter") String filter) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
 		DigestModel digest = new DigestModel();
-		if (filter == null)
-			filter = "";
+        if (filter == null) {
+            filter = "";
+        }
 
 		long guestId = ControllerHelper.getGuestId();
 
@@ -136,6 +138,12 @@ public class CalendarResource {
 				dayMetadata.end);
 
 		City city = metadataService.getMainCity(guestId, dayMetadata);
+
+        if (city != null){
+            digest.hourlyWeatherData = metadataService.getWeatherInfo(city.geo_latitude,city.geo_longitude, date, 0, 24 * 60);
+            Collections.sort(digest.hourlyWeatherData);
+        }
+
 		setSolarInfo(digest, city, guestId, dayMetadata);
 
 		List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter);
@@ -161,8 +169,9 @@ public class CalendarResource {
 	private List<ApiKey> removeConnectorsWithoutFacets(List<ApiKey> allApiKeys) {
 		List<ApiKey> apiKeys = new ArrayList<ApiKey>();
 		for (ApiKey apiKey : allApiKeys) {
-			if (apiKey.getConnector().hasFacets())
-				apiKeys.add(apiKey);
+            if (apiKey.getConnector().hasFacets()) {
+                apiKeys.add(apiKey);
+            }
 		}
 		return apiKeys;
 	}
@@ -186,18 +195,20 @@ public class CalendarResource {
 		ApiKey apiKey = guestService.getApiKey(ControllerHelper.getGuestId(),
 				connector);
 		calendarHelper.refreshApiData(dayMetadata, apiKey, null, day);
-		if (objectTypes != null)
-			for (ObjectType objectType : objectTypes) {
-				Collection facetCollection = getFacetVos(dayMetadata, settings,
-						connector, objectType);
-				if (facetCollection.size() > 0)
-					day.payload = facetCollection;
-			}
-		else {
-			Collection facetCollection = getFacetVos(dayMetadata, settings,
-					connector, null);
-			day.payload = facetCollection;
-		}
+        if (objectTypes != null) {
+            for (ObjectType objectType : objectTypes) {
+                Collection facetCollection = getFacetVos(dayMetadata, settings,
+                                                         connector, objectType);
+                if (facetCollection.size() > 0) {
+                    day.payload = facetCollection;
+                }
+            }
+        }
+        else {
+            Collection facetCollection = getFacetVos(dayMetadata, settings,
+                                                     connector, null);
+            day.payload = facetCollection;
+        }
 
 		String json = gson.toJson(day);
 		// NewRelic.setTransactionName(null, "/api/log/" + connectorName +
@@ -222,19 +233,20 @@ public class CalendarResource {
 		for (ApiKey apiKey : userKeys) {
 			Connector connector = apiKey.getConnector();
 			ObjectType[] objectTypes = connector.objectTypes();
-			if (objectTypes != null)
-				for (ObjectType objectType : objectTypes) {
-					Collection facetCollection = getFacetVos(dayMetadata,
-							settings, connector, objectType);
-					setFilterInfo(dayMetadata, digest, apiKeySelection, apiKey,
-							connector, objectType, facetCollection);
-				}
-			else {
-				Collection facetCollection = getFacetVos(dayMetadata, settings,
-						connector, null);
-				setFilterInfo(dayMetadata, digest, apiKeySelection, apiKey,
-						connector, null, facetCollection);
-			}
+            if (objectTypes != null) {
+                for (ObjectType objectType : objectTypes) {
+                    Collection facetCollection = getFacetVos(dayMetadata,
+                                                             settings, connector, objectType);
+                    setFilterInfo(dayMetadata, digest, apiKeySelection, apiKey,
+                                  connector, objectType, facetCollection);
+                }
+            }
+            else {
+                Collection facetCollection = getFacetVos(dayMetadata, settings,
+                                                         connector, null);
+                setFilterInfo(dayMetadata, digest, apiKeySelection, apiKey,
+                              connector, null, facetCollection);
+            }
 		}
 	}
 
@@ -245,16 +257,20 @@ public class CalendarResource {
 			Collection facetCollection) {
 		digest.hasData(connector.getName(), facetCollection.size() > 0);
 		boolean needsUpdate = needsUpdate(apiKey, dayMetadata);
-		if (needsUpdate)
-			digest.setUpdateNeeded(apiKey.getConnector().getName());
-		if (facetCollection instanceof ImageVOCollection)
-			digest.hasPictures = true;
-		if (!apiKeySelection.contains(apiKey))
-			return;
+        if (needsUpdate) {
+            digest.setUpdateNeeded(apiKey.getConnector().getName());
+        }
+        if (facetCollection instanceof ImageVOCollection) {
+            digest.hasPictures = true;
+        }
+        if (!apiKeySelection.contains(apiKey)) {
+            return;
+        }
 		if (facetCollection.size() > 0) {
 			StringBuilder sb = new StringBuilder(connector.getName());
-			if (objectType != null)
-				sb.append("-").append(objectType.getName());
+            if (objectType != null) {
+                sb.append("-").append(objectType.getName());
+            }
 			digest.cachedData.put(sb.toString(), facetCollection);
 		}
 	}
@@ -287,13 +303,15 @@ public class CalendarResource {
 		TimeInterval interval = dayMetadata.getTimeInterval();
 		UpdateStrategy updateStrategy = updateStrategyFactory
 				.getUpdateStrategy(apiKey.getConnector());
-		if (updateStrategy == null)
-			return false;
+        if (updateStrategy == null) {
+            return false;
+        }
 		List<UpdateInfo> updateInfos = getUpdateInfos(updateStrategy, apiKey,
 				interval);
 		for (UpdateInfo info : updateInfos) {
-			if (info.getUpdateType() != UpdateInfo.UpdateType.NOOP_UPDATE)
-				return true;
+            if (info.getUpdateType() != UpdateInfo.UpdateType.NOOP_UPDATE) {
+                return true;
+            }
 		}
 		return false;
 	}
@@ -317,20 +335,24 @@ public class CalendarResource {
 	}
 
 	private int getLoopbackDays(String connectorName, String objectTypeName) {
-		if (objectTypeName == null)
-			return 0;
-		if (connectorName.equals("withings") && objectTypeName.equals("weight"))
-			return 15;
+        if (objectTypeName == null) {
+            return 0;
+        }
+        if (connectorName.equals("withings") && objectTypeName.equals("weight")) {
+            return 15;
+        }
 		return 0;
 	}
 
 	private void setCurrentAddress(DigestModel digest, long guestId, long start) {
 		GuestAddress currentAddress = settingsService
 				.getAddress(guestId, start);
-		if (currentAddress != null)
-			digest.homeAddress = new HomeAddressModel(currentAddress);
-		else
-			digest.homeAddress = new HomeAddressModel();
+        if (currentAddress != null) {
+            digest.homeAddress = new HomeAddressModel(currentAddress);
+        }
+        else {
+            digest.homeAddress = new HomeAddressModel();
+        }
 	}
 
 	private void setVisitedCities(DigestModel digest, long guestId,
@@ -340,8 +362,9 @@ public class CalendarResource {
 		if (orderedCities != null) {
 			NavigableSet<VisitedCity> descendingSet = orderedCities
 					.descendingSet();
-			for (VisitedCity visitedCity : descendingSet)
-				visitedCities.add(visitedCity);
+            for (VisitedCity visitedCity : descendingSet) {
+                visitedCities.add(visitedCity);
+            }
 		}
 		digest.cities = visitedCities;
 	}
@@ -365,8 +388,9 @@ public class CalendarResource {
 
 	private List<String> connectorNames(List<ApiKey> apis) {
 		List<String> connectorNames = new ArrayList<String>();
-		for (ApiKey apiKey : apis)
-			connectorNames.add(apiKey.getConnector().getName());
+        for (ApiKey apiKey : apis) {
+            connectorNames.add(apiKey.getConnector().getName());
+        }
 		return connectorNames;
 	}
 
@@ -374,9 +398,10 @@ public class CalendarResource {
 		List<ApiKey> userKeys = guestService.getApiKeys(guestId);
 		String[] uncheckedConnectors = filter.split(",");
 		List<String> filteredOutConnectors = new ArrayList<String>();
-		if (uncheckedConnectors!=null&&uncheckedConnectors.length>0)
-			filteredOutConnectors = new ArrayList<String>(
-					Arrays.asList(uncheckedConnectors));
+        if (uncheckedConnectors != null && uncheckedConnectors.length > 0) {
+            filteredOutConnectors = new ArrayList<String>(
+                    Arrays.asList(uncheckedConnectors));
+        }
 		List<ApiKey> apiKeySelection = getCheckedApiKeys(userKeys,
 				filteredOutConnectors);
 		return apiKeySelection;
@@ -399,16 +424,18 @@ public class CalendarResource {
 
 	private void setSolarInfo(DigestModel digest, City city, long guestId,
 			DayMetadataFacet dayMetadata) {
-		if (city != null)
-			digest.solarInfo = getSolarInfo(city.geo_latitude,
-					city.geo_longitude, dayMetadata);
-		else {
-			GuestAddress guestAddress = settingsService.getAddress(guestId,
-					dayMetadata.start);
-			if (guestAddress != null)
-				digest.solarInfo = getSolarInfo(guestAddress.latitude,
-						guestAddress.longitude, dayMetadata);
-		}
+        if (city != null) {
+            digest.solarInfo = getSolarInfo(city.geo_latitude,
+                                            city.geo_longitude, dayMetadata);
+        }
+        else {
+            GuestAddress guestAddress = settingsService.getAddress(guestId,
+                                                                   dayMetadata.start);
+            if (guestAddress != null) {
+                digest.solarInfo = getSolarInfo(guestAddress.latitude,
+                                                guestAddress.longitude, dayMetadata);
+            }
+        }
 	}
 
 	private SolarInfoModel getSolarInfo(double latitude, double longitude,

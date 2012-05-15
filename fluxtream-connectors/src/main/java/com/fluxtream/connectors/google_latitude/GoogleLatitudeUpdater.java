@@ -32,9 +32,6 @@ public class GoogleLatitudeUpdater extends AbstractGoogleOAuthUpdater {
 	@Autowired
 	ApiDataService apiDataService;
 
-	@Autowired
-	MetadataService metadataService;
-
 	public GoogleLatitudeUpdater() {
 		super();
 	}
@@ -67,20 +64,16 @@ public class GoogleLatitudeUpdater extends AbstractGoogleOAuthUpdater {
 				locationResource.start = locationResource.timestampMs;
 				locationResource.end = locationResource.timestampMs;
 
-				metadataService.addGuestLocation(updateInfo.getGuestId(),
+                apiDataService.addGuestLocation(updateInfo.getGuestId(),
 						locationResource.timestampMs,
-						locationResource.latitude, locationResource.longitude);
+						locationResource.latitude, locationResource.longitude,
+                        LocationFacet.Source.GOOGLE_LATITUDE);
 				
-				apiDataService.cacheApiDataObject(updateInfo, -1, -1,
-						locationResource);
 				storedLocations.add(locationResource);
 			}
 			Collections.sort(storedLocations);
 			LocationFacet oldest = storedLocations.get(0);
-			// if we have the maximum number of results, we continue
-			if (locationList.size() == 1000) {
-				loadHistory(updateInfo, from, oldest.timestampMs);
-			}
+            loadHistory(updateInfo, from, oldest.timestampMs);
 		}
 	}
 

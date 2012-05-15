@@ -135,9 +135,11 @@ public class DayMetadataFacet extends AbstractFacet {
 			sb.append(" ").append(s);
 		for (String s : uniqueCountries)
 			sb.append(" ").append(s);
-		
-		sb.append(" ").append(comment);
-		sb.append(" ").append(title);
+
+        if (comment!=null)
+    		sb.append(" ").append(comment);
+        if (title!=null)
+    		sb.append(" ").append(title);
 				
 		this.fullTextDescription = sb.toString().trim();
 	}
