@@ -356,6 +356,7 @@ public class ApiDataServiceImpl implements ApiDataService {
         payload.api = Connector.getConnector("google_latitude").value();
         payload.objectType = -1;
         payload.guestId = guestId;
+        payload.timestampMs = time;
         payload.timeUpdated = System.currentTimeMillis();
 
         updateDayMetadata(guestId, time, latitude, longitude);
