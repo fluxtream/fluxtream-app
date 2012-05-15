@@ -25,10 +25,14 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		$("#tooltips").load("/calendar/tooltips");
         dayStart = digest.tbounds.start;
         dayEnd = digest.tbounds.end;
-        map = MapUtils.newMap(new google.maps.LatLng(0,0),8,"clockMap",true);
         if (digest.cachedData != null && digest.cachedData.google_latitude != null){
+            map = MapUtils.newMap(new google.maps.LatLng(0,0),8,"clockMap",true);
             map.addGPSData(digest.cachedData.google_latitude);
             map.fitBounds(map.gpsBounds);
+        }
+        else{
+            hideQTipMap();
+            map = null;
         }
 
 		var availableWidth = $("#clockTab").width();
@@ -260,19 +264,30 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 			return;
 		var tip_y = event.pageY;
 		var tip_x = event.pageX;
-
-        markers[0] = map.addItem(span.item,false);
-        if (markers[0] != null){
-            markers[0].doHighlighting();
-            markers[0].hideMarker();
-            markers[1] = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(event.timeTarget)});
-            map.zoomOnPoint(markers[1].getPosition());
+        if (map != null){
+            markers[0] = map.addItem(span.item,false);
+            if (markers[0] != null){
+                markers[0].doHighlighting();
+                markers[0].hideMarker();
+                markers[1] = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(event.timeTarget)});
+                map.zoomOnPoint(markers[1].getPosition());
+            }
         }
 
+
+
 		var tooltip = $("#" + facetType + "_" + facetId);
-		ttpdiv.qtip({
+
+        var toolTipText = tooltip.html();
+        if (map != null)
+            toolTipText += '<div style="text-align:center"><div id="mapPlaceHolder" style="display:inline-block; width:400px; height:400px; position:relative;"></div></div>';
+        toolTipText += getHTMLForWeather(event.minuteOfDay);
+        if (map != null)
+            toolTipText += '<script>document.qTipUpdate()</script>';
+
+        ttpdiv.qtip({
 		   content: {
-		      text: tooltip.html() + '<div style="text-align:center"><div id="mapPlaceHolder" style="display:inline-block; width:400px; height:400px; position:relative;"></div></div>' + getHTMLForWeather(event.minuteOfDay) + '<script>document.qTipUpdate()</script></script>'
+		      text: toolTipText
 		   },
 		   style: {
 		      classes: 'ui-tooltip-light ui-tooltip-shadow ui-tooltip-rounded'
@@ -292,7 +307,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 			  inactive : 4500	
 	       }
 		});
-        timeout = setTimeout("document.hideQTipMap()",4600);
+        if (map != null)
+            timeout = setTimeout("document.hideQTipMap()",4600);
 	}
     //hourlyWeatherData
     function getHTMLForWeather(minuteOfDay){
@@ -333,12 +349,23 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         var tip_y = event.pageY;
         var tip_x = event.pageX;
 
-        map.highlightTimespan(span.item.start,span.item.end);
-        map.zoomOnTimespan(span.item.start,span.item.end);
-        markers[0] = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(event.timeTarget)});
+        if (map != null){
+            map.highlightTimespan(span.item.start,span.item.end);
+            map.zoomOnTimespan(span.item.start,span.item.end);
+            markers[0] = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(event.timeTarget)});
+        }
+
+        var toolTipText = span.item.description;
+        if (map != null)
+            toolTipText += '<div style="text-align:center"><div id="mapPlaceHolder" style="display:inline-block; width:400px; height:400px; position:relative;"></div></div>';
+        toolTipText += getHTMLForWeather(event.minuteOfDay);
+        if (map != null)
+            toolTipText += '<script>document.qTipUpdate()</script>';
+
+
         ttpdiv.qtip({
                         content: {
-                            text: span.item.description + '<div style="text-align:center"><div id="mapPlaceHolder" style="display:inline-block; width:400px; height:400px; position:relative;"></div></div>' + getHTMLForWeather(event.minuteOfDay) + '<script>document.qTipUpdate()</script></script>'
+                            text: toolTipText
                         },
                         style: {
                             classes: 'ui-tooltip-light ui-tooltip-shadow ui-tooltip-rounded'
@@ -358,16 +385,19 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                             inactive : 4500
                         }
                     });
-        timeout = setTimeout("document.hideQTipMap()",4600);
+        if (map != null)
+            timeout = setTimeout("document.hideQTipMap()",4600);
     }
 	
 	function hideEventInfo() {
-        if (ttpdiv != null){
+        if (ttpdiv != null)
             ttpdiv.qtip('hide');
+        if (map != null){
             clearTimeout(timeout);
             hideQTipMap();
             for (var i = 0; i < markers.length; i++){
-                markers[i].setMap(null);
+                if (markers[i] != null)
+                    markers[i].setMap(null);
             }
             markers = new Array();
             map.fitBounds(map.gpsBounds);
