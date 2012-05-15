@@ -135,6 +135,10 @@
     border: 1px solid #D1D2D3;
 }
 
+._timeline_channel_hover {
+	background-color: rgba(0, 50, 10, 0.3);
+}
+
 ._timeline_channel table {
     width: 100%;
 }

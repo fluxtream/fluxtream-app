@@ -142,6 +142,25 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
             axis        : 'y',
             tolerance   : 'pointer',
             containment : '#_timeline_channels',
+            merge		: function(event, ui) {
+            	var templateValues = {
+                        "deviceName"       : "Devices",
+                        "channelName"      : "Compare Stub",
+                        "plotElementId"    : "_timeline_channel_helper",
+                        "channelElementId" : "_timeline_plot_helper",
+                        "yAxisElementId"   : "_timeline_yAxis_helper"
+            	};
+            	var html = $.mustache($("#_timeline_channel_template").html(), templateValues);
+                    
+            	$(ui.item[0]).remove();
+            	$(ui.droppable.item[0]).replaceWith(html);
+            },
+            mergein		: function(event, ui) {
+            	$(ui.droppable.item[0]).addClass("_timeline_channel_hover");
+            },
+            mergeout	: function(event, ui) {
+            	$(ui.droppable.item[0]).removeClass("_timeline_channel_hover");
+            },
             receive     : function(event, ui) {	// received new channel to add
                 var i, l, c;
                 var src = sourcesMap[dragSourceId];
