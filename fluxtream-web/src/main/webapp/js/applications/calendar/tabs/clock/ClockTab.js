@@ -238,7 +238,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 							showEventInfo(event);
 						});
 						$(span.node).mouseout(function() {
-							hideEventInfo();
+							//hideEventInfo();
 							this.style.cursor = "default";
 						});
 						return span;
@@ -277,14 +277,9 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 
 
 		var tooltip = $("#" + facetType + "_" + facetId);
+        showModal(tooltip.html());
 
-        var toolTipText = tooltip.html();
-        if (map != null)
-            toolTipText += '<div style="text-align:center"><div id="mapPlaceHolder" style="display:inline-block; width:400px; height:400px; position:relative;"></div></div>';
-        toolTipText += getHTMLForWeather(event.minuteOfDay);
-        if (map != null)
-            toolTipText += '<script>document.qTipUpdate()</script>';
-
+        /*
         ttpdiv.qtip({
 		   content: {
 		      text: toolTipText
@@ -308,8 +303,22 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 	       }
 		});
         if (map != null)
-            timeout = setTimeout("document.hideQTipMap()",4600);
+            timeout = setTimeout("document.hideQTipMap()",4600);*/
 	}
+
+    function showModal(contents){
+        var toolTipText = '<div id="modal" class="modal fade"><div class="modal-header"><a class="close" data-dismiss="modal">×</a><h3>Event Information</h3></div>';
+        toolTipText += contents;
+        if (map != null)
+            toolTipText += '<div style="text-align:center"><div id="mapPlaceHolder" style="display:inline-block; width:400px; height:400px; position:relative;"></div></div>';
+        toolTipText += getHTMLForWeather(event.minuteOfDay);
+        if (map != null)
+            toolTipText += '<script>document.qTipUpdate()</script>';
+        toolTipText += '<div class="modal-footer"><a class="btn" href="javascript:App.closeModal();">Close</a></div></div>';
+        App.makeModal(toolTipText);
+        $("#modal").on("hide",hideQTipMap);
+    }
+
     //hourlyWeatherData
     function getHTMLForWeather(minuteOfDay){
         if (hourlyWeatherData == null)
@@ -354,16 +363,9 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             map.zoomOnTimespan(span.item.start,span.item.end);
             markers[0] = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(event.timeTarget)});
         }
+        showModal(span.item.description);
 
-        var toolTipText = span.item.description;
-        if (map != null)
-            toolTipText += '<div style="text-align:center"><div id="mapPlaceHolder" style="display:inline-block; width:400px; height:400px; position:relative;"></div></div>';
-        toolTipText += getHTMLForWeather(event.minuteOfDay);
-        if (map != null)
-            toolTipText += '<script>document.qTipUpdate()</script>';
-
-
-        ttpdiv.qtip({
+       /* ttpdiv.qtip({
                         content: {
                             text: toolTipText
                         },
@@ -386,10 +388,14 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                         }
                     });
         if (map != null)
-            timeout = setTimeout("document.hideQTipMap()",4600);
+            timeout = setTimeout("document.hideQTipMap()",4600);*/
     }
 	
 	function hideEventInfo() {
+        if ($("#modal")[0].style.display != "none"){
+            App.closeModal();
+        }
+        $("#modal").replaceWith("<div id='modal' style='display:none'></div>");
         if (ttpdiv != null)
             ttpdiv.qtip('hide');
         if (map != null){
@@ -505,7 +511,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 							showLocationBreakdownInfo(event);
 						});
 						$(span.node).mouseout(function() {
-							hideEventInfo();
+							//hideEventInfo();
 							this.style.cursor = "default";
 						});
 						return span;
@@ -608,14 +614,13 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 	}
 
     function hideQTipMap(){
-        var mapdiv = document.getElementById("clockMapContainer");
-        mapdiv.style.left = "-400px";
-        mapdiv.style.top = "0px";
+        document.getElementById("clockMapContainer").appendChild(document.getElementById("clockMap"));
     }
 
 
     function qTipUpdate(){
-        if ($("#mapPlaceHolder").offset().left != $("#mapPlaceHolder").position().left){
+        $("#mapPlaceHolder").append(document.getElementById("clockMap"));
+        /*if ($("#mapPlaceHolder").offset().left != $("#mapPlaceHolder").position().left){
             var mapdiv = document.getElementById("clockMapContainer");
             var left = $("#mapPlaceHolder").offset().left;
             var top = $("#mapPlaceHolder").offset().top;
@@ -624,12 +629,11 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         }
         else{
             setTimeout("document.qTipUpdate();",10);
-        }
+        }*/
     }
 
 	var clockTab = new Tab("clock", "Candide Kemmler", "icon-time", true);
     document.qTipUpdate = qTipUpdate;
-    document.hideQTipMap = hideQTipMap;
 	clockTab.render = render;
 	return clockTab;
 	
