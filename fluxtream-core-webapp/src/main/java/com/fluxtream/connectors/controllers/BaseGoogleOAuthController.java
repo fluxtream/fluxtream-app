@@ -75,7 +75,7 @@ public abstract class BaseGoogleOAuthController {
 		guestService().setApiKeyAttribute(guest.getId(), api, "accessToken", credentials.token);
 		guestService().setApiKeyAttribute(guest.getId(), api, "tokenSecret", credentials.tokenSecret);
 				
-		return "redirect:/home/from/"+api.getName();
+		return "redirect:/app/from/"+api.getName();
 	}
 
 	private OAuthParameters createOAuthParameters(OAuthCredentialsResponse credentials) {

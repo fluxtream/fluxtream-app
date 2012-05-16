@@ -67,6 +67,7 @@ public class GoogleLatitudeUpdater extends AbstractGoogleOAuthUpdater {
                 apiDataService.addGuestLocation(updateInfo.getGuestId(),
 						locationResource.timestampMs,
 						locationResource.latitude, locationResource.longitude,
+                        locationResource.accuracy,
                         LocationFacet.Source.GOOGLE_LATITUDE);
 				
 				storedLocations.add(locationResource);

@@ -346,6 +346,7 @@ public class ApiDataServiceImpl implements ApiDataService {
     @Override
     @Transactional(readOnly = false)
     public void addGuestLocation(final long guestId, final long time, final float latitude, final float longitude,
+                                 final int accuracy,
                                  final LocationFacet.Source source) {
         LocationFacet payload = new LocationFacet();
         payload.source = source;
@@ -357,6 +358,7 @@ public class ApiDataServiceImpl implements ApiDataService {
         payload.objectType = -1;
         payload.guestId = guestId;
         payload.timestampMs = time;
+        payload.accuracy = accuracy;
         payload.timeUpdated = System.currentTimeMillis();
 
         updateDayMetadata(guestId, time, latitude, longitude);

@@ -12,6 +12,7 @@ import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface ApiDataService {
 
@@ -36,9 +37,6 @@ public interface ApiDataService {
 	public void setFacetComment(long guestId, Connector connector,
 			long facetId, String text);
 
-    public void addGuestLocation(long guestId, long time, float latitude,
-            float longitude, LocationFacet.Source source);
-
 	public List<AbstractFacet> getApiDataFacets(long guestId, Connector api,
 			ObjectType objectType, TimeInterval timeInterval);
 
@@ -59,4 +57,7 @@ public interface ApiDataService {
 	
 	public long getNumberOfDays(long guestId);
 
+    void addGuestLocation(long guestId, long time, float latitude, float longitude,
+                          int accuracy,
+                          LocationFacet.Source source);
 }

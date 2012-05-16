@@ -4,11 +4,13 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
+import com.fluxtream.services.impl.converters.Converter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +32,7 @@ import com.fluxtream.utils.HttpUtils;
 @Service
 public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 
-	static Logger logger = Logger.getLogger(BodyTrackStorageServiceImpl.class);
+	static Logger LOG = Logger.getLogger(BodyTrackStorageServiceImpl.class);
 
 	@Autowired
 	Configuration env;
@@ -43,6 +45,8 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 
 	@Autowired
 	MetadataService metadataService;
+
+    private Hashtable<String, Converter> converters = new Hashtable<String, Converter>();
 
 	@Override
 	public void storeApiData(long guestId, List<AbstractFacet> facets) {
@@ -86,14 +90,14 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 			String result = HttpUtils.fetch("http://" + host + "/users/"
 					+ user_id + "/upload", params, env);
 			if (result.toLowerCase().startsWith("awesome")) {
-				logger.info("Data successfully uploaded to BodyTrack: guestId: "
+				LOG.info("Data successfully uploaded to BodyTrack: guestId: "
 						+ guestId);
 			} else {
-				logger.warn("Could not upload data to BodyTrack data store: "
+                LOG.warn("Could not upload data to BodyTrack data store: "
 						+ result);
 			}
 		} catch (Exception e) {
-			logger.warn("Could not upload data to BodyTrack data store: "
+            LOG.warn("Could not upload data to BodyTrack data store: "
 					+ e.getMessage());
 		}
 	}
@@ -109,9 +113,14 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 			sb.append(deviceFacet.start/1000);
 			while (eachFieldName.hasNext()) {
 				String fieldName = (String) eachFieldName.next();
-//				// TODO: handle special cases
-				if (channelNamesMapping.get(fieldName).startsWith("#"))
-					continue;
+				if (channelNamesMapping.get(fieldName).startsWith("#")) {
+                    String converterName = channelNamesMapping.get(fieldName).substring(1);
+                    if (converterName.equalsIgnoreCase("NOOP"))
+                        continue;
+                    else {
+                        Converter converter = getConverter(converterName);
+                    }
+                }
 				sb.append(",");
 				Field field;
 				try {
@@ -130,8 +139,24 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 		}
 		return channelValues;
 	}
-	
-	private String makeJSONArray(Collection<String> values, boolean addQuotes) {
+
+    private Converter getConverter(final String converterName) {
+        if (converters.get(converterName)==null) {
+            try {
+                Class converterClass = Class.forName("com.fluxtream.services.impl.converters." + converterName);
+                converters.put(converterName, (Converter)converterClass.newInstance());
+            }
+            catch (ClassNotFoundException e) {
+                LOG.error("Can't find converter class " + converterName, e);
+            }
+            catch (Exception e) {
+                LOG.error("EXCEPTION_DESCRIPTION_HERE", e);
+            }
+        }
+        return converters.get(converterName);
+    }
+
+    private String makeJSONArray(Collection<String> values, boolean addQuotes) {
 		StringBuilder sb = new StringBuilder("[");
 		Iterator<String> eachChannelName = values.iterator();
 		for (int i=0; eachChannelName.hasNext(); i++) {
