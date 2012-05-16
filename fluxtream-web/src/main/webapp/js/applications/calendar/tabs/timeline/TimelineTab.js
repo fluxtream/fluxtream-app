@@ -22,6 +22,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
     var hasUnsavedChanges    = false; // used by unsaved changes dialog handler
     var loadedViewStr        = "";    // JSON string of loaded view
     var addPaneChannelsState = [];    // add channels pane channel visibility
+    var CHANNEL_PADDING      = 3;     // Pixels between plot and drag area
 
     /// A helper to create a data fetcher for the specified URL prefix
     ///
@@ -690,6 +691,8 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
             "deviceName"       : channel["device_name"],
             "channelName"      : channel["channel_name"],
             "channelHeight"    : channel["channel_height"],
+            "channelTabHeight" : channel["channel_height"] + CHANNEL_PADDING,
+            "CHANNEL_PADDING"  : CHANNEL_PADDING,
             "plotId"           : id,
             "plotElementId"    : plotElementId,
             "channelElementId" : channelElementId,
@@ -2543,13 +2546,13 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
             var yAxis = plot.getVerticalAxis();
             var yAixsW = $("#" + yAxis.getPlaceholder()).width();
 
-            var dragAreaH = $("._timeline_dragArea").height();
+            var dragAreaH = $("._timeline_dragArea").height() - CHANNEL_PADDING;
 
             if ((dy > 0) || (Math.abs(dy) < containerH)) {
-                // There is a min height of 70, which is taken from the
+                // There is a min height of 67, which is taken from the
                 // min height of the channel label
-                if (containerH + dy + dragAreaH < 70) {
-                    dy = 70 - containerH - dragAreaH;
+                if (containerH + dy + dragAreaH < 67) {
+                    dy = 67 - containerH - dragAreaH;
                 }
 
                 // Set the size of the plot container itself
@@ -2563,7 +2566,8 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
                     SequenceNumber.getNext());
 
                 // Set the size of the channel label
-                $("#_timeline_channelTab_" + plotId).height(containerH + dy);
+                $("#_timeline_channelTab_" + plotId).height(
+                    containerH + dy + CHANNEL_PADDING);
 
                 // Update the view data to match the new channel height
                 if ((!!VIEWS.data) && (!!VIEWS.data["v2"])
