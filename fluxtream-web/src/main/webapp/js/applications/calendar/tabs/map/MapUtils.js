@@ -50,7 +50,9 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     function addItemsToMap(map,items,clickable){
         var markerArray = new Array();
         for (var i = 0; i < items.length; i++){
-            markerArray[markerArray.length] = addItemToMap(map,items[i],clickable);
+            var marker = addItemToMap(map,items[i],clickable);
+            if (marker != null)
+                markerArray[markerArray.length] = marker;
         }
         if (markerArray.length == 0)
             markerArray = null;
