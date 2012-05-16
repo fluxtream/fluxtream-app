@@ -113,17 +113,20 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 			sb.append(deviceFacet.start/1000);
 			while (eachFieldName.hasNext()) {
 				String fieldName = (String) eachFieldName.next();
-				if (channelNamesMapping.get(fieldName).startsWith("#")) {
-                    String converterName = channelNamesMapping.get(fieldName).substring(1);
-                    if (converterName.equalsIgnoreCase("NOOP"))
-                        continue;
-                    else {
-                        Converter converter = getConverter(converterName);
+                try {
+                    Field field;
+                    if (channelNamesMapping.get(fieldName).startsWith("#")) {
+                        String converterName = channelNamesMapping.get(fieldName).substring(1);
+                        if (!converterName.equalsIgnoreCase("NOOP")) {
+                            Converter converter = getConverter(converterName);
+                            sb.append(",");
+                            field = deviceFacet.getClass().getField(fieldName);
+                            Object channelValue = field.get(deviceFacet);
+                            sb.append(converter.convert(channelValue));
+                            continue;
+                        }
                     }
-                }
-				sb.append(",");
-				Field field;
-				try {
+                    sb.append(",");
 					field = deviceFacet.getClass().getField(fieldName);
 					Object channelValue = field.get(deviceFacet);
 					if (channelValue instanceof java.util.Date)

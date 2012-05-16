@@ -57,7 +57,6 @@ public interface ApiDataService {
 	
 	public long getNumberOfDays(long guestId);
 
-    void addGuestLocation(long guestId, long time, float latitude, float longitude,
-                          int accuracy,
+    void addGuestLocation(long guestId, LocationFacet locationResource,
                           LocationFacet.Source source);
 }

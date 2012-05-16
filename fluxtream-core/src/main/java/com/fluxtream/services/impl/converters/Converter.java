@@ -6,5 +6,6 @@ package com.fluxtream.services.impl.converters;
  */
 public interface Converter {
 
+    String convert(Object o);
 
 }

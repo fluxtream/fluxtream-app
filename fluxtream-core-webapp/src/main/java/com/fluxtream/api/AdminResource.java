@@ -69,7 +69,6 @@ public class AdminResource {
                    ClassNotFoundException {
 
         try {
-            System.out.println("test: " + test);
             int results = jpaDaoService.execute(jpql);
             StatusModel result = new StatusModel(true, results + " rows affected");
             return gson.toJson(result);
