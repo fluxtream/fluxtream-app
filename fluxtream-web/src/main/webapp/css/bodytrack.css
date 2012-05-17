@@ -541,7 +541,10 @@
 }
 
 #_timeline_photo_dialog_save_should_goto_neighbor_choice {
-  font-size: 7pt;
+    font-size: 7pt;
+    margin: 0;
+    width: auto;
+    height: auto;
 }
 
 ._timeline_yAxisContainer {
