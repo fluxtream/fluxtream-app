@@ -429,8 +429,8 @@ public class CalendarResource {
                                             city.geo_longitude, dayMetadata);
         }
         else {
-            GuestAddress guestAddress = settingsService.getAddress(guestId,
-                                                                   dayMetadata.start);
+            List<GuestAddress> addresses = settingsService.getAllAddressesForDate(guestId,dayMetadata.start);
+            GuestAddress guestAddress = addresses.size() == 0 ? null : addresses.get(0);
             if (guestAddress != null) {
                 digest.solarInfo = getSolarInfo(guestAddress.latitude,
                                                 guestAddress.longitude, dayMetadata);
@@ -466,8 +466,8 @@ public class CalendarResource {
 
 	TimeBoundariesModel getStartEndResponseBoundaries(long start, long end) {
 		TimeBoundariesModel tb = new TimeBoundariesModel();
-		tb.start = String.valueOf(start);
-		tb.end = String.valueOf(end);
+		tb.start = start;
+		tb.end = end;
 		return tb;
 	}
 }

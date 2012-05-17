@@ -231,7 +231,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 						$(span.node).css("cursor", "pointer");
 						$(span.node).click({instantaneous:instantaneous}, function(event) {
                             if (!event.data.instantaneous)
-                                event.timeTarget = getSpanTimeTarget(event.target.item.start,event.target.item.end,start,end,event.offsetX,event.offsetY);
+                                event.timeTarget = getTimestampForPoint(event.offsetX,event.offsetY);
                             else
                                 event.timeTarget = event.target.item.start;
                             event.minuteOfDay = getMinuteOfDay(event.offsetX,event.offsetY);
@@ -436,12 +436,9 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         return [r,theta];
     }
 
-    function getSpanTimeTarget(startTime,endTime,startMinute,endMinute,x,y){
+    function getTimestampForPoint(x,y){
         var angleClick = toPolar(config.CLOCK_CENTER,x,y)[1];
-        var angleStart = startMinute / config.RATIO + config.START_AT;
-        var angleEnd =  endMinute / config.RATIO + config.START_AT;
-        var ratio = (angleClick - angleStart) / (angleEnd - angleStart);
-        return ratio * (endTime - startTime) + startTime;
+        return dayStart+(angleClick-config.START_AT)*config.RATIO*60000;
     }
 
     function getMinuteOfDay(x,y){
@@ -472,7 +469,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 						var span = paintSpan(paper, start,(start<=end?end:1440), config.AT_HOME_CATEGORY.orbit, color, 1, config);
 						span.node.item = item;
 						$(span.node).click(function(event) {
-                            event.timeTarget = getSpanTimeTarget(event.target.item.start,event.target.item.end,start,end,event.offsetX,event.offsetY);
+                            event.timeTarget = getTimestampForPoint(event.offsetX,event.offsetY);
                             event.minuteOfDay = getMinuteOfDay(event.offsetX,event.offsetY);
 							this.style.cursor = "pointer";
 							showLocationBreakdownInfo(event);
