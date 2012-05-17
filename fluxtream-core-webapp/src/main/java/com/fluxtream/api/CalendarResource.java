@@ -345,8 +345,8 @@ public class CalendarResource {
 	}
 
 	private void setCurrentAddress(DigestModel digest, long guestId, long start) {
-		GuestAddress currentAddress = settingsService
-				.getAddress(guestId, start);
+        List<GuestAddress> addresses = settingsService.getAllAddressesForDate(guestId, start);
+		GuestAddress currentAddress = addresses.size() == 0 ? null : addresses.get(0);
         if (currentAddress != null) {
             digest.homeAddress = new HomeAddressModel(currentAddress);
         }
