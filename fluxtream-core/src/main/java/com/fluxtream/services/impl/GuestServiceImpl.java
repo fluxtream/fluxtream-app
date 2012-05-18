@@ -337,14 +337,22 @@ public class GuestServiceImpl implements GuestService {
 					LookupService.GEOIP_MEMORY_CACHE);
 		}
 		Location ipLocation = geoIpLookupService.getLocation(ipAddress);
+        long time = System.currentTimeMillis();
+        LocationFacet locationFacet = new LocationFacet();
+        locationFacet.timestampMs = time;
+        locationFacet.start = time;
+        locationFacet.end = time;
+        locationFacet.guestId = guestId;
 		if (ipLocation != null) {
-			apiDataService.addGuestLocation(guestId,
-					System.currentTimeMillis(), ipLocation.latitude,
-					ipLocation.longitude, 0, LocationFacet.Source.GEO_IP_DB);
-		} else if (env.get("environment").equals("local")) {
+            locationFacet.latitude = ipLocation.latitude;
+            locationFacet.longitude = ipLocation.longitude;
             apiDataService.addGuestLocation(guestId,
-					System.currentTimeMillis(), env.getFloat("defaultLocation.latitude"),
-                    env.getFloat("defaultLocation.longitude"), 0,
+					locationFacet, LocationFacet.Source.GEO_IP_DB);
+		} else if (env.get("environment").equals("local")) {
+            locationFacet.latitude = env.getFloat("defaultLocation.latitude");
+            locationFacet.longitude = env.getFloat("defaultLocation.longitude");
+            apiDataService.addGuestLocation(guestId,
+					locationFacet,
                     LocationFacet.Source.OTHER);
 		} else {
 			String ip2locationKey = env.get("ip2location.apiKey");
@@ -354,11 +362,15 @@ public class GuestServiceImpl implements GuestService {
 			JSONObject json = JSONObject.fromObject(jsonString);
 			String latitude = json.getString("latitude");
 			String longitude = json.getString("longitude");
-			if (latitude != null && longitude != null) {
+            locationFacet.latitude = Float.valueOf(latitude);
+            locationFacet.longitude = Float.valueOf(longitude);
+            if (latitude != null && longitude != null) {
 				float lat = Float.valueOf(latitude);
 				float lon = Float.valueOf(longitude);
+                locationFacet.latitude = lat;
+                locationFacet.longitude = lon;
                 apiDataService.addGuestLocation(guestId,
-						System.currentTimeMillis(), lat, lon, 0,
+						locationFacet,
                         LocationFacet.Source.IP_TO_LOCATION);
 			}
 		}
