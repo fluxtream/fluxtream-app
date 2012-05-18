@@ -2161,16 +2161,31 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
                     // add click handler for photo to allow viewing of high-res version
                     $("#_timeline_photo_dialog_image").click(function() {
                         var theImage = $(this);
+                        var imageAspectRatio = $(this).width() / $(this).height();
                         var formContainer = $("#_timeline_photo_dialog_form_container");
                         if ($("#_timeline_photo_dialog_form_container").is(":visible")) {
+                            // fade out the form and show the hi-res version of the image
                             formContainer.fadeOut(100, function() {
                                 var imageHeight = $("body").height() - 60;
-                                theImage.attr("src",highResImageUrl).attr("height",imageHeight);
+                                var imageWidth = imageAspectRatio * imageHeight;
+
+                                // make sure the image isn't too wide now
+                                if (imageWidth > $("body").width()) {
+                                    imageWidth = $("body").width() - 100;
+                                    imageHeight = imageWidth / imageAspectRatio;
+                                }
+
+                                theImage.attr("src",highResImageUrl).height(imageHeight).width(imageWidth);
+                                $("#_timeline_photo_dialog_photo_table").height(imageHeight).width(imageWidth);
                                 centerPhotoDialog();
                             });
                         } else {
+                            // fade the form back in and show the medium-res version of the image
                             formContainer.fadeIn(100, function() {
-                                theImage.attr("height","300");
+                                var imageHeight = 300;
+                                var imageWidth = imageAspectRatio * imageHeight;
+                                theImage.height(imageHeight).width(imageWidth);
+                                $("#_timeline_photo_dialog_photo_table").height(imageHeight).width(imageWidth);
                                 centerPhotoDialog();
                                 theImage.attr("src", mediumResImageUrl);
                             });

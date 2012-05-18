@@ -417,7 +417,7 @@
   height: auto;
 }
 
-._timeline_photo_dialog_photo_table {
+#_timeline_photo_dialog_photo_table {
   min-width: 300px;
   min-height: 300px;
   width: 300px;
@@ -545,7 +545,10 @@
 }
 
 #_timeline_photo_dialog_save_should_goto_neighbor_choice {
-  font-size: 7pt;
+    font-size: 7pt;
+    margin: 0;
+    width: auto;
+    height: auto;
 }
 
 ._timeline_yAxisContainer {
