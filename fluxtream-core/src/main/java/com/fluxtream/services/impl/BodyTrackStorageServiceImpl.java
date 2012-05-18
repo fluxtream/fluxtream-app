@@ -122,7 +122,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
                             sb.append(",");
                             field = deviceFacet.getClass().getField(fieldName);
                             Object channelValue = field.get(deviceFacet);
-                            sb.append(converter.convert(channelValue));
+                            sb.append(converter.convert(deviceFacet));
                             continue;
                         }
                     }
@@ -179,7 +179,12 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 		Map<String,String> mappings = new HashMap<String,String>();
 		for (String mapping : channelNamesMappings) {
 			String[] terms = StringUtils.split(mapping, ":");
-			mappings.put(terms[0], terms[1]);
+            if (terms[1].startsWith("#")) {
+                String converterName = terms[1].substring(1);
+                String bodytrackChannelName = getConverter(converterName).getBodytrackChannelName();
+                mappings.put(terms[0], bodytrackChannelName);
+            } else
+    			mappings.put(terms[0], terms[1]);
 		}
 		return mappings;
 	}
