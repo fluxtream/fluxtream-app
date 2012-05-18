@@ -27,28 +27,51 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 	
 	Calendar.initialize = function () {
 		_.bindAll(this);
-		for (var i=0; i<Builder.tabs[Calendar.timeUnit].length; i++) {
-			FlxState.router.route("app/calendar/:tab/date/:date", "", function(tab, date) {
-				var w = Builder.tabExistsForTimeUnit(tab, Calendar.timeUnit)?tab:Builder.tabs[Calendar.timeUnit][0];
-				Calendar.render(w + "/date/" + date);
-			});
-			FlxState.router.route("app/calendar/:tab/year/:year", "", function(tab, year) {
-				var w = Builder.tabExistsForTimeUnit(tab, Calendar.timeUnit)?tab:Builder.tabs[Calendar.timeUnit][0];
-				Calendar.render(w + "/year/" + year);
-			});
-			FlxState.router.route("app/calendar/:tab/month/:year/:month", "", function(tab, year, month) {
-				var w = Builder.tabExistsForTimeUnit(tab, Calendar.timeUnit)?tab:Builder.tabs[Calendar.timeUnit][0];
-				Calendar.render(w + "/month/" + year + "/" + month);
-			});
-			FlxState.router.route("app/calendar/:tab/week/:year/:week", "", function(tab, year, week) {
-				var w = Builder.tabExistsForTimeUnit(tab, Calendar.timeUnit)?tab:Builder.tabs[Calendar.timeUnit][0];
-				Calendar.render(w + "/week/" + year + "/" + week);
-			});
-            FlxState.router.route(/^app\/calendar(\/?)(.*?)/, "", function() {
+
+        FlxState.router.route(/^app\/calendar(\/?)(.*?)$/, "", function() {
+            var parse_url = /^(?:([A-Za-z]+):)?(\/{0,3})([0-9.\-A-Za-z]+)(?::(\d+))?(?:\/([^?#]*))?(?:\?([^#]*))?(?:#(.*))?$/;
+            var result = parse_url.exec(window.location.href);
+            var names = [ 'url', 'scheme', 'slash', 'host', 'port', 'path' ];
+            var i;
+            var parts = {};
+            for (i = 0; i < names.length; i += 1)
+                parts[names[i]] = result[i];
+            console.log("path: " + parts.path);
+            var pathElements = parts.path.split("/");
+            if (pathElements.length<3)
                 App.invalidPath();
-            });
-        }
-	};
+            var splits = {};
+            var splitNames = ["app", "appName", "tabName", "timeUnit"];
+            for (i = 0; i < pathElements.length; i += 1)
+                splits[splitNames[i]] = pathElements[i];
+            var validTab = _.include(["clock","map","diary","photos","list","timeline"], splits.tabName),
+                validTimeUnit = _.include(["date","week","month","year"], splits.timeUnit);
+            if (validTab && validTimeUnit) {
+                var tab = Builder.tabExistsForTimeUnit(splits.tabName, Calendar.timeUnit)?splits.tabName:Builder.tabs[Calendar.timeUnit][0];
+                switch (splits.timeUnit) {
+                    case "date":
+                        var date = pathElements[4];
+                        Calendar.render(tab + "/date/" + date);
+                        break;
+                    case "week":
+                        var year = pathElements[4],
+                            week = pathElements[5];
+                        Calendar.render(tab + "/week/" + year + "/" + week);
+                        break;
+                    case "month":
+                        var year = pathElements[4],
+                            month = pathElements[5];
+                        Calendar.render(tab + "/month/" + year + "/" + month);
+                        break;
+                    case "year":
+                        var year = pathElements[4];
+                        Calendar.render(tab + "/year/" + year);
+                        break;
+                }
+            } else
+                App.invalidPath();
+        });
+    };
 		
 	Calendar.renderState = function(state, force) {
 		if (!force&&FlxState.getState("calendar")===state) {

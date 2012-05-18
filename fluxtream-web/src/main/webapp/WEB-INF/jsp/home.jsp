@@ -23,7 +23,7 @@
 	<link rel="stylesheet" href="/css/datepicker.css">
 	<link rel="stylesheet" href="/css/qtip/jquery.qtip.min.css">
 	<link rel="stylesheet" href="/css/qtip/jquery.jqplot.min.css">
-	
+	<link rel="stylesheet" href="/static/css/jquery-ui.css">
 	<link rel="stylesheet"
 		href="/static/css/jquery-colorPicker/jquery.colorPicker.css">
 	<link rel="stylesheet" href="/static/css/msdropdown/dd.css">
@@ -31,9 +31,6 @@
 </g:compress>
 
 <link rel="stylesheet" href="/static/css/font-awesome.css">
-
-<link rel="stylesheet"
-	href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css">
 
 <script
 	src="https://maps-api-ssl.google.com/maps/api/js?libraries=geometry&v=3&sensor=false"
@@ -118,9 +115,9 @@
 				|| document
 						.write('<script src="/static/js/jquery-1.7.1.min.js"><\/script>')
 	</script>
-	<script
-		src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
 	<g:compress>
+		<script src="/static/js/jquery-ui-1.8.18.custom.min.js"></script>
+		<script src="/static/js/jquery.ui.sortable-bt.js"></script>
 		<script src="/static/tiny_mce/jquery.tinymce.js"></script>
 		<script src="/static/js/json2.js"></script>
 		<script src="/static/js/jquery.mustache-1.0.js"></script>
