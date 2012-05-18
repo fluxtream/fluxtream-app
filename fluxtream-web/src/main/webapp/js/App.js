@@ -88,8 +88,10 @@ define(
 							+ splits[1].length + 1);
 					var appName = splits[1];
 					FlxState.saveState(appName, appState);
-                    if (typeof(apps[appName])=="undefined")
+                    if (typeof(apps[appName])=="undefined") {
+                        if (console && console.log) console.log("invalid app: " + appName);
                         App.invalidPath();
+                    }
 					App.activeApp = apps[appName];
 				} else {
 					App.activeApp = apps[FlxState.defaultApp];

@@ -340,11 +340,11 @@ public class GuestServiceImpl implements GuestService {
 		if (ipLocation != null) {
 			apiDataService.addGuestLocation(guestId,
 					System.currentTimeMillis(), ipLocation.latitude,
-					ipLocation.longitude, LocationFacet.Source.GEO_IP_DB);
+					ipLocation.longitude, 0, LocationFacet.Source.GEO_IP_DB);
 		} else if (env.get("environment").equals("local")) {
             apiDataService.addGuestLocation(guestId,
 					System.currentTimeMillis(), env.getFloat("defaultLocation.latitude"),
-                    env.getFloat("defaultLocation.longitude"),
+                    env.getFloat("defaultLocation.longitude"), 0,
                     LocationFacet.Source.OTHER);
 		} else {
 			String ip2locationKey = env.get("ip2location.apiKey");
@@ -358,7 +358,7 @@ public class GuestServiceImpl implements GuestService {
 				float lat = Float.valueOf(latitude);
 				float lon = Float.valueOf(longitude);
                 apiDataService.addGuestLocation(guestId,
-						System.currentTimeMillis(), lat, lon,
+						System.currentTimeMillis(), lat, lon, 0,
                         LocationFacet.Source.IP_TO_LOCATION);
 			}
 		}

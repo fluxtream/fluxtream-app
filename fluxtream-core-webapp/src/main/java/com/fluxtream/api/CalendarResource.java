@@ -280,7 +280,8 @@ public class CalendarResource {
 			GuestSettings settings, Connector connector, ObjectType objectType)
 			throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException {
-		List<AbstractFacet> objectTypeFacets = calendarHelper.getFacets(
+        System.out.println("timezone: " + dayMetadata.timeZone);
+        List<AbstractFacet> objectTypeFacets = calendarHelper.getFacets(
 				connector,
 				objectType,
 				dayMetadata,

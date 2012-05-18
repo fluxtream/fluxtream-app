@@ -317,6 +317,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 
     //hourlyWeatherData
     function getHTMLForWeather(minuteOfDay){
+        console.log("getHTMLForWeather");
         if (hourlyWeatherData == null)
             return "";
         var i;
