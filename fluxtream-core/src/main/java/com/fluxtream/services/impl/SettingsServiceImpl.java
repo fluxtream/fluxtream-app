@@ -152,11 +152,35 @@ public class SettingsServiceImpl implements SettingsService {
         return JPAUtils.find(em,GuestAddress.class,"addresses.byType.when", guestId, type, date, date);
     }
 
-	@Override
+    //delete functions are currently unimplemented
+
+    @Override
+    public void deleteAddressById(long guestId, long id){}
+
+    @Override
+    public void deleteAllAddresses(long guestId){
+        deleteAddresses(getAllAddresses(guestId));
+    }
+
+    @Override
+    public void deleteAllAddressesAtDate(long guestId, long date){}
+
+    @Override
+    public void deleteAllAddressesOfType(long guestId, String type){}
+
+    @Override
+    public void deleteAllAddressesOfTypeForDate(long guestId, String type, long date){}
+
+    private void deleteAddresses(List<GuestAddress> addresses){
+        for (GuestAddress address : addresses)
+            em.remove(address);
+    }
+
+	/*@Override //saving for reference
 	public void removeAddress(long guestId, long addressId) {
 		GuestAddress add = em.find(GuestAddress.class, addressId);
 		if (add.guestId==guestId)
 			em.remove(add);
-	}
+	}*/
 
 }

@@ -4,6 +4,8 @@ import javax.persistence.Entity;
 import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.Column;
+import com.google.gson.annotations.Expose;
 
 @Entity(name = "Address")
 @NamedQueries({
@@ -24,17 +26,28 @@ public class GuestAddress extends AbstractEntity {
 	}
 
 	public long guestId;
-	
+
+    @Expose
 	public String address;
-	
-	public double latitude, longitude;
-	
+
+    @Expose
+	public double latitude;
+
+    @Expose
+    public double longitude;
+
+    @Expose
 	public long since;
-	
-	// not used, but let's keep it for nows
+
+    @Expose
 	public long until = Long.MAX_VALUE;
 
+    @Expose
     public String type;
+
+    @Expose
+    @Column(insertable=false, updatable=false)
+    public long id;
 	
 	@Lob
 	public String jsonStorage;

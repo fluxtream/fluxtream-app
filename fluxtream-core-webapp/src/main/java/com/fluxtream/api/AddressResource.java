@@ -1,5 +1,6 @@
 package com.fluxtream.api;
 
+import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -16,6 +17,7 @@ import com.fluxtream.domain.GuestAddress;
 import com.fluxtream.domain.metadata.DayMetadataFacet;
 import com.fluxtream.utils.HttpUtils;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.fluxtream.services.SettingsService;
 import com.fluxtream.services.MetadataService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +33,7 @@ import java.util.List;
 @Scope("request")
 public class AddressResource {
 
-    Gson gson = new Gson();
+    Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
 
     @Autowired
     SettingsService settingsService;
@@ -190,4 +192,112 @@ public class AddressResource {
             return gson.toJson(result);
         }
     }
+
+    @DELETE
+    @Path("/all")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String deleteAllAddresses(@PathParam("username") String username){
+        StatusModel result;
+        try{
+            Guest guest = guestService.getGuest(username);
+            settingsService.deleteAllAddresses(guest.getId());
+            result = new StatusModel(true, "Successfully deleted all addresses");
+        } catch (Exception e) {
+            result = new StatusModel(false, "Failed to delete all addresses: " + e.getMessage());
+        }
+        return gson.toJson(result);
+    }
+
+    @DELETE
+    @Path("/{index}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String deleteAddress(@PathParam("username") String username, @PathParam("index") int index){
+        StatusModel result;
+        try{
+            Guest guest = guestService.getGuest(username);
+            settingsService.deleteAddressById(guest.getId(),settingsService.getAllAddresses(guest.getId()).get(index).id);
+            result = new StatusModel(true, "Successfully deleted address");
+        } catch (Exception e) {
+            result = new StatusModel(false, "Failed to delete address: " + e.getMessage());
+        }
+        return gson.toJson(result);
+    }
+
+    @DELETE
+    @Path("/{selector}/{index}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String deleteAddressBySingleSelector(@PathParam("username") String username, @PathParam("selector") String selector, @PathParam("index") int index){
+        StatusModel result;
+        try{
+            Guest guest = guestService.getGuest(username);
+            List<GuestAddress> addresses;
+            try{
+                addresses = getAddressesAtDate(guest,selector);
+            } catch (Exception e) {
+                addresses = getAddressesOfType(guest,selector);
+            }
+            settingsService.deleteAddressById(guest.getId(),addresses.get(index).id);
+            result = new StatusModel(true, "Successfully deleted addresses");
+        } catch (Exception e) {
+            result = new StatusModel(false, "Could not get guest addresses: " + e.getMessage());
+
+        }
+        return gson.toJson(result);
+    }
+
+    @DELETE
+    @Path("/{selector}/all")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String deleteAddressBySingleSelector(@PathParam("username") String username, @PathParam("selector") String selector){
+        StatusModel result;
+        try{
+            Guest guest = guestService.getGuest(username);
+            try{
+                DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(),selector,true);
+                settingsService.deleteAllAddressesAtDate(guest.getId(),(dayMeta.start + dayMeta.end) / 2);
+            } catch (Exception e) {
+                settingsService.deleteAllAddressesOfType(guest.getId(),selector);
+            }
+            result = new StatusModel(true, "Successfully deleted addresses");
+        } catch (Exception e) {
+            result = new StatusModel(false, "Could not get guest addresses: " + e.getMessage());
+
+        }
+        return gson.toJson(result);
+    }
+
+    @DELETE
+    @Path("/{type}/{date}/all")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String deleteAllAddressesOfTypeAtDate(@PathParam("username") String username, @PathParam("type") String type, @PathParam("date") String date){
+        StatusModel result;
+        try{
+            Guest guest = guestService.getGuest(username);
+            DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(),date,true);
+            settingsService.deleteAllAddressesOfTypeForDate(guest.getId(),type,(dayMeta.start + dayMeta.end)/2);
+            result = new StatusModel(false, "Successfully deleted addresses");
+        } catch (Exception e) {
+            result = new StatusModel(false, "Could not delete addresses: " + e.getMessage());
+        }
+        return gson.toJson(result);
+    }
+
+    @DELETE
+    @Path("/{type}/{date}/{index}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String deleteAddressOfTypeAtDate(@PathParam("username") String username, @PathParam("type") String type, @PathParam("date") String date, @PathParam("index") int index){
+        StatusModel result;
+        try{
+            Guest guest = guestService.getGuest(username);
+            DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(),date,true);
+            List<GuestAddress> addresses = settingsService.getAllAddressesOfTypeForDate(guest.getId(),type,(dayMeta.start + dayMeta.end)/2);
+            settingsService.deleteAddressById(guest.getId(),addresses.get(index).id);
+            result = new StatusModel(false, "Successfully deleted addresses");
+        } catch (Exception e) {
+            result = new StatusModel(false, "Could not delete addresses: " + e.getMessage());
+        }
+        return gson.toJson(result);
+    }
+
+
 }

@@ -87,7 +87,7 @@ public class SettingsController {
 			@RequestParam("geocode_longitude") String longitude)
 			throws Exception {
 		long guestId = ControllerHelper.getGuestId();
-		settingsService.removeAddress(guestId, addressId);
+		settingsService.deleteAddressById(guestId, addressId);
 		setAddress(request, response, address, sinceDate, latitude, longitude);
 	}
 
