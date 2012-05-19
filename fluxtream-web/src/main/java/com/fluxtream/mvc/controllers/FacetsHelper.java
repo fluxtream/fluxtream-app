@@ -50,8 +50,8 @@ public class FacetsHelper {
 	TimeBoundariesModel getStartEndResponseBoundaries(HttpServletRequest request) {
 		TimeBoundariesModel tb = new TimeBoundariesModel();
 		HomeModel homeModel = getHomeModel(request);
-		tb.start = String.valueOf(homeModel.getStart());
-		tb.end = String.valueOf(homeModel.getEnd());
+		tb.start = homeModel.getStart();
+		tb.end = homeModel.getEnd();
 		return tb;
 	}
 
