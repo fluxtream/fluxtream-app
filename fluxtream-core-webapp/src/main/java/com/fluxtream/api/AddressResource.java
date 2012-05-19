@@ -7,6 +7,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.Configuration;
 import com.fluxtream.domain.Guest;
@@ -299,5 +300,83 @@ public class AddressResource {
         return gson.toJson(result);
     }
 
+    @POST
+    @Path("/{index}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String updateAddress(@PathParam("username") String username, @PathParam("index") int index, @FormParam("address") String address, @FormParam("latitude") @DefaultValue("91") double latitude,
+                                @FormParam("longitude") @DefaultValue("181") double longitude, @FormParam("since") String since, @FormParam("until") String until, @FormParam("type") String newType){
+        StatusModel result;
+        try{
+            Guest guest = guestService.getGuest(username);
 
+            String jsonString = null;
+            if (address != null){
+                String addressEncoded = URLEncoder.encode(address, "UTF-8");
+                jsonString = HttpUtils.fetch("https://maps.googleapis.com/maps/api/geocode/json?sensor=false&address=" + addressEncoded, env);
+            }
+
+            Long startTime, endTime = null;
+            try{
+                DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(),since,true);
+                startTime = dayMeta.start;
+            } catch (Exception e){
+                startTime = Long.parseLong(since);
+            }
+            if (until != null){
+                try{
+                    DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(),until,true);
+                    endTime = dayMeta.end;
+                } catch (Exception e){
+                    endTime = Long.parseLong(until);
+                }
+            }
+
+            GuestAddress add = settingsService.getAllAddresses(guest.getId()).get(index);
+            settingsService.updateAddress(guest.getId(),add.id,newType,address,latitude > 90 ? null : latitude,
+                                          longitude > 180 ? null : longitude,startTime,endTime,jsonString);
+            result = new StatusModel(true, "Successfully updated address");
+        } catch (Exception e) {
+            result = new StatusModel(false, "Failed to update address: " + e.getMessage());
+        }
+        return gson.toJson(result);
+    }
+
+    @POST
+    @Path("/{selector}/{index}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String updateAddressBySingleSelector(@PathParam("username") String username, @PathParam("selector") String selector, @PathParam("index") int index){
+        StatusModel result;
+        try{
+            Guest guest = guestService.getGuest(username);
+            List<GuestAddress> addresses;
+            try{
+                addresses = getAddressesAtDate(guest,selector);
+            } catch (Exception e) {
+                addresses = getAddressesOfType(guest,selector);
+            }
+            settingsService.deleteAddressById(guest.getId(),addresses.get(index).id);
+            result = new StatusModel(true, "Successfully deleted addresses");
+        } catch (Exception e) {
+            result = new StatusModel(false, "Could not get guest addresses: " + e.getMessage());
+
+        }
+        return gson.toJson(result);
+    }
+
+    @POST
+    @Path("/{type}/{date}/{index}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String updateAddressOfTypeAtDate(@PathParam("username") String username, @PathParam("type") String type, @PathParam("date") String date, @PathParam("index") int index){
+        StatusModel result;
+        try{
+            Guest guest = guestService.getGuest(username);
+            DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(),date,true);
+            List<GuestAddress> addresses = settingsService.getAllAddressesOfTypeForDate(guest.getId(),type,(dayMeta.start + dayMeta.end)/2);
+            settingsService.deleteAddressById(guest.getId(),addresses.get(index).id);
+            result = new StatusModel(false, "Successfully deleted addresses");
+        } catch (Exception e) {
+            result = new StatusModel(false, "Could not delete addresses: " + e.getMessage());
+        }
+        return gson.toJson(result);
+    }
 }

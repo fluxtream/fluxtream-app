@@ -155,7 +155,12 @@ public class SettingsServiceImpl implements SettingsService {
     //delete functions are currently unimplemented
 
     @Override
-    public void deleteAddressById(long guestId, long id){}
+    public void deleteAddressById(long guestId, long id){
+        GuestAddress address = em.find(GuestAddress.class,id);
+        if (address.guestId != guestId)
+            throw new RuntimeException("Cannot delete address you don't have ownership of.");
+        deleteAddress(address);
+    }
 
     @Override
     public void deleteAllAddresses(long guestId){
@@ -163,17 +168,59 @@ public class SettingsServiceImpl implements SettingsService {
     }
 
     @Override
-    public void deleteAllAddressesAtDate(long guestId, long date){}
+    public void deleteAllAddressesAtDate(long guestId, long date){
+        deleteAddresses(getAllAddressesForDate(guestId, date));
+    }
 
     @Override
-    public void deleteAllAddressesOfType(long guestId, String type){}
+    public void deleteAllAddressesOfType(long guestId, String type){
+        deleteAddresses(getAllAddressesOfType(guestId, type));
+    }
 
     @Override
-    public void deleteAllAddressesOfTypeForDate(long guestId, String type, long date){}
+    public void deleteAllAddressesOfTypeForDate(long guestId, String type, long date){
+        deleteAddresses(getAllAddressesOfTypeForDate(guestId,type,date));
+    }
 
+    @Transactional(readOnly=false)
     private void deleteAddresses(List<GuestAddress> addresses){
         for (GuestAddress address : addresses)
             em.remove(address);
+    }
+
+    @Transactional(readOnly=false)
+    private void deleteAddress(GuestAddress address){
+        em.remove(address);
+    }
+
+    @Override
+    public GuestAddress getAddressById(long guestId, long id){
+        GuestAddress address = em.find(GuestAddress.class,id);
+        if (address.guestId == guestId)
+            return address;
+        return null;
+    }
+
+    @Override
+    @Transactional(readOnly=false)
+    public void updateAddress(long guestId, long addressId, String type, String address, Double latitude,
+                              Double longitude, Long since, Long until, String jsonString){
+        GuestAddress add = getAddressById(guestId,addressId);
+        if (address != null)
+            add.address = address;
+        if (type != null)
+            add.type = type;
+        if (latitude != null)
+            add.latitude = latitude;
+        if (longitude != null)
+            add.longitude = longitude;
+        if (since != null)
+            add.since = since;
+        if (until != null)
+            add.until = until;
+        if (jsonString != null)
+            add.jsonStorage = jsonString;
+        em.refresh(add);
     }
 
 	/*@Override //saving for reference

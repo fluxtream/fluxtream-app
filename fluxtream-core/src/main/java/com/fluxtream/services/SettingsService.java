@@ -36,6 +36,8 @@ public interface SettingsService {
 
     public List<GuestAddress> getAllAddressesOfTypeForDate(long guestId, String type, long date);
 
+    public GuestAddress getAddressById(long guestId, long id);
+
     public void deleteAddressById(long guestId, long id);
 
     public void deleteAllAddresses(long guestId);
@@ -45,6 +47,9 @@ public interface SettingsService {
     public void deleteAllAddressesOfType(long guestId, String type);
 
     public void deleteAllAddressesOfTypeForDate(long guestId, String type, long date);
+
+    public void updateAddress(long guestId, long addressId, String type, String address, Double latitude,
+                              Double longitude, Long since, Long until, String jsonString);
 
 	public void setTemperatureUnit(long guestId, TemperatureUnit temperatureUnit);
 	
