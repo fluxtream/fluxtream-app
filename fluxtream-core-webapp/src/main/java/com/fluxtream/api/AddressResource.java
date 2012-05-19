@@ -155,12 +155,8 @@ public class AddressResource {
         }
     }
 
-    @POST
-    @Path("/{type}")
-    @Produces({ MediaType.APPLICATION_JSON })
-    public String addAddress(@PathParam("type") String type, @FormParam("address") String address, @FormParam("latitude") double latitude,
-                             @FormParam("longitude") double longitude, @FormParam("since") String since, @FormParam("until") String until,
-                             @PathParam("username") String username){
+    public String addAddress(String type, String address, double latitude, double longitude, String since,
+                             String until, String username){
         try{
             Guest guest = guestService.getGuest(username);
             long startTime, endTime = 0;
@@ -191,6 +187,20 @@ public class AddressResource {
         } catch (Exception e) {
             StatusModel result = new StatusModel(false, "Could not add guest addresses: " + e.getMessage());
             return gson.toJson(result);
+        }
+    }
+
+    @POST
+    @Path("/{input}")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String addUpdateAddress(@PathParam("username") String username, @PathParam("input") String input, @FormParam("address") String address, @FormParam("latitude") @DefaultValue("91") double latitude,
+                                   @FormParam("longitude") @DefaultValue("181") double longitude, @FormParam("since") String since, @FormParam("until") String until, @FormParam("type") String newType){
+        try{
+            int index = Integer.parseInt(input);
+            return updateAddress(username,index,address,latitude,longitude,since,until,newType);
+
+        } catch (Exception e){
+            return addAddress(input,address,latitude,longitude,since,until,username);
         }
     }
 
@@ -300,11 +310,8 @@ public class AddressResource {
         return gson.toJson(result);
     }
 
-    @POST
-    @Path("/{index}")
-    @Produces({MediaType.APPLICATION_JSON})
-    public String updateAddress(@PathParam("username") String username, @PathParam("index") int index, @FormParam("address") String address, @FormParam("latitude") @DefaultValue("91") double latitude,
-                                @FormParam("longitude") @DefaultValue("181") double longitude, @FormParam("since") String since, @FormParam("until") String until, @FormParam("type") String newType){
+    public String updateAddress(String username, int index, String address, double latitude,
+                                double longitude, String since, String until, String newType){
         StatusModel result;
         try{
             Guest guest = guestService.getGuest(username);
