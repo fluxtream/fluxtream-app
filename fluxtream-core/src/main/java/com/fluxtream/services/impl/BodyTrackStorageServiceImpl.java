@@ -146,7 +146,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
     private Converter getConverter(final String converterName) {
         if (converters.get(converterName)==null) {
             try {
-                Class converterClass = Class.forName("com.fluxtream.services.impl.converters." + converterName);
+                Class converterClass = Class.forName("com.fluxtream.services.impl.converters." + StringUtils.capitalize(converterName)+"Converter");
                 converters.put(converterName, (Converter)converterClass.newInstance());
             }
             catch (ClassNotFoundException e) {

@@ -11,4 +11,7 @@ public interface Converter {
     String convert(AbstractFacet facet);
 
     String getBodytrackChannelName();
+
+    boolean returnsFullJsonBlock();
+
 }
