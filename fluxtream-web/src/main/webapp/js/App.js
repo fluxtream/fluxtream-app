@@ -135,6 +135,8 @@ define(
 				$("#modal").modal();
 			}
 
+            App.makeModal = makeModal;
+
             App.closeModal = function(){
                 $("#modal").modal("hide");
             }

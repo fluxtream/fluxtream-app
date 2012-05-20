@@ -87,7 +87,7 @@ public class SettingsController {
 			@RequestParam("geocode_longitude") String longitude)
 			throws Exception {
 		long guestId = ControllerHelper.getGuestId();
-		settingsService.removeAddress(guestId, addressId);
+		settingsService.deleteAddressById(guestId, addressId);
 		setAddress(request, response, address, sinceDate, latitude, longitude);
 	}
 
@@ -136,7 +136,7 @@ public class SettingsController {
 			long since = datePickerDateFormatter.withZone(
 					DateTimeZone.forTimeZone(timeZone)).parseMillis(sinceDate);
 			settingsService
-					.addAddress(guestId, address, latitude, longitude, since, jsonString);
+					.addAddress(guestId, null, address, latitude, longitude, since, jsonString);
 		} catch (Exception e) {
 			e.printStackTrace();
 			statusModel = new StatusModel(false, e.getMessage());

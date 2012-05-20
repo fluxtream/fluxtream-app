@@ -149,6 +149,8 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     function highlightTimespan(map, start,end){
+        if (map.gpsTimestamps.length == 0)
+            return;
         if (map.highlightSection != null){
             map.highlightSection.setMap(null);
             map.highlightSection = null;
@@ -179,6 +181,8 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         options.map = map;
         var newPoints = new Array();
         newPoints[0] = map.getLatLngOnGPSLine(start);
+        if (newPoints[0] == null)
+            return null;
         var startIndex = map.getFirstIndexAfter(start);
         var endIndex = map.getFirstIndexBefore(end);
         for (var i = 0; i + startIndex <= endIndex; i++){
@@ -190,6 +194,8 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     function getLatLngOnGPSLine(map,time){
+        if (map.gpsTimestamps.length == 0)
+            return;
         if (time <= map.gpsTimestamps[0])
             return map.gpsPositions[0];
         if (time >= map.gpsTimestamps[map.gpsTimestamps.length - 1])
@@ -207,6 +213,8 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         var minLat, maxLat, minLng, maxLng;
         var startPoint = map.getLatLngOnGPSLine(start);
         var endPoint = map.getLatLngOnGPSLine(end);
+        if (startPoint == null || endPoint == null)
+            return;
         if (startPoint.lat() < endPoint.lat()){
             minLat = startPoint.lat();
             maxLat = endPoint.lat();
@@ -331,6 +339,9 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             map.currentHighlightedLine = null;
             map.highlightSection = null;
             map.connectorSelected = null;
+            map.gpsPosiitons = [];
+            map.gpsTimestamps = [];
+            map.gpsBounds = null;
             map.markers = {};
             map.addGPSData = function(gpsData){addGPSData(map,gpsData)};
             map.addData = function(connectorData, connectorInfoId,clickable){return addData(map,connectorData, connectorInfoId,clickable)};
@@ -346,6 +357,13 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             map.hideGPSData = function(){hideGPSData(map)};
             map.addItem = function(item,clickable){return addItemToMap(map,item,clickable)}
             map.zoomOnPoint = function(point){zoomOnPoint(map,point)};
+            map._oldFitBounds = map.fitBounds;
+            map.fitBounds = function(bounds){
+                if (bounds == null)
+                    return;
+                map._oldFitBounds(bounds);
+            }
+
             return map;
         }
     }
