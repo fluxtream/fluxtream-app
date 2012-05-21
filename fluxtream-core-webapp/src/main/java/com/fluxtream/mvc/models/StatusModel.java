@@ -1,8 +1,12 @@
 package com.fluxtream.mvc.models;
 
+import com.google.gson.annotations.Expose;
+
 public class StatusModel {
 
+    @Expose
 	public String result;
+    @Expose
 	public String message;
 	public String stackTrace;
 	public Object payload;
