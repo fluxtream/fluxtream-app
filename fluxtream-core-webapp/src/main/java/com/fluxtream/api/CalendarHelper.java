@@ -51,8 +51,8 @@ public class CalendarHelper {
 	 */
 	TimeBoundariesModel getStartEndResponseBoundaries(DayMetadataFacet dayMetadata) {
 		TimeBoundariesModel tb = new TimeBoundariesModel();
-		tb.start = String.valueOf(dayMetadata.start);
-		tb.end = String.valueOf(dayMetadata.end);
+		tb.start = dayMetadata.start;
+		tb.end = dayMetadata.end;
 		return tb;
 	}
 

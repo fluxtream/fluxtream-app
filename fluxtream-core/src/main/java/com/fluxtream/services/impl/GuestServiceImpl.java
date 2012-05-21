@@ -349,11 +349,15 @@ public class GuestServiceImpl implements GuestService {
             apiDataService.addGuestLocation(guestId,
 					locationFacet, LocationFacet.Source.GEO_IP_DB);
 		} else if (env.get("environment").equals("local")) {
-            locationFacet.latitude = env.getFloat("defaultLocation.latitude");
-            locationFacet.longitude = env.getFloat("defaultLocation.longitude");
-            apiDataService.addGuestLocation(guestId,
-					locationFacet,
-                    LocationFacet.Source.OTHER);
+            try{
+                locationFacet.latitude = env.getFloat("defaultLocation.latitude");
+                locationFacet.longitude = env.getFloat("defaultLocation.longitude");
+                apiDataService.addGuestLocation(guestId,
+                        locationFacet,
+                        LocationFacet.Source.OTHER);
+            }
+            catch (Exception e){
+            }
 		} else {
 			String ip2locationKey = env.get("ip2location.apiKey");
 			String jsonString = HttpUtils.fetch(

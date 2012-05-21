@@ -74,10 +74,10 @@
       <div class="_timeline_channelTabAndPlot">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr>
-            <td class="_timeline_channeltd">
+            <td class="_timeline_channeltd" rowspan="2">
               <div class="_timeline_channelTab"
                 id="_timeline_channelTab_{{plotId}}"
-                style="height: {{channelHeight}}px">
+                style="height: {{channelTabHeight}}px">
                 <table border="0" cellpadding="0" cellspacing="0" class="_timeline_channelTable">
                   <tr>
                     <td valign="middle" style="width:32px"><div id="{{channelElementId}}_delete_btn" class="_timeline_delete_btn"></div></td>
@@ -122,6 +122,11 @@
                 <div id="{{yAxisElementId}}" class="_timeline_yAxis"
                   style="height: {{channelHeight}}px"></div>
               </div>
+            </td>
+          </tr>
+          <tr>
+            <td colspan="2">
+              <div style="height: {{CHANNEL_PADDING}}px"></div>
             </td>
           </tr>
           <tr>
