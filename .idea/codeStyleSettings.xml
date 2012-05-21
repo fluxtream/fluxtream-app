@@ -29,6 +29,11 @@
         <XML>
           <option name="XML_LEGACY_SETTINGS_IMPORTED" value="true" />
         </XML>
+        <codeStyleSettings language="Groovy">
+          <option name="LINE_COMMENT_AT_FIRST_COLUMN" value="false" />
+          <option name="BLOCK_COMMENT_AT_FIRST_COLUMN" value="false" />
+          <option name="PARENT_SETTINGS_INSTALLED" value="true" />
+        </codeStyleSettings>
         <codeStyleSettings language="JAVA">
           <option name="KEEP_FIRST_COLUMN_COMMENT" value="false" />
           <option name="KEEP_CONTROL_STATEMENT_IN_ONE_LINE" value="false" />
