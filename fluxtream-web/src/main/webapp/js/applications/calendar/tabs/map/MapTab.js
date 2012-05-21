@@ -15,6 +15,10 @@ define(["applications/calendar/tabs/Tab",
         $("#selectedConnectors").empty();
         $("#mapFit").unbind("click");
 
+        var bounds = null;
+        if (map != null)
+            bounds = map.getBounds();
+
         if (digest.homeAddress != null && digest.homeAddress.isSet){
             map = MapUtils.newMap(new google.maps.LatLng(digest.homeAddress.latitude,digest.homeAddress.longitude),8,"the_map",false);
         }
@@ -27,7 +31,8 @@ define(["applications/calendar/tabs/Tab",
                 && digest.cachedData.google_latitude !=null &&
             digest.cachedData.google_latitude.length>0) { //make sure gps data is available before trying to display it
             map.addGPSData(digest.cachedData.google_latitude);
-            map.fitBounds(map.gpsBounds);
+            if (!document.getElementById("perserveViewCheckBox").checked)
+                bounds = map.gpsBounds;
 
             var checkedContainer = $("#selectedConnectors");
             for(var objectTypeName in digest.cachedData) {
@@ -46,13 +51,15 @@ define(["applications/calendar/tabs/Tab",
 
             $("#mapFit").show();
             $("#mapFit").click(function(){
-                zoomOnTimespan(gpsTimestamps[0],gpsTimestamps[gpsTimestamps.length-1]);
+                map.fitBounds(map.gpsBounds);
             });
 
         } else {
             $("#mapFit").hide();
             $("#selectedConnectors").append("<div class=\"emptyList\">(no location data)</div>");
         }
+        if (bounds != null)
+            map.fitBounds(bounds);
 	}
 
     function buttonClicked(button,connectorName,isGoogleLatitude){
