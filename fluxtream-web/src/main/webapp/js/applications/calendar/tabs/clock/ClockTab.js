@@ -235,6 +235,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                             else
                                 event.timeTarget = event.target.item.start;
                             event.minuteOfDay = getMinuteOfDay(event.offsetX,event.offsetY);
+                            event.flip = event.offsetY > config.CLOCK_CENTER[1];
 							showEventInfo(event);
 						});
 						$(span.node).mouseout(function() {
@@ -277,18 +278,26 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 
 
 		var tooltip = $("#" + facetType + "_" + facetId);
-        showToolTip(tip_x,tip_y,tooltip.html());
+        showToolTip(tip_x,tip_y,tooltip.html(), event.flip);
 	}
 
-    function showToolTip(x,y,contents){
+    function showToolTip(x,y,contents,flip){
         var toolTipText = contents
         toolTipText += '<div style="text-align:center">';
         if (map != null){
-            toolTipText += '<div id="mapPlaceHolder" style="display:inline-block; width:400px; height:400px; position:relative;"></div><script>document.qTipUpdate()</script>';
+            toolTipText += '<div id="mapPlaceHolder" style="display:inline-block; width:250px; height:250px; position:relative;"></div><script>document.qTipUpdate()</script>';
             timeout = setTimeout("document.hideQTipMap()",4600);
         }
         toolTipText += getHTMLForWeather(event.minuteOfDay);
         toolTipText += '</div>';
+
+        var bounding;
+        if (flip){
+            bounding = "bottom center";
+        }
+        else
+            bounding = "top center";
+
         ttpdiv.qtip({
             content: {
                 text: toolTipText
@@ -298,9 +307,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             },
             position: {
                 target: [x,y], // ... in the window
-                my: "top center",
-                adjust: { y: 13 },
-                viewport: $(document)
+                my: bounding
             },
             show: {
                 ready: true // Show it straight away
@@ -360,7 +367,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             map.zoomOnTimespan(span.item.start,span.item.end);
             markers[0] = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(event.timeTarget)});
         }
-        showToolTip(tip_x,tip_y,span.item.description);
+        showToolTip(tip_x,tip_y,span.item.description, event.flip);
     }
 	
 	function hideEventInfo() {
@@ -473,6 +480,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                             event.timeTarget = getTimestampForPoint(event.offsetX,event.offsetY);
                             event.minuteOfDay = getMinuteOfDay(event.offsetX,event.offsetY);
 							this.style.cursor = "pointer";
+                            event.flip = event.offsetY > config.CLOCK_CENTER[1];
 							showLocationBreakdownInfo(event);
 						});
 						$(span.node).mouseout(function() {
