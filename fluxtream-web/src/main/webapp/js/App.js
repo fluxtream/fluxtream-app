@@ -136,6 +136,7 @@ define(
 			}
 
             App.makeModal = makeModal;
+            App.carousel = carousel;
 
             App.closeModal = function(){
                 $("#modal").modal("hide");
