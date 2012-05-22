@@ -107,13 +107,16 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 				String fieldName = (String) eachFieldName.next();
                 try {
                     Field field;
-                    if (channelNamesMapping.get(fieldName).startsWith("#")) {
-                        String fieldHandlerName = channelNamesMapping.get(fieldName).substring(1);
+                    String bodyTrackMappedField = getBodyTrackMappedField(fieldName);
+                    if (bodyTrackMappedField.startsWith("#")) {
+                        String fieldHandlerName = bodyTrackMappedField.substring(1);
                         if (!fieldHandlerName.equalsIgnoreCase("NOOP")) {
                             // #! indicates a "fieldHandler"
                             if (fieldHandlerName.startsWith("!")) {
-                                FieldHandler fieldHandler = getFieldHandler(fieldHandlerName.substring(1));
+                                FieldHandler fieldHandler = getFieldHandler(fieldHandlerName);
                                 fieldHandler.handleField(guestId, user_id, host, deviceFacet);
+                            } else {
+                                LOG.warn("********* NO SUPPORT FOR #fields FOR NOW **************** " + fieldHandlerName);
                             }
                             // else... it might be a "converter"... if/when there is a use-case for it
                             continue;
@@ -136,10 +139,23 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 		return channelValues;
 	}
 
-    private FieldHandler getFieldHandler(final String fieldHandlerName) {
+    private String getBodyTrackMappedField(final String fieldName) {
+        String deviceName = env.bodytrackProperties.getString("zeo.dev_nickname");
+        String[] channelNamesMappings = env.bodytrackProperties.getStringArray(deviceName);
+        Map<String,String> mappings = new HashMap<String,String>();
+        for (String mapping : channelNamesMappings) {
+            String[] terms = StringUtils.split(mapping, ":");
+            if (terms[0].equals(fieldName))
+                return terms[1];
+        }
+        throw new RuntimeException("Couldn't find bodytrack mapped field for " + fieldName);
+    }
+
+    private FieldHandler getFieldHandler(String fieldHandlerName) {
+        fieldHandlerName = fieldHandlerName.substring(1);
         if (fieldHandlers.get(fieldHandlerName)==null) {
-            Object fieldHandler = beanFactory.getBean(fieldHandlerName);
-            fieldHandlers.put(fieldHandlerName, (FieldHandler)fieldHandler);
+            FieldHandler fieldHandler = (FieldHandler)beanFactory.getBean(fieldHandlerName);
+            fieldHandlers.put(fieldHandlerName, fieldHandler);
         }
         return fieldHandlers.get(fieldHandlerName);
     }

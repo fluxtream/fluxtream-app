@@ -38,6 +38,7 @@ public class ZeoSleepGraphFieldHandler implements FieldHandler {
     private void createJsonBlockHeader(Map<String,String> params) {
         JSONArray channelNamesArray = new JSONArray();
         channelNamesArray.add("Sleep_Graph");
+        params.put("dev_nickname", "Zeo");
         params.put("channel_names", channelNamesArray.toString());
         JSONObject channelSpecsObject = new JSONObject();
         JSONObject zeoTypeObject = new JSONObject();
@@ -48,14 +49,15 @@ public class ZeoSleepGraphFieldHandler implements FieldHandler {
 
     private void populateDataArray(final JSONArray dataArray, final String sleepGraph, long start) {
         int graphSize = sleepGraph.length();
+        start /= 1000;
         for (int i=0; i<graphSize; i++) {
             addSleepGraphColumn(dataArray, sleepGraph, start+i*timeIncrement, i);
         }
     }
 
-    private void addSleepGraphColumn(final JSONArray dataArray, final String sleepGraph, final long start, final int i) {
+    private void addSleepGraphColumn(final JSONArray dataArray, final String sleepGraph, final long time, final int i) {
         JSONArray sleepGraphColumnArray = new JSONArray();
-        sleepGraphColumnArray.add(start);
+        sleepGraphColumnArray.add(time);
         sleepGraphColumnArray.add(Integer.valueOf(""+sleepGraph.charAt(i)));
         dataArray.add(sleepGraphColumnArray);
     }
