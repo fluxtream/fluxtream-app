@@ -16,6 +16,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import com.fluxtream.domain.Guest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -97,7 +98,10 @@ public class CalendarResource {
 			@PathParam("week") String week, @QueryParam("filter") String filter)
 			throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException {
-		return "{}";
+        DigestModel digest = new DigestModel();
+        Guest guest = ControllerHelper.getGuest();
+        digest.username = guest.username;
+		return gson.toJson(digest);
 	}
 
 	@GET
@@ -130,7 +134,10 @@ public class CalendarResource {
             filter = "";
         }
 
-		long guestId = ControllerHelper.getGuestId();
+        Guest guest = ControllerHelper.getGuest();
+        digest.username = guest.username;
+
+		long guestId = guest.getId();
 
 		DayMetadataFacet dayMetadata = metadataService.getDayMetadata(guestId,
 				date, true);

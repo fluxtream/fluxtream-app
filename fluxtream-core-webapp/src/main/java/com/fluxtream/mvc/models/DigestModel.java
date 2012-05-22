@@ -13,6 +13,7 @@ import com.fluxtream.domain.metadata.WeatherInfo;
 
 public class DigestModel {
 
+    public String username;
 	public TimeBoundariesModel tbounds;
 	public SolarInfoModel solarInfo;
 	public int nApis;

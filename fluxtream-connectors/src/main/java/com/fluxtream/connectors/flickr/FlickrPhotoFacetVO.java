@@ -16,6 +16,7 @@ public class FlickrPhotoFacetVO extends
 	@Override
 	public void fromFacet(FlickrPhotoFacet facet, TimeInterval timeInterval,
 			GuestSettings settings) {
+        start = facet.datetaken;
 		startMinute = toMinuteOfDay(new Date(facet.datetaken),
 				timeInterval.timeZone);
 		this.photoUrl = "http://farm" + facet.farm + ".static.flickr.com/"
@@ -34,5 +35,4 @@ public class FlickrPhotoFacetVO extends
 		// TODO...
 		return null;
 	}
-
 }
