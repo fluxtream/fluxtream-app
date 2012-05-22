@@ -270,8 +270,11 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             if (markers[0] != null){
                 markers[0].doHighlighting();
                 markers[0].hideMarker();
-                markers[1] = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(event.timeTarget)});
-                map.zoomOnPoint(markers[1].getPosition());
+                markers[1] = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(event.timeTarget),
+                                                    icon:markers[0].getIcon(),shadow:markers[0].getShadow()});
+                map.enhanceMarker(markers[1],event.timeTarget);
+                markers[1].showCircle();
+                map.zoomOnMarker(markers[1]);
             }
         }
 
@@ -364,8 +367,11 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 
         if (map != null){
             map.highlightTimespan(span.item.start,span.item.end);
-            map.zoomOnTimespan(span.item.start,span.item.end);
+            //map.zoomOnTimespan(span.item.start,span.item.end);
             markers[0] = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(event.timeTarget)});
+            map.enhanceMarker(markers[0],event.timeTarget);
+            markers[0].showCircle();
+            map.zoomOnMarker(markers[0]);
         }
         showToolTip(tip_x,tip_y,span.item.description, event.flip);
     }

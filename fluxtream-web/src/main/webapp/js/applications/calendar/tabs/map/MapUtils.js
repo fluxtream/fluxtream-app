@@ -12,6 +12,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             var lng = gpsData[i].position[1];
             map.gpsPositions[i] = new google.maps.LatLng(lat,lng);
             map.gpsTimestamps[i] = gpsData[i].start;
+            map.gpsAccuracies[i] = gpsData[i].accuracy;
             if (lat < minLat)
                 minLat = lat;
             if (lat > maxLat)
@@ -71,9 +72,13 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             return marker;
         google.maps.event.addListener(marker, "click", function(){
             map.connectorSelected = item.type;
+            if (map.markerSelected != null)
+                map.markerSelected.hideCircle();
+            map.markerSelected = marker;
             map.infoWindow.setContent('<div style="text-align:center;"><img class="mapImagePreview" src="' + item.photoUrl + '"></img></div>');
             map.infoWindow.open(map,marker);
             marker.doHighlighting();
+            marker.showCircle();
         });
     }
 
@@ -128,22 +133,46 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             return marker;
         google.maps.event.addListener(marker, "click", function(){
             map.connectorSelected = item.type;
+            if (map.markerSelected != null)
+                map.markerSelected.hideCircle();
+            map.markerSelected = marker;
             var tooltip = $("#" + item.type + "_" + item.id).html();
             if (tooltip == null)
                 tooltip = "no description available";
             map.infoWindow.setContent(tooltip);
             map.infoWindow.open(map,marker);
             marker.doHighlighting();
+            marker.showCircle();
         });
         return marker;
     }
 
-    function enhanceMarker(map, marker,start,end){
+    function enhanceMarker(map, marker, start, end){
         if (marker._oldSetMap != null)
             return;
         marker._oldSetMap = marker.setMap;
         marker.targetMap = null;
+        marker.circle = null;
+        var accuracy = getGPSAccuracy(map,start);
+        marker.showCircle = function(){
+            if (marker.circle != null)
+                return;
+            marker.circle = new google.maps.Circle({center:marker.getPosition(),
+                                                   map:map,
+                                                   radius:accuracy,
+                                                   fillColor:"red",
+                                                   fillOpacity:0.5,
+                                                   strokeOpacity:0});
+        }
+        marker.hideCircle = function(){
+            if (marker.circle == null)
+                return;
+            marker.circle.setMap(null);
+            marker.circle = null;
+        }
         marker.setMap = function(newMap){
+            if (marker.circle != null)
+                marker.circle.setMap(newMap);
             if (marker.line != null && marker.line === map.currentHighlightedLine){
                 if (newMap == null){
                     map.currentHighlightedLine.setMap(null);
@@ -232,9 +261,24 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         return new google.maps.Polyline(options);
     }
 
+    function getGPSAccuracy(map,time){
+        if (map.gpsTimestamps.length == 0)
+            return -1;
+        if (time <= map.gpsTimestamps[0])
+            return map.gpsAccuracies[0];
+        if (map >= map.gpsTimestamps[map.gpsTimestamps.length - 1])
+            return map.gpsAccuracies[map.gpsAccuracies.length - 1];
+
+        var endIndex;
+        for (endIndex = 1; endIndex < map.gpsTimestamps.length && map.gpsTimestamps[endIndex] < time; endIndex++);
+        var startIndex = endIndex - 1;
+        var percentThrough = (time - map.gpsTimestamps[startIndex]) / (map.gpsTimestamps[endIndex] - map.gpsTimestamps[startIndex]);
+        return (map.gpsAccuracies[endIndex] - map.gpsAccuracies[startIndex]) * percentThrough + map.gpsAccuracies[startIndex];
+    }
+
     function getLatLngOnGPSLine(map,time){
         if (map.gpsTimestamps.length == 0)
-            return;
+            return null;
         if (time <= map.gpsTimestamps[0])
             return map.gpsPositions[0];
         if (time >= map.gpsTimestamps[map.gpsTimestamps.length - 1])
@@ -292,12 +336,20 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         map.setZoom(18);
     }
 
+    function zoomOnMarker(map,marker){
+        if (marker.circle == null)
+            zoomOnPoint(map,marker);
+        else
+            map.fitBounds(marker.circle.getBounds());
+    }
+
     function hideData(map,connectorId){
         if (map.markers[connectorId] == null)
             return;
         if (map.connectorSelected == connectorId){
             map.infoWindow.close();
             map.connectorSelected = null;
+            map.selectedMarker.hideCircle();
         }
         for (var i = 0; i < map.markers[connectorId].length; i++){
             map.markers[connectorId][i].setMap(null);
@@ -309,6 +361,8 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             return;
         for (var i = 0; i < map.markers[connectorId].length; i++){
             map.markers[connectorId][i].setMap(map);
+            if (map.selectedMarker == map.markers[connectorId][i])
+                map.selectedMarker.showCircle();
         }
     }
 
@@ -378,8 +432,10 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             map.currentHighlightedLine = null;
             map.highlightSection = null;
             map.connectorSelected = null;
+            map.selectedMarker = null;
             map.gpsPosiitons = [];
             map.gpsTimestamps = [];
+            map.gpsAccuracies = [];
             map.gpsBounds = null;
             map.markers = {};
             map.addGPSData = function(gpsData){addGPSData(map,gpsData)};
@@ -396,6 +452,8 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             map.hideGPSData = function(){hideGPSData(map)};
             map.addItem = function(item,clickable){return addItemToMap(map,item,clickable)}
             map.zoomOnPoint = function(point){zoomOnPoint(map,point)};
+            map.zoomOnMarker = function(marker){zoomOnMarker(map,marker)};
+            map.enhanceMarker = function(marker,start,end){enhanceMarker(map,marker,start,end)};
             map._oldFitBounds = map.fitBounds;
             map.fitBounds = function(bounds){
                 if (bounds == null)
