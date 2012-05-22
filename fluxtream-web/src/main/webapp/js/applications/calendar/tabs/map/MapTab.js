@@ -4,11 +4,11 @@ define(["applications/calendar/tabs/Tab",
 
 	var map = null;
 
-    function render(digest, timeUnit) {
-        this.getTemplate("text!applications/calendar/tabs/map/map.html", "map", function(){setup(digest);});
+    function render(digest, timeUnit, calendarState) {
+        this.getTemplate("text!applications/calendar/tabs/map/map.html", "map", function(){setup(digest,calendarState);});
     }
 
-    function setup(digest) {
+    function setup(digest, calendarState) {
         $("#tooltips").load("/calendar/tooltips");
         App.fullHeight();
         $("#the_map").empty();
@@ -31,6 +31,15 @@ define(["applications/calendar/tabs/Tab",
                 && digest.cachedData.google_latitude !=null &&
             digest.cachedData.google_latitude.length>0) { //make sure gps data is available before trying to display it
             map.addGPSData(digest.cachedData.google_latitude);
+
+            $.ajax("/api/guest/" + digest.username + "/photo/" + calendarState,{
+                success: function(data, textStatus, jqXHR){
+                    if (data != null && data.length != 0)
+                        map.addData(data,data[0].type,true);
+                }
+
+            });
+
             if (!document.getElementById("perserveViewCheckBox").checked)
                 bounds = map.gpsBounds;
 

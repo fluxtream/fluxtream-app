@@ -7,6 +7,7 @@ public class PhotoModel {
     public String thumbnailUrl;
     public long timeTaken;
     public String textDescription;
+    public String type = "photo";
 
     public PhotoModel(AbstractPhotoFacetVO facet){
         photoUrl = facet.photoUrl;

@@ -39,6 +39,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             case "picasa":
             case "flickr":
             case "lastfm-recent_track":
+            case "photo":
                 break;
             default:
                 return false;
@@ -47,7 +48,38 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         return map.markers[connectorInfoId] != null;
     }
 
+    function addImagesToMap(map,items,clickable){
+        var markerArray = new Array();
+        for (var i = 0; i < items.length; i++){
+            var marker = addImageToMap(map,items[i],clickable);
+            if (marker != null)
+                markerArray[markerArray.length] = marker;
+        }
+        if (markerArray.length = 0);
+            markerArray = null;
+        return markerArray;
+    }
+
+    function addImageToMap(map,item,clickable){
+        var category = Config.getConfig().SOCIAL_CATEGORY;
+        var start = item.timeTaken;
+        if (start < map.gpsTimestamps[0] || start > map.gpsTimestamps[map.gpsTimestamps.length - 1])
+            return null;
+        var marker = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(start), icon:category.icon, shadow:category.shadow});
+        enhanceMarker(map,marker,start,null);
+        if (!clickable)
+            return marker;
+        google.maps.event.addListener(marker, "click", function(){
+            map.connectorSelected = item.type;
+            map.infoWindow.setContent('<div style="text-align:center;"><img class="mapImagePreview" src="' + item.photoUrl + '"></img></div>');
+            map.infoWindow.open(map,marker);
+            marker.doHighlighting();
+        });
+    }
+
     function addItemsToMap(map,items,clickable){
+        if (items.length != 0 && items[0].type == "photo")
+            return addImagesToMap(map,items,clickable);
         var markerArray = new Array();
         for (var i = 0; i < items.length; i++){
             var marker = addItemToMap(map,items[i],clickable);
@@ -84,19 +116,37 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 category = Config.getConfig().MEDIA_CATEGORY;
                 break;
             default:
-                return false;
+                return null;
         }
         var start = item.start;
         var end = item.end;
         if (start > map.gpsTimestamps[map.gpsTimestamps.length - 1] || (end == null && start < map.gpsTimestamps[0]))
             return;
         var marker = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(start), icon:category.icon, shadow:category.shadow});
+        enhanceMarker(map,marker,start,end);
+        if (!clickable)
+            return marker;
+        google.maps.event.addListener(marker, "click", function(){
+            map.connectorSelected = item.type;
+            var tooltip = $("#" + item.type + "_" + item.id).html();
+            if (tooltip == null)
+                tooltip = "no description available";
+            map.infoWindow.setContent(tooltip);
+            map.infoWindow.open(map,marker);
+            marker.doHighlighting();
+        });
+        return marker;
+    }
+
+    function enhanceMarker(map, marker,start,end){
+        if (marker._oldSetMap != null)
+            return;
         marker._oldSetMap = marker.setMap;
         marker.targetMap = null;
         marker.setMap = function(newMap){
             if (marker.line != null && marker.line === map.currentHighlightedLine){
                 if (newMap == null){
-                   map.currentHighlightedLine.setMap(null);
+                    map.currentHighlightedLine.setMap(null);
                 }
                 else if(map == newMap){
                     map.currentHighlightedLine.setMap(map);
@@ -134,18 +184,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                     map.currentHighlightedLine.setMap(null);
             }
         }
-        if (!clickable)
-            return marker;
-        google.maps.event.addListener(marker, "click", function(){
-            map.connectorSelected = item.type;
-            var tooltip = $("#" + item.type + "_" + item.id).html();
-            if (tooltip == null)
-                tooltip = "no description available";
-            map.infoWindow.setContent(tooltip);
-            map.infoWindow.open(map,marker);
-            marker.doHighlighting();
-        });
-        return marker;
+
     }
 
     function highlightTimespan(map, start,end){
