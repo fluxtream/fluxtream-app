@@ -10,9 +10,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
-import com.fluxtream.services.impl.converters.Converter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +27,6 @@ import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.BodyTrackStorageService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
-import com.fluxtream.utils.HttpUtils;
 
 @Service
 public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
@@ -46,7 +45,13 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 	@Autowired
 	MetadataService metadataService;
 
-    private Hashtable<String, Converter> converters = new Hashtable<String, Converter>();
+    @Autowired
+    BodyTrackHelper bodyTrackHelper;
+
+    @Autowired
+    BeanFactory beanFactory;
+
+    private Hashtable<String, FieldHandler> fieldHandlers = new Hashtable<String, FieldHandler>();
 
 	@Override
 	public void storeApiData(long guestId, List<AbstractFacet> facets) {
@@ -81,30 +86,17 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 		params.put("channel_names", makeJSONArray(channelNamesMapping.values(), true));
 		List<AbstractFacet> deviceFacets = facetsByDeviceNickname.get(deviceName);
 		List<String> channelValues = extractChannelValuesFromFacets(
-				channelNamesMapping, deviceFacets);
+				channelNamesMapping, deviceFacets, guestId, user_id, host);
 		String jsonArray = makeJSONArray(channelValues, false);
 		System.out.println("jsonArray: " + jsonArray);
 		params.put("data", jsonArray);
 
-		try {
-			String result = HttpUtils.fetch("http://" + host + "/users/"
-					+ user_id + "/upload", params, env);
-			if (result.toLowerCase().startsWith("awesome")) {
-				LOG.info("Data successfully uploaded to BodyTrack: guestId: "
-						+ guestId);
-			} else {
-                LOG.warn("Could not upload data to BodyTrack data store: "
-						+ result);
-			}
-		} catch (Exception e) {
-            LOG.warn("Could not upload data to BodyTrack data store: "
-					+ e.getMessage());
-		}
-	}
+        bodyTrackHelper.uploadToBodyTrack(guestId, user_id, host, params);
+    }
 
-	private List<String> extractChannelValuesFromFacets(
-			Map<String, String> channelNamesMapping,
-			List<AbstractFacet> deviceFacets) {
+    private List<String> extractChannelValuesFromFacets(
+            Map<String, String> channelNamesMapping,
+            List<AbstractFacet> deviceFacets, final long guestId, final String user_id, final String host) {
 		List<String> channelValues = new ArrayList<String>();
 		for (AbstractFacet deviceFacet : deviceFacets) {
 			Iterator<String> eachFieldName = channelNamesMapping.keySet().iterator();
@@ -115,14 +107,18 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 				String fieldName = (String) eachFieldName.next();
                 try {
                     Field field;
-                    if (channelNamesMapping.get(fieldName).startsWith("#")) {
-                        String converterName = channelNamesMapping.get(fieldName).substring(1);
-                        if (!converterName.equalsIgnoreCase("NOOP")) {
-                            Converter converter = getConverter(converterName);
-                            sb.append(",");
-                            field = deviceFacet.getClass().getField(fieldName);
-                            Object channelValue = field.get(deviceFacet);
-                            sb.append(converter.convert(deviceFacet));
+                    String bodyTrackMappedField = getBodyTrackMappedField(fieldName);
+                    if (bodyTrackMappedField.startsWith("#")) {
+                        String fieldHandlerName = bodyTrackMappedField.substring(1);
+                        if (!fieldHandlerName.equalsIgnoreCase("NOOP")) {
+                            // #! indicates a "fieldHandler"
+                            if (fieldHandlerName.startsWith("!")) {
+                                FieldHandler fieldHandler = getFieldHandler(fieldHandlerName);
+                                fieldHandler.handleField(guestId, user_id, host, deviceFacet);
+                            } else {
+                                LOG.warn("********* NO SUPPORT FOR #fields FOR NOW **************** " + fieldHandlerName);
+                            }
+                            // else... it might be a "converter"... if/when there is a use-case for it
                             continue;
                         }
                     }
@@ -143,20 +139,25 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 		return channelValues;
 	}
 
-    private Converter getConverter(final String converterName) {
-        if (converters.get(converterName)==null) {
-            try {
-                Class converterClass = Class.forName("com.fluxtream.services.impl.converters." + converterName);
-                converters.put(converterName, (Converter)converterClass.newInstance());
-            }
-            catch (ClassNotFoundException e) {
-                LOG.error("Can't find converter class " + converterName, e);
-            }
-            catch (Exception e) {
-                LOG.error("EXCEPTION_DESCRIPTION_HERE", e);
-            }
+    private String getBodyTrackMappedField(final String fieldName) {
+        String deviceName = env.bodytrackProperties.getString("zeo.dev_nickname");
+        String[] channelNamesMappings = env.bodytrackProperties.getStringArray(deviceName);
+        Map<String,String> mappings = new HashMap<String,String>();
+        for (String mapping : channelNamesMappings) {
+            String[] terms = StringUtils.split(mapping, ":");
+            if (terms[0].equals(fieldName))
+                return terms[1];
         }
-        return converters.get(converterName);
+        throw new RuntimeException("Couldn't find bodytrack mapped field for " + fieldName);
+    }
+
+    private FieldHandler getFieldHandler(String fieldHandlerName) {
+        fieldHandlerName = fieldHandlerName.substring(1);
+        if (fieldHandlers.get(fieldHandlerName)==null) {
+            FieldHandler fieldHandler = (FieldHandler)beanFactory.getBean(fieldHandlerName);
+            fieldHandlers.put(fieldHandlerName, fieldHandler);
+        }
+        return fieldHandlers.get(fieldHandlerName);
     }
 
     private String makeJSONArray(Collection<String> values, boolean addQuotes) {
@@ -181,7 +182,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 			String[] terms = StringUtils.split(mapping, ":");
             if (terms[1].startsWith("#")) {
                 String converterName = terms[1].substring(1);
-                String bodytrackChannelName = getConverter(converterName).getBodytrackChannelName();
+                String bodytrackChannelName = getFieldHandler(converterName).getBodytrackChannelName();
                 mappings.put(terms[0], bodytrackChannelName);
             } else
     			mappings.put(terms[0], terms[1]);

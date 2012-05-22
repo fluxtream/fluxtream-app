@@ -72,7 +72,7 @@ public class GoogleLatitudeUpdater extends AbstractGoogleOAuthUpdater {
 			}
 			Collections.sort(storedLocations);
 			LocationFacet oldest = storedLocations.get(0);
-            loadHistory(updateInfo, from, oldest.timestampMs);
+            loadHistory(updateInfo, from, oldest.timestampMs-1000);
 		}
 	}
 
