@@ -24,12 +24,11 @@ define(["applications/calendar/tabs/Tab",
     }
 
     function getPhotoHTML(photoData){
-        var html = '<li class="span2"><a class="thumbnail">';
-        html += '<img style="cursor: pointer"';
-        html += 'src="';
+        var html = "<div class='thumbnailContainer'>";
+        html += "<div class='photoThumbnail' style='background-image: url(";
         html += photoData.photoUrl;
-        html += '" /></a></li>'
-        return html;
+        html += ")'></div></div>";
+       return html;
     }
 
     function buildCarouselHTML(data){
@@ -38,11 +37,11 @@ define(["applications/calendar/tabs/Tab",
         html += '<div class="modal-body" style="overflow:hidden"><div id="photosCarousel" class="carousel">';
         html += '<div class="carousel-inner">';
         for (var i = 0; i < data.length; i++){
-            html += '<div id="photo-' + i + '" class="item';
+            html += '<div style="text-align:center;" id="photo-' + i + '" class="item';
             if (i == 0)
                 html += " active";
             html += '" style="overflow:none">';
-            html += '<img src="' + data[i].photoUrl + '" /></div>';
+            html += '<img style="display:inline-block" src="' + data[i].photoUrl + '" /></div>';
         }
         if (data.length > 1){
           html += '<a class="carousel-control left" href="#photosCarousel" data-slide="prev">&lsaquo;</a>';
@@ -101,7 +100,7 @@ define(["applications/calendar/tabs/Tab",
     function onDataRecieved(data){
         $("#photoTab").empty();
         var carouselHTML = buildCarouselHTML(data);
-        var currentPhotosList = $("<ul class='thumbnails'></ul>");
+        var currentPhotosList = $('<div class="thumbnailGroup"></div>');
         var currentDate = null;
         var multipleDays = false;
         for (var i = 0; i < data.length; i++){
@@ -113,12 +112,13 @@ define(["applications/calendar/tabs/Tab",
                 $("#photoTab").append(getDateHTML(currentDate));
                 $("#photoTab").append(currentPhotosList);
                 multipleDays =  true;
-                currentPhotosList = $("<ul class='thumbnails'></ul>");
+                currentPhotosList = $("<div class='thumbnailGroup'></div>");
             }
             currentDate = date;
             var photo = $(getPhotoHTML(data[i]));
-            photo.click(function(){
+            photo.click({i:i},function(event){
                 App.makeModal(carouselHTML);
+                App.carousel(event.data.i);
             });
             currentPhotosList.append(photo);
         }
