@@ -1575,8 +1575,13 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
             dateAxis.addAxisChangeListener(function() {
                 var center = (dateAxis.getMin() + dateAxis.getMax()) / 2.0;
                 var date = new Date(center * 1000);
+                var dateChangeBuffer = 24 * 3600 * 1000 / 12;
+                var dateEarly = new Date(center * 1000 - dateChangeBuffer);
+                var dateLater = new Date(center * 1000 + dateChangeBuffer);
                 var dateString = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate();
-                if (dateString != prevDateString) {
+                var dateStringEarly = dateEarly.getFullYear() + "-" + (dateEarly.getMonth() + 1) + "-" + dateEarly.getDate();
+                var dateStringLater = dateLater.getFullYear() + "-" + (dateLater.getMonth() + 1) + "-" + dateLater.getDate();
+                if (dateString != prevDateString && dateStringEarly != prevDateString && dateStringLater != prevDateString) {
                     Calendar.dateChanged(dateString, "day");
                     prevDateString = dateString;
                 }
