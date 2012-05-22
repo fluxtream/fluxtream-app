@@ -102,7 +102,6 @@ define(["applications/calendar/tabs/Tab",
         var carouselHTML = buildCarouselHTML(data);
         var currentPhotosList = $('<div class="thumbnailGroup"></div>');
         var currentDate = null;
-        var multipleDays = false;
         for (var i = 0; i < data.length; i++){
             var date = new Date(data[i].timeTaken);
             if (currentDate == null){
@@ -111,7 +110,6 @@ define(["applications/calendar/tabs/Tab",
             else if (currentDate.getMonth() != date.getMonth() || currentDate.getYear() != date.getYear() || currentDate.getDate() != date.getDate()){
                 $("#photoTab").append(getDateHTML(currentDate));
                 $("#photoTab").append(currentPhotosList);
-                multipleDays =  true;
                 currentPhotosList = $("<div class='thumbnailGroup'></div>");
             }
             currentDate = date;
@@ -122,11 +120,10 @@ define(["applications/calendar/tabs/Tab",
             });
             currentPhotosList.append(photo);
         }
-
-        if (multipleDays){
+        if (currentDate != null){
             $("#photoTab").append(getDateHTML(currentDate));
+            $("#photoTab").append(currentPhotosList);
         }
-        $("#photoTab").append(currentPhotosList);
 
     }
 
