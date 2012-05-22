@@ -371,7 +371,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
     }
 	
 	function hideEventInfo() {
-        if (ttpdiv != null)
+        if (ttpdiv != null && ttpdiv.qtip != null)
             ttpdiv.qtip('hide');
         if (map != null){
             clearTimeout(timeout);
