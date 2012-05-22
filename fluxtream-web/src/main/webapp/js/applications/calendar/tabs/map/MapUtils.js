@@ -72,9 +72,9 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             return marker;
         google.maps.event.addListener(marker, "click", function(){
             map.connectorSelected = item.type;
-            if (map.markerSelected != null)
-                map.markerSelected.hideCircle();
-            map.markerSelected = marker;
+            if (map.selectedMarker != null)
+                map.selectedMarker.hideCircle();
+            map.selectedMarker = marker;
             map.infoWindow.setContent('<div style="text-align:center;"><img class="mapImagePreview" src="' + item.photoUrl + '"></img></div>');
             map.infoWindow.open(map,marker);
             marker.doHighlighting();
@@ -133,9 +133,9 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             return marker;
         google.maps.event.addListener(marker, "click", function(){
             map.connectorSelected = item.type;
-            if (map.markerSelected != null)
-                map.markerSelected.hideCircle();
-            map.markerSelected = marker;
+            if (map.selectedMarker != null)
+                map.selectedMarker.hideCircle();
+            map.selectedMarker = marker;
             var tooltip = $("#" + item.type + "_" + item.id).html();
             if (tooltip == null)
                 tooltip = "no description available";
@@ -349,7 +349,6 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         if (map.connectorSelected == connectorId){
             map.infoWindow.close();
             map.connectorSelected = null;
-            map.selectedMarker.hideCircle();
         }
         for (var i = 0; i < map.markers[connectorId].length; i++){
             map.markers[connectorId][i].setMap(null);
