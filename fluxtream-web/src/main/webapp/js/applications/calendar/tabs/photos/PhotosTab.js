@@ -13,15 +13,25 @@ define(["applications/calendar/tabs/Tab",
 
     function setup(digest, timeUnit, calendarState){
         $("#photoTab").empty();
-        $("#photoTab").append($("<div style='text-align:center'>Retrieving photos...</div>"))
+        $("#photoTab").append("<div style='text-align:center'>Retrieving photos...</div>")
         $.ajax("/api/guest/" + digest.username + "/photo/" + calendarState,{
             success: function(data, textStatus, jqXHR){
                 onDataRecieved(data);
+            },
+            error: function(jqXHR, textStatus){
+                $("#photoTab").empty();
+                showNoPhotos();
+                $("#photoTab").append('<div class="alert alert-error"><button class="close" data-dismiss="alert">×</button><strong>Error!</strong> Photos could not be retrieved!</div>');
             }
 
         });
 
     }
+
+    function showNoPhotos(){
+        $("#photoTab").append("<div class=\"emptyList\">(no photos)</div>");
+    }
+
 
     function getPhotoHTML(photoData){
         var html = "<div class='thumbnailContainer'>";
@@ -100,6 +110,10 @@ define(["applications/calendar/tabs/Tab",
 
     function onDataRecieved(data){
         $("#photoTab").empty();
+        if (data.length == 0){
+            showNoPhotos();
+            return;
+        }
         var carouselHTML = buildCarouselHTML(data);
         var currentPhotosList = $('<div class="thumbnailGroup"></div>');
         var currentDate = null;
