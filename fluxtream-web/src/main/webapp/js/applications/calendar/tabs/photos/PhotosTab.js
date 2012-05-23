@@ -43,11 +43,12 @@ define(["applications/calendar/tabs/Tab",
             html += '" style="overflow:none">';
             html += '<img style="display:inline-block" src="' + data[i].photoUrl + '" /></div>';
         }
+        html += "</div>";
         if (data.length > 1){
           html += '<a class="carousel-control left" href="#photosCarousel" data-slide="prev">&lsaquo;</a>';
           html += '<a class="carousel-control right" href="#photosCarousel" data-slide="next">&rsaquo;</a>';
         }
-        html += '</div></div><div class="modal-footer"></div></div>';
+        html += '</div><div class="modal-footer"></div></div>';
         return html;
     }
 
