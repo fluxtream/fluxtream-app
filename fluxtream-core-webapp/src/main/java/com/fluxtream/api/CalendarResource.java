@@ -98,10 +98,7 @@ public class CalendarResource {
 			@PathParam("week") String week, @QueryParam("filter") String filter)
 			throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException {
-        DigestModel digest = new DigestModel();
-        Guest guest = ControllerHelper.getGuest();
-        digest.username = guest.username;
-		return gson.toJson(digest);
+        return "{}";
 	}
 
 	@GET
@@ -135,7 +132,6 @@ public class CalendarResource {
         }
 
         Guest guest = ControllerHelper.getGuest();
-        digest.username = guest.username;
 
 		long guestId = guest.getId();
 

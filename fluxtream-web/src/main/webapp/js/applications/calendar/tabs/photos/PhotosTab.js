@@ -14,7 +14,7 @@ define(["applications/calendar/tabs/Tab",
     function setup(digest, timeUnit, calendarState){
         $("#photoTab").empty();
         $("#photoTab").append("<div style='text-align:center'>Retrieving photos...</div>")
-        $.ajax("/api/guest/" + digest.username + "/photo/" + calendarState,{
+        $.ajax("/api/guest/" + App.getUsername() + "/photo/" + calendarState,{
             success: function(data, textStatus, jqXHR){
                 onDataRecieved(data);
             },

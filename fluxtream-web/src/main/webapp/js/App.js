@@ -155,6 +155,10 @@ define(
 				});
 			};
 
+            App.addresses = function() {
+
+            }
+
 			App.removeConnector = function(api) {
 				var c = confirm("If you wrote comments on events related to this connector, "
 						+ "you will loose them forever.\n"
@@ -245,6 +249,11 @@ define(
                 });
             }
 
+            function getUsername(){
+                return $("#flxUsername").html();
+            }
+
+            App.getUsername = getUsername;
 			App.initialize = initialize;
 			App.renderApp = renderApp;
 			App.state = FlxState;
