@@ -43,7 +43,7 @@ define(["applications/calendar/tabs/Tab",
 
     function buildCarouselHTML(data){
         var html =  '<div class="modal fade" id="modal"><div class="modal-header">';
-        html += '<a href="#" class="close" data-dismiss="modal">&times;</a></div>'
+        html += '<h3>&nbsp;<a href="#" class="close" data-dismiss="modal">&times;</a></h3></div>'
         html += '<div class="modal-body" style="overflow:hidden"><div id="photosCarousel" class="carousel">';
         html += '<div class="carousel-inner">';
         for (var i = 0; i < data.length; i++){
