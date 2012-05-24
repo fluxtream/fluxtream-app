@@ -34,7 +34,7 @@ define(["applications/calendar/tabs/Tab",
 
             $.ajax("/api/guest/" + digest.username + "/photo/" + calendarState,{
                 success: function(data, textStatus, jqXHR){
-                    if (data != null && data.length != 0)
+                    if (data != null && data.result == null && data.length != 0)
                         map.addData(data,data[0].type,true);
                 }
 
