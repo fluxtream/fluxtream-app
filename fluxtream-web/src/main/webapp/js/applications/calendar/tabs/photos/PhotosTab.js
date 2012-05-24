@@ -62,51 +62,110 @@ define(["applications/calendar/tabs/Tab",
         return html;
     }
 
-    function getDateHTML(date){
-        var html = "<hr><div>";
+    function formatDate(date){
+        var value = "";
         switch (date.getMonth()){
             case 0:
-                html += "January";
+                value += "January";
                 break;
             case 1:
-                html + "February";
+                value + "February";
                 break;
             case 2:
-                html += "March";
+                value += "March";
                 break;
             case 3:
-                html += "April";
+                value += "April";
                 break;
             case 4:
-                html += "May";
+                value += "May";
                 break;
             case 5:
-                html += "June";
+                value += "June";
                 break;
             case 6:
-                html += "July";
+                value += "July";
                 break;
             case 7:
-                html += "August";
+                value += "August";
                 break;
             case 8:
-                html += "September";
+                value += "September";
                 break;
             case 9:
-                html += "October";
+                value += "October";
                 break;
             case 10:
-                html += "November";
+                value += "November";
                 break;
             case 11:
-                html += "December";
+                value += "December";
                 break;
         }
-        html += " " + date.getDate();
-        html += ", " + date.getFullYear();
-        html += "</div>";
-        return html;
+        value += " " + date.getDate();
+        value += ", " + date.getFullYear();
+        return value;
     }
+
+    function buildCarouselPhotos(photos,onDone){
+        var photosHTML = ""
+        var i = 0;
+        var loadNextPhoto = function (){
+            App.loadHTMLTemplate("applications/calendar/tabs/photos/photosTemplate.html","carouselPhoto",{
+                active:" active",
+                photoURL:photos[i].photoURL
+            }, function(html){
+                photosHTML += html;
+                i++;
+                if (i == photos.length)
+                    onDone(photosHTML);
+                else
+                    loadNextPhoto();
+            });
+        }
+        loadNextPhoto();
+
+    }
+
+    function buildMainHTML(photos,onDone){
+        var i = 0;
+        var photosHTML = "";
+        var groupHTML = "";
+        var currentDate = new Date(photos[i].timeTaken);
+        var loadNextPhoto = function(){
+            App.loadHTMLTemplate("applications/calendar/tabs/photos/photosTemplate.html","photoThumbnail",{
+                id:i,
+                photoURL:photos[i].photoUrl
+            }, function(html){
+                var date = new Date(photos[i].timeTaken);
+                photosHTML += html;
+                i++;
+                var mainCallback = this;
+                if (i == photos.length || currentDate.getMonth() != date.getMonth() || currentDate.getYear() != date.getYear()
+                    || currentDate.getDate() != date.getDate()){
+                    App.loadHTMLTemplate("applications/calendar/tabs/photos/photosTemplate.html","thumbnailGroup",{
+                        date:formatDate(currentDate),
+                        thumbnails:photosHTML
+                    }, function(group){
+                        groupHTML += group;
+                        if (i == photos.length){
+                            onDone(groupHTML);
+                        }
+                        else{
+                            currentDate = date;
+                            loadNextPhoto();
+                        }
+                    });
+                }
+                else{
+                    loadNextPhoto();
+                }
+            });
+        }
+        loadNextPhoto();
+    }
+
+
 
     function onDataRecieved(data){
         $("#photoTab").empty();
@@ -114,31 +173,23 @@ define(["applications/calendar/tabs/Tab",
             showNoPhotos();
             return;
         }
-        var carouselHTML = buildCarouselHTML(data);
-        var currentPhotosList = $('<div class="thumbnailGroup"></div>');
-        var currentDate = null;
-        for (var i = 0; i < data.length; i++){
-            var date = new Date(data[i].timeTaken);
-            if (currentDate == null){
-                currentDate = date;
-            }
-            else if (currentDate.getMonth() != date.getMonth() || currentDate.getYear() != date.getYear() || currentDate.getDate() != date.getDate()){
-                $("#photoTab").append(getDateHTML(currentDate));
-                $("#photoTab").append(currentPhotosList);
-                currentPhotosList = $("<div class='thumbnailGroup'></div>");
-            }
-            currentDate = date;
-            var photo = $(getPhotoHTML(data[i]));
-            photo.click({i:i},function(event){
-                App.makeModal(carouselHTML);
-                App.carousel(event.data.i);
+        buildCarouselPhotos(data,function (photoHTML){
+            App.loadHTMLTemplate("applications/calendar/tabs/photos/photosTemplate.html","carouselWith" + (data.length == 1 ? "out" : "") + "Nav",{
+                itemsHTML:photoHTML
+            },function(carouselHTML){
+                buildMainHTML(data,function(html){
+                    $("#photoTab").append(html);
+                    for (var i = 0; i < data.length; i++){
+                        $("#photo-" + i).click({i:i},function(event){
+                            App.makeModal(carouselHTML);
+                            App.carousel(event.data.i);
+                        });
+                    }
+                })
+
             });
-            currentPhotosList.append(photo);
-        }
-        if (currentDate != null){
-            $("#photoTab").append(getDateHTML(currentDate));
-            $("#photoTab").append(currentPhotosList);
-        }
+
+        });
 
     }
 
