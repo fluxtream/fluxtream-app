@@ -41,27 +41,6 @@ define(["applications/calendar/tabs/Tab",
        return html;
     }
 
-    function buildCarouselHTML(data){
-        var html =  '<div class="modal fade" id="modal"><div class="modal-header">';
-        html += '<h3>&nbsp;<a href="#" class="close" data-dismiss="modal">&times;</a></h3></div>'
-        html += '<div class="modal-body" style="overflow:hidden"><div id="photosCarousel" class="carousel">';
-        html += '<div class="carousel-inner">';
-        for (var i = 0; i < data.length; i++){
-            html += '<div style="text-align:center;" id="photo-' + i + '" class="item';
-            if (i == 0)
-                html += " active";
-            html += '" style="overflow:none">';
-            html += '<img style="display:inline-block" src="' + data[i].photoUrl + '" /></div>';
-        }
-        html += "</div>";
-        if (data.length > 1){
-          html += '<a class="carousel-control left" href="#photosCarousel" data-slide="prev">&lsaquo;</a>';
-          html += '<a class="carousel-control right" href="#photosCarousel" data-slide="next">&rsaquo;</a>';
-        }
-        html += '</div><div class="modal-footer"></div></div>';
-        return html;
-    }
-
     function formatDate(date){
         var value = "";
         switch (date.getMonth()){
@@ -112,8 +91,9 @@ define(["applications/calendar/tabs/Tab",
         var i = 0;
         var loadNextPhoto = function (){
             App.loadHTMLTemplate("applications/calendar/tabs/photos/photosTemplate.html","carouselPhoto",{
-                active:" active",
-                photoURL:photos[i].photoURL
+                active:i == 0 ? " active" : "",
+                id:i,
+                photoURL:photos[i].photoUrl
             }, function(html){
                 photosHTML += html;
                 i++;
