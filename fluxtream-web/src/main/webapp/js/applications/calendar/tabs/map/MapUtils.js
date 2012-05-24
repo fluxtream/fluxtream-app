@@ -1,4 +1,5 @@
 define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
+    var config = Config.getConfig();
 
     function addGPSData(map,gpsData){
         map.gpsPositions = [];
@@ -7,12 +8,37 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         var maxLat = 0; //initialized to the smallest valid latitude
         var minLng = 180; //initialized to the largest valid longitude
         var maxLng = -180; //initialized to the smallest valid longitude
+        var filtered = 0;
+        var avg = 0;
         for (var i = 0; i < gpsData.length; i++){
+            if (gpsData[i].accuracy > config.flatAccuracyCutoff){
+                filtered++
+                continue;
+            }
+            avg += gpsData[i].accuracy;
+        }
+        var cutoff = 1000000000;
+        if (filtered != gpsData.length){
+            avg /= gpsData.length - filtered;
+            var std = 0;
+            for (var i = 0; i < gpsData.length; i++){
+                if (gpsData[i].accuracy > config.flatAccuracyCutoff)
+                    continue;
+                std += Math.pow(gpsData[i].accuracy - avg,2);
+            }
+            std /= gpsData.length - filtered;
+            std = Math.sqrt(std);
+            cutoff = avg + std * config.stdAccuracyCutoff;
+        }
+        for (var i = 0; i < gpsData.length; i++){
+            if (gpsData[i].accuracy > cutoff){;
+                continue;
+            }
             var lat = gpsData[i].position[0];
             var lng = gpsData[i].position[1];
-            map.gpsPositions[i] = new google.maps.LatLng(lat,lng);
-            map.gpsTimestamps[i] = gpsData[i].start;
-            map.gpsAccuracies[i] = gpsData[i].accuracy;
+            map.gpsPositions[map.gpsPositions.length] = new google.maps.LatLng(lat,lng);
+            map.gpsTimestamps[map.gpsTimestamps.length] = gpsData[i].start;
+            map.gpsAccuracies[map.gpsAccuracies.length] = gpsData[i].accuracy;
             if (lat < minLat)
                 minLat = lat;
             if (lat > maxLat)
@@ -62,7 +88,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     function addImageToMap(map,item,clickable){
-        var category = Config.getConfig().SOCIAL_CATEGORY;
+        var category = config.SOCIAL_CATEGORY;
         var start = item.timeTaken;
         if (start < map.gpsTimestamps[0] || start > map.gpsTimestamps[map.gpsTimestamps.length - 1])
             return null;
@@ -105,20 +131,20 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             case "twitter-dm":
             case "twitter-tweet":
             case "twitter-mention":
-                category = Config.getConfig().SOCIAL_CATEGORY;
+                category = config.OCIAL_CATEGORY;
                 break;
             case "google_calendar":
             case "toodledo-task":
-                category = Config.getConfig().MIND_CATEGORY;
+                category = config.MIND_CATEGORY;
                 break;
             case "fitbit-sleep":
             case "withings-bpm":
-                category = Config.getConfig().BODY_CATEGORY;
+                category = config.BODY_CATEGORY;
                 break;
             case "picasa":
             case "flickr":
             case "lastfm-recent_track":
-                category = Config.getConfig().MEDIA_CATEGORY;
+                category = config.MEDIA_CATEGORY;
                 break;
             default:
                 return null;
