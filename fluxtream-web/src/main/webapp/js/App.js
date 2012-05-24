@@ -1,6 +1,6 @@
 define(
-		[ "core/FlxState", "libs/jquery.form", "libs/jquery.qtip.min" ],
-		function(FlxState) {
+		[ "core/FlxState", "Addresses", "libs/jquery.form", "libs/jquery.qtip.min" ],
+		function(FlxState, Addresses) {
 
 			var App = {};
 			var toLoad = 0, loaded = 0;
@@ -138,6 +138,20 @@ define(
             App.makeModal = makeModal;
             App.carousel = carousel;
 
+            App.loadHTMLTemplate = function(templatePath,templateId,replacementMapping,onLoad){
+                require(["text!" + templatePath], function(template){
+                    var html = template;
+                    var templateStartSearch = "<template id=\"" + templateId + "\">";
+                    var htmlStart = html.indexOf(templateStartSearch) + templateStartSearch.length;
+                    var htmlEnd = html.indexOf("</template>",htmlStart);
+                    html = html.substring(htmlStart,htmlEnd);
+                    for (name in replacementMapping){
+                        html = html.replace(new RegExp("{" + name + "}","g"),replacementMapping[name]);
+                    }
+                    onLoad(html);
+                });
+            }
+
             App.closeModal = function(){
                 $("#modal").modal("hide");
             }
@@ -156,7 +170,7 @@ define(
 			};
 
             App.addresses = function() {
-
+                Addresses.show();
             }
 
 			App.removeConnector = function(api) {
