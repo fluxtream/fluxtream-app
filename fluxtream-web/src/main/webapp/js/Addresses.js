@@ -26,8 +26,10 @@ define(function() {
 
     function buildAddressRows(onDone){
         var rowHTML = "";
-        if (addresses.length == 0)
-            onDone(rowHTML);
+        if (addresses.length == 0){
+            onDone("");
+            return;
+        }
         var i = 0;
         App.loadHTMLTemplate("addressesTemplate.html","addressRow",getAddressParams(i),function(html){
             rowHTML += html;
