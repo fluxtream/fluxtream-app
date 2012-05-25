@@ -56,7 +56,6 @@ define([], function() {
                 btn.removeClass("active");
             btn.unbind("click");
             btn.click(function(event){
-                console.log("clicked!");
                 var timeUnit = $(event.target).attr("unit"),
                     url = "/nav/set" + capitalizeFirstLetter(timeUnit.toLowerCase()) + "TimeUnit.json";
                 $.ajax({ url:url,
