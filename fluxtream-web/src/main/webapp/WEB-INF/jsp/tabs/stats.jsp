@@ -20,9 +20,6 @@
 		<jsp:include page="<%=widgetsDir+userWidgets.get(i).name+\".jsp\"%>" />
 	<% } %>
 
-<<<<<<< Updated upstream
-    <div class="flx-spacer"></div>
-=======
 <div class="flx-widget span4">
   <header>
     <div class="flx-widget-controls">
@@ -139,7 +136,4 @@
 	</div>
 </div>
 
-
-<!--     <div class="flx-spacer"></div> -->
->>>>>>> Stashed changes
 </div>
