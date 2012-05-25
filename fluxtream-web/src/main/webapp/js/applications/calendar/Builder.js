@@ -48,26 +48,26 @@ define([], function() {
 	
 	function createTimeUnitsMenu(Calendar) {
 		$("#time-menu").remove();
-		var timeUnits = {"DAY":1, "WEEK":2 /*,"MONTH": 3, "YEAR":4*/};
-		delete timeUnits[Calendar.timeUnit];
+		var timeUnits = {"DAY":1, "WEEK":2, "YEAR":4};
 		$(".loading").remove();
-		var markup = "<div class=\"btn-group\" id=\"time-menu\">\
-		<a class=\"btn\">"
-				+ capitalizeFirstLetter(Calendar.timeUnit.toLowerCase()) + " View</a> <a class=\"btn dropdown-toggle\"\
-			data-toggle=\"dropdown\" href=\"#\"> <span class=\"caret\"></span>\
-		</a>\
-		<ul class=\"dropdown-menu\" id=\"timeUnits\">";
+		var markup = "<div class=\"btn-group\" data-toggle=\"buttons-radio\" id=\"time-menu\">";
 		for (var timeUnitName in timeUnits) {
-			markup += "<li><a href=\"#\" class=\"" + timeUnitName + "\">"
+			markup += "<a class=\"btn " + timeUnitName;
+            if (timeUnitName===Calendar.timeUnit)
+                markup += " active\""
+            else
+                markup += "\"";
+            markup += " unit=\"" + timeUnitName + "\">"
 				+ capitalizeFirstLetter(timeUnitName.toLowerCase())
-				+" View</a></li>";
+				+" View</a>";
 		}
-		markup += "</ul></div>";
+		markup += "</div>";
 		markup += "<span class=\"loading\"><img src=\"/static/img/loading.gif\"/></span>";
 		$("#calendar-menubar").append(markup);
 		for (timeUnitName in timeUnits) {
-			$("#time-menu a." + timeUnitName).click(function(event) {
-				var timeUnit = $(event.target).attr("class"),
+			$("#time-menu a").click(function(event) {
+                console.log("clicked!");
+				var timeUnit = $(event.target).attr("unit"),
 					url = "/nav/set" + capitalizeFirstLetter(timeUnit.toLowerCase()) + "TimeUnit.json";
 				$.ajax({ url:url,
 					success : function(response) {
@@ -87,37 +87,24 @@ define([], function() {
 	function bindTimeNavButtons(Calendar) {
 		switch(Calendar.timeUnit) {
 		case "DAY":
-			nextPrevEnable(true);
-			timeNavBtn(Calendar, "down", false);
-			timeNavBtn(Calendar, "up", true, "WEEK");
+			nextPrevEnable();
 			break;
 		case "WEEK":
-			nextPrevEnable(true);
-			timeNavBtn(Calendar, "down", true, "DAY");
-			timeNavBtn(Calendar, "up", false, "MONTH");
+			nextPrevEnable();
 			break;
 //		case "MONTH":
-//			nextPrevEnable(true);
-//			timeNavBtn(Calendar, "down", true, "WEEK");
-//			timeNavBtn(Calendar, "up", true, "YEAR");
+//			nextPrevEnable();
 //			break;
-//		case "YEAR":
-//			nextPrevEnable(true);
-//			timeNavBtn(Calendar, "down", true, "MONTH");
-//			timeNavBtn(Calendar, "up", false, "CONTINUOUS");
-//			break;
+		case "YEAR":
+			nextPrevEnable();
+			break;
 		}
 	};
 	
-	function nextPrevEnable(b) {
-		if (b) {
-			$(".menuNextButton").removeClass("disabled");
-			$(".menuPrevButton").removeClass("disabled");
-		} else {
-			$(".menuNextButton").addClass("disabled");
-			$(".menuPrevButton").addClass("disabled");
-		}
-	};
+	function nextPrevEnable() {
+        $(".menuNextButton").removeClass("disabled");
+        $(".menuPrevButton").removeClass("disabled");
+    };
 	
 	function timeNavBtn(Calendar, downOrUp, enabled, targetTimeUnit) {
 		var button = $(".menu"+capitalizeFirstLetter(downOrUp)+"Button");

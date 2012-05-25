@@ -140,11 +140,12 @@ public class NavController {
 
 	@RequestMapping(value = "/nav/decrementTimespan.json")
 	public void decrementTimespan(HttpServletRequest request,
-			HttpServletResponse response) throws IOException {
+			HttpServletResponse response,
+            @RequestParam("state") String state) throws IOException {
 		response.setContentType("application/json; charset=utf-8");
 		HomeModel homeModel = (HomeModel) request.getSession().getAttribute(
 				"homeModel");
-		homeModel.decrementTimespan();
+		homeModel.decrementTimespan(state);
 		logger.info("action=decrementTimespan");
 		updateComment(homeModel, request);
 		response.getWriter().write(homeModel.toJSONString(env, getConfigState(request)));
@@ -152,11 +153,12 @@ public class NavController {
 
 	@RequestMapping(value = "/nav/incrementTimespan.json")
 	public void incrementTimespan(HttpServletRequest request,
-			HttpServletResponse response) throws IOException {
+			HttpServletResponse response,
+            @RequestParam("state") String state) throws IOException {
 		response.setContentType("application/json; charset=utf-8");
 		HomeModel homeModel = (HomeModel) request.getSession().getAttribute(
 				"homeModel");
-		homeModel.incrementTimespan();
+		homeModel.incrementTimespan(state);
 		logger.info("action=incrementTimespan");
 		updateComment(homeModel, request);
 		response.getWriter().write(homeModel.toJSONString(env, getConfigState(request)));
@@ -214,7 +216,6 @@ public class NavController {
 		response.setContentType("application/json; charset=utf-8");
 		HomeModel homeModel = (HomeModel) request.getSession().getAttribute(
 				"homeModel");
-		homeModel.setContinuousTimeUnit();
 		logger.info("action=setContinuousTimeUnit");
 		response.getWriter().write(homeModel.toJSONString(env, getConfigState(request)));
 	}

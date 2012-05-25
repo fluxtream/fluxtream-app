@@ -2737,6 +2737,11 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
         return false;
     }
 
+    function setRange(start, end) {
+        dateAxis.setRange(start/1000, end/1000);
+        repaintAllPlots();
+    }
+
     function repaintAllPlots() {
         for (var plotKey in plotsMap) {
             var plot = plotsMap[plotKey];
@@ -2746,9 +2751,10 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
         }
     }
 
-    function render(digest, timeUnit) {
+    function render(digest, timeUnit, calendarState) {
         this.getTemplate("text!applications/calendar/tabs/timeline/template.html", "timeline", function() {
             setup(digest, timeUnit);
+            timelineTab.setRange(Calendar.start, Calendar.end);
         });
     }
 
@@ -2760,15 +2766,20 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
             BodyTrack.TOOLS.resizeTimer = setTimeout(BodyTrack.TOOLS.resizeHandler, 100);
         });
 
-        APP.init(function() {
-            timelineTab.init(function() {
-                timelineTab.newView();
+        if (!timelineTab.initialized) {
+            APP.init(function() {
+                timelineTab.init(function() {
+                    timelineTab.newView();
+                    timelineTab.initialized = true;
+                });
             });
-        });
+        }
     }
 
+    timelineTab.initialized = false;
     timelineTab.render = render;
     timelineTab.init = init;
     timelineTab.newView = newView;
+    timelineTab.setRange = setRange;
     return timelineTab;
 });

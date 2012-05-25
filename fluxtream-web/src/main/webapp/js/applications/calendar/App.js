@@ -12,9 +12,9 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 	
 	Calendar.setup = function() {
 		$(".menuNextButton").click(function(e) {
-			fetchState("/nav/incrementTimespan.json"); });
+			fetchState("/nav/incrementTimespan.json?state=" + Calendar.tabState); });
 		$(".menuPrevButton").click(function(e) {
-			fetchState("/nav/decrementTimespan.json"); });
+			fetchState("/nav/decrementTimespan.json?state=" + Calendar.tabState); });
 		$(".menuTodayButton").click(function(e) {
 			Calendar.timeUnit = "DAY";
 			var t = Builder.tabExistsForTimeUnit(Calendar.currentTabName, Calendar.timeUnit)?Calendar.currentTabName:Builder.tabs[Calendar.timeUnit][0];
@@ -128,13 +128,15 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 					Calendar.currentTab.saveState();
 				}
 				Calendar.tabState = response.state;
+                Calendar.start = response.start;
+                Calendar.end  = response.end;
 				FlxState.router.navigate("app/calendar/" + Calendar.currentTabName + "/" + response.state);
 				FlxState.saveState("calendar", Calendar.currentTabName + "/" + response.state);
 				$("#currentTimespanLabel span").html(response.currentTimespanLabel);
 				if (Calendar.timeUnit==="DAY") {
 					setDatepicker(response.state.split("/")[1]);
 				}
-				fetchCalendar("/api/calendar/all/" + response.state);
+                fetchCalendar("/api/calendar/all/" + response.state);
 			},
 			error : function() {
 				alert("error");
@@ -238,9 +240,26 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 	}
 
     Calendar.dateChanged = function(date, rangeType) {
-        // date is expected to be midnight at the start of the range, in seconds since the epoch (UTC)
-        // rangeType is expected to be either "day" or "week"
         console.log("Calendar.dateChanged(" + date + ", " + rangeType + ")");
+        console.log("updating url...");
+
+        var state = "timeline/date/" + date;
+        FlxState.router.navigate("app/calendar/" + state, {trigger: false, replace: true});
+        FlxState.saveState("calendar", state);
+        Calendar.tabState = "date/" + date;
+        Calendar.timeUnit = "DAY";
+
+        var dateSplits = date.split("-"),
+            d = new Date(Number(dateSplits[0]),Number(dateSplits[1])-1,Number(dateSplits[2]));
+        var daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        var monthsOfYear = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
+            "Oct", "Nov", "Dec"];
+        var dateLabel = daysOfWeek[d.getDay()] +
+                    ", " + monthsOfYear[d.getMonth()] + " " + d.getDate() +
+                    ", " + (d.getYear()+1900);
+        console.log("dateLabel: " + dateLabel);
+
+        $("#currentTimespanLabel span").html(dateLabel);
     };
 
 	return Calendar;
