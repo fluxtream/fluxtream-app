@@ -1,26 +1,33 @@
+
 <div class="row-fluid">
-	<div class="span12" id="calendar-menubar">
-		<a class="btn menuTodayButton calendar-navigation-button"><i
-			class="icon-home"></i> Today</a>&nbsp; <a
-			class="btn menuPrevButton calendar-navigation-button"><i
-			class="icon-arrow-left"></i></a>
-		<div id="currentTimespanLabel"><span>&nbsp;</span>&nbsp;&nbsp;
-			<a data-date-format="yyyy-mm-dd" id="datepicker"><i
-				class="icon-calendar icon-large"></i>
-		</a></div>
-		<a class="btn menuNextButton calendar-navigation-button"><i
-			class="icon-arrow-right"></i></a>
-	</div>
+    <div class="span12" id="calendar-menubar">
+        <div class="flx-timeMenu">
+            <div class="floater">
+                <a class="btn menuTodayButton calendar-navigation-button"><i class="icon-home"></i> Today</a>
+                <a class="btn menuPrevButton calendar-navigation-button"><i class="icon-arrow-left"></i></a>
+                <div id="currentTimespanLabel">
+                    <h3><span>&nbsp;</span>&nbsp;&nbsp;</h3><a data-date-format="yyyy-mm-dd" id="datepicker"><i class="icon-calendar icon-large"></i></a>
+                </div>
+                <a class="btn menuNextButton calendar-navigation-button"><i class="icon-arrow-right"></i></a>
+            </div>
+            <div class="floater">
+                <div class="btn-group flx-view-range" id="time-menu">
+                    <a class="btn active">Day view</a>
+                    <a class="btn">Week view</a>
+                    <a class="btn">Year view</a>
+                </div>
+            </div>
+            <div class="floater">
+                <h4 id="mainCity" class="flx-main-city-infos"></h4>
+            </div>
+        </div>
+    </div>
 </div>
-
-<br />
-
-<h4 id="mainCity"></h4>
 
 <br/>
 
 <div id="calendar-container" class="row-fluid">
-	<ul class="nav nav-tabs" id="calendarTabs">
-	</ul>
-	<div id="tabs"></div>
+    <ul class="nav nav-tabs" id="calendarTabs">
+    </ul>
+    <div id="tabs"></div>
 </div>
