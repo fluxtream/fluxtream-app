@@ -6,6 +6,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.fluxtream.Configuration;
 import net.sf.json.JSONObject;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,9 @@ public class DashboardTabController {
 	@Autowired
 	ApiDataService apiDataService;
 
+    @Autowired
+    Configuration env;
+
 	@Autowired
 	@Qualifier("dayWidgetsStatsHelper")
 	DashboardWidgetsHelper dayStatsHelper;
@@ -38,6 +42,7 @@ public class DashboardTabController {
 		long guestId = ControllerHelper.getGuestId();
 		ModelAndView mav = new ModelAndView();
 		mav.setViewName("tabs/stats");
+        mav.addObject("release", env.get("release"));
 		mav.addObject("timeUnit", homeModel.getTimeInterval().timeUnit
 				.toString().toLowerCase());
 		switch (homeModel.getTimeInterval().timeUnit) {

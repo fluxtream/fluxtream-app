@@ -200,6 +200,8 @@ public class HomeModel {
 		json.put("isToday", isToday());
 		json.put("state", getUrlDate());
 		json.put("timeHash", getTimeHash(env, configKey));
+        json.put("start", getStart());
+        json.put("end", getEnd());
 		if (this.title != null) {
 			json.put("title", title);
 		}
@@ -232,8 +234,6 @@ public class HomeModel {
 					+ fromCalendar.get(Calendar.MONTH);
 		else if (timeUnit == TimeUnit.YEAR)
 			return "year/" + fromCalendar.get(Calendar.YEAR);
-		else if (timeUnit == TimeUnit.CONTINUOUS)
-			return "continuous";
 		return "UNKNOWN_DATE";
 	}
 
@@ -285,9 +285,6 @@ public class HomeModel {
 					DateTimeZone.forTimeZone(tz)).print(
 					fromCalendar.getTimeInMillis());
 			break;
-		case CONTINUOUS:
-			currentTimespanLabel = "";
-			break;
 		}
 
 		return currentTimespanLabel;
@@ -307,7 +304,7 @@ public class HomeModel {
 		}
 	}
 
-	public void incrementTimespan() {
+	public void incrementTimespan(final String state) {
 		switch (this.timeUnit) {
 		case DAY:
 			if (!isToday()) {
@@ -330,7 +327,8 @@ public class HomeModel {
 		}
 	}
 
-	public void decrementTimespan() {
+	public void decrementTimespan(final String state) {
+        syncState(state);
 		switch (this.timeUnit) {
 		case DAY:
 			fromCalendar.add(Calendar.DATE, -1);
@@ -351,7 +349,32 @@ public class HomeModel {
 		}
 	}
 
-	public void setYearTimeUnit() {
+    private void syncState(final String state) {
+        String[] stateParts = state.split("/");
+        TimeUnit timeUnit = TimeUnit.fromValue(stateParts[0].equals("date")?"day":stateParts[0]);
+        switch(timeUnit) {
+            case DAY:
+                setDate(stateParts[1]);
+                break;
+            case WEEK:
+                int year = Integer.valueOf(stateParts[1]);
+                int week = Integer.valueOf(stateParts[2]);
+                setWeek(year, week);
+                break;
+            case MONTH:
+                year = Integer.valueOf(stateParts[1]);
+                int month = Integer.valueOf(stateParts[2]);
+                setMonth(year, month);
+                break;
+            case YEAR:
+                year = Integer.valueOf(stateParts[1]);
+                setYear(year);
+                break;
+        }
+    }
+
+
+    public void setYearTimeUnit() {
 		this.timeUnit = TimeUnit.YEAR;
 		fromCalendar.set(Calendar.YEAR, fromCalendar.get(Calendar.YEAR));
 		fromCalendar.set(Calendar.DAY_OF_MONTH, 1);
@@ -403,9 +426,5 @@ public class HomeModel {
 		toCalendar = TimeUtils.setToMidnight(toCalendar);
 		this.viewType = this.aggregatedVisualizationType;
 	}
-	
-	public void setContinuousTimeUnit() {
-		this.timeUnit = TimeUnit.CONTINUOUS;
-	}
-	
+
 }
