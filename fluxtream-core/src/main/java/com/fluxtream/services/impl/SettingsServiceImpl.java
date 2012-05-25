@@ -155,6 +155,7 @@ public class SettingsServiceImpl implements SettingsService {
     //delete functions are currently unimplemented
 
     @Override
+    @Transactional(readOnly=false)
     public void deleteAddressById(long guestId, long id){
         GuestAddress address = em.find(GuestAddress.class,id);
         if (address.guestId != guestId)
@@ -163,21 +164,25 @@ public class SettingsServiceImpl implements SettingsService {
     }
 
     @Override
+    @Transactional(readOnly=false)
     public void deleteAllAddresses(long guestId){
         deleteAddresses(getAllAddresses(guestId));
     }
 
     @Override
+    @Transactional(readOnly=false)
     public void deleteAllAddressesAtDate(long guestId, long date){
         deleteAddresses(getAllAddressesForDate(guestId, date));
     }
 
     @Override
+    @Transactional(readOnly=false)
     public void deleteAllAddressesOfType(long guestId, String type){
         deleteAddresses(getAllAddressesOfType(guestId, type));
     }
 
     @Override
+    @Transactional(readOnly=false)
     public void deleteAllAddressesOfTypeForDate(long guestId, String type, long date){
         deleteAddresses(getAllAddressesOfTypeForDate(guestId,type,date));
     }

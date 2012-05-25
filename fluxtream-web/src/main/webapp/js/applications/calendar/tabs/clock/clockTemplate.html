@@ -1,0 +1,42 @@
+<template id="tooltipMap">
+    {description}
+    <div style="text-align:center">
+        <div id="mapPlaceHolder" style="display:inline-block; width:250px; height:250px; position:relative;"></div>
+        <script>document.qTipUpdate()</script>
+        <div id="weatherInfo">
+            <img src="{weatherIcon}">{weatherDescription} {temperature}°{temperatureUnit}
+            <div>
+                <div class="upperLabel">Wind Speed</div>
+                <div class="lowerLabel">{windSpeed} MPH</div>
+            </div>
+            <div>
+                <div class="upperLabel">Humidity</div>
+                <div class="lowerLabel">{humidity}%</div>
+            </div>
+            <div>
+                <div class="upperLabel">Precipitation</div>
+                <div class="lowerLabel">{precipitation}mm</div>
+            </div>
+        </div>
+    </div>
+</template>
+<template id="tooltipNoMap">
+    {description}
+    <div style="text-align:center">
+        <div id="weatherInfo">
+            <img src="{weatherIcon}">{weatherDescription} {temperature}°{temperatureUnit}
+            <div>
+                <div class="upperLabel">Wind Speed</div>
+                <div class="lowerLabel">{windSpeed} MPH</div>
+            </div>
+            <div>
+                <div class="upperLabel">Humidity</div>
+                <div class="lowerLabel">{humidity}%</div>
+            </div>
+            <div>
+                <div class="upperLabel">Precipitation</div>
+                <div class="lowerLabel">{precipitation}mm</div>
+            </div>
+        </div>
+    </div>
+</template>

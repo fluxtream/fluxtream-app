@@ -281,80 +281,68 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 
 
 		var tooltip = $("#" + facetType + "_" + facetId);
-        showToolTip(tip_x,tip_y,tooltip.html(), event.flip);
+        showToolTip(tip_x,tip_y,tooltip.html(), event.flip,event.minuteOfDay);
 	}
 
-    function showToolTip(x,y,contents,flip){
-        var toolTipText = contents
-        toolTipText += '<div style="text-align:center">';
-        if (map != null){
-            toolTipText += '<div id="mapPlaceHolder" style="display:inline-block; width:250px; height:250px; position:relative;"></div><script>document.qTipUpdate()</script>';
-            timeout = setTimeout("document.hideQTipMap()",4600);
+    function showToolTip(x,y,contents,flip,minute){
+        var weatherInfo = getWeatherData(minute);
+        var weatherIcon;
+        if (minute < solarInfo.sunrise || minute > solarInfo.sunset){//night
+            weatherIcon = weatherInfo.weatherIconUrlNight;
         }
-        toolTipText += getHTMLForWeather(event.minuteOfDay);
-        toolTipText += '</div>';
-
-        var bounding;
-        if (flip){
-            bounding = "bottom center";
+        else{//day
+            weatherIcon = weatherInfo.weatherIconUrlDay;
         }
-        else
-            bounding = "top center";
-
-        ttpdiv.qtip({
-            content: {
-                text: toolTipText
-            },
-            style: {
-                classes: 'ui-tooltip-light ui-tooltip-shadow ui-tooltip-rounded'
-            },
-            position: {
-                target: [x,y], // ... in the window
-                my: bounding
-            },
-            show: {
-                ready: true // Show it straight away
-            },
-            hide: {
-                effect: function(offset) {
-                    $(this).slideDown(100); // "this" refers to the tooltip
-                },
-                inactive : 4500
+        App.loadHTMLTemplate("applications/calendar/tabs/clock/clockTemplate.html","tooltip" + (map == null ? "No" : "") + "Map",{
+            description: contents,
+            weatherDescription: weatherInfo.weatherDesc,
+            temperature: tempratureUnit === "FAHRENHEIT" ? weatherInfo.tempF : weatherInfo.tempC,
+            temperatureUnit: tempratureUnit === "FAHRENHEIT" ? "F" : "C",
+            windSpeed: weatherInfo.windspeedMiles,
+            humidity: weatherInfo.humidity,
+            precipitation: weatherInfo.precipMM,
+            weatherIcon: weatherIcon
+        },function(html){
+            var bounding;
+            if (flip){
+                bounding = "bottom center";
             }
-        });
+            else
+                bounding = "top center";
+
+            ttpdiv.qtip({
+                content: {
+                    text: html
+                },
+                style: {
+                    classes: 'ui-tooltip-light ui-tooltip-shadow ui-tooltip-rounded'
+                },
+                position: {
+                    target: [x,y], // ... in the window
+                    my: bounding
+                },
+                show: {
+                    ready: true // Show it straight away
+                },
+                hide: {
+                    effect: function(offset) {
+                        $(this).slideDown(100); // "this" refers to the tooltip
+                    },
+                    inactive : 4500
+                }
+            });
+       });
 
     }
 
     //hourlyWeatherData
-    function getHTMLForWeather(minuteOfDay){
-        console.log("getHTMLForWeather");
+    function getWeatherData(minuteOfDay){
         if (hourlyWeatherData == null)
-            return "";
+            return null;
         var i;
-        for (i = 0; i < hourlyWeatherData.length && hourlyWeatherData[i].minuteOfDay < minuteOfDay; i++);
+        for (i = 0; i < hourlyWeatherData.length - 1 && hourlyWeatherData[i].minuteOfDay < minuteOfDay; i++);
         var weatherInfo = hourlyWeatherData[i];
-        var output = '<div id="weatherInfo"><img src="'
-        if (minuteOfDay < solarInfo.sunrise || minuteOfDay > solarInfo.sunset){//night
-            output += weatherInfo.weatherIconUrlNight;
-        }
-        else{//day
-            output += weatherInfo.weatherIconUrlDay;
-        }
-        output += '">'
-        output += weatherInfo.weatherDesc + ' ';
-
-        if (tempratureUnit === "FAHRENHEIT")
-            output += weatherInfo.tempF + '°F ';
-        else
-            output += weatherInfo.tempC + '°C ';
-        output += '<div><div class="upperLabel">Wind Speed</div><div class="lowerLabel">';
-        output += weatherInfo.windspeedMiles + 'MPH';
-        output += '</div></div> <div><div class="upperLabel">Humidity</div><div class="lowerLabel">';
-        output += weatherInfo.humidity + '%';
-        output += '</div></div> <div><div class="upperLabel">Precipitation</div><div class="lowerLabel">';
-        output += weatherInfo.precipMM + 'mm';
-        output += '</div></div></div>';
-        return output;
+        return weatherInfo;
     }
 
     function showLocationBreakdownInfo(event) {
@@ -373,7 +361,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             markers[0].showCircle();
             map.zoomOnMarker(markers[0]);
         }
-        showToolTip(tip_x,tip_y,span.item.description, event.flip);
+        showToolTip(tip_x,tip_y,span.item.description, event.flip,event.minuteOfDay);
     }
 	
 	function hideEventInfo() {

@@ -12,7 +12,7 @@
 %>
 <div id="modal" class="modal fade hide">
 	<div class="modal-header">
-		<a class="close" data-dismiss="modal">×</a>
+		<a class="close" data-dismiss="modal">&times;</a>
 		<h3>Settings</h3>
 	</div>
 	<form id="settingsForm" action="/settings/save" method="POST">
