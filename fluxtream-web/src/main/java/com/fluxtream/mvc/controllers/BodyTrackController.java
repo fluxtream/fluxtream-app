@@ -3,6 +3,7 @@ package com.fluxtream.mvc.controllers;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -186,8 +187,14 @@ public class BodyTrackController {
         //    nsfw=<value> If specified, alters the value of the NSFW flag on the logrec and modifies tag list appropriately to either include an "nsfw" tag if value is true, or remove any existing "nsfw" tags if value is false.
         String bodyTrackUrl = "http://localhost:3000/users/" + UID + "/logrecs/" + LOGREC_ID + "/set";
         Map parameterMap = request.getParameterMap();
-        postTunnelRequest(bodyTrackUrl, response, parameterMap);
-        throw new Exception();
+        Enumeration parameterNames = request.getParameterNames();
+        Map<String,String> tunneledParameters = new HashMap<String,String>();
+        while(parameterNames.hasMoreElements()) {
+            String parameterName = (String)parameterNames.nextElement();
+            String parameter = request.getParameter(parameterName);
+            tunneledParameters.put(parameterName, parameter);
+        }
+        postTunnelRequest(bodyTrackUrl, response, tunneledParameters);
      }
 
 	@RequestMapping(value = "/bodytrack/users/{UID}/tags")
