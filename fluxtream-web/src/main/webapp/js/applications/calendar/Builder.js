@@ -46,41 +46,31 @@ define([], function() {
 		$(currentTab).tab("show");
 	}
 	
-	function createTimeUnitsMenu(Calendar) {
-		$("#time-menu").remove();
-		var timeUnits = {"DAY":1, "WEEK":2, "YEAR":4};
-		$(".loading").remove();
-		var markup = "<div class=\"btn-group\" data-toggle=\"buttons-radio\" id=\"time-menu\">";
-		for (var timeUnitName in timeUnits) {
-			markup += "<a class=\"btn " + timeUnitName;
-            if (timeUnitName===Calendar.timeUnit)
-                markup += " active\""
+	function bindTimeUnitsMenu(Calendar) {
+		var timeUnitIds = {"#dayViewBtn":1, "#weekViewBtn":2, "#yearViewBtn":4};
+        for (var timeUnitId in timeUnitIds){
+            var btn = $(timeUnitId);
+            if (btn.attr("unit") == Calendar.timeUnit)
+                btn.addClass("active");
             else
-                markup += "\"";
-            markup += " unit=\"" + timeUnitName + "\">"
-				+ capitalizeFirstLetter(timeUnitName.toLowerCase())
-				+" View</a>";
-		}
-		markup += "</div>";
-		markup += "<span class=\"loading\"><img src=\"/static/img/loading.gif\"/></span>";
-		$("#calendar-menubar").append(markup);
-		for (timeUnitName in timeUnits) {
-			$("#time-menu a").click(function(event) {
+                btn.removeClass("active");
+            btn.unbind("click");
+            btn.click(function(event){
                 console.log("clicked!");
-				var timeUnit = $(event.target).attr("unit"),
-					url = "/nav/set" + capitalizeFirstLetter(timeUnit.toLowerCase()) + "TimeUnit.json";
-				$.ajax({ url:url,
-					success : function(response) {
-						var t = tabExistsForTimeUnit(Calendar.currentTabName, timeUnit)?Calendar.currentTabName:tabs[timeUnit][0];
-						Calendar.currentTabName = t;
-						Calendar.renderState(Calendar.currentTabName + "/" + response.state);
-					},
-					error : function() {
-						alert("error");
-					}
-				});
-			});
-		}
+                var timeUnit = $(event.target).attr("unit"),
+                    url = "/nav/set" + capitalizeFirstLetter(timeUnit.toLowerCase()) + "TimeUnit.json";
+                $.ajax({ url:url,
+                   success : function(response) {
+                       var t = tabExistsForTimeUnit(Calendar.currentTabName, timeUnit)?Calendar.currentTabName:tabs[timeUnit][0];
+                       Calendar.currentTabName = t;
+                       Calendar.renderState(Calendar.currentTabName + "/" + response.state);
+                   },
+                   error : function() {
+                       alert("error");
+                   }
+               });
+            })
+        }
 		bindTimeNavButtons(Calendar);
 	}
 	
@@ -190,7 +180,7 @@ define([], function() {
 	
 	Builder.tabExistsForTimeUnit = tabExistsForTimeUnit;
 	Builder.tabs = tabs;
-	Builder.createTimeUnitsMenu = createTimeUnitsMenu;
+	Builder.bindTimeUnitsMenu = bindTimeUnitsMenu;
 	Builder.createTabs = createTabs;
 	Builder.updateTab = updateTab;
     Builder.isValidTabName = isValidTabName;
