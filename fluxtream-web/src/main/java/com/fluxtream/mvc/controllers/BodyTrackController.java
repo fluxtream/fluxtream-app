@@ -160,6 +160,34 @@ public class BodyTrackController {
 		writeTunnelResponse(tunnelUrl, response);
 	}
 
+    @RequestMapping(value = "/bodytrack/users/{UID}/logrecs/{LOGREC_ID}/get")
+    public void bodyTrackGetMetadata(HttpServletResponse response,
+    			HttpServletRequest request, @PathVariable("UID") String UID,
+    			@PathVariable("LOGREC_ID") String LOGREC_ID) throws IOException {
+    	String bodyTrackUrl = "http://localhost:3000/users/" + UID + "/logrecs/" + LOGREC_ID + "/get";
+    	String pstr = request.getQueryString();
+    	if (pstr != null) {
+    		bodyTrackUrl += "?" + pstr;
+    	}
+    	writeTunnelResponse(bodyTrackUrl, response);
+    }
+
+    @RequestMapping(value = "/bodytrack/users/{UID}/logrecs/{LOGREC_ID}/set")
+    public void bodyTrackSetMetadata(HttpServletResponse response,
+        		HttpServletRequest request, @PathVariable("UID") String UID,
+        		@PathVariable("LOGREC_ID") String LOGREC_ID) throws Exception {
+        // Here is the URL we need to proxy to.  This is a post so we need to copy
+        // params one by one.  The API is documented at:
+        //   https://fluxtream.atlassian.net/wiki/display/FLX/BodyTrack+server+APIs#BodyTrackserverAPIs-usersUIDlogrecsLOGRECIDset
+        // The params are all optional:
+        //   comment=<string> Set the comment field to the provided string
+        //   tags=<list of tags separated by commas> Set the tags for the logrec.  Behaves the same as /users/UID/tags/LOGREC_ID/set?tags=<value> other than having a different return value.
+        //    nsfw=<value> If specified, alters the value of the NSFW flag on the logrec and modifies tag list appropriately to either include an "nsfw" tag if value is true, or remove any existing "nsfw" tags if value is false.
+        // Anne doesn't know how to do this so she's pushing it back on Chris...
+        String bodyTrackUrl = "http://localhost:3000/users/" + UID + "/logrecs/" + LOGREC_ID + "/set";
+        throw new Exception();
+     }
+
 	@RequestMapping(value = "/bodytrack/users/{UID}/tags")
 	public void bodyTrackTags(HttpServletResponse response,
 			@PathVariable("UID") String UID) throws IOException {
