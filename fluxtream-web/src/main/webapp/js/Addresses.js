@@ -43,15 +43,10 @@ define(function() {
         var params = {
            address:addresses[index].address,
            type:addresses[index].type,
-           index:index
+           index:index,
+           since:App.formatDate(addresses[index].since),
+           until:App.formatDate(addresses[index].until)
         };
-        var sinceDate = new Date(addresses[index].since);
-        params.since = sinceDate.getFullYear() + '-' + (sinceDate.getMonth() + 1) + '-' + sinceDate.getDate();
-        var untilDate = new Date(addresses[index].until);
-        if (isNaN(untilDate.getFullYear()))
-            params.until = "Present";
-        else
-            params.until = untilDate.getFullYear() + '-' + (untilDate.getMonth() + 1) + '-' + untilDate.getDate();
         return params;
     }
 
