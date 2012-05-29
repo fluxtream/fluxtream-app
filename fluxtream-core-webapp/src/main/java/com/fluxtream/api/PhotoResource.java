@@ -68,7 +68,7 @@ public class PhotoResource {
     @GET
     @Path("/week/{year}/{week}")
     @Produces({MediaType.APPLICATION_JSON})
-    public String getPhotosForDate(@PathParam("username") String username, @PathParam("year") int year, @PathParam("week") int week){
+    public String getPhotosForWeek(@PathParam("username") String username, @PathParam("year") int year, @PathParam("week") int week){
         try{
             Calendar c = Calendar.getInstance();
             c.set(Calendar.YEAR,year);
@@ -92,6 +92,24 @@ public class PhotoResource {
             StatusModel result = new StatusModel(false, "Could not get guest addresses: " + e.getMessage());
             return gson.toJson(result);
         }
+    }
+
+    @GET
+    @Path("/year/{year}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String getPhotosForYear(@PathParam("username") String username, @PathParam("year") int year){
+        try{
+
+            Guest guest = guestService.getGuest(username);
+            DayMetadataFacet dayMetaStart = metadataService.getDayMetadata(guest.getId(), year + "-01-01", true);
+
+            DayMetadataFacet dayMetaEnd = metadataService.getDayMetadata(guest.getId(), year + "-12-31", true);
+            return gson.toJson(getPhotos(guest, new TimeInterval(dayMetaStart.start,dayMetaEnd.end,TimeUnit.WEEK,TimeZone.getTimeZone(dayMetaStart.timeZone))));
+        } catch (Exception e){
+            StatusModel result = new StatusModel(false, "Could not get guest addresses: " + e.getMessage());
+            return gson.toJson(result);
+        }
+
     }
 
     private boolean isLeapYear(int year){
