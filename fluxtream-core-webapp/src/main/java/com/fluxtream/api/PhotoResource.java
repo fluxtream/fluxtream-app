@@ -73,11 +73,12 @@ public class PhotoResource {
             Calendar c = Calendar.getInstance();
             c.set(Calendar.YEAR,year);
             c.set(Calendar.WEEK_OF_YEAR,week);
+            c.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
             Guest guest = guestService.getGuest(username);
             DecimalFormat datePartFormat = new DecimalFormat("00");
             DayMetadataFacet dayMetaStart = metadataService.getDayMetadata(guest.getId(), year + "-" + datePartFormat.format(c.get(Calendar.MONTH) + 1) +
                                                                                           "-" + datePartFormat.format(c.get(Calendar.DAY_OF_MONTH)), true);
-            int newDay = c.get(Calendar.DAY_OF_YEAR) + 7;
+            int newDay = c.get(Calendar.DAY_OF_YEAR) + 6;
             if (newDay > (isLeapYear(year) ? 366 : 365)){
                 newDay -= isLeapYear(year) ? 366 : 365;
                 year += 1;
