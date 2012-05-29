@@ -256,7 +256,7 @@ define(
                         value += "January";
                         break;
                     case 1:
-                        value + "February";
+                        value += "February";
                         break;
                     case 2:
                         value += "March";
@@ -293,6 +293,15 @@ define(
                 value += ", " + date.getFullYear();
                 return value;
             }
+
+            App.formatDateAsDatePicker = function(date){
+                if (typeof(date) == "number")
+                    date = new Date(date);
+                if (isNaN(date.getFullYear()))
+                    return "Present";
+                return date.getFullYear() + "-" + (date.getMonth() < 9 ? "0" : "") + (date.getMonth() + 1) + "-" + (date.getDate() < 9 ? "0" : "") + date.getDate();
+            }
+
 			
 			App.search = function() {
 				$(".application").load("/search/0?q=" + $(".search-query").val());
