@@ -73,11 +73,7 @@ define(["applications/calendar/tabs/Tab",
                 photoURL:photos[i].photoUrl
             }, function(html){
                 var date = new Date(photos[i].timeTaken);
-                photosHTML += html;
-                i++;
-                var mainCallback = this;
-                if (i == photos.length || currentDate.getMonth() != date.getMonth() || currentDate.getYear() != date.getYear()
-                    || currentDate.getDate() != date.getDate()){
+                var loadSet = function(){
                     App.loadHTMLTemplate("applications/calendar/tabs/photos/photosTemplate.html","thumbnailGroup",{
                         date:App.formatDate(currentDate),
                         thumbnails:photosHTML
@@ -88,13 +84,20 @@ define(["applications/calendar/tabs/Tab",
                         }
                         else{
                             currentDate = date;
-                            loadNextPhoto();
+                            photosHTML = "";
                         }
                     });
                 }
-                else{
-                    loadNextPhoto();
+                if (currentDate.getMonth() != date.getMonth() || currentDate.getYear() != date.getYear()
+                    || currentDate.getDate() != date.getDate()) {
+                    loadSet();
                 }
+                photosHTML += html;
+                i++;
+                if (i == photos.length)
+                    loadSet();
+                else
+                    loadNextPhoto();
             });
         }
         loadNextPhoto();
