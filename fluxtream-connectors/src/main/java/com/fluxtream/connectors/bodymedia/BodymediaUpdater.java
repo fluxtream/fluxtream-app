@@ -48,7 +48,7 @@ public class BodymediaUpdater extends AbstractUpdater {
 	private void retrieveBurnHistory(UpdateInfo updateInfo,
 			String userRegistrationDate) throws Exception {
         ObjectType burnOT = ObjectType.getObjectType(connector(), "burn");
-        String burnMinutesUrl = "http://api.bodymedia.com/v2/burn/day/minute/intensity/" + userRegistrationDate + "?api_key=" +
+        String burnMinutesUrl = "http://api.bodymedia.com/v2/json/burn/day/minute/intensity/" + userRegistrationDate + "?api_key=" +
                 updateInfo.apiKey.getAttributeValue("api_key", env);
         String jsonResponse = signpostHelper.makeRestCall(connector(), updateInfo.apiKey, burnOT.value(), burnMinutesUrl);
         apiDataService.cacheApiDataJSON(updateInfo, jsonResponse, -1, -1);

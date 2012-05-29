@@ -48,14 +48,12 @@ public class Connector {
 		String string = "{name:" + name;
 		if (this.objectTypes != null) {
 			string += ", objectTypes:[";
-			if (objectTypes != null) {
-				for (int i = 0; i < objectTypes.length; i++) {
-					if (i > 0)
-						string += ", ";
-					string += objectTypes[i].getName() + "/"
-							+ objectTypes[i].value();
-				}
-			}
+            for (int i = 0; i < objectTypes.length; i++) {
+                if (i > 0)
+                    string += ", ";
+                string += objectTypes[i].getName() + "/"
+                        + objectTypes[i].value();
+            }
 			string += "], objectTypeValues: [" + toString(objectTypeValues())
 					+ "], objectTypeExtractorClasses: "
 					+ this.objectTypeExtractorClasses + "}";

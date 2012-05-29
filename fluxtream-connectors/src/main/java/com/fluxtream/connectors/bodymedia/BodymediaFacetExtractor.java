@@ -4,19 +4,19 @@ import com.fluxtream.ApiData;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
+import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created with IntelliJ IDEA.
- * User: candide
- * Date: 26/04/12
- * Time: 17:25
- * To change this template use File | Settings | File Templates.
+ * Extracts information from the apicall and creates a facet
+ * TODO Finish extractor body
  */
+@Component
 public class BodymediaFacetExtractor extends AbstractFacetExtractor {
     @Override
     public List<AbstractFacet> extractFacets(ApiData apiData, ObjectType objectType) throws Exception {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return new ArrayList<AbstractFacet>();  //To change body of implemented methods use File | Settings | File Templates.
     }
 }
