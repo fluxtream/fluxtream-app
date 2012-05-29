@@ -225,7 +225,6 @@ public class SettingsServiceImpl implements SettingsService {
             add.until = until;
         if (jsonString != null)
             add.jsonStorage = jsonString;
-        em.refresh(add);
     }
 
 	/*@Override //saving for reference
