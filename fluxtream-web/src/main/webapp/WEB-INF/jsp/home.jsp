@@ -24,7 +24,7 @@
 	<link rel="stylesheet" href="/css/datepicker.css">
 	<link rel="stylesheet" href="/css/qtip/jquery.qtip.min.css">
 	<link rel="stylesheet" href="/css/qtip/jquery.jqplot.min.css">
-	<link rel="stylesheet" href="/static/css/jquery-ui.css">
+	<link rel="stylesheet" href="/static/css/jquery-ui/jquery-ui-1.8.18.custom.css">
 	<link rel="stylesheet"
 		href="/static/css/jquery-colorPicker/jquery.colorPicker.css">
 	<link rel="stylesheet" href="/static/css/msdropdown/dd.css">
