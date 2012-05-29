@@ -129,6 +129,8 @@ define(function() {
         addressSearch.click(function(){
             var addr = addressInput.val();
             addressSelect.attr("disabled","disabled");
+            addressSearch.attr("disabled","disabled");
+            addressInput.attr("disabled","disabled");
             geocoder.geocode({"address":addr},function(results,status){
                 var options = addressSelect.children();
                 for (var i = 1; i < options.length; i++)
@@ -147,6 +149,8 @@ define(function() {
                     currentAddressPool = [];
                 }
                 addressSelect.removeAttr("disabled");
+                addressSearch.removeAttr("disabled");
+                addressInput.removeAttr("disabled");
             });
         });
 
@@ -210,6 +214,14 @@ define(function() {
                     }
                     if (errors)
                         return;
+                    addressInput.attr("disabled","disabled");
+                    addressSearch.attr("disabled","disabled");
+                    addressSelect.attr("disabled","disabled");
+                    sinceInput.attr("disabled","disabled");
+                    untilInput.attr("disabled","disabled");
+                    presentCheckbox.attr("disabled","disabled");
+                    addressTypeSelect.attr("disabled","disabled");
+                    saveAddressBtn.attr("disabled","disabled");
                     var address = currentAddressPool[selection];
                     var params = {};
                     var hasParams = false;
@@ -248,7 +260,16 @@ define(function() {
                                     this.error();
                             },
                             error: function(){
-                                $(".modal-body").append('<div class="alert alert-error"><button class="close" data-dismiss="alert">×</button><strong>Error!</strong> Failed to add address!</div>')
+                                $(".modal-body").append('<div class="alert alert-error"><button class="close" data-dismiss="alert">×</button><strong>Error!</strong> Failed to add address!</div>');
+                                addressInput.removeAttr("disabled");
+                                addressSearch.removeAttr("disabled");
+                                addressSelect.removeAttr("disabled");
+                                sinceInput.removeAttr("disabled");
+                                if (!presentCheckbox.is(":Checked"))
+                                    untilInput.removeAttr("disabled");
+                                presentCheckbox.removeAttr("disabled");
+                                addressTypeSelect.removeAttr("disabled");
+                                saveAddressBtn.removeAttr("disabled");
                             }
                         });
                      }
@@ -298,6 +319,14 @@ define(function() {
                     }
                     if (errors)
                         return;
+                    addressInput.attr("disabled","disabled");
+                    addressSearch.attr("disabled","disabled");
+                    addressSelect.attr("disabled","disabled");
+                    sinceInput.attr("disabled","disabled");
+                    untilInput.attr("disabled","disabled");
+                    presentCheckbox.attr("disabled","disabled");
+                    addressTypeSelect.attr("disabled","disabled");
+                    saveAddressBtn.attr("disabled","disabled");
                     var address = currentAddressPool[selection];
                     var params = {address:address.formatted_address, latitude:address.geometry.location.lat(),
                         longitude:address.geometry.location.lng(), since:sinceInput.val()};
@@ -313,7 +342,16 @@ define(function() {
                                 this.error();
                         },
                         error: function(){
-                            $(".modal-body").append('<div class="alert alert-error"><button class="close" data-dismiss="alert">×</button><strong>Error!</strong> Failed to add address!</div>')
+                            $(".modal-body").append('<div class="alert alert-error"><button class="close" data-dismiss="alert">×</button><strong>Error!</strong> Failed to add address!</div>');
+                            addressInput.removeAttr("disabled");
+                            addressSearch.removeAttr("disabled");
+                            addressSelect.removeAttr("disabled");
+                            sinceInput.removeAttr("disabled");
+                            if (!presentCheckbox.is(":Checked"))
+                                untilInput.removeAttr("disabled");
+                            presentCheckbox.removeAttr("disabled");
+                            addressTypeSelect.removeAttr("disabled");
+                            saveAddressBtn.removeAttr("disabled");
                         }
                     });
                 });
