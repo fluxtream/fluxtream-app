@@ -404,10 +404,10 @@ public class HomeModel {
 	}
 
 	public void setDayTimeUnit() {
-		this.timeUnit = TimeUnit.DAY;
-		fromCalendar.set(Calendar.DATE, 1);
-		fromCalendar = TimeUtils.setFromMidnight(fromCalendar);
-		toCalendar.set(Calendar.DAY_OF_MONTH, 1);
+        timeUnit = TimeUnit.DAY;
+        //fromCalendar.set(Calendar.DATE, 1);
+        TimeUtils.setFromMidnight(fromCalendar);
+		toCalendar.set(Calendar.DATE, fromCalendar.get(Calendar.DATE));
 		toCalendar = TimeUtils.setToMidnight(toCalendar);
 		this.viewType = this.dayVisualizationType;
 	}
