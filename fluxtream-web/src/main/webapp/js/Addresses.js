@@ -34,14 +34,15 @@ define(function() {
             return;
         }
         var i = 0;
-        App.loadHTMLTemplate("addressesTemplate.html","addressRow",getAddressParams(i),function(html){
+        var rowLoadedCallback = function(html){
             rowHTML += html;
             i++;
             if (i == addresses.length)
                 onDone(rowHTML);
             else
-                App.loadHTMLTemplate("addresseTemplate.html","addressRow",getAddressParams(i),this);
-        });
+                App.loadHTMLTemplate("addressesTemplate.html","addressRow",getAddressParams(i),rowLoadedCallback);
+        };
+        App.loadHTMLTemplate("addressesTemplate.html","addressRow",getAddressParams(i),rowLoadedCallback);
     }
 
     function getAddressParams(index){
@@ -373,6 +374,10 @@ define(function() {
 
     function dataLoaded(data){
         addresses = data;
+        for (var i = 0; i < addresses.length; i++){
+            addresses[i].since += 12 * 3600 * 1000;
+            addresses[i].until -= 12 * 3600 * 1000;
+        }
         buildDialog();
     }
 
