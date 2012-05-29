@@ -42,68 +42,11 @@
 </head>
 
 <body>
-    <div id="flxUsername" style="display:none;"><%=ControllerHelper.getGuest().username%></div>
 
 	<div id="content">
 
-		<div class="navbar">
-			<div class="navbar-inner">
-				<div class="container-fluid">
-					<a class="btn btn-navbar" data-toggle="collapse"
-						data-target=".nav-collapse"> <span class="icon-bar"></span> <span
-						class="icon-bar"></span> <span class="icon-bar"></span>
-					</a> <a class="brand" href="/app"><img
-						src="/${release}/images/header-logo-v4.png" /></a>
-					<div class="nav-collapse">
-						<form class="navbar-search" action="javascript:App.search()">
-							<input onkeypress="if(event.which==13) App.search()" autocorrect="off" autocapitalize="off" type="text"
-								class="search-query" placeholder="Search">
-						</form>
-						<ul class="nav pull-right">
-							<li><div class="btn-group" id="apps-menu"
-									data-toggle="buttons-radio"></div></li>
-							<li class="divider-vertical"></li>
-							<li class="dropdown"><a href="#" class="dropdown-toggle"
-								data-toggle="dropdown"><%=request.getAttribute("fullname")%>
-									<i class="icon-user icon-large"></i> <b class="caret"></b></a>
-								<ul class="dropdown-menu">
-									<li><a href="javascript:App.settings()">Settings <i
-											class="icon-cog icon-large" style="float: right;"></i></a></li>
-                                    <li><a href="javascript:App.addresses()">Addresses <i style="float: right;" class="icon-home icon-large"></i></a></li>
-									<li><a href="javascript:App.connectors()">Connectors</a></li>
-									<sec:authorize access="hasRole('ROLE_ADMIN')">
-										<li><a href="/admin/index">Admin <i
-												class="icon-key icon-large" style="float: right;"></i></a></li>
-									</sec:authorize>
-									<li class="divider"></li>
-									<li><a href="/logout">Logout <i style="float: right"
-											class="icon-off icon-large"></i></a></li>
-								</ul></li>
-						</ul>
-					</div>
-				</div>
-			</div>
-		</div>
-
-		<div id="applications" class="container-fluid">
-
-			<div id="notifications" class="alert alert-success fade in"
-				style="display: none">
-				<a onclick="App.discardNotifications()" class="close">&times;</a>
-				<p id="notificationIds" style="display: none"></p>
-			</div>
-
-			<!-- here is where fluxtream apps go -->
-
-		</div>
-
-		<div id="modal"></div>
-
-		<div id="loading" style="display: none; min-height: 300px">
-			<img style="border: none" src="/${release}/images/loading.gif" />
-		</div>
-
 	</div>
+
 
 	<jsp:include page="footer.jsp" />
 
@@ -138,10 +81,5 @@
 		<script src="/static/js/underscore-1.3.3-min.js"></script>
 		<script src="/static/js/backbone-0.9.2-min.js"></script>
 	</g:compress>
-	
-	<!--  TODO: validate version numbers for these libs -->
-	<script src="/static/grapher4/grapher2.nocache.js"></script>
-	
-	<script data-main="/${release}/js/main.js" src="/static/js/require.js"></script>
 </body>
 </html>

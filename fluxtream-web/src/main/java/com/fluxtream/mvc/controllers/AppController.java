@@ -65,7 +65,29 @@ public class AppController {
 		return mav;
 	}
 
-	public ModelAndView home(HttpServletRequest request) {
+    @RequestMapping(value = { "/snippets" })
+    public ModelAndView snippets(HttpServletRequest request) {
+
+        long guestId = ControllerHelper.getGuestId();
+
+        ModelAndView mav = new ModelAndView("snippets");
+        String targetEnvironment = env.get("environment");
+        mav.addObject("prod", targetEnvironment.equals("prod"));
+        if (request.getSession(false) == null)
+            return mav;
+
+        Authentication auth = SecurityContextHolder.getContext()
+                .getAuthentication();
+        if (auth == null || !auth.isAuthenticated())
+            return mav;
+        mav.setViewName("snippets");
+
+        String release = env.get("release");
+        mav.addObject("release", release);
+        return mav;
+    }
+
+    public ModelAndView home(HttpServletRequest request) {
 		logger.info("action=loggedIn");
 
 		long guestId = ControllerHelper.getGuestId();
