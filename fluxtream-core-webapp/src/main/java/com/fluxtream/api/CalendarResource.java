@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.NavigableSet;
 import java.util.TimeZone;
@@ -17,6 +18,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.fluxtream.domain.Guest;
+import com.fluxtream.mvc.models.AddressModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -38,7 +40,6 @@ import com.fluxtream.domain.metadata.DayMetadataFacet.VisitedCity;
 import com.fluxtream.mvc.controllers.ControllerHelper;
 import com.fluxtream.mvc.models.ConnectorResponseModel;
 import com.fluxtream.mvc.models.DigestModel;
-import com.fluxtream.mvc.models.HomeAddressModel;
 import com.fluxtream.mvc.models.NotificationModel;
 import com.fluxtream.mvc.models.SettingsModel;
 import com.fluxtream.mvc.models.SolarInfoModel;
@@ -349,12 +350,14 @@ public class CalendarResource {
 
 	private void setCurrentAddress(DigestModel digest, long guestId, long start) {
         List<GuestAddress> addresses = settingsService.getAllAddressesForDate(guestId, start);
-		GuestAddress currentAddress = addresses.size() == 0 ? null : addresses.get(0);
-        if (currentAddress != null) {
-            digest.homeAddress = new HomeAddressModel(currentAddress);
-        }
-        else {
-            digest.homeAddress = new HomeAddressModel();
+		digest.addresses = new HashMap<String,Collection>();
+        for (GuestAddress address : addresses){
+            Collection collection = digest.addresses.get(address.type);
+            if (collection == null){
+                collection = new ArrayList();
+                digest.addresses.put(address.type,collection);
+            }
+            collection.add(new AddressModel(address));
         }
 	}
 
