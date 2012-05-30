@@ -342,7 +342,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 
             if (orientation == "Left" || orientation == "Right"){
                 displayY += offY - ttpdiv.height()/2;
-                tail.css("top",ttpdiv.height()/2 - offY);
+                tail.css("top",ttpdiv.height()/2 - offY - 10);
             }
             else{
                 displayX += offX - ttpdiv.width()/2;
