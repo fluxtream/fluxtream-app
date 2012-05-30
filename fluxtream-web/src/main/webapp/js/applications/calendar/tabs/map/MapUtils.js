@@ -131,7 +131,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             case "twitter-dm":
             case "twitter-tweet":
             case "twitter-mention":
-                category = config.OCIAL_CATEGORY;
+                category = config.SOCIAL_CATEGORY;
                 break;
             case "google_calendar":
             case "toodledo-task":
