@@ -59,9 +59,12 @@
 							<%--<input onkeypress="if(event.which==13) App.search()" autocorrect="off" autocapitalize="off" type="text"--%>
 								<%--class="search-query" placeholder="Search">--%>
 						<%--</form>--%>
-						<ul class="nav pull-right">
-							<li><div class="btn-group" id="apps-menu"
-									data-toggle="buttons-radio"></div></li>
+
+                            <ul class="nav">
+                            <li><div class="btn-group" id="apps-menu"
+                                     data-toggle="buttons-radio"></div></li>
+                            </ul>
+                            <ul class="nav pull-right">
 							<li class="divider-vertical"></li>
 							<li class="dropdown"><a href="#" class="dropdown-toggle"
 								data-toggle="dropdown"><%=request.getAttribute("fullname")%>
