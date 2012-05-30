@@ -14,7 +14,6 @@
 %><%@ page import="java.util.*"
 %><%@ page import="org.joda.time.format.*"
 %><%@ page import="org.joda.time.*"
-%><%@ page import="com.fluxtream.CloudFront"
 %><%@ page import="com.fluxtream.mvc.controllers.*"
 %><%@ page import="com.fluxtream.connectors.*"
 %><%@ page import="com.ocpsoft.pretty.time.PrettyTime"
@@ -114,7 +113,7 @@ if (facet.type.startsWith("withings")&&facet.type.contains("weight")) {
 	LastFmRecentTrackFacetVO lfmvo = (LastFmRecentTrackFacetVO) ((Object)facet);%>
 	<div class="ListItemDate"><%=shortFormat.withZone(DateTimeZone.forTimeZone(timezone)).print(lfmvo.start)%><%/*= format.format(date).trim() */%></div>
 	<% if (lfmvo.imgUrls!=null) {%>
-		<img width="34" height="34" src="<%=CloudFront.cache(lfmvo.imgUrls[0])%>"/>	
+		<img width="34" height="34" src="<%=lfmvo.imgUrls[0]%>"/>
 	<% } %>
 	<span class="dataLabel">Track</span> <span class="text"><%=Utils.replaceLinks(facet.description)%></span>
 <%-- 	<span class="dataLabel">Artist</span> <span class="text"><%=lfmvo.artist%></span> --%>

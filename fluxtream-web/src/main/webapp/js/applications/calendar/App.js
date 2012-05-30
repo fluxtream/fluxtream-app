@@ -9,7 +9,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     Calendar.timeUnit = "DAY";
 
 	var start, end;
-	
+
 	Calendar.setup = function() {
 		$(".menuNextButton").click(function(e) {
 			fetchState("/nav/incrementTimespan.json?state=" + Calendar.tabState); });
@@ -24,7 +24,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 			fetchState("/nav/setToToday.json");
 		});
 	};
-	
+
 	Calendar.initialize = function () {
 		_.bindAll(this);
 
@@ -71,7 +71,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 App.invalidPath();
         });
     };
-		
+
 	Calendar.renderState = function(state, forceReload) {
         forceReload = typeof(forceReload)!="undefined"&&forceReload;
         if (!forceReload&&FlxState.getState("calendar")===state) {
@@ -117,7 +117,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 			}
 		}
 	};
-	
+
 	function fetchState(url) {
 		$(".calendar-navigation-button").toggleClass("disabled");
 		$(".loading").show();
@@ -145,9 +145,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 			}
 		});
 	}
-	
+
 	function setDatepicker(currentDate) {
-		$("#datepicker").attr("data-date", currentDate);
+        $("#datepicker").replaceWith("<a data-date-format=\"yyyy-mm-dd\" id=\"datepicker\"><i class=\"icon-calendar icon-large\"></i></a>");
+        $("#datepicker").attr("data-date", currentDate);
 		$("#datepicker").unbind("changeDate");
 		$("#datepicker").datepicker().on(
 			"changeDate", function(event) {
@@ -160,7 +161,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 			}
 		);
 	}
-	
+
 	function fetchCalendar(url) {
 		$.ajax({ url: url,
 			success : function(response) {
@@ -265,5 +266,5 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     };
 
 	return Calendar;
-	
+
 });
