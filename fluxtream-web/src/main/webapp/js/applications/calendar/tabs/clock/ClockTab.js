@@ -235,7 +235,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                                 event.timeTarget = getTimestampForPoint(event.offsetX,event.offsetY);
                             else
                                 event.timeTarget = event.target.item.start;
-                            event.minuteOfDay = getMinuteOfDay(event.offsetX,event.offsetY);
+                            event.minuteOfDay = getMinuteOfDay(event.timeTarget);
                             event.flip = event.offsetY > config.CLOCK_CENTER[1];
 							showEventInfo(event);
 						});
@@ -327,7 +327,9 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             weatherIcon: weatherIcon,
             orientation:orientation,
             oppositeOrientation:tailOrientation,
-            color:color
+            color:color,
+            time: minutesToWallClockTime(minute),
+            tooltipData:contents
         },function(html){
             ttpdiv = $(html);
             ttpdiv.css("position","absolute");
@@ -477,15 +479,16 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
     }
 
     function getTimestampForPoint(x,y){
-        var angleClick = toPolar(config.CLOCK_CENTER,x,y)[1];
-        return dayStart+(angleClick-config.START_AT)*config.RATIO*60000;
+        var angleClick = toPolar(config.CLOCK_CENTER,x,y)[1] - config.START_AT;
+        if (angleClick < 0)
+            angleClick += 360;
+        return dayStart+angleClick*config.RATIO*60000;
     }
 
-    function getMinuteOfDay(x,y){
-        var angleClick = toPolar(config.CLOCK_CENTER,x,y)[1];
-        var minute = (angleClick - config.START_AT) * config.RATIO;
-        if (minute < 0)
-            minute += 24 * 60;
+    function getMinuteOfDay(timestamp){
+        var minute = timestamp;
+        minute -= dayStart;
+        minute /= 60 * 1000;
         return minute;
     }
 	
@@ -510,7 +513,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 						span.node.item = item;
 						$(span.node).click(function(event) {
                             event.timeTarget = getTimestampForPoint(event.offsetX,event.offsetY);
-                            event.minuteOfDay = getMinuteOfDay(event.offsetX,event.offsetY);
+                            event.minuteOfDay = getMinuteOfDay(event.timeTarget);
 							this.style.cursor = "pointer";
                             event.flip = event.offsetY > config.CLOCK_CENTER[1];
 							showLocationBreakdownInfo(event);
@@ -615,9 +618,9 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 			var minutes = Math.floor(minutes%60);
 			if (minutes<10) minutes = "0" + minutes;
 			if (hour<12)
-				return hour + ":" + minutes + " AM";
+				return (hour == 0 ? 12 : hour) + ":" + minutes + " AM";
 			else
-				return hour + ":" + minutes + " PM";
+				return (hour > 12 ? hour - 12 : 12) + ":" + minutes + " PM";
 		}
 	}
 

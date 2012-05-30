@@ -18,28 +18,22 @@
 	
 	TimeZone timezone = ((HomeModel)request.getSession().getAttribute("homeModel")).getTimeZone();
 	DateTimeFormatter format = (DateTimeFormatter) request.getAttribute("format");
-	DateTimeFormatter shortFormat = DateTimeFormat.forPattern("HH:mm");
+	DateTimeFormatter shortFormat = DateTimeFormat.forPattern("hh:mm a");
 	TimeInterval timeInterval = ((HomeModel)request.getSession().getAttribute("homeModel")).getTimeInterval();
 	DateTimeFormatter zeoTimeFormat = DateTimeFormat.forPattern("yyyyMMddHHmm");
 	List<AbstractInstantFacetVO> facets = (List<AbstractInstantFacetVO>)request.getAttribute("facets");
     for (AbstractInstantFacetVO facet : facets) {
     %>
       <div class="listViewItem facet-<%=facet.type%>" id="<%=facet.type%>_<%=facet.id%>">
-      	<a class="listViewAddCom"><div class="iconComment"></div></a>
-      	
-		  <%@ include file="facetDetails.jsp" %>
-		  
-	      <div class="listViewItemComm" <% if (facet.comment!=null) out.println("style=\"display:block\""); %>>
-		    
-		    <div class="listViewItemCommNew" <% if (facet.comment!=null) out.println("style=\"display:none\""); %>>
-					<div class="iconCommDelete"></div>
-					<div class="iconCommCont"><div class="iconComm"></div></div>
-	      		<input onkeypress="if(event.which==13) setEventComment(this)"
-	      			class="commentList placeholder empty" title="Comment this event..."
-	      			type="text" id="" value="Comment this event...">
-	      	</div>
-      	    <article <% if (facet.comment==null) out.println("style=\"display:none\""); %> onclick="editEventComment(this)"><%=facet.comment%></article>
-	      </div>
+          <div class="flx-toolTipData">
+              <%@ include file="facetDetails.jsp" %>
+              <ul class="flx-toolTipLinks">
+                  <li><a href="#">List <i class="icon-list"></i></a></li>
+                  <li><a href="#">Timeline <i class="icon-film"></i></a></li>
+                  <li><a href="#">Bodytrack <i class="icon-lemon"></i></a></li>
+              </ul>
+          </div>
+
       </div>
 <% } %>
 </div>

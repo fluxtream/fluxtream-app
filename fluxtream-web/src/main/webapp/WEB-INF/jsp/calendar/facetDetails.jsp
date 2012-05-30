@@ -19,8 +19,6 @@
 %><%@ page import="com.fluxtream.connectors.*"
 %><%@ page import="com.ocpsoft.pretty.time.PrettyTime"
 %>
-<div class="icon"></div>
-<div class="ListItemDesc" style="overflow:hidden; height:100%;">
 
 <%/* Withings ------------------------------------------------------------ */%>
 <%
@@ -112,13 +110,12 @@ if (facet.type.startsWith("withings")&&facet.type.contains("weight")) {
 <%/* LAST FM ------------------------------------------------------------ */%>	
 <% } else if (facet instanceof LastFmRecentTrackFacetVO) {
 	LastFmRecentTrackFacetVO lfmvo = (LastFmRecentTrackFacetVO) ((Object)facet);%>
-	<div class="ListItemDate"><%=shortFormat.withZone(DateTimeZone.forTimeZone(timezone)).print(lfmvo.start)%><%/*= format.format(date).trim() */%></div>
-	<% if (lfmvo.imgUrls!=null) {%>
-		<img width="34" height="34" src="<%=CloudFront.cache(lfmvo.imgUrls[0])%>"/>	
-	<% } %>
-	<span class="dataLabel">Track</span> <span class="text"><%=Utils.replaceLinks(facet.description)%></span>
-<%-- 	<span class="dataLabel">Artist</span> <span class="text"><%=lfmvo.artist%></span> --%>
-
+    <h3 class="flx-dataType">Track</h3>
+    <span class="flx-deviceIcon" style="background:url('<%=CloudFront.cache(lfmvo.imgUrls[0])%>'); background-size:100% 100%;"></span>
+    <div class="flx-deviceData">
+        <span class="flx-tTime"><%=shortFormat.withZone(DateTimeZone.forTimeZone(timezone)).print(lfmvo.start)%></span>
+        <span class="flx-data"><%=Utils.replaceLinks(facet.description)%></span>
+    </div>
 <%/* PICASA ------------------------------------------------------------ */%>	
 <% } else if (facet instanceof PicasaPhotoFacetVO) {
 	PicasaPhotoFacetVO pvo = (PicasaPhotoFacetVO) ((Object)facet);%>
@@ -130,4 +127,3 @@ if (facet.type.startsWith("withings")&&facet.type.contains("weight")) {
 <div class="ListItemDate"><%= format.withZone(DateTimeZone.forTimeZone(timezone)).print(facet.start).trim() %></div>
 <%=facet.description!=null?Utils.replaceLinks(facet.description):"" %>
 <% } %>
-</div>

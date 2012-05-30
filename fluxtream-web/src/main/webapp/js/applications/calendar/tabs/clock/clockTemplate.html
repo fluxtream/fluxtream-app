@@ -41,24 +41,11 @@
     <div class="flx-clockToolTipContainer">
         <div class="flx-toolTipBody strongBorder-{orientation}" style="border-color:{color}"> <!-- JS : Append strongBorder class with -Top, -Left, -Right, Bottom according to toolTip position / Append the right color class to override default -->
             <span class="flx-toolTipTail-{orientation}" style="border-{oppositeOrientation}-color:{color}"></span> <!-- JS : Append class with -Top, -Left or -Right to change tail direction + define top/bottom/right/left arguments in the style attribute to give the tail it's position -->
-            <div class="flx-toolTipData">
-                <h3 class="flx-dataType">Weight</h3>
-                <ul class="flx-toolTipLinks">
-                    <li><a href="#">List <i class="icon-list"></i></a></li>
-                    <li><a href="#">Timeline <i class="icon-film"></i></a></li>
-                    <li><a href="#">Bodytrack <i class="icon-lemon"></i></a></li>
-                </ul>
-                <span class="flx-deviceIcon withings"></span>
-                <div class="flx-deviceData">
-                    <span class="flx-tTime">9:43</span>
-                    <span class="flx-data">71.05 kg</span>
-                </div>
-                <span class="flx-miniGraph"><img src="/css/dashboardImgDummies/w8.png" alt="w8" width="" height="" /></span>
-            </div>
+            {tooltipData}
 
             <div class="flx-toolTipContext">
                 <div class="flx-toolTipLocation">
-                    <h4><span>9:43</span> last seen here: <strong>RVB Studio, Brussels</strong></h4>
+                    <h4><span>{time}</span> last seen here: <strong>RVB Studio, Brussels</strong></h4>
                     <div>
                         <div id="mapPlaceHolder" style="display:inline-block; width:200px; height:188px; position:relative;"></div>
                     </div>
