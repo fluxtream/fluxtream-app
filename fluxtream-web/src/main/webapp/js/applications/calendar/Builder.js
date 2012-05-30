@@ -38,7 +38,8 @@ define([], function() {
                     return;
 				var state = App.state.getState("calendar");
 				state = state.substring(state.indexOf("/"));
-				Calendar.renderState(tab+state);
+                var forceReload = Calendar.currentTabName==="timeline";
+				Calendar.renderState(tab+state, forceReload);
 			});
 		}
 		var t = tabExistsForTimeUnit(Calendar.currentTabName, Calendar.timeUnit)?Calendar.currentTabName:tabs[Calendar.timeUnit][0];
