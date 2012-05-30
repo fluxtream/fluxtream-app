@@ -315,9 +315,15 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         for (endIndex = 1; endIndex < map.gpsTimestamps.length && map.gpsTimestamps[endIndex] < time; endIndex++);
         var startIndex = endIndex - 1;
         var percentThrough = (time - map.gpsTimestamps[startIndex]) / (map.gpsTimestamps[endIndex] - map.gpsTimestamps[startIndex]);
-        var lat = (map.gpsPositions[endIndex].lat() - map.gpsPositions[startIndex].lat()) * percentThrough + map.gpsPositions[startIndex].lat();
-        var lon = (map.gpsPositions[endIndex].lng() - map.gpsPositions[startIndex].lng()) * percentThrough + map.gpsPositions[startIndex].lng();
-        return new google.maps.LatLng(lat,lon);
+
+        var projection = map.getProjection();
+        var startPoint = projection.fromLatLngToPoint(map.gpsPositions[startIndex]);
+        var endPoint = projection.fromLatLngToPoint(map.gpsPositions[endIndex]);
+
+        var x = (endPoint.x - startPoint.x) * percentThrough + startPoint.x;
+        var y = (endPoint.y - startPoint.y) * percentThrough + startPoint.y;
+        var latlng = projection.fromPointToLatLng(new google.maps.Point(x,y));
+        return new google.maps.LatLng(latlng.lat(),latlng.lng());
     }
 
     function zoomOnTimespan(map, start,end){
