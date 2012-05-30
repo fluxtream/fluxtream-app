@@ -48,7 +48,6 @@ define([], function() {
 	}
 	
 	function createTimeUnitsMenu(Calendar) {
-		$("#time-menu").remove();
 		var timeUnits = {"DAY":1, "WEEK":2, "YEAR":4};
 		$(".loading").remove();
 		var markup = "<div class=\"btn-group\" data-toggle=\"buttons-radio\" id=\"time-menu\">";
@@ -64,7 +63,8 @@ define([], function() {
 		}
 		markup += "</div>";
 		markup += "<span class=\"loading\"><img src=\"/static/img/loading.gif\"/></span>";
-		$("#calendar-menubar").append(markup);
+        $("#time-menu-container").empty();
+        $("#time-menu-container").append(markup);
 		for (timeUnitName in timeUnits) {
 			$("#time-menu a").click(function(event) {
                 console.log("clicked!");
