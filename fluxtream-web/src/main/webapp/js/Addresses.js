@@ -287,8 +287,8 @@ define(function() {
         $("#modal").on("hidden", function(){
             App.loadHTMLTemplate("addressesTemplate.html","addAddress",{
                 title:"Add Address",
-                sinceDate:"",
-                untilDate:""
+                sinceDate: App.formatDateAsDatePicker(new Date()),
+                untilDate: App.formatDateAsDatePicker(new Date())
             },function(html){
                 addressDialogInitializer(html);
 
@@ -300,6 +300,9 @@ define(function() {
                 var presentCheckbox = $("#presentCheckBox");
                 var addressTypeSelect = $("#addressTypeSelect");
                 var saveAddressBtn = $("#saveAddressBtn");
+
+                sinceInput.val("");
+                untilInput.val("");
 
                 currentAddressPool = [];
 
