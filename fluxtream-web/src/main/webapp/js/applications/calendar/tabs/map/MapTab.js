@@ -19,12 +19,13 @@ define(["applications/calendar/tabs/Tab",
         if (map != null)
             bounds = map.getBounds();
 
-        if (digest.homeAddress != null && digest.homeAddress.isSet){
-            map = MapUtils.newMap(new google.maps.LatLng(digest.homeAddress.latitude,digest.homeAddress.longitude),8,"the_map",false);
-        }
-        else{
-            map = MapUtils.newMap(new google.maps.LatLng(0,0),8,"the_map",false);
-        }
+        var addressToUse = {latitude:0,longitude:0};
+        if (digest.addresses.ADDRESS_HOME != null && digest.addresses.ADDRESS_HOME.length != 0)
+            addressToUse = digest.addresses.ADDRESS_HOME[0];
+
+        map = MapUtils.newMap(new google.maps.LatLng(addressToUse.latitude,addressToUse.longitude),17,"the_map",false);
+        if (!document.getElementById("perserveViewCheckBox").checked)
+            bounds = map.getBounds();
 
         if (digest!=null && digest.cachedData!=null &&
             typeof(digest.cachedData.google_latitude)!="undefined"

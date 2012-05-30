@@ -492,7 +492,10 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 	}
 
 	function locationBreakdown(positions, digest) {
-		var pos1 = new google.maps.LatLng(digest.homeAddress.latitude, digest.homeAddress.longitude),
+        var homeAddress = {latitude:0,longitude:0};
+        if (digest.addresses.ADDRESS_HOME != null && digest.addresses.ADDRESS_HOME.length != 0)
+            homeAddress = digest.addresses.ADDRESS_HOME[0];
+		var pos1 = new google.maps.LatLng(homeAddress.latitude, homeAddress.longitude),
 			i=0, checkin, pos2, notAtHome, lastCollection, currentCollection,
 			mergedAtHome = new Array(), mergedOutside = new Array(), farAwayPositionsCount = 0;
 		for (; i<positions.length; i++) {

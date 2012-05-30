@@ -167,11 +167,15 @@ public class AddressResource {
                 startTime = Long.parseLong(since);
             }
             if (until != null){
-                try{
-                    DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(),until,true);
-                    endTime = dayMeta.end;
-                } catch (Exception e){
-                    endTime = Long.parseLong(until);
+                if (until.equalsIgnoreCase("Present"))
+                    endTime = Long.MAX_VALUE;
+                else{
+                    try{
+                        DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(),until,true);
+                        endTime = dayMeta.end;
+                    } catch (Exception e){
+                        endTime = Long.parseLong(until);
+                    }
                 }
             }
 
@@ -322,19 +326,25 @@ public class AddressResource {
                 jsonString = HttpUtils.fetch("https://maps.googleapis.com/maps/api/geocode/json?sensor=false&address=" + addressEncoded, env);
             }
 
-            Long startTime, endTime = null;
-            try{
-                DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(),since,true);
-                startTime = dayMeta.start;
-            } catch (Exception e){
-                startTime = Long.parseLong(since);
+            Long startTime = null, endTime = null;
+            if (since != null){
+                try{
+                    DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(),since,true);
+                    startTime = dayMeta.start;
+                } catch (Exception e){
+                    startTime = Long.parseLong(since);
+                }
             }
             if (until != null){
-                try{
-                    DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(),until,true);
-                    endTime = dayMeta.end;
-                } catch (Exception e){
-                    endTime = Long.parseLong(until);
+                if (until.equalsIgnoreCase("Present"))
+                    endTime = Long.MAX_VALUE;
+                else{
+                    try{
+                        DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(),until,true);
+                        endTime = dayMeta.end;
+                    } catch (Exception e){
+                        endTime = Long.parseLong(until);
+                    }
                 }
             }
 

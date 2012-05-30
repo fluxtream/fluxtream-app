@@ -116,12 +116,12 @@ public class HomeModel {
 	public void setYear(int year) {
 		setYearTimeUnit();
 		fromCalendar.set(Calendar.YEAR, year);
-		fromCalendar.set(Calendar.DAY_OF_WEEK, 0);
-		fromCalendar.set(Calendar.WEEK_OF_YEAR, 0);
+		fromCalendar.set(Calendar.MONTH, Calendar.JANUARY);
+		fromCalendar.set(Calendar.DATE, 1);
 		fromCalendar = TimeUtils.setFromMidnight(fromCalendar);
 		toCalendar.set(Calendar.YEAR, year);
 		toCalendar.set(Calendar.MONTH, Calendar.DECEMBER);
-		toCalendar.set(Calendar.DAY_OF_MONTH, 31);
+		toCalendar.set(Calendar.DATE, toCalendar.getActualMaximum(Calendar.DATE));
 		toCalendar = TimeUtils.setToMidnight(fromCalendar);
 	}
 
@@ -305,8 +305,7 @@ public class HomeModel {
 	}
 
 	public void incrementTimespan(final String state) {
-        syncState(state);
-        switch (this.timeUnit) {
+		switch (this.timeUnit) {
 		case DAY:
 			if (!isToday()) {
 				fromCalendar.add(Calendar.DATE, 1);
@@ -378,8 +377,8 @@ public class HomeModel {
     public void setYearTimeUnit() {
 		this.timeUnit = TimeUnit.YEAR;
 		fromCalendar.set(Calendar.YEAR, fromCalendar.get(Calendar.YEAR));
-		fromCalendar.set(Calendar.DAY_OF_MONTH, 1);
 		fromCalendar.set(Calendar.MONTH, Calendar.JANUARY);
+        fromCalendar.set(Calendar.DATE, 1);
 		fromCalendar = TimeUtils.setFromMidnight(fromCalendar);
 		toCalendar.set(Calendar.YEAR, toCalendar.get(Calendar.YEAR));
 		toCalendar.set(Calendar.MONTH, Calendar.DECEMBER);
@@ -405,10 +404,10 @@ public class HomeModel {
 	}
 
 	public void setDayTimeUnit() {
-		this.timeUnit = TimeUnit.DAY;
-		fromCalendar.set(Calendar.DATE, 1);
-		fromCalendar = TimeUtils.setFromMidnight(fromCalendar);
-		toCalendar.set(Calendar.DAY_OF_MONTH, 1);
+        timeUnit = TimeUnit.DAY;
+        //fromCalendar.set(Calendar.DATE, 1);
+        fromCalendar = TimeUtils.setFromMidnight(fromCalendar);
+		toCalendar.set(Calendar.DATE, fromCalendar.get(Calendar.DATE));
 		toCalendar = TimeUtils.setToMidnight(toCalendar);
 		this.viewType = this.dayVisualizationType;
 	}

@@ -19,7 +19,7 @@ public class DigestModel {
 	public Set<String> updateNeeded = new HashSet<String>();
 	public boolean hasPictures;
 	public List<NotificationModel> notifications;
-	public HomeAddressModel homeAddress;
+	public Map<String,Collection> addresses;
 	public List<DayMetadataFacet.VisitedCity> cities;
 	public DayMetadataFacet.InTransitType inTransit;
 	public DayMetadataFacet.TravelType travelType;
