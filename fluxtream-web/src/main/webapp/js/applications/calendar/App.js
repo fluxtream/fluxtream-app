@@ -36,7 +36,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             var parts = {};
             for (i = 0; i < names.length; i += 1)
                 parts[names[i]] = result[i];
-            console.log("path: " + parts.path);
             var pathElements = parts.path.split("/");
             if (pathElements.length<3)
                 App.invalidPath();
@@ -73,8 +72,9 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         });
     };
 		
-	Calendar.renderState = function(state, force) {
-		if (!force&&FlxState.getState("calendar")===state) {
+	Calendar.renderState = function(state, forceReload) {
+        forceReload = typeof(forceReload)!="undefined"&&forceReload;
+        if (!forceReload&&FlxState.getState("calendar")===state) {
 			return;
 		}
 		if (state==null||state==="") {
@@ -98,7 +98,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         var w = Builder.tabExistsForTimeUnit(Calendar.currentTabName, Calendar.timeUnit)?Calendar.currentTabName:Builder.tabs[Calendar.timeUnit][0];
         Calendar.currentTabName = w;
         Builder.createTabs(Calendar);
-        if (Calendar.tabState==nextTabState) {
+        if (!forceReload&&Calendar.tabState==nextTabState) {
 			// time didn't change
 			Builder.updateTab(Calendar.digest, Calendar);
 			FlxState.router.navigate("app/calendar/" + state);
@@ -128,6 +128,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 					Calendar.currentTab.saveState();
 				}
 				Calendar.tabState = response.state;
+                console.log("setting calendar start to: " + response.start);
+                console.log("setting calendar end to: " + response.end);
                 Calendar.start = response.start;
                 Calendar.end  = response.end;
 				FlxState.router.navigate("app/calendar/" + Calendar.currentTabName + "/" + response.state);

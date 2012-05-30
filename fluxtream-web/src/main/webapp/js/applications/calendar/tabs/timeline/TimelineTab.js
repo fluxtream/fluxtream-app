@@ -205,7 +205,6 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
         );
 
         // Load sources
-        console.log("getSources is about to be called");
         getSources(function() {
             console.log("getSources is called");
             $("#_timeline_messageArea").hide();
@@ -437,13 +436,17 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
     function newView() {
         var now = new Date();
         now = now.getTime()/1000.0;
+        newView(now - 86400.0, now);
+    }
+
+    function newView(start, end) {
 
         VIEWS.data = {
             "name" : newViewName,
             "v2" : {
                 "x_axis" : {
-                    "min" : now - 86400.0,
-                    "max" : now
+                    "min" : start,
+                    "max" : end
                 },
                 y_axes : []
             }
@@ -2738,7 +2741,12 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
     }
 
     function setRange(start, end) {
-        dateAxis.setRange(start/1000, end/1000);
+        console.log("setting range to " + start + " " + end);
+        if (dateAxis) {
+            dateAxis.setRange(start, end);
+        } else {
+            console.log("we don't have a dateAxis yet");
+        }
         repaintAllPlots();
     }
 
@@ -2751,11 +2759,11 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
         }
     }
 
-    function render(digest, timeUnit, calendarState) {
+    function render(digest, timeUnit) {
         this.getTemplate("text!applications/calendar/tabs/timeline/template.html", "timeline", function() {
             setup(digest, timeUnit);
-            timelineTab.setRange(Calendar.start, Calendar.end);
         });
+        timelineTab.setRange(Calendar.start/1000, Calendar.end/1000);
     }
 
     var timelineTab = new Tab("timeline", "Candide Kemmler", "icon-film", false);
@@ -2769,7 +2777,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
         if (!timelineTab.initialized) {
             APP.init(function() {
                 timelineTab.init(function() {
-                    timelineTab.newView();
+                    timelineTab.newView(Calendar.start/1000, Calendar.end/1000);
                     timelineTab.initialized = true;
                 });
             });
