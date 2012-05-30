@@ -445,12 +445,14 @@ a img {
   width: 0;
   height: 0;
   border: 10px solid transparent;
+  pointer-events: none;
 }
 .flx-toolTipTail-Bottom {
   position: absolute;
   width: 0;
   height: 0;
   border: 10px solid transparent;
+  pointer-events: none;
   border-top: 10px solid #0088cc;
   bottom: -24px;
 }
@@ -459,6 +461,7 @@ a img {
   width: 0;
   height: 0;
   border: 10px solid transparent;
+  pointer-events: none;
   border-bottom: 10px solid #0088cc;
   top: -24px;
 }
@@ -467,6 +470,7 @@ a img {
   width: 0;
   height: 0;
   border: 10px solid transparent;
+  pointer-events: none;
   border-left: 10px solid #0088cc;
   right: -24px;
 }
@@ -475,6 +479,7 @@ a img {
   width: 0;
   height: 0;
   border: 10px solid transparent;
+  pointer-events: none;
   border-right: 10px solid #0088cc;
   left: -24px;
 }

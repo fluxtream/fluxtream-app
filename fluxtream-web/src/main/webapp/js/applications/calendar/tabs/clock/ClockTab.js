@@ -13,6 +13,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
     var dayStart, dayEnd;
 
 	function render(digest, timeUnit) {
+        hideEventInfo();
 		this.getTemplate("text!applications/calendar/tabs/clock/clock.html", "clock", function() {
 			 setup(digest, timeUnit);
 		});
@@ -256,15 +257,17 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 	
 	function showEventInfo(event) {
         hideEventInfo();
-		ttpdiv = $("#tooltip");
 		lastHoveredEvent = event;
 		var span = event.target;
 		var facetId = span.item.id;
 		var facetType = span.item.type;
 		if (facetType=="google_latitude") 
 			return;
-		var tip_y = event.pageY;
-		var tip_x = event.pageX;
+        var target = $(event.target).parent().position();
+        var tip_y = target.top + event.offsetY;
+        var tip_x = target.left + event.offsetX;
+        var offsetX = config.CLOCK_CENTER[0] - event.offsetX;
+        var offsetY = config.CLOCK_CENTER[1] - event.offsetY;
         if (map != null){
             markers[0] = map.addItem(span.item,false);
             if (markers[0] != null){
@@ -281,10 +284,10 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 
 
 		var tooltip = $("#" + facetType + "_" + facetId);
-        showToolTip(tip_x,tip_y,tooltip.html(), event.flip,event.minuteOfDay);
+        showToolTip(tip_x,tip_y,offsetX,offsetY,tooltip.html(),event.minuteOfDay,$(event.target).attr("stroke"),$(event.target).parent().parent());
 	}
 
-    function showToolTip(x,y,contents,flip,minute){
+    function showToolTip(x,y, offX, offY,contents,minute,color,parent){
         var weatherInfo = getWeatherData(minute);
         var weatherIcon;
         if (minute < solarInfo.sunrise || minute > solarInfo.sunset){//night
@@ -293,44 +296,76 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         else{//day
             weatherIcon = weatherInfo.weatherIconUrlDay;
         }
-        App.loadHTMLTemplate("applications/calendar/tabs/clock/clockTemplate.html","tooltip" + (map == null ? "No" : "") + "Map",{
+        var orientation, tailOrientation;
+        var angle = toPolar([0,0],offX,offY)[1];
+        if (angle < 45 || angle > 315){
+            orientation = "Left";
+            tailOrientation = "right";
+        }
+        else if (angle > 135 && angle < 225){
+            orientation = "Right";
+            tailOrientation = "left";
+        }
+        else if (offY > 0){
+            orientation = "Top";
+            tailOrientation = "bottom";
+        }
+        else{
+            orientation = "Bottom";
+            tailOrientation = "top";
+        }
+        App.loadHTMLTemplate("applications/calendar/tabs/clock/clockTemplate.html","tooltip",{
             description: contents,
             weatherDescription: weatherInfo.weatherDesc,
             temperature: tempratureUnit === "FAHRENHEIT" ? weatherInfo.tempF : weatherInfo.tempC,
             temperatureUnit: tempratureUnit === "FAHRENHEIT" ? "F" : "C",
             windSpeed: weatherInfo.windspeedMiles,
+            windSpeedUnit: "MPH",
             humidity: weatherInfo.humidity,
             precipitation: weatherInfo.precipMM,
-            weatherIcon: weatherIcon
+            precipitationUnit: "mm",
+            weatherIcon: weatherIcon,
+            orientation:orientation,
+            oppositeOrientation:tailOrientation,
+            color:color
         },function(html){
-            var bounding;
-            if (flip){
-                bounding = "bottom center";
-            }
-            else
-                bounding = "top center";
+            ttpdiv = $(html);
+            ttpdiv.css("position","absolute");
+            ttpdiv.css("zIndex","100");
+            var tail = ttpdiv.find(".flx-toolTipTail-" + orientation);
+            parent.append(ttpdiv);
 
-            ttpdiv.qtip({
-                content: {
-                    text: html
-                },
-                style: {
-                    classes: 'ui-tooltip-light ui-tooltip-shadow ui-tooltip-rounded'
-                },
-                position: {
-                    target: [x,y], // ... in the window
-                    my: bounding
-                },
-                show: {
-                    ready: true // Show it straight away
-                },
-                hide: {
-                    effect: function(offset) {
-                        $(this).slideDown(100); // "this" refers to the tooltip
-                    },
-                    inactive : 4500
-                }
-            });
+            var displayX = x;
+            var displayY = y;
+
+            if (orientation == "Left" || orientation == "Right"){
+                displayY += offY - ttpdiv.height()/2;
+                tail.css("top",ttpdiv.height()/2 - offY);
+            }
+            else{
+                displayX += offX - ttpdiv.width()/2;
+                tail.css("left",ttpdiv.width()/2 - offX - 10);
+            }
+            switch(orientation){
+                case "Left":
+                    displayX += 10;
+                    break;
+                case "Right":
+                    displayX -= 10 + ttpdiv.width();
+                    break;
+                case "Top":
+                    displayY += 10;
+                    break;
+                case "Bottom":
+                    displayY -= 10 + ttpdiv.height();
+                    break;
+            }
+
+
+            ttpdiv.css("left",displayX);
+            ttpdiv.css("top",displayY);
+
+            $("#mapPlaceHolder").append(document.getElementById("clockMap"));
        });
 
     }
@@ -347,11 +382,13 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 
     function showLocationBreakdownInfo(event) {
         hideEventInfo();
-        ttpdiv = $("#tooltip");
         var span = event.target;
         var facetId = span.item.id;
-        var tip_y = event.pageY;
-        var tip_x = event.pageX;
+        var target = $(event.target).parent().position();
+        var tip_y = target.top + event.offsetY;
+        var tip_x = target.left + event.offsetX;
+        var offsetX = config.CLOCK_CENTER[0] - event.offsetX;
+        var offsetY = config.CLOCK_CENTER[1] - event.offsetY;
 
         if (map != null){
             map.highlightTimespan(span.item.start,span.item.end);
@@ -361,14 +398,11 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             markers[0].showCircle();
             map.zoomOnMarker(markers[0]);
         }
-        showToolTip(tip_x,tip_y,span.item.description, event.flip,event.minuteOfDay);
+        showToolTip(tip_x,tip_y,offsetX,offsetY,span.item.description,event.minuteOfDay,$(event.target).attr("stroke"),$(event.target).parent().parent());
     }
 	
 	function hideEventInfo() {
-        if (ttpdiv != null && ttpdiv.qtip != null)
-            ttpdiv.qtip('hide');
         if (map != null){
-            clearTimeout(timeout);
             hideQTipMap();
             for (var i = 0; i < markers.length; i++){
                 if (markers[i] != null)
@@ -377,6 +411,10 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             markers = new Array();
             map.fitBounds(map.gpsBounds);
             map.highlightTimespan(dayStart,dayEnd);
+        }
+        if (ttpdiv != null && ttpdiv.qtip != null){
+            ttpdiv.remove();
+            ttpdiv = null;
         }
 	}
 
