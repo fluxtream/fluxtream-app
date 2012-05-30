@@ -75,6 +75,7 @@ public class SettingsServiceImpl implements SettingsService {
 	}
 
 	@Override
+    @Transactional(readOnly = false)
 	public void setTemperatureUnit(long guestId, TemperatureUnit unit) {
 		GuestSettings settings = JPAUtils.findUnique(em, GuestSettings.class,
 				"settings.byGuestId", guestId);
