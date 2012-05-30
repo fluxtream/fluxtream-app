@@ -44,6 +44,53 @@
 <body>
 
 	<div id="content">
+		<div class="container-fluid">
+			<div class="row"> 
+				<div class="span12">
+			<!-- Remove when added to the clock tab -->
+					<div class="flx-clockToolTipContainer">
+						<div class="flx-toolTipBody strongBorder-Right"> <!-- JS : Append strongBorder class with -Top, -Left, -Right, Bottom according to toolTip position -->
+							<span class="flx-toolTipTail-Right" style="top:10px"></span> <!-- JS : Append class with -Top, -Left or -Right to change tail direction + define top/bottom/right/left arguments in the style attribute to give the tail it's position (taking into account that the span itself is a 20 px square -->
+							<div class="flx-toolTipData">
+								<h3 class="flx-dataType">Weight</h3>
+									<ul class="flx-toolTipLinks">
+										<li><a href="#">List <i class="icon-list"></i></a></li>
+										<li><a href="#">Timeline <i class="icon-film"></i></a></li>
+										<li><a href="#">Bodytrack <i class="icon-map-marker"></i></a></li>
+									</ul>
+								
+								<span class="flx-deviceIcon"></span>
+								<div class="flx-deviceData">
+									<span class="flx-tTime">9:43</span>
+									<span class="flx-data">71.05 kg</span>
+								</div>
+								<span class="flx-miniGraph"><img src="/css/dashboardImgDummies/w8.png" alt="w8" width="" height="" /></span>
+							</div>
+							<div class="flx-toolTipContext">
+								
+								<div class="flx-toolTipLocation">
+									<h4>At <span>9:43</span> you were here: <strong>RVB Studio, Brussels</strong></h4>
+									<div>
+										<img src="/css/dashboardImgDummies/w7.png" alt="w7" width="" height="" />
+									</div>
+								</div>
+								<div class="flx-toolTipWeather">
+									<h4><span>15.C</span> Variable with showers</h4>
+									<div>
+									</div>
+									<ul class="flx-weatherDetails">
+										<li>Windspeed <span>7km/h</span></li>
+										<li>Humidity <span>54%</span></li>
+										<li>Precipitation <span>2mm</span></li>
+									</ul>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
 
 	</div>
 
