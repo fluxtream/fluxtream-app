@@ -113,29 +113,6 @@
     </div>
 
 
-    <div class="row"> <!-- Remove when added to the clock tab -->
-        <div class="flx-clockToolTipContainer">
-			<span class="flx-toolTipTail">
-			</span>
-            <div class="flx-toolTipBody">
-                <div class="flx-toolTipData">
-                    <h4 class="flx-dataType">Weight</h4>
-                    <span class="flx-deviceIcon"></span>
-                    <span class="flx-tTime">9:43</span>
-                    <span class="flx-data">71.05 kg</span>
-                    <span class="flx-miniGraph"></span>
-                    <ul class="flx-toolTipLinks">
-                        <li><a href="#"></i>List <i class="icon-list"></a></li>
-                        <li><a href="#"></i>Timeline <i class="icon-film"></a></li>
-                        <li><a href="#"></i>Bodytrack <i class="icon-map-marker"></a></li>
-                    </ul>
-                </div>
-                <div class="flx-toolTipContext">
-                    <h5>
-                </div>
-            </div>
-        </div>
-    </div>
 
 
     <!--     <div class="flx-spacer"></div> -->
