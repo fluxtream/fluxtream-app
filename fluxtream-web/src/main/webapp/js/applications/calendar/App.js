@@ -128,8 +128,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 					Calendar.currentTab.saveState();
 				}
 				Calendar.tabState = response.state;
-                console.log("setting calendar start to: " + response.start);
-                console.log("setting calendar end to: " + response.end);
                 Calendar.start = response.start;
                 Calendar.end  = response.end;
 				FlxState.router.navigate("app/calendar/" + Calendar.currentTabName + "/" + response.state);

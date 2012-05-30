@@ -405,7 +405,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		var coords = arc(config.CLOCK_CENTER, radius, startTime / config.RATIO + config.START_AT, endTime
 				/ config.RATIO + config.START_AT),
 		path = paper.path(coords);
-		path.attr("stroke-width", config.STROKE_WIDTH);
+        path.attr("stroke-width", config.STROKE_WIDTH);
 		path.attr("stroke", color);
 		path.attr("opacity", opacity);
 		return path;
@@ -465,7 +465,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 					instantWidth=10;
 				config.clockCircles.push(
 					function() {
-						var start = item.startMinute;
+						var start = typeof(item.startMinute)=="undefined"?0:item.startMinute;
 						var end = item.endMinute;
 						if (start>end) { start = 0; }
 						var span = paintSpan(paper, start,(start<=end?end:1440), config.AT_HOME_CATEGORY.orbit, color, 1, config);
