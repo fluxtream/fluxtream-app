@@ -1,6 +1,6 @@
 define(["core/Application", "core/FlxState"], function(Application, FlxState) {
 
-    var Pinboard = new Application("pinboard", "Candide Kemmler", "icon-lemon");
+    var Pinboard = new Application("pinboard", "Candide Kemmler", "icon-bookmark");
 
     Pinboard.initialize = function () {
         FlxState.router.route("app/pinboard", "", function() {
