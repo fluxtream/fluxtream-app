@@ -611,19 +611,13 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 	}
 
 	function minutesToWallClockTime(minutes) {
-		if (minutes<60) {
-			if (minutes<10) minutes = "0" + minutes;
-			return "0:"+minutes + " AM";
-		}
-		else {
-			var hour = Math.floor(minutes/60);
-			var minutes = Math.floor(minutes%60);
-			if (minutes<10) minutes = "0" + minutes;
-			if (hour<12)
-				return (hour == 0 ? 12 : hour) + ":" + minutes + " AM";
-			else
-				return (hour > 12 ? hour - 12 : 12) + ":" + minutes + " PM";
-		}
+        var hour = Math.floor(minutes/60);
+        var minutes = Math.floor(minutes%60);
+        if (minutes<10) minutes = "0" + minutes;
+        if (hour<12)
+            return (hour == 0 ? 12 : hour) + ":" + minutes + " AM";
+        else
+            return (hour > 12 ? hour - 12 : 12) + ":" + minutes + " PM";
 	}
 
     function hideQTipMap(){
