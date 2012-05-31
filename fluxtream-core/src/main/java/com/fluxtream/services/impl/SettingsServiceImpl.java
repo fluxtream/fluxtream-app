@@ -75,6 +75,7 @@ public class SettingsServiceImpl implements SettingsService {
 	}
 
 	@Override
+    @Transactional(readOnly = false)
 	public void setTemperatureUnit(long guestId, TemperatureUnit unit) {
 		GuestSettings settings = JPAUtils.findUnique(em, GuestSettings.class,
 				"settings.byGuestId", guestId);
@@ -113,6 +114,8 @@ public class SettingsServiceImpl implements SettingsService {
         address.until = until;
         address.type = type;
 		address.jsonStorage = jsonString;
+        if (!isAddressValid(address))
+            throw new RuntimeException("invalid address");
 		em.persist(address);
 	}
 
@@ -225,7 +228,16 @@ public class SettingsServiceImpl implements SettingsService {
             add.until = until;
         if (jsonString != null)
             add.jsonStorage = jsonString;
-        em.refresh(add);
+        if (!isAddressValid(add)){
+            em.refresh(add);
+            throw new RuntimeException("invalid address");
+        }
+    }
+
+    private boolean isAddressValid(GuestAddress address){
+        if(address.until < address.since)
+            return false;
+        return true;
     }
 
 	/*@Override //saving for reference

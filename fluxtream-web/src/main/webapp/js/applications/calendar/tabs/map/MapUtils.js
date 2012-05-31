@@ -254,7 +254,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             return;
         }
         map.gpsLine.setOptions({strokeColor: "grey"});
-        highlightSection = map.createPolyLineSegment({strokeColor:"black", zIndex: 99});
+        highlightSection = map.createPolyLineSegment(start, end, {strokeColor:"black", zIndex: 99});
     }
 
     function getFirstIndexAfter(map, time){
@@ -299,6 +299,8 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         for (endIndex = 1; endIndex < map.gpsTimestamps.length && map.gpsTimestamps[endIndex] < time; endIndex++);
         var startIndex = endIndex - 1;
         var percentThrough = (time - map.gpsTimestamps[startIndex]) / (map.gpsTimestamps[endIndex] - map.gpsTimestamps[startIndex]);
+        if (isNaN(percentThrough))
+            return map.gpsAccuracies[startIndex];
         return (map.gpsAccuracies[endIndex] - map.gpsAccuracies[startIndex]) * percentThrough + map.gpsAccuracies[startIndex];
     }
 
@@ -364,7 +366,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
 
     function zoomOnMarker(map,marker){
         if (marker.circle == null)
-            zoomOnPoint(map,marker);
+            zoomOnPoint(map,marker.getPosition());
         else
             map.fitBounds(marker.circle.getBounds());
     }

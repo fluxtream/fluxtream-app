@@ -19,7 +19,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 			Calendar.timeUnit = "DAY";
 			var t = Builder.tabExistsForTimeUnit(Calendar.currentTabName, Calendar.timeUnit)?Calendar.currentTabName:Builder.tabs[Calendar.timeUnit][0];
 			Calendar.currentTabName = t;
-			Builder.createTimeUnitsMenu(Calendar);
+			Builder.bindTimeUnitsMenu(Calendar);
 			Builder.createTabs(Calendar);
 			fetchState("/nav/setToToday.json");
 		});
@@ -36,6 +36,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             var parts = {};
             for (i = 0; i < names.length; i += 1)
                 parts[names[i]] = result[i];
+            console.log("path: " + parts.path);
             var pathElements = parts.path.split("/");
             if (pathElements.length<3)
                 App.invalidPath();
@@ -78,7 +79,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 			return;
 		}
 		if (state==null||state==="") {
-			Builder.createTimeUnitsMenu(Calendar);
+			Builder.bindTimeUnitsMenu(Calendar);
 			Builder.createTabs(Calendar);
 			fetchState("/nav/setToToday.json");
             return;
@@ -105,7 +106,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 			FlxState.saveState("calendar", state);
 			return;
 		} else {
-            Builder.createTimeUnitsMenu(Calendar);
+            Builder.bindTimeUnitsMenu(Calendar);
             if ("DAY"===Calendar.timeUnit) {
 				fetchState("/nav/setDate.json?date=" + splits[2]);
 			} else if ("WEEK"===Calendar.timeUnit) {
@@ -264,5 +265,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     };
 
 	return Calendar;
+
 
 });
