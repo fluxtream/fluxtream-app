@@ -30,7 +30,7 @@
               <ul class="flx-toolTipLinks">
                   <li><a href="#">List <i class="icon-list"></i></a></li>
                   <li><a href="#">Timeline <i class="icon-film"></i></a></li>
-                  <li><a href="#">Bodytrack <i class="icon-lemon"></i></a></li>
+                  <li><a href="#">Bodytrack <i class="icon-bookmark"></i></a></li>
               </ul>
           </div>
 

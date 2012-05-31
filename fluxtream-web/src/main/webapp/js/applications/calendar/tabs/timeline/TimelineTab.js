@@ -2741,7 +2741,6 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
     }
 
     function setRange(start, end) {
-        console.log("setting range to " + start + " " + end);
         if (dateAxis) {
             dateAxis.setRange(start, end);
         } else {
