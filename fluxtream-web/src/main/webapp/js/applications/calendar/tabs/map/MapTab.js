@@ -33,7 +33,7 @@ define(["applications/calendar/tabs/Tab",
             digest.cachedData.google_latitude.length>0) { //make sure gps data is available before trying to display it
             map.addGPSData(digest.cachedData.google_latitude);
 
-            $.ajax("/api/guest/" + digest.username + "/photo/" + calendarState,{
+            $.ajax("/api/guest/" + App.getUsername() + "/photo/" + calendarState,{
                 success: function(data, textStatus, jqXHR){
                     if (data != null && data.result == null && data.length != 0)
                         map.addData(data,data[0].type,true);
