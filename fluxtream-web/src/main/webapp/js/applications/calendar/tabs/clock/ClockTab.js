@@ -10,6 +10,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
     var hourlyWeatherData = null;
     var solarInfo = null;
     var tempratureUnit = null;
+    var distanceUnit = null;
     var dayStart, dayEnd;
 
 	function render(digest, timeUnit) {
@@ -23,6 +24,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         hourlyWeatherData = digest.hourlyWeatherData;
         solarInfo = digest.solarInfo;
         tempratureUnit = digest.settings.temperatureUnit;
+        distanceUnit = digest.settings.distanceUnit;
 		$("#tooltips").load("/calendar/tooltips");
         dayStart = digest.tbounds.start;
         dayEnd = digest.tbounds.end;
@@ -319,8 +321,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             weatherDescription: weatherInfo.weatherDesc,
             temperature: tempratureUnit === "FAHRENHEIT" ? weatherInfo.tempF : weatherInfo.tempC,
             temperatureUnit: tempratureUnit === "FAHRENHEIT" ? "F" : "C",
-            windSpeed: weatherInfo.windspeedMiles,
-            windSpeedUnit: "MPH",
+            windSpeed: distanceUnit == "SI" ? weatherInfo.windspeedKmph : weatherInfo.windspeedMiles,
+            windSpeedUnit: distanceUnit == "SI" ? "km/h" : "mph",
             humidity: weatherInfo.humidity,
             precipitation: weatherInfo.precipMM,
             precipitationUnit: "mm",
