@@ -19,6 +19,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.fluxtream.domain.Guest;
 import com.fluxtream.mvc.models.AddressModel;
+import com.fluxtream.mvc.models.ConnectorDigestModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -151,7 +152,7 @@ public class CalendarResource {
 		setSolarInfo(digest, city, guestId, dayMetadata);
 
 		List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter);
-		digest.selectedConnectors = connectorNames(apiKeySelection);
+		digest.selectedConnectors = connectorInfos(apiKeySelection);
 		List<ApiKey> allApiKeys = guestService.getApiKeys(guestId);
 		allApiKeys = removeConnectorsWithoutFacets(allApiKeys);
 		digest.nApis = allApiKeys.size();
@@ -391,6 +392,25 @@ public class CalendarResource {
 		digest.maxTempC = md.maxTempC;
 		digest.maxTempF = md.maxTempF;
 	}
+
+    private List<ConnectorDigestModel> connectorInfos(List<ApiKey> apis){
+        List<ConnectorDigestModel> connectors = new ArrayList<ConnectorDigestModel>();
+        for (ApiKey apiKey : apis){
+            Connector connector = apiKey.getConnector();
+            ConnectorDigestModel model = new ConnectorDigestModel();
+            connectors.add(model);
+            model.connectorName = connector.getName();
+            model.prettyName = connector.prettyName();
+            model.facetTypes.add(model.connectorName);
+            ObjectType[] objTypes = connector.objectTypes();
+            if (objTypes == null)
+                continue;
+            for (ObjectType obj : objTypes){
+                model.facetTypes.add(model.connectorName + "-" + obj.getName());
+            }
+        }
+        return  connectors;
+    }
 
 	private List<String> connectorNames(List<ApiKey> apis) {
 		List<String> connectorNames = new ArrayList<String>();
