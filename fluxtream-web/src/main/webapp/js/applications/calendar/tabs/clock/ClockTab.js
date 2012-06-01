@@ -286,10 +286,11 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 
 
 		var tooltip = $("#" + facetType + "_" + facetId);
-        showToolTip(tip_x,tip_y,offsetX,offsetY,tooltip.html(),event.minuteOfDay,$(event.target).attr("stroke"),$(event.target).parent().parent());
+        showToolTip(tip_x,tip_y,offsetX,offsetY,tooltip.html(),event.minuteOfDay,$(event.target).attr("stroke"),$(event.target).parent().parent(),
+                    markers[0] == null ? null : markers[0].getPosition());
 	}
 
-    function showToolTip(x,y, offX, offY,contents,minute,color,parent){
+    function showToolTip(x,y, offX, offY,contents,minute,color,parent,gpsPos){
         var weatherInfo = getWeatherData(minute);
         var weatherIcon;
         if (minute < solarInfo.sunrise || minute > solarInfo.sunset){//night
@@ -370,6 +371,18 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             ttpdiv.css("top",displayY);
 
             $("#mapPlaceHolder").append(document.getElementById("clockMap"));
+            var lastSeen = $("#lastSeenLocation");
+            App.geocoder.geocode({'latLng': gpsPos}, function(results,status){
+                if (status == google.maps.GeocoderStatus.OK) {
+                    for (var i = 2; i >= 0; i--){
+                        if (results[i]){
+                            lastSeen.text(results[i].formatted_address);
+                            return;
+                        }
+
+                    }
+                }
+            });
        });
 
     }
@@ -402,7 +415,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             markers[0].showCircle();
             map.zoomOnMarker(markers[0]);
         }
-        showToolTip(tip_x,tip_y,offsetX,offsetY,span.item.description,event.minuteOfDay,$(event.target).attr("stroke"),$(event.target).parent().parent());
+        showToolTip(tip_x,tip_y,offsetX,offsetY,span.item.description,event.minuteOfDay,$(event.target).attr("stroke"),$(event.target).parent().parent(),
+                    markers[0] == null ? null : markers[0].getPosition());
     }
 	
 	function hideEventInfo() {
