@@ -23,15 +23,14 @@
 		rejection-policy="CALLER_RUNS" queue-capacity="100" />
 		
 	<import resource="spring-quartz.xml" />
-	<import resource="widgets.xml" />
-	
+
     <bean id="velocityEngine" class="org.springframework.ui.velocity.VelocityEngineFactoryBean" 
           p:resourceLoaderPath="classpath:/com/fluxtream/mvc/controllers" 
           p:preferFileSystemAccess="false"/>
 
 	<context:spring-configured />
 	<context:annotation-config />
-	<context:component-scan base-package="com/fluxtream" />
+	<context:component-scan base-package="com.fluxtream" />
 	<tx:annotation-driven transaction-manager="transactionManager" />
 
 	<bean id="jmxExporter" class="org.springframework.jmx.export.MBeanExporter">
@@ -95,7 +94,7 @@
 		<constructor-arg value="bodytrack.properties"/>
    	</bean>
 	
-	<bean id="configuration" class="com.fluxtream.Configuration">
+	<bean class="com.fluxtream.Configuration">
 		<property name="commonProperties" ref="commonProperties"/>
 		<property name="targetEnvProperties" ref="targetEnvProperties"/>
 		<property name="connectorsProperties" ref="connectorsProperties"/>
@@ -104,7 +103,12 @@
 		<property name="bodytrackProperties" ref="bodytrackProperties"/>
 	</bean>
 
-	<tx:annotation-driven transaction-manager="transactionManager" />
+    <bean id="widgets" class="org.apache.commons.configuration.PropertiesConfiguration">
+        <property name="reloadingStrategy" ref="autoReloadStrategy"/>
+        <constructor-arg value="widgets.properties"/>
+    </bean>
+
+    <tx:annotation-driven transaction-manager="transactionManager" />
 
 	<mvc:annotation-driven />
 

@@ -4,14 +4,13 @@ define([], function() {
 	var tabs = {};
 	
 	var tabs = {
-		"DAY":["clock", "dashboard", "map", "diary", "photos", "list", "timeline"],
-		"WEEK":["dashboard", "map", "diary", "photos", "list", "timeline"],
-        "YEAR":["photos"]
+        "DAY":["clock", "dashboards", "map", "diary", "photos", "list", "timeline"],
+        "WEEK":["dashboards", "map", "diary", "photos", "list", "timeline"]
 	};
 	
 	var tab_icons = {
 		clock: "icon-time",
-		dashboard: "icon-bar-chart",
+        dashboards: "icon-bar-chart",
 		map: "icon-map-marker",
 		diary: "icon-pencil",
 		photos: "icon-camera",
