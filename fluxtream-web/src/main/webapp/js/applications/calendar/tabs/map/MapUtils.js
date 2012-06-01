@@ -53,7 +53,14 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     function addData(map,connectorData, connectorInfoId, clickable){
-        switch (connectorInfoId){
+        if (!isDisplayable(connectorInfoId))
+            return false;
+        map.markers[connectorInfoId] = addItemsToMap(map,connectorData,clickable);
+        return map.markers[connectorInfoId] != null;
+    }
+
+    function isDisplayable(itemType){
+        switch (itemType){
             case "sms_backup-sms":
             case "sms_backup-call_Calendar":
             case "twitter-dm":
@@ -67,12 +74,10 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             case "flickr":
             case "lastfm-recent_track":
             case "photo":
-                break;
+                return true;
             default:
                 return false;
         }
-        map.markers[connectorInfoId] = addItemsToMap(map,connectorData,clickable);
-        return map.markers[connectorInfoId] != null;
     }
 
     function addImagesToMap(map,items,clickable){
@@ -378,7 +383,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     function hideData(map,connectorId){
-        if (map.markers[connectorId] == null)
+        if (!map.hasData(connectorId))
             return;
         if (map.connectorSelected == connectorId){
             map.infoWindow.close();
@@ -390,13 +395,21 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     function showData(map,connectorId){
-        if (map.markers[connectorId] == null)
+        if (!map.hasData(connectorId))
             return;
         for (var i = 0; i < map.markers[connectorId].length; i++){
             map.markers[connectorId][i].setMap(map);
             if (map.selectedMarker == map.markers[connectorId][i])
                 map.selectedMarker.showCircle();
         }
+    }
+
+    function hasData(map,connectorId){
+        return map.markers[connectorId] != null;
+    }
+
+    function isFullyInitialized(map){
+        return map.getProjection() != null;
     }
 
     function hideGPSData(map){
@@ -449,6 +462,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     return {
+        isDisplayable: isDisplayable,
         newMap: function(center,zoom,divId,hideControls){ //creates and returns a google map with extended functionality
             var options = {
                 zoom : zoom,
@@ -481,12 +495,14 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             map.highlightTimespan = function(start,end){highlightTimespan(map,start,end)};
             map.showData = function(connectorId){showData(map,connectorId)};
             map.hideData = function(connectorId){hideData(map,connectorId)};
+            map.hasData = function(connectorId){return hasData(map,connectorId)};
             map.showGPSData = function(){showGPSData(map)};
             map.hideGPSData = function(){hideGPSData(map)};
-            map.addItem = function(item,clickable){return addItemToMap(map,item,clickable)}
+            map.addItem = function(item,clickable){return addItemToMap(map,item,clickable)};
             map.zoomOnPoint = function(point){zoomOnPoint(map,point)};
             map.zoomOnMarker = function(marker){zoomOnMarker(map,marker)};
             map.enhanceMarker = function(marker,start,end){enhanceMarker(map,marker,start,end)};
+            map.isFullyInitialized = function(){return isFullyInitialized(map)};
             map._oldFitBounds = map.fitBounds;
             map.fitBounds = function(bounds){
                 if (bounds == null)

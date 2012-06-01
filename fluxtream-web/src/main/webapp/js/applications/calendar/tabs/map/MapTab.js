@@ -3,12 +3,14 @@ define(["applications/calendar/tabs/Tab",
        "applications/calendar/tabs/map/MapUtils"], function(Tab, Calendar, MapUtils) {
 
 	var map = null;
+    var digestData = null;
 
     function render(digest, timeUnit, calendarState) {
         this.getTemplate("text!applications/calendar/tabs/map/map.html", "map", function(){setup(digest,calendarState);});
     }
 
     function setup(digest, calendarState) {
+        digestData  = digest;
         $("#tooltips").load("/calendar/tooltips");
         App.fullHeight();
         $("#the_map").empty();
@@ -44,20 +46,7 @@ define(["applications/calendar/tabs/Tab",
             if (!document.getElementById("perserveViewCheckBox").checked)
                 bounds = map.gpsBounds;
 
-            var checkedContainer = $("#selectedConnectors");
-            for(var objectTypeName in digest.cachedData) {
-                if (digest.cachedData[objectTypeName]==null||typeof(digest.cachedData[objectTypeName])=="undefined")
-                    continue;
-                var dataAdded = map.addData(digest.cachedData[objectTypeName], objectTypeName, true);
-                if (dataAdded || objectTypeName == "google_latitude"){
-                    var button = $('<button class="btnList btn btnListChecked enabled">' + objectTypeName + '</button>');
-                    button.click({button:button,objectTypeName:objectTypeName,isGoogleLatitude:objectTypeName == "google_latitude"},function(event){
-                        buttonClicked(event.data.button,event.data.objectTypeName,event.data.isGoogleLatitude);
-                    });
-                    checkedContainer.append(button);
-                    checkedContainer.append("&nbsp;");
-                }
-            }
+            showData();
 
             $("#mapFit").show();
             $("#mapFit").click(function(){
@@ -72,7 +61,47 @@ define(["applications/calendar/tabs/Tab",
             map.fitBounds(bounds);
 	}
 
-    function buttonClicked(button,connectorName,isGoogleLatitude){
+    function showData(functionName){
+        if (functionName != null)
+            delete window[functionName];
+        if (!map.isFullyInitialized()){
+            var functionName = "mapTimingFunction" + new Date().getUTCMilliseconds();
+            window[functionName] = showData;
+            setTimeout("window." + functionName + "(\"" + functionName + "\");",100);
+            return;
+        }
+        var digest = digestData;
+        var checkedContainer = $("#selectedConnectors");
+        for(var objectTypeName in digest.cachedData) {
+            if (digest.cachedData[objectTypeName]==null||typeof(digest.cachedData[objectTypeName])=="undefined")
+                continue;
+            map.addData(digest.cachedData[objectTypeName], objectTypeName, true);
+        }
+
+        for (var i = 0; i < digest.selectedConnectors.length; i++){
+            var displayable = false;
+            for (var j = 0; j < digest.selectedConnectors[i].facetTypes.length && !displayable; j++){
+                displayable = MapUtils.isDisplayable(digest.selectedConnectors[i].facetTypes[j]);
+            }
+            var isGoogleLatitude = digest.selectedConnectors[i].connectorName == "google_latitude";
+            if (displayable || isGoogleLatitude){
+                var enabled = false;
+                for (var j = 0; j < digest.selectedConnectors[i].facetTypes.length && !enabled; j++){
+                    enabled = map.hasData(digest.selectedConnectors[i].facetTypes[j]);
+                }
+                enabled = (enabled || isGoogleLatitude) ? "enabled" : "disabled";
+                var button = $('<button class="btnList btn btnListChecked ' + enabled + '">' + digest.selectedConnectors[i].prettyName + '</button>');
+                button.click({button:button,objectTypeNames:digest.selectedConnectors[i].facetTypes,isGoogleLatitude:isGoogleLatitude}, function(event){
+                    buttonClicked(event.data.button,event.data.objectTypeNames,event.data.isGoogleLatitude);
+                })
+                checkedContainer.append(button);
+                checkedContainer.append("&nbsp;");
+            }
+        }
+
+    }
+
+    function buttonClicked(button,connectorNames,isGoogleLatitude){
         if (button.hasClass("disabled"))
             return;
         button.removeClass("enabled");
@@ -84,7 +113,9 @@ define(["applications/calendar/tabs/Tab",
                 map.hideGPSData();
             }
             else{
-                map.hideData(connectorName);
+                for (var i = 0; i < connectorNames.length; i++){
+                    map.hideData(connectorNames[i]);
+                }
             }
         }
         else{
@@ -94,7 +125,9 @@ define(["applications/calendar/tabs/Tab",
                 map.showGPSData();
             }
             else{
-                map.showData(connectorName);
+                for (var i = 0; i < connectorNames.length; i++){
+                    map.showData(connectorNames[i]);
+                }
             }
         }
 
