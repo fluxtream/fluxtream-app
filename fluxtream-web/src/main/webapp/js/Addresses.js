@@ -1,7 +1,6 @@
 define(function() {
 
     var addresses;
-    var geocoder;
     var typeNames = ["ADDRESS_OTHER","ADDRESS_HOME","ADDRESS_WORK"];
     var currentAddressPool = [];
 
@@ -132,7 +131,7 @@ define(function() {
             addressSelect.attr("disabled","disabled");
             addressSearch.attr("disabled","disabled");
             addressInput.attr("disabled","disabled");
-            geocoder.geocode({"address":addr},function(results,status){
+            App.geocoder.geocode({"address":addr},function(results,status){
                 var options = addressSelect.children();
                 for (var i = 1; i < options.length; i++)
                     $(options[i]).remove();
@@ -366,8 +365,6 @@ define(function() {
 
 
     function show(){
-        if (geocoder == null)
-            geocoder = new google.maps.Geocoder();
         $.ajax("/api/guest/" + App.getUsername() + "/address/all",{
             success: function(data, textStatus, jqXHR){
                     dataLoaded(data);

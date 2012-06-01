@@ -331,6 +331,7 @@ define(
 			App.state = FlxState;
 			App.fullHeight = fullHeight;
             App.invalidPath = invalidPath;
+            App.geocoder = new google.maps.Geocoder();
 			window.App = App;
 			return App;
 
