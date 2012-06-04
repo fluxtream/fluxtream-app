@@ -197,12 +197,16 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             return "";
         }
         var params = {};
+        params.time = App.formatMinuteOfDay(data.startMinute);
+        params.description = data.description;
         switch (data.type){
             case "lastfm-loved_track":
             case "lastfm-recent_track":
                 params.imgUrl = data.imgUrls[0];
-                params.time = App.formatMinuteOfDay(data.startMinute);
-                params.description = data.description;
+                break;
+            case "twitter-mention":
+                params.userName = data.userName;
+                params.profileImageUrl = data.profileImageUrl;
                 break;
         }
         return digest.detailsTemplates[data.type].render(params);
