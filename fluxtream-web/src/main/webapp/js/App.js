@@ -138,17 +138,14 @@ define(
             App.makeModal = makeModal;
             App.carousel = carousel;
 
-            App.loadHTMLTemplate = function(templatePath,templateId,replacementMapping,onLoad){
+            App.loadMustacheTemplate = function(templatePath,templateId,onLoad){
                 require(["text!" + templatePath], function(template){
                     var html = template;
                     var templateStartSearch = "<template id=\"" + templateId + "\">";
                     var htmlStart = html.indexOf(templateStartSearch) + templateStartSearch.length;
                     var htmlEnd = html.indexOf("</template>",htmlStart);
                     html = html.substring(htmlStart,htmlEnd);
-                    for (name in replacementMapping){
-                        html = html.replace(new RegExp("{" + name + "}","g"),replacementMapping[name]);
-                    }
-                    onLoad(html);
+                    onLoad(Hogan.compile(html));
                 });
             }
 

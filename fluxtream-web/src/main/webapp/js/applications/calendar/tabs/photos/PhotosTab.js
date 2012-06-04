@@ -32,99 +32,43 @@ define(["applications/calendar/tabs/Tab",
         $("#photoTab").append("<div class=\"emptyList\">(no photos)</div>");
     }
 
-
-    function getPhotoHTML(photoData){
-        var html = "<div class='thumbnailContainer'>";
-        html += "<div class='photoThumbnail' style='background-image: url(";
-        html += photoData.photoUrl;
-        html += ")'></div></div>";
-       return html;
-    }
-
-    function buildCarouselPhotos(photos,onDone){
-        var photosHTML = ""
-        var i = 0;
-        var loadNextPhoto = function (){
-            App.loadHTMLTemplate("applications/calendar/tabs/photos/photosTemplate.html","carouselPhoto",{
-                active:i == 0 ? " active" : "",
-                id:i,
-                photoURL:photos[i].photoUrl
-            }, function(html){
-                photosHTML += html;
-                i++;
-                if (i == photos.length)
-                    onDone(photosHTML);
-                else
-                    loadNextPhoto();
-            });
-        }
-        loadNextPhoto();
-
-    }
-
-    function buildMainHTML(photos,onDone){
-        var i = 0;
-        var photosHTML = "";
-        var groupHTML = "";
-        var currentDate = new Date(photos[i].timeTaken);
-        var loadNextPhoto = function(){
-            App.loadHTMLTemplate("applications/calendar/tabs/photos/photosTemplate.html","photoThumbnail",{
-                id:i,
-                photoURL:photos[i].photoUrl
-            }, function(html){
-                var date = new Date(photos[i].timeTaken);
-                var loadSet = function(){
-                    App.loadHTMLTemplate("applications/calendar/tabs/photos/photosTemplate.html","thumbnailGroup",{
-                        date:App.formatDate(currentDate),
-                        thumbnails:photosHTML
-                    }, function(group){
-                        groupHTML += group;
-                        if (i == photos.length){
-                            onDone(groupHTML);
-                        }
-                        else{
-                            currentDate = date;
-                            photosHTML = "";
-                        }
-                    });
-                }
-                if (currentDate.getMonth() != date.getMonth() || currentDate.getYear() != date.getYear()
-                    || currentDate.getDate() != date.getDate()) {
-                    loadSet();
-                }
-                photosHTML += html;
-                i++;
-                if (i == photos.length)
-                    loadSet();
-                else
-                    loadNextPhoto();
-            });
-        }
-        loadNextPhoto();
-    }
-
-
-
     function onDataRecieved(data){
+        for (var i = 0; i < data.length; i++){
+            data[i].active = i == 0;
+            data[i].id = i;
+        }
         $("#photoTab").empty();
         if (data.length == 0){
             showNoPhotos();
             return;
         }
-        buildCarouselPhotos(data,function (photoHTML){
-            App.loadHTMLTemplate("applications/calendar/tabs/photos/photosTemplate.html","carouselWith" + (data.length == 1 ? "out" : "") + "Nav",{
-                itemsHTML:photoHTML
-            },function(carouselHTML){
-                buildMainHTML(data,function(html){
-                    $("#photoTab").append(html);
-                    for (var i = 0; i < data.length; i++){
-                        $("#photo-" + i).click({i:i},function(event){
-                            App.makeModal(carouselHTML);
-                            App.carousel(event.data.i);
-                        });
-                    }
-                })
-
+        App.loadMustacheTemplate("applications/calendar/tabs/photos/photosTemplate.html","carousel",function(template){
+            var carouselHTML = template.render({photos:data,includeNav:data.length > 1});
+            App.loadMustacheTemplate("applications/calendar/tabs/photos/photosTemplate.html","thumbnailGroup", function(template){
+                var currentGroup = [];
+                var currentDate = null;
+                for (var i = 0; i < data.length; i++){
+                   var date = new Date(data[i].timeTaken);
+                   if (currentDate == null){
+                       currentDate = date;
+                   }
+                   else if (currentDate.getMonth() != date.getMonth() || currentDate.getYear() != date.getYear()
+                       || currentDate.getDate() != date.getDate()) {
+                       $("#photoTab").append(template.render({date:App.formatDate(currentDate),photos:currentGroup}));
+                       currentGroup = [];
+                       currentDate = date;
+                   }
+                    currentGroup[currentGroup.length] = data[i];
+                }
+                if (currentGroup.length != 0){
+                    $("#photoTab").append(template.render({date:App.formatDate(currentDate),photos:currentGroup}));
+                }
+                for (var i = 0; i < data.length; i++){
+                    $("#photo-" + i).click({i:i},function(event){
+                        App.makeModal(carouselHTML);
+                        App.carousel(event.data.i);
+                    });
+                }
             });
 
         });

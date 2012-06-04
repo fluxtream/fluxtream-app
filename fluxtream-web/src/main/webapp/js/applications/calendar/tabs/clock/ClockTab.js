@@ -317,24 +317,24 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             orientation = "Bottom";
             tailOrientation = "top";
         }
-        App.loadHTMLTemplate("applications/calendar/tabs/clock/clockTemplate.html","tooltip",{
-            description: contents,
-            weatherDescription: weatherInfo.weatherDesc,
-            temperature: tempratureUnit === "FAHRENHEIT" ? weatherInfo.tempF : weatherInfo.tempC,
-            temperatureUnit: tempratureUnit === "FAHRENHEIT" ? "F" : "C",
-            windSpeed: distanceUnit == "SI" ? weatherInfo.windspeedKmph : weatherInfo.windspeedMiles,
-            windSpeedUnit: distanceUnit == "SI" ? "km/h" : "mph",
-            humidity: weatherInfo.humidity,
-            precipitation: weatherInfo.precipMM,
-            precipitationUnit: "mm",
-            weatherIcon: weatherIcon,
-            orientation:orientation,
-            oppositeOrientation:tailOrientation,
-            color:color,
-            time: minutesToWallClockTime(minute),
-            tooltipData:contents
-        },function(html){
-            ttpdiv = $(html);
+        App.loadMustacheTemplate("applications/calendar/tabs/clock/clockTemplate.html","tooltip",function(template){
+            ttpdiv = $(template.render({
+                description: contents,
+                weatherDescription: weatherInfo.weatherDesc,
+                temperature: tempratureUnit === "FAHRENHEIT" ? weatherInfo.tempF : weatherInfo.tempC,
+                temperatureUnit: tempratureUnit === "FAHRENHEIT" ? "F" : "C",
+                windSpeed: distanceUnit == "SI" ? weatherInfo.windspeedKmph : weatherInfo.windspeedMiles,
+                windSpeedUnit: distanceUnit == "SI" ? "km/h" : "mph",
+                humidity: weatherInfo.humidity,
+                precipitation: weatherInfo.precipMM,
+                precipitationUnit: "mm",
+                weatherIcon: weatherIcon,
+                orientation:orientation,
+                oppositeOrientation:tailOrientation,
+                color:color,
+                time: minutesToWallClockTime(minute),
+                tooltipData:contents
+            }));
             ttpdiv.css("position","absolute");
             ttpdiv.css("zIndex","100");
             var tail = ttpdiv.find(".flx-toolTipTail-" + orientation);
