@@ -319,7 +319,6 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         }
         App.loadMustacheTemplate("applications/calendar/tabs/clock/clockTemplate.html","tooltip",function(template){
             ttpdiv = $(template.render({
-                description: contents,
                 weatherDescription: weatherInfo.weatherDesc,
                 temperature: tempratureUnit === "FAHRENHEIT" ? weatherInfo.tempF : weatherInfo.tempC,
                 temperatureUnit: tempratureUnit === "FAHRENHEIT" ? "F" : "C",
