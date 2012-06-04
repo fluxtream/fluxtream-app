@@ -36,6 +36,7 @@
 <script
 	src="https://maps-api-ssl.google.com/maps/api/js?libraries=geometry&v=3&sensor=false"
 	type="text/javascript"></script>
+    <script src="/static/js/hogan-2.0.0.js"></script>
 
 <link rel="shortcut icon" href="/favicon.ico">
 
