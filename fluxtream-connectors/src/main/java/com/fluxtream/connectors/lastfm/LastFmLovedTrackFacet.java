@@ -11,7 +11,13 @@ import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.domain.AbstractFacet;
 
 @Entity(name="Facet_LastFmLovedTrack")
-@ObjectTypeSpec(name = "loved_track", value = 1, extractor=LastFmFacetExtractor.class, parallel=true, prettyname = "Loved Tracks")
+@ObjectTypeSpec(name = "loved_track", value = 1, extractor=LastFmFacetExtractor.class, parallel=true, prettyname = "Loved Tracks",
+                detailsTemplate="<h3 class=\"flx-dataType\">Loved Track</h3>" +
+                                "<span class=\"flx-deviceIcon\" style=\"background:url('{{imgUrl}}'); background-size:100% 100%;\"></span>" +
+                                "<div class=\"flx-deviceData\">" +
+                                "    <span class=\"flx-tTime\">{{time}}</span>" +
+                                "    <span class=\"flx-data\">{{description}}</span>" +
+                                "</div>")
 @NamedQueries({
 		@NamedQuery(name = "lastfm.loved_track.byStartEnd", query = "SELECT facet FROM Facet_LastFmLovedTrack facet WHERE facet.guestId=? AND facet.start=? AND facet.end=?"),
 		@NamedQuery(name = "lastfm.loved_track.last", query = "SELECT facet FROM Facet_LastFmLovedTrack facet WHERE facet.guestId=? ORDER BY time DESC LIMIT 1"),

@@ -11,6 +11,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
     var solarInfo = null;
     var tempratureUnit = null;
     var distanceUnit = null;
+    var buildDetails = null;
     var dayStart, dayEnd;
 
 	function render(digest, timeUnit) {
@@ -21,6 +22,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 	}
 	
 	function setup(digest, timeUnit) {
+        buildDetails = digest.buildDetails;
         hourlyWeatherData = digest.hourlyWeatherData;
         solarInfo = digest.solarInfo;
         tempratureUnit = digest.settings.temperatureUnit;
@@ -185,6 +187,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		case "picasa":
 		case "flickr":
 		case "lastfm-recent_track":
+        case "lastfm-loved_track":
 			drawTimedData(connectorData, config.MEDIA_CATEGORY);
 			break;
 		case "sms_backup-sms":
@@ -261,9 +264,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         hideEventInfo();
 		lastHoveredEvent = event;
 		var span = event.target;
-		var facetId = span.item.id;
-		var facetType = span.item.type;
-		if (facetType=="google_latitude") 
+		var facet = span.item;
+		if (facet.type=="google_latitude")
 			return;
         var target = $(event.target).parent().position();
         var tip_y = target.top + event.offsetY;
@@ -283,10 +285,9 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             }
         }
 
+        var contents = buildDetails(facet);
 
-
-		var tooltip = $("#" + facetType + "_" + facetId);
-        showToolTip(tip_x,tip_y,offsetX,offsetY,tooltip.html(),event.minuteOfDay,$(event.target).attr("stroke"),$(event.target).parent().parent(),
+        showToolTip(tip_x,tip_y,offsetX,offsetY,contents,event.minuteOfDay,$(event.target).attr("stroke"),$(event.target).parent().parent(),
                     markers[0] == null ? null : markers[0].getPosition());
 	}
 
@@ -331,7 +332,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                 orientation:orientation,
                 oppositeOrientation:tailOrientation,
                 color:color,
-                time: minutesToWallClockTime(minute),
+                time: App.formatMinuteOfDay(minute),
                 tooltipData:contents
             }));
             ttpdiv.css("position","absolute");
@@ -615,22 +616,12 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 			start: first.start,
 			end : last.start,
 			description: "You were " + where
-				+ " from " + minutesToWallClockTime(first.startMinute)
-				+ " to " + minutesToWallClockTime(last.startMinute),
+				+ " from " + App.formatMinuteOfDay(first.startMinute)
+				+ " to " + App.formatMinuteOfDay(last.startMinute),
 			startMinute: first.startMinute,
 			endMinute: last.startMinute,
 			type: "google_latitude"
 		};
-	}
-
-	function minutesToWallClockTime(minutes) {
-        var hour = Math.floor(minutes/60);
-        var minutes = Math.floor(minutes%60);
-        if (minutes<10) minutes = "0" + minutes;
-        if (hour<12)
-            return (hour == 0 ? 12 : hour) + ":" + minutes + " AM";
-        else
-            return (hour > 12 ? hour - 12 : 12) + ":" + minutes + " PM";
 	}
 
     function hideQTipMap(){

@@ -170,7 +170,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 else
                     $("#mainCity").empty();
                 Calendar.digest = response;
-				Builder.updateTab(response, Calendar);
+                enhanceDigest(Calendar.digest);
+				Builder.updateTab(Calendar.digest, Calendar);
 				$("#tabs").css("opacity", "1");
 				$(".calendar-navigation-button").toggleClass("disabled");
 				$(".loading").hide();
@@ -180,6 +181,32 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 			}
 		});
 	}
+
+    function enhanceDigest(digest){
+        for (var templateName in digest.detailsTemplates){
+            if (digest.detailsTemplates[templateName] == "")
+                console.log("WARNING: " + templateName + " is using a blank details template.");
+            digest.detailsTemplates[templateName] = Hogan.compile(digest.detailsTemplates[templateName]);
+        }
+        digest.buildDetails = function(data){return buildDetails(digest,data)};
+    }
+
+    function buildDetails(digest,data){
+        if (digest.detailsTemplates[data.type] == null){
+            console.log("WARNING: no template found for " + data.type + ".");
+            return "";
+        }
+        var params = {};
+        switch (data.type){
+            case "lastfm-loved_track":
+            case "lastfm-recent_track":
+                params.imgUrl = data.imgUrls[0];
+                params.time = App.formatMinuteOfDay(data.startMinute);
+                params.description = data.description;
+                break;
+        }
+        return digest.detailsTemplates[data.type].render(params);
+    }
 
     function handleCityInfo(digestInfo) {
         $("#mainCity").empty();

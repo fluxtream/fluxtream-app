@@ -291,6 +291,16 @@ define(
                 return value;
             }
 
+            App.formatMinuteOfDay = function(minuteOfDay){
+                var hour = Math.floor(minuteOfDay/60);
+                var minutes = Math.floor(minuteOfDay%60);
+                if (minutes<10) minutes = "0" + minutes;
+                if (hour<12)
+                    return (hour == 0 ? 12 : hour) + ":" + minutes + " AM";
+                else
+                    return (hour > 12 ? hour - 12 : 12) + ":" + minutes + " PM";
+            }
+
             App.formatDateAsDatePicker = function(date){
                 if (typeof(date) == "number")
                     date = new Date(date);

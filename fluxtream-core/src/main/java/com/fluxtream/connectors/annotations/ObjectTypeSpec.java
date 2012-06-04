@@ -16,6 +16,7 @@ public @interface ObjectTypeSpec {
 	public Class<? extends AbstractFacetExtractor> extractor() default AbstractFacetExtractor.class;
 	boolean parallel() default false;
 	boolean isImageType() default false;
-	String prettyname();
+	public String prettyname();
+    public String detailsTemplate() default "";
 	
 }
