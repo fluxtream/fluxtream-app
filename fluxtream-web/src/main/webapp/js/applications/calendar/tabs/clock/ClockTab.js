@@ -197,7 +197,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		case "twitter-mention":
 			drawTimedData(connectorData, config.SOCIAL_CATEGORY);
 			break;
-		case "google_calendar":
+		case "google_calendar-entry":
 		case "toodledo-task":
 			drawTimedData(connectorData, config.MIND_CATEGORY);
 			break;

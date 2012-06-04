@@ -66,13 +66,14 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             case "twitter-dm":
             case "twitter-tweet":
             case "twitter-mention":
-            case "google_calendar":
+            case "google_calendar-entry":
             case "toodledo-task":
             case "fitbit-sleep":
             case "withings-bpm":
             case "picasa":
             case "flickr":
             case "lastfm-recent_track":
+            case "lastfm-loved_track":
             case "photo":
                 return true;
             default:
@@ -138,7 +139,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             case "twitter-mention":
                 category = config.SOCIAL_CATEGORY;
                 break;
-            case "google_calendar":
+            case "google_calendar-entry":
             case "toodledo-task":
                 category = config.MIND_CATEGORY;
                 break;
@@ -149,6 +150,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             case "picasa":
             case "flickr":
             case "lastfm-recent_track":
+            case "lastfm-loved_track":
                 category = config.MEDIA_CATEGORY;
                 break;
             default:
