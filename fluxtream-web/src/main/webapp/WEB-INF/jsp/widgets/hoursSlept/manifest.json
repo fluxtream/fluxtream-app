@@ -9,6 +9,7 @@
     "BundleVersion" : "",
     "RequiredPermissions" : "",
     "SupportedLanguages" : "",
-    "VendorIdentifier" : ""
+    "VendorIdentifier" : "",
+    "RequiredConnectors": "zeo, fitbit"
 
 }

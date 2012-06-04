@@ -9,6 +9,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.fluxtream.services.DashboardService;
 import com.fluxtream.services.JPADaoService;
 import net.sf.json.JSONObject;
 
@@ -41,7 +42,10 @@ public class AdminResource {
 	@Autowired
 	Configuration env;
 
-	@GET
+    @Autowired
+    DashboardService dashboardService;
+
+    @GET
 	@Path("/get/property/{propertyName}")
 	@Produces({ MediaType.APPLICATION_JSON })
 	public String loadHistory(@PathParam("propertyName") String propertyName)
@@ -77,6 +81,14 @@ public class AdminResource {
             return gson.toJson(failure);
         }
 
+    }
+
+    @GET
+    @Path("/widgets/refresh")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String refreshWidgets() {
+        dashboardService.refreshWidgets();
+        return gson.toJson(new StatusModel(true, "widgets refreshed"));
     }
 
 }

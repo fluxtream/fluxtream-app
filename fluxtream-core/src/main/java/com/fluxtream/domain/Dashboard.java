@@ -17,7 +17,7 @@ import com.google.gson.annotations.Expose;
       @NamedQuery(name = "dashboards.byName",
                   query = "SELECT dashboard FROM Dashboard dashboard WHERE dashboard.guestId=? AND dashboard.name=?")
 })
-public class Dashboard extends AbstractEntity {
+public class Dashboard extends AbstractEntity implements Comparable<Dashboard> {
 
     public Dashboard() {}
 
@@ -29,4 +29,8 @@ public class Dashboard extends AbstractEntity {
 
     public String widgetsJson;
 
+    @Override
+    public int compareTo(final Dashboard dashboard) {
+        return order - dashboard.order;
+    }
 }

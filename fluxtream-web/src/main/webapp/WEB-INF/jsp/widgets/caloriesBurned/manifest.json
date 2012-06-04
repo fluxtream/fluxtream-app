@@ -5,10 +5,9 @@
     "WidgetURL" : "",
     "BundleCopyright" : "",
     "BundleIdentifier" : "",
-    "BundleType" : "Widget",
     "BundleVersion" : "",
-    "RequiredPermissions" : "",
     "SupportedLanguages" : "",
-    "VendorIdentifier" : ""
+    "VendorIdentifier" : "",
+    "RequiredConnectors":"bodymedia, fitbit"
 
 }
