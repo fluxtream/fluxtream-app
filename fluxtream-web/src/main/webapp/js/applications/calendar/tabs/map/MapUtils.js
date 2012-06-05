@@ -169,10 +169,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             if (map.selectedMarker != null)
                 map.selectedMarker.hideCircle();
             map.selectedMarker = marker;
-            var tooltip = $("#" + item.type + "_" + item.id).html();
-            if (tooltip == null)
-                tooltip = "no description available";
-            map.infoWindow.setContent(tooltip);
+            map.infoWindow.setContent(item.getDetails());
             map.infoWindow.open(map,marker);
             marker.doHighlighting();
             marker.showCircle();

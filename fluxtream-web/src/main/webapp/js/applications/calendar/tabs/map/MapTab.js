@@ -11,7 +11,6 @@ define(["applications/calendar/tabs/Tab",
 
     function setup(digest, calendarState) {
         digestData  = digest;
-        $("#tooltips").load("/calendar/tooltips");
         App.fullHeight();
         $("#the_map").empty();
         $("#selectedConnectors").empty();
