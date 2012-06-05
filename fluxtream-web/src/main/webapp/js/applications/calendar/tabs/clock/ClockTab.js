@@ -27,7 +27,6 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         solarInfo = digest.solarInfo;
         tempratureUnit = digest.settings.temperatureUnit;
         distanceUnit = digest.settings.distanceUnit;
-		$("#tooltips").load("/calendar/tooltips");
         dayStart = digest.tbounds.start;
         dayEnd = digest.tbounds.end;
         if (digest.cachedData != null && digest.cachedData.google_latitude != null){
