@@ -188,7 +188,13 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 console.log("WARNING: " + templateName + " is using a blank details template.");
             digest.detailsTemplates[templateName] = Hogan.compile(digest.detailsTemplates[templateName]);
         }
-        digest.buildDetails = function(data){return buildDetails(digest,data)};
+        for (var connectorId in digest.cachedData){
+            for (var i = 0; i < digest.cachedData[connectorId].length; i++){
+                digest.cachedData[connectorId][i].getDetails = function(){
+                    return buildDetails(digest,this);
+                }
+            }
+        }
     }
 
     function buildDetails(digest,data){

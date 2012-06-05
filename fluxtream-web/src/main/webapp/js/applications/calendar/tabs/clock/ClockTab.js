@@ -11,7 +11,6 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
     var solarInfo = null;
     var tempratureUnit = null;
     var distanceUnit = null;
-    var buildDetails = null;
     var dayStart, dayEnd;
 
 	function render(digest, timeUnit) {
@@ -22,7 +21,6 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 	}
 	
 	function setup(digest, timeUnit) {
-        buildDetails = digest.buildDetails;
         hourlyWeatherData = digest.hourlyWeatherData;
         solarInfo = digest.solarInfo;
         tempratureUnit = digest.settings.temperatureUnit;
@@ -284,7 +282,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             }
         }
 
-        var contents = buildDetails(facet);
+        var contents = facet.getDetails();
 
         showToolTip(tip_x,tip_y,offsetX,offsetY,contents,event.minuteOfDay,$(event.target).attr("stroke"),$(event.target).parent().parent(),
                     markers[0] == null ? null : markers[0].getPosition());
