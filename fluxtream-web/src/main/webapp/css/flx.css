@@ -289,6 +289,11 @@ a img {
   padding-bottom: 8px;
   line-height: 18px;
 }
+.nav-tabs > li > a:hover {
+  padding-top: 8px;
+  padding-bottom: 7px;
+  line-height: 18px;
+}
 #footer {
   margin-top: 1em !important;
 }
@@ -302,7 +307,11 @@ a img {
   width: 230px !important;
 }
 #currentTimespanLabel h3 {
-  display: inline;
+  display: block;
+  float: left;
+  padding: 0 0 0 15px;
+  margin-top: -2px;
+  text-align: center;
 }
 .floater {
   float: left;
@@ -310,14 +319,11 @@ a img {
   min-height: 31px;
   padding: 5px 0;
 }
-.flx-view-range {
-  padding-top: 3px;
-}
 .flx-main-city-infos {
-  padding-top: 7px;
+  padding-top: 4px;
 }
 .flx-clockToolTipContainer {
-  float: left;
+  margin-top: 50px;
 }
 .flx-toolTipBody {
   width: 435px;
@@ -477,4 +483,492 @@ a img {
   border: 10px solid transparent;
   border-right: 10px solid #0088cc;
   left: -24px;
+}
+.flx-sourceFilters1 {
+  list-style-type: none;
+}
+.flx-sourceFilters1 li {
+  float: left;
+  border-right: 1px solid transparent;
+}
+.flx-sourceFilters1 li a,
+.flx-sourceFilters1 li span {
+  color: #4d4d4d;
+  border-bottom: 1px solid #808080;
+  padding: 10px 10px;
+  background: #fff;
+  -webkit-transition: all 0.1s ease-in;
+  -moz-transition: all 0.1s ease-in;
+  -o-transition: all 0.1s ease-in;
+  transition: all 0.1s ease-in;
+}
+.flx-sourceFilters1 li .flx-active {
+  border-bottom-width: 4px;
+  padding-bottom: 7px;
+  color: #4d4d4d;
+}
+.flx-sourceFilters1 li .flx-disconnected {
+  border-bottom-color: #cccccc;
+  color: #cccccc;
+  cursor: default;
+}
+.flx-sourceFilters1 li a:hover {
+  text-decoration: none;
+  border-bottom-width: 4px;
+  padding-bottom: 7px;
+}
+.flx-sourceFilters1 a.fitbit {
+  border-bottom-color: #21b5cf;
+}
+.flx-sourceFilters1 a.bodytrack {
+  border-bottom-color: #c79409;
+}
+.flx-sourceFilters1 a.lastFM {
+  border-bottom-color: #ec0c0c;
+}
+.flx-sourceFilters1 a.withings {
+  border-bottom-color: #16924e;
+}
+.flx-sourceFilters1 a.picasa {
+  border-bottom-color: #8c2ebb;
+}
+.flx-sourceFilters1 a.twitter {
+  border-bottom-color: #1842ea;
+}
+.flx-sourceFilters1 a.ggleCal {
+  border-bottom-color: #d7186e;
+}
+.flx-sourceFilters2 {
+  list-style-type: none;
+}
+.flx-sourceFilters2 li {
+  float: left;
+  border-right: 1px solid transparent;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+}
+.flx-sourceFilters2 li a,
+.flx-sourceFilters2 li span {
+  color: #808080;
+  border-bottom: 1px solid #808080;
+  padding: 10px 10px;
+  background: #fff;
+  position: relative;
+  -webkit-transition: all 0.1s ease-in;
+  -moz-transition: all 0.1s ease-in;
+  -o-transition: all 0.1s ease-in;
+  transition: all 0.1s ease-in;
+}
+.flx-sourceFilters2 li a:after,
+.flx-sourceFilters2 li span:after {
+  content: '';
+  width: 0;
+  height: 11px;
+  border-right: 1px solid #e6e6e6;
+  position: absolute;
+  top: 10px;
+  right: -1px;
+}
+.flx-sourceFilters2 li a.ggleCal:after {
+  border-right: 0;
+}
+.flx-sourceFilters2 li .flx-active {
+  border-bottom-width: 4px;
+  padding-bottom: 7px;
+  color: #4d4d4d;
+}
+.flx-sourceFilters2 li .flx-disconnected {
+  border-bottom-color: #cccccc;
+  color: #cccccc;
+  cursor: default;
+}
+.flx-sourceFilters2 li a:hover {
+  text-decoration: none;
+  border-bottom-width: 4px;
+  padding-bottom: 7px;
+}
+.flx-sourceFilters2 a.fitbit {
+  color: #21b5cf;
+  border-bottom-color: #21b5cf;
+}
+.flx-sourceFilters2 a.bodytrack {
+  color: #c79409;
+  border-bottom-color: #c79409;
+}
+.flx-sourceFilters2 a.lastFM {
+  color: #ec0c0c;
+  border-bottom-color: #ec0c0c;
+}
+.flx-sourceFilters2 a.withings {
+  color: #16924e;
+  border-bottom-color: #16924e;
+}
+.flx-sourceFilters2 a.picasa {
+  color: #8c2ebb;
+  border-bottom-color: #8c2ebb;
+}
+.flx-sourceFilters2 a.twitter {
+  color: #1842ea;
+  border-bottom-color: #1842ea;
+}
+.flx-sourceFilters2 a.ggleCal {
+  color: #d7186e;
+  border-bottom-color: #d7186e;
+}
+.flx-sourceFilters3 {
+  list-style-type: none;
+}
+.flx-sourceFilters3 li {
+  float: left;
+  border-right: 1px solid transparent;
+  letter-spacing: 0.1em;
+}
+.flx-sourceFilters3 li a,
+.flx-sourceFilters3 li span {
+  color: #808080;
+  border-bottom: 1px solid #808080;
+  padding: 15px 15px;
+  background: #fff;
+  overflow: hidden;
+  text-align: center;
+  width: 65px;
+  display: block;
+  -webkit-transition: all 0.1s ease-in;
+  -moz-transition: all 0.1s ease-in;
+  -o-transition: all 0.1s ease-in;
+  transition: all 0.1s ease-in;
+}
+.flx-sourceFilters3 li .flx-active {
+  border-bottom-width: 4px;
+  padding-bottom: 12px;
+  color: #4d4d4d;
+  text-shadow: 0 0 5px #4dc3ff;
+}
+.flx-sourceFilters3 li .flx-disconnected {
+  border-bottom-color: #cccccc;
+  color: #cccccc;
+  cursor: default;
+}
+.flx-sourceFilters3 li a:hover {
+  text-decoration: none;
+  border-bottom-width: 4px;
+  padding-bottom: 12px;
+}
+.flx-sourceFilters3 a.fitbit {
+  color: #0088cc;
+  border-bottom-color: #0088cc;
+}
+.flx-sourceFilters3 a.bodytrack {
+  color: #0077b3;
+  border-bottom-color: #0077b3;
+}
+.flx-sourceFilters3 a.lastFM {
+  color: #006699;
+  border-bottom-color: #006699;
+}
+.flx-sourceFilters3 a.withings {
+  color: #005580;
+  border-bottom-color: #005580;
+}
+.flx-sourceFilters3 a.picasa {
+  color: #004466;
+  border-bottom-color: #004466;
+}
+.flx-sourceFilters3 a.twitter {
+  color: #0099e6;
+  border-bottom-color: #0099e6;
+}
+.flx-sourceFilters3 a.ggleCal {
+  color: #1ab2ff;
+  border-bottom-color: #1ab2ff;
+}
+.flx-sourceFilters4 {
+  list-style-type: none;
+}
+.flx-sourceFilters4 li {
+  float: left;
+  border-right: 1px solid transparent;
+}
+.flx-sourceFilters4 li a,
+.flx-sourceFilters4 li span {
+  color: #808080;
+  border-bottom: 1px solid #808080;
+  padding: 10px 0;
+  background: #fff;
+  position: relative;
+  width: 81px;
+  text-align: center;
+  display: inline-block;
+  -webkit-transition: all 0.1s ease-in;
+  -moz-transition: all 0.1s ease-in;
+  -o-transition: all 0.1s ease-in;
+  transition: all 0.1s ease-in;
+}
+.flx-sourceFilters4 li a:after,
+.flx-sourceFilters4 li span:after {
+  content: '';
+  width: 0;
+  height: 11px;
+  border-right: 1px solid #e6e6e6;
+  position: absolute;
+  top: 10px;
+  right: -1px;
+}
+.flx-sourceFilters4 li a.ggleCal:after {
+  border-right: 0;
+}
+.flx-sourceFilters4 li .flx-active {
+  border-bottom-width: 4px;
+  padding-bottom: 7px;
+  color: #808080;
+}
+.flx-sourceFilters4 li .flx-disconnected {
+  border-bottom-color: #cccccc;
+  color: #cccccc;
+  cursor: default;
+}
+.flx-sourceFilters4 li a:hover {
+  text-decoration: none;
+  border-bottom-width: 4px;
+  padding-bottom: 7px;
+}
+.flx-sourceFilters4 a.fitbit {
+  border-bottom-color: #21b5cf;
+}
+.flx-sourceFilters4 a.bodytrack {
+  border-bottom-color: #c79409;
+}
+.flx-sourceFilters4 a.lastFM {
+  border-bottom-color: #ec0c0c;
+}
+.flx-sourceFilters4 a.withings {
+  border-bottom-color: #16924e;
+}
+.flx-sourceFilters4 a.picasa {
+  border-bottom-color: #8c2ebb;
+}
+.flx-sourceFilters4 a.twitter {
+  border-bottom-color: #1842ea;
+}
+.flx-sourceFilters4 a.ggleCal {
+  border-bottom-color: #d7186e;
+}
+.flx-sourceFilters5 {
+  list-style-type: none;
+}
+.flx-sourceFilters5 li {
+  float: left;
+  border-right: 1px solid transparent;
+}
+.flx-sourceFilters5 li a,
+.flx-sourceFilters5 li span {
+  color: #808080;
+  border-bottom: 1px solid #808080;
+  padding: 10px 10px;
+  background: #fff;
+  position: relative;
+  -webkit-transition: all 0.1s ease-in;
+  -moz-transition: all 0.1s ease-in;
+  -o-transition: all 0.1s ease-in;
+  transition: all 0.1s ease-in;
+}
+.flx-sourceFilters5 li a:after,
+.flx-sourceFilters5 li span:after {
+  content: '';
+  width: 0;
+  height: 11px;
+  border-right: 1px solid #e6e6e6;
+  position: absolute;
+  top: 10px;
+  right: -1px;
+}
+.flx-sourceFilters5 li a.ggleCal:after {
+  border-right: 0;
+}
+.flx-sourceFilters5 li .flx-active {
+  border-bottom-width: 4px;
+  padding-bottom: 7px;
+  color: #4d4d4d;
+}
+.flx-sourceFilters5 li .flx-disconnected {
+  border-bottom-color: #cccccc;
+  color: #cccccc;
+  cursor: default;
+}
+.flx-sourceFilters5 li a:hover {
+  text-decoration: none;
+  border-bottom-width: 4px;
+  padding-bottom: 7px;
+}
+.flx-sourceFilters5 a.fitbit {
+  color: #21b5cf;
+  border-bottom-color: #21b5cf;
+}
+.flx-sourceFilters5 a.bodytrack {
+  color: #c79409;
+  border-bottom-color: #c79409;
+}
+.flx-sourceFilters5 a.lastFM {
+  color: #ec0c0c;
+  border-bottom-color: #ec0c0c;
+}
+.flx-sourceFilters5 a.withings {
+  color: #16924e;
+  border-bottom-color: #16924e;
+}
+.flx-sourceFilters5 a.picasa {
+  color: #8c2ebb;
+  border-bottom-color: #8c2ebb;
+}
+.flx-sourceFilters5 a.twitter {
+  color: #1842ea;
+  border-bottom-color: #1842ea;
+}
+.flx-sourceFilters5 a.ggleCal {
+  color: #d7186e;
+  border-bottom-color: #d7186e;
+}
+.flx-sourceFilters6 {
+  list-style-type: none;
+}
+.flx-sourceFilters6 li {
+  float: left;
+  border-right: 1px solid transparent;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+}
+.flx-sourceFilters6 li a,
+.flx-sourceFilters6 li span {
+  color: #808080;
+  border-bottom: 1px solid #808080;
+  padding: 10px 0;
+  background: #fff;
+  position: relative;
+  width: 70px;
+  text-align: center;
+  display: inline-block;
+  -webkit-transition: all 0.1s ease-in;
+  -moz-transition: all 0.1s ease-in;
+  -o-transition: all 0.1s ease-in;
+  transition: all 0.1s ease-in;
+}
+.flx-sourceFilters6 li .flx-active {
+  border-bottom-width: 4px;
+  padding-bottom: 7px;
+  color: #808080;
+}
+.flx-sourceFilters6 li .flx-disconnected {
+  border-bottom-color: #cccccc;
+  color: #cccccc;
+  cursor: default;
+}
+.flx-sourceFilters6 li a:hover {
+  text-decoration: none;
+  border-bottom-width: 4px;
+  padding-bottom: 7px;
+}
+.flx-sourceFilters6 a.fitbit {
+  color: #21b5cf;
+  border-bottom-color: #21b5cf;
+}
+.flx-sourceFilters6 a.bodytrack {
+  color: #c79409;
+  border-bottom-color: #c79409;
+}
+.flx-sourceFilters6 a.lastFM {
+  color: #ec0c0c;
+  border-bottom-color: #ec0c0c;
+}
+.flx-sourceFilters6 a.withings {
+  color: #16924e;
+  border-bottom-color: #16924e;
+}
+.flx-sourceFilters6 a.picasa {
+  color: #8c2ebb;
+  border-bottom-color: #8c2ebb;
+}
+.flx-sourceFilters6 a.twitter {
+  color: #1842ea;
+  border-bottom-color: #1842ea;
+}
+.flx-sourceFilters6 a.ggleCal {
+  color: #d7186e;
+  border-bottom-color: #d7186e;
+}
+.synchAll {
+  width: 100%;
+  background: #eeeee9;
+  overflow: hidden;
+  height: 100%;
+}
+.synchAll span {
+  display: block;
+  padding: 10px;
+  float: right;
+}
+table .syncStatus,
+table .remove,
+table .connectors {
+  text-align: center;
+}
+td.syncStatus {
+  vertical-align: middle;
+}
+td.syncStatus span {
+  display: block;
+  width: 20px;
+  height: 20px;
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  border-radius: 10px;
+  border: 1px solid #b3b3b3;
+  margin: 0 auto;
+  -webkit-box-shadow: 0 0 5px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.7);
+  -moz-box-shadow: 0 0 5px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.7);
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.7);
+}
+td.syncStatus .syncLED-yes {
+  background: #76d323;
+}
+td.syncStatus .syncLED-no {
+  background: #ff3030;
+}
+td.syncStatus .syncLED-waiting {
+  border: 0;
+  width: 35px;
+  height: 35px;
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  box-shadow: none ;
+}
+td.connectors {
+  text-align: center;
+  padding: 0;
+}
+td.connectors img {
+  margin: 0 auto;
+}
+.lastSync p,
+.latestData p,
+.remove i {
+  padding-top: 18px;
+}
+table .remove {
+  text-align: center;
+}
+table .remove i {
+  font-size: 20px;
+}
+.flx-tableSepar td {
+  height: 1px;
+  background: #eeeee9;
+  padding: 2px 0;
+}
+.nowSynchro .lastSync p {
+  font-style: italic;
+  font-weight: bold;
+}
+.nowSynchro .lastSync a,
+.nowSynchro .lastSync span {
+  color: #808080;
 }

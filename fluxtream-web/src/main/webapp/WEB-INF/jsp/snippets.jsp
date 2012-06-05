@@ -41,16 +41,292 @@
 
 </head>
 
-<body style="padding: 50px">
+<body style="padding: 50px; background:#fff;">
 
 	<div id="content">
 		<div class="container-fluid">
+		<div class="row">
+			<div class="span10">
+				<div class="synchAll">
+					<span>Though your data are supposedly up to date, you might want to <a href="#" class="btn btn-info">sync all your devices now <i class="icon-refresh"></i></a></span>			
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="span10">
+				<table class="table manageConnectors">
+					<thead>
+						<tr>
+							<th class="syncStatus">Sync status</th>
+							<th class="connectors">Connectors</th>
+							<th class="desc">Description</th>
+							<th class="lastSync">Last Sync.</th>
+							<th class="latestData">Latest Data</th>
+							<th class="remove">Remove</th>
+						</tr>	
+					</thead>
+					<tbody>
+						<tr class="pouet">
+							<td class="syncStatus"><span class="syncLED-yes"></span></td>
+							<td class="connectors"><img src="/css/devicesPictures/bodymedia.jpg" alt="bodymedia" width="" height="" /></td>
+							<td class="desc"><h4>BodyMedia Armband</h4><p>Activity, calories and sleep pattern</p><a href="#">Manage <i class="icon-cog"></i></a></td>
+							<td class="lastSync"><p>Sept 17 2012 10:03:12</p><a href="#">Sync now <i class="icon-refresh"></i></a></td>
+							<td class="latestData"><p>Sept 27 2012 30:42:55</p><a href="#">View graph <i class="icon-bar-chart"></i></a></td>
+							<td class="remove"><a href="#"><i class="icon-trash"></i></a></td>
+						</tr>
+						<tr>
+							<td class="syncStatus "><span class="syncLED-yes"></span></td>
+							<td class="connectors"><img src="/css/devicesPictures/zeo.jpg" alt="zeo" width="" height="" /></td>
+							<td class="desc"><h4>Zeo Sleep Tracker</h4><p>Sleep quality monitor using a sensor headband</p><a href="#">Manage <i class="icon-cog"></i></a></td>
+							<td class="lastSync"><p>Sept 17 2012 10:03:12</p><a href="#">Sync now <i class="icon-refresh"></i></a></td>
+							<td class="latestData"><p>Sept 27 2012 30:42:55</p><a href="#">View graph <i class="icon-bar-chart"></i></a></td>
+							<td class="remove"><a href="#"><i class="icon-trash"></i></a></td>
+						</tr>
+						<tr>
+							<td class="syncStatus"><span class="syncLED-no"></span></td>
+							<td class="connectors"><img src="/css/devicesPictures/fitbit.jpg" alt="fitbit" width="" height="" /></td>
+							<td class="desc"><h4>Fitbit</h4><p>A wearable tracker for physical activity or sleep</p><a href="#">Manage <i class="icon-cog"></i></a></td>
+							<td class="lastSync"><p>Sept 17 2012 10:03:12</p><a href="#">Sync now <i class="icon-refresh"></i></a></td>
+							<td class="latestData"><p>Sept 27 2012 30:42:55</p><a href="#">View graph <i class="icon-bar-chart"></i></a></td>
+							<td class="remove"><a href="#"><i class="icon-trash"></i></a></td>
+						</tr>
+						<tr class="nowSynchro">
+							<td class="syncStatus"><span class="syncLED-waiting"><img src="/css/devicesPictures/load.gif" alt="load" width="" height="" /></span></td>
+							<td class="connectors"><img src="/css/devicesPictures/mymee.jpg" alt="mymee" width="" height="" /></td>
+							<td class="desc"><h4>Mobile observation log</h4><p>Track my migraine and food consumption</p><a href="#">Manage <i class="icon-cog"></i></a></td>
+							<td class="lastSync"><p>Now synchronizing</p><span href="#">Sync now <i class="icon-refresh"></i></span></td>
+							<td class="latestData"><p>Sept 27 2012 30:42:55</p><a href="#">View graph <i class="icon-bar-chart"></i></a></td>
+							<td class="remove"><a href="#"><i class="icon-trash"></i></a></td>
+						</tr>
+						<tr class="flx-tableSepar">
+							<td colspan="6"></td>
+						</tr>
+						<tr>
+							<td class="syncStatus"><span class="syncLED-no"></span></td>
+							<td class="connectors"><img src="/css/devicesPictures/bodyTrack.jpg" alt="bodyTrack" width="" height="" /></td>
+							<td class="desc"><h4>Basestation</h4><p>Temperature, humidity and air pressure</p></td>
+							<td class="lastSync"><p>Sept 17 2012 10:03:12</p><a href="#">Sync now <i class="icon-refresh"></i></a></td>
+							<td class="latestData"><p>Sept 27 2012 30:42:55</p><a href="#">View graph <i class="icon-bar-chart"></i></a></td>
+							<td class="remove"><a href="#"><i class="icon-trash"></i></a></td>
+						</tr>
+						<tr>
+							<td class="syncStatus"><span class="syncLED-yes"></span></td>
+							<td class="connectors"><img src="/css/devicesPictures/mHealth.jpg" alt="mHealth" width="" height="" /></td>
+							<td class="desc"><h4>Atrix</h4><p>Illuminance, azimuth and pitch</p></td>
+							<td class="lastSync"><p>Sept 17 2012 10:03:12</p><a href="#">Sync now <i class="icon-refresh"></i></a></td>
+							<td class="latestData"><p>Sept 27 2012 30:42:55</p><a href="#">View graph <i class="icon-bar-chart"></i></a></td>
+							<td class="remove"><a href="#"><i class="icon-trash"></i></a></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+		
+			<div class="row">
+			<h4>Variation 1</h4>
+				<div class="span12" style="min-height:50px">
+				<br/>
+				<br/>
+					<ul class="flx-sourceFilters1">
+						<li>
+							<a href="#" class="fitbit">Fitbit</a>
+						</li>
+						<li>
+							<a href="#" class="flx-active bodytrack">BodyTrack</a>
+						</li>
+						<li>
+							<a href="#" class="flx-inactive lastFM">Last FM</a>
+						</li>
+						<li>
+							<a href="#" class="flx-active withings">Withings</a>
+						</li>
+						<li>
+							<span class="flx-disconnected picasa">Picasa</span>
+						</li>
+						<li>
+							<a href="#" class="flx-active twitter">Twitter</a>
+						</li>
+						<li>
+							<a href="#" class="flx-active ggleCal">Google Cal.</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+							<br/>
+				<br/>
+
+			<div class="row">	
+			<h4>Variation 2</h4>
+				<div class="span12" style="min-height:50px">	
+				<br/>
+				<br/>
+					<ul class="flx-sourceFilters2">
+						<li>
+							<a href="#" class="fitbit">Fitbit</a>
+						</li>
+						<li>
+							<a href="#" class="flx-active bodytrack">BodyTrack</a>
+						</li>
+						<li>
+							<a href="#" class="flx-inactive lastFM">Last FM</a>
+						</li>
+						<li>
+							<a href="#" class="flx-active withings">Withings</a>
+						</li>
+						<li>
+							<span class="flx-disconnected picasa">Picasa</span>
+						</li>
+						<li>
+							<a href="#" class="flx-active twitter">Twitter</a>
+						</li>
+						<li>
+							<a href="#" class="flx-active ggleCal">Google Calendar</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+							<br/>
+				<br/>
+
+			<div class="row">	
+			<h4>Variation 3</h4>
+				<div class="span12" style="min-height:50px">	
+					<ul class="flx-sourceFilters3">
+						<li>
+							<a href="#" class="fitbit">Fitbit</a>
+						</li>
+						<li>
+							<a href="#" class="flx-active bodytrack">BodyTrack</a>
+						</li>
+						<li>
+							<a href="#" class="flx-inactive lastFM">Last FM</a>
+						</li>
+						<li>
+							<a href="#" class="flx-active withings">Withings</a>
+						</li>
+						<li>
+							<span class="flx-disconnected picasa">Picasa</span>
+						</li>
+						<li>
+							<a href="#" class="flx-active twitter">Twitter</a>
+						</li>
+						<li>
+							<a href="#" class="flx-active ggleCal">Calendar</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+			<br/>
+			<br/>
+			<div class="row">
+			<h4>Variation 4 (Candide's)</h4>
+				<div class="span12" style="min-height:50px">	
+								<br/>
+			<br/>
+
+					<ul class="flx-sourceFilters4">
+						<li>
+							<a href="#" class="fitbit">Fitbit</a>
+						</li>
+						<li>
+							<a href="#" class="flx-active bodytrack">BodyTrack</a>
+						</li>
+						<li>
+							<a href="#" class="flx-inactive lastFM">Last FM</a>
+						</li>
+						<li>
+							<a href="#" class="flx-active withings">Withings</a>
+						</li>
+						<li>
+							<span class="flx-disconnected picasa">Picasa</span>
+						</li>
+						<li>
+							<a href="#" class="flx-active twitter">Twitter</a>
+						</li>
+						<li>
+							<a href="#" class="flx-active ggleCal">Calendar</a>
+						</li>
+					</ul>
+					
+				</div>
+			</div>
+						<br/>
+			<br/>
+
+			<div class="row">
+			<h4>Variation 5 (Thomas's)</h4>
+				<div class="span12" style="min-height:50px">	
+							<br/>
+			<br/>
+
+					<ul class="flx-sourceFilters5">
+						<li>
+							<a href="#" class="fitbit">Fitbit</a>
+						</li>
+						<li>
+							<a href="#" class="flx-active bodytrack">BodyTrack</a>
+						</li>
+						<li>
+							<a href="#" class="flx-inactive lastFM">Last FM</a>
+						</li>
+						<li>
+							<a href="#" class="flx-active withings">Withings</a>
+						</li>
+						<li>
+							<span class="flx-disconnected picasa">Picasa</span>
+						</li>
+						<li>
+							<a href="#" class="flx-active twitter">Twitter</a>
+						</li>
+						<li>
+							<a href="#" class="flx-active ggleCal">Calendar</a>
+						</li>
+					</ul>
+					
+				</div>
+			</div>
+						<br/>
+			<br/>
+
+			<div class="row">
+			<h4>Variation 6 (Peri's)</h4>
+				<div class="span12" style="min-height:50px">	
+							<br/>
+			<br/>
+
+					<ul class="flx-sourceFilters6">
+						<li>
+							<a href="#" class="fitbit">Fitbit</a>
+						</li>
+						<li>
+							<a href="#" class="flx-active bodytrack">BodyTrack</a>
+						</li>
+						<li>
+							<a href="#" class="flx-inactive lastFM">Last FM</a>
+						</li>
+						<li>
+							<a href="#" class="flx-active withings">Withings</a>
+						</li>
+						<li>
+							<span class="flx-disconnected picasa">Picasa</span>
+						</li>
+						<li>
+							<a href="#" class="flx-active twitter">Twitter</a>
+						</li>
+						<li>
+							<a href="#" class="flx-active ggleCal">Calendar</a>
+						</li>
+					</ul>
+					
+				</div>
+			</div>
+			
 			<div class="row"> 
 				<div class="span12">
 			<!-- Remove when added to the clock tab -->
 					<div class="flx-clockToolTipContainer">
 						<div class="flx-toolTipBody strongBorder-Right"> <!-- JS : Append strongBorder class with -Top, -Left, -Right, Bottom according to toolTip position / Append the right color class to override default -->
-							<span class="flx-toolTipTail-Right" style="top:50px"></span> <!-- JS : Append class with -Top, -Left or -Right to change tail direction + define top/bottom/right/left arguments in the style attribute to give the tail it's position -->
+							<span class="flx-toolTipTail-Right" style="top:50px;"></span> <!-- JS : Append class with -Top, -Left or -Right to change tail direction + define top/bottom/right/left arguments in the style attribute to give the tail it's position -->
 							<div class="flx-toolTipData">
 								<h3 class="flx-dataType">Weight</h3>
 									<ul class="flx-toolTipLinks">
