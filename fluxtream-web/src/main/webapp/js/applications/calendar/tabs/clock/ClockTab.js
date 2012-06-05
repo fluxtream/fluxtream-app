@@ -181,7 +181,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		case "withings-weight":
 //			drawWeightInfo(connectorData);
 			break;
-		case "picasa":
+		case "picasa-photo":
 		case "flickr":
 		case "lastfm-recent_track":
         case "lastfm-loved_track":

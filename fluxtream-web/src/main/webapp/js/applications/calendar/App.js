@@ -214,6 +214,9 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 params.userName = data.userName;
                 params.profileImageUrl = data.profileImageUrl;
                 break;
+            case "picasa-photo":
+                params.photoUrl = data.photoUrl;
+                break;
         }
         return digest.detailsTemplates[data.type].render(params);
     }
