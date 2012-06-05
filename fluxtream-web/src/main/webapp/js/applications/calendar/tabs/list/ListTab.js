@@ -30,7 +30,17 @@ define(["applications/calendar/tabs/Tab"], function(Tab) {
                 var item = $("<div style=\"min-height:80px;\">" + digest.cachedData[connectorName][i].getDetails() + "</div>");
                 item.facet = digest.cachedData[connectorName][i];
                 item.visible = true;
-                items[items.length] = item;
+                for (var j = 0; j <= items.length; j++){
+                    if (j == items.length){
+                        items[j] = item;
+                        break;
+                    }
+                    if (items[j].facet.start > item.facet.start){
+                        items.splice(j,0,item);
+                        break;
+                    }
+
+                }
                 if (itemGroups[item.facet.type] == null)
                     itemGroups[item.facet.type] = [];
                 itemGroups[item.facet.type][itemGroups[item.facet.type].length] = item;
