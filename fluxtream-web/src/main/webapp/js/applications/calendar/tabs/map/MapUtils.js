@@ -70,7 +70,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             case "toodledo-task":
             case "fitbit-sleep":
             case "withings-bpm":
-            case "picasa":
+            case "picasa-photo":
             case "flickr":
             case "lastfm-recent_track":
             case "lastfm-loved_track":
@@ -115,8 +115,6 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     function addItemsToMap(map,items,clickable){
-        if (items.length != 0 && items[0].type == "photo")
-            return addImagesToMap(map,items,clickable);
         var markerArray = new Array();
         for (var i = 0; i < items.length; i++){
             var marker = addItemToMap(map,items[i],clickable);
@@ -147,7 +145,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             case "withings-bpm":
                 category = config.BODY_CATEGORY;
                 break;
-            case "picasa":
+            case "picasa-photo":
             case "flickr":
             case "lastfm-recent_track":
             case "lastfm-loved_track":
