@@ -94,7 +94,6 @@
     <orderEntry type="library" name="Maven: org.springframework:spring-test:3.1.0.RELEASE" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-orm:3.1.0.RELEASE" level="project" />
     <orderEntry type="library" name="Maven: google:gdata-calendar:2.0" level="project" />
-    <orderEntry type="library" name="Maven: gdata:core:1.0" level="project" />
     <orderEntry type="library" name="Maven: com.google.api.client:google-api-client:1.1.1-alpha" level="project" />
     <orderEntry type="library" name="Maven: org.codehaus.jackson:jackson-core-asl:1.5.3" level="project" />
     <orderEntry type="library" name="Maven: xpp3:xpp3:1.1.4c" level="project" />
@@ -108,6 +107,7 @@
     <orderEntry type="library" name="Maven: com.ibm.icu:icu4j:2.6.1" level="project" />
     <orderEntry type="library" name="Maven: google:collect:1.0" level="project" />
     <orderEntry type="library" name="Maven: gdata:client:1.0" level="project" />
+    <orderEntry type="library" name="Maven: gdata:core:1.0" level="project" />
     <orderEntry type="library" name="Maven: gdata:contacts:3.0" level="project" />
     <orderEntry type="library" name="Maven: gdata:contacts-meta:3.0" level="project" />
     <orderEntry type="library" name="Maven: gdata:media:1.0" level="project" />
