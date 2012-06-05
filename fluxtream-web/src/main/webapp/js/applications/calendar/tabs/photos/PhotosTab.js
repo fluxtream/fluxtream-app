@@ -13,19 +13,11 @@ define(["applications/calendar/tabs/Tab",
 
     function setup(digest, timeUnit, calendarState){
         $("#photoTab").empty();
-        $("#photoTab").append("<div style='text-align:center'>Retrieving photos...</div>")
-        $.ajax("/api/guest/" + App.getUsername() + "/photo/" + calendarState,{
-            success: function(data, textStatus, jqXHR){
-                onDataRecieved(data);
-            },
-            error: function(jqXHR, textStatus){
-                $("#photoTab").empty();
-                showNoPhotos();
-                $("#photoTab").append('<div class="alert alert-error"><button class="close" data-dismiss="alert">×</button><strong>Error!</strong> Photos could not be retrieved!</div>');
-            }
-
-        });
-
+        if (digest.cachedData["picasa-photo"] == null){
+            showNoPhotos();
+            return;
+        }
+        onDataRecieved(digest.cachedData["picasa-photo"]);
     }
 
     function showNoPhotos(){
@@ -48,7 +40,7 @@ define(["applications/calendar/tabs/Tab",
                 var currentGroup = [];
                 var currentDate = null;
                 for (var i = 0; i < data.length; i++){
-                   var date = new Date(data[i].timeTaken);
+                   var date = new Date(data[i].start);
                    if (currentDate == null){
                        currentDate = date;
                    }
