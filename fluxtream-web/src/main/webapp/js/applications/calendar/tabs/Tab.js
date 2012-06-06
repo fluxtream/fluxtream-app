@@ -95,7 +95,9 @@ define([ "core/FlxState" ], function(FlxState) {
 	}
 
     Tab.prototype.getCurrentState = getCurrentState;
-	
+
+    Tab.prototype.connectorToggled = function(){};
+
 	return Tab;
 
 });

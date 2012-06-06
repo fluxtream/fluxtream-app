@@ -536,7 +536,7 @@ a img {
 .flx-sourceFilters1 a.twitter {
   border-bottom-color: #1842ea;
 }
-.flx-sourceFilters1 a.ggleCal {
+.flx-sourceFilters1 a.google_calendar {
   border-bottom-color: #d7186e;
 }
 .flx-sourceFilters2 {
@@ -570,7 +570,7 @@ a img {
   top: 10px;
   right: -1px;
 }
-.flx-sourceFilters2 li a.ggleCal:after {
+.flx-sourceFilters2 li a.google_calendar:after {
   border-right: 0;
 }
 .flx-sourceFilters2 li .flx-active {
@@ -612,7 +612,7 @@ a img {
   color: #1842ea;
   border-bottom-color: #1842ea;
 }
-.flx-sourceFilters2 a.ggleCal {
+.flx-sourceFilters2 a.google_calendar {
   color: #d7186e;
   border-bottom-color: #d7186e;
 }
@@ -679,7 +679,7 @@ a img {
   color: #0099e6;
   border-bottom-color: #0099e6;
 }
-.flx-sourceFilters3 a.ggleCal {
+.flx-sourceFilters3 a.google_calendar {
   color: #1ab2ff;
   border-bottom-color: #1ab2ff;
 }
@@ -715,7 +715,7 @@ a img {
   top: 10px;
   right: -1px;
 }
-.flx-sourceFilters4 li a.ggleCal:after {
+.flx-sourceFilters4 li a.google_calendar:after {
   border-right: 0;
 }
 .flx-sourceFilters4 li .flx-active {
@@ -724,9 +724,9 @@ a img {
   color: #808080;
 }
 .flx-sourceFilters4 li .flx-disconnected {
-  border-bottom-color: #cccccc;
-  color: #cccccc;
-  cursor: default;
+  border-bottom-color: #cccccc !important;
+  color: #cccccc !important;
+  cursor: default !important;
 }
 .flx-sourceFilters4 li a:hover {
   text-decoration: none;
@@ -739,7 +739,7 @@ a img {
 .flx-sourceFilters4 a.bodytrack {
   border-bottom-color: #c79409;
 }
-.flx-sourceFilters4 a.lastFM {
+.flx-sourceFilters4 a.lastfm {
   border-bottom-color: #ec0c0c;
 }
 .flx-sourceFilters4 a.withings {
@@ -751,7 +751,7 @@ a img {
 .flx-sourceFilters4 a.twitter {
   border-bottom-color: #1842ea;
 }
-.flx-sourceFilters4 a.ggleCal {
+.flx-sourceFilters4 a.google_calendar {
   border-bottom-color: #d7186e;
 }
 .flx-sourceFilters5 {
@@ -783,7 +783,7 @@ a img {
   top: 10px;
   right: -1px;
 }
-.flx-sourceFilters5 li a.ggleCal:after {
+.flx-sourceFilters5 li a.google_calendar:after {
   border-right: 0;
 }
 .flx-sourceFilters5 li .flx-active {
@@ -825,7 +825,7 @@ a img {
   color: #1842ea;
   border-bottom-color: #1842ea;
 }
-.flx-sourceFilters5 a.ggleCal {
+.flx-sourceFilters5 a.google_calendar {
   color: #d7186e;
   border-bottom-color: #d7186e;
 }
@@ -892,7 +892,7 @@ a img {
   color: #1842ea;
   border-bottom-color: #1842ea;
 }
-.flx-sourceFilters6 a.ggleCal {
+.flx-sourceFilters6 a.google_calendar {
   color: #d7186e;
   border-bottom-color: #d7186e;
 }

@@ -153,7 +153,7 @@ define([], function() {
 		Calendar.currentTab = tab;
 		var currentTab = "#calendarTabs a." + Calendar.currentTabName+"-tab";
 		$(currentTab).tab("show");
-		tab.render(digest, Calendar.timeUnit, Calendar.tabState);
+		tab.render(digest, Calendar.timeUnit, Calendar.tabState, Calendar.connectorEnabled);
 	}
 	
 	function tabExistsForTimeUnit(tab, unit) {

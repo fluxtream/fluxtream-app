@@ -9,6 +9,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     Calendar.timeUnit = "DAY";
 
 	var start, end;
+    Calendar.connectorEnabled = {};
 
 	Calendar.setup = function() {
 		$(".menuNextButton").click(function(e) {
@@ -171,6 +172,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     $("#mainCity").empty();
                 Calendar.digest = response;
                 enhanceDigest(Calendar.digest);
+                processDigest(Calendar.digest);
 				Builder.updateTab(Calendar.digest, Calendar);
 				$("#tabs").css("opacity", "1");
 				$(".calendar-navigation-button").toggleClass("disabled");
@@ -196,6 +198,49 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             }
         }
     }
+
+
+    function processDigest(digest){
+        var selectedConnectors = $("#selectedConnectors");
+        selectedConnectors.empty();
+        for (var i = 0; i < digest.selectedConnectors.length; i++){
+            var enabled = false;
+            for (var j = 0; j < digest.selectedConnectors[i].facetTypes.length && !enabled; j++){
+                enabled =  digest.cachedData[digest.selectedConnectors[i].facetTypes[j]] != null;
+            }
+            enabled = enabled ? "" : "flx-disconnected";
+            var button = $('<li><a href="#" class="flx-active ' + enabled + " " + digest.selectedConnectors[i].connectorName + '">' + digest.selectedConnectors[i].prettyName + '</button></li>');
+            selectedConnectors.append(button);
+            button = $(button.children()[0]);
+            button.click({button:button,objectTypeNames:digest.selectedConnectors[i].facetTypes,connectorName:digest.selectedConnectors[i].connectorName}, function(event){
+                connectorClicked(event.data.button,event.data.objectTypeNames,event.data.connectorName,true);
+            });
+            if (Calendar.connectorEnabled[digest.selectedConnectors[i].connectorName] == null)
+                Calendar.connectorEnabled[digest.selectedConnectors[i].connectorName] = true;
+            if (!Calendar.connectorEnabled[digest.selectedConnectors[i].connectorName])
+                connectorClicked(button,digest.selectedConnectors[i].facetTypes,digest.selectedConnectors[i].connectorName,false);
+        }
+    }
+
+    function connectorClicked(button,objectTypeNames,connectorName,propogate){
+        if (propogate){
+            Calendar.connectorEnabled[connectorName] = !Calendar.connectorEnabled[connectorName];
+        }
+        if (Calendar.connectorEnabled[connectorName]){
+            button.addClass("flx-active");
+            button.removeClass("flx-inactive")
+        }
+        else{
+            button.removeClass("flx-active");
+            button.addClass("flx-inactive");
+        }
+        if (propogate){
+            Calendar.currentTab.connectorToggled(connectorName,objectTypeNames,Calendar.connectorEnabled[connectorName]);
+        }
+
+    }
+
+
 
     function buildDetails(digest,data){
         if (digest.detailsTemplates[data.type] == null){
