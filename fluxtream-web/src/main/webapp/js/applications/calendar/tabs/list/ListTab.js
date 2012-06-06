@@ -46,7 +46,7 @@ define(["applications/calendar/tabs/Tab"], function(Tab) {
                 itemGroups[item.facet.type][itemGroups[item.facet.type].length] = item;
             }
         }
-        var checkedContainer = $("#selectedConnectors");
+        var checkedContainer = $("#selectedConnectorsList");
         checkedContainer.empty();
         for (var i = 0; i < digest.selectedConnectors.length; i++){
             var displayable = false;
