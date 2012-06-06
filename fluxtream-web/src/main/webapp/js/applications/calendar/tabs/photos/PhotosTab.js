@@ -1,9 +1,11 @@
 define(["applications/calendar/tabs/Tab",
         "applications/calendar/App"], function(Tab, Calendar) {
 
-    function render(digest, timeUnit, calendarState) {
+    function render(dgest, timeUnit, calendarState, cEn) {
         this.getTemplate("text!applications/calendar/tabs/photos/photos.html", "photos", function() {
-            setup(digest, timeUnit, calendarState);
+            digest = dgest;
+            connectorEnabled = cEn;
+            setup(digest,connectorEnabled);
         });
     }
 
@@ -11,8 +13,10 @@ define(["applications/calendar/tabs/Tab",
         this.getUrl("/tabs/photos", "photos", null, true);
     }*/
 
-    function setup(digest, timeUnit, calendarState){
-        $("#photoTab").empty();
+    var connectorEnabled;
+    var digest;
+
+    function setup(digest, cEn){
         if (digest.cachedData["picasa-photo"] == null){
             showNoPhotos();
             return;
@@ -21,10 +25,25 @@ define(["applications/calendar/tabs/Tab",
     }
 
     function showNoPhotos(){
+        $("#photoTab").empty();
         $("#photoTab").append("<div class=\"emptyList\">(no photos)</div>");
     }
 
-    function onDataRecieved(data){
+    function onDataRecieved(photos){
+        var data = [];
+        $("#photoTab").empty();
+        for (var i = 0; i < photos.length; i++){
+            for (var j = 0; j < digest.selectedConnectors.length; j++){
+                var found = false;
+                for (var k = 0; !found &&  k < digest.selectedConnectors[j].facetTypes.length; k++){
+                   found = digest.selectedConnectors[j].facetTypes[k] == photos[i].type;
+                }
+                if (found){
+                   if (connectorEnabled[digest.selectedConnectors[j].connectorName])
+                        data[data.length] = photos[i];
+                }
+            }
+        }
         for (var i = 0; i < data.length; i++){
             data[i].active = i == 0;
             data[i].id = i;
@@ -67,8 +86,14 @@ define(["applications/calendar/tabs/Tab",
 
     }
 
+    function connectorToggled(connectorName,objectTypeNames,enabled){
+        connectorEnabled[connectorName] = enabled;
+        setup(digest,connectorEnabled);
+    }
+
     var photosTab = new Tab("photos", "Candide Kemmler", "icon-camera", true);
     photosTab.render = render;
+    photosTab.connectorToggled = connectorToggled;
     return photosTab;
 
 });
