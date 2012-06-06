@@ -70,10 +70,12 @@ define([ "core/FlxState" ], function(FlxState) {
 	};
 	
 	Tab.prototype.insertTabContents = function(template, nextTabId, domReady, forceLoad, tabData) {
+        var templateJs = Hogan.compile(template);
         if (typeof(tabData)!="undefined" && tabData!=null) {
-            template = $.mustache(template, tabData);
-        } else if (this.needsTemplating)
-            template = $.mustache(template, {release: window.FLX_RELEASE_NUMBER});
+            template = templateJs.render(tabData);
+        } else if (this.needsTemplating){
+            template = templateJs.render({release: window.FLX_RELEASE_NUMBER});
+        }
         template = "<div class=\"tab active\" id=\"" + nextTabId + "\">"
 			 + template + "</div>";
 		if (forceLoad && $("#"+nextTabId).length>0) {

@@ -28,7 +28,7 @@ public class DigestModel {
 	public SettingsModel settings;
 	public Set<String> haveDataConnectors = new HashSet<String>();
 	public Set<String> haveNoDataConnectors = new HashSet<String>();
-	public List<String> selectedConnectors = new ArrayList<String>();
+	public List<ConnectorDigestModel> selectedConnectors = new ArrayList<ConnectorDigestModel>();
     public List<WeatherInfo> hourlyWeatherData = null;
 	@SuppressWarnings("rawtypes")
 	public Map<String,Collection> cachedData
