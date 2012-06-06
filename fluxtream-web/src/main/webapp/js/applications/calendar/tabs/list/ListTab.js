@@ -2,20 +2,19 @@ define(["applications/calendar/tabs/Tab"], function(Tab) {
 
     var listTab = new Tab("list", "Candide Kemmler", "icon-list", true);
 
-    function render(digest, timeUnit) {
-        this.getTemplate("text!applications/calendar/tabs/list/list.html", "list", function(){setup(digest);});
+    function render(digest, timeUnit, calendarState, connectorEnabled) {
+        this.getTemplate("text!applications/calendar/tabs/list/list.html", "list", function(){setup(digest,connectorEnabled);});
     }
 
     var items;
     var itemGroups;
     var list;
     var pagination;
-    var clicked = {};
     var maxPerPage = 10;
     var currentPage = 0;
     var initializing;
 
-    function setup(digest){
+    function setup(digest,connectorEnabled){
         initializing = true;
         list = $("#list");
         pagination = $("#pagination");
@@ -30,6 +29,17 @@ define(["applications/calendar/tabs/Tab"], function(Tab) {
                 var item = $("<div style=\"min-height:80px;\">" + digest.cachedData[connectorName][i].getDetails() + "</div>");
                 item.facet = digest.cachedData[connectorName][i];
                 item.visible = true;
+                var found = false;
+                for (var j = 0; j < digest.selectedConnectors.length; j++){
+                    for (var k = 0; !found && k < digest.selectedConnectors[j].facetTypes.length; k++){
+                        found = item.facet.type == digest.selectedConnectors[j].facetTypes[k];
+                    }
+                    if (found){
+                        item.visible = connectorEnabled[digest.selectedConnectors[j].connectorName];
+                        break;
+                    }
+
+                }
                 for (var j = 0; j <= items.length; j++){
                     if (j == items.length){
                         items[j] = item;
@@ -46,31 +56,8 @@ define(["applications/calendar/tabs/Tab"], function(Tab) {
                 itemGroups[item.facet.type][itemGroups[item.facet.type].length] = item;
             }
         }
-        var checkedContainer = $("#selectedConnectorsList");
-        checkedContainer.empty();
-        for (var i = 0; i < digest.selectedConnectors.length; i++){
-            var displayable = false;
-            for (var j = 0; j < digest.selectedConnectors[i].facetTypes.length && !displayable; j++){
-                displayable = shouldDisplayInListView(digest.selectedConnectors[i].facetTypes[j])
-            }
-            if (displayable){
-                var enabled = false;
-                for (var j = 0; j < digest.selectedConnectors[i].facetTypes.length && !enabled; j++){
-                    enabled =  itemGroups[digest.selectedConnectors[i].facetTypes[j]] != null;
-                }
-                enabled = enabled ? "enabled" : "disabled";
-                var button = $('<button class="btnList btn btnListChecked ' + enabled + '">' + digest.selectedConnectors[i].prettyName + '</button>');
-                button.click({button:button,objectTypeNames:digest.selectedConnectors[i].facetTypes,connectorName:digest.selectedConnectors[i].connectorName}, function(event){
-                    connectorClicked(event.data.button,event.data.objectTypeNames,event.data.connectorName);
-                });
-                if (clicked[digest.selectedConnectors[i].connectorName] == null)
-                    clicked[digest.selectedConnectors[i].connectorName] = false;
-                if (clicked[digest.selectedConnectors[i].connectorName])
-                    button.click();
-                checkedContainer.append(button);
-                checkedContainer.append("&nbsp;");
-            }
-        }
+
+
         rebuildPagination();
         repopulateList();
         updateNumberOfEvents();
@@ -146,6 +133,7 @@ define(["applications/calendar/tabs/Tab"], function(Tab) {
         }
         rebuildPagination();
         repopulateList();
+        return false;
     }
 
     function shouldDisplayInListView(connectorId){
@@ -158,40 +146,22 @@ define(["applications/calendar/tabs/Tab"], function(Tab) {
         }
     }
 
-    function connectorClicked(button,objectTypeNames,connectorName){
-        if (!initializing)
-            clicked[connectorName] = !clicked[connectorName];
-        if (clicked[connectorName]){
-            button.removeClass("btnListChecked");
-            button.addClass("btn-inverse");
-        }
-        else{
-            button.addClass("btnListChecked");
-            button.removeClass("btn-inverse");
-        }
-        if (button.is(".disabled"))
-            return;
+    function connectorToggled(connectorName,objectTypeNames,enabled){
         for (var i = 0; i < objectTypeNames.length; i++){
             if (itemGroups[objectTypeNames[i]] == null)
                 continue;
             for (var j = 0; j < itemGroups[objectTypeNames[i]].length; j++)
-                itemGroups[objectTypeNames[i]][j].visible = !clicked[connectorName];
+                itemGroups[objectTypeNames[i]][j].visible = enabled;
         }
-        if (!initializing){
-            var totalPages = getTotalPages();
-            if (currentPage >= totalPages)
-                currentPage = totalPages - 1;
-            if (currentPage < 0)
-                currentPage = 0;
-            rebuildPagination();
-            repopulateList();
-            updateNumberOfEvents();
-        }
+        rebuildPagination();
+        repopulateList();
+        updateNumberOfEvents();
     }
 
 
 
     listTab.render = render;
+    listTab.connectorToggled = connectorToggled;
     return listTab;
 	
 });
