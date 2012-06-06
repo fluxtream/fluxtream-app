@@ -380,6 +380,10 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     function hideData(map,connectorId){
+        if (connectorId == "google_latitude"){
+            map.hideGPSData();
+            return;
+        }
         if (!map.hasData(connectorId))
             return;
         if (map.connectorSelected == connectorId){
@@ -392,6 +396,10 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     function showData(map,connectorId){
+        if (connectorId == "google_latitude"){
+            map.showGPSData();
+            return;
+        }
         if (!map.hasData(connectorId))
             return;
         for (var i = 0; i < map.markers[connectorId].length; i++){
