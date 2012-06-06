@@ -214,6 +214,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             button = $(button.children()[0]);
             button.click({button:button,objectTypeNames:digest.selectedConnectors[i].facetTypes,connectorName:digest.selectedConnectors[i].connectorName}, function(event){
                 connectorClicked(event.data.button,event.data.objectTypeNames,event.data.connectorName,true);
+                return false;
             });
             if (Calendar.connectorEnabled[digest.selectedConnectors[i].connectorName] == null)
                 Calendar.connectorEnabled[digest.selectedConnectors[i].connectorName] = true;
