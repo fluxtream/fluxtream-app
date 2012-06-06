@@ -153,6 +153,9 @@ define(["applications/calendar/tabs/Tab"], function(Tab) {
             for (var j = 0; j < itemGroups[objectTypeNames[i]].length; j++)
                 itemGroups[objectTypeNames[i]][j].visible = enabled;
         }
+        var numPages = getTotalPages();
+        if (numPages < currentPage)
+            currentPage = numPages == 0 ? 0 : numPages -1;
         rebuildPagination();
         repopulateList();
         updateNumberOfEvents();
