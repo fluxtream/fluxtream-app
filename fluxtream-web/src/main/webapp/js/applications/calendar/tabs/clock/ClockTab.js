@@ -12,15 +12,20 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
     var tempratureUnit = null;
     var distanceUnit = null;
     var dayStart, dayEnd;
+    var clockCircleElements = {};
+    var selectedConnectors;
+    var connectorEnabled;
 
-	function render(digest, timeUnit) {
+	function render(digest, timeUnit, calendarState, connectorEnabled) {
         hideEventInfo();
 		this.getTemplate("text!applications/calendar/tabs/clock/clock.html", "clock", function() {
-			 setup(digest, timeUnit);
+			 setup(digest, timeUnit, connectorEnabled);
 		});
 	}
 	
-	function setup(digest, timeUnit) {
+	function setup(digest, timeUnit, cEn) {
+        selectedConnectors = digest.selectedConnectors;
+        connectorEnabled = cEn;
         hourlyWeatherData = digest.hourlyWeatherData;
         solarInfo = digest.solarInfo;
         tempratureUnit = digest.settings.temperatureUnit;
@@ -245,6 +250,19 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 							hideEventInfo();
 							this.style.cursor = "default";
 						});
+                        if (clockCircleElements[item.type] == null)
+                            clockCircleElements[item.type] = [];
+                        clockCircleElements[item.type][clockCircleElements[item.type].length] = span.node;
+                        for (var i = 0; i < selectedConnectors.length; i++){
+                            var found = false;
+                            for (var j = 0; !found && j < selectedConnectors[i].facetTypes.length; j++){
+                                found = item.type == selectedConnectors[i].facetTypes[j];
+                            }
+                            if (found){
+                                span.node.style.display = connectorEnabled[selectedConnectors[i].connectorName] ? "inline" : "none";
+                                break;
+                            }
+                        }
 						return span;
 					}()
 				);
@@ -536,7 +554,23 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 							hideEventInfo();
 							this.style.cursor = "default";
 						});
+
+                        if (clockCircleElements[item.type] == null)
+                            clockCircleElements[item.type] = [];
+                        clockCircleElements[item.type][clockCircleElements[item.type].length] = span.node;
+                        for (var i = 0; i < selectedConnectors.length; i++){
+                            var found = false;
+                            for (var j = 0; !found && j < selectedConnectors[i].facetTypes.length; j++){
+                                found = item.type == selectedConnectors[i].facetTypes[j];
+                            }
+                            if (found){
+                                span.node.style.display = connectorEnabled[selectedConnectors[i].connectorName] ? "inline" : "none";
+                                break;
+                            }
+                        }
 						return span;
+
+
 					}()
 				);
 			} catch (e) {
@@ -641,10 +675,20 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         }*/
     }
 
+    function connectorToggled(connectorName,objectTypeNames,enabled){
+        for (var i = 0; i < objectTypeNames.length; i++){
+            if (clockCircleElements[objectTypeNames[i]] == null)
+                continue;
+            for (var j = 0; j < clockCircleElements[objectTypeNames[i]].length; j++)
+                clockCircleElements[objectTypeNames[i]][j].style.display = enabled ? "inline" : "none";
+        }
+    }
+
 	var clockTab = new Tab("clock", "Candide Kemmler", "icon-time", true);
     document.qTipUpdate = qTipUpdate;
     document.hideQTipMap = hideQTipMap;
 	clockTab.render = render;
+    clockTab.connectorToggled = connectorToggled;
 	return clockTab;
 	
 });
