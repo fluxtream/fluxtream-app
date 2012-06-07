@@ -26,7 +26,7 @@ define(["applications/calendar/tabs/Tab"], function(Tab) {
             if (!shouldDisplayInListView(connectorName))
                 continue;
             for (var i = 0; i < digest.cachedData[connectorName].length; i++){
-                var item = $("<div style=\"min-height:80px;\">" + digest.cachedData[connectorName][i].getDetails() + "</div>");
+                var item = $("<div style=\"overflow: auto;\">" + digest.cachedData[connectorName][i].getDetails() + "</div>");
                 item.facet = digest.cachedData[connectorName][i];
                 item.visible = true;
                 var found = false;
