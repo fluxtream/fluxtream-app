@@ -15,7 +15,13 @@ import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Updatable;
 
 @Entity(name="Facet_FitbitActivity")
-@ObjectTypeSpec(name = "activity_summary", value = 1, extractor=FitbitFacetExtractor.class, prettyname = "Activity Summary")
+@ObjectTypeSpec(name = "activity_summary", value = 1, extractor=FitbitFacetExtractor.class, prettyname = "Activity Summary",
+                detailsTemplate="<h3 class=\"flx-dataType\">Activity Summary</h3>" +
+                                "<span class=\"flx-deviceIcon\" style=\"background:url('{{photoUrl}}'); background-size:100% 100%;\"></span>" +
+                                "<div class=\"flx-deviceData\">" +
+                                "    <span class=\"flx-data\">{{steps}} steps taken</span>" +
+                                "    <span class=\"flx-data\">{{calories}} calories burned</span>" +
+                                "</div>")
 @NamedQueries({
 		@NamedQuery(name = "fitbit.activity_summary.byStartEnd",
 				query = "SELECT facet FROM Facet_FitbitActivity facet WHERE facet.guestId=? AND facet.start=? and facet.end=?"),

@@ -281,6 +281,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             case "picasa-photo":
                 params.photoUrl = data.photoUrl;
                 break;
+            case "fitbit-activity_summary":
+                params.steps = data.steps;
+                params.calories = data.caloriesOut;
+                break;
         }
         return digest.detailsTemplates[data.type].render(params);
     }
