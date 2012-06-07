@@ -30,11 +30,11 @@ define([], function() {
 			var tab = "<li style=\"cursor:pointer\">";
 			tab += "<a class=\"" + tabs[Calendar.timeUnit][i] + "-tab\" tabname=\"" + tabs[Calendar.timeUnit][i] + "\" data-toggle=\"tab\">"
 				+ "<i class=\"" + tab_icons[tabs[Calendar.timeUnit][i]] + "\"></i> " + capitalizeFirstLetter(tabs[Calendar.timeUnit][i]) + "</a></li>";
+            tab = $(tab);
 			$("#calendarTabs").append(tab);
-			var currentTab = "#calendarTabs a." + tabs[Calendar.timeUnit][i] +"-tab";
-			$(currentTab).click(function(event) {
+			$(tab.children()[0]).click(function(event) {
                 event.preventDefault();
-				var tab = $(event.target).attr("tabname");
+				var tab = $(event.delegateTarget).attr("tabname");
                 if (typeof(tab)==="undefined")
                     return;
 				var state = App.state.getState("calendar");
@@ -63,6 +63,7 @@ define([], function() {
                    success : function(response) {
                        var t = tabExistsForTimeUnit(Calendar.currentTabName, timeUnit)?Calendar.currentTabName:tabs[timeUnit][0];
                        Calendar.currentTabName = t;
+                       Calendar.updateButtonStates();
                        Calendar.renderState(Calendar.currentTabName + "/" + response.state);
                    },
                    error : function() {
@@ -150,10 +151,10 @@ define([], function() {
 	}
 	
 	function renderTab(tab, digest, Calendar) {
-		Calendar.currentTab = tab;
 		var currentTab = "#calendarTabs a." + Calendar.currentTabName+"-tab";
 		$(currentTab).tab("show");
-		tab.render(digest, Calendar.timeUnit, Calendar.tabState, Calendar.connectorEnabled);
+		tab.render(digest, Calendar.timeUnit, Calendar.tabState, Calendar.connectorEnabled[Calendar.currentTabName]);
+        Calendar.currentTab = tab;
 	}
 	
 	function tabExistsForTimeUnit(tab, unit) {
