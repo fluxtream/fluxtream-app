@@ -15,6 +15,13 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
     var clockCircleElements = {};
     var selectedConnectors;
     var connectorEnabled;
+    $(document).click(function(event){
+        for (var target = event.target; target != null; target=target.parentElement){
+            if ($(target).attr("notthide") != null)
+                return;
+        }
+        hideEventInfo()
+    });
 
 	function render(digest, timeUnit, calendarState, connectorEnabled) {
         hideEventInfo();
@@ -236,6 +243,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 						else
 							span = paintSpan(paper, start,(start<=end?end:1440), orbit, color, .9);
 						span.node.item = item;
+                        $(span.node).attr("notthide",true);
 						$(span.node).css("cursor", "pointer");
 						$(span.node).click({instantaneous:instantaneous}, function(event) {
                             if (!event.data.instantaneous)
@@ -247,7 +255,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 							showEventInfo(event);
 						});
 						$(span.node).mouseout(function() {
-							hideEventInfo();
+							//hideEventInfo();
 							this.style.cursor = "default";
 						});
                         if (clockCircleElements[item.type] == null)
@@ -543,6 +551,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 						if (start>end) { start = 0; }
 						var span = paintSpan(paper, start,(start<=end?end:1440), config.AT_HOME_CATEGORY.orbit, color, 1, config);
 						span.node.item = item;
+                        $(span.node).attr("notthide",true);
 						$(span.node).click(function(event) {
                             event.timeTarget = getTimestampForPoint(event.offsetX,event.offsetY);
                             event.minuteOfDay = getMinuteOfDay(event.timeTarget);
@@ -551,7 +560,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 							showLocationBreakdownInfo(event);
 						});
 						$(span.node).mouseout(function() {
-							hideEventInfo();
+							//hideEventInfo();
 							this.style.cursor = "default";
 						});
 

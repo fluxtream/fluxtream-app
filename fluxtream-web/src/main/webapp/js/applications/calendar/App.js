@@ -217,8 +217,9 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             button = $(button.children()[0]);
             buttons[digest.selectedConnectors[i].connectorName] = button;
             button.click({button:button,objectTypeNames:digest.selectedConnectors[i].facetTypes,connectorName:digest.selectedConnectors[i].connectorName}, function(event){
+                event.preventDefault();
+                $(document).click(); //needed for click away to work on tooltips in clock tab
                 connectorClicked(event.data.button,event.data.objectTypeNames,event.data.connectorName);
-                return false;
             });
             if (Calendar.connectorEnabled["default"][digest.selectedConnectors[i].connectorName] == null)
                 Calendar.connectorEnabled["default"][digest.selectedConnectors[i].connectorName] = true;
