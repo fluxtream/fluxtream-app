@@ -15,7 +15,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
     var clockCircleElements = {};
     var selectedConnectors;
     var connectorEnabled;
-    $(document).click(function(event){
+
+    $(document).click(function(event){ //hides the tooltip if an element clicked on or any of its parents has the notthide property
         for (var target = event.target; target != null; target=target.parentElement){
             if ($(target).attr("notthide") != null)
                 return;
@@ -253,10 +254,6 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                             event.minuteOfDay = getMinuteOfDay(event.timeTarget);
                             event.flip = event.offsetY > config.CLOCK_CENTER[1];
 							showEventInfo(event);
-						});
-						$(span.node).mouseout(function() {
-							//hideEventInfo();
-							this.style.cursor = "default";
 						});
                         if (clockCircleElements[item.type] == null)
                             clockCircleElements[item.type] = [];
@@ -552,16 +549,12 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 						var span = paintSpan(paper, start,(start<=end?end:1440), config.AT_HOME_CATEGORY.orbit, color, 1, config);
 						span.node.item = item;
                         $(span.node).attr("notthide",true);
+                        $(span.node).css("cursor", "pointer");
 						$(span.node).click(function(event) {
                             event.timeTarget = getTimestampForPoint(event.offsetX,event.offsetY);
                             event.minuteOfDay = getMinuteOfDay(event.timeTarget);
-							this.style.cursor = "pointer";
                             event.flip = event.offsetY > config.CLOCK_CENTER[1];
 							showLocationBreakdownInfo(event);
-						});
-						$(span.node).mouseout(function() {
-							//hideEventInfo();
-							this.style.cursor = "default";
 						});
 
                         if (clockCircleElements[item.type] == null)
