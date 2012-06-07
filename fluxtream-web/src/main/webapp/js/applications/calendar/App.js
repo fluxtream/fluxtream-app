@@ -278,6 +278,11 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 params.userName = data.userName;
                 params.profileImageUrl = data.profileImageUrl;
                 break;
+            case "twitter-dm":
+                params.profileImageUrl = data.profileImageUrl;
+                params.sender = data.sent ? "You" : data.userName;
+                params.receiver = data.sent ? data.userName : "You";
+                break;
             case "picasa-photo":
                 params.photoUrl = data.photoUrl;
                 break;

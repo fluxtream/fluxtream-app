@@ -11,7 +11,13 @@ import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.domain.AbstractFacet;
 
 @Entity(name="Facet_TwitterDirectMessage")
-@ObjectTypeSpec(name = "dm", value = 2, extractor=TwitterFacetExtractor.class, parallel=true, prettyname = "Direct Messages")
+@ObjectTypeSpec(name = "dm", value = 2, extractor=TwitterFacetExtractor.class, parallel=true, prettyname = "Direct Messages",
+                detailsTemplate="<h3 class=\"flx-dataType\">{{sender}} Messaged {{receiver}}</h3>" +
+                                "<span class=\"flx-deviceIcon\" style=\"background:url('{{profileImageUrl}}'); background-size:100% 100%;\"></span>" +
+                                "<div class=\"flx-deviceData\">" +
+                                "    <span class=\"flx-tTime\">{{time}}</span>" +
+                                "    <span class=\"flx-data\">{{description}}</span>" +
+                                "</div>")
 @NamedQueries({
 		@NamedQuery(name = "twitter.dm.deleteAll", query = "DELETE FROM Facet_TwitterDirectMessage facet WHERE facet.guestId=?"),
 		@NamedQuery(name = "twitter.dm.between", query = "SELECT facet FROM Facet_TwitterDirectMessage facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=?"),
