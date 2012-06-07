@@ -9,6 +9,9 @@ import com.fluxtream.domain.AbstractFacet;
 import net.sf.json.JSONArray;
 import org.hibernate.search.annotations.Indexed;
 
+/**
+ * Stores data from the bodymedia burn api
+ */
 @Entity(name="Facet_BodymediaBurn")
 @ObjectTypeSpec(name = "burn", value = 1, prettyname = "Calories Burned", extractor = BodymediaFacetExtractor.class)
 @NamedQueries({
@@ -23,12 +26,16 @@ public class BodymediaBurnFacet extends AbstractFacet {
     public int estimatedCalories = 0;
     public int predictedCalories = 0;
     // Store the JSON for the minutely data.  This is a JSON array with one entry per minute
+    /*
+     * Not really. stores a JSONArray of days that in turn store JSON arrays of minutely data
+     */
     @Lob
     public JSONArray days;
 
     public BodymediaBurnFacet(){
         averageCalories = 0;
         totalCalories = 0;
+        //this.api must be set to 88 for the app to properly find it in the hashtable. I don't know why
         this.api = 88;
     }
 	
