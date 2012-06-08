@@ -435,7 +435,7 @@
 
 /*----------------------------------------------------------------------*/
 /* jQuery Uniform v1.7.5
-/* Copyright © 2009 Josh Pyles / Pixelmatrix Design LLC
+/* Copyright ï¿½ 2009 Josh Pyles / Pixelmatrix Design LLC
 /* http://pixelmatrixdesign.com
 /* License: MIT License - http://www.opensource.org/licenses/mit-license.php
 /*----------------------------------------------------------------------*/
@@ -2041,7 +2041,7 @@
             // selections in one request each:
             singleFileUploads: true,
             // Set the following option to true to issue all file upload requests
-            // in a sequential order:
+            // in a sequential ordering:
             sequentialUploads: false,
             // Set the following option to true to force iframe transport uploads:
             forceIframeTransport: false,
@@ -2357,7 +2357,7 @@
                 if (!i) {
                     return that._getXHRPromise(true);
                 }
-                // Upload the blobs in sequential order:
+                // Upload the blobs in sequential ordering:
                 return upload(i -= 1).pipe(function () {
                     // Clone the options object for each chunk upload:
                     var o = $.extend({}, options);

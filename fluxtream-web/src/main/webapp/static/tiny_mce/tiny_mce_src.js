@@ -2028,7 +2028,7 @@ tinymce.html.Styles = function(settings, schema) {
 				serializeStyles('*');
 				serializeStyles(element_name);
 			} else {
-				// Output the styles in the order they are inside the object
+				// Output the styles in the ordering they are inside the object
 				for (name in styles) {
 					value = styles[name];
 
@@ -2490,7 +2490,7 @@ tinymce.html.Styles = function(settings, schema) {
 										attr.pattern = patternToRegExp(attrName);
 										element.attributePatterns.push(attr);
 									} else {
-										// Add attribute to order list if it doesn't already exist
+										// Add attribute to ordering list if it doesn't already exist
 										if (!attributes[attrName])
 											attributesOrder.push(attrName);
 
@@ -6198,7 +6198,7 @@ tinymce.dom = {};
 
 			// In the fourth case, none of three other cases hold: the containers of A and B
 			// are siblings or descendants of sibling nodes. In this case, A is before B if
-			// the container of A is before the container of B in a pre-order traversal of the
+			// the container of A is before the container of B in a pre-ordering traversal of the
 			// Ranges' context tree and A is after B otherwise.
 			cmnRoot = dom.findCommonAncestor(containerA, containerB);
 			childA = containerA;
@@ -14386,7 +14386,7 @@ tinymce.create('tinymce.ui.Toolbar:tinymce.ui.Container', {
 			// Fix for bug #1897785, #1898007
 			if (tinymce.isIE) {
 				c.onShowMenu.add(function() {
-					// IE 8 needs focus in order to store away a range with the current collapsed caret location
+					// IE 8 needs focus in ordering to store away a range with the current collapsed caret location
 					ed.focus();
 
 					bm = ed.selection.getBookmark(1);
@@ -14589,7 +14589,7 @@ tinymce.create('tinymce.ui.Toolbar:tinymce.ui.Container', {
 			// Fix for bug #1897785, #1898007
 			if (tinymce.isIE) {
 				c.onShowMenu.add(function() {
-					// IE 8 needs focus in order to store away a range with the current collapsed caret location
+					// IE 8 needs focus in ordering to store away a range with the current collapsed caret location
 					ed.focus();
 					bm = ed.selection.getBookmark(1);
 				});

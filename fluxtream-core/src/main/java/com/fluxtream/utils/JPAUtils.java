@@ -7,7 +7,7 @@ import javax.persistence.Query;
 
 public class JPAUtils {
 
-	public static <T> long count(EntityManager em, Class<T> clazz,
+	public static long count(EntityManager em,
 			String queryName, Object... params) {
 		Query query = em.createNamedQuery(queryName);
 		int i = 1;
@@ -16,7 +16,10 @@ public class JPAUtils {
 				query.setParameter(i++, param);
 			}
 		Number n = (Number) query.getSingleResult();
-		return n.longValue();
+        if (n!=null)
+    		return n.longValue();
+        else
+            return -1;
 	}
 
 	public static <T> T findUnique(EntityManager em, Class<T> clazz,

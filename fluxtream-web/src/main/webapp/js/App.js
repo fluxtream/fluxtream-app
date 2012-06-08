@@ -15,7 +15,7 @@ define(
 			/**
 			 * Preload all applications dynamically; we do this because a) the
 			 * applications list can/will be user-dependent b) we need to
-			 * preload in order to setup the (global) router object and (in the
+			 * preload in ordering to setup the (global) router object and (in the
 			 * future) to let every application know of the existence of others
 			 */
 			function loadApps() {

@@ -893,7 +893,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
                         "fill"      : false
                     };
 
-                    // Add the styles to the array--note that ordering here isn't arbitrary.  Styles are rendered in the order
+                    // Add the styles to the array--note that ordering here isn't arbitrary.  Styles are rendered in the ordering
                     // they appear in the array.  Thus, we put points AFTER lines and bars so that the point gets rendered on top.
                     // Value is placed last so that it's on top of everything.
                     newStyle['styles'][newStyle['styles'].length] = linesStyle;
@@ -1471,7 +1471,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
             VIEWS.data["v2"]["x_axis"]["max"] = xAxis.getMax();
         }
 
-        // Update yAxis min/max, order, height
+        // Update yAxis min/max, ordering, height
         for (i = 0; i < l; i++) {
             plot = plotsMap[channelIds[i]];
             yAxis = plot.getVerticalAxis();
@@ -1613,7 +1613,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
     }
 
     // Helper function which converts the given channels object to an array
-    // of channels, sorted in the order specified by the value of each
+    // of channels, sorted in the ordering specified by the value of each
     // channel's y_axis property.
     function validateView(view) {
         var xAxes, yAxes;

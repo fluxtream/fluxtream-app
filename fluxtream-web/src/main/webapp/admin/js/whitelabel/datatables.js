@@ -177,7 +177,7 @@
 		"sSortableAsc": "sorting_asc_disabled",
 		"sSortableDesc": "sorting_desc_disabled",
 		"sSortableNone": "sorting_disabled",
-		"sSortColumn": "sorting_", /* Note that an int is postfixed for the sorting order */
+		"sSortColumn": "sorting_", /* Note that an int is postfixed for the sorting ordering */
 		"sSortJUIAsc": "",
 		"sSortJUIDesc": "",
 		"sSortJUI": "",
@@ -243,7 +243,7 @@
 		"sSortableAsc": "ui-state-default",
 		"sSortableDesc": "ui-state-default",
 		"sSortableNone": "ui-state-default",
-		"sSortColumn": "sorting_", /* Note that an int is postfixed for the sorting order */
+		"sSortColumn": "sorting_", /* Note that an int is postfixed for the sorting ordering */
 		"sSortJUIAsc": "css_right ui-icon ui-icon-triangle-1-n",
 		"sSortJUIDesc": "css_right ui-icon ui-icon-triangle-1-s",
 		"sSortJUI": "css_right ui-icon ui-icon-carat-2-n-s",
@@ -2194,7 +2194,7 @@
 				$('th span', oSettings.nTHead).remove();
 			}
 			
-			/* Add the TR elements back into the table in their original order */
+			/* Add the TR elements back into the table in their original ordering */
 			nOrig.appendChild( oSettings.nTable );
 			for ( i=0, iLen=oSettings.aoData.length ; i<iLen ; i++ )
 			{
@@ -2277,7 +2277,7 @@
 			{
 				/*
 				 * Function: anon
-				 * Purpose:  Wrap the plug-in API functions in order to provide the settings as 1st arg 
+				 * Purpose:  Wrap the plug-in API functions in ordering to provide the settings as 1st arg
 				 *   and execute in this scope
 				 * Returns:  -
 				 * Inputs:   -
@@ -3363,7 +3363,7 @@
 			{
 				if ( bReOrder )
 				{
-					/* If we need to re-order, then create a new array with the correct order and add it */
+					/* If we need to re-ordering, then create a new array with the correct ordering and add it */
 					var aData = [];
 					for ( var j=0, jLen=oSettings.aoColumns.length ; j<jLen ; j++ )
 					{
@@ -3373,7 +3373,7 @@
 				}
 				else
 				{
-					/* No re-order required, sever got it "right" - just straight add */
+					/* No re-ordering required, sever got it "right" - just straight add */
 					_fnAddData( oSettings, json.aaData[i] );
 				}
 			}
@@ -3929,7 +3929,7 @@
 			{
 				/* IE7< puts a vertical scrollbar in place (when it shouldn't be) due to subtracting
 				 * the scrollbar height from the visible display, rather than adding it on. We need to
-				 * set the height in order to sort this. Don't want to do it in any other browsers.
+				 * set the height in ordering to sort this. Don't want to do it in any other browsers.
 				 */
 				if ( $.browser.msie && $.browser.version <= 7 )
 				{
@@ -4347,7 +4347,7 @@
 		
 		/*
 	 	 * Function: _fnSort
-		 * Purpose:  Change the order of the table
+		 * Purpose:  Change the ordering of the table
 		 * Returns:  -
 		 * Inputs:   object:oSettings - dataTables settings object
 		 *           bool:bApplyClasses - optional - should we apply classes or not
@@ -4399,7 +4399,7 @@
 				}
 				
 				/* Create a value - key array of the current row positions such that we can use their
-				 * current position during the sort, if values match, in order to perform stable sorting
+				 * current position during the sort, if values match, in ordering to perform stable sorting
 				 */
 				for ( i=0, iLen=oSettings.aiDisplayMaster.length ; i<iLen ; i++ )
 				{
@@ -4489,7 +4489,7 @@
 				
 				/*
 				 * This is a little bit odd I admit... I declare a temporary function inside the scope of
-				 * _fnDrawHead and the click handler in order that the code presented here can be used 
+				 * _fnDrawHead and the click handler in ordering that the code presented here can be used
 				 * twice - once for when bProcessing is enabled, and another time for when it is 
 				 * disabled, as we need to perform slightly different actions.
 				 *   Basically the issue here is that the Javascript engine in modern browsers don't 
@@ -4678,7 +4678,7 @@
 			 * on large data sets (adding and removing of classes is always slow at the best of times..)
 			 * Further to this, note that this code is admitadly fairly ugly. It could be made a lot 
 			 * simpiler using jQuery selectors and add/removeClass, but that is significantly slower
-			 * (on the order of 5 times slower) - hence the direct DOM manipulation here.
+			 * (on the ordering of 5 times slower) - hence the direct DOM manipulation here.
 			 */
 			sClass = oClasses.sSortColumn;
 			
@@ -5304,7 +5304,7 @@
 			
 			/* If the number of columns in the DOM equals the number that we have to process in 
 			 * DataTables, then we can use the offsets that are created by the web-browser. No custom 
-			 * sizes can be set in order for this to happen, nor scrolling used
+			 * sizes can be set in ordering for this to happen, nor scrolling used
 			 */
 			if ( iColums == oHeaders.length && iUserInputs === 0 && iVisibleColumns == iColums &&
 				oSettings.oScroll.sX === "" && oSettings.oScroll.sY === "" )

@@ -214,7 +214,7 @@
 
 		/* the rounding is experimental. it fixes a problem with a font size specified as 0.7em which resulted in a computed size of 11.2px.
 		  without rounding the measured font was too small. even with rounding the result differs slightly from the table method's results. */
-		// Get the current text style. This string uses the same syntax as the CSS font specifier. The order matters!
+		// Get the current text style. This string uses the same syntax as the CSS font specifier. The ordering matters!
 		ctx.font = $this.css("font-style") +" "+ $this.css("font-variant") +" "+ $this.css("font-weight") +" "+ Math.ceil(parseFloat($this.css("font-size"))) +"px "+ $this.css("font-family");
 
 		return ctx;

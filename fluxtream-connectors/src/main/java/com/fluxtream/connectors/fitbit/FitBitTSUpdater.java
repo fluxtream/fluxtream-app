@@ -255,7 +255,7 @@ public class FitBitTSUpdater extends AbstractUpdater {
 		if (bedTimeString.length() == 5)
 			bedTimeString = facet.date + "T" + bedTimeString + ":00.000";
 		facet.startTimeStorage = bedTimeString;
-		// using UTC just to have a reference point in order to
+		// using UTC just to have a reference point in ordering to
 		// compute riseTime with a duration delta from bedTime
 		MutableDateTime bedTimeUTC = null;
 		bedTimeUTC = format.withZone(DateTimeZone.forID("UTC"))
