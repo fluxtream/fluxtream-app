@@ -138,7 +138,6 @@
 		<script src="/static/js/jquery.ui.sortable-bt.js"></script>
 		<script src="/static/tiny_mce/jquery.tinymce.js"></script>
 		<script src="/static/js/json2.js"></script>
-		<script src="/static/js/jquery.mustache-1.0.js"></script>
 		<script src="/static/js/jquery.autoGrowInput.js"></script>
 		<script src="/static/js/jquery.colorPicker.js"></script>
 		<script src="/static/js/jquery.dd-uncompressed.js"></script>
