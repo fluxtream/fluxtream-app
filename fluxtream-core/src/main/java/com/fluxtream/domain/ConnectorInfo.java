@@ -25,10 +25,13 @@ public class ConnectorInfo extends AbstractEntity {
 	@Lob
 	public String text;
 
+    //non persistent fields
     public long lastSync;
     public long latestData;
+    public boolean syncing;
+    public boolean errors;
 
-	public int api;
+    public int api;
 
 	public ConnectorInfo() {
 	}
