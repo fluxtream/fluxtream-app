@@ -22,7 +22,7 @@ import com.fluxtream.domain.AbstractFacet;
 		@NamedQuery(name = "twitter.mention.deleteAll", query = "DELETE FROM Facet_TwitterMention facet WHERE facet.guestId=?"),
 		@NamedQuery(name = "twitter.mention.between", query = "SELECT facet FROM Facet_TwitterMention facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=?"),
 		@NamedQuery(name = "twitter.mention.oldest", query = "SELECT facet FROM Facet_TwitterMention facet WHERE facet.guestId=? ORDER BY facet.start ASC"),
-		@NamedQuery(name = "twitter.mention.newest", query = "SELECT facet FROM Facet_TwitterMention facet WHERE facet.guestId=? ORDER BY facet.start DESC")
+		@NamedQuery(name = "twitter.mention.newest", query = "SELECT facet FROM Facet_TwitterMention facet WHERE facet.guestId=? ORDER BY facet.start DESC LIMIT 1")
 })
 @Indexed
 public class TwitterMentionFacet extends AbstractFacet {

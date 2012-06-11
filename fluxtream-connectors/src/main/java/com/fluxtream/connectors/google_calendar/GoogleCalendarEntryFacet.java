@@ -40,7 +40,8 @@ import com.google.gdata.data.extensions.Where;
                                 "</div>")
 @NamedQueries({
 		@NamedQuery(name = "google_calendar.entry.deleteAll", query = "DELETE FROM Facet_CalendarEventEntry facet WHERE facet.guestId=?"),
-		@NamedQuery(name = "google_calendar.entry.between", query = "SELECT facet FROM Facet_CalendarEventEntry facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=?")
+		@NamedQuery(name = "google_calendar.entry.between", query = "SELECT facet FROM Facet_CalendarEventEntry facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=?"),
+        @NamedQuery(name = "google_calendar.entry.newest", query = "SELECT facet FROM Facet_CalendarEventEntry facet WHERE facet.guestId=? ORDER BY facet.end DESC LIMIT 1")
 })
 @Indexed
 public class GoogleCalendarEntryFacet extends AbstractFacet implements Serializable {

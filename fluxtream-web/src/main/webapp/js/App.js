@@ -1,6 +1,6 @@
 define(
-		[ "core/FlxState", "Addresses", "libs/jquery.form", "libs/jquery.qtip.min" ],
-		function(FlxState, Addresses) {
+		[ "core/FlxState", "Addresses", "ManageConnectors", "libs/jquery.form", "libs/jquery.qtip.min" ],
+		function(FlxState, Addresses, ManageConnectors) {
 
 			var App = {};
 			var toLoad = 0, loaded = 0;
@@ -170,6 +170,10 @@ define(
                 Addresses.show();
             }
 
+            App.manageConnectors = function(){
+                ManageConnectors.show();
+            }
+
 			App.removeConnector = function(api) {
 				var c = confirm("If you wrote comments on events related to this connector, "
 						+ "you will loose them forever.\n"
@@ -242,7 +246,9 @@ define(
 				}
 			};
 
-            App.formatDate = function(date){
+            App.formatDate = function(date, includeTime){
+                if (includeTime == null)
+                    includeTime = false;
                 if (typeof(date) == "number")
                     date = new Date(date);
                 if (isNaN(date.getFullYear()))
@@ -288,6 +294,17 @@ define(
                 }
                 value += " " + date.getDate();
                 value += ", " + date.getFullYear();
+                if (includeTime){
+                    value += " " + date.getHours();
+                    value += ":"
+                    if (date.getMinutes() < 10)
+                        value += "0";
+                    value += date.getMinutes();
+                    value += ":"
+                    if (date.getSeconds() < 10)
+                        value += "0";
+                    value += date.getSeconds();
+                }
                 return value;
             }
 

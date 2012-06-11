@@ -168,7 +168,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 	function fetchCalendar(url) {
 		$.ajax({ url: url,
 			success : function(response) {
-				$("#modal").empty();
                 if (Calendar.timeUnit==="DAY")
                     handleCityInfo(response);
                 else

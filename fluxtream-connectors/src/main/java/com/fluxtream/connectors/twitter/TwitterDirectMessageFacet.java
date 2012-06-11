@@ -26,7 +26,7 @@ import com.fluxtream.domain.AbstractFacet;
 		@NamedQuery(name = "twitter.sent.dm.oldest", query = "SELECT facet FROM Facet_TwitterDirectMessage facet WHERE facet.sent=1 AND facet.guestId=? ORDER BY facet.start ASC"),
 		@NamedQuery(name = "twitter.sent.dm.newest", query = "SELECT facet FROM Facet_TwitterDirectMessage facet WHERE facet.sent=1 AND facet.guestId=? ORDER BY facet.start DESC"),
 		@NamedQuery(name = "twitter.dm.oldest", query = "SELECT facet FROM Facet_TwitterDirectMessage facet WHERE facet.guestId=? ORDER BY facet.start ASC"),
-		@NamedQuery(name = "twitter.dm.newest", query = "SELECT facet FROM Facet_TwitterDirectMessage facet WHERE facet.guestId=? ORDER BY facet.start DESC")
+		@NamedQuery(name = "twitter.dm.newest", query = "SELECT facet FROM Facet_TwitterDirectMessage facet WHERE facet.guestId=? ORDER BY facet.start DESC LIMIT 1")
 })
 @Indexed
 public class TwitterDirectMessageFacet extends AbstractFacet {

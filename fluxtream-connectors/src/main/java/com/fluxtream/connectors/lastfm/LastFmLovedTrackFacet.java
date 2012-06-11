@@ -20,7 +20,7 @@ import com.fluxtream.domain.AbstractFacet;
                                 "</div>")
 @NamedQueries({
 		@NamedQuery(name = "lastfm.loved_track.byStartEnd", query = "SELECT facet FROM Facet_LastFmLovedTrack facet WHERE facet.guestId=? AND facet.start=? AND facet.end=?"),
-		@NamedQuery(name = "lastfm.loved_track.last", query = "SELECT facet FROM Facet_LastFmLovedTrack facet WHERE facet.guestId=? ORDER BY time DESC LIMIT 1"),
+		@NamedQuery(name = "lastfm.loved_track.newest", query = "SELECT facet FROM Facet_LastFmLovedTrack facet WHERE facet.guestId=? ORDER BY time DESC LIMIT 1"),
 		@NamedQuery(name = "lastfm.loved_track.deleteAll", query = "DELETE FROM Facet_LastFmLovedTrack facet WHERE facet.guestId=?"),
 		@NamedQuery(name = "lastfm.loved_track.between", query = "SELECT facet FROM Facet_LastFmLovedTrack facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=?")
 })

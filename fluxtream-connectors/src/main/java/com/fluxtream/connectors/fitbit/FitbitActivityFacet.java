@@ -27,7 +27,7 @@ import com.fluxtream.domain.Updatable;
 				query = "SELECT facet FROM Facet_FitbitActivity facet WHERE facet.guestId=? AND facet.start=? and facet.end=?"),
 		@NamedQuery(name = "fitbit.activity_summary.all",
 				query = "SELECT facet FROM Facet_FitbitActivity facet WHERE facet.guestId=? ORDER BY facet.start DESC"),
-		@NamedQuery(name = "fitbit.activity_summary.last",
+		@NamedQuery(name = "fitbit.activity_summary.newest",
 				query = "SELECT facet FROM Facet_FitbitActivity facet WHERE facet.guestId=? ORDER BY facet.start DESC LIMIT 1"),
 		@NamedQuery(name = "fitbit.activity_summary.oldest",
 				query = "SELECT facet FROM Facet_FitbitActivity facet WHERE facet.guestId=? ORDER BY facet.start ASC LIMIT 1"),

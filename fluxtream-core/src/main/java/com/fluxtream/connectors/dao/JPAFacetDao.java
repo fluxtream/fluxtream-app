@@ -59,8 +59,37 @@ public class JPAFacetDao implements FacetDao {
 		}
 		return facets;
 	}
-	
-	@Override
+
+    @Override
+    public AbstractFacet getLatestFacet(final Connector connector, final long guestId, final ObjectType objectType) {
+        if (!connector.hasFacets()) return null;
+        AbstractFacet facet = null;
+        if (objectType!=null) {
+            String queryName = connector.getName().toLowerCase()
+                               + "." + objectType.getName().toLowerCase()
+                               + ".newest";
+            facet = JPAUtils.findUnique(em, objectType.facetClass(), queryName, guestId);
+            return facet;
+        } else {
+            if (connector.objectTypes()!=null) {
+                for (ObjectType type : connector.objectTypes()) {
+                    String queryName = connector.getName().toLowerCase()
+                                       + "." + type.getName().toLowerCase()
+                                       + ".newest";
+                    AbstractFacet fac = JPAUtils.findUnique(em, type.facetClass(), queryName, guestId);
+                    if (facet == null || (fac != null && fac.end > facet.end))
+                        facet = fac;
+                }
+            } else {
+                String queryName = connector.getName().toLowerCase()
+                                   + ".newest";
+                facet = JPAUtils.findUnique(em, connector.facetClass(), queryName, guestId);
+            }
+        }
+        return facet;
+    }
+
+    @Override
 	public void deleteAllFacets(Connector connector, long guestId) {
 		if (connector.objectTypes()==null) {
 			String queryName = connector.getName().toLowerCase() + ".deleteAll";

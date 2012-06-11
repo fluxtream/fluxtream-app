@@ -73,7 +73,7 @@
                                     <ul class="dropdown-menu">
                                         <li><a href="javascript:App.connectors()">Add  <i
                                                 class="icon-plus icon-large" style="float: right;"></i></a></li>
-                                        <li><a href="javascript:App.connectors()">Manage <i
+                                        <li><a href="javascript:App.manageConnectors()">Manage <i
                                                 class="icon-list icon-large" style="float: right;"></i></a></li>
                                     </ul></li>
                                 <li class="divider-vertical"></li>
