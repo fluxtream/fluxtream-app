@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.NavigableSet;
 import java.util.TimeZone;
@@ -17,6 +18,8 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.fluxtream.domain.Guest;
+import com.fluxtream.mvc.models.AddressModel;
+import com.fluxtream.mvc.models.ConnectorDigestModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -38,7 +41,6 @@ import com.fluxtream.domain.metadata.DayMetadataFacet.VisitedCity;
 import com.fluxtream.mvc.controllers.ControllerHelper;
 import com.fluxtream.mvc.models.ConnectorResponseModel;
 import com.fluxtream.mvc.models.DigestModel;
-import com.fluxtream.mvc.models.HomeAddressModel;
 import com.fluxtream.mvc.models.NotificationModel;
 import com.fluxtream.mvc.models.SettingsModel;
 import com.fluxtream.mvc.models.SolarInfoModel;
@@ -150,7 +152,7 @@ public class CalendarResource {
 		setSolarInfo(digest, city, guestId, dayMetadata);
 
 		List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter);
-		digest.selectedConnectors = connectorNames(apiKeySelection);
+		digest.selectedConnectors = connectorInfos(apiKeySelection);
 		List<ApiKey> allApiKeys = guestService.getApiKeys(guestId);
 		allApiKeys = removeConnectorsWithoutFacets(allApiKeys);
 		digest.nApis = allApiKeys.size();
@@ -349,12 +351,14 @@ public class CalendarResource {
 
 	private void setCurrentAddress(DigestModel digest, long guestId, long start) {
         List<GuestAddress> addresses = settingsService.getAllAddressesForDate(guestId, start);
-		GuestAddress currentAddress = addresses.size() == 0 ? null : addresses.get(0);
-        if (currentAddress != null) {
-            digest.homeAddress = new HomeAddressModel(currentAddress);
-        }
-        else {
-            digest.homeAddress = new HomeAddressModel();
+		digest.addresses = new HashMap<String,Collection>();
+        for (GuestAddress address : addresses){
+            Collection collection = digest.addresses.get(address.type);
+            if (collection == null){
+                collection = new ArrayList();
+                digest.addresses.put(address.type,collection);
+            }
+            collection.add(new AddressModel(address));
         }
 	}
 
@@ -388,6 +392,25 @@ public class CalendarResource {
 		digest.maxTempC = md.maxTempC;
 		digest.maxTempF = md.maxTempF;
 	}
+
+    private List<ConnectorDigestModel> connectorInfos(List<ApiKey> apis){
+        List<ConnectorDigestModel> connectors = new ArrayList<ConnectorDigestModel>();
+        for (ApiKey apiKey : apis){
+            Connector connector = apiKey.getConnector();
+            ConnectorDigestModel model = new ConnectorDigestModel();
+            connectors.add(model);
+            model.connectorName = connector.getName();
+            model.prettyName = connector.prettyName();
+            model.facetTypes.add(model.connectorName);
+            ObjectType[] objTypes = connector.objectTypes();
+            if (objTypes == null)
+                continue;
+            for (ObjectType obj : objTypes){
+                model.facetTypes.add(model.connectorName + "-" + obj.getName());
+            }
+        }
+        return  connectors;
+    }
 
 	private List<String> connectorNames(List<ApiKey> apis) {
 		List<String> connectorNames = new ArrayList<String>();

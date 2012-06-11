@@ -168,7 +168,7 @@ public class SettingsController {
 		GuestSettings.WeightMeasureUnit weightUnit = Enum.valueOf(
 				GuestSettings.WeightMeasureUnit.class, weight_measure_unit);
 		GuestSettings.TemperatureUnit temperatureUnit = Enum.valueOf(
-				GuestSettings.TemperatureUnit.class, temperature_unit);
+				GuestSettings.TemperatureUnit.class, temperature_unit); //
 
 		long guestId = ControllerHelper.getGuestId();
 

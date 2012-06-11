@@ -244,6 +244,64 @@ define(
 					carousel(photoId);
 				}
 			};
+
+            App.formatDate = function(date){
+                if (typeof(date) == "number")
+                    date = new Date(date);
+                if (isNaN(date.getFullYear()))
+                    return "Present";
+                var value = "";
+                switch (date.getMonth()){
+                    case 0:
+                        value += "January";
+                        break;
+                    case 1:
+                        value += "February";
+                        break;
+                    case 2:
+                        value += "March";
+                        break;
+                    case 3:
+                        value += "April";
+                        break;
+                    case 4:
+                        value += "May";
+                        break;
+                    case 5:
+                        value += "June";
+                        break;
+                    case 6:
+                        value += "July";
+                        break;
+                    case 7:
+                        value += "August";
+                        break;
+                    case 8:
+                        value += "September";
+                        break;
+                    case 9:
+                        value += "October";
+                        break;
+                    case 10:
+                        value += "November";
+                        break;
+                    case 11:
+                        value += "December";
+                        break;
+                }
+                value += " " + date.getDate();
+                value += ", " + date.getFullYear();
+                return value;
+            }
+
+            App.formatDateAsDatePicker = function(date){
+                if (typeof(date) == "number")
+                    date = new Date(date);
+                if (isNaN(date.getFullYear()))
+                    return "Present";
+                return date.getFullYear() + "-" + (date.getMonth() < 9 ? "0" : "") + (date.getMonth() + 1) + "-" + (date.getDate() < 9 ? "0" : "") + date.getDate();
+            }
+
 			
 			App.search = function() {
 				$(".application").load("/search/0?q=" + $(".search-query").val());
@@ -273,6 +331,7 @@ define(
 			App.state = FlxState;
 			App.fullHeight = fullHeight;
             App.invalidPath = invalidPath;
+            App.geocoder = new google.maps.Geocoder();
 			window.App = App;
 			return App;
 

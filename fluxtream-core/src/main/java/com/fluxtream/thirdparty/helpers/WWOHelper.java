@@ -83,6 +83,8 @@ public class WWOHelper {
                     weatherInfo.weatherIconUrl = weatherIconUrl.getJSONObject(0).getString("value");
 					weatherInfo.winddirDegree = Integer.valueOf(hourlyRecord.getString("winddirDegree"));
 					weatherInfo.windspeedMiles = Integer.valueOf(hourlyRecord.getString("windspeedMiles"));
+                    weatherInfo.windspeedKmph = Integer.valueOf(hourlyRecord.getString("windspeedKmph"));
+                    weatherInfo.winddir16Point = hourlyRecord.getString("winddir16Point");
 					
 					weather.add(weatherInfo);
 				}

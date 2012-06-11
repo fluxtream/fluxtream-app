@@ -1,7 +1,7 @@
 <template id="addAddress">
     <div class="modal fade" id="modal">
         <div class="modal-header">
-            <h3>Add Address<a href="#" class="close" data-dismiss="modal">&times;</a></h3>
+            <h3>{title}<a href="#" class="close" data-dismiss="modal">&times;</a></h3>
         </div>'
         <div class="modal-body" style="overflow:hidden">
             <form class="form-horizontal">
@@ -20,13 +20,13 @@
                     <div class="control-group">
                         <label class="control-label">Since</label>
                         <div class="controls">
-                            <input id="sinceInput" type="text" class="input-xlarge span3">
+                            <input id="sinceInput" type="text" class="input-xlarge span3" data-date-format="yyyy-mm-dd" value="{sinceDate}">
                         </div>
                     </div>
                     <div class="control-group">
                         <label class="control-label">Until</label>
                         <div class="controls">
-                            <input id="untilInput" type="text" class="input-xlarge span3">
+                            <input id="untilInput" type="text" class="input-xlarge span3" data-date-format="yyyy-mm-dd" value="{untilDate}">
                             <label class="checkbox" style="display: inline-block;padding-left: 24px;">
                                 <input id="presentCheckBox" type="checkbox">&nbsp;Present
                             </label>
@@ -46,12 +46,12 @@
         </div>
         <div class="modal-footer">
             <button id="saveAddressBtn" class="btn">Save</button>
-            <button class="btn" onclick="App.closeModal();">Cancel</button>
+            <button id="closeBtn" class="btn" onclick="App.closeModal();">Cancel</button>
         </div>
     </div>
 </template>
 <template id="addressesDialog">
-    <div class="modal fade" id="modal">
+    <div style="width:80%; margin-left:-40%;" class="modal fade" id="modal">
         <div class="modal-header">
             <h3>Addresses<a href="#" class="close" data-dismiss="modal">&times;</a></h3>
         </div>
@@ -63,7 +63,8 @@
                         <th>Type</th>
                         <th>Since</th>
                         <th>Until</th>
-                        <th>Delete</th>
+                        <th style="text-align:center">Edit</th>
+                        <th style="text-align:center">Delete</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -83,6 +84,7 @@
         <td>{type}</td>
         <td>{since}</td>
         <td>{until}</td>
+        <td style="text-align:center"><button style="background-color:transparent; border:none;" class="icon-pencil icon-large" id="edit-{index}"></button></td>
         <td style="text-align:center"><button style="background-color:transparent;border:none;" class="icon-trash icon-large" id="delete-{index}"></button></td>
     </tr>
 </template>

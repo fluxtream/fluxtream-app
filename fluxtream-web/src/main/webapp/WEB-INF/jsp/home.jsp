@@ -36,6 +36,7 @@
 <script
 	src="https://maps-api-ssl.google.com/maps/api/js?libraries=geometry&v=3&sensor=false"
 	type="text/javascript"></script>
+    <script src="/static/js/hogan-2.0.0.js"></script>
 
 <link rel="shortcut icon" href="/favicon.ico">
 
@@ -54,15 +55,30 @@
 						class="icon-bar"></span> <span class="icon-bar"></span>
 					</a> <a class="brand" href="/app"><img
 						src="/${release}/images/header-logo-v4.png" /></a>
+                    <a class="brand" href="/app"><img
+                            src="/${release}/images/header-logo-v4.png" /></a>
 					<div class="nav-collapse">
-						<form class="navbar-search" action="javascript:App.search()">
-							<input onkeypress="if(event.which==13) App.search()" autocorrect="off" autocapitalize="off" type="text"
-								class="search-query" placeholder="Search">
-						</form>
-						<ul class="nav pull-right">
-							<li><div class="btn-group" id="apps-menu"
-									data-toggle="buttons-radio"></div></li>
-							<li class="divider-vertical"></li>
+						<%--<form class="navbar-search" action="javascript:App.search()">--%>
+							<%--<input onkeypress="if(event.which==13) App.search()" autocorrect="off" autocapitalize="off" type="text"--%>
+								<%--class="search-query" placeholder="Search">--%>
+						<%--</form>--%>
+
+                            <ul class="nav">
+                            <li><div class="btn-group" id="apps-menu"
+                                     data-toggle="buttons-radio"></div></li>
+                            </ul>
+                            <ul class="nav pull-right">
+                                <li class="divider-vertical"></li>
+                                <li class="dropdown"><a href="#" class="dropdown-toggle"
+                                                        data-toggle="dropdown">Connectors
+                                    <i class="icon-random icon-large"></i> <b class="caret"></b></a>
+                                    <ul class="dropdown-menu">
+                                        <li><a href="javascript:App.connectors()">Add  <i
+                                                class="icon-plus icon-large" style="float: right;"></i></a></li>
+                                        <li><a href="javascript:App.connectors()">Manage <i
+                                                class="icon-list icon-large" style="float: right;"></i></a></li>
+                                    </ul></li>
+                                <li class="divider-vertical"></li>
 							<li class="dropdown"><a href="#" class="dropdown-toggle"
 								data-toggle="dropdown"><%=request.getAttribute("fullname")%>
 									<i class="icon-user icon-large"></i> <b class="caret"></b></a>
@@ -70,7 +86,6 @@
 									<li><a href="javascript:App.settings()">Settings <i
 											class="icon-cog icon-large" style="float: right;"></i></a></li>
                                     <li><a href="javascript:App.addresses()">Addresses <i style="float: right;" class="icon-home icon-large"></i></a></li>
-									<li><a href="javascript:App.connectors()">Connectors</a></li>
 									<sec:authorize access="hasRole('ROLE_ADMIN')">
 										<li><a href="/admin/index">Admin <i
 												class="icon-key icon-large" style="float: right;"></i></a></li>
@@ -79,7 +94,7 @@
 									<li><a href="/logout">Logout <i style="float: right"
 											class="icon-off icon-large"></i></a></li>
 								</ul></li>
-						</ul>
+                            </ul>
 					</div>
 				</div>
 			</div>
@@ -123,7 +138,6 @@
 		<script src="/static/js/jquery.ui.sortable-bt.js"></script>
 		<script src="/static/tiny_mce/jquery.tinymce.js"></script>
 		<script src="/static/js/json2.js"></script>
-		<script src="/static/js/jquery.mustache-1.0.js"></script>
 		<script src="/static/js/jquery.autoGrowInput.js"></script>
 		<script src="/static/js/jquery.colorPicker.js"></script>
 		<script src="/static/js/jquery.dd-uncompressed.js"></script>

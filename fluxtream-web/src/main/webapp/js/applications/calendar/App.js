@@ -9,7 +9,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     Calendar.timeUnit = "DAY";
 
 	var start, end;
-	
+
 	Calendar.setup = function() {
 		$(".menuNextButton").click(function(e) {
 			fetchState("/nav/incrementTimespan.json?state=" + Calendar.tabState); });
@@ -19,12 +19,12 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 			Calendar.timeUnit = "DAY";
 			var t = Builder.tabExistsForTimeUnit(Calendar.currentTabName, Calendar.timeUnit)?Calendar.currentTabName:Builder.tabs[Calendar.timeUnit][0];
 			Calendar.currentTabName = t;
-			Builder.createTimeUnitsMenu(Calendar);
+			Builder.bindTimeUnitsMenu(Calendar);
 			Builder.createTabs(Calendar);
 			fetchState("/nav/setToToday.json");
 		});
 	};
-	
+
 	Calendar.initialize = function () {
 		_.bindAll(this);
 
@@ -72,13 +72,14 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 App.invalidPath();
         });
     };
-		
-	Calendar.renderState = function(state, force) {
-		if (!force&&FlxState.getState("calendar")===state) {
+
+	Calendar.renderState = function(state, forceReload) {
+        forceReload = typeof(forceReload)!="undefined"&&forceReload;
+        if (!forceReload&&FlxState.getState("calendar")===state) {
 			return;
 		}
 		if (state==null||state==="") {
-			Builder.createTimeUnitsMenu(Calendar);
+			Builder.bindTimeUnitsMenu(Calendar);
 			Builder.createTabs(Calendar);
 			fetchState("/nav/setToToday.json");
             return;
@@ -98,14 +99,14 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         var w = Builder.tabExistsForTimeUnit(Calendar.currentTabName, Calendar.timeUnit)?Calendar.currentTabName:Builder.tabs[Calendar.timeUnit][0];
         Calendar.currentTabName = w;
         Builder.createTabs(Calendar);
-        if (Calendar.tabState==nextTabState) {
+        if (!forceReload&&Calendar.tabState==nextTabState) {
 			// time didn't change
 			Builder.updateTab(Calendar.digest, Calendar);
 			FlxState.router.navigate("app/calendar/" + state);
 			FlxState.saveState("calendar", state);
 			return;
 		} else {
-            Builder.createTimeUnitsMenu(Calendar);
+            Builder.bindTimeUnitsMenu(Calendar);
             if ("DAY"===Calendar.timeUnit) {
 				fetchState("/nav/setDate.json?date=" + splits[2]);
 			} else if ("WEEK"===Calendar.timeUnit) {
@@ -117,7 +118,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 			}
 		}
 	};
-	
+
 	function fetchState(url) {
 		$(".calendar-navigation-button").toggleClass("disabled");
 		$(".loading").show();
@@ -143,9 +144,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 			}
 		});
 	}
-	
+
 	function setDatepicker(currentDate) {
-		$("#datepicker").attr("data-date", currentDate);
+        $("#datepicker").replaceWith("<a data-date-format=\"yyyy-mm-dd\" id=\"datepicker\"><i class=\"icon-calendar icon-large\"></i></a>");
+        $("#datepicker").attr("data-date", currentDate);
 		$("#datepicker").unbind("changeDate");
 		$("#datepicker").datepicker().on(
 			"changeDate", function(event) {
@@ -158,7 +160,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 			}
 		);
 	}
-	
+
 	function fetchCalendar(url) {
 		$.ajax({ url: url,
 			success : function(response) {
@@ -263,5 +265,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     };
 
 	return Calendar;
-	
+
+
 });

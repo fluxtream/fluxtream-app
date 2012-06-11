@@ -21,6 +21,9 @@ import com.google.gson.annotations.Expose;
         query = "SELECT address FROM Address address WHERE address.guestId=? AND address.type=? and address.since < ? and address.until > ?")
 })
 public class GuestAddress extends AbstractEntity {
+    public static final String TYPE_HOME = "ADDRESS_HOME";
+    public static final String TYPE_WORK = "ADDRESS_WORK";
+    public static final String TYPE_OTHER = "ADDRESS_OTHER";
 
 	public GuestAddress() {
 	}

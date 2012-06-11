@@ -18,7 +18,7 @@
 	TimeInterval timeInterval = ((HomeModel)request.getSession().getAttribute("homeModel")).getTimeInterval();
 	
 	DateTimeFormatter format = (DateTimeFormatter) request.getAttribute("format");
-	DateTimeFormatter shortFormat = DateTimeFormat.forPattern("HH:mm");
+	DateTimeFormatter shortFormat = DateTimeFormat.forPattern("hh:mm a");
 	DateTimeFormatter dateFormat = DateTimeFormat.forPattern("yyyy-MM-dd");
 	DateTimeFormatter zeoTimeFormat = DateTimeFormat.forPattern("yyyyMMddHHmm");
 	
