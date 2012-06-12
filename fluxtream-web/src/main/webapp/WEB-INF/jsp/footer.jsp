@@ -3,6 +3,6 @@
 <% String release = ""; if (request.getAttribute("release")!=null) release = "Release " + request.getAttribute("release") + "";%>
 	<div>
 		<hr/>
-		<small>Fluxtream - <%=release %> &copy; Candide Kemmler 2011<%=until %></small>
+		<small>Fluxtream - <%=release %> &copy; The BodyTrack project (CMU CREATE Lab) &amp; Candide Kemmler 2011<%=until %></small>
 	</div>
 </footer>

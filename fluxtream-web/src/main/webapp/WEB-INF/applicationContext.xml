@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mvc="http://www.springframework.org/schema/mvc"
+    xmlns:cache="http://www.springframework.org/schema/cache"
 	xmlns:p="http://www.springframework.org/schema/p" xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:task="http://www.springframework.org/schema/task"
 	xmlns:util="http://www.springframework.org/schema/util"
 	xsi:schemaLocation="
+    	http://www.springframework.org/schema/cache
+    	http://www.springframework.org/schema/cache/spring-cache.xsd
 		http://www.springframework.org/schema/util
 		http://www.springframework.org/schema/util/spring-util-3.0.xsd
 		http://www.springframework.org/schema/task
@@ -21,17 +24,28 @@
 
 	<task:executor id="executorWithPoolSizeRange" pool-size="5-25"
 		rejection-policy="CALLER_RUNS" queue-capacity="100" />
-		
+
+    <cache:annotation-driven />
+
+    <!-- generic cache manager -->
+    <bean id="cacheManager" class="org.springframework.cache.support.SimpleCacheManager">
+        <property name="caches">
+            <set>
+                <bean class="org.springframework.cache.concurrent.ConcurrentMapCacheFactoryBean" p:name="userWidgets"/>
+                <bean class="org.springframework.cache.concurrent.ConcurrentMapCacheFactoryBean" p:name="officialWidgets"/>
+            </set>
+        </property>
+    </bean>
+
 	<import resource="spring-quartz.xml" />
-	<import resource="widgets.xml" />
-	
+
     <bean id="velocityEngine" class="org.springframework.ui.velocity.VelocityEngineFactoryBean" 
           p:resourceLoaderPath="classpath:/com/fluxtream/mvc/controllers" 
           p:preferFileSystemAccess="false"/>
 
 	<context:spring-configured />
 	<context:annotation-config />
-	<context:component-scan base-package="com/fluxtream" />
+	<context:component-scan base-package="com.fluxtream" />
 	<tx:annotation-driven transaction-manager="transactionManager" />
 
 	<bean id="jmxExporter" class="org.springframework.jmx.export.MBeanExporter">
@@ -95,7 +109,7 @@
 		<constructor-arg value="bodytrack.properties"/>
    	</bean>
 	
-	<bean id="configuration" class="com.fluxtream.Configuration">
+	<bean class="com.fluxtream.Configuration">
 		<property name="commonProperties" ref="commonProperties"/>
 		<property name="targetEnvProperties" ref="targetEnvProperties"/>
 		<property name="connectorsProperties" ref="connectorsProperties"/>
@@ -104,7 +118,12 @@
 		<property name="bodytrackProperties" ref="bodytrackProperties"/>
 	</bean>
 
-	<tx:annotation-driven transaction-manager="transactionManager" />
+    <bean id="widgets" class="org.apache.commons.configuration.PropertiesConfiguration">
+        <property name="reloadingStrategy" ref="autoReloadStrategy"/>
+        <constructor-arg value="widgets.properties"/>
+    </bean>
+
+    <tx:annotation-driven transaction-manager="transactionManager" />
 
 	<mvc:annotation-driven />
 

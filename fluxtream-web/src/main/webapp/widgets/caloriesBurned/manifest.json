@@ -1,0 +1,13 @@
+{
+    "WidgetDescription" : {"en" : ""},
+    "WidgetIcon" : "",
+    "WidgetName" : "caloriesBurned",
+    "WidgetURL" : "",
+    "BundleCopyright" : "",
+    "BundleIdentifier" : "",
+    "BundleVersion" : "",
+    "SupportedLanguages" : "",
+    "VendorIdentifier" : "",
+    "RequiredConnectors":"bodymedia, fitbit"
+
+}
