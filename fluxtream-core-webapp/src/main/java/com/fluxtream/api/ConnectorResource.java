@@ -133,8 +133,38 @@ public class ConnectorResource {
         if (ControllerHelper.getGuestId() != user.getId()) {
             return gson.toJson(new StatusModel(false, "You don't have access to this information."));
         }
-        StatusModel result;
         Connector connector = Connector.getConnector(connectorName);
+        return gson.toJson(updateConnector(user, connector));
+    }
+
+    @POST
+    @Path("/all/sync")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String updateAllConnectors(@PathParam("username") String username){
+        Guest user = guestService.getGuest(username);
+        if (ControllerHelper.getGuestId() != user.getId()) {
+            return gson.toJson(new StatusModel(false, "You don't have access to this information."));
+        }
+        StatusModel result = null;
+        List<ConnectorInfo> connectors =  sysService.getConnectors();
+        List<Long> apiKeyIds = new ArrayList<Long>();
+        for (int i = 0; i < connectors.size(); i++){
+            if (!guestService.hasApiKey(user.getId(), connectors.get(i).getApi())) {
+                connectors.remove(i--);
+            }
+            else {
+                Connector connector = connectors.get(i).getApi();
+                StatusModel updateRes = updateConnector(user, connector);
+                if (result == null && updateRes.result.equals("KO"))
+                    result = new StatusModel(false,"Some connectors failed to update");
+            }
+        }
+        if (result == null)
+            result= new StatusModel(true,"Successfully updated all connectors");
+        return gson.toJson(result);
+    }
+
+    private StatusModel updateConnector(Guest user, Connector connector){
         try {
             int[] objectTypeValues = connector.objectTypeValues();
             for (int objectType : objectTypeValues) {
@@ -143,14 +173,13 @@ public class ConnectorResource {
                     connectorUpdateService.reScheduleUpdate(update, System.currentTimeMillis(), false);
                 }
                 else {
-                    connectorUpdateService.scheduleUpdate(user.getId(), connectorName, objectType, UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE, System.currentTimeMillis());
+                    connectorUpdateService.scheduleUpdate(user.getId(), connector.getName(), objectType, UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE, System.currentTimeMillis());
                 }
             }
-            result = new StatusModel(true,"Successfully scheduled update for " + connectorName);
+            return new StatusModel(true,"Successfully scheduled update for " + connector.getName());
         }
         catch (Exception e){
-            result = new StatusModel(false,"Failed to schedule update for " + connectorName);
+            return new StatusModel(false,"Failed to schedule update for " + connector.getName());
         }
-        return gson.toJson(result);
     }
 }

@@ -66,8 +66,16 @@ define(function() {
                      type:"POST",
                      success:updateContents
                  });
-             })
+             });
          }
+        var syncAllBtn = $("#sync-all");
+        syncAllBtn.click(function(){
+            event.preventDefault();
+            $.ajax("/api/guest/" + App.getUsername() + "/connector/all/sync",{
+                type:"POST",
+                success:updateContents
+            });
+        });
     }
 
     function confirmDelete(index){
