@@ -34,6 +34,7 @@ public class TwitterFacetExtractor extends AbstractFacetExtractor {
 			
 			switch (objectType.value()) {
 				case 1:
+                {
 					TweetFacet tweetFacet = new TweetFacet();
 					super.extractCommonFacetData(tweetFacet, apiData);
 		
@@ -42,14 +43,18 @@ public class TwitterFacetExtractor extends AbstractFacetExtractor {
 					tweetFacet.start = createdAtTime;
 					tweetFacet.end = createdAtTime;
 					tweetFacet.time = createdAtTime;
-					tweetFacet.twitterId = twitterItem.getLong("id");
+                    tweetFacet.tweetId = twitterItem.getLong("id");
+                    JSONObject user = twitterItem.getJSONObject("user");
+					tweetFacet.profileImageUrl = user.getString("profile_image_url");
 					facets.add(tweetFacet);
 					break;
+                }
 				case 4:
+                {
 					TwitterMentionFacet twitterMentionFacet = new TwitterMentionFacet();
 					super.extractCommonFacetData(twitterMentionFacet, apiData);
-					
-					createdAtTime = parseDate(twitterItem.getString("created_at"));
+
+                    long createdAtTime = parseDate(twitterItem.getString("created_at"));
 					twitterMentionFacet.text = twitterItem.getString("text");
 					twitterMentionFacet.start = createdAtTime;
 					twitterMentionFacet.end = createdAtTime;
@@ -60,11 +65,13 @@ public class TwitterFacetExtractor extends AbstractFacetExtractor {
 					twitterMentionFacet.userName = user.getString("name");
 					facets.add(twitterMentionFacet);
 					break;
+                }
 				case 2:
+                {
 					TwitterDirectMessageFacet twitterDirectMessageFacet = new TwitterDirectMessageFacet();
 					super.extractCommonFacetData(twitterDirectMessageFacet, apiData);
 					
-					createdAtTime = parseDate(twitterItem.getString("created_at"));
+					long createdAtTime = parseDate(twitterItem.getString("created_at"));
 					twitterDirectMessageFacet.text = twitterItem.getString("text");
 					twitterDirectMessageFacet.start = createdAtTime;
 					twitterDirectMessageFacet.end = createdAtTime;
@@ -82,6 +89,7 @@ public class TwitterFacetExtractor extends AbstractFacetExtractor {
 					twitterDirectMessageFacet.sent = (byte)(twitterDirectMessageFacet.senderScreenName.equals(screen_name)?1:0);
 					facets.add(twitterDirectMessageFacet);
 					break;
+                }
 			}
 		}
 		
