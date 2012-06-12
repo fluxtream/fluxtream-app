@@ -63,8 +63,7 @@ define(function() {
              syncNowBtn.click({index:i}, function(event){
                  event.preventDefault();
                  $.ajax("/api/guest/" + App.getUsername() + "/connector/" + connectors[event.data.index].connectorName + "/sync",{
-                     type:"POST",
-                     success:updateContents
+                     type:"POST"
                  });
              });
          }
@@ -72,10 +71,16 @@ define(function() {
         syncAllBtn.click(function(){
             event.preventDefault();
             $.ajax("/api/guest/" + App.getUsername() + "/connector/all/sync",{
-                type:"POST",
-                success:updateContents
+                type:"POST"
             });
         });
+        $.doTimeout("manageConnectorsUpdater", 10000, function(){
+            updateContents();
+            return true;
+        });
+        $("#modal").on("hide",function(){
+            $.doTimeout("manageConnectorsUpdater");
+        })
     }
 
     function confirmDelete(index){
