@@ -13,7 +13,8 @@ import com.fluxtream.domain.AbstractFacet;
 @ObjectTypeSpec(name = "logged_activity", value = 2, extractor=FitbitFacetExtractor.class, prettyname = "Logged Activities")
 @NamedQueries({
 		@NamedQuery(name = "fitbit.logged_activity.deleteAll", query = "DELETE FROM Facet_FitbitLoggedActivity facet WHERE facet.guestId=?"),
-		@NamedQuery(name = "fitbit.logged_activity.between", query = "SELECT facet FROM Facet_FitbitLoggedActivity facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=?")
+		@NamedQuery(name = "fitbit.logged_activity.between", query = "SELECT facet FROM Facet_FitbitLoggedActivity facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=?"),
+        @NamedQuery(name = "fitbit.logged_activity.newest", query = "SELECT facet FROM Facet_FitbitLoggedActivity facet WHERE facet.guestId=? ORDER BY facet.end DESC LIMIT 1")
 })
 @Indexed
 public class FitbitLoggedActivityFacet extends AbstractFacet {

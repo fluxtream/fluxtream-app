@@ -1,7 +1,552 @@
-::selection 	 	{background: rgb(255,255,158);}
-::-moz-selection 	{background: rgb(255,255,158);}
-img::selection 		{background: transparent;}
-img::-moz-selection	{background: transparent;}
+<<<<<<< HEAD
+    ::selection         {background: rgb(255,255,158);}
+::-moz-selection    {background: rgb(255,255,158);}
+img::selection      {background: transparent;}
+img::-moz-selection {background: transparent;}
+body {-webkit-tap-highlight-color: rgb(255,255,158);}
+
+@media (max-width: 768px){
+    .flx-main-city-infos {  }
+}
+
+@media (min-width: 980px) {
+
+    .nav-collapse.collapse {
+        height: auto !important;
+    }
+    .container-fluid {
+        padding-right: 10px;
+        padding-left: 10px;
+        width: 99%;
+    }
+}
+
+// LARGE DESKTOP & UP
+// ------------------
+
+@media (min-width: 1200px) {
+
+    .thumbnails {
+        margin-left: -30px;
+    }
+    .thumbnails > li {
+        margin-left: 30px;
+    }
+
+    .container-fluid {
+        padding-right: 10px;
+        padding-left: 10px;
+        width: 99%;
+    }
+
+}
+
+@black: #333 ;
+
+body {
+    background-image: url('bg.gif');
+    height: 100%;
+    overflow-x: hidden;
+}
+
+html {
+    height: 100%;
+    overflow-x: hidden;
+}
+
+#content {
+    position: relative;
+    min-height: 100%;
+}
+
+* html #content {
+    height: 100%;
+}
+
+#footer {
+    position: relative;
+    margin-top: -5.5em;
+    padding-bottom: 1em;
+}
+
+.editor {
+    background: grayLight;
+}
+
+.diaryTitle {
+    width: 100%;
+}
+
+.centered {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.map { height: 200px; background: blue; }
+.weather { height: 200px; background: red; }
+.breakdown { height: 200px; background: gray; }
+.clockimg  {
+    width: 100%;
+}
+
+.loading {
+    display: none;
+    padding-top: 4px;
+    margin-right: 6px;
+    float: right;
+}
+
+.addConnectorsMain #loading img {border: 0 !important; display: block; margin: 132px auto 0 !important; width: 32px; height: 32px;}
+
+#modals {
+    display: none;
+}
+
+#tooltips {
+    display: none;
+}
+
+#the_map {
+    width: 100%;
+}
+
+#time-menu {
+    display: inline;
+    float: right;
+}
+
+div#currentTimespanLabel {
+    display:inline-block;
+    width: 150px;
+    text-align: center;
+    align: center;
+}
+
+div#currentTimespanLabel span {
+    text-align: center;
+    align: center;
+}
+
+.notification {
+    margin: 0;
+}
+
+.navbar-inner {
+    border-radius: 0;
+    -webkit-border-radius: 0;
+    -moz-border-radius: 0;
+}
+
+.statLabel {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 1.25em;
+    margin: 10px;
+}
+
+.bigFigure {
+    font-size: 2.25em;
+    text-align: center;
+    line-height: 1;
+    margin: 10px;
+}
+
+.bigFigure small {
+    font-size: 1em;
+}
+
+.statsWell {
+    border-radius: 5px;
+    background-color: #e2e2e2;
+    min-height: 8em;
+    position: relative;
+}
+
+.statsWell-inner {
+    margin-top: 2em;
+}
+
+.emptyList {
+    width: 100%;
+    text-align:center;
+    color: @black;
+}
+
+/* icons */
+*[class|='flx-icon'] {
+    background-image: url('../images/icons.png');
+    height: 20px;
+    position: absolute;
+    top: 4px;
+    right: 4px;
+}
+
+.flx-icon-zeo {
+    background-position: -75px -20px;
+    width: 35px;
+}
+
+.flx-icon-fitbit {
+    background-position: 0px -20px;
+    width: 20px;
+}
+
+.flx-spacer {
+    margin-bottom:5.5em;
+}
+
+a.paginationLink {
+    cursor: pointer;
+}
+
+.timeline-button {
+    display: inline;
+}
+
+.application.active {
+    display: block;
+}
+
+.application.dormant {
+    display: none;
+}
+
+.tab.active {
+    display: block;
+}
+
+.tab.dormant {
+    display: none;
+}
+
+.fullwidth {
+    width: 100%;
+}
+
+.leftAligned {
+    width: 960px;
+}
+
+/* HACK: should "just work" as per the Twitter Bootstrap framework */
+.nav-tabs > li {
+    margin-bottom: -2px;
+}
+
+#mainCity span.ephemeris {font-size:12px; color:#878787; line-height: 11px; }
+
+*[class|='flx-pict'] {
+    background-image: url('../images/icons.png');
+    display: inline-block;
+    height: 20px;
+}
+.flx-pict-temp {
+    background-position: -53px -20px;
+    width: 11px;
+}
+.flx-pict-moon {
+    background-position: -163px -24px;
+    width: 20px;
+}
+.flx-pict-sun {
+    background-position: -80px -24px;
+    width: 20px;
+}
+
+// PERI'S STYLES tp@studiorvb.com
+
+img { display: block; }
+a img { text-decoration: none; }
+
+
+// colors
+@white : #fff;
+@black : #000;
+@link-blue : #08C;
+@border-color : #DDDDD9;
+@hd-bg-color : #EEEEE9;
+@grey : lighten(@black, 50%);
+@tTborder : #08C;
+@strongBorder : 4px; 
+
+@fitbit: #21b5cf;
+@bodyTrack: #c79409;
+@lastFM: #ec0c0c;
+@withings: #16924e;
+@picasa: #8c2ebb;
+@twitter: #1842ea;
+@google_calendar: #d7186e;
+
+@connector : rgba(0, 136, 204,1);
+
+// helpers
+.flx-clearfix:before, .flx-clearfix:after { content: ""; display: table; }
+.flx-clearfix:after { clear: both; }
+.flx-clearfix { *zoom: 1; }
+.flx-floatL {float:left}
+.flx-floatR {float:right}
+.flx-font-size() {  }
+
+.flx-widget { margin-bottom : 20px;
+    border : 1px solid @border-color; border-left:0; border-right:0; border-top:0;
+    header { padding: 4px 9px; background : @hd-bg-color;  .flx-clearfix; border-bottom: 1px solid @border-color; color: @grey;
+        .flx-widget-controls { .flx-floatR; font-size: 18px; padding-top:3px;
+            a { margin-left: 5px; }
+            a:hover { text-decoration:none; }
+        }
+    }
+    .flx-body { padding : 9px; }
+}
+
+.nav { margin-bottom: 45px; }
+.nav-tabs { background: @hd-bg-color; }
+.nav-tabs > li > a { padding-top: 8px; padding-bottom: 8px; line-height:18px;}
+.nav-tabs > li > a:hover { padding-top: 8px; padding-bottom: 7px; line-height:18px;}
+
+#footer { margin-top : 1em !important }
+
+.flx-timeMenu { .flx-clearfix; }
+
+.menuTodayButton { margin-right:18px; }
+
+#currentTimespanLabel { width: 230px !important;
+    h3 { display: block; float:left; padding: 0 0 0 15px; margin-top: -2px; text-align: center; }
+}
+
+.floater { .flx-floatL; margin-right:20px; min-height: 31px; padding:5px 0;}
+.flx-main-city-infos { padding-top:4px; }
+
+//------------------------
+
+.flx-clockToolTipContainer { margin-top:50px; } 
+.flx-toolTipBody { width:435px; padding: 5px; background: rgba(255,255,255,0.75); color: lighten(black, 40%); position: relative; }
+
+.strongBorder {border: 1px solid @tTborder;} 
+.strongBorder-Right { .strongBorder; border-right-width: 4px; }
+.strongBorder-Left { .strongBorder; border-left-width: 4px; }
+.strongBorder-Bottom { .strongBorder; border-bottom-width: 4px; }
+.strongBorder-Top { .strongBorder; border-top-width: 4px; }
+
+.flx-toolTipLinks { float: right; list-style-type: none; width: 30%;  margin-top : -20px;
+    li{text-align: right; line-height: 1.1em; }
+}
+.flx-toolTipData { margin: 5px; background:@white; overflow:hidden; padding: 15px 10px 15px 20px;  
+    -webkit-box-shadow:0 0px 4px rgba(80, 80, 80, 0.6); 
+    -moz-box-shadow:0 0px 4px rgba(80, 80, 80, 0.6); 
+    -o-box-shadow:0 0px 4px rgba(80, 80, 80, 0.6); 
+    box-shadow:0 0px 4px rgba(80, 80, 80, 0.6);
+    h3 { font-size:20px; }
+    span { display: block; }
+    .flx-data { font-size : 16px; font-weight : bold; }
+    }
+.flx-deviceIcon { width: 42px; height: 42px; background-repeat: no-repeat; background-position: center center; float:left; margin-right: 10px; }
+
+.flx-deviceIcon.withings { background-image: url(/dashboardImgDummies/w9.png); }
+
+
+.flx-deviceData { .flx-floatL }
+.flx-miniGraph { .flx-floatL; margin-top:-20px; }
+
+.flx-toolTipContext { overflow:hidden; height:100%; margin:10px 5px 0;
+    h4 { font-size : 12px; font-weight:normal; min-height:45px;
+        span { font-size:18px; font-weight:bold} }
+    .flx-toolTipLocation { .flx-floatL; width : 50%; margin-right:5px;} 
+    .flx-toolTipWeather { overflow:hidden; height:100%;
+        .weatherIcon { margin: 20px auto ; width:100px; height: 110px; }
+        .flx-weatherDetails { 
+            font-size:12px;
+            list-style-type:none;
+            padding:0 !important;
+            margin:0 !important;
+            li { width:30%; .flx-floatL; border-right: 1px solid lighten(black, 40%); font-weight:normal; padding:0 3px;
+                span { font-weight: bold; }
+            }
+            li:last-child { border-right:0; }
+         }
+     }
+}
+
+.flx-toolTipTail { position:absolute; width:0; height:0; border:10px solid transparent; }
+.flx-toolTipTail-Bottom { .flx-toolTipTail; border-top: 10px solid @tTborder; bottom: -24px;}
+.flx-toolTipTail-Top { .flx-toolTipTail; border-bottom: 10px solid @tTborder; top: -24px; }
+.flx-toolTipTail-Right { .flx-toolTipTail; border-left: 10px solid @tTborder; right: -24px; }
+.flx-toolTipTail-Left { .flx-toolTipTail; border-right: 10px solid @tTborder; left:-24px;}
+
+//----------------
+
+.flx-sourceFilters1 { list-style-type: none; 
+    li { .flx-floatL;border-right: 1px solid transparent;
+        a, span {  color:darken(@grey,20%); border-bottom: 1px solid @grey; padding: 10px 10px; background: #fff;
+            -webkit-transition: all 0.1s ease-in;
+            -moz-transition: all 0.1s ease-in;
+            -o-transition: all 0.1s ease-in;
+            transition: all 0.1s ease-in;
+        }
+        .flx-active { border-bottom-width: 4px; padding-bottom: 7px; color: darken(grey, 20%);}
+        .flx-disconnected { border-bottom-color: lighten(@grey, 30%);color: lighten(@grey, 30%); cursor:default }
+        a:hover { text-decoration:none; border-bottom-width: 4px; padding-bottom: 7px; }
+     }
+     
+     a.fitbit { border-bottom-color: @fitbit; }
+     a.bodytrack { border-bottom-color: @bodyTrack; }
+     a.lastFM { border-bottom-color: @lastFM; }
+     a.withings { border-bottom-color: @withings; }
+     a.picasa { border-bottom-color: @picasa; }
+     a.twitter { border-bottom-color: @twitter; }
+     a.google_calendar { border-bottom-color: @google_calendar; }
+ }
+
+.flx-sourceFilters2 { list-style-type: none; 
+    li { .flx-floatL;border-right: 1px solid transparent; font-size: 11px; letter-spacing: 0.1em;
+        a, span {  color:@grey; border-bottom: 1px solid @grey; padding: 10px 10px; background: #fff; position:relative;
+            -webkit-transition: all 0.1s ease-in;
+            -moz-transition: all 0.1s ease-in;
+            -o-transition: all 0.1s ease-in;
+            transition: all 0.1s ease-in;
+        }
+        a:after, span:after { content:''; width:0; height: 11px; border-right:1px solid lighten(@grey, 40%); position:absolute; top:10px; right:-1px; }
+        a.google_calendar:after { border-right:0; }
+        
+        .flx-active { border-bottom-width: 4px; padding-bottom: 7px; color: darken(grey, 20%);}
+        .flx-disconnected { border-bottom-color: lighten(@grey, 30%);color: lighten(@grey, 30%); cursor:default }
+        a:hover { text-decoration:none; border-bottom-width: 4px; padding-bottom: 7px; }
+     }
+     
+     a.fitbit { color: @fitbit; border-bottom-color: @fitbit; }
+     a.bodytrack { color: @bodyTrack; border-bottom-color: @bodyTrack; }
+     a.lastFM { color: @lastFM; border-bottom-color: @lastFM; }
+     a.withings { color: @withings; border-bottom-color: @withings; }
+     a.picasa { color: @picasa; border-bottom-color: @picasa; }
+     a.twitter { color: @twitter; border-bottom-color: @twitter; }
+     a.google_calendar { color: @google_calendar; border-bottom-color: @google_calendar; }
+ }
+ 
+.flx-sourceFilters3 { list-style-type: none; 
+    li { .flx-floatL;border-right: 1px solid transparent; letter-spacing:0.1em;
+        a, span {  color:@grey; border-bottom: 1px solid @grey; padding: 15px 15px; background: #fff; overflow:hidden; text-align:center;width: 65px; display:block;
+            -webkit-transition: all 0.1s ease-in;
+            -moz-transition: all 0.1s ease-in;
+            -o-transition: all 0.1s ease-in;
+            transition: all 0.1s ease-in;
+        }
+        .glow(@glow){ text-shadow: 0 0 5px @glow; }
+        .flx-active { border-bottom-width: 4px; padding-bottom: 12px; color: darken(grey, 20%); .glow(lighten(@connector,25%));}
+        .flx-disconnected { border-bottom-color: lighten(@grey, 30%);color: lighten(@grey, 30%); cursor:default }
+        a:hover { text-decoration:none; border-bottom-width: 4px; padding-bottom: 12px; }
+     }
+     
+     a.fitbit { color: @connector; border-bottom-color: @connector; }
+     a.bodytrack { color: darken(@connector, 5%); border-bottom-color: darken(@connector, 5%); }
+     a.lastFM { color: darken(@connector, 10%); border-bottom-color: darken(@connector, 10%); }
+     a.withings { color: darken(@connector, 15%); border-bottom-color: darken(@connector, 15%); }
+     a.picasa { color: darken(@connector, 20%); border-bottom-color: darken(@connector, 20%); }
+     a.twitter { color: lighten(@connector, 5%); border-bottom-color: lighten(@connector, 5%); }
+     a.google_calendar { color: lighten(@connector, 15%); border-bottom-color: lighten(@connector, 15%); }
+ }
+ 
+.flx-sourceFilters4 { list-style-type: none; 
+    li { .flx-floatL;border-right: 1px solid transparent; 
+        a, span {  color:@grey; border-bottom: 1px solid @grey; padding: 10px 0; background: #fff; position:relative; width: 81px; text-align:center; display:inline-block;
+            -webkit-transition: all 0.1s ease-in;
+            -moz-transition: all 0.1s ease-in;
+            -o-transition: all 0.1s ease-in;
+            transition: all 0.1s ease-in;
+        }
+        a:after, span:after { content:''; width:0; height: 11px; border-right:1px solid lighten(@grey, 40%); position:absolute; top:10px; right:-1px; }
+        a.google_calendar:after { border-right:0; }
+        
+        .flx-active { border-bottom-width: 4px; padding-bottom: 7px; color: @grey;}
+        .flx-disconnected { border-bottom-color: lighten(@grey, 30%) !important;color: lighten(@grey, 30%) !important; cursor:default !important }
+        a:hover { text-decoration:none; border-bottom-width: 4px; padding-bottom: 7px; }
+     }
+     
+     a.fitbit { border-bottom-color: @fitbit; }
+     a.bodytrack { border-bottom-color: @bodyTrack; }
+     a.lastfm { border-bottom-color: @lastFM; }
+     a.withings { border-bottom-color: @withings; }
+     a.picasa { border-bottom-color: @picasa; }
+     a.twitter { border-bottom-color: @twitter; }
+     a.google_calendar { border-bottom-color: @google_calendar; }
+ }
+
+ 
+.flx-sourceFilters5 { list-style-type: none; 
+    li { .flx-floatL;border-right: 1px solid transparent; 
+            a, span {  color:@grey; border-bottom: 1px solid @grey; padding: 10px 10px; background: #fff; position:relative;
+            -webkit-transition: all 0.1s ease-in;
+            -moz-transition: all 0.1s ease-in;
+            -o-transition: all 0.1s ease-in;
+            transition: all 0.1s ease-in;
+        }
+        a:after, span:after { content:''; width:0; height: 11px; border-right:1px solid lighten(@grey, 40%); position:absolute; top:10px; right:-1px; }
+        a.google_calendar:after { border-right:0; }
+        
+        .flx-active { border-bottom-width: 4px; padding-bottom: 7px; color: darken(grey, 20%);}
+        .flx-disconnected { border-bottom-color: lighten(@grey, 30%);color: lighten(@grey, 30%); cursor:default }
+        a:hover { text-decoration:none; border-bottom-width: 4px; padding-bottom: 7px; }
+     }
+     
+     a.fitbit { color: @fitbit; border-bottom-color: @fitbit; }
+     a.bodytrack { color: @bodyTrack; border-bottom-color: @bodyTrack; }
+     a.lastFM { color: @lastFM; border-bottom-color: @lastFM; }
+     a.withings { color: @withings; border-bottom-color: @withings; }
+     a.picasa { color: @picasa; border-bottom-color: @picasa; }
+     a.twitter { color: @twitter; border-bottom-color: @twitter; }
+     a.google_calendar { color: @google_calendar; border-bottom-color: @google_calendar; }
+ }
+ 
+.flx-sourceFilters6 { list-style-type: none; 
+    li { .flx-floatL;border-right: 1px solid transparent; font-size:11px; letter-spacing:0.1em;
+        a, span {  color:@grey; border-bottom: 1px solid @grey; padding: 10px 0; background: #fff; position:relative; width: 70px; text-align:center; display:inline-block;
+            -webkit-transition: all 0.1s ease-in;
+            -moz-transition: all 0.1s ease-in;
+            -o-transition: all 0.1s ease-in;
+            transition: all 0.1s ease-in;
+        }
+        
+        .flx-active { border-bottom-width: 4px; padding-bottom: 7px; color: @grey;}
+        .flx-disconnected { border-bottom-color: lighten(@grey, 30%);color: lighten(@grey, 30%); cursor:default }
+        a:hover { text-decoration:none; border-bottom-width: 4px; padding-bottom: 7px; }
+     }
+     
+     a.fitbit { color: @fitbit; border-bottom-color: @fitbit; }
+     a.bodytrack { color: @bodyTrack; border-bottom-color: @bodyTrack; }
+     a.lastFM { color: @lastFM; border-bottom-color: @lastFM; }
+     a.withings { color: @withings; border-bottom-color: @withings; }
+     a.picasa { color: @picasa; border-bottom-color: @picasa; }
+     a.twitter { color: @twitter; border-bottom-color: @twitter; }
+     a.google_calendar { color: @google_calendar; border-bottom-color: @google_calendar; }
+ }
+
+//------- MANAGE CONNECTORS
+
+.synchAll { width:100%;background:@hd-bg-color; overflow:hidden; height: 100%;
+    span { display:block; padding: 10px;  float:right;}
+}
+table {.syncStatus, .remove, .connectors { text-align: center; }}
+td.syncStatus { vertical-align: middle;
+    span { display:block; width: 20px; height: 20px; -webkit-border-radius: 10px; -moz-border-radius: 10px; border-radius: 10px;border: 1px solid lighten(@grey, 20%); margin: 0 auto; -webkit-box-shadow: 0 0 5px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.7);
+    -moz-box-shadow: 0 0 5px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.7); box-shadow: 0 0 5px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.7); }
+    .syncLED-yes {background:#76d323;}
+    .syncLED-no {background:#ff3030;}
+    .syncLED-waiting { border:0; width: 35px; height:35px; -webkit-box-shadow: none; -moz-box-shadow: none; box-shadow: none ;}
+ }
+td.connectors { text-align: center; padding:0;
+    img { margin:0 auto; }
+ }
+.lastSync p, .latestData p, .remove i { padding-top: 18px; }
+table .remove { text-align:center;
+    i { font-size: 20px; }
+}
+.flx-tableSepar td { height:1px;background:@hd-bg-color; padding:2px 0;} 
+.nowSynchro .lastSync { 
+    p { font-style: italic; font-weight:bold; }
+    a, span { color: @grey;}
+}
+=======
+::selection         {background: rgb(255,255,158);}
+::-moz-selection    {background: rgb(255,255,158);}
+img::selection      {background: transparent;}
+img::-moz-selection {background: transparent;}
 body {-webkit-tap-highlight-color: rgb(255,255,158);}
 
 @media (max-width: 768px){
@@ -315,13 +860,13 @@ a img { text-decoration: none; }
 .strongBorder-Top { .strongBorder; border-top-width: 4px; }
 
 .flx-toolTipLinks { float: right; list-style-type: none; width: 30%;  margin-top : -20px;
-	li{text-align: right; line-height: 1.1em; }
+    li{text-align: right; line-height: 1.1em; }
 }
 .flx-toolTipData { margin: 5px; background:@white; overflow:hidden; padding: 15px 10px 15px 20px;  -webkit-box-shadow:0 0px 4px rgba(80, 80, 80, 0.6); -moz-box-shadow:0 0px 4px rgba(80, 80, 80, 0.6); -o-box-shadow:0 0px 4px rgba(80, 80, 80, 0.6); box-shadow:0 0px 4px rgba(80, 80, 80, 0.6);
-	h3 { font-size:20px; }
-	span { display: block; }
-	.flx-data { font-size : 16px; font-weight : bold; }
-	}
+    h3 { font-size:20px; }
+    span { display: block; }
+    .flx-data { font-size : 16px; font-weight : bold; }
+    }
 .flx-deviceIcon { width: 42px; height: 42px; background-repeat: no-repeat; background-position: center center; float:left; margin-right: 10px; }
 
 .flx-deviceIcon.withings { background-image: url(/dashboardImgDummies/w9.png); }
@@ -331,22 +876,22 @@ a img { text-decoration: none; }
 .flx-miniGraph { .flx-floatL; margin-top:-20px; }
 
 .flx-toolTipContext { overflow:hidden; height:100%; margin:10px 5px 0;
-	h4 { font-size : 12px; font-weight:normal; min-height:45px;
-		span { font-size:18px; font-weight:bold} }
-	.flx-toolTipLocation { .flx-floatL; width : 50%; margin-right:5px;} 
-	.flx-toolTipWeather { overflow:hidden; height:100%;
-		.weatherIcon { margin: 20px auto ; width:100px; height: 110px; }
-		.flx-weatherDetails { 
-			font-size:12px;
-			list-style-type:none;
-			padding:0 !important;
-			margin:0 !important;
-			li { width:30%; .flx-floatL; border-right: 1px solid lighten(black, 40%); font-weight:normal; padding:0 3px;
-				span { font-weight: bold; }
-			}
-			li:last-child { border-right:0; }
-		 }
-	 }
+    h4 { font-size : 12px; font-weight:normal; min-height:45px;
+        span { font-size:18px; font-weight:bold} }
+    .flx-toolTipLocation { .flx-floatL; width : 50%; margin-right:5px;} 
+    .flx-toolTipWeather { overflow:hidden; height:100%;
+        .weatherIcon { margin: 20px auto ; width:100px; height: 110px; }
+        .flx-weatherDetails { 
+            font-size:12px;
+            list-style-type:none;
+            padding:0 !important;
+            margin:0 !important;
+            li { width:30%; .flx-floatL; border-right: 1px solid lighten(black, 40%); font-weight:normal; padding:0 3px;
+                span { font-weight: bold; }
+            }
+            li:last-child { border-right:0; }
+         }
+     }
 }
 
 .flx-toolTipTail { position:absolute; width:0; height:0; border:10px solid transparent; pointer-events: none; }
@@ -354,3 +899,4 @@ a img { text-decoration: none; }
 .flx-toolTipTail-Top { .flx-toolTipTail; border-bottom: 10px solid @tTborder; top: -24px; }
 .flx-toolTipTail-Right { .flx-toolTipTail; border-left: 10px solid @tTborder; right: -24px; }
 .flx-toolTipTail-Left { .flx-toolTipTail; border-right: 10px solid @tTborder; left:-24px;}
+>>>>>>> 05f5755d5723d819f7db7cefb028eb7715781fb8

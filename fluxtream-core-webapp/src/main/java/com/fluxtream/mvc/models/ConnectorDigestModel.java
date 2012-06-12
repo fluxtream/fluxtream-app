@@ -1,0 +1,8 @@
+package com.fluxtream.mvc.models;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class ConnectorDigestModel extends ConnectorModel {
+    public List<String> facetTypes = new ArrayList<String>();
+}

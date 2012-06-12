@@ -31,7 +31,8 @@ import com.google.api.client.util.Key;
 		@NamedQuery(name = "google_latitude.between", query = "SELECT facet FROM " +
 				"Facet_GoogleLatitudeLocation facet WHERE " +
 				"facet.guestId=? AND facet.timestampMs>=? AND " +
-				"facet.timestampMs<=?")
+				"facet.timestampMs<=?"),
+        @NamedQuery(name = "google_latitude.newest", query = "SELECT facet FROM Facet_GoogleLatitudeLocation facet WHERE facet.guestId=? ORDER BY facet.timestampMs DESC LIMIT 1")
 })
 public class LocationFacet extends AbstractFacet implements Comparable<LocationFacet>, Serializable {
 

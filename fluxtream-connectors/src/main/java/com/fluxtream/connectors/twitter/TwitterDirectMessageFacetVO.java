@@ -11,6 +11,7 @@ public class TwitterDirectMessageFacetVO extends AbstractInstantFacetVO<TwitterD
 
 	public String profileImageUrl;
 	public String userName;
+    public boolean sent;
 	
 	@Override
 	public void fromFacet(TwitterDirectMessageFacet facet, TimeInterval timeInterval,
@@ -29,10 +30,11 @@ public class TwitterDirectMessageFacetVO extends AbstractInstantFacetVO<TwitterD
 			this.profileImageUrl = facet.senderProfileImageUrl;
 			this.userName = facet.senderName;
 		}
+        this.sent = facet.sent == 1;
 	}
 	
 	protected String getSubtype(TwitterDirectMessageFacet facet) {
-		return (facet.sent==1)?"outgoing":"incoming";
+		return null;
 	}
 
 }

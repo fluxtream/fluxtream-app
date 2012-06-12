@@ -22,7 +22,7 @@ import com.google.api.client.http.HttpResponse;
 import com.google.api.client.http.HttpTransport;
 
 @Component
-@Updater(prettyName = "Google Latitude", value = 2, objectTypes = { LocationFacet.class }, updateStrategyType = UpdateStrategyType.INCREMENTAL)
+@Updater(prettyName = "Latitude", value = 2, objectTypes = { LocationFacet.class }, updateStrategyType = UpdateStrategyType.INCREMENTAL)
 @JsonFacetCollection(LocationFacetVOCollection.class)
 public class GoogleLatitudeUpdater extends AbstractGoogleOAuthUpdater {
 

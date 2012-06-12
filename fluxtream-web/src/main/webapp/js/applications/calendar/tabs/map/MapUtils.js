@@ -53,26 +53,32 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     function addData(map,connectorData, connectorInfoId, clickable){
-        switch (connectorInfoId){
+        if (!isDisplayable(connectorInfoId))
+            return false;
+        map.markers[connectorInfoId] = addItemsToMap(map,connectorData,clickable);
+        return map.markers[connectorInfoId] != null;
+    }
+
+    function isDisplayable(itemType){
+        switch (itemType){
             case "sms_backup-sms":
             case "sms_backup-call_Calendar":
             case "twitter-dm":
             case "twitter-tweet":
             case "twitter-mention":
-            case "google_calendar":
+            case "google_calendar-entry":
             case "toodledo-task":
             case "fitbit-sleep":
             case "withings-bpm":
-            case "picasa":
+            case "picasa-photo":
             case "flickr":
             case "lastfm-recent_track":
+            case "lastfm-loved_track":
             case "photo":
-                break;
+                return true;
             default:
                 return false;
         }
-        map.markers[connectorInfoId] = addItemsToMap(map,connectorData,clickable);
-        return map.markers[connectorInfoId] != null;
     }
 
     function addImagesToMap(map,items,clickable){
@@ -109,8 +115,6 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     function addItemsToMap(map,items,clickable){
-        if (items.length != 0 && items[0].type == "photo")
-            return addImagesToMap(map,items,clickable);
         var markerArray = new Array();
         for (var i = 0; i < items.length; i++){
             var marker = addItemToMap(map,items[i],clickable);
@@ -131,9 +135,9 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             case "twitter-dm":
             case "twitter-tweet":
             case "twitter-mention":
-                category = config.OCIAL_CATEGORY;
+                category = config.SOCIAL_CATEGORY;
                 break;
-            case "google_calendar":
+            case "google_calendar-entry":
             case "toodledo-task":
                 category = config.MIND_CATEGORY;
                 break;
@@ -141,9 +145,10 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             case "withings-bpm":
                 category = config.BODY_CATEGORY;
                 break;
-            case "picasa":
+            case "picasa-photo":
             case "flickr":
             case "lastfm-recent_track":
+            case "lastfm-loved_track":
                 category = config.MEDIA_CATEGORY;
                 break;
             default:
@@ -162,10 +167,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             if (map.selectedMarker != null)
                 map.selectedMarker.hideCircle();
             map.selectedMarker = marker;
-            var tooltip = $("#" + item.type + "_" + item.id).html();
-            if (tooltip == null)
-                tooltip = "no description available";
-            map.infoWindow.setContent(tooltip);
+            map.infoWindow.setContent(item.getDetails());
             map.infoWindow.open(map,marker);
             marker.doHighlighting();
             marker.showCircle();
@@ -315,9 +317,15 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         for (endIndex = 1; endIndex < map.gpsTimestamps.length && map.gpsTimestamps[endIndex] < time; endIndex++);
         var startIndex = endIndex - 1;
         var percentThrough = (time - map.gpsTimestamps[startIndex]) / (map.gpsTimestamps[endIndex] - map.gpsTimestamps[startIndex]);
-        var lat = (map.gpsPositions[endIndex].lat() - map.gpsPositions[startIndex].lat()) * percentThrough + map.gpsPositions[startIndex].lat();
-        var lon = (map.gpsPositions[endIndex].lng() - map.gpsPositions[startIndex].lng()) * percentThrough + map.gpsPositions[startIndex].lng();
-        return new google.maps.LatLng(lat,lon);
+
+        var projection = map.getProjection();
+        var startPoint = projection.fromLatLngToPoint(map.gpsPositions[startIndex]);
+        var endPoint = projection.fromLatLngToPoint(map.gpsPositions[endIndex]);
+
+        var x = (endPoint.x - startPoint.x) * percentThrough + startPoint.x;
+        var y = (endPoint.y - startPoint.y) * percentThrough + startPoint.y;
+        var latlng = projection.fromPointToLatLng(new google.maps.Point(x,y));
+        return new google.maps.LatLng(latlng.lat(),latlng.lng());
     }
 
     function zoomOnTimespan(map, start,end){
@@ -372,7 +380,11 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     function hideData(map,connectorId){
-        if (map.markers[connectorId] == null)
+        if (connectorId == "google_latitude"){
+            map.hideGPSData();
+            return;
+        }
+        if (!map.hasData(connectorId))
             return;
         if (map.connectorSelected == connectorId){
             map.infoWindow.close();
@@ -384,13 +396,25 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     function showData(map,connectorId){
-        if (map.markers[connectorId] == null)
+        if (connectorId == "google_latitude"){
+            map.showGPSData();
+            return;
+        }
+        if (!map.hasData(connectorId))
             return;
         for (var i = 0; i < map.markers[connectorId].length; i++){
             map.markers[connectorId][i].setMap(map);
             if (map.selectedMarker == map.markers[connectorId][i])
                 map.selectedMarker.showCircle();
         }
+    }
+
+    function hasData(map,connectorId){
+        return map.markers[connectorId] != null;
+    }
+
+    function isFullyInitialized(map){
+        return map.getProjection() != null;
     }
 
     function hideGPSData(map){
@@ -443,6 +467,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     return {
+        isDisplayable: isDisplayable,
         newMap: function(center,zoom,divId,hideControls){ //creates and returns a google map with extended functionality
             var options = {
                 zoom : zoom,
@@ -475,12 +500,14 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             map.highlightTimespan = function(start,end){highlightTimespan(map,start,end)};
             map.showData = function(connectorId){showData(map,connectorId)};
             map.hideData = function(connectorId){hideData(map,connectorId)};
+            map.hasData = function(connectorId){return hasData(map,connectorId)};
             map.showGPSData = function(){showGPSData(map)};
             map.hideGPSData = function(){hideGPSData(map)};
-            map.addItem = function(item,clickable){return addItemToMap(map,item,clickable)}
+            map.addItem = function(item,clickable){return addItemToMap(map,item,clickable)};
             map.zoomOnPoint = function(point){zoomOnPoint(map,point)};
             map.zoomOnMarker = function(marker){zoomOnMarker(map,marker)};
             map.enhanceMarker = function(marker,start,end){enhanceMarker(map,marker,start,end)};
+            map.isFullyInitialized = function(){return isFullyInitialized(map)};
             map._oldFitBounds = map.fitBounds;
             map.fitBounds = function(bounds){
                 if (bounds == null)

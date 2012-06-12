@@ -22,8 +22,6 @@
 	<link rel="stylesheet" href="/css/flx.css">
 	<link rel="stylesheet" href="/css/bodytrack.css">
 	<link rel="stylesheet" href="/css/datepicker.css">
-	<link rel="stylesheet" href="/css/qtip/jquery.qtip.min.css">
-	<link rel="stylesheet" href="/css/qtip/jquery.jqplot.min.css">
 	<link rel="stylesheet" href="/static/css/jquery-ui/jquery-ui-1.8.18.custom.css">
 	<link rel="stylesheet"
 		href="/static/css/jquery-colorPicker/jquery.colorPicker.css">
@@ -36,6 +34,7 @@
 <script
 	src="https://maps-api-ssl.google.com/maps/api/js?libraries=geometry&v=3&sensor=false"
 	type="text/javascript"></script>
+    <script src="/static/js/hogan-2.0.0.js"></script>
 
 <link rel="shortcut icon" href="/favicon.ico">
 
@@ -74,7 +73,7 @@
                                     <ul class="dropdown-menu">
                                         <li><a href="javascript:App.connectors()">Add  <i
                                                 class="icon-plus icon-large" style="float: right;"></i></a></li>
-                                        <li><a href="javascript:App.connectors()">Manage <i
+                                        <li><a href="javascript:App.manageConnectors()">Manage <i
                                                 class="icon-list icon-large" style="float: right;"></i></a></li>
                                     </ul></li>
                                 <li class="divider-vertical"></li>
@@ -137,7 +136,6 @@
 		<script src="/static/js/jquery.ui.sortable-bt.js"></script>
 		<script src="/static/tiny_mce/jquery.tinymce.js"></script>
 		<script src="/static/js/json2.js"></script>
-		<script src="/static/js/jquery.mustache-1.0.js"></script>
 		<script src="/static/js/jquery.autoGrowInput.js"></script>
 		<script src="/static/js/jquery.colorPicker.js"></script>
 		<script src="/static/js/jquery.dd-uncompressed.js"></script>

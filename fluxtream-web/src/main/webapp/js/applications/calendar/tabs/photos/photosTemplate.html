@@ -1,4 +1,4 @@
-<template id="carouselWithNav">
+<template id="carousel">
     <div class="modal fade" id="modal">
         <div class="modal-header">
             <h3>&nbsp;<a href="#" class="close" data-dismiss="modal">&times;</a></h3>
@@ -6,50 +6,33 @@
         <div class="modal-body" style="overflow:hidden">
             <div id="photosCarousel" class="carousel">
                 <div class="carousel-inner">
-                    {itemsHTML}
+                    {{#photos}}
+                    <div id="photo-{{id}}" style="text-align:center;" class="item{{#active}} active{{/active}}" style="overflow:none">
+                        <img style="display:inline-block" src="{{photoUrl}}">
+                    </div>
+                    {{/photos}}
                 </div>
+                {{#includeNav}}
                 <a class="carousel-control left" href="#photosCarousel" data-slide="prev">&lsaquo;</a>
                 <a class="carousel-control right" href="#photosCarousel" data-slide="next">&rsaquo;</a>
+                {{/includeNav}}
             </div>
             <div class="modal-footer">
                 <button class="btn" onclick="App.closeModal();">Close</button>
             </div>
         </div>
-    </div>
-</template>
-<template id="carouselWithoutNav">
-    <div class="modal fade" id="modal">
-        <div class="modal-header">
-            <h3>&nbsp;<a href="#" class="close" data-dismiss="modal">&times;</a></h3>
-        </div>
-        <div class="modal-body" style="overflow:hidden">
-            <div id="photosCarousel" class="carousel">
-                <div class="carousel-inner">
-                    {itemsHTML}
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn" onclick="App.closeModal();">Close</button>
-            </div>
-        </div>
-    </div>
-</template>
-<template id="carouselPhoto">
-    <div id="photo-{id}" style="text-align:center;" class="item{active}" style="overflow:none">
-     <img style="display:inline-block" src="{photoURL}">
     </div>
 </template>
 <template id="thumbnailGroup">
     <hr>
     <div>
-        {date}
+        {{date}}
     </div>
     <div class='thumbnailGroup'>
-        {thumbnails}
-    </div>
-</template>
-<template id="photoThumbnail">
-    <div id="photo-{id}" class='thumbnailContainer'>
-        <div class='photoThumbnail' style='background-image: url({photoURL})'></div>
+        {{#photos}}
+        <div id="photo-{{id}}" class='thumbnailContainer'>
+            <div class='photoThumbnail' style='background-image: url({{photoUrl}})'></div>
+        </div>
+        {{/photos}}
     </div>
 </template>

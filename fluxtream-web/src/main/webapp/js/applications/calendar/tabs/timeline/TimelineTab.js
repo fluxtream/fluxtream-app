@@ -151,7 +151,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
                         "channelElementId" : "_timeline_plot_helper",
                         "yAxisElementId"   : "_timeline_yAxis_helper"
             	};
-            	var html = $.mustache($("#_timeline_channel_template").html(), templateValues);
+            	var html = Hogan.compile($("#_timeline_channel_template").html()).render(templateValues);
                     
             	$(ui.item[0]).remove();
             	$(ui.droppable.item[0]).replaceWith(html);
@@ -293,7 +293,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
             }
 
             // Render add channels area
-            $("#_timeline_addChannelsArea").html($.mustache($("#_timeline_sources_template").html(), {
+            $("#_timeline_addChannelsArea").html(Hogan.compile($("#_timeline_sources_template").html()).render({
                 sources: SOURCES.availableList
             }));
 
@@ -312,7 +312,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
                         "channelElementId" : "_timeline_plot_helper",
                         "yAxisElementId"   : "_timeline_yAxis_helper"
                     };
-                    return $.mustache($("#_timeline_channel_template").html(), templateValues);
+                    return Hogan.compile($("#_timeline_channel_template").html()).render(templateValues);
                 },
                 start : function(event, ui) {
                     // Set height to match grapher widget so that hovering
@@ -602,7 +602,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
         if ($("#_timeline_view_dialog").css("display") === "none") {
 
             $("#_timeline_load_view_btn").addClass("button_toggle");
-            $("#_timeline_view_dialog").html($.mustache($("#_timeline_view_load_template").html(), {
+            $("#_timeline_view_dialog").html(Hogan.compile($("#_timeline_view_load_template").html()).render({
                 available_views: VIEWS.availableList
             })).show();
 
@@ -637,7 +637,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
         // Save dialog is closed
         if ($("#_timeline_view_dialog").css("display") === "none") {
             $("#_timeline_save_view_btn").addClass("button_toggle");
-            $("#_timeline_view_dialog").html($.mustache($("#_timeline_view_save_template").html(), {
+            $("#_timeline_view_dialog").html(Hogan.compile($("#_timeline_view_save_template").html()).render({
                 available_views: VIEWS.availableList
             })).show();
 
@@ -722,7 +722,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
         };
 
         // Render template
-        var html = $.mustache($("#_timeline_channel_template").html(), templateValues);
+        var html = Hogan.compile($("#_timeline_channel_template").html()).render(templateValues);
         if (target == null || target == undefined || target == "") {
             $("#_timeline_channels").append(html);
         }
@@ -893,7 +893,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
                         "fill"      : false
                     };
 
-                    // Add the styles to the array--note that ordering here isn't arbitrary.  Styles are rendered in the ordering
+                    // Add the styles to the array--note that ordering here isn't arbitrary.  Styles are rendered in the order
                     // they appear in the array.  Thus, we put points AFTER lines and bars so that the point gets rendered on top.
                     // Value is placed last so that it's on top of everything.
                     newStyle['styles'][newStyle['styles'].length] = linesStyle;
@@ -1355,7 +1355,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
 
                 // Display the filter settings in the channel tab
                 if (userSelectedTags.length > 0) {
-                    var filterHtml = $.mustache($("#_timeline_channel_tab_filter_template").html(), {"value":userSelectedTags.join(", ")});
+                    var filterHtml = Hogan.compile($("#_timeline_channel_tab_filter_template").html()).render({"value":userSelectedTags.join(", ")});
                     $("#" + channelElementId + "-timeline-channel-filter").html(filterHtml).shorten();
                 } else {
                     $("#" + channelElementId + "-timeline-channel-filter").text('').hide();
@@ -1399,11 +1399,11 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
             // seed the tag filter editor with the tags currently saved in the channel (if any)
             if (tagFilter['tags'].length > 0) {
                 $.each(tagFilter['tags'], function(index, value) {
-                    var tagHtml = $.mustache($("#_timeline_photo_dialog_tags_editor_tag_template").html(), {"value" : value});
+                    var tagHtml = Hogan.compile($("#_timeline_photo_dialog_tags_editor_tag_template").html()).render({"value" : value});
                     $("#" + channelElementId + "-photo-tags-filter").append(tagHtml);
                 });
             } else {
-                var tagHtml = $.mustache($("#_timeline_photo_dialog_tags_editor_tag_template").html(), {"value" : ""});
+                var tagHtml = Hogan.compile($("#_timeline_photo_dialog_tags_editor_tag_template").html()).render({"value" : ""});
                 $("#" + channelElementId + "-photo-tags-filter").append(tagHtml);
             }
 
@@ -1471,7 +1471,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
             VIEWS.data["v2"]["x_axis"]["max"] = xAxis.getMax();
         }
 
-        // Update yAxis min/max, ordering, height
+        // Update yAxis min/max, order, height
         for (i = 0; i < l; i++) {
             plot = plotsMap[channelIds[i]];
             yAxis = plot.getVerticalAxis();
@@ -1613,7 +1613,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
     }
 
     // Helper function which converts the given channels object to an array
-    // of channels, sorted in the ordering specified by the value of each
+    // of channels, sorted in the order specified by the value of each
     // channel's y_axis property.
     function validateView(view) {
         var xAxes, yAxes;
@@ -2036,7 +2036,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
 
     function dataPointListener(pointObj, sourceInfo) {
         if (pointObj) {
-            $("#_timeline_dataPointValueLabel").html($.mustache($("#_timeline_data_point_value_label_template").html(), pointObj));
+            $("#_timeline_dataPointValueLabel").html(Hogan.compile($("#_timeline_data_point_value_label_template").html()).render(pointObj));
         } else {
             $("#_timeline_dataPointValueLabel").html("");
         }
@@ -2090,9 +2090,9 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
 
                 var createPhotoDialog = function(photoId, timestamp, completionCallback) {
 
-                    var mediumResImageUrl = $.mustache($("#_timeline_photo_dialog_medium_res_image_url_template").html(), {"photoId" : photoId, "userId" : LOGIN.user_id});
-                    var highResImageUrl = $.mustache($("#_timeline_photo_dialog_high_res_image_url_template").html(), {"photoId" : photoId, "userId" : LOGIN.user_id});
-                    $("#_timeline_photo_dialog").html($.mustache($("#_timeline_photo_dialog_template").html(), {"photoUrl" : mediumResImageUrl}));
+                    var mediumResImageUrl = Hogan.compile($("#_timeline_photo_dialog_medium_res_image_url_template").html()).render({"photoId" : photoId, "userId" : LOGIN.user_id});
+                    var highResImageUrl = Hogan.compile($("#_timeline_photo_dialog_high_res_image_url_template").html()).render({"photoId" : photoId, "userId" : LOGIN.user_id});
+                    $("#_timeline_photo_dialog").html(Hogan.compile($("#_timeline_photo_dialog_template").html()).render({"photoUrl" : mediumResImageUrl}));
 
                     var updateGoToNeighborOnSaveWidgets = function() {
                         var isEnabled = $("#_timeline_photo_dialog_save_should_goto_neighbor").is(':checked');
@@ -2240,7 +2240,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
                         };
 
                         // build the form for the metadata editor
-                        var photoMetadataForm = $.mustache($("#_timeline_photo_dialog_form_template").html(), {});
+                        var photoMetadataForm = Hogan.compile($("#_timeline_photo_dialog_form_template").html()).render({});
                         $("#_timeline_photo_dialog_form").html(photoMetadataForm);
 
                         // fill in the timestamp
@@ -2272,11 +2272,11 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
                         if ($.isArray(tags) && tags.length > 0) {
                             $.each(tags,
                                 function(index, value) {
-                                    var tagHtml = $.mustache($("#_timeline_photo_dialog_tags_editor_tag_template").html(), {"value" : value});
+                                    var tagHtml =Hogan.compile($("#_timeline_photo_dialog_tags_editor_tag_template").html()).render({"value" : value});
                                     $("#_timeline_photo_dialog_tags_editor").append(tagHtml);
                                 });
                         } else {
-                            var tagHtml = $.mustache($("#_timeline_photo_dialog_tags_editor_tag_template").html(), {"value" : ""});
+                            var tagHtml = Hogan.compile($("#_timeline_photo_dialog_tags_editor_tag_template").html()).render({"value" : ""});
                             $("#_timeline_photo_dialog_tags_editor").append(tagHtml);
                         }
 
@@ -2505,7 +2505,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
                     });
 
                 // Open the dialog
-                $("#_timeline_photo_dialog").html($.mustache($("#_timeline_photo_dialog_loading_template").html()));
+                $("#_timeline_photo_dialog").html(Hogan.compile($("#_timeline_photo_dialog_loading_template").html()).render({}));
                 $("#_timeline_photo_dialog")['dialog']('open');
             }
         };

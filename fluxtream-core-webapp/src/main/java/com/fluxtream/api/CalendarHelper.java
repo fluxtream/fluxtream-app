@@ -46,8 +46,6 @@ public class CalendarHelper {
 	/**
 	 * This is to let the client discard responses that are coming "too late"
 	 * 
-	 * @param request
-	 * @param o
 	 */
 	TimeBoundariesModel getStartEndResponseBoundaries(DayMetadataFacet dayMetadata) {
 		TimeBoundariesModel tb = new TimeBoundariesModel();

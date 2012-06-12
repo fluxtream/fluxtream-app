@@ -10,6 +10,7 @@ import java.util.Set;
 
 import com.fluxtream.domain.metadata.DayMetadataFacet;
 import com.fluxtream.domain.metadata.WeatherInfo;
+import com.sun.jersey.core.util.StringIgnoreCaseKeyComparator;
 
 public class DigestModel {
 
@@ -28,8 +29,9 @@ public class DigestModel {
 	public SettingsModel settings;
 	public Set<String> haveDataConnectors = new HashSet<String>();
 	public Set<String> haveNoDataConnectors = new HashSet<String>();
-	public List<String> selectedConnectors = new ArrayList<String>();
+	public List<ConnectorDigestModel> selectedConnectors = new ArrayList<ConnectorDigestModel>();
     public List<WeatherInfo> hourlyWeatherData = null;
+    public Map<String,String> detailsTemplates = new HashMap<String,String>();
 	@SuppressWarnings("rawtypes")
 	public Map<String,Collection> cachedData
 		= new HashMap<String,Collection>();

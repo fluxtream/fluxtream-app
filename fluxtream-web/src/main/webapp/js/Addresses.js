@@ -1,57 +1,35 @@
 define(function() {
 
     var addresses;
-    var geocoder;
     var typeNames = ["ADDRESS_OTHER","ADDRESS_HOME","ADDRESS_WORK"];
     var currentAddressPool = [];
 
     function buildDialog(){
-        buildAddressRows(function(rowHTML){
-            App.loadHTMLTemplate("addressesTemplate.html","addressesDialog",{
-                tableContents:rowHTML
-            },function(html){
-                App.makeModal(html);
-                $("#addAddress").click(addAddressDialog);
+        App.loadMustacheTemplate("addressesTemplate.html","addressesDialog",function(template){
+            App.makeModal(template.render({addresses:addresses.map(function(address){
+                return getAddressParams(address);
+            })}));
+            $("#addAddress").click(addAddressDialog);
 
 
-                for (var i = 0; i < addresses.length; i++){
-                    $("#delete-" + i).click({index:i}, function(event){
-                        confirmDelete(event.data.index);
-                    });
+            for (var i = 0; i < addresses.length; i++){
+                $("#delete-" + i).click({index:i}, function(event){
+                    confirmDelete(event.data.index);
+                });
                     $("#edit-" + i).click({index:i}, function(event){
-                        updateAddressDialog(event.data.index);
-                    });
-                }
-            })
+                    updateAddressDialog(event.data.index);
+                });
+            }
         });
 
     }
-
-    function buildAddressRows(onDone){
-        var rowHTML = "";
-        if (addresses.length == 0){
-            onDone("");
-            return;
-        }
-        var i = 0;
-        var rowLoadedCallback = function(html){
-            rowHTML += html;
-            i++;
-            if (i == addresses.length)
-                onDone(rowHTML);
-            else
-                App.loadHTMLTemplate("addressesTemplate.html","addressRow",getAddressParams(i),rowLoadedCallback);
-        };
-        App.loadHTMLTemplate("addressesTemplate.html","addressRow",getAddressParams(i),rowLoadedCallback);
-    }
-
-    function getAddressParams(index){
+    function getAddressParams(address){
         var params = {
-           address:addresses[index].address,
-           type:addresses[index].type,
-           index:index,
-           since:App.formatDate(addresses[index].since),
-           until:App.formatDate(addresses[index].until)
+           address:address.address,
+           type:address.type,
+           index:address.index,
+           since:App.formatDate(address.since),
+           until:App.formatDate(address.until)
         };
         return params;
     }
@@ -59,8 +37,8 @@ define(function() {
     function confirmDelete(index){
         App.closeModal();
         $("#modal").on("hidden", function(){
-            App.loadHTMLTemplate("addressesTemplate.html","deleteConfirm",{address:addresses[index].address},function(html){
-                App.makeModal(html);
+            App.loadMustacheTemplate("addressesTemplate.html","deleteConfirm",function(tamplate){
+                App.makeModal(tamplate.render({address:addresses[index].address}));
 
 
                 var confirmDelete = $("#confirmDeleteBtn");
@@ -132,7 +110,7 @@ define(function() {
             addressSelect.attr("disabled","disabled");
             addressSearch.attr("disabled","disabled");
             addressInput.attr("disabled","disabled");
-            geocoder.geocode({"address":addr},function(results,status){
+            App.geocoder.geocode({"address":addr},function(results,status){
                 var options = addressSelect.children();
                 for (var i = 1; i < options.length; i++)
                     $(options[i]).remove();
@@ -169,12 +147,12 @@ define(function() {
         var originalUntil = App.formatDateAsDatePicker(addresses[index].until);
         App.closeModal();
         $("#modal").on("hidden", function(){
-            App.loadHTMLTemplate("addressesTemplate.html","addAddress",{
-                title:"Edit Address",
-                sinceDate:originalSince,
-                untilDate:originalUntil == "Present" ? "" : originalUntil
-            },function(html){
-                addressDialogInitializer(html,originalSince,originalUntil);
+            App.loadMustacheTemplate("addressesTemplate.html","addAddress",function(template){
+                addressDialogInitializer(template.render({
+                     title:"Edit Address",
+                     sinceDate:originalSince,
+                     untilDate:originalUntil == "Present" ? "" : originalUntil
+                 }),originalSince,originalUntil);
 
                 var addressInput = $("#addressInput");
                 var addressSearch = $("#addressSearch");
@@ -285,12 +263,12 @@ define(function() {
     function addAddressDialog(){
         App.closeModal();
         $("#modal").on("hidden", function(){
-            App.loadHTMLTemplate("addressesTemplate.html","addAddress",{
-                title:"Add Address",
-                sinceDate: App.formatDateAsDatePicker(new Date()),
-                untilDate: App.formatDateAsDatePicker(new Date())
-            },function(html){
-                addressDialogInitializer(html);
+            App.loadMustacheTemplate("addressesTemplate.html","addAddress",function(template){
+                addressDialogInitializer(template.render({
+                     title:"Add Address",
+                     sinceDate: App.formatDateAsDatePicker(new Date()),
+                     untilDate: App.formatDateAsDatePicker(new Date())
+                }));
 
                 var addressInput = $("#addressInput");
                 var addressSearch = $("#addressSearch");
@@ -366,8 +344,6 @@ define(function() {
 
 
     function show(){
-        if (geocoder == null)
-            geocoder = new google.maps.Geocoder();
         $.ajax("/api/guest/" + App.getUsername() + "/address/all",{
             success: function(data, textStatus, jqXHR){
                     dataLoaded(data);
@@ -378,6 +354,7 @@ define(function() {
     function dataLoaded(data){
         addresses = data;
         for (var i = 0; i < addresses.length; i++){
+            addresses[i].index = i;
             addresses[i].since += 12 * 3600 * 1000;
             addresses[i].until -= 12 * 3600 * 1000;
         }

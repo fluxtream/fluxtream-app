@@ -111,7 +111,7 @@ public class LastFmUpdater extends AbstractUpdater {
 
 	private void retrieveRecentTracks(UpdateInfo updateInfo) throws Exception {
 		int retrievedItems = ITEMS_PER_PAGE;
-		LastFmRecentTrackFacet lastRetrievedTrack = jpaDaoService.findOne("lastfm.recent_track.last",
+		LastFmRecentTrackFacet lastRetrievedTrack = jpaDaoService.findOne("lastfm.recent_track.newest",
 				LastFmRecentTrackFacet.class, updateInfo.getGuestId());
 		for (int page = 0; retrievedItems >= ITEMS_PER_PAGE; page++) {
 			JSONObject mostRecentTracks = getRecentTracks(updateInfo,
@@ -131,7 +131,7 @@ public class LastFmUpdater extends AbstractUpdater {
 
 	private void retrieveLovedTracks(UpdateInfo updateInfo) throws Exception {
 		int retrievedItems = ITEMS_PER_PAGE;
-		LastFmLovedTrackFacet lastRetrievedTrack = jpaDaoService.findOne("lastfm.loved_track.last",
+		LastFmLovedTrackFacet lastRetrievedTrack = jpaDaoService.findOne("lastfm.loved_track.newest",
 				LastFmLovedTrackFacet.class, updateInfo.getGuestId());
 		for (int page = 0; retrievedItems >= ITEMS_PER_PAGE; page++) {
 			JSONObject mostRecentTracks = getLovedTracks(updateInfo,

@@ -25,6 +25,9 @@ public class ConnectorInfo extends AbstractEntity {
 	@Lob
 	public String text;
 
+    public long lastSync;
+    public long latestData;
+
 	public int api;
 
 	public ConnectorInfo() {
