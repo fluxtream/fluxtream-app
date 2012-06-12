@@ -7,6 +7,7 @@ import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 import net.sf.json.JSONArray;
+import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
@@ -28,11 +29,11 @@ public class BodymediaFacetExtractor extends AbstractFacetExtractor {
         				" connector=bodymedia action=extractFacets objectType="
         						+ objectType.getName());
 
-        ArrayList<AbstractFacet> facets = new ArrayList<AbstractFacet>();
+        ArrayList<AbstractFacet> facets = null;
         JSONObject bodymediaResponse = JSONObject.fromObject(apiData.json);
         if(objectType.getName().equals("burn"))
         {
-            facets.add(extractBurnFacet(bodymediaResponse));
+            facets = extractBurnFacet(bodymediaResponse, apiData);
         }
         else //If the facet to be extracted wasn't a burn facet
         {
@@ -43,28 +44,43 @@ public class BodymediaFacetExtractor extends AbstractFacetExtractor {
     }
 
     /**
-     * Extracts a burn facet from the json response
-     * @param bodymediaResponse The response sent by bodymedia's api
-     * @return A burn facet
+     *
+     * @param bodymediaResponse
+     * @param apiData
+     * @return
      */
-    private BodymediaBurnFacet extractBurnFacet(final JSONObject bodymediaResponse) {
-        BodymediaBurnFacet facet = new BodymediaBurnFacet();
-        if(bodymediaResponse.has("totalCalories"))
-        {
-            facet.setTotalCalories(bodymediaResponse.getInt("totalCalories"));
-        }
-        if(bodymediaResponse.has("averageCalories"))
-        {
-            facet.setAverageCalories(bodymediaResponse.getInt("averageCalories"));
-        }
-        /* days is a JSONArray that contains a seperate JSONArray and calorie counts for each day
+    private ArrayList<AbstractFacet> extractBurnFacet(final JSONObject bodymediaResponse, ApiData apiData) {
+        ArrayList<AbstractFacet> facets = new ArrayList<AbstractFacet>();
+        /* burnJson is a JSONArray that contains a seperate JSONArray and calorie counts for each day
          */
         if(bodymediaResponse.has("days"))
         {
-            Object minuteArray = bodymediaResponse.get("days");
-            if(minuteArray instanceof JSONArray)
-                facet.setDays((JSONArray) minuteArray);
+            try
+            {
+                JSONArray daysArray = bodymediaResponse.getJSONArray("days");
+                for(Object o : daysArray)
+                {
+                    if(o instanceof JSONObject)
+                    {
+                        JSONObject day = (JSONObject) o;
+                        BodymediaBurnFacet facet = new BodymediaBurnFacet();
+                        //The following call must be made
+                        super.extractCommonFacetData(facet, apiData);
+                        facet.setTotalCalories(day.getInt("totalCalories"));
+                        facet.setDate(day.getString("date"));
+                        facet.setEstimatedCalories(day.getInt("estimatedCalories"));
+                        facet.setPredictedCalories(day.getInt("predictedCalories"));
+                        facet.setBurnJson(day.getString("minutes"));
+                        facets.add(facet);
+                    }
+                }
+            }
+            catch (JSONException e)
+            {
+                logger.info("guestId=" + apiData.updateInfo.getGuestId() +
+                       				" connector=bodymedia action=extractFacets error=JSON incorrectly formatted");
+            }
         }
-        return facet;
+        return facets;
     }
 }

@@ -6,7 +6,6 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.domain.AbstractFacet;
-import net.sf.json.JSONArray;
 import org.hibernate.search.annotations.Indexed;
 
 /**
@@ -25,45 +24,57 @@ public class BodymediaBurnFacet extends AbstractFacet {
     public int totalCalories = 0;
     public int estimatedCalories = 0;
     public int predictedCalories = 0;
+
+    public String date;
     // Store the JSON for the minutely data.  This is a JSON array with one entry per minute
     /*
-     * Not really. stores a JSONArray of days that in turn store JSON arrays of minutely data
+     * Not really. stores a JSONArray of burnJson that in turn store JSON arrays of minutely data
      */
     @Lob
-    public JSONArray days;
+    public String burnJson;
 
     public BodymediaBurnFacet(){
         averageCalories = 0;
         totalCalories = 0;
-        //this.api must be set to 88 for the app to properly find it in the hashtable. I don't know why
-        this.api = 88;
     }
 	
 	@Override
 	protected void makeFullTextIndexable() {}
 
     public int getAverageCalories() {
-         return averageCalories;
-     }
+        return averageCalories;
+    }
 
-     public void setAverageCalories(final int averageCalories) {
-         this.averageCalories = averageCalories;
-     }
+    public void setAverageCalories(final int averageCalories) {
+        this.averageCalories = averageCalories;
+    }
 
-     public int getTotalCalories() {
-         return totalCalories;
-     }
+    public int getTotalCalories() {
+        return totalCalories;
+    }
 
-     public void setTotalCalories(final int totalCalories) {
-         this.totalCalories = totalCalories;
-     }
+    public void setTotalCalories(final int totalCalories) {
+        this.totalCalories = totalCalories;
+    }
 
-    public JSONArray getDays() {
-         return days;
-     }
+   public String getBurnJson() {
+        return burnJson;
+    }
 
-     public void setDays(final JSONArray minutes) {
-         this.days = minutes;
-     }
+    public void setBurnJson(final String minutes) {
+        this.burnJson = minutes;
+    }
+
+    public void setEstimatedCalories(final int estimatedCalories) {
+        this.estimatedCalories = estimatedCalories;
+    }
+
+    public void setPredictedCalories(final int predictedCalories) {
+        this.predictedCalories = predictedCalories;
+    }
+
+    public void setDate(final String date) {
+        this.date = date;
+    }
 
 }
