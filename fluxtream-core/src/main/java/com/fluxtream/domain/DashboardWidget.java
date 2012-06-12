@@ -42,30 +42,34 @@ public class DashboardWidget {
 
      */
     public DashboardWidget(final JSONObject manifestJSON) {
-        JSONObject descDict = JSONObject.fromObject(manifestJSON.getString("WidgetDescription"));
-        for (Object o : descDict.keySet()) {
-            String key = (String) o;
-            description.put(key, descDict.getString(key));
+        try {
+            JSONObject descDict = JSONObject.fromObject(manifestJSON.getString("WidgetDescription"));
+            for (Object o : descDict.keySet()) {
+                String key = (String) o;
+                description.put(key, descDict.getString(key));
+            }
+            icon = manifestJSON.getString("WidgetIcon");
+            name = manifestJSON.getString("WidgetName");
+            url = manifestJSON.getString("WidgetURL");
+            copyright = manifestJSON.getString("BundleCopyright");
+            identifier = manifestJSON.getString("BundleIdentifier");
+            version = manifestJSON.getString("BundleVersion");
+            supportedLanguages = new ArrayList<String>(
+                    Arrays.asList(
+                            StringUtils.split(manifestJSON.getString("SupportedLanguages"),
+                                              ",")
+                    )
+            );
+            vendorIdentifier = manifestJSON.getString("VendorIdentifier");
+            requiredConnectors = new ArrayList<String>(
+                    Arrays.asList(
+                            StringUtils.split(manifestJSON.getString("RequiredConnectors"),
+                                              ",")
+                    )
+            );
+        } catch (Throwable t) {
+            throw new RuntimeException("Invalid manifest JSON (" + t.getMessage() + ")");
         }
-        icon = manifestJSON.getString("WidgetIcon");
-        name = manifestJSON.getString("WidgetName");
-        url = manifestJSON.getString("WidgetURL");
-        copyright = manifestJSON.getString("BundleCopyright");
-        identifier = manifestJSON.getString("BundleIdentifier");
-        version = manifestJSON.getString("BundleVersion");
-        supportedLanguages = new ArrayList<String>(
-                Arrays.asList(
-                        StringUtils.split(manifestJSON.getString("SupportedLanguages"),
-                                          ",")
-                )
-        );
-        vendorIdentifier = manifestJSON.getString("VendorIdentifier");
-        requiredConnectors = new ArrayList<String>(
-                Arrays.asList(
-                        StringUtils.split(manifestJSON.getString("requiredConnectors"),
-                                          ",")
-                )
-        );
     }
 
     public boolean matchesUserConnectors(List<String> userConnectorNames) {

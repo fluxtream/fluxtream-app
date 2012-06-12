@@ -17,6 +17,7 @@ import com.fluxtream.utils.HttpUtils;
 import com.fluxtream.utils.JPAUtils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -62,6 +63,8 @@ public class WidgetsServiceImpl implements WidgetsService {
     @Override
     @Transactional(readOnly=false)
     public void addWidgetRepositoryURL(final long guestId, final String url) {
+        if (StringUtils.isEmpty(url))
+            throw new RuntimeException("Null URL");
         DashboardWidgetsRepository repository = new DashboardWidgetsRepository();
         repository.guestId = guestId;
         repository.url = url;
@@ -99,8 +102,9 @@ public class WidgetsServiceImpl implements WidgetsService {
         }
         List<DashboardWidget> availableWidgetsList = new ArrayList<DashboardWidget>();
         for (DashboardWidget widget : allWidgets) {
-            if (widget.matchesUserConnectors(userConnectorNames))
+            if (widget.matchesUserConnectors(userConnectorNames)) {
                 availableWidgetsList.add(widget);
+            }
         }
         return availableWidgetsList;
     }
@@ -116,6 +120,7 @@ public class WidgetsServiceImpl implements WidgetsService {
         return userWidgets;
     }
 
+    @Cacheable(value = "officialWidgets")
     private List<DashboardWidget> getOfficialWidgets() {
         String mainWidgetsUrl = env.get("homeBaseUrl");
         return getWidgetsList(mainWidgetsUrl);
@@ -123,21 +128,32 @@ public class WidgetsServiceImpl implements WidgetsService {
 
     private List<DashboardWidget> getWidgetsList(String baseURL) {
         JSONArray widgetsList = null;
+        String widgetListString = null;
         try {
-            final String widgetListString = HttpUtils.fetch(baseURL + "widgets.json", env);
-            widgetsList = JSONArray.fromObject(widgetListString);
+            widgetListString = HttpUtils.fetch(baseURL + "widgets.json", env);
         }
         catch (IOException e) {
             throw new RuntimeException("Could not access widgets JSON URL: " + baseURL + "widgets.json");
         }
+        try {
+            widgetsList = JSONArray.fromObject(widgetListString);
+        } catch (Throwable t) {
+            throw new RuntimeException("Could not parse widgets JSON (" + t.getMessage() + ")");
+        }
         String widgetUrl = null;
         List<DashboardWidget> widgets = new ArrayList<DashboardWidget>();
+        String manifestJSONString = null;
         try {
             for (int i=0; i<widgetsList.size(); i++) {
                 String widgetName = widgetsList.getString(i);
-                widgetUrl = baseURL + widgetName + "/manifest.json";
-                final String manifestJSONString = HttpUtils.fetch(widgetUrl, env);
-                JSONObject manifestJSON = JSONObject.fromObject(manifestJSONString);
+                widgetUrl = baseURL + "widgets/" + widgetName + "/manifest.json";
+                manifestJSONString = HttpUtils.fetch(widgetUrl, env);
+                JSONObject manifestJSON = null;
+                try {
+                    manifestJSON = JSONObject.fromObject(manifestJSONString);
+                } catch (Throwable t) {
+                    throw new RuntimeException("Could not parse widget manifest (" + t.getMessage() + ")");
+                }
                 widgets.add(new DashboardWidget(manifestJSON));
             }
         } catch (IOException e) {
