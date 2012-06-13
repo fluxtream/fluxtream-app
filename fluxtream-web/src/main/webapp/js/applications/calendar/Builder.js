@@ -11,7 +11,7 @@ define([], function() {
 	
 	var tab_icons = {
 		clock: "icon-time",
-        dashboards: "icon-bar-chart",
+        dashboards: "icon-dashboard",
 		map: "icon-map-marker",
 		diary: "icon-pencil",
 		photos: "icon-camera",
