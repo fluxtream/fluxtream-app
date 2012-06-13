@@ -58,10 +58,10 @@ define(function() {
          }
         var syncAllBtn = $("#sync-all");
         syncAllBtn.click(function(){
+            setAllToSyncing();
             event.preventDefault();
             $.ajax("/api/guest/" + App.getUsername() + "/connector/all/sync",{
-                type:"POST",
-                success:setAllToSyncing
+                type:"POST"
             });
         });
         $.doTimeout("manageConnectorsUpdater", 10000, function(){
@@ -82,9 +82,9 @@ define(function() {
         var syncNowBtn = $("#syncNow-" + connector.connectorName);
         syncNowBtn.click(function(event){
             event.preventDefault();
+            setToSyncing(connector.connectorName)
             $.ajax("/api/guest/" + App.getUsername() + "/connector/" + connector.connectorName + "/sync",{
-                type:"POST",
-                success:function(){setToSyncing(connector.connectorName)}
+                type:"POST"
             });
         });
 
