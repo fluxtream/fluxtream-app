@@ -26,7 +26,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 
 	function render(digest, timeUnit, calendarState, connectorEnabled) {
         hideEventInfo();
-		this.getTemplate("text!applications/calendar/tabs/clock/clock.html", "clock", function() {
+        $("#filtersContainer").show();
+        this.getTemplate("text!applications/calendar/tabs/clock/clock.html", "clock", function() {
 			 setup(digest, timeUnit, connectorEnabled);
 		});
 	}
