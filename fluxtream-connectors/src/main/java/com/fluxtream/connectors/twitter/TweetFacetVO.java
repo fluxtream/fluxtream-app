@@ -9,12 +9,14 @@ import com.fluxtream.domain.GuestSettings;
 public class TweetFacetVO extends AbstractInstantFacetVO<TweetFacet> {
 
 	String text;
+    public String profileImageUrl;
 	
 	@Override
 	public void fromFacet(TweetFacet facet, TimeInterval timeInterval, GuestSettings settings) {
 		startMinute = toMinuteOfDay(new Date(facet.time), timeInterval.timeZone);
 		text = facet.text;
 		description = facet.text;
+        this.profileImageUrl = facet.profileImageUrl;
 	}
 
 }

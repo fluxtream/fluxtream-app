@@ -9,6 +9,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     Calendar.timeUnit = "DAY";
 
 	var start, end;
+    Calendar.connectorEnabled = {"default":{}};
+    var buttons = {};
 
 	Calendar.setup = function() {
 		$(".menuNextButton").click(function(e) {
@@ -19,6 +21,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 			Calendar.timeUnit = "DAY";
 			var t = Builder.tabExistsForTimeUnit(Calendar.currentTabName, Calendar.timeUnit)?Calendar.currentTabName:Builder.tabs[Calendar.timeUnit][0];
 			Calendar.currentTabName = t;
+            Calendar.updateButtonStates();
 			Builder.bindTimeUnitsMenu(Calendar);
 			Builder.createTabs(Calendar);
 			fetchState("/nav/setToToday.json");
@@ -44,7 +47,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             var splitNames = ["app", "appName", "tabName", "timeUnit"];
             for (i = 0; i < pathElements.length; i += 1)
                 splits[splitNames[i]] = pathElements[i];
-            var validTab = _.include(["clock","map","diary","photos","list","timeline","dashboard"], splits.tabName),
+            var validTab = _.include(["clock","map","diary","photos","list","timeline","dashboards"], splits.tabName),
                 validTimeUnit = _.include(["date","week","month","year"], splits.timeUnit);
             if (validTab && validTimeUnit) {
                 var tab = Builder.tabExistsForTimeUnit(splits.tabName, Calendar.timeUnit)?splits.tabName:Builder.tabs[Calendar.timeUnit][0];
@@ -74,6 +77,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     };
 
 	Calendar.renderState = function(state, forceReload) {
+        $("#filtersContainer").hide();
         forceReload = typeof(forceReload)!="undefined"&&forceReload;
         if (!forceReload&&FlxState.getState("calendar")===state) {
 			return;
@@ -98,6 +102,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 		var nextTabState = state.substring(splits[0].length+1);
         var w = Builder.tabExistsForTimeUnit(Calendar.currentTabName, Calendar.timeUnit)?Calendar.currentTabName:Builder.tabs[Calendar.timeUnit][0];
         Calendar.currentTabName = w;
+        Calendar.updateButtonStates();
         Builder.createTabs(Calendar);
         if (!forceReload&&Calendar.tabState==nextTabState) {
 			// time didn't change
@@ -164,13 +169,14 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 	function fetchCalendar(url) {
 		$.ajax({ url: url,
 			success : function(response) {
-				$("#modal").empty();
                 if (Calendar.timeUnit==="DAY")
                     handleCityInfo(response);
                 else
                     $("#mainCity").empty();
                 Calendar.digest = response;
-				Builder.updateTab(response, Calendar);
+                enhanceDigest(Calendar.digest);
+                processDigest(Calendar.digest);
+				Builder.updateTab(Calendar.digest, Calendar);
 				$("#tabs").css("opacity", "1");
 				$(".calendar-navigation-button").toggleClass("disabled");
 				$(".loading").hide();
@@ -180,6 +186,117 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 			}
 		});
 	}
+
+    function enhanceDigest(digest){
+        for (var templateName in digest.detailsTemplates){
+            if (digest.detailsTemplates[templateName] == "")
+                console.log("WARNING: " + templateName + " is using a blank details template.");
+            digest.detailsTemplates[templateName] = Hogan.compile(digest.detailsTemplates[templateName]);
+        }
+        for (var connectorId in digest.cachedData){
+            for (var i = 0; i < digest.cachedData[connectorId].length; i++){
+                digest.cachedData[connectorId][i].getDetails = function(){
+                    return buildDetails(digest,this);
+                }
+            }
+        }
+    }
+
+
+    function processDigest(digest){
+        var selectedConnectors = $("#selectedConnectors");
+        selectedConnectors.empty();
+        for (var i = 0; i < digest.selectedConnectors.length; i++){
+            var enabled = false;
+            for (var j = 0; j < digest.selectedConnectors[i].facetTypes.length && !enabled; j++){
+                enabled =  digest.cachedData[digest.selectedConnectors[i].facetTypes[j]] != null;
+            }
+            enabled = enabled ? "" : "flx-disconnected";
+            var button = $('<li><a href="#" class="flx-active ' + enabled + " " + digest.selectedConnectors[i].connectorName + '">' + digest.selectedConnectors[i].prettyName + '</button></li>');
+            selectedConnectors.append(button);
+            button = $(button.children()[0]);
+            buttons[digest.selectedConnectors[i].connectorName] = button;
+            button.click({button:button,objectTypeNames:digest.selectedConnectors[i].facetTypes,connectorName:digest.selectedConnectors[i].connectorName}, function(event){
+                event.preventDefault();
+                $(document).click(); //needed for click away to work on tooltips in clock tab
+                connectorClicked(event.data.button,event.data.objectTypeNames,event.data.connectorName);
+            });
+            if (Calendar.connectorEnabled["default"][digest.selectedConnectors[i].connectorName] == null)
+                Calendar.connectorEnabled["default"][digest.selectedConnectors[i].connectorName] = true;
+            Calendar.updateButtonStates();
+        }
+    }
+
+    Calendar.updateButtonStates = function(){
+        if (Calendar.connectorEnabled[Calendar.currentTabName] == null)
+            Calendar.connectorEnabled[Calendar.currentTabName] = {};
+        for (var connectorName in Calendar.connectorEnabled["default"]){
+            if (Calendar.connectorEnabled[Calendar.currentTabName][connectorName] == null)
+                Calendar.connectorEnabled[Calendar.currentTabName][connectorName] = Calendar.connectorEnabled["default"][connectorName];
+            if (Calendar.connectorEnabled[Calendar.currentTabName][connectorName]){
+                buttons[connectorName].addClass("flx-active");
+                buttons[connectorName].removeClass("flx-inactive")
+            }
+            else{
+                buttons[connectorName].removeClass("flx-active");
+                buttons[connectorName].addClass("flx-inactive");
+            }
+        }
+    }
+
+    function connectorClicked(button,objectTypeNames,connectorName){
+        if (button.is(".flx-disconnected"))
+            return;
+        Calendar.connectorEnabled[Calendar.currentTabName][connectorName] = !Calendar.connectorEnabled[Calendar.currentTabName][connectorName];
+        if (Calendar.connectorEnabled[Calendar.currentTabName][connectorName]){
+            button.addClass("flx-active");
+            button.removeClass("flx-inactive")
+        }
+        else{
+            button.removeClass("flx-active");
+            button.addClass("flx-inactive");
+        }
+        Calendar.currentTab.connectorToggled(connectorName,objectTypeNames,Calendar.connectorEnabled[Calendar.currentTabName][connectorName]);
+        return;
+    }
+
+
+
+    function buildDetails(digest,data){
+        if (digest.detailsTemplates[data.type] == null){
+            console.log("WARNING: no template found for " + data.type + ".");
+            return "";
+        }
+        var params = {};
+        params.time = App.formatMinuteOfDay(data.startMinute);
+        params.description = data.description;
+        switch (data.type){
+            case "lastfm-loved_track":
+            case "lastfm-recent_track":
+                params.imgUrl = data.imgUrls[0];
+                break;
+            case "twitter-mention":
+                params.userName = data.userName;
+                params.profileImageUrl = data.profileImageUrl;
+                break;
+            case "twitter-dm":
+                params.profileImageUrl = data.profileImageUrl;
+                params.sender = data.sent ? "You" : data.userName;
+                params.receiver = data.sent ? data.userName : "You";
+                break;
+            case "twitter-tweet":
+                params.profileImageUrl = data.profileImageUrl;
+                break;
+            case "picasa-photo":
+                params.photoUrl = data.photoUrl;
+                break;
+            case "fitbit-activity_summary":
+                params.steps = data.steps;
+                params.calories = data.caloriesOut;
+                break;
+        }
+        return digest.detailsTemplates[data.type].render(params);
+    }
 
     function handleCityInfo(digestInfo) {
         $("#mainCity").empty();

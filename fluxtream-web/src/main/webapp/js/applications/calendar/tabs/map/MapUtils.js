@@ -66,13 +66,14 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             case "twitter-dm":
             case "twitter-tweet":
             case "twitter-mention":
-            case "google_calendar":
+            case "google_calendar-entry":
             case "toodledo-task":
             case "fitbit-sleep":
             case "withings-bpm":
-            case "picasa":
+            case "picasa-photo":
             case "flickr":
             case "lastfm-recent_track":
+            case "lastfm-loved_track":
             case "photo":
                 return true;
             default:
@@ -114,8 +115,6 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     function addItemsToMap(map,items,clickable){
-        if (items.length != 0 && items[0].type == "photo")
-            return addImagesToMap(map,items,clickable);
         var markerArray = new Array();
         for (var i = 0; i < items.length; i++){
             var marker = addItemToMap(map,items[i],clickable);
@@ -138,7 +137,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             case "twitter-mention":
                 category = config.SOCIAL_CATEGORY;
                 break;
-            case "google_calendar":
+            case "google_calendar-entry":
             case "toodledo-task":
                 category = config.MIND_CATEGORY;
                 break;
@@ -146,9 +145,10 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             case "withings-bpm":
                 category = config.BODY_CATEGORY;
                 break;
-            case "picasa":
+            case "picasa-photo":
             case "flickr":
             case "lastfm-recent_track":
+            case "lastfm-loved_track":
                 category = config.MEDIA_CATEGORY;
                 break;
             default:
@@ -167,10 +167,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             if (map.selectedMarker != null)
                 map.selectedMarker.hideCircle();
             map.selectedMarker = marker;
-            var tooltip = $("#" + item.type + "_" + item.id).html();
-            if (tooltip == null)
-                tooltip = "no description available";
-            map.infoWindow.setContent(tooltip);
+            map.infoWindow.setContent(item.getDetails());
             map.infoWindow.open(map,marker);
             marker.doHighlighting();
             marker.showCircle();
@@ -383,6 +380,10 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     function hideData(map,connectorId){
+        if (connectorId == "google_latitude"){
+            map.hideGPSData();
+            return;
+        }
         if (!map.hasData(connectorId))
             return;
         if (map.connectorSelected == connectorId){
@@ -395,6 +396,10 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     function showData(map,connectorId){
+        if (connectorId == "google_latitude"){
+            map.showGPSData();
+            return;
+        }
         if (!map.hasData(connectorId))
             return;
         for (var i = 0; i < map.markers[connectorId].length; i++){

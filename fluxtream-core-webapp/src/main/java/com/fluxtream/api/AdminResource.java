@@ -4,12 +4,13 @@ import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.fluxtream.services.DashboardsService;
 import com.fluxtream.services.JPADaoService;
+import com.fluxtream.services.WidgetsService;
 import net.sf.json.JSONObject;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,9 +31,6 @@ public class AdminResource {
 	@Autowired
 	GuestService guestService;
 
-	@Autowired
-	BodyTrackStorageService bodytrackStorageService;
-
 	Gson gson = new Gson();
 
     @Autowired
@@ -41,10 +39,13 @@ public class AdminResource {
 	@Autowired
 	Configuration env;
 
-	@GET
-	@Path("/get/property/{propertyName}")
+    @Autowired
+    WidgetsService widgetsService;
+
+    @GET
+	@Path("/properties/{propertyName}")
 	@Produces({ MediaType.APPLICATION_JSON })
-	public String loadHistory(@PathParam("propertyName") String propertyName)
+	public String getProperty(@PathParam("propertyName") String propertyName)
 			throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException {
 
@@ -63,8 +64,7 @@ public class AdminResource {
     @POST
     @Path("/executeUpdate")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String executeUpdate(@FormParam("jpql") String jpql,
-                                @FormParam("test") String test)
+    public String executeUpdate(@FormParam("jpql") String jpql)
             throws InstantiationException, IllegalAccessException,
                    ClassNotFoundException {
 
@@ -77,6 +77,14 @@ public class AdminResource {
             return gson.toJson(failure);
         }
 
+    }
+
+    @POST
+    @Path("/widgets/refresh")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String refreshWidgets() {
+        widgetsService.refreshWidgets();
+        return gson.toJson(new StatusModel(true, "widgets refreshed"));
     }
 
 }

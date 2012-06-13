@@ -159,6 +159,7 @@ public class Connector {
 					objectType.facetClass = facetType;
 					objectType.value = ots.value();
 					objectType.name = ots.name();
+                    objectType.detailsTemplate = ots.detailsTemplate();
 					objectType.prettyname = ots.prettyname();
 					objectType.isImageType = ots.isImageType();
 					if (ots.extractor() != null) {

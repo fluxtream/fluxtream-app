@@ -28,13 +28,6 @@ public class DashboardTabController {
     @Autowired
     Configuration env;
 
-	@Autowired
-	@Qualifier("dayWidgetsStatsHelper")
-	DashboardWidgetsHelper dayStatsHelper;
-
-	@Autowired
-	@Qualifier("weekWidgetsStatsHelper")
-	DashboardWidgetsHelper weekStatsHelper;
 
 	@RequestMapping("/tabs/dashboard")
 	public ModelAndView getUserWidgets(HttpServletRequest request) {
@@ -43,18 +36,6 @@ public class DashboardTabController {
 		ModelAndView mav = new ModelAndView();
 		mav.setViewName("tabs/stats");
         mav.addObject("release", env.get("release"));
-		mav.addObject("timeUnit", homeModel.getTimeInterval().timeUnit
-				.toString().toLowerCase());
-		switch (homeModel.getTimeInterval().timeUnit) {
-		case DAY:
-			mav.addObject("userWidgets",
-					dayStatsHelper.getAvailableUserWidgets(guestId));
-			break;
-		case WEEK:
-			mav.addObject("userWidgets",
-					weekStatsHelper.getAvailableUserWidgets(guestId));
-			break;
-		}
 		return mav;
 	}
 
@@ -64,24 +45,6 @@ public class DashboardTabController {
 		HomeModel homeModel = ControllerHelper.getHomeModel(request);
 		long guestId = ControllerHelper.getGuestId();
 		JSONObject o = new JSONObject();
-		switch (homeModel.getTimeInterval().timeUnit) {
-		case DAY:
-			List<DashboardWidgetsHelper.DashboardWidget> availableUserWidgets = dayStatsHelper
-					.getAvailableUserWidgets(guestId);
-			dayStatsHelper.provideWidgetsData(availableUserWidgets, guestId,
-					homeModel.getTimeInterval(), o);
-			break;
-		case WEEK:
-			availableUserWidgets = weekStatsHelper
-					.getAvailableUserWidgets(guestId);
-			weekStatsHelper.provideWidgetsData(availableUserWidgets, guestId,
-					homeModel.getTimeInterval(), o);
-			break;
-		case MONTH:
-			break;
-		case YEAR:
-			break;
-		}
 		response.setContentType("application/json");
 		response.getWriter().write(o.toString());
 	}

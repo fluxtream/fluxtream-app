@@ -22,8 +22,6 @@
     <link rel="stylesheet" href="/css/flx.css">
     <link rel="stylesheet" href="/css/bodytrack.css">
     <link rel="stylesheet" href="/css/datepicker.css">
-    <link rel="stylesheet" href="/css/qtip/jquery.qtip.min.css">
-    <link rel="stylesheet" href="/css/qtip/jquery.jqplot.min.css">
     <link rel="stylesheet" href="/static/css/jquery-ui/jquery-ui-1.8.18.custom.css">
     <link rel="stylesheet"
         href="/static/css/jquery-colorPicker/jquery.colorPicker.css">
@@ -505,7 +503,7 @@
         <script src="/static/js/jquery.ui.sortable-bt.js"></script>
         <script src="/static/tiny_mce/jquery.tinymce.js"></script>
         <script src="/static/js/json2.js"></script>
-        <script src="/static/js/jquery.mustache-1.0.js"></script>
+        <script src="/static/js/hogan-2.0.0.js"></script>
         <script src="/static/js/jquery.autoGrowInput.js"></script>
         <script src="/static/js/jquery.colorPicker.js"></script>
         <script src="/static/js/jquery.dd-uncompressed.js"></script>

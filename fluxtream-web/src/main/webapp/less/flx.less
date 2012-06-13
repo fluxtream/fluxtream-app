@@ -271,7 +271,6 @@ a img { text-decoration: none; }
 @tTborder : #08C;
 @strongBorder : 4px; 
 
-
 @connector : rgba(0, 136, 204,1);
 
 // helpers
@@ -294,7 +293,6 @@ a img { text-decoration: none; }
     .flx-body { padding : 9px; }
 }
 
-.nav { margin-bottom: 45px; }
 .nav-tabs { background: @hd-bg-color; }
 .nav-tabs > li > a { padding-top: 8px; padding-bottom: 8px; line-height:18px;}
 .nav-tabs > li > a:hover { padding-top: 8px; padding-bottom: 7px; line-height:18px;}
@@ -462,7 +460,7 @@ a img { text-decoration: none; }
      
      a.fitbit { border-bottom-color: @fitbit; }
      a.bodytrack { border-bottom-color: @bodyTrack; }
-     a.lastFM { border-bottom-color: @lastFM; }
+     a.lastfm { border-bottom-color: @lastFM; }
      a.withings { border-bottom-color: @withings; }
      a.picasa { border-bottom-color: @picasa; }
      a.twitter { border-bottom-color: @twitter; }
@@ -493,11 +491,14 @@ a img { text-decoration: none; }
      a.twitter { color: @twitter; border-bottom-color: @twitter; }
      a.ggleCal { color: @ggleCal; border-bottom-color: @ggleCal; }
  }
- 
-.flx-sourceFilters6 { list-style-type: none; overflow:hidden; height:100%; text-align:center; margin: 0 0 0 0; padding: 0 0 0 0; border-bottom: 1px solid lighten(@grey, 40%);
-    li { display:inline-block;border-right: 1px solid @white; padding-bottom: 0;width:76px;
-    
-        a, span {  color:@grey; border-bottom: 1px solid @grey; padding: 10px 5px; background: #fff; position:relative; width: 70px; text-align:center; display:inline-block; 
+
+#filtersContainer {
+    margin-top: -17px;
+}
+
+.flx-sourceFilters6 { list-style-type: none; 
+    li { .flx-floatL;border-right: 1px solid transparent; font-size:11px; letter-spacing:0.1em;
+        a, span {  color:@grey; border-bottom: 1px solid @grey; padding: 10px 0; background: #fff; position:relative; width: 70px; text-align:center; display:inline-block;
             -webkit-transition: all 0.1s ease-in;
             -moz-transition: all 0.1s ease-in;
             -o-transition: all 0.1s ease-in;
@@ -511,7 +512,6 @@ a img { text-decoration: none; }
         //border-bottom-width: 4px; padding-bottom: 7px; 
         background-color: lighten(@grey, 45%); }
      }
-   
    li:last-child a:after, li:last-child a:after { border-right: 0; }  
 }
 
@@ -543,7 +543,6 @@ table .remove { text-align:center;
     a, span { color: @grey;}
 }
 
-
 //--------- TIMELINE MENU 
 
 .load-view-subMenu { min-width:350px;
@@ -563,4 +562,3 @@ table .remove { text-align:center;
     a>* { white-space: normal; }
     a.savedView:hover {background-color: @green-background; color:inherit;}
 }
-

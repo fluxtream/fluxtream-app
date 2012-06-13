@@ -16,6 +16,7 @@ import javax.persistence.NamedQuery;
 import javax.persistence.PostLoad;
 import javax.persistence.PrePersist;
 
+import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import org.hibernate.search.annotations.Indexed;
 
 import com.fluxtream.domain.AbstractFacet;
@@ -30,9 +31,17 @@ import com.google.gdata.data.extensions.Where;
 
 @SuppressWarnings("serial")
 @Entity(name="Facet_CalendarEventEntry")
+@ObjectTypeSpec(name = "entry", value = 1, parallel=true, prettyname = "Mentions",
+                detailsTemplate="<h3 class=\"flx-dataType\">Calendar</h3>" +
+                                "<span class=\"flx-deviceIcon\" style=\"background:url('{{profileImageUrl}}'); background-size:100% 100%;\"></span>" +
+                                "<div class=\"flx-deviceData\">" +
+                                "    <span class=\"flx-tTime\">{{time}}</span>" +
+                                "    <span class=\"flx-data\">{{description}}</span>" +
+                                "</div>")
 @NamedQueries({
-		@NamedQuery(name = "google_calendar.deleteAll", query = "DELETE FROM Facet_CalendarEventEntry facet WHERE facet.guestId=?"),
-		@NamedQuery(name = "google_calendar.between", query = "SELECT facet FROM Facet_CalendarEventEntry facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=?")
+		@NamedQuery(name = "google_calendar.entry.deleteAll", query = "DELETE FROM Facet_CalendarEventEntry facet WHERE facet.guestId=?"),
+		@NamedQuery(name = "google_calendar.entry.between", query = "SELECT facet FROM Facet_CalendarEventEntry facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=?"),
+        @NamedQuery(name = "google_calendar.entry.newest", query = "SELECT facet FROM Facet_CalendarEventEntry facet WHERE facet.guestId=? ORDER BY facet.end DESC LIMIT 1")
 })
 @Indexed
 public class GoogleCalendarEntryFacet extends AbstractFacet implements Serializable {

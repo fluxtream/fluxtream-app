@@ -1,0 +1,15 @@
+{
+    "WidgetDescription" : {"en" : ""},
+    "WidgetIcon" : "",
+    "WidgetName" : "hoursSlept",
+    "WidgetURL" : "",
+    "BundleCopyright" : "",
+    "BundleIdentifier" : "",
+    "BundleType" : "Widget",
+    "BundleVersion" : "",
+    "RequiredPermissions" : "",
+    "SupportedLanguages" : "",
+    "VendorIdentifier" : "",
+    "RequiredConnectors": "zeo, fitbit"
+
+}

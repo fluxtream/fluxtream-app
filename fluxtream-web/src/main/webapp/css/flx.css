@@ -304,9 +304,6 @@ a img {
 .flx-widget .flx-body {
   padding: 9px;
 }
-.nav {
-  margin-bottom: 45px;
-}
 .nav-tabs {
   background: #eeeee9;
 }
@@ -775,7 +772,7 @@ a img {
 .flx-sourceFilters4 a.bodytrack {
   border-bottom-color: #c79409;
 }
-.flx-sourceFilters4 a.lastFM {
+.flx-sourceFilters4 a.lastfm {
   border-bottom-color: #ec0c0c;
 }
 .flx-sourceFilters4 a.withings {
@@ -868,26 +865,23 @@ a img {
   color: #d7186e;
   border-bottom-color: #d7186e;
 }
+#filtersContainer {
+  margin-top: -17px;
+}
 .flx-sourceFilters6 {
   list-style-type: none;
-  overflow: hidden;
-  height: 100%;
-  text-align: center;
-  margin: 0 0 0 0;
-  padding: 0 0 0 0;
-  border-bottom: 1px solid #e6e6e6;
 }
 .flx-sourceFilters6 li {
-  display: inline-block;
-  border-right: 1px solid #ffffff;
-  padding-bottom: 0;
-  width: 76px;
+  float: left;
+  border-right: 1px solid transparent;
+  font-size: 11px;
+  letter-spacing: 0.1em;
 }
 .flx-sourceFilters6 li a,
 .flx-sourceFilters6 li span {
   color: #808080;
   border-bottom: 1px solid #808080;
-  padding: 10px 5px;
+  padding: 10px 0;
   background: #fff;
   position: relative;
   width: 70px;

@@ -1,9 +1,11 @@
 define(["applications/calendar/tabs/Tab",
         "applications/calendar/App"], function(Tab, Calendar) {
 
-    function render(digest, timeUnit, calendarState) {
+    function render(dgest, timeUnit, calendarState, cEn) {
         this.getTemplate("text!applications/calendar/tabs/photos/photos.html", "photos", function() {
-            setup(digest, timeUnit, calendarState);
+            digest = dgest;
+            connectorEnabled = cEn;
+            setup(digest,connectorEnabled);
         });
     }
 
@@ -11,128 +13,87 @@ define(["applications/calendar/tabs/Tab",
         this.getUrl("/tabs/photos", "photos", null, true);
     }*/
 
-    function setup(digest, timeUnit, calendarState){
-        $("#photoTab").empty();
-        $("#photoTab").append("<div style='text-align:center'>Retrieving photos...</div>")
-        $.ajax("/api/guest/" + App.getUsername() + "/photo/" + calendarState,{
-            success: function(data, textStatus, jqXHR){
-                onDataRecieved(data);
-            },
-            error: function(jqXHR, textStatus){
-                $("#photoTab").empty();
-                showNoPhotos();
-                $("#photoTab").append('<div class="alert alert-error"><button class="close" data-dismiss="alert">×</button><strong>Error!</strong> Photos could not be retrieved!</div>');
-            }
+    var connectorEnabled;
+    var digest;
 
-        });
-
+    function setup(digest, cEn){
+        if (digest.cachedData["picasa-photo"] == null){
+            showNoPhotos();
+            return;
+        }
+        onDataRecieved(digest.cachedData["picasa-photo"]);
     }
 
     function showNoPhotos(){
+        $("#photoTab").empty();
         $("#photoTab").append("<div class=\"emptyList\">(no photos)</div>");
     }
 
-
-    function getPhotoHTML(photoData){
-        var html = "<div class='thumbnailContainer'>";
-        html += "<div class='photoThumbnail' style='background-image: url(";
-        html += photoData.photoUrl;
-        html += ")'></div></div>";
-       return html;
-    }
-
-    function buildCarouselPhotos(photos,onDone){
-        var photosHTML = ""
-        var i = 0;
-        var loadNextPhoto = function (){
-            App.loadHTMLTemplate("applications/calendar/tabs/photos/photosTemplate.html","carouselPhoto",{
-                active:i == 0 ? " active" : "",
-                id:i,
-                photoURL:photos[i].photoUrl
-            }, function(html){
-                photosHTML += html;
-                i++;
-                if (i == photos.length)
-                    onDone(photosHTML);
-                else
-                    loadNextPhoto();
-            });
-        }
-        loadNextPhoto();
-
-    }
-
-    function buildMainHTML(photos,onDone){
-        var i = 0;
-        var photosHTML = "";
-        var groupHTML = "";
-        var currentDate = new Date(photos[i].timeTaken);
-        var loadNextPhoto = function(){
-            App.loadHTMLTemplate("applications/calendar/tabs/photos/photosTemplate.html","photoThumbnail",{
-                id:i,
-                photoURL:photos[i].photoUrl
-            }, function(html){
-                var date = new Date(photos[i].timeTaken);
-                var loadSet = function(){
-                    App.loadHTMLTemplate("applications/calendar/tabs/photos/photosTemplate.html","thumbnailGroup",{
-                        date:App.formatDate(currentDate),
-                        thumbnails:photosHTML
-                    }, function(group){
-                        groupHTML += group;
-                        if (i == photos.length){
-                            onDone(groupHTML);
-                        }
-                        else{
-                            currentDate = date;
-                            photosHTML = "";
-                        }
-                    });
+    function onDataRecieved(photos){
+        var data = [];
+        $("#photoTab").empty();
+        for (var i = 0; i < photos.length; i++){
+            for (var j = 0; j < digest.selectedConnectors.length; j++){
+                var found = false;
+                for (var k = 0; !found &&  k < digest.selectedConnectors[j].facetTypes.length; k++){
+                   found = digest.selectedConnectors[j].facetTypes[k] == photos[i].type;
                 }
-                if (currentDate.getMonth() != date.getMonth() || currentDate.getYear() != date.getYear()
-                    || currentDate.getDate() != date.getDate()) {
-                    loadSet();
+                if (found){
+                   if (connectorEnabled[digest.selectedConnectors[j].connectorName])
+                        data[data.length] = photos[i];
                 }
-                photosHTML += html;
-                i++;
-                if (i == photos.length)
-                    loadSet();
-                else
-                    loadNextPhoto();
-            });
+            }
         }
-        loadNextPhoto();
-    }
-
-
-
-    function onDataRecieved(data){
+        for (var i = 0; i < data.length; i++){
+            data[i].active = i == 0;
+            data[i].id = i;
+        }
         $("#photoTab").empty();
         if (data.length == 0){
             showNoPhotos();
             return;
         }
-        buildCarouselPhotos(data,function (photoHTML){
-            App.loadHTMLTemplate("applications/calendar/tabs/photos/photosTemplate.html","carouselWith" + (data.length == 1 ? "out" : "") + "Nav",{
-                itemsHTML:photoHTML
-            },function(carouselHTML){
-                buildMainHTML(data,function(html){
-                    $("#photoTab").append(html);
-                    for (var i = 0; i < data.length; i++){
-                        $("#photo-" + i).click({i:i},function(event){
-                            App.makeModal(carouselHTML);
-                            App.carousel(event.data.i);
-                        });
-                    }
-                })
-
+        App.loadMustacheTemplate("applications/calendar/tabs/photos/photosTemplate.html","carousel",function(template){
+            var carouselHTML = template.render({photos:data,includeNav:data.length > 1});
+            App.loadMustacheTemplate("applications/calendar/tabs/photos/photosTemplate.html","thumbnailGroup", function(template){
+                var currentGroup = [];
+                var currentDate = null;
+                for (var i = 0; i < data.length; i++){
+                   var date = new Date(data[i].start);
+                   if (currentDate == null){
+                       currentDate = date;
+                   }
+                   else if (currentDate.getMonth() != date.getMonth() || currentDate.getYear() != date.getYear()
+                       || currentDate.getDate() != date.getDate()) {
+                       $("#photoTab").append(template.render({date:App.formatDate(currentDate),photos:currentGroup}));
+                       currentGroup = [];
+                       currentDate = date;
+                   }
+                    currentGroup[currentGroup.length] = data[i];
+                }
+                if (currentGroup.length != 0){
+                    $("#photoTab").append(template.render({date:App.formatDate(currentDate),photos:currentGroup}));
+                }
+                for (var i = 0; i < data.length; i++){
+                    $("#photo-" + i).click({i:i},function(event){
+                        App.makeModal(carouselHTML);
+                        App.carousel(event.data.i);
+                    });
+                }
             });
 
         });
 
     }
 
+    function connectorToggled(connectorName,objectTypeNames,enabled){
+        connectorEnabled[connectorName] = enabled;
+        setup(digest,connectorEnabled);
+    }
+
     var photosTab = new Tab("photos", "Candide Kemmler", "icon-camera", true);
     photosTab.render = render;
+    photosTab.connectorToggled = connectorToggled;
     return photosTab;
 
 });
