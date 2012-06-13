@@ -187,11 +187,20 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 		});
 	}
 
+    function getTemplate(digest,i,j){
+        App.loadMustacheTemplate("applications/calendar/facetTemplates.html",digest.selectedConnectors[i].facetTypes[j],function(template){
+            if (template == null)
+                console.log("WANRING: no template found for " + digest.selectedConnectors[i].facetTypes[j] + ".");
+            digest.detailsTemplates[digest.selectedConnectors[i].facetTypes[j]] = template;
+        });
+    }
+
     function enhanceDigest(digest){
-        for (var templateName in digest.detailsTemplates){
-            if (digest.detailsTemplates[templateName] == "")
-                console.log("WARNING: " + templateName + " is using a blank details template.");
-            digest.detailsTemplates[templateName] = Hogan.compile(digest.detailsTemplates[templateName]);
+        digest.detailsTemplates = {};
+        for (var i = 0; i < digest.selectedConnectors.length; i++){
+            for (var j = 1; j < digest.selectedConnectors[i].facetTypes.length; j++){
+                getTemplate(digest,i,j);
+            }
         }
         for (var connectorId in digest.cachedData){
             for (var i = 0; i < digest.cachedData[connectorId].length; i++){
@@ -268,32 +277,25 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             return "";
         }
         var params = {};
-        params.time = App.formatMinuteOfDay(data.startMinute);
-        params.description = data.description;
-        switch (data.type){
-            case "lastfm-loved_track":
-            case "lastfm-recent_track":
-                params.imgUrl = data.imgUrls[0];
-                break;
-            case "twitter-mention":
-                params.userName = data.userName;
-                params.profileImageUrl = data.profileImageUrl;
-                break;
-            case "twitter-dm":
-                params.profileImageUrl = data.profileImageUrl;
-                params.sender = data.sent ? "You" : data.userName;
-                params.receiver = data.sent ? data.userName : "You";
-                break;
-            case "twitter-tweet":
-                params.profileImageUrl = data.profileImageUrl;
-                break;
-            case "picasa-photo":
-                params.photoUrl = data.photoUrl;
-                break;
-            case "fitbit-activity_summary":
-                params.steps = data.steps;
-                params.calories = data.caloriesOut;
-                break;
+        for (var member in data){
+            switch (member){
+                case "startMinute":
+                    params.time = App.formatMinuteOfDay(data[member]);
+                    break;
+                case "userName":
+                    if (data.type == "twitter-dm"){
+                        params.sender = data.sent ? "You" : data[member];
+                        params.receiver = data.sent ? data[member] : "You";
+                        break;
+                    }
+                    params[member] = data[member];
+                    break;
+                case "imgUrls":
+                    params["imgUrl"] = data[member][0];
+                    break;
+                default:
+                    params[member] = data[member];
+            }
         }
         return digest.detailsTemplates[data.type].render(params);
     }

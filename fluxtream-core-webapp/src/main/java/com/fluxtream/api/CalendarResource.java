@@ -170,8 +170,6 @@ public class CalendarResource {
 		setCurrentAddress(digest, guestId, dayMetadata.start);
 		digest.settings = new SettingsModel(settings);
 
-        digest.detailsTemplates = detailsTemplates(apiKeySelection);
-
 		// NewRelic.setTransactionName(null, "/api/log/all/date");
 		return gson.toJson(digest);
 	}
@@ -463,20 +461,6 @@ public class CalendarResource {
         }
         return  connectors;
     }
-
-    private Map<String,String> detailsTemplates(List<ApiKey> apis){
-        Map<String,String> detailsTemplates = new HashMap<String,String>();
-        for (ApiKey apiKey : apis){
-            Connector connector = apiKey.getConnector();
-            ObjectType[] objTypes = connector.objectTypes();
-            if (objTypes == null)
-                continue;
-            for (ObjectType obj : objTypes){
-                detailsTemplates.put(connector.getName() + "-" + obj.getName(),obj.getDetailsTemplate());
-            }
-        }
-        return  detailsTemplates;
-	}
 
 	private List<String> connectorNames(List<ApiKey> apis) {
 		List<String> connectorNames = new ArrayList<String>();
