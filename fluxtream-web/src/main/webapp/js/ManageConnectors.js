@@ -54,24 +54,14 @@ define(function() {
 
     function bindDialog(){
          for (var i = 0; i < connectors.length; i++){
-             var deleteBtn = $("#remove-" + connectors[i].connectorName);
-             deleteBtn.click({index:i}, function(event){
-                 event.preventDefault();
-                 confirmDelete(event.data.index);
-             });
-             var syncNowBtn = $("#syncNow-" + connectors[i].connectorName);
-             syncNowBtn.click({index:i}, function(event){
-                 event.preventDefault();
-                 $.ajax("/api/guest/" + App.getUsername() + "/connector/" + connectors[event.data.index].connectorName + "/sync",{
-                     type:"POST"
-                 });
-             });
+             bindConnector(connectors[i]);
          }
         var syncAllBtn = $("#sync-all");
         syncAllBtn.click(function(){
             event.preventDefault();
             $.ajax("/api/guest/" + App.getUsername() + "/connector/all/sync",{
-                type:"POST"
+                type:"POST",
+                success:setAllToSyncing
             });
         });
         $.doTimeout("manageConnectorsUpdater", 10000, function(){
@@ -82,6 +72,49 @@ define(function() {
             $.doTimeout("manageConnectorsUpdater");
         })
     }
+
+    function bindConnector(connector){
+        var deleteBtn = $("#remove-" + connector.connectorName);
+        deleteBtn.click({index:i}, function(event){
+            event.preventDefault();
+            confirmDelete(event.data.index);
+        });
+        var syncNowBtn = $("#syncNow-" + connector.connectorName);
+        syncNowBtn.click(function(event){
+            event.preventDefault();
+            $.ajax("/api/guest/" + App.getUsername() + "/connector/" + connector.connectorName + "/sync",{
+                type:"POST",
+                success:function(){setToSyncing(connector.connectorName)}
+            });
+        });
+
+    }
+
+    function setToSyncing(connectorName){
+        var row = $("#connector-" + connectorName);
+        if (row.hasClass("nowSynchro"))
+            return;
+        row.addClass("nowSynchro");
+        var syncLED = $("#syncLED-" + connectorName);
+        syncLED.removeClass("syncLED-yes");
+        syncLED.removeClass("syncLED-no");
+        syncLED.addClass("syncLED-waiting");
+        syncLED.html("<span class=\"syncLED-waiting\">" +
+                     "<img src=\"/css/devicesPictures/load.gif\" alt=\"load\">" +
+                     "</span>");
+        var lastSync = $("#lastSync-" + connectorName);
+        lastSync.html("Now synchronizing");
+        var syncNowBtn = $("#syncNow-" + connectorName);
+        var disabledBtn = $("<span>" + syncNowBtn.html() + "</span>");
+        syncNowBtn.replaceWith(disabledBtn);
+    }
+
+    function setAllToSyncing(){
+        for (var i = 0; i < connectors.length; i++)
+            setToSyncing(connectors[i].connectorName);
+    }
+
+
 
     function confirmDelete(index){
         App.closeModal();
