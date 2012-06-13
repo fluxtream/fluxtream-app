@@ -47,7 +47,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             var splitNames = ["app", "appName", "tabName", "timeUnit"];
             for (i = 0; i < pathElements.length; i += 1)
                 splits[splitNames[i]] = pathElements[i];
-            var validTab = _.include(["clock","map","diary","photos","list","timeline","dashboard"], splits.tabName),
+            var validTab = _.include(["clock","map","diary","photos","list","timeline","dashboards"], splits.tabName),
                 validTimeUnit = _.include(["date","week","month","year"], splits.timeUnit);
             if (validTab && validTimeUnit) {
                 var tab = Builder.tabExistsForTimeUnit(splits.tabName, Calendar.timeUnit)?splits.tabName:Builder.tabs[Calendar.timeUnit][0];
