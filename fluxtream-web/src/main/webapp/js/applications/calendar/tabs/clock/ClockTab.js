@@ -72,9 +72,9 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 				continue;
 			updateDataDisplay(digest.cachedData[objectTypeName], objectTypeName, digest);
 		}
-		//for(i=0;i<digest.updateNeeded.length;i++) {
-		//	getDayInfo(digest.updateNeeded[i], digest);
-		//}
+		for(i=0;i<digest.updateNeeded.length;i++) {
+			getDayInfo(digest.updateNeeded[i], digest);
+		}
 	}
 
 	function outsideTimeBoundaries(o) {
@@ -507,6 +507,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 					instantWidth=10;
 				config.clockCircles.push(
 					function() {
+                        if (typeof(item.startMinute)=="undefined")
+                            item.startMinute = 0;
 						var start = item.startMinute;
 						var end = item.endMinute;
 						if (start>end) { start = 0; }
