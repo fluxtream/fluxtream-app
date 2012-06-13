@@ -41,9 +41,145 @@
 
 </head>
 
-<body style="padding: 50px; background:#fff;">
+<body style="background:#fff;">
 
     <div id="content">
+    
+        <div class="navbar">
+            <div class="navbar-inner">
+                <div class="container-fluid">
+                    <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse"> <span class="icon-bar"></span> <span class="icon-bar"></span> <span class="icon-bar"></span>
+                    </a> 
+                    <a class="brand" href="/app"><img src="/1.0-alpha-build_20120403/images/header-logo-v4.png" /></a>
+                    <a class="brand" href="/app"><img src="/1.0-alpha-build_20120403/images/header-logo-v4.png" /></a>
+                    <div class="nav-collapse">
+                        <ul class="nav">
+                            <li>
+                                <div class="btn-group" id="apps-menu" data-toggle="buttons-radio"></div>
+                            </li>
+                        </ul>
+                        <ul class="nav pull-right">
+                            <li class="divider-vertical"></li>
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Connectors <i class="icon-random icon-large"></i> <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="javascript:App.connectors()">Add  <i class="icon-plus icon-large" style="float: right;"></i></a></li>
+                                    <li><a href="javascript:App.connectors()">Manage <i class="icon-list icon-large" style="float: right;"></i></a></li>
+                                </ul>
+                            </li>
+                            <li class="divider-vertical"></li>
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Test Test <i class="icon-user icon-large"></i> <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="javascript:App.settings()">Settings <i class="icon-cog icon-large" style="float: right;"></i></a></li>
+                                    <li><a href="javascript:App.addresses()">Addresses <i style="float: right;" class="icon-home icon-large"></i></a></li>
+                                    <li><a href="/admin/index">Admin <i class="icon-key icon-large" style="float: right;"></i></a></li>
+                                    <li class="divider"></li>
+                                    <li><a href="/logout">Logout <i style="float: right" class="icon-off icon-large"></i></a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>    
+<div class="container-fluid">
+        <div class="row-fluid">   <!-- New code snippet from peri 2012-21-11 -->
+            <div class="span12" id="flx-bodytrack-menubar">
+                <div class="flx-bodytrack-menu">
+                    <div class="floater">
+                        <h3 style="line-height:42px">Untitled view</h3>
+                    </div>
+                    <div class="floater" id="time-menu-container">
+                        <div class="btn-toolbar flx-bodytrack-menu" id="bodytrack-menu">
+                            <div class="btn-group">
+                                <a class="btn" href="#">New view</a>
+                            </div>
+                            <div class="btn-group"> 
+                                <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">Load view  <span class="caret"></span></a>
+                                <ul class="dropdown-menu load-view-subMenu">
+                                    <li class="flx-clearfix">
+                                        <div class="flx-floatL view-id">
+                                            <a href="#">
+                                                <h4>june 11th 2012</h4>
+                                            </a>
+                                        </div>
+                                        <ul class="flx-floater view-filters">
+                                            <li><a href="#">Time only <i class="icon-time"></i></a></li>
+                                            <li><a href="#">Channel only <i class="icon-list"></i></a></li>
+                                        </ul>
+                                    </li>
+                                    <li class="divider"></li>
+                                    <li class="flx-clearfix">
+                                        <div class="flx-floatL view-id">
+                                            <a href="#"><h4>JPF Wed.</h4><p>This is the sample we made in Milan last November</p></a>
+                                        </div>
+                                        <ul class="flx-floater view-filters">
+                                            <li><a href="#">Time only <i class="icon-time"></i></a></li>
+                                            <li><a href="#">Channel only <i class="icon-list"></i></a></li>
+                                        </ul>
+                                    </li>
+                                    <li class="divider"></li>
+                                    <li class="flx-clearfix">
+                                        <div class="flx-floatL view-id">
+                                            <a href="#"><h4>Lack of Sleep 1</h4><p>You never know what a body can do...</p></a>
+                                        </div>
+                                        <ul class="flx-floater view-filters">
+                                            <li><a href="#">Time only <i class="icon-time"></i></a></li>
+                                            <li><a href="#">Channel only <i class="icon-list"></i></a></li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="btn-group dropdown save-view-subMenu">
+                                <a class="btn">Save view <i class="icon-save"></i></a>
+                                <a class="btn dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <form>
+                                                <input type="text" title="insert view name" style="display:inline"/>
+                                                <a href="#" class="btn btn-mini">save</a>
+                                            </form>
+                                            <h5>Or save as one of the views bellow</h5>
+                                        </li>
+                                        <li class="divider"></li>
+                                        <li>
+                                            <a class="savedView" href="#">
+                                                <div><h4>Migraine</h4><p>12/07/10</p></div>
+                                                <div>This is the sample we did in Milan in November comparing sleep to migraine intensity</div>
+                                            </a>
+                                        </li>
+                                        <li class="divider"></li>
+                                        <li>
+                                            <a class="savedView" href="#">
+                                                <div><h4>Lack of Sleep 1</h4><p>15/10/11</p></div>
+                                                <div>Sleep disorder and (massive) food consumption</div>
+                                            </a>
+                                        </li> 
+                                    </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br/>
+        
+<!--
+        <ul class="nav nav-tabs" id="calendarTabs">
+            <li style="cursor:pointer" class="active">
+                <a class="timeline-tab" tabname="timeline" data-toggle="tab">Timeline</a>
+            </li>
+            <li style="cursor:pointer">
+                <a class="views-tab" tabname="view" data-toggle="tab"> Views</a>
+            </li>
+        </ul>  
+-->  
+</div>
+
+
+<!-- end snippet 2012/12/11 -->
+
         <div class="container-fluid">
         <div class="row">
             <div class="span10">
@@ -66,9 +202,9 @@
                         </tr>   
                     </thead>
                     <tbody>
-                        <tr class="pouet">
+                        <tr>
                             <td class="syncStatus"><span class="syncLED-yes"></span></td>
-                            <td class="connectors"><img src="/css/devicesPictures/bodymedia.jpg" alt="bodymedia" width="" height="" /></td>
+                            <td class="connectors"><img src="/css/devicesPictures/bodymedia.jpg" alt="bodymedia"/></td>
                             <td class="desc"><h4>BodyMedia Armband</h4><p>Activity, calories and sleep pattern</p><a href="#">Manage <i class="icon-cog"></i></a></td>
                             <td class="lastSync"><p>Sept 17 2012 10:03:12</p><a href="#">Sync now <i class="icon-refresh"></i></a></td>
                             <td class="latestData"><p>Sept 27 2012 30:42:55</p><a href="#">View graph <i class="icon-bar-chart"></i></a></td>
@@ -76,7 +212,7 @@
                         </tr>
                         <tr>
                             <td class="syncStatus "><span class="syncLED-yes"></span></td>
-                            <td class="connectors"><img src="/css/devicesPictures/zeo.jpg" alt="zeo" width="" height="" /></td>
+                            <td class="connectors"><img src="/css/devicesPictures/zeo.jpg" alt="zeo"/></td>
                             <td class="desc"><h4>Zeo Sleep Tracker</h4><p>Sleep quality monitor using a sensor headband</p><a href="#">Manage <i class="icon-cog"></i></a></td>
                             <td class="lastSync"><p>Sept 17 2012 10:03:12</p><a href="#">Sync now <i class="icon-refresh"></i></a></td>
                             <td class="latestData"><p>Sept 27 2012 30:42:55</p><a href="#">View graph <i class="icon-bar-chart"></i></a></td>
@@ -84,17 +220,17 @@
                         </tr>
                         <tr>
                             <td class="syncStatus"><span class="syncLED-no"></span></td>
-                            <td class="connectors"><img src="/css/devicesPictures/fitbit.jpg" alt="fitbit" width="" height="" /></td>
+                            <td class="connectors"><img src="/css/devicesPictures/fitbit.jpg" alt="fitbit"/></td>
                             <td class="desc"><h4>Fitbit</h4><p>A wearable tracker for physical activity or sleep</p><a href="#">Manage <i class="icon-cog"></i></a></td>
                             <td class="lastSync"><p>Sept 17 2012 10:03:12</p><a href="#">Sync now <i class="icon-refresh"></i></a></td>
                             <td class="latestData"><p>Sept 27 2012 30:42:55</p><a href="#">View graph <i class="icon-bar-chart"></i></a></td>
                             <td class="remove"><a href="#"><i class="icon-trash"></i></a></td>
                         </tr>
                         <tr class="nowSynchro">
-                            <td class="syncStatus"><span class="syncLED-waiting"><img src="/css/devicesPictures/load.gif" alt="load" width="" height="" /></span></td>
-                            <td class="connectors"><img src="/css/devicesPictures/mymee.jpg" alt="mymee" width="" height="" /></td>
+                            <td class="syncStatus"><span class="syncLED-waiting"><img src="/css/devicesPictures/load.gif" alt="load"/></span></td>
+                            <td class="connectors"><img src="/css/devicesPictures/mymee.jpg" alt="mymee"/></td>
                             <td class="desc"><h4>Mobile observation log</h4><p>Track my migraine and food consumption</p><a href="#">Manage <i class="icon-cog"></i></a></td>
-                            <td class="lastSync"><p>Now synchronizing</p><span href="#">Sync now <i class="icon-refresh"></i></span></td>
+                            <td class="lastSync"><p>Now synchronizing</p><span>Sync now <i class="icon-refresh"></i></span></td>
                             <td class="latestData"><p>Sept 27 2012 30:42:55</p><a href="#">View graph <i class="icon-bar-chart"></i></a></td>
                             <td class="remove"><a href="#"><i class="icon-trash"></i></a></td>
                         </tr>
@@ -103,7 +239,7 @@
                         </tr>
                         <tr>
                             <td class="syncStatus"><span class="syncLED-no"></span></td>
-                            <td class="connectors"><img src="/css/devicesPictures/bodyTrack.jpg" alt="bodyTrack" width="" height="" /></td>
+                            <td class="connectors"><img src="/css/devicesPictures/bodyTrack.jpg" alt="bodyTrack"/></td>
                             <td class="desc"><h4>Basestation</h4><p>Temperature, humidity and air pressure</p></td>
                             <td class="lastSync"><p>Sept 17 2012 10:03:12</p><a href="#">Sync now <i class="icon-refresh"></i></a></td>
                             <td class="latestData"><p>Sept 27 2012 30:42:55</p><a href="#">View graph <i class="icon-bar-chart"></i></a></td>
@@ -111,7 +247,7 @@
                         </tr>
                         <tr>
                             <td class="syncStatus"><span class="syncLED-yes"></span></td>
-                            <td class="connectors"><img src="/css/devicesPictures/mHealth.jpg" alt="mHealth" width="" height="" /></td>
+                            <td class="connectors"><img src="/css/devicesPictures/mHealth.jpg" alt="mHealth"/></td>
                             <td class="desc"><h4>Atrix</h4><p>Illuminance, azimuth and pitch</p></td>
                             <td class="lastSync"><p>Sept 17 2012 10:03:12</p><a href="#">Sync now <i class="icon-refresh"></i></a></td>
                             <td class="latestData"><p>Sept 27 2012 30:42:55</p><a href="#">View graph <i class="icon-bar-chart"></i></a></td>
@@ -123,10 +259,8 @@
         </div>
         
             <div class="row">
-            <h4>Variation 1</h4>
-                <div class="span12" style="min-height:50px">
-                <br/>
-                <br/>
+                <div class="span12">
+                    <h4>Variation 1</h4>
                     <ul class="flx-sourceFilters1">
                         <li>
                             <a href="#" class="fitbit">Fitbit</a>
@@ -151,15 +285,13 @@
                         </li>
                     </ul>
                 </div>
-            </div>
-                            <br/>
-                <br/>
+            <br/>
+            <br/>
 
+            </div>
             <div class="row">   
-            <h4>Variation 2</h4>
-                <div class="span12" style="min-height:50px">    
-                <br/>
-                <br/>
+                <div class="span12">
+                <h4>Variation 2</h4>
                     <ul class="flx-sourceFilters2">
                         <li>
                             <a href="#" class="fitbit">Fitbit</a>
@@ -184,13 +316,12 @@
                         </li>
                     </ul>
                 </div>
+            <br/>
+            <br/>
             </div>
-                            <br/>
-                <br/>
-
             <div class="row">   
-            <h4>Variation 3</h4>
-                <div class="span12" style="min-height:50px">    
+                <div class="span12">
+                <h4>Variation 3</h4>
                     <ul class="flx-sourceFilters3">
                         <li>
                             <a href="#" class="fitbit">Fitbit</a>
@@ -216,49 +347,41 @@
                     </ul>
                 </div>
             </div>
-            <br/>
-            <br/>
             <div class="row">
-            <h4>Variation 4 (Candide's)</h4>
-                <div class="span12" style="min-height:50px">    
-                                <br/>
-            <br/>
-
-                    <ul class="flx-sourceFilters4">
-                        <li>
-                            <a href="#" class="fitbit">Fitbit</a>
-                        </li>
-                        <li>
-                            <a href="#" class="flx-active bodytrack">BodyTrack</a>
-                        </li>
-                        <li>
-                            <a href="#" class="flx-inactive lastFM">Last FM</a>
-                        </li>
-                        <li>
-                            <a href="#" class="flx-active withings">Withings</a>
-                        </li>
-                        <li>
-                            <span class="flx-disconnected picasa">Picasa</span>
-                        </li>
-                        <li>
-                            <a href="#" class="flx-active twitter">Twitter</a>
-                        </li>
-                        <li>
-                            <a href="#" class="flx-active ggleCal">Calendar</a>
-                        </li>
-                    </ul>
-                    
+                <div class="span12">    
+                <h4>Variation 4 (Candide's)</h4>
+                    <div class="flx-filtersWrapper">
+                        <ul class="flx-sourceFilters4">
+                            <li>
+                                <a href="#" class="fitbit">Fitbit</a>
+                            </li>
+                            <li>
+                                <a href="#" class="flx-active bodytrack">BodyTrack</a>
+                            </li>
+                            <li>
+                                <a href="#" class="flx-inactive lastFM">Last FM</a>
+                            </li>
+                            <li>
+                                <a href="#" class="flx-active withings">Withings</a>
+                            </li>
+                            <li>
+                                <span class="flx-disconnected picasa">Picasa</span>
+                            </li>
+                            <li>
+                                <a href="#" class="flx-active twitter">Twitter</a>
+                            </li>
+                            <li>
+                                <a href="#" class="flx-active ggleCal">Calendar</a>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
+            <br/>
+            <br/>
             </div>
-                        <br/>
-            <br/>
-
             <div class="row">
-            <h4>Variation 5 (Thomas's)</h4>
-                <div class="span12" style="min-height:50px">    
-                            <br/>
-            <br/>
-
+                <div class="span12">
+                <h4 style="margin-top:50px;">Variation 5 (Thomas's)</h4>
                     <ul class="flx-sourceFilters5">
                         <li>
                             <a href="#" class="fitbit">Fitbit</a>
@@ -282,18 +405,13 @@
                             <a href="#" class="flx-active ggleCal">Calendar</a>
                         </li>
                     </ul>
-                    
                 </div>
+            <br/>
+            <br/>
             </div>
-                        <br/>
-            <br/>
-
-            <div class="row">
-            <h4>Variation 6 (Peri's)</h4>
-                <div class="span12" style="min-height:50px">    
-                            <br/>
-            <br/>
-
+            <div class="row-fluid">
+                <div class="span12">
+                <h4>Variation 6 (synthesis)</h4>
                     <ul class="flx-sourceFilters6">
                         <li>
                             <a href="#" class="fitbit">Fitbit</a>
@@ -317,10 +435,10 @@
                             <a href="#" class="flx-active ggleCal">Calendar</a>
                         </li>
                     </ul>
-                    
                 </div>
+            <br/>
+            <br/>
             </div>
-            
             <div class="row"> 
                 <div class="span12">
             <!-- Remove when added to the clock tab -->
@@ -339,20 +457,20 @@
                                     <span class="flx-tTime">9:43</span>
                                     <span class="flx-data">71.05 kg</span>
                                 </div>
-                                <span class="flx-miniGraph"><img src="/css/dashboardImgDummies/w8.png" alt="w8" width="" height="" /></span>
+                                <span class="flx-miniGraph"><img src="/css/dashboardImgDummies/w8.png" alt="w8"/></span>
                             </div>
                             
                             <div class="flx-toolTipContext">
                                 <div class="flx-toolTipLocation">
                                     <h4><span>9:43</span> last seen here: <strong>RVB Studio, Brussels</strong></h4>
                                     <div>
-                                        <img src="/css/dashboardImgDummies/w7.png" alt="w7" width="" height="" />
+                                        <img src="/css/dashboardImgDummies/w7.png" alt="w7"/>
                                     </div>
                                 </div>
                                 <div class="flx-toolTipWeather">
                                     <h4><span>15.C</span> Variable with showers</h4>
                                     <div class="weatherIcon">
-                                        <img src="/css/dashboardImgDummies/sun%26rain.png" alt="sun-and-rain" width="" height="" />
+                                        <img src="/css/dashboardImgDummies/sun%26rain.png" alt="sun-and-rain"/>
                                     </div>
                                     <ul class="flx-weatherDetails">
                                         <li>Windspeed <span>7km/h</span></li>
@@ -366,8 +484,6 @@
                 </div>
             </div>
         </div>
-
-
     </div>
 
 
