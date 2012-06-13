@@ -77,6 +77,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     };
 
 	Calendar.renderState = function(state, forceReload) {
+        $("#filtersContainer").hide();
         forceReload = typeof(forceReload)!="undefined"&&forceReload;
         if (!forceReload&&FlxState.getState("calendar")===state) {
 			return;

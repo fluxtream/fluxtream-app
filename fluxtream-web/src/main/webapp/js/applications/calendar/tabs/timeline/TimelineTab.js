@@ -2759,6 +2759,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
     }
 
     function render(digest, timeUnit) {
+        $("#filtersContainer").show();
         this.getTemplate("text!applications/calendar/tabs/timeline/template.html", "timeline", function() {
             setup(digest, timeUnit);
         });

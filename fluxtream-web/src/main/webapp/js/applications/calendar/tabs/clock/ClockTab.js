@@ -26,7 +26,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 
 	function render(digest, timeUnit, calendarState, connectorEnabled) {
         hideEventInfo();
-		this.getTemplate("text!applications/calendar/tabs/clock/clock.html", "clock", function() {
+        $("#filtersContainer").show();
+        this.getTemplate("text!applications/calendar/tabs/clock/clock.html", "clock", function() {
 			 setup(digest, timeUnit, connectorEnabled);
 		});
 	}
@@ -70,9 +71,6 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 			if (digest.cachedData[objectTypeName]==null||typeof(digest.cachedData[objectTypeName])=="undefined")
 				continue;
 			updateDataDisplay(digest.cachedData[objectTypeName], objectTypeName, digest);
-			if (objectTypeName==="fitbit-activity_summary" && digest.cachedData["fitbit-activity_summary"][0]) {
-				drawCalories(digest.cachedData["fitbit-activity_summary"][0].caloriesPerMinute);
-			}
 		}
 		for(i=0;i<digest.updateNeeded.length;i++) {
 			getDayInfo(digest.updateNeeded[i], digest);
@@ -93,40 +91,6 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 					updateDataDisplay(jsonData, jsonData.name, digest);
 			}
 		});
-	}
-	
-	function drawCalories(caloriesPerMinute) {
-		if (!caloriesPerMinute)
-			return;
-		for (i=0;i<caloriesPerMinute.length;i++) {
-			var item = caloriesPerMinute[i];
-			if (item.level==0) continue;
-			var color = 0, height = 0;
-			switch(item.level) {
-			case 1: color = "#33cccc"; break;
-			case 2: color = "#ffbb33"; break;
-			case 3: color = "#ff3366"; break;
-			}
-			start = item.minute;
-			span = paintClockSpike(paper, start, 83, color, config.STROKE_WIDTH+item.calories*2.5);
-			config.clockCircles.push(span);
-		}
-	}
-
-	function paintClockSpike(paper, time, radius, color, height) {
-		var coords = clockSpike(config.CLOCK_CENTER, radius, time / config.RATIO + config.START_AT, height),
-		path = paper.path(coords);
-		path.attr("stroke-width", 1);
-		path.attr("stroke", color);
-		return path;
-	}
-
-	function clockSpike(center, radius, angle, height) {
-		var coords1 = toCoords(center, radius, angle),
-			coords2 = toCoords(center, radius + height, angle),
-			path = "M " + coords1[0] + " " + coords1[1];
-		path += " L " + coords2[0] + " " + coords2[1];
-		return path;
 	}
 
 	function fillRegion(center, radius1, radius2, startAngle, endAngle) {
@@ -237,8 +201,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 						if (orbit===config.BODY_CATEGORY.orbit)
 							instantWidth=18;
 						if (start>end) { start = 0; }
-						instantaneous = typeof(item.endMinute)=="undefined"||item.endMinute===item.startMinute;
-						var span;
+						var instantaneous = typeof(item.endMinute)=="undefined"||item.endMinute===item.startMinute,
+                            span;
 						if (instantaneous)
 							span = paintSpan(paper, start,start+instantWidth, orbit, color, .9);
 						else
@@ -543,6 +507,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 					instantWidth=10;
 				config.clockCircles.push(
 					function() {
+                        if (typeof(item.startMinute)=="undefined")
+                            item.startMinute = 0;
 						var start = item.startMinute;
 						var end = item.endMinute;
 						if (start>end) { start = 0; }

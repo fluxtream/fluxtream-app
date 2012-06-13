@@ -3,7 +3,7 @@ define(["applications/calendar/tabs/diary/Status",
         "applications/calendar/App"], function(status, Tab, Calendar) {
 	
 	function render(digest, timeUnit) {
-		this.getTemplate("text!applications/calendar/tabs/diary/" + timeUnit.toLowerCase() + "Diary.html", "diary-" + timeUnit, function() {
+        this.getTemplate("text!applications/calendar/tabs/diary/" + timeUnit.toLowerCase() + "Diary.html", "diary-" + timeUnit, function() {
 			setup(digest, timeUnit);
 		});
 	}
