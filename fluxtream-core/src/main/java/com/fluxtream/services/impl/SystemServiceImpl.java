@@ -66,12 +66,12 @@ public class SystemServiceImpl implements SystemService {
 				"ajax:/toodledo/enterCredentials", Connector
 						.getConnector("toodledo"), 1, true));
 		em.persist(new ConnectorInfo("BodyTrack",
-				"/images/connectors/connector-bodytrack.png", res
+				"/css/devicesPictures/bodyTrack.jpg", res
 						.getString("bodytrack"),
 				"ajax:/bodytrack/enterCredentials", Connector
 						.getConnector("bodytrack"), 2, true));
 		em.persist(new ConnectorInfo("Zeo",
-				"/images/connectors/connector-focus-zeo.jpg", res
+				"/css/devicesPictures/zeo.jpg", res
 						.getString("zeo"), "/zeo/subscribe", Connector
 						.getConnector("zeo"), 3, true));
 		em.persist(new ConnectorInfo("Withings B Scale",
@@ -89,7 +89,7 @@ public class SystemServiceImpl implements SystemService {
 		// "ajax:/withings/enterCredentials",
 		// Connector.getConnector("WITHINGS"), 4));
 		em.persist(new ConnectorInfo("Fitbit",
-				"/images/connectors/connector-focus-fitbit.jpg", res
+				"/css/devicesPictures/fitbit.jpg", res
 						.getString("fitbit"), "/fitbit/token", Connector
 						.getConnector("fitbit"), 7, true));
 		// em.persist(new ConnectorInfo("Freshbooks",
@@ -132,7 +132,7 @@ public class SystemServiceImpl implements SystemService {
 				"/images/connectors/connector-flickr.jpeg", flickrDesc,
 				"/flickr/token", Connector.getConnector("flickr"), 13, false));
 		em.persist(new ConnectorInfo("BodyMedia",
-				"/images/connectors/connector-bodymedia.jpg", res.getString("bodymedia"),
+				"/css/devicesPictures/bodymedia.jpg", res.getString("bodymedia"),
 				"/bodymedia/token", Connector.getConnector("bodymedia"), 14, true));
 		// em.persist(new ConnectorInfo("Dropbox",
 		// "/images/connectors/connector-dropbox.jpg",
