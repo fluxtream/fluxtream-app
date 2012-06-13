@@ -1,5 +1,6 @@
 package com.fluxtream.connectors.dao;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,7 +27,7 @@ public class JPAFacetDao implements FacetDao {
 
 	@Autowired
 	ConnectorUpdateService connectorUpdateService;
-	
+
 	@PersistenceContext
 	private EntityManager em;
 
@@ -63,27 +64,39 @@ public class JPAFacetDao implements FacetDao {
     @Override
     public AbstractFacet getLatestFacet(final Connector connector, final long guestId, final ObjectType objectType) {
         if (!connector.hasFacets()) return null;
+
+
         AbstractFacet facet = null;
         if (objectType!=null) {
-            String queryName = connector.getName().toLowerCase()
-                               + "." + objectType.getName().toLowerCase()
-                               + ".newest";
-            facet = JPAUtils.findUnique(em, objectType.facetClass(), queryName, guestId);
-            return facet;
+            try {
+                Class c =  objectType.facetClass();
+                Method m = c.getMethod("getLatestFacet",EntityManager.class,Long.class,Connector.class,ObjectType.class);
+                facet = (AbstractFacet) m.invoke(null,em,guestId,connector,objectType);
+            }
+            catch (Exception e) {
+            }
         } else {
             if (connector.objectTypes()!=null) {
                 for (ObjectType type : connector.objectTypes()) {
-                    String queryName = connector.getName().toLowerCase()
-                                       + "." + type.getName().toLowerCase()
-                                       + ".newest";
-                    AbstractFacet fac = JPAUtils.findUnique(em, type.facetClass(), queryName, guestId);
+                    AbstractFacet fac = null;
+                    try {
+                        Class c =  type.facetClass();
+                        Method m = c.getMethod("getLatestFacet",EntityManager.class,Long.class,Connector.class,ObjectType.class);
+                        fac = (AbstractFacet) m.invoke(null,em,guestId,connector,type);
+                    }
+                    catch (Exception e) {
+                    }
                     if (facet == null || (fac != null && fac.end > facet.end))
                         facet = fac;
                 }
             } else {
-                String queryName = connector.getName().toLowerCase()
-                                   + ".newest";
-                facet = JPAUtils.findUnique(em, connector.facetClass(), queryName, guestId);
+                try {
+                    Class c =  connector.facetClass();
+                    Method m = c.getMethod("getLatestFacet",EntityManager.class,Long.class,Connector.class,ObjectType.class);
+                    facet = (AbstractFacet) m.invoke(null,em,guestId,connector,null);
+                }
+                catch (Exception e) {
+                }
             }
         }
         return facet;

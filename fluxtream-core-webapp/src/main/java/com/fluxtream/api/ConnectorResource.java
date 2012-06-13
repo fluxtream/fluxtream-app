@@ -68,13 +68,36 @@ public class ConnectorResource {
             }
             else {
                 ConnectorInfo connector = connectors.get(i);
-                ApiUpdate update = connectorUpdateService.getLastSuccessfulUpdate(user.getId(), connector.getApi());
-                connector.lastSync = update != null ? update.ts : Long.MAX_VALUE;
                 Connector conn = Connector.fromValue(connector.api);
+                connector.lastSync = getLastSync(user.getId(),conn);
                 connector.latestData = getLatestData(user.getId(), conn);
+                connector.errors = checkForErrors(user.getId(),conn);
+                connector.syncing = checkIfSyncInProgress(user.getId(),conn);
             }
         }
         return gson.toJson(connectors);
+    }
+
+    private boolean checkIfSyncInProgress(long guestId, Connector connector){
+        boolean syncing = false;
+        for (int objectType : connector.objectTypeValues()){
+            ScheduledUpdate update = connectorUpdateService.getNextScheduledUpdate(guestId,connector,objectType);
+            syncing = update != null && update.status == ScheduledUpdate.Status.IN_PROGRESS;
+            if (syncing)
+                break;
+        }
+        return syncing;
+    }
+
+    private boolean checkForErrors(long guestId, Connector connector){
+        ApiUpdate update = connectorUpdateService.getLastUpdate(guestId,connector);
+        return update == null || !update.success;
+    }
+
+    private long getLastSync(long guestId, Connector connector){
+        ApiUpdate update = connectorUpdateService.getLastSuccessfulUpdate(guestId, connector);
+        return update != null ? update.ts : Long.MAX_VALUE;
+
     }
 
     private long getLatestData(long guestId, Connector connector){

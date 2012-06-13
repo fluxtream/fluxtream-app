@@ -26,11 +26,25 @@
                         </thead>
                         <tbody>
                         {{#connectors}}
-                        <tr>
-                            <td class="syncStatus"><span class="syncLED-yes"></span></td>
+                        <tr {{#syncing}}class="nowSynchro"{{/syncing}}>
+                            <td class="syncStatus">
+                                <span class="syncLED-{{^errors}}yes{{/errors}}{{#errors}}no{{/errors}}" {{#syncing}}style="display:none;"{{/syncing}}></span>
+                                {{#syncing}}
+                                <span class="syncLED-waiting">
+                                    <img src="/css/devicesPictures/load.gif" alt="load">
+                                </span>
+                                {{/syncing}}
+                            </td>
                             <td class="connectors"><img src="{{image}}" alt="{{connectorName}}"></td>
                             <td class="desc"><h4>{{name}}</h4><p>{{text}}</p><a href="#">Manage <i class="icon-cog"></i></a></td>
-                            <td class="lastSync"><p>{{lastSync}}</p><a id="syncNow-{{connectorName}}" href="#">Sync now <i class="icon-refresh"></i></a></td>
+                            <td class="lastSync">
+                                <p {{#syncing}}style="display:none;"{{/syncing}}>{{lastSync}}</p>
+                                <a id="syncNow-{{connectorName}}" href="#" {{#syncing}}style="display:none;"{{/syncing}}>Sync now <i class="icon-refresh"></i></a>
+                                {{#syncing}}
+                                <p>Now synchronizing</p>
+                                <span>Sync now <i class="icon-refresh"></i></span>
+                                {{/syncing}}
+                            </td>
                             <td class="latestData"><p>{{latestData}}</p><a href="#">View graph <i class="icon-bar-chart"></i></a></td>
                             <td class="remove"><a id="remove-{{connectorName}}" href="#"><i class="icon-trash"></i></a></td>
                         </tr>

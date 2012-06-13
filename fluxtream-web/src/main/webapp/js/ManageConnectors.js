@@ -5,12 +5,21 @@ define(function() {
     function show(){
         $.ajax("/api/guest/" + App.getUsername() + "/connector/all",{
             success: function(data, textStatus, jqXHR){
-                dataLoaded(data);
+                dataLoaded(data,false);
             }
         });
     }
 
-    function dataLoaded(data){
+    function updateContents(){
+        $.ajax("/api/guest/" + App.getUsername() + "/connector/all",{
+            success: function(data, textStatus, jqXHR){
+                dataLoaded(data,true);
+            }
+        })
+    }
+
+
+    function dataLoaded(data,update){
         connectors = data;
         App.loadMustacheTemplate("manageConnectorsTemplate.html","mainDialog",function(template){
             var params = [];
@@ -31,7 +40,14 @@ define(function() {
                     }
                 }
             }
-            App.makeModal(template.render({connectors:params}));
+            var html = template.render({connectors:params});
+            if (update){
+                var scrollTop = $(".modal-body").scrollTop();
+                $("#modal").html($(html).html());
+                $(".modal-body").scrollTop(scrollTop);
+            }
+            else
+                App.makeModal(html);
             bindDialog();
         });
     }
@@ -47,7 +63,8 @@ define(function() {
              syncNowBtn.click({index:i}, function(event){
                  event.preventDefault();
                  $.ajax("/api/guest/" + App.getUsername() + "/connector/" + connectors[event.data.index].connectorName + "/sync",{
-                     type:"POST"
+                     type:"POST",
+                     success:updateContents
                  });
              })
          }
