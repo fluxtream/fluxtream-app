@@ -104,7 +104,7 @@ define(
                 tabsY = $("#tabs").position().top;
                 windowHeight = $(window).height();
                 footerHeight = $("#footer").height();
-                fHeight = (windowHeight-tabsY-footerHeight);
+                fHeight = (windowHeight-tabsY-footerHeight-20);
                 $(".fullHeight").height(fHeight);
             }
             $(window).resize(function() {
