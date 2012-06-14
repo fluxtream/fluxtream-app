@@ -1,0 +1,43 @@
+<template id="loadViewsDropdown">
+    <ul class="dropdown-menu load-view-subMenu" id="_timeline_load_view_submenu">
+        {{#availableList}}
+        {{^first}}
+        <li class="divider"></li>
+        {{/first}}
+        <li class="flx-clearfix">
+            <div class="flx-floatL view-id">
+                <a viewId="{{id}}" href="#" class="_timeline_load_link">
+                    <h4>{{name}}</h4>
+                    <p>{{description}}</p>
+                </a>
+            </div>
+            <ul class="flx-floater view-filters">
+                <li><a viewId="{{id}}" href="#" class="_timeline_load_link _timeline_time_only">Time only <i class="icon-time"></i></a></li>
+                <li><a viewId="{{id}}" href="#" class="_timeline_load_link _timeline_channel_only">Channel only <i class="icon-list"></i></a></li>
+            </ul>
+        </li>
+        {{/availableList}}
+    </ul>
+</template>
+<template id="saveViewDropdown">
+    <ul id="_timeline_save_view_dropdown-submenu" class="dropdown-menu">
+        <li>
+            <form>
+                <input id="_timeline_save_view_dropdown_name" type="text" title="insert view name" style="display:inline">
+                <a id="_timeline_save_view_dropdown_save_btn" href="#" class="btn btn-mini">save</a>
+            </form>
+            {{#viewsPresent}}
+            <h5>Or save as one of the views bellow</h5>
+            {{/viewsPresent}}
+        </li>
+        {{#availableList}}
+        <li class="divider"></li>
+        <li>
+            <a viewname="{{name}}" class="_timeline_save_view_dropdown_save_link" class="savedView" href="#">
+                <div><h4>{{name}}</h4><p>{{last_used}}</p></div>
+                <div>{{description}}</div>
+            </a>
+        </li>
+        {{/availableList}}
+    </ul>
+</template>
