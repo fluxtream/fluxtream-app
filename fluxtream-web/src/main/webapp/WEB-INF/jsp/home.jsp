@@ -116,11 +116,11 @@
 			<img style="border: none" src="/${release}/images/loading.gif" />
 		</div>
 
-	</div>
+    </div>
 
-	<jsp:include page="footer.jsp" />
+    <jsp:include page="footer.jsp" />
 
-	<script>
+    <script>
 		window.FLX_RELEASE_NUMBER = "${release}";
 	</script>
 
