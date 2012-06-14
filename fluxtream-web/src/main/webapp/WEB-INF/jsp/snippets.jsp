@@ -130,7 +130,7 @@
                                 </ul>
                             </div>
                             <div class="btn-group dropdown save-view-subMenu">
-                                <a class="btn">Save view <i class="icon-save"></i></a>
+                                <a class="btn">Save view  </a>
                                 <a class="btn dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
                                     <ul class="dropdown-menu">
                                         <li>

@@ -61,7 +61,6 @@ public class ObjectType {
 	}
 	
 	String name;
-    String detailsTemplate;
 	String prettyname;
 	
 	public static List<ObjectType> getObjectTypes(Connector connector, int objectTypes) {
@@ -82,10 +81,6 @@ public class ObjectType {
 	public String getName() {
 		return name;
 	}
-
-    public String getDetailsTemplate(){
-        return detailsTemplate;
-    }
 	
 	int value;
 	boolean isImageType;

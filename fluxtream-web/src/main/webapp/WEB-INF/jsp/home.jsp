@@ -149,6 +149,7 @@
 		<script src="/static/js/raphael-2.1.0.js"></script>
 		<script src="/static/js/underscore-1.3.3-min.js"></script>
 		<script src="/static/js/backbone-0.9.2-min.js"></script>
+        <script src="/static/js/jquery.ba-dotimeout.min.js"></script>
 	</g:compress>
 	
 	<!--  TODO: validate version numbers for these libs -->

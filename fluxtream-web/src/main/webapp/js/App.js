@@ -142,7 +142,12 @@ define(
             require(["text!" + templatePath], function(template){
                 var html = template;
                 var templateStartSearch = "<template id=\"" + templateId + "\">";
-                var htmlStart = html.indexOf(templateStartSearch) + templateStartSearch.length;
+                var htmlStart = html.indexOf(templateStartSearch);
+                if (htmlStart == -1){//template not found
+                    onLoad(null);
+                    return;
+                }
+                htmlStart += templateStartSearch.length;
                 var htmlEnd = html.indexOf("</template>",htmlStart);
                 html = html.substring(htmlStart,htmlEnd);
                 onLoad(Hogan.compile(html));
