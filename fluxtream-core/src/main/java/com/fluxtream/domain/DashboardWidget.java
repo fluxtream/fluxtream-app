@@ -74,8 +74,10 @@ public class DashboardWidget {
 
     public boolean matchesUserConnectors(List<String> userConnectorNames) {
         for (String requiredConnector : requiredConnectors) {
-            if (userConnectorNames.contains(requiredConnector))
-                return true;
+            for (String userConnectorName : userConnectorNames) {
+                if (userConnectorName.equalsIgnoreCase(requiredConnector.trim()))
+                    return true;
+            }
         }
         return false;
     }

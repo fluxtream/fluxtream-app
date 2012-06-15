@@ -26,8 +26,8 @@ define([ "core/FlxState" ], function(FlxState) {
 		this.getTabContents(url, id, typeof(domReady)==="undefined"?null:domReady, false, forceLoad, tabData);
 	};
 
-    Tab.prototype.getTemplate = function(templatePath, id, domReady) {
-		this.getTabContents(templatePath, id, typeof(domReady)==="undefined"?null:domReady, true, false);
+    Tab.prototype.getTemplate = function(templatePath, id, domReady, tabData) {
+		this.getTabContents(templatePath, id, typeof(domReady)==="undefined"?null:domReady, true, false, tabData);
 	};
 
     Tab.prototype.getTabContents = function(uri, id, domReady, isResource, forceLoad, tabData) {
@@ -72,6 +72,7 @@ define([ "core/FlxState" ], function(FlxState) {
 	Tab.prototype.insertTabContents = function(template, nextTabId, domReady, forceLoad, tabData) {
         var templateJs = Hogan.compile(template);
         if (typeof(tabData)!="undefined" && tabData!=null) {
+            tabData.release = window.FLX_RELEASE_NUMBER;
             template = templateJs.render(tabData);
         } else if (this.needsTemplating){
             template = templateJs.render({release: window.FLX_RELEASE_NUMBER});
