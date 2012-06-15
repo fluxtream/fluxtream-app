@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component;
 
 /**
  * Extracts information from the apicall and creates a facet
- * TODO Finish extractor body
  */
 @Component
 public class BodymediaFacetExtractor extends AbstractFacetExtractor {
@@ -30,10 +29,9 @@ public class BodymediaFacetExtractor extends AbstractFacetExtractor {
         						+ objectType.getName());
 
         ArrayList<AbstractFacet> facets = null;
-        JSONObject bodymediaResponse = JSONObject.fromObject(apiData.json);
         if(objectType.getName().equals("burn"))
         {
-            facets = extractBurnFacet(bodymediaResponse, apiData);
+            facets = extractBurnFacet(apiData);
         }
         else //If the facet to be extracted wasn't a burn facet
         {
@@ -44,15 +42,15 @@ public class BodymediaFacetExtractor extends AbstractFacetExtractor {
     }
 
     /**
-     *
-     * @param bodymediaResponse
-     * @param apiData
-     * @return
+     * Extracts facets for each day from the data returned by the api.
+     * @param apiData The data returned by the Burn api
+     * @return A list of facets for each day provided by the apiData
      */
-    private ArrayList<AbstractFacet> extractBurnFacet(final JSONObject bodymediaResponse, ApiData apiData) {
+    private ArrayList<AbstractFacet> extractBurnFacet(ApiData apiData) {
         ArrayList<AbstractFacet> facets = new ArrayList<AbstractFacet>();
         /* burnJson is a JSONArray that contains a seperate JSONArray and calorie counts for each day
          */
+        JSONObject bodymediaResponse = JSONObject.fromObject(apiData.json);
         if(bodymediaResponse.has("days"))
         {
             try

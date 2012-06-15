@@ -1,5 +1,9 @@
 package com.fluxtream.connectors.bodymedia;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Iterator;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.SignpostOAuthHelper;
 import com.fluxtream.connectors.annotations.Updater;
@@ -42,14 +46,22 @@ public class BodymediaUpdater extends AbstractUpdater {
 		}
 	}
 
-    private void retrieveBurnHistory(UpdateInfo updateInfo,
-			String userRegistrationDate) throws Exception {
-        ObjectType burnOT = ObjectType.getObjectType(connector(), "burn");
-        String burnMinutesUrl = "http://api.bodymedia.com/v2/json/burn/day/minute/intensity/" + userRegistrationDate + "?api_key=" +
-                updateInfo.apiKey.getAttributeValue("api_key", env);
-        //The following call may fail due to bodymedia's api. That is expected behavior
-        String jsonResponse = signpostHelper.makeRestCall(connector(), updateInfo.apiKey, burnOT.value(), burnMinutesUrl);
-        apiDataService.cacheApiDataJSON(updateInfo, jsonResponse, -1, -1);
+    private void retrieveBurnHistory(UpdateInfo updateInfo,	final String userRegistrationDate) throws Exception {
+        Calendar c = Calendar.getInstance();
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd");
+        String date = formatter.format(c.getTime());
+        while(date.compareTo(userRegistrationDate) > 0)
+        //@ loop_invariant date.compareTo(userRegistrationDate) >= 0;
+        {
+            ObjectType burnOT = ObjectType.getObjectType(connector(), "burn");
+            String burnMinutesUrl = "http://api.bodymedia.com/v2/json/burn/day/minute/intensity/" + date +
+                                    "?api_key=" + updateInfo.apiKey.getAttributeValue("api_key", env);
+            //The following call may fail due to bodymedia's api. That is expected behavior
+            String jsonResponse = signpostHelper.makeRestCall(connector(), updateInfo.apiKey, burnOT.value(), burnMinutesUrl);
+            apiDataService.cacheApiDataJSON(updateInfo, jsonResponse, -1, -1);
+            c.add(Calendar.DATE, -1);
+            date = formatter.format(c.getTime());
+        }
     }
 
 	OAuthConsumer consumer;
