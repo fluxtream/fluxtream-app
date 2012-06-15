@@ -4,6 +4,7 @@ define(["applications/calendar/tabs/Tab",
 
 	var map = null;
     var digestData = null;
+    var preserveView = false;
 
     function render(digest, timeUnit, calendarState, connectorEnabled) {
         $("#filtersContainer").show();
@@ -25,7 +26,8 @@ define(["applications/calendar/tabs/Tab",
             addressToUse = digest.addresses.ADDRESS_HOME[0];
 
         map = MapUtils.newMap(new google.maps.LatLng(addressToUse.latitude,addressToUse.longitude),17,"the_map",false);
-        if (!document.getElementById("perserveViewCheckBox").checked)
+        map.setPreserveView(preserveView);
+        if (!map.isPreserveViewChecked())
             bounds = map.getBounds();
 
         if (digest!=null && digest.cachedData!=null &&
@@ -34,7 +36,7 @@ define(["applications/calendar/tabs/Tab",
             digest.cachedData.google_latitude.length>0) { //make sure gps data is available before trying to display it
             map.addGPSData(digest.cachedData.google_latitude);
 
-            if (!document.getElementById("perserveViewCheckBox").checked)
+            if (!map.isPreserveViewChecked())
                 bounds = map.gpsBounds;
 
             showData();
@@ -55,6 +57,9 @@ define(["applications/calendar/tabs/Tab",
         }
         if (bounds != null)
             map.fitBounds(bounds);
+        map.preserveViewCheckboxChanged = function(){
+            preserveView = map.isPreserveViewChecked();
+        }
 	}
 
     function showData(functionName){
