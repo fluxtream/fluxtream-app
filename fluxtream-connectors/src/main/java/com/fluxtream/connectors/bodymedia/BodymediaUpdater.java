@@ -2,8 +2,6 @@ package com.fluxtream.connectors.bodymedia;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
-import java.util.Iterator;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.SignpostOAuthHelper;
 import com.fluxtream.connectors.annotations.Updater;

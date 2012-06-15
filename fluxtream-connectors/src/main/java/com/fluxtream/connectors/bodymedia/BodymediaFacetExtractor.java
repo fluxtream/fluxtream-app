@@ -10,6 +10,9 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.stereotype.Component;
 
 /**
@@ -55,6 +58,8 @@ public class BodymediaFacetExtractor extends AbstractFacetExtractor {
         {
             try
             {
+                DateTimeFormatter form = ISODateTimeFormat.dateOptionalTimeParser();
+                DateTime d = form.parseDateTime(bodymediaResponse.getString("lastSync"));
                 JSONArray daysArray = bodymediaResponse.getJSONArray("days");
                 for(Object o : daysArray)
                 {
@@ -69,6 +74,7 @@ public class BodymediaFacetExtractor extends AbstractFacetExtractor {
                         facet.setEstimatedCalories(day.getInt("estimatedCalories"));
                         facet.setPredictedCalories(day.getInt("predictedCalories"));
                         facet.setBurnJson(day.getString("minutes"));
+                        facet.setLastSync(d.getMillis()/1000);
                         facets.add(facet);
                     }
                 }

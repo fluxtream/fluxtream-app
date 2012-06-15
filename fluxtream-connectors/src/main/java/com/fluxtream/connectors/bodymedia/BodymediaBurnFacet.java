@@ -20,11 +20,12 @@ import org.hibernate.search.annotations.Indexed;
 @Indexed
 public class BodymediaBurnFacet extends AbstractFacet {
 
-    public int averageCalories = 0;
     public int totalCalories = 0;
     public int estimatedCalories = 0;
     public int predictedCalories = 0;
 
+    //Time of last sync stored as a unix timestamp
+    public long lastSync;
     public String date;
     // Store the JSON for the minutely data.  This is a JSON array with one entry per minute
     /*
@@ -32,22 +33,9 @@ public class BodymediaBurnFacet extends AbstractFacet {
      */
     @Lob
     public String burnJson;
-
-    public BodymediaBurnFacet(){
-        averageCalories = 0;
-        totalCalories = 0;
-    }
 	
 	@Override
 	protected void makeFullTextIndexable() {}
-
-    public int getAverageCalories() {
-        return averageCalories;
-    }
-
-    public void setAverageCalories(final int averageCalories) {
-        this.averageCalories = averageCalories;
-    }
 
     public int getTotalCalories() {
         return totalCalories;
@@ -77,4 +65,8 @@ public class BodymediaBurnFacet extends AbstractFacet {
         this.date = date;
     }
 
+    public void setLastSync(long lastSync)
+    {
+        this.lastSync = lastSync;
+    }
 }
