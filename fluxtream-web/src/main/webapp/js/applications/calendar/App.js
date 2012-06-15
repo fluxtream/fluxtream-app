@@ -1,4 +1,5 @@
-define(["core/Application", "core/FlxState", "applications/calendar/Builder", "libs/bootstrap-datepicker"], function(Application, FlxState, Builder) {
+define(["core/Application", "core/FlxState", "applications/calendar/Builder", "libs/bootstrap-datepicker"],
+       function(Application, FlxState, Builder) {
 
 	var Calendar = new Application("calendar", "Candide Kemmler", "icon-calendar");
 
@@ -151,6 +152,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 	}
 
 	function setDatepicker(currentDate) {
+        $(".datepicker.dropdown-menu").remove();
         $("#datepicker").replaceWith("<a data-date-format=\"yyyy-mm-dd\" id=\"datepicker\"><i class=\"icon-calendar icon-large\"></i></a>");
         $("#datepicker").attr("data-date", currentDate);
 		$("#datepicker").unbind("changeDate");
