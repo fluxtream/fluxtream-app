@@ -225,6 +225,11 @@ public class ApiDataServiceImpl implements ApiDataService {
 		return facets;
 	}
 
+    @Override
+    public AbstractFacet getLatestApiDataFacet(long guestId, Connector connector, ObjectType objectType){
+        return jpaDao.getLatestFacet(connector,guestId,objectType);
+    }
+
 	@Transactional(readOnly = false)
 	private void extractFacets(ApiData apiData, int objectTypes,
 			UpdateInfo updateInfo) throws Exception {

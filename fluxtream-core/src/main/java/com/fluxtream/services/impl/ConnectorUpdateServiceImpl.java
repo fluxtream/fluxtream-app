@@ -263,28 +263,28 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 
 	@Override
 	public long getTotalNumberOfGuestsUsingConnector(Connector connector) {
-		long n = JPAUtils.count(em, ApiKey.class, "apiKey.count.byApi",
+		long n = JPAUtils.count(em, "apiKey.count.byApi",
 				connector.value());
 		return n;
 	}
 
 	@Override
 	public long getTotalNumberOfUpdates(Connector connector) {
-		long n = JPAUtils.count(em, ApiUpdate.class, "apiUpdates.count.all",
+		long n = JPAUtils.count(em, "apiUpdates.count.all",
 				connector.value());
 		return n;
 	}
 
 	@Override
 	public long getNumberOfUpdates(long guestId, Connector connector) {
-		long n = JPAUtils.count(em, ApiUpdate.class,
+		long n = JPAUtils.count(em,
 				"apiUpdates.count.byGuest", guestId, connector.value());
 		return n;
 	}
 
 	@Override
 	public long getTotalNumberOfUpdatesSince(Connector connector, long then) {
-		long n = JPAUtils.count(em, ApiUpdate.class,
+		long n = JPAUtils.count(em,
 				"apiUpdates.count.all.since", connector.value(), then);
 		return n;
 	}
@@ -292,7 +292,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 	@Override
 	public long getNumberOfUpdatesSince(long guestId, Connector connector,
 			long then) {
-		long n = JPAUtils.count(em, ApiUpdate.class,
+		long n = JPAUtils.count(em,
 				"apiUpdates.count.byGuest.since", guestId, connector.value(),
 				then);
 		return n;

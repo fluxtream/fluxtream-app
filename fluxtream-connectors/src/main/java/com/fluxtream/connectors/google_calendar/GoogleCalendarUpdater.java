@@ -19,7 +19,7 @@ import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
 
 @Component
-@Updater(prettyName = "Google Calendar", value = 0, updateStrategyType = UpdateStrategyType.ALWAYS_UPDATE, objectTypes = {GoogleCalendarEntryFacet.class})
+@Updater(prettyName = "Calendar", value = 0, updateStrategyType = UpdateStrategyType.ALWAYS_UPDATE, objectTypes = {GoogleCalendarEntryFacet.class})
 @JsonFacetCollection(GoogleCalendarFacetVOCollection.class)
 public class GoogleCalendarUpdater extends AbstractGoogleOAuthUpdater {
 

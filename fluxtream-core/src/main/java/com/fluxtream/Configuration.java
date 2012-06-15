@@ -16,7 +16,6 @@ import org.springframework.stereotype.Component;
 import com.fluxtream.utils.DesEncrypter;
 import com.google.api.client.http.LowLevelHttpRequest;
 
-@Component
 public class Configuration implements InitializingBean {
 
 	private DesEncrypter encrypter;

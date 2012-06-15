@@ -109,7 +109,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 		if (mostRecentTweet!=null) {
 			int newerTweets = 1;
 			while (newerTweets>0) {
-				newerTweets = getStatusesAfter(updateInfo, screen_name, mostRecentTweet.twitterId+1);
+				newerTweets = getStatusesAfter(updateInfo, screen_name, mostRecentTweet.tweetId+1);
 				mostRecentTweet = (TweetFacet) jpaDaoService.findOne("twitter.tweet.newest", TweetFacet.class, updateInfo.apiKey.getGuestId());
 			}
 		}
@@ -154,7 +154,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 		if (oldestTweet!=null) {
 			int olderTweets = 1;
 			while(olderTweets>0) {
-				olderTweets = getStatusesBefore(updateInfo, screen_name, oldestTweet.twitterId-1);
+				olderTweets = getStatusesBefore(updateInfo, screen_name, oldestTweet.tweetId-1);
 				oldestTweet = (TweetFacet) jpaDaoService.findOne("twitter.tweet.oldest", TweetFacet.class, updateInfo.apiKey.getGuestId());
 			}
 		}
@@ -231,7 +231,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 	private int getStatuses(UpdateInfo updateInfo, String screen_name, long max_id, long since_id) throws Exception {
 		long then = System.currentTimeMillis();
 		String requestUrl = "http://api.twitter.com/1/statuses/user_timeline.json?" +
-				"screen_name=" + screen_name + "&trim_user=t&exclude_replies=t&count=200";
+				"screen_name=" + screen_name + "&exclude_replies=t&count=200";
 		if (max_id!=-1)
 			requestUrl+="&max_id=" + max_id;
 		else if (since_id!=-1)

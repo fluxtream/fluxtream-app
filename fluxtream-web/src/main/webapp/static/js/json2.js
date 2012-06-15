@@ -451,7 +451,7 @@ if (!JSON) {
 // because they can cause invocation, and '=' because it can cause mutation.
 // But just to be safe, we want to reject all unexpected forms.
 
-// We split the second stage into 4 regexp operations in order to work around
+// We split the second stage into 4 regexp operations in ordering to work around
 // crippling inefficiencies in IE's and Safari's regexp engines. First we
 // replace the JSON backslash pairs with '@' (a non-JSON character). Second, we
 // replace all simple value tokens with ']' characters. Third, we delete all

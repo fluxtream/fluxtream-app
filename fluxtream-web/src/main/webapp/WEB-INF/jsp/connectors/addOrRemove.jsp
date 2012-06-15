@@ -13,24 +13,11 @@
 
 	<div class="modal-header">
 		<a class="close" data-dismiss="modal">&times;</a>
-		<h3>Add and remove Connectors</h3>
+		<h3>Add Connectors</h3>
 	</div>
 
 	<div class="modal-body">
 		<div class="addConnectorsMain">
-
-			<%
-				if (userApis.size() > 0) {
-			%><h3>Installed Connectors</h3>
-
-			<div id="userConnectors">
-				<%@ include file="userConnectors.jsp"%>
-			</div>
-			<hr class="space">
-			<% }
-			   if (availableConnectorRows.size() > 0) {
-			%><h3>Add other Connectors</h3>
-			<% } %>
 
 			<div id="availableConnectors">
 				<% if (availableConnectorRows.size() > 0) { %>

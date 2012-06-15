@@ -22,8 +22,6 @@
 	<link rel="stylesheet" href="/css/flx.css">
 	<link rel="stylesheet" href="/css/bodytrack.css">
 	<link rel="stylesheet" href="/css/datepicker.css">
-	<link rel="stylesheet" href="/css/qtip/jquery.qtip.min.css">
-	<link rel="stylesheet" href="/css/qtip/jquery.jqplot.min.css">
 	<link rel="stylesheet" href="/static/css/jquery-ui/jquery-ui-1.8.18.custom.css">
 	<link rel="stylesheet"
 		href="/static/css/jquery-colorPicker/jquery.colorPicker.css">
@@ -75,7 +73,7 @@
                                     <ul class="dropdown-menu">
                                         <li><a href="javascript:App.connectors()">Add  <i
                                                 class="icon-plus icon-large" style="float: right;"></i></a></li>
-                                        <li><a href="javascript:App.connectors()">Manage <i
+                                        <li><a href="javascript:App.manageConnectors()">Manage <i
                                                 class="icon-list icon-large" style="float: right;"></i></a></li>
                                     </ul></li>
                                 <li class="divider-vertical"></li>
@@ -118,11 +116,11 @@
 			<img style="border: none" src="/${release}/images/loading.gif" />
 		</div>
 
-	</div>
+    </div>
 
-	<jsp:include page="footer.jsp" />
+    <jsp:include page="footer.jsp" />
 
-	<script>
+    <script>
 		window.FLX_RELEASE_NUMBER = "${release}";
 	</script>
 
@@ -151,6 +149,7 @@
 		<script src="/static/js/raphael-2.1.0.js"></script>
 		<script src="/static/js/underscore-1.3.3-min.js"></script>
 		<script src="/static/js/backbone-0.9.2-min.js"></script>
+        <script src="/static/js/jquery.ba-dotimeout.min.js"></script>
 	</g:compress>
 	
 	<!--  TODO: validate version numbers for these libs -->

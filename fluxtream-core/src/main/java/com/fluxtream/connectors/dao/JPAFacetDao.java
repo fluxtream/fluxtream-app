@@ -4,6 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import java.lang.reflect.Method;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
@@ -11,10 +15,7 @@ import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.utils.JPAUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 @Component
@@ -25,7 +26,7 @@ public class JPAFacetDao implements FacetDao {
 
 	@Autowired
 	ConnectorUpdateService connectorUpdateService;
-	
+
 	@PersistenceContext
 	private EntityManager em;
 
@@ -58,8 +59,48 @@ public class JPAFacetDao implements FacetDao {
 		}
 		return facets;
 	}
-	
-	@Override
+    @Override
+    public AbstractFacet getLatestFacet(final Connector connector, final long guestId, final ObjectType objectType) {
+        if (!connector.hasFacets()) return null;
+
+
+        AbstractFacet facet = null;
+        if (objectType!=null) {
+            try {
+                Class c =  objectType.facetClass();
+                Method m = c.getMethod("getLatestFacet",EntityManager.class,Long.class,Connector.class,ObjectType.class);
+                facet = (AbstractFacet) m.invoke(null,em,guestId,connector,objectType);
+            }
+            catch (Exception e) {
+            }
+        } else {
+            if (connector.objectTypes()!=null) {
+                for (ObjectType type : connector.objectTypes()) {
+                    AbstractFacet fac = null;
+                    try {
+                        Class c =  type.facetClass();
+                        Method m = c.getMethod("getLatestFacet",EntityManager.class,Long.class,Connector.class,ObjectType.class);
+                        fac = (AbstractFacet) m.invoke(null,em,guestId,connector,type);
+                    }
+                    catch (Exception e) {
+                    }
+                    if (facet == null || (fac != null && fac.end > facet.end))
+                        facet = fac;
+                }
+            } else {
+                try {
+                    Class c =  connector.facetClass();
+                    Method m = c.getMethod("getLatestFacet",EntityManager.class,Long.class,Connector.class,ObjectType.class);
+                    facet = (AbstractFacet) m.invoke(null,em,guestId,connector,null);
+                }
+                catch (Exception e) {
+                }
+            }
+        }
+        return facet;
+    }
+
+    @Override
 	public void deleteAllFacets(Connector connector, long guestId) {
 		if (connector.objectTypes()==null) {
 			String queryName = connector.getName().toLowerCase() + ".deleteAll";

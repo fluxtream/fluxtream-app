@@ -46,8 +46,6 @@ public class CalendarHelper {
 	/**
 	 * This is to let the client discard responses that are coming "too late"
 	 * 
-	 * @param request
-	 * @param o
 	 */
 	TimeBoundariesModel getStartEndResponseBoundaries(DayMetadataFacet dayMetadata) {
 		TimeBoundariesModel tb = new TimeBoundariesModel();
@@ -94,7 +92,21 @@ public class CalendarHelper {
 		return facets;
 	}
 
-	public List<AbstractFacet> getFacets(DayMetadataFacet dayMetadata,
+    public List<AbstractFacet> getFacets(Connector connector,
+                                         ObjectType objectType,
+                                         TimeInterval timeInterval) {
+        List<AbstractFacet> facets = null;
+        try {
+            facets = apiDataService.getApiDataFacets(
+                    ControllerHelper.getGuestId(), connector, objectType,
+                    timeInterval);
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+        return facets;
+    }
+
+    public List<AbstractFacet> getFacets(DayMetadataFacet dayMetadata,
 			Connector connector, boolean lookback) {
 		ObjectType[] objectTypes = connector.objectTypes();
 		if (objectTypes == null)

@@ -10,7 +10,7 @@
 	<jsp:include page="settings/${settings}.jsp"/>
 <% } else { %>
 <%
-	//TODO: this is a hack because I don't know how to sort in desc order based on the
+	//TODO: this is a hack because I don't know how to sort in desc ordering based on the
 	// most popular connectors - works but will probably break
 	Collection<Connector> allConnectors = Connector.getAllConnectors();
 	TreeMap<Long,Connector> byMostPopular = new TreeMap<Long,Connector>();

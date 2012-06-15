@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NavigableSet;
 import java.util.TimeZone;
 
@@ -17,8 +18,10 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import com.fluxtream.TimeUnit;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.mvc.models.AddressModel;
+import com.fluxtream.mvc.models.ConnectorDataModel;
 import com.fluxtream.mvc.models.ConnectorDigestModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -152,7 +155,7 @@ public class CalendarResource {
 		setSolarInfo(digest, city, guestId, dayMetadata);
 
 		List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter);
-		digest.selectedConnectors = connectorInfos(apiKeySelection);
+        digest.selectedConnectors = connectorInfos(apiKeySelection);
 		List<ApiKey> allApiKeys = guestService.getApiKeys(guestId);
 		allApiKeys = removeConnectorsWithoutFacets(allApiKeys);
 		digest.nApis = allApiKeys.size();
@@ -289,8 +292,8 @@ public class CalendarResource {
 				connector,
 				objectType,
 				dayMetadata,
-				getLoopbackDays(connector.getName(), objectType == null ? null
-						: objectType.getName()));
+				getLookbackDays(connector.getName(), objectType == null ? null
+                                                                        : objectType.getName()));
 		Collection facetCollection = new ArrayList();
 		if (objectTypeFacets != null) {
 			for (AbstractFacet abstractFacet : objectTypeFacets) {
@@ -304,7 +307,54 @@ public class CalendarResource {
 		return facetCollection;
 	}
 
-	private boolean needsUpdate(ApiKey apiKey, DayMetadataFacet dayMetadata) {
+    @GET
+    @Path("/days/{start}/{end}")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String getDailyConnectorData(@QueryParam("connectorNames") String connectorNames,
+                                        @QueryParam("objectTypes") String objectTypes,
+                                        @PathParam("start") long start,
+                                        @PathParam("end") long end)
+            throws InstantiationException, IllegalAccessException,
+                   ClassNotFoundException {
+        long guestId = ControllerHelper.getGuestId();
+        GuestSettings settings = settingsService.getSettings(guestId);
+        TimeInterval timeInterval = new TimeInterval(start, end, TimeUnit.DAY, TimeZone.getTimeZone("UTC"));
+        String[] names = connectorNames.split(",");
+        String[] types = objectTypes.split(",");
+        if (names.length!=types.length) {
+            throw new RuntimeException("You need to supply the exact same number of connector names" +
+                                       "and objectType names");
+        }
+        List<ConnectorDataModel> dataModels = new ArrayList<ConnectorDataModel>();
+        for (int i=0; i<names.length; i++) {
+            Connector connector = Connector.getConnector(names[i]);
+            ObjectType objectType = ObjectType.getObjectType(connector, types[i]);
+            List<AbstractFacet> objectTypeFacets = calendarHelper.getFacets(
+                    connector,
+                    objectType,
+                    timeInterval);
+            Collection facetCollection = new ArrayList();
+            if (objectTypeFacets != null) {
+                for (AbstractFacet abstractFacet : objectTypeFacets) {
+                    AbstractFacetVO<AbstractFacet> facetVO = AbstractFacetVO
+                            .getFacetVOClass(abstractFacet).newInstance();
+                    facetVO.extractValues(abstractFacet,
+                                          timeInterval, settings);
+                    facetCollection.add(facetVO);
+                }
+            }
+            ConnectorDataModel dataModel = new ConnectorDataModel();
+            dataModel.connector = names[i];
+            dataModel.objectType = types[i];
+            dataModel.facetVos = facetCollection;
+            dataModels.add(dataModel);
+        }
+
+        return gson.toJson(dataModels);
+    }
+
+
+    private boolean needsUpdate(ApiKey apiKey, DayMetadataFacet dayMetadata) {
 		TimeInterval interval = dayMetadata.getTimeInterval();
 		UpdateStrategy updateStrategy = updateStrategyFactory
 				.getUpdateStrategy(apiKey.getConnector());
@@ -339,7 +389,7 @@ public class CalendarResource {
 		return updateInfos;
 	}
 
-	private int getLoopbackDays(String connectorName, String objectTypeName) {
+	private int getLookbackDays(String connectorName, String objectTypeName) {
         if (objectTypeName == null) {
             return 0;
         }
@@ -391,7 +441,7 @@ public class CalendarResource {
 		digest.minTempF = md.minTempF;
 		digest.maxTempC = md.maxTempC;
 		digest.maxTempF = md.maxTempF;
-	}
+    }
 
     private List<ConnectorDigestModel> connectorInfos(List<ApiKey> apis){
         List<ConnectorDigestModel> connectors = new ArrayList<ConnectorDigestModel>();

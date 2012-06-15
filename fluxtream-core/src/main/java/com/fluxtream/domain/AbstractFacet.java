@@ -1,10 +1,16 @@
 package com.fluxtream.domain;
 
+import javax.persistence.Entity;
+import javax.persistence.EntityManager;
 import javax.persistence.Lob;
 import javax.persistence.MappedSuperclass;
+import javax.persistence.PersistenceContext;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
+import javax.persistence.Query;
 
+import com.fluxtream.connectors.Connector;
+import com.fluxtream.connectors.ObjectType;
 import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
 import org.hibernate.search.annotations.Field;
@@ -24,8 +30,9 @@ public abstract class AbstractFacet extends AbstractEntity {
 		else
 			this.objectType = -1;
 	}
-	
-	@Index(name="guestId_index")
+
+
+    @Index(name="guestId_index")
 	@Field
 	public long guestId;
 	
@@ -65,6 +72,18 @@ public abstract class AbstractFacet extends AbstractEntity {
 			this.fullTextDescription += this.comment;
 		}
 	}
+
+    public static AbstractFacet getLatestFacet(EntityManager em, Long guestId, Connector connector, ObjectType objType){
+        Class facetClass;
+        if (objType != null)
+            facetClass = objType.facetClass();
+        else
+            facetClass = connector.facetClass();
+        Entity entity = (Entity) facetClass.getAnnotation(Entity.class);
+        Query query = em.createQuery("select facet from " + entity.name() + " facet where facet.guestId = " + guestId + " order by facet.end desc limit 1");
+        query.setMaxResults(1);
+        return (AbstractFacet) query.getResultList().get(0);
+    }
 	
 	protected abstract void makeFullTextIndexable();
 }
