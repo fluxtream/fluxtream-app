@@ -18,7 +18,7 @@ import com.fluxtream.services.GuestService;
 import com.google.gson.Gson;
 
 @Path("/bodytrack")
-@Component("bodytrackController")
+@Component("RESTBodytrackController")
 @Scope("request")
 public class BodyTrackController {
 

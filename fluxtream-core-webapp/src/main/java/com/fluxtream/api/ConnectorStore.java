@@ -29,10 +29,9 @@ import org.springframework.stereotype.Component;
 
 /**
  *
- * @author Candide Kemmler (candide@fluxtream.com)
  */
-@Path("/guest/{username}/connector")
-@Component("connectorStore")
+@Path("/connectors")
+@Component("RESTConnectorStore")
 @Scope("request")
 public class ConnectorStore {
     @Autowired
@@ -51,8 +50,8 @@ public class ConnectorStore {
     @GET
     @Path("/all")
     @Produces({MediaType.APPLICATION_JSON})
-    public String getConnectors(@PathParam("username") String username){
-        Guest user = guestService.getGuest(username);
+    public String getConnectors(){
+        Guest user = ControllerHelper.getGuest();
         if (ControllerHelper.getGuestId() != user.getId()) {
             return gson.toJson(new StatusModel(false, "You don't have access to this information."));
         }
@@ -104,8 +103,8 @@ public class ConnectorStore {
     @DELETE
     @Path("/{connector}")
     @Produces({MediaType.APPLICATION_JSON})
-    public String deleteConnector(@PathParam("username") String username, @PathParam("connector") String connector){
-        Guest user = guestService.getGuest(username);
+    public String deleteConnector(@PathParam("connector") String connector){
+        Guest user = ControllerHelper.getGuest();
         if (ControllerHelper.getGuestId() != user.getId()) {
             return gson.toJson(new StatusModel(false, "You don't have access to this information."));
         }
@@ -124,8 +123,8 @@ public class ConnectorStore {
     @POST
     @Path("/{connector}/sync")
     @Produces({MediaType.APPLICATION_JSON})
-    public String updateConnector(@PathParam("username") String username, @PathParam("connector") String connectorName){
-        Guest user = guestService.getGuest(username);
+    public String updateConnector(@PathParam("connector") String connectorName){
+        Guest user = ControllerHelper.getGuest();
         if (ControllerHelper.getGuestId() != user.getId()) {
             return gson.toJson(new StatusModel(false, "You don't have access to this information."));
         }
@@ -136,8 +135,8 @@ public class ConnectorStore {
     @POST
     @Path("/all/sync")
     @Produces({MediaType.APPLICATION_JSON})
-    public String updateAllConnectors(@PathParam("username") String username){
-        Guest user = guestService.getGuest(username);
+    public String updateAllConnectors(){
+        Guest user = ControllerHelper.getGuest();
         if (ControllerHelper.getGuestId() != user.getId()) {
             return gson.toJson(new StatusModel(false, "You don't have access to this information."));
         }

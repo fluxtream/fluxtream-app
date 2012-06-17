@@ -3,7 +3,7 @@ define(function() {
     var connectors;
 
     function show(){
-        $.ajax("/api/guest/" + App.getUsername() + "/connector/all",{
+        $.ajax("/api/connectors/all",{
             success: function(data, textStatus, jqXHR){
                 dataLoaded(data,false);
             }
@@ -11,7 +11,7 @@ define(function() {
     }
 
     function updateContents(){
-        $.ajax("/api/guest/" + App.getUsername() + "/connector/all",{
+        $.ajax("/api/connectors/all",{
             success: function(data, textStatus, jqXHR){
                 dataLoaded(data,true);
             }
@@ -60,7 +60,7 @@ define(function() {
         syncAllBtn.click(function(){
             setAllToSyncing();
             event.preventDefault();
-            $.ajax("/api/guest/" + App.getUsername() + "/connector/all/sync",{
+            $.ajax("/api/connectors/all/sync",{
                 type:"POST"
             });
         });
@@ -83,7 +83,7 @@ define(function() {
         syncNowBtn.click(function(event){
             event.preventDefault();
             setToSyncing(connector.connectorName)
-            $.ajax("/api/guest/" + App.getUsername() + "/connector/" + connector.connectorName + "/sync",{
+            $.ajax("/api/connectors/" + connector.connectorName + "/sync",{
                 type:"POST"
             });
         });
@@ -124,7 +124,7 @@ define(function() {
                 var confirmDelete = $("#confirmDeleteBtn");
 
                 confirmDelete.click(function(){
-                    $.ajax("/api/guest/" + App.getUsername() + "/connector/" + connectors[index].connectorName,{
+                    $.ajax("/api/connectors/" + connectors[index].connectorName,{
                         type:"DELETE",
                         success: App.closeModal,
                         error: App.closeModal

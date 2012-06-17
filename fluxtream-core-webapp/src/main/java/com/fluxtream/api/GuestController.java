@@ -33,7 +33,7 @@ import com.fluxtream.services.GuestService;
 import com.google.gson.Gson;
 
 @Path("/guest")
-@Component("guestController")
+@Component("RESTGuestController")
 @Scope("request")
 public class GuestController {
 

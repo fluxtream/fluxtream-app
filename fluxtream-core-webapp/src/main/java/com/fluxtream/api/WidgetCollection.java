@@ -27,7 +27,7 @@ import static com.fluxtream.api.RESTUtils.handleRuntimeException;
  * @author Candide Kemmler (candide@fluxtream.com)
  */
 @Path("/widgets")
-@Component("widgetCollection")
+@Component("RESTWidgetCollection")
 @Scope("request")
 public class WidgetCollection {
 

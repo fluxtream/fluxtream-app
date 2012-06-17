@@ -24,7 +24,7 @@ import com.fluxtream.services.GuestService;
 import com.google.gson.Gson;
 
 @Path("/admin")
-@Component("adminController")
+@Component("RESTAdminController")
 @Scope("request")
 public class AdminController {
 

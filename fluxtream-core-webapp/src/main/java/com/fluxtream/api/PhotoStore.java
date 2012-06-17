@@ -36,7 +36,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 @Path("/guest/{username}/photo")
-@Component("photoStore")
+@Component("RESTPhotoStore")
 @Scope("request")
 public class PhotoStore {
 

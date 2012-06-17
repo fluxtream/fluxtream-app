@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
  * @author Candide Kemmler (candide@fluxteam.com)
  */
 @Path("/dashboards")
-@Component("dashboardStore")
+@Component("RESTDashboardStore")
 @Scope("request")
 public class DashboardStore {
 

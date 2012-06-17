@@ -60,7 +60,7 @@ import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
 import com.luckycatlabs.sunrisesunset.dto.Location;
 
 @Path("/calendar")
-@Component("calendarDataStore")
+@Component("RESTCalendarDataStore")
 @Scope("request")
 public class CalendarDataStore {
 
