@@ -21,7 +21,7 @@ define(function() {
     }
 
     function dataLoaded(data){
-        App.loadMustacheTemplate("applications/calendar/tabs/dashboards/addWidgetTemplate.html","mainDialog",function(template){
+        App.loadMustacheTemplate("applications/calendar/tabs/dashboards/addWidgetTemplate.html","addWidgetDialog",function(template){
             var html = template.render(data);
             App.makeModal(html);
             bindDialog();

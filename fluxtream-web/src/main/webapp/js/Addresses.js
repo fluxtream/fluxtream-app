@@ -37,7 +37,7 @@ define(function() {
     function confirmDelete(index){
         App.closeModal();
         $("#modal").on("hidden", function(){
-            App.loadMustacheTemplate("addressesTemplate.html","deleteConfirm",function(tamplate){
+            App.loadMustacheTemplate("addressesTemplate.html","deleteAddressConfirm",function(tamplate){
                 App.makeModal(tamplate.render({address:addresses[index].address}));
 
 

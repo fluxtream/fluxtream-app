@@ -21,7 +21,7 @@ define(function() {
 
     function dataLoaded(data,update){
         connectors = data;
-        App.loadMustacheTemplate("connectorMgmtTemplates.html","mainDialog",function(template){
+        App.loadMustacheTemplate("connectorMgmtTemplates.html","manageConnectors",function(template){
             var params = [];
             for (var i = 0; i < data.length; i++){
                 params[i] = {};
@@ -54,7 +54,7 @@ define(function() {
 
     function bindDialog(){
          for (var i = 0; i < connectors.length; i++){
-             bindConnector(connectors[i]);
+             bindConnector(connectors[i], i);
          }
         var syncAllBtn = $("#sync-all");
         syncAllBtn.click(function(){
@@ -73,7 +73,7 @@ define(function() {
         })
     }
 
-    function bindConnector(connector){
+    function bindConnector(connector, i){
         var deleteBtn = $("#remove-" + connector.connectorName);
         deleteBtn.click({index:i}, function(event){
             event.preventDefault();
@@ -119,7 +119,7 @@ define(function() {
     function confirmDelete(index){
         App.closeModal();
         $("#modal").on("hidden",function(){
-            App.loadMustacheTemplate("connectorMgmtTemplates.html","deleteConfirm",function(template){
+            App.loadMustacheTemplate("connectorMgmtTemplates.html","deleteConnectorConfirm",function(template){
                 App.makeModal(template.render(connectors[index]));
                 var confirmDelete = $("#confirmDeleteBtn");
 
