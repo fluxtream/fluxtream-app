@@ -224,6 +224,7 @@ define(
         };
 
         App.showConnectorsPage = function(page) {
+            console.log("showing connectors page " + page);
             $("#availableConnectors").load(
                 "/connectors/availableConnectors?page=" + page);
         };

@@ -2,7 +2,6 @@ package com.fluxtream.api;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.TimeZone;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -10,14 +9,9 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import com.fluxtream.TimeInterval;
-import com.fluxtream.TimeUnit;
 import com.fluxtream.connectors.Connector;
-import com.fluxtream.connectors.ObjectType;
-import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
-import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ApiUpdate;
 import com.fluxtream.domain.ConnectorInfo;
 import com.fluxtream.domain.Guest;
@@ -33,11 +27,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+/**
+ *
+ * @author Candide Kemmler (candide@fluxtream.com)
+ */
 @Path("/guest/{username}/connector")
-@Component("connectorApi")
+@Component("connectorStore")
 @Scope("request")
-public class ConnectorResource {
-
+public class ConnectorStore {
     @Autowired
     GuestService guestService;
 
@@ -51,7 +48,6 @@ public class ConnectorResource {
     private ApiDataService apiDataService;
 
     Gson gson = new Gson();
-
     @GET
     @Path("/all")
     @Produces({MediaType.APPLICATION_JSON})
@@ -182,4 +178,5 @@ public class ConnectorResource {
             return new StatusModel(false,"Failed to schedule update for " + connector.getName());
         }
     }
+
 }

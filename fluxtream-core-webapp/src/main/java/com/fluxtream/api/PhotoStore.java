@@ -36,9 +36,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 @Path("/guest/{username}/photo")
-@Component("photoApi")
+@Component("photoStore")
 @Scope("request")
-public class PhotoResource {
+public class PhotoStore {
 
     private Gson gson = new Gson();
 

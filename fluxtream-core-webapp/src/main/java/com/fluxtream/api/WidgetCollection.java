@@ -26,45 +26,35 @@ import static com.fluxtream.api.RESTUtils.handleRuntimeException;
  *
  * @author Candide Kemmler (candide@fluxtream.com)
  */
-@Path("/repositories")
-@Component("widgetRepositoriesApi")
+@Path("/widgets")
+@Component("widgetCollection")
 @Scope("request")
-public class WidgetRepositoryResource {
+public class WidgetCollection {
 
     @Autowired
     WidgetsService widgetsService;
-
+    
     Gson gson = new Gson();
 
     @GET
-    @Path("/")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String getWidgetRepositories() {
+    public String getAvailableWidgetsList() {
         long guestId = ControllerHelper.getGuestId();
-        final List<DashboardWidgetsRepository> repositories = widgetsService.getWidgetRepositories(guestId);
-        JSONArray result = new JSONArray();
-        for (DashboardWidgetsRepository repository : repositories) {
-            result.add(repository.url);
+        try {
+            List<DashboardWidget> widgets = widgetsService.getAvailableWidgetsList(guestId);
+            return gson.toJson(widgets);
+        } catch (RuntimeException rte) {
+            return handleRuntimeException(rte);
         }
-        return result.toString();
     }
 
     @POST
-    @Path("/")
+    @Path("/refresh")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String addWidgetRepositoryURL(@FormParam("url") String url) {
+    public String refreshWidgets() {
         long guestId = ControllerHelper.getGuestId();
-        try { widgetsService.addWidgetRepositoryURL(guestId, url); }
-        catch (RuntimeException rte) { return handleRuntimeException(rte); }
-        return gson.toJson(new StatusModel(true, "added widget repository"));
+        widgetsService.refreshWidgets(guestId);
+        return gson.toJson(new StatusModel(true, "widgets refreshed"));
     }
 
-    @DELETE
-    @Produces({ MediaType.APPLICATION_JSON })
-    @Path("/")
-    public String removeWidgetRepositoryURL(@QueryParam("url") String url) {
-        long guestId = ControllerHelper.getGuestId();
-        widgetsService.removeWidgetRepositoryURL(guestId, url);
-        return gson.toJson(new StatusModel(true, "removed widget repository"));
-    }
 }

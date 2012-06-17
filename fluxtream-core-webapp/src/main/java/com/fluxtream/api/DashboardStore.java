@@ -30,9 +30,9 @@ import org.springframework.stereotype.Component;
  * @author Candide Kemmler (candide@fluxteam.com)
  */
 @Path("/dashboards")
-@Component("dashboardsApi")
+@Component("dashboardStore")
 @Scope("request")
-public class DashboardResource {
+public class DashboardStore {
 
     @Autowired
     DashboardsService dashboardsService;

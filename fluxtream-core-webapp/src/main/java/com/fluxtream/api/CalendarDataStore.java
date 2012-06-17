@@ -60,9 +60,9 @@ import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
 import com.luckycatlabs.sunrisesunset.dto.Location;
 
 @Path("/calendar")
-@Component("calendarApi")
+@Component("calendarDataStore")
 @Scope("request")
-public class CalendarResource {
+public class CalendarDataStore {
 
 	@Autowired
 	GuestService guestService;

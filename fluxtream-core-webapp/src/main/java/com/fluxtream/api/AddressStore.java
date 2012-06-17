@@ -30,9 +30,9 @@ import java.util.List;
 
 
 @Path("/guest/{username}/address")
-@Component("addressApi")
+@Component("addressStore")
 @Scope("request")
-public class AddressResource {
+public class AddressStore {
 
     Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
 

@@ -1,14 +1,14 @@
 define(function() {
 
     function show(){
-        $.ajax("/api/dashboards",{
+        $.ajax("/api/widgets",{
             success: function(data, textStatus, jqXHR){
-                dataLoaded(data,false);
+                dataLoaded({widgets: data});
             }
         });
     }
 
-    function dataLoaded(data,update){
+    function dataLoaded(data){
         App.loadMustacheTemplate("applications/calendar/tabs/dashboards/addWidgetTemplate.html","mainDialog",function(template){
             var html = template.render(data);
             App.makeModal(html);
