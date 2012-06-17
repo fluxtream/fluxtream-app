@@ -6,6 +6,7 @@ define(
         var App = {};
         var toLoad = 0, loaded = 0;
         var apps = {};
+        var compiledTemplates = {};
 
         function initialize() {
             _.bindAll(this);
@@ -140,7 +141,14 @@ define(
         App.carousel = carousel;
 
         App.loadMustacheTemplate = function(templatePath,templateId,onLoad){
-            require(["text!" + templatePath], function(template){
+
+            if (typeof(compiledTemplates[templateId])!="undefined") {
+                onLoad(compiledTemplates[templateId]);
+                return;
+            }
+
+            var that = this;
+            require(["text!" + templatePath], function(template) {
                 var html = template;
                 var templateStartSearch = "<template id=\"" + templateId + "\">";
                 var htmlStart = html.indexOf(templateStartSearch);
@@ -151,7 +159,8 @@ define(
                 htmlStart += templateStartSearch.length;
                 var htmlEnd = html.indexOf("</template>",htmlStart);
                 html = html.substring(htmlStart,htmlEnd);
-                onLoad(Hogan.compile(html));
+                compiledTemplates[templateId] = Hogan.compile(html);
+                onLoad(compiledTemplates[templateId]);
             });
         }
 
