@@ -52,9 +52,6 @@ public class ConnectorStore {
     @Produces({MediaType.APPLICATION_JSON})
     public String getConnectors(){
         Guest user = ControllerHelper.getGuest();
-        if (ControllerHelper.getGuestId() != user.getId()) {
-            return gson.toJson(new StatusModel(false, "You don't have access to this information."));
-        }
         List<ConnectorInfo> connectors =  sysService.getConnectors();
         List<Long> apiKeyIds = new ArrayList<Long>();
         for (int i = 0; i < connectors.size(); i++){
@@ -105,9 +102,6 @@ public class ConnectorStore {
     @Produces({MediaType.APPLICATION_JSON})
     public String deleteConnector(@PathParam("connector") String connector){
         Guest user = ControllerHelper.getGuest();
-        if (ControllerHelper.getGuestId() != user.getId()) {
-            return gson.toJson(new StatusModel(false, "You don't have access to this information."));
-        }
         StatusModel result;
         try{
             Connector apiToRemove = Connector.fromString(connector);
@@ -125,9 +119,6 @@ public class ConnectorStore {
     @Produces({MediaType.APPLICATION_JSON})
     public String updateConnector(@PathParam("connector") String connectorName){
         Guest user = ControllerHelper.getGuest();
-        if (ControllerHelper.getGuestId() != user.getId()) {
-            return gson.toJson(new StatusModel(false, "You don't have access to this information."));
-        }
         Connector connector = Connector.getConnector(connectorName);
         return gson.toJson(updateConnector(user, connector));
     }
@@ -137,9 +128,6 @@ public class ConnectorStore {
     @Produces({MediaType.APPLICATION_JSON})
     public String updateAllConnectors(){
         Guest user = ControllerHelper.getGuest();
-        if (ControllerHelper.getGuestId() != user.getId()) {
-            return gson.toJson(new StatusModel(false, "You don't have access to this information."));
-        }
         StatusModel result = null;
         List<ConnectorInfo> connectors =  sysService.getConnectors();
         List<Long> apiKeyIds = new ArrayList<Long>();
