@@ -7,7 +7,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.NavigableSet;
 import java.util.TimeZone;
 
@@ -83,7 +82,7 @@ public class CalendarDataStore {
 	UpdateStrategyFactory updateStrategyFactory;
 
 	@Autowired
-    CalendarHelper calendarHelper;
+    CalendarDataHelper calendarDataHelper;
 
 	Gson gson = new Gson();
 
@@ -202,7 +201,7 @@ public class CalendarDataStore {
 		ObjectType[] objectTypes = connector.objectTypes();
 		ApiKey apiKey = guestService.getApiKey(ControllerHelper.getGuestId(),
 				connector);
-		calendarHelper.refreshApiData(dayMetadata, apiKey, null, day);
+		calendarDataHelper.refreshApiData(dayMetadata, apiKey, null, day);
         if (objectTypes != null) {
             for (ObjectType objectType : objectTypes) {
                 Collection<AbstractFacetVO<AbstractFacet>> facetCollection = getFacetVos(dayMetadata, settings,
@@ -226,7 +225,7 @@ public class CalendarDataStore {
 
 	private ConnectorResponseModel prepareConnectorResponseModel(
 			DayMetadataFacet dayMetadata) {
-		TimeBoundariesModel tb = calendarHelper
+		TimeBoundariesModel tb = calendarDataHelper
 				.getStartEndResponseBoundaries(dayMetadata);
 		ConnectorResponseModel jsr = new ConnectorResponseModel();
 		jsr.tbounds = tb;
@@ -288,7 +287,7 @@ public class CalendarDataStore {
                                                                    GuestSettings settings, Connector connector, ObjectType objectType)
 			throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException {
-        List<AbstractFacet> objectTypeFacets = calendarHelper.getFacets(
+        List<AbstractFacet> objectTypeFacets = calendarDataHelper.getFacets(
 				connector,
 				objectType,
 				dayMetadata,
@@ -329,7 +328,7 @@ public class CalendarDataStore {
         for (int i=0; i<names.length; i++) {
             Connector connector = Connector.getConnector(names[i]);
             ObjectType objectType = ObjectType.getObjectType(connector, types[i]);
-            List<AbstractFacet> objectTypeFacets = calendarHelper.getFacets(
+            List<AbstractFacet> objectTypeFacets = calendarDataHelper.getFacets(
                     connector,
                     objectType,
                     timeInterval);
