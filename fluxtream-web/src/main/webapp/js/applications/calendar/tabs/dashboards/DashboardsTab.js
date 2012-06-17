@@ -31,6 +31,10 @@ define(["applications/calendar/tabs/Tab",
                              $(".dashboardName").click(function(evt) {
                                  var dashboardId = $(evt.target).parent().attr("id").substring("dashboard-".length);
                                  dashboardsTab.activeDashboard = dashboardId;
+                                 $.ajax({
+                                     url: "/api/dashboards/" + dashboardsTab.activeDashboard + "/active",
+                                     type: "PUT"
+                                 });
                              });
                          },
                          dashboards
