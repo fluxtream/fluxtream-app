@@ -11,21 +11,23 @@ import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.stereotype.Component;
 
 /**
  * Extracts information from the apicall and creates a facet
  */
 @Component
-public class BodymediaFacetExtractor extends AbstractFacetExtractor {
+public class BodymediaFacetExtractor extends AbstractFacetExtractor
+{
 
     //Logs various transactions
     Logger logger = Logger.getLogger(BodymediaFacetExtractor.class);
 
     @Override
-    public List<AbstractFacet> extractFacets(ApiData apiData, ObjectType objectType) throws Exception {
+    public List<AbstractFacet> extractFacets(ApiData apiData, ObjectType objectType) throws Exception
+    {
 
         logger.info("guestId=" + apiData.updateInfo.getGuestId() +
         				" connector=bodymedia action=extractFacets objectType="
@@ -49,7 +51,8 @@ public class BodymediaFacetExtractor extends AbstractFacetExtractor {
      * @param apiData The data returned by the Burn api
      * @return A list of facets for each day provided by the apiData
      */
-    private ArrayList<AbstractFacet> extractBurnFacet(ApiData apiData) {
+    private ArrayList<AbstractFacet> extractBurnFacet(ApiData apiData)
+    {
         ArrayList<AbstractFacet> facets = new ArrayList<AbstractFacet>();
         /* burnJson is a JSONArray that contains a seperate JSONArray and calorie counts for each day
          */
@@ -58,8 +61,8 @@ public class BodymediaFacetExtractor extends AbstractFacetExtractor {
         {
             try
             {
-                DateTimeFormatter form = ISODateTimeFormat.dateOptionalTimeParser();
-                DateTime d = form.parseDateTime(bodymediaResponse.getString("lastSync"));
+                DateTimeFormatter form = DateTimeFormat.forPattern("yyyyMMdd'T'HHmmssZ");
+                DateTime d = form.parseDateTime(bodymediaResponse.getJSONObject("lastSync").getString("dateTime"));
                 JSONArray daysArray = bodymediaResponse.getJSONArray("days");
                 for(Object o : daysArray)
                 {
@@ -67,7 +70,7 @@ public class BodymediaFacetExtractor extends AbstractFacetExtractor {
                     {
                         JSONObject day = (JSONObject) o;
                         BodymediaBurnFacet facet = new BodymediaBurnFacet();
-                        //The following call must be made
+                        //The following call must be made to load data about he facets
                         super.extractCommonFacetData(facet, apiData);
                         facet.setTotalCalories(day.getInt("totalCalories"));
                         facet.setDate(day.getString("date"));
