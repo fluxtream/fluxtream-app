@@ -12,6 +12,10 @@ define(["applications/calendar/tabs/Tab",
         $.ajax({
                 url: "/api/dashboards",
                 success: function(dashboards) {
+                    for (var i=0; i<dashboards.length; i++) {
+                        if (dashboards[i].active)
+                            dashboardsTab.activeDashboard = dashboards[i].id;
+                    }
                     that.populateTemplate({"dashboards" : dashboards});
                 }
                }
@@ -24,6 +28,10 @@ define(["applications/calendar/tabs/Tab",
                          function() {
                              $("#addWidgetButton").click(addWidget);
                              $("#manageDashboardsButton").click(manageDashboards);
+                             $(".dashboardName").click(function(evt) {
+                                 var dashboardId = $(evt.target).parent().attr("id").substring("dashboard-".length);
+                                 dashboardsTab.activeDashboard = dashboardId;
+                             });
                          },
                          dashboards
         );
@@ -34,7 +42,7 @@ define(["applications/calendar/tabs/Tab",
     }
 
     function addWidget() {
-        AddWidget.show();
+        AddWidget.show(dashboardsTab.activeDashboard);
     }
 
     function manageDashboards() {

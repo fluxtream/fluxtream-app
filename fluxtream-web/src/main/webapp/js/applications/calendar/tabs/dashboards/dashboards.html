@@ -1,6 +1,5 @@
 <div id="dashboardsTab" class="tabbable tabs-below">
     <div class="tab-content" style="margin-bottom: 40px;">
-        {{release}} {{test}}
     </div>
 
     <ul class="nav nav-tabs">
@@ -9,7 +8,9 @@
             <button id="manageDashboardsButton" class="btn btn-small">Manage Dashboards&nbsp;<i class="icon-cog"></i></button>
         </li>
         {{#dashboards}}
-            <li id="dashboard-{{id}}" {{#active}}class="active"{{/active}}><a href="#" data-toggle="tab">{{name}}</a></li>
+        <li style="cursor:pointer" class="dashboardName{{#active}} active{{/active}}" id="dashboard-{{id}}">
+            <a data-toggle="tab">{{name}}</a>
+        </li>
         {{/dashboards}}
     </ul>
 </div>

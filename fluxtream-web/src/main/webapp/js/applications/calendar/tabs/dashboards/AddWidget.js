@@ -1,9 +1,21 @@
 define(function() {
 
-    function show(){
+    var activeDashboardId;
+
+    function show(adid){
+        activeDashboardId = adid;
         $.ajax("/api/widgets",{
             success: function(data, textStatus, jqXHR){
-                dataLoaded({widgets: data});
+                var rows = [];
+                var row = {widgets:[]};
+                for (var i=0; i<data.length; i++) {
+                    if(i%3==0) {
+                        row = {widgets:[]};
+                        rows.push(row);
+                    }
+                    row.widgets.push(data[i]);
+                }
+                dataLoaded({rows: rows});
             }
         });
     }
