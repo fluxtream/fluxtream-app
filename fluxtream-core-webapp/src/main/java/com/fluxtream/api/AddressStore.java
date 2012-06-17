@@ -51,7 +51,6 @@ public class AddressStore {
 
 
     @GET
-    @Path("/all")
     @Produces({MediaType.APPLICATION_JSON})
     public String getAddresses(){
         try{

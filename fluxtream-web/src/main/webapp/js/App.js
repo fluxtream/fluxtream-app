@@ -1,7 +1,7 @@
 define(
-    [ "core/FlxState", "Addresses", "ManageConnectors",
+    [ "core/FlxState", "Addresses", "ManageConnectors", "AddConnectors",
       "libs/jquery.form", "libs/jquery.qtip.min" ],
-    function(FlxState, Addresses, ManageConnectors) {
+    function(FlxState, Addresses, ManageConnectors, AddConnectors) {
 
         var App = {};
         var toLoad = 0, loaded = 0;
@@ -164,12 +164,7 @@ define(
         };
 
         App.connectors = function() {
-            $.ajax({
-                       url : "/connectors/main",
-                       success : function(html) {
-                           makeModal(html);
-                       }
-                   });
+            AddConnectors.show();
         };
 
         App.addresses = function() {

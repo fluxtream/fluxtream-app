@@ -24,6 +24,7 @@ import com.fluxtream.services.GuestService;
 import com.fluxtream.services.SystemService;
 
 @Controller
+@Deprecated
 public class ConnectorsController {
 
 	@Autowired

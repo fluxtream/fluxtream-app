@@ -344,7 +344,7 @@ define(function() {
 
 
     function show(){
-        $.ajax("/api/addresses/all",{
+        $.ajax("/api/addresses",{
             success: function(data, textStatus, jqXHR){
                     dataLoaded(data);
                 }

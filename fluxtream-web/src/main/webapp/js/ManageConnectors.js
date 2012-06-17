@@ -3,7 +3,7 @@ define(function() {
     var connectors;
 
     function show(){
-        $.ajax("/api/connectors/all",{
+        $.ajax("/api/connectors",{
             success: function(data, textStatus, jqXHR){
                 dataLoaded(data,false);
             }
@@ -11,7 +11,7 @@ define(function() {
     }
 
     function updateContents(){
-        $.ajax("/api/connectors/all",{
+        $.ajax("/api/connectors",{
             success: function(data, textStatus, jqXHR){
                 dataLoaded(data,true);
             }
@@ -21,7 +21,7 @@ define(function() {
 
     function dataLoaded(data,update){
         connectors = data;
-        App.loadMustacheTemplate("manageConnectorsTemplate.html","mainDialog",function(template){
+        App.loadMustacheTemplate("connectorMgmtTemplates.html","mainDialog",function(template){
             var params = [];
             for (var i = 0; i < data.length; i++){
                 params[i] = {};
@@ -60,7 +60,7 @@ define(function() {
         syncAllBtn.click(function(){
             setAllToSyncing();
             event.preventDefault();
-            $.ajax("/api/connectors/all/sync",{
+            $.ajax("/api/connectors/sync",{
                 type:"POST"
             });
         });
@@ -119,7 +119,7 @@ define(function() {
     function confirmDelete(index){
         App.closeModal();
         $("#modal").on("hidden",function(){
-            App.loadMustacheTemplate("manageConnectorsTemplate.html","deleteConfirm",function(template){
+            App.loadMustacheTemplate("connectorMgmtTemplates.html","deleteConfirm",function(template){
                 App.makeModal(template.render(connectors[index]));
                 var confirmDelete = $("#confirmDeleteBtn");
 

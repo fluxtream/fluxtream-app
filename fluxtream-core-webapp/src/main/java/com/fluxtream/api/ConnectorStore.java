@@ -48,7 +48,6 @@ public class ConnectorStore {
 
     Gson gson = new Gson();
     @GET
-    @Path("/all")
     @Produces({MediaType.APPLICATION_JSON})
     public String getConnectors(){
         Guest user = ControllerHelper.getGuest();
