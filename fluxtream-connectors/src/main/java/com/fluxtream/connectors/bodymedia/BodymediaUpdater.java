@@ -45,6 +45,7 @@ public class BodymediaUpdater extends AbstractUpdater
         String userRegistrationDate = getUserRegistrationDate(updateInfo, api_key);
         if (updateInfo.objectTypes().contains(burnOT))
         {
+            //DateTime should be initialized to today
             DateTime today = new DateTime();
             DateTime start = DateTimeFormat.forPattern("yyyyMMdd").parseDateTime(userRegistrationDate);
             retrieveBurnHistory(updateInfo, start, today);
@@ -96,7 +97,14 @@ public class BodymediaUpdater extends AbstractUpdater
 
     public void updateConnectorData(UpdateInfo updateInfo) throws Exception
     {
-        throw new Exception("unimplemented");
+        DateTime today = new DateTime();
+        DateTime start = getLastSyncTime();
+        retrieveBurnHistory(updateInfo, start, today);
+    }
+
+    private DateTime getLastSyncTime()
+    {
+        throw new RuntimeException("unimplemented");
     }
 
     public String getUserRegistrationDate(UpdateInfo updateInfo, String api_key)

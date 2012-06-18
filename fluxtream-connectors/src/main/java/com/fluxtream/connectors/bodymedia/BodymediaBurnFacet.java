@@ -26,11 +26,9 @@ public class BodymediaBurnFacet extends AbstractFacet {
 
     //Time of last sync stored as a unix timestamp
     public long lastSync;
+    //The date that this facet represents
     public String date;
     // Store the JSON for the minutely data.  This is a JSON array with one entry per minute
-    /*
-     * Not really. stores a JSONArray of burnJson that in turn store JSON arrays of minutely data
-     */
     @Lob
     public String burnJson;
 	

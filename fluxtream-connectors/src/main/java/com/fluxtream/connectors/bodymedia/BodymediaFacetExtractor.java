@@ -38,12 +38,21 @@ public class BodymediaFacetExtractor extends AbstractFacetExtractor
         {
             facets = extractBurnFacet(apiData);
         }
+        else if(objectType.getName().equals("user"))
+        {
+            facets = extractUserFacet(apiData);
+        }
         else //If the facet to be extracted wasn't a burn facet
         {
             logger.info("guestId=" + apiData.updateInfo.getGuestId() +
             				" connector=bodymedia action=extractFacets error=no burn object");
         }
         return facets;
+    }
+
+    private ArrayList<AbstractFacet> extractUserFacet(final ApiData apiData)
+    {
+        throw new RuntimeException("unimplemented");
     }
 
     /**
