@@ -78,16 +78,31 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 break;
         }
         var marker = new google.maps.Marker({map:map, position:new google.maps.LatLng(address.latitude,address.longitude), icon:icon});
+        marker.showCircle = function(){
+            if (marker.circle != null)
+                return;
+            marker.circle = new google.maps.Circle({center:marker.getPosition(),
+                                                       map:map,
+                                                       radius:address.radius,
+                                                       fillColor:"green",
+                                                       fillOpacity:0.5,
+                                                       strokeOpacity:0});
+        }
+        marker.hideCircle = function(){
+            if (marker.circle == null)
+                return;
+            marker.circle.setMap(null);
+            marker.circle = null;
+        }
         if (!clickable)
             return marker;
         google.maps.event.addListener(marker, "click", function(){
             map.connectorSelected = null;
             if (map.selectedMarker != null)
                 map.selectedMarker.hideCircle();
-            map.selectedMarker = null;
+            map.selectedMarker = marker;
             map.infoWindow.setContent(address.getDetails());
             map.infoWindow.open(map,marker);
-            marker.doHighlighting();
             marker.showCircle();
         });
     }

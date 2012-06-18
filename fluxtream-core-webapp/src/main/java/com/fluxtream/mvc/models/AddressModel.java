@@ -9,9 +9,10 @@ public class AddressModel {
         this.type = guestAddress.type;
 		this.latitude = guestAddress.latitude;
 		this.longitude = guestAddress.longitude;
+        this.radius = guestAddress.radius;
 	}
 
 	public String address, type;
-	public double latitude, longitude;
+	public double latitude, longitude, radius;
 
 }
