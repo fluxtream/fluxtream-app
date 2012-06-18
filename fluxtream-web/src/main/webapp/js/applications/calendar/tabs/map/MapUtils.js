@@ -59,6 +59,39 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         return map.markers[connectorInfoId] != null;
     }
 
+    function addAddresses(map,addressesData,clickable){
+        for (var type in addressesData){
+            for (var i = 0; i < addressesData[type].length; i++)
+                addAddress(map,addressesData[type][i],clickable);
+        }
+    }
+
+    function addAddress(map,address,clickable){
+        var icon = "/static/images/mapicons/";
+        switch (address.type){
+            default:
+            case "ADDRESS_HOME":
+                icon += "home.png";
+                break;
+            case "ADDRESS_WORK":
+                icon += "workoffice.png"
+                break;
+        }
+        var marker = new google.maps.Marker({map:map, position:new google.maps.LatLng(address.latitude,address.longitude), icon:icon});
+        if (!clickable)
+            return marker;
+        google.maps.event.addListener(marker, "click", function(){
+            map.connectorSelected = null;
+            if (map.selectedMarker != null)
+                map.selectedMarker.hideCircle();
+            map.selectedMarker = null;
+            map.infoWindow.setContent('<div style="text-align:center;"></img></div>');
+            map.infoWindow.open(map,marker);
+            marker.doHighlighting();
+            marker.showCircle();
+        });
+    }
+
     function isDisplayable(itemType){
         switch (itemType){
             case "sms_backup-sms":
@@ -112,6 +145,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             marker.doHighlighting();
             marker.showCircle();
         });
+        return marker;
     }
 
     function addItemsToMap(map,items,clickable){
@@ -533,6 +567,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             map.markers = {};
             map.addGPSData = function(gpsData){addGPSData(map,gpsData)};
             map.addData = function(connectorData, connectorInfoId,clickable){return addData(map,connectorData, connectorInfoId,clickable)};
+            map.addAddresses = function(addresses,clickable){addAddresses(map,addresses,clickable)}
             map.getLatLngOnGPSLine = function(time){return getLatLngOnGPSLine(map,time)};
             map.createPolyLineSegment = function(start,end,options){return createPolyLineSegment(map,start,end,options)};
             map.getFirstIndexAfter = function(time){return getFirstIndexAfter(map,time)};
