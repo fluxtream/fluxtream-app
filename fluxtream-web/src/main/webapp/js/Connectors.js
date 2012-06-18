@@ -86,7 +86,12 @@ define(function() {
 	}
 
 	function chooseWithingsUser() {
-		var chosenUser = $("input#withings-chosenUser").val();
+        var radioButtons = $("input#withings-chosenUser");
+        var chosenUser;
+        for (var i = 0; i < radioButtons.length; i++){
+            if (radioButtons[i].checked)
+                chosenUser = radioButtons[i].value;
+        }
 		$.ajax({
 			url:"/withings/chooseWithingsUser",
 			type: "POST",
