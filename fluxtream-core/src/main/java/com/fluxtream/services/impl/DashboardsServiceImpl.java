@@ -41,12 +41,15 @@ public class DashboardsServiceImpl implements DashboardsService {
     PropertiesConfiguration widgetProperties;
 
     @Override
+    @Transactional(readOnly=false)
     public List<Dashboard> getDashboards(final long guestId) {
         List<Dashboard> dashboards = JPAUtils.find(em, Dashboard.class, "dashboards.all",
                                                    guestId);
         if (dashboards.size()==0) {
             Dashboard dashboard = createDashboard(guestId, "Untitled Dashboard");
+            dashboard.active = true;
             addDefaultWidgets(guestId, dashboard);
+            em.persist(dashboard);
         }
         return dashboards;
     }
@@ -173,4 +176,15 @@ public class DashboardsServiceImpl implements DashboardsService {
         }
     }
 
+    @Override
+    @Transactional(readOnly=false)
+    public void setActiveDashboard(final long guestId, final long dashboardId) {
+        final List<Dashboard> dashboards = JPAUtils.find(em, Dashboard.class, "dashboards.all", guestId);
+        for (Dashboard dashboard : dashboards) {
+            dashboard.active = false;
+            if (dashboard.getId()==dashboardId)
+                dashboard.active = true;
+            em.persist(dashboard);
+        }
+    }
 }

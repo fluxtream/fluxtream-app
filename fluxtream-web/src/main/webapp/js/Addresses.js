@@ -37,14 +37,14 @@ define(function() {
     function confirmDelete(index){
         App.closeModal();
         $("#modal").on("hidden", function(){
-            App.loadMustacheTemplate("addressesTemplate.html","deleteConfirm",function(tamplate){
+            App.loadMustacheTemplate("addressesTemplate.html","deleteAddressConfirm",function(tamplate){
                 App.makeModal(tamplate.render({address:addresses[index].address}));
 
 
                 var confirmDelete = $("#confirmDeleteBtn");
 
                 confirmDelete.click(function(){
-                    $.ajax("/api/guest/" + App.getUsername() + "/address/" + index,{
+                    $.ajax("/api/addresses/" + index,{
                         type:"DELETE",
                         success:App.closeModal,
                         error: App.closeModal
@@ -229,7 +229,7 @@ define(function() {
                         hasParams = true;
                     }
                     if (hasParams){
-                        $.ajax("/api/guest/" + App.getUsername() + "/address/" + index,{
+                        $.ajax("/api/addresses/" + index,{
                             type:"POST",
                             data:params,
                             success: function(data, textStatus, jqXHR){
@@ -314,7 +314,7 @@ define(function() {
                         longitude:address.geometry.location.lng(), since:sinceInput.val()};
                     if (!presentCheckbox.is(":checked"))
                         params.until = untilInput.val();
-                    $.ajax("/api/guest/" + App.getUsername() + "/address/" + typeNames[addressTypeSelect[0].selectedIndex],{
+                    $.ajax("/api/addresses/" + typeNames[addressTypeSelect[0].selectedIndex],{
                         type: "POST",
                         data:  params,
                         success: function(data, textStatus, jqXHR){
@@ -344,7 +344,7 @@ define(function() {
 
 
     function show(){
-        $.ajax("/api/guest/" + App.getUsername() + "/address/all",{
+        $.ajax("/api/addresses",{
             success: function(data, textStatus, jqXHR){
                     dataLoaded(data);
                 }

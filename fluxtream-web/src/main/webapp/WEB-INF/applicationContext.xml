@@ -127,11 +127,11 @@
 
 	<mvc:annotation-driven />
 
-	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
-		<property name="driverClass" value="com.mysql.jdbc.Driver" />
-		<property name="jdbcUrl" value="${db.url}" />
-		<property name="user" value="${db.username}" />
-		<property name="password" value="${db.password}" />
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+        <property name="driverClass" value="com.mysql.jdbc.Driver" />
+        <property name="jdbcUrl" value="${db.url}" />
+        <property name="user" value="${db.username}" />
+        <property name="password" value="${db.password}" />
 	</bean>
 	
 	<bean id="entityManagerFactory"

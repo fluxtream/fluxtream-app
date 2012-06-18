@@ -7,7 +7,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.NavigableSet;
 import java.util.TimeZone;
 
@@ -60,9 +59,9 @@ import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
 import com.luckycatlabs.sunrisesunset.dto.Location;
 
 @Path("/calendar")
-@Component("calendarApi")
+@Component("RESTCalendarDataStore")
 @Scope("request")
-public class CalendarResource {
+public class CalendarDataStore {
 
 	@Autowired
 	GuestService guestService;
@@ -83,7 +82,7 @@ public class CalendarResource {
 	UpdateStrategyFactory updateStrategyFactory;
 
 	@Autowired
-    CalendarHelper calendarHelper;
+    CalendarDataHelper calendarDataHelper;
 
 	Gson gson = new Gson();
 
@@ -202,19 +201,19 @@ public class CalendarResource {
 		ObjectType[] objectTypes = connector.objectTypes();
 		ApiKey apiKey = guestService.getApiKey(ControllerHelper.getGuestId(),
 				connector);
-		calendarHelper.refreshApiData(dayMetadata, apiKey, null, day);
+		calendarDataHelper.refreshApiData(dayMetadata, apiKey, null, day);
         if (objectTypes != null) {
             for (ObjectType objectType : objectTypes) {
-                Collection facetCollection = getFacetVos(dayMetadata, settings,
-                                                         connector, objectType);
+                Collection<AbstractFacetVO<AbstractFacet>> facetCollection = getFacetVos(dayMetadata, settings,
+                                                                                         connector, objectType);
                 if (facetCollection.size() > 0) {
                     day.payload = facetCollection;
                 }
             }
         }
         else {
-            Collection facetCollection = getFacetVos(dayMetadata, settings,
-                                                     connector, null);
+            Collection<AbstractFacetVO<AbstractFacet>> facetCollection = getFacetVos(dayMetadata, settings,
+                                                                                     connector, null);
             day.payload = facetCollection;
         }
 
@@ -226,7 +225,7 @@ public class CalendarResource {
 
 	private ConnectorResponseModel prepareConnectorResponseModel(
 			DayMetadataFacet dayMetadata) {
-		TimeBoundariesModel tb = calendarHelper
+		TimeBoundariesModel tb = calendarDataHelper
 				.getStartEndResponseBoundaries(dayMetadata);
 		ConnectorResponseModel jsr = new ConnectorResponseModel();
 		jsr.tbounds = tb;
@@ -243,15 +242,15 @@ public class CalendarResource {
 			ObjectType[] objectTypes = connector.objectTypes();
             if (objectTypes != null) {
                 for (ObjectType objectType : objectTypes) {
-                    Collection facetCollection = getFacetVos(dayMetadata,
-                                                             settings, connector, objectType);
+                    Collection<AbstractFacetVO<AbstractFacet>> facetCollection = getFacetVos(dayMetadata,
+                                                                                             settings, connector, objectType);
                     setFilterInfo(dayMetadata, digest, apiKeySelection, apiKey,
                                   connector, objectType, facetCollection);
                 }
             }
             else {
-                Collection facetCollection = getFacetVos(dayMetadata, settings,
-                                                         connector, null);
+                Collection<AbstractFacetVO<AbstractFacet>> facetCollection = getFacetVos(dayMetadata, settings,
+                                                                                         connector, null);
                 setFilterInfo(dayMetadata, digest, apiKeySelection, apiKey,
                               connector, null, facetCollection);
             }
@@ -262,7 +261,7 @@ public class CalendarResource {
 	private void setFilterInfo(DayMetadataFacet dayMetadata,
 			DigestModel digest, List<ApiKey> apiKeySelection, ApiKey apiKey,
 			Connector connector, ObjectType objectType,
-			Collection facetCollection) {
+			Collection<AbstractFacetVO<AbstractFacet>> facetCollection) {
 		digest.hasData(connector.getName(), facetCollection.size() > 0);
 		boolean needsUpdate = needsUpdate(apiKey, dayMetadata);
         if (needsUpdate) {
@@ -284,17 +283,17 @@ public class CalendarResource {
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private Collection getFacetVos(DayMetadataFacet dayMetadata,
-			GuestSettings settings, Connector connector, ObjectType objectType)
+	private Collection<AbstractFacetVO<AbstractFacet>> getFacetVos(DayMetadataFacet dayMetadata,
+                                                                   GuestSettings settings, Connector connector, ObjectType objectType)
 			throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException {
-        List<AbstractFacet> objectTypeFacets = calendarHelper.getFacets(
+        List<AbstractFacet> objectTypeFacets = calendarDataHelper.getFacets(
 				connector,
 				objectType,
 				dayMetadata,
 				getLookbackDays(connector.getName(), objectType == null ? null
                                                                         : objectType.getName()));
-		Collection facetCollection = new ArrayList();
+		Collection<AbstractFacetVO<AbstractFacet>> facetCollection = new ArrayList<AbstractFacetVO<AbstractFacet>>();
 		if (objectTypeFacets != null) {
 			for (AbstractFacet abstractFacet : objectTypeFacets) {
 				AbstractFacetVO<AbstractFacet> facetVO = AbstractFacetVO
@@ -329,11 +328,11 @@ public class CalendarResource {
         for (int i=0; i<names.length; i++) {
             Connector connector = Connector.getConnector(names[i]);
             ObjectType objectType = ObjectType.getObjectType(connector, types[i]);
-            List<AbstractFacet> objectTypeFacets = calendarHelper.getFacets(
+            List<AbstractFacet> objectTypeFacets = calendarDataHelper.getFacets(
                     connector,
                     objectType,
                     timeInterval);
-            Collection facetCollection = new ArrayList();
+            Collection<AbstractFacetVO<AbstractFacet>> facetCollection = new ArrayList<AbstractFacetVO<AbstractFacet>>();
             if (objectTypeFacets != null) {
                 for (AbstractFacet abstractFacet : objectTypeFacets) {
                     AbstractFacetVO<AbstractFacet> facetVO = AbstractFacetVO
@@ -531,12 +530,10 @@ public class CalendarResource {
 			sunset = sr;
 			sunrise = ss;
 		}
-		if (sunrise != null && sunset != null) {
-			solarInfo.sunrise = AbstractFacetVO.toMinuteOfDay(
-					sunrise.getTime(), timeZone);
-			solarInfo.sunset = AbstractFacetVO.toMinuteOfDay(sunset.getTime(),
-					timeZone);
-		}
+        solarInfo.sunrise = AbstractFacetVO.toMinuteOfDay(
+                sunrise.getTime(), timeZone);
+        solarInfo.sunset = AbstractFacetVO.toMinuteOfDay(sunset.getTime(),
+                timeZone);
 		return solarInfo;
 	}
 

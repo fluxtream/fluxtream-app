@@ -33,7 +33,7 @@ define([], function() {
 	state.saveTabState = storeTab;
 	state.getTabState = restoreTab;
 	state.router = new Backbone.Router();
-	state.apps = ["calendar", "pinboard"];
+	state.apps = ["calendar"];
 	state.defaultApp = "calendar";
 	
 	return state;

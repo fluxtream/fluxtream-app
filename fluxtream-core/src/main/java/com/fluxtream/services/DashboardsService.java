@@ -29,4 +29,6 @@ public interface DashboardsService {
 
     public void setDashboardsOrder(long guestId, long[] dashboardIds);
 
+    public void setActiveDashboard(long guestId, long dashboardId);
+
 }

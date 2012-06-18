@@ -3,7 +3,7 @@ define(function() {
     var connectors;
 
     function show(){
-        $.ajax("/api/guest/" + App.getUsername() + "/connector/all",{
+        $.ajax("/api/connectors",{
             success: function(data, textStatus, jqXHR){
                 dataLoaded(data,false);
             }
@@ -11,7 +11,7 @@ define(function() {
     }
 
     function updateContents(){
-        $.ajax("/api/guest/" + App.getUsername() + "/connector/all",{
+        $.ajax("/api/connectors",{
             success: function(data, textStatus, jqXHR){
                 dataLoaded(data,true);
             }
@@ -21,7 +21,7 @@ define(function() {
 
     function dataLoaded(data,update){
         connectors = data;
-        App.loadMustacheTemplate("manageConnectorsTemplate.html","mainDialog",function(template){
+        App.loadMustacheTemplate("connectorMgmtTemplates.html","manageConnectors",function(template){
             var params = [];
             for (var i = 0; i < data.length; i++){
                 params[i] = {};
@@ -54,13 +54,13 @@ define(function() {
 
     function bindDialog(){
          for (var i = 0; i < connectors.length; i++){
-             bindConnector(connectors[i]);
+             bindConnector(connectors[i], i);
          }
         var syncAllBtn = $("#sync-all");
         syncAllBtn.click(function(){
             setAllToSyncing();
             event.preventDefault();
-            $.ajax("/api/guest/" + App.getUsername() + "/connector/all/sync",{
+            $.ajax("/api/connectors/sync",{
                 type:"POST"
             });
         });
@@ -73,7 +73,7 @@ define(function() {
         })
     }
 
-    function bindConnector(connector){
+    function bindConnector(connector, i){
         var deleteBtn = $("#remove-" + connector.connectorName);
         deleteBtn.click({index:i}, function(event){
             event.preventDefault();
@@ -83,7 +83,7 @@ define(function() {
         syncNowBtn.click(function(event){
             event.preventDefault();
             setToSyncing(connector.connectorName)
-            $.ajax("/api/guest/" + App.getUsername() + "/connector/" + connector.connectorName + "/sync",{
+            $.ajax("/api/connectors/" + connector.connectorName + "/sync",{
                 type:"POST"
             });
         });
@@ -119,12 +119,12 @@ define(function() {
     function confirmDelete(index){
         App.closeModal();
         $("#modal").on("hidden",function(){
-            App.loadMustacheTemplate("manageConnectorsTemplate.html","deleteConfirm",function(template){
+            App.loadMustacheTemplate("connectorMgmtTemplates.html","deleteConnectorConfirm",function(template){
                 App.makeModal(template.render(connectors[index]));
                 var confirmDelete = $("#confirmDeleteBtn");
 
                 confirmDelete.click(function(){
-                    $.ajax("/api/guest/" + App.getUsername() + "/connector/" + connectors[index].connectorName,{
+                    $.ajax("/api/connectors/" + connectors[index].connectorName,{
                         type:"DELETE",
                         success: App.closeModal,
                         error: App.closeModal
