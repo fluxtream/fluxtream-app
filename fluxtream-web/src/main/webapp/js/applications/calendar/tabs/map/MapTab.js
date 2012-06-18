@@ -72,7 +72,7 @@ define(["applications/calendar/tabs/Tab",
             return;
         }
         var digest = digestData;
-        map.addAddresses(digest.addresses);
+        map.addAddresses(digest.addresses,true);
         for(var objectTypeName in digest.cachedData) {
             if (digest.cachedData[objectTypeName]==null||typeof(digest.cachedData[objectTypeName])=="undefined")
                 continue;

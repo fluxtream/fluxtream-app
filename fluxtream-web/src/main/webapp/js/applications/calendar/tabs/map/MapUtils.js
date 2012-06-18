@@ -85,7 +85,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             if (map.selectedMarker != null)
                 map.selectedMarker.hideCircle();
             map.selectedMarker = null;
-            map.infoWindow.setContent('<div style="text-align:center;"></img></div>');
+            map.infoWindow.setContent(address.getDetails());
             map.infoWindow.open(map,marker);
             marker.doHighlighting();
             marker.showCircle();
