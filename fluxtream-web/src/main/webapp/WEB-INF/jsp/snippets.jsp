@@ -82,6 +82,47 @@
             </div>
         </div>    
 <div class="container-fluid">
+        <div class="row-fluid">   <!-- New code snippet from peri 2012-12-13 : timeline connector data view -->
+            <div class="flx-hide-channels">
+                <i class="icon-resize-horizontal"></i> <a href="">Hide Channels</a>
+            </div>
+            <div class="flx-channel-navigation">
+                <div class="btn-toolbar">
+                    <div class="btn-group">
+                      <a href="#" class="btn"> <i class="icon-zoom-in"></i> </a>
+                      <a href="#" class="btn"> <i class="icon-zoom-out"></i> </a>
+                    </div>
+                    <div class="btn-group">
+                      <a href="#" class="btn"> <i class="icon-fast-backward"></i> </a>
+                      <a href="#" class="btn"> <i class="icon-step-backward"></i> </a>
+                      <a href="#" class="btn"> <i class="icon-step-forward"></i> </a>
+                      <a href="#" class="btn"> <i class="icon-fast-forward"></i> </a>
+                    </div>
+               </div>
+            </div>
+            <div class="flx-channel">
+                <div class="flx-remove-channel"><a href="#"><i class="icon-remove-sign"></i></a></div>
+                <div class="flx-channel-name">
+                    <h4>BodyMedia</h4>
+                    <p>Lying down</p>    
+                </div>
+                <ul class="flx-channel-controls">
+                    <li><a href="#"><i class="icon-resize-vertical"></i></a></li>
+                    <li><a href="#"><i class="icon-pencil"></i></a></li>
+                </ul>
+            </div>
+            <div class="flx-channel">
+                <div class="flx-remove-channel"><a href="#"><i class="icon-remove-sign"></i></a></div>
+                <div class="flx-channel-name">
+                    <h4>Zeo</h4>
+                    <p>Sleep</p>    
+                </div>
+                <ul class="flx-channel-controls">
+                    <li><a href="#"><i class="icon-resize-vertical"></i></a></li>
+                    <li><a href="#"><i class="icon-pencil"></i></a></li>
+                </ul>
+            </div>
+        </div>
         <div class="row-fluid">   <!-- New code snippet from peri 2012-21-11 -->
             <div class="span12" id="flx-bodytrack-menubar">
                 <div class="flx-bodytrack-menu">

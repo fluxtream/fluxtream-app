@@ -71,15 +71,17 @@ html {
 }
 #content {
   position: relative;
-  min-height: 100%;
+  min-height: 94%;
 }
 * html #content {
   height: 100%;
 }
 #footer {
   position: relative;
-  margin-top: -5.5em;
   padding-bottom: 1em;
+}
+#footer hr {
+  margin-top: 0;
 }
 .editor {
   background: grayLight;
@@ -316,9 +318,6 @@ a img {
   padding-top: 8px;
   padding-bottom: 7px;
   line-height: 18px;
-}
-#footer {
-  margin-top: 1em !important;
 }
 .flx-timeMenu {
   *zoom: 1;
@@ -718,6 +717,7 @@ a img {
   list-style-type: none;
   overflow: hidden;
   height: 100%;
+  margin-left: 0;
 }
 .flx-sourceFilters4 li {
   float: left;
@@ -1045,4 +1045,61 @@ table .remove i {
 .save-view-subMenu .dropdown-menu a.savedView:hover {
   background-color: #b3e065;
   color: inherit;
+}
+.flx-channel-navigation .btn {
+  padding-left: 13px;
+  padding-right: 12px;
+}
+.flx-channel {
+  width: 235px;
+  overflow: hidden;
+  height: 100%;
+  zoom: 1;
+  border-bottom: 3px solid #dcdcd2;
+  background: #eeeee9;
+  filter: progid:dximagetransform.microsoft.gradient(startColorstr='lighten(@hd-bg-color,10%)', endColorstr='@hd-bg-color');
+  background: -webkit-gradient(linear, left top, left bottom, from(#ffffff), to(#eeeee9));
+  background: -moz-linear-gradient(top, #ffffff, #eeeee9);
+}
+.flx-channel div {
+  float: left;
+}
+.flx-channel .flx-remove-channel {
+  padding: 28px 20px 28px 15px;
+  font-size: 20px;
+}
+.flx-channel .flx-remove-channel a {
+  color: #b3b3b3;
+}
+.flx-channel .flx-remove-channel a:hover {
+  color: #666666;
+  text-decoration: none;
+}
+.flx-channel .flx-channel-name {
+  padding: 20px 0 20px;
+  overflow: hidden;
+}
+.flx-channel .flx-channel-name h4 {
+  font-size: 18px;
+}
+.flx-channel .flx-channel-name p {
+  margin: 0;
+  padding: 0;
+}
+.flx-channel .flx-channel-controls {
+  padding: 20px 15px 0;
+  list-style-type: none;
+}
+.flx-channel .flx-channel-controls li {
+  list-style-type: none;
+  text-align: right;
+  font-size: 20px;
+  line-height: 22px;
+}
+.flx-channel .flx-channel-controls a {
+  color: #b3b3b3;
+}
+.flx-channel .flx-channel-controls a:hover {
+  color: #666666;
+  text-decoration: none;
 }
