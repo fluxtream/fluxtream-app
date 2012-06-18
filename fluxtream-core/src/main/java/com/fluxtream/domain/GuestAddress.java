@@ -43,6 +43,9 @@ public class GuestAddress extends AbstractEntity {
 	public long since;
 
     @Expose
+    public double radius;
+
+    @Expose
 	public long until = Long.MAX_VALUE;
 
     @Expose

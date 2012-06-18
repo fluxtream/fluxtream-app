@@ -155,7 +155,7 @@ public class AddressStore {
         }
     }
 
-    public String addAddress(String type, String address, double latitude, double longitude, String since,
+    public String addAddress(String type, String address, double latitude, double longitude, double radius, String since,
                              String until, String username){
         try{
             Guest guest = guestService.getGuest(username);
@@ -183,9 +183,9 @@ public class AddressStore {
             String jsonString = HttpUtils.fetch("https://maps.googleapis.com/maps/api/geocode/json?sensor=false&address=" + addressEncoded, env);
 
             if (until != null)
-                settingsService.addAddress(guest.getId(),type,address,latitude,longitude,startTime,endTime,jsonString);
+                settingsService.addAddress(guest.getId(),type,address,latitude,longitude,startTime,endTime,radius,jsonString);
             else
-                settingsService.addAddress(guest.getId(),type,address,latitude,longitude,startTime,jsonString);
+                settingsService.addAddress(guest.getId(),type,address,latitude,longitude,startTime,radius,jsonString);
 
             return gson.toJson(new StatusModel(true, "Successfully added guest address"));
         } catch (Exception e) {
@@ -198,14 +198,15 @@ public class AddressStore {
     @Path("/{input}")
     @Produces({ MediaType.APPLICATION_JSON })
     public String addUpdateAddress(@PathParam("input") String input, @FormParam("address") String address, @FormParam("latitude") @DefaultValue("91") double latitude,
-                                   @FormParam("longitude") @DefaultValue("181") double longitude, @FormParam("since") String since, @FormParam("until") String until, @FormParam("type") String newType){
+                                   @FormParam("longitude") @DefaultValue("181") double longitude, @FormParam("since") String since, @FormParam("until") String until, @FormParam("type") String newType,
+                                   @FormParam("radius") @DefaultValue("-1") double radius){
         try{
             Guest guest = ControllerHelper.getGuest();
             int index = Integer.parseInt(input);
-            return updateAddress(guest.username,index,address,latitude,longitude,since,until,newType);
+            return updateAddress(guest.username,index,address,latitude,longitude,radius,since,until,newType);
 
         } catch (Exception e){
-            return addAddress(input,address,latitude,longitude,since,until, ControllerHelper.getGuest().username);
+            return addAddress(input,address,latitude,longitude,radius,since,until, ControllerHelper.getGuest().username);
         }
     }
 
@@ -316,7 +317,7 @@ public class AddressStore {
     }
 
     public String updateAddress(String username, int index, String address, double latitude,
-                                double longitude, String since, String until, String newType){
+                                double longitude, double radius, String since, String until, String newType){
         StatusModel result;
         try{
             Guest guest = guestService.getGuest(username);
@@ -351,7 +352,7 @@ public class AddressStore {
 
             GuestAddress add = settingsService.getAllAddresses(guest.getId()).get(index);
             settingsService.updateAddress(guest.getId(),add.id,newType,address,latitude > 90 ? null : latitude,
-                                          longitude > 180 ? null : longitude,startTime,endTime,jsonString);
+                                          longitude > 180 ? null : longitude,startTime,endTime, radius < 0 ? null : radius,jsonString);
             result = new StatusModel(true, "Successfully updated address");
         } catch (Exception e) {
             result = new StatusModel(false, "Failed to update address: " + e.getMessage());
