@@ -4,6 +4,7 @@ import javax.persistence.Entity;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
+import com.fluxtream.domain.AbstractFacet;
 import org.hibernate.search.annotations.Indexed;
 
 /**
@@ -20,7 +21,7 @@ import org.hibernate.search.annotations.Indexed;
 	@NamedQuery(name = "bodymedia.user.between", query = "SELECT facet FROM Facet_BodymediaUser facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=?")
 })
 @Indexed
-public class BodymediaUserFacet
+public class BodymediaUserFacet extends AbstractFacet
 {
     public int guestId;
     public String connector;
@@ -90,4 +91,8 @@ public class BodymediaUserFacet
 
     public String Facet;
 
+    @Override
+    protected void makeFullTextIndexable()
+    {
+    }
 }
