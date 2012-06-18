@@ -33,11 +33,6 @@
     <mvc:resources mapping="/widgets.json" location="/widgets/widgets.json" cache-period="31556926"/>
     <mvc:resources mapping="/widgets/**" location="/widgets/" cache-period="31556926"/>
 
-    <mvc:resources mapping="${release}/tabs/dashboard/week/**" location="/WEB-INF/jsp/tabs/weeklyDashboardWidgets/" cache-period="31556926" />
-	<mvc:resources mapping="${release}/tabs/dashboard/day/**" location="/WEB-INF/jsp/tabs/dailyDashboardWidgets/" cache-period="31556926" />
-	<!--<mvc:resources mapping="${release}/tabs/dashboard/month/**" location="/WEB-INF/jsp/tabs/monthlyDashboardWidgets/" cache-period="31556926" />-->
-	<!--<mvc:resources mapping="${release}/tabs/dashboard/year/**" location="/WEB-INF/jsp/tabs/yearlyDashboardWidgets/" cache-period="31556926" />-->
-
 	<bean id="viewResolver"
 		class="org.springframework.web.servlet.view.UrlBasedViewResolver">
 		<property name="viewClass"
