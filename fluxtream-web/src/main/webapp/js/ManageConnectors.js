@@ -3,7 +3,7 @@ define(function() {
     var connectors;
 
     function show(){
-        $.ajax("/api/connectors",{
+        $.ajax("/api/connectors/installed",{
             success: function(data, textStatus, jqXHR){
                 dataLoaded(data,false);
             }
@@ -11,8 +11,10 @@ define(function() {
     }
 
     function updateContents(){
-        $.ajax("/api/connectors",{
+        $.ajax("/api/connectors/installed",{
             success: function(data, textStatus, jqXHR){
+                if (hidden)
+                    return;
                 dataLoaded(data,true);
             }
         })
@@ -52,7 +54,10 @@ define(function() {
         });
     }
 
+    var hidden;
+
     function bindDialog(){
+        hidden = false;
          for (var i = 0; i < connectors.length; i++){
              bindConnector(connectors[i], i);
          }
@@ -69,6 +74,7 @@ define(function() {
             return true;
         });
         $("#modal").on("hide",function(){
+            hidden = true;
             $.doTimeout("manageConnectorsUpdater");
         })
     }
