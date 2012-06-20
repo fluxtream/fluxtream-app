@@ -1,0 +1,1 @@
+cp fluxtream-web/src/main/webapp/js/main.js fluxtream-web/src/main/webapp/js/main-built.js
