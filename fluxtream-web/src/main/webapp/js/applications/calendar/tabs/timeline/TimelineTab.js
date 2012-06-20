@@ -183,7 +183,25 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
 
         // Click handlers
         $("#_timeline_new_view_btn").click(newView);
-        $("#_timeline_load_view_btn").click(toggleLoadDialog);
+        //$("#_timeline_load_view_btn").click(toggleLoadDialog);
+
+        updateLoadViewDropdown();
+        updateSaveViewDropdown();
+
+        $("#_timeline_save_view_dropdown").click(function(event){
+            $("#_timeline_save_view_dropdown_name").doTimeout(100,"focus");
+        });
+
+        $("#_timeline_save_view_btn").click(function(event){
+            event.preventDefault();
+            if ($(event.delegateTarget).hasClass("disabled"))
+                return;
+            if ($("#_timeline_viewName").text() != newViewName)
+                saveView($("#_timeline_viewName").text());
+            else
+               $("#_timeline_save_view_dropdown").doTimeout(50,"click");
+        });
+
 
         $("#_timeline_gotoBeginning_button").click(function() { gotoTime("beginning"); });
         $("#_timeline_gotoBack_button").click(function() { gotoTime("back"); });
@@ -216,6 +234,43 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
             }
         });
     } // init
+
+    function updateLoadViewDropdown(){
+        App.loadMustacheTemplate("applications/calendar/tabs/timeline/timelineTemplates.html","loadViewsDropdown",function(template){
+            VIEWS.availableList[0].first = true;
+            var newloadDropdown = $(template.render(VIEWS));
+            delete VIEWS.availableList[0].first;
+            $("#_timeline_load_view_submenu").replaceWith(newloadDropdown);
+
+            $("a._timeline_load_link").click(function (event){
+                event.preventDefault();
+                var viewId = $(event.delegateTarget).attr("viewid");
+                var mode = $(event.delegateTarget).hasClass("_timeline_channel_only") ? "channel" : $(event.delegateTarget).hasClass("_timeline_time_only") ? "time" : "all";
+                loadViewDialogModeHandler(viewId,mode)
+            });
+        });
+    }
+
+    function updateSaveViewDropdown(){
+        App.loadMustacheTemplate("applications/calendar/tabs/timeline/timelineTemplates.html","saveViewDropdown",function(template){
+            VIEWS.viewsPresent = VIEWS.availableList.length != 0;
+            var newSaveDropDown = $(template.render(VIEWS));
+            delete VIEWS.viewsPresent;
+            $("#_timeline_save_view_dropdown-submenu").replaceWith(newSaveDropDown);
+
+            $("a._timeline_save_view_dropdown_save_link").click(function (event){
+                event.preventDefault();
+                var viewname = $(event.delegateTarget).attr("viewname");
+                saveView(viewname);
+            });
+
+            $("#_timeline_save_view_dropdown_save_btn").click(function(event){
+                event.preventDefault();
+                saveView($("#_timeline_save_view_dropdown_name").val());
+            })
+
+        })
+    }
 
     // Check for unsaved changes to timeline and prompt user if needed
     function checkForTimelineChanges() {
@@ -462,7 +517,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
     }
 
     function loadView(id, mode, callback) {
-        $("#_timeline_save_view_btn").addClass("button_disabled").unbind("click");
+        $("#_timeline_save_view_btn").addClass("disabled");
         VIEWS.load(id, function(data) {
             loadedViewStr = JSON.stringify(data);
             hasUnsavedChanges = false;
@@ -474,7 +529,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
     }
 
     function loadViewWithTimeRange(id, min, max, callback) {
-        $("#_timeline_save_view_btn").addClass("button_disabled").unbind("click");
+        $("#_timeline_save_view_btn").addClass("disabled");
         VIEWS.load(id, function(data) {
             loadedViewStr = JSON.stringify(data);
             hasUnsavedChanges = true;
@@ -493,6 +548,8 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
         VIEWS.save(name, function(data, id) {
             loadedViewStr = JSON.stringify(VIEWS.data);
             hasUnsavedChanges = false;
+            updateLoadViewDropdown();
+            updateSaveViewDropdown();
             loadView(id);
         });
     }
@@ -539,8 +596,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
         });
     }
 
-    function loadViewDialogModeHandler(view_id) {
-        var mode = $("._timeline_load_dialog_head_content input:checked").val();
+    function loadViewDialogModeHandler(view_id, mode) {
         var min, max;
 
         // Cancel load if user clicks cancel on load dialog
@@ -1516,9 +1572,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
                 alert("Existing view not found");
                 return;
             }
-            $("#_timeline_save_view_btn").unbind('click')
-                .click(toggleSaveDialog)
-                .removeClass("button_disabled");
+            $("#_timeline_save_view_btn").removeClass("disabled");
             $("#_timeline_add_channels_btn").unbind('click')
                 .click(toggleAddChannelsPane)
                 .removeClass("button_disabled");
@@ -1549,9 +1603,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
             // Set view name and add click handlers for various buttons
             $("#_timeline_viewName").html(view["name"]).shorten();
             // TODO: only enable this when the view has changed
-            $("#_timeline_save_view_btn").unbind('click')
-                .click(toggleSaveDialog)
-                .removeClass("button_disabled");
+            $("#_timeline_save_view_btn").removeClass("disabled");
             $("#_timeline_add_channels_btn").unbind('click')
                 .click(toggleAddChannelsPane)
                 .removeClass("button_disabled");

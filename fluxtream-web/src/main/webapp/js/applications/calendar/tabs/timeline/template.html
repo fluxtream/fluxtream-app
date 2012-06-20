@@ -5,11 +5,22 @@
 
 		  <div id="_timeline_mainContentArea" style="display:none">
 		    <span>
-	    	  <span id="_timeline_viewName"></span>
-	
-		      <a href="#" class="button" id="_timeline_new_view_btn">New View</a>
-	      	  <a href="#" class="button button_disabled" id="_timeline_save_view_btn">Save View</a>
-	      	  <a href="#" class="button" id="_timeline_load_view_btn">Load View</a>
+	    	  <span id="_timeline_viewName" style="font-size:18px; color:#333;"></span>
+
+                <div class="btn-group" style="display:inline-block; vertical-align:middle;">
+                    <a href="#" class="btn" id="_timeline_new_view_btn">New View</a>
+                </div>
+                <div class="btn-group" style="display:inline-block; vertical-align:middle;">
+                    <a href="#" class="btn dropdown-toggle" data-toggle="dropdown" id="_timeline_load_view_btn">Load View <span class="caret"></span></a>
+                    <ul class="dropdown-menu load-view-subMenu" id="_timeline_load_view_submenu">
+                    </ul>
+                </div>
+                <div class="btn-group dropdown save-view-subMenu" style="display:inline-block; vertical-align:middle;">
+                    <a href="#" id="_timeline_save_view_btn" class="btn">Save view</a>
+                    <a href="#" id="_timeline_save_view_dropdown" class="btn dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
+                    <ul id="_timeline_save_view_dropdown-submenu" class="dropdown-menu">
+                    </ul>
+                </div>
 	      	  <a href="#" class="button button_disabled" id="_timeline_add_channels_btn">Add Channels</a>
 	      	  <a href="#" class="button button_disabled" id="_timeline_show_details_btn">Show Details</a>
 	    	</span>

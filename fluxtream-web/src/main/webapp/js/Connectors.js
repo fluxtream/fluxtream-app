@@ -86,7 +86,7 @@ define(function() {
 	}
 
 	function chooseWithingsUser() {
-		var chosenUser = $("input#withings-chosenUser").val();
+        var chosenUser = $("input#withings-chosenUser:checked").val();
 		$.ajax({
 			url:"/withings/chooseWithingsUser",
 			type: "POST",

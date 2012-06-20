@@ -18,6 +18,12 @@
                         </div>
                     </div>
                     <div class="control-group">
+                        <label class="control-label">Radius</label>
+                        <div class="controls">
+                            <input id="radiusInput" type="text" class="input-xlarge span3"><span>&nbsp;{{distanceUnit}}</span>
+                        </div>
+                    </div>
+                    <div class="control-group">
                         <label class="control-label">Since</label>
                         <div class="controls">
                             <input id="sinceInput" type="text" class="input-xlarge span3" data-date-format="yyyy-mm-dd" value="{{sinceDate}}">
@@ -60,6 +66,7 @@
                 <thead>
                     <tr>
                         <th>Address</th>
+                        <th>Radius</th>
                         <th>Type</th>
                         <th>Since</th>
                         <th>Until</th>
@@ -71,6 +78,7 @@
                 {{#addresses}}
                 <tr>
                 <td>{{address}}</td>
+                <td>{{radius}}</td>
                 <td>{{type}}</td>
                 <td>{{since}}</td>
                 <td>{{until}}</td>

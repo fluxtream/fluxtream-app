@@ -155,7 +155,8 @@ public class ConnectorStore {
                     connectorUpdateService.reScheduleUpdate(update, System.currentTimeMillis(), false);
                 }
                 else {
-                    connectorUpdateService.scheduleUpdate(user.getId(), connector.getName(), objectType, UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE, System.currentTimeMillis());
+                    UpdateInfo.UpdateType updateType = connectorUpdateService.isHistoryUpdateCompleted(user.getId(),connector.getName(),objectType) ? UpdateInfo.UpdateType.INCREMENTAL_UPDATE : UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE;
+                    connectorUpdateService.scheduleUpdate(user.getId(), connector.getName(), objectType, updateType, System.currentTimeMillis());
                 }
             }
             return new StatusModel(true,"Successfully scheduled update for " + connector.getName());
