@@ -1,0 +1,1 @@
+cp main.js main-built.js
