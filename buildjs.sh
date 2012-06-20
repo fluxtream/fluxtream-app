@@ -1,1 +1,0 @@
-node r.js -o baseUrl=fluxtream-web/src/main/webapp/js/ name=main out=fluxtream-web/src/main/webapp/js/main-built.js

@@ -154,6 +154,6 @@
 	<!--  TODO: validate version numbers for these libs -->
 	<script src="/static/grapher4/grapher2.nocache.js"></script>
 	
-	<script data-main="/${release}/js/main-built.js" src="/static/js/require.js"></script>
+	<script data-main="/${release}/js/main.js" src="/static/js/require.js"></script>
 </body>
 </html>
