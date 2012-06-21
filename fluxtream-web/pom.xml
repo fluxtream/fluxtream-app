@@ -16,6 +16,35 @@
 				<filtering>true</filtering>
 			</resource>
 		</resources>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.2.1</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <executable>java</executable>
+                    <arguments>
+                        <argument>-Xss10m</argument>
+                        <argument>-classpath</argument>
+                        <!--argument>${project.build.directory}/dependency/requirejs/build/lib/rhino/js.jar${path.separator}${project.build.directory}/dependency/requirejs/build/lib/closure/compiler.jar</argument -->
+                        <argument>${basedir}${file.separator}js.jar</argument>
+                        <argument>org.mozilla.javascript.tools.shell.Main</argument>
+                        <argument>r.js</argument>
+                        <argument>-o</argument>
+                        <argument>baseUrl=src/main/webapp/js/</argument>
+                        <argument>name=main</argument>
+                        <argument>out=${project.build.directory}/ROOT/js/main.js</argument>
+                    </arguments>
+                </configuration>
+            </plugin>
+        </plugins>
 		<finalName>ROOT</finalName>
 	</build>
 	<dependencies>
