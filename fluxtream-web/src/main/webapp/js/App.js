@@ -11,7 +11,20 @@ define(
         function initialize() {
             _.bindAll(this);
             // start loading all applications
+            checkScreenDensity();
             loadApps();
+        }
+
+        function checkScreenDensity() {
+            var retina = window.devicePixelRatio > 1 ? true : false;
+            setCookie("retina", retina?"1":"0", 30);
+        }
+
+        function setCookie(c_name,value,exdays) {
+            var exdate=new Date();
+            exdate.setDate(exdate.getDate() + exdays);
+            var c_value=escape(value) + ((exdays==null) ? "" : "; expires="+exdate.toUTCString());
+            document.cookie=c_name + "=" + c_value;
         }
 
         /**
