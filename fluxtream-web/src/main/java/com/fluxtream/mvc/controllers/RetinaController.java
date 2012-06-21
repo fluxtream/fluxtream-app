@@ -1,16 +1,13 @@
 package com.fluxtream.mvc.controllers;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.fluxtream.Configuration;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -28,7 +25,6 @@ public class RetinaController {
 
     @RequestMapping("/*/images/*")
     public void serveImage(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        System.out.println("serving versioned image: " + request.getRequestURI());
         String uri = request.getRequestURI();
         String release = "/" + env.get("release");
         if (uri.startsWith(release))
@@ -42,7 +38,6 @@ public class RetinaController {
 
     @RequestMapping({"/static/img/**", "/static/images/**", "/images/**"})
     public void serveStaticImg(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        System.out.println("serving static image: " + request.getRequestURI());
         serveRetinaImage(request.getRequestURI(), request, response);
     }
 
@@ -50,7 +45,6 @@ public class RetinaController {
         final String realPath = request.getSession().getServletContext().getRealPath("");
         path = retinaPath(path, realPath, request);
         String fullPath = realPath + path;
-        System.out.println("fullPath: " + fullPath);
         final File file = new File(fullPath);
         FileInputStream fileinput = null;
         try { fileinput = new FileInputStream(file); }
@@ -67,11 +61,8 @@ public class RetinaController {
             String retinaPath = (new StringBuilder(stemPath).append("@2x").append(".").append(ext)).toString();
             String fullRetinaPath = ((new StringBuilder(realPath).append(retinaPath)).toString());
             File retinaImageFile = new File(fullRetinaPath);
-            System.out.println("checking for retina file " + fullRetinaPath);
-            if (retinaImageFile.exists()) {
-                System.out.println("we have this file!");
+            if (retinaImageFile.exists())
                 return retinaPath;
-            }
         }
         return path;
     }
