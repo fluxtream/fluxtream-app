@@ -51,4 +51,6 @@ public class ApiUpdate extends AbstractEntity {
 	public boolean success;
 
 	public String query;
+
+    public long lastSync;
 }

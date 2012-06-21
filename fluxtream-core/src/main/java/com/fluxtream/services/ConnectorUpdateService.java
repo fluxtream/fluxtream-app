@@ -27,7 +27,7 @@ public interface ConnectorUpdateService {
 	public Set<Long> getConnectorGuests(Connector connector);
 	
 	public void addApiUpdate(long guestId, Connector api, int objectTypes,
-			long ts, long elapsed, String query, boolean success);
+			long ts, long elapsed, String query, boolean success, long lastSync);
 
 	public void addApiNotification(Connector api, long guestId, String content);
 

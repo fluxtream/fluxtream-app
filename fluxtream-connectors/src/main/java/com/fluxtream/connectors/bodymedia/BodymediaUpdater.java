@@ -6,6 +6,8 @@ import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.ApiUpdate;
+import com.fluxtream.services.ConnectorUpdateService;
 import net.sf.json.JSONObject;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.commonshttp.CommonsHttpOAuthConsumer;
@@ -15,6 +17,7 @@ import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeComparator;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +32,9 @@ public class BodymediaUpdater extends AbstractUpdater
 
     @Autowired
     SignpostOAuthHelper signpostHelper;
+
+    @Autowired
+    ConnectorUpdateService connectorUpdateService;
 
     public BodymediaUpdater()
     {
@@ -63,8 +69,9 @@ public class BodymediaUpdater extends AbstractUpdater
     private void retrieveBurnHistory(UpdateInfo updateInfo, DateTime start, DateTime end) throws Exception
     {
         DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyyMMdd");
-        DateTime current = start;
-        while (current.compareTo(end) >= 0)
+        DateTimeComparator comparator = DateTimeComparator.getDateOnlyInstance();
+        DateTime current = end;
+        while (comparator.compare(current, start) >= 0)
         //@ loop_invariant date.compareTo(userRegistrationDate) >= 0;
         {
             ObjectType burnOT = ObjectType.getObjectType(connector(), "burn");
@@ -97,14 +104,24 @@ public class BodymediaUpdater extends AbstractUpdater
 
     public void updateConnectorData(UpdateInfo updateInfo) throws Exception
     {
-        DateTime today = new DateTime();
-        DateTime start = getLastSyncTime();
-        retrieveBurnHistory(updateInfo, start, today);
+        ObjectType burnOT = ObjectType.getObjectType(connector(), "burn");
+        if(updateInfo.objectTypes().contains(burnOT))
+        {
+            DateTime today = new DateTime();
+            DateTime start = getLastSyncTime(updateInfo, burnOT);
+            retrieveBurnHistory(updateInfo, start, today);
+        }
     }
 
-    private DateTime getLastSyncTime()
+    /**
+     * Retrieves the User's lastSync time
+     * @param updateInfo Used to identify the user
+     * @return a DateTime that represents when the user last synced his device
+     */
+    private DateTime getLastSyncTime(final UpdateInfo updateInfo, ObjectType ot)
     {
-        throw new RuntimeException("unimplemented");
+        ApiUpdate a = connectorUpdateService.getLastSuccessfulUpdate(updateInfo.getGuestId(), connector(), ot.value());
+        return new DateTime(a.lastSync);
     }
 
     public String getUserRegistrationDate(UpdateInfo updateInfo, String api_key)

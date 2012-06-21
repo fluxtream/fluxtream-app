@@ -49,14 +49,14 @@ public class SignpostOAuthHelper extends ApiClientSupport {
 				String json = IOUtils.toString(request.getInputStream());
 				connectorUpdateService.addApiUpdate(apiKey.getGuestId(), connector,
 						objectTypes, then, System.currentTimeMillis() - then,
-						urlString, true);
+						urlString, true, then);
 				// logger.info(apiKey.getGuestId(), "REST call success: " +
 				// urlString);
 				return json;
 			} else {
 				connectorUpdateService.addApiUpdate(apiKey.getGuestId(), connector,
 						objectTypes, then, System.currentTimeMillis() - then,
-						urlString, false);
+						urlString, false, then);
 				throw new RuntimeException(
 						"Could not make REST call, got response code: "
 								+ request.getResponseCode() + ", message: "

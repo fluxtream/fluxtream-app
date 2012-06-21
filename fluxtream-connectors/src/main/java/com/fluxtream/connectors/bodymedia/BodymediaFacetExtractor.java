@@ -38,21 +38,12 @@ public class BodymediaFacetExtractor extends AbstractFacetExtractor
         {
             facets = extractBurnFacet(apiData);
         }
-        else if(objectType.getName().equals("user"))
-        {
-            facets = extractUserFacet(apiData);
-        }
         else //If the facet to be extracted wasn't a burn facet
         {
             logger.info("guestId=" + apiData.updateInfo.getGuestId() +
             				" connector=bodymedia action=extractFacets error=no burn object");
         }
         return facets;
-    }
-
-    private ArrayList<AbstractFacet> extractUserFacet(final ApiData apiData)
-    {
-        throw new RuntimeException("unimplemented");
     }
 
     /**
@@ -87,6 +78,14 @@ public class BodymediaFacetExtractor extends AbstractFacetExtractor
                         facet.setPredictedCalories(day.getInt("predictedCalories"));
                         facet.setBurnJson(day.getString("minutes"));
                         facet.setLastSync(d.getMillis()/1000);
+
+                        //Sets the start and end times for the facet so that it can be uniquely defined
+                        DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyyMMdd");
+                        DateTime date = formatter.parseDateTime(day.getString("date"));
+                        facet.start = date.getMillis()/1000;
+                        date = date.plusDays(1);
+                        facet.end = date.getMillis()/1000;
+
                         facets.add(facet);
                     }
                 }
