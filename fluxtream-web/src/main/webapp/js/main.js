@@ -30,7 +30,6 @@ require([
 //calendar tabs
 require([
     "applications/calendar/tabs/clock/ClockTab",
-    "applications/calendar/tabs/dashboard/DashboardTab",
     "applications/calendar/tabs/dashboards/DashboardsTab",
     "applications/calendar/tabs/diary/DiaryTab",
     "applications/calendar/tabs/list/ListTab",
