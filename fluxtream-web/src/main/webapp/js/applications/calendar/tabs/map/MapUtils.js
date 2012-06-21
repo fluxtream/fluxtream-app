@@ -305,7 +305,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             return;
         }
         map.gpsLine.setOptions({strokeColor: "grey"});
-        highlightSection = map.createPolyLineSegment(start, end, {strokeColor:"black", zIndex: 99});
+        map.highlightSection = map.createPolyLineSegment(start, end, {strokeColor:"black", zIndex: 99});
     }
 
     function getFirstIndexAfter(map, time){
