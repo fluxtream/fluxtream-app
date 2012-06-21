@@ -23,7 +23,7 @@ public class RetinaController {
     @Autowired
     Configuration env;
 
-    @RequestMapping("/*/images/*")
+    @RequestMapping("/*/images/**")
     public void serveImage(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String uri = request.getRequestURI();
         String release = "/" + env.get("release");
