@@ -4,8 +4,8 @@ define([], function() {
 	var tabs = {};
 	
 	var tabs = {
-        "DAY":["clock", "dashboards", "map", "diary", "photos", "list", "timeline"],
-        "WEEK":["dashboards", "map", "diary", "photos", "list", "timeline"],
+        "DAY":["clock", "dashboards", "map", "photos", "list", "timeline"],
+        "WEEK":["dashboards", "map", "photos", "list", "timeline"],
         "YEAR":["photos"]
 	};
 	

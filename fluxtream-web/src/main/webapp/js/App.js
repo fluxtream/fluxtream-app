@@ -1,15 +1,30 @@
 define(
-    [ "core/FlxState", "Addresses", "ManageConnectors", "libs/jquery.form", "libs/jquery.qtip.min" ],
-    function(FlxState, Addresses, ManageConnectors) {
+    [ "core/FlxState", "Addresses", "ManageConnectors", "AddConnectors",
+      "libs/jquery.form", "libs/jquery.qtip.min" ],
+    function(FlxState, Addresses, ManageConnectors, AddConnectors) {
 
         var App = {};
         var toLoad = 0, loaded = 0;
         var apps = {};
+        var compiledTemplates = {};
 
         function initialize() {
             _.bindAll(this);
             // start loading all applications
+            checkScreenDensity();
             loadApps();
+        }
+
+        function checkScreenDensity() {
+            var retina = window.devicePixelRatio > 1 ? true : false;
+            setCookie("retina", retina?"1":"0", 30);
+        }
+
+        function setCookie(c_name,value,exdays) {
+            var exdate=new Date();
+            exdate.setDate(exdate.getDate() + exdays);
+            var c_value=escape(value) + ((exdays==null) ? "" : "; expires="+exdate.toUTCString());
+            document.cookie=c_name + "=" + c_value;
         }
 
         /**
@@ -58,7 +73,7 @@ define(
             if (loaded === toLoad) {
                 App.apps = apps;
                 // we create the top apps menu
-                createAppsMenu();
+//                createAppsMenu();
                 // we start the history
                 Backbone.history.start({
                                            pushState : true
@@ -139,7 +154,14 @@ define(
         App.carousel = carousel;
 
         App.loadMustacheTemplate = function(templatePath,templateId,onLoad){
-            require(["text!" + templatePath], function(template){
+
+            if (typeof(compiledTemplates[templateId])!="undefined") {
+                onLoad(compiledTemplates[templateId]);
+                return;
+            }
+
+            var that = this;
+            require(["text!" + templatePath], function(template) {
                 var html = template;
                 var templateStartSearch = "<template id=\"" + templateId + "\">";
                 var htmlStart = html.indexOf(templateStartSearch);
@@ -150,7 +172,8 @@ define(
                 htmlStart += templateStartSearch.length;
                 var htmlEnd = html.indexOf("</template>",htmlStart);
                 html = html.substring(htmlStart,htmlEnd);
-                onLoad(Hogan.compile(html));
+                compiledTemplates[templateId] = Hogan.compile(html);
+                onLoad(compiledTemplates[templateId]);
             });
         }
 
@@ -163,12 +186,7 @@ define(
         };
 
         App.connectors = function() {
-            $.ajax({
-                       url : "/connectors/main",
-                       success : function(html) {
-                           makeModal(html);
-                       }
-                   });
+            AddConnectors.show();
         };
 
         App.addresses = function() {
@@ -223,6 +241,7 @@ define(
         };
 
         App.showConnectorsPage = function(page) {
+            console.log("showing connectors page " + page);
             $("#availableConnectors").load(
                 "/connectors/availableConnectors?page=" + page);
         };

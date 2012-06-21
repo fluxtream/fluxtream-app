@@ -1,4 +1,5 @@
-define(["core/Application", "core/FlxState", "applications/calendar/Builder", "libs/bootstrap-datepicker"], function(Application, FlxState, Builder) {
+define(["core/Application", "core/FlxState", "applications/calendar/Builder", "libs/bootstrap-datepicker"],
+       function(Application, FlxState, Builder) {
 
 	var Calendar = new Application("calendar", "Candide Kemmler", "icon-calendar");
 
@@ -151,6 +152,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 	}
 
 	function setDatepicker(currentDate) {
+        $(".datepicker.dropdown-menu").remove();
         $("#datepicker").replaceWith("<a data-date-format=\"yyyy-mm-dd\" id=\"datepicker\"><i class=\"icon-calendar icon-large\"></i></a>");
         $("#datepicker").attr("data-date", currentDate);
 		$("#datepicker").unbind("changeDate");
@@ -202,11 +204,25 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 getTemplate(digest,i,j);
             }
         }
+        App.loadMustacheTemplate("applications/calendar/facetTemplates.html","fluxtream-address",function(template){
+            if (template == null)
+                console.log("WANRING: no template found for fluxtream-address.");
+            digest.detailsTemplates["fluxtream-address"] = template;
+        });
         for (var connectorId in digest.cachedData){
             for (var i = 0; i < digest.cachedData[connectorId].length; i++){
                 digest.cachedData[connectorId][i].getDetails = function(){
                     return buildDetails(digest,this);
                 }
+            }
+        }
+
+        for (var addressType in digest.addresses){
+            for (var i = 0; i < digest.addresses[addressType].length; i++){
+                digest.addresses[addressType][i].getDetails = function(){
+                    return buildAddressDetails(digest,this);
+                }
+
             }
         }
     }
@@ -269,7 +285,35 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         return;
     }
 
-
+    function buildAddressDetails(digest, address){
+        if (digest.detailsTemplates["fluxtream-address"] == null){
+            console.log("WARNING: no template found for fluxtream-address.");
+            return "";
+        }
+        var params = {};
+        for (var member in address){
+            switch (member){
+                case "type":
+                    switch (address[member]){
+                        case "ADDRESS_HOME":
+                            params[member] = "Home";
+                            break;
+                        case "ADDRESS_WORK":
+                            params[member] = "Work";
+                            break;
+                        case "ADDRESS_OTHER":
+                            params[member] = "Other";
+                            break;
+                        default:
+                            params[member] = address[member];
+                    }
+                    break;
+                default:
+                    params[member] = address[member];
+            }
+        }
+        return digest.detailsTemplates["fluxtream-address"].render(params);
+    }
 
     function buildDetails(digest,data){
         if (digest.detailsTemplates[data.type] == null){

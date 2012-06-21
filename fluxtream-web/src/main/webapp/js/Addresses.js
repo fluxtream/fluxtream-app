@@ -29,7 +29,8 @@ define(function() {
            type:address.type,
            index:address.index,
            since:App.formatDate(address.since),
-           until:App.formatDate(address.until)
+           until:App.formatDate(address.until),
+           radius:address.radius + " m"
         };
         return params;
     }
@@ -37,14 +38,14 @@ define(function() {
     function confirmDelete(index){
         App.closeModal();
         $("#modal").on("hidden", function(){
-            App.loadMustacheTemplate("addressesTemplate.html","deleteConfirm",function(tamplate){
+            App.loadMustacheTemplate("addressesTemplate.html","deleteAddressConfirm",function(tamplate){
                 App.makeModal(tamplate.render({address:addresses[index].address}));
 
 
                 var confirmDelete = $("#confirmDeleteBtn");
 
                 confirmDelete.click(function(){
-                    $.ajax("/api/guest/" + App.getUsername() + "/address/" + index,{
+                    $.ajax("/api/addresses/" + index,{
                         type:"DELETE",
                         success:App.closeModal,
                         error: App.closeModal
@@ -67,6 +68,7 @@ define(function() {
         var presentCheckbox = $("#presentCheckBox");
         var addressTypeSelect = $("#addressTypeSelect");
         var saveAddressBtn = $("#saveAddressBtn");
+        var radiusInput = $("#radiusInput");
 
         //sinceInput.datepicker({format:"yyyy-mm-dd"});
         sinceInput.datepicker().on("changeDate",function(){
@@ -83,6 +85,9 @@ define(function() {
         });
 
 
+        radiusInput.change(function(){
+            radiusInput.parent().parent().removeClass("error");
+        });
 
         presentCheckbox.change(function(){
             if (presentCheckbox.is(":checked")){
@@ -151,7 +156,8 @@ define(function() {
                 addressDialogInitializer(template.render({
                      title:"Edit Address",
                      sinceDate:originalSince,
-                     untilDate:originalUntil == "Present" ? "" : originalUntil
+                     untilDate:originalUntil == "Present" ? "" : originalUntil,
+                     distanceUnit:"m"
                  }),originalSince,originalUntil);
 
                 var addressInput = $("#addressInput");
@@ -162,7 +168,10 @@ define(function() {
                 var presentCheckbox = $("#presentCheckBox");
                 var addressTypeSelect = $("#addressTypeSelect");
                 var saveAddressBtn = $("#saveAddressBtn");
+                var radiusInput = $("#radiusInput");
 
+
+                radiusInput.val(addresses[index].radius);
 
                 addressInput.val(addresses[index].address);
                 addressSearch.click();
@@ -191,6 +200,10 @@ define(function() {
                         untilInput.parent().parent().addClass("error");
                         errors = true;
                     }
+                    if (radiusInput.val() == ""){
+                        radiusInput.parent().parent().addClass("error");
+                        errors = true;
+                    }
                     if (errors)
                         return;
                     addressInput.attr("disabled","disabled");
@@ -201,6 +214,7 @@ define(function() {
                     presentCheckbox.attr("disabled","disabled");
                     addressTypeSelect.attr("disabled","disabled");
                     saveAddressBtn.attr("disabled","disabled");
+                    radiusInput.attr("disabled","disabled");
                     var address = currentAddressPool[selection];
                     var params = {};
                     var hasParams = false;
@@ -228,8 +242,12 @@ define(function() {
                         params.type = typeNames[addressTypeSelect[0].selectedIndex];
                         hasParams = true;
                     }
+                    if (addresses[index].radius != radiusInput.val()){
+                        params.radius = radiusInput.val();
+                        hasParams = true;
+                    }
                     if (hasParams){
-                        $.ajax("/api/guest/" + App.getUsername() + "/address/" + index,{
+                        $.ajax("/api/addresses/" + index,{
                             type:"POST",
                             data:params,
                             success: function(data, textStatus, jqXHR){
@@ -249,6 +267,7 @@ define(function() {
                                 presentCheckbox.removeAttr("disabled");
                                 addressTypeSelect.removeAttr("disabled");
                                 saveAddressBtn.removeAttr("disabled");
+                                radiusInput.removeAttr("disabled");
                             }
                         });
                      }
@@ -267,7 +286,8 @@ define(function() {
                 addressDialogInitializer(template.render({
                      title:"Add Address",
                      sinceDate: App.formatDateAsDatePicker(new Date()),
-                     untilDate: App.formatDateAsDatePicker(new Date())
+                     untilDate: App.formatDateAsDatePicker(new Date()),
+                     distanceUnit:"m"
                 }));
 
                 var addressInput = $("#addressInput");
@@ -278,6 +298,7 @@ define(function() {
                 var presentCheckbox = $("#presentCheckBox");
                 var addressTypeSelect = $("#addressTypeSelect");
                 var saveAddressBtn = $("#saveAddressBtn");
+                var radiusInput = $("#radiusInput");
 
                 sinceInput.val("");
                 untilInput.val("");
@@ -299,6 +320,10 @@ define(function() {
                         untilInput.parent().parent().addClass("error");
                         errors = true;
                     }
+                    if (radiusInput.val() == ""){
+                        radiusInput.parent().parent().addClass("error");
+                        errors = true;
+                    }
                     if (errors)
                         return;
                     addressInput.attr("disabled","disabled");
@@ -309,12 +334,13 @@ define(function() {
                     presentCheckbox.attr("disabled","disabled");
                     addressTypeSelect.attr("disabled","disabled");
                     saveAddressBtn.attr("disabled","disabled");
+                    radiusInput.attr("disabled","disabled")
                     var address = currentAddressPool[selection];
                     var params = {address:address.formatted_address, latitude:address.geometry.location.lat(),
-                        longitude:address.geometry.location.lng(), since:sinceInput.val()};
+                        longitude:address.geometry.location.lng(), since:sinceInput.val(), radius:radiusInput.val()};
                     if (!presentCheckbox.is(":checked"))
                         params.until = untilInput.val();
-                    $.ajax("/api/guest/" + App.getUsername() + "/address/" + typeNames[addressTypeSelect[0].selectedIndex],{
+                    $.ajax("/api/addresses/" + typeNames[addressTypeSelect[0].selectedIndex],{
                         type: "POST",
                         data:  params,
                         success: function(data, textStatus, jqXHR){
@@ -334,6 +360,7 @@ define(function() {
                             presentCheckbox.removeAttr("disabled");
                             addressTypeSelect.removeAttr("disabled");
                             saveAddressBtn.removeAttr("disabled");
+                            radiusInput.removeAttr("disabled");
                         }
                     });
                 });
@@ -344,7 +371,7 @@ define(function() {
 
 
     function show(){
-        $.ajax("/api/guest/" + App.getUsername() + "/address/all",{
+        $.ajax("/api/addresses",{
             success: function(data, textStatus, jqXHR){
                     dataLoaded(data);
                 }

@@ -3,6 +3,8 @@ package com.fluxtream.domain;
 import javax.persistence.Entity;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import org.hibernate.annotations.Index;
+import org.hibernate.annotations.Type;
 
 /**
  * @author Candide Kemmler (candide@fluxtream.com)
@@ -24,11 +26,15 @@ public class Dashboard extends AbstractEntity implements Comparable<Dashboard> {
 
     public String name;
 
+    @Index(name="guestId")
     public long guestId;
 
     public int ordering;
 
     public String widgetsJson;
+
+    @Type(type="yes_no")
+    public boolean active;
 
     @Override
     public int compareTo(final Dashboard dashboard) {

@@ -12,6 +12,10 @@ define(["core/Application", "core/FlxState"], function(Application, FlxState) {
     };
 
     Pinboard.renderState = function(state) {
+        if (state===null) state = "";
+        else state = "/" + state;
+        FlxState.router.navigate("app/pinboard" + state);
+        FlxState.saveState("pinboard", state);
     };
 
     Pinboard.setup = function() {

@@ -45,6 +45,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             map = MapUtils.newMap(new google.maps.LatLng(0,0),8,"clockMap",true);
             map.addGPSData(digest.cachedData.google_latitude);
             map.fitBounds(map.gpsBounds);
+            map.addAddresses(digest.addresses, false);
         }
         else{
             hideQTipMap();

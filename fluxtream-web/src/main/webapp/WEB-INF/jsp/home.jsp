@@ -51,8 +51,7 @@
 					<a class="btn btn-navbar" data-toggle="collapse"
 						data-target=".nav-collapse"> <span class="icon-bar"></span> <span
 						class="icon-bar"></span> <span class="icon-bar"></span>
-					</a> <a class="brand" href="/app"><img
-						src="/${release}/images/header-logo-v4.png" /></a>
+					</a>
                     <a class="brand" href="/app"><img
                             src="/${release}/images/header-logo-v4.png" /></a>
 					<div class="nav-collapse">

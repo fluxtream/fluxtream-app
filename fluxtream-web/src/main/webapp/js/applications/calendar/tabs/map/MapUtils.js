@@ -59,6 +59,54 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         return map.markers[connectorInfoId] != null;
     }
 
+    function addAddresses(map,addressesData,clickable){
+        for (var type in addressesData){
+            for (var i = 0; i < addressesData[type].length; i++)
+                addAddress(map,addressesData[type][i],clickable);
+        }
+    }
+
+    function addAddress(map,address,clickable){
+        var icon = "/static/images/mapicons/";
+        switch (address.type){
+            default:
+            case "ADDRESS_HOME":
+                icon += "home.png";
+                break;
+            case "ADDRESS_WORK":
+                icon += "workoffice.png"
+                break;
+        }
+        var marker = new google.maps.Marker({map:map, position:new google.maps.LatLng(address.latitude,address.longitude), icon:icon});
+        marker.showCircle = function(){
+            if (marker.circle != null)
+                return;
+            marker.circle = new google.maps.Circle({center:marker.getPosition(),
+                                                       map:map,
+                                                       radius:address.radius,
+                                                       fillColor:"green",
+                                                       fillOpacity:0.5,
+                                                       strokeOpacity:0});
+        }
+        marker.hideCircle = function(){
+            if (marker.circle == null)
+                return;
+            marker.circle.setMap(null);
+            marker.circle = null;
+        }
+        if (!clickable)
+            return marker;
+        google.maps.event.addListener(marker, "click", function(){
+            map.connectorSelected = null;
+            if (map.selectedMarker != null)
+                map.selectedMarker.hideCircle();
+            map.selectedMarker = marker;
+            map.infoWindow.setContent(address.getDetails());
+            map.infoWindow.open(map,marker);
+            marker.showCircle();
+        });
+    }
+
     function isDisplayable(itemType){
         switch (itemType){
             case "sms_backup-sms":
@@ -112,6 +160,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             marker.doHighlighting();
             marker.showCircle();
         });
+        return marker;
     }
 
     function addItemsToMap(map,items,clickable){
@@ -466,6 +515,47 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         this._img.style.top = position.y - 32 + "px";
     }
 
+    function createMapPositionControls(map){
+        var control = $("<div></div>");
+        control.css("background","white");
+        control.css("margin","0px 5px");
+        control.css("border","1px solid rgb(113, 123, 135)");
+        control.css("padding","5px");
+        control.css("box-shadow","rgba(0, 0, 0, 0.398438) 0px 2px 4px");
+        control.css("-webkit-box-shadow","rgba(0, 0, 0, 0.398438) 0px 2px 4px");
+        control.css("width","84px");
+        var fitButton = $('<button class="btnList btn btnListChecked enabled">Fit to View</button>');
+        fitButton.css("margin-bottom","0.5em");
+        var container = $("<div></div>")
+        var preserveView = $('<input type="checkbox">');
+        preserveView.css("margin-right","0.5em");
+        preserveView.css("float","left");
+
+        control.append(fitButton);
+        container.append(preserveView);
+        container.append("Preserve View");
+        control.append(container);
+        fitButton.click(function(){
+            map.fitBounds(map.gpsBounds);
+        });
+        map.preserveViewCheckbox = preserveView;
+        map.controls[google.maps.ControlPosition.RIGHT_TOP].push(control[0]);
+        map._preserveViewBtn = preserveView[0];
+
+        preserveView.click(function(){
+            if (map.preserveViewCheckboxChanged != null)
+                map.preserveViewCheckboxChanged();
+        });
+
+        map.isPreserveViewChecked = function(){
+            return map._preserveViewBtn.checked;
+        }
+
+        map.setPreserveView = function(isSet){
+            map._preserveViewBtn.checked = isSet;
+        }
+    }
+
     return {
         isDisplayable: isDisplayable,
         newMap: function(center,zoom,divId,hideControls){ //creates and returns a google map with extended functionality
@@ -492,6 +582,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             map.markers = {};
             map.addGPSData = function(gpsData){addGPSData(map,gpsData)};
             map.addData = function(connectorData, connectorInfoId,clickable){return addData(map,connectorData, connectorInfoId,clickable)};
+            map.addAddresses = function(addresses,clickable){addAddresses(map,addresses,clickable)}
             map.getLatLngOnGPSLine = function(time){return getLatLngOnGPSLine(map,time)};
             map.createPolyLineSegment = function(start,end,options){return createPolyLineSegment(map,start,end,options)};
             map.getFirstIndexAfter = function(time){return getFirstIndexAfter(map,time)};
@@ -514,7 +605,9 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                     return;
                 map._oldFitBounds(bounds);
             }
-
+            if (!hideControls){
+                createMapPositionControls(map);
+            }
             return map;
         }
     }
