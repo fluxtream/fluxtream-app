@@ -6,6 +6,7 @@ import com.fluxtream.ApiData;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
+import com.fluxtream.services.ConnectorUpdateService;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
@@ -13,6 +14,7 @@ import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -25,6 +27,9 @@ public class BodymediaFacetExtractor extends AbstractFacetExtractor
     //Logs various transactions
     Logger logger = Logger.getLogger(BodymediaFacetExtractor.class);
 
+    @Autowired
+    ConnectorUpdateService connectorUpdateService;
+
     @Override
     public List<AbstractFacet> extractFacets(ApiData apiData, ObjectType objectType) throws Exception
     {
@@ -36,7 +41,7 @@ public class BodymediaFacetExtractor extends AbstractFacetExtractor
         ArrayList<AbstractFacet> facets = null;
         if(objectType.getName().equals("burn"))
         {
-            facets = extractBurnFacet(apiData);
+            facets = extractBurnFacet(apiData, objectType);
         }
         else //If the facet to be extracted wasn't a burn facet
         {
@@ -51,7 +56,7 @@ public class BodymediaFacetExtractor extends AbstractFacetExtractor
      * @param apiData The data returned by the Burn api
      * @return A list of facets for each day provided by the apiData
      */
-    private ArrayList<AbstractFacet> extractBurnFacet(ApiData apiData)
+    private ArrayList<AbstractFacet> extractBurnFacet(ApiData apiData, ObjectType objectType)
     {
         ArrayList<AbstractFacet> facets = new ArrayList<AbstractFacet>();
         /* burnJson is a JSONArray that contains a seperate JSONArray and calorie counts for each day
@@ -64,6 +69,7 @@ public class BodymediaFacetExtractor extends AbstractFacetExtractor
                 DateTimeFormatter form = DateTimeFormat.forPattern("yyyyMMdd'T'HHmmssZ");
                 DateTime d = form.parseDateTime(bodymediaResponse.getJSONObject("lastSync").getString("dateTime"));
                 JSONArray daysArray = bodymediaResponse.getJSONArray("days");
+                long then = System.currentTimeMillis();
                 for(Object o : daysArray)
                 {
                     if(o instanceof JSONObject)
@@ -89,6 +95,10 @@ public class BodymediaFacetExtractor extends AbstractFacetExtractor
                         facets.add(facet);
                     }
                 }
+
+                connectorUpdateService.addApiUpdate(updateInfo.getGuestId(), connector(),
+            						objectType.value(), then, System.currentTimeMillis() - then,
+                                    "http://api.bodymedia.com/v2/json/burn/day/minute/intensity/", true, d.getMillis());
             }
             catch (JSONException e)
             {

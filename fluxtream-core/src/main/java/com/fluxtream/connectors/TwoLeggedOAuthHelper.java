@@ -45,14 +45,14 @@ public class TwoLeggedOAuthHelper extends ApiClientSupport {
 				String response = IOUtils.toString(request.getInputStream());
 				connectorUpdateService.addApiUpdate(guestId, connector,
 						objectTypes, then, System.currentTimeMillis() - then,
-						urlString, true, then);
+						urlString, true, 0);
 				// logger.info(apiKey.getGuestId(), "REST call success: " +
 				// urlString);
 				return response;
 			} else {
 				connectorUpdateService.addApiUpdate(guestId, connector,
 						objectTypes, then, System.currentTimeMillis() - then,
-						urlString, false, then);
+						urlString, false, 0);
 				throw new RuntimeException(
 						"Could not make REST call, got response code: "
 								+ request.getResponseCode() + ", message: "

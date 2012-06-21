@@ -8,6 +8,7 @@ import com.fluxtream.connectors.updaters.ScheduleResult;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiUpdate;
 import com.fluxtream.domain.ScheduledUpdate;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface ConnectorUpdateService {
 
@@ -65,4 +66,6 @@ public interface ConnectorUpdateService {
 	public long getNumberOfUpdatesSince(long guestId, Connector connector,
 			long then);
 
+    ApiUpdate getLastSuccessfulSync(long guestId, Connector api,
+                                    int objectTypes);
 }

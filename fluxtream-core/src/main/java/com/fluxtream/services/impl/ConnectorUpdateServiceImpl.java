@@ -244,6 +244,17 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 		return lastUpdate;
 	}
 
+    @Override
+    public ApiUpdate getLastSuccessfulSync(long guestId, Connector api,
+            int objectTypes) {
+        if (objectTypes == -1)
+            return getLastSuccessfulUpdate(guestId, api);
+        ApiUpdate lastUpdate = JPAUtils.findUnique(em, ApiUpdate.class,
+                "apiUpdates.lastSync", guestId,
+                api.value(), objectTypes);
+        return lastUpdate;
+    }
+
 	@Override
 	public ScheduledUpdate getNextScheduledUpdate(long guestId,
 			Connector connector, int objectTypes) {

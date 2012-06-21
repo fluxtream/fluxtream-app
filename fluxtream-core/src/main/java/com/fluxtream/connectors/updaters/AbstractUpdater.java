@@ -202,13 +202,13 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 	final protected void countSuccessfulApiCall(long guestId, int objectTypes,
 			long then, String query) {
 		connectorUpdateService.addApiUpdate(guestId, connector(), objectTypes,
-				then, System.currentTimeMillis() - then, query, true, then);
+				then, System.currentTimeMillis() - then, query, true, 0);
 	}
 
 	final protected void countFailedApiCall(long guestId, int objectTypes,
 			long then, String query) {
 		connectorUpdateService.addApiUpdate(guestId, connector(), objectTypes,
-				then, System.currentTimeMillis() - then, query, false, then);
+				then, System.currentTimeMillis() - then, query, false, 0);
 	}
 
     /**

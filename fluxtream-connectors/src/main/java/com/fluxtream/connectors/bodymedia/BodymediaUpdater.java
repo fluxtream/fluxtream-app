@@ -7,7 +7,6 @@ import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ApiUpdate;
-import com.fluxtream.services.ConnectorUpdateService;
 import net.sf.json.JSONObject;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.commonshttp.CommonsHttpOAuthConsumer;
@@ -32,9 +31,6 @@ public class BodymediaUpdater extends AbstractUpdater
 
     @Autowired
     SignpostOAuthHelper signpostHelper;
-
-    @Autowired
-    ConnectorUpdateService connectorUpdateService;
 
     public BodymediaUpdater()
     {
@@ -71,10 +67,10 @@ public class BodymediaUpdater extends AbstractUpdater
         DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyyMMdd");
         DateTimeComparator comparator = DateTimeComparator.getDateOnlyInstance();
         DateTime current = end;
+        ObjectType burnOT = ObjectType.getObjectType(connector(), "burn");
         while (comparator.compare(current, start) >= 0)
         //@ loop_invariant date.compareTo(userRegistrationDate) >= 0;
         {
-            ObjectType burnOT = ObjectType.getObjectType(connector(), "burn");
             String burnMinutesUrl = "http://api.bodymedia.com/v2/json/burn/day/minute/intensity/" + current.toString(formatter) +
                                     "?api_key=" + updateInfo.apiKey.getAttributeValue("api_key", env);
             //The following call may fail due to bodymedia's api. That is expected behavior
@@ -120,7 +116,7 @@ public class BodymediaUpdater extends AbstractUpdater
      */
     private DateTime getLastSyncTime(final UpdateInfo updateInfo, ObjectType ot)
     {
-        ApiUpdate a = connectorUpdateService.getLastSuccessfulUpdate(updateInfo.getGuestId(), connector(), ot.value());
+        ApiUpdate a = connectorUpdateService.getLastSuccessfulSync(updateInfo.getGuestId(), connector(), ot.value());
         return new DateTime(a.lastSync);
     }
 

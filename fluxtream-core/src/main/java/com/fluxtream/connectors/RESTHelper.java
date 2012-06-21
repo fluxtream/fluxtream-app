@@ -19,12 +19,12 @@ public class RESTHelper extends ApiClientSupport {
 			String restResult = HttpUtils.fetch(urlString, env);
 			connectorUpdateService.addApiUpdate(guestId, connector,
 					objectTypes, then, System.currentTimeMillis() - then,
-					urlString, true, then);
+					urlString, true, 0);
 			return restResult;
 		} catch (Exception e) {
 			connectorUpdateService.addApiUpdate(guestId, connector,
 					objectTypes, then, System.currentTimeMillis() - then,
-					urlString, false, then);
+					urlString, false, 0);
 			throw e;
 		}
 	}
