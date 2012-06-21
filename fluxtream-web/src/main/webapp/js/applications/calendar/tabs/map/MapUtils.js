@@ -397,7 +397,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         }
         else{
             minLng = endPoint.lng();
-            maxLng = endPoint.lng();
+            maxLng = startPoint.lng();
         }
 
         var startIndex = map.getFirstIndexAfter(start);
