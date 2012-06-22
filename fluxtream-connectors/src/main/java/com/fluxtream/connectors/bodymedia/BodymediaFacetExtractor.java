@@ -39,9 +39,18 @@ public class BodymediaFacetExtractor extends AbstractFacetExtractor
         						+ objectType.getName());
 
         ArrayList<AbstractFacet> facets = null;
-        if(objectType.getName().equals("burn"))
+        String name = objectType.getName();
+        if(name.equals("burn"))
         {
-            facets = extractBurnFacet(apiData, objectType);
+            facets = extractBurnFacets(apiData, objectType);
+        }
+        else if(name.equals("Sleep"))
+        {
+            facets = extractSleepFacets(apiData, objectType);
+        }
+        else if(name.equals("steps"))
+        {
+            facets = extractStepFacets(apiData, objectType);
         }
         else //If the facet to be extracted wasn't a burn facet
         {
@@ -51,12 +60,102 @@ public class BodymediaFacetExtractor extends AbstractFacetExtractor
         return facets;
     }
 
+    private ArrayList<AbstractFacet> extractStepFacets(final ApiData apiData, final ObjectType objectType)
+    {
+        ArrayList<AbstractFacet> facets = new ArrayList<AbstractFacet>();
+        /* burnJson is a JSONArray that contains a seperate JSONArray and calorie counts for each day
+         */
+        JSONObject bodymediaResponse = JSONObject.fromObject(apiData.json);
+        try{
+            JSONArray daysArray = bodymediaResponse.getJSONArray("days");
+            long then = System.currentTimeMillis();
+            DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyyMMdd");
+            DateTimeFormatter form = DateTimeFormat.forPattern("yyyyMMdd'T'HHmmssZ");
+            DateTime d = form.parseDateTime(bodymediaResponse.getJSONObject("lastSync").getString("dateTime"));
+            for(Object o : daysArray)
+            {
+                if(o instanceof JSONObject)
+                {
+                    JSONObject day = (JSONObject) o;
+                    BodymediaStepsFacet step = new BodymediaStepsFacet();
+                    super.extractCommonFacetData(step, apiData);
+                    step.setTotalSteps(day.getInt("totalSteps"));
+                    step.setDate(day.getString("date"));
+                    step.setStepJson(day.getString("hours"));
+
+                    DateTime date = formatter.parseDateTime(day.getString("date"));
+                    step.start = date.getMillis()/1000;
+                    date = date.plusDays(1);
+                    step.end = date.getMillis()/1000;
+
+                    facets.add(step);
+                }
+            }
+
+            connectorUpdateService.addApiUpdate(updateInfo.getGuestId(), connector(),
+        						objectType.value(), then, System.currentTimeMillis() - then,
+                                "http://api.bodymedia.com/v2/json/step/day/hour/", true, d.getMillis());
+        } catch (JSONException e)
+        {
+            logger.info("guestId=" + apiData.updateInfo.getGuestId() +
+                        " connector=bodymedia action=extractFacets error=JSON incorrectly formatted");
+        }
+
+        return facets;
+    }
+
+    private ArrayList<AbstractFacet> extractSleepFacets(final ApiData apiData, final ObjectType objectType)
+    {
+        ArrayList<AbstractFacet> facets = new ArrayList<AbstractFacet>();
+        /* burnJson is a JSONArray that contains a seperate JSONArray and calorie counts for each day
+         */
+        JSONObject bodymediaResponse = JSONObject.fromObject(apiData.json);
+        try{
+            JSONArray daysArray = bodymediaResponse.getJSONArray("days");
+            long then = System.currentTimeMillis();
+            DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyyMMdd");
+            DateTimeFormatter form = DateTimeFormat.forPattern("yyyyMMdd'T'HHmmssZ");
+            DateTime d = form.parseDateTime(bodymediaResponse.getJSONObject("lastSync").getString("dateTime"));
+            for(Object o : daysArray)
+            {
+                if(o instanceof JSONObject)
+                {
+                    JSONObject day = (JSONObject) o;
+                    BodymediaSleepFacet sleep = new BodymediaSleepFacet();
+                    super.extractCommonFacetData(sleep, apiData);
+                    sleep.setDate(day.getString("date"));
+                    sleep.setEfficiency(day.getDouble("efficiency"));
+                    sleep.setTotalLying(day.getInt("totalLying"));
+                    sleep.setTotalSleeping(day.getInt("totalSleep"));
+                    sleep.setSleepJson(day.getString("sleepPeriods"));
+
+                    DateTime date = formatter.parseDateTime(day.getString("date"));
+                    sleep.start = date.getMillis()/1000;
+                    date = date.plusDays(1);
+                    sleep.end = date.getMillis()/1000;
+
+                    facets.add(sleep);
+                }
+            }
+
+            connectorUpdateService.addApiUpdate(updateInfo.getGuestId(), connector(),
+        						objectType.value(), then, System.currentTimeMillis() - then,
+                                "http://api.bodymedia.com/v2/json/sleep/day/period/", true, d.getMillis());
+        } catch (JSONException e)
+        {
+            logger.info("guestId=" + apiData.updateInfo.getGuestId() +
+                        " connector=bodymedia action=extractFacets error=JSON incorrectly formatted");
+        }
+
+        return facets;
+    }
+
     /**
      * Extracts facets for each day from the data returned by the api.
      * @param apiData The data returned by the Burn api
      * @return A list of facets for each day provided by the apiData
      */
-    private ArrayList<AbstractFacet> extractBurnFacet(ApiData apiData, ObjectType objectType)
+    private ArrayList<AbstractFacet> extractBurnFacets(ApiData apiData, ObjectType objectType)
     {
         ArrayList<AbstractFacet> facets = new ArrayList<AbstractFacet>();
         /* burnJson is a JSONArray that contains a seperate JSONArray and calorie counts for each day
@@ -75,24 +174,23 @@ public class BodymediaFacetExtractor extends AbstractFacetExtractor
                     if(o instanceof JSONObject)
                     {
                         JSONObject day = (JSONObject) o;
-                        BodymediaBurnFacet facet = new BodymediaBurnFacet();
+                        BodymediaBurnFacet burn = new BodymediaBurnFacet();
                         //The following call must be made to load data about he facets
-                        super.extractCommonFacetData(facet, apiData);
-                        facet.setTotalCalories(day.getInt("totalCalories"));
-                        facet.setDate(day.getString("date"));
-                        facet.setEstimatedCalories(day.getInt("estimatedCalories"));
-                        facet.setPredictedCalories(day.getInt("predictedCalories"));
-                        facet.setBurnJson(day.getString("minutes"));
-                        facet.setLastSync(d.getMillis()/1000);
+                        super.extractCommonFacetData(burn, apiData);
+                        burn.setTotalCalories(day.getInt("totalCalories"));
+                        burn.setDate(day.getString("date"));
+                        burn.setEstimatedCalories(day.getInt("estimatedCalories"));
+                        burn.setPredictedCalories(day.getInt("predictedCalories"));
+                        burn.setBurnJson(day.getString("minutes"));
 
                         //Sets the start and end times for the facet so that it can be uniquely defined
                         DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyyMMdd");
                         DateTime date = formatter.parseDateTime(day.getString("date"));
-                        facet.start = date.getMillis()/1000;
+                        burn.start = date.getMillis()/1000;
                         date = date.plusDays(1);
-                        facet.end = date.getMillis()/1000;
+                        burn.end = date.getMillis()/1000;
 
-                        facets.add(facet);
+                        facets.add(burn);
                     }
                 }
 

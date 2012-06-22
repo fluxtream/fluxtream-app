@@ -24,8 +24,6 @@ public class BodymediaBurnFacet extends AbstractFacet {
     public int estimatedCalories = 0;
     public int predictedCalories = 0;
 
-    //Time of last sync stored as a unix timestamp
-    public long lastSync;
     //The date that this facet represents
     public String date;
     // Store the JSON for the minutely data.  This is a JSON array with one entry per minute
@@ -63,8 +61,4 @@ public class BodymediaBurnFacet extends AbstractFacet {
         this.date = date;
     }
 
-    public void setLastSync(long lastSync)
-    {
-        this.lastSync = lastSync;
-    }
 }

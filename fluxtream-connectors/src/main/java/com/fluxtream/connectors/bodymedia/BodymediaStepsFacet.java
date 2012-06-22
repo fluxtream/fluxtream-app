@@ -1,6 +1,7 @@
 package com.fluxtream.connectors.bodymedia;
 
 import javax.persistence.Entity;
+import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 
@@ -17,7 +18,33 @@ import com.fluxtream.domain.AbstractFacet;
 })
 @Indexed
 public class BodymediaStepsFacet extends AbstractFacet {
-	
+
+    //The date that this facet represents
+    public String date;
+
+    //The total number of steps taken that day
+    public int totalSteps;
+
+    //The hourly data for steps taken
+
+    @Lob
+    public String stepJson;
+
+    public void setDate(final String date)
+    {
+        this.date = date;
+    }
+
+    public void setTotalSteps(final int totalSteps)
+    {
+        this.totalSteps = totalSteps;
+    }
+
+    public void setStepJson(final String stepJson)
+    {
+        this.stepJson = stepJson;
+    }
+
 	@Override
 	protected void makeFullTextIndexable() {}
 	

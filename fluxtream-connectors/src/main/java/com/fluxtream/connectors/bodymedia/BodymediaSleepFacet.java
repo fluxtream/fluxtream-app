@@ -17,8 +17,44 @@ import com.fluxtream.domain.AbstractFacet;
 })
 @Indexed
 public class BodymediaSleepFacet extends AbstractFacet {
-	
-	@Override
+
+    //The date that this facet represents
+    String date;
+    //The sleep efficiency ratio provided by Bodymedia
+    double efficiency;
+    //The total number of minutes spent lying awake
+    int totalLying;
+    //The total number of minutes spent sleeping
+    int totalSleeping;
+    //The Json for the sleep periods;
+    String sleepJson;
+
+    public void setDate(final String date)
+    {
+        this.date = date;
+    }
+
+    public void setEfficiency(final double efficiency)
+    {
+        this.efficiency = efficiency;
+    }
+
+    public void setTotalLying(final int totalLying)
+    {
+        this.totalLying = totalLying;
+    }
+
+    public void setTotalSleeping(final int totalSleeping)
+    {
+        this.totalSleeping = totalSleeping;
+    }
+
+    public void setSleepJson(final String sleepJson)
+    {
+        this.sleepJson = sleepJson;
+    }
+
+    @Override
 	protected void makeFullTextIndexable() {}
 
 }

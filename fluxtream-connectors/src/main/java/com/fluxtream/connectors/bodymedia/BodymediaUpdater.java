@@ -1,5 +1,6 @@
 package com.fluxtream.connectors.bodymedia;
 
+import java.util.HashMap;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.SignpostOAuthHelper;
 import com.fluxtream.connectors.annotations.Updater;
@@ -32,9 +33,21 @@ public class BodymediaUpdater extends AbstractUpdater
     @Autowired
     SignpostOAuthHelper signpostHelper;
 
+    private final HashMap<ObjectType, String> url = new HashMap<ObjectType, String>();
+    private final HashMap<ObjectType, Integer> maxIncrement = new HashMap<ObjectType, Integer>();
+
     public BodymediaUpdater()
     {
         super();
+        ObjectType burn = ObjectType.getObjectType(connector(), "burn");
+        ObjectType sleep = ObjectType.getObjectType(connector(), "Sleep");
+        ObjectType steps = ObjectType.getObjectType(connector(), "steps");
+        url.put(burn, "burn/day/minute/intensity/");
+        url.put(sleep, "sleep/day/period/");
+        url.put(steps, "step/day/hour/");
+        maxIncrement.put(burn, 1);
+        maxIncrement.put(sleep, 1);
+        maxIncrement.put(steps, 31);
     }
 
     public void updateConnectorDataHistory(UpdateInfo updateInfo)
@@ -43,41 +56,51 @@ public class BodymediaUpdater extends AbstractUpdater
         setupConsumer(updateInfo.apiKey);
         String api_key = env.get("bodymediaConsumerKey");
 
-        ObjectType burnOT = ObjectType.getObjectType(connector(), "burn");
         String userRegistrationDate = getUserRegistrationDate(updateInfo, api_key);
-        if (updateInfo.objectTypes().contains(burnOT))
+        for(ObjectType ot : updateInfo.objectTypes())
         {
             //DateTime should be initialized to today
             DateTime today = new DateTime();
             DateTime start = DateTimeFormat.forPattern("yyyyMMdd").parseDateTime(userRegistrationDate);
-            retrieveBurnHistory(updateInfo, start, today);
+            retrieveBurnHistory(updateInfo, ot, url.get(ot), maxIncrement.get(ot), start, today);
         }
     }
 
     /**
-     * Retrieves that burn history from the start date to the end date. It peforms the api calls in reverse order
+     * Retrieves that history for the given facet from the start date to the end date. It peforms the api calls in reverse order
      * starting from the end date. This is so that the most recent information is retrieved first.
      * @param updateInfo The api's info
+     * @param ot The ObjectType that represents the facet to be updated
+     * @param urlExtension the request uri used for the api
+     * @param increment the number of days to retrieve at once from bodymedia
      * @param start The earliest date for which the burn history is retrieved. This date is included in the update.
      * @param end The latest date for which the burn history is retrieved. This date is also included in the update.
      * @throws Exception If either storing the data fails or if the rate limit is reached on Bodymedia's api
      */
-    private void retrieveBurnHistory(UpdateInfo updateInfo, DateTime start, DateTime end) throws Exception
+    private void retrieveBurnHistory(UpdateInfo updateInfo, ObjectType ot, String urlExtension, int increment, DateTime start, DateTime end) throws Exception
     {
         DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyyMMdd");
         DateTimeComparator comparator = DateTimeComparator.getDateOnlyInstance();
         DateTime current = end;
-        ObjectType burnOT = ObjectType.getObjectType(connector(), "burn");
-        while (comparator.compare(current, start) >= 0)
+        while (comparator.compare(current, start) > 0)
         //@ loop_invariant date.compareTo(userRegistrationDate) >= 0;
         {
-            String burnMinutesUrl = "http://api.bodymedia.com/v2/json/burn/day/minute/intensity/" + current.toString(formatter) +
+            String startPeriod = current.minusDays(increment-1).toString(formatter);
+            String endPeriod = current.toString(formatter);
+            String minutesUrl = "http://api.bodymedia.com/v2/json/" + urlExtension + startPeriod + "/" + endPeriod +
                                     "?api_key=" + updateInfo.apiKey.getAttributeValue("api_key", env);
             //The following call may fail due to bodymedia's api. That is expected behavior
-            String jsonResponse = signpostHelper.makeRestCall(connector(), updateInfo.apiKey, burnOT.value(), burnMinutesUrl);
+            String jsonResponse = signpostHelper.makeRestCall(connector(), updateInfo.apiKey, ot.value(), minutesUrl);
             apiDataService.cacheApiDataJSON(updateInfo, jsonResponse, -1, -1);
-            current = current.minusDays(1);
+            current = current.minusDays(increment);
         }
+        String startPeriod = start.toString(formatter);
+        String endPeriod = current.plusDays(increment-1).toString(formatter);
+        String minutesUrl = "http://api.bodymedia.com/v2/json/" + urlExtension + startPeriod + "/" + endPeriod +
+                                "?api_key=" + updateInfo.apiKey.getAttributeValue("api_key", env);
+        //The following call may fail due to bodymedia's api. That is expected behavior
+        String jsonResponse = signpostHelper.makeRestCall(connector(), updateInfo.apiKey, ot.value(), minutesUrl);
+        apiDataService.cacheApiDataJSON(updateInfo, jsonResponse, -1, -1);
     }
 
     OAuthConsumer consumer;
@@ -100,18 +123,18 @@ public class BodymediaUpdater extends AbstractUpdater
 
     public void updateConnectorData(UpdateInfo updateInfo) throws Exception
     {
-        ObjectType burnOT = ObjectType.getObjectType(connector(), "burn");
-        if(updateInfo.objectTypes().contains(burnOT))
+        for(ObjectType ot : updateInfo.objectTypes())
         {
             DateTime today = new DateTime();
-            DateTime start = getLastSyncTime(updateInfo, burnOT);
-            retrieveBurnHistory(updateInfo, start, today);
+            DateTime start = getLastSyncTime(updateInfo, ot);
+            retrieveBurnHistory(updateInfo, ot, url.get(ot), maxIncrement.get(ot), start, today);
         }
     }
 
     /**
      * Retrieves the User's lastSync time
      * @param updateInfo Used to identify the user
+     * @param ot The objectType that represents the facet that you wish to update
      * @return a DateTime that represents when the user last synced his device
      */
     private DateTime getLastSyncTime(final UpdateInfo updateInfo, ObjectType ot)
