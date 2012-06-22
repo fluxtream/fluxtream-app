@@ -16,7 +16,8 @@ define(["applications/calendar/tabs/Tab",
                         if (dashboards[i].active)
                             dashboardsTab.activeDashboard = dashboards[i].id;
                     }
-                    that.populateTemplate({"dashboards" : dashboards});
+                    that.populateTemplate({dashboards : dashboards,
+                                              release : window.FLX_RELEASE_NUMBER});
                 }
                }
         );
