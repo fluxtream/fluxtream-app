@@ -418,7 +418,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
 
     function zoomOnPoint(map, point){
         map.setCenter(point);
-        map.setZoom(18);
+        map.setZoom(15);
     }
 
     function zoomOnMarker(map,marker){
@@ -556,6 +556,19 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         }
     }
 
+    function fixZooming(map,zoomLevel,isPreserved){
+        if (!map.isFullyInitialized()){
+            $.doTimeout(100,function(){
+                fixZooming(map,zoomLevel,isPreserved);
+            });
+            return;
+        }
+        if (map.getZoom() > 16 && !isPreserved)
+            map.setZoom(16);
+        if (isPreserved)
+            map.setZoom(map.getZoom()+1);
+    }
+
     return {
         isDisplayable: isDisplayable,
         newMap: function(center,zoom,divId,hideControls){ //creates and returns a google map with extended functionality
@@ -599,11 +612,14 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             map.zoomOnMarker = function(marker){zoomOnMarker(map,marker)};
             map.enhanceMarker = function(marker,start,end){enhanceMarker(map,marker,start,end)};
             map.isFullyInitialized = function(){return isFullyInitialized(map)};
+            map.isPreserveViewChecked = function(){return false;}
             map._oldFitBounds = map.fitBounds;
-            map.fitBounds = function(bounds){
+            map.fitBounds = function(bounds,isPreservedView){
                 if (bounds == null)
                     return;
                 map._oldFitBounds(bounds);
+                var zoomLevel = map.getZoom();
+                fixZooming(map,zoomLevel,isPreservedView);
             }
             if (!hideControls){
                 createMapPositionControls(map);

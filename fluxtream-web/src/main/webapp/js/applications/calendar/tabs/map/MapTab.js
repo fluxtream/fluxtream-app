@@ -56,23 +56,16 @@ define(["applications/calendar/tabs/Tab",
             $("#mapFit").hide();
         }
         if (bounds != null){
-            map.fitBounds(bounds);
-            if (map.isPreserveViewChecked()){
-                map.setZoom(map.getZoom()+1);
-            }
+            map.fitBounds(bounds,map.isPreserveViewChecked());
         }
         map.preserveViewCheckboxChanged = function(){
             preserveView = map.isPreserveViewChecked();
         }
 	}
 
-    function showData(functionName){
-        if (functionName != null)
-            delete window[functionName];
+    function showData(){
         if (!map.isFullyInitialized()){
-            var functionName = "mapTimingFunction" + new Date().getUTCMilliseconds();
-            window[functionName] = showData;
-            setTimeout("window." + functionName + "(\"" + functionName + "\");",100);
+            $.doTimeout(100,showData);
             return;
         }
         var digest = digestData;
