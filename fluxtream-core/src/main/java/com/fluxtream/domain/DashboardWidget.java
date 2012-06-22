@@ -20,12 +20,12 @@ public class DashboardWidget {
     public List<String> SupportedLanguages;
     public String VendorIdentifier;
     public List<String> RequiredConnectors;
-    private String WidgetIcon;
-    private String WidgetName;
-    private String WidgetURL;
-    private String BundleCopyright;
-    private String BundleIdentifier;
-    private String BundleVersion;
+    public String WidgetIcon;
+    public String WidgetName;
+    public String WidgetRepositoryURL;
+    public String BundleCopyright;
+    public String BundleIdentifier;
+    public String BundleVersion;
 
     /**
 
@@ -50,7 +50,7 @@ public class DashboardWidget {
             }
             WidgetIcon = manifestJSON.getString("WidgetIcon");
             WidgetName = manifestJSON.getString("WidgetName");
-            WidgetURL = manifestJSON.getString("WidgetURL");
+            WidgetRepositoryURL = manifestJSON.getString("WidgetRepositoryURL");
             BundleCopyright = manifestJSON.getString("BundleCopyright");
             BundleIdentifier = manifestJSON.getString("BundleIdentifier");
             BundleVersion = manifestJSON.getString("BundleVersion");

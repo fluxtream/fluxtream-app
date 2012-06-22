@@ -31,7 +31,7 @@ public class Dashboard extends AbstractEntity implements Comparable<Dashboard> {
 
     public int ordering;
 
-    public String widgetsJson;
+    public String widgetNames;
 
     @Type(type="yes_no")
     public boolean active;
