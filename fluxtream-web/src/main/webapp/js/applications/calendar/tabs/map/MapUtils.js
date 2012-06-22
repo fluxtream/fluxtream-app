@@ -31,7 +31,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             cutoff = avg + std * config.stdAccuracyCutoff;
         }
         for (var i = 0; i < gpsData.length; i++){
-            if (gpsData[i].accuracy > cutoff  || gpsData[i].accuracy == 0){
+            if (gpsData[i].accuracy > cutoff  || (filtered != gpsData.length && gpsData[i].accuracy == 0)){
                 continue;
             }
             var lat = gpsData[i].position[0];
