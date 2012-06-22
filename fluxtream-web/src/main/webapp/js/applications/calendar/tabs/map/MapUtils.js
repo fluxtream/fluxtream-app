@@ -4,6 +4,9 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     function addGPSData(map,gpsData){
         map.gpsPositions = [];
         map.gpsTimestamps = [];
+        if (gpsData.length == 0)
+            return;
+        map.markers[gpsData[0].type] = [];
         var minLat = 90; //initialized to the largest valid latitude
         var maxLat = 0; //initialized to the smallest valid latitude
         var minLng = 180; //initialized to the largest valid longitude
@@ -37,6 +40,10 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             var lat = gpsData[i].position[0];
             var lng = gpsData[i].position[1];
             map.gpsPositions[map.gpsPositions.length] = new google.maps.LatLng(lat,lng);
+            map.markers[gpsData[i].type][map.markers[gpsData[i].type].length] = new google.maps.Marker({map:map,
+                                                                            position:map.gpsPositions[map.gpsPositions.length-1],
+                                                                           icon:config.GPS_CATEGORY.icon,
+                                                                           clickable:false});
             map.gpsTimestamps[map.gpsTimestamps.length] = gpsData[i].start;
             map.gpsAccuracies[map.gpsAccuracies.length] = gpsData[i].accuracy;
             if (lat < minLat)
@@ -48,8 +55,9 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             if (lng > maxLng)
                 maxLng = lng;
         }
-        map.gpsLine = new google.maps.Polyline({map:map, path:map.gpsPositions});
+        map.gpsLine = new google.maps.Polyline({map:map, path:map.gpsPositions,clickable:false});
         map.gpsBounds = new google.maps.LatLngBounds(new google.maps.LatLng(minLat,minLng), new google.maps.LatLng(maxLat,maxLng));
+        map.noGPSDiv.css("display","none");
     }
 
     function addData(map,connectorData, connectorInfoId, clickable){
@@ -86,7 +94,8 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                                                        radius:address.radius,
                                                        fillColor:"green",
                                                        fillOpacity:0.5,
-                                                       strokeOpacity:0});
+                                                       strokeOpacity:0,
+                                                       clickable:false});
         }
         marker.hideCircle = function(){
             if (marker.circle == null)
@@ -207,7 +216,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         var end = item.end;
         if (start > map.gpsTimestamps[map.gpsTimestamps.length - 1] || (end == null && start < map.gpsTimestamps[0]))
             return;
-        var marker = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(start), icon:category.icon, shadow:category.shadow});
+        var marker = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(start), icon:category.icon, shadow:category.shadow,clickable:clickable});
         enhanceMarker(map,marker,start,end);
         if (!clickable)
             return marker;
@@ -239,7 +248,8 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                                                    radius:accuracy,
                                                    fillColor:"red",
                                                    fillOpacity:0.5,
-                                                   strokeOpacity:0});
+                                                   strokeOpacity:0,
+                                                   clickable:false});
         }
         marker.hideCircle = function(){
             if (marker.circle == null)
@@ -337,6 +347,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         }
         newPoints[newPoints.length] = map.getLatLngOnGPSLine(end);
         options.path = newPoints;
+        options.clickable = false;
         return new google.maps.Polyline(options);
     }
 
@@ -433,7 +444,6 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     function hideData(map,connectorId){
         if (connectorId == "google_latitude"){
             map.hideGPSData();
-            return;
         }
         if (!map.hasData(connectorId))
             return;
@@ -449,7 +459,6 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     function showData(map,connectorId){
         if (connectorId == "google_latitude"){
             map.showGPSData();
-            return;
         }
         if (!map.hasData(connectorId))
             return;
@@ -558,6 +567,11 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         }
     }
 
+    function showNoGPSDisplay(map){
+        map.noGPSDiv = $("<div id='blahblahblah' style='background:white;'>No GPS Data Available</div>");
+        map.controls[google.maps.ControlPosition.TOP].push(map.noGPSDiv[0]);
+    }
+
     function fixZooming(map,zoomLevel,isPreserved){
         if (!map.isFullyInitialized()){
             $.doTimeout(100,function(){
@@ -626,6 +640,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             if (!hideControls){
                 createMapPositionControls(map);
             }
+            showNoGPSDisplay(map);
             return map;
         }
     }
