@@ -41,12 +41,16 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         distanceUnit = digest.settings.distanceUnit;
         dayStart = digest.tbounds.start;
         dayEnd = digest.tbounds.end;
-        map = MapUtils.newMap(new google.maps.LatLng(0,0),8,"clockMap",true);
+        map = MapUtils.newMap(new google.maps.LatLng(0,0),16,"clockMap",true);
         if (digest.cachedData != null && digest.cachedData.google_latitude != null){
             map.addGPSData(digest.cachedData.google_latitude);
             map.fitBounds(map.gpsBounds);
         }
         else{
+            var addressToUse = {latitude:0,longitude:0};
+            if (digest.addresses.ADDRESS_HOME != null && digest.addresses.ADDRESS_HOME.length != 0)
+                addressToUse = digest.addresses.ADDRESS_HOME[0];
+            map.setCenter(new google.maps.LatLng(addressToUse.latitude,addressToUse.longitude));
             hideQTipMap();
         }
         map.addAddresses(digest.addresses, false);
@@ -255,7 +259,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         var tip_x = target.left + event.offsetX;
         var offsetX = config.CLOCK_CENTER[0] - event.offsetX;
         var offsetY = config.CLOCK_CENTER[1] - event.offsetY;
-        if (map != null){
+        if (map.gpsLine != null){
             markers[0] = map.addItem(span.item,false);
             if (markers[0] != null){
                 markers[0].doHighlighting();
