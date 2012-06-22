@@ -47,9 +47,11 @@ public class ConnectorStore {
     private ApiDataService apiDataService;
 
     Gson gson = new Gson();
+
     @GET
+    @Path("/installed")
     @Produces({MediaType.APPLICATION_JSON})
-    public String getConnectors(){
+    public String getInstalledConnectors(){
         Guest user = ControllerHelper.getGuest();
         List<ConnectorInfo> connectors =  sysService.getConnectors();
         List<Long> apiKeyIds = new ArrayList<Long>();
@@ -66,6 +68,19 @@ public class ConnectorStore {
                 connector.syncing = checkIfSyncInProgress(user.getId(),conn);
             }
         }
+        return gson.toJson(connectors);
+    }
+
+    @GET
+    @Path("/uninstalled")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String getUninstalledConnectors(){
+        Guest user = ControllerHelper.getGuest();
+        List<ConnectorInfo> connectors =  sysService.getConnectors();
+        List<Long> apiKeyIds = new ArrayList<Long>();
+        for (int i = 0; i < connectors.size(); i++)
+            if (guestService.hasApiKey(user.getId(), connectors.get(i).getApi()))
+                connectors.remove(i--);
         return gson.toJson(connectors);
     }
 
@@ -155,7 +170,8 @@ public class ConnectorStore {
                     connectorUpdateService.reScheduleUpdate(update, System.currentTimeMillis(), false);
                 }
                 else {
-                    connectorUpdateService.scheduleUpdate(user.getId(), connector.getName(), objectType, UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE, System.currentTimeMillis());
+                    UpdateInfo.UpdateType updateType = connectorUpdateService.isHistoryUpdateCompleted(user.getId(),connector.getName(),objectType) ? UpdateInfo.UpdateType.INCREMENTAL_UPDATE : UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE;
+                    connectorUpdateService.scheduleUpdate(user.getId(), connector.getName(), objectType, updateType, System.currentTimeMillis());
                 }
             }
             return new StatusModel(true,"Successfully scheduled update for " + connector.getName());

@@ -23,10 +23,10 @@ public interface SettingsService {
 	public void setDistanceMeasureUnit(long guestId, DistanceMeasureUnit unit);
 
 	public void addAddress(long guestId, String type, String address, double latitude,
-			double longitude, long since, long until, String jsonString);
+			double longitude, long since, long until, double radius, String jsonString);
 
     public void addAddress(long guestId, String type, String address, double latitude,
-                           double longitude, long since, String jsonString);
+                           double longitude, long since, double radius, String jsonString);
 	
 	public List<GuestAddress> getAllAddressesForDate(long guestId, long date);
 
@@ -49,7 +49,7 @@ public interface SettingsService {
     public void deleteAllAddressesOfTypeForDate(long guestId, String type, long date);
 
     public void updateAddress(long guestId, long addressId, String type, String address, Double latitude,
-                              Double longitude, Long since, Long until, String jsonString);
+                              Double longitude, Long since, Long until, Double radius, String jsonString);
 
 	public void setTemperatureUnit(long guestId, TemperatureUnit temperatureUnit);
 	
