@@ -38,8 +38,6 @@ define(["applications/calendar/tabs/Tab",
 
             if (!map.isPreserveViewChecked())
                 bounds = map.gpsBounds;
-
-            showData();
             for (var i = 0; i < digest.selectedConnectors.length; i++){
                 if (!connectorEnabled[digest.selectedConnectors[i].connectorName])
                     for (var j = 0; j < digest.selectedConnectors[i].facetTypes.length; j++){
@@ -55,6 +53,7 @@ define(["applications/calendar/tabs/Tab",
         } else {
             $("#mapFit").hide();
         }
+        showData();
         if (bounds != null){
             map.fitBounds(bounds,map.isPreserveViewChecked());
         }
@@ -70,12 +69,16 @@ define(["applications/calendar/tabs/Tab",
         }
         var digest = digestData;
         map.addAddresses(digest.addresses,true);
-        for(var objectTypeName in digest.cachedData) {
-            if (digest.cachedData[objectTypeName]==null||typeof(digest.cachedData[objectTypeName])=="undefined")
-                continue;
-            map.addData(digest.cachedData[objectTypeName], objectTypeName, true);
+        if (digest!=null && digest.cachedData!=null &&
+            typeof(digest.cachedData.google_latitude)!="undefined"
+                && digest.cachedData.google_latitude !=null &&
+            digest.cachedData.google_latitude.length>0){
+            for(var objectTypeName in digest.cachedData) {
+                if (digest.cachedData[objectTypeName]==null||typeof(digest.cachedData[objectTypeName])=="undefined")
+                    continue;
+                map.addData(digest.cachedData[objectTypeName], objectTypeName, true);
+            }
         }
-
     }
 
     function connectorToggled(connectorName,objectTypeNames,enabled){
