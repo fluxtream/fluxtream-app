@@ -30,9 +30,9 @@ import org.springframework.stereotype.Component;
  * @author Candide Kemmler (candide@fluxteam.com)
  */
 @Path("/dashboards")
-@Component("dashboardsApi")
+@Component("RESTDashboardStore")
 @Scope("request")
-public class DashboardResource {
+public class DashboardStore {
 
     @Autowired
     DashboardsService dashboardsService;
@@ -58,6 +58,7 @@ public class DashboardResource {
         JSONObject dashboardJson = new JSONObject();
         dashboardJson.accumulate("id", dashboard.getId());
         dashboardJson.accumulate("name", dashboard.name);
+        dashboardJson.accumulate("active", dashboard.active);
         JSONArray widgetsJson = JSONArray.fromObject(dashboard.widgetsJson);
         dashboardJson.accumulate("widgets", widgetsJson);
         return dashboardJson;
@@ -88,6 +89,16 @@ public class DashboardResource {
         newName = URLDecoder.decode(newName, "UTF-8");
         long guestId = ControllerHelper.getGuestId();
         dashboardsService.renameDashboard(guestId, dashboardId, newName);
+        return getDashboards();
+    }
+
+    @PUT
+    @Path("/{dashboardId}/active")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String renameDashboard(@PathParam("dashboardId") long dashboardId)
+            throws UnsupportedEncodingException {
+        long guestId = ControllerHelper.getGuestId();
+        dashboardsService.setActiveDashboard(guestId, dashboardId);
         return getDashboards();
     }
 

@@ -51,8 +51,7 @@
 					<a class="btn btn-navbar" data-toggle="collapse"
 						data-target=".nav-collapse"> <span class="icon-bar"></span> <span
 						class="icon-bar"></span> <span class="icon-bar"></span>
-					</a> <a class="brand" href="/app"><img
-						src="/${release}/images/header-logo-v4.png" /></a>
+					</a>
                     <a class="brand" href="/app"><img
                             src="/${release}/images/header-logo-v4.png" /></a>
 					<div class="nav-collapse">
@@ -116,11 +115,11 @@
 			<img style="border: none" src="/${release}/images/loading.gif" />
 		</div>
 
-	</div>
+    </div>
 
-	<jsp:include page="footer.jsp" />
+    <jsp:include page="footer.jsp" />
 
-	<script>
+    <script>
 		window.FLX_RELEASE_NUMBER = "${release}";
 	</script>
 
@@ -149,6 +148,7 @@
 		<script src="/static/js/raphael-2.1.0.js"></script>
 		<script src="/static/js/underscore-1.3.3-min.js"></script>
 		<script src="/static/js/backbone-0.9.2-min.js"></script>
+        <script src="/static/js/jquery.ba-dotimeout.min.js"></script>
 	</g:compress>
 	
 	<!--  TODO: validate version numbers for these libs -->

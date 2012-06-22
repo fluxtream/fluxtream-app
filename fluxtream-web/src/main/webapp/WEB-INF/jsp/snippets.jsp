@@ -49,7 +49,6 @@
                     <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse"> <span class="icon-bar"></span> <span class="icon-bar"></span> <span class="icon-bar"></span>
                     </a> 
                     <a class="brand" href="/app"><img src="/1.0-alpha-build_20120403/images/header-logo-v4.png" /></a>
-                    <a class="brand" href="/app"><img src="/1.0-alpha-build_20120403/images/header-logo-v4.png" /></a>
                     <div class="nav-collapse">
                         <ul class="nav">
                             <li>
@@ -81,7 +80,25 @@
                 </div>
             </div>
         </div>    
-<div class="container-fluid">
+<div class="container-fluid"> 
+        <div class="row-fluid"> <!-- New code snippets from peri 2012-12-19 : list view : 1 style per connector -->
+            <div class="flx-toolTipData">
+                <h3 class="flx-dataType">Weight</h3>
+                    <ul class="flx-toolTipLinks">
+                        <li><a href="#">List <i class="icon-list"></i></a></li>
+                        <li><a href="#">Timeline <i class="icon-film"></i></a></li>
+                        <li><a href="#">Bodytrack <i class="icon-lemon"></i></a></li>
+                    </ul>
+                    <span class="flx-deviceIcon withings"></span>
+                <div class="flx-deviceData">
+                    <span class="flx-tTime">9:43</span>
+                    <span class="flx-data">71.05 kg</span>
+                </div>
+                <span class="flx-miniGraph"><img src="/css/dashboardImgDummies/w8.png" alt="w8"/></span>
+            </div>
+        </div>
+
+
         <div class="row-fluid">   <!-- New code snippet from peri 2012-12-13 : timeline connector data view -->
             <div class="flx-hide-channels">
                 <i class="icon-resize-horizontal"></i> <a href="">Hide Channels</a>

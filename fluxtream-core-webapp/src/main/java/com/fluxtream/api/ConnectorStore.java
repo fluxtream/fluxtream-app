@@ -2,7 +2,6 @@ package com.fluxtream.api;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.TimeZone;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -10,14 +9,9 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import com.fluxtream.TimeInterval;
-import com.fluxtream.TimeUnit;
 import com.fluxtream.connectors.Connector;
-import com.fluxtream.connectors.ObjectType;
-import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
-import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ApiUpdate;
 import com.fluxtream.domain.ConnectorInfo;
 import com.fluxtream.domain.Guest;
@@ -33,11 +27,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-@Path("/guest/{username}/connector")
-@Component("connectorApi")
+/**
+ *
+ */
+@Path("/connectors")
+@Component("RESTConnectorStore")
 @Scope("request")
-public class ConnectorResource {
-
+public class ConnectorStore {
     @Autowired
     GuestService guestService;
 
@@ -51,15 +47,10 @@ public class ConnectorResource {
     private ApiDataService apiDataService;
 
     Gson gson = new Gson();
-
     @GET
-    @Path("/all")
     @Produces({MediaType.APPLICATION_JSON})
-    public String getConnectors(@PathParam("username") String username){
-        Guest user = guestService.getGuest(username);
-        if (ControllerHelper.getGuestId() != user.getId()) {
-            return gson.toJson(new StatusModel(false, "You don't have access to this information."));
-        }
+    public String getConnectors(){
+        Guest user = ControllerHelper.getGuest();
         List<ConnectorInfo> connectors =  sysService.getConnectors();
         List<Long> apiKeyIds = new ArrayList<Long>();
         for (int i = 0; i < connectors.size(); i++){
@@ -108,11 +99,8 @@ public class ConnectorResource {
     @DELETE
     @Path("/{connector}")
     @Produces({MediaType.APPLICATION_JSON})
-    public String deleteConnector(@PathParam("username") String username, @PathParam("connector") String connector){
-        Guest user = guestService.getGuest(username);
-        if (ControllerHelper.getGuestId() != user.getId()) {
-            return gson.toJson(new StatusModel(false, "You don't have access to this information."));
-        }
+    public String deleteConnector(@PathParam("connector") String connector){
+        Guest user = ControllerHelper.getGuest();
         StatusModel result;
         try{
             Connector apiToRemove = Connector.fromString(connector);
@@ -128,13 +116,37 @@ public class ConnectorResource {
     @POST
     @Path("/{connector}/sync")
     @Produces({MediaType.APPLICATION_JSON})
-    public String updateConnector(@PathParam("username") String username, @PathParam("connector") String connectorName){
-        Guest user = guestService.getGuest(username);
-        if (ControllerHelper.getGuestId() != user.getId()) {
-            return gson.toJson(new StatusModel(false, "You don't have access to this information."));
-        }
-        StatusModel result;
+    public String updateConnector(@PathParam("connector") String connectorName){
+        Guest user = ControllerHelper.getGuest();
         Connector connector = Connector.getConnector(connectorName);
+        return gson.toJson(updateConnector(user, connector));
+    }
+
+    @POST
+    @Path("/all/sync")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String updateAllConnectors(){
+        Guest user = ControllerHelper.getGuest();
+        StatusModel result = null;
+        List<ConnectorInfo> connectors =  sysService.getConnectors();
+        List<Long> apiKeyIds = new ArrayList<Long>();
+        for (int i = 0; i < connectors.size(); i++){
+            if (!guestService.hasApiKey(user.getId(), connectors.get(i).getApi())) {
+                connectors.remove(i--);
+            }
+            else {
+                Connector connector = connectors.get(i).getApi();
+                StatusModel updateRes = updateConnector(user, connector);
+                if (result == null && updateRes.result.equals("KO"))
+                    result = new StatusModel(false,"Some connectors failed to update");
+            }
+        }
+        if (result == null)
+            result= new StatusModel(true,"Successfully updated all connectors");
+        return gson.toJson(result);
+    }
+
+    private StatusModel updateConnector(Guest user, Connector connector){
         try {
             int[] objectTypeValues = connector.objectTypeValues();
             for (int objectType : objectTypeValues) {
@@ -143,14 +155,14 @@ public class ConnectorResource {
                     connectorUpdateService.reScheduleUpdate(update, System.currentTimeMillis(), false);
                 }
                 else {
-                    connectorUpdateService.scheduleUpdate(user.getId(), connectorName, objectType, UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE, System.currentTimeMillis());
+                    connectorUpdateService.scheduleUpdate(user.getId(), connector.getName(), objectType, UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE, System.currentTimeMillis());
                 }
             }
-            result = new StatusModel(true,"Successfully scheduled update for " + connectorName);
+            return new StatusModel(true,"Successfully scheduled update for " + connector.getName());
         }
         catch (Exception e){
-            result = new StatusModel(false,"Failed to schedule update for " + connectorName);
+            return new StatusModel(false,"Failed to schedule update for " + connector.getName());
         }
-        return gson.toJson(result);
     }
+
 }

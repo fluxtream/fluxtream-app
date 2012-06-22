@@ -3,7 +3,7 @@ define(function() {
     var connectors;
 
     function show(){
-        $.ajax("/api/guest/" + App.getUsername() + "/connector/all",{
+        $.ajax("/api/connectors",{
             success: function(data, textStatus, jqXHR){
                 dataLoaded(data,false);
             }
@@ -11,7 +11,7 @@ define(function() {
     }
 
     function updateContents(){
-        $.ajax("/api/guest/" + App.getUsername() + "/connector/all",{
+        $.ajax("/api/connectors",{
             success: function(data, textStatus, jqXHR){
                 dataLoaded(data,true);
             }
@@ -21,7 +21,7 @@ define(function() {
 
     function dataLoaded(data,update){
         connectors = data;
-        App.loadMustacheTemplate("manageConnectorsTemplate.html","mainDialog",function(template){
+        App.loadMustacheTemplate("connectorMgmtTemplates.html","manageConnectors",function(template){
             var params = [];
             for (var i = 0; i < data.length; i++){
                 params[i] = {};
@@ -54,31 +54,77 @@ define(function() {
 
     function bindDialog(){
          for (var i = 0; i < connectors.length; i++){
-             var deleteBtn = $("#remove-" + connectors[i].connectorName);
-             deleteBtn.click({index:i}, function(event){
-                 event.preventDefault();
-                 confirmDelete(event.data.index);
-             });
-             var syncNowBtn = $("#syncNow-" + connectors[i].connectorName);
-             syncNowBtn.click({index:i}, function(event){
-                 event.preventDefault();
-                 $.ajax("/api/guest/" + App.getUsername() + "/connector/" + connectors[event.data.index].connectorName + "/sync",{
-                     type:"POST",
-                     success:updateContents
-                 });
-             })
+             bindConnector(connectors[i], i);
          }
+        var syncAllBtn = $("#sync-all");
+        syncAllBtn.click(function(){
+            setAllToSyncing();
+            event.preventDefault();
+            $.ajax("/api/connectors/sync",{
+                type:"POST"
+            });
+        });
+        $.doTimeout("manageConnectorsUpdater", 10000, function(){
+            updateContents();
+            return true;
+        });
+        $("#modal").on("hide",function(){
+            $.doTimeout("manageConnectorsUpdater");
+        })
     }
+
+    function bindConnector(connector, i){
+        var deleteBtn = $("#remove-" + connector.connectorName);
+        deleteBtn.click({index:i}, function(event){
+            event.preventDefault();
+            confirmDelete(event.data.index);
+        });
+        var syncNowBtn = $("#syncNow-" + connector.connectorName);
+        syncNowBtn.click(function(event){
+            event.preventDefault();
+            setToSyncing(connector.connectorName)
+            $.ajax("/api/connectors/" + connector.connectorName + "/sync",{
+                type:"POST"
+            });
+        });
+
+    }
+
+    function setToSyncing(connectorName){
+        var row = $("#connector-" + connectorName);
+        if (row.hasClass("nowSynchro"))
+            return;
+        row.addClass("nowSynchro");
+        var syncLED = $("#syncLED-" + connectorName);
+        syncLED.removeClass("syncLED-yes");
+        syncLED.removeClass("syncLED-no");
+        syncLED.addClass("syncLED-waiting");
+        syncLED.html("<span class=\"syncLED-waiting\">" +
+                     "<img src=\"/css/devicesPictures/load.gif\" alt=\"load\">" +
+                     "</span>");
+        var lastSync = $("#lastSync-" + connectorName);
+        lastSync.html("Now synchronizing");
+        var syncNowBtn = $("#syncNow-" + connectorName);
+        var disabledBtn = $("<span>" + syncNowBtn.html() + "</span>");
+        syncNowBtn.replaceWith(disabledBtn);
+    }
+
+    function setAllToSyncing(){
+        for (var i = 0; i < connectors.length; i++)
+            setToSyncing(connectors[i].connectorName);
+    }
+
+
 
     function confirmDelete(index){
         App.closeModal();
         $("#modal").on("hidden",function(){
-            App.loadMustacheTemplate("manageConnectorsTemplate.html","deleteConfirm",function(template){
+            App.loadMustacheTemplate("connectorMgmtTemplates.html","deleteConnectorConfirm",function(template){
                 App.makeModal(template.render(connectors[index]));
                 var confirmDelete = $("#confirmDeleteBtn");
 
                 confirmDelete.click(function(){
-                    $.ajax("/api/guest/" + App.getUsername() + "/connector/" + connectors[index].connectorName,{
+                    $.ajax("/api/connectors/" + connectors[index].connectorName,{
                         type:"DELETE",
                         success: App.closeModal,
                         error: App.closeModal

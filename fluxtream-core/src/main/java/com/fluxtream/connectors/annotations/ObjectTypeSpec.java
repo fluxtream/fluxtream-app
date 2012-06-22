@@ -17,6 +17,5 @@ public @interface ObjectTypeSpec {
 	boolean parallel() default false;
 	boolean isImageType() default false;
 	public String prettyname();
-    public String detailsTemplate() default "";
 	
 }

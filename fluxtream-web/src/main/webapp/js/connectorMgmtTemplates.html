@@ -1,5 +1,5 @@
-<template id="mainDialog">
-    <div class="modal fade" id="modal" style="width:1010px; margin-left:-505px;">
+<template id="manageConnectors">
+    <div class="modal fade" id="modal" style="width:818px; margin-left:-409px;">
         <div class="modal-header">
             <h3>Manage Connectors<a href="#" class="close" data-dismiss="modal">&times;</a></h3>
         </div>
@@ -7,7 +7,7 @@
             <div class="row">
                 <div class="span10">
                     <div class="synchAll">
-                        <span>Though your data are supposedly up to date, you might want to <a href="#" class="btn btn-info">sync all your devices now <i class="icon-refresh"></i></a></span>
+                        <span>Though your data are supposedly up to date, you might want to <a id="sync-all" href="#" class="btn btn-info">sync all your devices now <i class="icon-refresh"></i></a></span>
                     </div>
                 </div>
             </div>
@@ -26,9 +26,9 @@
                         </thead>
                         <tbody>
                         {{#connectors}}
-                        <tr {{#syncing}}class="nowSynchro"{{/syncing}}>
+                        <tr id="connector-{{connectorName}}" {{#syncing}}class="nowSynchro"{{/syncing}}>
                             <td class="syncStatus">
-                                <span class="syncLED-{{^errors}}yes{{/errors}}{{#errors}}no{{/errors}}" {{#syncing}}style="display:none;"{{/syncing}}></span>
+                                <span id="syncLED-{{connectorName}}" class="syncLED-{{^errors}}yes{{/errors}}{{#errors}}no{{/errors}}" {{#syncing}}style="display:none;"{{/syncing}}></span>
                                 {{#syncing}}
                                 <span class="syncLED-waiting">
                                     <img src="/css/devicesPictures/load.gif" alt="load">
@@ -38,7 +38,7 @@
                             <td class="connectors"><img src="{{image}}" alt="{{connectorName}}"></td>
                             <td class="desc"><h4>{{name}}</h4><p>{{text}}</p><a href="#">Manage <i class="icon-cog"></i></a></td>
                             <td class="lastSync">
-                                <p {{#syncing}}style="display:none;"{{/syncing}}>{{lastSync}}</p>
+                                <p id="lastSync-{{connectorName}}" {{#syncing}}style="display:none;"{{/syncing}}>{{lastSync}}</p>
                                 <a id="syncNow-{{connectorName}}" href="#" {{#syncing}}style="display:none;"{{/syncing}}>Sync now <i class="icon-refresh"></i></a>
                                 {{#syncing}}
                                 <p>Now synchronizing</p>
@@ -59,7 +59,7 @@
         </div>
     </div>
 </template>
-<template id="deleteConfirm">
+<template id="deleteConnectorConfirm">
     <div class="modal fade" id="modal">
         <div class="modal-header">
             <h3>Confirm Removal<a href="#" class="close" data-dismiss="modal">&times;</a></h3>
@@ -74,4 +74,39 @@
             <button class="btn" onclick="App.closeModal()">Cancel</button>
         </div>
     </div>
+</template>
+<template id="addConnectors">
+
+    <div id="modal" class="modal hide fade" style="width: 650px">
+
+        <div class="modal-header">
+            <a class="close" data-dismiss="modal">&times;</a>
+            <h3>Add Connectors</h3>
+        </div>
+
+        <div class="modal-body">
+            <div class="addConnectorsMain">
+
+                <div id="availableConnectors">
+                    {{#rows}}
+                    <div class="row-fluid">
+                        {{#connectors}}
+                        <div class="span4">
+                            <a  href="javascript:App.addConnector('{{connectUrl}}')">
+                                <img src="{{image}}" alt="" width=178 Height=120>
+                            </a>
+                            <p>{{text}}</p>
+                        </div>
+                        {{/connectors}}
+                    </div>
+                    {{/rows}}
+                </div>
+
+            </div>
+        </div>
+        <div class="modal-footer">
+            <a class="btn" href="javascript:App.closeModal();">Close</a>
+        </div>
+    </div>
+
 </template>

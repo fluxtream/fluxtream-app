@@ -466,6 +466,47 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         this._img.style.top = position.y - 32 + "px";
     }
 
+    function createMapPositionControls(map){
+        var control = $("<div></div>");
+        control.css("background","white");
+        control.css("margin","0px 5px");
+        control.css("border","1px solid rgb(113, 123, 135)");
+        control.css("padding","5px");
+        control.css("box-shadow","rgba(0, 0, 0, 0.398438) 0px 2px 4px");
+        control.css("-webkit-box-shadow","rgba(0, 0, 0, 0.398438) 0px 2px 4px");
+        control.css("width","84px");
+        var fitButton = $('<button class="btnList btn btnListChecked enabled">Fit to View</button>');
+        fitButton.css("margin-bottom","0.5em");
+        var container = $("<div></div>")
+        var preserveView = $('<input type="checkbox">');
+        preserveView.css("margin-right","0.5em");
+        preserveView.css("float","left");
+
+        control.append(fitButton);
+        container.append(preserveView);
+        container.append("Preserve View");
+        control.append(container);
+        fitButton.click(function(){
+            map.fitBounds(map.gpsBounds);
+        });
+        map.preserveViewCheckbox = preserveView;
+        map.controls[google.maps.ControlPosition.RIGHT_TOP].push(control[0]);
+        map._preserveViewBtn = preserveView[0];
+
+        preserveView.click(function(){
+            if (map.preserveViewCheckboxChanged != null)
+                map.preserveViewCheckboxChanged();
+        });
+
+        map.isPreserveViewChecked = function(){
+            return map._preserveViewBtn.checked;
+        }
+
+        map.setPreserveView = function(isSet){
+            map._preserveViewBtn.checked = isSet;
+        }
+    }
+
     return {
         isDisplayable: isDisplayable,
         newMap: function(center,zoom,divId,hideControls){ //creates and returns a google map with extended functionality
@@ -514,7 +555,9 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                     return;
                 map._oldFitBounds(bounds);
             }
-
+            if (!hideControls){
+                createMapPositionControls(map);
+            }
             return map;
         }
     }

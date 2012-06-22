@@ -50,7 +50,7 @@ export JAVA_OPTS="-XX:MaxPermSize=256m -Xms256m -Xmx2048m -Djavax.servlet.reques
 Copyright and license
 ---------------------
 
-Copyright 2011-2012 Candide Kemmler
+Copyright 2011-2012 The BodyTrack Team @ CMU CREATE Lab & Candide Kemmler
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

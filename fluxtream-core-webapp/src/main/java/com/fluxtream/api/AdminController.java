@@ -24,9 +24,9 @@ import com.fluxtream.services.GuestService;
 import com.google.gson.Gson;
 
 @Path("/admin")
-@Component("adminApi")
+@Component("RESTAdminController")
 @Scope("request")
-public class AdminResource {
+public class AdminController {
 
 	@Autowired
 	GuestService guestService;

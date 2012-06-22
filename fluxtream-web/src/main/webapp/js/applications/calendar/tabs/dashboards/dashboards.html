@@ -1,3 +1,16 @@
-<div id="dashboardsTab">
+<div id="dashboardsTab" class="tabbable tabs-below">
+    <div class="tab-content" style="margin-bottom: 40px;">
+    </div>
 
+    <ul class="nav nav-tabs">
+        <li>
+            <button id="addWidgetButton" class="btn btn-small">Add Widget&nbsp;<i class="icon-plus"></i></button>
+            <button id="manageDashboardsButton" class="btn btn-small">Manage Dashboards&nbsp;<i class="icon-cog"></i></button>
+        </li>
+        {{#dashboards}}
+        <li style="cursor:pointer" class="dashboardName{{#active}} active{{/active}}" id="dashboard-{{id}}">
+            <a data-toggle="tab">{{name}}</a>
+        </li>
+        {{/dashboards}}
+    </ul>
 </div>

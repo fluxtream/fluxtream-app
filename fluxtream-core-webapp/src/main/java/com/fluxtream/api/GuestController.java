@@ -33,9 +33,9 @@ import com.fluxtream.services.GuestService;
 import com.google.gson.Gson;
 
 @Path("/guest")
-@Component("guestApi")
+@Component("RESTGuestController")
 @Scope("request")
-public class GuestResource {
+public class GuestController {
 
 	@Autowired
 	GuestService guestService;

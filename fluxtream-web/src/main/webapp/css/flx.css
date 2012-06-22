@@ -5,7 +5,7 @@
   border-bottom-color: #c79409;
 }
 .flx-sourceFilters6 a.lastFM {
-  border-bottom-color: #ec0c0c;
+  border-bottom-color: #fd4938;
 }
 .flx-sourceFilters6 a.withings {
   border-bottom-color: #16924e;
@@ -14,10 +14,13 @@
   border-bottom-color: #8c2ebb;
 }
 .flx-sourceFilters6 a.twitter {
-  border-bottom-color: #1842ea;
+  border-bottom-color: #9233ef;
 }
 .flx-sourceFilters6 a.ggleCal {
-  border-bottom-color: #d7186e;
+  border-bottom-color: #92da46;
+}
+.flx-sourceFilters6 a.latitude {
+  border-bottom-color: #5cae5c;
 }
 ::selection {
   background: #ffff9e;
@@ -374,10 +377,12 @@ a img {
   border-top-width: 4px;
 }
 .flx-toolTipLinks {
-  float: right;
+  position: absolute;
   list-style-type: none;
-  width: 30%;
-  margin-top: -20px;
+  width: 25%;
+  margin-left: 0;
+  top: 10px;
+  right: 8px;
 }
 .flx-toolTipLinks li {
   text-align: right;
@@ -387,35 +392,59 @@ a img {
   margin: 5px;
   background: #ffffff;
   overflow: hidden;
-  padding: 15px 10px 15px 20px;
+  padding: 8px 10px 10px 10px;
+  position: relative;
+  min-height: 45px;
   -webkit-box-shadow: 0 0px 4px rgba(80, 80, 80, 0.6);
   -moz-box-shadow: 0 0px 4px rgba(80, 80, 80, 0.6);
   -o-box-shadow: 0 0px 4px rgba(80, 80, 80, 0.6);
   box-shadow: 0 0px 4px rgba(80, 80, 80, 0.6);
 }
-.flx-toolTipData h3 {
-  font-size: 20px;
-}
-.flx-toolTipData span {
-  display: block;
-}
-.flx-toolTipData .flx-data {
-  font-size: 16px;
-  font-weight: bold;
-}
 .flx-deviceIcon {
   width: 42px;
   height: 42px;
   background-repeat: no-repeat;
-  background-position: center center;
   float: left;
   margin-right: 10px;
+  background-image: url(../static/images/devices-ic.png);
 }
 .flx-deviceIcon.withings {
-  background-image: url(/dashboardImgDummies/w9.png);
+  background-position: 0 -298px;
 }
-.flx-deviceData {
-  float: left;
+.flx-deviceIcon.twitter {
+  background-position: 0 -128px;
+}
+.flx-deviceIcon.zeo {
+  background-position: 0 -4px;
+}
+.flx-deviceIcon.calendar {
+  background-position: 0 -255px;
+}
+.flx-deviceIcon.lastfm {
+  background-position: 0 -86px;
+}
+.flx-deviceIcon.bm-sleep,
+.flx-deviceIcon.bm-steps,
+.flx-deviceIcon.bm-burn {
+  background-position: 0 -330px;
+}
+.flx-deviceIcon.latitude {
+  background-position: 0 -355px;
+}
+.flx-deviceIcon.picasa {
+  background-position: 0 -42px;
+}
+.flx-deviceIcon.fitbit {
+  background-position: 0 -339px;
+}
+.flx-toolTipData .flx-data {
+  max-width: 270px;
+  overflow: hidden;
+  height: 100%;
+}
+.flx-toolTipData .flx-tTime {
+  font-size: 16px;
+  margin-bottom: 5px;
 }
 .flx-miniGraph {
   float: left;
@@ -506,213 +535,6 @@ a img {
   border-right: 10px solid #0088cc;
   left: -24px;
 }
-.flx-sourceFilters1 {
-  list-style-type: none;
-  overflow: hidden;
-  height: 100%;
-}
-.flx-sourceFilters1 li {
-  float: left;
-  border-right: 1px solid transparent;
-  padding-bottom: 20px;
-}
-.flx-sourceFilters1 li a,
-.flx-sourceFilters1 li span {
-  color: #4d4d4d;
-  border-bottom: 1px solid #808080;
-  padding: 10px 10px;
-  background: #fff;
-  -webkit-transition: all 0.1s ease-in;
-  -moz-transition: all 0.1s ease-in;
-  -o-transition: all 0.1s ease-in;
-  transition: all 0.1s ease-in;
-}
-.flx-sourceFilters1 li .flx-active {
-  border-bottom-width: 4px;
-  padding-bottom: 7px;
-  color: #4d4d4d;
-}
-.flx-sourceFilters1 li .flx-disconnected {
-  border-bottom-color: #cccccc;
-  color: #cccccc;
-  cursor: default;
-}
-.flx-sourceFilters1 li a:hover {
-  text-decoration: none;
-  border-bottom-width: 4px;
-  padding-bottom: 7px;
-}
-.flx-sourceFilters1 a.fitbit {
-  border-bottom-color: #21b5cf;
-}
-.flx-sourceFilters1 a.bodytrack {
-  border-bottom-color: #c79409;
-}
-.flx-sourceFilters1 a.lastFM {
-  border-bottom-color: #ec0c0c;
-}
-.flx-sourceFilters1 a.withings {
-  border-bottom-color: #16924e;
-}
-.flx-sourceFilters1 a.picasa {
-  border-bottom-color: #8c2ebb;
-}
-.flx-sourceFilters1 a.twitter {
-  border-bottom-color: #1842ea;
-}
-.flx-sourceFilters1 a.ggleCal {
-  border-bottom-color: #d7186e;
-}
-.flx-sourceFilters2 {
-  list-style-type: none;
-  overflow: hidden;
-  height: 100%;
-}
-.flx-sourceFilters2 li {
-  float: left;
-  border-right: 1px solid transparent;
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  padding-bottom: 20px;
-}
-.flx-sourceFilters2 li a,
-.flx-sourceFilters2 li span {
-  color: #808080;
-  border-bottom: 1px solid #808080;
-  padding: 10px 10px;
-  background: #fff;
-  position: relative;
-  -webkit-transition: all 0.1s ease-in;
-  -moz-transition: all 0.1s ease-in;
-  -o-transition: all 0.1s ease-in;
-  transition: all 0.1s ease-in;
-}
-.flx-sourceFilters2 li a:after,
-.flx-sourceFilters2 li span:after {
-  content: '';
-  width: 0;
-  height: 11px;
-  border-right: 1px solid #e6e6e6;
-  position: absolute;
-  top: 10px;
-  right: -1px;
-}
-.flx-sourceFilters2 li a.ggleCal:after {
-  border-right: 0;
-}
-.flx-sourceFilters2 li .flx-active {
-  border-bottom-width: 4px;
-  padding-bottom: 7px;
-  color: #4d4d4d;
-}
-.flx-sourceFilters2 li .flx-disconnected {
-  border-bottom-color: #cccccc;
-  color: #cccccc;
-  cursor: default;
-}
-.flx-sourceFilters2 li a:hover {
-  text-decoration: none;
-  border-bottom-width: 4px;
-  padding-bottom: 7px;
-}
-.flx-sourceFilters2 a.fitbit {
-  color: #21b5cf;
-  border-bottom-color: #21b5cf;
-}
-.flx-sourceFilters2 a.bodytrack {
-  color: #c79409;
-  border-bottom-color: #c79409;
-}
-.flx-sourceFilters2 a.lastFM {
-  color: #ec0c0c;
-  border-bottom-color: #ec0c0c;
-}
-.flx-sourceFilters2 a.withings {
-  color: #16924e;
-  border-bottom-color: #16924e;
-}
-.flx-sourceFilters2 a.picasa {
-  color: #8c2ebb;
-  border-bottom-color: #8c2ebb;
-}
-.flx-sourceFilters2 a.twitter {
-  color: #1842ea;
-  border-bottom-color: #1842ea;
-}
-.flx-sourceFilters2 a.ggleCal {
-  color: #d7186e;
-  border-bottom-color: #d7186e;
-}
-.flx-sourceFilters3 {
-  list-style-type: none;
-  overflow: hidden;
-  height: 100%;
-}
-.flx-sourceFilters3 li {
-  float: left;
-  border-right: 1px solid transparent;
-  letter-spacing: 0.1em;
-  padding-bottom: 20px;
-}
-.flx-sourceFilters3 li a,
-.flx-sourceFilters3 li span {
-  color: #808080;
-  border-bottom: 1px solid #808080;
-  padding: 15px 15px;
-  background: #fff;
-  overflow: hidden;
-  text-align: center;
-  width: 65px;
-  display: block;
-  -webkit-transition: all 0.1s ease-in;
-  -moz-transition: all 0.1s ease-in;
-  -o-transition: all 0.1s ease-in;
-  transition: all 0.1s ease-in;
-}
-.flx-sourceFilters3 li .flx-active {
-  border-bottom-width: 4px;
-  padding-bottom: 12px;
-  color: #4d4d4d;
-  text-shadow: 0 0 5px #4dc3ff;
-}
-.flx-sourceFilters3 li .flx-disconnected {
-  border-bottom-color: #cccccc;
-  color: #cccccc;
-  cursor: default;
-}
-.flx-sourceFilters3 li a:hover {
-  text-decoration: none;
-  border-bottom-width: 4px;
-  padding-bottom: 12px;
-}
-.flx-sourceFilters3 a.fitbit {
-  color: #0088cc;
-  border-bottom-color: #0088cc;
-}
-.flx-sourceFilters3 a.bodytrack {
-  color: #0077b3;
-  border-bottom-color: #0077b3;
-}
-.flx-sourceFilters3 a.lastFM {
-  color: #006699;
-  border-bottom-color: #006699;
-}
-.flx-sourceFilters3 a.withings {
-  color: #005580;
-  border-bottom-color: #005580;
-}
-.flx-sourceFilters3 a.picasa {
-  color: #004466;
-  border-bottom-color: #004466;
-}
-.flx-sourceFilters3 a.twitter {
-  color: #0099e6;
-  border-bottom-color: #0099e6;
-}
-.flx-sourceFilters3 a.ggleCal {
-  color: #1ab2ff;
-  border-bottom-color: #1ab2ff;
-}
 .flx-sourceFilters4 {
   list-style-type: none;
   overflow: hidden;
@@ -773,7 +595,7 @@ a img {
   border-bottom-color: #c79409;
 }
 .flx-sourceFilters4 a.lastfm {
-  border-bottom-color: #ec0c0c;
+  border-bottom-color: #fd4938;
 }
 .flx-sourceFilters4 a.withings {
   border-bottom-color: #16924e;
@@ -782,143 +604,10 @@ a img {
   border-bottom-color: #8c2ebb;
 }
 .flx-sourceFilters4 a.twitter {
-  border-bottom-color: #1842ea;
+  border-bottom-color: #9233ef;
 }
 .flx-sourceFilters4 a.ggleCal {
-  border-bottom-color: #d7186e;
-}
-.flx-sourceFilters5 {
-  list-style-type: none;
-  overflow: hidden;
-  height: 100%;
-}
-.flx-sourceFilters5 li {
-  float: left;
-  border-right: 1px solid transparent;
-  padding-bottom: 20px;
-}
-.flx-sourceFilters5 li a,
-.flx-sourceFilters5 li span {
-  color: #808080;
-  border-bottom: 1px solid #808080;
-  padding: 10px 10px;
-  background: #fff;
-  position: relative;
-  -webkit-transition: all 0.1s ease-in;
-  -moz-transition: all 0.1s ease-in;
-  -o-transition: all 0.1s ease-in;
-  transition: all 0.1s ease-in;
-}
-.flx-sourceFilters5 li a:after,
-.flx-sourceFilters5 li span:after {
-  content: '';
-  width: 0;
-  height: 11px;
-  border-right: 1px solid #e6e6e6;
-  position: absolute;
-  top: 10px;
-  right: -1px;
-}
-.flx-sourceFilters5 li a.ggleCal:after {
-  border-right: 0;
-}
-.flx-sourceFilters5 li .flx-active {
-  border-bottom-width: 4px;
-  padding-bottom: 7px;
-  color: #4d4d4d;
-}
-.flx-sourceFilters5 li .flx-disconnected {
-  border-bottom-color: #cccccc;
-  color: #cccccc;
-  cursor: default;
-}
-.flx-sourceFilters5 li a:hover {
-  text-decoration: none;
-  border-bottom-width: 4px;
-  padding-bottom: 7px;
-}
-.flx-sourceFilters5 a.fitbit {
-  color: #21b5cf;
-  border-bottom-color: #21b5cf;
-}
-.flx-sourceFilters5 a.bodytrack {
-  color: #c79409;
-  border-bottom-color: #c79409;
-}
-.flx-sourceFilters5 a.lastFM {
-  color: #ec0c0c;
-  border-bottom-color: #ec0c0c;
-}
-.flx-sourceFilters5 a.withings {
-  color: #16924e;
-  border-bottom-color: #16924e;
-}
-.flx-sourceFilters5 a.picasa {
-  color: #8c2ebb;
-  border-bottom-color: #8c2ebb;
-}
-.flx-sourceFilters5 a.twitter {
-  color: #1842ea;
-  border-bottom-color: #1842ea;
-}
-.flx-sourceFilters5 a.ggleCal {
-  color: #d7186e;
-  border-bottom-color: #d7186e;
-}
-#filtersContainer {
-  margin-top: -17px;
-}
-.flx-sourceFilters6 {
-  list-style-type: none;
-}
-.flx-sourceFilters6 li {
-  float: left;
-  border-right: 1px solid transparent;
-  font-size: 11px;
-  letter-spacing: 0.1em;
-}
-.flx-sourceFilters6 li a,
-.flx-sourceFilters6 li span {
-  color: #808080;
-  border-bottom: 1px solid #808080;
-  padding: 10px 0;
-  background: #fff;
-  position: relative;
-  width: 70px;
-  text-align: center;
-  display: inline-block;
-  -webkit-transition: all 0.1s ease-in;
-  -moz-transition: all 0.1s ease-in;
-  -o-transition: all 0.1s ease-in;
-  transition: all 0.1s ease-in;
-}
-.flx-sourceFilters6 li a:after,
-.flx-sourceFilters6 li span:after {
-  content: '';
-  width: 0;
-  height: 11px;
-  border-right: 1px solid #e6e6e6;
-  position: absolute;
-  top: 13px;
-  right: -1px;
-}
-.flx-sourceFilters6 li .flx-active {
-  border-bottom-width: 4px;
-  padding-bottom: 7px;
-  color: #808080;
-}
-.flx-sourceFilters6 li .flx-disconnected {
-  border-bottom-color: #cccccc;
-  color: #cccccc;
-  cursor: default;
-}
-.flx-sourceFilters6 li a:hover {
-  text-decoration: none;
-  background-color: #f2f2f2;
-}
-.flx-sourceFilters6 li:last-child a:after,
-.flx-sourceFilters6 li:last-child a:after {
-  border-right: 0;
+  border-bottom-color: #92da46;
 }
 .synchAll {
   width: 100%;
@@ -1102,4 +791,406 @@ table .remove i {
 .flx-channel .flx-channel-controls a:hover {
   color: #666666;
   text-decoration: none;
+}
+#dashboardsTab ul {
+  background: #EEEEE9;
+  position: absolute;
+  bottom: -10px;
+  right: 10px;
+  left: 10px;
+}
+#dashboardsTab li:first-child {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+}
+#dashboardsTab li button {
+  margin-top: -5px;
+}
+.flx-listItem .flx-box {
+  overflow: hidden;
+  height: 100%;
+  padding: 15px 15px;
+  border: 1px solid #cccccc;
+  border-left-width: 5px;
+  margin-bottom: 5px;
+  max-width: 693px;
+}
+.flx-listItem .flx-box .flx-deviceIcon,
+.flx-listItem .flx-box .flx-tTime {
+  float: left;
+}
+.flx-listItem .flx-box .flx-tTime {
+  padding: 0 13px 0 10px;
+  min-width: 62px;
+  height: 42px;
+  font-size: 15px;
+}
+.flx-listItem .flx-box .flx-description {
+  overflow: hidden;
+  height: 100%;
+  color: #333333;
+  display: block;
+  max-width: 450px;
+}
+.flx-listItem .flx-box.twitter {
+  border-color: #9233ef;
+}
+.flx-listItem .flx-box.bm {
+  border-color: #c79409;
+}
+.flx-listItem .flx-box.picasa {
+  border-color: #8c2ebb;
+}
+.flx-listItem .flx-box.fitbit {
+  border-color: #21b5cf;
+}
+.flx-listItem .flx-box.calendar {
+  border-color: #92da46;
+}
+.flx-listItem .flx-box.withings {
+  border-color: #16924e;
+}
+.flx-listItem .flx-box.lastfm {
+  border-color: #fd4938;
+}
+.flx-sourceFilters1 {
+  list-style-type: none;
+  overflow: hidden;
+  height: 100%;
+}
+.flx-sourceFilters1 li {
+  float: left;
+  border-right: 1px solid transparent;
+  padding-bottom: 20px;
+}
+.flx-sourceFilters1 li a,
+.flx-sourceFilters1 li span {
+  color: #4d4d4d;
+  border-bottom: 1px solid #808080;
+  padding: 10px 10px;
+  background: #fff;
+  -webkit-transition: all 0.1s ease-in;
+  -moz-transition: all 0.1s ease-in;
+  -o-transition: all 0.1s ease-in;
+  transition: all 0.1s ease-in;
+}
+.flx-sourceFilters1 li .flx-active {
+  border-bottom-width: 4px;
+  padding-bottom: 7px;
+  color: #4d4d4d;
+}
+.flx-sourceFilters1 li .flx-disconnected {
+  border-bottom-color: #cccccc;
+  color: #cccccc;
+  cursor: default;
+}
+.flx-sourceFilters1 li a:hover {
+  text-decoration: none;
+  border-bottom-width: 4px;
+  padding-bottom: 7px;
+}
+.flx-sourceFilters1 a.fitbit {
+  border-bottom-color: #21b5cf;
+}
+.flx-sourceFilters1 a.bodytrack {
+  border-bottom-color: #c79409;
+}
+.flx-sourceFilters1 a.lastFM {
+  border-bottom-color: #fd4938;
+}
+.flx-sourceFilters1 a.withings {
+  border-bottom-color: #16924e;
+}
+.flx-sourceFilters1 a.picasa {
+  border-bottom-color: #8c2ebb;
+}
+.flx-sourceFilters1 a.twitter {
+  border-bottom-color: #9233ef;
+}
+.flx-sourceFilters1 a.ggleCal {
+  border-bottom-color: #92da46;
+}
+.flx-sourceFilters2 {
+  list-style-type: none;
+  overflow: hidden;
+  height: 100%;
+}
+.flx-sourceFilters2 li {
+  float: left;
+  border-right: 1px solid transparent;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  padding-bottom: 20px;
+}
+.flx-sourceFilters2 li a,
+.flx-sourceFilters2 li span {
+  color: #808080;
+  border-bottom: 1px solid #808080;
+  padding: 10px 10px;
+  background: #fff;
+  position: relative;
+  -webkit-transition: all 0.1s ease-in;
+  -moz-transition: all 0.1s ease-in;
+  -o-transition: all 0.1s ease-in;
+  transition: all 0.1s ease-in;
+}
+.flx-sourceFilters2 li a:after,
+.flx-sourceFilters2 li span:after {
+  content: '';
+  width: 0;
+  height: 11px;
+  border-right: 1px solid #e6e6e6;
+  position: absolute;
+  top: 10px;
+  right: -1px;
+}
+.flx-sourceFilters2 li a.ggleCal:after {
+  border-right: 0;
+}
+.flx-sourceFilters2 li .flx-active {
+  border-bottom-width: 4px;
+  padding-bottom: 7px;
+  color: #4d4d4d;
+}
+.flx-sourceFilters2 li .flx-disconnected {
+  border-bottom-color: #cccccc;
+  color: #cccccc;
+  cursor: default;
+}
+.flx-sourceFilters2 li a:hover {
+  text-decoration: none;
+  border-bottom-width: 4px;
+  padding-bottom: 7px;
+}
+.flx-sourceFilters2 a.fitbit {
+  color: #21b5cf;
+  border-bottom-color: #21b5cf;
+}
+.flx-sourceFilters2 a.bodytrack {
+  color: #c79409;
+  border-bottom-color: #c79409;
+}
+.flx-sourceFilters2 a.lastFM {
+  color: #fd4938;
+  border-bottom-color: #fd4938;
+}
+.flx-sourceFilters2 a.withings {
+  color: #16924e;
+  border-bottom-color: #16924e;
+}
+.flx-sourceFilters2 a.picasa {
+  color: #8c2ebb;
+  border-bottom-color: #8c2ebb;
+}
+.flx-sourceFilters2 a.twitter {
+  color: #9233ef;
+  border-bottom-color: #9233ef;
+}
+.flx-sourceFilters2 a.ggleCal {
+  color: #92da46;
+  border-bottom-color: #92da46;
+}
+.flx-sourceFilters3 {
+  list-style-type: none;
+  overflow: hidden;
+  height: 100%;
+}
+.flx-sourceFilters3 li {
+  float: left;
+  border-right: 1px solid transparent;
+  letter-spacing: 0.1em;
+  padding-bottom: 20px;
+}
+.flx-sourceFilters3 li a,
+.flx-sourceFilters3 li span {
+  color: #808080;
+  border-bottom: 1px solid #808080;
+  padding: 15px 15px;
+  background: #fff;
+  overflow: hidden;
+  text-align: center;
+  width: 65px;
+  display: block;
+  -webkit-transition: all 0.1s ease-in;
+  -moz-transition: all 0.1s ease-in;
+  -o-transition: all 0.1s ease-in;
+  transition: all 0.1s ease-in;
+}
+.flx-sourceFilters3 li .flx-active {
+  border-bottom-width: 4px;
+  padding-bottom: 12px;
+  color: #4d4d4d;
+  text-shadow: 0 0 5px #4dc3ff;
+}
+.flx-sourceFilters3 li .flx-disconnected {
+  border-bottom-color: #cccccc;
+  color: #cccccc;
+  cursor: default;
+}
+.flx-sourceFilters3 li a:hover {
+  text-decoration: none;
+  border-bottom-width: 4px;
+  padding-bottom: 12px;
+}
+.flx-sourceFilters3 a.fitbit {
+  color: #0088cc;
+  border-bottom-color: #0088cc;
+}
+.flx-sourceFilters3 a.bodytrack {
+  color: #0077b3;
+  border-bottom-color: #0077b3;
+}
+.flx-sourceFilters3 a.lastFM {
+  color: #006699;
+  border-bottom-color: #006699;
+}
+.flx-sourceFilters3 a.withings {
+  color: #005580;
+  border-bottom-color: #005580;
+}
+.flx-sourceFilters3 a.picasa {
+  color: #004466;
+  border-bottom-color: #004466;
+}
+.flx-sourceFilters3 a.twitter {
+  color: #0099e6;
+  border-bottom-color: #0099e6;
+}
+.flx-sourceFilters3 a.ggleCal {
+  color: #1ab2ff;
+  border-bottom-color: #1ab2ff;
+}
+.flx-sourceFilters5 {
+  list-style-type: none;
+  overflow: hidden;
+  height: 100%;
+}
+.flx-sourceFilters5 li {
+  float: left;
+  border-right: 1px solid transparent;
+  padding-bottom: 20px;
+}
+.flx-sourceFilters5 li a,
+.flx-sourceFilters5 li span {
+  color: #808080;
+  border-bottom: 1px solid #808080;
+  padding: 10px 10px;
+  background: #fff;
+  position: relative;
+  -webkit-transition: all 0.1s ease-in;
+  -moz-transition: all 0.1s ease-in;
+  -o-transition: all 0.1s ease-in;
+  transition: all 0.1s ease-in;
+}
+.flx-sourceFilters5 li a:after,
+.flx-sourceFilters5 li span:after {
+  content: '';
+  width: 0;
+  height: 11px;
+  border-right: 1px solid #e6e6e6;
+  position: absolute;
+  top: 10px;
+  right: -1px;
+}
+.flx-sourceFilters5 li a.ggleCal:after {
+  border-right: 0;
+}
+.flx-sourceFilters5 li .flx-active {
+  border-bottom-width: 4px;
+  padding-bottom: 7px;
+  color: #4d4d4d;
+}
+.flx-sourceFilters5 li .flx-disconnected {
+  border-bottom-color: #cccccc;
+  color: #cccccc;
+  cursor: default;
+}
+.flx-sourceFilters5 li a:hover {
+  text-decoration: none;
+  border-bottom-width: 4px;
+  padding-bottom: 7px;
+}
+.flx-sourceFilters5 a.fitbit {
+  color: #21b5cf;
+  border-bottom-color: #21b5cf;
+}
+.flx-sourceFilters5 a.bodytrack {
+  color: #c79409;
+  border-bottom-color: #c79409;
+}
+.flx-sourceFilters5 a.lastFM {
+  color: #fd4938;
+  border-bottom-color: #fd4938;
+}
+.flx-sourceFilters5 a.withings {
+  color: #16924e;
+  border-bottom-color: #16924e;
+}
+.flx-sourceFilters5 a.picasa {
+  color: #8c2ebb;
+  border-bottom-color: #8c2ebb;
+}
+.flx-sourceFilters5 a.twitter {
+  color: #9233ef;
+  border-bottom-color: #9233ef;
+}
+.flx-sourceFilters5 a.ggleCal {
+  color: #92da46;
+  border-bottom-color: #92da46;
+}
+#filtersContainer {
+  margin-top: -17px;
+}
+.flx-sourceFilters6 {
+  list-style-type: none;
+}
+.flx-sourceFilters6 li {
+  float: left;
+  border-right: 1px solid transparent;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+}
+.flx-sourceFilters6 li a,
+.flx-sourceFilters6 li span {
+  color: #808080;
+  border-bottom: 1px solid #808080;
+  padding: 10px 0;
+  background: #fff;
+  position: relative;
+  width: 70px;
+  text-align: center;
+  display: inline-block;
+  -webkit-transition: all 0.1s ease-in;
+  -moz-transition: all 0.1s ease-in;
+  -o-transition: all 0.1s ease-in;
+  transition: all 0.1s ease-in;
+}
+.flx-sourceFilters6 li a:after,
+.flx-sourceFilters6 li span:after {
+  content: '';
+  width: 0;
+  height: 11px;
+  border-right: 1px solid #e6e6e6;
+  position: absolute;
+  top: 13px;
+  right: -1px;
+}
+.flx-sourceFilters6 li .flx-active {
+  border-bottom-width: 4px;
+  padding-bottom: 7px;
+  color: #808080;
+}
+.flx-sourceFilters6 li .flx-disconnected {
+  border-bottom-color: #cccccc;
+  color: #cccccc;
+  cursor: default;
+}
+.flx-sourceFilters6 li a:hover {
+  text-decoration: none;
+  background-color: #f2f2f2;
+}
+.flx-sourceFilters6 li:last-child a:after,
+.flx-sourceFilters6 li:last-child a:after {
+  border-right: 0;
 }

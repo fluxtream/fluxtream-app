@@ -11,6 +11,7 @@ import javax.ws.rs.DefaultValue;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.Configuration;
 import com.fluxtream.domain.Guest;
+import com.fluxtream.mvc.controllers.ControllerHelper;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.domain.GuestAddress;
@@ -29,10 +30,10 @@ import java.net.URLEncoder;
 import java.util.List;
 
 
-@Path("/guest/{username}/address")
-@Component("addressApi")
+@Path("/addresses")
+@Component("RESTAddressStore")
 @Scope("request")
-public class AddressResource {
+public class AddressStore {
 
     Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
 
@@ -50,11 +51,10 @@ public class AddressResource {
 
 
     @GET
-    @Path("/all")
     @Produces({MediaType.APPLICATION_JSON})
-    public String getAddresses(@PathParam("username") String username){
+    public String getAddresses(){
         try{
-            Guest guest = guestService.getGuest(username);
+            Guest guest = ControllerHelper.getGuest();
             List<GuestAddress> addresses = settingsService.getAllAddresses(guest.getId());
             return gson.toJson(addresses);
         } catch (Exception e) {
@@ -66,9 +66,9 @@ public class AddressResource {
     @GET
     @Path("/{index}")
     @Produces({MediaType.APPLICATION_JSON})
-    public String getAddress(@PathParam("username") String username, @PathParam("index") int index){
+    public String getAddress(@PathParam("index") int index){
         try{
-            Guest guest = guestService.getGuest(username);
+            Guest guest = ControllerHelper.getGuest();
             List<GuestAddress> addresses = settingsService.getAllAddresses(guest.getId());
             return gson.toJson(addresses.get(index));
         } catch (Exception e) {
@@ -89,9 +89,9 @@ public class AddressResource {
     @GET
     @Path("/{selector}/{index}")
     @Produces({MediaType.APPLICATION_JSON})
-    public String getAddressBySingleSelector(@PathParam("username") String username, @PathParam("selector") String selector, @PathParam("index") int index){
+    public String getAddressBySingleSelector(@PathParam("selector") String selector, @PathParam("index") int index){
         try{
-            Guest guest = guestService.getGuest(username);
+            Guest guest = ControllerHelper.getGuest();
             List<GuestAddress> addresses;
             try{
                 addresses = getAddressesAtDate(guest,selector);
@@ -108,9 +108,9 @@ public class AddressResource {
     @GET
     @Path("/{selector}/all")
     @Produces({MediaType.APPLICATION_JSON})
-    public String getAddressBySingleSelector(@PathParam("username") String username, @PathParam("selector") String selector){
+    public String getAddressBySingleSelector(@PathParam("selector") String selector){
         try{
-            Guest guest = guestService.getGuest(username);
+            Guest guest = ControllerHelper.getGuest();
             List<GuestAddress> addresses;
             try{
                 addresses = getAddressesAtDate(guest,selector);
@@ -128,9 +128,9 @@ public class AddressResource {
     @GET
     @Path("/{type}/{date}/all")
     @Produces({MediaType.APPLICATION_JSON})
-    public String getAddressesOfTypeAtDate(@PathParam("username") String username, @PathParam("type") String type, @PathParam("date") String date){
+    public String getAddressesOfTypeAtDate(@PathParam("type") String type, @PathParam("date") String date){
         try{
-            Guest guest = guestService.getGuest(username);
+            Guest guest = ControllerHelper.getGuest();
             DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(),date,true);
             List<GuestAddress> addresses = settingsService.getAllAddressesOfTypeForDate(guest.getId(),type,(dayMeta.start + dayMeta.end)/2);
             return gson.toJson(addresses);
@@ -143,9 +143,9 @@ public class AddressResource {
     @GET
     @Path("/{type}/{date}/{index}")
     @Produces({MediaType.APPLICATION_JSON})
-    public String getAddressesOfTypeAtDate(@PathParam("username") String username, @PathParam("type") String type, @PathParam("date") String date, @PathParam("index") int index){
+    public String getAddressesOfTypeAtDate(@PathParam("type") String type, @PathParam("date") String date, @PathParam("index") int index){
         try{
-            Guest guest = guestService.getGuest(username);
+            Guest guest = ControllerHelper.getGuest();
             DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(),date,true);
             List<GuestAddress> addresses = settingsService.getAllAddressesOfTypeForDate(guest.getId(),type,(dayMeta.start + dayMeta.end)/2);
             return gson.toJson(addresses.get(index));
@@ -197,24 +197,25 @@ public class AddressResource {
     @POST
     @Path("/{input}")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String addUpdateAddress(@PathParam("username") String username, @PathParam("input") String input, @FormParam("address") String address, @FormParam("latitude") @DefaultValue("91") double latitude,
+    public String addUpdateAddress(@PathParam("input") String input, @FormParam("address") String address, @FormParam("latitude") @DefaultValue("91") double latitude,
                                    @FormParam("longitude") @DefaultValue("181") double longitude, @FormParam("since") String since, @FormParam("until") String until, @FormParam("type") String newType){
         try{
+            Guest guest = ControllerHelper.getGuest();
             int index = Integer.parseInt(input);
-            return updateAddress(username,index,address,latitude,longitude,since,until,newType);
+            return updateAddress(guest.username,index,address,latitude,longitude,since,until,newType);
 
         } catch (Exception e){
-            return addAddress(input,address,latitude,longitude,since,until,username);
+            return addAddress(input,address,latitude,longitude,since,until, ControllerHelper.getGuest().username);
         }
     }
 
     @DELETE
     @Path("/all")
     @Produces({MediaType.APPLICATION_JSON})
-    public String deleteAllAddresses(@PathParam("username") String username){
+    public String deleteAllAddresses(){
         StatusModel result;
         try{
-            Guest guest = guestService.getGuest(username);
+            Guest guest = ControllerHelper.getGuest();
             settingsService.deleteAllAddresses(guest.getId());
             result = new StatusModel(true, "Successfully deleted all addresses");
         } catch (Exception e) {
@@ -226,10 +227,10 @@ public class AddressResource {
     @DELETE
     @Path("/{index}")
     @Produces({MediaType.APPLICATION_JSON})
-    public String deleteAddress(@PathParam("username") String username, @PathParam("index") int index){
+    public String deleteAddress(@PathParam("index") int index){
         StatusModel result;
         try{
-            Guest guest = guestService.getGuest(username);
+            Guest guest = ControllerHelper.getGuest();
             settingsService.deleteAddressById(guest.getId(),settingsService.getAllAddresses(guest.getId()).get(index).id);
             result = new StatusModel(true, "Successfully deleted address");
         } catch (Exception e) {
@@ -241,10 +242,10 @@ public class AddressResource {
     @DELETE
     @Path("/{selector}/{index}")
     @Produces({MediaType.APPLICATION_JSON})
-    public String deleteAddressBySingleSelector(@PathParam("username") String username, @PathParam("selector") String selector, @PathParam("index") int index){
+    public String deleteAddressBySingleSelector(@PathParam("selector") String selector, @PathParam("index") int index){
         StatusModel result;
         try{
-            Guest guest = guestService.getGuest(username);
+            Guest guest = ControllerHelper.getGuest();
             List<GuestAddress> addresses;
             try{
                 addresses = getAddressesAtDate(guest,selector);
@@ -263,10 +264,10 @@ public class AddressResource {
     @DELETE
     @Path("/{selector}/all")
     @Produces({MediaType.APPLICATION_JSON})
-    public String deleteAddressBySingleSelector(@PathParam("username") String username, @PathParam("selector") String selector){
+    public String deleteAddressBySingleSelector(@PathParam("selector") String selector){
         StatusModel result;
         try{
-            Guest guest = guestService.getGuest(username);
+            Guest guest = ControllerHelper.getGuest();
             try{
                 DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(),selector,true);
                 settingsService.deleteAllAddressesAtDate(guest.getId(),(dayMeta.start + dayMeta.end) / 2);
@@ -284,10 +285,10 @@ public class AddressResource {
     @DELETE
     @Path("/{type}/{date}/all")
     @Produces({MediaType.APPLICATION_JSON})
-    public String deleteAllAddressesOfTypeAtDate(@PathParam("username") String username, @PathParam("type") String type, @PathParam("date") String date){
+    public String deleteAllAddressesOfTypeAtDate(@PathParam("type") String type, @PathParam("date") String date){
         StatusModel result;
         try{
-            Guest guest = guestService.getGuest(username);
+            Guest guest = ControllerHelper.getGuest();
             DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(),date,true);
             settingsService.deleteAllAddressesOfTypeForDate(guest.getId(),type,(dayMeta.start + dayMeta.end)/2);
             result = new StatusModel(false, "Successfully deleted addresses");
@@ -300,10 +301,10 @@ public class AddressResource {
     @DELETE
     @Path("/{type}/{date}/{index}")
     @Produces({MediaType.APPLICATION_JSON})
-    public String deleteAddressOfTypeAtDate(@PathParam("username") String username, @PathParam("type") String type, @PathParam("date") String date, @PathParam("index") int index){
+    public String deleteAddressOfTypeAtDate(@PathParam("type") String type, @PathParam("date") String date, @PathParam("index") int index){
         StatusModel result;
         try{
-            Guest guest = guestService.getGuest(username);
+            Guest guest = ControllerHelper.getGuest();
             DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(),date,true);
             List<GuestAddress> addresses = settingsService.getAllAddressesOfTypeForDate(guest.getId(),type,(dayMeta.start + dayMeta.end)/2);
             settingsService.deleteAddressById(guest.getId(),addresses.get(index).id);
@@ -361,10 +362,10 @@ public class AddressResource {
     @POST
     @Path("/{selector}/{index}")
     @Produces({MediaType.APPLICATION_JSON})
-    public String updateAddressBySingleSelector(@PathParam("username") String username, @PathParam("selector") String selector, @PathParam("index") int index){
+    public String updateAddressBySingleSelector(@PathParam("selector") String selector, @PathParam("index") int index){
         StatusModel result;
         try{
-            Guest guest = guestService.getGuest(username);
+            Guest guest = ControllerHelper.getGuest();
             List<GuestAddress> addresses;
             try{
                 addresses = getAddressesAtDate(guest,selector);
@@ -383,10 +384,10 @@ public class AddressResource {
     @POST
     @Path("/{type}/{date}/{index}")
     @Produces({MediaType.APPLICATION_JSON})
-    public String updateAddressOfTypeAtDate(@PathParam("username") String username, @PathParam("type") String type, @PathParam("date") String date, @PathParam("index") int index){
+    public String updateAddressOfTypeAtDate(@PathParam("type") String type, @PathParam("date") String date, @PathParam("index") int index){
         StatusModel result;
         try{
-            Guest guest = guestService.getGuest(username);
+            Guest guest = ControllerHelper.getGuest();
             DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(),date,true);
             List<GuestAddress> addresses = settingsService.getAllAddressesOfTypeForDate(guest.getId(),type,(dayMeta.start + dayMeta.end)/2);
             settingsService.deleteAddressById(guest.getId(),addresses.get(index).id);

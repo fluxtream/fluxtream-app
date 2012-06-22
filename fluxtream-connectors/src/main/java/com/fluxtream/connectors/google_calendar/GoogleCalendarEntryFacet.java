@@ -31,13 +31,7 @@ import com.google.gdata.data.extensions.Where;
 
 @SuppressWarnings("serial")
 @Entity(name="Facet_CalendarEventEntry")
-@ObjectTypeSpec(name = "entry", value = 1, parallel=true, prettyname = "Mentions",
-                detailsTemplate="<h3 class=\"flx-dataType\">Calendar</h3>" +
-                                "<span class=\"flx-deviceIcon\" style=\"background:url('{{profileImageUrl}}'); background-size:100% 100%;\"></span>" +
-                                "<div class=\"flx-deviceData\">" +
-                                "    <span class=\"flx-tTime\">{{time}}</span>" +
-                                "    <span class=\"flx-data\">{{description}}</span>" +
-                                "</div>")
+@ObjectTypeSpec(name = "entry", value = 1, parallel=true, prettyname = "Entry")
 @NamedQueries({
 		@NamedQuery(name = "google_calendar.entry.deleteAll", query = "DELETE FROM Facet_CalendarEventEntry facet WHERE facet.guestId=?"),
 		@NamedQuery(name = "google_calendar.entry.between", query = "SELECT facet FROM Facet_CalendarEventEntry facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=?"),
