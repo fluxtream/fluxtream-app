@@ -41,10 +41,6 @@ define(["applications/calendar/tabs/Tab",
         );
     }
 
-    function renameDashboard(value, settings) {
-        console.log("we want to rename this dashboard...");
-    }
-
     function addWidget() {
         AddWidget.show(dashboardsTab.activeDashboard);
     }

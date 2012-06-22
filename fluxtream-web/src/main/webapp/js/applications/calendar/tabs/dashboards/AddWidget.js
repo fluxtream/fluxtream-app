@@ -31,7 +31,6 @@ define(function() {
     function bindDialog() {
         $("#availableWidgets a").click(function() {
             var widgetName = $(this).attr("name");
-            console.log("adding " + widgetName + " to dashboard " + activeDashboardId);
             $.ajax({
                 url: "/api/dashboards/" + activeDashboardId + "/widgets",
                 type: "POST",
