@@ -16,16 +16,16 @@ import org.codehaus.plexus.util.StringUtils;
 public class DashboardWidget {
 
 
-    public Map<String,String> description = new HashMap<String,String>();
-    public String icon;
-    public String name;
-    public String url;
-    public String copyright;
-    public String identifier;
-    public String version;
-    public List<String> supportedLanguages;
-    public String vendorIdentifier;
-    public List<String> requiredConnectors;
+    public Map<String,String> WidgetDescription = new HashMap<String,String>();
+    public List<String> SupportedLanguages;
+    public String VendorIdentifier;
+    public List<String> RequiredConnectors;
+    private String WidgetIcon;
+    private String WidgetName;
+    private String WidgetURL;
+    private String BundleCopyright;
+    private String BundleIdentifier;
+    private String BundleVersion;
 
     /**
 
@@ -46,22 +46,22 @@ public class DashboardWidget {
             JSONObject descDict = JSONObject.fromObject(manifestJSON.getString("WidgetDescription"));
             for (Object o : descDict.keySet()) {
                 String key = (String) o;
-                description.put(key, descDict.getString(key));
+                WidgetDescription.put(key, descDict.getString(key));
             }
-            icon = manifestJSON.getString("WidgetIcon");
-            name = manifestJSON.getString("WidgetName");
-            url = manifestJSON.getString("WidgetURL");
-            copyright = manifestJSON.getString("BundleCopyright");
-            identifier = manifestJSON.getString("BundleIdentifier");
-            version = manifestJSON.getString("BundleVersion");
-            supportedLanguages = new ArrayList<String>(
+            WidgetIcon = manifestJSON.getString("WidgetIcon");
+            WidgetName = manifestJSON.getString("WidgetName");
+            WidgetURL = manifestJSON.getString("WidgetURL");
+            BundleCopyright = manifestJSON.getString("BundleCopyright");
+            BundleIdentifier = manifestJSON.getString("BundleIdentifier");
+            BundleVersion = manifestJSON.getString("BundleVersion");
+            SupportedLanguages = new ArrayList<String>(
                     Arrays.asList(
                             StringUtils.split(manifestJSON.getString("SupportedLanguages"),
                                               ",")
                     )
             );
-            vendorIdentifier = manifestJSON.getString("VendorIdentifier");
-            requiredConnectors = new ArrayList<String>(
+            VendorIdentifier = manifestJSON.getString("VendorIdentifier");
+            RequiredConnectors = new ArrayList<String>(
                     Arrays.asList(
                             StringUtils.split(manifestJSON.getString("RequiredConnectors"),
                                               ",")
@@ -73,7 +73,7 @@ public class DashboardWidget {
     }
 
     public boolean matchesUserConnectors(List<String> userConnectorNames) {
-        for (String requiredConnector : requiredConnectors) {
+        for (String requiredConnector : RequiredConnectors) {
             for (String userConnectorName : userConnectorNames) {
                 if (userConnectorName.equalsIgnoreCase(requiredConnector.trim()))
                     return true;

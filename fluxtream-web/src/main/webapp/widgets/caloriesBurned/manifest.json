@@ -1,6 +1,6 @@
 {
     "WidgetDescription" : {"en" : ""},
-    "WidgetIcon" : "",
+    "WidgetIcon" : "caloriesBurned.png",
     "WidgetName" : "caloriesBurned",
     "WidgetURL" : "",
     "BundleCopyright" : "",
