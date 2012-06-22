@@ -28,7 +28,13 @@ define(function() {
         });
     }
 
-    function bindDialog(){
+    function bindDialog() {
+        $("#availableWidgets a").click(function() {
+            var widgetName = $(this).attr("name");
+            console.log("widgetName " + widgetName);
+            console.log("we should add " + widgetName + " to dashboard " + activeDashboardId);
+
+        });
     }
 
     var AddWidget = {};

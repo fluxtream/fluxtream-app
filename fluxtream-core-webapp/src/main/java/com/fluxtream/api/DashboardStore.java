@@ -59,9 +59,16 @@ public class DashboardStore {
         dashboardJson.accumulate("id", dashboard.getId());
         dashboardJson.accumulate("name", dashboard.name);
         dashboardJson.accumulate("active", dashboard.active);
-        JSONArray widgetsJson = JSONArray.fromObject(dashboard.widgetsJson);
-        dashboardJson.accumulate("widgets", widgetsJson);
+        dashboardJson.accumulate("widgets", toJsonArray(dashboard.widgetNames));
         return dashboardJson;
+    }
+
+    private JSONArray toJsonArray(final String commaSeparatedWidgetNames) {
+        final String[] widgetNames = StringUtils.split(commaSeparatedWidgetNames, ",");
+        JSONArray names = new JSONArray();
+        for (String name : widgetNames)
+            names.add(name);
+        return names;
     }
 
     @POST

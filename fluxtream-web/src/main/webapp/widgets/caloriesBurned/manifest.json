@@ -1,8 +1,8 @@
 {
-    "WidgetDescription" : {"en" : ""},
-    "WidgetIcon" : "",
+    "WidgetDescription" : {"en" : "Calories Burned according to BodyMedia, Fitbit"},
+    "WidgetIcon" : "caloriesBurned.png",
     "WidgetName" : "caloriesBurned",
-    "WidgetURL" : "",
+    "WidgetRepositoryURL" : "http://localhost:8082/widgets",
     "BundleCopyright" : "",
     "BundleIdentifier" : "",
     "BundleVersion" : "",

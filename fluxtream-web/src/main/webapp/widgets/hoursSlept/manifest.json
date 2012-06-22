@@ -1,8 +1,8 @@
 {
-    "WidgetDescription" : {"en" : ""},
-    "WidgetIcon" : "",
+    "WidgetDescription" : {"en" : "Numbers of hours slept according to Zeo, Fitbit, BodyMedia."},
+    "WidgetIcon" : "hoursSlept.png",
     "WidgetName" : "hoursSlept",
-    "WidgetURL" : "",
+    "WidgetRepositoryURL" : "http://localhost:8082/widgets",
     "BundleCopyright" : "",
     "BundleIdentifier" : "",
     "BundleType" : "Widget",

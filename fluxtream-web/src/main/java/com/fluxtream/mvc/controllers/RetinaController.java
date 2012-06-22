@@ -58,7 +58,7 @@ public class RetinaController {
             int mid= path.lastIndexOf(".");
             String stemPath=path.substring(0,mid);
             String ext=path.substring(mid+1, path.length());
-            String retinaPath = (new StringBuilder(stemPath).append("@2x").append(".").append(ext)).toString();
+            String retinaPath = (new StringBuilder(stemPath).append("@2x.").append(ext)).toString();
             String fullRetinaPath = ((new StringBuilder(realPath).append(retinaPath)).toString());
             File retinaImageFile = new File(fullRetinaPath);
             if (retinaImageFile.exists())

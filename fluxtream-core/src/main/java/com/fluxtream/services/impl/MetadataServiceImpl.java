@@ -377,7 +377,7 @@ public class MetadataServiceImpl implements MetadataService {
                     break;
                 case 116://Partly Cloudy
                     weatherInfo.weatherIconUrl = "/static/images/climacons/Cloud.png";
-                    weatherInfo.weatherIconUrlDay = "/static/images/climacons/CS%231.png";//CS#1.png
+                    weatherInfo.weatherIconUrlDay = "/static/images/climacons/CS1.png";//CS#1.png
                     weatherInfo.weatherIconUrlNight = "/static/images/climacons/CM.png";
                     break;
                 case 122://Overcast
@@ -403,9 +403,9 @@ public class MetadataServiceImpl implements MetadataService {
                 case 263://patchy light drizzle
                 case 176://patchy rain nearby
                 case 143://Mist
-                    weatherInfo.weatherIconUrl = "/static/images/climacons/CD%20Alt.png";
-                    weatherInfo.weatherIconUrlDay = "/static/images/climacons/CDS%20Alt.png";
-                    weatherInfo.weatherIconUrlNight = "/static/images/climacons/CDM%20Alt.png";
+                    weatherInfo.weatherIconUrl = "/static/images/climacons/CD_Alt.png";
+                    weatherInfo.weatherIconUrlDay = "/static/images/climacons/CDS_Alt.png";
+                    weatherInfo.weatherIconUrlNight = "/static/images/climacons/CDM_Alt.png";
                     break;
                 case 227://Blowing snow
                 case 230://Blizzard
@@ -449,9 +449,9 @@ public class MetadataServiceImpl implements MetadataService {
                 case 365://Moderate or heavy sleet
                 case 374://Light showrs of ice pellets
                 case 377://Moderate or heavy showres of ice pellets
-                    weatherInfo.weatherIconUrl = "/static/images/climacons/CH%20Alt.png";
-                    weatherInfo.weatherIconUrlDay = "/static/images/climacons/CHS%20Alt.png";
-                    weatherInfo.weatherIconUrlNight = "/static/images/climacons/CHM%20Alt.png";
+                    weatherInfo.weatherIconUrl = "/static/images/climacons/CH_Alt.png";
+                    weatherInfo.weatherIconUrlDay = "/static/images/climacons/CHS_Alt.png";
+                    weatherInfo.weatherIconUrlNight = "/static/images/climacons/CHM_Alt.png";
                     break;
                 default:
                     weatherInfo.weatherIconUrl = "/static/images/climacons/WC.png";
