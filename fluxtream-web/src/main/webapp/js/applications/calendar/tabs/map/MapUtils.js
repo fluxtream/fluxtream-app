@@ -279,6 +279,8 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             }
         }
         marker.doHighlighting = function(){
+            if (map.gpsLine == null)
+                return;
             if (map.currentHighlightedLine != null){
                 map.currentHighlightedLine.setMap(null);
                 map.currentHighlightedLine = null
