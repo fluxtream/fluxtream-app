@@ -4,7 +4,7 @@
 		  <div id="_timeline_messageArea">Loading...</div>
 
 		  <div id="_timeline_mainContentArea" style="display:none">
-		    <span>
+		    <span style="display: none; ">
 	    	  <span id="_timeline_viewName" style="font-size:18px; color:#333;"></span>
 
                 <div class="btn-group" style="display:inline-block; vertical-align:middle;">
@@ -28,21 +28,26 @@
 
 		    <table id="_timeline_dataTable" border="0" cellpadding="0" cellspacing="0" class="fullHeight">
 		      <tr valign="top">
-		        <td id="_timeline_addChannelsArea" class="_timeline_pane"></td>
+		        <td><table><tr><td id="_timeline_addChannelsArea" class="_timeline_pane"></td></tr></table></td>
 		        <td id="_timeline_dateAxisAndChannelsArea" style="display: none;">
 		          <table border="0" cellpadding="0" cellspacing="0">
 		            <tr>
 		              <td>
-		                <div id="_timeline_gotozoom">
-		                  <button id="_timeline_gotoBeginning_button" class="_timeline_gotozoom_button" />
-		                  <button id="_timeline_gotoBack_button" class="_timeline_gotozoom_button" />
-		                  <button id="_timeline_gotoForward_button" class="_timeline_gotozoom_button" />
-		                  <button id="_timeline_gotoEnd_button" class="_timeline_gotozoom_button" />
-		                  <img id="_timeline_gotozoom_separator"
-		                    src="/static/images/dotted_line.png"
-		                    alt="" />
-		                  <button id="_timeline_zoomOut_button" class="_timeline_gotozoom_button" />
-		                  <button id="_timeline_zoomIn_button" class="_timeline_gotozoom_button" />
+		                <div id="_timeline_gotozoom" style="width: 235px; padding-left: 10px;">
+                            <div class="flx-channel-navigation">
+                                <div class="btn-toolbar">
+                                    <div class="btn-group">
+                                        <a id="_timeline_new_zoomIn_button" href="#" class="btn"> <i class="icon-zoom-in"></i> </a>
+                                        <a id="_timeline_new_zoomOut_button" href="#" class="btn"> <i class="icon-zoom-out"></i> </a>
+                                    </div>
+                                    <div class="btn-group">
+                                        <a id="_timeline_new_gotoBeginning_button" href="#" class="btn"> <i class="icon-fast-backward"></i> </a>
+                                        <a id="_timeline_new_gotoBack_button" href="#" class="btn"> <i class="icon-step-backward"></i> </a>
+                                        <a id="_timeline_new_gotoForward_button" href="#" class="btn"> <i class="icon-step-forward"></i> </a>
+                                        <a id="_timeline_new_gotoEnd_button" href="#" class="btn"> <i class="icon-fast-forward"></i> </a>
+                                    </div>
+                                </div>
+                            </div>
 		                </div>
 		              </td>
 		              <td>

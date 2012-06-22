@@ -203,12 +203,12 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
         });
 
 
-        $("#_timeline_gotoBeginning_button").click(function() { gotoTime("beginning"); });
-        $("#_timeline_gotoBack_button").click(function() { gotoTime("back"); });
-        $("#_timeline_gotoForward_button").click(function() { gotoTime("forward"); });
-        $("#_timeline_gotoEnd_button").click(function() { gotoTime("end"); });
-        $("#_timeline_zoomOut_button").click(function() { zoomTime("out"); });
-        $("#_timeline_zoomIn_button").click(function() { zoomTime("in"); });
+        $("#_timeline_new_gotoBeginning_button").click(function(event) { event.preventDefault(); gotoTime("beginning"); });
+        $("#_timeline_new_gotoBack_button").click(function(event) { event.preventDefault(); gotoTime("back"); });
+        $("#_timeline_new_gotoForward_button").click(function(event) { event.preventDefault(); gotoTime("forward"); });
+        $("#_timeline_new_gotoEnd_button").click(function(event) { event.preventDefault(); gotoTime("end"); });
+        $("#_timeline_new_zoomOut_button").click(function(event) { event.preventDefault(); zoomTime("out"); });
+        $("#_timeline_new_zoomIn_button").click(function(event) { event.preventDefault(); zoomTime("in"); });
 
         // Configure the photo dialog
         $("#_timeline_photo_dialog")['dialog'](
