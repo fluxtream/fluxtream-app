@@ -4,7 +4,7 @@ define(function() {
 
     function show(adid){
         activeDashboardId = adid;
-        $.ajax("/api/widgets",{
+        $.ajax("/api/dashboards/" + activeDashboardId + "/availableWidgets",{
             success: function(data, textStatus, jqXHR){
                 var rows = [];
                 var row = {widgets:[]};
@@ -31,9 +31,15 @@ define(function() {
     function bindDialog() {
         $("#availableWidgets a").click(function() {
             var widgetName = $(this).attr("name");
-            console.log("widgetName " + widgetName);
-            console.log("we should add " + widgetName + " to dashboard " + activeDashboardId);
-
+            console.log("adding " + widgetName + " to dashboard " + activeDashboardId);
+            $.ajax({
+                url: "/api/dashboards/" + activeDashboardId + "/widgets",
+                type: "POST",
+                data: {widget : widgetName},
+                success: function() {
+                    App.closeModal();
+                }
+           })
         });
     }
 
