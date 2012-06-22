@@ -534,6 +534,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             }
             if (currentCollection == null || currentCollection.address != addressAt){
                 if (currentCollection != null){
+                    currentCollection[currentCollection.length] = position;
                     mergeCollection(currentCollection);
                 }
                 currentCollection = null;
