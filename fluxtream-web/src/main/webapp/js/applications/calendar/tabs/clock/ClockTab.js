@@ -41,16 +41,15 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         distanceUnit = digest.settings.distanceUnit;
         dayStart = digest.tbounds.start;
         dayEnd = digest.tbounds.end;
+        map = MapUtils.newMap(new google.maps.LatLng(0,0),8,"clockMap",true);
         if (digest.cachedData != null && digest.cachedData.google_latitude != null){
-            map = MapUtils.newMap(new google.maps.LatLng(0,0),8,"clockMap",true);
             map.addGPSData(digest.cachedData.google_latitude);
             map.fitBounds(map.gpsBounds);
-            map.addAddresses(digest.addresses, false);
         }
         else{
             hideQTipMap();
-            map = null;
         }
+        map.addAddresses(digest.addresses, false);
 
 		var availableWidth = $("#clockTab").width();
 		var edgeWidth =  Math.min(availableWidth, 600);
@@ -279,10 +278,10 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         var weatherInfo = getWeatherData(minute);
         var weatherIcon;
         if (minute < solarInfo.sunrise || minute > solarInfo.sunset){//night
-            weatherIcon = weatherInfo.weatherIconUrlNight;
+            weatherIcon =  weatherInfo == null ? "" : weatherInfo.weatherIconUrlNight;
         }
         else{//day
-            weatherIcon = weatherInfo.weatherIconUrlDay;
+            weatherIcon = weatherInfo == null ? "" : weatherInfo.weatherIconUrlDay;
         }
         var orientation, tailOrientation;
         var angle = toPolar([0,0],offX,offY)[1];
@@ -304,13 +303,13 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         }
         App.loadMustacheTemplate("applications/calendar/tabs/clock/clockTemplate.html","tooltip",function(template){
             ttpdiv = $(template.render({
-                weatherDescription: weatherInfo.weatherDesc,
-                temperature: tempratureUnit === "FAHRENHEIT" ? weatherInfo.tempF : weatherInfo.tempC,
+                weatherDescription: weatherInfo == null ? "no weather info available" : weatherInfo.weatherDesc,
+                temperature: weatherInfo == null ? "?" : tempratureUnit === "FAHRENHEIT" ? weatherInfo.tempF : weatherInfo.tempC,
                 temperatureUnit: tempratureUnit === "FAHRENHEIT" ? "F" : "C",
-                windSpeed: distanceUnit == "SI" ? weatherInfo.windspeedKmph : weatherInfo.windspeedMiles,
+                windSpeed: weatherInfo == null ? "?" : distanceUnit == "SI" ? weatherInfo.windspeedKmph : weatherInfo.windspeedMiles,
                 windSpeedUnit: distanceUnit == "SI" ? "km/h" : "mph",
-                humidity: weatherInfo.humidity,
-                precipitation: weatherInfo.precipMM,
+                humidity: weatherInfo == null ? "?" : weatherInfo.humidity,
+                precipitation: weatherInfo == null ? "?" : weatherInfo.precipMM,
                 precipitationUnit: "mm",
                 weatherIcon: weatherIcon,
                 orientation:orientation,
