@@ -30,7 +30,7 @@ define([], function() {
 					orbit : 135 * ORBIT_RATIO,
 					color : "#4c99c5"
 				},
-				IN_TRANSIT_CATEGORY : {
+                AT_WORK_CATEGORY : {
 					orbit : 158 * ORBIT_RATIO,
 					color : "#22b2b9"
 				},
