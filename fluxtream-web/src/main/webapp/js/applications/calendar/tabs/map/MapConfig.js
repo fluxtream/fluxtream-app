@@ -22,6 +22,10 @@ define([], function() {
                       icon : "http://maps.google.com/mapfiles/marker.png",
                       shadow : new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null)
                   },
+                  GPS_CATEGORY : {
+                      icon : new google.maps.MarkerImage("https://www.google.com/latitude/apps/static/red_measle.png",null,null,new google.maps.Point(5,5),null),
+                      shadow: null
+                  },
                   flatAccuracyCutoff:200,
                   stdAccuracyCutoff:1
               };

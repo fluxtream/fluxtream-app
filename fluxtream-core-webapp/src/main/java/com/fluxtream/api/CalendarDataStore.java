@@ -1,5 +1,6 @@
 package com.fluxtream.api;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -98,12 +99,81 @@ public class CalendarDataStore {
 	@GET
 	@Path("/all/week/{year}/{week}")
 	@Produces({ MediaType.APPLICATION_JSON })
-	public String getAllConnectorsWeekData(@PathParam("year") String year,
-			@PathParam("week") String week, @QueryParam("filter") String filter)
+	public String getAllConnectorsWeekData(@PathParam("year") int year,
+			@PathParam("week") int week, @QueryParam("filter") String filter)
 			throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException {
-        return "{}";
+        //TODO:proper week data retrieval implementation
+        //this implementation is just a dirt hacky way to make it work and some aspects (weather info) don't work
+
+        DigestModel digest = new DigestModel();
+        if (filter == null) {
+            filter = "";
+        }
+
+        Guest guest = ControllerHelper.getGuest();
+
+        long guestId = guest.getId();
+
+        Calendar c = Calendar.getInstance();
+        c.set(Calendar.YEAR,year);
+        c.set(Calendar.WEEK_OF_YEAR,week);
+        c.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+        DecimalFormat datePartFormat = new DecimalFormat("00");
+        DayMetadataFacet dayMetaStart = metadataService.getDayMetadata(guest.getId(), year + "-" + datePartFormat.format(c.get(Calendar.MONTH) + 1) +
+                                                                                      "-" + datePartFormat.format(c.get(Calendar.DAY_OF_MONTH)), true);
+        int newDay = c.get(Calendar.DAY_OF_YEAR) + 6;
+        if (newDay > (isLeapYear(year) ? 366 : 365)){
+            newDay -= isLeapYear(year) ? 366 : 365;
+            year += 1;
+            c.set(Calendar.YEAR,year);
+        }
+        c.set(Calendar.DAY_OF_YEAR,newDay);
+        DayMetadataFacet dayMetaEnd = metadataService.getDayMetadata(guest.getId(), year + "-" + datePartFormat.format(c.get(Calendar.MONTH) + 1) +
+                                                                                    "-" + datePartFormat.format(c.get(Calendar.DAY_OF_MONTH)), true);
+
+        DayMetadataFacet dayMetadata = new DayMetadataFacet();
+        dayMetadata.timeZone = dayMetaStart.timeZone;
+        dayMetadata.start = dayMetaStart.start;
+        dayMetadata.end = dayMetaEnd.end;
+
+        digest.tbounds = getStartEndResponseBoundaries(dayMetadata.start,
+                                                       dayMetadata.end);
+
+        City city = metadataService.getMainCity(guestId, dayMetadata);
+
+        /*if (city != null){
+            digest.hourlyWeatherData = metadataService.getWeatherInfo(city.geo_latitude,city.geo_longitude, date, 0, 24 * 60);
+            Collections.sort(digest.hourlyWeatherData);
+        }*/
+
+        setSolarInfo(digest, city, guestId, dayMetadata);
+
+        List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter);
+        digest.selectedConnectors = connectorInfos(apiKeySelection);
+        List<ApiKey> allApiKeys = guestService.getApiKeys(guestId);
+        allApiKeys = removeConnectorsWithoutFacets(allApiKeys);
+        digest.nApis = allApiKeys.size();
+        GuestSettings settings = settingsService.getSettings(guestId);
+
+        setCachedData(digest, allApiKeys, settings, apiKeySelection,
+                      dayMetadata);
+
+        copyMetadata(digest, dayMetadata);
+        setVisitedCities(digest, guestId, dayMetadata);
+        setNotifications(digest, guestId);
+        setCurrentAddress(digest, guestId, dayMetadata.start);
+        digest.settings = new SettingsModel(settings);
+        return gson.toJson(digest);
 	}
+
+    private boolean isLeapYear(int year){
+        if (year % 400 == 0)
+            return true;
+        if (year % 100 == 0)
+            return false;
+        return year % 4 == 0;
+    }
 
 	@GET
 	@Path("/all/month/{year}/{month}")
