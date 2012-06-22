@@ -308,7 +308,7 @@ a img { text-decoration: none; }
 .floater { .flx-floatL; margin-right:20px; min-height: 31px; padding:0 0;}
 .flx-main-city-infos { padding-top:4px; }
 
-//------------------------
+//----------TOOL TIP 
 
 .flx-clockToolTipContainer { margin-top:50px; } 
 .flx-toolTipBody { width:435px; padding: 5px; background: rgba(255,255,255,0.75); color: lighten(black, 40%); position: relative; }
@@ -319,24 +319,37 @@ a img { text-decoration: none; }
 .strongBorder-Bottom { .strongBorder; border-bottom-width: 4px; }
 .strongBorder-Top { .strongBorder; border-top-width: 4px; }
 
-.flx-toolTipLinks { float: right; list-style-type: none; width: 30%;  margin-top : -20px;
+.flx-toolTipLinks { position: absolute; list-style-type: none; width: 25%; margin-left:0; top: 10px; right:8px;
     li{text-align: right; line-height: 1.1em; }
 }
-.flx-toolTipData { margin: 5px; background:@white; overflow:hidden; padding: 15px 10px 15px 20px;  
+.flx-toolTipData { margin: 5px; background:@white; overflow:hidden; padding: 8px 10px 10px 10px; position:relative; min-height:45px;
     -webkit-box-shadow:0 0px 4px rgba(80, 80, 80, 0.6); 
     -moz-box-shadow:0 0px 4px rgba(80, 80, 80, 0.6); 
     -o-box-shadow:0 0px 4px rgba(80, 80, 80, 0.6); 
     box-shadow:0 0px 4px rgba(80, 80, 80, 0.6);
-    h3 { font-size:20px; }
-    span { display: block; }
-    .flx-data { font-size : 16px; font-weight : bold; }
     }
-.flx-deviceIcon { width: 42px; height: 42px; background-repeat: no-repeat; background-position: center center; float:left; margin-right: 10px; }
+.flx-deviceIcon { width: 42px; height: 42px; background-repeat: no-repeat; float:left; margin-right: 10px; background-image: url(../static/images/devices-ic.png);}
+   
+//.flx-dataType {color: lighten(black, 40%); margin-bottom: 5px; line-height:1; }
 
-.flx-deviceIcon.withings { background-image: url(/dashboardImgDummies/w9.png); }
 
+.flx-deviceIcon.withings { background-position: 0 -298px; }
+.flx-deviceIcon.twitter { background-position: 0 -128px; }
+.flx-deviceIcon.zeo { background-position: 0 -4px; }
+.flx-deviceIcon.calendar { background-position: 0 -255px; }
+.flx-deviceIcon.lastfm { background-position: 0 -86px; }
+.flx-deviceIcon.bm-sleep, .flx-deviceIcon.bm-steps, .flx-deviceIcon.bm-burn { background-position: 0 -330px; }
+.flx-deviceIcon.latitude { background-position: 0 -355px; }
+.flx-deviceIcon.picasa { background-position: 0 -42px; }
+.flx-deviceIcon.fitbit { background-position: 0 -339px; }
 
-.flx-deviceData { .flx-floatL }
+//.flx-deviceData { overflow:hidden; height: 100%; color: lighten(black, 40%); float:left;
+//    span { display: block; }
+//    .flx-data { font-size: 16px; font-weight: bold; padding-bottom:3px; }
+//}
+
+.flx-toolTipData .flx-data { max-width:270px; overflow:hidden; height: 100%;}
+.flx-toolTipData .flx-tTime { font-size: 16px; margin-bottom: 5px; }
 .flx-miniGraph { .flx-floatL; margin-top:-20px; }
 
 .flx-toolTipContext { overflow:hidden; height:100%; margin:10px 5px 0;
@@ -364,78 +377,8 @@ a img { text-decoration: none; }
 .flx-toolTipTail-Right { .flx-toolTipTail; border-left: 10px solid @tTborder; right: -24px; }
 .flx-toolTipTail-Left { .flx-toolTipTail; border-right: 10px solid @tTborder; left:-24px;}
 
-//----------------
 
-.flx-sourceFilters1 { list-style-type: none; overflow:hidden; height:100%;
-    li { .flx-floatL;border-right: 1px solid transparent; padding-bottom: 20px;
-        a, span {  color:darken(@grey,20%); border-bottom: 1px solid @grey; padding: 10px 10px; background: #fff;
-            -webkit-transition: all 0.1s ease-in;
-            -moz-transition: all 0.1s ease-in;
-            -o-transition: all 0.1s ease-in;
-            transition: all 0.1s ease-in;
-        }
-        .flx-active { border-bottom-width: 4px; padding-bottom: 7px; color: darken(grey, 20%);}
-        .flx-disconnected { border-bottom-color: lighten(@grey, 30%);color: lighten(@grey, 30%); cursor:default }
-        a:hover { text-decoration:none; border-bottom-width: 4px; padding-bottom: 7px; }
-     }
-     
-     a.fitbit { border-bottom-color: @fitbit; }
-     a.bodytrack { border-bottom-color: @bodyTrack; }
-     a.lastFM { border-bottom-color: @lastFM; }
-     a.withings { border-bottom-color: @withings; }
-     a.picasa { border-bottom-color: @picasa; }
-     a.twitter { border-bottom-color: @twitter; }
-     a.ggleCal { border-bottom-color: @ggleCal; }
- }
-
-.flx-sourceFilters2 { list-style-type: none; overflow:hidden; height:100%;
-    li { .flx-floatL;border-right: 1px solid transparent; font-size: 11px; letter-spacing: 0.1em;padding-bottom: 20px;
-        a, span {  color:@grey; border-bottom: 1px solid @grey; padding: 10px 10px; background: #fff; position:relative;
-            -webkit-transition: all 0.1s ease-in;
-            -moz-transition: all 0.1s ease-in;
-            -o-transition: all 0.1s ease-in;
-            transition: all 0.1s ease-in;
-        }
-        a:after, span:after { content:''; width:0; height: 11px; border-right:1px solid lighten(@grey, 40%); position:absolute; top:10px; right:-1px; }
-        a.ggleCal:after { border-right:0; }
-        
-        .flx-active { border-bottom-width: 4px; padding-bottom: 7px; color: darken(grey, 20%);}
-        .flx-disconnected { border-bottom-color: lighten(@grey, 30%);color: lighten(@grey, 30%); cursor:default }
-        a:hover { text-decoration:none; border-bottom-width: 4px; padding-bottom: 7px; }
-     }
-     
-     a.fitbit { color: @fitbit; border-bottom-color: @fitbit; }
-     a.bodytrack { color: @bodyTrack; border-bottom-color: @bodyTrack; }
-     a.lastFM { color: @lastFM; border-bottom-color: @lastFM; }
-     a.withings { color: @withings; border-bottom-color: @withings; }
-     a.picasa { color: @picasa; border-bottom-color: @picasa; }
-     a.twitter { color: @twitter; border-bottom-color: @twitter; }
-     a.ggleCal { color: @ggleCal; border-bottom-color: @ggleCal; }
- }
- 
-.flx-sourceFilters3 { list-style-type: none; overflow:hidden; height:100%;
-    li { .flx-floatL;border-right: 1px solid transparent; letter-spacing:0.1em;padding-bottom: 20px;
-        a, span {  color:@grey; border-bottom: 1px solid @grey; padding: 15px 15px; background: #fff; overflow:hidden; text-align:center;width: 65px; display:block;
-            -webkit-transition: all 0.1s ease-in;
-            -moz-transition: all 0.1s ease-in;
-            -o-transition: all 0.1s ease-in;
-            transition: all 0.1s ease-in;
-        }
-        .glow(@glow){ text-shadow: 0 0 5px @glow; }
-        .flx-active { border-bottom-width: 4px; padding-bottom: 12px; color: darken(grey, 20%); .glow(lighten(@connector,25%));}
-        .flx-disconnected { border-bottom-color: lighten(@grey, 30%);color: lighten(@grey, 30%); cursor:default }
-        a:hover { text-decoration:none; border-bottom-width: 4px; padding-bottom: 12px; }
-     }
-     
-     a.fitbit { color: @connector; border-bottom-color: @connector; }
-     a.bodytrack { color: darken(@connector, 5%); border-bottom-color: darken(@connector, 5%); }
-     a.lastFM { color: darken(@connector, 10%); border-bottom-color: darken(@connector, 10%); }
-     a.withings { color: darken(@connector, 15%); border-bottom-color: darken(@connector, 15%); }
-     a.picasa { color: darken(@connector, 20%); border-bottom-color: darken(@connector, 20%); }
-     a.twitter { color: lighten(@connector, 5%); border-bottom-color: lighten(@connector, 5%); }
-     a.ggleCal { color: lighten(@connector, 15%); border-bottom-color: lighten(@connector, 15%); }
- }
- 
+//----------------- FILTERS
  
 .flx-sourceFilters4 { list-style-type: none; overflow:hidden; height:100%; margin-left:0;
     li { .flx-floatL;border-right: 1px solid @white;
@@ -464,54 +407,6 @@ a img { text-decoration: none; }
      a.twitter { border-bottom-color: @twitter; }
      a.ggleCal { border-bottom-color: @ggleCal; }
  }
- 
-.flx-sourceFilters5 { list-style-type: none; overflow:hidden; height:100%;
-    li { .flx-floatL;border-right: 1px solid transparent; padding-bottom: 20px;
-            a, span {  color:@grey; border-bottom: 1px solid @grey; padding: 10px 10px; background: #fff; position:relative;
-            -webkit-transition: all 0.1s ease-in;
-            -moz-transition: all 0.1s ease-in;
-            -o-transition: all 0.1s ease-in;
-            transition: all 0.1s ease-in;
-        }
-        a:after, span:after { content:''; width:0; height: 11px; border-right:1px solid lighten(@grey, 40%); position:absolute; top:10px; right:-1px; }
-        a.ggleCal:after { border-right:0; }
-        
-        .flx-active { border-bottom-width: 4px; padding-bottom: 7px; color: darken(grey, 20%);}
-        .flx-disconnected { border-bottom-color: lighten(@grey, 30%);color: lighten(@grey, 30%); cursor:default }
-        a:hover { text-decoration:none; border-bottom-width: 4px; padding-bottom: 7px; }
-     }
-     
-     a.fitbit { color: @fitbit; border-bottom-color: @fitbit; }
-     a.bodytrack { color: @bodyTrack; border-bottom-color: @bodyTrack; }
-     a.lastFM { color: @lastFM; border-bottom-color: @lastFM; }
-     a.withings { color: @withings; border-bottom-color: @withings; }
-     a.picasa { color: @picasa; border-bottom-color: @picasa; }
-     a.twitter { color: @twitter; border-bottom-color: @twitter; }
-     a.ggleCal { color: @ggleCal; border-bottom-color: @ggleCal; }
- }
-
-#filtersContainer {
-    margin-top: -17px;
-}
-
-.flx-sourceFilters6 { list-style-type: none; 
-    li { .flx-floatL;border-right: 1px solid transparent; font-size:11px; letter-spacing:0.1em;
-        a, span {  color:@grey; border-bottom: 1px solid @grey; padding: 10px 0; background: #fff; position:relative; width: 70px; text-align:center; display:inline-block;
-            -webkit-transition: all 0.1s ease-in;
-            -moz-transition: all 0.1s ease-in;
-            -o-transition: all 0.1s ease-in;
-            transition: all 0.1s ease-in;
-        }
-        a:after, span:after { content:''; width:0; height: 11px; border-right:1px solid lighten(@grey, 40%); position:absolute; top:13px; right:-1px; }
-        
-        .flx-active { border-bottom-width: 4px; padding-bottom: 7px; color: @grey;}
-        .flx-disconnected { border-bottom-color: lighten(@grey, 30%);color: lighten(@grey, 30%); cursor:default }
-        a:hover { text-decoration:none; 
-        //border-bottom-width: 4px; padding-bottom: 7px; 
-        background-color: lighten(@grey, 45%); }
-     }
-   li:last-child a:after, li:last-child a:after { border-right: 0; }  
-}
 
 //------- MANAGE CONNECTORS
 
@@ -599,3 +494,148 @@ table .remove { text-align:center;
 #dashboardsTab li button {
     margin-top:-5px;
 }
+
+//---------LIST 
+
+.flx-listItem .flx-box { overflow: hidden; height: 100%; padding: 15px 15px; border: 1px solid lighten(@black, 80%); border-left-width: 5px; margin-bottom:5px; max-width: 693px;
+     .flx-deviceIcon, .flx-tTime { .flx-floatL }
+     .flx-tTime { padding: 0 13px 0 10px; min-width:62px; height: 42px; font-size: 15px; }
+     .flx-description { overflow:hidden; height: 100%; color:lighten(@black, 20%); display:block; max-width: 450px; }
+ }
+
+.flx-listItem .flx-box.twitter { border-color: @twitter; }
+.flx-listItem .flx-box.bm { border-color: @bodyTrack; }
+.flx-listItem .flx-box.picasa { border-color: @picasa; }
+.flx-listItem .flx-box.fitbit { border-color: @fitbit; }
+.flx-listItem .flx-box.calendar { border-color: @ggleCal; }
+.flx-listItem .flx-box.withings { border-color: @withings; }
+.flx-listItem .flx-box.lastfm { border-color: @lastFM; }
+
+
+//----------------- DISCARDED SNIPPETS
+
+.flx-sourceFilters1 { list-style-type: none; overflow:hidden; height:100%;
+    li { .flx-floatL;border-right: 1px solid transparent; padding-bottom: 20px;
+        a, span {  color:darken(@grey,20%); border-bottom: 1px solid @grey; padding: 10px 10px; background: #fff;
+            -webkit-transition: all 0.1s ease-in;
+            -moz-transition: all 0.1s ease-in;
+            -o-transition: all 0.1s ease-in;
+            transition: all 0.1s ease-in;
+        }
+        .flx-active { border-bottom-width: 4px; padding-bottom: 7px; color: darken(grey, 20%);}
+        .flx-disconnected { border-bottom-color: lighten(@grey, 30%);color: lighten(@grey, 30%); cursor:default }
+        a:hover { text-decoration:none; border-bottom-width: 4px; padding-bottom: 7px; }
+     }
+     
+     a.fitbit { border-bottom-color: @fitbit; }
+     a.bodytrack { border-bottom-color: @bodyTrack; }
+     a.lastFM { border-bottom-color: @lastFM; }
+     a.withings { border-bottom-color: @withings; }
+     a.picasa { border-bottom-color: @picasa; }
+     a.twitter { border-bottom-color: @twitter; }
+     a.ggleCal { border-bottom-color: @ggleCal; }
+ }
+
+.flx-sourceFilters2 { list-style-type: none; overflow:hidden; height:100%;
+    li { .flx-floatL;border-right: 1px solid transparent; font-size: 11px; letter-spacing: 0.1em;padding-bottom: 20px;
+        a, span {  color:@grey; border-bottom: 1px solid @grey; padding: 10px 10px; background: #fff; position:relative;
+            -webkit-transition: all 0.1s ease-in;
+            -moz-transition: all 0.1s ease-in;
+            -o-transition: all 0.1s ease-in;
+            transition: all 0.1s ease-in;
+        }
+        a:after, span:after { content:''; width:0; height: 11px; border-right:1px solid lighten(@grey, 40%); position:absolute; top:10px; right:-1px; }
+        a.ggleCal:after { border-right:0; }
+        
+        .flx-active { border-bottom-width: 4px; padding-bottom: 7px; color: darken(grey, 20%);}
+        .flx-disconnected { border-bottom-color: lighten(@grey, 30%);color: lighten(@grey, 30%); cursor:default }
+        a:hover { text-decoration:none; border-bottom-width: 4px; padding-bottom: 7px; }
+     }
+     
+     a.fitbit { color: @fitbit; border-bottom-color: @fitbit; }
+     a.bodytrack { color: @bodyTrack; border-bottom-color: @bodyTrack; }
+     a.lastFM { color: @lastFM; border-bottom-color: @lastFM; }
+     a.withings { color: @withings; border-bottom-color: @withings; }
+     a.picasa { color: @picasa; border-bottom-color: @picasa; }
+     a.twitter { color: @twitter; border-bottom-color: @twitter; }
+     a.ggleCal { color: @ggleCal; border-bottom-color: @ggleCal; }
+ }
+ 
+.flx-sourceFilters3 { list-style-type: none; overflow:hidden; height:100%;
+    li { .flx-floatL;border-right: 1px solid transparent; letter-spacing:0.1em;padding-bottom: 20px;
+        a, span {  color:@grey; border-bottom: 1px solid @grey; padding: 15px 15px; background: #fff; overflow:hidden; text-align:center;width: 65px; display:block;
+            -webkit-transition: all 0.1s ease-in;
+            -moz-transition: all 0.1s ease-in;
+            -o-transition: all 0.1s ease-in;
+            transition: all 0.1s ease-in;
+        }
+        .glow(@glow){ text-shadow: 0 0 5px @glow; }
+        .flx-active { border-bottom-width: 4px; padding-bottom: 12px; color: darken(grey, 20%); .glow(lighten(@connector,25%));}
+        .flx-disconnected { border-bottom-color: lighten(@grey, 30%);color: lighten(@grey, 30%); cursor:default }
+        a:hover { text-decoration:none; border-bottom-width: 4px; padding-bottom: 12px; }
+     }
+     
+     a.fitbit { color: @connector; border-bottom-color: @connector; }
+     a.bodytrack { color: darken(@connector, 5%); border-bottom-color: darken(@connector, 5%); }
+     a.lastFM { color: darken(@connector, 10%); border-bottom-color: darken(@connector, 10%); }
+     a.withings { color: darken(@connector, 15%); border-bottom-color: darken(@connector, 15%); }
+     a.picasa { color: darken(@connector, 20%); border-bottom-color: darken(@connector, 20%); }
+     a.twitter { color: lighten(@connector, 5%); border-bottom-color: lighten(@connector, 5%); }
+     a.ggleCal { color: lighten(@connector, 15%); border-bottom-color: lighten(@connector, 15%); }
+ }
+ 
+.flx-sourceFilters5 { list-style-type: none; overflow:hidden; height:100%;
+    li { .flx-floatL;border-right: 1px solid transparent; padding-bottom: 20px;
+            a, span {  color:@grey; border-bottom: 1px solid @grey; padding: 10px 10px; background: #fff; position:relative;
+            -webkit-transition: all 0.1s ease-in;
+            -moz-transition: all 0.1s ease-in;
+            -o-transition: all 0.1s ease-in;
+            transition: all 0.1s ease-in;
+        }
+        a:after, span:after { content:''; width:0; height: 11px; border-right:1px solid lighten(@grey, 40%); position:absolute; top:10px; right:-1px; }
+        a.ggleCal:after { border-right:0; }
+        
+        .flx-active { border-bottom-width: 4px; padding-bottom: 7px; color: darken(grey, 20%);}
+        .flx-disconnected { border-bottom-color: lighten(@grey, 30%);color: lighten(@grey, 30%); cursor:default }
+        a:hover { text-decoration:none; border-bottom-width: 4px; padding-bottom: 7px; }
+     }
+     
+     a.fitbit { color: @fitbit; border-bottom-color: @fitbit; }
+     a.bodytrack { color: @bodyTrack; border-bottom-color: @bodyTrack; }
+     a.lastFM { color: @lastFM; border-bottom-color: @lastFM; }
+     a.withings { color: @withings; border-bottom-color: @withings; }
+     a.picasa { color: @picasa; border-bottom-color: @picasa; }
+     a.twitter { color: @twitter; border-bottom-color: @twitter; }
+     a.ggleCal { color: @ggleCal; border-bottom-color: @ggleCal; }
+ }
+
+#filtersContainer {
+    margin-top: -17px;
+}
+
+.flx-sourceFilters6 { list-style-type: none; 
+    li { .flx-floatL;border-right: 1px solid transparent; font-size:11px; letter-spacing:0.1em;
+        a, span {  color:@grey; border-bottom: 1px solid @grey; padding: 10px 0; background: #fff; position:relative; width: 70px; text-align:center; display:inline-block;
+            -webkit-transition: all 0.1s ease-in;
+            -moz-transition: all 0.1s ease-in;
+            -o-transition: all 0.1s ease-in;
+            transition: all 0.1s ease-in;
+        }
+        a:after, span:after { content:''; width:0; height: 11px; border-right:1px solid lighten(@grey, 40%); position:absolute; top:13px; right:-1px; }
+        
+        .flx-active { border-bottom-width: 4px; padding-bottom: 7px; color: @grey;}
+        .flx-disconnected { border-bottom-color: lighten(@grey, 30%);color: lighten(@grey, 30%); cursor:default }
+        a:hover { text-decoration:none; 
+        //border-bottom-width: 4px; padding-bottom: 7px; 
+        background-color: lighten(@grey, 45%); }
+     }
+   li:last-child a:after, li:last-child a:after { border-right: 0; }  
+}
+
+ 
+
+
+
+
+
+
