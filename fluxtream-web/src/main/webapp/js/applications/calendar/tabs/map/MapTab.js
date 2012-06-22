@@ -55,8 +55,12 @@ define(["applications/calendar/tabs/Tab",
         } else {
             $("#mapFit").hide();
         }
-        if (bounds != null)
+        if (bounds != null){
             map.fitBounds(bounds);
+            if (map.isPreserveViewChecked()){
+                map.setZoom(map.getZoom()+1);
+            }
+        }
         map.preserveViewCheckboxChanged = function(){
             preserveView = map.isPreserveViewChecked();
         }
