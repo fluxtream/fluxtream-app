@@ -25,7 +25,7 @@ define(["applications/calendar/tabs/Tab",
         if (digest.addresses.ADDRESS_HOME != null && digest.addresses.ADDRESS_HOME.length != 0)
             addressToUse = digest.addresses.ADDRESS_HOME[0];
 
-        map = MapUtils.newMap(new google.maps.LatLng(addressToUse.latitude,addressToUse.longitude),17,"the_map",false);
+        map = MapUtils.newMap(new google.maps.LatLng(addressToUse.latitude,addressToUse.longitude),16,"the_map",false);
         map.setPreserveView(preserveView);
         if (!map.isPreserveViewChecked())
             bounds = map.getBounds();
