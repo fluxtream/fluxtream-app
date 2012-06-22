@@ -11,7 +11,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         var filtered = 0;
         var avg = 0;
         for (var i = 0; i < gpsData.length; i++){
-            if (gpsData[i].accuracy > config.flatAccuracyCutoff){
+            if (gpsData[i].accuracy > config.flatAccuracyCutoff || gpsData[i].accuracy == 0){
                 filtered++
                 continue;
             }
@@ -22,7 +22,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             avg /= gpsData.length - filtered;
             var std = 0;
             for (var i = 0; i < gpsData.length; i++){
-                if (gpsData[i].accuracy > config.flatAccuracyCutoff)
+                if (gpsData[i].accuracy > config.flatAccuracyCutoff || gpsData[i].accuracy == 0)
                     continue;
                 std += Math.pow(gpsData[i].accuracy - avg,2);
             }
@@ -31,7 +31,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             cutoff = avg + std * config.stdAccuracyCutoff;
         }
         for (var i = 0; i < gpsData.length; i++){
-            if (gpsData[i].accuracy > cutoff){;
+            if (gpsData[i].accuracy > cutoff  || gpsData[i].accuracy == 0){
                 continue;
             }
             var lat = gpsData[i].position[0];
