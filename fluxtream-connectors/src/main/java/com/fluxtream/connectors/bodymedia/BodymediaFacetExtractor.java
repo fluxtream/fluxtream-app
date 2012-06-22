@@ -44,7 +44,7 @@ public class BodymediaFacetExtractor extends AbstractFacetExtractor
         {
             facets = extractBurnFacets(apiData, objectType);
         }
-        else if(name.equals("Sleep"))
+        else if(name.equals("sleep"))
         {
             facets = extractSleepFacets(apiData, objectType);
         }

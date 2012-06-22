@@ -10,7 +10,7 @@ import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.domain.AbstractFacet;
 
 @Entity(name="Facet_BodymediaSleep")
-@ObjectTypeSpec(name = "Sleep", value = 4, prettyname = "Sleep")
+@ObjectTypeSpec(name = "sleep", value = 4, prettyname = "sleep", extractor = BodymediaFacetExtractor.class)
 @NamedQueries({
 	@NamedQuery(name = "bodymedia.sleep.deleteAll", query = "DELETE FROM Facet_BodymediaSleep facet WHERE facet.guestId=?"),
 	@NamedQuery(name = "bodymedia.sleep.between", query = "SELECT facet FROM Facet_BodymediaSleep facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=?")

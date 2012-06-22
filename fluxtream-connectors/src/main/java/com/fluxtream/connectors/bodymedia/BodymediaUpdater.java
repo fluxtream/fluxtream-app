@@ -40,7 +40,7 @@ public class BodymediaUpdater extends AbstractUpdater
     {
         super();
         ObjectType burn = ObjectType.getObjectType(connector(), "burn");
-        ObjectType sleep = ObjectType.getObjectType(connector(), "Sleep");
+        ObjectType sleep = ObjectType.getObjectType(connector(), "sleep");
         ObjectType steps = ObjectType.getObjectType(connector(), "steps");
         url.put(burn, "burn/day/minute/intensity/");
         url.put(sleep, "sleep/day/period/");
@@ -59,10 +59,13 @@ public class BodymediaUpdater extends AbstractUpdater
         String userRegistrationDate = getUserRegistrationDate(updateInfo, api_key);
         for(ObjectType ot : updateInfo.objectTypes())
         {
-            //DateTime should be initialized to today
-            DateTime today = new DateTime();
-            DateTime start = DateTimeFormat.forPattern("yyyyMMdd").parseDateTime(userRegistrationDate);
-            retrieveBurnHistory(updateInfo, ot, url.get(ot), maxIncrement.get(ot), start, today);
+            if(ot.getName().equals("burn"))
+            {
+                //DateTime should be initialized to today
+                DateTime today = new DateTime();
+                DateTime start = DateTimeFormat.forPattern("yyyyMMdd").parseDateTime(userRegistrationDate);
+                retrieveBurnHistory(updateInfo, ot, url.get(ot), maxIncrement.get(ot), start, today);
+            }
         }
     }
 
@@ -125,9 +128,12 @@ public class BodymediaUpdater extends AbstractUpdater
     {
         for(ObjectType ot : updateInfo.objectTypes())
         {
-            DateTime today = new DateTime();
-            DateTime start = getLastSyncTime(updateInfo, ot);
-            retrieveBurnHistory(updateInfo, ot, url.get(ot), maxIncrement.get(ot), start, today);
+            if(ot.getName().equals("burn"))
+            {
+                DateTime today = new DateTime();
+                DateTime start = getLastSyncTime(updateInfo, ot);
+                retrieveBurnHistory(updateInfo, ot, url.get(ot), maxIncrement.get(ot), start, today);
+            }
         }
     }
 
