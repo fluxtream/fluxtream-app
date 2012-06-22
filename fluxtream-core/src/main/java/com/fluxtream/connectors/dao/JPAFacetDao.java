@@ -1,16 +1,13 @@
 package com.fluxtream.connectors.dao;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-
+import java.lang.reflect.Method;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
@@ -18,8 +15,10 @@ import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.utils.JPAUtils;
+import org.springframework.stereotype.Component;
 
 @Repository
+@Component
 public class JPAFacetDao implements FacetDao {
 
 	@Autowired
@@ -60,7 +59,6 @@ public class JPAFacetDao implements FacetDao {
 		}
 		return facets;
 	}
-
     @Override
     public AbstractFacet getLatestFacet(final Connector connector, final long guestId, final ObjectType objectType) {
         if (!connector.hasFacets()) return null;

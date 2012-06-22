@@ -5,19 +5,16 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
-
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import com.fluxtream.ApiData;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.metadata.DayMetadataFacet;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 import com.fluxtream.services.MetadataService;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class ZeoSleepStatsFacetExtractor extends AbstractFacetExtractor {
@@ -35,14 +32,18 @@ public class ZeoSleepStatsFacetExtractor extends AbstractFacetExtractor {
 		if (response.has("sleepRecords")) {
 
 			JSONObject sleepRecordsWrapper = response
-					.getJSONObject("sleepRecords");
-
-			JSONArray sleepStatsArray = sleepRecordsWrapper
-					.getJSONArray("sleepRecord");
-			for (int i = 0; i < sleepStatsArray.size(); i++) {
-				extractStatsData(facets, apiData,
-						sleepStatsArray.getJSONObject(i));
-			}
+					.optJSONObject("sleepRecords");
+            //In the case that there is no data, sleepRecords will be null even though it exists in the JSON
+            if(sleepRecordsWrapper != null)
+            {
+                JSONArray sleepStatsArray = sleepRecordsWrapper
+                        .getJSONArray("sleepRecord");
+                for (int i = 0; i < sleepStatsArray.size(); i++)
+                {
+                    extractStatsData(facets, apiData,
+                            sleepStatsArray.getJSONObject(i));
+                }
+            }
 
 		} else if (response.has("sleepStats")) {
 			extractStatsData(facets, apiData,

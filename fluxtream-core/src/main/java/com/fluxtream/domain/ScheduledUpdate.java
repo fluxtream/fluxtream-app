@@ -3,7 +3,6 @@ package com.fluxtream.domain;
 import javax.persistence.Entity;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-
 import com.fluxtream.connectors.updaters.UpdateInfo;
 
 @Entity(name="ScheduledUpdate")
@@ -34,7 +33,7 @@ public class ScheduledUpdate extends AbstractEntity {
 	public Status status = Status.SCHEDULED;
 	public long timeScheduled;
 		
-	public enum Status { SCHEDULED, IN_PROGRESS, DONE, FAILED };
+	public static enum Status { SCHEDULED, IN_PROGRESS, DONE, FAILED };
 	public UpdateInfo.UpdateType updateType;
 	
 	public long guestId;
