@@ -203,12 +203,12 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
         });
 
 
-        $("#_timeline_gotoBeginning_button").click(function() { gotoTime("beginning"); });
-        $("#_timeline_gotoBack_button").click(function() { gotoTime("back"); });
-        $("#_timeline_gotoForward_button").click(function() { gotoTime("forward"); });
-        $("#_timeline_gotoEnd_button").click(function() { gotoTime("end"); });
-        $("#_timeline_zoomOut_button").click(function() { zoomTime("out"); });
-        $("#_timeline_zoomIn_button").click(function() { zoomTime("in"); });
+        $("#_timeline_new_gotoBeginning_button").click(function(event) { event.preventDefault(); gotoTime("beginning"); });
+        $("#_timeline_new_gotoBack_button").click(function(event) { event.preventDefault(); gotoTime("back"); });
+        $("#_timeline_new_gotoForward_button").click(function(event) { event.preventDefault(); gotoTime("forward"); });
+        $("#_timeline_new_gotoEnd_button").click(function(event) { event.preventDefault(); gotoTime("end"); });
+        $("#_timeline_new_zoomOut_button").click(function(event) { event.preventDefault(); zoomTime("out"); });
+        $("#_timeline_new_zoomIn_button").click(function(event) { event.preventDefault(); zoomTime("in"); });
 
         // Configure the photo dialog
         $("#_timeline_photo_dialog")['dialog'](
@@ -866,7 +866,8 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
         plotContainers.push(plotContainer);
 
         // Gear button
-        $("._timeline_btnGear").unbind("click").click(function() {
+        $("#_timeline_btnGear").unbind("click").click(function(event) {
+            event.preventDefault();
             var channelConfigElement = $(this).parents("._timeline_channel")
                 .children("._timeline_channelConfig");
 
@@ -883,7 +884,8 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
         // Delete buton
         $("#" + channelElementId + "_delete_btn")
             .unbind('click')
-            .click(function() {
+            .click(function(event) {
+                event.preventDefault();
                 var channelElement = $(this).parents("._timeline_channel").parent();
                 plotContainer.removePlot(plot);
                 $(channelElement).remove();
@@ -1166,7 +1168,8 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
             });
 
             /* add event handler for the Show all Y range link */
-            $("#" + channelElementId + " ._timeline_btnShowAllY").click(function() {
+            $("#" + channelElementId + " #_timeline_btnShowAllY").click(function(event) {
+                event.preventDefault();
                 var plot = plotsMap[channelElementId];
                 if (!(plot && !!plot.getStatistics)) {
                     // Photo plots don't have a getStatistics method

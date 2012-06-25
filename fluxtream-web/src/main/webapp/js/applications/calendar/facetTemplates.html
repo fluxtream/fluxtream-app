@@ -1,5 +1,5 @@
 <template id="twitter-tweet">
-   <div class="flx-box twitter"> 
+   <div class="flx-box" style="border-color:{{color}}">
         <span class="flx-deviceIcon twitter"></span>
         <div class="flx-tTime">{{time}}</div>
         <div class="flx-data">
@@ -9,7 +9,7 @@
    </div>
 </template>
 <template id="twitter-mention">
-    <div class="flx-box twitter">    
+    <div class="flx-box" style="border-color:{{color}}">
         <span class="flx-deviceIcon twitter"></span>
         <div class="flx-tTime">{{time}}</div>
         <div class="flx-data">
@@ -19,7 +19,7 @@
     </div>
 </template>
 <template id="twitter-dm">
-    <div class="flx-box twitter">
+    <div class="flx-box" style="border-color:{{color}}">
         <span class="flx-deviceIcon twitter"></span>
         <div class="flx-tTime">{{time}}</div>
         <div class="flx-data">
@@ -29,7 +29,7 @@
     </div>
 </template>
 <template id="google_calendar-entry">
-    <div class="flx-box calendar">
+    <div class="flx-box" style="border-color:{{color}}">
         <span class="flx-deviceIcon calendar"></span>
         <div class="flx-tTime">{{time}}</div>
         <div class="flx-data">
@@ -38,7 +38,7 @@
     </div>
 </template>
 <template id="lastfm-loved_track">
-    <div class="flx-box lastfm">
+    <div class="flx-box" style="border-color:{{color}}">
         <span class="flx-deviceIcon lastfm"></span>
         <div class="flx-tTime">{{time}}</div>
         <div class="flx-data">
@@ -48,7 +48,7 @@
     </div>
 </template>
 <template id="lastfm-recent_track">
-    <div class="flx-box lastfm">
+    <div class="flx-box" style="border-color:{{color}}">
         <span class="flx-deviceIcon lastfm"></span>
         <div class="flx-tTime">{{time}}</div>
         <div class="flx-data">
@@ -58,7 +58,7 @@
     </div>
 </template>
 <template id="fitbit-activity_summary">
-    <div class="flx-box fitbit">    
+    <div class="flx-box" style="border-color:{{color}}">
         <span class="flx-deviceIcon fitbit"></span>
         <div class="flx-tTime">{{time}}</div>
         <div class="flx-data">
@@ -68,7 +68,7 @@
 </div>
 </template>
 <template id="fitbit-logged_activity">
-    <div class="flx-box fitbit">    
+    <div class="flx-box" style="border-color:{{color}}">
         <span class="flx-deviceIcon fitbit"></span>
         <div class="flx-tTime">{{time}}</div>
         <div class="flx-data">
@@ -77,7 +77,7 @@
     </div>
 </template>
 <template id="fitbit-sleep">
-    <div class="flx-box fitbit">    
+    <div class="flx-box" style="border-color:{{color}}">
         <span class="flx-deviceIcon fitbit"></span>
         <div class="flx-tTime">{{time}}</div>
         <div class="flx-data">
@@ -86,7 +86,7 @@
     </div>
 </template>
 <template id="picasa-photo">
-    <div class="flx-box picasa">    
+    <div class="flx-box" style="border-color:{{color}}">
         <span class="flx-deviceIcon picasa"></span>
         <div class="flx-tTime">{{time}}</div>    
         <div class="flx-data">
@@ -96,7 +96,7 @@
     </div>
 </template>
 <template id="bodymedia-burn">
-    <div class="flx-box bm">    
+    <div class="flx-box" style="border-color:{{color}}">
         <span class="flx-deviceIcon bm-burn"></span>
         <div class="flx-tTime">{{time}}</div>
         <div class="flx-data">
@@ -105,7 +105,7 @@
     </div>
 </template>
 <template id="sms_backup-call_log">
-    <div class="flx-box sms">    
+    <div class="flx-box" style="border-color:{{color}}">
         <span class="flx-deviceIcon sms-call-log"></span>
         <div class="flx-tTime">{{time}}</div>
         <div class="flx-data">
@@ -114,7 +114,7 @@
     </div>
 </template>
 <template id="zeo-Sleep">
-    <div class="flx-box zeo">    
+    <div class="flx-box" style="border-color:{{color}}">
         <span class="flx-deviceIcon zeo"></span>
         <div class="flx-tTime">{{time}}</div>
         <div class="flx-deviceData">
@@ -123,7 +123,7 @@
     </div>
 </template>
 <template id="bodymedia-Sleep">
-    <div  class="flx-box bm">    
+    <div  class="flx-box" style="border-color:{{color}}">
         <span class="flx-deviceIcon bm-sleep"></span>
         <div class="flx-tTime">{{time}}</div>
         <div class="flx-deviceData">
@@ -132,7 +132,7 @@
     </div>
 </template>
 <template id="bodymedia-steps">
-    <div  class="flx-box bm">   
+    <div  class="flx-box" style="border-color:{{color}}">
         <span class="flx-deviceIcon bm-steps"></span>
         <div class="flx-tTime">{{time}}</div>
         <div class="flx-data">
@@ -142,7 +142,7 @@
     </div>
 </template>
 <template id="sms_backup-sms">
-    <div class="flx-box sms">    
+    <div class="flx-box" style="border-color:{{color}}">
         <span class="flx-deviceIcon sms"></span>
         <div class="flx-tTime">{{time}}</div>
         <div class="flx-data">
@@ -151,7 +151,7 @@
     </div>
 </template>
 <template id="withings-blood_pressure">
-    <div class="flx-box withings">   
+    <div class="flx-box" style="border-color:{{color}}">
         <span class="flx-deviceIcon withings"></span>
         <div class="flx-tTime">{{time}}</div>
         <div class="flx-deviceData">
@@ -160,7 +160,7 @@
     </div>
 </template>
 <template id="withings-weight">
-    <div class="flx-box withings">    
+    <div class="flx-box" style="border-color:{{color}}">
         <span class="flx-deviceIcon withings"></span>
         <div class="flx-tTime">{{time}}</div>
         <div class="flx-data">
@@ -170,7 +170,7 @@
     </div>
 </template>
 <template id="toodledo-task">
-    <div class="flx-box toodledo">    
+    <div class="flx-box" style="border-color:{{color}}">
         <span class="flx-deviceIcon toodledo"></span>
         <div class="flx-tTime">{{time}}</div>
         <div class="flx-data">
@@ -179,7 +179,7 @@
     </div>
 </template>
 <template id="toodledo-goal">
-    <div class="flx-box toodledo">    
+    <div class="flx-box" style="border-color:{{color}}">
         <span class="flx-deviceIcon toodledo" style="background-size:100% 100%;"></span>
         <div class="flx-tTime">{{time}}</div>
         <div class="flx-data">
@@ -187,8 +187,8 @@
         </div>
     </div>
 </template>
-<template id="latitude">
-    <div class="flx-box latitude">    
+<template id="google_latitude">
+    <div class="flx-box" style="border-color:{{color}}">
         <span class="flx-deviceIcon latitude" style="background-size:100% 100%;"></span>
         <div class="flx-tTime">{{time}}</div>
         <div class="flx-data">

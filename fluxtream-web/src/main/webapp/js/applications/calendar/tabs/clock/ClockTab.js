@@ -193,11 +193,12 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 			drawEvents(payload, category.orbit, category.color);
 	}
 
-	function drawEvents(items, orbit, color) {
+	function drawEvents(items, orbit) {
 		if (typeof(items)=="undefined") return;
 		for (i = 0; i < items.length; i++) {
 			try {
 				var item = items[i];
+                var color = App.getConnectorConfig(App.getFacetConnector(item.type)).color;
 				config.clockCircles.push(
 					function() {
 						var start = item.startMinute;

@@ -4,7 +4,7 @@
 		  <div id="_timeline_messageArea">Loading...</div>
 
 		  <div id="_timeline_mainContentArea" style="display:none">
-		    <span>
+		    <span style="display: none; ">
 	    	  <span id="_timeline_viewName" style="font-size:18px; color:#333;"></span>
 
                 <div class="btn-group" style="display:inline-block; vertical-align:middle;">
@@ -28,21 +28,26 @@
 
 		    <table id="_timeline_dataTable" border="0" cellpadding="0" cellspacing="0" class="fullHeight">
 		      <tr valign="top">
-		        <td id="_timeline_addChannelsArea" class="_timeline_pane"></td>
+		        <td><table><tr><td id="_timeline_addChannelsArea" class="_timeline_pane"></td></tr></table></td>
 		        <td id="_timeline_dateAxisAndChannelsArea" style="display: none;">
 		          <table border="0" cellpadding="0" cellspacing="0">
 		            <tr>
 		              <td>
-		                <div id="_timeline_gotozoom">
-		                  <button id="_timeline_gotoBeginning_button" class="_timeline_gotozoom_button" />
-		                  <button id="_timeline_gotoBack_button" class="_timeline_gotozoom_button" />
-		                  <button id="_timeline_gotoForward_button" class="_timeline_gotozoom_button" />
-		                  <button id="_timeline_gotoEnd_button" class="_timeline_gotozoom_button" />
-		                  <img id="_timeline_gotozoom_separator"
-		                    src="/static/images/dotted_line.png"
-		                    alt="" />
-		                  <button id="_timeline_zoomOut_button" class="_timeline_gotozoom_button" />
-		                  <button id="_timeline_zoomIn_button" class="_timeline_gotozoom_button" />
+		                <div id="_timeline_gotozoom" style="width: 230px; padding-left: 5px;">
+                            <div class="flx-channel-navigation">
+                                <div class="btn-toolbar">
+                                    <div class="btn-group">
+                                        <a id="_timeline_new_zoomIn_button" href="#" class="btn"> <i class="icon-zoom-in"></i> </a>
+                                        <a id="_timeline_new_zoomOut_button" href="#" class="btn"> <i class="icon-zoom-out"></i> </a>
+                                    </div>
+                                    <div class="btn-group">
+                                        <a id="_timeline_new_gotoBeginning_button" href="#" class="btn"> <i class="icon-fast-backward"></i> </a>
+                                        <a id="_timeline_new_gotoBack_button" href="#" class="btn"> <i class="icon-step-backward"></i> </a>
+                                        <a id="_timeline_new_gotoForward_button" href="#" class="btn"> <i class="icon-step-forward"></i> </a>
+                                        <a id="_timeline_new_gotoEnd_button" href="#" class="btn"> <i class="icon-fast-forward"></i> </a>
+                                    </div>
+                                </div>
+                            </div>
 		                </div>
 		              </td>
 		              <td>
@@ -86,41 +91,17 @@
         <table border="0" cellpadding="0" cellspacing="0">
           <tr>
             <td class="_timeline_channeltd" rowspan="2">
-              <div class="_timeline_channelTab"
-                id="_timeline_channelTab_{{plotId}}"
-                style="height: {{channelTabHeight}}px">
-                <table border="0" cellpadding="0" cellspacing="0" class="_timeline_channelTable">
-                  <tr>
-                    <td valign="middle" style="width:32px"><div id="{{channelElementId}}_delete_btn" class="_timeline_delete_btn"></div></td>
-                    <td valign="middle"
-                        style="width: auto; max-width: 141px">
-                      <div id="{{channelElementId}}-timeline-channel-name"
-                          class="_timeline_channelName">
-                        {{channelName}}
-                      </div>
-                      <div class="_timeline_channelSource">{{deviceName}}</div>
-                      <div id="{{channelElementId}}-timeline-channel-filter" class="_timeline_channelFilter"></div>
-                    </td>
-                    <td valign="bottom" style="width: 27px">
-                      <table border="0" cellpadding="0" cellspacing="0">
-                        <tr style="height: auto"></tr>
-                        <tr style="height: 17px; margin-bottom: 5px">
-                          <td>
-                            <button class="_timeline_btnShowAllY"/>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <div class="_timeline_btnGear">
-                              <img src="/static/images/gear_b.png">
-                            </div>
-                          </td>
-                        </tr>
-                      </table>
-                    </td>
-                  </tr>
-                </table>
-              </div>
+                <div class="flx-channel">
+                    <div class="flx-remove-channel" id="{{channelElementId}}_delete_btn"><a href="#"><i class="icon-remove-sign"></i></a></div>
+                    <div class="flx-channel-name">
+                        <h4>{{deviceName}}</h4>
+                        <p>{{channelName}}</p>
+                    </div>
+                    <ul class="flx-channel-controls">
+                        <li><a href="#" id="_timeline_btnShowAllY"><i class="icon-resize-vertical"></i></a></li>
+                        <li><a href="#" id="_timeline_btnGear"><i class="icon-pencil"></i></a></li>
+                    </ul>
+                </div>
             </td>
             <td class="_timeline_plottd">
               <div id="{{plotElementId}}_container" class="_timeline_plotContainer">
