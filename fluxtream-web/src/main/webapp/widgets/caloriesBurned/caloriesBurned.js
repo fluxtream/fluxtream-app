@@ -1,7 +1,8 @@
 define(function() {
     var CaloriesBurned = {};
-    CaloriesBurned.sayHello = function() {
-        alert("Hello from CaloriesBurned")
+    CaloriesBurned.load = function(digest) {
+        console.log("Hello from CaloriesBurned");
+        console.log(digest);
     }
     return CaloriesBurned;
 })

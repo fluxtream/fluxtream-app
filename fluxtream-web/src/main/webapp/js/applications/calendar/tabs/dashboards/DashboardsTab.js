@@ -64,10 +64,11 @@ define(["applications/calendar/tabs/Tab",
 
     function fireWidgets(activeWidgets) {
         for (var i=0; i<activeWidgets.length; i++) {
-            var widgetModule = require(activeWidgets[i].WidgetRepositoryURL + "/"
+            require([activeWidgets[i].WidgetRepositoryURL + "/"
                                        + activeWidgets[i].WidgetName + "/"
-                                       + activeWidgets[i].WidgetName + ".js");
-            widgetModule.sayHello();
+                                       + activeWidgets[i].WidgetName + ".js"], function(WidgetModule) {
+                WidgetModule.load(digest);
+            });
         }
     }
 
