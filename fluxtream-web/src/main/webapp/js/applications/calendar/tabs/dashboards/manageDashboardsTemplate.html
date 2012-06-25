@@ -10,3 +10,27 @@
         </div>
     </div>
 </template>
+
+<template id="widgetsGrid">
+    <div class="row-fluid">
+        {{#rows}}
+        <div class="row-fluid">
+            {{#widgets}}
+            <div class="flx-widget span4" id="{{WidgetName}}-widget">
+                <header>
+                    <div class="flx-widget-controls">
+                        <a href="#" class="flx-settings"><i class="icon-cog"></i></a>
+                        <a href="#" class="flx-remove"><i class="icon-remove"></i></a>
+                    </div>
+                    <h3 class="flx-title">{{WidgetTitle.en}}</h3>
+                </header>
+                <div class="flx-body">
+                </div>
+                <footer>
+                </footer>
+            </div>
+            {{/widgets}}
+        </div>
+        {{/rows}}
+    </div>
+</template>

@@ -24,7 +24,7 @@ define(["applications/calendar/tabs/Tab",
         App.fullHeight();
     }
 
-    function populateTemplate(dashboards) {
+    function populateTemplate(dashboardsTemplateData) {
         this.getTemplate("text!applications/calendar/tabs/dashboards/dashboards.html", "dashboards",
                          function() {
                              $("#addWidgetButton").click(addWidget);
@@ -37,9 +37,52 @@ define(["applications/calendar/tabs/Tab",
                                      type: "PUT"
                                  });
                              });
+                             fetchWidgets(getActiveWidgets(dashboardsTemplateData.dashboards));
                          },
-                         dashboards
+                         dashboardsTemplateData
         );
+    };
+
+    function fetchWidgets(activeWidgets) {
+        var rows = [];
+        var row = {widgets:[]};
+        for (var i=0; i<activeWidgets.length; i++) {
+            if(i%3==0) {
+                row = {widgets:[]};
+                rows.push(row);
+            }
+            row.widgets.push(activeWidgets[i]);
+        }
+        console.log({rows: rows});
+        App.loadMustacheTemplate("applications/calendar/tabs/dashboards/manageDashboardsTemplate.html","widgetsGrid", function(template){
+            var html = template.render({rows: rows});
+            $("#dashboardsTab .tab-content").empty();
+            $("#dashboardsTab .tab-content").append(html);
+            fireWidgets(activeWidgets)
+        });
+    }
+
+    function fireWidgets(activeWidgets) {
+        for (var i=0; i<activeWidgets.length; i++) {
+            var widgetModule = require(activeWidgets[i].WidgetRepositoryURL + "/"
+                                       + activeWidgets[i].WidgetName + "/"
+                                       + activeWidgets[i].WidgetName + ".js");
+            widgetModule.sayHello();
+        }
+    }
+
+    function getActiveWidgets(dashboards) {
+        var activeDashboard = getActiveDashboard(dashboards);
+        return activeDashboard.widgets;
+    }
+
+    function getActiveDashboard(dashboards) {
+        for (var i=0; i<dashboards.length; i++) {
+            console.log("dashboard id: " + dashboards[i].id);
+            if (dashboards[i].id===dashboardsTab.activeDashboard)
+                return dashboards[i];
+        }
+        return null;
     }
 
     function addWidget() {

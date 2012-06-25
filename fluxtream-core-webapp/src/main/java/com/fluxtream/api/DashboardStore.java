@@ -54,19 +54,40 @@ public class DashboardStore {
         JSONArray jsonArray = new JSONArray();
         for (final ListIterator eachDashboard = dashboards.listIterator(); eachDashboard.hasNext(); ) {
             final Dashboard dashboard = (Dashboard)eachDashboard.next();
-            JSONObject dashboardJson = toDashboardJson(dashboard);
+            JSONObject dashboardJson = toDashboardJson(dashboard, guestId);
             jsonArray.add(dashboardJson);
         }
         return jsonArray.toString();
     }
 
-    private JSONObject toDashboardJson(final Dashboard dashboard) {
+    private JSONObject toDashboardJson(final Dashboard dashboard, long guestId) {
         JSONObject dashboardJson = new JSONObject();
         dashboardJson.accumulate("id", dashboard.getId());
         dashboardJson.accumulate("name", dashboard.name);
         dashboardJson.accumulate("active", dashboard.active);
-        dashboardJson.accumulate("widgets", toJsonArray(dashboard.widgetNames));
+        final List<DashboardWidget> availableWidgetsList = widgetsService.getAvailableWidgetsList(guestId);
+        final String[] widgetNames = StringUtils.split(dashboard.widgetNames, ",");
+        JSONArray widgetsArray = new JSONArray();
+        there: for (String widgetName : widgetNames) {
+            for (DashboardWidget dashboardWidget : availableWidgetsList) {
+                if (dashboardWidget.WidgetName.equals(widgetName)) {
+                    widgetsArray.add(toJSONObject(dashboardWidget));
+                    continue there;
+                }
+            }
+        }
+        dashboardJson.accumulate("widgets", widgetsArray);
         return dashboardJson;
+    }
+
+    private JSONObject toJSONObject(final DashboardWidget dashboardWidget) {
+        JSONObject widgetJson = new JSONObject();
+        widgetJson.accumulate("WidgetName", dashboardWidget.WidgetName);
+        widgetJson.accumulate("WidgetRepositoryURL", dashboardWidget.WidgetRepositoryURL);
+        widgetJson.accumulate("WidgetDescription", dashboardWidget.WidgetDescription);
+        widgetJson.accumulate("WidgetTitle", dashboardWidget.WidgetTitle);
+        widgetJson.accumulate("WidgetIcon", dashboardWidget.WidgetIcon);
+        return widgetJson;
     }
 
     private JSONArray toJsonArray(final String commaSeparatedWidgetNames) {
@@ -143,7 +164,7 @@ public class DashboardStore {
         long guestId = ControllerHelper.getGuestId();
         dashboardsService.addWidget(guestId, dashboardId, widgetJson);
         final Dashboard dashboard = dashboardsService.getDashboard(guestId, dashboardId);
-        return toDashboardJson(dashboard).toString();
+        return toDashboardJson(dashboard, guestId).toString();
     }
 
     @DELETE
@@ -155,7 +176,7 @@ public class DashboardStore {
         long guestId = ControllerHelper.getGuestId();
         dashboardsService.removeWidget(guestId, dashboardId, widgetName);
         final Dashboard dashboard = dashboardsService.getDashboard(guestId, dashboardId);
-        return toDashboardJson(dashboard).toString();
+        return toDashboardJson(dashboard, guestId).toString();
     }
 
     @POST
@@ -167,7 +188,7 @@ public class DashboardStore {
         final String[] wNames = StringUtils.split(widgetNames, ",");
         dashboardsService.setWidgetsOrder(guestId, dashboardId, wNames);
         final Dashboard dashboard = dashboardsService.getDashboard(guestId, dashboardId);
-        return toDashboardJson(dashboard).toString();
+        return toDashboardJson(dashboard, guestId).toString();
     }
 
     @POST
