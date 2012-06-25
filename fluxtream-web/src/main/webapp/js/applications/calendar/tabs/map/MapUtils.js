@@ -42,7 +42,8 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             map.gpsPositions[map.gpsPositions.length] = new google.maps.LatLng(lat,lng);
             map.markers[gpsData[i].type][map.markers[gpsData[i].type].length] = new google.maps.Marker({map:map,
                                                                             position:map.gpsPositions[map.gpsPositions.length-1],
-                                                                           icon:config.GPS_CATEGORY.icon,
+                                                                           icon:App.getConnectorConfig(App.getFacetConnector(gpsData[i].type)).mapicon,
+                                                                           shadow:App.getConnectorConfig(App.getFacetConnector(gpsData[i].type)).mapshadow,
                                                                            clickable:false});
             map.gpsTimestamps[map.gpsTimestamps.length] = gpsData[i].start;
             map.gpsAccuracies[map.gpsAccuracies.length] = gpsData[i].accuracy;
@@ -138,40 +139,6 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         }
     }
 
-    function addImagesToMap(map,items,clickable){
-        var markerArray = new Array();
-        for (var i = 0; i < items.length; i++){
-            var marker = addImageToMap(map,items[i],clickable);
-            if (marker != null)
-                markerArray[markerArray.length] = marker;
-        }
-        if (markerArray.length = 0);
-            markerArray = null;
-        return markerArray;
-    }
-
-    function addImageToMap(map,item,clickable){
-        var category = config.SOCIAL_CATEGORY;
-        var start = item.timeTaken;
-        if (start < map.gpsTimestamps[0] || start > map.gpsTimestamps[map.gpsTimestamps.length - 1])
-            return null;
-        var marker = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(start), icon:category.icon, shadow:category.shadow});
-        enhanceMarker(map,marker,start,null);
-        if (!clickable)
-            return marker;
-        google.maps.event.addListener(marker, "click", function(){
-            map.connectorSelected = item.type;
-            if (map.selectedMarker != null)
-                map.selectedMarker.hideCircle();
-            map.selectedMarker = marker;
-            map.infoWindow.setContent('<div style="text-align:center;"><img class="mapImagePreview" src="' + item.photoUrl + '"></img></div>');
-            map.infoWindow.open(map,marker);
-            marker.doHighlighting();
-            marker.showCircle();
-        });
-        return marker;
-    }
-
     function addItemsToMap(map,items,clickable){
         var markerArray = new Array();
         for (var i = 0; i < items.length; i++){
@@ -186,37 +153,12 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
 
     //creates a marker with extended functionality
     function addItemToMap(map,item,clickable){
-        var category;
-        switch (item.type){
-            case "sms_backup-sms":
-            case "sms_backup-call_Calendar":
-            case "twitter-dm":
-            case "twitter-tweet":
-            case "twitter-mention":
-                category = config.SOCIAL_CATEGORY;
-                break;
-            case "google_calendar-entry":
-            case "toodledo-task":
-                category = config.MIND_CATEGORY;
-                break;
-            case "fitbit-sleep":
-            case "withings-bpm":
-                category = config.BODY_CATEGORY;
-                break;
-            case "picasa-photo":
-            case "flickr":
-            case "lastfm-recent_track":
-            case "lastfm-loved_track":
-                category = config.MEDIA_CATEGORY;
-                break;
-            default:
-                return null;
-        }
+        var itemConfig = App.getConnectorConfig(App.getFacetConnector(item.type));
         var start = item.start;
         var end = item.end;
         if (start > map.gpsTimestamps[map.gpsTimestamps.length - 1] || (end == null && start < map.gpsTimestamps[0]))
             return;
-        var marker = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(start), icon:category.icon, shadow:category.shadow,clickable:clickable});
+        var marker = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(start), icon:itemConfig.mapicon, shadow:itemConfig.mapshadow,clickable:clickable});
         enhanceMarker(map,marker,start,end);
         if (!clickable)
             return marker;

@@ -237,7 +237,9 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 enabled =  digest.cachedData[digest.selectedConnectors[i].facetTypes[j]] != null;
             }
             enabled = enabled ? "" : "flx-disconnected";
-            var button = $('<li><a href="#" class="flx-active ' + enabled + " " + digest.selectedConnectors[i].connectorName + '">' + digest.selectedConnectors[i].prettyName + '</button></li>');
+            var button = $('<li><a href="#" class="flx-active ' + enabled + '">' + digest.selectedConnectors[i].prettyName + '</button></li>');
+            if (enabled == "")
+                button.children().css("border-bottom-color",App.getConnectorConfig(digest.selectedConnectors[i].connectorName).color);
             selectedConnectors.append(button);
             button = $(button.children()[0]);
             buttons[digest.selectedConnectors[i].connectorName] = button;
@@ -320,7 +322,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             console.log("WARNING: no template found for " + data.type + ".");
             return "";
         }
-        var params = {};
+        var params = {color:App.getConnectorConfig(App.getFacetConnector(data.type)).color};
         for (var member in data){
             switch (member){
                 case "startMinute":
