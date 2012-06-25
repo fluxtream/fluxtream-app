@@ -1,7 +1,7 @@
 define(
-    [ "core/FlxState", "Addresses", "ManageConnectors", "AddConnectors",
+    [ "core/FlxState", "Addresses", "ManageConnectors", "AddConnectors", "ConnectorConfig",
       "libs/jquery.form", "libs/jquery.qtip.min" ],
-    function(FlxState, Addresses, ManageConnectors, AddConnectors) {
+    function(FlxState, Addresses, ManageConnectors, AddConnectors, ConnectorConfig) {
 
         var App = {};
         var toLoad = 0, loaded = 0;
@@ -217,6 +217,22 @@ define(
                        });
             }
         };
+
+        App.getConnectorConfig = function(connectorName){
+            var config = ConnectorConfig[connectorName];
+            if (config == null){
+                console.log("WARNING: No config found for connector: " + connectorName);
+                config = ConnectorConfig.default;
+            }
+            return config;
+        }
+
+        App.getFacetConnector = function(facetName){
+            var firstDash = facetName.indexOf("-");
+            if (firstDash != -1)
+                return facetName.substring(0,firstDash);
+            return facetName;
+        }
 
         function startsWith(s, prefix) {
             return s.substr(0, prefix.length) === prefix;
