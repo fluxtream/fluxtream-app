@@ -17,6 +17,7 @@ public class LocationFacetVO extends AbstractInstantFacetVO<LocationFacet> {
 	public float[] position;
 	public String time;
     public int accuracy;
+    public String source;
 
 	@Override
 	public void fromFacet(
@@ -29,6 +30,7 @@ public class LocationFacetVO extends AbstractInstantFacetVO<LocationFacet> {
 		Date date = new Date(facet.timestampMs);
 		this.startMinute = toMinuteOfDay(date, timeInterval.timeZone);
 		this.time = hmDateFormat.withZone(DateTimeZone.forTimeZone(timeInterval.timeZone)).print(date.getTime());
+        source = facet.source.name();
 	}
 	
 }
