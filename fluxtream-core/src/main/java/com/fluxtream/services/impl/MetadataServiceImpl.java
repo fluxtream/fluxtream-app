@@ -5,24 +5,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.NavigableSet;
-import java.util.StringTokenizer;
 import java.util.TimeZone;
-
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
-
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.lang.WordUtils;
-import org.apache.log4j.Logger;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.fluxtream.Configuration;
 import com.fluxtream.connectors.google_latitude.LocationFacet;
 import com.fluxtream.connectors.vos.AbstractFacetVO;
@@ -36,10 +22,18 @@ import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.NotificationsService;
 import com.fluxtream.thirdparty.helpers.WWOHelper;
 import com.fluxtream.utils.JPAUtils;
-import com.fluxtream.utils.TimeUtils;
+import org.apache.commons.httpclient.HttpException;
+import org.apache.log4j.Logger;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(readOnly = true)
+@Component
 public class MetadataServiceImpl implements MetadataService {
 
 	Logger logger = Logger.getLogger(MetadataServiceImpl.class);

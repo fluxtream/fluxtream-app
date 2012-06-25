@@ -7,13 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
-import org.springframework.core.type.filter.AnnotationTypeFilter;
-import org.springframework.stereotype.Component;
-
 import com.fluxtream.connectors.annotations.JsonFacetCollection;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.connectors.annotations.Updater;
@@ -23,6 +16,11 @@ import com.fluxtream.connectors.vos.AbstractFacetVOCollection;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.AbstractUserProfile;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
+import org.springframework.core.type.filter.AnnotationTypeFilter;
+import org.springframework.stereotype.Component;
 
 @Component
 public class Connector {
@@ -48,14 +46,12 @@ public class Connector {
 		String string = "{name:" + name;
 		if (this.objectTypes != null) {
 			string += ", objectTypes:[";
-			if (objectTypes != null) {
-				for (int i = 0; i < objectTypes.length; i++) {
-					if (i > 0)
-						string += ", ";
-					string += objectTypes[i].getName() + "/"
-							+ objectTypes[i].value();
-				}
-			}
+            for (int i = 0; i < objectTypes.length; i++) {
+                if (i > 0)
+                    string += ", ";
+                string += objectTypes[i].getName() + "/"
+                        + objectTypes[i].value();
+            }
 			string += "], objectTypeValues: [" + toString(objectTypeValues())
 					+ "], objectTypeExtractorClasses: "
 					+ this.objectTypeExtractorClasses + "}";
@@ -316,7 +312,7 @@ public class Connector {
 			while (eachObjectTypeValue.hasNext()) {
 				int objectTypeValue = eachObjectTypeValue.next();
 				if ((objectTypes&objectTypeValue)!=0) {
-					extractorClass = objectTypeExtractorClasses.get(objectTypeValue);
+                    extractorClass = objectTypeExtractorClasses.get(objectTypeValue);
 					break;
 				}
 			}

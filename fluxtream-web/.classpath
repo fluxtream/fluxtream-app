@@ -5,9 +5,6 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="con" path="org.eclipse.m2e.MAVEN2_CLASSPATH_CONTAINER"/>
 	<classpathentry kind="con" path="org.maven.ide.eclipse.MAVEN2_CLASSPATH_CONTAINER"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/fluxtream-connectors"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/fluxtream-core"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/fluxtream-core-webapp"/>
 	<classpathentry kind="lib" path="src/main/webapp/WEB-INF/lib/granule1.0.9.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

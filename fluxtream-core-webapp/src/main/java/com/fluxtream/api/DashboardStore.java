@@ -2,6 +2,7 @@ package com.fluxtream.api;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
@@ -16,8 +17,10 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.domain.Dashboard;
+import com.fluxtream.domain.DashboardWidget;
 import com.fluxtream.mvc.controllers.ControllerHelper;
 import com.fluxtream.services.DashboardsService;
+import com.fluxtream.services.WidgetsService;
 import com.google.gson.Gson;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -36,6 +39,9 @@ public class DashboardStore {
 
     @Autowired
     DashboardsService dashboardsService;
+
+    @Autowired
+    WidgetsService widgetsService;
 
     Gson gson = new Gson();
 
@@ -86,6 +92,25 @@ public class DashboardStore {
         long guestId = ControllerHelper.getGuestId();
         dashboardsService.removeDashboard(guestId, dashboardId);
         return getDashboards();
+    }
+
+    @GET
+    @Path("/{dashboardId}/availableWidgets")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String getAvailableWidgets(@PathParam("dashboardId") long dashboardId) {
+        long guestId = ControllerHelper.getGuestId();
+        final List<DashboardWidget> availableWidgetsList = widgetsService.getAvailableWidgetsList(guestId);
+        final List<DashboardWidget> widgetsNotYetInDashboard = new ArrayList<DashboardWidget>();
+        final Dashboard dashboard = dashboardsService.getDashboard(guestId, dashboardId);
+        final String[] dashboardWidgets = StringUtils.split(dashboard.widgetNames, ",");
+        outerloop: for (DashboardWidget availableWidget : availableWidgetsList) {
+            for (String dashboardWidgetName : dashboardWidgets) {
+                if (availableWidget.WidgetName.equals(dashboardWidgetName))
+                    continue outerloop;
+            }
+            widgetsNotYetInDashboard.add(availableWidget);
+        }
+        return gson.toJson(widgetsNotYetInDashboard);
     }
 
     @PUT

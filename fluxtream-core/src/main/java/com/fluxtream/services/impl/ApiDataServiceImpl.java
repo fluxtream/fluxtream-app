@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.StringTokenizer;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.persistence.Entity;
@@ -33,7 +32,6 @@ import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.thirdparty.helpers.WWOHelper;
 import net.sf.json.JSONObject;
-import org.apache.commons.lang.WordUtils;
 import org.apache.log4j.Logger;
 import org.dom4j.Document;
 import org.joda.time.DateTimeZone;
@@ -41,11 +39,13 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(readOnly = true)
+@Component
 public class ApiDataServiceImpl implements ApiDataService {
 
 	static Logger logger = Logger.getLogger(ApiDataServiceImpl.class);

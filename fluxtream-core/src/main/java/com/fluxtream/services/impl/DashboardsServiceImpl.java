@@ -124,8 +124,9 @@ public class DashboardsServiceImpl implements DashboardsService {
     @Transactional(readOnly=false)
     public void addWidget(final long guestId, final long dashboardId, final String widgetName) {
         Dashboard dashboard = getDashboardById(guestId, dashboardId);
-        List<String> widgetNames = Arrays.asList(StringUtils.split(dashboard.widgetNames, ","));
-
+        final String[] namesArray = StringUtils.split(dashboard.widgetNames, ",");
+        List<String> widgetNames = new ArrayList<String>();
+        for (String s : namesArray) widgetNames.add(s);
         final List<DashboardWidget> availableWidgetsList = widgetsService.getAvailableWidgetsList(guestId);
         for (DashboardWidget dashboardWidget : availableWidgetsList) {
             if (dashboardWidget.WidgetName.equals(widgetName)) {
@@ -133,7 +134,7 @@ public class DashboardsServiceImpl implements DashboardsService {
                 break;
             }
         }
-        dashboard.widgetNames = widgetNames.toString();
+        dashboard.widgetNames = StringUtils.join(widgetNames, ",");
         em.persist(dashboard);
     }
 
@@ -141,7 +142,9 @@ public class DashboardsServiceImpl implements DashboardsService {
     @Transactional(readOnly=false)
     public void removeWidget(final long guestId, final long dashboardId, final String widgetName) {
         Dashboard dashboard = getDashboardById(guestId, dashboardId);
-        List<String> widgetNames = Arrays.asList(StringUtils.split(dashboard.widgetNames, ","));
+        final String[] namesArray = StringUtils.split(dashboard.widgetNames, ",");
+        List<String> widgetNames = new ArrayList<String>();
+        for (String s : namesArray) widgetNames.add(s);
         widgetNames.remove(widgetName);
         dashboard.widgetNames = StringUtils.join(widgetNames, ",");
         em.persist(dashboard);

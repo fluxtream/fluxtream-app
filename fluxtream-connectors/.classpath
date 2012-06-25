@@ -8,5 +8,9 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="con" path="org.maven.ide.eclipse.MAVEN2_CLASSPATH_CONTAINER"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/fluxtream-core"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/fluxtream-core-webapp"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/fluxtream-web"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/fluxtream-webapp"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

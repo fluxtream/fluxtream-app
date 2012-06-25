@@ -6,19 +6,16 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TimeZone;
-
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import com.fluxtream.ApiData;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 import com.fluxtream.services.MetadataService;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class FitbitFacetExtractor extends AbstractFacetExtractor {
@@ -46,14 +43,6 @@ public class FitbitFacetExtractor extends AbstractFacetExtractor {
 					" connector=fitbit action=extractFacets error=no such objectType");
 
 		return facets;
-	}
-	
-	public void updateWeekFacets() {
-		
-	}
-	
-	public void updateMonthFacets() {
-		
 	}
 
 	private void extractSummaryActivityInfo(ApiData apiData,

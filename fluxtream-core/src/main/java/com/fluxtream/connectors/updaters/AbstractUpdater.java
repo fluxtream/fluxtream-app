@@ -150,8 +150,13 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 		throw new RuntimeException("Not Implemented");
 	}
 
+    /**
+     * Updates all connector information
+     * @param updateInfo update information for the connector
+     * @throws Exception If an api's limit has been reached or if an update fails for another reason
+     */
 	protected void updateConnectorDataHistory(UpdateInfo updateInfo)
-			throws RateLimitReachedException, Exception {
+			throws Exception {
 		throw new RuntimeException("Not Implemented");
 	}
 
@@ -197,15 +202,20 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 	final protected void countSuccessfulApiCall(long guestId, int objectTypes,
 			long then, String query) {
 		connectorUpdateService.addApiUpdate(guestId, connector(), objectTypes,
-				then, System.currentTimeMillis() - then, query, true);
+				then, System.currentTimeMillis() - then, query, true, 0);
 	}
 
 	final protected void countFailedApiCall(long guestId, int objectTypes,
 			long then, String query) {
 		connectorUpdateService.addApiUpdate(guestId, connector(), objectTypes,
-				then, System.currentTimeMillis() - then, query, false);
+				then, System.currentTimeMillis() - then, query, false, 0);
 	}
 
+    /**
+     * Performs and incremental update of the connector
+     * @param updateInfo Update information
+     * @throws Exception If update fails
+     */
 	protected abstract void updateConnectorData(UpdateInfo updateInfo)
 			throws Exception;
 
