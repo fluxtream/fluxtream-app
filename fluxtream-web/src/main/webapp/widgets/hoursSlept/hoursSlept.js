@@ -1,6 +1,6 @@
 define(function() {
     var HoursSlept = {};
-    HoursSlept.load = function(digest) {
+    HoursSlept.load = function(metadata, digest) {
         console.log("Hello from HoursSlept");
         console.log(digest);
     }

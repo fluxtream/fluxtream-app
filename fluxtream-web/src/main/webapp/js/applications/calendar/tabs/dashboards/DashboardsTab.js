@@ -8,7 +8,6 @@ define(["applications/calendar/tabs/Tab",
 	function render(digestInfo, timeUnit) {
         _.bindAll(this);
 		digest = digestInfo;
-        var that = this;
         $.ajax({
                 url: "/api/dashboards",
                 success: function(dashboards) {
@@ -16,10 +15,10 @@ define(["applications/calendar/tabs/Tab",
                         if (dashboards[i].active)
                             dashboardsTab.activeDashboard = dashboards[i].id;
                     }
-                    that.populateTemplate({dashboards : dashboards,
+                    dashboardsTab.populateTemplate({dashboards : dashboards,
                                               release : window.FLX_RELEASE_NUMBER});
                 }
-               }
+            }
         );
         App.fullHeight();
     }
@@ -34,7 +33,11 @@ define(["applications/calendar/tabs/Tab",
                                  dashboardsTab.activeDashboard = dashboardId;
                                  $.ajax({
                                      url: "/api/dashboards/" + dashboardsTab.activeDashboard + "/active",
-                                     type: "PUT"
+                                     type: "PUT",
+                                     success: function(dashboards) {
+                                         dashboardsTab.populateTemplate({dashboards : dashboards,
+                                                                         release : window.FLX_RELEASE_NUMBER});
+                                     }
                                  });
                              });
                              fetchWidgets(getActiveWidgets(dashboardsTemplateData.dashboards));
@@ -54,22 +57,45 @@ define(["applications/calendar/tabs/Tab",
             row.widgets.push(activeWidgets[i]);
         }
         console.log({rows: rows});
-        App.loadMustacheTemplate("applications/calendar/tabs/dashboards/manageDashboardsTemplate.html","widgetsGrid", function(template){
+        App.loadMustacheTemplate("applications/calendar/tabs/dashboards/dashboardsTabTemplates.html","widgetsGrid", function(template){
             var html = template.render({rows: rows});
-//            $("#dashboardsTab .tab-content").empty();
-//            $("#dashboardsTab .tab-content").append(html);
-            fireWidgets(activeWidgets)
+            $("#dashboardsTab .tab-content").empty();
+            $("#dashboardsTab .tab-content").append(html);
+            $(".flx-remove-widget").click(function() {
+                var widgetId = $(this).parent().parent().parent().attr("id");
+                var i = widgetId.indexOf("-widget");
+                var widgetName = widgetId.substring(0, i);
+                removeWidget(widgetName);
+            })
+            loadWidgets(activeWidgets)
         });
     }
 
-    function fireWidgets(activeWidgets) {
+    function removeWidget(widgetName) {
+        console.log("removing widget " + widgetName);
+        var that = this;
+        $.ajax({
+                   url: "/api/dashboards/" + dashboardsTab.activeDashboard + "/widgets/" + widgetName,
+                   type: "DELETE",
+                   success: function(dashboards) {
+                       dashboardsTab.populateTemplate({dashboards : dashboards,
+                                                 release : window.FLX_RELEASE_NUMBER});
+                   }
+               }
+        );
+    }
+
+    function loadWidgets(activeWidgets) {
         for (var i=0; i<activeWidgets.length; i++) {
             require([activeWidgets[i].WidgetRepositoryURL + "/"
                                        + activeWidgets[i].WidgetName + "/"
-                                       + activeWidgets[i].WidgetName + ".js"], function(WidgetModule) {
-                WidgetModule.load(digest);
-            });
-        }
+                                       + activeWidgets[i].WidgetName + ".js",
+                     "text!" + activeWidgets[i].WidgetRepositoryURL + "/"
+                         + activeWidgets[i].WidgetName + "/manifest.json"],
+                function(WidgetModule, manifest) {
+                    WidgetModule.load(JSON.parse(manifest), digest);
+                });
+            }
     }
 
     function getActiveWidgets(dashboards) {
@@ -87,7 +113,7 @@ define(["applications/calendar/tabs/Tab",
     }
 
     function addWidget() {
-        AddWidget.show(dashboardsTab.activeDashboard);
+        AddWidget.show(dashboardsTab);
     }
 
     function manageDashboards() {

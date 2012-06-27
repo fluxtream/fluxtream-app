@@ -163,8 +163,7 @@ public class DashboardStore {
         widgetJson = URLDecoder.decode(widgetJson, "UTF-8");
         long guestId = ControllerHelper.getGuestId();
         dashboardsService.addWidget(guestId, dashboardId, widgetJson);
-        final Dashboard dashboard = dashboardsService.getDashboard(guestId, dashboardId);
-        return toDashboardJson(dashboard, guestId).toString();
+        return getDashboards();
     }
 
     @DELETE
@@ -175,8 +174,7 @@ public class DashboardStore {
         widgetName = URLDecoder.decode(widgetName, "UTF-8");
         long guestId = ControllerHelper.getGuestId();
         dashboardsService.removeWidget(guestId, dashboardId, widgetName);
-        final Dashboard dashboard = dashboardsService.getDashboard(guestId, dashboardId);
-        return toDashboardJson(dashboard, guestId).toString();
+        return getDashboards();
     }
 
     @POST
@@ -187,8 +185,7 @@ public class DashboardStore {
         long guestId = ControllerHelper.getGuestId();
         final String[] wNames = StringUtils.split(widgetNames, ",");
         dashboardsService.setWidgetsOrder(guestId, dashboardId, wNames);
-        final Dashboard dashboard = dashboardsService.getDashboard(guestId, dashboardId);
-        return toDashboardJson(dashboard, guestId).toString();
+        return getDashboards();
     }
 
     @POST

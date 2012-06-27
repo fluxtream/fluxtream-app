@@ -1,10 +1,10 @@
 define(function() {
 
-    var activeDashboardId;
+    var dashboardsTab;
 
-    function show(adid){
-        activeDashboardId = adid;
-        $.ajax("/api/dashboards/" + activeDashboardId + "/availableWidgets",{
+    function show(dt){
+        dashboardsTab = dt;
+        $.ajax("/api/dashboards/" + dashboardsTab.activeDashboard + "/availableWidgets",{
             success: function(data, textStatus, jqXHR){
                 var rows = [];
                 var row = {widgets:[]};
@@ -21,7 +21,7 @@ define(function() {
     }
 
     function dataLoaded(data){
-        App.loadMustacheTemplate("applications/calendar/tabs/dashboards/addWidgetTemplate.html","addWidgetDialog",function(template){
+        App.loadMustacheTemplate("applications/calendar/tabs/dashboards/dashboardsTabTemplates.html","addWidgetDialog",function(template){
             var html = template.render(data);
             App.makeModal(html);
             bindDialog();
@@ -32,10 +32,12 @@ define(function() {
         $("#availableWidgets a").click(function() {
             var widgetName = $(this).attr("name");
             $.ajax({
-                url: "/api/dashboards/" + activeDashboardId + "/widgets",
+                url: "/api/dashboards/" + dashboardsTab.activeDashboard + "/widgets",
                 type: "POST",
-                data: {widget : widgetName},
-                success: function() {
+                data: { widget : widgetName },
+                success: function(dashboards) {
+                    dashboardsTab.populateTemplate({dashboards : dashboards,
+                                                    release : window.FLX_RELEASE_NUMBER});
                     App.closeModal();
                 }
            })
