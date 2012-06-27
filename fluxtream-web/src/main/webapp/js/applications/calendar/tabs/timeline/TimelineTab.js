@@ -890,7 +890,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
         plotContainers.push(plotContainer);
 
         // Gear button
-        $("#_timeline_btnGear").unbind("click").click(function(event) {
+        $("#" + channelElementId + "_btnGear").unbind("click").click(function(event) {
             event.preventDefault();
             var channelConfigElement = $(this).parents("._timeline_channel")
                 .children("._timeline_channelConfig");
@@ -1193,7 +1193,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
             });
 
             /* add event handler for the Show all Y range link */
-            $("#" + channelElementId + " #_timeline_btnShowAllY").click(function(event) {
+            $("#" + channelElementId + " #" + channelElementId + "_btnShowAllY").click(function(event) {
                 event.preventDefault();
                 var plot = plotsMap[channelElementId];
                 if (!(plot && !!plot.getStatistics)) {
@@ -1404,6 +1404,10 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
             // Finally, trigger a call updateDataSeriesPlotChannelConfig() so that the grapher properly represents the config settings
             $("#" + channelElementId + "-config-comments-fillColor").change();
         } else if (plot instanceof PhotoSeriesPlot) {
+
+            $("#" + channelElementId + " #" + channelElementId + "_btnShowAllY").click(function(event){
+                event.preventDefault();
+            });
 
             // returns the array of tags already selected for this photo
             var getUserSelectedTags = function() {
