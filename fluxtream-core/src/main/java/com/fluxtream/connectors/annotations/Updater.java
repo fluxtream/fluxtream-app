@@ -29,5 +29,7 @@ public @interface Updater {
 	public boolean hasFacets() default true;
 	
 	public String[] additionalParameters() default {};
+
+    public String[] defaultChannels() default {};
 	
 }

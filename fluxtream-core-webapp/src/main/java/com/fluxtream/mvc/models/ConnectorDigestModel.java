@@ -5,4 +5,5 @@ import java.util.List;
 
 public class ConnectorDigestModel extends ConnectorModel {
     public List<String> facetTypes = new ArrayList<String>();
+    public String[] channelNames;
 }

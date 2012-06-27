@@ -48,7 +48,7 @@ import com.fluxtream.utils.Utils;
 @Controller
 @Updater(prettyName = "Fitbit", value = 7, updateStrategyType = UpdateStrategyType.PUSH, objectTypes = {
 		FitbitActivityFacet.class, FitbitLoggedActivityFacet.class,
-		FitbitSleepFacet.class })
+		FitbitSleepFacet.class }, defaultChannels = {"Fitbit.steps","Fitbit.caloriesOut"})
 @JsonFacetCollection(FitbitFacetVOCollection.class)
 public class FitBitTSUpdater extends AbstractUpdater {
 
