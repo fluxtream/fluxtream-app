@@ -13,7 +13,7 @@ define([],function(){
             color: "#21b5cf",
             mapicon: "/static/images/mapicons/aed-2.png",
             mapshadow: null,
-            defaultChannels: ["Fitbit.steps"]
+            defaultChannels: ["Fitbit.steps","Fitbit.caloriesOut"]
         },
         bodyTrack:{
             color: "#c79409",
@@ -37,7 +37,7 @@ define([],function(){
             color: "#8c2ebb",
             mapicon: "/static/images/mapicons/photo.png",
             mapshadow: null,
-            defaultChannels: []
+            defaultChannels: ["All.photos"]
         },
         twitter:{
             color: "rgb(146, 51, 239)",
