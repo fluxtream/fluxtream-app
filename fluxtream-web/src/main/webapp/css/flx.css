@@ -411,8 +411,17 @@ a img {
 .flx-deviceIcon.withings {
   background-position: 0 -298px;
 }
-.flx-deviceIcon.twitter {
+.flx-deviceIcon.twitter-tweet {
   background-position: 0 -128px;
+}
+.flx-deviceIcon.twitter-dm-in {
+  background-position: 0 -421px;
+}
+.flx-deviceIcon.twitter-dm-out {
+  background-position: 0 -464px;
+}
+.flx-deviceIcon.twitter-mention {
+  background-position: 0 -508px;
 }
 .flx-deviceIcon.zeo {
   background-position: 0 -4px;
@@ -442,9 +451,17 @@ a img {
   overflow: hidden;
   height: 100%;
 }
+.flx-toolTipData .flx-data span {
+  font-size: 14px;
+  color: #8c8c8c;
+}
 .flx-toolTipData .flx-tTime {
   font-size: 16px;
   margin-bottom: 5px;
+}
+.flx-toolTipData .flx-tTime span {
+  font-size: 14px;
+  color: #8c8c8c;
 }
 .flx-miniGraph {
   float: left;
@@ -749,9 +766,11 @@ table .remove i {
 .flx-channel .flx-channel-name {
   padding: 20px 0 20px;
   overflow: hidden;
+  text-shadow: 1px 1px #ffffff;
 }
 .flx-channel .flx-channel-name h4 {
   font-size: 18px;
+  color: #4d4d4d;
 }
 .flx-channel .flx-channel-name p {
   margin: 0;
@@ -769,6 +788,9 @@ table .remove i {
 }
 .flx-channel .flx-channel-controls a {
   color: #b3b3b3;
+}
+.flx-channel .flx-channel-controls a i {
+  text-shadow: 1px 1px #ffffff;
 }
 .flx-channel .flx-channel-controls a:hover {
   color: #666666;
@@ -793,10 +815,11 @@ table .remove i {
   overflow: hidden;
   height: 100%;
   padding: 15px 15px;
-  border: 1px solid #cccccc;
+  border: 1px solid #e6e6e6;
   border-left-width: 5px;
   margin-bottom: 5px;
   max-width: 693px;
+  border-radius: 3px;
 }
 .flx-listItem .flx-box .flx-deviceIcon,
 .flx-listItem .flx-box .flx-tTime {
@@ -808,6 +831,11 @@ table .remove i {
   height: 42px;
   font-size: 15px;
 }
+.flx-listItem .flx-box .flx-tTime span {
+  color: #999999;
+  font-size: 14px;
+  text-transform: none;
+}
 .flx-listItem .flx-box .flx-description {
   overflow: hidden;
   height: 100%;
@@ -815,26 +843,36 @@ table .remove i {
   display: block;
   max-width: 450px;
 }
+.flx-listItem .flx-box .flx-description span {
+  font-weight: bold;
+  font-size: 14px;
+}
 .flx-listItem .flx-box.twitter {
-  border-color: #9233ef;
+  border-left-color: #9233ef;
 }
 .flx-listItem .flx-box.bm {
-  border-color: #c79409;
+  border-left-color: #c79409;
 }
 .flx-listItem .flx-box.picasa {
-  border-color: #8c2ebb;
+  border-left-color: #8c2ebb;
 }
 .flx-listItem .flx-box.fitbit {
-  border-color: #21b5cf;
+  border-left-color: #21b5cf;
 }
 .flx-listItem .flx-box.calendar {
-  border-color: #92da46;
+  border-left-color: #92da46;
 }
 .flx-listItem .flx-box.withings {
-  border-color: #16924e;
+  border-left-color: #16924e;
 }
 .flx-listItem .flx-box.lastfm {
-  border-color: #fd4938;
+  border-left-color: #fd4938;
+}
+.flx-listItem .gathered {
+  padding-bottom: 0;
+}
+.flx-listItem .gathered.closed {
+  height: 52px;
 }
 .flx-sourceFilters1 {
   list-style-type: none;

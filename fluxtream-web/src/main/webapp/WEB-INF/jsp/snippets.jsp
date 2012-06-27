@@ -42,6 +42,8 @@
 <body style="background:#fff;">
 
     <div id="content">
+        
+    
     
         <div class="navbar">
             <div class="navbar-inner">
@@ -80,7 +82,135 @@
                 </div>
             </div>
         </div>    
+        
 <div class="container-fluid"> 
+        <div class="row-fluid"> 
+            <div class="flx-listItem">   <!-- New code snippets from peri 2012-12-27 : list view : 1 style per connector -->
+                <div class="flx-box" style="border-left-color:@twitter">
+                    <span class="flx-deviceIcon twitter-dm-in"></span>
+                    <div class="flx-tTime">12:48 <span>pm</span></div>
+                    <div class="flx-data">
+                        <span style="background:url('/images/avatarDummies/malarkey.png'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
+                        <span class="flx-description"><span>@Malarkey</span> EMEA Get Started with Platform as a Service: Learn Cloud Foundry live #webinar June 27 10AM London time w @andypiper</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flx-listItem">   <!-- New code snippets from peri 2012-12-27 : list view : 1 style per connector -->
+                <div class="flx-box" style="border-left-color:@twitter">
+                    <span class="flx-deviceIcon twitter-dm-out"></span>
+                    <div class="flx-tTime">12:48 <span>pm</span></div>
+                    <div class="flx-data">
+                        <span style="background:url('/images/avatarDummies/damien.png'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
+                        <span class="flx-description"><span>@damien</span> great http://bit.ly/blabla</span>
+                    </div>
+                </div>
+            </div> 
+            <div class="flx-listItem">   <!-- New code snippets from peri 2012-12-27 : list view : 1 style per connector -->
+                <div class="flx-box" style="border-left-color:@twitter">
+                    <span class="flx-deviceIcon twitter-mention"></span>
+                    <div class="flx-tTime">12:48 <span>pm</span></div>
+                    <div class="flx-data">
+                        <span style="background:url('/images/avatarDummies/damien.png'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
+                        <span class="flx-description"><span>@damien</span> great http://bit.ly/blabla</span>
+                    </div>
+                </div>
+            </div> 
+            <div class="flx-listItem">
+                <div class="flx-box" style="border-left-color:{{color}}">
+                    <span class="flx-deviceIcon zeo"></span>
+                    <div class="flx-tTime">9:21 <span>am</span></div>
+                    <div class="flx-deviceData">
+                        <span class="flx-data">
+                           <img src="/images/connectors/dummyZeo.png" alt="dummyZeo" width="" height="" />                         
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="flx-listItem">
+                <div class="flx-box" style="border-left-color:{{color}}">
+                    <span class="flx-deviceIcon withings"></span>
+                    <div class="flx-tTime">3:56 <span>pm</span></div>
+                    <div class="flx-data">
+                        <span class="flx-description"><strong>71.05 </strong>kg</span>
+                        <span class="flx-miniGraph"><img src="/images/dashboardImgDummies/w8.png" alt="w8"/></span>
+                    </div>
+                </div>
+            </div>
+            <div class="flx-listItem">
+                <div class="flx-box gathered" style="border-left-color:{{color}}">
+                    <span class="flx-deviceIcon calendar"></span>
+                    <div style="overflow:hidden; height:100%">
+                        <div style="overflow:hidden; height:100%">
+                            <div class="flx-tTime">9:30 <span>pm</span></div>
+                            <div class="flx-data">
+                                <span class="flx-description">BLablablalba blabla bla</span>
+                            </div>
+                        </div>
+                        <div style="overflow:hidden; height:100%">
+                            <div class="flx-tTime">9:31 <span>pm</span></div>
+                            <div class="flx-data">
+                                <span class="flx-description">BLablablalba blabla bla</span>
+                            </div>
+                        </div>
+                        <div style="overflow:hidden; height:100%">
+                            <div class="flx-tTime">9:32 <span>pm</span></div>
+                            <div class="flx-data">
+                                <span class="flx-description">BLablablalba blabla bla</span>
+                            </div>
+                        </div>
+                        <div style="overflow:hidden; height:100%">
+                            <div class="flx-tTime">9:33 <span>pm</span></div>
+                            <div class="flx-data">
+                                <span class="flx-description">BLablablalba blabla bla</span>
+                            </div>
+                        </div>
+                        <div style="overflow:hidden; height:100%">
+                            <div class="flx-tTime">9:34 <span>pm</span></div>
+                            <div class="flx-data">
+                                <span class="flx-description">BLablablalba blabla bla</span>
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <div class="flx-listItem">
+                <div class="flx-box gathered closed" style="border-left-color:{{color}}">
+                    <span class="flx-deviceIcon calendar"></span>
+                    <div style="overflow:hidden; height:100%">
+                        <div style="overflow:hidden; height:100%">
+                            <div class="flx-tTime">9:30 <span>pm</span></div>
+                            <div class="flx-data">
+                                <span class="flx-description">BLablablalba blabla bla</span>
+                            </div>
+                        </div>
+                        <div style="overflow:hidden; height:100%">
+                            <div class="flx-tTime">9:31 <span>pm</span></div>
+                            <div class="flx-data">
+                                <span class="flx-description">BLablablalba blabla bla</span>
+                            </div>
+                        </div>
+                        <div style="overflow:hidden; height:100%">
+                            <div class="flx-tTime">9:32 <span>pm</span></div>
+                            <div class="flx-data">
+                                <span class="flx-description">BLablablalba blabla bla</span>
+                            </div>
+                        </div>
+                        <div style="overflow:hidden; height:100%">
+                            <div class="flx-tTime">9:33 <span>pm</span></div>
+                            <div class="flx-data">
+                                <span class="flx-description">BLablablalba blabla bla</span>
+                            </div>
+                        </div>
+                        <div style="overflow:hidden; height:100%">
+                            <div class="flx-tTime">9:34 <span>pm</span></div>
+                            <div class="flx-data">
+                                <span class="flx-description">BLablablalba blabla bla</span>
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         <div class="row-fluid"> <!-- New code snippets from peri 2012-12-19 : list view : 1 style per connector -->
             <div class="flx-toolTipData">
                 <h3 class="flx-dataType">Weight</h3>
@@ -92,9 +222,9 @@
                     <span class="flx-deviceIcon withings"></span>
                 <div class="flx-deviceData">
                     <span class="flx-tTime">9:43</span>
-                    <span class="flx-data">71.05 kg</span>
+                    <span class="flx-data">71.05 <span>kg</span></span>
                 </div>
-                <span class="flx-miniGraph"><img src="/css/dashboardImgDummies/w8.png" alt="w8"/></span>
+                <span class="flx-miniGraph"><img src="/images/dashboardImgDummies/w8.png" alt="w8"/></span>
             </div>
         </div>
 
