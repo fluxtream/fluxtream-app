@@ -22,8 +22,7 @@ if (aggressiveLoading) {
         "text!applications/calendar/tabs/clock/clockTemplate.html",
         "text!applications/calendar/tabs/photos/photosTemplate.html",
         "text!applications/calendar/tabs/timeline/timelineTemplates.html",
-        "text!applications/calendar/tabs/dashboards/addWidgetTemplate.html",
-        "text!applications/calendar/tabs/dashboards/manageDashboardsTemplate.html"
+        "text!applications/calendar/tabs/dashboards/dashboardsTabTemplates.html"
     ]);
 
     //Applications

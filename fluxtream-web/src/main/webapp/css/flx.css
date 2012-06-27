@@ -139,7 +139,7 @@ html {
 }
 div#currentTimespanLabel {
   display: inline-block;
-  width: 150px;
+  width: 250px;
   text-align: center;
   align: center;
 }
@@ -329,7 +329,7 @@ a img {
   margin-right: 18px;
 }
 #currentTimespanLabel {
-  width: 230px !important;
+  width: 250px !important;
 }
 #currentTimespanLabel h3 {
   display: block;

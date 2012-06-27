@@ -30,8 +30,8 @@
     </div>
     <div class='thumbnailGroup'>
         {{#photos}}
-        <div id="photo-{{id}}" class='thumbnailContainer'>
-            <div class='photoThumbnail' style='background-image: url({{photoUrl}})'></div>
+        <div id="photo-{{id}}" class='thumbnailContainer' style="width:{{targetWidth}}px; height:{{targetHeight}}px">
+            <div class='photoThumbnail' style='width:{{targetWidth}}px; height:{{targetHeight}}px; background-image: url({{photoUrl}})'></div>
         </div>
         {{/photos}}
     </div>
