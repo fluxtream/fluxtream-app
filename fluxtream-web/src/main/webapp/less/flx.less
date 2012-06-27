@@ -382,31 +382,24 @@ a img { text-decoration: none; }
  
 .flx-sourceFilters4 { list-style-type: none; overflow:hidden; height:100%; margin-left:0;
     li { .flx-floatL;border-right: 1px solid @white;
-        a, span {  color:@grey; border-bottom: 1px solid @grey; padding: 10px 0; background: #fff; position:relative; width: 81px; text-align:center; display:inline-block;
+        a, span {  color:@grey; border-bottom-width: 1px; border-bottom-style: solid; padding: 10px 0; background: #fff; position:relative; width: 81px; text-align:center; display:inline-block;
             -webkit-transition: all 0.1s ease-in;
             -moz-transition: all 0.1s ease-in;
             -o-transition: all 0.1s ease-in;
             transition: all 0.1s ease-in;
         }
         a:after, span:after { content:''; width:0; height: 11px; border-right:1px solid lighten(@grey, 40%); position:absolute; top:13px; right:-1px; }
+
         
         .flx-active { border-bottom-width: 4px; padding-bottom: 7px; color: @grey;}
-        .flx-disconnected { border-bottom-color: lighten(@grey, 30%);color: lighten(@grey, 30%); cursor:default }
+        a.flx-disconnected { border-bottom-color: lighten(@grey, 30%);color: lighten(@grey, 30%); cursor:default; border-bottom-width: 1px; padding-bottom:10px;}
         a:hover { text-decoration:none; 
         //border-bottom-width: 4px; padding-bottom: 7px; 
         background-color: lighten(@grey, 45%); }
      }
    
    li:last-child a:after, li:last-child a:after { border-right: 0; }  
-     
-     a.fitbit { border-bottom-color: @fitbit; }
-     a.bodytrack { border-bottom-color: @bodyTrack; }
-     a.lastfm { border-bottom-color: @lastFM; }
-     a.withings { border-bottom-color: @withings; }
-     a.picasa { border-bottom-color: @picasa; }
-     a.twitter { border-bottom-color: @twitter; }
-     a.ggleCal { border-bottom-color: @ggleCal; }
- }
+}
 
 //------- MANAGE CONNECTORS
 
