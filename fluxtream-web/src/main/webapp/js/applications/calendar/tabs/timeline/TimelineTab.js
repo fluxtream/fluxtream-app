@@ -242,17 +242,22 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
     } // init
 
     function connectorToggled(connectorName,objectTypeNames,enabled){
-            var channels = App.getConnectorConfig(connectorName).defaultChannels;
-            for (var i = 0; i < channels.length; i++){
-                var channel = getSourceChannelByFullName(channels[i]);
-                var channelMapping = sourcesMap[channel.id]
-                if (enabled)
-                    addChannel(channelMapping,null);
-                else
-                    $("._timeline_channel_" + channelMapping.device_name + "_" + channelMapping.channel_name + "_delete_btn").click();
+        for (var i = 0; i < digest.selectedConnectors.length; i++){
+            if (connectorName == digest.selectedConnectors[i].connectorName){
+                var channels = digest.selectedConnectors[i].channelNames;
+                for (var i = 0; i < channels.length; i++){
+                    var channel = getSourceChannelByFullName(channels[i]);
+                    var channelMapping = sourcesMap[channel.id]
+                    if (enabled)
+                        addChannel(channelMapping,null);
+                    else
+                        $("._timeline_channel_" + channelMapping.device_name + "_" + channelMapping.channel_name + "_delete_btn").click();
 
+                }
+                return;
             }
         }
+    }
 
     function updateLoadViewDropdown(){
         App.loadMustacheTemplate("applications/calendar/tabs/timeline/timelineTemplates.html","loadViewsDropdown",function(template){
@@ -2842,7 +2847,8 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
         }
     }
 
-    function render(digest, timeUnit, calendarState, cEn) {
+    function render(dgest, timeUnit, calendarState, cEn) {
+        digest = dgest;
         connectorEnabled = cEn;
         $("#filtersContainer").show();
         this.getTemplate("text!applications/calendar/tabs/timeline/template.html", "timeline", function() {
@@ -2852,8 +2858,10 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
     }
 
     var timelineTab = new Tab("timeline", "Candide Kemmler", "icon-film", false);
+    var digest;
 
     function setup(digest, timeUnit) {
+
         $(window).resize(function(){
             clearTimeout(BodyTrack.TOOLS.resizeTimer);
             BodyTrack.TOOLS.resizeTimer = setTimeout(BodyTrack.TOOLS.resizeHandler, 100);
@@ -2866,9 +2874,6 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
                     timelineTab.initialized = true;
                 });
             });
-        }
-        else{
-
         }
     }
 
