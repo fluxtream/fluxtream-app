@@ -1,25 +1,25 @@
-.flx-sourceFilters6 a.fitbit {
+.flx-sourceFilters4 a.fitbit {
   border-bottom-color: #21b5cf;
 }
-.flx-sourceFilters6 a.bodytrack {
+.flx-sourceFilters4 a.bodytrack {
   border-bottom-color: #c79409;
 }
-.flx-sourceFilters6 a.lastFM {
+.flx-sourceFilters4 a.lastfm {
   border-bottom-color: #fd4938;
 }
-.flx-sourceFilters6 a.withings {
+.flx-sourceFilters4 a.withings {
   border-bottom-color: #16924e;
 }
-.flx-sourceFilters6 a.picasa {
+.flx-sourceFilters4 a.picasa {
   border-bottom-color: #8c2ebb;
 }
-.flx-sourceFilters6 a.twitter {
+.flx-sourceFilters4 a.twitter {
   border-bottom-color: #9233ef;
 }
-.flx-sourceFilters6 a.ggleCal {
+.flx-sourceFilters4 a.ggleCal {
   border-bottom-color: #92da46;
 }
-.flx-sourceFilters6 a.latitude {
+.flx-sourceFilters4 a.latitude {
   border-bottom-color: #5cae5c;
 }
 ::selection {
@@ -548,7 +548,8 @@ a img {
 .flx-sourceFilters4 li a,
 .flx-sourceFilters4 li span {
   color: #808080;
-  border-bottom: 1px solid #808080;
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
   padding: 10px 0;
   background: #fff;
   position: relative;
@@ -575,10 +576,12 @@ a img {
   padding-bottom: 7px;
   color: #808080;
 }
-.flx-sourceFilters4 li .flx-disconnected {
+.flx-sourceFilters4 li a.flx-disconnected {
   border-bottom-color: #cccccc;
   color: #cccccc;
   cursor: default;
+  border-bottom-width: 1px;
+  padding-bottom: 10px;
 }
 .flx-sourceFilters4 li a:hover {
   text-decoration: none;
@@ -587,27 +590,6 @@ a img {
 .flx-sourceFilters4 li:last-child a:after,
 .flx-sourceFilters4 li:last-child a:after {
   border-right: 0;
-}
-.flx-sourceFilters4 a.fitbit {
-  border-bottom-color: #21b5cf;
-}
-.flx-sourceFilters4 a.bodytrack {
-  border-bottom-color: #c79409;
-}
-.flx-sourceFilters4 a.lastfm {
-  border-bottom-color: #fd4938;
-}
-.flx-sourceFilters4 a.withings {
-  border-bottom-color: #16924e;
-}
-.flx-sourceFilters4 a.picasa {
-  border-bottom-color: #8c2ebb;
-}
-.flx-sourceFilters4 a.twitter {
-  border-bottom-color: #9233ef;
-}
-.flx-sourceFilters4 a.ggleCal {
-  border-bottom-color: #92da46;
 }
 .synchAll {
   width: 100%;
