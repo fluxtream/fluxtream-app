@@ -26,10 +26,14 @@ define(["applications/calendar/tabs/Tab",
     function populateTemplate(dashboardsTemplateData) {
         this.getTemplate("text!applications/calendar/tabs/dashboards/dashboards.html", "dashboards",
                          function() {
+                             $("#addWidgetButton").unbind();
+                             $("#manageDashboardsButton").unbind();
+                             $(".dashboardName").unbind();
+
                              $("#addWidgetButton").click(addWidget);
                              $("#manageDashboardsButton").click(manageDashboards);
                              $(".dashboardName").click(function(evt) {
-                                 var dashboardId = $(evt.target).parent().attr("id").substring("dashboard-".length);
+                                 var dashboardId = Number($(evt.target).parent().attr("id").substring("dashboard-".length));
                                  dashboardsTab.activeDashboard = dashboardId;
                                  $.ajax({
                                      url: "/api/dashboards/" + dashboardsTab.activeDashboard + "/active",
@@ -75,13 +79,13 @@ define(["applications/calendar/tabs/Tab",
         console.log("removing widget " + widgetName);
         var that = this;
         $.ajax({
-                   url: "/api/dashboards/" + dashboardsTab.activeDashboard + "/widgets/" + widgetName,
-                   type: "DELETE",
-                   success: function(dashboards) {
-                       dashboardsTab.populateTemplate({dashboards : dashboards,
-                                                 release : window.FLX_RELEASE_NUMBER});
-                   }
+               url: "/api/dashboards/" + dashboardsTab.activeDashboard + "/widgets/" + widgetName,
+               type: "DELETE",
+               success: function(dashboards) {
+                   dashboardsTab.populateTemplate({dashboards : dashboards,
+                                             release : window.FLX_RELEASE_NUMBER});
                }
+           }
         );
     }
 
@@ -105,9 +109,11 @@ define(["applications/calendar/tabs/Tab",
 
     function getActiveDashboard(dashboards) {
         for (var i=0; i<dashboards.length; i++) {
-            console.log("dashboard id: " + dashboards[i].id);
-            if (dashboards[i].id===dashboardsTab.activeDashboard)
+            console.log("dashboard id: " + dashboards[i].id + " / " + dashboardsTab.activeDashboard);
+            if (dashboards[i].id===dashboardsTab.activeDashboard) {
+                console.log("found active dashboard: " + dashboards[i]);
                 return dashboards[i];
+            }
         }
         return null;
     }
