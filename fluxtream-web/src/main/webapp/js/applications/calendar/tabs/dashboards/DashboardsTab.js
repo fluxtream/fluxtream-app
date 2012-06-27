@@ -56,8 +56,8 @@ define(["applications/calendar/tabs/Tab",
         console.log({rows: rows});
         App.loadMustacheTemplate("applications/calendar/tabs/dashboards/manageDashboardsTemplate.html","widgetsGrid", function(template){
             var html = template.render({rows: rows});
-            $("#dashboardsTab .tab-content").empty();
-            $("#dashboardsTab .tab-content").append(html);
+//            $("#dashboardsTab .tab-content").empty();
+//            $("#dashboardsTab .tab-content").append(html);
             fireWidgets(activeWidgets)
         });
     }
