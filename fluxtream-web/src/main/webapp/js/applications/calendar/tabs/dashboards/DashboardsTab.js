@@ -16,7 +16,8 @@ define(["applications/calendar/tabs/Tab",
                         if (dashboards[i].active)
                             dashboardsTab.activeDashboard = dashboards[i].id;
                     }
-                    that.populateTemplate({"dashboards" : dashboards});
+                    that.populateTemplate({dashboards : dashboards,
+                                              release : window.FLX_RELEASE_NUMBER});
                 }
                }
         );
@@ -39,10 +40,6 @@ define(["applications/calendar/tabs/Tab",
                          },
                          dashboards
         );
-    }
-
-    function renameDashboard(value, settings) {
-        console.log("we want to rename this dashboard...");
     }
 
     function addWidget() {

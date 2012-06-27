@@ -9,7 +9,7 @@ import com.fluxtream.utils.HttpUtils;
 public class RESTHelper extends ApiClientSupport {
 	
 	public final String makeRestCall(Connector connector, long guestId,
-			int objectTypes, String urlString) throws RateLimitReachedException, Exception {
+			int objectTypes, String urlString) throws Exception {
 		
 		if (hasReachedRateLimit(connector, guestId))
 			throw new RateLimitReachedException();
@@ -19,12 +19,12 @@ public class RESTHelper extends ApiClientSupport {
 			String restResult = HttpUtils.fetch(urlString, env);
 			connectorUpdateService.addApiUpdate(guestId, connector,
 					objectTypes, then, System.currentTimeMillis() - then,
-					urlString, true);
+					urlString, true, 0);
 			return restResult;
 		} catch (Exception e) {
 			connectorUpdateService.addApiUpdate(guestId, connector,
 					objectTypes, then, System.currentTimeMillis() - then,
-					urlString, false);
+					urlString, false, 0);
 			throw e;
 		}
 	}

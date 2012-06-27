@@ -25,7 +25,7 @@ define(["applications/calendar/tabs/Tab",
         if (digest.addresses.ADDRESS_HOME != null && digest.addresses.ADDRESS_HOME.length != 0)
             addressToUse = digest.addresses.ADDRESS_HOME[0];
 
-        map = MapUtils.newMap(new google.maps.LatLng(addressToUse.latitude,addressToUse.longitude),17,"the_map",false);
+        map = MapUtils.newMap(new google.maps.LatLng(addressToUse.latitude,addressToUse.longitude),16,"the_map",false);
         map.setPreserveView(preserveView);
         if (!map.isPreserveViewChecked())
             bounds = map.getBounds();
@@ -38,8 +38,6 @@ define(["applications/calendar/tabs/Tab",
 
             if (!map.isPreserveViewChecked())
                 bounds = map.gpsBounds;
-
-            showData();
             for (var i = 0; i < digest.selectedConnectors.length; i++){
                 if (!connectorEnabled[digest.selectedConnectors[i].connectorName])
                     for (var j = 0; j < digest.selectedConnectors[i].facetTypes.length; j++){
@@ -55,30 +53,32 @@ define(["applications/calendar/tabs/Tab",
         } else {
             $("#mapFit").hide();
         }
-        if (bounds != null)
-            map.fitBounds(bounds);
+        showData();
+        if (bounds != null){
+            map.fitBounds(bounds,map.isPreserveViewChecked());
+        }
         map.preserveViewCheckboxChanged = function(){
             preserveView = map.isPreserveViewChecked();
         }
 	}
 
-    function showData(functionName){
-        if (functionName != null)
-            delete window[functionName];
+    function showData(){
         if (!map.isFullyInitialized()){
-            var functionName = "mapTimingFunction" + new Date().getUTCMilliseconds();
-            window[functionName] = showData;
-            setTimeout("window." + functionName + "(\"" + functionName + "\");",100);
+            $.doTimeout(100,showData);
             return;
         }
         var digest = digestData;
         map.addAddresses(digest.addresses,true);
-        for(var objectTypeName in digest.cachedData) {
-            if (digest.cachedData[objectTypeName]==null||typeof(digest.cachedData[objectTypeName])=="undefined")
-                continue;
-            map.addData(digest.cachedData[objectTypeName], objectTypeName, true);
+        if (digest!=null && digest.cachedData!=null &&
+            typeof(digest.cachedData.google_latitude)!="undefined"
+                && digest.cachedData.google_latitude !=null &&
+            digest.cachedData.google_latitude.length>0){
+            for(var objectTypeName in digest.cachedData) {
+                if (digest.cachedData[objectTypeName]==null||typeof(digest.cachedData[objectTypeName])=="undefined")
+                    continue;
+                map.addData(digest.cachedData[objectTypeName], objectTypeName, true);
+            }
         }
-
     }
 
     function connectorToggled(connectorName,objectTypeNames,enabled){

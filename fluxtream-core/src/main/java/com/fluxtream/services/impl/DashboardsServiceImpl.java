@@ -1,6 +1,7 @@
 package com.fluxtream.services.impl;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import javax.persistence.EntityManager;
@@ -8,12 +9,15 @@ import javax.persistence.PersistenceContext;
 import com.fluxtream.Configuration;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Dashboard;
+import com.fluxtream.domain.DashboardWidget;
 import com.fluxtream.services.DashboardsService;
 import com.fluxtream.services.GuestService;
+import com.fluxtream.services.WidgetsService;
 import com.fluxtream.utils.JPAUtils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -40,6 +44,9 @@ public class DashboardsServiceImpl implements DashboardsService {
     @Qualifier("widgets")
     PropertiesConfiguration widgetProperties;
 
+    @Autowired
+    WidgetsService widgetsService;
+
     @Override
     @Transactional(readOnly=false)
     public List<Dashboard> getDashboards(final long guestId) {
@@ -63,18 +70,16 @@ public class DashboardsServiceImpl implements DashboardsService {
     private void addDefaultWidgets(final long guestId, Dashboard dashboard) {
         List<ApiKey> keys = guestService.getApiKeys(guestId);
         Iterator<ApiKey> eachKey = keys.iterator();
-        List<JSONObject> widgetsJson = new ArrayList<JSONObject>();
+        List<String> widgetNames = new ArrayList<String>();
         while (eachKey.hasNext()) {
             ApiKey key = eachKey.next();
             String defaultWidgetKey = key.getConnector().getName() + ".defaultWidget";
             String widgetName = widgetProperties.getString(defaultWidgetKey);
             if (widgetName!=null) {
-                JSONObject widgetJson = new JSONObject();
-                widgetJson.accumulate("name", widgetName);
+                widgetNames.add(widgetName);
             }
         }
-        String jsonWidgets = widgetsJson.toString();
-        dashboard.widgetsJson = jsonWidgets;
+        dashboard.widgetNames = StringUtils.join(widgetNames, ",");
         em.persist(dashboard);
     }
 
@@ -83,7 +88,7 @@ public class DashboardsServiceImpl implements DashboardsService {
         Dashboard dashboard = new Dashboard();
         dashboard.name = dashboardName;
         dashboard.guestId = guestId;
-        dashboard.widgetsJson = "[]";
+        dashboard.widgetNames = "";
         long maxOrder = JPAUtils.count(em, "dashboards.maxOrder", guestId);
         dashboard.ordering = (int)maxOrder+1;
         em.persist(dashboard);
@@ -117,11 +122,19 @@ public class DashboardsServiceImpl implements DashboardsService {
 
     @Override
     @Transactional(readOnly=false)
-    public void addWidget(final long guestId, final long dashboardId, final String widgetJson) {
+    public void addWidget(final long guestId, final long dashboardId, final String widgetName) {
         Dashboard dashboard = getDashboardById(guestId, dashboardId);
-        JSONArray widgetsJson = JSONArray.fromObject(dashboard.widgetsJson);
-        widgetsJson.add(JSONObject.fromObject(widgetJson));
-        dashboard.widgetsJson = widgetsJson.toString();
+        final String[] namesArray = StringUtils.split(dashboard.widgetNames, ",");
+        List<String> widgetNames = new ArrayList<String>();
+        for (String s : namesArray) widgetNames.add(s);
+        final List<DashboardWidget> availableWidgetsList = widgetsService.getAvailableWidgetsList(guestId);
+        for (DashboardWidget dashboardWidget : availableWidgetsList) {
+            if (dashboardWidget.WidgetName.equals(widgetName)) {
+                widgetNames.add(widgetName);
+                break;
+            }
+        }
+        dashboard.widgetNames = StringUtils.join(widgetNames, ",");
         em.persist(dashboard);
     }
 
@@ -129,15 +142,11 @@ public class DashboardsServiceImpl implements DashboardsService {
     @Transactional(readOnly=false)
     public void removeWidget(final long guestId, final long dashboardId, final String widgetName) {
         Dashboard dashboard = getDashboardById(guestId, dashboardId);
-        JSONArray widgetsJson = JSONArray.fromObject(dashboard.widgetsJson);
-        for (int i=0; i<widgetsJson.size(); i++) {
-            JSONObject widgetJson = widgetsJson.getJSONObject(i);
-            if (widgetJson.getString("name").equals(widgetName)) {
-                widgetsJson.remove(widgetJson);
-                break;
-            }
-        }
-        dashboard.widgetsJson = widgetsJson.toString();
+        final String[] namesArray = StringUtils.split(dashboard.widgetNames, ",");
+        List<String> widgetNames = new ArrayList<String>();
+        for (String s : namesArray) widgetNames.add(s);
+        widgetNames.remove(widgetName);
+        dashboard.widgetNames = StringUtils.join(widgetNames, ",");
         em.persist(dashboard);
     }
 
@@ -145,14 +154,7 @@ public class DashboardsServiceImpl implements DashboardsService {
     @Transactional(readOnly=false)
     public void setWidgetsOrder(final long guestId, final long dashboardId, final String[] widgetNames) {
         Dashboard dashboard = getDashboardById(guestId, dashboardId);
-        JSONArray widgetsJson = JSONArray.fromObject(dashboard.widgetsJson);
-        JSONArray reorderedWidgetsJson = new JSONArray();
-        for (String widgetName : widgetNames) {
-            JSONObject widgetJson = getWidgetByName(widgetsJson, widgetName);
-            reorderedWidgetsJson.add(widgetJson);
-        }
-        final String widgetsJsonReordered = reorderedWidgetsJson.toString();
-        dashboard.widgetsJson = widgetsJsonReordered;
+        dashboard.widgetNames = StringUtils.join(widgetNames, ",");
         em.persist(dashboard);
     }
 
@@ -182,8 +184,9 @@ public class DashboardsServiceImpl implements DashboardsService {
         final List<Dashboard> dashboards = JPAUtils.find(em, Dashboard.class, "dashboards.all", guestId);
         for (Dashboard dashboard : dashboards) {
             dashboard.active = false;
-            if (dashboard.getId()==dashboardId)
+            if (dashboard.getId() == dashboardId) {
                 dashboard.active = true;
+            }
             em.persist(dashboard);
         }
     }

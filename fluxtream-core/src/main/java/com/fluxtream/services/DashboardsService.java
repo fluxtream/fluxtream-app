@@ -21,7 +21,7 @@ public interface DashboardsService {
 
     public void renameDashboard(long guestId, long previousDashboardId, String dashboardName);
 
-    public void addWidget(long guestId, long dashboardId, String widgetJson);
+    public void addWidget(long guestId, long dashboardId, String widgetName);
 
     public void removeWidget(long guestId, long dashboardId, String widgetName);
 

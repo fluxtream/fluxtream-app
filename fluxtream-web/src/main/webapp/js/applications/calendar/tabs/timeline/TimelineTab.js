@@ -24,6 +24,8 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
     var addPaneChannelsState = [];    // add channels pane channel visibility
     var CHANNEL_PADDING      = 3;     // Pixels between plot and drag area
 
+    var connectorEnabled;
+
     /// A helper to create a data fetcher for the specified URL prefix
     ///
     /// @param urlPrefix
@@ -203,12 +205,12 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
         });
 
 
-        $("#_timeline_gotoBeginning_button").click(function() { gotoTime("beginning"); });
-        $("#_timeline_gotoBack_button").click(function() { gotoTime("back"); });
-        $("#_timeline_gotoForward_button").click(function() { gotoTime("forward"); });
-        $("#_timeline_gotoEnd_button").click(function() { gotoTime("end"); });
-        $("#_timeline_zoomOut_button").click(function() { zoomTime("out"); });
-        $("#_timeline_zoomIn_button").click(function() { zoomTime("in"); });
+        $("#_timeline_new_gotoBeginning_button").click(function(event) { event.preventDefault(); gotoTime("beginning"); });
+        $("#_timeline_new_gotoBack_button").click(function(event) { event.preventDefault(); gotoTime("back"); });
+        $("#_timeline_new_gotoForward_button").click(function(event) { event.preventDefault(); gotoTime("forward"); });
+        $("#_timeline_new_gotoEnd_button").click(function(event) { event.preventDefault(); gotoTime("end"); });
+        $("#_timeline_new_zoomOut_button").click(function(event) { event.preventDefault(); zoomTime("out"); });
+        $("#_timeline_new_zoomIn_button").click(function(event) { event.preventDefault(); zoomTime("in"); });
 
         // Configure the photo dialog
         $("#_timeline_photo_dialog")['dialog'](
@@ -232,8 +234,25 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
                 console.log("callback is called: " + callback);
                 callback();
             }
+
+            for (var connectorName in connectorEnabled){
+                connectorToggled(connectorName,null,true);
+            }
         });
     } // init
+
+    function connectorToggled(connectorName,objectTypeNames,enabled){
+            var channels = App.getConnectorConfig(connectorName).defaultChannels;
+            for (var i = 0; i < channels.length; i++){
+                var channel = getSourceChannelByFullName(channels[i]);
+                var channelMapping = sourcesMap[channel.id]
+                if (enabled)
+                    addChannel(channelMapping,null);
+                else
+                    $("._timeline_channel_" + channelMapping.device_name + "_" + channelMapping.channel_name + "_delete_btn").click();
+
+            }
+        }
 
     function updateLoadViewDropdown(){
         App.loadMustacheTemplate("applications/calendar/tabs/timeline/timelineTemplates.html","loadViewsDropdown",function(template){
@@ -283,6 +302,11 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
                 return confirm("You have unsaved changes. Do you wish to continue?");
             }
         }
+    }
+
+    function getSourceChannelByFullName(full_name){
+        var firstPeriod = full_name.indexOf(".");
+        return getSourceChannelByName(full_name.substring(0,firstPeriod),full_name.substring(firstPeriod + 1));
     }
 
     function getSourceChannelByName(device_name, channel_name) {
@@ -866,7 +890,8 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
         plotContainers.push(plotContainer);
 
         // Gear button
-        $("._timeline_btnGear").unbind("click").click(function() {
+        $("#_timeline_btnGear").unbind("click").click(function(event) {
+            event.preventDefault();
             var channelConfigElement = $(this).parents("._timeline_channel")
                 .children("._timeline_channelConfig");
 
@@ -882,8 +907,10 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
 
         // Delete buton
         $("#" + channelElementId + "_delete_btn")
+            .addClass("_timeline_channel_" + channel.device_name + "_" + channel.channel_name + "_delete_btn")
             .unbind('click')
-            .click(function() {
+            .click(function(event) {
+                event.preventDefault();
                 var channelElement = $(this).parents("._timeline_channel").parent();
                 plotContainer.removePlot(plot);
                 $(channelElement).remove();
@@ -1166,7 +1193,8 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
             });
 
             /* add event handler for the Show all Y range link */
-            $("#" + channelElementId + " ._timeline_btnShowAllY").click(function() {
+            $("#" + channelElementId + " #_timeline_btnShowAllY").click(function(event) {
+                event.preventDefault();
                 var plot = plotsMap[channelElementId];
                 if (!(plot && !!plot.getStatistics)) {
                     // Photo plots don't have a getStatistics method
@@ -2810,7 +2838,8 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
         }
     }
 
-    function render(digest, timeUnit) {
+    function render(digest, timeUnit, calendarState, cEn) {
+        connectorEnabled = cEn;
         $("#filtersContainer").show();
         this.getTemplate("text!applications/calendar/tabs/timeline/template.html", "timeline", function() {
             setup(digest, timeUnit);
@@ -2834,11 +2863,15 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
                 });
             });
         }
+        else{
+
+        }
     }
 
     timelineTab.initialized = false;
     timelineTab.render = render;
     timelineTab.init = init;
+    timelineTab.connectorToggled = connectorToggled;
     timelineTab.newView = newView;
     timelineTab.setRange = setRange;
     return timelineTab;

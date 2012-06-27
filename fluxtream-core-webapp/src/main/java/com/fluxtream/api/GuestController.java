@@ -68,7 +68,7 @@ public class GuestController {
 		long guestId = ControllerHelper.getGuestId();
 
 		ApiKey apiKey = guestService.getApiKey(guestId,
-				Connector.getConnector(connectorName));
+                                               Connector.getConnector(connectorName));
 		if (apiKey != null) {
 			OAuthTokensModel oauthTokensModel = new OAuthTokensModel();
 			oauthTokensModel.accessToken = apiKey.getAttributeValue(
@@ -84,7 +84,33 @@ public class GuestController {
 		}
 	}
 
-	@POST
+    @POST
+    @Path("/{connector}/oauthTokens")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String setOAuthTokens(@PathParam("connector") String connectorName,
+                                 @FormParam("accessToken")String accessToken,
+                                 @FormParam("tokenSecret")String tokenSecret)
+            throws InstantiationException, IllegalAccessException,
+                   ClassNotFoundException {
+        long guestId = ControllerHelper.getGuestId();
+
+        ApiKey apiKey = guestService.getApiKey(guestId,
+                                               Connector.getConnector(connectorName));
+        if (apiKey != null) {
+            guestService.setApiKeyAttribute(guestId, apiKey.getConnector(), "accessToken", accessToken);
+            guestService.setApiKeyAttribute(guestId, apiKey.getConnector(), "tokenSecret", tokenSecret);
+
+            StatusModel result = new StatusModel(true,
+                                                 "Successfully updated oauth tokens: " + connectorName);
+            return gson.toJson(result);
+        } else {
+            StatusModel result = new StatusModel(false,
+                                                 "Guest does not have that connector: " + connectorName);
+            return gson.toJson(result);
+        }
+    }
+
+    @POST
 	@Path("/create")
 	@Produces({ MediaType.APPLICATION_JSON })
 	public String createGuest(@FormParam("username") String username,
