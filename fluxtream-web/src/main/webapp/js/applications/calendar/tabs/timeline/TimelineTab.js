@@ -24,6 +24,8 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
     var addPaneChannelsState = [];    // add channels pane channel visibility
     var CHANNEL_PADDING      = 3;     // Pixels between plot and drag area
 
+    var connectorEnabled;
+
     /// A helper to create a data fetcher for the specified URL prefix
     ///
     /// @param urlPrefix
@@ -232,8 +234,25 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
                 console.log("callback is called: " + callback);
                 callback();
             }
+
+            for (var connectorName in connectorEnabled){
+                connectorToggled(connectorName,null,true);
+            }
         });
     } // init
+
+    function connectorToggled(connectorName,objectTypeNames,enabled){
+            var channels = App.getConnectorConfig(connectorName).defaultChannels;
+            for (var i = 0; i < channels.length; i++){
+                var channel = getSourceChannelByFullName(channels[i]);
+                var channelMapping = sourcesMap[channel.id]
+                if (enabled)
+                    addChannel(channelMapping,null);
+                else
+                    $("._timeline_channel_" + channelMapping.device_name + "_" + channelMapping.channel_name + "_delete_btn").click();
+
+            }
+        }
 
     function updateLoadViewDropdown(){
         App.loadMustacheTemplate("applications/calendar/tabs/timeline/timelineTemplates.html","loadViewsDropdown",function(template){
@@ -283,6 +302,11 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
                 return confirm("You have unsaved changes. Do you wish to continue?");
             }
         }
+    }
+
+    function getSourceChannelByFullName(full_name){
+        var firstPeriod = full_name.indexOf(".");
+        return getSourceChannelByName(full_name.substring(0,firstPeriod),full_name.substring(firstPeriod + 1));
     }
 
     function getSourceChannelByName(device_name, channel_name) {
@@ -883,6 +907,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
 
         // Delete buton
         $("#" + channelElementId + "_delete_btn")
+            .addClass("_timeline_channel_" + channel.device_name + "_" + channel.channel_name + "_delete_btn")
             .unbind('click')
             .click(function(event) {
                 event.preventDefault();
@@ -2813,7 +2838,8 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
         }
     }
 
-    function render(digest, timeUnit) {
+    function render(digest, timeUnit, calendarState, cEn) {
+        connectorEnabled = cEn;
         $("#filtersContainer").show();
         this.getTemplate("text!applications/calendar/tabs/timeline/template.html", "timeline", function() {
             setup(digest, timeUnit);
@@ -2837,11 +2863,15 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
                 });
             });
         }
+        else{
+
+        }
     }
 
     timelineTab.initialized = false;
     timelineTab.render = render;
     timelineTab.init = init;
+    timelineTab.connectorToggled = connectorToggled;
     timelineTab.newView = newView;
     timelineTab.setRange = setRange;
     return timelineTab;
