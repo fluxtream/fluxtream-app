@@ -5,6 +5,7 @@ define(["applications/calendar/tabs/Tab",
     var maxHeight = 200;
     var ratio = maxWidth / maxHeight;
 
+
     function render(dgest, timeUnit, calendarState, cEn) {
         this.getTemplate("text!applications/calendar/tabs/photos/photos.html", "photos", function() {
             digest = dgest;
@@ -26,23 +27,7 @@ define(["applications/calendar/tabs/Tab",
             showNoPhotos();
             return;
         }
-
-        $("#photoTab").append("<div class=\"emptyList\">Loading photos...</div>");
-
-        var count = 0;
-        for (var i = 0; i < digest.cachedData["picasa-photo"].length; i++){
-            $("<img src='" + digest.cachedData["picasa-photo"][i].photoUrl + "'>").load({i:i},function(event){
-                var i = event.data.i;
-                digest.cachedData["picasa-photo"][i].width = event.target.width;
-                digest.cachedData["picasa-photo"][i].height = event.target.height;
-                digest.cachedData["picasa-photo"][i].ratio = event.target.width / event.target.height;
-                count++;
-                if (count == digest.cachedData["picasa-photo"].length)
-                    onDataRecieved(digest.cachedData["picasa-photo"]);
-
-            });
-
-        }
+        onDataRecieved(digest.cachedData["picasa-photo"]);
     }
 
     function showNoPhotos(){
@@ -51,21 +36,6 @@ define(["applications/calendar/tabs/Tab",
     }
 
     function onDataRecieved(photos){
-        for (var i = 0; i < photos.length; i++){
-            photos[i].targetHeight = photos[i].height;
-            photos[i].targetWidth = photos[i].width;
-            if (photos[i].ratio < ratio){//check height
-                if (photos[i].height > maxHeight){
-                    photos[i].targetHeight = maxHeight;
-                    photos[i].targetWidth = photos[i].width * photos[i].targetHeight / photos[i].height;
-                }
-            }
-            else if (photos[i].width > maxWidth){
-                photos[i].targetWidth = maxWidth;
-                photos[i].targetHeight = photos[i].height * photos[i].targetWidth / photos[i].width;
-
-            }
-        }
         var data = [];
         $("#photoTab").empty();
         for (var i = 0; i < photos.length; i++){
@@ -118,10 +88,12 @@ define(["applications/calendar/tabs/Tab",
                 }
                 var groups = $(".thumbnailGroup");
                 for (var i = 0; i < groups.length; i++){
-                    $(groups[i]).masonry({
-                         itemSelector: '.thumbnailContainer',
-                         columnWidth:1
-                     });
+                    $(groups[i]).imagesLoaded(function(event){
+                        $(this).masonry({
+                             itemSelector: '.photoThumbnail',
+                             columnWidth:1
+                         });
+                    });
                 }
             });
 
