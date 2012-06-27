@@ -17,6 +17,7 @@ public class DashboardWidget {
 
 
     public Map<String,String> WidgetDescription = new HashMap<String,String>();
+    public Map<String,String> WidgetTitle = new HashMap<String,String>();
     public List<String> SupportedLanguages;
     public String VendorIdentifier;
     public List<String> RequiredConnectors;
@@ -50,6 +51,11 @@ public class DashboardWidget {
             }
             WidgetIcon = manifestJSON.getString("WidgetIcon");
             WidgetName = manifestJSON.getString("WidgetName");
+            JSONObject titleDict = JSONObject.fromObject(manifestJSON.getString("WidgetTitle"));
+            for (Object o : descDict.keySet()) {
+                String key = (String) o;
+                WidgetTitle.put(key, titleDict.getString(key));
+            }
             WidgetRepositoryURL = manifestJSON.getString("WidgetRepositoryURL");
             BundleCopyright = manifestJSON.getString("BundleCopyright");
             BundleIdentifier = manifestJSON.getString("BundleIdentifier");

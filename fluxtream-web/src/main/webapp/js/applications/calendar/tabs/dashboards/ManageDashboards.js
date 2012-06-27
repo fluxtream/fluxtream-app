@@ -9,7 +9,7 @@ define(function() {
     }
 
     function dataLoaded(data){
-        App.loadMustacheTemplate("applications/calendar/tabs/dashboards/manageDashboardsTemplate.html","manageDashboardsDialog",function(template){
+        App.loadMustacheTemplate("applications/calendar/tabs/dashboards/dashboardsTabTemplates.html","manageDashboardsDialog",function(template){
             var html = template.render(data);
             App.makeModal(html);
             bindDialog();

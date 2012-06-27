@@ -139,6 +139,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 Calendar.end  = response.end;
 				FlxState.router.navigate("app/calendar/" + Calendar.currentTabName + "/" + response.state);
 				FlxState.saveState("calendar", Calendar.currentTabName + "/" + response.state);
+                document.title = "Fluxtream - Personal Analytics | " + response.currentTimespanLabel;
 				$("#currentTimespanLabel span").html(response.currentTimespanLabel);
 				if (Calendar.timeUnit==="DAY") {
 					setDatepicker(response.state.split("/")[1]);

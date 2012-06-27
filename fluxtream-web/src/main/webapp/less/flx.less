@@ -118,7 +118,7 @@ html {
 
 div#currentTimespanLabel {
     display:inline-block;
-    width: 150px;
+    width: 250px;
     text-align: center;
     align: center;
 }
@@ -301,7 +301,7 @@ a img { text-decoration: none; }
 
 .menuTodayButton { margin-right:18px; }
 
-#currentTimespanLabel { width: 230px !important;
+#currentTimespanLabel { width: 250px !important;
     h3 { display: block; float:left; padding: 0 0 0 15px; margin-top: -2px; text-align: center; }
 }
 
@@ -334,7 +334,10 @@ a img { text-decoration: none; }
 
 
 .flx-deviceIcon.withings { background-position: 0 -298px; }
-.flx-deviceIcon.twitter { background-position: 0 -128px; }
+.flx-deviceIcon.twitter-tweet { background-position: 0 -128px; }
+.flx-deviceIcon.twitter-dm-in { background-position: 0 -421px; }
+.flx-deviceIcon.twitter-dm-out { background-position: 0 -464px; }
+.flx-deviceIcon.twitter-mention { background-position: 0 -508px; }
 .flx-deviceIcon.zeo { background-position: 0 -4px; }
 .flx-deviceIcon.calendar { background-position: 0 -255px; }
 .flx-deviceIcon.lastfm { background-position: 0 -86px; }
@@ -343,13 +346,13 @@ a img { text-decoration: none; }
 .flx-deviceIcon.picasa { background-position: 0 -42px; }
 .flx-deviceIcon.fitbit { background-position: 0 -339px; }
 
-//.flx-deviceData { overflow:hidden; height: 100%; color: lighten(black, 40%); float:left;
-//    span { display: block; }
-//    .flx-data { font-size: 16px; font-weight: bold; padding-bottom:3px; }
-//}
 
-.flx-toolTipData .flx-data { max-width:270px; overflow:hidden; height: 100%;}
-.flx-toolTipData .flx-tTime { font-size: 16px; margin-bottom: 5px; }
+.flx-toolTipData .flx-data { max-width:270px; overflow:hidden; height: 100%;
+    span { font-size: 14px; color: lighten(@black, 55%); }
+}
+.flx-toolTipData .flx-tTime { font-size: 16px; margin-bottom: 5px; 
+    span { font-size: 14px; color: lighten(@black, 55%); }
+}
 .flx-miniGraph { .flx-floatL; margin-top:-20px; }
 
 .flx-toolTipContext { overflow:hidden; height:100%; margin:10px 5px 0;
@@ -463,13 +466,15 @@ table .remove { text-align:center;
         a {color: lighten(@grey,20%)}
         a:hover {color: darken(@grey, 10%); text-decoration: none;} 
     }
-    .flx-channel-name { padding: 20px 0 20px; overflow:hidden; 
-        h4 { font-size: 18px; }
+    .flx-channel-name { padding: 20px 0 20px; overflow:hidden; text-shadow:1px 1px @white;
+        h4 { font-size: 18px; color:lighten(@black, 30%) }
         p { margin:0; padding:0; }
     }
     .flx-channel-controls { padding: 20px 15px 0; list-style-type: none; 
         li { list-style-type: none; text-align:right; font-size: 20px; line-height: 22px;}
-        a { color:lighten(@grey,20%); }
+        a { color:lighten(@grey, 20%);
+            i { text-shadow:1px 1px @white; } 
+        }
         a:hover {color: darken(@grey, 10%); text-decoration: none;} 
     }   
 }
@@ -490,20 +495,26 @@ table .remove { text-align:center;
 
 //---------LIST 
 
-.flx-listItem .flx-box { overflow: hidden; height: 100%; padding: 15px 15px; border: 1px solid lighten(@black, 80%); border-left-width: 5px; margin-bottom:5px; max-width: 693px;
+.flx-listItem .flx-box { overflow: hidden; height: 100%; padding: 15px 15px; border: 1px solid lighten(@black, 90%); border-left-width: 5px; margin-bottom:5px; max-width: 693px; border-radius : 3px;
      .flx-deviceIcon, .flx-tTime { .flx-floatL }
-     .flx-tTime { padding: 0 13px 0 10px; min-width:62px; height: 42px; font-size: 15px; }
-     .flx-description { overflow:hidden; height: 100%; color:lighten(@black, 20%); display:block; max-width: 450px; }
+     .flx-tTime { padding: 0 13px 0 10px; min-width:62px; height: 42px; font-size: 15px; 
+        span {color: lighten(@black, 60%); font-size:14px; text-transform: none;}
+     }
+     .flx-description { overflow:hidden; height: 100%; color:lighten(@black, 20%); display:block; max-width: 450px; 
+     span { font-weight:bold; font-size: 14px; }
+     }
  }
 
-.flx-listItem .flx-box.twitter { border-color: @twitter; }
-.flx-listItem .flx-box.bm { border-color: @bodyTrack; }
-.flx-listItem .flx-box.picasa { border-color: @picasa; }
-.flx-listItem .flx-box.fitbit { border-color: @fitbit; }
-.flx-listItem .flx-box.calendar { border-color: @ggleCal; }
-.flx-listItem .flx-box.withings { border-color: @withings; }
-.flx-listItem .flx-box.lastfm { border-color: @lastFM; }
+.flx-listItem .flx-box.twitter { border-left-color: @twitter; }
+.flx-listItem .flx-box.bm { border-left-color: @bodyTrack; }
+.flx-listItem .flx-box.picasa { border-left-color: @picasa; }
+.flx-listItem .flx-box.fitbit { border-left-color: @fitbit; }
+.flx-listItem .flx-box.calendar { border-left-color: @ggleCal; }
+.flx-listItem .flx-box.withings { border-left-color: @withings; }
+.flx-listItem .flx-box.lastfm { border-left-color: @lastFM; }
 
+.flx-listItem .gathered { padding-bottom:0; }
+.flx-listItem .gathered.closed { height:52px; }
 
 //----------------- DISCARDED SNIPPETS
 
