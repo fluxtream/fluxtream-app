@@ -59,12 +59,12 @@ public class BodymediaUpdater extends AbstractUpdater
         String userRegistrationDate = getUserRegistrationDate(updateInfo, api_key);
         for(ObjectType ot : updateInfo.objectTypes())
         {
-            if(ot.getName().equals("burn"))
+            if(!ot.getName().equals("burn"))
             {
                 //DateTime should be initialized to today
                 DateTime today = new DateTime();
                 DateTime start = DateTimeFormat.forPattern("yyyyMMdd").parseDateTime(userRegistrationDate);
-                retrieveBurnHistory(updateInfo, ot, url.get(ot), maxIncrement.get(ot), start, today);
+                retrieveHistory(updateInfo, ot, url.get(ot), maxIncrement.get(ot), start, today);
             }
         }
     }
@@ -80,12 +80,12 @@ public class BodymediaUpdater extends AbstractUpdater
      * @param end The latest date for which the burn history is retrieved. This date is also included in the update.
      * @throws Exception If either storing the data fails or if the rate limit is reached on Bodymedia's api
      */
-    private void retrieveBurnHistory(UpdateInfo updateInfo, ObjectType ot, String urlExtension, int increment, DateTime start, DateTime end) throws Exception
+    private void retrieveHistory(UpdateInfo updateInfo, ObjectType ot, String urlExtension, int increment, DateTime start, DateTime end) throws Exception
     {
         DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyyMMdd");
         DateTimeComparator comparator = DateTimeComparator.getDateOnlyInstance();
         DateTime current = end;
-        while (comparator.compare(current, start) > 0)
+        while(comparator.compare(current, start) > 0)
         //@ loop_invariant date.compareTo(userRegistrationDate) >= 0;
         {
             String startPeriod = current.minusDays(increment-1).toString(formatter);
@@ -132,7 +132,7 @@ public class BodymediaUpdater extends AbstractUpdater
             {
                 DateTime today = new DateTime();
                 DateTime start = getLastSyncTime(updateInfo, ot);
-                retrieveBurnHistory(updateInfo, ot, url.get(ot), maxIncrement.get(ot), start, today);
+                retrieveHistory(updateInfo, ot, url.get(ot), maxIncrement.get(ot), start, today);
             }
         }
     }
