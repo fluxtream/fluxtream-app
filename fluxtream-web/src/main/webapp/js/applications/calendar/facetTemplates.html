@@ -4,7 +4,7 @@
         <div class="flx-tTime">{{time}}</div>
         <div class="flx-data">
             <span style="background:url('{{profileImageUrl}}'); background-size:100% 100%;"></span>
-            <span class="flx-description">{{description}}</span>
+            <span class="flx-description">{{{description}}}</span>
         </div>
    </div>
 </template>
@@ -14,27 +14,17 @@
         <div class="flx-tTime">{{time}}</div>
         <div class="flx-data">
             <span style="background:url('{{profileImageUrl}}'); background-size:100% 100%;"></span>
-            <span class="flx-description">{{description}}</span>
+            <span class="flx-description">{{{description}}}</span>
         </div>
     </div>
 </template>
-<template id="twitter-dm-in">
+<template id="twitter-dm">
     <div class="flx-box" style="border-left-color:{{color}}">
-        <span class="flx-deviceIcon twitter-dm"></span>
+        <span class="flx-deviceIcon twitter-dm{{^sent}}-in{{/sent}}{{#sent}}-out{{/sent}}"></span>
         <div class="flx-tTime">{{time}}</div>
         <div class="flx-data">
             <span style="background:url('{{profileImageUrl}}'); background-size:100% 100%;"></span>
-            <span class="flx-description">{{description}}</span>
-        </div>
-    </div>
-</template>
-<template id="twitter-dm-out">
-    <div class="flx-box" style="border-left-color:{{color}}">
-        <span class="flx-deviceIcon twitter-dm"></span>
-        <div class="flx-tTime">{{time}}</div>
-        <div class="flx-data">
-            <span style="background:url('{{profileImageUrl}}'); background-size:100% 100%;"></span>
-            <span class="flx-description">{{description}}</span>
+            <span class="flx-description">{{{description}}}</span>
         </div>
     </div>
 </template>
