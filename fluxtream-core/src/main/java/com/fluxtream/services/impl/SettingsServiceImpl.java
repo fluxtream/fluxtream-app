@@ -156,6 +156,7 @@ public class SettingsServiceImpl implements SettingsService {
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void setChannelsForConnector(final long guestId, final Connector connector, String[] channels) {
         guestService.setApiKeyAttribute(guestId,connector,"channels",StringUtils.join(channels,","));
     }
