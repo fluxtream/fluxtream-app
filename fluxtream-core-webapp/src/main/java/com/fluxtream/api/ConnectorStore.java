@@ -13,6 +13,7 @@ import javax.ws.rs.core.MediaType;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
+import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ApiUpdate;
 import com.fluxtream.domain.ConnectorInfo;
 import com.fluxtream.domain.Guest;
@@ -153,8 +154,8 @@ public class ConnectorStore {
         StatusModel result;
         try{
             Guest user = ControllerHelper.getGuest();
-            Connector connector = Connector.getConnector(connectorName);
-            settingsService.setChannelsForConnector(user.getId(),connector,channels.split(","));
+            ApiKey apiKey = guestService.getApiKey(user.getId(), Connector.getConnector(connectorName));
+            settingsService.setChannelsForConnector(user.getId(),apiKey.getConnector(),channels.split(","));
             result = new StatusModel(true,"Successfully updated channels for " + connectorName + ".");
         }
         catch (Exception e){
