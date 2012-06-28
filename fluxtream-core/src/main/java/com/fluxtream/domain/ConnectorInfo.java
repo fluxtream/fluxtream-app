@@ -31,6 +31,8 @@ public class ConnectorInfo extends AbstractEntity {
     public boolean syncing;
     public boolean errors;
 
+    public String[] channels;
+
     public int api;
 
 	public ConnectorInfo() {

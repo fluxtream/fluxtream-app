@@ -157,7 +157,7 @@ public class SettingsServiceImpl implements SettingsService {
 
     @Override
     public void setChannelsForConnector(final long guestId, final Connector connector, String[] channels) {
-        guestService.setApiKeyAttribute(guestId,connector,"channels",StringUtils.join(channels));
+        guestService.setApiKeyAttribute(guestId,connector,"channels",StringUtils.join(channels,","));
     }
 
     @Override
