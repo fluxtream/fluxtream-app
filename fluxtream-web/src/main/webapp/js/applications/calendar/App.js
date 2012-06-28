@@ -368,7 +368,13 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             else if (foundAtAt != -1 && (foundAtAt < foundHashAt || foundHashAt == -1)){
                 result += text.substring(indexAt,foundAtAt);
                 var foundSpaceAt = text.indexOf(" ",foundAtAt);
-                if (foundAtAt == text.length - 1 || foundSpaceAt == foundAtAt + 1 || foundHashAt == foundAtAt + 1){
+                var foundLineBreakAt = text.indexOf("\n",foundAtAt);
+                if (foundSpaceAt == -1 || (foundLineBreakAt != -1 && foundLineBreakAt < foundSpaceAt))
+                    foundSpaceAt = foundLineBreakAt;
+                var foundTabAt = text.indexOf("\t",foundAtAt);
+                if (foundSpaceAt == -1 || (foundTabAt != -1 && foundTabAt < foundSpaceAt))
+                    foundSpaceAt = foundTabAt;
+                if (foundAtAt == text.length - 1 || foundSpaceAt == foundAtAt + 1 || foundHashAt == foundAtAt + 1 || text.charAt(foundAtAt + 1) == '@'){
                     result += "@";
                     indexAt = foundAtAt + 1;
                 }
@@ -386,7 +392,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 }
                 else{
                     var linkText = text.substring(foundAtAt,foundHashAt);
-                    var userName = linkTextt.substring(1);
+                    var userName = linkText.substring(1);
                     result += "<a href='https://twitter.com/" + encodeURIComponent(userName) + "'>" + linkText + "</a>";
                     indexAt = foundHashAt;
                 }
@@ -394,7 +400,13 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             else{
                 result += text.substring(indexAt,foundHashAt);
                 var foundSpaceAt = text.indexOf(" ",foundHashAt);
-                if (foundHashAt == text.length - 1 || foundSpaceAt == foundHashAt + 1 || foundAtAt == foundHashAt + 1){
+                var foundLineBreakAt = text.indexOf("\n",foundAtAt);
+                if (foundSpaceAt == -1 || (foundLineBreakAt != -1 && foundLineBreakAt < foundSpaceAt))
+                    foundSpaceAt = foundLineBreakAt;
+                var foundTabAt = text.indexOf("\t",foundAtAt);
+                if (foundSpaceAt == -1 || (foundTabAt != -1 && foundTabAt < foundSpaceAt))
+                    foundSpaceAt = foundTabAt;
+                if (foundHashAt == text.length - 1 || foundSpaceAt == foundHashAt + 1 || foundAtAt == foundHashAt + 1 || text.charAt(foundHashAt + 1) == '#'){
                     result += "#";
                     indexAt = foundHashAt + 1;
                 }
