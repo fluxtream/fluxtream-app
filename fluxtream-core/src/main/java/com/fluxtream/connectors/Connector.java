@@ -370,8 +370,4 @@ public class Connector {
 		return additionalParameters;
 	}
 
-    public void addChannel(String channel){
-
-    }
-
 }
