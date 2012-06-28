@@ -1,0 +1,11 @@
+{
+    "WidgetDescription" : {"en" : "Steps Taken per day, week or year"},
+    "WidgetIcon" : "stepsTaken.png",
+    "WidgetName" : "stepsTaken",
+    "WidgetTitle" : {"en" : "Steps Taken"},
+    "WidgetRepositoryURL" : "http://localhost:8082/widgets",
+    "SupportedLanguages" : "en",
+    "VendorIdentifier" : "Fluxtream.com",
+    "RequiredConnectors":"bodymedia, fitbit"
+
+}

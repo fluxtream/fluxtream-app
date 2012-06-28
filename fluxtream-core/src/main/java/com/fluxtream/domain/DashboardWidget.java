@@ -28,20 +28,6 @@ public class DashboardWidget {
     public String BundleIdentifier;
     public String BundleVersion;
 
-    /**
-
-    "WidgetDescription" : {"en" : ""},
-    "WidgetIcon" : "",
-    "WidgetName" : "",
-    "WidgetURL" : "",
-    "BundleCopyright" : "",
-    "BundleIdentifier" : "",
-    "BundleVersion" : "",
-    "SupportedLanguages" : "",
-    "VendorIdentifier" : "",
-    "RequiredConnectors":"bodymedia, fitbit"
-
-     */
     public DashboardWidget(final JSONObject manifestJSON) {
         try {
             JSONObject descDict = JSONObject.fromObject(manifestJSON.getString("WidgetDescription"));
@@ -57,9 +43,6 @@ public class DashboardWidget {
                 WidgetTitle.put(key, titleDict.getString(key));
             }
             WidgetRepositoryURL = manifestJSON.getString("WidgetRepositoryURL");
-            BundleCopyright = manifestJSON.getString("BundleCopyright");
-            BundleIdentifier = manifestJSON.getString("BundleIdentifier");
-            BundleVersion = manifestJSON.getString("BundleVersion");
             SupportedLanguages = new ArrayList<String>(
                     Arrays.asList(
                             StringUtils.split(manifestJSON.getString("SupportedLanguages"),
