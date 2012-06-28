@@ -30,6 +30,21 @@
             <h3>Manage Dashboards<a href="#" class="close" data-dismiss="modal">&times;</a></h3>
         </div>
         <div class="modal-body">
+            <div class="row">
+                <div class="span6">
+                    <form class="form-horizontal">
+                        <fieldset>
+                            <label>Your dashboards:</label>
+                            <select multiple="multiple">
+                            </select>
+                            <button class="btn icon-plus"></button>
+                            <button class="btn icon-minus"></button>
+                            <br>
+                            <input type="text" class="span3" placeholder="Dashboard Name">
+                        </fieldset>
+                    </form>
+                </div>
+            </div>
         </div>
         <div class="modal-footer">
             <button class="btn" onclick="App.closeModal()">Close</button>
@@ -45,8 +60,8 @@
             <div class="flx-widget span4" id="{{WidgetName}}-widget">
                 <header>
                     <div class="flx-widget-controls">
-                        <a class="flx-widget-settings"><i class="icon-cog"></i></a>
-                        <a class="flx-remove-widget"><i class="icon-remove"></i></a>
+                        <a class="flx-widget-settings" style="cursor:pointer;"><i class="icon-cog"></i></a>
+                        <a class="flx-remove-widget" style="cursor:pointer;"><i class="icon-remove"></i></a>
                     </div>
                     <h3 class="flx-title">{{WidgetTitle.en}}</h3>
                 </header>
