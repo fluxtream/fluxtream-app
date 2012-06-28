@@ -374,6 +374,9 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 var foundTabAt = text.indexOf("\t",foundAtAt);
                 if (foundSpaceAt == -1 || (foundTabAt != -1 && foundTabAt < foundSpaceAt))
                     foundSpaceAt = foundTabAt;
+                var foundColonAt = text.indexOf(":",foundAtAt);
+                if (foundSpaceAt == -1 || (foundColonAt != -1 && foundColonAt < foundSpaceAt))
+                    foundSpaceAt = foundColonAt;
                 if (foundAtAt == text.length - 1 || foundSpaceAt == foundAtAt + 1 || foundHashAt == foundAtAt + 1 || text.charAt(foundAtAt + 1) == '@'){
                     result += "@";
                     indexAt = foundAtAt + 1;
@@ -400,12 +403,15 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             else{
                 result += text.substring(indexAt,foundHashAt);
                 var foundSpaceAt = text.indexOf(" ",foundHashAt);
-                var foundLineBreakAt = text.indexOf("\n",foundAtAt);
+                var foundLineBreakAt = text.indexOf("\n",foundHashAt);
                 if (foundSpaceAt == -1 || (foundLineBreakAt != -1 && foundLineBreakAt < foundSpaceAt))
                     foundSpaceAt = foundLineBreakAt;
-                var foundTabAt = text.indexOf("\t",foundAtAt);
+                var foundTabAt = text.indexOf("\t",foundHashAt);
                 if (foundSpaceAt == -1 || (foundTabAt != -1 && foundTabAt < foundSpaceAt))
                     foundSpaceAt = foundTabAt;
+                var foundColonAt = text.indexOf(":",foundHashAt);
+                if (foundSpaceAt == -1 || (foundColonAt != -1 && foundColonAt < foundSpaceAt))
+                    foundSpaceAt = foundColonAt;
                 if (foundHashAt == text.length - 1 || foundSpaceAt == foundHashAt + 1 || foundAtAt == foundHashAt + 1 || text.charAt(foundHashAt + 1) == '#'){
                     result += "#";
                     indexAt = foundHashAt + 1;
