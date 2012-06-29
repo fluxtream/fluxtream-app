@@ -359,7 +359,6 @@ public class ApiDataServiceImpl implements ApiDataService {
         payload.start = locationResource.timestampMs;
         payload.end = locationResource.timestampMs;
         payload.api = Connector.getConnector("google_latitude").value();
-        payload.objectType = -1;
         payload.guestId = guestId;
         payload.timestampMs = locationResource.timestampMs;
         payload.accuracy = locationResource.accuracy;

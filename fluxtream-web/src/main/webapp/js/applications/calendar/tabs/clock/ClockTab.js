@@ -42,8 +42,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         dayStart = digest.tbounds.start;
         dayEnd = digest.tbounds.end;
         map = MapUtils.newMap(new google.maps.LatLng(0,0),16,"clockMap",true);
-        if (digest.cachedData != null && digest.cachedData.google_latitude != null){
-            map.addGPSData(digest.cachedData.google_latitude);
+        if (digest.cachedData != null && digest.cachedData["google_latitude-location"] != null){
+            map.addGPSData(digest.cachedData["google_latitude-location"],false);
             map.fitBounds(map.gpsBounds);
         }
         else{
@@ -155,7 +155,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		case "fitbit-activity_summary":
 //			drawFitbitInfo(connectorData);
 			break;
-		case "google_latitude":
+		case "google_latitude-location":
 			if (connectorData!=null&&typeof(connectorData)!="undefined")
 				locationBreakdown(connectorData, digest);
 			break;
@@ -253,7 +253,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		lastHoveredEvent = event;
 		var span = event.target;
 		var facet = span.item;
-		if (facet.type=="google_latitude")
+		if (facet.type=="google_latitude-location")
 			return;
         var target = $(event.target).parent().position();
         var tip_y = target.top + event.offsetY;
@@ -266,7 +266,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                 markers[0].doHighlighting();
                 markers[0].hideMarker();
                 markers[1] = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(event.timeTarget),
-                                                    icon:markers[0].getIcon(),shadow:markers[0].getShadow()});
+                                                    icon:markers[0].getIcon(),shadow:markers[0].getShadow(),clickable:false});
                 map.enhanceMarker(markers[1],event.timeTarget);
                 markers[1].showCircle();
                 map.zoomOnMarker(markers[1]);
@@ -398,7 +398,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         if (map != null){
             map.highlightTimespan(span.item.start,span.item.end);
 
-            markers[0] = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(event.timeTarget)});
+            markers[0] = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(event.timeTarget),clickable:false});
             map.enhanceMarker(markers[0],event.timeTarget);
             markers[0].showCircle();
             if (span.item.start == span.item.end)

@@ -139,7 +139,7 @@ define(["applications/calendar/tabs/Tab"], function(Tab) {
 
     function shouldDisplayInListView(connectorId){
         switch (connectorId){
-            case "google_latitude":
+            case "google_latitude-location":
             case "bodytrack":
                 return false;
             default:

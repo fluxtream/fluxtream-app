@@ -31,10 +31,10 @@ define(["applications/calendar/tabs/Tab",
             bounds = map.getBounds();
 
         if (digest!=null && digest.cachedData!=null &&
-            typeof(digest.cachedData.google_latitude)!="undefined"
-                && digest.cachedData.google_latitude !=null &&
-            digest.cachedData.google_latitude.length>0) { //make sure gps data is available before trying to display it
-            map.addGPSData(digest.cachedData.google_latitude);
+            typeof(digest.cachedData["google_latitude-location"])!="undefined"
+                && digest.cachedData["google_latitude-location"] !=null &&
+            digest.cachedData["google_latitude-location"].length>0) { //make sure gps data is available before trying to display it
+            map.addGPSData(digest.cachedData["google_latitude-location"],true);
 
             if (!map.isPreserveViewChecked())
                 bounds = map.gpsBounds;
@@ -70,9 +70,9 @@ define(["applications/calendar/tabs/Tab",
         var digest = digestData;
         map.addAddresses(digest.addresses,true);
         if (digest!=null && digest.cachedData!=null &&
-            typeof(digest.cachedData.google_latitude)!="undefined"
-                && digest.cachedData.google_latitude !=null &&
-            digest.cachedData.google_latitude.length>0){
+            typeof(digest.cachedData["google_latitude-location"])!="undefined"
+                && digest.cachedData["google_latitude-location"] !=null &&
+            digest.cachedData["google_latitude-location"].length>0){
             for(var objectTypeName in digest.cachedData) {
                 if (digest.cachedData[objectTypeName]==null||typeof(digest.cachedData[objectTypeName])=="undefined")
                     continue;
