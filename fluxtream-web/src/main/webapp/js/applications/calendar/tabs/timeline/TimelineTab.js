@@ -141,7 +141,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
 
         // Make the channel list sortable
         $("#_timeline_channels").sortable({
-            handle      : '._timeline_channelTab',
+            handle      : '.flx-channel',
             axis        : 'y',
             tolerance   : 'pointer',
             containment : '#_timeline_channels',
