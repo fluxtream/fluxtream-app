@@ -2850,7 +2850,6 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
     function render(dgest, timeUnit, calendarState, cEn) {
         digest = dgest;
         connectorEnabled = cEn;
-        $("#filtersContainer").show();
         this.getTemplate("text!applications/calendar/tabs/timeline/template.html", "timeline", function() {
             setup(digest, timeUnit);
         });

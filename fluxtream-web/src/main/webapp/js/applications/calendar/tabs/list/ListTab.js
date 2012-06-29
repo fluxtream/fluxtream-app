@@ -3,7 +3,6 @@ define(["applications/calendar/tabs/Tab"], function(Tab) {
     var listTab = new Tab("list", "Candide Kemmler", "icon-list", true);
 
     function render(digest, timeUnit, calendarState, connectorEnabled) {
-        $("#filtersContainer").show();
         this.getTemplate("text!applications/calendar/tabs/list/list.html", "list", function(){setup(digest,connectorEnabled);});
     }
 

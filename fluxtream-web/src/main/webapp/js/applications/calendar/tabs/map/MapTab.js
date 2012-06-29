@@ -7,7 +7,6 @@ define(["applications/calendar/tabs/Tab",
     var preserveView = false;
 
     function render(digest, timeUnit, calendarState, connectorEnabled) {
-        $("#filtersContainer").show();
         this.getTemplate("text!applications/calendar/tabs/map/map.html", "map", function(){setup(digest,calendarState,connectorEnabled);});
     }
 

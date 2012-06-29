@@ -15,13 +15,16 @@ define([],function(){
             mapshadow: null,
             facets:{
                 activity_summary:{
-                    list: true
+                    list: true,
+                    photos: false
                 },
                 logged_activity:{
-                    list: true
+                    list: true,
+                    photos: false
                 },
                 sleep:{
-                    list: true
+                    list: true,
+                    photos: false
                 }
             }
         },
@@ -37,10 +40,12 @@ define([],function(){
             mapshadow: null,
             facets:{
                 recent_track:{
-                    list:true
+                    list:true,
+                    photos: false
                 },
                 loved_track:{
-                    list:true
+                    list:true,
+                    photos: false
                 }
             }
         },
@@ -50,10 +55,12 @@ define([],function(){
             mapshadow: null,
             facets:{
                 blood_pressure:{
-                    list: true
+                    list: true,
+                    photos: false
                 },
                 weight:{
-                    list: true
+                    list: true,
+                    photos: false
                 }
             }
         },
@@ -63,7 +70,8 @@ define([],function(){
             mapshadow: null,
             facets:{
                 photo:{
-                    list:true
+                    list:true,
+                    photos: true
                 }
             }
         },
@@ -73,13 +81,16 @@ define([],function(){
             mapshadow: null,
             facets:{
                 tweet:{
-                    list: true
+                    list: true,
+                    photos: false
                 },
                 dm:{
-                    list: true
+                    list: true,
+                    photos: false
                 },
                 mention:{
-                    list: true
+                    list: true,
+                    photos: false
                 }
             }
         },
@@ -89,7 +100,8 @@ define([],function(){
             mapshadow: null,
             facets:{
                 entry:{
-                    list: true
+                    list: true,
+                    photos: false
                 }
             }
         },
@@ -99,7 +111,8 @@ define([],function(){
             mapshadow: null,
             facets:{
                 location:{
-                    list: false
+                    list: false,
+                    photos: false
                 }
             }
         }
