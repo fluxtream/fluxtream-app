@@ -7,11 +7,13 @@ import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 
+import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import org.hibernate.search.annotations.Indexed;
 
 import com.fluxtream.domain.AbstractFloatingTimeZoneFacet;
 
 @Entity(name="Facet_ZeoSleepStats")
+@ObjectTypeSpec(name = "sleep", value = 1, prettyname = "Sleep")
 @NamedQueries({
 		@NamedQuery(name = "zeo.deleteAll", query = "DELETE FROM Facet_ZeoSleepStats facet WHERE facet.guestId=?"),
 		@NamedQuery(name = "zeo.between", query = "SELECT facet FROM Facet_ZeoSleepStats facet WHERE facet.guestId=? AND facet.start>=(?-3600000L*10) AND facet.end<=?")
