@@ -224,7 +224,27 @@ define(
                 console.log("WARNING: No config found for connector: " + connectorName);
                 config = ConnectorConfig.default;
             }
+            config = $.extend({}, config);
+            config.facets = false;
             return config;
+        }
+
+        App.getFacetConfig = function(facetName){
+            var config = ConnectorConfig[App.getFacetConnector(facetName)];
+            if (config == null){
+                console.log("WARNING: No config found for connector: " + connectorName);
+                config = ConnectorConfig.default;
+            }
+            var finalConfig = $.extend({},config);
+            finalConfig.facets = null;
+            var facet = config.facets[App.getFacetObjectType(facetName)];
+            if (facet != null){
+                for (var member in facet){
+                    finalConfig[member] = facet[member];
+                }
+            }
+            return finalConfig;
+
         }
 
         App.getFacetConnector = function(facetName){
@@ -232,6 +252,14 @@ define(
             if (firstDash != -1)
                 return facetName.substring(0,firstDash);
             return facetName;
+        }
+
+        App.getFacetObjectType = function(facetName){
+            var firstDash = facetName.indexOf("-");
+            if (firstDash != -1)
+                return facetName.substring(firstDash + 1);
+            return facetName;
+
         }
 
         function startsWith(s, prefix) {

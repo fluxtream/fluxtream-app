@@ -238,7 +238,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 enabled =  digest.cachedData[digest.selectedConnectors[i].facetTypes[j]] != null;
             }
             enabled = enabled ? "" : "flx-disconnected";
-            var button = $('<li><a href="#" class="flx-active ' + enabled + '">' + digest.selectedConnectors[i].prettyName + '</button></li>');
+            var button = $('<li><a href="#" id="flx-connector-btn-' + digest.selectedConnectors[i].connectorName + '" class="flx-active ' + enabled + '">' + digest.selectedConnectors[i].prettyName + '</button></li>');
             if (enabled == "")
                 button.children().css("border-bottom-color",App.getConnectorConfig(digest.selectedConnectors[i].connectorName).color);
             selectedConnectors.append(button);
