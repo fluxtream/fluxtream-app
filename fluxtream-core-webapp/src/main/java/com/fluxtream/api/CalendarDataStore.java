@@ -521,7 +521,6 @@ public class CalendarDataStore {
             model.connectorName = connector.getName();
             model.prettyName = connector.prettyName();
             model.channelNames = settingsService.getChannelsForConnector(guestId,connector);
-            model.facetTypes.add(model.connectorName);
             ObjectType[] objTypes = connector.objectTypes();
             if (objTypes == null)
                 continue;

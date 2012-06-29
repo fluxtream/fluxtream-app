@@ -201,7 +201,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     function enhanceDigest(digest){
         digest.detailsTemplates = {};
         for (var i = 0; i < digest.selectedConnectors.length; i++){
-            for (var j = 1; j < digest.selectedConnectors[i].facetTypes.length; j++){
+            for (var j = 0; j < digest.selectedConnectors[i].facetTypes.length; j++){
                 getTemplate(digest,i,j);
             }
         }
