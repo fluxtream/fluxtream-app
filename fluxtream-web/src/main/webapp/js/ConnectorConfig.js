@@ -156,8 +156,119 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                     clock: true //just has to be nonnull, gps data has special treatment
                 }
             }
+        },
+        bodymedia:{//TODO: properly configure bodymedia and facets
+            color: "",
+            mapicon: "http://maps.google.com/mapfiles/marker.png",
+            mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
+            facets: {
+                burn:{
+                    list: true,
+                    photos: false,
+                    map: true,
+                    gps: false,
+                    clock: null
+                },
+                sleep:{
+                    list: true,
+                    photos: false,
+                    map: true,
+                    gps: false,
+                    clock: null
+                },
+                steps:{
+                    list: true,
+                    photos: false,
+                    map: true,
+                    gps: false,
+                    clock: null
+                }
+            }
+        },
+        flickr:{//TODO: properly configure flickr and facets
+            color: "",
+            mapicon: "http://maps.google.com/mapfiles/marker.png",
+            mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
+            facets: {
+                photo:{
+                    list:true,
+                    photos: true,
+                    map: true,
+                    gps: false,
+                    clock: ClockConfig.SOCIAL_CATEGORY
+                }
+            }
+        },
+        sms_backup:{//TODO: properly configure sms_backup and facets
+            color: "",
+            mapicon: "http://maps.google.com/mapfiles/marker.png",
+            mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
+            facets: {
+                call_log:{
+                    list: true,
+                    photos: false,
+                    map: true,
+                    gps: false,
+                    clock: ClockConfig.SOCIAL_CATEGORY
+                },
+                sms:{
+                    list: true,
+                    photos: false,
+                    map: true,
+                    gps: false,
+                    clock: ClockConfig.SOCIAL_CATEGORY
+                }
+            }
+        },
+        zeo:{//TODO: properly configure zeo and facets
+            color: "",
+            mapicon: "http://maps.google.com/mapfiles/marker.png",
+            mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
+            facets: {
+                sleep:{
+                    list: true,
+                    photos: false,
+                    map: true,
+                    gps: false,
+                    clock: null
+                }
+            }
+        },
+        toodledo:{//TODO: properly configure toodledo and facets
+            color: "",
+            mapicon: "http://maps.google.com/mapfiles/marker.png",
+            mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
+            facets: {
+                task:{
+                    list: true,
+                    photos: false,
+                    map: true,
+                    gps: false,
+                    clock: ClockConfig.MIND_CATEGORY
+                },
+                goal:{
+                    list: true,
+                    photos: false,
+                    map: true,
+                    gps: false,
+                    clock: null
+                }
+            }
+        },
+        openpath:{//TODO: properly configure openpath and facets
+            color: "",
+            mapicon : new google.maps.MarkerImage("https://www.google.com/latitude/apps/static/red_measle.png",null,null,new google.maps.Point(5,5),null),
+            mapshadow: null,
+            facets: {
+                location:{
+                    list: false,
+                    photos: false,
+                    map: true,
+                    gps: true,
+                    clock: true //just has to be nonnull, gps data has special treatment
+                }
+            }
         }
-
     }
 
 });
