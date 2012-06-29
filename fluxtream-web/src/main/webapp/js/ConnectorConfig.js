@@ -1,4 +1,5 @@
-define([],function(){
+define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
+    ClockConfig = ClockConfig.getConfig();
 
 
     //TODO: configure default channels for each connector
@@ -16,15 +17,24 @@ define([],function(){
             facets:{
                 activity_summary:{
                     list: true,
-                    photos: false
+                    photos: false,
+                    map: true,
+                    gps: false,
+                    clock: null
                 },
                 logged_activity:{
                     list: true,
-                    photos: false
+                    photos: false,
+                    map: true,
+                    gps: false,
+                    clock: null
                 },
                 sleep:{
                     list: true,
-                    photos: false
+                    photos: false,
+                    map: true,
+                    gps: false,
+                    clock: ClockConfig.BODY_CATEGORY
                 }
             }
         },
@@ -41,11 +51,17 @@ define([],function(){
             facets:{
                 recent_track:{
                     list:true,
-                    photos: false
+                    photos: false,
+                    map: true,
+                    gps: false,
+                    clock: ClockConfig.MEDIA_CATEGORY
                 },
                 loved_track:{
                     list:true,
-                    photos: false
+                    photos: false,
+                    map: true,
+                    gps: false,
+                    clock: ClockConfig.MEDIA_CATEGORY
                 }
             }
         },
@@ -56,11 +72,18 @@ define([],function(){
             facets:{
                 blood_pressure:{
                     list: true,
-                    photos: false
+                    photos: false,
+                    map: true,
+                    gps: false,
+                    clock: null,
+                    clock: ClockConfig.BODY_CATEGORY
                 },
                 weight:{
                     list: true,
-                    photos: false
+                    photos: false,
+                    map: true,
+                    gps: false,
+                    clock: null
                 }
             }
         },
@@ -71,7 +94,10 @@ define([],function(){
             facets:{
                 photo:{
                     list:true,
-                    photos: true
+                    photos: true ,
+                    map: true,
+                    gps: false,
+                    clock: ClockConfig.SOCIAL_CATEGORY
                 }
             }
         },
@@ -82,15 +108,24 @@ define([],function(){
             facets:{
                 tweet:{
                     list: true,
-                    photos: false
+                    photos: false,
+                    map: true,
+                    gps: false,
+                    clock: ClockConfig.SOCIAL_CATEGORY
                 },
                 dm:{
                     list: true,
-                    photos: false
+                    photos: false,
+                    map: true,
+                    gps: false,
+                    clock: ClockConfig.SOCIAL_CATEGORY
                 },
                 mention:{
                     list: true,
-                    photos: false
+                    photos: false,
+                    map: true,
+                    gps: false,
+                    clock: ClockConfig.SOCIAL_CATEGORY
                 }
             }
         },
@@ -101,7 +136,10 @@ define([],function(){
             facets:{
                 entry:{
                     list: true,
-                    photos: false
+                    photos: false,
+                    map: true,
+                    gps: false,
+                    clock: ClockConfig.MIND_CATEGORY
                 }
             }
         },
@@ -112,7 +150,10 @@ define([],function(){
             facets:{
                 location:{
                     list: false,
-                    photos: false
+                    photos: false,
+                    map: true,
+                    gps: true,
+                    clock: true //just has to be nonnull, gps data has special treatment
                 }
             }
         }

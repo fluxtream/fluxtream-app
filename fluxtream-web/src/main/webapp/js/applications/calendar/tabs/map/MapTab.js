@@ -89,9 +89,19 @@ define(["applications/calendar/tabs/Tab",
         }
     }
 
+    function connectorDisplayable(connector){
+        for (var i = 0; i < connector.facetTypes.length; i++){
+            var config = App.getFacetConfig(connector.facetTypes[i]);
+            if (config.map)
+                return true;
+        }
+        return false;
+    }
+
     var mapTab = new Tab("map", "Candide Kemmler", "icon-map-marker", true);
     mapTab.render = render;
     mapTab.connectorToggled = connectorToggled;
+    mapTab.connectorDisplayable = connectorDisplayable;
     return mapTab;
 
 });

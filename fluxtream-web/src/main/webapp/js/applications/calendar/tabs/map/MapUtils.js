@@ -119,25 +119,8 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     function isDisplayable(itemType){
-        switch (itemType){
-            case "sms_backup-sms":
-            case "sms_backup-call_Calendar":
-            case "twitter-dm":
-            case "twitter-tweet":
-            case "twitter-mention":
-            case "google_calendar-entry":
-            case "toodledo-task":
-            case "fitbit-sleep":
-            case "withings-bpm":
-            case "picasa-photo":
-            case "flickr":
-            case "lastfm-recent_track":
-            case "lastfm-loved_track":
-            case "photo":
-                return true;
-            default:
-                return false;
-        }
+        var config = App.getFacetConfig(itemType);
+        return config.map && !config.gps;
     }
 
     function addItemsToMap(map,items,clickable){

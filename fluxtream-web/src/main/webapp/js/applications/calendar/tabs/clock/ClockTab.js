@@ -63,6 +63,14 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		config = Config.getConfig(edgeWidth, digest.tbounds.start, digest.tbounds.end);
 		var drawingUtils = DrawingUtils.getDrawingUtils(config);
 		config.clockCircles = paper.set();
+
+        config.BODY_CATEGORY.orbit *= config.ORBIT_RATIO;
+        config.AT_HOME_CATEGORY.orbit *= config.ORBIT_RATIO;
+        config.OUTSIDE_CATEGORY.orbit *= config.ORBIT_RATIO;
+        config.MIND_CATEGORY.orbit *= config.ORBIT_RATIO;
+        config.SOCIAL_CATEGORY.orbit *= config.ORBIT_RATIO;
+        config.MEDIA_CATEGORY.orbit *= config.ORBIT_RATIO;
+
 		drawingUtils.paintCircle(paper, config.BODY_CATEGORY.orbit, "#ffffff", 1);
 		drawingUtils.paintCircle(paper, config.AT_HOME_CATEGORY.orbit, "#ffffff", 1);
 		drawingUtils.paintCircle(paper, config.OUTSIDE_CATEGORY.orbit, "#ffffff", 1);
@@ -75,9 +83,10 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 				continue;
 			updateDataDisplay(digest.cachedData[objectTypeName], objectTypeName, digest);
 		}
-		for(i=0;i<digest.updateNeeded.length;i++) {
+        //disabled... not sure what the purpose of this is
+		/*for(i=0;i<digest.updateNeeded.length;i++) {
 			getDayInfo(digest.updateNeeded[i], digest);
-		}
+		}*/
 	}
 
 	function outsideTimeBoundaries(o) {
@@ -114,7 +123,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 				endAngle = solarInfo.sunset / config.RATIO + config.START_AT,
 				midAngle = endAngle*0.2;
 			if (endAngle < 390 ) {
-				var coords = fillRegion(config.CLOCK_CENTER, config.BODY_CATEGORY.orbit-15, config.MEDIA_CATEGORY.orbit+15, startAngle, midAngle);
+				var coords = fillRegion(config.CLOCK_CENTER, config.BODY_CATEGORY.orbit * config.ORBIT_RATIO -15, config.MEDIA_CATEGORY.orbit+15, startAngle, midAngle);
 				config.clockCircles.push(
 					function() {
 						var path = paper.path(coords);
@@ -150,7 +159,17 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 	}
 	
 	function updateDataDisplay(connectorData, connectorInfoId, digest) {
-		switch(connectorInfoId) {
+        var facetConfig = App.getFacetConfig(connectorInfoId);
+        if (facetConfig.clock == null)
+            return;
+        if (facetConfig.gps){
+            locationBreakdown(connectorData,digest);
+        }
+        else{
+            facetConfig.clock.orbit *= config.ORBIT_RATIO;
+            drawTimedData(connectorData,facetConfig.clock);
+        }
+		/*switch(connectorInfoId) {
 		case "fitbit-activity_summary":
 //			drawFitbitInfo(connectorData);
 			break;
@@ -184,7 +203,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		case "withings-bpm":
 			drawTimedData(connectorData, config.BODY_CATEGORY);
 			break;
-		}
+		}*/
 	}
 
 	function drawTimedData(payload, category) {
@@ -626,11 +645,21 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         }
     }
 
+    function connectorDisplayable(connector){
+        for (var i = 0; i < connector.facetTypes.length; i++){
+            var config = App.getFacetConfig(connector.facetTypes[i]);
+            if (config.clock != null)
+                return true;
+        }
+        return false;
+    }
+
 	var clockTab = new Tab("clock", "Candide Kemmler", "icon-time", true);
     document.qTipUpdate = qTipUpdate;
     document.hideQTipMap = hideQTipMap;
 	clockTab.render = render;
     clockTab.connectorToggled = connectorToggled;
+    clockTab.connectorDisplayable = connectorDisplayable;
 	return clockTab;
 	
 });
