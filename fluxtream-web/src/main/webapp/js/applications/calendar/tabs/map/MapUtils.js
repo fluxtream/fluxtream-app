@@ -48,13 +48,13 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             map.enhanceMarkerWithItem(map.markers[gpsData[i].type][map.markers[gpsData[i].type].length-1],gpsData[i]);
             map.gpsTimestamps[map.gpsTimestamps.length] = gpsData[i].start;
             map.gpsAccuracies[map.gpsAccuracies.length] = gpsData[i].accuracy;
-            if (lat < minLat)
-                minLat = lat + gpsData[i].accuracy;
-            if (lat > maxLat)
+            if (lat - gpsData[i].accuracy < minLat)
+                minLat = lat - gpsData[i].accuracy;
+            if (lat + gpsData[i].accuracy > maxLat)
                 maxLat = lat + gpsData[i].accuracy;
-            if (lng < minLng)
-                minLng = lng + gpsData[i].accuracy;
-            if (lng > maxLng)
+            if (lng - gpsData[i].accuracy < minLng)
+                minLng = lng - gpsData[i].accuracy;
+            if (lng + gpsData[i].accuracy > maxLng)
                 maxLng = lng + gpsData[i].accuracy;
         }
         map.gpsLine = new google.maps.Polyline({map:map, path:map.gpsPositions,clickable:false});
