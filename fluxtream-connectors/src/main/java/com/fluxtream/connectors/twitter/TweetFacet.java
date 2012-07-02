@@ -25,6 +25,7 @@ public class TweetFacet extends AbstractFacet {
 
 	public String text;
     public String profileImageUrl;
+    public String userName;
 	long time;
 	
 	@Override

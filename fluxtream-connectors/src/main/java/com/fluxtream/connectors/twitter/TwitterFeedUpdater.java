@@ -83,8 +83,8 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 		} else if (objectTypes.contains(ObjectType.getObjectType(connector(), "mention"))) {
 			getMentions(updateInfo);
 		} else if (objectTypes.contains(ObjectType.getObjectType(connector(), "dm"))) {
-			getReceivedDirectMessages(updateInfo, screen_name);
-			getSentDirectMessages(updateInfo, screen_name);
+			getReceivedDirectMessages(updateInfo);
+			getSentDirectMessages(updateInfo);
 		}
 	}
 
@@ -99,51 +99,51 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 		} else if (objectTypes.contains(ObjectType.getObjectType(connector(), "mention"))) {
 			refreshMentions(updateInfo);
 		} else if (objectTypes.contains(ObjectType.getObjectType(connector(), "dm"))) {
-			refreshReceivedDirectMessages(updateInfo, screen_name);
-			refreshSentDirectMessages(updateInfo, screen_name);
+			refreshReceivedDirectMessages(updateInfo);
+			refreshSentDirectMessages(updateInfo);
 		}
 	}
 
 	private void refreshStatuses(UpdateInfo updateInfo, String screen_name) throws Exception {
-		TweetFacet mostRecentTweet = (TweetFacet) jpaDaoService.findOne("twitter.tweet.newest", TweetFacet.class, updateInfo.apiKey.getGuestId());
+		TweetFacet mostRecentTweet = jpaDaoService.findOne("twitter.tweet.newest", TweetFacet.class, updateInfo.apiKey.getGuestId());
 		if (mostRecentTweet!=null) {
 			int newerTweets = 1;
 			while (newerTweets>0) {
 				newerTweets = getStatusesAfter(updateInfo, screen_name, mostRecentTweet.tweetId+1);
-				mostRecentTweet = (TweetFacet) jpaDaoService.findOne("twitter.tweet.newest", TweetFacet.class, updateInfo.apiKey.getGuestId());
+				mostRecentTweet = jpaDaoService.findOne("twitter.tweet.newest", TweetFacet.class, updateInfo.apiKey.getGuestId());
 			}
 		}
 	}
 
 	private void refreshMentions(UpdateInfo updateInfo) throws Exception {
-		TwitterMentionFacet mostRecentMention = (TwitterMentionFacet) jpaDaoService.findOne("twitter.mention.newest", TwitterMentionFacet.class, updateInfo.apiKey.getGuestId());
+		TwitterMentionFacet mostRecentMention = jpaDaoService.findOne("twitter.mention.newest", TwitterMentionFacet.class, updateInfo.apiKey.getGuestId());
 		if (mostRecentMention!=null) {
 			int newerMentions = 1;
 			while (newerMentions>0) {
 				newerMentions = getMentionsAfter(updateInfo, mostRecentMention.twitterId+1);
-				mostRecentMention = (TwitterMentionFacet) jpaDaoService.findOne("twitter.mention.newest", TwitterMentionFacet.class, updateInfo.apiKey.getGuestId());
+				mostRecentMention = jpaDaoService.findOne("twitter.mention.newest", TwitterMentionFacet.class, updateInfo.apiKey.getGuestId());
 			}
 		}
 	}
 
-	private void refreshReceivedDirectMessages(UpdateInfo updateInfo, String screen_name) throws Exception {
-		TwitterDirectMessageFacet mostRecentDM = (TwitterDirectMessageFacet) jpaDaoService.findOne("twitter.received.dm.newest", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
+	private void refreshReceivedDirectMessages(UpdateInfo updateInfo) throws Exception {
+		TwitterDirectMessageFacet mostRecentDM = jpaDaoService.findOne("twitter.received.dm.newest", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
 		if (mostRecentDM!=null) {
 			int newerDMs = 1;
 			while (newerDMs>0) {
-				newerDMs = getDirectMessagesReceivedAfter(updateInfo, screen_name, mostRecentDM.twitterId+1);
-				mostRecentDM = (TwitterDirectMessageFacet) jpaDaoService.findOne("twitter.received.dm.newest", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
+				newerDMs = getDirectMessagesReceivedAfter(updateInfo, mostRecentDM.twitterId+1);
+				mostRecentDM = jpaDaoService.findOne("twitter.received.dm.newest", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
 			}
 		}
 	}
 
-	private void refreshSentDirectMessages(UpdateInfo updateInfo, String screen_name) throws Exception {
-		TwitterDirectMessageFacet mostRecentDM = (TwitterDirectMessageFacet) jpaDaoService.findOne("twitter.sent.dm.newest", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
+	private void refreshSentDirectMessages(UpdateInfo updateInfo) throws Exception {
+		TwitterDirectMessageFacet mostRecentDM = jpaDaoService.findOne("twitter.sent.dm.newest", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
 		if (mostRecentDM!=null) {
 			int newerDMs = 1;
 			while (newerDMs>0) {
-				newerDMs = getDirectMessagesSentAfter(updateInfo, screen_name, mostRecentDM.twitterId+1);
-				mostRecentDM = (TwitterDirectMessageFacet) jpaDaoService.findOne("twitter.sent.dm.newest", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
+				newerDMs = getDirectMessagesSentAfter(updateInfo, mostRecentDM.twitterId+1);
+				mostRecentDM = jpaDaoService.findOne("twitter.sent.dm.newest", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
 			}
 		}
 	}
@@ -155,7 +155,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 			int olderTweets = 1;
 			while(olderTweets>0) {
 				olderTweets = getStatusesBefore(updateInfo, screen_name, oldestTweet.tweetId-1);
-				oldestTweet = (TweetFacet) jpaDaoService.findOne("twitter.tweet.oldest", TweetFacet.class, updateInfo.apiKey.getGuestId());
+				oldestTweet = jpaDaoService.findOne("twitter.tweet.oldest", TweetFacet.class, updateInfo.apiKey.getGuestId());
 			}
 		}
 	}
@@ -167,31 +167,31 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 			int olderMentions = 1;
 			while(olderMentions>0) {
 				olderMentions = getMentionsBefore(updateInfo, oldestMention.twitterId-1);
-				oldestMention = (TwitterMentionFacet) jpaDaoService.findOne("twitter.mention.oldest", TwitterMentionFacet.class, updateInfo.apiKey.getGuestId());
+				oldestMention = jpaDaoService.findOne("twitter.mention.oldest", TwitterMentionFacet.class, updateInfo.apiKey.getGuestId());
 			}
 		}
 	}
 
-	private void getReceivedDirectMessages(UpdateInfo updateInfo, String screen_name) throws Exception {
-		getReceivedDirectMessages(updateInfo, screen_name, -1, -1);
+	private void getReceivedDirectMessages(UpdateInfo updateInfo) throws Exception {
+		getReceivedDirectMessages(updateInfo, -1, -1);
 		TwitterDirectMessageFacet oldestDM = jpaDaoService.findOne("twitter.received.dm.oldest", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
 		if (oldestDM!=null) {
 			int olderDMs = 1;
 			while(olderDMs>0) {
-				olderDMs = getDirectMessagesReceivedBefore(updateInfo, screen_name, oldestDM.twitterId-1);
-				oldestDM = (TwitterDirectMessageFacet) jpaDaoService.findOne("twitter.received.dm.oldest", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
+				olderDMs = getDirectMessagesReceivedBefore(updateInfo, oldestDM.twitterId-1);
+				oldestDM = jpaDaoService.findOne("twitter.received.dm.oldest", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
 			}
 		}
 	}
 
-	private void getSentDirectMessages(UpdateInfo updateInfo, String screen_name) throws Exception {
-		getSentDirectMessages(updateInfo, screen_name, -1, -1);
+	private void getSentDirectMessages(UpdateInfo updateInfo) throws Exception {
+		getSentDirectMessages(updateInfo, -1, -1);
 		TwitterDirectMessageFacet oldestDM = jpaDaoService.findOne("twitter.sent.dm.oldest", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
 		if (oldestDM!=null) {
 			int olderDMs = 1;
 			while(olderDMs>0) {
-				olderDMs = getDirectMessagesSentBefore(updateInfo, screen_name, oldestDM.twitterId-1);
-				oldestDM = (TwitterDirectMessageFacet) jpaDaoService.findOne("twitter.sent.dm.oldest", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
+				olderDMs = getDirectMessagesSentBefore(updateInfo, oldestDM.twitterId-1);
+				oldestDM = jpaDaoService.findOne("twitter.sent.dm.oldest", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
 			}
 		}
 	}
@@ -204,20 +204,20 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 		return getMentions(updateInfo, -1, since_id);
 	}
 
-	private int getDirectMessagesReceivedBefore(UpdateInfo updateInfo, String screen_name, long max_id) throws Exception {
-		return getReceivedDirectMessages(updateInfo, screen_name, max_id, -1);
+	private int getDirectMessagesReceivedBefore(UpdateInfo updateInfo, long max_id) throws Exception {
+		return getReceivedDirectMessages(updateInfo, max_id, -1);
 	}
 
-	private int getDirectMessagesReceivedAfter(UpdateInfo updateInfo, String screen_name, long since_id) throws Exception {
-		return getReceivedDirectMessages(updateInfo, screen_name, -1, since_id);
+	private int getDirectMessagesReceivedAfter(UpdateInfo updateInfo, long since_id) throws Exception {
+		return getReceivedDirectMessages(updateInfo, -1, since_id);
 	}
 
-	private int getDirectMessagesSentBefore(UpdateInfo updateInfo, String screen_name, long max_id) throws Exception {
-		return getSentDirectMessages(updateInfo, screen_name, max_id, -1);
+	private int getDirectMessagesSentBefore(UpdateInfo updateInfo, long max_id) throws Exception {
+		return getSentDirectMessages(updateInfo, max_id, -1);
 	}
 
-	private int getDirectMessagesSentAfter(UpdateInfo updateInfo, String screen_name, long since_id) throws Exception {
-		return getSentDirectMessages(updateInfo, screen_name, -1, since_id);
+	private int getDirectMessagesSentAfter(UpdateInfo updateInfo, long since_id) throws Exception {
+		return getSentDirectMessages(updateInfo, -1, since_id);
 	}
 
 	private int getStatusesBefore(UpdateInfo updateInfo, String screen_name, long max_id) throws Exception {
@@ -258,7 +258,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 		}
 	}
 
-	private int getReceivedDirectMessages(UpdateInfo updateInfo, String screen_name, long max_id, long since_id) throws Exception {
+	private int getReceivedDirectMessages(UpdateInfo updateInfo, long max_id, long since_id) throws Exception {
 		long then = System.currentTimeMillis();
 		String requestUrl = "http://api.twitter.com/1/direct_messages.json?count=50";
 		if (max_id!=-1)
@@ -277,7 +277,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 			String json = responseHandler.handleResponse(response);
 			JSONArray directMessages = JSONArray.fromObject(json);
 			if (directMessages!=null) {
-				updateInfo.setContext("screen_name", screen_name);
+				updateInfo.setContext("sent", "0");
 				apiDataService.cacheApiDataJSON(updateInfo, json, -1, -1);
 			}
 			return directMessages.size();
@@ -288,7 +288,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 		}
 	}
 
-	private int getSentDirectMessages(UpdateInfo updateInfo, String screen_name, long max_id, long since_id) throws Exception {
+	private int getSentDirectMessages(UpdateInfo updateInfo, long max_id, long since_id) throws Exception {
 		long then = System.currentTimeMillis();
 		String requestUrl = "http://api.twitter.com/1/direct_messages/sent.json?count=50";
 		if (max_id!=-1)
@@ -307,7 +307,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 			String json = responseHandler.handleResponse(response);
 			JSONArray directMessages = JSONArray.fromObject(json);
 			if (directMessages!=null) {
-				updateInfo.setContext("screen_name", screen_name);
+				updateInfo.setContext("sent", "1");
 				apiDataService.cacheApiDataJSON(updateInfo, json, -1, -1);
 			}
 			return directMessages.size();
