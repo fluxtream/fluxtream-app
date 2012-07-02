@@ -64,7 +64,4 @@
 			<version>1.0</version>
 		</dependency>
 	</dependencies>
-	<properties>
-		<buildNumber>20120403</buildNumber>
-	</properties>
 </project>

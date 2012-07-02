@@ -86,12 +86,13 @@
 	</bean>
 
 	<util:properties id="countries" location="classpath:countries.properties"/>
-
-	<bean id="commonProperties" class="org.apache.commons.configuration.PropertiesConfiguration">
-		<constructor-arg value="common.properties"/>
-   	</bean>
    	<bean id="autoReloadStrategy" class="org.apache.commons.configuration.reloading.FileChangedReloadingStrategy"></bean>
-	<bean id="targetEnvProperties" class="org.apache.commons.configuration.PropertiesConfiguration">
+
+    <bean id="commonProperties" class="org.apache.commons.configuration.PropertiesConfiguration">
+        <property name="reloadingStrategy" ref="autoReloadStrategy"/>
+        <constructor-arg value="common.properties"/>
+    </bean>
+    <bean id="targetEnvProperties" class="org.apache.commons.configuration.PropertiesConfiguration">
 		<property name="reloadingStrategy" ref="autoReloadStrategy"/>
 		<constructor-arg value="${TARGET_ENV}.properties"/>
    	</bean>
