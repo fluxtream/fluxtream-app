@@ -344,12 +344,14 @@ public class GuestServiceImpl implements GuestService {
         locationFacet.end = time;
         locationFacet.guestId = guestId;
 		if (ipLocation != null) {
+            locationFacet.accuracy = 7000;
             locationFacet.latitude = ipLocation.latitude;
             locationFacet.longitude = ipLocation.longitude;
             apiDataService.addGuestLocation(guestId,
 					locationFacet, LocationFacet.Source.GEO_IP_DB);
 		} else if (env.get("environment").equals("local")) {
             try{
+                locationFacet.accuracy = 7000;
                 locationFacet.latitude = env.getFloat("defaultLocation.latitude");
                 locationFacet.longitude = env.getFloat("defaultLocation.longitude");
                 apiDataService.addGuestLocation(guestId,
@@ -359,7 +361,7 @@ public class GuestServiceImpl implements GuestService {
             catch (Exception e){
             }
 		} else {
-			String ip2locationKey = env.get("ip2location.apiKey");
+            String ip2locationKey = env.get("ip2location.apiKey");
 			String jsonString = HttpUtils.fetch(
 					"http://api.ipinfodb.com/v3/ip-city/?key=" + ip2locationKey
 							+ "&ip=" + ipAddress + "&format=json", env);
@@ -371,6 +373,7 @@ public class GuestServiceImpl implements GuestService {
             if (latitude != null && longitude != null) {
 				float lat = Float.valueOf(latitude);
 				float lon = Float.valueOf(longitude);
+                locationFacet.accuracy = 7000;
                 locationFacet.latitude = lat;
                 locationFacet.longitude = lon;
                 apiDataService.addGuestLocation(guestId,
