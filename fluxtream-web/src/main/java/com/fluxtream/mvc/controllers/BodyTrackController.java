@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-// This controller tunnels BodyTrack API calls to a BodyTrack server running on v6.bodytrack.org
+// This controller tunnels BodyTrack API calls to a BodyTrack server running on localhost:3000
 // For documentation on these APIs, see 
 //  https://fluxtream.atlassian.net/wiki/display/FLX/BodyTrack+server+APIs
 
@@ -54,7 +54,7 @@ public class BodyTrackController {
 			@PathVariable("ChannelName") String channelName,
 			@PathVariable("Level") String level,
 			@PathVariable("Offset") String offset) throws IOException {
-		String bodyTrackUrl = "http://v6.bodytrack.org/tiles/" + uid + "/"
+		String bodyTrackUrl = "http://localhost:3000/tiles/" + uid + "/"
 				+ deviceNickname + "." + channelName + "/" + level + "."
 				+ offset + ".json";
 		writeTunnelResponse(bodyTrackUrl, response);
@@ -64,7 +64,7 @@ public class BodyTrackController {
     public void bodyTrackLogItemsGet(HttpServletResponse response,
                                      HttpServletRequest request,
                                      @PathVariable("UID") String uid) throws IOException {
-        String bodyTrackUrl = "http://v6.bodytrack.org/users/" + uid + "/log_items/get";
+        String bodyTrackUrl = "http://localhost:3000/users/" + uid + "/log_items/get";
         String pstr = request.getQueryString();
         if (pstr != null) {
             bodyTrackUrl += "?" + pstr;
@@ -78,7 +78,7 @@ public class BodyTrackController {
 			@PathVariable("Level") String level,
 			@PathVariable("Offset") String offset) throws HttpException,
 			IOException {
-		String bodyTrackUrl = "http://v6.bodytrack.org/photos/" + uid + "/"
+		String bodyTrackUrl = "http://localhost:3000/photos/" + uid + "/"
 				+ level + "." + offset + ".json";
 		String pstr = request.getQueryString();
 		if (pstr != null) {
@@ -95,7 +95,7 @@ public class BodyTrackController {
                                         HttpServletRequest request,
                                         @PathVariable("UID") String uid,
                                         @PathVariable("PhotoSpec") String photoSpec) throws IOException {
-        String bodyTrackUrl = "http://v6.bodytrack.org/users/" + uid + "/logphotos/" + photoSpec + ".jpg";
+        String bodyTrackUrl = "http://localhost:3000/users/" + uid + "/logphotos/" + photoSpec + ".jpg";
         String pstr = request.getQueryString();
         if (pstr != null) {
             bodyTrackUrl += "?" + pstr;
@@ -114,7 +114,7 @@ public class BodyTrackController {
     @RequestMapping(value = "/bodytrack/users/{UID}/views")
 	public void bodyTrackViews(HttpServletResponse response,
 			@PathVariable("UID") String UID) throws IOException {
-		String tunnelUrl = "http://v6.bodytrack.org/users/" + UID + "/views";
+		String tunnelUrl = "http://localhost:3000/users/" + UID + "/views";
 		writeTunnelResponse(tunnelUrl, response);
 	}
 
@@ -122,7 +122,7 @@ public class BodyTrackController {
 	public void bodyTrackView(HttpServletResponse response,
 			@PathVariable("UID") String UID, @RequestParam("id") String id)
             throws IOException {
-		String tunnelUrl = "http://v6.bodytrack.org/users/" + UID
+		String tunnelUrl = "http://localhost:3000/users/" + UID
 				+ "/views/get?id=" + id;
 		writeTunnelResponse(tunnelUrl, response);
 	}
@@ -134,21 +134,21 @@ public class BodyTrackController {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("name", name);
 		params.put("data", data);
-		String tunnelUrl = "http://v6.bodytrack.org/users/" + UID + "/views/set";
+		String tunnelUrl = "http://localhost:3000/users/" + UID + "/views/set";
 		postTunnelRequest(tunnelUrl, response, params);
 	}
 
 	@RequestMapping(value = "/bodytrack/users/{UID}/sources")
 	public void bodyTrackSources(HttpServletResponse response,
 			@PathVariable("UID") String UID) throws IOException {
-		String tunnelUrl = "http://v6.bodytrack.org/users/" + UID + "/sources";
+		String tunnelUrl = "http://localhost:3000/users/" + UID + "/sources";
 		writeTunnelResponse(tunnelUrl, response);
 	}
 
 	@RequestMapping(value = "/bodytrack/users/{UID}/sources/list")
 	public void bodyTrackSourcesList(HttpServletResponse response,
 			@PathVariable("UID") String UID) throws IOException {
-		String tunnelUrl = "http://v6.bodytrack.org/users/" + UID
+		String tunnelUrl = "http://localhost:3000/users/" + UID
 				+ "/sources/list";
 		writeTunnelResponse(tunnelUrl, response);
 	}
@@ -157,7 +157,7 @@ public class BodyTrackController {
 	public void bodyTrackGetDefaultGraphSpecs(HttpServletResponse response,
 			@PathVariable("UID") String UID, @RequestParam("name") String name)
             throws IOException {
-		String tunnelUrl = "http://v6.bodytrack.org/users/" + UID
+		String tunnelUrl = "http://localhost:3000/users/" + UID
 				+ "/sources/default_graph_specs?name=" + name;
 		writeTunnelResponse(tunnelUrl, response);
 	}
@@ -166,7 +166,7 @@ public class BodyTrackController {
     public void bodyTrackGetMetadata(HttpServletResponse response,
     			HttpServletRequest request, @PathVariable("UID") String UID,
     			@PathVariable("LOGREC_ID") String LOGREC_ID) throws IOException {
-    	String bodyTrackUrl = "http://v6.bodytrack.org/users/" + UID + "/logrecs/" + LOGREC_ID + "/get";
+    	String bodyTrackUrl = "http://localhost:3000/users/" + UID + "/logrecs/" + LOGREC_ID + "/get";
     	String pstr = request.getQueryString();
     	if (pstr != null) {
     		bodyTrackUrl += "?" + pstr;
@@ -185,7 +185,7 @@ public class BodyTrackController {
         //   comment=<string> Set the comment field to the provided string
         //   tags=<list of tags separated by commas> Set the tags for the logrec.  Behaves the same as /users/UID/tags/LOGREC_ID/set?tags=<value> other than having a different return value.
         //    nsfw=<value> If specified, alters the value of the NSFW flag on the logrec and modifies tag list appropriately to either include an "nsfw" tag if value is true, or remove any existing "nsfw" tags if value is false.
-        String bodyTrackUrl = "http://v6.bodytrack.org/users/" + UID + "/logrecs/" + LOGREC_ID + "/set";
+        String bodyTrackUrl = "http://localhost:3000/users/" + UID + "/logrecs/" + LOGREC_ID + "/set";
         Map parameterMap = request.getParameterMap();
         Enumeration parameterNames = request.getParameterNames();
         Map<String,String> tunneledParameters = new HashMap<String,String>();
@@ -200,7 +200,7 @@ public class BodyTrackController {
 	@RequestMapping(value = "/bodytrack/users/{UID}/tags")
 	public void bodyTrackTags(HttpServletResponse response,
 			@PathVariable("UID") String UID) throws IOException {
-		String tunnelUrl = "http://v6.bodytrack.org/users/" + UID + "/tags";
+		String tunnelUrl = "http://localhost:3000/users/" + UID + "/tags";
 		writeTunnelResponse(tunnelUrl, response);
 	}
 
@@ -209,7 +209,7 @@ public class BodyTrackController {
 			@PathVariable("UID") String UID,
 			@PathVariable("LOGREC_ID") String LOGREC_ID) throws HttpException,
 			IOException {
-		String tunnelUrl = "http://v6.bodytrack.org/users/" + UID + "/tags/"
+		String tunnelUrl = "http://localhost:3000/users/" + UID + "/tags/"
 				+ LOGREC_ID + "/get";
 		writeTunnelResponse(tunnelUrl, response);
 	}
@@ -222,7 +222,7 @@ public class BodyTrackController {
 			IOException {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("tags", tags);
-		String tunnelUrl = "http://v6.bodytrack.org/users/" + UID + "/tags/"
+		String tunnelUrl = "http://localhost:3000/users/" + UID + "/tags/"
 				+ LOGREC_ID + "/set";
 		postTunnelRequest(tunnelUrl, response, params);
 	}
@@ -234,7 +234,7 @@ public class BodyTrackController {
 			@PathVariable("ChannelName") String channelName,
 			@RequestParam("user_default_style") String style)
             throws IOException {
-		String bodyTrackUrl = "http://v6.bodytrack.org/users/" + uid
+		String bodyTrackUrl = "http://localhost:3000/users/" + uid
 				+ "/channels/" + deviceNickname + "." + channelName
 				+ "/set?user_default_style="
 				+ URLEncoder.encode(style, "utf-8");
