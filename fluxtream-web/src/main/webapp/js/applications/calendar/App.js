@@ -329,11 +329,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     params.time = App.formatMinuteOfDay(data[member]);
                     break;
                 case "userName":
-                    if (data.type == "twitter-dm"){
-                        params.sender = data.sent ? "You" : data[member];
-                        params.receiver = data.sent ? data[member] : "You";
-                        break;
-                    }
                     params[member] = data[member];
                     break;
                 case "imgUrls":
