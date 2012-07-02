@@ -18,8 +18,12 @@ define(["App"], function() {
                 }
                 weight = Math.round((averageWeight/measures)*100)/100;
             }
+            var unit = digest.settings.weightMeasureUnit;
+            if (unit==="SI")
+                unit = "kg";
+            else unit = unit.toLowerCase();
             $("#averageWeight-widget .flx-body").append(
-                html.render({"manifest" : manifest, "digest" : digest, "weight" : weight})
+                html.render({"manifest" : manifest, "digest" : digest, "weight" : weight + " " + unit})
             );
         });
     }
