@@ -6,7 +6,6 @@ define(["App"], function() {
             var html = Hogan.compile(template);
             $("#stepsTaken-widget .flx-body").empty();
             var weight = digest.cachedData["withings-weight"][0].description;
-            console.log("weight...");
             console.log(digest);
             $("#stepsTaken-widget .flx-body").append(
                 html.render({"manifest" : manifest, "digest" : digest, "weight" : weight})
