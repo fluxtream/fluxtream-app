@@ -72,10 +72,10 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 	public void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception {
 		setupConsumer(updateInfo.apiKey);
 		
-		if (updateInfo.apiKey.getAttributeValue("screen_name", env)==null)
+		if (guestService.getApiKeyAttribute(updateInfo.apiKey.getGuestId(),connector(),"screen_name")==null)
 			getScreenName(updateInfo.apiKey.getGuestId());
 		
-		String screen_name = updateInfo.apiKey.getAttributeValue("screen_name", env);
+		String screen_name = guestService.getApiKeyAttribute(updateInfo.apiKey.getGuestId(),connector(),"screen_name");
 		
 		List<ObjectType> objectTypes = updateInfo.objectTypes();
 		if (objectTypes.contains(ObjectType.getObjectType(connector(), "tweet"))) {
@@ -91,7 +91,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 	@Override
 	public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
 		setupConsumer(updateInfo.apiKey);
-		String screen_name = updateInfo.apiKey.getAttributeValue("screen_name", env);
+		String screen_name = guestService.getApiKeyAttribute(updateInfo.apiKey.getGuestId(),connector(),"screen_name");
 		
 		List<ObjectType> objectTypes = updateInfo.objectTypes();
 		if (objectTypes.contains(ObjectType.getObjectType(connector(), "tweet"))) {
