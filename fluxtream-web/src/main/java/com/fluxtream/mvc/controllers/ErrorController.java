@@ -61,7 +61,7 @@ public class ErrorController {
 		String message = "no available message";
 		if (t!=null) {
 			message=t.getMessage();
-			if (message.length()>384) message=message.substring(0, 384);
+			if (message != null && message.length()>384) message=message.substring(0, 384);
 		}
 		logger.error("httpError=500 message=" + message);
 		mav.addObject("errorMessage", "Server error");
