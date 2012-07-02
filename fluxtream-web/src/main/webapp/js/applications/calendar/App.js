@@ -372,7 +372,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                            "tp", "tr", "tt", "tv", "tw", "tz", "ua", "uk", "us", "uy", "uz", "va", "vc",
                            "ve", "vg", "vi", "vn", "vu", "wf", "ws", "ye", "yt", "yu", "za", "zm", "zw"]
 
-    var uriRegex = "^(http://|ftp://)?[A-z0-9\\-.]+.(" + topLevelDomains.join("|") + ")(/[/A-z0-9#@_\\-?=.]+\\b|\\b)";
+    var uriRegex = "^(http://|ftp://)?[A-z0-9\\-.]+.(" + topLevelDomains.join("|") + ")(/[/A-z0-9#@_\\-&?=.]+\\b|\\b)";
     var twitterNameRegex = "@[A-Za-z0-9_]+";
     var hashtagRegex = "#[A-Za-z_]+";
     var twitterParserRegexp = new RegExp("(" + uriRegex + "|" + twitterNameRegex + "|" + hashtagRegex + ")","ig");
