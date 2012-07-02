@@ -372,7 +372,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                            "tp", "tr", "tt", "tv", "tw", "tz", "ua", "uk", "us", "uy", "uz", "va", "vc",
                            "ve", "vg", "vi", "vn", "vu", "wf", "ws", "ye", "yt", "yu", "za", "zm", "zw"]
 
-    var uriRegex = "^(http://|ftp://)?[A-z0-9\\-.]+.(" + topLevelDomains.join("|") + ")(/[/A-z0-9#@_\\-&?=.]+\\b|\\b)";
+    var uriRegex = "\\b(http://|ftp://)?[A-z0-9\\-.]+[.](" + topLevelDomains.join("|") + ")(/[/A-z0-9#@_\\-&?=.]+\\b|\\b)";
     var twitterNameRegex = "@[A-Za-z0-9_]+";
     var hashtagRegex = "#[A-Za-z_]+";
     var twitterParserRegexp = new RegExp("(" + uriRegex + "|" + twitterNameRegex + "|" + hashtagRegex + ")","ig");
@@ -380,7 +380,9 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     function parseTwitter(text){
         var ret = "";
         var oldIndex = 0;
-        text.replace(twitterParserRegexp, function(match, $2, $3, $4, $5,index,fullString){
+        text.replace(twitterParserRegexp, function(match){
+            var index = arguments[arguments.length - 2];
+            var fullString = arguments[arguments.length - 1];
             ret += fullString.substring(oldIndex,index);
             oldIndex = index + match.length;
             switch (match.charAt(0)){
