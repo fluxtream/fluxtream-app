@@ -350,6 +350,7 @@ public class GuestServiceImpl implements GuestService {
 					locationFacet, LocationFacet.Source.GEO_IP_DB);
 		} else if (env.get("environment").equals("local")) {
             try{
+                locationFacet.accuracy = 5000;
                 locationFacet.latitude = env.getFloat("defaultLocation.latitude");
                 locationFacet.longitude = env.getFloat("defaultLocation.longitude");
                 apiDataService.addGuestLocation(guestId,

@@ -48,13 +48,13 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             map.gpsTimestamps[map.gpsTimestamps.length] = gpsData[i].start;
             map.gpsAccuracies[map.gpsAccuracies.length] = gpsData[i].accuracy;
             if (lat < minLat)
-                minLat = lat;
+                minLat = lat + gpsData[i].accuracy;
             if (lat > maxLat)
-                maxLat = lat;
+                maxLat = lat + gpsData[i].accuracy;
             if (lng < minLng)
-                minLng = lng;
+                minLng = lng + gpsData[i].accuracy;
             if (lng > maxLng)
-                maxLng = lng;
+                maxLng = lng + gpsData[i].accuracy;
         }
         map.gpsLine = new google.maps.Polyline({map:map, path:map.gpsPositions,clickable:false});
         map.gpsBounds = new google.maps.LatLngBounds(new google.maps.LatLng(minLat,minLng), new google.maps.LatLng(maxLat,maxLng));
@@ -510,7 +510,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     function showNoGPSDisplay(map){
-        map.noGPSDiv = $("<div id='blahblahblah' style='background:white;'>No GPS Data Available</div>");
+        map.noGPSDiv = $("<div id='nogeolocation' style='background:white;'>No Geolocation Data Available</div>");
         map.controls[google.maps.ControlPosition.TOP].push(map.noGPSDiv[0]);
     }
 
