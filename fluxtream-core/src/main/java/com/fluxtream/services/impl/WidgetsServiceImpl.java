@@ -102,7 +102,7 @@ public class WidgetsServiceImpl implements WidgetsService {
         }
         List<DashboardWidget> availableWidgetsList = new ArrayList<DashboardWidget>();
         for (DashboardWidget widget : allWidgets) {
-            if (widget.matchesUserConnectors(userConnectorNames)) {
+            if (widget.matchesUserConnectors(userConnectorNames, env.get("environment").equals("local"))) {
                 availableWidgetsList.add(widget);
             }
         }
