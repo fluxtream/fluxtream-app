@@ -6,6 +6,7 @@ import javax.persistence.Entity;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 
+import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import org.hibernate.annotations.Index;
 
 import com.fluxtream.domain.AbstractFacet;
@@ -13,26 +14,27 @@ import com.google.api.client.googleapis.json.JsonCContent;
 import com.google.api.client.util.Key;
 
 @Entity(name="Facet_GoogleLatitudeLocation")
+@ObjectTypeSpec(name = "location", value = 1, prettyname = "Location")
 @NamedQueries({
-		@NamedQuery(name = "google_latitude.lastSeen", query = "SELECT facet FROM " +
+		@NamedQuery(name = "google_latitude.location.lastSeen", query = "SELECT facet FROM " +
 				"Facet_GoogleLatitudeLocation facet WHERE " +
 				"facet.guestId=? AND facet.timestampMs<? " +
 				"ORDER BY facet.timestampMs DESC"),
-		@NamedQuery(name = "google_latitude.nextSeen", query = "SELECT facet FROM " +
+		@NamedQuery(name = "google_latitude.location.nextSeen", query = "SELECT facet FROM " +
 				"Facet_GoogleLatitudeLocation facet WHERE " +
 				"facet.guestId=? AND facet.timestampMs>? " +
 				"ORDER BY facet.timestampMs ASC"),
-		@NamedQuery(name = "openpath.deleteAll", query = "DELETE FROM " +
+		@NamedQuery(name = "openpath.location.deleteAll", query = "DELETE FROM " +
 				"Facet_GoogleLatitudeLocation facet WHERE " +
 				"facet.source=5 AND facet.guestId=?"),
-		@NamedQuery(name = "google_latitude.deleteAll", query = "DELETE FROM " +
+		@NamedQuery(name = "google_latitude.location.deleteAll", query = "DELETE FROM " +
 				"Facet_GoogleLatitudeLocation facet WHERE " +
 				"facet.source=2 AND facet.guestId=?"),
-		@NamedQuery(name = "google_latitude.between", query = "SELECT facet FROM " +
+		@NamedQuery(name = "google_latitude.location.between", query = "SELECT facet FROM " +
 				"Facet_GoogleLatitudeLocation facet WHERE " +
 				"facet.guestId=? AND facet.timestampMs>=? AND " +
 				"facet.timestampMs<=?"),
-        @NamedQuery(name = "google_latitude.newest", query = "SELECT facet FROM Facet_GoogleLatitudeLocation facet WHERE facet.guestId=? ORDER BY facet.timestampMs DESC LIMIT 1")
+        @NamedQuery(name = "google_latitude.location.newest", query = "SELECT facet FROM Facet_GoogleLatitudeLocation facet WHERE facet.guestId=? ORDER BY facet.timestampMs DESC LIMIT 1")
 })
 public class LocationFacet extends AbstractFacet implements Comparable<LocationFacet>, Serializable {
 

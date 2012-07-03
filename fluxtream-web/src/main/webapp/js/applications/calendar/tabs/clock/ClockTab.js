@@ -26,7 +26,6 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 
 	function render(digest, timeUnit, calendarState, connectorEnabled) {
         hideEventInfo();
-        $("#filtersContainer").show();
         this.getTemplate("text!applications/calendar/tabs/clock/clock.html", "clock", function() {
 			 setup(digest, timeUnit, connectorEnabled);
 		});
@@ -42,8 +41,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         dayStart = digest.tbounds.start;
         dayEnd = digest.tbounds.end;
         map = MapUtils.newMap(new google.maps.LatLng(0,0),16,"clockMap",true);
-        if (digest.cachedData != null && digest.cachedData.google_latitude != null){
-            map.addGPSData(digest.cachedData.google_latitude);
+        if (digest.cachedData != null && digest.cachedData["google_latitude-location"] != null){
+            map.addGPSData(digest.cachedData["google_latitude-location"],false);
             map.fitBounds(map.gpsBounds);
         }
         else{
@@ -64,6 +63,14 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		config = Config.getConfig(edgeWidth, digest.tbounds.start, digest.tbounds.end);
 		var drawingUtils = DrawingUtils.getDrawingUtils(config);
 		config.clockCircles = paper.set();
+
+        config.BODY_CATEGORY.orbit *= config.ORBIT_RATIO;
+        config.AT_HOME_CATEGORY.orbit *= config.ORBIT_RATIO;
+        config.OUTSIDE_CATEGORY.orbit *= config.ORBIT_RATIO;
+        config.MIND_CATEGORY.orbit *= config.ORBIT_RATIO;
+        config.SOCIAL_CATEGORY.orbit *= config.ORBIT_RATIO;
+        config.MEDIA_CATEGORY.orbit *= config.ORBIT_RATIO;
+
 		drawingUtils.paintCircle(paper, config.BODY_CATEGORY.orbit, "#ffffff", 1);
 		drawingUtils.paintCircle(paper, config.AT_HOME_CATEGORY.orbit, "#ffffff", 1);
 		drawingUtils.paintCircle(paper, config.OUTSIDE_CATEGORY.orbit, "#ffffff", 1);
@@ -76,9 +83,10 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 				continue;
 			updateDataDisplay(digest.cachedData[objectTypeName], objectTypeName, digest);
 		}
-		for(i=0;i<digest.updateNeeded.length;i++) {
+        //disabled... not sure what the purpose of this is
+		/*for(i=0;i<digest.updateNeeded.length;i++) {
 			getDayInfo(digest.updateNeeded[i], digest);
-		}
+		}*/
 	}
 
 	function outsideTimeBoundaries(o) {
@@ -115,7 +123,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 				endAngle = solarInfo.sunset / config.RATIO + config.START_AT,
 				midAngle = endAngle*0.2;
 			if (endAngle < 390 ) {
-				var coords = fillRegion(config.CLOCK_CENTER, config.BODY_CATEGORY.orbit-15, config.MEDIA_CATEGORY.orbit+15, startAngle, midAngle);
+				var coords = fillRegion(config.CLOCK_CENTER, config.BODY_CATEGORY.orbit * config.ORBIT_RATIO -15, config.MEDIA_CATEGORY.orbit+15, startAngle, midAngle);
 				config.clockCircles.push(
 					function() {
 						var path = paper.path(coords);
@@ -151,11 +159,21 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 	}
 	
 	function updateDataDisplay(connectorData, connectorInfoId, digest) {
-		switch(connectorInfoId) {
+        var facetConfig = App.getFacetConfig(connectorInfoId);
+        if (facetConfig.clock == null)
+            return;
+        if (facetConfig.gps){
+            locationBreakdown(connectorData,digest);
+        }
+        else{
+            facetConfig.clock.orbit *= config.ORBIT_RATIO;
+            drawTimedData(connectorData,facetConfig.clock);
+        }
+		/*switch(connectorInfoId) {
 		case "fitbit-activity_summary":
 //			drawFitbitInfo(connectorData);
 			break;
-		case "google_latitude":
+		case "google_latitude-location":
 			if (connectorData!=null&&typeof(connectorData)!="undefined")
 				locationBreakdown(connectorData, digest);
 			break;
@@ -185,7 +203,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		case "withings-bpm":
 			drawTimedData(connectorData, config.BODY_CATEGORY);
 			break;
-		}
+		}*/
 	}
 
 	function drawTimedData(payload, category) {
@@ -253,7 +271,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		lastHoveredEvent = event;
 		var span = event.target;
 		var facet = span.item;
-		if (facet.type=="google_latitude")
+		if (facet.type=="google_latitude-location")
 			return;
         var target = $(event.target).parent().position();
         var tip_y = target.top + event.offsetY;
@@ -266,7 +284,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                 markers[0].doHighlighting();
                 markers[0].hideMarker();
                 markers[1] = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(event.timeTarget),
-                                                    icon:markers[0].getIcon(),shadow:markers[0].getShadow()});
+                                                    icon:markers[0].getIcon(),shadow:markers[0].getShadow(),clickable:false});
                 map.enhanceMarker(markers[1],event.timeTarget);
                 markers[1].showCircle();
                 map.zoomOnMarker(markers[1]);
@@ -398,7 +416,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         if (map != null){
             map.highlightTimespan(span.item.start,span.item.end);
 
-            markers[0] = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(event.timeTarget)});
+            markers[0] = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(event.timeTarget),clickable:false});
             map.enhanceMarker(markers[0],event.timeTarget);
             markers[0].showCircle();
             if (span.item.start == span.item.end)
@@ -627,11 +645,21 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         }
     }
 
+    function connectorDisplayable(connector){
+        for (var i = 0; i < connector.facetTypes.length; i++){
+            var config = App.getFacetConfig(connector.facetTypes[i]);
+            if (config.clock != null)
+                return true;
+        }
+        return false;
+    }
+
 	var clockTab = new Tab("clock", "Candide Kemmler", "icon-time", true);
     document.qTipUpdate = qTipUpdate;
     document.hideQTipMap = hideQTipMap;
 	clockTab.render = render;
     clockTab.connectorToggled = connectorToggled;
+    clockTab.connectorDisplayable = connectorDisplayable;
 	return clockTab;
 	
 });

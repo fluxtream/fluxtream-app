@@ -106,9 +106,19 @@ define(["applications/calendar/tabs/Tab",
         setup(digest,connectorEnabled);
     }
 
+    function connectorDisplayable(connector){
+        for (var i = 0; i < connector.facetTypes.length; i++){
+            var config = App.getFacetConfig(connector.facetTypes[i]);
+            if (config.photos)
+                return true;
+        }
+        return false;
+    }
+
     var photosTab = new Tab("photos", "Candide Kemmler", "icon-camera", true);
     photosTab.render = render;
     photosTab.connectorToggled = connectorToggled;
+    photosTab.connectorDisplayable = connectorDisplayable;
     return photosTab;
 
 });

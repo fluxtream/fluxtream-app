@@ -1,7 +1,7 @@
 define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     var config = Config.getConfig();
 
-    function addGPSData(map,gpsData){
+    function addGPSData(map,gpsData, clickable){
         map.gpsPositions = [];
         map.gpsTimestamps = [];
         if (gpsData.length == 0)
@@ -44,16 +44,17 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                                                                             position:map.gpsPositions[map.gpsPositions.length-1],
                                                                            icon:App.getConnectorConfig(App.getFacetConnector(gpsData[i].type)).mapicon,
                                                                            shadow:App.getConnectorConfig(App.getFacetConnector(gpsData[i].type)).mapshadow,
-                                                                           clickable:false});
+                                                                           clickable:clickable});
+            map.enhanceMarkerWithItem(map.markers[gpsData[i].type][map.markers[gpsData[i].type].length-1],gpsData[i]);
             map.gpsTimestamps[map.gpsTimestamps.length] = gpsData[i].start;
             map.gpsAccuracies[map.gpsAccuracies.length] = gpsData[i].accuracy;
-            if (lat < minLat)
-                minLat = lat + gpsData[i].accuracy;
-            if (lat > maxLat)
+            if (lat - gpsData[i].accuracy < minLat)
+                minLat = lat - gpsData[i].accuracy;
+            if (lat + gpsData[i].accuracy > maxLat)
                 maxLat = lat + gpsData[i].accuracy;
-            if (lng < minLng)
-                minLng = lng + gpsData[i].accuracy;
-            if (lng > maxLng)
+            if (lng - gpsData[i].accuracy < minLng)
+                minLng = lng - gpsData[i].accuracy;
+            if (lng + gpsData[i].accuracy > maxLng)
                 maxLng = lng + gpsData[i].accuracy;
         }
         map.gpsLine = new google.maps.Polyline({map:map, path:map.gpsPositions,clickable:false});
@@ -118,25 +119,8 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     function isDisplayable(itemType){
-        switch (itemType){
-            case "sms_backup-sms":
-            case "sms_backup-call_Calendar":
-            case "twitter-dm":
-            case "twitter-tweet":
-            case "twitter-mention":
-            case "google_calendar-entry":
-            case "toodledo-task":
-            case "fitbit-sleep":
-            case "withings-bpm":
-            case "picasa-photo":
-            case "flickr":
-            case "lastfm-recent_track":
-            case "lastfm-loved_track":
-            case "photo":
-                return true;
-            default:
-                return false;
-        }
+        var config = App.getFacetConfig(itemType);
+        return config.map && !config.gps;
     }
 
     function addItemsToMap(map,items,clickable){
@@ -159,9 +143,11 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         if (start > map.gpsTimestamps[map.gpsTimestamps.length - 1] || (end == null && start < map.gpsTimestamps[0]))
             return;
         var marker = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(start), icon:itemConfig.mapicon, shadow:itemConfig.mapshadow,clickable:clickable});
-        enhanceMarker(map,marker,start,end);
-        if (!clickable)
-            return marker;
+        map.enhanceMarkerWithItem(marker,item);
+        return marker;
+    }
+
+    function addClickListenerForMarker(map,marker,item){
         google.maps.event.addListener(marker, "click", function(){
             map.connectorSelected = item.type;
             if (map.selectedMarker != null)
@@ -172,7 +158,14 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             marker.doHighlighting();
             marker.showCircle();
         });
-        return marker;
+
+    }
+
+    function enhanceMarkerWithItem(map,marker,item){
+        if (marker._oldSetMap != null)
+            return;
+        marker.item = item;
+        map.enhanceMarker(marker);
     }
 
     function enhanceMarker(map, marker, start, end){
@@ -181,7 +174,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         marker._oldSetMap = marker.setMap;
         marker.targetMap = null;
         marker.circle = null;
-        var accuracy = getGPSAccuracy(map,start);
+        var accuracy = getGPSAccuracy(map,marker.item != null ? marker.item.start : start);
         marker.showCircle = function(){
             if (marker.circle != null)
                 return;
@@ -237,14 +230,16 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 map.currentHighlightedLine.setMap(null);
                 map.currentHighlightedLine = null
             }
-            if (end != null){
-                map.currentHighlightedLine = map.createPolyLineSegment(start, end, {strokeColor:"orange", zIndex: 100});
+            if ((marker.item != null && marker.item.end != null) || end != null){
+                map.currentHighlightedLine = map.createPolyLineSegment(marker.item != null ? marker.item.start : start, marker.item != null ? marker.item.end : end, {strokeColor:"orange", zIndex: 100});
                 marker.line = map.currentHighlightedLine;
                 if (map.gpsLine.getMap() == null)
                     map.currentHighlightedLine.setMap(null);
             }
         }
-
+        if (marker.clickable && marker.item != null){
+            addClickListenerForMarker(map,marker,marker.item);
+        }
     }
 
     function highlightTimespan(map, start,end){
@@ -551,7 +546,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             map.gpsAccuracies = [];
             map.gpsBounds = null;
             map.markers = {};
-            map.addGPSData = function(gpsData){addGPSData(map,gpsData)};
+            map.addGPSData = function(gpsData,clickable){addGPSData(map,gpsData,clickable)};
             map.addData = function(connectorData, connectorInfoId,clickable){return addData(map,connectorData, connectorInfoId,clickable)};
             map.addAddresses = function(addresses,clickable){addAddresses(map,addresses,clickable)}
             map.getLatLngOnGPSLine = function(time){return getLatLngOnGPSLine(map,time)};
@@ -569,6 +564,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             map.zoomOnPoint = function(point){zoomOnPoint(map,point)};
             map.zoomOnMarker = function(marker){zoomOnMarker(map,marker)};
             map.enhanceMarker = function(marker,start,end){enhanceMarker(map,marker,start,end)};
+            map.enhanceMarkerWithItem = function(marker,item){enhanceMarkerWithItem(map,marker,item)};
             map.isFullyInitialized = function(){return isFullyInitialized(map)};
             map.isPreserveViewChecked = function(){return false;}
             map._oldFitBounds = map.fitBounds;

@@ -46,6 +46,7 @@ public class TwitterFacetExtractor extends AbstractFacetExtractor {
                     tweetFacet.tweetId = twitterItem.getLong("id");
                     JSONObject user = twitterItem.getJSONObject("user");
 					tweetFacet.profileImageUrl = user.getString("profile_image_url");
+                    tweetFacet.userName = user.getString("screen_name");
 					facets.add(tweetFacet);
 					break;
                 }
@@ -62,7 +63,8 @@ public class TwitterFacetExtractor extends AbstractFacetExtractor {
 					twitterMentionFacet.twitterId = twitterItem.getLong("id");
 					JSONObject user = twitterItem.getJSONObject("user");
 					twitterMentionFacet.profileImageUrl = user.getString("profile_image_url");
-					twitterMentionFacet.userName = user.getString("name");
+					twitterMentionFacet.userName = user.getString("screen_name");
+                    twitterMentionFacet.name = user.getString("name");
 					facets.add(twitterMentionFacet);
 					break;
                 }
@@ -79,14 +81,13 @@ public class TwitterFacetExtractor extends AbstractFacetExtractor {
 					JSONObject sender = twitterItem.getJSONObject("sender");
 					JSONObject recipient = twitterItem.getJSONObject("recipient");
 					twitterDirectMessageFacet.senderProfileImageUrl = sender.getString("profile_image_url");
-					twitterDirectMessageFacet.senderName = sender.getString("name");
-					twitterDirectMessageFacet.recipientName = recipient.getString("name");
+					twitterDirectMessageFacet.senderName = sender.getString("screen_name");
+					twitterDirectMessageFacet.recipientName = recipient.getString("screen_name");
 					twitterDirectMessageFacet.senderScreenName = twitterItem.getString("sender_screen_name");
 					twitterDirectMessageFacet.recipientProfileImageUrl = recipient.getString("profile_image_url");
 					twitterDirectMessageFacet.recipientScreenName = twitterItem.getString("recipient_screen_name");
 					twitterDirectMessageFacet.twitterId = twitterItem.getLong("id");
-					String screen_name = (String) this.updateInfo.getContext("screen_name");
-					twitterDirectMessageFacet.sent = (byte)(twitterDirectMessageFacet.senderScreenName.equals(screen_name)?1:0);
+					twitterDirectMessageFacet.sent = (byte) (this.updateInfo.getContext("sent").equals("1") ? 1 : 0);
 					facets.add(twitterDirectMessageFacet);
 					break;
                 }

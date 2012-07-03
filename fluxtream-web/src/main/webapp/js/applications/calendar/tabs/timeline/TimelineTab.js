@@ -86,7 +86,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
             }
 
             if (hasUnsavedChanges) {
-                return "You have unsaved changes";
+                //return "You have unsaved changes";
             }
         });
         $("form").submit(function() {
@@ -141,7 +141,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
 
         // Make the channel list sortable
         $("#_timeline_channels").sortable({
-            handle      : '._timeline_channelTab',
+            handle      : '.flx-channel',
             axis        : 'y',
             tolerance   : 'pointer',
             containment : '#_timeline_channels',
@@ -250,8 +250,12 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
                     var channelMapping = sourcesMap[channel.id]
                     if (enabled)
                         addChannel(channelMapping,null);
-                    else
-                        $("._timeline_channel_" + channelMapping.device_name + "_" + channelMapping.channel_name + "_delete_btn").click();
+                    else{
+                        var channelElement = $("#_timeline_channel_" + channelMapping.device_name + "_" + channelMapping.channel_name);
+                        var channelElementId = channelElement.parent().attr("id");
+                        plotContainersMap[channelElementId].removePlot(plotsMap[channelElementId]);
+                        $(channelElement).remove();
+                    }
 
                 }
                 return;
@@ -2850,7 +2854,6 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
     function render(dgest, timeUnit, calendarState, cEn) {
         digest = dgest;
         connectorEnabled = cEn;
-        $("#filtersContainer").show();
         this.getTemplate("text!applications/calendar/tabs/timeline/template.html", "timeline", function() {
             setup(digest, timeUnit);
         });
@@ -2877,11 +2880,16 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
         }
     }
 
+    function connectorDisplayable(connector){
+        return connector.channelNames.length != 0;
+    }
+
     timelineTab.initialized = false;
     timelineTab.render = render;
     timelineTab.init = init;
     timelineTab.connectorToggled = connectorToggled;
     timelineTab.newView = newView;
     timelineTab.setRange = setRange;
+    timelineTab.connectorDisplayable = connectorDisplayable;
     return timelineTab;
 });

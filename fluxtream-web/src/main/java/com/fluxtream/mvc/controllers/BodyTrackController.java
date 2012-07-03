@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 // This controller tunnels BodyTrack API calls to a BodyTrack server running on localhost:3000
-// For documentation on these APIs, see 
+// For documentation on these APIs, see
 //  https://fluxtream.atlassian.net/wiki/display/FLX/BodyTrack+server+APIs
 
 @Controller

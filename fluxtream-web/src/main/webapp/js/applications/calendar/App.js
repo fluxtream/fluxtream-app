@@ -78,7 +78,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     };
 
 	Calendar.renderState = function(state, forceReload) {
-        $("#filtersContainer").hide();
         forceReload = typeof(forceReload)!="undefined"&&forceReload;
         if (!forceReload&&FlxState.getState("calendar")===state) {
 			return;
@@ -201,7 +200,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     function enhanceDigest(digest){
         digest.detailsTemplates = {};
         for (var i = 0; i < digest.selectedConnectors.length; i++){
-            for (var j = 1; j < digest.selectedConnectors[i].facetTypes.length; j++){
+            for (var j = 0; j < digest.selectedConnectors[i].facetTypes.length; j++){
                 getTemplate(digest,i,j);
             }
         }
@@ -238,7 +237,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 enabled =  digest.cachedData[digest.selectedConnectors[i].facetTypes[j]] != null;
             }
             enabled = enabled ? "" : "flx-disconnected";
-            var button = $('<li><a href="#" class="flx-active ' + enabled + '">' + digest.selectedConnectors[i].prettyName + '</button></li>');
+            var button = $('<li><a href="#" id="flx-connector-btn-' + digest.selectedConnectors[i].connectorName + '" class="flx-active ' + enabled + '">' + digest.selectedConnectors[i].prettyName + '</button></li>');
             if (enabled == "")
                 button.children().css("border-bottom-color",App.getConnectorConfig(digest.selectedConnectors[i].connectorName).color);
             selectedConnectors.append(button);
@@ -330,21 +329,77 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     params.time = App.formatMinuteOfDay(data[member]);
                     break;
                 case "userName":
-                    if (data.type == "twitter-dm"){
-                        params.sender = data.sent ? "You" : data[member];
-                        params.receiver = data.sent ? data[member] : "You";
-                        break;
-                    }
                     params[member] = data[member];
                     break;
                 case "imgUrls":
                     params["imgUrl"] = data[member][0];
+                    break;
+                case "description":
+                    if (data.type == "twitter-dm" || data.type == "twitter-mention" || data.type == "twitter-tweet"){
+                        params[member] = parseTwitter(data[member]);
+                    }
+                    else{
+                        params[member] = data[member];
+                    }
                     break;
                 default:
                     params[member] = data[member];
             }
         }
         return digest.detailsTemplates[data.type].render(params);
+    }
+
+    var topLevelDomains = ["aero","asia","biz","cat","com","coop","info", "int", "jobs", "mobi",
+                           "museum", "name", "net", "org", "pro", "tel", "travel", "xxx", "edu",
+                           "edu", "gov", "mil", "ac", "ad", "ae", "af", "ag", "ai", "al", "am",
+                           "am", "an", "aq", "ar", "as", "at", "au", "aw", "ax", "az", "ba", "bb",
+                           "be", "bf", "bg", "bh", "bi", "bj", "bm", "bn" , "bo", "br", "bs", "bt",
+                           "bv", "bw", "by", "bz", "ca", "cc", "cd", "cf", "cg", "ch", "ci", "ck",
+                           "cl", "cm", "cn", "co", "cr", "cs", "cu", "cv", "cx", "cy", "cz", "dd",
+                           "de", "dj", "dk", "dm", "do", "dz", "ec", "ee", "eg", "eh", "er", "es", "et",
+                           "eu", "fi", "fj", "fk", "fm", "fo", "fr", "ga", "gb", "gd", "ge", "gf", "gg",
+                           "gh", "gi", "gl", "gm", "gn", "gp", "gq", "gr", "gs", "gt", "gu", "gw", "gy",
+                           "hk", "hm", "hn", "hr", "ht", "hu", "id", "ie", "il", "im", "in", "io", "iq",
+                           "iq", "ir", "is", "it", "je", "jm", "jo", "jp", "ke", "kg", "kh", "ki", "km",
+                           "kn", "kp", "kr", "kw", "ky", "kz", "la", "lb", "lc", "li", "lk", "lr", "ls",
+                           "lt", "lu", "lv", "ly", "ma", "mc", "md", "me", "mg", "mh", "mk", "ml", "mm",
+                           "mn", "mo", "mp", "mq", "mr", "ms", "mt", "mu", "mv", "mw", "mx", "my", "mz",
+                           "na", "nc", "ne", "nf", "ng", "ni", "nl", "no", "np", "nr", "nu", "nz", "om",
+                           "pa", "pe", "pf", "pg", "ph", "pk", "pl", "pm", "pn", "pr", "ps", "pt", "pw",
+                           "py", "qa", "re", "ro", "rs", "ru", "rw", "sa", "sb", "sc", "sd", "se", "sg",
+                           "sh", "si", "sj", "sk", "sl", "sm", "sn", "so", "sr", "ss", "st", "su", "sv",
+                           "sy", "sz", "tc", "td", "tf", "tg", "th", "tj", "tk", "tl", "tm", "tn", "to",
+                           "tp", "tr", "tt", "tv", "tw", "tz", "ua", "uk", "us", "uy", "uz", "va", "vc",
+                           "ve", "vg", "vi", "vn", "vu", "wf", "ws", "ye", "yt", "yu", "za", "zm", "zw"]
+
+    var uriRegex = "\\b(http://|ftp://)?[A-z0-9\\-.]+[.](" + topLevelDomains.join("|") + ")(/[/A-z0-9#@_\\-&?=.]+\\b|\\b)";
+    var twitterNameRegex = "@[A-Za-z0-9_]+";
+    var hashtagRegex = "#[A-Za-z_]+";
+    var twitterParserRegexp = new RegExp("(" + uriRegex + "|" + twitterNameRegex + "|" + hashtagRegex + ")","ig");
+
+    function parseTwitter(text){
+        var ret = "";
+        var oldIndex = 0;
+        text.replace(twitterParserRegexp, function(match){
+            var index = arguments[arguments.length - 2];
+            var fullString = arguments[arguments.length - 1];
+            ret += fullString.substring(oldIndex,index);
+            oldIndex = index + match.length;
+            switch (match.charAt(0)){
+                case "#"://hashtag
+                    ret += "<a href='https://twitter.com/search/" + encodeURIComponent(match) + "'>" + match + "</a>";
+                    break;
+                case "@"://username
+                    ret += "<a href='https://twitter.com/" + encodeURIComponent(match.substring(1)) + "'>" + match + "</a>";
+                    break;
+                default://uri
+                    ret += "<a href='" + match + "'>" + match + "</a>";
+                    break;
+            }
+        });
+        ret += text.substring(oldIndex);
+
+        return ret;
     }
 
     function handleCityInfo(digestInfo) {
