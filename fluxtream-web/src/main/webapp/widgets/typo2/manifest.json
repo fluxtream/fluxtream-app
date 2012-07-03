@@ -3,7 +3,7 @@
     "WidgetIcon" : "typo2.png",
     "WidgetName" : "typo2",
     "WidgetTitle" : {"en" : "Typography #2"},
-    "WidgetRepositoryURL" : "http://localhost:8082/widgets",
+    "WidgetRepositoryURL" : "http://ovh-bt3.bodytrack.org/widgets",
     "SupportedLanguages" : "en",
     "VendorIdentifier" : "Fluxtream.com",
     "RequiredConnectors":"dev"
