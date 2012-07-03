@@ -86,20 +86,20 @@
 
 <script id="_timeline_channel_template" type="text/x-mustache-tmpl">
   <li id="{{channelElementId}}">
-    <div class="_timeline_channel">
+    <div id="_timeline_channel_{{deviceName}}_{{channelName}}" class="_timeline_channel">
       <div class="_timeline_channelTabAndPlot">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr>
             <td class="_timeline_channeltd" rowspan="2">
-                <div class="flx-channel">
-                    <div class="flx-remove-channel" id="{{channelElementId}}_delete_btn"><a href="#"><i class="icon-remove-sign"></i></a></div>
+                <div class="flx-channel" id="_timeline_channelTab_{{plotId}}">
+                    <div class="flx-remove-channel"><!--id="{{channelElementId}}_delete_btn"--><span style="opacity:0;"><i class="icon-remove-sign"></i></span></div>
                     <div class="flx-channel-name">
                         <h4>{{deviceName}}</h4>
                         <p>{{channelName}}</p>
                     </div>
                     <ul class="flx-channel-controls">
-                        <li><a href="#" id="_timeline_btnShowAllY"><i class="icon-resize-vertical"></i></a></li>
-                        <li><a href="#" id="_timeline_btnGear"><i class="icon-pencil"></i></a></li>
+                        <li><a href="#" id="{{channelElementId}}_btnShowAllY"><i class="icon-resize-vertical"></i></a></li>
+                        <li><a href="#" id="{{channelElementId}}_btnGear"><i class="icon-pencil"></i></a></li>
                     </ul>
                 </div>
             </td>

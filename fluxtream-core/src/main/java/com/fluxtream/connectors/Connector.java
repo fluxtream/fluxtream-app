@@ -27,6 +27,7 @@ public class Connector {
 
 	private static Map<String, Connector> connectors = new ConcurrentHashMap<String, Connector>();
 	private static Map<Integer, Connector> connectorsByValue = new ConcurrentHashMap<Integer, Connector>();
+
 	
 	static {
 		Connector flxConnector = new Connector();
@@ -137,6 +138,7 @@ public class Connector {
 						connector.userProfileClass = updaterAnnotation
 								.userProfile();
 				}
+                connector.defaultChannels = updaterAnnotation.defaultChannels();
 				List<ObjectType> connectorObjectTypes = new ArrayList<ObjectType>();
 				connector.objectTypeExtractorClasses = new ConcurrentHashMap<Integer, Class<? extends AbstractFacetExtractor>>();
 				for (Class<? extends AbstractFacet> facetType : facetTypes) {
@@ -257,10 +259,15 @@ public class Connector {
 	private String prettyName;
 	private int[] objectTypeValues;
 	private boolean hasFacets;
+    private String[] defaultChannels;
 	private String[] additionalParameters;
 
 	private Connector() {
 	}
+
+    public String[] getDefaultChannels(){
+        return defaultChannels;
+    }
 
 	public ObjectType[] objectTypes() {
 		return this.objectTypes;

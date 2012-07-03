@@ -86,7 +86,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
             }
 
             if (hasUnsavedChanges) {
-                return "You have unsaved changes";
+                //return "You have unsaved changes";
             }
         });
         $("form").submit(function() {
@@ -141,7 +141,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
 
         // Make the channel list sortable
         $("#_timeline_channels").sortable({
-            handle      : '._timeline_channelTab',
+            handle      : '.flx-channel',
             axis        : 'y',
             tolerance   : 'pointer',
             containment : '#_timeline_channels',
@@ -242,17 +242,26 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
     } // init
 
     function connectorToggled(connectorName,objectTypeNames,enabled){
-            var channels = App.getConnectorConfig(connectorName).defaultChannels;
-            for (var i = 0; i < channels.length; i++){
-                var channel = getSourceChannelByFullName(channels[i]);
-                var channelMapping = sourcesMap[channel.id]
-                if (enabled)
-                    addChannel(channelMapping,null);
-                else
-                    $("._timeline_channel_" + channelMapping.device_name + "_" + channelMapping.channel_name + "_delete_btn").click();
+        for (var i = 0; i < digest.selectedConnectors.length; i++){
+            if (connectorName == digest.selectedConnectors[i].connectorName){
+                var channels = digest.selectedConnectors[i].channelNames;
+                for (var i = 0; i < channels.length; i++){
+                    var channel = getSourceChannelByFullName(channels[i]);
+                    var channelMapping = sourcesMap[channel.id]
+                    if (enabled)
+                        addChannel(channelMapping,null);
+                    else{
+                        var channelElement = $("#_timeline_channel_" + channelMapping.device_name + "_" + channelMapping.channel_name);
+                        var channelElementId = channelElement.parent().attr("id");
+                        plotContainersMap[channelElementId].removePlot(plotsMap[channelElementId]);
+                        $(channelElement).remove();
+                    }
 
+                }
+                return;
             }
         }
+    }
 
     function updateLoadViewDropdown(){
         App.loadMustacheTemplate("applications/calendar/tabs/timeline/timelineTemplates.html","loadViewsDropdown",function(template){
@@ -890,7 +899,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
         plotContainers.push(plotContainer);
 
         // Gear button
-        $("#_timeline_btnGear").unbind("click").click(function(event) {
+        $("#" + channelElementId + "_btnGear").unbind("click").click(function(event) {
             event.preventDefault();
             var channelConfigElement = $(this).parents("._timeline_channel")
                 .children("._timeline_channelConfig");
@@ -1193,7 +1202,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
             });
 
             /* add event handler for the Show all Y range link */
-            $("#" + channelElementId + " #_timeline_btnShowAllY").click(function(event) {
+            $("#" + channelElementId + " #" + channelElementId + "_btnShowAllY").click(function(event) {
                 event.preventDefault();
                 var plot = plotsMap[channelElementId];
                 if (!(plot && !!plot.getStatistics)) {
@@ -1404,6 +1413,10 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
             // Finally, trigger a call updateDataSeriesPlotChannelConfig() so that the grapher properly represents the config settings
             $("#" + channelElementId + "-config-comments-fillColor").change();
         } else if (plot instanceof PhotoSeriesPlot) {
+
+            $("#" + channelElementId + " #" + channelElementId + "_btnShowAllY").click(function(event){
+                event.preventDefault();
+            });
 
             // returns the array of tags already selected for this photo
             var getUserSelectedTags = function() {
@@ -2838,9 +2851,9 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
         }
     }
 
-    function render(digest, timeUnit, calendarState, cEn) {
+    function render(dgest, timeUnit, calendarState, cEn) {
+        digest = dgest;
         connectorEnabled = cEn;
-        $("#filtersContainer").show();
         this.getTemplate("text!applications/calendar/tabs/timeline/template.html", "timeline", function() {
             setup(digest, timeUnit);
         });
@@ -2848,8 +2861,10 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
     }
 
     var timelineTab = new Tab("timeline", "Candide Kemmler", "icon-film", false);
+    var digest;
 
     function setup(digest, timeUnit) {
+
         $(window).resize(function(){
             clearTimeout(BodyTrack.TOOLS.resizeTimer);
             BodyTrack.TOOLS.resizeTimer = setTimeout(BodyTrack.TOOLS.resizeHandler, 100);
@@ -2863,9 +2878,10 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
                 });
             });
         }
-        else{
+    }
 
-        }
+    function connectorDisplayable(connector){
+        return connector.channelNames.length != 0;
     }
 
     timelineTab.initialized = false;
@@ -2874,5 +2890,6 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
     timelineTab.connectorToggled = connectorToggled;
     timelineTab.newView = newView;
     timelineTab.setRange = setRange;
+    timelineTab.connectorDisplayable = connectorDisplayable;
     return timelineTab;
 });

@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import com.fluxtream.Configuration;
 import net.sf.json.JSONObject;
 import org.codehaus.plexus.util.StringUtils;
 
@@ -28,20 +29,6 @@ public class DashboardWidget {
     public String BundleIdentifier;
     public String BundleVersion;
 
-    /**
-
-    "WidgetDescription" : {"en" : ""},
-    "WidgetIcon" : "",
-    "WidgetName" : "",
-    "WidgetURL" : "",
-    "BundleCopyright" : "",
-    "BundleIdentifier" : "",
-    "BundleVersion" : "",
-    "SupportedLanguages" : "",
-    "VendorIdentifier" : "",
-    "RequiredConnectors":"bodymedia, fitbit"
-
-     */
     public DashboardWidget(final JSONObject manifestJSON) {
         try {
             JSONObject descDict = JSONObject.fromObject(manifestJSON.getString("WidgetDescription"));
@@ -57,9 +44,6 @@ public class DashboardWidget {
                 WidgetTitle.put(key, titleDict.getString(key));
             }
             WidgetRepositoryURL = manifestJSON.getString("WidgetRepositoryURL");
-            BundleCopyright = manifestJSON.getString("BundleCopyright");
-            BundleIdentifier = manifestJSON.getString("BundleIdentifier");
-            BundleVersion = manifestJSON.getString("BundleVersion");
             SupportedLanguages = new ArrayList<String>(
                     Arrays.asList(
                             StringUtils.split(manifestJSON.getString("SupportedLanguages"),
@@ -78,8 +62,10 @@ public class DashboardWidget {
         }
     }
 
-    public boolean matchesUserConnectors(List<String> userConnectorNames) {
+    public boolean matchesUserConnectors(List<String> userConnectorNames, boolean isDev) {
         for (String requiredConnector : RequiredConnectors) {
+            if (isDev && requiredConnector.equals("dev"))
+                return true;
             for (String userConnectorName : userConnectorNames) {
                 if (userConnectorName.equalsIgnoreCase(requiredConnector.trim()))
                     return true;

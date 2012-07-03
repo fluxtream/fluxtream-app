@@ -1,5 +1,6 @@
 package com.fluxtream.services;
 
+import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.GuestAddress;
 import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.domain.GuestSettings.DistanceMeasureUnit;
@@ -27,6 +28,12 @@ public interface SettingsService {
 
     public void addAddress(long guestId, String type, String address, double latitude,
                            double longitude, long since, double radius, String jsonString);
+
+    public String[] getChannelsForConnector(long guestId, Connector connector);
+
+    public void setChannelsForConnector(long guestId, Connector connector, String[] channels);
+
+    public void setChannelsForConenctor(long guestId, Connector connector, List<String> channels);
 	
 	public List<GuestAddress> getAllAddressesForDate(long guestId, long date);
 

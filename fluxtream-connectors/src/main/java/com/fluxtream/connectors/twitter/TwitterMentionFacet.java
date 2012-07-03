@@ -29,6 +29,7 @@ public class TwitterMentionFacet extends AbstractFacet {
 	public String profileImageUrl;
 
 	public String userName;
+    public String name;
 	
 	@Override
 	protected void makeFullTextIndexable() {

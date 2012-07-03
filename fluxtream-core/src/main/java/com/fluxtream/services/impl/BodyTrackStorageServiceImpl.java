@@ -89,7 +89,6 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 		List<String> channelValues = extractChannelValuesFromFacets(
 				channelNamesMapping, deviceFacets, guestId, user_id, host);
 		String jsonArray = makeJSONArray(channelValues, false);
-		System.out.println("jsonArray: " + jsonArray);
 		params.put("data", jsonArray);
 
         bodyTrackHelper.uploadToBodyTrack(guestId, user_id, host, params);
@@ -120,8 +119,8 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
                                 LOG.warn("********* NO SUPPORT FOR #fields FOR NOW **************** " + fieldHandlerName);
                             }
                             // else... it might be a "converter"... if/when there is a use-case for it
-                            continue;
                         }
+                        continue;
                     }
                     sb.append(",");
 					field = deviceFacet.getClass().getField(fieldName);

@@ -7,7 +7,6 @@ define(["applications/calendar/tabs/Tab",
     var preserveView = false;
 
     function render(digest, timeUnit, calendarState, connectorEnabled) {
-        $("#filtersContainer").show();
         this.getTemplate("text!applications/calendar/tabs/map/map.html", "map", function(){setup(digest,calendarState,connectorEnabled);});
     }
 
@@ -31,10 +30,10 @@ define(["applications/calendar/tabs/Tab",
             bounds = map.getBounds();
 
         if (digest!=null && digest.cachedData!=null &&
-            typeof(digest.cachedData.google_latitude)!="undefined"
-                && digest.cachedData.google_latitude !=null &&
-            digest.cachedData.google_latitude.length>0) { //make sure gps data is available before trying to display it
-            map.addGPSData(digest.cachedData.google_latitude);
+            typeof(digest.cachedData["google_latitude-location"])!="undefined"
+                && digest.cachedData["google_latitude-location"] !=null &&
+            digest.cachedData["google_latitude-location"].length>0) { //make sure gps data is available before trying to display it
+            map.addGPSData(digest.cachedData["google_latitude-location"],true);
 
             if (!map.isPreserveViewChecked())
                 bounds = map.gpsBounds;
@@ -70,9 +69,9 @@ define(["applications/calendar/tabs/Tab",
         var digest = digestData;
         map.addAddresses(digest.addresses,true);
         if (digest!=null && digest.cachedData!=null &&
-            typeof(digest.cachedData.google_latitude)!="undefined"
-                && digest.cachedData.google_latitude !=null &&
-            digest.cachedData.google_latitude.length>0){
+            typeof(digest.cachedData["google_latitude-location"])!="undefined"
+                && digest.cachedData["google_latitude-location"] !=null &&
+            digest.cachedData["google_latitude-location"].length>0){
             for(var objectTypeName in digest.cachedData) {
                 if (digest.cachedData[objectTypeName]==null||typeof(digest.cachedData[objectTypeName])=="undefined")
                     continue;
@@ -90,9 +89,19 @@ define(["applications/calendar/tabs/Tab",
         }
     }
 
+    function connectorDisplayable(connector){
+        for (var i = 0; i < connector.facetTypes.length; i++){
+            var config = App.getFacetConfig(connector.facetTypes[i]);
+            if (config.map)
+                return true;
+        }
+        return false;
+    }
+
     var mapTab = new Tab("map", "Candide Kemmler", "icon-map-marker", true);
     mapTab.render = render;
     mapTab.connectorToggled = connectorToggled;
+    mapTab.connectorDisplayable = connectorDisplayable;
     return mapTab;
 
 });

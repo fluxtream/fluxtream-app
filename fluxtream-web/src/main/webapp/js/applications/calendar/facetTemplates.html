@@ -3,8 +3,8 @@
         <span class="flx-deviceIcon twitter-tweet"></span>
         <div class="flx-tTime">{{time}}</div>
         <div class="flx-data">
-            <span style="background:url('{{profileImageUrl}}'); background-size:100% 100%;"></span>
-            <span class="flx-description">{{description}}</span>
+            <span style="background:url('{{profileImageUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
+            <span class="flx-description"><span><a href="https://twitter.com/{{userName}}">@{{userName}}</a></span> {{{description}}}</span>
         </div>
    </div>
 </template>
@@ -13,28 +13,18 @@
         <span class="flx-deviceIcon twitter-mention"></span>
         <div class="flx-tTime">{{time}}</div>
         <div class="flx-data">
-            <span style="background:url('{{profileImageUrl}}'); background-size:100% 100%;"></span>
-            <span class="flx-description">{{description}}</span>
+            <span style="background:url('{{profileImageUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
+            <span class="flx-description"><span><a href="https://twitter.com/{{userName}}">@{{userName}}</a></span> {{{description}}}</span>
         </div>
     </div>
 </template>
-<template id="twitter-dm-in">
+<template id="twitter-dm">
     <div class="flx-box" style="border-left-color:{{color}}">
-        <span class="flx-deviceIcon twitter-dm"></span>
+        <span class="flx-deviceIcon twitter-dm{{^sent}}-in{{/sent}}{{#sent}}-out{{/sent}}"></span>
         <div class="flx-tTime">{{time}}</div>
         <div class="flx-data">
-            <span style="background:url('{{profileImageUrl}}'); background-size:100% 100%;"></span>
-            <span class="flx-description">{{description}}</span>
-        </div>
-    </div>
-</template>
-<template id="twitter-dm-out">
-    <div class="flx-box" style="border-left-color:{{color}}">
-        <span class="flx-deviceIcon twitter-dm"></span>
-        <div class="flx-tTime">{{time}}</div>
-        <div class="flx-data">
-            <span style="background:url('{{profileImageUrl}}'); background-size:100% 100%;"></span>
-            <span class="flx-description">{{description}}</span>
+            <span style="background:url('{{profileImageUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
+            <span class="flx-description"><span><a href="https://twitter.com/{{userName}}">@{{userName}}</a></span> {{{description}}}</span>
         </div>
     </div>
 </template>
@@ -105,6 +95,16 @@
         </div>
     </div>
 </template>
+<template id="flickr-photo">
+    <div class="flx-box" style="border-left-color:{{color}}">
+        <span class="flx-deviceIcon picasa"></span>
+        <div class="flx-tTime">{{time}}</div>
+        <div class="flx-data">
+            <span class="flx-photo" style="background:url('{{photoUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
+            <span class="flx-description">{{description}}</span>
+        </div>
+    </div>
+</template>
 <template id="bodymedia-burn">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon bm-burn"></span>
@@ -123,7 +123,7 @@
         </div>
     </div>
 </template>
-<template id="zeo-Sleep">
+<template id="zeo-sleep">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon zeo"></span>
         <div class="flx-tTime">{{time}}</div>
@@ -132,7 +132,7 @@
         </div>
     </div>
 </template>
-<template id="bodymedia-Sleep">
+<template id="bodymedia-sleep">
     <div  class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon bm-sleep"></span>
         <div class="flx-tTime">{{time}}</div>
@@ -197,7 +197,16 @@
         </div>
     </div>
 </template>
-<template id="google_latitude">
+<template id="google_latitude-location">
+    <div class="flx-box" style="border-left-color:{{color}}">
+        <span class="flx-deviceIcon latitude" style="background-size:100% 100%;"></span>
+        <div class="flx-tTime">{{time}}</div>
+        <div class="flx-data">
+            <span class="flx-description">{{description}}</span>
+        </div>
+    </div>
+</template>
+<template id="openpath-location">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon latitude" style="background-size:100% 100%;"></span>
         <div class="flx-tTime">{{time}}</div>

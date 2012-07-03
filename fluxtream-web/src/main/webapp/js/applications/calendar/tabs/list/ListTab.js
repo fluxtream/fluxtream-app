@@ -3,7 +3,6 @@ define(["applications/calendar/tabs/Tab"], function(Tab) {
     var listTab = new Tab("list", "Candide Kemmler", "icon-list", true);
 
     function render(digest, timeUnit, calendarState, connectorEnabled) {
-        $("#filtersContainer").show();
         this.getTemplate("text!applications/calendar/tabs/list/list.html", "list", function(){setup(digest,connectorEnabled);});
     }
 
@@ -137,14 +136,8 @@ define(["applications/calendar/tabs/Tab"], function(Tab) {
         return false;
     }
 
-    function shouldDisplayInListView(connectorId){
-        switch (connectorId){
-            case "google_latitude":
-            case "bodytrack":
-                return false;
-            default:
-                return true;
-        }
+    function shouldDisplayInListView(facetName){
+        return App.getFacetConfig(facetName).list;
     }
 
     function connectorToggled(connectorName,objectTypeNames,enabled){
@@ -162,8 +155,18 @@ define(["applications/calendar/tabs/Tab"], function(Tab) {
         updateNumberOfEvents();
     }
 
+    function connectorDisplayable(connector){
+        for (var i = 0; i < connector.facetTypes.length; i++){
+            var config = App.getFacetConfig(connector.facetTypes[i]);
+            if (config.list)
+                return true;
+        }
+        return false;
+    }
+
     listTab.render = render;
     listTab.connectorToggled = connectorToggled;
+    listTab.connectorDisplayable = connectorDisplayable;
     return listTab;
 	
 });

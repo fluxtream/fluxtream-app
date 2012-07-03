@@ -3,6 +3,7 @@ package com.fluxtream.api;
 import java.util.ArrayList;
 import java.util.List;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -12,6 +13,7 @@ import javax.ws.rs.core.MediaType;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
+import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ApiUpdate;
 import com.fluxtream.domain.ConnectorInfo;
 import com.fluxtream.domain.Guest;
@@ -21,8 +23,10 @@ import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
+import com.fluxtream.services.SettingsService;
 import com.fluxtream.services.SystemService;
 import com.google.gson.Gson;
+import com.sun.mail.imap.protocol.Status;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -39,6 +43,9 @@ public class ConnectorStore {
 
     @Autowired
     SystemService sysService;
+
+    @Autowired
+    SettingsService settingsService;
 
     @Autowired
     ConnectorUpdateService connectorUpdateService;
@@ -66,6 +73,7 @@ public class ConnectorStore {
                 connector.latestData = getLatestData(user.getId(), conn);
                 connector.errors = checkForErrors(user.getId(),conn);
                 connector.syncing = checkIfSyncInProgress(user.getId(),conn);
+                connector.channels = settingsService.getChannelsForConnector(user.getId(),conn);
             }
         }
         return gson.toJson(connectors);
@@ -78,9 +86,11 @@ public class ConnectorStore {
         Guest user = ControllerHelper.getGuest();
         List<ConnectorInfo> connectors =  sysService.getConnectors();
         List<Long> apiKeyIds = new ArrayList<Long>();
-        for (int i = 0; i < connectors.size(); i++)
+        for (int i = 0; i < connectors.size(); i++){
             if (guestService.hasApiKey(user.getId(), connectors.get(i).getApi()))
                 connectors.remove(i--);
+        }
+
         return gson.toJson(connectors);
     }
 
@@ -135,6 +145,23 @@ public class ConnectorStore {
         Guest user = ControllerHelper.getGuest();
         Connector connector = Connector.getConnector(connectorName);
         return gson.toJson(updateConnector(user, connector));
+    }
+
+    @POST
+    @Path("/{connector}/channels")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String setConnectorChannels(@PathParam("connector") String connectorName, @FormParam("channels") String channels){
+        StatusModel result;
+        try{
+            Guest user = ControllerHelper.getGuest();
+            ApiKey apiKey = guestService.getApiKey(user.getId(), Connector.getConnector(connectorName));
+            settingsService.setChannelsForConnector(user.getId(),apiKey.getConnector(),channels.split(","));
+            result = new StatusModel(true,"Successfully updated channels for " + connectorName + ".");
+        }
+        catch (Exception e){
+            result = new StatusModel(false,"Failed to set channels for " + connectorName + ".");
+        }
+        return gson.toJson(result);
     }
 
     @POST

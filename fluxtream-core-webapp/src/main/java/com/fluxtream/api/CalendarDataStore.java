@@ -150,7 +150,7 @@ public class CalendarDataStore {
         setSolarInfo(digest, city, guestId, dayMetadata);
 
         List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter);
-        digest.selectedConnectors = connectorInfos(apiKeySelection);
+        digest.selectedConnectors = connectorInfos(guestId,apiKeySelection);
         List<ApiKey> allApiKeys = guestService.getApiKeys(guestId);
         allApiKeys = removeConnectorsWithoutFacets(allApiKeys);
         digest.nApis = allApiKeys.size();
@@ -224,7 +224,7 @@ public class CalendarDataStore {
 		setSolarInfo(digest, city, guestId, dayMetadata);
 
 		List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter);
-        digest.selectedConnectors = connectorInfos(apiKeySelection);
+        digest.selectedConnectors = connectorInfos(guestId,apiKeySelection);
 		List<ApiKey> allApiKeys = guestService.getApiKeys(guestId);
 		allApiKeys = removeConnectorsWithoutFacets(allApiKeys);
 		digest.nApis = allApiKeys.size();
@@ -512,7 +512,7 @@ public class CalendarDataStore {
 		digest.maxTempF = md.maxTempF;
     }
 
-    private List<ConnectorDigestModel> connectorInfos(List<ApiKey> apis){
+    private List<ConnectorDigestModel> connectorInfos(long guestId, List<ApiKey> apis){
         List<ConnectorDigestModel> connectors = new ArrayList<ConnectorDigestModel>();
         for (ApiKey apiKey : apis){
             Connector connector = apiKey.getConnector();
@@ -520,7 +520,7 @@ public class CalendarDataStore {
             connectors.add(model);
             model.connectorName = connector.getName();
             model.prettyName = connector.prettyName();
-            model.facetTypes.add(model.connectorName);
+            model.channelNames = settingsService.getChannelsForConnector(guestId,connector);
             ObjectType[] objTypes = connector.objectTypes();
             if (objTypes == null)
                 continue;

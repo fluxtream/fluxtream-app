@@ -155,6 +155,14 @@ define([], function() {
 		$(currentTab).tab("show");
 		tab.render(digest, Calendar.timeUnit, Calendar.tabState, Calendar.connectorEnabled[Calendar.currentTabName]);
         Calendar.currentTab = tab;
+        for (var i = 0; i < digest.selectedConnectors.length; i++){
+            var button = $("#flx-connector-btn-" + digest.selectedConnectors[i].connectorName);
+            if (tab.connectorDisplayable(digest.selectedConnectors[i]))
+                button.show();
+            else
+                button.hide();
+
+        }
 	}
 	
 	function tabExistsForTimeUnit(tab, unit) {

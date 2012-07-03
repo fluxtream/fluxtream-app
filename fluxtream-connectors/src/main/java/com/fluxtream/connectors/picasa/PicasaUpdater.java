@@ -25,7 +25,7 @@ import com.google.gdata.data.photos.AlbumFeed;
 import com.google.gdata.data.photos.PhotoEntry;
 
 @Component
-@Updater(prettyName = "Picasa", value = 13, objectTypes = { PicasaPhotoFacet.class })
+@Updater(prettyName = "Picasa", value = 13, objectTypes = { PicasaPhotoFacet.class }, defaultChannels = {"All.photos"})
 @JsonFacetCollection(PicasaFacetVOCollection.class)
 public class PicasaUpdater extends AbstractGoogleOAuthUpdater {
 

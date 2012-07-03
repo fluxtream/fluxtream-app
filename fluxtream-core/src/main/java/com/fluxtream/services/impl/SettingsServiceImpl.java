@@ -3,8 +3,12 @@ package com.fluxtream.services.impl;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import com.fluxtream.connectors.Connector;
+import com.sun.jersey.core.util.StringIgnoreCaseKeyComparator;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,14 +43,15 @@ public class SettingsServiceImpl implements SettingsService {
 	public GuestSettings getSettings(long guestId) {
 		GuestSettings settings = JPAUtils.findUnique(em, GuestSettings.class,
 				"settings.byGuestId", guestId);
-		if (settings != null)
-			return settings;
-		else {
-			settings = new GuestSettings();
-			settings.guestId = guestId;
-			em.persist(settings);
-			return settings;
-		}
+        if (settings != null) {
+            return settings;
+        }
+        else {
+            settings = new GuestSettings();
+            settings.guestId = guestId;
+            em.persist(settings);
+            return settings;
+        }
 	}
 
 	@Override
@@ -115,8 +120,9 @@ public class SettingsServiceImpl implements SettingsService {
         address.type = type;
         address.radius = radius;
 		address.jsonStorage = jsonString;
-        if (!isAddressValid(address))
+        if (!isAddressValid(address)) {
             throw new RuntimeException("invalid address");
+        }
 		em.persist(address);
 	}
 
@@ -136,7 +142,31 @@ public class SettingsServiceImpl implements SettingsService {
         em.persist(address);
     }
 
-	@Override
+    @Override
+    public String[] getChannelsForConnector(final long guestId, final Connector connector) {
+        String savedChannels = guestService.getApiKeyAttribute(guestId, connector, "channels");
+        String[] channels;
+        if (savedChannels == null){
+            channels = connector.getDefaultChannels();
+        }
+        else{
+            channels = savedChannels.split(",");
+        }
+        return channels;
+    }
+
+    @Override
+    @Transactional(readOnly = false)
+    public void setChannelsForConnector(final long guestId, final Connector connector, String[] channels) {
+        guestService.setApiKeyAttribute(guestId,connector,"channels",StringUtils.join(channels,","));
+    }
+
+    @Override
+    public void setChannelsForConenctor(final long guestId, final Connector connector, final List<String> channels) {
+        setChannelsForConnector(guestId,connector,(String[]) channels.toArray());
+    }
+
+    @Override
 	public List<GuestAddress> getAllAddressesForDate(long guestId, long date) {
 		return JPAUtils.find(em, GuestAddress.class, "address.when", guestId, date, date);
 	}
@@ -163,8 +193,9 @@ public class SettingsServiceImpl implements SettingsService {
     @Transactional(readOnly=false)
     public void deleteAddressById(long guestId, long id){
         GuestAddress address = em.find(GuestAddress.class,id);
-        if (address.guestId != guestId)
+        if (address.guestId != guestId) {
             throw new RuntimeException("Cannot delete address you don't have ownership of.");
+        }
         deleteAddress(address);
     }
 
@@ -194,8 +225,9 @@ public class SettingsServiceImpl implements SettingsService {
 
     @Transactional(readOnly=false)
     private void deleteAddresses(List<GuestAddress> addresses){
-        for (GuestAddress address : addresses)
+        for (GuestAddress address : addresses) {
             em.remove(address);
+        }
     }
 
     @Transactional(readOnly=false)
@@ -206,8 +238,9 @@ public class SettingsServiceImpl implements SettingsService {
     @Override
     public GuestAddress getAddressById(long guestId, long id){
         GuestAddress address = em.find(GuestAddress.class,id);
-        if (address.guestId == guestId)
+        if (address.guestId == guestId) {
             return address;
+        }
         return null;
     }
 
@@ -216,22 +249,30 @@ public class SettingsServiceImpl implements SettingsService {
     public void updateAddress(long guestId, long addressId, String type, String address, Double latitude,
                               Double longitude, Long since, Long until, Double radius, String jsonString){
         GuestAddress add = getAddressById(guestId,addressId);
-        if (address != null)
+        if (address != null) {
             add.address = address;
-        if (type != null)
+        }
+        if (type != null) {
             add.type = type;
-        if (latitude != null)
+        }
+        if (latitude != null) {
             add.latitude = latitude;
-        if (longitude != null)
+        }
+        if (longitude != null) {
             add.longitude = longitude;
-        if (since != null)
+        }
+        if (since != null) {
             add.since = since;
-        if (until != null)
+        }
+        if (until != null) {
             add.until = until;
-        if (jsonString != null)
+        }
+        if (jsonString != null) {
             add.jsonStorage = jsonString;
-        if (radius != null)
+        }
+        if (radius != null) {
             add.radius = radius;
+        }
         if (!isAddressValid(add)){
             em.refresh(add);
             throw new RuntimeException("invalid address");
@@ -239,8 +280,9 @@ public class SettingsServiceImpl implements SettingsService {
     }
 
     private boolean isAddressValid(GuestAddress address){
-        if(address.until < address.since)
+        if (address.until < address.since) {
             return false;
+        }
         return true;
     }
 

@@ -1,0 +1,11 @@
+{
+    "WidgetDescription" : {"en" : "Typography example #1"},
+    "WidgetIcon" : "typo1.png",
+    "WidgetName" : "typo1",
+    "WidgetTitle" : {"en" : "Typography #1"},
+    "WidgetRepositoryURL" : "http://localhost:8082/widgets",
+    "SupportedLanguages" : "en",
+    "VendorIdentifier" : "Fluxtream.com",
+    "RequiredConnectors":"dev"
+
+}
