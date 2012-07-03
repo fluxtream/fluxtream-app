@@ -811,6 +811,79 @@ table .remove i {
 #dashboardsTab li button {
   margin-top: -5px;
 }
+.manage-dashboard {
+  width: 452px;
+}
+.manage-dashboard form {
+  padding: 0;
+}
+.dashboard-list-header {
+  padding: 10px 3px 10px 16px;
+  overflow: hidden;
+}
+.dashboard-list-header .setName input {
+  margin-right: -4px;
+}
+.dashboard-list-item {
+  overflow: hidden;
+  zoom: 1;
+  border: 1px solid #ddddd9;
+  margin-bottom: -1px;
+  border-left: 0;
+  border-right: 0;
+  padding: 10px 10px 10px 15px;
+  -webkit-transition: all 0.2s ease-in-out;
+  -moz-transition: all 0.2s ease-in-out;
+  -o-transition: all 0.2s ease-in-out;
+  transition: all 0.2s ease-in-out;
+}
+.dashboard-list-item i {
+  font-size: 16px;
+  line-height: 1;
+  padding: 0;
+}
+.dashboard-list-item .reorder {
+  float: left;
+  width: 80px;
+  visibility: hidden;
+}
+.dashboard-list-item .reorder .up,
+.dashboard-list-item .reorder .down {
+  padding-right: 5px;
+}
+.dashboard-list-item a:hover i {
+  text-decoration: none;
+}
+.dashboard-list-item .col1 {
+  float: left;
+  width: 330px;
+  font-size: 14px;
+}
+.dashboard-list-item .remove {
+  float: left;
+  visibility: hidden;
+}
+.dashboards-list {
+  height: 300px;
+  width: 450px;
+  background: #ffffff;
+}
+.dashboard-list-item:hover {
+  background-color: #e6f7ff;
+}
+.dashboard-list-item:hover .reorder,
+.dashboard-list-item:hover .remove {
+  visibility: visible;
+}
+.set-dashboards {
+  border-top: 1px solid #ddddd9;
+  overflow: hidden;
+  padding: 10px 0 10px 16px;
+}
+.set-dashboards .addOrRemove {
+  float: left;
+  margin-right: 10px;
+}
 .flx-listItem .flx-box {
   overflow: hidden;
   height: 100%;

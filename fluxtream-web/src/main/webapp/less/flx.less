@@ -493,6 +493,36 @@ table .remove { text-align:center;
     margin-top:-5px;
 }
 
+//---------MANAGE DASHBOARD
+
+.manage-dashboard { width: 452px; form { padding:0; } }
+.dashboard-list-header { padding: 10px 3px 10px 16px; overflow:hidden;
+        .setName {input { margin-right:-4px; }}
+}
+.dashboard-list-item { overflow:hidden; zoom:1; border: 1px solid @border-color; margin-bottom:-1px; border-left: 0; border-right:0; padding: 10px 10px 10px 15px;
+    i {font-size: 16px; line-height:1; padding: 0;}
+    .reorder { float: left; width: 80px; visibility:hidden;
+        .up, .down { padding-right: 5px; }    
+    }
+    a:hover i { text-decoration:none; }
+    .col1 { float:left; width: 330px; font-size:14px; }
+    .remove { float:left; visibility:hidden;}
+    -webkit-transition: all 0.2s ease-in-out;
+    -moz-transition: all 0.2s ease-in-out;
+    -o-transition: all 0.2s ease-in-out;
+    transition: all 0.2s ease-in-out;
+}
+.dashboards-list { height: 300px; width: 450px; background:@white;}
+.dashboard-list-item:hover { background-color: lighten(@link-blue,55%);
+    .reorder, .remove { visibility:visible; }
+}        
+
+
+.set-dashboards { border-top: 1px solid @border-color; overflow: hidden; padding: 10px 0 10px 16px; 
+    .addOrRemove { float:left; margin-right:10px;} 
+ }
+
+
 //---------LIST 
 
 .flx-listItem .flx-box { overflow: hidden; height: 100%; padding: 15px 15px; border: 1px solid lighten(@black, 90%); border-left-width: 5px; margin-bottom:5px; max-width: 693px; border-radius : 3px;

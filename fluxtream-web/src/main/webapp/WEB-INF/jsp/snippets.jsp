@@ -83,7 +83,60 @@
             </div>
         </div>    
         
-<div class="container-fluid"> 
+<div class="container-fluid">
+        <div class="row-fluid">
+            <div class="manage-dashboard">
+                <form class="well form-inline">
+                    <div class="dashboard-list-header">
+                        <div class="setName input-append">
+                            <input type="text" placeholder="Dashboard name..."/>
+                            <button class="btn">Add</button>
+                        </div>
+                    </div>
+                    <div class="dashboards-list">
+                            <div class="dashboard-list-item">
+                                <div class="reorder">
+                                    <a href="#" class="up"><i class="icon-caret-up"></i></a>
+                                    <a href="#" class="down"><i class="icon-caret-down"></i></a>
+                                    <a href="#" class="edit">edit</a>
+                                </div>
+                                <div class="col1">
+                                    Dashboard 1
+                                </div>
+                                <div class="remove">
+                                    <a href="#"><i class="icon-trash"></i></a>
+                                </div>
+                            </div>
+                            <div class="dashboard-list-item">
+                                <div class="reorder">
+                                    <a href="#" class="up"><i class="icon-caret-up"></i></a>
+                                    <a href="#" class="down"><i class="icon-caret-down"></i></a>
+                                    <a href="#" class="edit">edit</a>
+                                </div>
+                                <div class="col1">
+                                    Dashboard 2
+                                </div>
+                                <div class="remove">
+                                    <a href="#"><i class="icon-trash"></i></a>
+                                </div>
+                            </div>
+                            <div class="dashboard-list-item">
+                                <div class="reorder">
+                                    <a href="#" class="up"><i class="icon-caret-up"></i></a>
+                                    <a href="#" class="down"><i class="icon-caret-down"></i></a>
+                                    <a href="#" class="edit">edit</a>
+                                </div>
+                                <div class="col1">
+                                    Dashboard 3
+                                </div>
+                                <div class="remove">
+                                    <a href="#"><i class="icon-trash"></i></a>
+                                </div>
+                            </div>
+                    </div><!-- end dashboard list -->
+                </form>
+            </div>
+        </div> 
         <div class="row-fluid"> 
             <div class="flx-listItem">   <!-- New code snippets from peri 2012-12-27 : list view : 1 style per connector -->
                 <div class="flx-box" style="border-left-color:@twitter">
