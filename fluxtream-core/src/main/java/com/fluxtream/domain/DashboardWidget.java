@@ -29,7 +29,7 @@ public class DashboardWidget {
     public String BundleIdentifier;
     public String BundleVersion;
 
-    public DashboardWidget(final JSONObject manifestJSON) {
+    public DashboardWidget(final JSONObject manifestJSON, final String baseURL) {
         try {
             JSONObject descDict = JSONObject.fromObject(manifestJSON.getString("WidgetDescription"));
             for (Object o : descDict.keySet()) {
@@ -43,7 +43,7 @@ public class DashboardWidget {
                 String key = (String) o;
                 WidgetTitle.put(key, titleDict.getString(key));
             }
-            WidgetRepositoryURL = manifestJSON.getString("WidgetRepositoryURL");
+            WidgetRepositoryURL = baseURL;
             SupportedLanguages = new ArrayList<String>(
                     Arrays.asList(
                             StringUtils.split(manifestJSON.getString("SupportedLanguages"),

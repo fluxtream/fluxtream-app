@@ -3,9 +3,7 @@
     "WidgetIcon" : "example2.png",
     "WidgetName" : "example2",
     "WidgetTitle" : {"en" : "Example 2"},
-    "WidgetRepositoryURL" : "http://localhost:8082/widgets",
     "SupportedLanguages" : "en",
     "VendorIdentifier" : "Fluxtream.com",
     "RequiredConnectors": "google_latitude"
-
 }

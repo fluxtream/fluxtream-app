@@ -3,7 +3,6 @@
     "WidgetIcon" : "typo3.png",
     "WidgetName" : "typo3",
     "WidgetTitle" : {"en" : "Typography #3"},
-    "WidgetRepositoryURL" : "http://ovh-bt3.bodytrack.org/widgets",
     "SupportedLanguages" : "en",
     "VendorIdentifier" : "Fluxtream.com",
     "RequiredConnectors":"dev"
