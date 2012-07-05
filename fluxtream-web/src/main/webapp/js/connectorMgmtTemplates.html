@@ -27,7 +27,7 @@
                         <tbody>
                         {{#connectors}}
                         <tr id="connector-{{connectorName}}" {{#syncing}}class="nowSynchro"{{/syncing}}>
-                            <td class="syncStatus">
+                            <td class="syncStatus" style="background:inherit">
                                 <span id="syncLED-{{connectorName}}" class="syncLED-{{^errors}}yes{{/errors}}{{#errors}}no{{/errors}}" {{#syncing}}style="display:none;"{{/syncing}}></span>
                                 {{#syncing}}
                                 <span class="syncLED-waiting">
@@ -35,9 +35,9 @@
                                 </span>
                                 {{/syncing}}
                             </td>
-                            <td class="connectors" style="vertical-align: middle"><img src="{{image}}" width=158 height=89 alt="{{connectorName}}"></td>
-                            <td class="desc"><h4>{{name}}</h4><p>{{text}}</p><a href="#">Manage <i class="icon-cog"></i></a></td>
-                            <td class="lastSync">
+                            <td class="connectors" style="background:inherit; vertical-align: middle"><img src="{{image}}" width=158 height=89 alt="{{connectorName}}"></td>
+                            <td class="desc" style="background:inherit">><h4>{{name}}</h4><p>{{text}}</p><a href="#">Manage <i class="icon-cog"></i></a></td>
+                            <td class="lastSync" style="background:inherit">>
                                 <p id="lastSync-{{connectorName}}" {{#syncing}}style="display:none;"{{/syncing}}>{{lastSync}}</p>
                                 <a id="syncNow-{{connectorName}}" href="#" {{#syncing}}style="display:none;"{{/syncing}}>Sync now <i class="icon-refresh"></i></a>
                                 {{#syncing}}
@@ -45,8 +45,8 @@
                                 <span>Sync now <i class="icon-refresh"></i></span>
                                 {{/syncing}}
                             </td>
-                            <td class="latestData"><p>{{latestData}}</p><a href="#">View graph <i class="icon-bar-chart"></i></a></td>
-                            <td class="remove"><a id="remove-{{connectorName}}" href="#"><i class="icon-trash"></i></a></td>
+                            <td class="latestData" style="background:inherit"><p>{{latestData}}</p><a href="#">View graph <i class="icon-bar-chart"></i></a></td>
+                            <td class="remove" style="background:inherit"><a id="remove-{{connectorName}}" href="#"><i class="icon-trash"></i></a></td>
                         </tr>
                         {{/connectors}}
                         </tbody>

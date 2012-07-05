@@ -1,217 +1,355 @@
 <template id="twitter-tweet">
    <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon twitter-tweet"></span>
-        <div class="flx-tTime">{{time}}</div>
-        <div class="flx-data">
-            <span style="background:url('{{profileImageUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
-            <span class="flx-description"><span><a href="https://twitter.com/{{userName}}">@{{userName}}</a></span> {{{description}}}</span>
-        </div>
+       <div style="overflow:hidden; height:100%">
+           {{#facets}}
+           <div style="overflow:hidden; height:100%">
+               <div class="flx-tTime">{{time}}</div>
+               <div class="flx-data">
+                   <span style="background:url('{{profileImageUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
+                   <span class="flx-description"><span><a href="https://twitter.com/{{userName}}">@{{userName}}</a></span> {{{description}}}</span>
+               </div>
+           </div>
+           {{/facets}}
+       </div>
    </div>
 </template>
 <template id="twitter-mention">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon twitter-mention"></span>
-        <div class="flx-tTime">{{time}}</div>
-        <div class="flx-data">
-            <span style="background:url('{{profileImageUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
-            <span class="flx-description"><span><a href="https://twitter.com/{{userName}}">@{{userName}}</a></span> {{{description}}}</span>
+        <div style="overflow:hidden; height:100%">
+            {{#facets}}
+            <div style="overflow:hidden; height:100%">
+                <div class="flx-tTime">{{time}}</div>
+                <div class="flx-data">
+                    <span style="background:url('{{profileImageUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
+                    <span class="flx-description"><span><a href="https://twitter.com/{{userName}}">@{{userName}}</a></span> {{{description}}}</span>
+                </div>
+            </div>
+            {{/facets}}
         </div>
     </div>
 </template>
 <template id="twitter-dm">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon twitter-dm{{^sent}}-in{{/sent}}{{#sent}}-out{{/sent}}"></span>
-        <div class="flx-tTime">{{time}}</div>
-        <div class="flx-data">
-            <span style="background:url('{{profileImageUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
-            <span class="flx-description"><span><a href="https://twitter.com/{{userName}}">@{{userName}}</a></span> {{{description}}}</span>
+        <div style="overflow:hidden; height:100%">
+            {{#facets}}
+            <div style="overflow:hidden; height:100%">
+                <div class="flx-tTime">{{time}}</div>
+                <div class="flx-data">
+                    <span style="background:url('{{profileImageUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
+                    <span class="flx-description"><span><a href="https://twitter.com/{{userName}}">@{{userName}}</a></span> {{{description}}}</span>
+                </div>
+            </div>
+            {{/facets}}
         </div>
     </div>
 </template>
 <template id="google_calendar-entry">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon calendar"></span>
-        <div class="flx-tTime">{{time}}</div>
-        <div class="flx-data">
-            <span class="flx-description">{{description}}</span>
+        <div style="overflow:hidden; height:100%">
+            {{#facets}}
+            <div style="overflow:hidden; height:100%">
+                <div class="flx-tTime">{{time}}</div>
+                <div class="flx-data">
+                    <span class="flx-description">{{description}}</span>
+                </div>
+            </div>
+            {{/facets}}
         </div>
     </div>
 </template>
 <template id="lastfm-loved_track">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon lastfm"></span>
-        <div class="flx-tTime">{{time}}</div>
-        <div class="flx-data">
-            <span style="background:url('{{imgUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
-            <span class="flx-description">{{description}}</span>
+        <div style="overflow:hidden; height:100%">
+            {{#facets}}
+            <div style="overflow:hidden; height:100%">
+                <div class="flx-tTime">{{time}}</div>
+                <div class="flx-data">
+                    <span style="background:url('{{imgUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
+                    <span class="flx-description">{{description}}</span>
+                </div>
+            </div>
+            {{/facets}}
         </div>
     </div>
 </template>
 <template id="lastfm-recent_track">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon lastfm"></span>
-        <div class="flx-tTime">{{time}}</div>
-        <div class="flx-data">
-            <span style="background:url('{{imgUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
-            <span class="flx-description">{{description}}</span>
+        <div style="overflow:hidden; height:100%">
+            {{#facets}}
+            <div style="overflow:hidden; height:100%">
+                <div class="flx-tTime">{{time}}</div>
+                <div class="flx-data">
+                    <span style="background:url('{{imgUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
+                    <span class="flx-description">{{description}}</span>
+                </div>
+            </div>
+            {{/facets}}
         </div>
     </div>
 </template>
 <template id="fitbit-activity_summary">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon fitbit"></span>
-        <div class="flx-tTime">{{time}}</div>
-        <div class="flx-data">
-            <span class="flx-steps">{{steps}} steps taken</span>
-            <span class="flx-calories">{{caloriesOut}} calories burned</span>
+        <div style="overflow:hidden; height:100%">
+            {{#facets}}
+            <div style="overflow:hidden; height:100%">
+                <div class="flx-tTime">{{time}}</div>
+                <div class="flx-data">
+                    <span class="flx-steps">{{steps}} steps taken</span>
+                    <span class="flx-calories">{{caloriesOut}} calories burned</span>
+                </div>
+            </div>
+            {{/facets}}
         </div>
 </div>
 </template>
 <template id="fitbit-logged_activity">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon fitbit"></span>
-        <div class="flx-tTime">{{time}}</div>
-        <div class="flx-data">
-            <span class="flx-description">{{description}}</span>
+        <div style="overflow:hidden; height:100%">
+            {{#facets}}
+            <div style="overflow:hidden; height:100%">
+                <div class="flx-tTime">{{time}}</div>
+                <div class="flx-data">
+                    <span class="flx-description">{{description}}</span>
+                </div>
+            </div>
+            {{/facets}}
         </div>
     </div>
 </template>
 <template id="fitbit-sleep">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon fitbit"></span>
-        <div class="flx-tTime">{{time}}</div>
-        <div class="flx-data">
-            <span class="flx-data">{{description}}</span>
+        <div style="overflow:hidden; height:100%">
+            {{#facets}}
+            <div style="overflow:hidden; height:100%">
+                <div class="flx-tTime">{{time}}</div>
+                <div class="flx-data">
+                    <span class="flx-data">{{description}}</span>
+                </div>
+            </div>
+            {{/facets}}
         </div>
     </div>
 </template>
 <template id="picasa-photo">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon picasa"></span>
-        <div class="flx-tTime">{{time}}</div>    
-        <div class="flx-data">
-            <span class="flx-photo" style="background:url('{{photoUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
-            <span class="flx-description">{{description}}</span>
+        <div style="overflow:hidden; height:100%">
+            {{#facets}}
+            <div style="overflow:hidden; height:100%">
+                <div class="flx-tTime">{{time}}</div>
+                <div class="flx-data">
+                    <span class="flx-photo" style="background:url('{{photoUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
+                    <span class="flx-description">{{description}}</span>
+                </div>
+            </div>
+            {{/facets}}
         </div>
     </div>
 </template>
 <template id="flickr-photo">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon picasa"></span>
-        <div class="flx-tTime">{{time}}</div>
-        <div class="flx-data">
-            <span class="flx-photo" style="background:url('{{photoUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
-            <span class="flx-description">{{description}}</span>
+        <div style="overflow:hidden; height:100%">
+            {{#facets}}
+            <div style="overflow:hidden; height:100%">
+                <div class="flx-tTime">{{time}}</div>
+                <div class="flx-data">
+                    <span class="flx-photo" style="background:url('{{photoUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
+                    <span class="flx-description">{{description}}</span>
+                </div>
+            </div>
+            {{/facets}}
         </div>
     </div>
 </template>
 <template id="bodymedia-burn">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon bm-burn"></span>
-        <div class="flx-tTime">{{time}}</div>
-        <div class="flx-data">
-            <span class="flx-calories">{{caloriesOut}} calories burned</span>
+        <div style="overflow:hidden; height:100%">
+            {{#facets}}
+            <div style="overflow:hidden; height:100%">
+                <div class="flx-tTime">{{time}}</div>
+                <div class="flx-data">
+                    <span class="flx-calories">{{caloriesOut}} calories burned</span>
+                </div>
+            </div>
+            {{/facets}}
         </div>
     </div>
 </template>
 <template id="sms_backup-call_log">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon sms-call-log"></span>
-        <div class="flx-tTime">{{time}}</div>
-        <div class="flx-data">
-            <span class="flx-description">{{description}}</span>
+        <div style="overflow:hidden; height:100%">
+            {{#facets}}
+            <div style="overflow:hidden; height:100%">
+                <div class="flx-tTime">{{time}}</div>
+                <div class="flx-data">
+                    <span class="flx-description">{{description}}</span>
+                </div>
+            </div>
+            {{/facets}}
         </div>
     </div>
 </template>
 <template id="zeo-sleep">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon zeo"></span>
-        <div class="flx-tTime">{{time}}</div>
-        <div class="flx-deviceData">
-            <span class="flx-data">{{description}}</span>
+        <div style="overflow:hidden; height:100%">
+            {{#facets}}
+            <div style="overflow:hidden; height:100%">
+                <div class="flx-tTime">{{time}}</div>
+                <div class="flx-deviceData">
+                    <span class="flx-data">{{description}}</span>
+                </div>
+            </div>
+            {{/facets}}
         </div>
     </div>
 </template>
 <template id="bodymedia-sleep">
     <div  class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon bm-sleep"></span>
-        <div class="flx-tTime">{{time}}</div>
-        <div class="flx-deviceData">
-            <span class="flx-data">{{description}}</span>
+        <div style="overflow:hidden; height:100%">
+            {{#facets}}
+            <div style="overflow:hidden; height:100%">
+                <div class="flx-tTime">{{time}}</div>
+                <div class="flx-deviceData">
+                    <span class="flx-data">{{description}}</span>
+                </div>
+            </div>
+            {{/facets}}
         </div>
     </div>
 </template>
 <template id="bodymedia-steps">
     <div  class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon bm-steps"></span>
-        <div class="flx-tTime">{{time}}</div>
-        <div class="flx-data">
-            <span class="flx-steps">{{steps}} steps taken</span>
-            <span class="flx-calories">{{caloriesOut}} calories burned</span>
+        <div style="overflow:hidden; height:100%">
+            {{#facets}}
+            <div style="overflow:hidden; height:100%">
+                <div class="flx-tTime">{{time}}</div>
+                <div class="flx-data">
+                    <span class="flx-steps">{{steps}} steps taken</span>
+                    <span class="flx-calories">{{caloriesOut}} calories burned</span>
+                </div>
+            </div>
+            {{/facets}}
         </div>
     </div>
 </template>
 <template id="sms_backup-sms">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon sms"></span>
-        <div class="flx-tTime">{{time}}</div>
-        <div class="flx-data">
-            <span class="flx-description">{{description}}</span>
+        <div style="overflow:hidden; height:100%">
+            {{#facets}}
+            <div style="overflow:hidden; height:100%">
+                <div class="flx-tTime">{{time}}</div>
+                <div class="flx-data">
+                    <span class="flx-description">{{description}}</span>
+                </div>
+            </div>
+            {{/facets}}
         </div>
     </div>
 </template>
 <template id="withings-blood_pressure">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon withings"></span>
-        <div class="flx-tTime">{{time}}</div>
-        <div class="flx-deviceData">
-            <span class="flx-data">{{description}}</span>
+        <div style="overflow:hidden; height:100%">
+            {{#facets}}
+            <div style="overflow:hidden; height:100%">
+                <div class="flx-tTime">{{time}}</div>
+                <div class="flx-deviceData">
+                    <span class="flx-data">{{description}}</span>
+                </div>
+            </div>
+            {{/facets}}
         </div>
     </div>
 </template>
 <template id="withings-weight">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon withings"></span>
-        <div class="flx-tTime">{{time}}</div>
-        <div class="flx-data">
-            <span class="flx-description">{{description}}</span>
-            <span class="flx-miniGraph"></span>
+        <div style="overflow:hidden; height:100%">
+            {{#facets}}
+            <div style="overflow:hidden; height:100%">
+                <div class="flx-tTime">{{time}}</div>
+                <div class="flx-data">
+                    <span class="flx-description">{{description}}</span>
+                    <span class="flx-miniGraph"></span>
+                </div>
+            </div>
+            {{/facets}}
         </div>
     </div>
 </template>
 <template id="toodledo-task">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon toodledo"></span>
-        <div class="flx-tTime">{{time}}</div>
-        <div class="flx-data">
-            <span class="flx-description">{{description}}</span>
+        <div style="overflow:hidden; height:100%">
+            {{#facets}}
+            <div style="overflow:hidden; height:100%">
+                <div class="flx-tTime">{{time}}</div>
+                <div class="flx-data">
+                    <span class="flx-description">{{description}}</span>
+                </div>
+            </div>
+            {{/facets}}
         </div>
     </div>
 </template>
 <template id="toodledo-goal">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon toodledo" style="background-size:100% 100%;"></span>
-        <div class="flx-tTime">{{time}}</div>
-        <div class="flx-data">
-            <span class="flx-description">{{description}}</span>
+        <div style="overflow:hidden; height:100%">
+            {{#facets}}
+            <div style="overflow:hidden; height:100%">
+                <div class="flx-tTime">{{time}}</div>
+                <div class="flx-data">
+                    <span class="flx-description">{{description}}</span>
+                </div>
+            </div>
+            {{/facets}}
         </div>
     </div>
 </template>
 <template id="google_latitude-location">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon latitude" style="background-size:100% 100%;"></span>
-        <div class="flx-tTime">{{time}}</div>
-        <div class="flx-data">
-            <span class="flx-description">{{description}}</span>
+        <div style="overflow:hidden; height:100%">
+            {{#facets}}
+            <div style="overflow:hidden; height:100%">
+                <div class="flx-tTime">{{time}}</div>
+                <div class="flx-data">
+                    <span class="flx-description">Source: {{source}}<br>Accuracy: {{accuracy}}m</span>
+                </div>
+            </div>
+            {{/facets}}
         </div>
     </div>
 </template>
 <template id="openpath-location">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon latitude" style="background-size:100% 100%;"></span>
-        <div class="flx-tTime">{{time}}</div>
-        <div class="flx-data">
-            <span class="flx-description">{{description}}</span>
+        <div style="overflow:hidden; height:100%">
+            {{#facets}}
+            <div style="overflow:hidden; height:100%">
+                <div class="flx-tTime">{{time}}</div>
+                <div class="flx-data">
+                    <span class="flx-description">{{description}}</span>
+                </div>
+            </div>
+            {{/facets}}
         </div>
     </div>
 </template>
