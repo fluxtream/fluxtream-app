@@ -82,9 +82,167 @@
                 </div>
             </div>
         </div>    
-        
+
+
+
 <div class="container-fluid">
+    <div class="row-fluid">
+        <div class="span8">
+            <div class="row-fluid">
+                    <div class="set-device-header" style="padding-left:15px;">
+                        <h2>Fitbit</h2>
+                    </div>
+                    <div class="tabbable tabs-left">
+                      <ul class="nav nav-tabs span3">
+                          <li>
+                            <a href="#">General settings</a>
+                          </li>
+                          <li class="active">
+                            <a href="#">Advanced settings</a>
+                          </li>
+                      </ul>
+                      <div class="tab-content span8 set-device">
+                    <form class="form-inline">
+                        <table class="table flx-channel-table">
+                            <thead>
+                                <tr>
+                                    <th>Select</th>
+                                    <th>Name</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><input type="checkbox" name="1" id="1"></td>
+                                    <td class="flx-channel-name"><label for="1">Fitbit sleep</label></td>
+                                    <td class="description">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. </td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox" name="2" id="2"></td>
+                                    <td class="flx-channel-name"><label for="2">Fitbit activity summary</label></td>
+                                    <td class="description">Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. </td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox" name="3" id="3"></td>
+                                    <td class="flx-channel-name"><label for="3">Fitbit log</label></td>
+                                    <td class="description">Quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. </td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="3">
+                                        <button class="btn">Save changes</button>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </form>
+                </div>
+        </div>
+    </div>
+</div>        
+<div class="row-fluid">
+<div class="span8">
+        <div class="row-fluid well">
+            <div class="span4">
+                    <div class="set-device-header" style="padding-left:15px;">
+                        <h2>Fitbit</h2>
+                    </div>
+                <ul class="nav nav-list flx-nav-list">
+                  <li>
+                    <a href="#">General settings</a>
+                  </li>
+                  <li class="active">
+                    <a href="#">Advanced settings</a>
+                  </li>
+                </ul>                
+            </div>
+            <div class="span8 set-device">
+                <form class="form-inline">
+                    <table class="table flx-channel-table">
+                        <thead>
+                            <tr>
+                                <th>Select</th>
+                                <th>Name</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><input type="checkbox" name="1" id="1"></td>
+                                <td class="flx-channel-name"><label for="1">Fitbit sleep</label></td>
+                                <td class="description">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" name="2" id="2"></td>
+                                <td class="flx-channel-name"><label for="2">Fitbit activity summary</label></td>
+                                <td class="description">Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" name="3" id="3"></td>
+                                <td class="flx-channel-name"><label for="3">Fitbit log</label></td>
+                                <td class="description">Quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. </td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3">
+                                    <button class="btn">Save changes</button>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </form>
+            </div>
+        </div>
+    </div>
+</div        
+        
         <div class="row-fluid">
+            <div class="span8">           
+                <div class="set-device">
+                <form class="well form-inline">
+                    <div class="set-device-header">
+                        <h2>Fitbit</h2>
+                    </div>
+                    <table class="table flx-channel-table">
+                        <thead>
+                            <tr>
+                                <th>Select</th>
+                                <th>Name</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><input type="checkbox" name="1" id="1"></td>
+                                <td class="flx-channel-name"><label for="1">Fitbit sleep</label></td>
+                                <td class="description">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" name="2" id="2"></td>
+                                <td class="flx-channel-name"><label for="2">Fitbit activity summary</label></td>
+                                <td class="description">Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" name="3" id="3"></td>
+                                <td class="flx-channel-name"><label for="3">Fitbit log</label></td>
+                                <td class="description">Quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. </td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3">
+                                    <button class="btn">Save changes</button>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </form>
+            </div>
+</div>        </div>
+        <div class="row-fluid">
+        <div class="span8">            
             <div class="manage-dashboard">
                 <form class="well form-inline">
                     <div class="dashboard-list-header">
@@ -136,8 +294,171 @@
                     </div><!-- end dashboard list -->
                 </form>
             </div>
+            </div>        
         </div> 
         <div class="row-fluid"> 
+            <div class="flx-listItem">
+                <div class="flx-box" style="border-left-color:{{color}}">
+                    <span class="flx-deviceIcon instagram-photo"></span>
+                    <div class="flx-tTime">12:48 <span>pm</span></div>
+                    <div class="flx-data">
+                        <span style="background:url('/images/avatarDummies/malarkey.png'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
+                        <span class="flx-description">I took this picture of a triple talented bastard</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flx-listItem">
+                <div class="flx-box gathered" style="border-left-color:{{color}}">
+                    <span class="flx-deviceIcon smsbackup-call-log-out"></span>
+                    <div style="overflow:hidden; height:100%">
+                        <div style="overflow:hidden; height:100%">
+                            <div class="flx-tTime">9:30 <span>pm</span></div>
+                            <div class="flx-data">
+                                <span class="flx-description">outgoing call to <span>+12 345 678 910</span></span>
+                                <span class="flx-more">Duration <span>5:12</span> min.</span>
+                            </div>
+                        </div>
+                        <div style="overflow:hidden; height:100%">
+                            <div class="flx-tTime">9:30 <span>pm</span></div>
+                            <div class="flx-data">
+                                <span class="flx-description">outgoing call to <span>+12 345 678 910</span></span>
+                                <span class="flx-more">Duration <span>5:12</span> min.</span>
+                            </div>
+                        </div>
+                        <div style="overflow:hidden; height:100%">
+                            <div class="flx-tTime">9:30 <span>pm</span></div>
+                            <div class="flx-data">
+                                <span class="flx-description">outgoing call to <span>+12 345 678 910</span></span>
+                                <span class="flx-more">Duration <span>5:12</span> min.</span>
+                            </div>
+                        </div>
+                        <div style="overflow:hidden; height:100%">
+                            <div class="flx-tTime">9:30 <span>pm</span></div>
+                            <div class="flx-data">
+                                <span class="flx-description">outgoing call to <span>+12 345 678 910</span></span>
+                                <span class="flx-more">Duration <span>5:12</span> min.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="flx-listItem">
+                <div class="flx-box gathered" style="border-left-color:{{color}}">
+                    <span class="flx-deviceIcon smsbackup-call-log-in"></span>
+                    <div style="overflow:hidden; height:100%">
+                        <div style="overflow:hidden; height:100%">
+                            <div class="flx-tTime">9:30 <span>pm</span></div>
+                            <div class="flx-data">
+                                <span class="flx-description">incoming call from <span>+12 345 678 910</span></span>
+                                <span class="flx-more">Duration <span>5:12</span> min.</span>
+                            </div>
+                        </div>
+                        <div style="overflow:hidden; height:100%">
+                            <div class="flx-tTime">10:31 <span>pm</span></div>
+                            <div class="flx-data">
+                                <span class="flx-description">incoming call from <span>+09 876 543 210</span></span>
+                                <span class="flx-more">Duration <span>2:59</span> min.</span>
+                            </div>
+                        </div>
+                        <div style="overflow:hidden; height:100%">
+                            <div class="flx-tTime">11:32 <span>pm</span></div>
+                            <div class="flx-data">
+                                <span class="flx-description">incoming call from <span>+09 876 543 210</span></span>
+                                <span class="flx-more">Duration <span>2:59</span> min.</span>
+                            </div>
+                        </div>
+                        <div style="overflow:hidden; height:100%">
+                            <div class="flx-tTime">11:45 <span>pm</span></div>
+                            <div class="flx-data">
+                                <span class="flx-description">incoming call from <span>+09 876 543 210</span></span>
+                                <span class="flx-more">Duration <span>3:05</span> min.</span>
+                            </div>
+                        </div>
+                        <div style="overflow:hidden; height:100%">
+                            <div class="flx-tTime">11:58 <span>pm</span></div>
+                            <div class="flx-data">
+                                <span class="flx-description">incoming call from <span>+09 876 543 210</span></span>
+                                <span class="flx-more">Duration <span>1:35</span> min.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="flx-listItem">   <!-- New code snippets from peri 2012-12-27 : list view : 1 style per connector -->
+                <div class="flx-box" style="border-left-color:{{color}}">
+                    <span class="flx-deviceIcon fitbit-sleep"></span>
+                    <div class="flx-tRange"><span><span>01:02</span> am</span>
+                                            <span><span>06:21</span> am</span>
+                    </div>
+                    <div class="flx-data">
+                        <span class="flx-description">You've slept <span>5:23</span> hours</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flx-listItem">   <!-- New code snippets from peri 2012-12-27 : list view : 1 style per connector -->
+                <div class="flx-box" style="border-left-color:{{color}}">
+                    <span class="flx-deviceIcon zeo-sleep"></span>
+                    <div class="flx-tRange"><span><span>01:02</span> am</span>
+                                            <span><span>06:21</span> am</span>
+                    </div>
+                    <div class="flx-data">
+                        <span class="flx-description">You've slept <span>5:23</span> hours</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flx-listItem">   <!-- New code snippets from peri 2012-12-27 : list view : 1 style per connector -->
+                <div class="flx-box" style="border-left-color:{{color}}">
+                    <span class="flx-deviceIcon fitbit-logged_activity"></span>
+                    <div class="flx-tTime">12:48 <span>pm</span></div>
+                    <div class="flx-data">
+                        <span class="flx-description">You've logged <span>50</span> push-ups</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flx-listItem">   <!-- New code snippets from peri 2012-12-27 : list view : 1 style per connector -->
+                <div class="flx-box" style="border-left-color:{{color}}">
+                    <span class="flx-deviceIcon fitbit-activity_summary"></span>
+                    <div class="flx-tRange"><span><span>06:30</span> am</span>
+                                            <span><span>12:05</span> pm</span>
+                    </div>
+                    <div class="flx-data">
+                        <span class="flx-description">You've made <span>541</span> steps</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flx-listItem">   <!-- New code snippets from peri 2012-12-27 : list view : 1 style per connector -->
+                <div class="flx-box" style="border-left-color:{{color}}">
+                    <span class="flx-deviceIcon bodymedia-steps"></span>
+                    <div class="flx-tRange"><span><span>06:30</span> am</span>
+                                            <span><span>12:05</span> pm</span>
+                    </div>
+                    <div class="flx-data">
+                        <span class="flx-description">You've made <span>541</span> steps</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flx-listItem">   <!-- New code snippets from peri 2012-12-27 : list view : 1 style per connector -->
+                <div class="flx-box" style="border-left-color:{{color}}">
+                    <span class="flx-deviceIcon bodymedia-sleep"></span>
+                    <div class="flx-tRange"><span><span>01:02</span> am</span>
+                                            <span><span>06:21</span> am</span>
+                    </div>
+                    <div class="flx-data">
+                        <span class="flx-description">You've slept <span>5:23</span> hours</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flx-listItem">   <!-- New code snippets from peri 2012-12-27 : list view : 1 style per connector -->
+                <div class="flx-box" style="border-left-color:{{color}}">
+                    <span class="flx-deviceIcon bodymedia-burn"></span>
+                    <div class="flx-tRange"><span><span>05:48</span> am</span>
+                                            <span><span>10:00</span> pm</span>
+                    </div>
+                    <div class="flx-data">
+                        <span class="flx-description">You've burned <span>854</span> calories</span>
+                    </div>
+                </div>
+            </div>
             <div class="flx-listItem">   <!-- New code snippets from peri 2012-12-27 : list view : 1 style per connector -->
                 <div class="flx-box" style="border-left-color:@twitter">
                     <span class="flx-deviceIcon twitter-dm-in"></span>
@@ -170,7 +491,7 @@
             </div> 
             <div class="flx-listItem">
                 <div class="flx-box" style="border-left-color:{{color}}">
-                    <span class="flx-deviceIcon zeo"></span>
+                    <span class="flx-deviceIcon zeo-sleep"></span>
                     <div class="flx-tTime">9:21 <span>am</span></div>
                     <div class="flx-deviceData">
                         <span class="flx-data">
@@ -222,10 +543,10 @@
                             <div class="flx-data">
                                 <span class="flx-description">BLablablalba blabla bla</span>
                             </div>
-                            </div>
                         </div>
                     </div>
                 </div>
+            </div>
             <div class="flx-listItem">
                 <div class="flx-box gathered closed" style="border-left-color:{{color}}">
                     <span class="flx-deviceIcon calendar"></span>
