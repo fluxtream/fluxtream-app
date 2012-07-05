@@ -45,17 +45,18 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                                                                            icon:App.getConnectorConfig(App.getFacetConnector(gpsData[i].type)).mapicon,
                                                                            shadow:App.getConnectorConfig(App.getFacetConnector(gpsData[i].type)).mapshadow,
                                                                            clickable:clickable});
-            map.enhanceMarkerWithItem(map.markers[gpsData[i].type][map.markers[gpsData[i].type].length-1],gpsData[i]);
             map.gpsTimestamps[map.gpsTimestamps.length] = gpsData[i].start;
             map.gpsAccuracies[map.gpsAccuracies.length] = gpsData[i].accuracy;
-            if (lat - gpsData[i].accuracy < minLat)
-                minLat = lat - gpsData[i].accuracy;
-            if (lat + gpsData[i].accuracy > maxLat)
-                maxLat = lat + gpsData[i].accuracy;
-            if (lng - gpsData[i].accuracy < minLng)
-                minLng = lng - gpsData[i].accuracy;
-            if (lng + gpsData[i].accuracy > maxLng)
-                maxLng = lng + gpsData[i].accuracy;
+            map.enhanceMarkerWithItem(map.markers[gpsData[i].type][map.markers[gpsData[i].type].length-1],gpsData[i]);
+            var bounds = map.markers[gpsData[i].type][map.markers[gpsData[i].type].length-1].getBounds();
+            if (bounds.getSouthWest().lat() < minLat)
+                minLat = bounds.getSouthWest().lat();
+            if (bounds.getNorthEast().lat() > maxLat)
+                maxLat = bounds.getNorthEast().lat();
+            if (bounds.getSouthWest().lng() < minLng)
+                minLng = bounds.getSouthWest().lng();
+            if (bounds.getNorthEast().lng() > maxLng)
+                maxLng = bounds.getNorthEast().lng();
         }
         map.gpsLine = new google.maps.Polyline({map:map, path:map.gpsPositions,clickable:false});
         map.gpsBounds = new google.maps.LatLngBounds(new google.maps.LatLng(minLat,minLng), new google.maps.LatLng(maxLat,maxLng));
@@ -185,6 +186,9 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                                                    fillOpacity:0.5,
                                                    strokeOpacity:0,
                                                    clickable:false});
+        }
+        marker.getBounds = function(){
+            return new google.maps.Circle({center:marker.getPosition(),radius:accuracy}).getBounds();
         }
         marker.hideCircle = function(){
             if (marker.circle == null)
