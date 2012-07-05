@@ -29,7 +29,7 @@ public class DashboardWidget {
     public String BundleIdentifier;
     public String BundleVersion;
 
-    public DashboardWidget(final JSONObject manifestJSON) {
+    public DashboardWidget(final JSONObject manifestJSON, final String baseURL) {
         try {
             JSONObject descDict = JSONObject.fromObject(manifestJSON.getString("WidgetDescription"));
             for (Object o : descDict.keySet()) {
@@ -43,7 +43,7 @@ public class DashboardWidget {
                 String key = (String) o;
                 WidgetTitle.put(key, titleDict.getString(key));
             }
-            WidgetRepositoryURL = manifestJSON.getString("WidgetRepositoryURL");
+            WidgetRepositoryURL = baseURL(baseURL);
             SupportedLanguages = new ArrayList<String>(
                     Arrays.asList(
                             StringUtils.split(manifestJSON.getString("SupportedLanguages"),
@@ -60,6 +60,11 @@ public class DashboardWidget {
         } catch (Throwable t) {
             throw new RuntimeException("Invalid manifest JSON (" + t.getMessage() + ")");
         }
+    }
+
+    private static String baseURL(final String baseURL) {
+        if (baseURL.endsWith("/")) return baseURL(baseURL.substring(0, baseURL.length()-1));
+        return baseURL;
     }
 
     public boolean matchesUserConnectors(List<String> userConnectorNames, boolean isDev) {

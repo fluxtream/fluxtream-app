@@ -211,8 +211,13 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         });
         for (var connectorId in digest.cachedData){
             for (var i = 0; i < digest.cachedData[connectorId].length; i++){
-                digest.cachedData[connectorId][i].getDetails = function(){
-                    return buildDetails(digest,this);
+                digest.cachedData[connectorId][i].getDetails = function(array){
+                    if (array == null)
+                        array = [this];
+                    return buildDetails(digest,array);
+                }
+                digest.cachedData[connectorId][i].shouldGroup = function(facet){
+                    return shouldFacetsGroup(this,facet);
                 }
             }
         }
@@ -225,6 +230,16 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
             }
         }
+    }
+
+    function shouldFacetsGroup(facet1, facet2){
+        if (facet1.type != facet2.type)
+            return false;
+        switch (facet1.type){
+            case "twitter-dm":
+                return facet1.sent == facet2.sent;
+        }
+        return true;
     }
 
 
@@ -317,33 +332,53 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         return digest.detailsTemplates["fluxtream-address"].render(params);
     }
 
-    function buildDetails(digest,data){
-        if (digest.detailsTemplates[data.type] == null){
-            console.log("WARNING: no template found for " + data.type + ".");
+    function buildDetails(digest,facets){
+        if (facets.length == 0)
+            return"";
+        if (digest.detailsTemplates[facets[0].type] == null){
+            console.log("WARNING: no template found for " + facets[0].type + ".");
             return "";
         }
-        var params = {color:App.getConnectorConfig(App.getFacetConnector(data.type)).color};
-        for (var member in data){
-            switch (member){
-                case "startMinute":
-                    params.time = App.formatMinuteOfDay(data[member]);
-                    break;
-                case "userName":
-                    params[member] = data[member];
-                    break;
-                case "imgUrls":
-                    params["imgUrl"] = data[member][0];
-                    break;
-                case "description":
-                    if (data.type == "twitter-dm" || data.type == "twitter-mention" || data.type == "twitter-tweet"){
-                        params[member] = parseTwitter(data[member]);
-                    }
-                    else{
-                        params[member] = data[member];
-                    }
-                    break;
-                default:
-                    params[member] = data[member];
+        var params = {color:App.getFacetConfig(facets[0].type).color,facets:[],sent:facets[0].sent};
+        for (var i = 0; i < facets.length; i++){
+            var data = facets[i];
+            var newFacet = {};
+            params.facets[i] = newFacet;
+            for (var member in data){
+                switch (member){
+                    case "source":
+                        switch (data[member]){
+                            case "GOOGLE_LATITUDE":
+                                newFacet[member] = "google latitude";
+                                break;
+                            case "OTHER":
+                                newFacet[member] = "IP lookup";
+                                break;
+                            default:
+                                newFacet[memeber] = data[member];
+                                break;
+                        }
+                        break;
+                    case "startMinute":
+                        newFacet.time = App.formatMinuteOfDay(data[member]);
+                        break;
+                    case "userName":
+                        newFacet[member] = data[member];
+                        break;
+                    case "imgUrls":
+                        newFacet["imgUrl"] = data[member][0];
+                        break;
+                    case "description":
+                        if (data.type == "twitter-dm" || data.type == "twitter-mention" || data.type == "twitter-tweet"){
+                            newFacet[member] = parseTwitter(data[member]);
+                        }
+                        else{
+                            newFacet[member] = data[member];
+                        }
+                        break;
+                    default:
+                        newFacet[member] = data[member];
+                }
             }
         }
         return digest.detailsTemplates[data.type].render(params);

@@ -495,7 +495,7 @@
                     <div class="flx-tTime">9:21 <span>am</span></div>
                     <div class="flx-deviceData">
                         <span class="flx-data">
-                           <img src="/images/connectors/dummyZeo.png" alt="dummyZeo" width="" height="" />                         
+                           <img src="/images/connectors/connector-zeo.jpg" alt="dummyZeo" width="" height="" />
                         </span>
                     </div>
                 </div>

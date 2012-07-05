@@ -23,7 +23,7 @@ define(["applications/calendar/tabs/Tab",
         App.fullHeight();
     }
 
-    function populateTemplate(dashboardsTemplateData) {
+   function populateTemplate(dashboardsTemplateData) {
         this.getTemplate("text!applications/calendar/tabs/dashboards/dashboards.html", "dashboards",
                          function() {
                              $("#addWidgetButton").unbind();
@@ -50,7 +50,7 @@ define(["applications/calendar/tabs/Tab",
         );
     };
 
-    function fetchWidgets(activeWidgets) {
+   function fetchWidgets(activeWidgets) {
         var rows = [];
         var row = {widgets:[]};
         for (var i=0; i<activeWidgets.length; i++) {
@@ -73,7 +73,7 @@ define(["applications/calendar/tabs/Tab",
             })
             loadWidgets(activeWidgets)
         });
-    }
+   }
 
     function removeWidget(widgetName) {
         console.log("removing widget " + widgetName);
@@ -91,16 +91,19 @@ define(["applications/calendar/tabs/Tab",
 
     function loadWidgets(activeWidgets) {
         for (var i=0; i<activeWidgets.length; i++) {
-            require([activeWidgets[i].WidgetRepositoryURL + "/"
-                                       + activeWidgets[i].WidgetName + "/"
-                                       + activeWidgets[i].WidgetName + ".js",
-                     "text!" + activeWidgets[i].WidgetRepositoryURL + "/"
-                         + activeWidgets[i].WidgetName + "/manifest.json"],
-                function(WidgetModule, manifest) {
-                    WidgetModule.load(JSON.parse(manifest), digest);
-                });
-            }
+            var manifest = activeWidgets[i];
+            loadWidget(manifest);
+        };
     }
+
+   function loadWidget(manifest) {
+       require([manifest.WidgetRepositoryURL + "/"
+                    + manifest.WidgetName + "/"
+                    + manifest.WidgetName + ".js"],
+               function(WidgetModule) {
+                   WidgetModule.load(manifest, digest);
+               });
+   }
 
     function getActiveWidgets(dashboards) {
         var activeDashboard = getActiveDashboard(dashboards);
@@ -111,7 +114,6 @@ define(["applications/calendar/tabs/Tab",
         for (var i=0; i<dashboards.length; i++) {
             console.log("dashboard id: " + dashboards[i].id + " / " + dashboardsTab.activeDashboard);
             if (dashboards[i].id===dashboardsTab.activeDashboard) {
-                console.log("found active dashboard: " + dashboards[i]);
                 return dashboards[i];
             }
         }
@@ -126,12 +128,9 @@ define(["applications/calendar/tabs/Tab",
         ManageDashboards.show();
     }
 
-    function setup(digest, timeUnit) {
-        status.handleComments();
-    }
-
     var dashboardsTab = new Tab("dashboards", "Candide Kemmler", "icon-chart", true);
 	dashboardsTab.render = render;
+    dashboardsTab.connectorDisplayable = function(connector) { return false; }
     dashboardsTab.populateTemplate = populateTemplate;
 	return dashboardsTab;
 	
