@@ -43,7 +43,7 @@ public class DashboardWidget {
                 String key = (String) o;
                 WidgetTitle.put(key, titleDict.getString(key));
             }
-            WidgetRepositoryURL = baseURL;
+            WidgetRepositoryURL = baseURL(baseURL);
             SupportedLanguages = new ArrayList<String>(
                     Arrays.asList(
                             StringUtils.split(manifestJSON.getString("SupportedLanguages"),
@@ -60,6 +60,11 @@ public class DashboardWidget {
         } catch (Throwable t) {
             throw new RuntimeException("Invalid manifest JSON (" + t.getMessage() + ")");
         }
+    }
+
+    private static String baseURL(final String baseURL) {
+        if (baseURL.endsWith("/")) return baseURL(baseURL.substring(0, baseURL.length()-1));
+        return baseURL;
     }
 
     public boolean matchesUserConnectors(List<String> userConnectorNames, boolean isDev) {

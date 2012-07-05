@@ -58,29 +58,29 @@ public class SystemServiceImpl implements SystemService {
 	private void initializeConnectorList() {
 		ResourceBundle res = ResourceBundle.getBundle("messages/connectors");
 		em.persist(new ConnectorInfo("OpenPath",
-				"/images/connectors/connector-openpath.jpg", res.getString("openpath"),
+				"/images/connectors/connector-openpaths.jpg", res.getString("openpath"),
 				"ajax:/openPath/enterCredentials", Connector.getConnector("openpath"), 0, true));
 		em.persist(new ConnectorInfo("Toodledo",
-				"/images/connectors/connector-toodledo.png", res
+				"/images/connectors/connector-toodledo.jpg", res
 						.getString("toodledo"),
 				"ajax:/toodledo/enterCredentials", Connector
 						.getConnector("toodledo"), 1, true));
 		em.persist(new ConnectorInfo("BodyTrack",
-				"/css/devicesPictures/bodyTrack.jpg", res
+				"/images/connectors/connector-bodyTrack.jpg", res
 						.getString("bodytrack"),
 				"ajax:/bodytrack/enterCredentials", Connector
 						.getConnector("bodytrack"), 2, true));
 		em.persist(new ConnectorInfo("Zeo",
-				"/css/devicesPictures/zeo.jpg", res
+				"/images/connectors/connector-zeo.jpg", res
 						.getString("zeo"), "/zeo/subscribe", Connector
 						.getConnector("zeo"), 3, true));
 		em.persist(new ConnectorInfo("Withings B Scale",
-				"/images/connectors/connector-focus-whithings-balance.jpg", res
+				"/images/connectors/connector-withings-bodyscale.jpg", res
 						.getString("withings"),
 				"ajax:/withings/enterCredentials", Connector
 						.getConnector("WITHINGS"), 4, true));
 		em.persist(new ConnectorInfo("Google Calendar",
-				"/images/connectors/connector-google-calendar.jpg", res
+				"/images/connectors/connector-google_calendar.jpg", res
 						.getString("google_calendar"), "/calendar/token",
 				Connector.getConnector("google_calendar"), 5, true));
 		// em.persist(new ConnectorInfo("Withings BPM",
@@ -89,7 +89,7 @@ public class SystemServiceImpl implements SystemService {
 		// "ajax:/withings/enterCredentials",
 		// Connector.getConnector("WITHINGS"), 4));
 		em.persist(new ConnectorInfo("Fitbit",
-				"/css/devicesPictures/fitbit.jpg", res
+				"/images/connectors/connector-fitbit.jpg", res
 						.getString("fitbit"), "/fitbit/token", Connector
 						.getConnector("fitbit"), 7, true));
 		// em.persist(new ConnectorInfo("Freshbooks",
@@ -110,29 +110,29 @@ public class SystemServiceImpl implements SystemService {
 						.getString("picasa"), "/picasa/token", Connector
 						.getConnector("picasa"), 8, true));
 		em.persist(new ConnectorInfo("Google Latitude",
-				"/images/connectors/connector-focus-google_latitude1.jpg", res
+				"/images/connectors/connector-google_latitude.jpg", res
 						.getString("google_latitude"),
 				"/google_latitude/token", Connector
 						.getConnector("google_latitude"), 9, true));
 		em.persist(new ConnectorInfo("Last fm",
-				"/images/connectors/connector-lastfm.jpeg", res
+				"/images/connectors/connector-lastfm.jpg", res
 						.getString("lastfm"), "/lastfm/token", Connector
 						.getConnector("LASTFM"), 10, true));
 		em.persist(new ConnectorInfo("SMS Backup",
-				"/images/connectors/connector-smsbackup.jpg", res
+				"/images/connectors/connector-sms_backup.jpg", res
 						.getString("sms_backup"),
 				"ajax:/smsBackup/enterCredentials", Connector
 						.getConnector("SMS_BACKUP"), 11, true));
 		em.persist(new ConnectorInfo("Twitter",
-				"/images/connectors/connector-twitter.jpeg", res
+				"/images/connectors/connector-twitter.jpg", res
 						.getString("twitter"), "/twitter/token", Connector
 						.getConnector("twitter"), 12, true));
 		String flickrDesc = res.getString("flickr");
 		em.persist(new ConnectorInfo("Flickr",
-				"/images/connectors/connector-flickr.jpeg", flickrDesc,
+				"/images/connectors/connector-flickr.jpg", flickrDesc,
 				"/flickr/token", Connector.getConnector("flickr"), 13, false));
 		em.persist(new ConnectorInfo("BodyMedia",
-				"/css/devicesPictures/bodymedia.jpg", res.getString("bodymedia"),
+				"/images/connectors/connector-bodymedia.jpg", res.getString("bodymedia"),
 				"/bodymedia/token", Connector.getConnector("bodymedia"), 14, true));
 		// em.persist(new ConnectorInfo("Dropbox",
 		// "/images/connectors/connector-dropbox.jpg",
@@ -159,9 +159,6 @@ public class SystemServiceImpl implements SystemService {
 		// res.getString("foursquare"),
 		// "/foursquare/token", Connector.getConnector("foursquare"), 18,
 		// false));
-		// em.persist(new ConnectorInfo("Gowalla",
-		// "/images/connectors/connector-gowalla.jpg", res.getString("gowalla"),
-		// "/gowalla/token", Connector.getConnector("gowalla"), 19, false));
 		// em.persist(new ConnectorInfo("Github",
 		// "/images/connectors/connector-github.jpg",
 		// res.getString("github"),
