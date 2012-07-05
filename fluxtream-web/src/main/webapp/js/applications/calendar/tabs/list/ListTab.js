@@ -26,7 +26,7 @@ define(["applications/calendar/tabs/Tab"], function(Tab) {
             if (!shouldDisplayInListView(connectorName))
                 continue;
             for (var i = 0; i < digest.cachedData[connectorName].length; i++){
-                var item = $("<div class=\"flx-listItem\">" + digest.cachedData[connectorName][i].getDetails() + "</div>");
+                var item = {};
                 item.facet = digest.cachedData[connectorName][i];
                 item.visible = true;
                 var found = false;
@@ -102,12 +102,25 @@ define(["applications/calendar/tabs/Tab"], function(Tab) {
     function repopulateList(){
         list.empty();
         var visibleCount = 0;
+        var currentArray = [];
         for (var i = 0; i < items.length; i++){
            var item = items[i];
            if (item.visible){
                visibleCount++;
-               if (visibleCount > currentPage * maxPerPage && visibleCount <= (currentPage + 1) * maxPerPage)
-                    list.append(item);
+               if (visibleCount > currentPage * maxPerPage && visibleCount <= (currentPage + 1) * maxPerPage){
+                    if (currentArray.length == 0)
+                        currentArray = [item.facet];
+                    else if (currentArray[0].shouldGroup(item.facet))
+                        currentArray[currentArray.length] = item.facet;
+                   else{
+                        list.append("<div class=\"flx-listItem\">" + currentArray[0].getDetails(currentArray) + "</div>");
+                        currentArray = [item.facet];
+                    }
+                    if (visibleCount == (currentPage + 1) * maxPerPage || i == items.length - 1){
+                        list.append("<div class=\"flx-listItem\">" + currentArray[0].getDetails(currentArray) + "</div>");
+                    }
+               }
+                    //list.append(item);
            }
         }
         if (list.children().length == 0)
@@ -129,7 +142,7 @@ define(["applications/calendar/tabs/Tab"], function(Tab) {
         else{
             if (currentPage == pageNum)
                 return;
-            currentPage = pageNum;
+            currentPage = Number(pageNum);
         }
         rebuildPagination();
         repopulateList();
