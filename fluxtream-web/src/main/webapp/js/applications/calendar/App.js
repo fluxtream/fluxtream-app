@@ -325,6 +325,19 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         var params = {color:App.getConnectorConfig(App.getFacetConnector(data.type)).color};
         for (var member in data){
             switch (member){
+                case "source":
+                    switch (data[member]){
+                        case "GOOGLE_LATITUDE":
+                            params[member] = "google latitude";
+                            break;
+                        case "OTHER":
+                            params[member] = "IP lookup";
+                            break;
+                        default:
+                            params[memeber] = data[member];
+                            break;
+                    }
+                    break;
                 case "startMinute":
                     params.time = App.formatMinuteOfDay(data[member]);
                     break;
