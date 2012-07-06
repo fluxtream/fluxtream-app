@@ -399,6 +399,16 @@ define(
             return date.getFullYear() + "-" + (date.getMonth() < 9 ? "0" : "") + (date.getMonth() + 1) + "-" + (date.getDate() < 9 ? "0" : "") + date.getDate();
         }
 
+        App.addHideTooltipListener = function(hideFunction) {
+            $(document).unbind("click");
+            $(document).bind("click", function(event){ //hides the tooltip if an element clicked on or any of its parents has the notthide property
+                for (var target = event.target; target != null; target=target.parentElement){
+                    if ($(target).attr("notthide") != null)
+                        return;
+                }
+                hideFunction();
+            });
+        }
 
         App.search = function() {
             $(".application").load("/search/0?q=" + $(".search-query").val());

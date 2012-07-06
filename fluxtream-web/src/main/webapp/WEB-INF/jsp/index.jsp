@@ -20,8 +20,8 @@
 <link rel="stylesheet" href="/static/css/bootstrap-2.0.3.min.css">
 <link rel="stylesheet"
 	href="/static/css/bootstrap-responsive-2.0.3.min.css">
-<link rel="stylesheet" href="/${release}/css/flx.css">
-<link rel="stylesheet" href="/${release}/css/font-awesome.css">
+<link rel="stylesheet" href="/static/css/flx.css">
+<link rel="stylesheet" href="/static/css/font-awesome.css">
 
 <!-- Le fav and touch icons -->
 <link rel="shortcut icon" href="/favicon.ico">

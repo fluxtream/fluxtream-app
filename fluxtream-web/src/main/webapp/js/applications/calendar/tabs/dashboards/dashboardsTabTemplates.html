@@ -24,31 +24,33 @@
         </div>
     </div>
 </template>
-<template id="manageDashboardsDialog">
-    <div class="modal fade" id="modal">
-        <div class="modal-header">
-            <h3>Manage Dashboards<a href="#" class="close" data-dismiss="modal">&times;</a></h3>
-        </div>
-        <div class="modal-body">
-            <div class="row">
-                <div class="span6">
-                    <form class="form-horizontal">
-                        <fieldset>
-                            <label>Your dashboards:</label>
-                            <select multiple="multiple">
-                            </select>
-                            <button class="btn icon-plus"></button>
-                            <button class="btn icon-minus"></button>
-                            <br>
-                            <input type="text" class="span3" placeholder="Dashboard Name">
-                        </fieldset>
-                    </form>
+<template id="manageDashboardsDropdown">
+    <div class="manage-dashboard">
+        <form class="well form-inline">
+            <div class="dashboard-list-header">
+                <div class="setName input-append">
+                    <input type="text" placeholder="Dashboard name..."/>
+                    <button class="btn">Add</button>
                 </div>
             </div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn" onclick="App.closeModal()">Close</button>
-        </div>
+            <div class="dashboards-list">
+                {{#dashboards}}
+                <div class="dashboard-list-item" id="dashboard-{{id}}">
+                    <div class="reorder">
+                        <a class="up"><i class="icon-caret-up"></i></a>
+                        <a class="down"><i class="icon-caret-down"></i></a>
+                        <a class="edit">rename</a>
+                    </div>
+                    <div class="col1">
+                        {{name}}
+                    </div>
+                    <div class="remove">
+                        <a><i class="icon-trash"></i></a>
+                    </div>
+                </div>
+                {{/dashboards}}
+            </div>
+        </form>
     </div>
 </template>
 

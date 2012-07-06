@@ -11,6 +11,7 @@ define(function() {
     }
 
     function updateContents(){
+        return;
         $.ajax("/api/connectors/installed",{
             success: function(data, textStatus, jqXHR){
                 if (hidden)

@@ -14,8 +14,8 @@ import com.fluxtream.domain.AbstractFloatingTimeZoneFacet;
 
 @Entity(name="Facet_ZeoSleepStats")
 @NamedQueries({
-		@NamedQuery(name = "zeo.deleteAll", query = "DELETE FROM Facet_ZeoSleepStats facet WHERE facet.guestId=?"),
-		@NamedQuery(name = "zeo.between", query = "SELECT facet FROM Facet_ZeoSleepStats facet WHERE facet.guestId=? AND facet.start>=(?-3600000L*10) AND facet.end<=?")
+		@NamedQuery(name = "zeo.sleep.deleteAll", query = "DELETE FROM Facet_ZeoSleepStats facet WHERE facet.guestId=?"),
+		@NamedQuery(name = "zeo.sleep.between", query = "SELECT facet FROM Facet_ZeoSleepStats facet WHERE facet.guestId=? AND facet.start>=(?-3600000L*10) AND facet.end<=?")
 })
 @ObjectTypeSpec(name = "sleep", value = -1, parallel=true, prettyname = "Sleep")
 @Indexed
