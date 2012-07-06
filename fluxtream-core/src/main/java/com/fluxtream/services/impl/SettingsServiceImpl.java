@@ -108,7 +108,7 @@ public class SettingsServiceImpl implements SettingsService {
 
 	@Override
 	@Transactional(readOnly=false)
-	public void addAddress(long guestId, String type, String add, double latitude,
+	public GuestAddress addAddress(long guestId, String type, String add, double latitude,
 			double longitude, long since, long until, double radius, String jsonString) {
 		GuestAddress address = new GuestAddress();
 		address.guestId = guestId;
@@ -124,11 +124,12 @@ public class SettingsServiceImpl implements SettingsService {
             throw new RuntimeException("invalid address");
         }
 		em.persist(address);
+        return address;
 	}
 
     @Override
     @Transactional(readOnly=false)
-    public void addAddress(long guestId, String type, String add, double latitude,
+    public GuestAddress addAddress(long guestId, String type, String add, double latitude,
                            double longitude, long since, double radius, String jsonString) {
         GuestAddress address = new GuestAddress();
         address.guestId = guestId;
@@ -140,6 +141,7 @@ public class SettingsServiceImpl implements SettingsService {
         address.radius = radius;
         address.jsonStorage = jsonString;
         em.persist(address);
+        return address;
     }
 
     @Override
@@ -246,7 +248,7 @@ public class SettingsServiceImpl implements SettingsService {
 
     @Override
     @Transactional(readOnly=false)
-    public void updateAddress(long guestId, long addressId, String type, String address, Double latitude,
+    public GuestAddress updateAddress(long guestId, long addressId, String type, String address, Double latitude,
                               Double longitude, Long since, Long until, Double radius, String jsonString){
         GuestAddress add = getAddressById(guestId,addressId);
         if (address != null) {
@@ -277,6 +279,7 @@ public class SettingsServiceImpl implements SettingsService {
             em.refresh(add);
             throw new RuntimeException("invalid address");
         }
+        return add;
     }
 
     private boolean isAddressValid(GuestAddress address){

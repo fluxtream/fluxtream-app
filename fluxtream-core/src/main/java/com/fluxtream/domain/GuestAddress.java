@@ -10,9 +10,9 @@ import com.google.gson.annotations.Expose;
 @Entity(name = "Address")
 @NamedQueries({
 	@NamedQuery(name = "address.when",
-			query = "SELECT address FROM Address address WHERE address.guestId=? AND address.since<? and address.until>?"),
+			query = "SELECT address FROM Address address WHERE address.guestId=? AND address.since<? and address.until>? ORDER BY address.id ASC"),
 	@NamedQuery(name = "addresses.byGuestId",
-		query = "SELECT address FROM Address address WHERE address.guestId=? ORDER BY address.since DESC"),
+		query = "SELECT address FROM Address address WHERE address.guestId=? ORDER BY address.id ASC"),
 	@NamedQuery(name = "addresses.delete.all",
 		query = "DELETE FROM Address address WHERE address.guestId=?"),
     @NamedQuery(name = "addresses.byType",

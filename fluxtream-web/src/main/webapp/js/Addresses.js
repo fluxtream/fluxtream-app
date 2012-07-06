@@ -11,15 +11,10 @@ define(function() {
             })}));
             $("#addAddress").click(addAddressDialog);
 
-
             for (var i = 0; i < addresses.length; i++){
-                $("#delete-" + i).click({index:i}, function(event){
-                    confirmDelete(event.data.index);
-                });
-                    $("#edit-" + i).click({index:i}, function(event){
-                    updateAddressDialog(event.data.index);
-                });
+                bindAddressControls(i);
             }
+
         });
 
     }
@@ -35,31 +30,58 @@ define(function() {
         return params;
     }
 
+    function bindAddressControls(index){
+        $("#delete-" + index).click({index:index}, function(event){
+            confirmDelete(event.data.index);
+        });
+        $("#edit-" + index).click({index:index}, function(event){
+            updateAddressDialog(event.data.index);
+        });
+    }
+
     function confirmDelete(index){
-        App.closeModal();
-        $("#modal").on("hidden", function(){
-            App.loadMustacheTemplate("addressesTemplate.html","deleteAddressConfirm",function(tamplate){
-                App.makeModal(tamplate.render({address:addresses[index].address}));
+        App.loadMustacheTemplate("addressesTemplate.html","deleteAddressConfirm",function(template){
+            $("body").append(template.render({address:addresses[index].address}));
+            $("#deleteAddressConfirmDialog").modal();
 
 
-                var confirmDelete = $("#confirmDeleteBtn");
+            var confirmDelete = $("#confirmDeleteBtn");
 
-                confirmDelete.click(function(){
-                    $.ajax("/api/addresses/" + index,{
-                        type:"DELETE",
-                        success:App.closeModal,
-                        error: App.closeModal
-                    });
-
+            confirmDelete.click(function(){
+                $.ajax("/api/addresses/id/" + addresses[index].id,{
+                    type:"DELETE",
+                    success:function(){
+                        $("#address-" + index).remove();
+                        $("#deleteAddressConfirmDialog").modal("hide")
+                    },
+                    error: function(){$("#deleteAddressConfirmDialog").modal("hide")}
                 });
 
-                $("#modal").on("hidden",show);
+            });
+
+            $("#deleteAddressConfirmDialog").css("zIndex","1052");
+            var backdrops = $(".modal-backdrop");
+            $(backdrops[backdrops.length - 1]).css("zIndex","1051");
+
+            $("#deleteAddressConfirmDialog").on("hidden",function(){
+                $("#deleteAddressConfirmDialog").remove();
             });
         });
     }
 
     function addressDialogInitializer(html){
-        App.makeModal(html);
+        $("body").append(html);
+        $("#addAddressDialog").modal();
+
+        $("#addAddressDialog").css("zIndex","1052");
+
+        $("#addAddressDialog").on("hidden",function(){
+            $("#addAddressDialog").remove();
+        });
+
+        var backdrops = $(".modal-backdrop");
+        $(backdrops[backdrops.length - 1]).css("zIndex","1051");
+
         var addressInput = $("#addressInput");
         var addressSearch = $("#addressSearch");
         var addressSelect = $("#addressSelect");
@@ -143,209 +165,122 @@ define(function() {
                 addressSelect.parent().parent().removeClass("error");
         });
 
-        $("#modal").on("hidden",show);
-
     }
 
     function updateAddressDialog(index){
         var originalSince = App.formatDateAsDatePicker(addresses[index].since);
         var originalUntil = App.formatDateAsDatePicker(addresses[index].until);
-        App.closeModal();
-        $("#modal").on("hidden", function(){
-            App.loadMustacheTemplate("addressesTemplate.html","addAddress",function(template){
-                addressDialogInitializer(template.render({
-                     title:"Edit Address",
-                     sinceDate:originalSince,
-                     untilDate:originalUntil == "Present" ? "" : originalUntil,
-                     distanceUnit:"m"
-                 }),originalSince,originalUntil);
+        App.loadMustacheTemplate("addressesTemplate.html","addAddress",function(template){
+            addressDialogInitializer(template.render({
+                 title:"Edit Address",
+                 sinceDate:originalSince,
+                 untilDate:originalUntil == "Present" ? "" : originalUntil,
+                 distanceUnit:"m"
+             }),originalSince,originalUntil);
 
-                var addressInput = $("#addressInput");
-                var addressSearch = $("#addressSearch");
-                var addressSelect = $("#addressSelect");
-                var sinceInput = $("#sinceInput");
-                var untilInput = $("#untilInput");
-                var presentCheckbox = $("#presentCheckBox");
-                var addressTypeSelect = $("#addressTypeSelect");
-                var saveAddressBtn = $("#saveAddressBtn");
-                var radiusInput = $("#radiusInput");
+            var addressInput = $("#addressInput");
+            var addressSearch = $("#addressSearch");
+            var addressSelect = $("#addressSelect");
+            var sinceInput = $("#sinceInput");
+            var untilInput = $("#untilInput");
+            var presentCheckbox = $("#presentCheckBox");
+            var addressTypeSelect = $("#addressTypeSelect");
+            var saveAddressBtn = $("#saveAddressBtn");
+            var radiusInput = $("#radiusInput");
 
 
-                radiusInput.val(addresses[index].radius);
+            radiusInput.val(addresses[index].radius);
 
-                addressInput.val(addresses[index].address);
-                addressSearch.click();
-                if (originalUntil == "Present")
-                    presentCheckbox.click();
+            addressInput.val(addresses[index].address);
+            addressSearch.click();
+            if (originalUntil == "Present")
+                presentCheckbox.click();
 
-                var typeIndex = 0;
-                for (var i = 1; i < typeNames.length; i++){
-                    if (typeNames[i] == addresses[index].type)
-                        typeIndex = i;
+            var typeIndex = 0;
+            for (var i = 1; i < typeNames.length; i++){
+                if (typeNames[i] == addresses[index].type)
+                    typeIndex = i;
+            }
+            addressTypeSelect[0].selectedIndex = typeIndex;
+
+            saveAddressBtn.click(function(){
+                var selection = addressSelect[0].selectedIndex - 1;
+                var errors = false;
+                if (selection == -1){
+                    addressSelect.parent().parent().addClass("error");
+                    errors = true;
                 }
-                addressTypeSelect[0].selectedIndex = typeIndex;
-
-                saveAddressBtn.click(function(){
-                    var selection = addressSelect[0].selectedIndex - 1;
-                    var errors = false;
-                    if (selection == -1){
-                        addressSelect.parent().parent().addClass("error");
-                        errors = true;
-                    }
-                    if (sinceInput.val() == ""){
-                        sinceInput.parent().parent().addClass("error");
-                        errors = true;
-                    }
-                    if (untilInput.val() == "" && !presentCheckbox.is(":checked")){
-                        untilInput.parent().parent().addClass("error");
-                        errors = true;
-                    }
-                    if (radiusInput.val() == ""){
-                        radiusInput.parent().parent().addClass("error");
-                        errors = true;
-                    }
-                    if (errors)
-                        return;
-                    addressInput.attr("disabled","disabled");
-                    addressSearch.attr("disabled","disabled");
-                    addressSelect.attr("disabled","disabled");
-                    sinceInput.attr("disabled","disabled");
-                    untilInput.attr("disabled","disabled");
-                    presentCheckbox.attr("disabled","disabled");
-                    addressTypeSelect.attr("disabled","disabled");
-                    saveAddressBtn.attr("disabled","disabled");
-                    radiusInput.attr("disabled","disabled");
-                    var address = currentAddressPool[selection];
-                    var params = {};
-                    var hasParams = false;
-                    if (address.formatted_address != addresses[index].address){
-                        params.address = address.formatted_address;
-                        params.latitude = address.geometry.location.lat();
-                        params.longitude = address.geometry.location.lng();
+                if (sinceInput.val() == ""){
+                    sinceInput.parent().parent().addClass("error");
+                    errors = true;
+                }
+                if (untilInput.val() == "" && !presentCheckbox.is(":checked")){
+                    untilInput.parent().parent().addClass("error");
+                    errors = true;
+                }
+                if (radiusInput.val() == ""){
+                    radiusInput.parent().parent().addClass("error");
+                    errors = true;
+                }
+                if (errors)
+                    return;
+                addressInput.attr("disabled","disabled");
+                addressSearch.attr("disabled","disabled");
+                addressSelect.attr("disabled","disabled");
+                sinceInput.attr("disabled","disabled");
+                untilInput.attr("disabled","disabled");
+                presentCheckbox.attr("disabled","disabled");
+                addressTypeSelect.attr("disabled","disabled");
+                saveAddressBtn.attr("disabled","disabled");
+                radiusInput.attr("disabled","disabled");
+                var address = currentAddressPool[selection];
+                var params = {};
+                var hasParams = false;
+                if (address.formatted_address != addresses[index].address){
+                    params.address = address.formatted_address;
+                    params.latitude = address.geometry.location.lat();
+                    params.longitude = address.geometry.location.lng();
+                    hasParams = true;
+                }
+                if (originalSince != sinceInput.val()){
+                    params.since = sinceInput.val();
+                    hasParams = true;
+                }
+                if (presentCheckbox.is(":Checked")){
+                    if (originalUntil != "Present"){
+                        params.until = "Present";
                         hasParams = true;
                     }
-                    if (originalSince != sinceInput.val()){
-                        params.since = sinceInput.val();
-                        hasParams = true;
-                    }
-                    if (presentCheckbox.is(":Checked")){
-                        if (originalUntil != "Present"){
-                            params.until = "Present";
-                            hasParams = true;
-                        }
-                    }
-                    else if (originalUntil != untilInput.val()){
-                        params.until = untilInput.val();
-                        hasParams = true;
-                    }
-                    if (addresses[index].type != typeNames[addressTypeSelect[0].selectedIndex]){
-                        params.type = typeNames[addressTypeSelect[0].selectedIndex];
-                        hasParams = true;
-                    }
-                    if (addresses[index].radius != radiusInput.val()){
-                        params.radius = radiusInput.val();
-                        hasParams = true;
-                    }
-                    if (hasParams){
-                        $.ajax("/api/addresses/" + index,{
-                            type:"POST",
-                            data:params,
-                            success: function(data, textStatus, jqXHR){
-                                if (data.result == "OK")
-                                    App.closeModal();
-                                else
-                                    this.error();
-                            },
-                            error: function(){
-                                $(".modal-body").append('<div class="alert alert-error"><button class="close" data-dismiss="alert">×</button><strong>Error!</strong> Failed to add address!</div>');
-                                addressInput.removeAttr("disabled");
-                                addressSearch.removeAttr("disabled");
-                                addressSelect.removeAttr("disabled");
-                                sinceInput.removeAttr("disabled");
-                                if (!presentCheckbox.is(":Checked"))
-                                    untilInput.removeAttr("disabled");
-                                presentCheckbox.removeAttr("disabled");
-                                addressTypeSelect.removeAttr("disabled");
-                                saveAddressBtn.removeAttr("disabled");
-                                radiusInput.removeAttr("disabled");
-                            }
-                        });
-                     }
-                    else{
-                        App.closeModal();
-                    }
-                });
-            });
-        });
-    }
-
-    function addAddressDialog(){
-        App.closeModal();
-        $("#modal").on("hidden", function(){
-            App.loadMustacheTemplate("addressesTemplate.html","addAddress",function(template){
-                addressDialogInitializer(template.render({
-                     title:"Add Address",
-                     sinceDate: App.formatDateAsDatePicker(new Date()),
-                     untilDate: App.formatDateAsDatePicker(new Date()),
-                     distanceUnit:"m"
-                }));
-
-                var addressInput = $("#addressInput");
-                var addressSearch = $("#addressSearch");
-                var addressSelect = $("#addressSelect");
-                var sinceInput = $("#sinceInput");
-                var untilInput = $("#untilInput");
-                var presentCheckbox = $("#presentCheckBox");
-                var addressTypeSelect = $("#addressTypeSelect");
-                var saveAddressBtn = $("#saveAddressBtn");
-                var radiusInput = $("#radiusInput");
-
-                sinceInput.val("");
-                untilInput.val("");
-
-                currentAddressPool = [];
-
-                saveAddressBtn.click(function(){
-                    var selection = addressSelect[0].selectedIndex - 1;
-                    var errors = false;
-                    if (selection == -1){
-                        addressSelect.parent().parent().addClass("error");
-                        errors = true;
-                    }
-                    if (sinceInput.val() == ""){
-                        sinceInput.parent().parent().addClass("error");
-                        errors = true;
-                    }
-                    if (untilInput.val() == "" && !presentCheckbox.is(":checked")){
-                        untilInput.parent().parent().addClass("error");
-                        errors = true;
-                    }
-                    if (radiusInput.val() == ""){
-                        radiusInput.parent().parent().addClass("error");
-                        errors = true;
-                    }
-                    if (errors)
-                        return;
-                    addressInput.attr("disabled","disabled");
-                    addressSearch.attr("disabled","disabled");
-                    addressSelect.attr("disabled","disabled");
-                    sinceInput.attr("disabled","disabled");
-                    untilInput.attr("disabled","disabled");
-                    presentCheckbox.attr("disabled","disabled");
-                    addressTypeSelect.attr("disabled","disabled");
-                    saveAddressBtn.attr("disabled","disabled");
-                    radiusInput.attr("disabled","disabled")
-                    var address = currentAddressPool[selection];
-                    var params = {address:address.formatted_address, latitude:address.geometry.location.lat(),
-                        longitude:address.geometry.location.lng(), since:sinceInput.val(), radius:radiusInput.val()};
-                    if (!presentCheckbox.is(":checked"))
-                        params.until = untilInput.val();
-                    $.ajax("/api/addresses/" + typeNames[addressTypeSelect[0].selectedIndex],{
-                        type: "POST",
-                        data:  params,
+                }
+                else if (originalUntil != untilInput.val()){
+                    params.until = untilInput.val();
+                    hasParams = true;
+                }
+                if (addresses[index].type != typeNames[addressTypeSelect[0].selectedIndex]){
+                    params.type = typeNames[addressTypeSelect[0].selectedIndex];
+                    hasParams = true;
+                }
+                if (addresses[index].radius != radiusInput.val()){
+                    params.radius = radiusInput.val();
+                    hasParams = true;
+                }
+                if (hasParams){
+                    $.ajax("/api/addresses/" + index,{
+                        type:"POST",
+                        data:params,
                         success: function(data, textStatus, jqXHR){
-                            if (data.result == "OK")
-                                App.closeModal();
+                            if (data.result == "OK"){
+                                var newAddress = JSON.parse(data.message);
+                                newAddress.index = index;
+                                addresses[index] = newAddress;
+                                var newParams = getAddressParams(newAddress);
+                                App.loadMustacheTemplate("addressesTemplate.html","addressRowTemplate",function(template){
+                                    $("#address-" + index).replaceWith(template.render(getAddressParams(newAddress)));
+                                    bindAddressControls(newAddress.index);
+                                });
+
+                                $("#addAddressDialog").modal('hide');
+                            }
                             else
                                 this.error();
                         },
@@ -363,9 +298,108 @@ define(function() {
                             radiusInput.removeAttr("disabled");
                         }
                     });
-                });
-
+                 }
+                else{
+                    App.closeModal();
+                }
             });
+        });
+    }
+
+    function addAddressDialog(){
+        App.loadMustacheTemplate("addressesTemplate.html","addAddress",function(template){
+            addressDialogInitializer(template.render({
+                 title:"Add Address",
+                 sinceDate: App.formatDateAsDatePicker(new Date()),
+                 untilDate: App.formatDateAsDatePicker(new Date()),
+                 distanceUnit:"m"
+            }));
+
+            var addressInput = $("#addressInput");
+            var addressSearch = $("#addressSearch");
+            var addressSelect = $("#addressSelect");
+            var sinceInput = $("#sinceInput");
+            var untilInput = $("#untilInput");
+            var presentCheckbox = $("#presentCheckBox");
+            var addressTypeSelect = $("#addressTypeSelect");
+            var saveAddressBtn = $("#saveAddressBtn");
+            var radiusInput = $("#radiusInput");
+
+            sinceInput.val("");
+            untilInput.val("");
+
+            currentAddressPool = [];
+
+            saveAddressBtn.click(function(){
+                var selection = addressSelect[0].selectedIndex - 1;
+                var errors = false;
+                if (selection == -1){
+                    addressSelect.parent().parent().addClass("error");
+                    errors = true;
+                }
+                if (sinceInput.val() == ""){
+                    sinceInput.parent().parent().addClass("error");
+                    errors = true;
+                }
+                if (untilInput.val() == "" && !presentCheckbox.is(":checked")){
+                    untilInput.parent().parent().addClass("error");
+                    errors = true;
+                }
+                if (radiusInput.val() == ""){
+                    radiusInput.parent().parent().addClass("error");
+                    errors = true;
+                }
+                if (errors)
+                    return;
+                addressInput.attr("disabled","disabled");
+                addressSearch.attr("disabled","disabled");
+                addressSelect.attr("disabled","disabled");
+                sinceInput.attr("disabled","disabled");
+                untilInput.attr("disabled","disabled");
+                presentCheckbox.attr("disabled","disabled");
+                addressTypeSelect.attr("disabled","disabled");
+                saveAddressBtn.attr("disabled","disabled");
+                radiusInput.attr("disabled","disabled")
+                var address = currentAddressPool[selection];
+                var params = {address:address.formatted_address, latitude:address.geometry.location.lat(),
+                    longitude:address.geometry.location.lng(), since:sinceInput.val(), radius:radiusInput.val()};
+                if (!presentCheckbox.is(":checked"))
+                    params.until = untilInput.val();
+                $.ajax("/api/addresses/" + typeNames[addressTypeSelect[0].selectedIndex],{
+                    type: "POST",
+                    data:  params,
+                    success: function(data, textStatus, jqXHR){
+                        if (data.result == "OK"){
+                            var newAddress = JSON.parse(data.message);
+                            newAddress.index = addresses.length;
+                            addresses[addresses.length] = newAddress;
+                            newAddress.since += 12 * 3600 * 1000;
+                            newAddress.until -= 12 * 3600 * 1000;
+                            App.loadMustacheTemplate("addressesTemplate.html","addressRowTemplate",function(template){
+                                $("#addressDialogTable").append(template.render(getAddressParams(newAddress)));
+                                bindAddressControls(newAddress.index);
+                            });
+                            $("#addAddressDialog").modal('hide');
+                        }
+                        else
+                            this.error();
+                    },
+                    error: function(){
+                        $(".modal-body").append('<div class="alert alert-error"><button class="close" data-dismiss="alert">×</button><strong>Error!</strong> Failed to add address!</div>');
+                        addressInput.removeAttr("disabled");
+                        addressSearch.removeAttr("disabled");
+                        addressSelect.removeAttr("disabled");
+                        sinceInput.removeAttr("disabled");
+                        if (!presentCheckbox.is(":Checked"))
+                            untilInput.removeAttr("disabled");
+                        presentCheckbox.removeAttr("disabled");
+                        addressTypeSelect.removeAttr("disabled");
+                        saveAddressBtn.removeAttr("disabled");
+                        radiusInput.removeAttr("disabled");
+                    }
+                });
+            });
+
         });
     }
 

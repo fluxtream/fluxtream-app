@@ -1,8 +1,8 @@
 <template id="addAddress">
-    <div class="modal fade" id="modal">
+    <div class="modal fade" id="addAddressDialog">
         <div class="modal-header">
             <h3>{{title}}<a href="#" class="close" data-dismiss="modal">&times;</a></h3>
-        </div>'
+        </div>
         <div class="modal-body" style="overflow:hidden">
             <form class="form-horizontal">
                 <fieldset>
@@ -52,7 +52,7 @@
         </div>
         <div class="modal-footer">
             <button id="saveAddressBtn" class="btn">Save</button>
-            <button id="closeBtn" class="btn" onclick="App.closeModal();">Cancel</button>
+            <button id="closeBtn" class="btn" onclick="$('#addAddressDialog').modal('hide')">Cancel</button>
         </div>
     </div>
 </template>
@@ -74,16 +74,16 @@
                         <th style="text-align:center">Delete</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="addressDialogTable">
                 {{#addresses}}
-                <tr>
-                <td>{{address}}</td>
-                <td>{{radius}}</td>
-                <td>{{type}}</td>
-                <td>{{since}}</td>
-                <td>{{until}}</td>
-                <td style="text-align:center"><button style="background-color:transparent; border:none;" class="icon-pencil icon-large" id="edit-{{index}}"></button></td>
-                <td style="text-align:center"><button style="background-color:transparent;border:none;" class="icon-trash icon-large" id="delete-{{index}}"></button></td>
+                <tr id="address-{{index}}">
+                    <td>{{address}}</td>
+                    <td>{{radius}}</td>
+                    <td>{{type}}</td>
+                    <td>{{since}}</td>
+                    <td>{{until}}</td>
+                    <td style="text-align:center"><button style="background-color:transparent; border:none;" class="icon-pencil icon-large" id="edit-{{index}}"></button></td>
+                    <td style="text-align:center"><button style="background-color:transparent;border:none;" class="icon-trash icon-large" id="delete-{{index}}"></button></td>
                 </tr>
                 {{/addresses}}
                 </tbody>
@@ -95,8 +95,19 @@
         </div>
     </div>
 </template>
+<template id="addressRowTemplate">
+    <tr id="address-{{index}}">
+        <td>{{address}}</td>
+        <td>{{radius}}</td>
+        <td>{{type}}</td>
+        <td>{{since}}</td>
+        <td>{{until}}</td>
+        <td style="text-align:center"><button style="background-color:transparent; border:none;" class="icon-pencil icon-large" id="edit-{{index}}"></button></td>
+        <td style="text-align:center"><button style="background-color:transparent;border:none;" class="icon-trash icon-large" id="delete-{{index}}"></button></td>
+    </tr>
+</template>
 <template id="deleteAddressConfirm">
-    <div class="modal fade" id="modal">
+    <div class="modal fade" id="deleteAddressConfirmDialog">
         <div class="modal-header">
             <h3>Confirm Deletion<a href="#" class="close" data-dismiss="modal">&times;</a></h3>
         </div>
@@ -107,7 +118,7 @@
         </div>
         <div class="modal-footer">
             <button id="confirmDeleteBtn" class="btn">Confirm</button>
-            <button class="btn" onclick="App.closeModal()">Cancel</button>
+            <button class="btn" onclick="$('#deleteAddressConfirmDialog').modal('hide')">Cancel</button>
         </div>
     </div>
 </template>

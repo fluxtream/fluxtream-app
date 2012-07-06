@@ -182,12 +182,14 @@ public class AddressStore {
             String addressEncoded = URLEncoder.encode(address, "UTF-8");
             String jsonString = HttpUtils.fetch("https://maps.googleapis.com/maps/api/geocode/json?sensor=false&address=" + addressEncoded, env);
 
-            if (until != null)
-                settingsService.addAddress(guest.getId(),type,address,latitude,longitude,startTime,endTime,radius,jsonString);
-            else
-                settingsService.addAddress(guest.getId(),type,address,latitude,longitude,startTime,radius,jsonString);
+            GuestAddress newAddress;
 
-            return gson.toJson(new StatusModel(true, "Successfully added guest address"));
+            if (until != null)
+                newAddress = settingsService.addAddress(guest.getId(),type,address,latitude,longitude,startTime,endTime,radius,jsonString);
+            else
+                newAddress = settingsService.addAddress(guest.getId(),type,address,latitude,longitude,startTime,radius,jsonString);
+
+            return gson.toJson(new StatusModel(true, gson.toJson(newAddress)));
         } catch (Exception e) {
             StatusModel result = new StatusModel(false, "Could not add guest addresses: " + e.getMessage());
             return gson.toJson(result);
@@ -233,6 +235,21 @@ public class AddressStore {
         try{
             Guest guest = ControllerHelper.getGuest();
             settingsService.deleteAddressById(guest.getId(),settingsService.getAllAddresses(guest.getId()).get(index).id);
+            result = new StatusModel(true, "Successfully deleted address");
+        } catch (Exception e) {
+            result = new StatusModel(false, "Failed to delete address: " + e.getMessage());
+        }
+        return gson.toJson(result);
+    }
+
+    @DELETE
+    @Path("/id/{index}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String deleteAddressById(@PathParam("index") int id){
+        StatusModel result;
+        try{
+            Guest guest = ControllerHelper.getGuest();
+            settingsService.deleteAddressById(guest.getId(),id);
             result = new StatusModel(true, "Successfully deleted address");
         } catch (Exception e) {
             result = new StatusModel(false, "Failed to delete address: " + e.getMessage());
@@ -351,9 +368,9 @@ public class AddressStore {
             }
 
             GuestAddress add = settingsService.getAllAddresses(guest.getId()).get(index);
-            settingsService.updateAddress(guest.getId(),add.id,newType,address,latitude > 90 ? null : latitude,
+            GuestAddress updatedAddress = settingsService.updateAddress(guest.getId(),add.id,newType,address,latitude > 90 ? null : latitude,
                                           longitude > 180 ? null : longitude,startTime,endTime, radius < 0 ? null : radius,jsonString);
-            result = new StatusModel(true, "Successfully updated address");
+            result = new StatusModel(true, gson.toJson(updatedAddress));
         } catch (Exception e) {
             result = new StatusModel(false, "Failed to update address: " + e.getMessage());
         }
