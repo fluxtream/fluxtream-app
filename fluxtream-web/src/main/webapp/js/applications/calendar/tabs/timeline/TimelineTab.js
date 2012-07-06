@@ -2774,7 +2774,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
         this.getTemplate("text!applications/calendar/tabs/timeline/template.html", "timeline", function() {
             setup(digest, timeUnit);
         });
-        timelineTab.setRange(Calendar.start/1000, Calendar.end/1000);
+        timelineTab.setRange(digest.tbounds.start/1000, digest.tbounds.end/1000);
     }
 
     var timelineTab = new Tab("timeline", "Candide Kemmler", "icon-film", false);

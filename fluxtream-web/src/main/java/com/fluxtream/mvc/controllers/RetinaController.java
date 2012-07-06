@@ -47,9 +47,11 @@ public class RetinaController {
         String fullPath = realPath + path;
         final File file = new File(fullPath);
         FileInputStream fileinput = null;
-        try { fileinput = new FileInputStream(file); }
+        try {
+            fileinput = new FileInputStream(file);
+            IOUtils.copy(fileinput, response.getOutputStream());}
         catch (FileNotFoundException e) { response.sendError(404); }
-        IOUtils.copy(fileinput, response.getOutputStream());
+
     }
 
     private String retinaPath(final String path, final String realPath, final HttpServletRequest request) {

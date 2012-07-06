@@ -188,10 +188,31 @@ public class CalendarDataStore {
 
         Guest guest = ControllerHelper.getGuest();
 
+        int endDayNum;
+        if (Integer.parseInt(month) == 2 && isLeapYear(Integer.parseInt(year))){
+            endDayNum = 29;
+        }
+        else{
+            Calendar c = Calendar.getInstance();
+            c.set(Calendar.MONTH,Integer.parseInt(month));
+            endDayNum = c.getActualMaximum(Calendar.DAY_OF_MONTH);
+        }
+
+            isLeapYear(Integer.parseInt(year));
+
+        DayMetadataFacet dayMetaStart = metadataService.getDayMetadata(guest.getId(), year + "-" + (Integer.parseInt(month) + 1) + "-01", true);
+
+        DayMetadataFacet dayMetaEnd = metadataService.getDayMetadata(guest.getId(), year + "-" + (Integer.parseInt(month) + 1) + "-" + endDayNum, true);
+
+        TimeBoundariesModel tbounds = new TimeBoundariesModel();
+        tbounds.start = dayMetaStart.start;
+        tbounds.end = dayMetaEnd.end;
+
         long guestId = guest.getId();
         List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter);
 
         DigestModel digest = new DigestModel();
+        digest.tbounds = tbounds;
         digest.selectedConnectors = connectorInfos(guestId,apiKeySelection);
 		return gson.toJson(digest);
 	}
@@ -208,10 +229,21 @@ public class CalendarDataStore {
 
         Guest guest = ControllerHelper.getGuest();
 
+        DayMetadataFacet dayMetaStart = metadataService.getDayMetadata(guest.getId(), year + "-01-01", true);
+
+        DayMetadataFacet dayMetaEnd = metadataService.getDayMetadata(guest.getId(), year + "-12-31", true);
+
+        TimeBoundariesModel tbounds = new TimeBoundariesModel();
+        tbounds.start = dayMetaStart.start;
+        tbounds.end = dayMetaEnd.end;
+
+
+
         long guestId = guest.getId();
         List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter);
 
         DigestModel digest = new DigestModel();
+        digest.tbounds = tbounds;
         digest.selectedConnectors = connectorInfos(guestId,apiKeySelection);
         return gson.toJson(digest);
 	}
