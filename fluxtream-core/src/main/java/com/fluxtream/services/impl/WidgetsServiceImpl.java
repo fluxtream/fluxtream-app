@@ -154,7 +154,7 @@ public class WidgetsServiceImpl implements WidgetsService {
                 } catch (Throwable t) {
                     throw new RuntimeException("Could not parse widget manifest (" + t.getMessage() + ")");
                 }
-                widgets.add(new DashboardWidget(manifestJSON));
+                widgets.add(new DashboardWidget(manifestJSON, baseURL + "widgets"));
             }
         } catch (IOException e) {
             throw new RuntimeException("Could not access widget manifest JSON URL: " + widgetUrl);

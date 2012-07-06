@@ -35,9 +35,9 @@
                                 </span>
                                 {{/syncing}}
                             </td>
-                            <td class="connectors" style="background:inherit"><img src="{{image}}" alt="{{connectorName}}"></td>
-                            <td class="desc" style="background:inherit"><h4>{{name}}</h4><p>{{text}}</p><a href="#">Manage <i class="icon-cog"></i></a></td>
-                            <td class="lastSync" style="background:inherit">
+                            <td class="connectors" style="background:inherit; vertical-align: middle"><img src="{{image}}" width=158 height=89 alt="{{connectorName}}"></td>
+                            <td class="desc" style="background:inherit">><h4>{{name}}</h4><p>{{text}}</p><a href="#">Manage <i class="icon-cog"></i></a></td>
+                            <td class="lastSync" style="background:inherit">>
                                 <p id="lastSync-{{connectorName}}" {{#syncing}}style="display:none;"{{/syncing}}>{{lastSync}}</p>
                                 <a id="syncNow-{{connectorName}}" href="#" {{#syncing}}style="display:none;"{{/syncing}}>Sync now <i class="icon-refresh"></i></a>
                                 {{#syncing}}

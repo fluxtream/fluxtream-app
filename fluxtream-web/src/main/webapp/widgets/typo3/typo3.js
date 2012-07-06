@@ -4,7 +4,7 @@ define(["core/DashboardWidget"], function(DashboardWidget) {
 
     Typo3.init = function() {
         require(["text!" + this.manifest.WidgetRepositoryURL + "/"
-                + this.manifest.WidgetName + "/typo3.mustache"], function(template) {
+                     + this.manifest.WidgetName + "/typo3.mustache"], function(template) {
             Typo3.postLoad(template);
         });
     };

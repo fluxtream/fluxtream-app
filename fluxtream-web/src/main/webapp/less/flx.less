@@ -8,6 +8,11 @@ body {-webkit-tap-highlight-color: rgb(255,255,158);}
 
 @media (max-width: 768px){
     .flx-main-city-infos {  }
+
+    .flx-widget-typo {
+        .big-data-figure { font-size: 4em; }  
+        .flx-dashBMisc div { font-size: 14px; text-align: left; }     
+    }
 }
 
 @media (min-width: 980px) {
@@ -45,9 +50,10 @@ body {-webkit-tap-highlight-color: rgb(255,255,158);}
 @black: #333 ;
 
 body {
-    background-image: url('../images/bg.gif');
+    background-image: url('bg.gif');
     height: 100%;
     overflow-x: hidden;
+    color:@black;
 }
 
 html {
@@ -273,6 +279,21 @@ a img { text-decoration: none; }
 
 @connector : rgba(0, 136, 204,1);
 
+@warningText : #c09853;	
+@warningBackground : #f3edd2;	
+@errorText : #b94a48;
+@errorBackground : #f2dede;	
+@successText : #468847;	
+@successBackground : #dff0d8;
+
+
+
+.border-radius { 
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+}
+
 // helpers
 .flx-clearfix:before, .flx-clearfix:after { content: ""; display: table; }
 .flx-clearfix:after { clear: both; }
@@ -282,7 +303,7 @@ a img { text-decoration: none; }
 .flx-floater { overflow: hidden; height: 100%; zoom:1; }
 
 
-.flx-widget { margin-bottom : 20px;
+.flx-widget { margin-bottom : 20px; max-height: 300px; min-height:300px !important; overflow:hidden;
     border : 1px solid @border-color; border-left:0; border-right:0; border-top:0;
     header { padding: 4px 9px; background : @hd-bg-color;  .flx-clearfix; border-bottom: 1px solid @border-color; color: @grey;
         .flx-widget-controls { .flx-floatR; font-size: 18px; padding-top:3px;
@@ -333,19 +354,28 @@ a img { text-decoration: none; }
 //.flx-dataType {color: lighten(black, 40%); margin-bottom: 5px; line-height:1; }
 
 
-.flx-deviceIcon.withings { background-position: 0 -298px; }
+.flx-deviceIcon.withings { background-position: 0 -1173px; }
 .flx-deviceIcon.twitter-tweet { background-position: 0 -128px; }
 .flx-deviceIcon.twitter-dm-in { background-position: 0 -421px; }
 .flx-deviceIcon.twitter-dm-out { background-position: 0 -464px; }
 .flx-deviceIcon.twitter-mention { background-position: 0 -508px; }
-.flx-deviceIcon.zeo { background-position: 0 -4px; }
+.flx-deviceIcon.zeo-sleep { background-position: 0 -4px; }
 .flx-deviceIcon.calendar { background-position: 0 -255px; }
 .flx-deviceIcon.lastfm { background-position: 0 -86px; }
 .flx-deviceIcon.bm-sleep, .flx-deviceIcon.bm-steps, .flx-deviceIcon.bm-burn { background-position: 0 -330px; }
 .flx-deviceIcon.latitude { background-position: 0 -355px; }
-.flx-deviceIcon.picasa { background-position: 0 -42px; }
-.flx-deviceIcon.fitbit { background-position: 0 -339px; }
-
+.flx-deviceIcon.picasa { background-position: 0 -924px; }
+.flx-deviceIcon.withings-blood-pressure { background-position: 0 -339px; }
+.flx-deviceIcon.bodymedia-burn { background-position: 0 -589px; }
+.flx-deviceIcon.bodymedia-sleep { background-position: 0 -633px; }
+.flx-deviceIcon.bodymedia-steps { background-position: 0 -673px; }
+.flx-deviceIcon.fitbit-activity_summary { background-position: 0 -1088px; }
+.flx-deviceIcon.fitbit-logged_activity { background-position: 0 -1131px; }
+.flx-deviceIcon.fitbit-sleep { background-position: 0 -1050px; }
+.flx-deviceIcon.flickr-photo { background-position: 0 -924px; }
+.flx-deviceIcon.instagram-photo { background-position: 0 -924px; }
+.flx-deviceIcon.smsbackup-call-log-in { background-position: 0 -840px; }
+.flx-deviceIcon.smsbackup-call-log-out { background-position: 0 -799px; }
 
 .flx-toolTipData .flx-data { max-width:270px; overflow:hidden; height: 100%;
     span { font-size: 14px; color: lighten(@black, 55%); }
@@ -374,7 +404,7 @@ a img { text-decoration: none; }
      }
 }
 
-.flx-toolTipTail { position:absolute; width:0; height:0; border:10px solid transparent; pointer-events: none; }
+.flx-toolTipTail { position:absolute; width:0; height:0; border:10px solid transparent; }
 .flx-toolTipTail-Bottom { .flx-toolTipTail; border-top: 10px solid @tTborder; bottom: -24px;}
 .flx-toolTipTail-Top { .flx-toolTipTail; border-bottom: 10px solid @tTborder; top: -24px; }
 .flx-toolTipTail-Right { .flx-toolTipTail; border-left: 10px solid @tTborder; right: -24px; }
@@ -481,15 +511,15 @@ table .remove { text-align:center;
 
 //------- DASHBOARDS
 
-#dashboardsTab ul {
+#dashboardsTab .nav-tabs {
     background: #EEEEE9; position:absolute; bottom: -10px; right: 10px; left: 10px;
 }
 
-#dashboardsTab li:first-child {
+#dashboardsTab .nav-tabs li:first-child {
     position: absolute; right:10px; top: 10px;
 }
 
-#dashboardsTab li button {
+#dashboardsTab .nav li button {
     margin-top:-5px;
 }
 
@@ -501,12 +531,12 @@ table .remove { text-align:center;
 }
 .dashboard-list-item { overflow:hidden; zoom:1; border: 1px solid @border-color; margin-bottom:-1px; border-left: 0; border-right:0; padding: 10px 10px 10px 15px;
     i {font-size: 16px; line-height:1; padding: 0;}
-    .reorder { float: left; width: 80px; visibility:hidden;
+    .reorder { float: left; width: 80px; opacity:0.3;
         .up, .down { padding-right: 5px; }    
     }
     a:hover i { text-decoration:none; }
     .col1 { float:left; width: 330px; font-size:14px; }
-    .remove { float:left; visibility:hidden;}
+    .remove { float:left; opacity:0.3;}
     -webkit-transition: all 0.2s ease-in-out;
     -moz-transition: all 0.2s ease-in-out;
     -o-transition: all 0.2s ease-in-out;
@@ -514,7 +544,7 @@ table .remove { text-align:center;
 }
 .dashboards-list { height: 300px; width: 450px; background:@white;}
 .dashboard-list-item:hover { background-color: lighten(@link-blue,55%);
-    .reorder, .remove { visibility:visible; }
+    .reorder, .remove { opacity:1; }
 }        
 
 
@@ -522,18 +552,40 @@ table .remove { text-align:center;
     .addOrRemove { float:left; margin-right:10px;} 
  }
 
+//---------SET DEVICE CHANNELS
+
+.set-device { width: 100%;
+    .set-device-header { padding: 10px 0 10px 5px; }
+    .flx-channel-table {  
+        td:first-child { width: 50px; 
+        } 
+        input[type=checkbox]{ margin-top: 0; }
+        label { white-space: nowrap; font-size:14px;}
+        .description { color: lighten(@black, 45%); line-height: 21px; }
+    }
+}
+
+.flx-nav-list { font-size: 14px; }
+
 
 //---------LIST 
 
 .flx-listItem .flx-box { overflow: hidden; height: 100%; padding: 15px 15px; border: 1px solid lighten(@black, 90%); border-left-width: 5px; margin-bottom:5px; max-width: 693px; border-radius : 3px;
-     .flx-deviceIcon, .flx-tTime { .flx-floatL }
+     .flx-deviceIcon, .flx-tTime, .flx-tRange { .flx-floatL }
      .flx-tTime { padding: 0 13px 0 10px; min-width:62px; height: 42px; font-size: 15px; 
         span {color: lighten(@black, 60%); font-size:14px; text-transform: none;}
+     }
+     .flx-tRange { color: lighten(@black, 60%); font-size:14px; text-transform: none; padding: 0 13px 0 10px; min-width:62px; height: 42px; 
+         span { display: block;
+            span { font-size: 15px; color: @black; display: inline;}
+            }
      }
      .flx-description { overflow:hidden; height: 100%; color:lighten(@black, 20%); display:block; max-width: 450px; 
      span { font-weight:bold; font-size: 14px; }
      }
+     .flx-more { color: lighten(@grey, 10%); }
  }
+
 
 .flx-listItem .flx-box.twitter { border-left-color: @twitter; }
 .flx-listItem .flx-box.bm { border-left-color: @bodyTrack; }
@@ -542,9 +594,30 @@ table .remove { text-align:center;
 .flx-listItem .flx-box.calendar { border-left-color: @ggleCal; }
 .flx-listItem .flx-box.withings { border-left-color: @withings; }
 .flx-listItem .flx-box.lastfm { border-left-color: @lastFM; }
+.flx-listItem .flx-box.bodymedia { border-left-color: @bodymedia; }
+
 
 .flx-listItem .gathered { padding-bottom:0; }
 .flx-listItem .gathered.closed { height:52px; }
+
+
+//-------WIDGET TYPOGRAPHY
+
+.flx-widget-typo { color: lighten(@black, 20%);
+    .main-widget-data { position: relative; height: 223px; }    
+    .big-data-figure { position: absolute; top: 50px; left: 0; color: lighten(@black, 40%); font-size: 7em; width: 100%; font-weight: bold; font-family: inherit; text-align: center; overflow: hidden; line-height: 1; padding-bottom: 0.5em;
+        span { font-size: 0.5em; font-weight: normal; }
+    }
+    .flx-dashBMisc div { font-size: 16px; color: @link-blue; width: 33%; text-align: center;
+        span { font-size: 0.8em; color: darken(@hd-bg-color, 40%);}
+     }
+    .flx-widgetMessage { padding: 10px 10px 0; border-style: solid; border-width: 1px; margin: 0 0 5px; .border-radius; }
+    .flx-widgetError { border-color: @errorText; color: @errorText; background-color: @errorBackground; }
+    .flx-widgetWarning { border-color: @warningText; color: @warningText; background-color: @warningBackground; }
+    .flx-widgetSuccess { border-color: @successText; color: @successText; background-color: @successBackground; }
+}
+
+
 
 //----------------- DISCARDED SNIPPETS
 
