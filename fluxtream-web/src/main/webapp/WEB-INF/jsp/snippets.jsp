@@ -196,7 +196,7 @@
             </div>
         </div>
     </div>
-</div        
+</div>
         
         <div class="row-fluid">
             <div class="span8">           
@@ -240,7 +240,8 @@
                     </table>
                 </form>
             </div>
-</div>        </div>
+        </div>
+        </div>
         <div class="row-fluid">
         <div class="span8">            
             <div class="manage-dashboard">

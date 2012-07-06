@@ -2,7 +2,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         "applications/calendar/tabs/clock/ClockConfig",
         "applications/calendar/tabs/Tab",
         "applications/calendar/App",
-       "applications/calendar/tabs/map/MapUtils"], function(DrawingUtils, Config, Tab, Log, MapUtils) {
+        "applications/calendar/tabs/map/MapUtils",
+        "App"], function(DrawingUtils, Config, Tab, Log, MapUtils, App) {
 	
 	var paper = null;
 	var config = null;
@@ -16,13 +17,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
     var selectedConnectors;
     var connectorEnabled;
 
-    $(document).click(function(event){ //hides the tooltip if an element clicked on or any of its parents has the notthide property
-        for (var target = event.target; target != null; target=target.parentElement){
-            if ($(target).attr("notthide") != null)
-                return;
-        }
-        hideEventInfo()
-    });
+    App.addHideTooltipListener(hideEventInfo);
 
 	function render(digest, timeUnit, calendarState, connectorEnabled) {
         hideEventInfo();

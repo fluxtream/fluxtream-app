@@ -50,7 +50,7 @@ body {-webkit-tap-highlight-color: rgb(255,255,158);}
 @black: #333 ;
 
 body {
-    background-image: url('bg.gif');
+    background-image: url('../images/bg.gif');
     height: 100%;
     overflow-x: hidden;
     color:@black;
@@ -436,6 +436,10 @@ a img { text-decoration: none; }
 
 //------- MANAGE CONNECTORS
 
+.manageConnectors .modal-body {
+    padding: 0 0px 0 10px;
+}
+
 .synchAll { width:100%;background:@hd-bg-color; overflow:hidden; height: 100%;
     span { display:block; padding: 10px;  float:right;}
 }
@@ -525,24 +529,24 @@ table .remove { text-align:center;
 
 //---------MANAGE DASHBOARD
 
-.manage-dashboard { width: 452px; form { padding:0; } }
+.manage-dashboard { position: absolute; right: 10px; bottom: 30px; width: 472px; form { padding:0; } }
 .dashboard-list-header { padding: 10px 3px 10px 16px; overflow:hidden;
         .setName {input { margin-right:-4px; }}
 }
 .dashboard-list-item { overflow:hidden; zoom:1; border: 1px solid @border-color; margin-bottom:-1px; border-left: 0; border-right:0; padding: 10px 10px 10px 15px;
     i {font-size: 16px; line-height:1; padding: 0;}
-    .reorder { float: left; width: 80px; opacity:0.3;
-        .up, .down { padding-right: 5px; }    
+    .reorder { float: left; width: 100px; opacity:0.3; cursor:pointer;
+    .up, .down { padding-right: 5px }
     }
     a:hover i { text-decoration:none; }
     .col1 { float:left; width: 330px; font-size:14px; }
-    .remove { float:left; opacity:0.3;}
+    .remove { float:left; opacity:0.3; cursor:pointer;}
     -webkit-transition: all 0.2s ease-in-out;
     -moz-transition: all 0.2s ease-in-out;
     -o-transition: all 0.2s ease-in-out;
     transition: all 0.2s ease-in-out;
 }
-.dashboards-list { height: 300px; width: 450px; background:@white;}
+.dashboards-list { height: 300px; width: 470px; background:@white;}
 .dashboard-list-item:hover { background-color: lighten(@link-blue,55%);
     .reorder, .remove { opacity:1; }
 }        
