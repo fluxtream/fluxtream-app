@@ -381,6 +381,9 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 }
             }
         }
+        for (var i=0; i<params.facets.length; i++) {
+            params.facets[i].manyFacets = params.facets.length>0?" many":"";
+        }
         return digest.detailsTemplates[data.type].render(params);
     }
 

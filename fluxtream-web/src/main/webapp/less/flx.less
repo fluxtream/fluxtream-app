@@ -202,6 +202,10 @@ div#currentTimespanLabel span {
     margin-bottom:5.5em;
 }
 
+.pagination {
+    margin-top: 8px;
+}
+
 a.paginationLink {
     cursor: pointer;
 }
@@ -349,12 +353,13 @@ a img { text-decoration: none; }
     -o-box-shadow:0 0px 4px rgba(80, 80, 80, 0.6); 
     box-shadow:0 0px 4px rgba(80, 80, 80, 0.6);
     }
-.flx-deviceIcon { width: 42px; height: 42px; background-repeat: no-repeat; float:left; margin-right: 10px; background-image: url(../static/images/devices-ic.png);}
+.flx-deviceIcon { width: 42px; height: 42px; background-repeat: no-repeat; float:left; margin-right: 10px; background-image: url(../images/devices-ic.png);}
    
 //.flx-dataType {color: lighten(black, 40%); margin-bottom: 5px; line-height:1; }
 
 
 .flx-deviceIcon.withings { background-position: 0 -1173px; }
+.flx-deviceIcon.fitbit { background-position: 0 -1088px; }
 .flx-deviceIcon.twitter-tweet { background-position: 0 -128px; }
 .flx-deviceIcon.twitter-dm-in { background-position: 0 -421px; }
 .flx-deviceIcon.twitter-dm-out { background-position: 0 -464px; }
@@ -532,6 +537,12 @@ table .remove { text-align:center;
 .manage-dashboard { position: absolute; right: 10px; bottom: 30px; width: 472px; form { padding:0; } }
 .dashboard-list-header { padding: 10px 3px 10px 16px; overflow:hidden;
         .setName {input { margin-right:-4px; }}
+}
+.facetDetails {
+    overflow:hidden; height:100%;
+}
+.facetDetails.many {
+    margin-bottom: 10px;
 }
 .dashboard-list-item { overflow:hidden; zoom:1; border: 1px solid @border-color; margin-bottom:-1px; border-left: 0; border-right:0; padding: 10px 10px 10px 15px;
     i {font-size: 16px; line-height:1; padding: 0;}

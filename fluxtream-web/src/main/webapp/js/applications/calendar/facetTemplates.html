@@ -1,9 +1,9 @@
 <template id="twitter-tweet">
    <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon twitter-tweet"></span>
-       <div style="overflow:hidden; height:100%">
+       <div class="facetDetails">
            {{#facets}}
-           <div style="overflow:hidden; height:100%">
+           <div class="facetDetails">
                <div class="flx-tTime">{{time}}</div>
                <div class="flx-data">
                    <span style="background:url('{{profileImageUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
@@ -17,9 +17,9 @@
 <template id="twitter-mention">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon twitter-mention"></span>
-        <div style="overflow:hidden; height:100%">
+        <div class="facetDetails">
             {{#facets}}
-            <div style="overflow:hidden; height:100%">
+            <div class="facetDetails">
                 <div class="flx-tTime">{{time}}</div>
                 <div class="flx-data">
                     <span style="background:url('{{profileImageUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
@@ -33,9 +33,9 @@
 <template id="twitter-dm">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon twitter-dm{{^sent}}-in{{/sent}}{{#sent}}-out{{/sent}}"></span>
-        <div style="overflow:hidden; height:100%">
+        <div class="facetDetails">
             {{#facets}}
-            <div style="overflow:hidden; height:100%">
+            <div class="facetDetails">
                 <div class="flx-tTime">{{time}}</div>
                 <div class="flx-data">
                     <span style="background:url('{{profileImageUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
@@ -49,9 +49,9 @@
 <template id="google_calendar-entry">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon calendar"></span>
-        <div style="overflow:hidden; height:100%">
+        <div class="facetDetails">
             {{#facets}}
-            <div style="overflow:hidden; height:100%">
+            <div class="facetDetails">
                 <div class="flx-tTime">{{time}}</div>
                 <div class="flx-data">
                     <span class="flx-description">{{description}}</span>
@@ -64,9 +64,9 @@
 <template id="lastfm-loved_track">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon lastfm"></span>
-        <div style="overflow:hidden; height:100%">
+        <div class="facetDetails">
             {{#facets}}
-            <div style="overflow:hidden; height:100%">
+            <div class="facetDetails">
                 <div class="flx-tTime">{{time}}</div>
                 <div class="flx-data">
                     <span style="background:url('{{imgUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
@@ -80,9 +80,9 @@
 <template id="lastfm-recent_track">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon lastfm"></span>
-        <div style="overflow:hidden; height:100%">
+        <div class="facetDetails">
             {{#facets}}
-            <div style="overflow:hidden; height:100%">
+            <div class="facetDetails{{manyFacets}}">
                 <div class="flx-tTime">{{time}}</div>
                 <div class="flx-data">
                     <span style="background:url('{{imgUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
@@ -96,10 +96,9 @@
 <template id="fitbit-activity_summary">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon fitbit"></span>
-        <div style="overflow:hidden; height:100%">
+        <div class="facetDetails">
             {{#facets}}
-            <div style="overflow:hidden; height:100%">
-                <div class="flx-tTime">{{time}}</div>
+            <div class="facetDetails">
                 <div class="flx-data">
                     <span class="flx-steps">{{steps}} steps taken</span>
                     <span class="flx-calories">{{caloriesOut}} calories burned</span>
@@ -112,9 +111,9 @@
 <template id="fitbit-logged_activity">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon fitbit"></span>
-        <div style="overflow:hidden; height:100%">
+        <div class="facetDetails">
             {{#facets}}
-            <div style="overflow:hidden; height:100%">
+            <div class="facetDetails">
                 <div class="flx-tTime">{{time}}</div>
                 <div class="flx-data">
                     <span class="flx-description">{{description}}</span>
@@ -127,9 +126,9 @@
 <template id="fitbit-sleep">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon fitbit"></span>
-        <div style="overflow:hidden; height:100%">
+        <div class="facetDetails">
             {{#facets}}
-            <div style="overflow:hidden; height:100%">
+            <div class="facetDetails">
                 <div class="flx-tTime">{{time}}</div>
                 <div class="flx-data">
                     <span class="flx-data">{{description}}</span>
@@ -142,9 +141,9 @@
 <template id="picasa-photo">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon picasa"></span>
-        <div style="overflow:hidden; height:100%">
+        <div class="facetDetails">
             {{#facets}}
-            <div style="overflow:hidden; height:100%">
+            <div class="facetDetails{{manyFacets}}">
                 <div class="flx-tTime">{{time}}</div>
                 <div class="flx-data">
                     <span class="flx-photo" style="background:url('{{photoUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
@@ -158,9 +157,9 @@
 <template id="flickr-photo">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon picasa"></span>
-        <div style="overflow:hidden; height:100%">
+        <div class="facetDetails">
             {{#facets}}
-            <div style="overflow:hidden; height:100%">
+            <div class="facetDetails">
                 <div class="flx-tTime">{{time}}</div>
                 <div class="flx-data">
                     <span class="flx-photo" style="background:url('{{photoUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
@@ -174,9 +173,9 @@
 <template id="bodymedia-burn">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon bm-burn"></span>
-        <div style="overflow:hidden; height:100%">
+        <div class="facetDetails">
             {{#facets}}
-            <div style="overflow:hidden; height:100%">
+            <div class="facetDetails">
                 <div class="flx-tTime">{{time}}</div>
                 <div class="flx-data">
                     <span class="flx-calories">{{caloriesOut}} calories burned</span>
@@ -189,9 +188,9 @@
 <template id="sms_backup-call_log">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon sms-call-log"></span>
-        <div style="overflow:hidden; height:100%">
+        <div class="facetDetails">
             {{#facets}}
-            <div style="overflow:hidden; height:100%">
+            <div class="facetDetails">
                 <div class="flx-tTime">{{time}}</div>
                 <div class="flx-data">
                     <span class="flx-description">{{description}}</span>
@@ -204,9 +203,9 @@
 <template id="zeo-sleep">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon zeo"></span>
-        <div style="overflow:hidden; height:100%">
+        <div class="facetDetails">
             {{#facets}}
-            <div style="overflow:hidden; height:100%">
+            <div class="facetDetails">
                 <div class="flx-tTime">{{time}}</div>
                 <div class="flx-deviceData">
                     <span class="flx-data">{{description}}</span>
@@ -219,9 +218,9 @@
 <template id="bodymedia-sleep">
     <div  class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon bm-sleep"></span>
-        <div style="overflow:hidden; height:100%">
+        <div class="facetDetails">
             {{#facets}}
-            <div style="overflow:hidden; height:100%">
+            <div class="facetDetails">
                 <div class="flx-tTime">{{time}}</div>
                 <div class="flx-deviceData">
                     <span class="flx-data">{{description}}</span>
@@ -234,9 +233,9 @@
 <template id="bodymedia-steps">
     <div  class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon bm-steps"></span>
-        <div style="overflow:hidden; height:100%">
+        <div class="facetDetails">
             {{#facets}}
-            <div style="overflow:hidden; height:100%">
+            <div class="facetDetails">
                 <div class="flx-tTime">{{time}}</div>
                 <div class="flx-data">
                     <span class="flx-steps">{{steps}} steps taken</span>
@@ -250,9 +249,9 @@
 <template id="sms_backup-sms">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon sms"></span>
-        <div style="overflow:hidden; height:100%">
+        <div class="facetDetails">
             {{#facets}}
-            <div style="overflow:hidden; height:100%">
+            <div class="facetDetails">
                 <div class="flx-tTime">{{time}}</div>
                 <div class="flx-data">
                     <span class="flx-description">{{description}}</span>
@@ -265,9 +264,9 @@
 <template id="withings-blood_pressure">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon withings"></span>
-        <div style="overflow:hidden; height:100%">
+        <div class="facetDetails">
             {{#facets}}
-            <div style="overflow:hidden; height:100%">
+            <div class="facetDetails">
                 <div class="flx-tTime">{{time}}</div>
                 <div class="flx-deviceData">
                     <span class="flx-data">{{description}}</span>
@@ -280,9 +279,9 @@
 <template id="withings-weight">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon withings"></span>
-        <div style="overflow:hidden; height:100%">
+        <div class="facetDetails">
             {{#facets}}
-            <div style="overflow:hidden; height:100%">
+            <div class="facetDetails">
                 <div class="flx-tTime">{{time}}</div>
                 <div class="flx-data">
                     <span class="flx-description">{{description}}</span>
@@ -296,9 +295,9 @@
 <template id="toodledo-task">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon toodledo"></span>
-        <div style="overflow:hidden; height:100%">
+        <div class="facetDetails">
             {{#facets}}
-            <div style="overflow:hidden; height:100%">
+            <div class="facetDetails">
                 <div class="flx-tTime">{{time}}</div>
                 <div class="flx-data">
                     <span class="flx-description">{{description}}</span>
@@ -311,9 +310,9 @@
 <template id="toodledo-goal">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon toodledo" style="background-size:100% 100%;"></span>
-        <div style="overflow:hidden; height:100%">
+        <div class="facetDetails">
             {{#facets}}
-            <div style="overflow:hidden; height:100%">
+            <div class="facetDetails">
                 <div class="flx-tTime">{{time}}</div>
                 <div class="flx-data">
                     <span class="flx-description">{{description}}</span>
@@ -325,10 +324,10 @@
 </template>
 <template id="google_latitude-location">
     <div class="flx-box" style="border-left-color:{{color}}">
-        <!--<span class="flx-deviceIcon latitude" style="background-size:100% 100%;"></span>-->
-        <div style="overflow:hidden; height:100%">
+        <span class="flx-deviceIcon latitude" style="background-size:100% 100%;"></span>
+        <div class="facetDetails">
             {{#facets}}
-            <div style="overflow:hidden; height:100%">
+            <div class="facetDetails">
                 <div class="flx-tTime">{{time}}</div>
                 <div class="flx-data">
                     <span class="flx-description">Source: {{source}}<br>Accuracy: {{accuracy}}m</span>
@@ -341,9 +340,9 @@
 <template id="openpath-location">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon latitude" style="background-size:100% 100%;"></span>
-        <div style="overflow:hidden; height:100%">
+        <div class="facetDetails">
             {{#facets}}
-            <div style="overflow:hidden; height:100%">
+            <div class="facetDetails">
                 <div class="flx-tTime">{{time}}</div>
                 <div class="flx-data">
                     <span class="flx-description">{{description}}</span>
@@ -355,7 +354,7 @@
 </template>
 <template id="fluxtream-address">
     <h3 class="flx-dataType">{{type}} Address</h3>
-    <!--<span class="flx-deviceIcon" style="background:url(''); background-size:100% 100%;"></span>-->
+    <span class="flx-deviceIcon" style="background:url(''); background-size:100% 100%;"></span>
     <div class="flx-deviceData">
         <span class="flx-tTime"></span>
         <span class="flx-data">{{address}}</span>

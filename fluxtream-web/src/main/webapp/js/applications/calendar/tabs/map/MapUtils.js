@@ -40,6 +40,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             var lat = gpsData[i].position[0];
             var lng = gpsData[i].position[1];
             map.gpsPositions[map.gpsPositions.length] = new google.maps.LatLng(lat,lng);
+            try {
             map.markers[gpsData[i].type][map.markers[gpsData[i].type].length] = new google.maps.Marker({map:map,
                                                                             position:map.gpsPositions[map.gpsPositions.length-1],
                                                                            icon:App.getConnectorConfig(App.getFacetConnector(gpsData[i].type)).mapicon,
@@ -57,6 +58,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 minLng = bounds.getSouthWest().lng();
             if (bounds.getNorthEast().lng() > maxLng)
                 maxLng = bounds.getNorthEast().lng();
+            } catch (e) {}
         }
         map.gpsLine = new google.maps.Polyline({map:map, path:map.gpsPositions,clickable:false});
         map.gpsBounds = new google.maps.LatLngBounds(new google.maps.LatLng(minLat,minLng), new google.maps.LatLng(maxLat,maxLng));

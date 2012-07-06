@@ -67,6 +67,12 @@ define(["applications/calendar/tabs/Tab"], function(Tab) {
     function rebuildPagination(){
         pagination.empty();
         var totalPages = getTotalPages();
+        if (totalPages>1)
+            pagination.show();
+        else {
+            pagination.hide();
+            return;
+        }
         var pageList = $("<ul></ul>");
         var button = $("<li " + (currentPage == 0 ? "class='disabled'" : "") + "><a href='#' pageNumber='prev'>&#171;</a></li>");
         pageList.append(button);
