@@ -26,56 +26,6 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
 
     var connectorEnabled;
 
-    /// A helper to create a data fetcher for the specified URL prefix
-    ///
-    /// @param urlPrefix
-    ///  The shared part of the URLs to fetch from.  Each fetch will come
-    ///  from the URL (urlPrefix + level + "." + offset + ".json)
-    /// @param urlParams
-    ///  Optional parameter - if present, must be a dictionary.  This
-    ///  is joined together and URL encoded to form the URL parameters
-    ///  on each request
-    /// @return
-    ///  A function matching the requestData specification from the
-    ///  grapher API specification, taking a level, an offset, a success
-    ///  callback, and a failure callback, making a request to a URL
-    ///  built from the URL prefix, level, and offset, and calling the
-    ///  success continuation on success or the failure continuation on
-    ///  failure
-    function __createDatasource(urlPrefix, urlParams) {
-        if (!urlParams) {
-            urlParams = {};
-        }
-        return function(level, offset, success_callback, failure_callback) {
-            var onerr = function(jqXHR, textStatus, errorThrown) {
-                try {
-                    if (failure_callback) {
-                        failure_callback(errorThrown);
-                    }
-                }
-                catch (ex) {
-                    console.log("channelDatasource.onErr(): FAILURE! ex:" + ex);
-                }
-            };
-            $.ajax({
-                url     : urlPrefix + level + "." + offset + ".json",
-                data    : urlParams,
-                success : function(data, textStatus, jqXHR) {
-                    try {
-                        if (success_callback) {
-                            // we must always send the JSON as a String...
-                            success_callback(typeof data === 'string' ? data : JSON.stringify(data));
-                        }
-                    }
-                    catch (ex) {
-                        onerr(jqXHR, "JSON parse error", ex);
-                    }
-                },
-                failure : onerr
-            });
-        };
-    };
-
     function init(callback) {
         // Unsaved changes dialog handler
         $(window).bind("beforeunload", function() {
@@ -1824,39 +1774,6 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
             }
         }
         return true;
-    }
-
-    function channelDatasource(userId, deviceName, channelName) {
-        var urlPrefix = "/bodytrack/tiles/" + userId + "/" + deviceName + "."
-            + channelName + "/";
-        return __createDatasource(urlPrefix);
-    }
-
-    // If allTags is true, we require all tags to be present.
-    // Otherwise, any tag in tags is OK (the default)
-    function photoDatasource(userId, deviceName, tags, allTags, nsfw) {
-        var urlPrefix = "/bodytrack/photos/" + userId + "/";
-        var urlParams = {};
-        if (deviceName != null && deviceName.toLowerCase() != "all") {
-            urlParams["dev_nickname"] = deviceName;
-        }
-        if (tags != null && tags.length > 0) {
-            if (!!allTags) {
-                urlParams["all_tags"] = tags.join(",");
-            } else {
-                urlParams["any_tags"] = tags.join(",");
-            }
-
-            // TODO: This line is only for compatibility with the server
-            // until the server supports any_tags and all_tags.  This
-            // can be safely removed, with no impact on correctness,
-            // when that server support is added
-            urlParams["tags_filter"] = tags.join(",");
-        }
-        if (!!nsfw) {
-            urlParams["nsfw"] = "1";
-        }
-        return __createDatasource(urlPrefix, urlParams);
     }
 
     function createPhotoDialogCache(channelFilterTags, isAndJoin) {
