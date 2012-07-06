@@ -1,0 +1,9 @@
+{
+    "WidgetDescription" : {"en" : "Steps history per day, week or year"},
+    "WidgetIcon" : "stepsHistory.png",
+    "WidgetName" : "stepsHistory",
+    "WidgetTitle" : {"en" : "Steps History"},
+    "SupportedLanguages" : "en",
+    "VendorIdentifier" : "Fluxtream.com",
+    "RequiredConnectors":"bodymedia, fitbit"
+}
