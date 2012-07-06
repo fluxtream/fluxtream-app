@@ -182,7 +182,18 @@ public class CalendarDataStore {
 			@PathParam("month") String month,
 			@QueryParam("filter") String filter) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
-		return "{}";
+        if (filter == null) {
+            filter = "";
+        }
+
+        Guest guest = ControllerHelper.getGuest();
+
+        long guestId = guest.getId();
+        List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter);
+
+        DigestModel digest = new DigestModel();
+        digest.selectedConnectors = connectorInfos(guestId,apiKeySelection);
+		return gson.toJson(digest);
 	}
 
 	@GET
@@ -191,7 +202,18 @@ public class CalendarDataStore {
 	public String getAllConnectorsYearData(@PathParam("year") String year,
 			@QueryParam("filter") String filter) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
-		return "{}";
+        if (filter == null) {
+            filter = "";
+        }
+
+        Guest guest = ControllerHelper.getGuest();
+
+        long guestId = guest.getId();
+        List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter);
+
+        DigestModel digest = new DigestModel();
+        digest.selectedConnectors = connectorInfos(guestId,apiKeySelection);
+        return gson.toJson(digest);
 	}
 
 	@GET

@@ -6,7 +6,8 @@ define([], function() {
 	var tabs = {
         "DAY":["clock", "dashboards", "map", "photos", "list", "timeline"],
         "WEEK":["dashboards", "map", "photos", "list", "timeline"],
-        "YEAR":["photos"]
+        "MONTH":["photos","timeline"],
+        "YEAR":["photos","timeline"]
 	};
 	
 	var tab_icons = {
@@ -48,7 +49,7 @@ define([], function() {
 	}
 	
 	function bindTimeUnitsMenu(Calendar) {
-		var timeUnitIds = {"#dayViewBtn":1, "#weekViewBtn":2, "#yearViewBtn":4};
+		var timeUnitIds = {"#dayViewBtn":1, "#weekViewBtn":2, "#monthViewBtn":3, "#yearViewBtn":4};
         for (var timeUnitId in timeUnitIds){
             var btn = $(timeUnitId);
             if (btn.attr("unit") == Calendar.timeUnit)
