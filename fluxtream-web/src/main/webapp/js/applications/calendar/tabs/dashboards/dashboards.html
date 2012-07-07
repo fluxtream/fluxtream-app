@@ -4,17 +4,8 @@
 
         </div>
     </div>
-    <ul class="nav nav-tabs">
-        <li>
-            <button id="addWidgetButton" class="btn btn-small">Add Widget&nbsp;<i class="icon-plus"></i></button>
-            <button id="manageDashboardsButton" class="btn dropdown-toggle">Manage Dashboards&nbsp;<i class="icon-caret-down"></i></button>
-        </li>
-        {{#dashboards}}
-        <li style="cursor:pointer" class="dashboardName{{#active}} active{{/active}}" id="dashboard-{{id}}">
-            <a data-toggle="tab">{{name}}</a>
-        </li>
-        {{/dashboards}}
-    </ul>
+    <div id="dashboardTabs">
+    </div>
     <div id="manageDashboardsDropdown" notthide="1">
     </div>
 </div>

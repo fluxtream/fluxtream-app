@@ -26,7 +26,7 @@
 </template>
 <template id="manageDashboardsDropdown">
     <div class="manage-dashboard">
-        <form class="well form-inline">
+        <form class="well form-inline" action="javascript:void(0)">
             <div class="dashboard-list-header">
                 <div class="setName input-append">
                     <input type="text" placeholder="Dashboard name..."/>
@@ -50,7 +50,6 @@
         </form>
     </div>
 </template>
-
 <template id="widgetsGrid">
     <div class="row-fluid">
         {{#rows}}
@@ -73,4 +72,17 @@
         </div>
         {{/rows}}
     </div>
+</template>
+<template id="dashboardTabs">
+    <ul id="dashboardTabs" class="nav nav-tabs">
+        <li>
+            <button id="addWidgetButton" class="btn btn-small">Add Widget&nbsp;<i class="icon-plus"></i></button>
+            <button id="manageDashboardsButton" class="btn dropdown-toggle">Manage Dashboards&nbsp;<i class="icon-caret-down"></i></button>
+        </li>
+        {{#dashboards}}
+        <li style="cursor:pointer" class="dashboardName{{#active}} active{{/active}}" id="dashboard-{{id}}">
+            <a data-toggle="tab">{{name}}</a>
+        </li>
+        {{/dashboards}}
+    </ul>
 </template>

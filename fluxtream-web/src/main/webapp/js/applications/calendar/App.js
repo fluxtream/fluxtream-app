@@ -40,7 +40,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             var parts = {};
             for (i = 0; i < names.length; i += 1)
                 parts[names[i]] = result[i];
-            console.log("path: " + parts.path);
             var pathElements = parts.path.split("/");
             if (pathElements.length<3)
                 App.invalidPath();

@@ -15,8 +15,7 @@ define(["applications/calendar/tabs/Tab",
                         if (dashboards[i].active)
                             dashboardsTab.activeDashboard = dashboards[i].id;
                     }
-                    dashboardsTab.populateTemplate({dashboards : dashboards,
-                                              release : window.FLX_RELEASE_NUMBER});
+                    dashboardsTab.populateTemplate({dashboards : dashboards});
                 }
             }
         );
@@ -26,29 +25,39 @@ define(["applications/calendar/tabs/Tab",
    function populateTemplate(dashboardsTemplateData) {
         this.getTemplate("text!applications/calendar/tabs/dashboards/dashboards.html", "dashboards",
                          function() {
-                             $("#addWidgetButton").unbind();
-                             $("#manageDashboardsButton").unbind();
-                             $(".dashboardName").unbind();
-
-                             $("#addWidgetButton").click(addWidget);
-                             $("#manageDashboardsButton").click(manageDashboards);
-                             $(".dashboardName").click(function(evt) {
-                                 var dashboardId = Number($(evt.target).parent().attr("id").substring("dashboard-".length));
-                                 dashboardsTab.activeDashboard = dashboardId;
-                                 $.ajax({
-                                     url: "/api/dashboards/" + dashboardsTab.activeDashboard + "/active",
-                                     type: "PUT",
-                                     success: function(dashboards) {
-                                         dashboardsTab.populateTemplate({dashboards : dashboards,
-                                                                         release : window.FLX_RELEASE_NUMBER});
-                                     }
-                                 });
-                             });
-                             fetchWidgets(getActiveWidgets(dashboardsTemplateData.dashboards));
+                             makeDashboardTabs(dashboardsTemplateData);
                          },
                          dashboardsTemplateData
         );
-    };
+   };
+
+   function makeDashboardTabs(dashboardsTemplateData) {
+        App.loadMustacheTemplate("applications/calendar/tabs/dashboards/dashboardsTabTemplates.html","dashboardTabs", function(template){
+            var html = template.render(dashboardsTemplateData);
+            $("#dashboardTabs").replaceWith(html);
+            $("#addWidgetButton").unbind();
+            $("#manageDashboardsButton").unbind();
+            $(".dashboardName").unbind();
+            $("#addWidgetButton").click(addWidget);
+            $("#manageDashboardsButton").click(manageDashboards);
+            $(".dashboardName").click(function(evt) {
+                var dashboardId = Number($(evt.target).parent().attr("id").substring("dashboard-".length));
+                setActiveDashboard(dashboardId);
+            });
+            fetchWidgets(getActiveWidgets(dashboardsTemplateData.dashboards));
+        });
+   }
+
+   function setActiveDashboard(dashboardId) {
+       dashboardsTab.activeDashboard = dashboardId;
+       $.ajax({
+                  url: "/api/dashboards/" + dashboardId + "/active",
+                  type: "PUT",
+                  success: function(dashboards) {
+                      dashboardsTab.populateTemplate({dashboards : dashboards});
+                  }
+              });
+   }
 
    function fetchWidgets(activeWidgets) {
         var rows = [];
@@ -60,7 +69,6 @@ define(["applications/calendar/tabs/Tab",
             }
             row.widgets.push(activeWidgets[i]);
         }
-        console.log({rows: rows});
         App.loadMustacheTemplate("applications/calendar/tabs/dashboards/dashboardsTabTemplates.html","widgetsGrid", function(template){
             var html = template.render({rows: rows});
             $("#dashboardsTab .tab-content").empty();
@@ -76,7 +84,6 @@ define(["applications/calendar/tabs/Tab",
    }
 
     function removeWidget(widgetName) {
-        console.log("removing widget " + widgetName);
         var that = this;
         $.ajax({
                url: "/api/dashboards/" + dashboardsTab.activeDashboard + "/widgets/" + widgetName,
@@ -132,26 +139,47 @@ define(["applications/calendar/tabs/Tab",
         if (confirmed) {
             $.ajax({
                 url: "/api/dashboards/" + dashboardId,
-                type: "DELETE"
-                   });
+                type: "DELETE",
+                success: function(dashboards) {
+                    setActiveDashboard(dashboards[0].id);
+                    ManageDashboards.update();
+                }
+            });
         }
+    }
+
+    function createDashboard(dashboardName) {
+        console.log("creating a dashboard: " + dashboardName);
+        $.ajax({
+            url: "/api/dashboards",
+            type: "post",
+            data: { dashboardName : dashboardName },
+            success: function(dashboards) {
+                makeDashboardTabs({ dashboards : dashboards })
+                ManageDashboards.update();
+            }
+        });
     }
 
     function demoteDashboard(dashboardId) {
         console.log("demoting a dashboard: " + dashboardId);
+        ManageDashboards.update();
     }
 
     function promoteDashboard(dashboardId) {
         console.log("promoting a dashboard: " + dashboardId);
+        ManageDashboards.update();
     }
 
     var dashboardsTab = new Tab("dashboards", "Candide Kemmler", "icon-chart", true);
 	dashboardsTab.render = render;
     dashboardsTab.connectorDisplayable = function(connector) { return false; }
     dashboardsTab.populateTemplate = populateTemplate;
+    dashboardsTab.createDashboard = createDashboard;
+    dashboardsTab.removeDashboard = removeDashboard;
     dashboardsTab.demoteDashboard = demoteDashboard;
-   dashboardsTab.removeDashboard = removeDashboard;
-   dashboardsTab.promoteDashboard = promoteDashboard;
+    dashboardsTab.promoteDashboard = promoteDashboard;
+    dashboardsTab.updateDashboardTabs = makeDashboardTabs;
 	return dashboardsTab;
 	
 });

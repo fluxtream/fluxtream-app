@@ -4,6 +4,10 @@ define(["App"], function(App) {
 
     function show(dt){
         dashboardsTab = dt;
+        update();
+    }
+
+    function update() {
         $.ajax("/api/dashboards",{
             success: function(data, textStatus, jqXHR){
                 dataLoaded(data);
@@ -28,6 +32,7 @@ define(["App"], function(App) {
         $(".dashboard-list-item .up").unbind("click");
         $(".dashboard-list-item .down").unbind("click");
         $(".dashboard-list-item .remove").unbind("click");
+        $(".dashboard-list-header button").unbind("click");
 
         $(".dashboard-list-item .up").click(function(evt) {
             promoteDashboard(evt);
@@ -38,12 +43,20 @@ define(["App"], function(App) {
         $(".dashboard-list-item .remove").click(function(evt) {
             removeDashboard(evt);
         });
+        $(".dashboard-list-header button").click(function(evt) {
+            var dashboardName = $(".dashboard-list-header input").val();
+            console.log("dashboardName: " + dashboardName);
+            createDashboard(dashboardName);
+        });
         $(".dashboard-list-item-name").editable(function(value, settings) {
             var dashboardId = $(this).parent().attr("id").substring("dashboard-".length);
             $.ajax({
-                       url: "/api/dashboards/" + dashboardId + "/name?name=" + value,
-                       type: "PUT"
-                   });
+                url: "/api/dashboards/" + dashboardId + "/name?name=" + value,
+                type: "PUT",
+                success: function(dashboards) {
+                    dashboardsTab.updateDashboardTabs({ dashboards : dashboards });
+                }
+            });
             return value;
         },{
             style: "display: inline",
@@ -60,6 +73,10 @@ define(["App"], function(App) {
         dashboardsTab.removeDashboard(dashboardId);
     }
 
+    function createDashboard(dashboardName) {
+        dashboardsTab.createDashboard(dashboardName);
+    }
+
     function promoteDashboard(evt) {
         dashboardsTab.promoteDashboard(getDashboardId(evt));
     }
@@ -70,5 +87,6 @@ define(["App"], function(App) {
 
     var ManageDashboards = {};
     ManageDashboards.show = show;
+    ManageDashboards.update = update;
     return ManageDashboards;
 });
