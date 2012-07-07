@@ -1,6 +1,6 @@
 define(
     [ "core/FlxState", "Addresses", "ManageConnectors", "AddConnectors", "ConnectorConfig",
-      "libs/jquery.form", "libs/jquery.qtip.min" ],
+      "libs/jquery.form", "libs/jquery.qtip.min", "libs/jquery.jeditable.mini" ],
     function(FlxState, Addresses, ManageConnectors, AddConnectors, ConnectorConfig) {
 
         var App = {};

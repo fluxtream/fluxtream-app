@@ -12,27 +12,24 @@ define(["core/DashboardWidget"], function(DashboardWidget) {
     StepsTaken.postLoad = function(template) {
         var html = Hogan.compile(template);
         $("#stepsTaken-widget .flx-body").empty();
-        var steps = 0;
-        var stepsText;
+        var steps = 0, averageSteps = 0, measures = 0;
         if (typeof(this.digest.cachedData["fitbit-activity_summary"])!="undefined" &&
             typeof(this.digest.cachedData["fitbit-activity_summary"][0])!="undefined") {
-            var averageSteps = 0;
-            var measures = 0;
             for (var i=0; i<this.digest.cachedData["fitbit-activity_summary"].length; i++) {
                 if (this.digest.cachedData["fitbit-activity_summary"][i].steps>0) {
                     measures++;
                     averageSteps+=this.digest.cachedData["fitbit-activity_summary"][i].steps;
                 }
             }
-            if (averageSteps>0) {
+            if (averageSteps>0)
                 steps = this.addCommas(Math.round((averageSteps/measures)*1)/1);
-                stepsText = steps + " Steps";
-            } else
-                stepsText = StepsTaken.noSteps();
-        } else
-            stepsText = StepsTaken.noSteps();
+        }
+        var params = {"manifest" : this.manifest,
+            "steps" : averageSteps>0?steps:null,
+            "noMeasure" : averageSteps===0,
+            "noMeasureMsg" : StepsTaken.noSteps()};
         $("#averageSteps-widget .flx-body").append(
-            html.render({"manifest" : this.manifest, "steps" : stepsText})
+            html.render(params)
         );
     }
 

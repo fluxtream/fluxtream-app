@@ -148,7 +148,7 @@ public class DashboardStore {
     @PUT
     @Path("/{dashboardId}/active")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String renameDashboard(@PathParam("dashboardId") long dashboardId)
+    public String setActiveDashboard(@PathParam("dashboardId") long dashboardId)
             throws UnsupportedEncodingException {
         long guestId = ControllerHelper.getGuestId();
         dashboardsService.setActiveDashboard(guestId, dashboardId);

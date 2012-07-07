@@ -1,6 +1,9 @@
 define(["App"], function(App) {
 
-    function show(){
+    var dashboardsTab;
+
+    function show(dt){
+        dashboardsTab = dt;
         $.ajax("/api/dashboards",{
             success: function(data, textStatus, jqXHR){
                 dataLoaded(data);
@@ -22,12 +25,47 @@ define(["App"], function(App) {
     }
 
     function bindPanel() {
+        $(".dashboard-list-item .up").unbind("click");
+        $(".dashboard-list-item .down").unbind("click");
+        $(".dashboard-list-item .remove").unbind("click");
+
         $(".dashboard-list-item .up").click(function(evt) {
-            console.log("up!");
+            promoteDashboard(evt);
         });
         $(".dashboard-list-item .down").click(function(evt) {
-            console.log("down!");
+            demoteDashboard(evt);
         });
+        $(".dashboard-list-item .remove").click(function(evt) {
+            removeDashboard(evt);
+        });
+        $(".dashboard-list-item-name").editable(function(value, settings) {
+            var dashboardId = $(this).parent().attr("id").substring("dashboard-".length);
+            $.ajax({
+                       url: "/api/dashboards/" + dashboardId + "/name?name=" + value,
+                       type: "PUT"
+                   });
+            return value;
+        },{
+            style: "display: inline",
+            width: 200
+        });
+    }
+
+    function getDashboardId(evt) {
+        return $(evt.target).parent().parent().parent().attr("id").substring("dashboard-".length)
+    }
+
+    function removeDashboard(evt) {
+        var dashboardId = getDashboardId(evt);
+        dashboardsTab.removeDashboard(dashboardId);
+    }
+
+    function promoteDashboard(evt) {
+        dashboardsTab.promoteDashboard(getDashboardId(evt));
+    }
+
+    function demoteDashboard(evt) {
+        dashboardsTab.demoteDashboard(getDashboardId(evt));
     }
 
     var ManageDashboards = {};

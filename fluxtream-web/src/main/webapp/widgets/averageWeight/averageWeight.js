@@ -30,9 +30,7 @@ define(["core/DashboardWidget"], function(DashboardWidget) {
             unit = "kg";
         else unit = unit.toLowerCase();
         $("#averageWeight-widget .flx-body").append(
-            html.render({"manifest" : this.manifest, "weight" : weight>0
-                ?weight + " " + unit
-                :"No Measure " + this.getPrettyTimeUnit()})
+            html.render({"manifest" : this.manifest, "weight" : weight>0?weight:null, "unit" : unit, "noMeasure" : weight===0})
         );
     }
 

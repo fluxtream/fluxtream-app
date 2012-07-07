@@ -10,7 +10,7 @@ body {-webkit-tap-highlight-color: rgb(255,255,158);}
     .flx-main-city-infos {  }
 
     .flx-widget-typo {
-        .big-data-figure { font-size: 4em; }  
+        .big-data-figure { font-size: 2em; }
         .flx-dashBMisc div { font-size: 14px; text-align: left; }     
     }
 }
@@ -521,7 +521,7 @@ table .remove { text-align:center;
 //------- DASHBOARDS
 
 #dashboardsTab .nav-tabs {
-    background: #EEEEE9; position:absolute; bottom: -10px; right: 10px; left: 10px;
+    position:absolute; bottom: -10px; right: 10px; left: 10px;
 }
 
 #dashboardsTab .nav-tabs li:first-child {
@@ -532,9 +532,13 @@ table .remove { text-align:center;
     margin-top:-5px;
 }
 
+.tabs-below .nav-tabs {
+    background-color: #FFF;
+}
+
 //---------MANAGE DASHBOARD
 
-.manage-dashboard { position: absolute; right: 10px; bottom: 30px; width: 472px; form { padding:0; } }
+.manage-dashboard { position: absolute; right: 10px; bottom: 30px; width: 432px; form { padding:0; } }
 .dashboard-list-header { padding: 10px 3px 10px 16px; overflow:hidden;
         .setName {input { margin-right:-4px; }}
 }
@@ -546,18 +550,21 @@ table .remove { text-align:center;
 }
 .dashboard-list-item { overflow:hidden; zoom:1; border: 1px solid @border-color; margin-bottom:-1px; border-left: 0; border-right:0; padding: 10px 10px 10px 15px;
     i {font-size: 16px; line-height:1; padding: 0;}
-    .reorder { float: left; width: 100px; opacity:0.3; cursor:pointer;
+    .reorder { float: left; width: 60px; opacity:0.3; cursor:pointer;
     .up, .down { padding-right: 5px }
     }
     a:hover i { text-decoration:none; }
-    .col1 { float:left; width: 330px; font-size:14px; }
+    .dashboard-list-item-name { float:left; width: 290px; font-size:14px; }
     .remove { float:left; opacity:0.3; cursor:pointer;}
     -webkit-transition: all 0.2s ease-in-out;
     -moz-transition: all 0.2s ease-in-out;
     -o-transition: all 0.2s ease-in-out;
     transition: all 0.2s ease-in-out;
 }
-.dashboards-list { height: 300px; width: 470px; background:@white;}
+.dashboard-rename {
+    width: 150px;
+}
+.dashboards-list { height: 300px; width: 430px; background:@white;}
 .dashboard-list-item:hover { background-color: lighten(@link-blue,55%);
     .reorder, .remove { opacity:1; }
 }        
@@ -620,7 +627,7 @@ table .remove { text-align:center;
 
 .flx-widget-typo { color: lighten(@black, 20%);
     .main-widget-data { position: relative; height: 223px; }    
-    .big-data-figure { position: absolute; top: 50px; left: 0; color: lighten(@black, 40%); font-size: 7em; width: 100%; font-weight: bold; font-family: inherit; text-align: center; overflow: hidden; line-height: 1; padding-bottom: 0.5em;
+    .big-data-figure { position: absolute; top: 50px; left: 0; color: lighten(@black, 40%); font-size: 4em; width: 100%; font-weight: bold; font-family: inherit; text-align: center; overflow: hidden; line-height: 1; padding-bottom: 0.5em;
         span { font-size: 0.5em; font-weight: normal; }
     }
     .flx-dashBMisc div { font-size: 16px; color: @link-blue; width: 33%; text-align: center;

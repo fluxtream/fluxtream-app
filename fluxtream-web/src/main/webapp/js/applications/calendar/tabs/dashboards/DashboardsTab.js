@@ -112,7 +112,6 @@ define(["applications/calendar/tabs/Tab",
 
     function getActiveDashboard(dashboards) {
         for (var i=0; i<dashboards.length; i++) {
-            console.log("dashboard id: " + dashboards[i].id + " / " + dashboardsTab.activeDashboard);
             if (dashboards[i].id===dashboardsTab.activeDashboard) {
                 return dashboards[i];
             }
@@ -125,13 +124,34 @@ define(["applications/calendar/tabs/Tab",
     }
 
     function manageDashboards() {
-        ManageDashboards.show();
+        ManageDashboards.show(dashboardsTab);
+    }
+
+    function removeDashboard(dashboardId) {
+        var confirmed = confirm ("Are you sure?");
+        if (confirmed) {
+            $.ajax({
+                url: "/api/dashboards/" + dashboardId,
+                type: "DELETE"
+                   });
+        }
+    }
+
+    function demoteDashboard(dashboardId) {
+        console.log("demoting a dashboard: " + dashboardId);
+    }
+
+    function promoteDashboard(dashboardId) {
+        console.log("promoting a dashboard: " + dashboardId);
     }
 
     var dashboardsTab = new Tab("dashboards", "Candide Kemmler", "icon-chart", true);
 	dashboardsTab.render = render;
     dashboardsTab.connectorDisplayable = function(connector) { return false; }
     dashboardsTab.populateTemplate = populateTemplate;
+    dashboardsTab.demoteDashboard = demoteDashboard;
+   dashboardsTab.removeDashboard = removeDashboard;
+   dashboardsTab.promoteDashboard = promoteDashboard;
 	return dashboardsTab;
 	
 });
