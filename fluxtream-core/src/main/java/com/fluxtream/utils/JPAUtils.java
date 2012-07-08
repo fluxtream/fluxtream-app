@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
+import com.fluxtream.domain.ApiUpdate;
 
 public class JPAUtils {
 
@@ -80,4 +81,12 @@ public class JPAUtils {
 				maxResults, params);
 		return results;
 	}
+
+    public static <T> List<T> findPaged(final EntityManager em, final Class<T> clazz,
+                                            final String queryName, final int pageSize, final int page,
+                                            Object... params) {
+        List<T> results = doQuery(em, queryName, true, pageSize*page,
+                                  pageSize, params);
+        return results;
+    }
 }

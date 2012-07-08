@@ -4,6 +4,7 @@ import javax.persistence.Entity;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 
+import com.google.gson.annotations.Expose;
 import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
 
@@ -23,7 +24,9 @@ import org.hibernate.annotations.Type;
 		query = "DELETE FROM ApiUpdates updt WHERE updt.guestId=? AND updt.api=? AND updt.objectTypes=?"),
 	@NamedQuery(name = "apiUpdates.delete.byApi",
 		query = "DELETE FROM ApiUpdates updt WHERE updt.guestId=? AND updt.api=?"),
-	@NamedQuery( name="apiUpdates.last",
+    @NamedQuery( name="apiUpdates.last.paged",
+                 query="SELECT updt FROM ApiUpdates updt WHERE updt.guestId=? and updt.api=? ORDER BY updt.ts DESC"),
+    @NamedQuery( name="apiUpdates.last",
 		query="SELECT updt FROM ApiUpdates updt WHERE updt.guestId=? and updt.api=? ORDER BY updt.ts DESC LIMIT 10"),
 	@NamedQuery( name="apiUpdates.last.successful.byApi",
 		query="SELECT updt FROM ApiUpdates updt WHERE updt.guestId=? and updt.api=? and updt.success=true ORDER BY updt.ts DESC"),
@@ -35,23 +38,28 @@ public class ApiUpdate extends AbstractEntity {
 
 	@Index(name="guestId")
 	public long guestId;
-	
+
+    @Expose
 	@Index(name="ts")
 	public long ts;
-	
-	@Index(name="elapsed")
+
+    @Expose
+    @Index(name="elapsed")
 	public long elapsed;
 
 	@Index(name="api")
 	public int api;
 	@Index(name="objectTypes")
 	public int objectTypes;
-	
-	@Index(name="success")
+
+    @Expose
+    @Index(name="success")
 	@Type(type="yes_no")
 	public boolean success;
 
-	public String query;
+    @Expose
+    public String query;
 
+    @Expose
     public long lastSync;
 }

@@ -56,7 +56,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 				Status.IN_PROGRESS);
 	}
 
-	@Transactional(readOnly = false)
+    @Transactional(readOnly = false)
 	@Override
 	public ScheduleResult reScheduleUpdate(ScheduledUpdate updt, long time,
 			boolean incrementRetries) {
@@ -233,7 +233,14 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 		return lastUpdate;
 	}
 
-	@Override
+    @Override
+    public List<ApiUpdate> getUpdates(long guestId, final Connector connector, final int pageSize, final int page) {
+        List<ApiUpdate> updates = JPAUtils.findPaged(em, ApiUpdate.class, "apiUpdates.last.paged", pageSize, page,
+                                                     guestId, connector.value());
+        return updates;
+    }
+
+    @Override
 	public ApiUpdate getLastSuccessfulUpdate(long guestId, Connector api,
 			int objectTypes) {
 		if (objectTypes == -1)

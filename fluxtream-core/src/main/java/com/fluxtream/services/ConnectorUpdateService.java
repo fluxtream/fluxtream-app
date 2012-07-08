@@ -1,5 +1,6 @@
 package com.fluxtream.services;
 
+import java.util.List;
 import java.util.Set;
 
 import com.fluxtream.connectors.Connector;
@@ -13,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 public interface ConnectorUpdateService {
 
 	public void cleanupRunningUpdateTasks();
+
+    public List<ApiUpdate> getUpdates(long guestId, Connector connector, int pageSize, int page);
 
 	public void addUpdater(Connector connector, AbstractUpdater updater);
 
