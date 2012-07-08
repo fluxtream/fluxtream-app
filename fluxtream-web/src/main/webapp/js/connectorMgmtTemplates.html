@@ -1,5 +1,5 @@
 <template id="manageConnectors">
-    <div class="modal fade manageConnectors" id="modal" style="width:650px; margin-left:-325px;">
+    <div class="modal fade manageConnectors" id="modal" style="width:750px; margin-left:-375px;">
         <div class="modal-header">
             <h3>Manage Connectors<a href="#" class="close" data-dismiss="modal">&times;</a></h3>
         </div>
@@ -17,8 +17,8 @@
                         <thead>
                         <tr>
                             <th class="syncStatus">Sync status</th>
-                            <th class="connectors">Connectors</th>
-                            <!--<th class="desc">Description</th>-->
+                            <th class="connectors">Connector</th>
+                            <th class="desc"></th>
                             <th class="lastSync">Last Sync.</th>
                             <th class="latestData">Latest Data</th>
                             <th class="remove">Remove</th>
@@ -31,22 +31,32 @@
                                 <span id="syncLED-{{connectorName}}" class="syncLED-{{^errors}}yes{{/errors}}{{#errors}}no{{/errors}}" {{#syncing}}style="display:none;"{{/syncing}}></span>
                                 {{#syncing}}
                                 <span class="syncLED-waiting">
-                                    <img src="/images/devicesPictures/load.gif" alt="load">
+                                    <img src="{{release}}/images/syncing.gif" width="35" height="35" alt="load">
                                 </span>
                                 {{/syncing}}
+                                <br/><a id="syncNow-{{connectorName}}" title="sync now" href="#" {{#syncing}}style="display:none;"{{/syncing}}><i class="icon-refresh"></i></a>
                             </td>
-                            <td class="connectors" style="background:inherit; vertical-align: middle; width: 158px"><img src="{{image}}" width=158 height=89 alt="{{connectorName}}"></td>
-                            <!--<td class="desc" style="background:inherit"><h4>{{name}}</h4><p>{{text}}</p><a href="#">Manage <i class="icon-cog"></i></a></td>-->
+                            <td class="connectors" style="background:inherit; vertical-align: middle; width: 158px">
+                                <img src="{{image}}" width=158 height=89 alt="{{connectorName}}">
+                            </td>
+                            <td class="desc" style="background:inherit">
+                                <p style=""><b>{{name}}</b></p><br/>
+                                <a href="#">Settings <i class="icon-cog"></i></a>
+                            </td>
                             <td class="lastSync" style="background:inherit">
                                 <p id="lastSync-{{connectorName}}" {{#syncing}}style="display:none;"{{/syncing}}>{{lastSync}}</p>
-                                <a id="syncNow-{{connectorName}}" href="#" {{#syncing}}style="display:none;"{{/syncing}}>Sync now <i class="icon-refresh"></i></a>
                                 {{#syncing}}
                                 <p>Now synchronizing</p>
-                                <span>Sync now <i class="icon-refresh"></i></span>
                                 {{/syncing}}
+                                <a href="#" id="viewUpdates-{{connectorName}}">View Updates <i class="icon-table"></i></a><br/>
                             </td>
-                            <td class="latestData" style="background:inherit"><p>{{latestData}}</p><a href="#">View graph <i class="icon-bar-chart"></i></a></td>
-                            <td class="remove" style="background:inherit"><a id="remove-{{connectorName}}" href="#"><i class="icon-trash"></i></a></td>
+                            <td class="latestData" style="background:inherit">
+                                <p>{{latestData}}</p>
+                                <a href="#" id="viewData-{{connectorName}}">View data <i class="icon-table"></i></a><br/>
+                            </td>
+                            <td class="remove" style="background:inherit">
+                                <a id="remove-{{connectorName}}" href="#"><i class="icon-trash"></i></a>
+                            </td>
                         </tr>
                         {{/connectors}}
                         </tbody>
@@ -109,4 +119,20 @@
         </div>
     </div>
 
+</template>
+<template id="viewUpdates">
+    <div id="viewUpdatesModal" class="modal hide fade" style="width: 650px">
+
+        <div class="modal-header">
+            <a class="close" data-dismiss="modal">&times;</a>
+            <h3>Last {{connectorName}} Updates</h3>
+        </div>
+
+        <div class="modal-body">
+            your updates will be displayed here
+        </div>
+        <div class="modal-footer">
+            <button id="closeBtn" class="btn" onclick="$('#addAddressDialog').modal('hide')">Close</button>
+        </div>
+    </div>
 </template>

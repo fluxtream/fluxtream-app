@@ -94,7 +94,30 @@ define(function() {
                 type:"POST"
             });
         });
+        var viewDataBtn = $("#viewUpdates-" + connector.connectorName);
+        viewDataBtn.click(function(event){
+            event.preventDefault();
+            App.loadMustacheTemplate("connectorMgmtTemplates.html","viewUpdates",function(template){
+                viewUpdates(template, connector);
+            });
+        });
+    }
 
+    function viewUpdates(template, connector) {
+        var connectorName = connector.connectorName.charAt(0).toUpperCase() + connector.connectorName.slice(1);
+
+        var html = template.render({connectorName : connectorName});
+        $("body").append(html);
+        $("#viewUpdatesModal").modal();
+
+        $("#viewUpdatesModal").css("zIndex","1052");
+
+        $("#viewUpdatesModal").on("hidden",function(){
+            $("#viewUpdatesModal").remove();
+        });
+
+        var backdrops = $(".modal-backdrop");
+        $(backdrops[backdrops.length - 1]).css("zIndex","1051");
     }
 
     function setToSyncing(connectorName){
@@ -121,8 +144,6 @@ define(function() {
             setToSyncing(connectors[i].connectorName);
     }
 
-
-
     function confirmDelete(index){
         App.closeModal();
         $("#modal").on("hidden",function(){
@@ -147,7 +168,6 @@ define(function() {
         });
 
     }
-
 
     var ManageConnectors = {};
     ManageConnectors.show = show;

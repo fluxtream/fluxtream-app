@@ -3,7 +3,7 @@
         <span class="flx-deviceIcon twitter-tweet"></span>
        <div class="facetDetails">
            {{#facets}}
-           <div class="facetDetails">
+           <div class="facetDetails{{manyFacets}}">
                <div class="flx-tTime">{{time}}</div>
                <div class="flx-data">
                    <span style="background:url('{{profileImageUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
@@ -19,7 +19,7 @@
         <span class="flx-deviceIcon twitter-mention"></span>
         <div class="facetDetails">
             {{#facets}}
-            <div class="facetDetails">
+            <div class="facetDetails{{manyFacets}}">
                 <div class="flx-tTime">{{time}}</div>
                 <div class="flx-data">
                     <span style="background:url('{{profileImageUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
@@ -35,7 +35,7 @@
         <span class="flx-deviceIcon twitter-dm{{^sent}}-in{{/sent}}{{#sent}}-out{{/sent}}"></span>
         <div class="facetDetails">
             {{#facets}}
-            <div class="facetDetails">
+            <div class="facetDetails{{manyFacets}}">
                 <div class="flx-tTime">{{time}}</div>
                 <div class="flx-data">
                     <span style="background:url('{{profileImageUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
@@ -66,7 +66,7 @@
         <span class="flx-deviceIcon lastfm"></span>
         <div class="facetDetails">
             {{#facets}}
-            <div class="facetDetails">
+            <div class="facetDetails{{manyFacets}}">
                 <div class="flx-tTime">{{time}}</div>
                 <div class="flx-data">
                     <span style="background:url('{{imgUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
