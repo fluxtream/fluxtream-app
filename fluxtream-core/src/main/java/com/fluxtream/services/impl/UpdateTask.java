@@ -13,17 +13,17 @@ import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.connectors.updaters.UpdateResult;
 import com.fluxtream.domain.ApiKey;
-import com.fluxtream.domain.ScheduledUpdate;
-import com.fluxtream.domain.ScheduledUpdate.Status;
+import com.fluxtream.domain.UpdateWorkerTask;
+import com.fluxtream.domain.UpdateWorkerTask.Status;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 
 @Component
 @Scope("prototype")
-class UpdaterTask implements Runnable {
+class UpdateTask implements Runnable {
 
-	Logger logger = Logger.getLogger(UpdaterTask.class);
+	Logger logger = Logger.getLogger(UpdateTask.class);
 
 	@Autowired
 	ConnectorUpdateService connectorUpdateService;
@@ -37,9 +37,9 @@ class UpdaterTask implements Runnable {
 	@Autowired
 	Configuration env;
 
-	ScheduledUpdate su;
+	UpdateWorkerTask su;
 
-	public UpdaterTask() {
+	public UpdateTask() {
 	}
 
 	@Override
@@ -136,8 +136,7 @@ class UpdaterTask implements Runnable {
 		stringBuilder.append(" objectType=");
 		stringBuilder.append(su.objectTypes);
 		logger.info(stringBuilder.toString());
-		connectorUpdateService.setScheduledUpdateStatus(su.getId(),
-				ScheduledUpdate.Status.DONE);
+		connectorUpdateService.setUpdateWorkerTaskStatus(su.getId(), UpdateWorkerTask.Status.DONE);
 	}
 
 	private void abort() {
@@ -150,8 +149,7 @@ class UpdaterTask implements Runnable {
 		stringBuilder.append(" objectType=");
 		stringBuilder.append(su.objectTypes);
 		logger.info(stringBuilder.toString());
-		connectorUpdateService.setScheduledUpdateStatus(su.getId(),
-				Status.FAILED);
+		connectorUpdateService.setUpdateWorkerTaskStatus(su.getId(), Status.FAILED);
 	}
 
 	private void retry(Connector connector, String stackTrace) {
@@ -190,8 +188,7 @@ class UpdaterTask implements Runnable {
 		stringBuilder.append(su.objectTypes);
 		logger.info(stringBuilder.toString());
 		// re-schedule when we are below rate limit again
-		connectorUpdateService.reScheduleUpdate(su, System.currentTimeMillis()
-				+ getLongRetryDelay(connector), false);
+		connectorUpdateService.reScheduleUpdateTask(su, System.currentTimeMillis() + getLongRetryDelay(connector), false);
 	}
 
 	private void shortReschedule(Connector connector) {
@@ -207,8 +204,7 @@ class UpdaterTask implements Runnable {
 		sb.append(String.valueOf(su.retries));
 		logger.info(sb.toString());
 		// schedule 1 minute later, typically
-		connectorUpdateService.reScheduleUpdate(su, System.currentTimeMillis()
-				+ getShortRetryDelay(connector), true);
+		connectorUpdateService.reScheduleUpdateTask(su, System.currentTimeMillis() + getShortRetryDelay(connector), true);
 	}
 
 	private int getMaxRetries(Connector connector) {

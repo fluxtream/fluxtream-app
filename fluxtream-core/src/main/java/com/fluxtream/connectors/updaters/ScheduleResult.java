@@ -1,6 +1,6 @@
 package com.fluxtream.connectors.updaters;
 
-
+import com.google.gson.annotations.Expose;
 
 public class ScheduleResult {
 	
@@ -9,7 +9,8 @@ public class ScheduleResult {
 	}
 	
 	public ScheduleResult() {}
-	
+
+    @Expose
 	public ResultType type = ResultType.NO_RESULT;
 
 	public enum ResultType {

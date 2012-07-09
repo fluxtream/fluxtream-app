@@ -15,8 +15,8 @@ import com.fluxtream.connectors.updaters.UpdateInfo.UpdateType;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ApiNotification;
 import com.fluxtream.domain.ApiUpdate;
-import com.fluxtream.domain.ScheduledUpdate;
-import com.fluxtream.domain.ScheduledUpdate.Status;
+import com.fluxtream.domain.UpdateWorkerTask;
+import com.fluxtream.domain.UpdateWorkerTask.Status;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.utils.JPAUtils;
@@ -52,16 +52,15 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 	@Override
 	@Transactional(readOnly = false)
 	public void cleanupRunningUpdateTasks() {
-		JPAUtils.execute(em, "scheduledUpdates.delete.byStatus",
+		JPAUtils.execute(em, "updateWorkerTasks.delete.byStatus",
 				Status.IN_PROGRESS);
 	}
 
     @Transactional(readOnly = false)
 	@Override
-	public ScheduleResult reScheduleUpdate(ScheduledUpdate updt, long time,
-			boolean incrementRetries) {
+	public ScheduleResult reScheduleUpdateTask(UpdateWorkerTask updt, long time, boolean incrementRetries) {
 		if (!incrementRetries) {
-			ScheduledUpdate failed = new ScheduledUpdate(updt);
+			UpdateWorkerTask failed = new UpdateWorkerTask(updt);
 			failed.retries = updt.retries;
 			failed.connectorName = updt.connectorName;
 			failed.status = Status.FAILED;
@@ -80,14 +79,14 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 
 	@Override
 	@Transactional(readOnly = false)
-	public void setScheduledUpdateStatus(long scheduledUpdateId, Status status)
+	public void setUpdateWorkerTaskStatus(long updateWorkerTaskId, Status status)
 			throws RuntimeException {
-		ScheduledUpdate updt = em
-				.find(ScheduledUpdate.class, scheduledUpdateId);
+		UpdateWorkerTask updt = em
+				.find(UpdateWorkerTask.class, updateWorkerTaskId);
 		if (updt == null) {
 			RuntimeException exception = new RuntimeException(
-					"null ScheduledUpdate trying to set its status: "
-							+ scheduledUpdateId);
+					"null UpdateWorkerTask trying to set its status: "
+							+ updateWorkerTaskId);
 			logger.error("action=bg_update stage=unknown error");
 			throw exception;
 		}
@@ -98,23 +97,22 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 	@Transactional(readOnly = false)
 	public void pollScheduledUpdates() {
 		logger.debug("looking for a job...");
-		List<ScheduledUpdate> scheduledUpdates = JPAUtils.find(em,
-				ScheduledUpdate.class, "scheduledUpdates.byStatus",
-				ScheduledUpdate.Status.SCHEDULED, System.currentTimeMillis());
-		if (scheduledUpdates.size() == 0) {
+		List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em,
+				UpdateWorkerTask.class, "updateWorkerTasks.byStatus",
+				UpdateWorkerTask.Status.SCHEDULED, System.currentTimeMillis());
+		if (updateWorkerTasks.size() == 0) {
 			logger.debug("nothing to do");
 			return;
 		}
-		for (ScheduledUpdate scheduledUpdate : scheduledUpdates) {
-			logger.debug("executing update: " + scheduledUpdate);
-			setScheduledUpdateStatus(scheduledUpdate.getId(),
-					ScheduledUpdate.Status.IN_PROGRESS);
-			logger.info("guestId=" + scheduledUpdate.getGuestId() +
+		for (UpdateWorkerTask updateWorkerTask : updateWorkerTasks) {
+			logger.debug("executing update: " + updateWorkerTask);
+			setUpdateWorkerTaskStatus(updateWorkerTask.getId(), UpdateWorkerTask.Status.IN_PROGRESS);
+			logger.info("guestId=" + updateWorkerTask.getGuestId() +
 					"action=bg_update stage=launch");
-			UpdaterTask updaterTask = beanFactory.getBean(UpdaterTask.class);
-			updaterTask.su = scheduledUpdate;
+			UpdateTask updateTask = beanFactory.getBean(UpdateTask.class);
+			updateTask.su = updateWorkerTask;
 			try {
-				executor.execute(updaterTask);
+				executor.execute(updateTask);
 			} catch (Throwable t) {
 				t.printStackTrace();
 			}
@@ -140,16 +138,16 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 		boolean updateScheduled = isUpdateScheduled(guestId, connectorName,
 				updateType, objectTypes);
 		if (!updateScheduled) {
-			ScheduledUpdate update = new ScheduledUpdate();
-			update.guestId = guestId;
-			update.connectorName = connectorName;
-			update.objectTypes = objectTypes;
-			update.updateType = updateType;
-			update.status = ScheduledUpdate.Status.SCHEDULED;
-			update.timeScheduled = timeScheduled;
+			UpdateWorkerTask updateWorkerTask = new UpdateWorkerTask();
+			updateWorkerTask.guestId = guestId;
+			updateWorkerTask.connectorName = connectorName;
+			updateWorkerTask.objectTypes = objectTypes;
+			updateWorkerTask.updateType = updateType;
+			updateWorkerTask.status = UpdateWorkerTask.Status.SCHEDULED;
+			updateWorkerTask.timeScheduled = timeScheduled;
 			if (jsonParams!=null&&jsonParams.length>0)
-				update.jsonParams = jsonParams[0];
-			em.persist(update);
+				updateWorkerTask.jsonParams = jsonParams[0];
+			em.persist(updateWorkerTask);
 			long now = System.currentTimeMillis();
 			return new ScheduleResult(
 					timeScheduled <= now ? ScheduleResult.ResultType.SCHEDULED_UPDATE_IMMEDIATE
@@ -172,24 +170,24 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 	@Override
 	public boolean isUpdateScheduled(long guestId, String connectorName,
 			UpdateInfo.UpdateType updateType, int objectTypes) {
-		List<ScheduledUpdate> scheduledUpdates = JPAUtils.find(em,
-				ScheduledUpdate.class, "scheduledUpdates.exists",
+		List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em,
+				UpdateWorkerTask.class, "updateWorkerTasks.exists",
 				Status.SCHEDULED, Status.IN_PROGRESS, guestId, updateType,
 				objectTypes, connectorName);
 //		logger.info(guestId, "action=bg_update stage=check",
-//				"scheduledOrInProgress=" + scheduledUpdates);
-		return scheduledUpdates.size() != 0;
+//				"scheduledOrInProgress=" + updateWorkerTasks);
+		return updateWorkerTasks.size() != 0;
 	}
 
 	@Override
 	public boolean isHistoryUpdateCompleted(long guestId, String connectorName,
 			int objectTypes) {
-		List<ScheduledUpdate> scheduledUpdates = JPAUtils.find(em,
-				ScheduledUpdate.class, "scheduledUpdates.completed",
+		List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em,
+				UpdateWorkerTask.class, "updateWorkerTasks.completed",
 				Status.DONE, guestId,
 				UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE, objectTypes,
 				connectorName);
-		return scheduledUpdates.size() > 0;
+		return updateWorkerTasks.size() > 0;
 	}
 
 	@Override
@@ -263,20 +261,19 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
     }
 
 	@Override
-	public ScheduledUpdate getNextScheduledUpdate(long guestId,
-			Connector connector, int objectTypes) {
-		ScheduledUpdate scheduledUpdate = JPAUtils.findUnique(em,
-				ScheduledUpdate.class, "scheduledUpdates.exists",
+	public UpdateWorkerTask getNextScheduledUpdateTask(long guestId, Connector connector, int objectTypes) {
+		UpdateWorkerTask updateWorkerTask = JPAUtils.findUnique(em,
+				UpdateWorkerTask.class, "updateWorkerTasks.exists",
 				Status.SCHEDULED, Status.IN_PROGRESS, guestId,
 				UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE, objectTypes,
 				connector.getName());
-		return scheduledUpdate;
+		return updateWorkerTask;
 	}
 
 	@Transactional(readOnly = false)
 	@Override
-	public void deleteScheduledUpdates(long guestId, Connector connector) {
-		JPAUtils.execute(em, "scheduledUpdates.delete.byApi", guestId,
+	public void deleteScheduledUpdateTasks(long guestId, Connector connector) {
+		JPAUtils.execute(em, "updateWorkerTasks.delete.byApi", guestId,
 				connector.getName());
 	}
 

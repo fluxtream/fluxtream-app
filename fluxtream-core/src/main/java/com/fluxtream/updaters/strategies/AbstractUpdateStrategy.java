@@ -22,7 +22,7 @@ abstract class AbstractUpdateStrategy implements UpdateStrategy {
 	
 	/**
 	 * We know that a guest's connector data need history update if we
-	 * cannot find the trace of a successfull ScheduledUpdate in our records.
+	 * cannot find the trace of a successfull UpdateWorkerTask in our records.
 	 * We must also check that a scheduled update is not ongoing
 	 */
 	final private boolean needsHistoryUpdate(ApiKey apiKey, int objectTypes) {

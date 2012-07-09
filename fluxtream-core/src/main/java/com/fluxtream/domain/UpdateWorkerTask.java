@@ -4,33 +4,36 @@ import javax.persistence.Entity;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import com.fluxtream.connectors.updaters.UpdateInfo;
+import com.google.gson.annotations.Expose;
 
 @Entity(name="ScheduledUpdate")
 @NamedQueries ( {
-	@NamedQuery(name = "scheduledUpdates.delete.all",
+	@NamedQuery(name = "updateWorkerTasks.delete.all",
 			query = "DELETE FROM ScheduledUpdate updt WHERE updt.guestId=?"),
-	@NamedQuery(name = "scheduledUpdates.delete.byApi",
+	@NamedQuery(name = "updateWorkerTasks.delete.byApi",
 			query = "DELETE FROM ScheduledUpdate updt WHERE updt.guestId=? AND updt.connectorName=?"),
-	@NamedQuery(name = "scheduledUpdates.delete.byApiAndObjectType",
+	@NamedQuery(name = "updateWorkerTasks.delete.byApiAndObjectType",
 			query = "DELETE FROM ScheduledUpdate updt WHERE updt.guestId=? AND updt.connectorName=? AND updt.objectTypes=?"),
-	@NamedQuery(name = "scheduledUpdates.delete.byStatus",
+	@NamedQuery(name = "updateWorkerTasks.delete.byStatus",
 			query = "DELETE FROM ScheduledUpdate updt WHERE updt.status=?"),
-	@NamedQuery( name="scheduledUpdates.byStatus",
+	@NamedQuery( name="updateWorkerTasks.byStatus",
 			query="SELECT updt FROM ScheduledUpdate updt WHERE updt.status=? AND updt.timeScheduled<?"),
-	@NamedQuery( name="scheduledUpdates.exists",
+	@NamedQuery( name="updateWorkerTasks.exists",
 		query="SELECT updt FROM ScheduledUpdate updt WHERE (updt.status=? OR updt.status=?) AND updt.guestId=? " +
 				"AND updt.updateType=? AND updt.objectTypes=? " +
 				"AND updt.connectorName=?"),
-	@NamedQuery( name="scheduledUpdates.completed",
+	@NamedQuery( name="updateWorkerTasks.completed",
 		query="SELECT updt FROM ScheduledUpdate updt WHERE updt.status=? " +
 				"AND updt.guestId=? " +
 				"AND updt.updateType=? AND updt.objectTypes=? " +
 				"AND updt.connectorName=?")
 })
-public class ScheduledUpdate extends AbstractEntity {
+public class UpdateWorkerTask extends AbstractEntity {
 
 	public String connectorName;
 	public Status status = Status.SCHEDULED;
+
+    @Expose
 	public long timeScheduled;
 		
 	public static enum Status { SCHEDULED, IN_PROGRESS, DONE, FAILED };
@@ -41,8 +44,8 @@ public class ScheduledUpdate extends AbstractEntity {
 	public int retries;
 	public String jsonParams;
 	
-	public ScheduledUpdate() {}
-	public ScheduledUpdate(ScheduledUpdate other) {
+	public UpdateWorkerTask() {}
+	public UpdateWorkerTask(UpdateWorkerTask other) {
 		connectorName = other.connectorName;
 		status = other.status;
 		timeScheduled = other.timeScheduled;

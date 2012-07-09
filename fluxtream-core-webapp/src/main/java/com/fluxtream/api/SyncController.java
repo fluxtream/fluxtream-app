@@ -8,16 +8,16 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.connectors.updaters.ScheduleResult;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ConnectorInfo;
 import com.fluxtream.domain.Guest;
-import com.fluxtream.domain.ScheduledUpdate;
+import com.fluxtream.domain.UpdateWorkerTask;
 import com.fluxtream.mvc.controllers.ControllerHelper;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
-import com.fluxtream.services.SettingsService;
 import com.fluxtream.services.SystemService;
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +53,8 @@ public class SyncController {
     public String updateConnector(@PathParam("connector") String connectorName){
         Guest user = ControllerHelper.getGuest();
         Connector connector = Connector.getConnector(connectorName);
-        return gson.toJson(updateConnector(user, connector));
+        final StatusModel statusModel = updateConnector(user, connector);
+        return gson.toJson(statusModel);
     }
 
     @POST
@@ -81,22 +82,22 @@ public class SyncController {
     }
 
     private StatusModel updateConnector(Guest user, Connector connector){
-        try {
-            int[] objectTypeValues = connector.objectTypeValues();
-            for (int objectType : objectTypeValues) {
-                ScheduledUpdate update = connectorUpdateService.getNextScheduledUpdate(user.getId(),connector,objectType);
-                if (update != null) {
-                    connectorUpdateService.reScheduleUpdate(update, System.currentTimeMillis(), false);
-                }
-                else {
-                    UpdateInfo.UpdateType updateType = connectorUpdateService.isHistoryUpdateCompleted(user.getId(),connector.getName(),objectType) ? UpdateInfo.UpdateType.INCREMENTAL_UPDATE : UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE;
-                    connectorUpdateService.scheduleUpdate(user.getId(), connector.getName(), objectType, updateType, System.currentTimeMillis());
-                }
+        int[] objectTypeValues = connector.objectTypeValues();
+        List<ScheduleResult> scheduleResults = new ArrayList<ScheduleResult>();
+        for (int objectType : objectTypeValues) {
+            UpdateWorkerTask updateWorkerTask = connectorUpdateService.getNextScheduledUpdateTask(user.getId(), connector, objectType);
+            if (updateWorkerTask != null) {
+                final ScheduleResult scheduleResult = connectorUpdateService.reScheduleUpdateTask(updateWorkerTask, System.currentTimeMillis(), false);
+                scheduleResults.add(scheduleResult);
             }
-            return new StatusModel(true,"Successfully scheduled update for " + connector.getName());
+            else {
+                UpdateInfo.UpdateType updateType = connectorUpdateService.isHistoryUpdateCompleted(user.getId(),connector.getName(),objectType) ? UpdateInfo.UpdateType.INCREMENTAL_UPDATE : UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE;
+                final ScheduleResult scheduleResult = connectorUpdateService.scheduleUpdate(user.getId(), connector.getName(), objectType, updateType, System.currentTimeMillis());
+                scheduleResults.add(scheduleResult);
+            }
         }
-        catch (Exception e){
-            return new StatusModel(false,"Failed to schedule update for " + connector.getName());
-        }
+        StatusModel statusModel = new StatusModel(true, "successfully added update worker tasks to the queue (see details)");
+        statusModel.payload = scheduleResults;
+        return statusModel;
     }
 }
