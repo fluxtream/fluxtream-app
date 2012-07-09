@@ -400,14 +400,14 @@ define(
         }
 
         App.addHideTooltipListener = function(hideFunction) {
-            $(document).unbind("click");
-            $(document).bind("click", function(event){ //hides the tooltip if an element clicked on or any of its parents has the notthide property
+            var onEvent = function(event){ //hides the tooltip if an element clicked on or any of its parents has the notthide property
                 for (var target = event.target; target != null; target=target.parentElement){
                     if ($(target).attr("notthide") != null)
                         return;
                 }
                 hideFunction();
-            });
+            };
+            $(document).unbind("click").unbind("touchend").bind("touchend",onEvent).bind("click", onEvent);
         }
 
         App.search = function() {
