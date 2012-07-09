@@ -26,6 +26,8 @@ define(function() {
         App.loadMustacheTemplate("connectorMgmtTemplates.html","manageConnectors",function(template){
             var params = [];
             for (var i = 0; i < data.length; i++){
+                if (!data[i].manageable)
+                    continue;
                 params[i] = {};
                 for (var member in data[i]){
                     switch (member){
