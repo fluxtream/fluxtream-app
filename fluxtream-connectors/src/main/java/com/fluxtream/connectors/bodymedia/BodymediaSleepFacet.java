@@ -1,6 +1,7 @@
 package com.fluxtream.connectors.bodymedia;
 
 import javax.persistence.Entity;
+import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 
@@ -10,7 +11,7 @@ import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.domain.AbstractFacet;
 
 @Entity(name="Facet_BodymediaSleep")
-@ObjectTypeSpec(name = "sleep", value = 4, prettyname = "sleep", extractor = BodymediaFacetExtractor.class)
+@ObjectTypeSpec(name = "sleep", value = 4, prettyname = "sleep", extractor = BodymediaSleepFacetExtractor.class)
 @NamedQueries({
 	@NamedQuery(name = "bodymedia.sleep.deleteAll", query = "DELETE FROM Facet_BodymediaSleep facet WHERE facet.guestId=?"),
 	@NamedQuery(name = "bodymedia.sleep.between", query = "SELECT facet FROM Facet_BodymediaSleep facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=?")
@@ -27,6 +28,7 @@ public class BodymediaSleepFacet extends AbstractFacet {
     //The total number of minutes spent sleeping
     int totalSleeping;
     //The Json for the sleep periods;
+    @Lob
     String sleepJson;
 
     public void setDate(final String date)
