@@ -343,7 +343,12 @@ public class CalendarDataStore {
         digest.nApis = allApiKeys.size();
         GuestSettings settings = settingsService.getSettings(guestId);
 
-        setCachedData(digest, allApiKeys, settings, apiKeySelection,
+        List<ApiKey> userKeys = new ArrayList<ApiKey>(allApiKeys);
+        for (int i = 0; i < userKeys.size(); i++)
+            if (userKeys.get(i).getConnector().getName().equals("google_latitude"))
+                userKeys.remove(i--);
+
+        setCachedData(digest, userKeys, settings, apiKeySelection,
                       dayMetadata);
 
         copyMetadata(digest, dayMetadata);
