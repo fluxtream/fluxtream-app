@@ -841,7 +841,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
             plot.addDataPointListener(dataPointListener);
         }
 
-        var plotContainer = new PlotContainer(plotElementId, [plot]);
+        var plotContainer = new PlotContainer(plotElementId, false, [plot]);
 
         channelsMap[channelElementId] = channel;
         plotsMap[channelElementId] = plot;

@@ -23,11 +23,6 @@ define(["core/DashboardWidget","applications/calendar/tabs/timeline/BodyTrack"],
         var dateAxis = new DateAxis("stepsHistoryDateAxis","horizontal",{min:tbounds.start/1000,max:tbounds.end/1000});
         var numberAxis = new NumberAxis("stepsHistoryNumberAxis","vertical");
 
-        /*dateAxis.addAxisChangeListener(function(){
-            if (dateAxis.getMin() != tbounds.start/1000 || dateAxis.getMax() != tbounds.end/1000)
-                dateAxis.setRange(tbounds.start/1000,tbounds.end/1000);
-        });*/
-
 
         BodyTrack.LOGIN.getStatus(function(status){
             var plot = new DataSeriesPlot(channelDatasource(status.user_id, "Fitbit", "steps"),dateAxis,numberAxis,grapherStyle);
@@ -52,7 +47,7 @@ define(["core/DashboardWidget","applications/calendar/tabs/timeline/BodyTrack"],
             });
 
 
-            var plotContainer = new PlotContainer("stepsHistroyGraph",[plot]);
+            var plotContainer = new PlotContainer("stepsHistroyGraph", true,[plot]);
 
         });
 
