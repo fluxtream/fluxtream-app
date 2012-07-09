@@ -16,9 +16,9 @@ import com.fluxtream.domain.AbstractFacet;
 @Entity(name="Facet_PicasaPhotoEntry")
 @ObjectTypeSpec(name = "photo", value = 1, isImageType=true, prettyname = "Photos")
 @NamedQueries({
-	@NamedQuery(name = "picasa.photo.all", query = "SELECT facet FROM Facet_PicasaPhotoEntry facet WHERE facet.guestId=? ORDER BY facet.start DESC"),
+	@NamedQuery(name = "picasa.photo.all", query = "SELECT facet FROM Facet_PicasaPhotoEntry facet WHERE facet.guestId=? ORDER BY facet.start ASC"),
 	@NamedQuery(name = "picasa.photo.deleteAll", query = "DELETE FROM Facet_PicasaPhotoEntry facet WHERE facet.guestId=?"),
-	@NamedQuery(name = "picasa.photo.between", query = "SELECT facet FROM Facet_PicasaPhotoEntry facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=?"),
+	@NamedQuery(name = "picasa.photo.between", query = "SELECT facet FROM Facet_PicasaPhotoEntry facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=? ORDER BY facet.start ASC"),
     @NamedQuery(name = "picasa.photo.newest", query = "SELECT facet FROM Facet_PicasaPhotoEntry facet WHERE facet.guestId=? ORDER BY facet.start DESC LIMIT 1")
 })
 @Indexed
