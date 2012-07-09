@@ -50,6 +50,7 @@ public class ConnectorInfo extends AbstractEntity {
 		this.count = count;
 		this.connectorName = api.getName();
 		this.enabled = enabled;
+        this.manageable = api.isManageable();
 	}
 
 	public boolean equals(Object o) {
