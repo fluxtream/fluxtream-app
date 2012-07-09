@@ -216,6 +216,21 @@
         </div>
     </div>
 </template>
+<template id="zeo">
+    <div class="flx-box" style="border-left-color:{{color}}">
+        <span class="flx-deviceIcon zeo"></span>
+        <div class="facetDetails">
+            {{#facets}}
+            <div class="facetDetails">
+                <div class="flx-tTime">{{time}}</div>
+                <div class="flx-deviceData">
+                    <span class="flx-data">{{description}}</span>
+                </div>
+            </div>
+            {{/facets}}
+        </div>
+    </div>
+</template>
 <template id="zeo-sleep">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon zeo"></span>
@@ -285,7 +300,7 @@
             <div class="facetDetails">
                 <div class="flx-tTime">{{time}}</div>
                 <div class="flx-deviceData">
-                    <span class="flx-data">{{description}}</span>
+                    <span class="flx-data">{{description}}dd</span>
                 </div>
             </div>
             {{/facets}}

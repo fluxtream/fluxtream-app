@@ -65,7 +65,7 @@ define(function() {
         syncAllBtn.click(function(){
             setAllToSyncing();
             event.preventDefault();
-            $.ajax("/api/connectors/sync",{
+            $.ajax("/api/sync/all",{
                 type:"POST"
             });
         });
@@ -89,7 +89,7 @@ define(function() {
         syncNowBtn.click(function(event){
             event.preventDefault();
             setToSyncing(connector.connectorName)
-            $.ajax("/api/connectors/" + connector.connectorName + "/sync",{
+            $.ajax("/api/sync/" + connector.connectorName,{
                 type:"POST"
             });
         });

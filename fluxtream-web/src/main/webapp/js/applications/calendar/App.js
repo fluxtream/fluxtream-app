@@ -105,6 +105,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         Builder.createTabs(Calendar);
         if (!forceReload&&Calendar.tabState==nextTabState) {
 			// time didn't change
+            document.title = "Fluxtream Calendar | " + $("#currentTimespanLabel").text().trim() + " (" + Calendar.currentTabName + ")";
 			Builder.updateTab(Calendar.digest, Calendar);
 			FlxState.router.navigate("app/calendar/" + state);
 			FlxState.saveState("calendar", state);
@@ -137,7 +138,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 Calendar.end  = response.end;
 				FlxState.router.navigate("app/calendar/" + Calendar.currentTabName + "/" + response.state);
 				FlxState.saveState("calendar", Calendar.currentTabName + "/" + response.state);
-                document.title = "Fluxtream - Personal Analytics | " + response.currentTimespanLabel;
+                document.title = "Fluxtream Calendar | " + response.currentTimespanLabel + " (" + Calendar.currentTabName + ")";
 				$("#currentTimespanLabel span").html(response.currentTimespanLabel);
 				if (Calendar.timeUnit==="DAY") {
 					setDatepicker(response.state.split("/")[1]);
@@ -191,7 +192,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     function getTemplate(digest,i,j){
         App.loadMustacheTemplate("applications/calendar/facetTemplates.html",digest.selectedConnectors[i].facetTypes[j],function(template){
             if (template == null)
-                console.log("WANRING: no template found for " + digest.selectedConnectors[i].facetTypes[j] + ".");
+                console.log("WARNING: no template found for " + digest.selectedConnectors[i].facetTypes[j] + ".");
             digest.detailsTemplates[digest.selectedConnectors[i].facetTypes[j]] = template;
         });
     }

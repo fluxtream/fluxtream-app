@@ -613,7 +613,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                     found = span.node.item.type == selectedConnectors[j].facetTypes[k];
                 }
                 if (found){
-                    span.node.style.display = connectorEnabled[selectedConnectors[i].connectorName] ? "inline" : "none";
+                    if (typeof(connectorEnabled[selectedConnectors[i]])!="undefined")
+                        span.node.style.display = connectorEnabled[selectedConnectors[i].connectorName] ? "inline" : "none";
                     break;
                 }
             }

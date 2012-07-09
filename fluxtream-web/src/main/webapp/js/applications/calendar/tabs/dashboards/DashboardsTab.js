@@ -5,7 +5,7 @@ define(["applications/calendar/tabs/Tab",
 	
 	var digest, dashboardData;
 
-	function render(digestInfo, timeUnit) {
+	function render(digestInfo, timeUnit, dashboardId) {
         _.bindAll(this);
 		digest = digestInfo;
         $.ajax({

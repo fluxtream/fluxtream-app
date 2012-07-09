@@ -28,9 +28,10 @@ import org.springframework.stereotype.Component;
  *
  * @author Candide Kemmler (candide@fluxtream.com)
  */
-@Component("RESTConnectorController")
+@Path("/sync")
+@Component("RESTSyncController")
 @Scope("request")
-public class ConnectorController {
+public class SyncController {
 
     @Autowired
     GuestService guestService;
@@ -47,7 +48,7 @@ public class ConnectorController {
     Gson gson = new Gson();
 
     @POST
-    @Path("/connectors/{connector}/sync")
+    @Path("/{connector}")
     @Produces({MediaType.APPLICATION_JSON})
     public String updateConnector(@PathParam("connector") String connectorName){
         Guest user = ControllerHelper.getGuest();
@@ -56,7 +57,7 @@ public class ConnectorController {
     }
 
     @POST
-    @Path("/connectors/all/sync")
+    @Path("/all")
     @Produces({MediaType.APPLICATION_JSON})
     public String updateAllConnectors(){
         Guest user = ControllerHelper.getGuest();
