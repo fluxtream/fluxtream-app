@@ -6,8 +6,8 @@ define([], function() {
 	var tabs = {
         "DAY":["clock", "dashboards", "map", "photos", "list", "timeline"],
         "WEEK":["dashboards", "map", "photos", "list", "timeline"],
-        "MONTH":["dashboards","timeline"],
-        "YEAR":["dashboards","timeline"]
+        "MONTH":["dashboards", "map", "photos", "list", "timeline"],
+        "YEAR":["dashboards", "map", "photos", "list", "timeline"]
 	};
 	
 	var tab_icons = {
