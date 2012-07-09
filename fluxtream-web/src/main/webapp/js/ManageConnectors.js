@@ -105,19 +105,26 @@ define(function() {
 
     function viewUpdates(template, connector) {
         var connectorName = connector.connectorName.charAt(0).toUpperCase() + connector.connectorName.slice(1);
+        $.ajax({
+            url:"/api/updates/" + connector.connectorName + "?page=0&pageSize=50",
+            success: function(updates) {
+                for (var i=0; i<updates.length; i++)
+                    updates[i].time = App.formatDate(updates[i].ts, true);
+                var html = template.render({connectorName : connectorName,
+                                            updates : updates});
+                $("body").append(html);
+                $("#viewUpdatesModal").modal();
 
-        var html = template.render({connectorName : connectorName});
-        $("body").append(html);
-        $("#viewUpdatesModal").modal();
+                $("#viewUpdatesModal").css("zIndex","1052");
 
-        $("#viewUpdatesModal").css("zIndex","1052");
+                $("#viewUpdatesModal").on("hidden",function(){
+                    $("#viewUpdatesModal").remove();
+                });
 
-        $("#viewUpdatesModal").on("hidden",function(){
-            $("#viewUpdatesModal").remove();
+                var backdrops = $(".modal-backdrop");
+                $(backdrops[backdrops.length - 1]).css("zIndex","1051");
+            }
         });
-
-        var backdrops = $(".modal-backdrop");
-        $(backdrops[backdrops.length - 1]).css("zIndex","1051");
     }
 
     function setToSyncing(connectorName){
@@ -130,7 +137,7 @@ define(function() {
         syncLED.removeClass("syncLED-no");
         syncLED.addClass("syncLED-waiting");
         syncLED.html("<span class=\"syncLED-waiting\">" +
-                     "<img src=\"/css/devicesPictures/load.gif\" alt=\"load\">" +
+                     "<img src=\"/images/syncing.gif\" alt=\"load\">" +
                      "</span>");
         var lastSync = $("#lastSync-" + connectorName);
         lastSync.html("Now synchronizing");

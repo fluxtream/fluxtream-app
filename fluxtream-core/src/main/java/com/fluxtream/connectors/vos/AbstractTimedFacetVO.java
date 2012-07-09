@@ -8,11 +8,13 @@ public abstract class AbstractTimedFacetVO<T extends AbstractFacet> extends Abst
 
 	public long end;
 	public int endMinute;
+    public TimeOfDayVO endTime;
 
 	@Override
 	public void extractValues(T facet, TimeInterval timeInterval, GuestSettings settings) {
 		super.extractValues(facet, timeInterval, settings);
 		this.end = facet.end;
+        this.endTime = new TimeOfDayVO(endMinute);
 	}
 	
 }

@@ -97,11 +97,17 @@
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon fitbit"></span>
         <div class="facetDetails">
-            {{#facets}}
+            <span class="flx-text">{{#facets}}</span>
             <div class="facetDetails">
                 <div class="flx-data">
-                    <span class="flx-steps">{{steps}} steps taken</span>
-                    <span class="flx-calories">{{caloriesOut}} calories burned</span>
+                    <span class="flx-steps">
+                        <span class="flx-text">{{steps}}</span>
+                        <span class="flx-dataLabel">steps taken</span>
+                    </span>
+                    <span class="flx-calories">
+                        <span class="flx-text">{{caloriesOut}}</span>
+                        <span class="flx-dataLabel">calories burned</span>
+                    </span>
                 </div>
             </div>
             {{/facets}}
@@ -125,13 +131,23 @@
 </template>
 <template id="fitbit-sleep">
     <div class="flx-box" style="border-left-color:{{color}}">
-        <span class="flx-deviceIcon fitbit"></span>
+        <span class="flx-deviceIcon fitbit-sleep"></span>
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
-                <div class="flx-tTime">{{time}}</div>
                 <div class="flx-data">
-                    <span class="flx-data">{{description}}</span>
+                    <div>
+                        <span class="flx-text">{{#endTime}}{{hours}}:{{minutes}}{{/endTime}}</span>
+                        <span class="flx-dataLabel">You slept</span>
+                        <span class="flx-text bold">{{minutesAsleep.hours}}</span>
+                        <span class="flx-text">hours</span>
+                        <span class="flx-text bold">{{minutesAsleep.minutes}}</span>
+                        <span class="flx-text">min</span>
+                    </div>
+                    <span class="flx-dataLabel">Bed time</span>
+                    <span class="flx-text">{{#startTime}}{{hours}}:{{minutes}}{{/startTime}}</span>
+                    <span class="flx-dataLabel">Awake</span>
+                    <span class="flx-text">{{minutesAwake.hours}} hours {{minutesAwake.minutes}} minutes</span>
                 </div>
             </div>
             {{/facets}}
@@ -284,7 +300,8 @@
             <div class="facetDetails">
                 <div class="flx-tTime">{{time}}</div>
                 <div class="flx-data">
-                    <span class="flx-description">{{description}}</span>
+                    <span class="flx-dataLabel">You weigh</span>
+                    <span class="flx-text">{{description}}</span>
                     <span class="flx-miniGraph"></span>
                 </div>
             </div>

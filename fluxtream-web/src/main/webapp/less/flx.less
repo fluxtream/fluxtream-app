@@ -376,7 +376,7 @@ a img { text-decoration: none; }
 .flx-toolTipData .flx-data { max-width:270px; overflow:hidden; height: 100%;
     span { font-size: 14px; color: lighten(@black, 55%); }
 }
-.flx-toolTipData .flx-tTime { font-size: 16px; margin-bottom: 5px; 
+.flx-toolTipData .flx-tTime { font-size: 16px; margin-bottom: 5px;
     span { font-size: 14px; color: lighten(@black, 55%); }
 }
 .flx-miniGraph { .flx-floatL; margin-top:-20px; }
@@ -445,10 +445,15 @@ table {.syncStatus, .remove, .connectors { text-align: center; }
 td.syncStatus { vertical-align: middle;
     span { display:block; width: 20px; height: 20px; -webkit-border-radius: 10px; -moz-border-radius: 10px; border-radius: 10px;border: 1px solid lighten(@grey, 20%); margin: 0 auto; -webkit-box-shadow: 0 0 5px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.7);
     -moz-box-shadow: 0 0 5px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.7); box-shadow: 0 0 5px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.7); }
-    .syncLED-yes {background:#76d323;}
-    .syncLED-no {background:#ff3030;}
+    .syncLED-yes {
+        background:#76d323;
+    }
+    .syncLED-no {
+        background:#ff3030;
+    }
     .syncLED-waiting { border:0; width: 35px; height:35px; -webkit-box-shadow: none; -moz-box-shadow: none; box-shadow: none ;}
  }
+.syncStatus.small { span { width: 15px; height: 15px; } }
 td.connectors { text-align: center; padding:0;
     img { margin:0 auto; }
  }
@@ -613,6 +618,16 @@ table .remove { text-align:center;
 .flx-listItem .gathered { padding-bottom:0; }
 .flx-listItem .gathered.closed { height:52px; }
 
+.flx-dataLabel {
+    font-size: 12px;
+    color: #878787;
+    line-height: 11px;
+}
+.flx-text {
+    font-size: 14px;
+    color: @black;
+    line-height: 12px;
+}
 
 //-------WIDGET TYPOGRAPHY
 

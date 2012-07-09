@@ -49,6 +49,8 @@ public class ApiUpdate extends AbstractEntity {
 
 	@Index(name="api")
 	public int api;
+
+    @Expose
 	@Index(name="objectTypes")
 	public int objectTypes;
 

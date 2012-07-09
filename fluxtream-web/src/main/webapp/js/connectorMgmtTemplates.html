@@ -129,7 +129,26 @@
         </div>
 
         <div class="modal-body">
-            your updates will be displayed here
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Success</th>
+                        <th style="width: 150px">Time</th>
+                        <th>Elapsed</th>
+                        <th>Call Query</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {{#updates}}
+                    <tr>
+                        <td class="syncStatus small"><span class="syncLED-{{^success}}no{{/success}}{{#success}}yes{{/success}}"></span></td>
+                        <td>{{time}}</td>
+                        <td>{{elapsed}} ms</td>
+                        <td>{{query}}</td>
+                    </tr>
+                {{/updates}}
+                </tbody>
+            </table>
         </div>
         <div class="modal-footer">
             <button id="closeBtn" class="btn" onclick="$('#addAddressDialog').modal('hide')">Close</button>
