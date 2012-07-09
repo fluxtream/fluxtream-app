@@ -305,6 +305,7 @@ public class HomeModel {
 	}
 
 	public void incrementTimespan(final String state) {
+        syncState(state);
 		switch (this.timeUnit) {
 		case DAY:
 			if (!isToday()) {
