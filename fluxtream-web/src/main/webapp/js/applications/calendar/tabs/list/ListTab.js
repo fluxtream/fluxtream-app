@@ -45,7 +45,7 @@ define(["applications/calendar/tabs/Tab"], function(Tab) {
                         items[j] = item;
                         break;
                     }
-                    if (items[j].facet.start > item.facet.start){
+                    if (items[j].facet.start > item.facet.start || item.facet.start == null){
                         items.splice(j,0,item);
                         break;
                     }
