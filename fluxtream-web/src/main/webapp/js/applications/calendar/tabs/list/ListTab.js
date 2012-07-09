@@ -1,4 +1,4 @@
-define(["applications/calendar/tabs/Tab"], function(Tab) {
+define(["applications/calendar/tabs/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Tab, PhotoUtils) {
 
     var listTab = new Tab("list", "Candide Kemmler", "icon-list", true);
 
@@ -13,6 +13,7 @@ define(["applications/calendar/tabs/Tab"], function(Tab) {
     var maxPerPage = 250;
     var currentPage = 0;
     var initializing;
+    var photoCarouselHTML;
 
     function setup(digest,connectorEnabled){
         initializing = true;
@@ -29,6 +30,8 @@ define(["applications/calendar/tabs/Tab"], function(Tab) {
                 var item = {};
                 item.facet = digest.cachedData[connectorName][i];
                 item.visible = true;
+                if (connectorName == "picasa-photo")
+                    item.id = i;
                 var found = false;
                 for (var j = 0; j < digest.selectedConnectors.length; j++){
                     for (var k = 0; !found && k < digest.selectedConnectors[j].facetTypes.length; k++){
@@ -56,6 +59,8 @@ define(["applications/calendar/tabs/Tab"], function(Tab) {
                 itemGroups[item.facet.type][itemGroups[item.facet.type].length] = item;
             }
         }
+
+        photoCarouselHTML = PhotoUtils.getCarouselHTML(digest);
 
 
         rebuildPagination();
@@ -129,6 +134,13 @@ define(["applications/calendar/tabs/Tab"], function(Tab) {
             list.append("<div class=\"flx-listItem\">" + currentArray[0].getDetails(currentArray) + "</div>");
         if (list.children().length == 0)
             list.append("Sorry, no data to show.");
+        var photos = $(".flx-box.picasa-photo img");
+        for (var i = 0; i < photos.length; i++){
+            $(photos[i]).click({i:i}, function(event){
+                App.makeModal(photoCarouselHTML);
+                App.carousel(event.data.i);
+            });
+        }
     }
 
     function paginationClickCallback(event){
