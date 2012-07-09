@@ -11,7 +11,6 @@ define(function() {
     }
 
     function updateContents(){
-        return;
         $.ajax("/api/connectors/installed",{
             success: function(data, textStatus, jqXHR){
                 if (hidden)
@@ -152,26 +151,41 @@ define(function() {
     }
 
     function confirmDelete(index){
-        App.closeModal();
-        $("#modal").on("hidden",function(){
-            App.loadMustacheTemplate("connectorMgmtTemplates.html","deleteConnectorConfirm",function(template){
-                App.makeModal(template.render(connectors[index]));
-                var confirmDelete = $("#confirmDeleteBtn");
+        App.loadMustacheTemplate("connectorMgmtTemplates.html","deleteConnectorConfirm",function(template){
+            var html = template.render(connectors[index]);
 
-                confirmDelete.click(function(){
-                    $.ajax("/api/connectors/" + connectors[index].connectorName,{
-                        type:"DELETE",
-                        success: App.closeModal,
-                        error: App.closeModal
-                    });
+            $("body").append(html);
+            $("#deleteConnectorConfirm").modal();
 
-                });
+            $("#deleteConnectorConfirm").css("zIndex","1052");
 
-                $("#modal").on("hidden",show);
-
+            $("#deleteConnectorConfirm").on("hidden",function(){
+                $("#deleteConnectorConfirm").remove();
             });
 
+            var backdrops = $(".modal-backdrop");
+            $(backdrops[backdrops.length - 1]).css("zIndex","1051");
 
+            var confirmDelete = $("#confirmRemoveConnectorBtn");
+            var cancelDelete = $("#cancelRemoveConnectorBtn");
+
+            cancelDelete.click(function() {
+                $("#deleteConnectorConfirm").modal("hide");
+            });
+
+            confirmDelete.click(function(){
+                $.ajax({
+                    url: "/api/connectors/" + connectors[index].connectorName,
+                    type:"DELETE",
+                    success: function() {
+                        updateContents();
+                        $("#deleteConnectorConfirm").modal("hide");
+                    },
+                    error: function() {
+                        $("#deleteConnectorConfirm").modal("hide");
+                    }
+                });
+            });
         });
 
     }

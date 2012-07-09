@@ -70,7 +70,7 @@
     </div>
 </template>
 <template id="deleteConnectorConfirm">
-    <div class="modal fade" id="modal">
+    <div class="modal fade" id="deleteConnectorConfirm">
         <div class="modal-header">
             <h3>Confirm Removal<a href="#" class="close" data-dismiss="modal">&times;</a></h3>
         </div>
@@ -80,8 +80,8 @@
             </div>
         </div>
         <div class="modal-footer">
-            <button id="confirmDeleteBtn" class="btn">Confirm</button>
-            <button class="btn" onclick="App.closeModal()">Cancel</button>
+            <button id="confirmRemoveConnectorBtn" class="btn">Confirm</button>
+            <button class="btn" id="cancelRemoveConnectorBtn">Cancel</button>
         </div>
     </div>
 </template>
@@ -103,7 +103,7 @@
                         {{#connectors}}
                         <div class="span4">
                             <a  href="javascript:App.addConnector('{{connectUrl}}')">
-                                <img src="{{image}}" alt="" width=178 Height=120>
+                                <img src="{{image}}" alt="" width=158 Height=89>
                             </a>
                             <p>{{text}}</p>
                         </div>
