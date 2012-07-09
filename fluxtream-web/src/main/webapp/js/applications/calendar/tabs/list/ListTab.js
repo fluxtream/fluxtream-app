@@ -10,7 +10,7 @@ define(["applications/calendar/tabs/Tab"], function(Tab) {
     var itemGroups;
     var list;
     var pagination;
-    var maxPerPage = 10;
+    var maxPerPage = 250;
     var currentPage = 0;
     var initializing;
 
