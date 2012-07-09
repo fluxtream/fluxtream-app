@@ -42,9 +42,12 @@ define(["core/DashboardWidget","applications/calendar/tabs/timeline/BodyTrack"],
                 }
             };
 
-            $.doTimeout(100,function(){
-                afterload(plot.getStatistics(dateAxis.getMin(),dateAxis.getMax(),["has_data", "y_max"],afterload));
-            });
+            var fixBounds = function(){
+                afterload(plot.getStatistics(dateAxis.getMin(),dateAxis.getMax(),["has_data", "y_max"]));
+            }
+
+            //currently there is no better way with the api to get the necessary height
+            $.doTimeout(250,fixBounds);
 
 
             var plotContainer = new PlotContainer("stepsHistroyGraph", true,[plot]);
