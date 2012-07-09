@@ -31,5 +31,7 @@ public @interface Updater {
 	public String[] additionalParameters() default {};
 
     public String[] defaultChannels() default {};
+
+    public boolean isManageable() default true;
 	
 }

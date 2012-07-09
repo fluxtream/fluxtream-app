@@ -122,6 +122,7 @@ public class Connector {
 				Updater updaterAnnotation = updaterClass
 						.getAnnotation(Updater.class);
 				// set connectors' pretty name
+                connector.manageable = updaterAnnotation.isManageable();
 				connector.prettyName = updaterAnnotation.prettyName();
 				connector.value = updaterAnnotation.value();
 				connector.updateStrategyType = updaterAnnotation
@@ -261,6 +262,11 @@ public class Connector {
 	private boolean hasFacets;
     private String[] defaultChannels;
 	private String[] additionalParameters;
+    private boolean manageable;
+
+    public boolean isManageable(){
+        return manageable;
+    }
 
 	private Connector() {
 	}

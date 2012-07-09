@@ -11,7 +11,7 @@ import com.fluxtream.connectors.updaters.UpdateInfo;
  */
 
 @Component
-@Updater(prettyName = "BodyTrack", value = 77, objectTypes ={}, hasFacets = false)
+@Updater(prettyName = "BodyTrack", value = 77, objectTypes ={}, hasFacets = false, isManageable = false)
 public class BodytrackUpdater extends AbstractUpdater {
 
 	public BodytrackUpdater() {

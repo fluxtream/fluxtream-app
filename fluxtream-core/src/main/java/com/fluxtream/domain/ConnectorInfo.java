@@ -22,6 +22,8 @@ public class ConnectorInfo extends AbstractEntity {
 	@Type(type = "yes_no")
 	public boolean enabled;
 
+    public boolean manageable;
+
 	@Lob
 	public String text;
 
