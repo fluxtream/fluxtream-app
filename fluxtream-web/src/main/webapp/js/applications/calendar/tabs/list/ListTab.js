@@ -10,10 +10,12 @@ define(["applications/calendar/tabs/Tab", "applications/calendar/tabs/photos/Pho
     var itemGroups;
     var list;
     var pagination;
-    var maxPerPage = 250;
+    var maxPerPage = 25;
     var currentPage = 0;
     var initializing;
     var photoCarouselHTML;
+
+    var rendererCount = 0;
 
     function setup(digest,connectorEnabled){
         initializing = true;
@@ -70,6 +72,8 @@ define(["applications/calendar/tabs/Tab", "applications/calendar/tabs/photos/Pho
     }
 
     function rebuildPagination(){
+        pagination.hide();
+        return;
         pagination.empty();
         var totalPages = getTotalPages();
         if (totalPages>1)
@@ -109,7 +113,56 @@ define(["applications/calendar/tabs/Tab", "applications/calendar/tabs/photos/Pho
         $("#eventCount").empty().append(totalCount + " event" + (totalCount == 1 ? "" : "s"));
     }
 
+    //new design for full loading
+    function repopulateList(){
+        list.empty();
+        populateList(++rendererCount,0);
 
+    }
+
+    function populateList(expectedRendererCount, index){
+        if (rendererCount != expectedRendererCount)
+            return;
+        var visibleCount = 0;
+        var currentArray = [];
+        var i = index;
+        for (; i < items.length && visibleCount < maxPerPage; i++){
+            var item = items[i];
+            if (item.visible){
+                if (currentArray.length == 0)
+                    currentArray = [item.facet];
+                else if (currentArray[0].shouldGroup(item.facet))
+                    currentArray[currentArray.length] = item.facet;
+                else{
+                    list.append("<div class=\"flx-listItem\">" + currentArray[0].getDetails(currentArray) + "</div>");
+                    currentArray = [];
+                    i--;
+                    visibleCount++;
+                }
+            }
+        }
+        var newIndex = i;
+        var photos = $(".flx-box.picasa-photo img");
+        for (var i = 0; i < photos.length; i++){
+            $(photos[i]).unbind("click").click({i:i}, function(event){
+                App.makeModal(photoCarouselHTML);
+                App.carousel(event.data.i);
+            });
+        }
+        if (currentArray.length != 0)
+            list.append("<div class=\"flx-listItem\">" + currentArray[0].getDetails(currentArray) + "</div>");
+        if (i == items.length){
+            if (list.children().length == 0)
+                list.append("Sorry, no data to show.");
+        }
+        else{
+            $.doTimeout(1000,function(){
+                populateList(expectedRendererCount,newIndex);
+            });
+        }
+    }
+
+    /* old design for pagination
     function repopulateList(){
         list.empty();
         var visibleCount = 0;
@@ -118,7 +171,7 @@ define(["applications/calendar/tabs/Tab", "applications/calendar/tabs/photos/Pho
            var item = items[i];
            if (item.visible){
                visibleCount++;
-               if (visibleCount > currentPage * maxPerPage && visibleCount <= (currentPage + 1) * maxPerPage){
+               if (visibleCount >= currentPage * maxPerPage && visibleCount <= (currentPage + 1) * maxPerPage){
                     if (currentArray.length == 0)
                         currentArray = [item.facet];
                     else if (currentArray[0].shouldGroup(item.facet))
@@ -141,7 +194,7 @@ define(["applications/calendar/tabs/Tab", "applications/calendar/tabs/photos/Pho
                 App.carousel(event.data.i);
             });
         }
-    }
+    }  */
 
     function paginationClickCallback(event){
         var pageNum = $(event.target).attr("pageNumber");
