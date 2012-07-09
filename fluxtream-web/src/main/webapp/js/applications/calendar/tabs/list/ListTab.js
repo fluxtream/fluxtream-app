@@ -122,13 +122,11 @@ define(["applications/calendar/tabs/Tab"], function(Tab) {
                         list.append("<div class=\"flx-listItem\">" + currentArray[0].getDetails(currentArray) + "</div>");
                         currentArray = [item.facet];
                     }
-                    if (visibleCount == (currentPage + 1) * maxPerPage || i == items.length - 1){
-                        list.append("<div class=\"flx-listItem\">" + currentArray[0].getDetails(currentArray) + "</div>");
-                    }
                }
-                    //list.append(item);
            }
         }
+        if (currentArray.length != 0)
+            list.append("<div class=\"flx-listItem\">" + currentArray[0].getDetails(currentArray) + "</div>");
         if (list.children().length == 0)
             list.append("Sorry, no data to show.");
     }
