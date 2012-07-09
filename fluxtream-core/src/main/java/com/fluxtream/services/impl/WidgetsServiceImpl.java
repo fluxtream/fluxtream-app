@@ -114,7 +114,7 @@ public class WidgetsServiceImpl implements WidgetsService {
         final List<DashboardWidgetsRepository> repositoryURLs = getWidgetRepositories(guestId);
         List<DashboardWidget> userWidgets = new ArrayList<DashboardWidget>();
         for (DashboardWidgetsRepository repositoryURL : repositoryURLs) {
-            List<DashboardWidget> widgetsList = getWidgetsList(repositoryURL.url);
+            List<DashboardWidget> widgetsList = getWidgetsList(repositoryURL.url,false);
             userWidgets.addAll(widgetsList);
         }
         return userWidgets;
@@ -123,10 +123,10 @@ public class WidgetsServiceImpl implements WidgetsService {
     @Cacheable(value = "officialWidgets")
     private List<DashboardWidget> getOfficialWidgets() {
         String mainWidgetsUrl = env.get("homeBaseUrl");
-        return getWidgetsList(mainWidgetsUrl);
+        return getWidgetsList(mainWidgetsUrl,true);
     }
 
-    private List<DashboardWidget> getWidgetsList(String baseURL) {
+    private List<DashboardWidget> getWidgetsList(String baseURL, boolean local) {
         JSONArray widgetsList = null;
         String widgetListString = null;
         try {
@@ -154,7 +154,7 @@ public class WidgetsServiceImpl implements WidgetsService {
                 } catch (Throwable t) {
                     throw new RuntimeException("Could not parse widget manifest (" + t.getMessage() + ")");
                 }
-                widgets.add(new DashboardWidget(manifestJSON, baseURL + "widgets"));
+                widgets.add(new DashboardWidget(manifestJSON, (local ? "/" : baseURL) + "widgets"));
             }
         } catch (IOException e) {
             throw new RuntimeException("Could not access widget manifest JSON URL: " + widgetUrl);
