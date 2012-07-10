@@ -10,7 +10,7 @@ define(["applications/calendar/tabs/Tab", "applications/calendar/tabs/photos/Pho
     var itemGroups;
     var list;
     var pagination;
-    var maxPerPage = 25;
+    var maxPerPage = 250;
     var currentPage = 0;
     var initializing;
     var photoCarouselHTML;
@@ -72,8 +72,6 @@ define(["applications/calendar/tabs/Tab", "applications/calendar/tabs/photos/Pho
     }
 
     function rebuildPagination(){
-        pagination.hide();
-        return;
         pagination.empty();
         var totalPages = getTotalPages();
         if (totalPages>1)
@@ -113,7 +111,7 @@ define(["applications/calendar/tabs/Tab", "applications/calendar/tabs/photos/Pho
         $("#eventCount").empty().append(totalCount + " event" + (totalCount == 1 ? "" : "s"));
     }
 
-    //new design for full loading
+    /*//new design for full loading
     function repopulateList(){
         list.empty();
         populateList(++rendererCount,0);
@@ -160,9 +158,8 @@ define(["applications/calendar/tabs/Tab", "applications/calendar/tabs/photos/Pho
                 populateList(expectedRendererCount,newIndex);
             });
         }
-    }
+    }*/
 
-    /* old design for pagination
     function repopulateList(){
         list.empty();
         var visibleCount = 0;
@@ -194,7 +191,7 @@ define(["applications/calendar/tabs/Tab", "applications/calendar/tabs/photos/Pho
                 App.carousel(event.data.i);
             });
         }
-    }  */
+    }
 
     function paginationClickCallback(event){
         var pageNum = $(event.target).attr("pageNumber");
