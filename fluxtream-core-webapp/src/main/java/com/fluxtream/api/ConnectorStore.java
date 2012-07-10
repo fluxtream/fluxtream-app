@@ -11,13 +11,12 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.connectors.Connector;
-import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ApiUpdate;
 import com.fluxtream.domain.ConnectorInfo;
 import com.fluxtream.domain.Guest;
-import com.fluxtream.domain.ScheduledUpdate;
+import com.fluxtream.domain.UpdateWorkerTask;
 import com.fluxtream.mvc.controllers.ControllerHelper;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.ApiDataService;
@@ -26,7 +25,6 @@ import com.fluxtream.services.GuestService;
 import com.fluxtream.services.SettingsService;
 import com.fluxtream.services.SystemService;
 import com.google.gson.Gson;
-import com.sun.mail.imap.protocol.Status;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -98,8 +96,8 @@ public class ConnectorStore {
     private boolean checkIfSyncInProgress(long guestId, Connector connector){
         boolean syncing = false;
         for (int objectType : connector.objectTypeValues()){
-            ScheduledUpdate update = connectorUpdateService.getNextScheduledUpdate(guestId,connector,objectType);
-            syncing = update != null && update.status == ScheduledUpdate.Status.IN_PROGRESS;
+            UpdateWorkerTask updateWorkerTask = connectorUpdateService.getNextScheduledUpdateTask(guestId, connector);
+            syncing = updateWorkerTask != null && updateWorkerTask.status == UpdateWorkerTask.Status.IN_PROGRESS;
             if (syncing)
                 break;
         }

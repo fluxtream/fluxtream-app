@@ -10,6 +10,7 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.fluxtream.domain.UpdateWorkerTask;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,7 +26,6 @@ import com.fluxtream.connectors.updaters.UpdateInfo.UpdateType;
 import com.fluxtream.connectors.updaters.UpdateResult;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
-import com.fluxtream.domain.ScheduledUpdate;
 import com.fluxtream.mvc.controllers.ControllerHelper;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.ConnectorUpdateService;
@@ -238,7 +238,7 @@ public class AdminController {
 	
 	private void resetGuestConnectorData(Connector connector, long guestId, long delay) {
 		apiDataService.eraseApiData(guestId, connector);
-		connectorUpdateService.deleteScheduledUpdates(guestId, connector);
+		connectorUpdateService.deleteScheduledUpdateTasks(guestId, connector);
 		int[] objectTypeValues = connector.objectTypeValues();
 		for (int objectTypes : objectTypeValues) {
 			connectorUpdateService.scheduleUpdate(guestId,
@@ -256,12 +256,9 @@ public class AdminController {
 		try {
 			int[] objectTypeValues = connector.objectTypeValues();
 			for (int objectTypes : objectTypeValues) {
-				ScheduledUpdate updt = connectorUpdateService
-						.getNextScheduledUpdate(guestId, connector, objectTypes);
-				if (updt != null)
-					connectorUpdateService.reScheduleUpdate(updt,
-							System.currentTimeMillis(), false);
-				else
+				UpdateWorkerTask updt = connectorUpdateService
+						.getNextScheduledUpdateTask(guestId, connector);
+				if (updt == null)
 					connectorUpdateService.scheduleUpdate(guestId,
 							connectorName, objectTypes,
 							UpdateType.INITIAL_HISTORY_UPDATE,
@@ -325,7 +322,7 @@ public class AdminController {
 		try {
 			Connector connector = Connector.getConnector(connectorName);
 			apiDataService.eraseApiData(guestId, connector);
-			connectorUpdateService.deleteScheduledUpdates(guestId, connector);
+			connectorUpdateService.deleteScheduledUpdateTasks(guestId, connector);
 			setSuccessMessage(request, "Connector " + connectorName
 					+ " has been reset");
 		} catch (Throwable t) {

@@ -14,7 +14,7 @@
 	<% if (request.getAttribute("successMessage")!=null) { %>
 	<div id="messageBox" class="span12">
 		<div class="alert alert-success">
-		<a class="close" href="javascript:$('#messageBox').hide()">×</a>
+		<a class="close" href="javascript:$('#messageBox').hide()">ï¿½</a>
 		<p><%=request.getAttribute("successMessage") %></p>
 		</div>
 	</div>
@@ -22,7 +22,7 @@
 	<% } else if (request.getAttribute("errorMessage")!=null) { %>
 	<div id="messageBox" class="span12">
 		<div class="alert alert-error">
-		<a class="close" href="javascript:$('#messageBox').hide()">×</a>
+		<a class="close" href="javascript:$('#messageBox').hide()">ï¿½</a>
 		<p><%=request.getAttribute("errorMessage") %></p>
 		<p><%=request.getAttribute("stackTrace") %></p>
 		</div>
@@ -70,20 +70,20 @@
 		%>
 		</td></tr>
  		<% if (failedObjectTypeValues.size()>0) {
- 			out.println("<tr><td>Next scheduled update:</td><td>");
+ 			out.println("<tr><td>Next scheduled updateWorkerTask:</td><td>");
 			
 			for (int i=0; i<failedObjectTypeValues.size(); i++) {
 				int objectTypes = failedObjectTypeValues.get(i);
-				ScheduledUpdate scheduledUpdate = helper.connectorUpdateService.getNextScheduledUpdate(guest.getId(), connector, objectTypes);
+				UpdateWorkerTask updateWorkerTask = helper.connectorUpdateService.getNextScheduledUpdateTask(guest.getId(), connector, objectTypes);
 				if (i>0) out.println(" | ");
 				out.print(helper.getLabelForObjectTypes(connector, objectTypes) + ": ");
-				out.print(scheduledUpdate==null?"-":format.print(scheduledUpdate.timeScheduled));
+				out.print(updateWorkerTask ==null?"-":format.print(updateWorkerTask.timeScheduled));
 			}
 			
  			out.println("</td></tr>");
  		}
  		%>
- 		<tr><td>Last successful update:</td><td>
+ 		<tr><td>Last successful updateWorkerTask:</td><td>
  		<%
  		for (int i=0; i<objectTypeValues.length; i++) {
 			int objectTypes = objectTypeValues[i];

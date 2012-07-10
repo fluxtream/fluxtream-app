@@ -6,6 +6,9 @@ import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.vos.AbstractTimedFacetVO;
 import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.mvc.models.DurationModel;
+import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 public class ZeoSleepStatsFacetVO extends AbstractTimedFacetVO<ZeoSleepStatsFacet> {
 	
@@ -17,19 +20,23 @@ public class ZeoSleepStatsFacetVO extends AbstractTimedFacetVO<ZeoSleepStatsFace
 	public Date riseTime;
 	public Date bedTime;
 	public String sleepGraph;
+    public String s, e;
+    DateTimeFormatter zeoTimeFormat = DateTimeFormat.forPattern("yyyyMMddHHmm");
 
-	@Override
+    @Override
 	public void fromFacet(ZeoSleepStatsFacet facet, TimeInterval timeInterval, GuestSettings settings) {
 		startMinute = toMinuteOfDay(facet.bedTime, timeInterval.timeZone);
 		endMinute = toMinuteOfDay(facet.riseTime, timeInterval.timeZone);
-		minutesAsleep = new DurationModel(facet.totalZ);
-		minutesAwake = new DurationModel((int) ((double)facet.totalZ/100d*(double)facet.timeInWakePercentage));
-		minutesToFallAsleep = new DurationModel(facet.timeToZ);
+		minutesAsleep = new DurationModel(facet.totalZ*60);
+		minutesAwake = new DurationModel((int) ((double)facet.totalZ*60d/100d*(double)facet.timeInWakePercentage));
+		minutesToFallAsleep = new DurationModel(facet.timeToZ*60);
 		riseTime = facet.riseTime;
 		bedTime = facet.bedTime;
 		zq = facet.zq;
 		morningFeel = facet.morningFeel;
 		sleepGraph = facet.sleepGraph;
-	}
+        s = zeoTimeFormat.withZone(DateTimeZone.forTimeZone(timeInterval.timeZone)).print(bedTime.getTime());
+        e = zeoTimeFormat.withZone(DateTimeZone.forTimeZone(timeInterval.timeZone)).print(riseTime.getTime());
+    }
 
 }

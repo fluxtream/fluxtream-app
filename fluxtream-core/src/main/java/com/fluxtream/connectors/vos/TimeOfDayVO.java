@@ -6,12 +6,22 @@ package com.fluxtream.connectors.vos;
  */
 public class TimeOfDayVO {
 
-    public int minutes;
-    public int hours;
+    public String minutes;
+    public String hours;
+    public String ampm = "am";
 
-    public TimeOfDayVO(int minutes) {
-        this.minutes = minutes%60;
-        this.hours = minutes/60;
+    public TimeOfDayVO(int minutes, boolean ampm) {
+        this.minutes = String.valueOf(minutes%60);
+        if (this.minutes.length()==1) this.minutes = "0" + this.minutes;
+        if (ampm) {
+            int hourOfDay = minutes/60;
+            if (hourOfDay>=13) {
+                hourOfDay -=12;
+                this.ampm = "pm";
+            }
+        } else {
+            this.hours = String.valueOf(minutes/60);
+        }
     }
 
 }

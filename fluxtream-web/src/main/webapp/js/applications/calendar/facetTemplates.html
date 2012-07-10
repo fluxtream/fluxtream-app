@@ -217,31 +217,28 @@
         </div>
     </div>
 </template>
-<template id="zeo">
-    <div class="flx-box" style="border-left-color:{{color}}">
-        <span class="flx-deviceIcon zeo"></span>
-        <div class="facetDetails">
-            {{#facets}}
-            <div class="facetDetails">
-                <div class="flx-tTime">{{time}}</div>
-                <div class="flx-deviceData">
-                    <span class="flx-data">{{description}}</span>
-                </div>
-            </div>
-            {{/facets}}
-        </div>
-    </div>
-</template>
 <template id="zeo-sleep">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon zeo"></span>
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
-                <div class="flx-tTime">{{time}}</div>
-                <div class="flx-deviceData">
-                    <span class="flx-data">{{description}}</span>
+                <div class="flx-data">
+                    <div>
+                        <span class="flx-text">{{#endTime}}{{hours}}:{{minutes}}{{/endTime}}</span>
+                        <span class="flx-dataLabel">You slept</span>
+                        <span class="flx-text bold">{{minutesAsleep.hours}}</span>
+                        <span class="flx-text">hours</span>
+                        <span class="flx-text bold">{{minutesAsleep.minutes}}</span>
+                        <span class="flx-text">min</span>
+                    </div>
+                    <span class="flx-dataLabel">Bed time</span>
+                    <span class="flx-text">{{#startTime}}{{hours}}:{{minutes}}{{/startTime}}</span>
+                    <span class="flx-dataLabel">Awake</span>
+                    <span class="flx-text">{{minutesAwake.hours}} hours {{minutesAwake.minutes}} minutes</span>
                 </div>
+                <br/>
+                <img src="https://mysleep.myzeo.com/graphservlet/Hypnogram?t=n&s={{s}}&e={{e}}&d={{sleepGraph}}"/>
             </div>
             {{/facets}}
         </div>
@@ -301,7 +298,7 @@
             <div class="facetDetails">
                 <div class="flx-tTime">{{time}}</div>
                 <div class="flx-deviceData">
-                    <span class="flx-data">{{description}}dd</span>
+                    <span class="flx-data">{{description}}</span>
                 </div>
             </div>
             {{/facets}}

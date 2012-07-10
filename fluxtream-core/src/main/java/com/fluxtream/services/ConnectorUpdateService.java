@@ -8,8 +8,7 @@ import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.ScheduleResult;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiUpdate;
-import com.fluxtream.domain.ScheduledUpdate;
-import org.springframework.transaction.annotation.Transactional;
+import com.fluxtream.domain.UpdateWorkerTask;
 
 public interface ConnectorUpdateService {
 
@@ -39,7 +38,7 @@ public interface ConnectorUpdateService {
 			int objectTypes, UpdateInfo.UpdateType updateType,
 			long timeScheduled, String... jsonParams);
 
-	public boolean isUpdateScheduled(long guestId, String connectorName,
+	public UpdateWorkerTask isUpdateScheduled(long guestId, String connectorName,
 			UpdateInfo.UpdateType updateType, int objectTypes);
 
 	public boolean isHistoryUpdateCompleted(long guestId, String connectorName,
@@ -47,16 +46,14 @@ public interface ConnectorUpdateService {
 
 	public void pollScheduledUpdates();
 
-	public void setScheduledUpdateStatus(long scheduledUpdateId,
-			ScheduledUpdate.Status status);
+	public void setUpdateWorkerTaskStatus(long updateWorkerTaskId, UpdateWorkerTask.Status status);
 
-	public ScheduleResult reScheduleUpdate(ScheduledUpdate update, long time,
-			boolean incrementRetries);
+	public ScheduleResult reScheduleUpdateTask(UpdateWorkerTask updateWorkerTask, long time,
+                                               boolean incrementRetries, UpdateWorkerTask.AuditTrailEntry auditTrailEntry);
 
-	public ScheduledUpdate getNextScheduledUpdate(long guestId,
-			Connector connector, int objectTypes);
+	public UpdateWorkerTask getNextScheduledUpdateTask(long guestId, Connector connector);
 
-	public void deleteScheduledUpdates(long guestId, Connector connector);
+	public void deleteScheduledUpdateTasks(long guestId, Connector connector);
 
 	public long getTotalNumberOfGuestsUsingConnector(Connector connector);
 

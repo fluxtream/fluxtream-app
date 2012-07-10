@@ -71,7 +71,7 @@ public class ZeoRestController {
 		guestService.setApiKeyAttribute(guestId, Connector.getConnector("zeo"),
 				"subscribed-since", String.valueOf(System.currentTimeMillis()));
 
-		return "forward:/app/from/zeo";
+		return "redirect:/app/from/zeo";
 	}
 
 }
