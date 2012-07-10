@@ -6,6 +6,7 @@ import java.security.NoSuchAlgorithmException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 
+import com.fluxtream.services.ConnectorUpdateService;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +48,10 @@ public class AppController {
 	@Autowired
 	NotificationsService notificationsService;
 
-	@Autowired
+    @Autowired
+    ConnectorUpdateService connectorUpdateService;
+
+    @Autowired
 	BeanFactory beanFactory;
 
 	@RequestMapping(value = { "", "/", "/welcome" })
@@ -131,11 +135,13 @@ public class AppController {
 	public String home(HttpServletRequest request,
 			@PathVariable("connectorName") String connectorName) {
 		long guestId = ControllerHelper.getGuestId();
-		String message = "You have successfully added a new connector: "
-				+ Connector.getConnector(connectorName).prettyName()
+        final Connector connector = Connector.getConnector(connectorName);
+        String message = "You have successfully added a new connector: "
+				+ connector.prettyName()
 				+ ". Your data is now being retrieved. "
 				+ "It may take a little while until it becomes visible.";
 		notificationsService.addNotification(guestId, Type.INFO, message);
+        connectorUpdateService.updateConnector(guestId, connector);
 		return "redirect:/app";
 	}
 
@@ -145,7 +151,8 @@ public class AppController {
 		if (remoteAddr == null)
 			remoteAddr = request.getRemoteAddr();
 		guestService.checkIn(guestId, remoteAddr);
-		initializeWithTimeZone(request, guestId);
+        connectorUpdateService.updateAllConnectors(guestId);
+        initializeWithTimeZone(request, guestId);
 	}
 	
 	private boolean hasTimezoneCookie(HttpServletRequest request) {

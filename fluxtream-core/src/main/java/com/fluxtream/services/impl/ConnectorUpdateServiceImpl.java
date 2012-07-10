@@ -1,5 +1,6 @@
 package com.fluxtream.services.impl;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -15,10 +16,14 @@ import com.fluxtream.connectors.updaters.UpdateInfo.UpdateType;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ApiNotification;
 import com.fluxtream.domain.ApiUpdate;
+import com.fluxtream.domain.ConnectorInfo;
+import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.UpdateWorkerTask;
 import com.fluxtream.domain.UpdateWorkerTask.Status;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.ConnectorUpdateService;
+import com.fluxtream.services.GuestService;
+import com.fluxtream.services.SystemService;
 import com.fluxtream.utils.JPAUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.BeanFactory;
@@ -46,6 +51,12 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 	@Autowired
 	ThreadPoolTaskExecutor executor;
 
+    @Autowired
+    GuestService guestService;
+
+    @Autowired
+    SystemService systemService;
+
 	@PersistenceContext
 	EntityManager em;
 
@@ -55,6 +66,44 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 		JPAUtils.execute(em, "updateWorkerTasks.delete.byStatus",
 				Status.IN_PROGRESS);
 	}
+
+    @Override
+    public List<ScheduleResult> updateConnector(final long guestId, Connector connector){
+        int[] objectTypeValues = connector.objectTypeValues();
+        List<ScheduleResult> scheduleResults = new ArrayList<ScheduleResult>();
+        for (int objectType : objectTypeValues) {
+            UpdateWorkerTask updateWorkerTask = getNextScheduledUpdateTask(guestId, connector);
+            if (updateWorkerTask != null) {
+                scheduleResults.add(new ScheduleResult(ScheduleResult.ResultType.ALREADY_SCHEDULED, updateWorkerTask.timeScheduled));
+            }
+            else {
+                UpdateInfo.UpdateType updateType = isHistoryUpdateCompleted(guestId, connector.getName(), objectType)
+                                                   ? UpdateInfo.UpdateType.INCREMENTAL_UPDATE
+                                                   : UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE;
+                final ScheduleResult scheduleResult = scheduleUpdate(guestId, connector.getName(), objectType, updateType, System.currentTimeMillis());
+                scheduleResults.add(scheduleResult);
+            }
+        }
+        return scheduleResults;
+    }
+
+    @Override
+    public List<ScheduleResult> updateAllConnectors(final long guestId) {
+        List<ConnectorInfo> connectors =  systemService.getConnectors();
+        List<Long> apiKeyIds = new ArrayList<Long>();
+        List<ScheduleResult> scheduleResults = new ArrayList<ScheduleResult>();
+        for (int i = 0; i < connectors.size(); i++){
+            if (!guestService.hasApiKey(guestId, connectors.get(i).getApi())) {
+                connectors.remove(i--);
+            }
+            else {
+                Connector connector = connectors.get(i).getApi();
+                List<ScheduleResult> updateRes = updateConnector(guestId, connector);
+                scheduleResults.addAll(updateRes);
+            }
+        }
+        return scheduleResults;
+    }
 
     @Transactional(readOnly = false)
 	@Override
@@ -218,8 +267,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 
 	@Override
 	public ApiUpdate getLastSuccessfulUpdate(long guestId, Connector api) {
-		ApiUpdate lastUpdate = JPAUtils.findUnique(em, ApiUpdate.class,
-				"apiUpdates.last.successful.byApi", guestId, api.value());
+		ApiUpdate lastUpdate = JPAUtils.findUnique(em, ApiUpdate.class, "apiUpdates.last.successful.byApi", guestId, api.value());
 		return lastUpdate;
 	}
 

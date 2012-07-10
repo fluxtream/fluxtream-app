@@ -197,14 +197,14 @@ public class MetadataServiceImpl implements MetadataService {
 	@Override
 	public LocationFacet getLastLocation(long guestId, long time) {
 		LocationFacet lastSeen = JPAUtils.findUnique(em, LocationFacet.class,
-                                                     "google_latitude.lastSeen", guestId, time);
+                                                     "google_latitude.location.lastSeen", guestId, time);
 		return lastSeen;
 	}
 
 	@Override
 	public LocationFacet getNextLocation(long guestId, long time) {
 		LocationFacet lastSeen = JPAUtils.findUnique(em, LocationFacet.class,
-				"google_latitude.nextSeen", guestId, time);
+				"google_latitude.location.nextSeen", guestId, time);
 		return lastSeen;
 	}
 
