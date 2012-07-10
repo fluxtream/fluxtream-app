@@ -257,10 +257,8 @@ public class AdminController {
 			int[] objectTypeValues = connector.objectTypeValues();
 			for (int objectTypes : objectTypeValues) {
 				UpdateWorkerTask updt = connectorUpdateService
-						.getNextScheduledUpdateTask(guestId, connector, objectTypes);
-				if (updt != null)
-					connectorUpdateService.reScheduleUpdateTask(updt, System.currentTimeMillis(), false);
-				else
+						.getNextScheduledUpdateTask(guestId, connector);
+				if (updt == null)
 					connectorUpdateService.scheduleUpdate(guestId,
 							connectorName, objectTypes,
 							UpdateType.INITIAL_HISTORY_UPDATE,

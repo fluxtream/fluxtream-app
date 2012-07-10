@@ -1,5 +1,7 @@
 package com.fluxtream.services.impl;
 
+import java.util.Date;
+
 import static com.fluxtream.utils.Utils.stackTrace;
 
 import org.apache.log4j.Logger;
@@ -79,7 +81,7 @@ class UpdateTask implements Runnable {
 			logger.warn("guestId=" + su.guestId + " action=bg_update type=initialHistory "
 					+ "stage=unexpected_exception connector="
 					+ su.connectorName + " objectType=" + su.objectTypes);
-			retry(connector, stackTrace);
+			retry(connector, new UpdateWorkerTask.AuditTrailEntry(new Date(), "unexpected exception", "retry", stackTrace));
 		}
 	}
 
@@ -95,7 +97,7 @@ class UpdateTask implements Runnable {
 			logger.warn("guestId=" + su.guestId + " action=bg_update type=initialHistory "
 					+ "stage=unexpected_exception connector="
 					+ su.connectorName + " objectType=" + su.objectTypes);
-			retry(connector, stackTrace);
+			retry(connector, new UpdateWorkerTask.AuditTrailEntry(new Date(), "unexpected exception", "retry", stackTrace));
 		}
 	}
 
@@ -106,13 +108,13 @@ class UpdateTask implements Runnable {
 			warn();
 			break;
 		case HAS_REACHED_RATE_LIMIT:
-			longReschedule(connector);
+			longReschedule(connector, new UpdateWorkerTask.AuditTrailEntry(new Date(), updateResult.type.toString(), "long reschedule"));
 			break;
 		case UPDATE_SUCCEEDED:
 			success();
 			break;
 		case UPDATE_FAILED:
-			retry(connector, updateResult.stackTrace);
+			retry(connector, new UpdateWorkerTask.AuditTrailEntry(new Date(), updateResult.type.toString(), "retry"));
 			break;
 		case NO_RESULT:
 			abort();
@@ -152,7 +154,7 @@ class UpdateTask implements Runnable {
 		connectorUpdateService.setUpdateWorkerTaskStatus(su.getId(), Status.FAILED);
 	}
 
-	private void retry(Connector connector, String stackTrace) {
+	private void retry(Connector connector, UpdateWorkerTask.AuditTrailEntry auditTrailEntry) {
 		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append("guestId=");
 		stringBuilder.append(su.getGuestId());
@@ -161,8 +163,10 @@ class UpdateTask implements Runnable {
 		stringBuilder.append(su.connectorName);
 		stringBuilder.append(" objectType=");
 		stringBuilder.append(su.objectTypes);
-		stringBuilder.append("\n");
-		stringBuilder.append(stackTrace);
+        if (auditTrailEntry.stackTrace!=null) {
+            stringBuilder.append("\n");
+            stringBuilder.append(auditTrailEntry.stackTrace);
+        }
 		logger.info(stringBuilder.toString());
 		int maxRetries = 0;
 		try {
@@ -171,13 +175,15 @@ class UpdateTask implements Runnable {
 			t.printStackTrace();
 		}
 		if (su.retries < maxRetries) {
-			shortReschedule(connector);
+            auditTrailEntry.nextAction = "short reschedule";
+            shortReschedule(connector, auditTrailEntry);
 		} else {
-			longReschedule(connector);
+            auditTrailEntry.nextAction = "long reschedule";
+			longReschedule(connector, auditTrailEntry);
 		}
 	}
 
-	private void longReschedule(Connector connector) {
+	private void longReschedule(Connector connector, UpdateWorkerTask.AuditTrailEntry auditTrailEntry) {
 		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append("guestId=");
 		stringBuilder.append(su.getGuestId());
@@ -188,10 +194,11 @@ class UpdateTask implements Runnable {
 		stringBuilder.append(su.objectTypes);
 		logger.info(stringBuilder.toString());
 		// re-schedule when we are below rate limit again
-		connectorUpdateService.reScheduleUpdateTask(su, System.currentTimeMillis() + getLongRetryDelay(connector), false);
+		connectorUpdateService.reScheduleUpdateTask(su, System.currentTimeMillis() + getLongRetryDelay(connector),
+                                                    false, auditTrailEntry);
 	}
 
-	private void shortReschedule(Connector connector) {
+	private void shortReschedule(Connector connector, UpdateWorkerTask.AuditTrailEntry auditTrailEntry) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("guestId=");
 		sb.append(su.getGuestId());
@@ -204,34 +211,41 @@ class UpdateTask implements Runnable {
 		sb.append(String.valueOf(su.retries));
 		logger.info(sb.toString());
 		// schedule 1 minute later, typically
-		connectorUpdateService.reScheduleUpdateTask(su, System.currentTimeMillis() + getShortRetryDelay(connector), true);
+		connectorUpdateService.reScheduleUpdateTask(su, System.currentTimeMillis() + getShortRetryDelay(connector),
+                                                    true, auditTrailEntry);
 	}
 
 	private int getMaxRetries(Connector connector) {
 		String key = connector.getName() + ".maxRetries";
-		if (env.connectors.containsKey(key)) {
-			int retries = Integer.valueOf((String) env.connectors.getProperty(key));
-			return retries;
-		} else
-			return Integer.valueOf((String) env.connectors.getProperty("maxRetries"));
+        if (env.connectors.containsKey(key)) {
+            int retries = Integer.valueOf((String)env.connectors.getProperty(key));
+            return retries;
+        }
+        else {
+            return Integer.valueOf((String)env.connectors.getProperty("maxRetries"));
+        }
 	}
 
 	private int getShortRetryDelay(Connector connector) {
 		String key = connector.getName() + ".shortRetryDelay";
-		if (env.connectors.containsKey(key)) {
-			int delay = Integer.valueOf((String) env.connectors.getProperty(key));
-			return delay;
-		} else
-			return Integer.valueOf((String) env.connectors.getProperty("shortRetryDelay"));
+        if (env.connectors.containsKey(key)) {
+            int delay = Integer.valueOf((String)env.connectors.getProperty(key));
+            return delay;
+        }
+        else {
+            return Integer.valueOf((String)env.connectors.getProperty("shortRetryDelay"));
+        }
 	}
 
 	private int getLongRetryDelay(Connector connector) {
 		String key = connector.getName() + ".longRetryDelay";
-		if (env.connectors.containsKey(key)) {
-			Integer delay = Integer.valueOf((String) env.connectors.getProperty(key));
-			return delay;
-		} else
-			return Integer.valueOf((String) env.connectors.getProperty("longRetryDelay"));
+        if (env.connectors.containsKey(key)) {
+            Integer delay = Integer.valueOf((String)env.connectors.getProperty(key));
+            return delay;
+        }
+        else {
+            return Integer.valueOf((String)env.connectors.getProperty("longRetryDelay"));
+        }
 	}
 
 }

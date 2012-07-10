@@ -15,7 +15,7 @@ public abstract class AbstractInstantFacetVO<T extends AbstractFacet> extends
 	public void extractValues(T facet, TimeInterval timeInterval, GuestSettings settings) {
 		super.extractValues(facet, timeInterval, settings);
 		this.start = facet.start;
-        this.startTime = new TimeOfDayVO(startMinute);
+        this.startTime = new TimeOfDayVO(startMinute, settings.distanceMeasureUnit == GuestSettings.DistanceMeasureUnit.MILES_YARDS);
     }
 	
 	@Override

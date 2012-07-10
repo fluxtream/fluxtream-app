@@ -58,7 +58,8 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 
     @Transactional(readOnly = false)
 	@Override
-	public ScheduleResult reScheduleUpdateTask(UpdateWorkerTask updt, long time, boolean incrementRetries) {
+	public ScheduleResult reScheduleUpdateTask(UpdateWorkerTask updt, long time, boolean incrementRetries,
+                                               UpdateWorkerTask.AuditTrailEntry auditTrailEntry) {
 		if (!incrementRetries) {
 			UpdateWorkerTask failed = new UpdateWorkerTask(updt);
 			failed.retries = updt.retries;
@@ -70,11 +71,13 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 			updt.retries = 0;
 		} else
 			updt.retries += 1;
+        updt.addAuditTrailEntry(auditTrailEntry);
 		updt.status = Status.SCHEDULED;
 		updt.timeScheduled = time;
 		em.merge(updt);
 		return new ScheduleResult(
-				ScheduleResult.ResultType.SCHEDULED_UPDATE_DEFERRED);
+				ScheduleResult.ResultType.SCHEDULED_UPDATE_DEFERRED,
+                time);
 	}
 
 	@Override
@@ -135,9 +138,8 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 	public ScheduleResult scheduleUpdate(long guestId, String connectorName,
 			int objectTypes, UpdateType updateType, long timeScheduled,
 			String... jsonParams) {
-		boolean updateScheduled = isUpdateScheduled(guestId, connectorName,
-				updateType, objectTypes);
-		if (!updateScheduled) {
+		UpdateWorkerTask updateScheduled = getNextScheduledUpdateTask(guestId, Connector.getConnector(connectorName));
+		if (updateScheduled==null) {
 			UpdateWorkerTask updateWorkerTask = new UpdateWorkerTask();
 			updateWorkerTask.guestId = guestId;
 			updateWorkerTask.connectorName = connectorName;
@@ -151,7 +153,8 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 			long now = System.currentTimeMillis();
 			return new ScheduleResult(
 					timeScheduled <= now ? ScheduleResult.ResultType.SCHEDULED_UPDATE_IMMEDIATE
-							: ScheduleResult.ResultType.SCHEDULED_UPDATE_DEFERRED);
+							: ScheduleResult.ResultType.SCHEDULED_UPDATE_DEFERRED,
+                    timeScheduled);
 		} else {
 			StringBuilder sb = new StringBuilder();
 			sb.append("guestId=");
@@ -163,20 +166,9 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 			sb.append(objectTypes);
 			logger.info(sb.toString());
 			return new ScheduleResult(
-					ScheduleResult.ResultType.ALREADY_SCHEDULED);
+					ScheduleResult.ResultType.ALREADY_SCHEDULED,
+                    updateScheduled.timeScheduled);
 		}
-	}
-
-	@Override
-	public boolean isUpdateScheduled(long guestId, String connectorName,
-			UpdateInfo.UpdateType updateType, int objectTypes) {
-		List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em,
-				UpdateWorkerTask.class, "updateWorkerTasks.exists",
-				Status.SCHEDULED, Status.IN_PROGRESS, guestId, updateType,
-				objectTypes, connectorName);
-//		logger.info(guestId, "action=bg_update stage=check",
-//				"scheduledOrInProgress=" + updateWorkerTasks);
-		return updateWorkerTasks.size() != 0;
 	}
 
 	@Override
@@ -260,15 +252,40 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
         return lastUpdate;
     }
 
-	@Override
-	public UpdateWorkerTask getNextScheduledUpdateTask(long guestId, Connector connector, int objectTypes) {
+    @Override
+    @Transactional(readOnly = false)
+    public UpdateWorkerTask isUpdateScheduled(long guestId, String connectorName,
+                                              UpdateInfo.UpdateType updateType, int objectTypes) {
+        UpdateWorkerTask updateWorkerTask = JPAUtils.findUnique(em,
+                                                                UpdateWorkerTask.class, "updateWorkerTasks.withUpdateTypeAndObjectTypes.isScheduled",
+                                                                Status.SCHEDULED, Status.IN_PROGRESS, guestId, updateType,
+                                                                objectTypes, connectorName);
+        if (updateWorkerTask!=null&&hasStalled(updateWorkerTask)) {
+            updateWorkerTask.status = Status.STALLED;
+            em.merge(updateWorkerTask);
+            return null;
+        }
+        return updateWorkerTask;
+    }
+
+    @Override
+    @Transactional(readOnly = false)
+    public UpdateWorkerTask getNextScheduledUpdateTask(long guestId, Connector connector) {
 		UpdateWorkerTask updateWorkerTask = JPAUtils.findUnique(em,
-				UpdateWorkerTask.class, "updateWorkerTasks.exists",
+				UpdateWorkerTask.class, "updateWorkerTasks.isScheduled",
 				Status.SCHEDULED, Status.IN_PROGRESS, guestId,
-				UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE, objectTypes,
 				connector.getName());
+        if (updateWorkerTask!=null&&hasStalled(updateWorkerTask)) {
+            updateWorkerTask.status = Status.STALLED;
+            em.merge(updateWorkerTask);
+            return null;
+        }
 		return updateWorkerTask;
 	}
+
+    private boolean hasStalled(UpdateWorkerTask updateWorkerTask) {
+        return System.currentTimeMillis()-updateWorkerTask.timeScheduled>3600000;
+    }
 
 	@Transactional(readOnly = false)
 	@Override

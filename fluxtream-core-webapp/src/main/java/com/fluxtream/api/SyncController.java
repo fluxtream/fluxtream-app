@@ -1,6 +1,7 @@
 package com.fluxtream.api;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -85,13 +86,14 @@ public class SyncController {
         int[] objectTypeValues = connector.objectTypeValues();
         List<ScheduleResult> scheduleResults = new ArrayList<ScheduleResult>();
         for (int objectType : objectTypeValues) {
-            UpdateWorkerTask updateWorkerTask = connectorUpdateService.getNextScheduledUpdateTask(user.getId(), connector, objectType);
+            UpdateWorkerTask updateWorkerTask = connectorUpdateService.getNextScheduledUpdateTask(user.getId(), connector);
             if (updateWorkerTask != null) {
-                final ScheduleResult scheduleResult = connectorUpdateService.reScheduleUpdateTask(updateWorkerTask, System.currentTimeMillis(), false);
-                scheduleResults.add(scheduleResult);
+                scheduleResults.add(new ScheduleResult(ScheduleResult.ResultType.ALREADY_SCHEDULED, updateWorkerTask.timeScheduled));
             }
             else {
-                UpdateInfo.UpdateType updateType = connectorUpdateService.isHistoryUpdateCompleted(user.getId(),connector.getName(),objectType) ? UpdateInfo.UpdateType.INCREMENTAL_UPDATE : UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE;
+                UpdateInfo.UpdateType updateType = connectorUpdateService.isHistoryUpdateCompleted(user.getId(),connector.getName(),objectType)
+                                                   ? UpdateInfo.UpdateType.INCREMENTAL_UPDATE
+                                                   : UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE;
                 final ScheduleResult scheduleResult = connectorUpdateService.scheduleUpdate(user.getId(), connector.getName(), objectType, updateType, System.currentTimeMillis());
                 scheduleResults.add(scheduleResult);
             }

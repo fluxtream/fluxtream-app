@@ -96,7 +96,7 @@ public class ConnectorStore {
     private boolean checkIfSyncInProgress(long guestId, Connector connector){
         boolean syncing = false;
         for (int objectType : connector.objectTypeValues()){
-            UpdateWorkerTask updateWorkerTask = connectorUpdateService.getNextScheduledUpdateTask(guestId, connector, objectType);
+            UpdateWorkerTask updateWorkerTask = connectorUpdateService.getNextScheduledUpdateTask(guestId, connector);
             syncing = updateWorkerTask != null && updateWorkerTask.status == UpdateWorkerTask.Status.IN_PROGRESS;
             if (syncing)
                 break;

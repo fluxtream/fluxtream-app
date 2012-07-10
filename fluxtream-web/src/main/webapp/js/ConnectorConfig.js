@@ -221,7 +221,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
             }
         },
         zeo:{//TODO: properly configure zeo and facets
-            color: "",
+            color: "rgb(255, 178, 0)",
             mapicon: "http://maps.google.com/mapfiles/marker.png",
             mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
             facets: {

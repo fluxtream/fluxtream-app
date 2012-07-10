@@ -1,10 +1,11 @@
 package com.fluxtream.domain;
 
+import java.util.Date;
 import javax.persistence.Entity;
+import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import com.fluxtream.connectors.updaters.UpdateInfo;
-import com.google.gson.annotations.Expose;
 
 @Entity(name="ScheduledUpdate")
 @NamedQueries ( {
@@ -18,7 +19,10 @@ import com.google.gson.annotations.Expose;
 			query = "DELETE FROM ScheduledUpdate updt WHERE updt.status=?"),
 	@NamedQuery( name="updateWorkerTasks.byStatus",
 			query="SELECT updt FROM ScheduledUpdate updt WHERE updt.status=? AND updt.timeScheduled<?"),
-	@NamedQuery( name="updateWorkerTasks.exists",
+    @NamedQuery( name="updateWorkerTasks.isScheduled",
+                 query="SELECT updt FROM ScheduledUpdate updt WHERE (updt.status=? OR updt.status=?) AND updt.guestId=? " +
+                       "AND updt.connectorName=?"),
+    @NamedQuery( name="updateWorkerTasks.withUpdateTypeAndObjectTypes.isScheduled",
 		query="SELECT updt FROM ScheduledUpdate updt WHERE (updt.status=? OR updt.status=?) AND updt.guestId=? " +
 				"AND updt.updateType=? AND updt.objectTypes=? " +
 				"AND updt.connectorName=?"),
@@ -30,13 +34,33 @@ import com.google.gson.annotations.Expose;
 })
 public class UpdateWorkerTask extends AbstractEntity {
 
+    public static class AuditTrailEntry {
+        public AuditTrailEntry(final Date date, final String reason, final String nextAction, String stackTrace) {
+            this.date = date;
+            this.reason = reason;
+            this.nextAction = nextAction;
+            this.stackTrace = stackTrace;
+        }
+        public AuditTrailEntry(final Date date, final String reason, final String nextAction) {
+            this.date = date;
+            this.reason = reason;
+            this.nextAction = nextAction;
+        }
+        public Date date;
+        public String reason;
+        public String stackTrace;
+        public String nextAction;
+    }
+
 	public String connectorName;
 	public Status status = Status.SCHEDULED;
 
-    @Expose
+    @Lob
+    public String auditTrail;
+
 	public long timeScheduled;
-		
-	public static enum Status { SCHEDULED, IN_PROGRESS, DONE, FAILED };
+
+	public static enum Status { SCHEDULED, IN_PROGRESS, DONE, FAILED, STALLED };
 	public UpdateInfo.UpdateType updateType;
 	
 	public long guestId;
@@ -54,6 +78,19 @@ public class UpdateWorkerTask extends AbstractEntity {
 		objectTypes = other.objectTypes;
 		retries = other.retries;
 	}
+
+    public void addAuditTrailEntry(AuditTrailEntry auditTrailEntry) {
+        if (auditTrail==null) auditTrail = "";
+        StringBuilder sb = new StringBuilder(auditTrail);
+        sb.append("\\n")
+                .append(auditTrailEntry.date.toString())
+                .append(" - reason: ")
+                .append(auditTrailEntry.reason)
+                .append(" - next action: " + auditTrailEntry.nextAction);
+        if (auditTrailEntry.stackTrace!=null)
+                sb.append("stackTracke: \n" + auditTrailEntry.stackTrace);
+        this.auditTrail = sb.toString();
+    }
 	
 	public long getGuestId() { return guestId; }
 	public int getObjectTypes() { return objectTypes; }

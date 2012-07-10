@@ -336,7 +336,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         if (facets.length == 0)
             return"";
         if (digest.detailsTemplates[facets[0].type] == null){
-            console.log("WARNING: no template found for " + facets[0].type + ".");
+            console.log("WARNING: hey, no template found for " + facets[0].type + ".");
             return "";
         }
         var params = {color:App.getFacetConfig(facets[0].type).color,facets:[],sent:facets[0].sent};
