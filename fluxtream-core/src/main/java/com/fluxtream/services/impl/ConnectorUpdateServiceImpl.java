@@ -17,7 +17,6 @@ import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ApiNotification;
 import com.fluxtream.domain.ApiUpdate;
 import com.fluxtream.domain.ConnectorInfo;
-import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.UpdateWorkerTask;
 import com.fluxtream.domain.UpdateWorkerTask.Status;
 import com.fluxtream.services.ApiDataService;
@@ -71,20 +70,32 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
     public List<ScheduleResult> updateConnector(final long guestId, Connector connector){
         int[] objectTypeValues = connector.objectTypeValues();
         List<ScheduleResult> scheduleResults = new ArrayList<ScheduleResult>();
-        for (int objectType : objectTypeValues) {
-            UpdateWorkerTask updateWorkerTask = getScheduledUpdateTask(guestId, connector.getName(), objectType);
-            if (updateWorkerTask != null) {
-                scheduleResults.add(new ScheduleResult(connector.getName(), objectType, ScheduleResult.ResultType.ALREADY_SCHEDULED, updateWorkerTask.timeScheduled));
-            }
-            else {
-                UpdateInfo.UpdateType updateType = isHistoryUpdateCompleted(guestId, connector.getName(), objectType)
-                                                   ? UpdateInfo.UpdateType.INCREMENTAL_UPDATE
-                                                   : UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE;
-                final ScheduleResult scheduleResult = scheduleUpdate(guestId, connector.getName(), objectType, updateType, System.currentTimeMillis());
-                scheduleResults.add(scheduleResult);
-            }
+        for (int objectTypes : objectTypeValues) {
+            scheduleObjectTypeUpdate(guestId, connector, objectTypes, scheduleResults);
         }
         return scheduleResults;
+    }
+
+    @Override
+    public List<ScheduleResult> updateConnectorObjectType(final long guestId, final Connector connector, int objectTypes) {
+        List<ScheduleResult> scheduleResults = new ArrayList<ScheduleResult>();
+        UpdateWorkerTask updateWorkerTask = getScheduledUpdateTask(guestId, connector.getName(), objectTypes);
+        scheduleObjectTypeUpdate(guestId, connector, objectTypes, scheduleResults);
+        return scheduleResults;
+    }
+
+    private void scheduleObjectTypeUpdate(long guestId, Connector connector, int objectTypes, List<ScheduleResult> scheduleResults) {
+        UpdateWorkerTask updateWorkerTask = getScheduledUpdateTask(guestId, connector.getName(), objectTypes);
+        if (updateWorkerTask != null) {
+            scheduleResults.add(new ScheduleResult(connector.getName(), objectTypes, ScheduleResult.ResultType.ALREADY_SCHEDULED, updateWorkerTask.timeScheduled));
+        }
+        else {
+            UpdateInfo.UpdateType updateType = isHistoryUpdateCompleted(guestId, connector.getName(), objectTypes)
+                                               ? UpdateInfo.UpdateType.INCREMENTAL_UPDATE
+                                               : UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE;
+            final ScheduleResult scheduleResult = scheduleUpdate(guestId, connector.getName(), objectTypes, updateType, System.currentTimeMillis());
+            scheduleResults.add(scheduleResult);
+        }
     }
 
     @Override
