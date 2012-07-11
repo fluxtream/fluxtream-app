@@ -101,14 +101,16 @@
             <div class="facetDetails">
                 <div class="flx-data">
                     <span class="flx-steps">
-                        <span class="flx-dataLabel">Steps taken:</span>
+                        <span class="flx-dataLabel">You walked</span>
                         <span class="flx-text">{{_steps}}</span>
+                        <span class="flx-dataLabel">steps</span>
                     </span>
                 </div>
                 <div class="flx-data">
                     <span class="flx-calories">
-                        <span class="flx-dataLabel">Calories burned:</span>
+                        <span class="flx-dataLabel">You burned</span>
                         <span class="flx-text">{{_caloriesOut}}</span>
+                        <span class="flx-dataLabel">kcal</span>
                     </span>
                 </div>
             </div>
@@ -189,21 +191,6 @@
         </div>
     </div>
 </template>
-<template id="bodymedia-burn">
-    <div class="flx-box" style="border-left-color:{{color}}">
-        <span class="flx-deviceIcon bm-burn"></span>
-        <div class="facetDetails">
-            {{#facets}}
-            <div class="facetDetails">
-                <div class="flx-tTime">{{time}}</div>
-                <div class="flx-data">
-                    <span class="flx-calories">{{caloriesOut}} calories burned</span>
-                </div>
-            </div>
-            {{/facets}}
-        </div>
-    </div>
-</template>
 <template id="sms_backup-call_log">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon sms-call-log"></span>
@@ -246,15 +233,41 @@
         </div>
     </div>
 </template>
+<template id="bodymedia-burn">
+    <div class="flx-box" style="border-left-color:{{color}}">
+        <span class="flx-deviceIcon bm-burn"></span>
+        <div class="facetDetails">
+            {{#facets}}
+            <div class="facetDetails">
+                <div class="flx-data">
+                    <span class="flx-dataLabel">You burned</span>
+                    <span class="flx-text">{{_totalCalories}}</span>
+                    <span class="flx-dataLabel">kcal</span>
+                </div>
+            </div>
+            {{/facets}}
+        </div>
+    </div>
+</template>
 <template id="bodymedia-sleep">
     <div  class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon bm-sleep"></span>
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
-                <div class="flx-tTime">{{time}}</div>
-                <div class="flx-deviceData">
-                    <span class="flx-data">{{description}}</span>
+                <div class="flx-data">
+                    <span class="flx-dataLabel">You were lying </span>
+                    <span class="flx-text">{{totalLying.hours}}</span>
+                    <span class="flx-dataLabel">hours</span>
+                    <span class="flx-text">{{totalLying.minutes}} hours</span>
+                    <span class="flx-dataLabel">minutes</span>
+                </div>
+                <div class="flx-data">
+                    <span class="flx-dataLabel">You were sleeping</span>
+                    <span class="flx-text">{{totalSleeping.hours}}</span>
+                    <span class="flx-dataLabel">hours</span>
+                    <span class="flx-text">{{totalSleeping.minutes}} hours</span>
+                    <span class="flx-dataLabel">minutes</span>
                 </div>
             </div>
             {{/facets}}
