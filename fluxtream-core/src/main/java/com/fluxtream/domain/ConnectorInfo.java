@@ -19,19 +19,21 @@ public class ConnectorInfo extends AbstractEntity {
 	public String connectUrl;
 	public String image;
 	public String connectorName;
+
 	@Type(type = "yes_no")
 	public boolean enabled;
 
-    public boolean manageable;
+    @Type(type = "yes_no")
+    public boolean manageable = true;
 
 	@Lob
 	public String text;
 
     //non persistent fields
-    public long lastSync;
-    public long latestData;
-    public boolean syncing;
-    public boolean errors;
+    public transient long lastSync;
+    public transient long latestData;
+    public transient boolean syncing;
+    public transient boolean errors;
 
     public String[] channels;
 
@@ -50,7 +52,6 @@ public class ConnectorInfo extends AbstractEntity {
 		this.count = count;
 		this.connectorName = api.getName();
 		this.enabled = enabled;
-        this.manageable = api.isManageable();
 	}
 
 	public boolean equals(Object o) {

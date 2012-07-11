@@ -7,10 +7,15 @@ import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 public abstract class AbstractFacetExtractor {
 
-	protected UpdateInfo updateInfo;
+    protected final static DateTimeFormatter dateFormatter = DateTimeFormat
+            .forPattern("yyyy-MM-dd");
+
+    protected UpdateInfo updateInfo;
 
 	public void setUpdateInfo(UpdateInfo updateInfo) {
 		this.updateInfo = updateInfo;

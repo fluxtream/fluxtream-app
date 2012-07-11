@@ -101,12 +101,14 @@
             <div class="facetDetails">
                 <div class="flx-data">
                     <span class="flx-steps">
-                        <span class="flx-text">{{steps}}</span>
-                        <span class="flx-dataLabel">steps taken</span>
+                        <span class="flx-dataLabel">Steps taken:</span>
+                        <span class="flx-text">{{_steps}}</span>
                     </span>
+                </div>
+                <div class="flx-data">
                     <span class="flx-calories">
-                        <span class="flx-text">{{caloriesOut}}</span>
-                        <span class="flx-dataLabel">calories burned</span>
+                        <span class="flx-dataLabel">Calories burned:</span>
+                        <span class="flx-text">{{_caloriesOut}}</span>
                     </span>
                 </div>
             </div>
@@ -265,10 +267,11 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
-                <div class="flx-tTime">{{time}}</div>
                 <div class="flx-data">
-                    <span class="flx-steps">{{steps}} steps taken</span>
-                    <span class="flx-calories">{{caloriesOut}} calories burned</span>
+                    <span class="flx-steps">
+                        <span class="flx-dataLabel">Steps taken:</span>
+                        <span class="flx-text">{{_totalSteps}}</span>
+                    </span>
                 </div>
             </div>
             {{/facets}}
@@ -292,13 +295,20 @@
 </template>
 <template id="withings-blood_pressure">
     <div class="flx-box" style="border-left-color:{{color}}">
-        <span class="flx-deviceIcon withings"></span>
+        <span class="flx-deviceIcon withings-blood_pressure"></span>
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
                 <div class="flx-tTime">{{time}}</div>
-                <div class="flx-deviceData">
-                    <span class="flx-data">{{description}}</span>
+                <div class="flx-data">
+                    <span class="flx-dataLabel">Systolic:</span>
+                    <span class="flx-text">{{systolic}} mmHg</span>
+                    <span class="flx-dataLabel">Diastolic:</span>
+                    <span class="flx-text">{{diastolic}} mmHg</span>
+                </div>
+                <div class="flx-data">
+                    <span class="flx-dataLabel">Pulse:</span>
+                    <span class="flx-text">{{pulse}} bpm</span>
                 </div>
             </div>
             {{/facets}}

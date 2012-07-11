@@ -2,11 +2,14 @@ package com.fluxtream.connectors.bodymedia;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TimeZone;
 import com.fluxtream.ApiData;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 import com.fluxtream.services.ConnectorUpdateService;
+import com.fluxtream.services.MetadataService;
+import com.fluxtream.utils.TimeUtils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
@@ -29,6 +32,12 @@ public class BodymediaSleepFacetExtractor extends AbstractFacetExtractor
 
     @Autowired
     ConnectorUpdateService connectorUpdateService;
+
+    DateTimeFormatter form = DateTimeFormat.forPattern("yyyyMMdd'T'HHmmssZ");
+    DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyyMMdd");
+
+    @Autowired
+    MetadataService metadataService;
 
     private final static int SLEEP_OBJECT_VALUE = 4;
 
@@ -84,9 +93,12 @@ public class BodymediaSleepFacetExtractor extends AbstractFacetExtractor
                     sleep.setSleepJson(day.getString("sleepPeriods"));
 
                     DateTime date = formatter.parseDateTime(day.getString("date"));
-                    sleep.start = date.getMillis()/1000;
-                    date = date.plusDays(1);
-                    sleep.end = date.getMillis()/1000;
+                    sleep.date = dateFormatter.print(date.getMillis());
+                    TimeZone timeZone = metadataService.getTimeZone(apiData.updateInfo.getGuestId(), date.getMillis());
+                    long fromMidnight = TimeUtils.fromMidnight(date.getMillis(), timeZone);
+                    long toMidnight = TimeUtils.toMidnight(date.getMillis(), timeZone);
+                    sleep.start = fromMidnight;
+                    sleep.end = toMidnight;
 
                     facets.add(sleep);
                 }

@@ -158,7 +158,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
             }
         },
         bodymedia:{//TODO: properly configure bodymedia and facets
-            color: "",
+            color: "rgb(160, 67, 175)",
             mapicon: "http://maps.google.com/mapfiles/marker.png",
             mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
             facets: {
@@ -230,7 +230,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                     photos: false,
                     map: true,
                     gps: false,
-                    clock: null
+                    clock: ClockConfig.BODY_CATEGORY
                 }
             }
         },

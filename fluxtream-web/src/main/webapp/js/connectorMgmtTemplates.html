@@ -98,6 +98,9 @@
             <div class="addConnectorsMain">
 
                 <div id="availableConnectors">
+                    {{^rows}}
+                        <div style="margin: 60px 0 75px 0; width: 100%; text-align: center">You have added all available connectors</div>
+                    {{/rows}}
                     {{#rows}}
                     <div class="row-fluid">
                         {{#connectors}}

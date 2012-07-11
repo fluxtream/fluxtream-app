@@ -2,11 +2,14 @@ package com.fluxtream.connectors.bodymedia;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TimeZone;
 import com.fluxtream.ApiData;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 import com.fluxtream.services.ConnectorUpdateService;
+import com.fluxtream.services.MetadataService;
+import com.fluxtream.utils.TimeUtils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
@@ -29,6 +32,12 @@ public class BodymediaStepFacetExtractor extends AbstractFacetExtractor
 
     @Autowired
     ConnectorUpdateService connectorUpdateService;
+
+    DateTimeFormatter form = DateTimeFormat.forPattern("yyyyMMdd'T'HHmmssZ");
+    DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyyMMdd");
+
+    @Autowired
+    MetadataService metadataService;
 
     private final static int STEP_OBJECT_VALUE = 2;
 
@@ -70,18 +79,21 @@ public class BodymediaStepFacetExtractor extends AbstractFacetExtractor
                 if(o instanceof JSONObject)
                 {
                     JSONObject day = (JSONObject) o;
-                    BodymediaStepsFacet step = new BodymediaStepsFacet();
-                    super.extractCommonFacetData(step, apiData);
-                    step.setTotalSteps(day.getInt("totalSteps"));
-                    step.setDate(day.getString("date"));
-                    step.setStepJson(day.getString("hours"));
+                    BodymediaStepsFacet steps = new BodymediaStepsFacet();
+                    super.extractCommonFacetData(steps, apiData);
+                    steps.setTotalSteps(day.getInt("totalSteps"));
+                    steps.setDate(day.getString("date"));
+                    steps.setStepJson(day.getString("hours"));
 
                     DateTime date = formatter.parseDateTime(day.getString("date"));
-                    step.start = date.getMillis()/1000;
-                    date = date.plusDays(1);
-                    step.end = date.getMillis()/1000;
+                    steps.date = dateFormatter.print(date.getMillis());
+                    TimeZone timeZone = metadataService.getTimeZone(apiData.updateInfo.getGuestId(), date.getMillis());
+                    long fromMidnight = TimeUtils.fromMidnight(date.getMillis(), timeZone);
+                    long toMidnight = TimeUtils.toMidnight(date.getMillis(), timeZone);
+                    steps.start = fromMidnight;
+                    steps.end = toMidnight;
 
-                    facets.add(step);
+                    facets.add(steps);
                 }
             }
 

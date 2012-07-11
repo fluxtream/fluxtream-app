@@ -383,11 +383,33 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         }
         for (var i=0; i<params.facets.length; i++) {
             params.facets[i].manyFacets = params.facets.length>0?" many":"";
+            for (var member in params.facets[i]) {
+                if (params.facets[i].hasOwnProperty(member)) {
+                    if (typeof(params.facets[i][member])==="number") {
+                        var formatted = addCommas(params.facets[i][member]);
+                        params.facets[i]["_"+member] = formatted;
+                    }
+                }
+            }
         }
         return digest.detailsTemplates[data.type].render(params);
     }
 
-    var topLevelDomains = ["aero","asia","biz","cat","com","coop","info", "int", "jobs", "mobi",
+
+    function addCommas(nStr) {
+       nStr += '';
+       x = nStr.split('.');
+       x1 = x[0];
+       x2 = x.length > 1 ? '.' + x[1] : '';
+       var rgx = /(\d+)(\d{3})/;
+       while (rgx.test(x1)) {
+           x1 = x1.replace(rgx, '$1' + ',' + '$2');
+       }
+       return x1 + x2;
+    };
+
+
+           var topLevelDomains = ["aero","asia","biz","cat","com","coop","info", "int", "jobs", "mobi",
                            "museum", "name", "net", "org", "pro", "tel", "travel", "xxx", "edu",
                            "edu", "gov", "mil", "ac", "ad", "ae", "af", "ag", "ai", "al", "am",
                            "am", "an", "aq", "ar", "as", "at", "au", "aw", "ax", "az", "ba", "bb",

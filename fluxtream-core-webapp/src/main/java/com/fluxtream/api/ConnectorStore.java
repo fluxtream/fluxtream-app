@@ -83,7 +83,12 @@ public class ConnectorStore {
     @Produces({MediaType.APPLICATION_JSON})
     public String getUninstalledConnectors(){
         Guest user = ControllerHelper.getGuest();
-        List<ConnectorInfo> connectors =  sysService.getConnectors();
+        List<ConnectorInfo> allConnectors =  sysService.getConnectors();
+        List<ConnectorInfo> connectors = new ArrayList<ConnectorInfo>();
+        for (ConnectorInfo connector : allConnectors) {
+            if (connector.enabled)
+                connectors.add(connector);
+        }
         List<Long> apiKeyIds = new ArrayList<Long>();
         for (int i = 0; i < connectors.size(); i++){
             if (guestService.hasApiKey(user.getId(), connectors.get(i).getApi()))

@@ -2,11 +2,14 @@ package com.fluxtream.connectors.bodymedia;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TimeZone;
 import com.fluxtream.ApiData;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 import com.fluxtream.services.ConnectorUpdateService;
+import com.fluxtream.services.MetadataService;
+import com.fluxtream.utils.TimeUtils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
@@ -26,6 +29,12 @@ public class BodymediaBurnFacetExtractor extends AbstractFacetExtractor
 
     //Logs various transactions
     Logger logger = Logger.getLogger(BodymediaBurnFacetExtractor.class);
+
+    DateTimeFormatter form = DateTimeFormat.forPattern("yyyyMMdd'T'HHmmssZ");
+    DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyyMMdd");
+
+    @Autowired
+    MetadataService metadataService;
 
     @Autowired
     ConnectorUpdateService connectorUpdateService;
@@ -68,7 +77,6 @@ public class BodymediaBurnFacetExtractor extends AbstractFacetExtractor
         {
             try
             {
-                DateTimeFormatter form = DateTimeFormat.forPattern("yyyyMMdd'T'HHmmssZ");
                 DateTime d = form.parseDateTime(bodymediaResponse.getJSONObject("lastSync").getString("dateTime"));
                 JSONArray daysArray = bodymediaResponse.getJSONArray("days");
                 long then = System.currentTimeMillis();
@@ -86,12 +94,14 @@ public class BodymediaBurnFacetExtractor extends AbstractFacetExtractor
                         burn.setPredictedCalories(day.getInt("predictedCalories"));
                         burn.setBurnJson(day.getString("minutes"));
 
-                        //Sets the start and end times for the facet so that it can be uniquely defined
-                        DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyyMMdd");
                         DateTime date = formatter.parseDateTime(day.getString("date"));
-                        burn.start = date.getMillis()/1000;
-                        date = date.plusDays(1);
-                        burn.end = date.getMillis()/1000;
+                        burn.date = dateFormatter.print(date.getMillis());
+                        TimeZone timeZone = metadataService.getTimeZone(apiData.updateInfo.getGuestId(), date.getMillis());
+                        long fromMidnight = TimeUtils.fromMidnight(date.getMillis(), timeZone);
+                        long toMidnight = TimeUtils.toMidnight(date.getMillis(), timeZone);
+                        //Sets the start and end times for the facet so that it can be uniquely defined
+                        burn.start = fromMidnight;
+                        burn.end = toMidnight;
 
                         facets.add(burn);
                     }
