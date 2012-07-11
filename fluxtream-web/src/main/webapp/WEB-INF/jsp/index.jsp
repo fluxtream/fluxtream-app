@@ -44,7 +44,7 @@
 						<div class="control-group">
 							<label class="control-label" for="f_username">User name:</label>
 							<div class="controls">
-                                
+
 								<div class="input">
                                     <input autocorrect="off" autocapitalize="off" autocomplete="on" class="span3" onkeypress="if(event.which==13) document.forms[0].submit();" id="f_username" name="f_username" placeholder="Username" value="<%=request.getParameter("username") != null ? request.getParameter("username") : ""%>" type="text"></input>
 								</div>

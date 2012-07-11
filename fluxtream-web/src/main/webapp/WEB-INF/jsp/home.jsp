@@ -83,10 +83,6 @@
 									<li><a href="javascript:App.settings()">Settings <i
 											class="icon-cog icon-large" style="float: right;"></i></a></li>
                                     <li><a href="javascript:App.addresses()">Addresses <i style="float: right;" class="icon-home icon-large"></i></a></li>
-									<sec:authorize access="hasRole('ROLE_ADMIN')">
-										<li><a href="/admin/index">Admin <i
-												class="icon-key icon-large" style="float: right;"></i></a></li>
-									</sec:authorize>
 									<li class="divider"></li>
 									<li><a href="/logout">Logout <i style="float: right"
 											class="icon-off icon-large"></i></a></li>
