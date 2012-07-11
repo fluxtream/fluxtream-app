@@ -65,13 +65,13 @@ public class SystemServiceImpl implements SystemService {
 						.getString("toodledo"),
 				"ajax:/toodledo/enterCredentials", Connector
 						.getConnector("toodledo"), 1, false));
-        final ConnectorInfo bodyTrackConnectorInfo = new ConnectorInfo("BodyTrack",
-                                                                       "/images/connectors/connector-bodyTrack.jpg",
-                                                                       res.getString("bodytrack"),
-                                                                       "ajax:/bodytrack/enterCredentials",
-                                                                       Connector.getConnector("bodytrack"), 2, true);
-        bodyTrackConnectorInfo.manageable = false;
-        em.persist(bodyTrackConnectorInfo);
+        //final ConnectorInfo bodyTrackConnectorInfo = new ConnectorInfo("BodyTrack",
+        //                                                               "/images/connectors/connector-bodyTrack.jpg",
+        //                                                               res.getString("bodytrack"),
+        //                                                               "ajax:/bodytrack/enterCredentials",
+        //                                                               Connector.getConnector("bodytrack"), 2, true);
+        //bodyTrackConnectorInfo.manageable = false;
+        //em.persist(bodyTrackConnectorInfo);
 		em.persist(new ConnectorInfo("Zeo",
 				"/images/connectors/connector-zeo.jpg", res
 						.getString("zeo"), "/zeo/subscribe", Connector

@@ -74,7 +74,7 @@
 			
 			for (int i=0; i<failedObjectTypeValues.size(); i++) {
 				int objectTypes = failedObjectTypeValues.get(i);
-				ScheduledUpdate scheduledUpdate = helper.connectorUpdateService.getNextScheduledUpdate(guest.getId(), connector, objectTypes);
+				ScheduledUpdate scheduledUpdate = helper.connectorUpdateService.getNextScheduledUpdate(guest.getId(), connector);
 				if (i>0) out.println(" | ");
 				out.print(helper.getLabelForObjectTypes(connector, objectTypes) + ": ");
 				out.print(scheduledUpdate==null?"-":format.print(scheduledUpdate.timeScheduled));
