@@ -6,8 +6,16 @@ define(["applications/calendar/tabs/Tab",
     var digestData = null;
     var preserveView = false;
 
+    var oldState = null;
+
     function render(digest, timeUnit, calendarState, connectorEnabled) {
-        this.getTemplate("text!applications/calendar/tabs/map/map.html", "map", function(){setup(digest,calendarState,connectorEnabled);});
+        this.getTemplate("text!applications/calendar/tabs/map/map.html", "map", function(){
+            if (calendarState == oldState)
+                return;
+            else
+                oldState = calendarState;
+            setup(digest,calendarState,connectorEnabled);
+        });
     }
 
     function setup(digest, calendarState,connectorEnabled) {
