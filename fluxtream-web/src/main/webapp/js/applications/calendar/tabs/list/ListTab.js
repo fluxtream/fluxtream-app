@@ -2,8 +2,16 @@ define(["applications/calendar/tabs/Tab", "applications/calendar/tabs/photos/Pho
 
     var listTab = new Tab("list", "Candide Kemmler", "icon-list", true);
 
+    var oldState = null;
+
     function render(digest, timeUnit, calendarState, connectorEnabled) {
-        this.getTemplate("text!applications/calendar/tabs/list/list.html", "list", function(){setup(digest,connectorEnabled);});
+        this.getTemplate("text!applications/calendar/tabs/list/list.html", "list", function(){
+            if (calendarState == oldState)
+                return;
+            else
+                oldState = calendarState;
+            setup(digest,connectorEnabled);
+        });
     }
 
     var items;
@@ -12,13 +20,11 @@ define(["applications/calendar/tabs/Tab", "applications/calendar/tabs/photos/Pho
     var pagination;
     var maxPerPage = 250;
     var currentPage = 0;
-    var initializing;
     var photoCarouselHTML;
 
     var rendererCount = 0;
 
     function setup(digest,connectorEnabled){
-        initializing = true;
         list = $("#list");
         pagination = $("#pagination");
         currentPage = 0;
@@ -68,7 +74,6 @@ define(["applications/calendar/tabs/Tab", "applications/calendar/tabs/photos/Pho
         rebuildPagination();
         repopulateList();
         updateNumberOfEvents();
-        initializing = false;
     }
 
     function rebuildPagination(){

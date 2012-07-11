@@ -5,9 +5,15 @@ define(["applications/calendar/tabs/Tab",
     var maxHeight = 200;
     var ratio = maxWidth / maxHeight;
 
+    var oldState = null;
+
 
     function render(dgest, timeUnit, calendarState, cEn) {
         this.getTemplate("text!applications/calendar/tabs/photos/photos.html", "photos", function() {
+            if (calendarState == oldState)
+                return;
+            else
+                oldState = calendarState;
             digest = dgest;
             connectorEnabled = cEn;
             setup(digest,connectorEnabled);
