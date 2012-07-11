@@ -2,7 +2,7 @@ define(["applications/calendar/tabs/timeline/BodyTrack"],function(BodyTrack){
 
     var grapherStyle = {"comments":{"show":false,"styles":[{"type":"point","show":false,"lineWidth":1,"radius":3,"color":"rgb(0, 102, 0)","fill":true,"fillColor":"rgb(0, 102, 0)"}],"verticalMargin":4},"styles":[{"type":"line","show":false,"color":"rgb(0, 102, 0)","lineWidth":1},{"type":"lollipop","show":true,"lineWidth":5,"radius":0,"color":"rgb(0, 102, 0)","fill":false},{"type":"point","show":false,"lineWidth":1,"radius":2,"color":"rgb(0, 102, 0)","fill":true,"fillColor":"rgb(0, 102, 0)"},{"type":"value","show":true,"fillColor":"rgb(0, 102, 0)","marginWidth":5,"verticalOffset":7,"numberFormat":"###,##0"}],"highlight":{"styles":[{"type":"value","show":true,"fillColor":"rgb(0, 102, 0)","marginWidth":5,"verticalOffset":7,"numberFormat":"###,##0"}],"lineWidth":6}};
 
-    var GrapherComponent = function(parentElement, yAxisWidth, xAxisHeight, channelName, tbounds, yAxisPosition){
+    var GrapherComponent = function(parentElement, yAxisWidth, xAxisHeight, channelName, tbounds, yAxisPosition, positiveOnly){
         var component = this;
         this.channelName = channelName;
         this.width = width;
@@ -106,20 +106,20 @@ define(["applications/calendar/tabs/timeline/BodyTrack"],function(BodyTrack){
             var afterload = function(stats){
                 if (stats.has_data){
                     var yMax = stats.y_max;
-                    var yMin = 0;
+                    var yMin = positiveOnly ? 0 : stats.y_min;
                     var yDiff = yMax - yMin;
                     if(yDiff < 1e-10) {
-                        component.yAxis.setRange(yMin, yMin + 0.5);
+                        component.yAxis.setRange(yMin - 0.5, yMin + 0.5);
                     } else {
-                        var padding = 0.2 * yDiff;
-                        component.yAxis.setRange(yMin, yMax + padding);
+                        var padding = 0.075 * yDiff;
+                        component.yAxis.setRange(positiveOnly ? yMin : yMin - padding, yMax + padding);
                     }
                     component.plot.setStyle( component.plot.getStyle()); // Trigger a repaint)
                 }
             };
 
             var fixBounds = function(){
-                afterload( component.plot.getStatistics( component.xAxis.getMin(), component.xAxis.getMax(),["has_data", "y_max"]));
+                afterload( component.plot.getStatistics( component.xAxis.getMin(), component.xAxis.getMax(),["has_data", "y_max", "y_min"]));
             }
 
             //currently there is no better way with the api to get the necessary height
