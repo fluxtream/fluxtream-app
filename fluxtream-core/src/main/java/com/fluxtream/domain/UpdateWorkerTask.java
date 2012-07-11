@@ -22,10 +22,9 @@ import com.fluxtream.connectors.updaters.UpdateInfo;
     @NamedQuery( name="updateWorkerTasks.isScheduled",
                  query="SELECT updt FROM ScheduledUpdate updt WHERE (updt.status=? OR updt.status=?) AND updt.guestId=? " +
                        "AND updt.connectorName=?"),
-    @NamedQuery( name="updateWorkerTasks.withUpdateTypeAndObjectTypes.isScheduled",
+    @NamedQuery( name="updateWorkerTasks.withObjectTypes.isScheduled",
 		query="SELECT updt FROM ScheduledUpdate updt WHERE (updt.status=? OR updt.status=?) AND updt.guestId=? " +
-				"AND updt.updateType=? AND updt.objectTypes=? " +
-				"AND updt.connectorName=?"),
+				"AND updt.objectTypes=? AND updt.connectorName=?"),
 	@NamedQuery( name="updateWorkerTasks.completed",
 		query="SELECT updt FROM ScheduledUpdate updt WHERE updt.status=? " +
 				"AND updt.guestId=? " +

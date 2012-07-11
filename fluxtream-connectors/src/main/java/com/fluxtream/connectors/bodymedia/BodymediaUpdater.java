@@ -60,13 +60,10 @@ public class BodymediaUpdater extends AbstractUpdater
         String userRegistrationDate = getUserRegistrationDate(updateInfo, api_key);
         for(ObjectType ot : updateInfo.objectTypes())
         {
-            if(!ot.getName().equals("burn"))
-            {
-                //DateTime should be initialized to today
-                DateTime today = new DateTime();
-                DateTime start = DateTimeFormat.forPattern("yyyyMMdd").parseDateTime(userRegistrationDate);
-                retrieveHistory(updateInfo, ot, url.get(ot), maxIncrement.get(ot), start, today);
-            }
+            //DateTime should be initialized to today
+            DateTime today = new DateTime();
+            DateTime start = DateTimeFormat.forPattern("yyyyMMdd").parseDateTime(userRegistrationDate);
+            retrieveHistory(updateInfo, ot, url.get(ot), maxIncrement.get(ot), start, today);
         }
     }
 
@@ -129,12 +126,9 @@ public class BodymediaUpdater extends AbstractUpdater
     {
         for(ObjectType ot : updateInfo.objectTypes())
         {
-            if(ot.getName().equals("burn"))
-            {
-                DateTime today = new DateTime();
-                DateTime start = getLastSyncTime(updateInfo, ot);
-                retrieveHistory(updateInfo, ot, url.get(ot), maxIncrement.get(ot), start, today);
-            }
+            DateTime today = new DateTime();
+            DateTime start = getLastSyncTime(updateInfo, ot);
+            retrieveHistory(updateInfo, ot, url.get(ot), maxIncrement.get(ot), start, today);
         }
     }
 
