@@ -74,7 +74,7 @@
 			
 			for (int i=0; i<failedObjectTypeValues.size(); i++) {
 				int objectTypes = failedObjectTypeValues.get(i);
-				UpdateWorkerTask updateWorkerTask = helper.connectorUpdateService.getNextScheduledUpdateTask(guest.getId(), connector, objectTypes);
+				UpdateWorkerTask updateWorkerTask = helper.connectorUpdateService.getNextScheduledUpdateTask(guest.getId(), connector);
 				if (i>0) out.println(" | ");
 				out.print(helper.getLabelForObjectTypes(connector, objectTypes) + ": ");
 				out.print(updateWorkerTask ==null?"-":format.print(updateWorkerTask.timeScheduled));
