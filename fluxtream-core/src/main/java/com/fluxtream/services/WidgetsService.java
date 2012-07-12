@@ -3,6 +3,7 @@ package com.fluxtream.services;
 import java.util.List;
 import com.fluxtream.domain.DashboardWidget;
 import com.fluxtream.domain.DashboardWidgetsRepository;
+import com.fluxtream.domain.WidgetSettings;
 
 /**
  *
@@ -21,5 +22,15 @@ public interface WidgetsService {
     public void addWidgetRepositoryURL(long guestId, String url);
 
     public void removeWidgetRepositoryURL(long guestId, String url);
+
+    public void saveWidgetSettings(long guestId, long dashboardId, String widgetname, String settingsJSON);
+
+    public WidgetSettings getWidgetSettings(long guestId, long dashboardId, String widgetname);
+
+    public void deleteWidgetSettings(long guestId, long dashboardId, String widgetname);
+
+    public List<WidgetSettings> getWidgetSettings(long guestId, long dashboardId);
+
+    public void deleteWidgetSettings(long guestId, long dashboardId);
 
 }

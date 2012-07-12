@@ -3,6 +3,7 @@
     "WidgetIcon" : "example2.png",
     "WidgetName" : "example2",
     "WidgetTitle" : {"en" : "Example 2"},
+    "HasSettings" : false,
     "SupportedLanguages" : "en",
     "VendorIdentifier" : "Fluxtream.com",
     "RequiredConnectors": "google_latitude"

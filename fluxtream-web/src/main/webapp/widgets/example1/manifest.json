@@ -3,6 +3,7 @@
     "WidgetIcon" : "example1.png",
     "WidgetName" : "example1",
     "WidgetTitle" : {"en" : "Example 1"},
+    "HasSettings" : false,
     "SupportedLanguages" : "en",
     "VendorIdentifier" : "Fluxtream.com",
     "RequiredConnectors":"bodymedia, fitbit"

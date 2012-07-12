@@ -3,6 +3,7 @@
     "WidgetIcon" : "typo3.png",
     "WidgetName" : "typo3",
     "WidgetTitle" : {"en" : "Typography #3"},
+    "HasSettings" : false,
     "SupportedLanguages" : "en",
     "VendorIdentifier" : "Fluxtream.com",
     "RequiredConnectors":"dev"

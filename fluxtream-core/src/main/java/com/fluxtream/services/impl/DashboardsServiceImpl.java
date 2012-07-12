@@ -105,6 +105,7 @@ public class DashboardsServiceImpl implements DashboardsService {
     public void removeDashboard(final long guestId, final long dashboardId) {
         Dashboard dashboard = getDashboardById(guestId, dashboardId);
         em.remove(dashboard);
+        widgetsService.deleteWidgetSettings(guestId, dashboardId);
     }
 
     @Override
@@ -148,6 +149,7 @@ public class DashboardsServiceImpl implements DashboardsService {
         widgetNames.remove(widgetName);
         dashboard.widgetNames = StringUtils.join(widgetNames, ",");
         em.persist(dashboard);
+        widgetsService.deleteWidgetSettings(guestId, dashboardId, widgetName);
     }
 
     @Override
