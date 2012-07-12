@@ -3,7 +3,7 @@
     "WidgetIcon" : "averageSteps.png",
     "WidgetName" : "averageSteps",
     "WidgetTitle" : {"en" : "Average Steps"},
-    "HasSettings" : false,
+    "HasSettings" : true,
     "SupportedLanguages" : "en",
     "VendorIdentifier" : "Fluxtream.com",
     "RequiredConnectors":"bodymedia, fitbit"

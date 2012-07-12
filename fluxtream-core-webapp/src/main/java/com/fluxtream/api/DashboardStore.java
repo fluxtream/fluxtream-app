@@ -73,7 +73,7 @@ public class DashboardStore {
         there: for (String widgetName : widgetNames) {
             for (DashboardWidget dashboardWidget : availableWidgetsList) {
                 if (dashboardWidget.WidgetName.equals(widgetName)) {
-                    widgetsArray.add(toJSONObject(dashboardWidget));
+                    widgetsArray.add(toJSONObject(guestId, dashboard, dashboardWidget));
                     continue there;
                 }
             }
@@ -82,7 +82,8 @@ public class DashboardStore {
         return dashboardJson;
     }
 
-    private JSONObject toJSONObject(final DashboardWidget dashboardWidget) {
+    private JSONObject toJSONObject(final long guestId, final Dashboard dashboard,
+                                    final DashboardWidget dashboardWidget) {
         JSONObject widgetJson = new JSONObject();
         widgetJson.accumulate("WidgetName", dashboardWidget.WidgetName);
         widgetJson.accumulate("WidgetRepositoryURL", dashboardWidget.WidgetRepositoryURL);
@@ -90,6 +91,11 @@ public class DashboardStore {
         widgetJson.accumulate("WidgetTitle", dashboardWidget.WidgetTitle);
         widgetJson.accumulate("WidgetIcon", dashboardWidget.WidgetIcon);
         widgetJson.accumulate("HasSettings", dashboardWidget.HasSettings);
+        if (dashboardWidget.HasSettings) {
+            final WidgetSettings widgetSettings = widgetsService.getWidgetSettings(guestId, dashboard.getId(),
+                                                                                   dashboardWidget.WidgetName);
+            widgetJson.accumulate("Settings", JSONObject.fromObject(widgetSettings.settingsJSON));
+        }
         return widgetJson;
     }
 
