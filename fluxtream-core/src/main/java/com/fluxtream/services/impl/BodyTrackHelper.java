@@ -30,12 +30,11 @@ public class BodyTrackHelper {
 
     Gson gson = new Gson();
 
-    public void uploadToBodyTrack(final String host, final String user_id, String deviceName, Collection<String> channelNames, List<List<Object>> data, Map<String,Collection<Object>> channelSpecs) {
+    public void uploadToBodyTrack(final String host, final String user_id, String deviceName, Collection<String> channelNames, List<List<Object>> data) {
         try {
             Map<String, String> params = new HashMap<String,String>();
             params.put("dev_nickname", deviceName);
             params.put("channel_names", gson.toJson(channelNames));
-            params.put("channel_specs", gson.toJson(channelSpecs));
             params.put("data", gson.toJson(data));
 
             String result = HttpUtils.fetch("http://" + host + "/users/"
