@@ -28,6 +28,7 @@ public class DashboardWidget {
     public String BundleCopyright;
     public String BundleIdentifier;
     public String BundleVersion;
+    public boolean HasSettings;
 
     public DashboardWidget(final JSONObject manifestJSON, final String baseURL) {
         try {
@@ -44,6 +45,7 @@ public class DashboardWidget {
                 WidgetTitle.put(key, titleDict.getString(key));
             }
             WidgetRepositoryURL = baseURL(baseURL);
+            HasSettings = manifestJSON.getBoolean("HasSettings");
             SupportedLanguages = new ArrayList<String>(
                     Arrays.asList(
                             StringUtils.split(manifestJSON.getString("SupportedLanguages"),

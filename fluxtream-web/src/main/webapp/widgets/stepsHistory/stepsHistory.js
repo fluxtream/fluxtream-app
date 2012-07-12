@@ -4,7 +4,7 @@ define(["core/DashboardWidget", "core/GrapherComponent"], function(DashboardWidg
 
     StepsHistory.init = function() {
         require(["text!" + this.manifest.WidgetRepositoryURL + "/"
-                + this.manifest.WidgetName + "/stepsHistory.mustache"], function(template) {
+                     + this.manifest.WidgetName + "/stepsHistory.mustache"], function(template) {
             StepsHistory.postLoad(template);
         });
     };

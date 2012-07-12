@@ -18,7 +18,9 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.domain.Dashboard;
 import com.fluxtream.domain.DashboardWidget;
+import com.fluxtream.domain.WidgetSettings;
 import com.fluxtream.mvc.controllers.ControllerHelper;
+import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.DashboardsService;
 import com.fluxtream.services.WidgetsService;
 import com.google.gson.Gson;
@@ -87,6 +89,7 @@ public class DashboardStore {
         widgetJson.accumulate("WidgetDescription", dashboardWidget.WidgetDescription);
         widgetJson.accumulate("WidgetTitle", dashboardWidget.WidgetTitle);
         widgetJson.accumulate("WidgetIcon", dashboardWidget.WidgetIcon);
+        widgetJson.accumulate("HasSettings", dashboardWidget.HasSettings);
         return widgetJson;
     }
 
@@ -202,6 +205,31 @@ public class DashboardStore {
         }
         dashboardsService.setDashboardsOrder(guestId, ids);
         return getDashboards();
+    }
+
+    @POST
+    @Path("/{dashboardId}/widgets/{widgetName}/settings")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String saveWidgetSettings(@PathParam("dashboardId") long dashboardId,
+                                     @PathParam("widgetName") String widgetName,
+                                     @FormParam("settingsJSON") String settingsJSON) throws UnsupportedEncodingException {
+        widgetName = URLDecoder.decode(widgetName, "UTF-8");
+        long guestId = ControllerHelper.getGuestId();
+        widgetsService.saveWidgetSettings(guestId, dashboardId, widgetName, settingsJSON);
+        StatusModel statusModel = new StatusModel(true, "Successfully saved widget settings");
+        return gson.toJson(statusModel);
+    }
+
+    @GET
+    @Path("/{dashboardId}/widgets/{widgetName}/settings")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String getWidgetSettings(@PathParam("dashboardId") long dashboardId,
+                                    @PathParam("widgetName") String widgetName) throws UnsupportedEncodingException {
+        widgetName = URLDecoder.decode(widgetName, "UTF-8");
+        long guestId = ControllerHelper.getGuestId();
+        final WidgetSettings settings = widgetsService.getWidgetSettings(guestId, dashboardId, widgetName);
+        JSONObject jsonSettings = JSONObject.fromObject(settings.settingsJSON);
+        return jsonSettings.toString();
     }
 
 }

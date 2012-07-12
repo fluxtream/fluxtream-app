@@ -7,6 +7,29 @@ define(function() {
         this.digest = dgst;
         _.bindAll(this);
         this.init();
+        var that = this;
+        $("#" + mnfst.WidgetName + "-widget-settings").click(function () {
+            console.log("widget settings...");
+            that.settings();
+        });
+    }
+
+    DashboardWidget.prototype.settings = function() {
+        var that = this;
+        App.loadMustacheTemplate("applications/calendar/tabs/dashboards/dashboardsTabTemplates.html","widgetSettings",function(template) {
+            var html = template.render({"manifest" : that.manifest});
+            App.makeModal(html);
+            that.loadWidgetSettings();
+        });
+    }
+
+    DashboardWidget.prototype.loadWidgetSettings = function() {
+        var that = this;
+        require(["text!" + this.manifest.WidgetRepositoryURL + "/"
+                     + this.manifest.WidgetName + "/settings.mustache"], function(html) {
+            var selector = "#" + that.manifest.WidgetName + "-widgetSettings";
+            $(selector).replaceWith(html);
+        });
     }
 
     DashboardWidget.prototype.addCommas = function(nStr) {
