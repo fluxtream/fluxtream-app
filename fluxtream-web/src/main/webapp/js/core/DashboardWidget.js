@@ -2,31 +2,35 @@ define(function() {
 
     function DashboardWidget() {}
 
-    DashboardWidget.prototype.load = function(mnfst, dgst) {
-        this.manifest = mnfst;
+    DashboardWidget.prototype.load = function(widgetInfo, dgst) {
+        this.manifest = widgetInfo.manifest;
         this.digest = dgst;
         _.bindAll(this);
         this.init();
         var that = this;
-        $("#" + mnfst.WidgetName + "-widget-settings").click(function () {
-            console.log("widget settings...");
-            that.settings();
-        });
+        if (this.manifest.HasSettings) {
+            this.settings = widgetInfo.settings;
+            $("#" + widgetInfo.manifest.WidgetName + "-widget-settings").click(function () {
+                that.settings(that.settings);
+            });
+        }
     }
 
-    DashboardWidget.prototype.settings = function() {
+    DashboardWidget.prototype.settings = function(settings) {
         var that = this;
         App.loadMustacheTemplate("applications/calendar/tabs/dashboards/dashboardsTabTemplates.html","widgetSettings",function(template) {
             var html = template.render({"manifest" : that.manifest});
             App.makeModal(html);
-            that.loadWidgetSettings();
+            that.loadWidgetSettings(that.settings);
         });
     }
 
-    DashboardWidget.prototype.loadWidgetSettings = function() {
+    DashboardWidget.prototype.loadWidgetSettings = function(settings) {
         var that = this;
         require(["text!" + this.manifest.WidgetRepositoryURL + "/"
                      + this.manifest.WidgetName + "/settings.mustache"], function(html) {
+            console.log("loading widget settings");
+            console.log(settings);
             var selector = "#" + that.manifest.WidgetName + "-widgetSettings";
             $(selector).replaceWith(html);
         });
