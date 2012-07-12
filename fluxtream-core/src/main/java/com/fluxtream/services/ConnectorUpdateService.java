@@ -16,6 +16,8 @@ public interface ConnectorUpdateService {
 
     public List<ScheduleResult> updateConnector(long guestId, Connector connector);
 
+    public List<ScheduleResult> updateConnectorObjectType(long guestId, Connector connector, int objectTypes);
+
     public List<ScheduleResult> updateAllConnectors(long guestId);
 
     public List<ApiUpdate> getUpdates(long guestId, Connector connector, int pageSize, int page);
