@@ -37,15 +37,11 @@ public class WidgetCollection {
     Gson gson = new Gson();
 
     @GET
-    @Produces({ MediaType.APPLICATION_JSON })
-    public String getAvailableWidgetsList() {
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<DashboardWidget> getAvailableWidgetsList() {
         long guestId = ControllerHelper.getGuestId();
-        try {
-            List<DashboardWidget> widgets = widgetsService.getAvailableWidgetsList(guestId);
-            return gson.toJson(widgets);
-        } catch (RuntimeException rte) {
-            return handleRuntimeException(rte);
-        }
+        List<DashboardWidget> widgets = widgetsService.getAvailableWidgetsList(guestId);
+        return widgets;
     }
 
     @POST
