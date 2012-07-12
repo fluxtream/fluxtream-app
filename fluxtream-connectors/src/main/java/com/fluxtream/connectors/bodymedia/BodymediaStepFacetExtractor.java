@@ -18,6 +18,7 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 /**
@@ -30,16 +31,16 @@ public class BodymediaStepFacetExtractor extends AbstractFacetExtractor
     //Logs various transactions
     Logger logger = Logger.getLogger(BodymediaStepFacetExtractor.class);
 
+    @Qualifier("connectorUpdateServiceImpl")
     @Autowired
     ConnectorUpdateService connectorUpdateService;
 
     DateTimeFormatter form = DateTimeFormat.forPattern("yyyyMMdd'T'HHmmssZ");
     DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyyMMdd");
 
+    @Qualifier("metadataServiceImpl")
     @Autowired
     MetadataService metadataService;
-
-    private final static int STEP_OBJECT_VALUE = 2;
 
     @Override
     public List<AbstractFacet> extractFacets(ApiData apiData, ObjectType objectType) throws Exception
@@ -49,7 +50,7 @@ public class BodymediaStepFacetExtractor extends AbstractFacetExtractor
         				" connector=bodymedia action=extractFacets objectType="
         						+ objectType.getName());
 
-        ArrayList<AbstractFacet> facets = null;
+        ArrayList<AbstractFacet> facets;
         String name = objectType.getName();
         if(name.equals("steps"))
         {
@@ -69,9 +70,6 @@ public class BodymediaStepFacetExtractor extends AbstractFacetExtractor
          */
         JSONObject bodymediaResponse = JSONObject.fromObject(apiData.json);
             JSONArray daysArray = bodymediaResponse.getJSONArray("days");
-            long then = System.currentTimeMillis();
-            DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyyMMdd");
-            DateTimeFormatter form = DateTimeFormat.forPattern("yyyyMMdd'T'HHmmssZ");
             DateTime d = form.parseDateTime(bodymediaResponse.getJSONObject("lastSync").getString("dateTime"));
             for(Object o : daysArray)
             {
@@ -82,7 +80,8 @@ public class BodymediaStepFacetExtractor extends AbstractFacetExtractor
                     super.extractCommonFacetData(steps, apiData);
                     steps.setTotalSteps(day.getInt("totalSteps"));
                     steps.setDate(day.getString("date"));
-                    steps.setStepJson(day.getString("hours"));
+                    steps.setJson(day.getString("hours"));
+                    steps.setLastSync(d.getMillis());
 
                     DateTime date = formatter.parseDateTime(day.getString("date"));
                     steps.date = dateFormatter.print(date.getMillis());
@@ -97,11 +96,6 @@ public class BodymediaStepFacetExtractor extends AbstractFacetExtractor
                 else
                     throw new JSONException("Days array is not a proper JSONObject");
             }
-
-            connectorUpdateService.addApiUpdate(updateInfo.getGuestId(), connector(),
-        		    			STEP_OBJECT_VALUE, then, System.currentTimeMillis() - then,
-                                "http://api.bodymedia.com/v2/json/step/day/hour/", true, d.getMillis());
-
         return facets;
     }
 }

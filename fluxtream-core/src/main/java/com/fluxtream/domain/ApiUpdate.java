@@ -31,9 +31,7 @@ import org.hibernate.annotations.Type;
 	@NamedQuery( name="apiUpdates.last.successful.byApi",
 		query="SELECT updt FROM ApiUpdates updt WHERE updt.guestId=? and updt.api=? and updt.success=true ORDER BY updt.ts DESC"),
 	@NamedQuery( name="apiUpdates.last.successful.byApiAndObjectTypes",
-		query="SELECT updt FROM ApiUpdates updt WHERE updt.guestId=? and updt.api=? and updt.objectTypes=? and updt.success=true ORDER BY updt.ts DESC"),
-    @NamedQuery( name="apiUpdates.lastSync",
-        query="SELECT updt FROM ApiUpdates updt WHERE updt.guestId=? and updt.api=? and updt.objectTypes=? and updt.success=true and lastSync<>0 ORDER BY updt.lastSync DESC LIMIT 10")})
+		query="SELECT updt FROM ApiUpdates updt WHERE updt.guestId=? and updt.api=? and updt.objectTypes=? and updt.success=true ORDER BY updt.ts DESC")})
 public class ApiUpdate extends AbstractEntity {
 
 	@Index(name="guestId")
@@ -61,7 +59,4 @@ public class ApiUpdate extends AbstractEntity {
 
     @Expose
     public String query;
-
-    @Expose
-    public long lastSync;
 }

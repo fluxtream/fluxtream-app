@@ -13,6 +13,6 @@ public class BodymediaStepsFacetVO extends AbstractFacetVO<BodymediaStepsFacet>{
     @Override
     protected void fromFacet(final BodymediaStepsFacet facet, final TimeInterval timeInterval, final GuestSettings settings) {
         this.totalSteps = facet.totalSteps;
-        this.stepsJson = facet.stepJson;
+        this.stepsJson = facet.Json;
     }
 }

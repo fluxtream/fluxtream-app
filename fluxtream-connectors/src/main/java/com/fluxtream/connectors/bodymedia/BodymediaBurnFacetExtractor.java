@@ -19,6 +19,7 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 /**
@@ -34,13 +35,13 @@ public class BodymediaBurnFacetExtractor extends AbstractFacetExtractor
     DateTimeFormatter form = DateTimeFormat.forPattern("yyyyMMdd'T'HHmmssZ");
     DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyyMMdd");
 
+    @Qualifier("metadataServiceImpl")
     @Autowired
     MetadataService metadataService;
 
+    @Qualifier("connectorUpdateServiceImpl")
     @Autowired
     ConnectorUpdateService connectorUpdateService;
-
-    private final static int BURN_OBJECT_VALUE = 1;
 
     @Override
     public List<AbstractFacet> extractFacets(ApiData apiData, ObjectType objectType) throws Exception
@@ -50,7 +51,7 @@ public class BodymediaBurnFacetExtractor extends AbstractFacetExtractor
         				" connector=bodymedia action=extractFacets objectType="
         						+ objectType.getName());
 
-        ArrayList<AbstractFacet> facets = null;
+        ArrayList<AbstractFacet> facets;
         String name = objectType.getName();
         if(name.equals("burn"))
         {
@@ -83,7 +84,6 @@ public class BodymediaBurnFacetExtractor extends AbstractFacetExtractor
         {
             DateTime d = form.parseDateTime(bodymediaResponse.getJSONObject("lastSync").getString("dateTime"));
             JSONArray daysArray = bodymediaResponse.getJSONArray("days");
-            long then = System.currentTimeMillis();
             for(Object o : daysArray)
             {
                 if(o instanceof JSONObject)
@@ -96,7 +96,8 @@ public class BodymediaBurnFacetExtractor extends AbstractFacetExtractor
                     burn.setDate(day.getString("date"));
                     burn.setEstimatedCalories(day.getInt("estimatedCalories"));
                     burn.setPredictedCalories(day.getInt("predictedCalories"));
-                    burn.setBurnJson(day.getString("minutes"));
+                    burn.setJson(day.getString("minutes"));
+                    burn.setLastSync(d.getMillis());
 
                     DateTime date = formatter.parseDateTime(day.getString("date"));
                     burn.date = dateFormatter.print(date.getMillis());
@@ -112,10 +113,6 @@ public class BodymediaBurnFacetExtractor extends AbstractFacetExtractor
                 else
                     throw new RuntimeException("days array is not a proper JSONObject");
             }
-
-            connectorUpdateService.addApiUpdate(updateInfo.getGuestId(), connector(),
-                                BURN_OBJECT_VALUE, then, System.currentTimeMillis() - then,
-                                "http://api.bodymedia.com/v2/json/burn/day/minute/intensity/", true, d.getMillis());
         }
         return facets;
     }

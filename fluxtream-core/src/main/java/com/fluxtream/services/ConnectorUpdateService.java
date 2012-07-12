@@ -34,7 +34,7 @@ public interface ConnectorUpdateService {
 	public Set<Long> getConnectorGuests(Connector connector);
 	
 	public void addApiUpdate(long guestId, Connector api, int objectTypes,
-			long ts, long elapsed, String query, boolean success, long lastSync);
+			long ts, long elapsed, String query, boolean success);
 
 	public void addApiNotification(Connector api, long guestId, String content);
 
@@ -68,7 +68,4 @@ public interface ConnectorUpdateService {
 
 	public long getNumberOfUpdatesSince(long guestId, Connector connector,
 			long then);
-
-    ApiUpdate getLastSuccessfulSync(long guestId, Connector api,
-                                    int objectTypes);
 }

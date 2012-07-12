@@ -1,40 +1,29 @@
 package com.fluxtream.connectors.bodymedia;
 
 import javax.persistence.Entity;
-import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-
-import org.hibernate.search.annotations.Indexed;
-
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
-import com.fluxtream.domain.AbstractFacet;
+import org.hibernate.search.annotations.Indexed;
 
 @Entity(name="Facet_BodymediaSleep")
 @ObjectTypeSpec(name = "sleep", value = 4, prettyname = "sleep", extractor = BodymediaSleepFacetExtractor.class)
 @NamedQueries({
 	@NamedQuery(name = "bodymedia.sleep.deleteAll", query = "DELETE FROM Facet_BodymediaSleep facet WHERE facet.guestId=?"),
-	@NamedQuery(name = "bodymedia.sleep.between", query = "SELECT facet FROM Facet_BodymediaSleep facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=?")
+	@NamedQuery(name = "bodymedia.sleep.between", query = "SELECT facet FROM Facet_BodymediaSleep facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=?"),
+    @NamedQuery(name = "bodymedia.sleep.getFailedUpdate", query = "SELECT facet FROM Facet_BodymediaBurn facet WHERE facet.guestId=? AND facet.lastSync=-1"),
+    @NamedQuery(name = "bodymedia.sleep.getDaysPrior", query = "SELECT facet FROM Facet_BodymediaBurn facet WHERE facet.guestId=? AND facet.start<? ORDER BY facet.start DESC"),
+    @NamedQuery(name = "bodymedia.sleep.getLastSync", query = "SELECT facet FROM Facet_BodymediaBurn facet WHERE facet.guestId=? ORDER BY facet.lastSync")
 })
 @Indexed
-public class BodymediaSleepFacet extends AbstractFacet {
+public class BodymediaSleepFacet extends BodymediaAbstractFacet {
 
-    //The date that this facet represents
-    String date;
     //The sleep efficiency ratio provided by Bodymedia
     double efficiency;
     //The total number of minutes spent lying awake
     int totalLying;
     //The total number of minutes spent sleeping
     int totalSleeping;
-    //The Json for the sleep periods;
-    @Lob
-    String sleepJson;
-
-    public void setDate(final String date)
-    {
-        this.date = date;
-    }
 
     public void setEfficiency(final double efficiency)
     {
@@ -49,11 +38,6 @@ public class BodymediaSleepFacet extends AbstractFacet {
     public void setTotalSleeping(final int totalSleeping)
     {
         this.totalSleeping = totalSleeping;
-    }
-
-    public void setSleepJson(final String sleepJson)
-    {
-        this.sleepJson = sleepJson;
     }
 
     @Override

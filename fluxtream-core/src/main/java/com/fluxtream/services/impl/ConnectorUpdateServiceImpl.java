@@ -247,7 +247,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 	@Override
 	@Transactional(readOnly = false)
 	public void addApiUpdate(long guestId, Connector api, int objectTypes,
-			long ts, long elapsed, String query, boolean success, long lastSync) {
+			long ts, long elapsed, String query, boolean success) {
 		ApiUpdate updt = new ApiUpdate();
 		updt.guestId = guestId;
 		updt.api = api.value();
@@ -256,7 +256,6 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 		updt.objectTypes = objectTypes;
 		updt.elapsed = elapsed;
 		updt.success = success;
-        updt.lastSync = lastSync;
 		em.persist(updt);
 	}
 
@@ -290,17 +289,6 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 				api.value(), objectTypes);
 		return lastUpdate;
 	}
-
-    @Override
-    public ApiUpdate getLastSuccessfulSync(long guestId, Connector api,
-            int objectTypes) {
-        if (objectTypes == -1)
-            return getLastSuccessfulUpdate(guestId, api);
-        ApiUpdate lastUpdate = JPAUtils.findUnique(em, ApiUpdate.class,
-                "apiUpdates.lastSync", guestId,
-                api.value(), objectTypes);
-        return lastUpdate;
-    }
 
     @Override
     @Transactional(readOnly = false)

@@ -18,6 +18,7 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 /**
@@ -30,16 +31,16 @@ public class BodymediaSleepFacetExtractor extends AbstractFacetExtractor
     //Logs various transactions
     Logger logger = Logger.getLogger(BodymediaSleepFacetExtractor.class);
 
+    @Qualifier("connectorUpdateServiceImpl")
     @Autowired
     ConnectorUpdateService connectorUpdateService;
 
     DateTimeFormatter form = DateTimeFormat.forPattern("yyyyMMdd'T'HHmmssZ");
     DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyyMMdd");
 
+    @Qualifier("metadataServiceImpl")
     @Autowired
     MetadataService metadataService;
-
-    private final static int SLEEP_OBJECT_VALUE = 4;
 
     @Override
     public List<AbstractFacet> extractFacets(ApiData apiData, ObjectType objectType) throws Exception
@@ -49,7 +50,7 @@ public class BodymediaSleepFacetExtractor extends AbstractFacetExtractor
         				" connector=bodymedia action=extractFacets objectType="
         						+ objectType.getName());
 
-        ArrayList<AbstractFacet> facets = null;
+        ArrayList<AbstractFacet> facets;
         String name = objectType.getName();
         if(name.equals("sleep"))
         {
@@ -65,7 +66,7 @@ public class BodymediaSleepFacetExtractor extends AbstractFacetExtractor
     /**
      * Extracts Data from the Sleep api.
      * @param apiData The data returned by bodymedia
-     * @return
+     * @return a list containing a single BodymediaSleepFacet for the current day
      */
     private ArrayList<AbstractFacet> extractSleepFacets(final ApiData apiData)
     {
@@ -74,9 +75,6 @@ public class BodymediaSleepFacetExtractor extends AbstractFacetExtractor
          */
         JSONObject bodymediaResponse = JSONObject.fromObject(apiData.json);
         JSONArray daysArray = bodymediaResponse.getJSONArray("days");
-        long then = System.currentTimeMillis();
-        DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyyMMdd");
-        DateTimeFormatter form = DateTimeFormat.forPattern("yyyyMMdd'T'HHmmssZ");
         DateTime d = form.parseDateTime(bodymediaResponse.getJSONObject("lastSync").getString("dateTime"));
         for(Object o : daysArray)
         {
@@ -89,7 +87,8 @@ public class BodymediaSleepFacetExtractor extends AbstractFacetExtractor
                 sleep.setEfficiency(day.getDouble("efficiency"));
                 sleep.setTotalLying(day.getInt("totalLying"));
                 sleep.setTotalSleeping(day.getInt("totalSleep"));
-                sleep.setSleepJson(day.getString("sleepPeriods"));
+                sleep.setJson(day.getString("sleepPeriods"));
+                sleep.setLastSync(d.getMillis());
 
                 DateTime date = formatter.parseDateTime(day.getString("date"));
                 sleep.date = dateFormatter.print(date.getMillis());
@@ -104,10 +103,6 @@ public class BodymediaSleepFacetExtractor extends AbstractFacetExtractor
             else
                 throw new JSONException("Days array is not a proper JSONObject");
         }
-
-        connectorUpdateService.addApiUpdate(updateInfo.getGuestId(), connector(),
-                            SLEEP_OBJECT_VALUE, then, System.currentTimeMillis() - then,
-                            "http://api.bodymedia.com/v2/json/sleep/day/period/", true, d.getMillis());
         return facets;
     }
 

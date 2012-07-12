@@ -1,13 +1,15 @@
 package com.fluxtream.connectors.bodymedia;
 
 import java.util.HashMap;
+import java.util.TimeZone;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.SignpostOAuthHelper;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
-import com.fluxtream.domain.ApiUpdate;
+import com.fluxtream.services.MetadataService;
+import com.fluxtream.utils.TimeUtils;
 import net.sf.json.JSONObject;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.commonshttp.CommonsHttpOAuthConsumer;
@@ -21,6 +23,7 @@ import org.joda.time.DateTimeComparator;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -34,8 +37,15 @@ public class BodymediaUpdater extends AbstractUpdater
     @Autowired
     SignpostOAuthHelper signpostHelper;
 
+    @Qualifier("metadataServiceImpl")
+    @Autowired
+    MetadataService metadataService;
+
+
     private final HashMap<ObjectType, String> url = new HashMap<ObjectType, String>();
     private final HashMap<ObjectType, Integer> maxIncrement = new HashMap<ObjectType, Integer>();
+
+    private final DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyyMMdd");
 
     public BodymediaUpdater()
     {
@@ -60,9 +70,19 @@ public class BodymediaUpdater extends AbstractUpdater
         String userRegistrationDate = getUserRegistrationDate(updateInfo, api_key);
         for(ObjectType ot : updateInfo.objectTypes())
         {
-            //DateTime should be initialized to today
-            DateTime today = new DateTime();
-            DateTime start = DateTimeFormat.forPattern("yyyyMMdd").parseDateTime(userRegistrationDate);
+            String date = jpaDaoService.findOne("bodymedia." + ot.getName() + ".getFailedUpdate",
+                                                String.class, updateInfo.getGuestId());
+            DateTime today;
+            if(date!=null)
+            {
+                today = formatter.parseDateTime(date);
+            }
+            else
+            {
+                //DateTime should be initialized to today
+                today = new DateTime();
+            }
+            DateTime start = formatter.parseDateTime(userRegistrationDate);
             retrieveHistory(updateInfo, ot, url.get(ot), maxIncrement.get(ot), start, today);
         }
     }
@@ -126,22 +146,27 @@ public class BodymediaUpdater extends AbstractUpdater
     {
         for(ObjectType ot : updateInfo.objectTypes())
         {
-            DateTime today = new DateTime();
-            DateTime start = getLastSyncTime(updateInfo, ot);
-            retrieveHistory(updateInfo, ot, url.get(ot), maxIncrement.get(ot), start, today);
+            BodymediaAbstractFacet endDate = jpaDaoService.findOne("bodymedia." + ot.getName() + ".getFailedUpdate",
+                                                        BodymediaAbstractFacet.class, updateInfo.getGuestId());
+            DateTime start, end;
+            if(endDate!=null)
+            {
+                end = formatter.parseDateTime(endDate.date);
+                TimeZone timeZone = metadataService.getTimeZone(updateInfo.getGuestId(), end.getMillis());
+                BodymediaAbstractFacet startDate = jpaDaoService.findOne("bodymedia." + ot.getName() + ".getDaysPrior",
+                                                        BodymediaAbstractFacet.class, updateInfo.getGuestId(),
+                                                        TimeUtils.fromMidnight(end.getMillis(), timeZone));
+                start = formatter.parseDateTime(startDate.date);
+            }
+            else
+            {
+                end = new DateTime();
+                BodymediaAbstractFacet startDate = jpaDaoService.findOne("bodymedia." + ot.getName() + ".getLastSync",
+                                                        BodymediaAbstractFacet.class, updateInfo.getGuestId());
+                start = formatter.parseDateTime(startDate.date);
+            }
+            retrieveHistory(updateInfo, ot, url.get(ot), maxIncrement.get(ot), start, end);
         }
-    }
-
-    /**
-     * Retrieves the User's lastSync time
-     * @param updateInfo Used to identify the user
-     * @param ot The objectType that represents the facet that you wish to update
-     * @return a DateTime that represents when the user last synced his device
-     */
-    private DateTime getLastSyncTime(final UpdateInfo updateInfo, ObjectType ot)
-    {
-        ApiUpdate a = connectorUpdateService.getLastSuccessfulSync(updateInfo.getGuestId(), connector(), ot.value());
-        return new DateTime(a.lastSync);
     }
 
     public String getUserRegistrationDate(UpdateInfo updateInfo, String api_key)
