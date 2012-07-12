@@ -23,7 +23,7 @@ public class ZeoSleepGraphFieldHandler implements FieldHandler {
     BodyTrackHelper bodyTrackHelper;
 
     @Override
-    public void handleField ( final long guestId, final String user_id, final String host, AbstractFacet facet) {
+    public void handleField ( final long guestId, AbstractFacet facet) {
         ZeoSleepStatsFacet sleepStatsFacet = (ZeoSleepStatsFacet) facet;
         if (sleepStatsFacet.sleepGraph==null)
             return;
@@ -32,7 +32,7 @@ public class ZeoSleepGraphFieldHandler implements FieldHandler {
         JSONArray dataArray = new JSONArray();
         populateDataArray(dataArray, ((ZeoSleepStatsFacet)facet).sleepGraph, facet.start);
         params.put("data", dataArray.toString());
-        bodyTrackHelper.uploadToBodyTrack(user_id, host, params);
+        bodyTrackHelper.uploadToBodyTrack(guestId , params);
     }
 
     private void createJsonBlockHeader(Map<String,String> params) {

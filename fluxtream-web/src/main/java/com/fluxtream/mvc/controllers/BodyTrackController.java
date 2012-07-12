@@ -44,10 +44,8 @@ public class BodyTrackController {
 	public void bodyTrackUIDFetch(HttpServletResponse response)
             throws IOException {
 		long guestId = ControllerHelper.getGuestId();
-		String user_id = guestService.getApiKeyAttribute(guestId,
-				Connector.getConnector("bodytrack"), "user_id");
 		JSONObject json = new JSONObject();
-		json.accumulate("user_id", user_id);
+		json.accumulate("user_id", guestId);
 		response.getWriter().write(json.toString());
 	}
 
@@ -119,16 +117,20 @@ public class BodyTrackController {
 
     @RequestMapping(value = "/bodytrack/users/{UID}/views")
 	public void bodyTrackViews(HttpServletResponse response,
-			@PathVariable("UID") String UID) throws IOException {
-		String tunnelUrl = "http://localhost:3000/users/" + UID + "/views";
+			@PathVariable("UID") long UID) throws IOException {
+        String user_id = guestService.getApiKeyAttribute(UID,
+                                                         Connector.getConnector("bodytrack"), "user_id");
+		String tunnelUrl = "http://localhost:3000/users/" + user_id + "/views";
 		writeTunnelResponse(tunnelUrl, response);
 	}
 
 	@RequestMapping(value = "/bodytrack/users/{UID}/views/get")
 	public void bodyTrackView(HttpServletResponse response,
-			@PathVariable("UID") String UID, @RequestParam("id") String id)
+			@PathVariable("UID") long UID, @RequestParam("id") String id)
             throws IOException {
-		String tunnelUrl = "http://localhost:3000/users/" + UID
+        String user_id = guestService.getApiKeyAttribute(UID,
+                                                         Connector.getConnector("bodytrack"), "user_id");
+		String tunnelUrl = "http://localhost:3000/users/" + user_id
 				+ "/views/get?id=" + id;
 		writeTunnelResponse(tunnelUrl, response);
 	}
