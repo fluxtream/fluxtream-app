@@ -34,6 +34,9 @@ import com.fluxtream.connectors.updaters.UpdateInfo;
 public class UpdateWorkerTask extends AbstractEntity {
 
     public static class AuditTrailEntry {
+        public AuditTrailEntry() {
+        }
+
         public AuditTrailEntry(final Date date, final String reason, final String nextAction, String stackTrace) {
             this.date = date;
             this.reason = reason;

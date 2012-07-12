@@ -29,6 +29,9 @@ public class DashboardWidget {
     public String WidgetRepositoryURL;
     public boolean HasSettings;
 
+    public DashboardWidget() {
+    }
+
     public DashboardWidget(final JSONObject manifestJSON, final String baseURL) {
         try {
             JSONObject descDict = JSONObject.fromObject(manifestJSON.getString("WidgetDescription"));
