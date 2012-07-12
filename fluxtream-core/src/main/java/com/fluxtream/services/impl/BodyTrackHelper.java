@@ -35,9 +35,9 @@ public class BodyTrackHelper {
 
     Gson gson = new Gson();
 
-    public void uploadToBodyTrack(final String host, final String user_id, String deviceName, Collection<String> channelNames, List<List<Object>> data, Map<String,Object> channelSpecs) {
+    public void uploadToBodyTrack(long guestId, String deviceName, Collection<String> channelNames, List<List<Object>> data, Map<String,Object> channelSpecs) {
         try {
-            Map<String, String> params = new HashMap<String,String>();
+            /*Map<String, String> params = new HashMap<String,String>();
             params.put("dev_nickname", deviceName);
             params.put("channel_names", gson.toJson(channelNames));
             params.put("data", gson.toJson(data));
@@ -50,7 +50,7 @@ public class BodyTrackHelper {
             } else {
                 LOG.warn("Could not upload data to BodyTrack data store: "
                          + result);
-            }
+            }*/
 
             File tempFile = File.createTempFile("input",".json");
             Map<String,Object> tempFileMapping = new HashMap<String,Object>();
@@ -64,7 +64,7 @@ public class BodyTrackHelper {
 
 
             String launchCommand = env.targetEnvironmentProps.getString("btdatastore.exec.location") + "/import " +
-                                   env.targetEnvironmentProps.getString("btdatastore.db.location") + " " + user_id + " " +
+                                   env.targetEnvironmentProps.getString("btdatastore.db.location") + " " + guestId + " " +
                                    deviceName + " \"" + tempFile.getAbsolutePath() + "\"";
             System.out.println("BTDataStore: running with command: " + launchCommand);
 
@@ -103,8 +103,12 @@ public class BodyTrackHelper {
         }
     }
 
-    public void uploadToBodyTrack(final String user_id, final String host, final Map<String, String> params) {
-        try {
+    //TODO: update code to not use the alternate method directly
+    public void uploadToBodyTrack(long guestId, final Map<String, String> params) {
+        uploadToBodyTrack(guestId,params.get("dev_nickname"),gson.fromJson(params.get("channel_names"),List.class),
+                        gson.fromJson(params.get("data"),List.class),gson.fromJson(params.get("channel_sepcs"),Map.class));
+
+        /*try {
             String result = HttpUtils.fetch("http://" + host + "/users/"
                                             + user_id + "/upload", params, env);
             if (result.toLowerCase().startsWith("awesome")) {
@@ -114,12 +118,10 @@ public class BodyTrackHelper {
                 LOG.warn("Could not upload data to BodyTrack data store: "
                          + result);
             }
-
-            //TODO: rewrite uses to call the above method
         } catch (Exception e) {
             LOG.warn("Could not upload data to BodyTrack data store: "
                      + e.getMessage());
-        }
+        }*/
     }
 
     public String fetchTile(String uid, String deviceNickname, String channelName, int level, int offset){

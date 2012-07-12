@@ -63,22 +63,17 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 		if (bodytrackApiKey == null)
 			return;
 
-		String user_id = guestService.getApiKeyAttribute(guestId,
-				bodytrackConnector, "user_id");
-		String host = guestService.getApiKeyAttribute(guestId,
-				bodytrackConnector, "host");
-
 		Map<String, List<AbstractFacet>> facetsByFacetName = sortFacetsByFacetName(facets);
 		Iterator<String> eachFacetName = facetsByFacetName.keySet().iterator();
 		while (eachFacetName.hasNext()) {
 			String facetName = (String) eachFacetName.next();
-			storeDeviceData(guestId, user_id, host, facetsByFacetName,
+			storeDeviceData(guestId, facetsByFacetName,
                             facetName);
 		}
 
 	}
 
-	private void storeDeviceData(long guestId, String user_id, String host,
+	private void storeDeviceData(long guestId,
 			Map<String, List<AbstractFacet>> facetsByDeviceNickname,
 			String facetName) {
 		Map<String, String> params = new HashMap<String, String>();
@@ -87,17 +82,16 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 		Map<String, String> channelNamesMapping = getChannelNamesMapping(facetName);
 		params.put("channel_names", makeJSONArray(channelNamesMapping.values(), true));
 		List<AbstractFacet> deviceFacets = facetsByDeviceNickname.get(facetName);
-		List<List<Object>> channelValues = extractChannelValuesFromFacets(
-				channelNamesMapping, deviceFacets, guestId, user_id, host);
+		List<List<Object>> channelValues = extractChannelValuesFromFacets(channelNamesMapping, deviceFacets, guestId);
 		//String jsonArray = makeJSONArray(channelValues, false);
 		//params.put("data", jsonArray);
 
-        bodyTrackHelper.uploadToBodyTrack(host, user_id, deviceName, channelNamesMapping.values(), channelValues, new HashMap<String,Object>());
+        bodyTrackHelper.uploadToBodyTrack(guestId, deviceName, channelNamesMapping.values(), channelValues, new HashMap<String,Object>());
     }
 
     private List<List<Object>> extractChannelValuesFromFacets(
             Map<String, String> channelNamesMapping,
-            List<AbstractFacet> deviceFacets, final long guestId, final String user_id, final String host) {
+            List<AbstractFacet> deviceFacets, final long guestId) {
 		List<List<Object>> channelValues = new ArrayList<List<Object>>();
 		for (AbstractFacet deviceFacet : deviceFacets) {
 			Iterator<String> eachFieldName = channelNamesMapping.keySet().iterator();
@@ -114,7 +108,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
                             // #! indicates a "fieldHandler"
                             if (fieldHandlerName.startsWith("!")) {
                                 FieldHandler fieldHandler = getFieldHandler(fieldHandlerName);
-                                fieldHandler.handleField(guestId, user_id, host, deviceFacet);
+                                fieldHandler.handleField(guestId, deviceFacet);
                             } else {
                                 LOG.warn("********* NO SUPPORT FOR #fields FOR NOW **************** " + fieldHandlerName);
                             }

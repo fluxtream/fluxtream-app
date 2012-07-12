@@ -8,7 +8,7 @@ import com.fluxtream.domain.AbstractFacet;
  */
 public interface FieldHandler {
 
-    void handleField (final long guestId, final String user_id, final String host, AbstractFacet facet );
+    void handleField (final long guestId, AbstractFacet facet );
 
     String getBodytrackChannelName();
 

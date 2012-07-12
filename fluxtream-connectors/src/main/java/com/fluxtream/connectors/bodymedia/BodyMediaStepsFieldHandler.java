@@ -17,7 +17,7 @@ public class BodyMediaStepsFieldHandler implements FieldHandler {
     BodyTrackHelper bodyTrackHelper;
 
     @Override
-    public void handleField ( final long guestId, final String user_id, final String host, AbstractFacet facet) {
+    public void handleField ( final long guestId, AbstractFacet facet) {
     }
 
     @Override
