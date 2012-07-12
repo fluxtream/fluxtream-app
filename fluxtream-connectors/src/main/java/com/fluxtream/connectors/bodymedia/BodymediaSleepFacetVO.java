@@ -1,6 +1,5 @@
 package com.fluxtream.connectors.bodymedia;
 
-import javax.persistence.Lob;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.vos.AbstractFacetVO;
 import com.fluxtream.domain.GuestSettings;
@@ -18,7 +17,7 @@ public class BodymediaSleepFacetVO extends AbstractFacetVO<BodymediaSleepFacet>{
         this.efficiency = facet.efficiency;
         this.totalSleeping = new DurationModel(facet.totalSleeping*60);
         this.totalLying = new DurationModel(facet.totalLying*60);
-        this.sleepJson = facet.sleepJson;
+        this.sleepJson = facet.Json;
     }
 
 }
