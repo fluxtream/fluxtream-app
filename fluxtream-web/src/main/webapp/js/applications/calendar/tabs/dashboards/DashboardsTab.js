@@ -44,7 +44,7 @@ define(["applications/calendar/tabs/Tab",
                 var dashboardId = Number($(evt.target).parent().attr("id").substring("dashboard-".length));
                 setActiveDashboard(dashboardId);
             });
-            fetchWidgets(getActiveWidgets(dashboardsTemplateData.dashboards));
+            fetchWidgets(getActiveWidgetInfos(dashboardsTemplateData.dashboards));
         });
    }
 
@@ -59,15 +59,15 @@ define(["applications/calendar/tabs/Tab",
               });
    }
 
-   function fetchWidgets(activeWidgets) {
+   function fetchWidgets(activeWidgetInfos) {
         var rows = [];
         var row = {widgets:[]};
-        for (var i=0; i<activeWidgets.length; i++) {
+        for (var i=0; i<activeWidgetInfos.length; i++) {
             if(i%3==0) {
                 row = {widgets:[]};
                 rows.push(row);
             }
-            row.widgets.push(activeWidgets[i]);
+            row.widgets.push(activeWidgetInfos[i]);
         }
         App.loadMustacheTemplate("applications/calendar/tabs/dashboards/dashboardsTabTemplates.html","widgetsGrid", function(template){
             var html = template.render({rows: rows});
@@ -79,7 +79,7 @@ define(["applications/calendar/tabs/Tab",
                 var widgetName = widgetId.substring(0, i);
                 removeWidget(widgetName);
             })
-            loadWidgets(activeWidgets)
+            loadWidgets(activeWidgetInfos)
         });
    }
 
@@ -96,23 +96,23 @@ define(["applications/calendar/tabs/Tab",
         );
     }
 
-    function loadWidgets(activeWidgets) {
-        for (var i=0; i<activeWidgets.length; i++) {
-            var manifest = activeWidgets[i];
-            loadWidget(manifest);
+    function loadWidgets(activeWidgetInfos) {
+        for (var i=0; i<activeWidgetInfos.length; i++) {
+            var widgetInfo = activeWidgetInfos[i];
+            loadWidget(widgetInfo);
         };
     }
 
-   function loadWidget(manifest) {
-       require([manifest.WidgetRepositoryURL + "/"
-                    + manifest.WidgetName + "/"
-                    + manifest.WidgetName + ".js"],
+   function loadWidget(widgetInfo) {
+       require([widgetInfo.manifest.WidgetRepositoryURL + "/"
+                    + widgetInfo.manifest.WidgetName + "/"
+                    + widgetInfo.manifest.WidgetName + ".js"],
                function(WidgetModule) {
-                   WidgetModule.load(manifest, digest);
+                   WidgetModule.load(widgetInfo, digest);
                });
    }
 
-    function getActiveWidgets(dashboards) {
+    function getActiveWidgetInfos(dashboards) {
         var activeDashboard = getActiveDashboard(dashboards);
         return activeDashboard.widgets;
     }

@@ -84,19 +84,24 @@ public class DashboardStore {
 
     private JSONObject toJSONObject(final long guestId, final Dashboard dashboard,
                                     final DashboardWidget dashboardWidget) {
-        JSONObject widgetJson = new JSONObject();
-        widgetJson.accumulate("WidgetName", dashboardWidget.WidgetName);
-        widgetJson.accumulate("WidgetRepositoryURL", dashboardWidget.WidgetRepositoryURL);
-        widgetJson.accumulate("WidgetDescription", dashboardWidget.WidgetDescription);
-        widgetJson.accumulate("WidgetTitle", dashboardWidget.WidgetTitle);
-        widgetJson.accumulate("WidgetIcon", dashboardWidget.WidgetIcon);
-        widgetJson.accumulate("HasSettings", dashboardWidget.HasSettings);
+        JSONObject manifestJSON = new JSONObject();
+        manifestJSON.accumulate("WidgetName", dashboardWidget.WidgetName);
+        manifestJSON.accumulate("WidgetRepositoryURL", dashboardWidget.WidgetRepositoryURL);
+        manifestJSON.accumulate("WidgetDescription", dashboardWidget.WidgetDescription);
+        manifestJSON.accumulate("WidgetTitle", dashboardWidget.WidgetTitle);
+        manifestJSON.accumulate("WidgetIcon", dashboardWidget.WidgetIcon);
+        manifestJSON.accumulate("HasSettings", dashboardWidget.HasSettings);
+
+        JSONObject widgetJSON = new JSONObject();
+        widgetJSON.accumulate("manifest", manifestJSON);
+
         if (dashboardWidget.HasSettings) {
             final WidgetSettings widgetSettings = widgetsService.getWidgetSettings(guestId, dashboard.getId(),
                                                                                    dashboardWidget.WidgetName);
-            widgetJson.accumulate("Settings", JSONObject.fromObject(widgetSettings.settingsJSON));
+            widgetJSON.accumulate("settings", JSONObject.fromObject(widgetSettings.settingsJSON));
         }
-        return widgetJson;
+
+        return widgetJSON;
     }
 
     private JSONArray toJsonArray(final String commaSeparatedWidgetNames) {
