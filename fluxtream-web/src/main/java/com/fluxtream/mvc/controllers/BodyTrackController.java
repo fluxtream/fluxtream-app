@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.services.GuestService;
+import com.fluxtream.services.impl.BodyTrackHelper;
 import com.fluxtream.utils.HttpUtils;
 import net.sf.json.JSONObject;
 import org.apache.commons.httpclient.HttpException;
@@ -36,6 +37,9 @@ public class BodyTrackController {
 	@Autowired
 	GuestService guestService;
 
+    @Autowired
+    BodyTrackHelper bodyTrackhelper;
+
 	@RequestMapping(value = "/bodytrack/UID")
 	public void bodyTrackUIDFetch(HttpServletResponse response)
             throws IOException {
@@ -52,12 +56,14 @@ public class BodyTrackController {
 			@PathVariable("UID") String uid,
 			@PathVariable("DeviceNickname") String deviceNickname,
 			@PathVariable("ChannelName") String channelName,
-			@PathVariable("Level") String level,
-			@PathVariable("Offset") String offset) throws IOException {
-		String bodyTrackUrl = "http://localhost:3000/tiles/" + uid + "/"
+			@PathVariable("Level") int level,
+			@PathVariable("Offset") int offset) throws IOException {
+        String result = bodyTrackhelper.fetchTile(uid,deviceNickname,channelName,level,offset);
+		/*String bodyTrackUrl = "http://localhost:3000/tiles/" + uid + "/"
 				+ deviceNickname + "." + channelName + "/" + level + "."
-				+ offset + ".json";
-		writeTunnelResponse(bodyTrackUrl, response);
+				+ offset + ".json";*/
+        response.getWriter().write(result);
+		//writeTunnelResponse(bodyTrackUrl, response);
 	}
 
     @RequestMapping(value = "/bodytrack/users/{UID}/log_items/get")
@@ -150,7 +156,8 @@ public class BodyTrackController {
 			@PathVariable("UID") String UID) throws IOException {
 		String tunnelUrl = "http://localhost:3000/users/" + UID
 				+ "/sources/list";
-		writeTunnelResponse(tunnelUrl, response);
+        response.getWriter().write(bodyTrackhelper.listSources(UID));
+		//writeTunnelResponse(tunnelUrl, response);
 	}
 
 	@RequestMapping(value = "/bodytrack/users/{UID}/sources/default_graph_specs")
