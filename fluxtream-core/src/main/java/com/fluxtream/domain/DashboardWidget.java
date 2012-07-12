@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import javax.xml.bind.annotation.XmlRootElement;
 import com.fluxtream.Configuration;
 import net.sf.json.JSONObject;
 import org.codehaus.plexus.util.StringUtils;
@@ -14,6 +15,7 @@ import org.codehaus.plexus.util.StringUtils;
  *
  * @author Candide Kemmler (candide@fluxtream.com)
  */
+@XmlRootElement
 public class DashboardWidget {
 
 
@@ -25,9 +27,6 @@ public class DashboardWidget {
     public String WidgetIcon;
     public String WidgetName;
     public String WidgetRepositoryURL;
-    public String BundleCopyright;
-    public String BundleIdentifier;
-    public String BundleVersion;
     public boolean HasSettings;
 
     public DashboardWidget(final JSONObject manifestJSON, final String baseURL) {

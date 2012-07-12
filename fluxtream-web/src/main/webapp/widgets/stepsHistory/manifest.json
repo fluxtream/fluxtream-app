@@ -1,10 +1,10 @@
 {
-    "WidgetDescription" : {"en" : "Steps history per day, week or year"},
-    "WidgetIcon" : "stepsHistory.png",
-    "WidgetName" : "stepsHistory",
-    "WidgetTitle" : {"en" : "Steps History"},
-    "HasSettings" : true,
-    "SupportedLanguages" : "en",
-    "VendorIdentifier" : "Fluxtream.com",
-    "RequiredConnectors":"bodymedia, fitbit"
+"WidgetDescription" : {"en" : "Steps history per day, week or year"},
+"WidgetIcon" : "stepsHistory.png",
+"WidgetName" : "stepsHistory",
+"WidgetTitle" : {"en" : "Steps History"},
+"HasSettings" : true,
+"SupportedLanguages" : "en",
+"VendorIdentifier" : "Fluxtream.com",
+"RequiredConnectors":"bodymedia, fitbit"
 }

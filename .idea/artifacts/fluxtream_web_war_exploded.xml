@@ -59,7 +59,7 @@
           <element id="library" level="project" name="Maven: org.springframework:spring-orm:3.1.0.RELEASE" />
           <element id="library" level="project" name="Maven: google:gdata-calendar:2.0" />
           <element id="library" level="project" name="Maven: com.google.api.client:google-api-client:1.1.1-alpha" />
-          <element id="library" level="project" name="Maven: org.codehaus.jackson:jackson-core-asl:1.5.3" />
+          <element id="library" level="project" name="Maven: org.codehaus.jackson:jackson-core-asl:1.9.2" />
           <element id="library" level="project" name="Maven: xpp3:xpp3:1.1.4c" />
           <element id="library" level="project" name="Maven: xml-apis:xml-apis:1.0.b2" />
           <element id="library" level="project" name="Maven: jaxen:jaxen:1.1.1" />
@@ -164,10 +164,19 @@
           <element id="library" level="project" name="Maven: rhino:js:1.6R7" />
           <element id="library" level="project" name="Maven: org.mozilla:rhino:1.7R3" />
           <element id="library" level="project" name="Maven: org.kohsuke:geoip:1.2.5" />
+          <element id="library" level="project" name="Maven: com.sun.jersey:jersey-json:1.11" />
+          <element id="library" level="project" name="Maven: org.codehaus.jettison:jettison:1.1" />
+          <element id="library" level="project" name="Maven: stax:stax-api:1.0.1" />
+          <element id="library" level="project" name="Maven: com.sun.xml.bind:jaxb-impl:2.2.3-1" />
+          <element id="library" level="project" name="Maven: javax.xml.bind:jaxb-api:2.2.2" />
+          <element id="library" level="project" name="Maven: javax.xml.stream:stax-api:1.0-2" />
+          <element id="library" level="project" name="Maven: org.codehaus.jackson:jackson-mapper-asl:1.9.2" />
+          <element id="library" level="project" name="Maven: org.codehaus.jackson:jackson-jaxrs:1.9.2" />
+          <element id="library" level="project" name="Maven: org.codehaus.jackson:jackson-xc:1.9.2" />
+          <element id="library" level="project" name="Maven: com.sun.jersey:jersey-core:1.11" />
           <element id="library" level="project" name="Maven: com.sun.jersey.contribs:jersey-spring:1.11" />
           <element id="library" level="project" name="Maven: com.sun.jersey:jersey-servlet:1.11" />
           <element id="library" level="project" name="Maven: com.sun.jersey:jersey-server:1.11" />
-          <element id="library" level="project" name="Maven: com.sun.jersey:jersey-core:1.11" />
           <element id="library" level="project" name="Maven: org.aspectj:aspectjrt:1.5.4" />
           <element id="archive" name="fluxtream-core-webapp-1.0.jar">
             <element id="module-output" name="fluxtream-core-webapp" />
