@@ -11,9 +11,9 @@ import org.hibernate.search.annotations.Indexed;
 @NamedQueries({
 	@NamedQuery(name = "bodymedia.sleep.deleteAll", query = "DELETE FROM Facet_BodymediaSleep facet WHERE facet.guestId=?"),
 	@NamedQuery(name = "bodymedia.sleep.between", query = "SELECT facet FROM Facet_BodymediaSleep facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=?"),
-    @NamedQuery(name = "bodymedia.sleep.getFailedUpdate", query = "SELECT facet FROM Facet_BodymediaBurn facet WHERE facet.guestId=? AND facet.lastSync=-1"),
-    @NamedQuery(name = "bodymedia.sleep.getDaysPrior", query = "SELECT facet FROM Facet_BodymediaBurn facet WHERE facet.guestId=? AND facet.start<? ORDER BY facet.start DESC"),
-    @NamedQuery(name = "bodymedia.sleep.getLastSync", query = "SELECT facet FROM Facet_BodymediaBurn facet WHERE facet.guestId=? ORDER BY facet.lastSync")
+    @NamedQuery(name = "bodymedia.sleep.getFailedUpdate", query = "SELECT facet FROM Facet_BodymediaSleep facet WHERE facet.guestId=? AND facet.lastSync=1"),
+    @NamedQuery(name = "bodymedia.sleep.getDaysPrior", query = "SELECT facet FROM Facet_BodymediaSleep facet WHERE facet.guestId=? AND facet.start<? ORDER BY facet.start DESC"),
+    @NamedQuery(name = "bodymedia.sleep.getLastSync", query = "SELECT facet FROM Facet_BodymediaSleep facet WHERE facet.guestId=? ORDER BY facet.lastSync DESC")
 })
 @Indexed
 public class BodymediaSleepFacet extends BodymediaAbstractFacet {

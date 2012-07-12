@@ -27,12 +27,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Component
-@Updater(prettyName = "BodyMedia", value = 88, objectTypes = {
-        BodymediaBurnFacet.class, BodymediaSleepFacet.class,
-        BodymediaStepsFacet.class}, hasFacets = true, additionalParameters = {"api_key"},
+@Updater(prettyName = "BodyMedia", value = 88, objectTypes = {BodymediaBurnFacet.class, BodymediaSleepFacet.class, BodymediaStepsFacet.class}, hasFacets = true, additionalParameters = {"api_key"},
          defaultChannels = {"Armband.mets", "Armband.lying"})
-public class BodymediaUpdater extends AbstractUpdater
-{
+public class BodymediaUpdater extends AbstractUpdater {
 
     @Autowired
     SignpostOAuthHelper signpostHelper;
@@ -41,14 +38,12 @@ public class BodymediaUpdater extends AbstractUpdater
     @Autowired
     MetadataService metadataService;
 
-
     private final HashMap<ObjectType, String> url = new HashMap<ObjectType, String>();
     private final HashMap<ObjectType, Integer> maxIncrement = new HashMap<ObjectType, Integer>();
 
     private final DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyyMMdd");
 
-    public BodymediaUpdater()
-    {
+    public BodymediaUpdater() {
         super();
         ObjectType burn = ObjectType.getObjectType(connector(), "burn");
         ObjectType sleep = ObjectType.getObjectType(connector(), "sleep");
@@ -61,30 +56,37 @@ public class BodymediaUpdater extends AbstractUpdater
         maxIncrement.put(steps, 31);
     }
 
-    public void updateConnectorDataHistory(UpdateInfo updateInfo)
-            throws Exception
-    {
-        setupConsumer(updateInfo.apiKey);
+    public void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception {
+        OAuthConsumer consumer = setupConsumer(updateInfo.apiKey);
         String api_key = env.get("bodymediaConsumerKey");
 
-        String userRegistrationDate = getUserRegistrationDate(updateInfo, api_key);
-        for(ObjectType ot : updateInfo.objectTypes())
-        {
-            String date = jpaDaoService.findOne("bodymedia." + ot.getName() + ".getFailedUpdate",
-                                                String.class, updateInfo.getGuestId());
-            DateTime today;
-            if(date!=null)
-            {
-                today = formatter.parseDateTime(date);
+        //String userRegistrationDate = getUserRegistrationDate(updateInfo, api_key);
+        for (int i = 0; i < 10; i++) {
+            try {
+                String a = getUserRegistrationDate(updateInfo, api_key, consumer);
+                System.out.println(a);
             }
-            else
-            {
-                //DateTime should be initialized to today
-                today = new DateTime();
+            catch (Exception e) {
+                System.out.println("fail");
             }
-            DateTime start = formatter.parseDateTime(userRegistrationDate);
-            retrieveHistory(updateInfo, ot, url.get(ot), maxIncrement.get(ot), start, today);
         }
+        //for(ObjectType ot : updateInfo.objectTypes())
+        //{
+        //    String date = jpaDaoService.findOne("bodymedia." + ot.getName() + ".getFailedUpdate",
+        //                                        String.class, updateInfo.getGuestId());
+        //    DateTime today;
+        //    if(date!=null)
+        //    {
+        //        today = formatter.parseDateTime(date);
+        //    }
+        //    else
+        //    {
+        //        //DateTime should be initialized to today
+        //        today = new DateTime();
+        //    }
+        //    DateTime start = formatter.parseDateTime(userRegistrationDate);
+        //    retrieveHistory(updateInfo, ot, url.get(ot), maxIncrement.get(ot), start, today);
+        //}
     }
 
     /**
@@ -98,80 +100,72 @@ public class BodymediaUpdater extends AbstractUpdater
      * @param end The latest date for which the burn history is retrieved. This date is also included in the update.
      * @throws Exception If either storing the data fails or if the rate limit is reached on Bodymedia's api
      */
-    private void retrieveHistory(UpdateInfo updateInfo, ObjectType ot, String urlExtension, int increment, DateTime start, DateTime end) throws Exception
-    {
+    private void retrieveHistory(UpdateInfo updateInfo, ObjectType ot, String urlExtension, int increment, DateTime start, DateTime end) throws Exception {
         DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyyMMdd");
         DateTimeComparator comparator = DateTimeComparator.getDateOnlyInstance();
         DateTime current = end;
-        while(comparator.compare(current, start) > 0)
-        //@ loop_invariant date.compareTo(userRegistrationDate) >= 0;
-        {
-            String startPeriod = current.minusDays(increment-1).toString(formatter);
-            String endPeriod = current.toString(formatter);
-            String minutesUrl = "http://api.bodymedia.com/v2/json/" + urlExtension + startPeriod + "/" + endPeriod +
+        try {
+            while (comparator.compare(current, start) > 0)
+            //@ loop_invariant date.compareTo(userRegistrationDate) >= 0;
+            {
+                String startPeriod = current.minusDays(increment - 1).toString(formatter);
+                String endPeriod = current.toString(formatter);
+                String minutesUrl = "http://api.bodymedia.com/v2/json/" + urlExtension + startPeriod + "/" + endPeriod +
                                     "?api_key=" + updateInfo.apiKey.getAttributeValue("api_key", env);
+                //The following call may fail due to bodymedia's api. That is expected behavior
+                String jsonResponse = signpostHelper.makeRestCall(connector(), updateInfo.apiKey, ot.value(), minutesUrl);
+                apiDataService.cacheApiDataJSON(updateInfo, jsonResponse, -1, -1);
+                current = current.minusDays(increment);
+            }
+            String startPeriod = start.toString(formatter);
+            String endPeriod = current.plusDays(increment - 1).toString(formatter);
+            String minutesUrl = "http://api.bodymedia.com/v2/json/" + urlExtension + startPeriod + "/" + endPeriod +
+                                "?api_key=" + updateInfo.apiKey.getAttributeValue("api_key", env);
             //The following call may fail due to bodymedia's api. That is expected behavior
             String jsonResponse = signpostHelper.makeRestCall(connector(), updateInfo.apiKey, ot.value(), minutesUrl);
             apiDataService.cacheApiDataJSON(updateInfo, jsonResponse, -1, -1);
-            current = current.minusDays(increment);
         }
-        String startPeriod = start.toString(formatter);
-        String endPeriod = current.plusDays(increment-1).toString(formatter);
-        String minutesUrl = "http://api.bodymedia.com/v2/json/" + urlExtension + startPeriod + "/" + endPeriod +
-                                "?api_key=" + updateInfo.apiKey.getAttributeValue("api_key", env);
-        //The following call may fail due to bodymedia's api. That is expected behavior
-        String jsonResponse = signpostHelper.makeRestCall(connector(), updateInfo.apiKey, ot.value(), minutesUrl);
-        apiDataService.cacheApiDataJSON(updateInfo, jsonResponse, -1, -1);
+        catch (Exception e) {
+            JSONObject json = new JSONObject();
+            json.put("Failed", "");
+            json.put("Date", current.toString(formatter));
+            apiDataService.cacheApiDataJSON(updateInfo, json, -1, -1);
+        }
     }
 
-    OAuthConsumer consumer;
-
-    void setupConsumer(ApiKey apiKey)
-    {
+    OAuthConsumer setupConsumer(ApiKey apiKey) {
         String api_key = env.get("bodymediaConsumerKey");
         String bodymediaConsumerSecret = env.get("bodymediaConsumerSecret");
 
-        consumer = new CommonsHttpOAuthConsumer(
-                api_key,
-                bodymediaConsumerSecret);
+        OAuthConsumer consumer = new CommonsHttpOAuthConsumer(api_key, bodymediaConsumerSecret);
 
         String accessToken = apiKey.getAttributeValue("accessToken", env);
         String tokenSecret = apiKey.getAttributeValue("tokenSecret", env);
 
-        consumer.setTokenWithSecret(accessToken,
-                                    tokenSecret);
+        consumer.setTokenWithSecret(accessToken, tokenSecret);
+        return consumer;
     }
 
-    public void updateConnectorData(UpdateInfo updateInfo) throws Exception
-    {
-        for(ObjectType ot : updateInfo.objectTypes())
-        {
-            BodymediaAbstractFacet endDate = jpaDaoService.findOne("bodymedia." + ot.getName() + ".getFailedUpdate",
-                                                        BodymediaAbstractFacet.class, updateInfo.getGuestId());
+    public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
+        for (ObjectType ot : updateInfo.objectTypes()) {
+            BodymediaAbstractFacet endDate = jpaDaoService.findOne("bodymedia." + ot.getName() + ".getFailedUpdate", BodymediaAbstractFacet.class, updateInfo.getGuestId());
             DateTime start, end;
-            if(endDate!=null)
-            {
+            if (endDate != null) {
                 end = formatter.parseDateTime(endDate.date);
                 TimeZone timeZone = metadataService.getTimeZone(updateInfo.getGuestId(), end.getMillis());
-                BodymediaAbstractFacet startDate = jpaDaoService.findOne("bodymedia." + ot.getName() + ".getDaysPrior",
-                                                        BodymediaAbstractFacet.class, updateInfo.getGuestId(),
-                                                        TimeUtils.fromMidnight(end.getMillis(), timeZone));
+                BodymediaAbstractFacet startDate = jpaDaoService.findOne("bodymedia." + ot.getName() + ".getDaysPrior", BodymediaAbstractFacet.class, updateInfo.getGuestId(), TimeUtils.fromMidnight(end.getMillis(), timeZone));
                 start = formatter.parseDateTime(startDate.date);
             }
-            else
-            {
+            else {
                 end = new DateTime();
-                BodymediaAbstractFacet startDate = jpaDaoService.findOne("bodymedia." + ot.getName() + ".getLastSync",
-                                                        BodymediaAbstractFacet.class, updateInfo.getGuestId());
+                BodymediaAbstractFacet startDate = jpaDaoService.findOne("bodymedia." + ot.getName() + ".getLastSync", BodymediaAbstractFacet.class, updateInfo.getGuestId());
                 start = formatter.parseDateTime(startDate.date);
             }
             retrieveHistory(updateInfo, ot, url.get(ot), maxIncrement.get(ot), start, end);
         }
     }
 
-    public String getUserRegistrationDate(UpdateInfo updateInfo, String api_key)
-            throws Exception
-    {
+    public String getUserRegistrationDate(UpdateInfo updateInfo, String api_key, OAuthConsumer consumer) throws Exception {
         long then = System.currentTimeMillis();
         String requestUrl = "http://api.bodymedia.com/v2/json/user/info?api_key=" + api_key;
 
@@ -180,20 +174,16 @@ public class BodymediaUpdater extends AbstractUpdater
         HttpClient client = env.getHttpClient();
         HttpResponse response = client.execute(request);
         int statusCode = response.getStatusLine().getStatusCode();
-        if (statusCode == 200)
-        {
-            countSuccessfulApiCall(updateInfo.apiKey.getGuestId(),
-                                   updateInfo.objectTypes, then, requestUrl);
+        if (statusCode == 200) {
+            countSuccessfulApiCall(updateInfo.apiKey.getGuestId(), updateInfo.objectTypes, then, requestUrl);
             ResponseHandler<String> responseHandler = new BasicResponseHandler();
             String json = responseHandler.handleResponse(response);
             JSONObject userInfo = JSONObject.fromObject(json);
             return userInfo.getString("registrationDate");
         }
-        else
-        {
-            countFailedApiCall(updateInfo.apiKey.getGuestId(),
-                               updateInfo.objectTypes, then, requestUrl);
-            throw new Exception("Unexpected error trying to get statuses");
+        else {
+            countFailedApiCall(updateInfo.apiKey.getGuestId(), updateInfo.objectTypes, then, requestUrl);
+            throw new Exception("Error: " + statusCode + "Unexpected error trying to get statuses");
         }
     }
 }

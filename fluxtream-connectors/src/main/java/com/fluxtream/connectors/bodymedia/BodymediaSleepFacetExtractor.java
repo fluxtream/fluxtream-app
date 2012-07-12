@@ -74,34 +74,42 @@ public class BodymediaSleepFacetExtractor extends AbstractFacetExtractor
         /* burnJson is a JSONArray that contains a seperate JSONArray and calorie counts for each day
          */
         JSONObject bodymediaResponse = JSONObject.fromObject(apiData.json);
-        JSONArray daysArray = bodymediaResponse.getJSONArray("days");
-        DateTime d = form.parseDateTime(bodymediaResponse.getJSONObject("lastSync").getString("dateTime"));
-        for(Object o : daysArray)
+        if(bodymediaResponse.has("Failed"))
         {
-            if(o instanceof JSONObject)
+            BodymediaSleepFacet sleep = new BodymediaSleepFacet();
+            sleep.setDate(bodymediaResponse.getString("Date"));
+        }
+        else
+        {
+            JSONArray daysArray = bodymediaResponse.getJSONArray("days");
+            DateTime d = form.parseDateTime(bodymediaResponse.getJSONObject("lastSync").getString("dateTime"));
+            for(Object o : daysArray)
             {
-                JSONObject day = (JSONObject) o;
-                BodymediaSleepFacet sleep = new BodymediaSleepFacet();
-                super.extractCommonFacetData(sleep, apiData);
-                sleep.setDate(day.getString("date"));
-                sleep.setEfficiency(day.getDouble("efficiency"));
-                sleep.setTotalLying(day.getInt("totalLying"));
-                sleep.setTotalSleeping(day.getInt("totalSleep"));
-                sleep.setJson(day.getString("sleepPeriods"));
-                sleep.setLastSync(d.getMillis());
+                if(o instanceof JSONObject)
+                {
+                    JSONObject day = (JSONObject) o;
+                    BodymediaSleepFacet sleep = new BodymediaSleepFacet();
+                    super.extractCommonFacetData(sleep, apiData);
+                    sleep.setDate(day.getString("date"));
+                    sleep.setEfficiency(day.getDouble("efficiency"));
+                    sleep.setTotalLying(day.getInt("totalLying"));
+                    sleep.setTotalSleeping(day.getInt("totalSleep"));
+                    sleep.setJson(day.getString("sleepPeriods"));
+                    sleep.setLastSync(d.getMillis());
 
-                DateTime date = formatter.parseDateTime(day.getString("date"));
-                sleep.date = dateFormatter.print(date.getMillis());
-                TimeZone timeZone = metadataService.getTimeZone(apiData.updateInfo.getGuestId(), date.getMillis());
-                long fromMidnight = TimeUtils.fromMidnight(date.getMillis(), timeZone);
-                long toMidnight = TimeUtils.toMidnight(date.getMillis(), timeZone);
-                sleep.start = fromMidnight;
-                sleep.end = toMidnight;
+                    DateTime date = formatter.parseDateTime(day.getString("date"));
+                    sleep.date = dateFormatter.print(date.getMillis());
+                    TimeZone timeZone = metadataService.getTimeZone(apiData.updateInfo.getGuestId(), date.getMillis());
+                    long fromMidnight = TimeUtils.fromMidnight(date.getMillis(), timeZone);
+                    long toMidnight = TimeUtils.toMidnight(date.getMillis(), timeZone);
+                    sleep.start = fromMidnight;
+                    sleep.end = toMidnight;
 
-                facets.add(sleep);
+                    facets.add(sleep);
+                }
+                else
+                    throw new JSONException("Days array is not a proper JSONObject");
             }
-            else
-                throw new JSONException("Days array is not a proper JSONObject");
         }
         return facets;
     }
