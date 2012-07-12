@@ -92,7 +92,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 		//String jsonArray = makeJSONArray(channelValues, false);
 		//params.put("data", jsonArray);
 
-        bodyTrackHelper.uploadToBodyTrack(host, user_id, deviceName, channelNamesMapping.values(), channelValues);
+        bodyTrackHelper.uploadToBodyTrack(host, user_id, deviceName, channelNamesMapping.values(), channelValues, new HashMap<String,Object>());
     }
 
     private List<List<Object>> extractChannelValuesFromFacets(
