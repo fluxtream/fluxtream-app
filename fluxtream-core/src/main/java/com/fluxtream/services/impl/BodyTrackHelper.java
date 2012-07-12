@@ -103,8 +103,12 @@ public class BodyTrackHelper {
         }
     }
 
+    //TODO: update code to not use the alternate method directly
     public void uploadToBodyTrack(final String user_id, final String host, final Map<String, String> params) {
-        try {
+        uploadToBodyTrack(host,user_id,params.get("dev_nickname"),gson.fromJson(params.get("channel_names"),List.class),
+                        gson.fromJson(params.get("data"),List.class),gson.fromJson(params.get("channel_sepcs"),Map.class));
+
+        /*try {
             String result = HttpUtils.fetch("http://" + host + "/users/"
                                             + user_id + "/upload", params, env);
             if (result.toLowerCase().startsWith("awesome")) {
@@ -114,12 +118,10 @@ public class BodyTrackHelper {
                 LOG.warn("Could not upload data to BodyTrack data store: "
                          + result);
             }
-
-            //TODO: rewrite uses to call the above method
         } catch (Exception e) {
             LOG.warn("Could not upload data to BodyTrack data store: "
                      + e.getMessage());
-        }
+        }*/
     }
 
     public String fetchTile(String uid, String deviceNickname, String channelName, int level, int offset){
