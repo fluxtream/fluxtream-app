@@ -133,5 +133,4 @@ public class BodyTrackHelper {
                      + e.getMessage());
         }
     }
-    }
 }
