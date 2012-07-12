@@ -60,33 +60,24 @@ public class BodymediaUpdater extends AbstractUpdater {
         OAuthConsumer consumer = setupConsumer(updateInfo.apiKey);
         String api_key = env.get("bodymediaConsumerKey");
 
-        //String userRegistrationDate = getUserRegistrationDate(updateInfo, api_key);
-        for (int i = 0; i < 10; i++) {
-            try {
-                String a = getUserRegistrationDate(updateInfo, api_key, consumer);
-                System.out.println(a);
+        String userRegistrationDate = getUserRegistrationDate(updateInfo, api_key, consumer);
+        for(ObjectType ot : updateInfo.objectTypes())
+        {
+            String date = jpaDaoService.findOne("bodymedia." + ot.getName() + ".getFailedUpdate",
+                                                String.class, updateInfo.getGuestId());
+            DateTime today;
+            if(date!=null)
+            {
+                today = formatter.parseDateTime(date);
             }
-            catch (Exception e) {
-                System.out.println("fail");
+            else
+            {
+                //DateTime should be initialized to today
+                today = new DateTime();
             }
+            DateTime start = formatter.parseDateTime(userRegistrationDate);
+            retrieveHistory(updateInfo, ot, url.get(ot), maxIncrement.get(ot), start, today);
         }
-        //for(ObjectType ot : updateInfo.objectTypes())
-        //{
-        //    String date = jpaDaoService.findOne("bodymedia." + ot.getName() + ".getFailedUpdate",
-        //                                        String.class, updateInfo.getGuestId());
-        //    DateTime today;
-        //    if(date!=null)
-        //    {
-        //        today = formatter.parseDateTime(date);
-        //    }
-        //    else
-        //    {
-        //        //DateTime should be initialized to today
-        //        today = new DateTime();
-        //    }
-        //    DateTime start = formatter.parseDateTime(userRegistrationDate);
-        //    retrieveHistory(updateInfo, ot, url.get(ot), maxIncrement.get(ot), start, today);
-        //}
     }
 
     /**
