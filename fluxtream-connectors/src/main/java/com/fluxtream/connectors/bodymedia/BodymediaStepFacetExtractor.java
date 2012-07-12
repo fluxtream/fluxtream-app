@@ -68,7 +68,6 @@ public class BodymediaStepFacetExtractor extends AbstractFacetExtractor
         /* burnJson is a JSONArray that contains a seperate JSONArray and calorie counts for each day
          */
         JSONObject bodymediaResponse = JSONObject.fromObject(apiData.json);
-        try{
             JSONArray daysArray = bodymediaResponse.getJSONArray("days");
             long then = System.currentTimeMillis();
             DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyyMMdd");
@@ -95,16 +94,13 @@ public class BodymediaStepFacetExtractor extends AbstractFacetExtractor
 
                     facets.add(steps);
                 }
+                else
+                    throw new JSONException("Days array is not a proper JSONObject");
             }
 
             connectorUpdateService.addApiUpdate(updateInfo.getGuestId(), connector(),
-        						STEP_OBJECT_VALUE, then, System.currentTimeMillis() - then,
+        		    			STEP_OBJECT_VALUE, then, System.currentTimeMillis() - then,
                                 "http://api.bodymedia.com/v2/json/step/day/hour/", true, d.getMillis());
-        } catch (JSONException e)
-        {
-            logger.info("guestId=" + apiData.updateInfo.getGuestId() +
-                        " connector=bodymedia action=extractFacets error=JSON incorrectly formatted");
-        }
 
         return facets;
     }

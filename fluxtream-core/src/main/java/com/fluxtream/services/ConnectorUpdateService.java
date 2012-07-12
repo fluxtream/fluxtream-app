@@ -16,6 +16,8 @@ public interface ConnectorUpdateService {
 
     public List<ScheduleResult> updateConnector(long guestId, Connector connector);
 
+    public List<ScheduleResult> updateConnectorObjectType(long guestId, Connector connector, int objectTypes);
+
     public List<ScheduleResult> updateAllConnectors(long guestId);
 
     public List<ApiUpdate> getUpdates(long guestId, Connector connector, int pageSize, int page);
@@ -42,8 +44,7 @@ public interface ConnectorUpdateService {
 			int objectTypes, UpdateInfo.UpdateType updateType,
 			long timeScheduled, String... jsonParams);
 
-	public UpdateWorkerTask isUpdateScheduled(long guestId, String connectorName,
-			UpdateInfo.UpdateType updateType, int objectTypes);
+	public UpdateWorkerTask getScheduledUpdateTask(long guestId, String connectorName, int objectTypes);
 
 	public boolean isHistoryUpdateCompleted(long guestId, String connectorName,
 			int objectTypes);
@@ -55,7 +56,7 @@ public interface ConnectorUpdateService {
 	public ScheduleResult reScheduleUpdateTask(UpdateWorkerTask updateWorkerTask, long time,
                                                boolean incrementRetries, UpdateWorkerTask.AuditTrailEntry auditTrailEntry);
 
-	public UpdateWorkerTask getNextScheduledUpdateTask(long guestId, Connector connector);
+	public List<UpdateWorkerTask> getScheduledUpdateTasks(long guestId, Connector connector);
 
 	public void deleteScheduledUpdateTasks(long guestId, Connector connector);
 

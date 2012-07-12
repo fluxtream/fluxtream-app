@@ -60,6 +60,19 @@ public class SyncController {
     }
 
     @POST
+    @Path("/{connector}/{objectTypes}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String updateConnectorObjectType(@PathParam("connector") String connectorName,
+                                            @PathParam("objectTypes") int objectTypes){
+        final List<ScheduleResult> scheduleResults = connectorUpdateService.updateConnectorObjectType(ControllerHelper.getGuestId(),
+                                                                                            Connector.getConnector(connectorName),
+                                                                                            objectTypes);
+        StatusModel statusModel = new StatusModel(true, "successfully added update worker tasks to the queue (see details)");
+        statusModel.payload = scheduleResults;
+        return gson.toJson(scheduleResults);
+    }
+
+    @POST
     @Path("/all")
     @Produces({MediaType.APPLICATION_JSON})
     public String updateAllConnectors(){

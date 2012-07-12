@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.TimeZone;
 import com.fluxtream.ApiData;
 import com.fluxtream.connectors.ObjectType;
+import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 import com.fluxtream.services.ConnectorUpdateService;
@@ -57,9 +58,14 @@ public class BodymediaBurnFacetExtractor extends AbstractFacetExtractor
         }
         else //If the facet to be extracted wasn't a burn facet
         {
-            throw new RuntimeException("Burn extractor called with illegal ObjectType");
+            throw new JSONException("Burn extractor called with illegal ObjectType");
         }
         return facets;
+    }
+
+    @Override
+    public void setUpdateInfo(final UpdateInfo updateInfo) {
+        super.setUpdateInfo(updateInfo);
     }
 
     /**
@@ -75,47 +81,41 @@ public class BodymediaBurnFacetExtractor extends AbstractFacetExtractor
         JSONObject bodymediaResponse = JSONObject.fromObject(apiData.json);
         if(bodymediaResponse.has("days"))
         {
-            try
+            DateTime d = form.parseDateTime(bodymediaResponse.getJSONObject("lastSync").getString("dateTime"));
+            JSONArray daysArray = bodymediaResponse.getJSONArray("days");
+            long then = System.currentTimeMillis();
+            for(Object o : daysArray)
             {
-                DateTime d = form.parseDateTime(bodymediaResponse.getJSONObject("lastSync").getString("dateTime"));
-                JSONArray daysArray = bodymediaResponse.getJSONArray("days");
-                long then = System.currentTimeMillis();
-                for(Object o : daysArray)
+                if(o instanceof JSONObject)
                 {
-                    if(o instanceof JSONObject)
-                    {
-                        JSONObject day = (JSONObject) o;
-                        BodymediaBurnFacet burn = new BodymediaBurnFacet();
-                        //The following call must be made to load data about he facets
-                        super.extractCommonFacetData(burn, apiData);
-                        burn.setTotalCalories(day.getInt("totalCalories"));
-                        burn.setDate(day.getString("date"));
-                        burn.setEstimatedCalories(day.getInt("estimatedCalories"));
-                        burn.setPredictedCalories(day.getInt("predictedCalories"));
-                        burn.setBurnJson(day.getString("minutes"));
+                    JSONObject day = (JSONObject) o;
+                    BodymediaBurnFacet burn = new BodymediaBurnFacet();
+                    //The following call must be made to load data about he facets
+                    super.extractCommonFacetData(burn, apiData);
+                    burn.setTotalCalories(day.getInt("totalCalories"));
+                    burn.setDate(day.getString("date"));
+                    burn.setEstimatedCalories(day.getInt("estimatedCalories"));
+                    burn.setPredictedCalories(day.getInt("predictedCalories"));
+                    burn.setBurnJson(day.getString("minutes"));
 
-                        DateTime date = formatter.parseDateTime(day.getString("date"));
-                        burn.date = dateFormatter.print(date.getMillis());
-                        TimeZone timeZone = metadataService.getTimeZone(apiData.updateInfo.getGuestId(), date.getMillis());
-                        long fromMidnight = TimeUtils.fromMidnight(date.getMillis(), timeZone);
-                        long toMidnight = TimeUtils.toMidnight(date.getMillis(), timeZone);
-                        //Sets the start and end times for the facet so that it can be uniquely defined
-                        burn.start = fromMidnight;
-                        burn.end = toMidnight;
+                    DateTime date = formatter.parseDateTime(day.getString("date"));
+                    burn.date = dateFormatter.print(date.getMillis());
+                    TimeZone timeZone = metadataService.getTimeZone(apiData.updateInfo.getGuestId(), date.getMillis());
+                    long fromMidnight = TimeUtils.fromMidnight(date.getMillis(), timeZone);
+                    long toMidnight = TimeUtils.toMidnight(date.getMillis(), timeZone);
+                    //Sets the start and end times for the facet so that it can be uniquely defined
+                    burn.start = fromMidnight;
+                    burn.end = toMidnight;
 
-                        facets.add(burn);
-                    }
+                    facets.add(burn);
                 }
+                else
+                    throw new RuntimeException("days array is not a proper JSONObject");
+            }
 
-                connectorUpdateService.addApiUpdate(updateInfo.getGuestId(), connector(),
-            						BURN_OBJECT_VALUE, then, System.currentTimeMillis() - then,
-                                    "http://api.bodymedia.com/v2/json/burn/day/minute/intensity/", true, d.getMillis());
-            }
-            catch (JSONException e)
-            {
-                logger.info("guestId=" + apiData.updateInfo.getGuestId() +
-                       				" connector=bodymedia action=extractFacets error=JSON incorrectly formatted");
-            }
+            connectorUpdateService.addApiUpdate(updateInfo.getGuestId(), connector(),
+                                BURN_OBJECT_VALUE, then, System.currentTimeMillis() - then,
+                                "http://api.bodymedia.com/v2/json/burn/day/minute/intensity/", true, d.getMillis());
         }
         return facets;
     }

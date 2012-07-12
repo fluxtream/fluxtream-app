@@ -11,6 +11,7 @@ import com.fluxtream.Configuration;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.DashboardWidget;
 import com.fluxtream.domain.DashboardWidgetsRepository;
+import com.fluxtream.domain.WidgetSettings;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.WidgetsService;
 import com.fluxtream.utils.HttpUtils;
@@ -85,6 +86,42 @@ public class WidgetsServiceImpl implements WidgetsService {
             }
         }
         refreshWidgets(guestId);
+    }
+
+    @Override
+    public void saveWidgetSettings(final long guestId, final long dashboardId, final String widgetName, final String settingsJSON) {
+        WidgetSettings settings = new WidgetSettings();
+        settings.guestId = guestId;
+        settings.dashboardId = dashboardId;
+        settings.widgetName = widgetName;
+        settings.settingsJSON = settingsJSON;
+        em.persist(settings);
+    }
+
+    @Override
+    public WidgetSettings getWidgetSettings(final long guestId, final long dashboardId, final String widgetName) {
+        final WidgetSettings settings = JPAUtils.findUnique(em, WidgetSettings.class,
+                                                            "widgetSettings.byDashboardAndName",
+                                                            guestId, dashboardId, widgetName);
+        return settings;
+    }
+
+    @Override
+    public void deleteWidgetSettings(final long guestId, final long dashboardId, final String widgetName) {
+        JPAUtils.execute(em, "widgetSettings.delete.byDashboardAndName", guestId, dashboardId, widgetName);
+    }
+
+    @Override
+    public List<WidgetSettings> getWidgetSettings(final long guestId, final long dashboardId) {
+        final List<WidgetSettings> settings = JPAUtils.find(em, WidgetSettings.class,
+                                                            "widgetSettings.byDashboard",
+                                                            guestId, dashboardId);
+        return settings;
+    }
+
+    @Override
+    public void deleteWidgetSettings(final long guestId, final long dashboardId) {
+        JPAUtils.execute(em, "widgetSettings.delete.byDashboard", guestId, dashboardId);
     }
 
     @Override

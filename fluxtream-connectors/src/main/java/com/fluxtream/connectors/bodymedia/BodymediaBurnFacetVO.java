@@ -1,15 +1,8 @@
 package com.fluxtream.connectors.bodymedia;
 
-import java.util.ArrayList;
-import java.util.List;
-import javax.persistence.Lob;
 import com.fluxtream.TimeInterval;
-import com.fluxtream.connectors.fitbit.FitbitActivityFacet;
-import com.fluxtream.connectors.fitbit.FitbitCaloriesVO;
 import com.fluxtream.connectors.vos.AbstractFacetVO;
 import com.fluxtream.domain.GuestSettings;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
 
 public class BodymediaBurnFacetVO extends AbstractFacetVO<BodymediaBurnFacet>{
 

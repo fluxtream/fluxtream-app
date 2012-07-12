@@ -3,6 +3,7 @@
     "WidgetIcon" : "averageWeight.png",
     "WidgetName" : "averageWeight",
     "WidgetTitle" : {"en" : "Average Weight"},
+    "HasSettings" : false,
     "SupportedLanguages" : "en",
     "VendorIdentifier" : "Fluxtream.com",
     "RequiredConnectors":"withings"

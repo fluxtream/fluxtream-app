@@ -18,6 +18,7 @@ import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
@@ -50,12 +51,16 @@ public class UpdateWorkerTaskStore {
                              @QueryParam("pageSize") int pageSize,
                              @QueryParam("page") int page) {
         long guestId = ControllerHelper.getGuestId();
-        final UpdateWorkerTask nextScheduledUpdateTask =
-                connectorUpdateService.getNextScheduledUpdateTask(guestId, Connector.getConnector(connectorName));
-        return nextScheduledUpdateTask!=null?toJSON(nextScheduledUpdateTask):"{}";
+        final List<UpdateWorkerTask> scheduledUpdates =
+                connectorUpdateService.getScheduledUpdateTasks(guestId, Connector.getConnector(connectorName));
+        JSONArray array = new JSONArray();
+        for (UpdateWorkerTask scheduledUpdate : scheduledUpdates) {
+            array.add(toJSON(scheduledUpdate));
+        }
+        return array.toString();
     }
 
-    private String toJSON(UpdateWorkerTask task) {
+    private JSONObject toJSON(UpdateWorkerTask task) {
         JSONObject json = new JSONObject();
         json.accumulate("objectTypes", task.getObjectTypes());
         json.accumulate("updateType", task.updateType.toString());
@@ -64,7 +69,7 @@ public class UpdateWorkerTaskStore {
         json.accumulate("status", task.status.toString());
         json.accumulate("jsonParams", task.jsonParams);
         json.accumulate("auditTrail", task.auditTrail);
-        return json.toString();
+        return json;
     }
 
     @GET
@@ -77,9 +82,9 @@ public class UpdateWorkerTaskStore {
         long guestId = ControllerHelper.getGuestId();
         final Connector connector = Connector.getConnector(connectorName);
         final ObjectType objectType = ObjectType.getObjectType(connector, objectTypeName);
-        final UpdateWorkerTask nextScheduledUpdateTask =
-                connectorUpdateService.getNextScheduledUpdateTask(guestId, connector);
-        return nextScheduledUpdateTask!=null?toJSON(nextScheduledUpdateTask):"{}";
+        final UpdateWorkerTask scheduledUpdate =
+                connectorUpdateService.getScheduledUpdateTask(guestId, connector.getName(), objectType.value());
+        return scheduledUpdate!=null?toJSON(scheduledUpdate).toString():"{}";
     }
 
     @DELETE

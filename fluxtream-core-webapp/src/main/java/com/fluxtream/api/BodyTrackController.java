@@ -1,6 +1,7 @@
 package com.fluxtream.api;
 
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
@@ -33,8 +34,8 @@ public class BodyTrackController {
 	@Autowired
 	Configuration env;
 	
-	@GET
-	@Path("/loadHistory")
+	@POST
+	@Path("/uploadHistory")
 	@Produces({ MediaType.APPLICATION_JSON })
 	public String loadHistory(@QueryParam("username") String username,
 			@QueryParam("connectorName") String connectorName) throws InstantiationException,

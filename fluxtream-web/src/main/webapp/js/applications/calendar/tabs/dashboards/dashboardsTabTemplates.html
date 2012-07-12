@@ -58,7 +58,7 @@
             <div class="flx-widget span4" id="{{WidgetName}}-widget">
                 <header>
                     <div class="flx-widget-controls">
-                        <a class="flx-widget-settings" style="cursor:pointer;"><i class="icon-cog"></i></a>
+{{#HasSettings}}                        <a class="flx-widget-settings" id="{{WidgetName}}-widget-settings" style="cursor:pointer;"><i class="icon-cog"></i></a>{{/HasSettings}}
                         <a class="flx-remove-widget" style="cursor:pointer;"><i class="icon-remove"></i></a>
                     </div>
                     <h3 class="flx-title">{{WidgetTitle.en}}</h3>
@@ -85,4 +85,19 @@
         </li>
         {{/dashboards}}
     </ul>
+</template>
+<template id="widgetSettings">
+    <div class="modal fade" id="modal">
+        <div class="modal-header">
+            <h3>{{manifest.WidgetTitle.en}} Widget Settings<a href="#" class="close" data-dismiss="modal">&times;</a></h3>
+        </div>
+        <div class="modal-body">
+            <div id="{{manifest.WidgetName}}-widgetSettings">
+                (this whole div will be replaced)
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn" onclick="App.closeModal()">Close</button>
+        </div>
+    </div>
 </template>

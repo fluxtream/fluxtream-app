@@ -17,17 +17,11 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
     var selectedConnectors;
     var connectorEnabled;
 
-    var oldState = null;
-
     App.addHideTooltipListener(hideEventInfo);
 
 	function render(digest, timeUnit, calendarState, connectorEnabled) {
         hideEventInfo();
         this.getTemplate("text!applications/calendar/tabs/clock/clock.html", "clock", function() {
-            if (calendarState == oldState)
-                return;
-            else
-                oldState = calendarState;
 			 setup(digest, timeUnit, connectorEnabled);
 		});
 	}
@@ -539,6 +533,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         var collections = [];
         var currentCollection = null;
         for (var i = 0; i < positions.length; i++){
+            if (positions[i].source == "OTHER")
+                continue;
             var position = positions[i];
             var pos1 = new google.maps.LatLng(position.position[0],position.position[1]);
             var addressAt = null;

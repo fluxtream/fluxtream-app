@@ -182,6 +182,8 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 			String[] terms = StringUtils.split(mapping, ":");
             if (terms[1].startsWith("#")) {
                 String converterName = terms[1].substring(1);
+                if (converterName.equalsIgnoreCase("NOOP")||converterName.equalsIgnoreCase("OOP"))
+                    continue;
                 String bodytrackChannelName = getFieldHandler(converterName).getBodytrackChannelName();
                 mappings.put(terms[0], bodytrackChannelName);
             } else
