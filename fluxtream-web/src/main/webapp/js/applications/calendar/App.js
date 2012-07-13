@@ -569,9 +569,21 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         return dateString;
     }
 
+    var viewBtnIds = {DAY:"#dayViewBtn",WEEK:"#weekViewBtn",MONTH:"#monthViewBtn",YEAR:"#yearViewBtn"};
+
     Calendar.dateChanged = function(date, rangeType) {
         console.log("Calendar.dateChanged(" + date + ", " + rangeType + ")");
         console.log("updating url...");
+
+
+        for (var type in viewBtnIds){
+            if (type == rangeType){
+                $(viewBtnIds[type]).addClass("active");
+            }
+            else{
+                $(viewBtnIds[type]).removeClass("active");
+            }
+        }
 
         Calendar.timeUnit = rangeType;
 

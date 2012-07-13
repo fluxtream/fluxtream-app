@@ -2,8 +2,6 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
         "applications/calendar/App"],
     function(Tab, FlxState, BodyTrack, Calendar) {
 
-    var curTimeUnit;
-
     var APP 		= BodyTrack.APP;
     var PREFS 		= BodyTrack.PREFS;
     var TOOLS 		= BodyTrack.TOOLS;
@@ -1624,16 +1622,24 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
             });
             var prevDateString = null;
             dateAxis.addAxisChangeListener(function() {
+                var timeUnit = "DAY";
+                var range = dateAxis.getMax() - dateAxis.getMin();
+                if (range > 364 * 24 * 3600)
+                    timeUnit = "YEAR";
+                else if (range > 27 * 24 * 3600)
+                    timeUnit = "MONTH";
+                else if (range > 6 * 24 * 3600)
+                    timeUnit = "WEEK";
                 var center = (dateAxis.getMin() + dateAxis.getMax()) / 2.0;
                 var date = new Date(center * 1000);
                 var dateChangeBuffer = 24 * 3600 * 1000 / 12;
                 var dateEarly = new Date(center * 1000 - dateChangeBuffer);
                 var dateLater = new Date(center * 1000 + dateChangeBuffer);
-                var dateString = Calendar.toDateString(date,curTimeUnit);
-                var dateStringEarly = Calendar.toDateString(dateEarly,curTimeUnit);
-                var dateStringLater = Calendar.toDateString(dateLater,curTimeUnit);
+                var dateString = Calendar.toDateString(date,timeUnit);
+                var dateStringEarly = Calendar.toDateString(dateEarly,timeUnit);
+                var dateStringLater = Calendar.toDateString(dateLater,timeUnit);
                 if (dateString != prevDateString && dateStringEarly != prevDateString && dateStringLater != prevDateString) {
-                    Calendar.dateChanged(dateString, curTimeUnit);
+                    Calendar.dateChanged(dateString, timeUnit);
                     prevDateString = dateString;
                 }
             });
@@ -2783,7 +2789,6 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
     var digest;
 
     function setup(digest, timeUnit) {
-        curTimeUnit = timeUnit;
 
         $(window).resize(function(){
             clearTimeout(BodyTrack.TOOLS.resizeTimer);
