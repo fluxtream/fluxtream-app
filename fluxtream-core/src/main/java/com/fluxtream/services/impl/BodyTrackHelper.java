@@ -231,7 +231,7 @@ public class BodyTrackHelper {
             return gson.toJson(response);
         }
         catch(Exception e){
-            return null;
+            return gson.toJson(new SourcesResponse(null));
         }
     }
 
@@ -275,6 +275,8 @@ public class BodyTrackHelper {
 
         public SourcesResponse(channelInfoResponse infoResponse){
             sources = new ArrayList<Source>();
+            if (infoResponse == null)
+                return;
 
             for (Map.Entry<String,ChannelSpecs> entry : infoResponse.channel_specs.entrySet()){
                 String fullName = entry.getKey();
