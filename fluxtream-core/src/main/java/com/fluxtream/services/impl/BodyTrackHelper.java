@@ -185,7 +185,7 @@ public class BodyTrackHelper {
         }
     }
 
-    public String listSources(String uid){
+    public String listSources(long uid){
         try{
             String launchCommand = env.targetEnvironmentProps.getString("btdatastore.exec.location") + "/info " +
                                    env.targetEnvironmentProps.getString("btdatastore.db.location") + " -r " + uid;
