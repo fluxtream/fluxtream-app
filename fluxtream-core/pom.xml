@@ -7,112 +7,112 @@
 		<version>1.0</version>
 	</parent>
 	<artifactId>fluxtream-core</artifactId>
-    <build>
-        <plugins>
-            <!-- Generate the XSD from the classes annotated with JAXB -->
-            <plugin>
-                 <groupId>com.sun.tools.jxc.maven2</groupId>
-                 <artifactId>maven-jaxb-schemagen-plugin</artifactId>
-                 <version>1.2</version>
-                 <executions>
-                     <execution>
-                        <phase>generate-resources</phase>
-                        <goals>
-                           <goal>generate</goal>
-                        </goals>
-                     </execution>
-                 </executions>
+    <!--<build>-->
+        <!--<plugins>-->
+            <!--&lt;!&ndash; Generate the XSD from the classes annotated with JAXB &ndash;&gt;-->
+            <!--<plugin>-->
+                 <!--<groupId>com.sun.tools.jxc.maven2</groupId>-->
+                 <!--<artifactId>maven-jaxb-schemagen-plugin</artifactId>-->
+                 <!--<version>1.2</version>-->
+                 <!--<executions>-->
+                     <!--<execution>-->
+                        <!--<phase>generate-resources</phase>-->
+                        <!--<goals>-->
+                           <!--<goal>generate</goal>-->
+                        <!--</goals>-->
+                     <!--</execution>-->
+                 <!--</executions>-->
 
-                 <configuration>
-                    <project>${project}</project>
-                    <destdir>${project.build.directory}/schemas</destdir>
-                    <srcdir>${project.build.sourceDirectory}</srcdir>
-                    <includes>
-                         <include>com/fluxtream/domain/*</include>
-                    </includes>
-                    <!--
-                    <schemas>
-                         <schema>
-                             <namespace>http://www.jordeu.net/XSDCREATOR/1.0.0</namespace>
-                             <file>xsdcreator-v1_0_0.xsd</file>
-                         </schema>
-                    </schemas>
-                    -->
-                    <verbose>true</verbose>
-                 </configuration>
-                 <dependencies>
-                     <dependency>
-                         <groupId>javax.xml.bind</groupId>
-                         <artifactId>jaxb-api</artifactId>
-                         <version>2.2</version>
-                     </dependency>
-                     <dependency>
-                         <groupId>com.sun.xml.bind</groupId>
-                         <artifactId>jaxb-xjc</artifactId>
-                         <version>2.2</version>
-                     </dependency>
-                     <dependency>
-                         <groupId>com.sun.xml.bind</groupId>
-                         <artifactId>jaxb-impl</artifactId>
-                         <version>2.2</version>
-                     </dependency>
-                     <dependency>
-                         <groupId>com.sun.xml.bind</groupId>
-                         <artifactId>jaxb-xjc</artifactId>
-                         <version>2.2</version>
-                     </dependency>
-                 </dependencies>
-            </plugin>
+                 <!--<configuration>-->
+                    <!--<project>${project}</project>-->
+                    <!--<destdir>${project.build.directory}/schemas</destdir>-->
+                    <!--<srcdir>${project.build.sourceDirectory}</srcdir>-->
+                    <!--<includes>-->
+                         <!--<include>com/fluxtream/domain/*</include>-->
+                    <!--</includes>-->
+                    <!--&lt;!&ndash;-->
+                    <!--<schemas>-->
+                         <!--<schema>-->
+                             <!--<namespace>http://www.jordeu.net/XSDCREATOR/1.0.0</namespace>-->
+                             <!--<file>xsdcreator-v1_0_0.xsd</file>-->
+                         <!--</schema>-->
+                    <!--</schemas>-->
+                    <!--&ndash;&gt;-->
+                    <!--<verbose>true</verbose>-->
+                 <!--</configuration>-->
+                 <!--<dependencies>-->
+                     <!--<dependency>-->
+                         <!--<groupId>javax.xml.bind</groupId>-->
+                         <!--<artifactId>jaxb-api</artifactId>-->
+                         <!--<version>2.2</version>-->
+                     <!--</dependency>-->
+                     <!--<dependency>-->
+                         <!--<groupId>com.sun.xml.bind</groupId>-->
+                         <!--<artifactId>jaxb-xjc</artifactId>-->
+                         <!--<version>2.2</version>-->
+                     <!--</dependency>-->
+                     <!--<dependency>-->
+                         <!--<groupId>com.sun.xml.bind</groupId>-->
+                         <!--<artifactId>jaxb-impl</artifactId>-->
+                         <!--<version>2.2</version>-->
+                     <!--</dependency>-->
+                     <!--<dependency>-->
+                         <!--<groupId>com.sun.xml.bind</groupId>-->
+                         <!--<artifactId>jaxb-xjc</artifactId>-->
+                         <!--<version>2.2</version>-->
+                     <!--</dependency>-->
+                 <!--</dependencies>-->
+            <!--</plugin>-->
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.4</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>javadoc</goal>
-                        </goals>
-                        <phase>compile</phase>
-                    </execution>
-                </executions>
-                <configuration>
-                    <encoding>UTF-8</encoding>
-                    <verbose>false</verbose>
-                    <show>public</show>
-                    <subpackages>com.fluxtream.domain</subpackages>
-                    <doclet>com.sun.jersey.wadl.resourcedoc.ResourceDoclet</doclet>
-                        <docletPath>${path.separator}${project.build.outputDirectory}</docletPath>
-                        <docletArtifacts>
-                        <docletArtifact>
-                            <groupId>com.sun.jersey.contribs</groupId>
-                            <artifactId>wadl-resourcedoc-doclet</artifactId>
-                            <version>1.11</version>
-                        </docletArtifact>
-                        <!--
-                            Also specify jersey and xerces as doclet artifacts as the ResourceDoclet
-                            uses classes provided by them to generate the resourcedoc.
-                         -->
-                        <docletArtifact>
-                            <groupId>com.sun.jersey</groupId>
-                            <artifactId>jersey-server</artifactId>
-                            <version>1.11</version>
-                        </docletArtifact>
-                        <docletArtifact>
-                            <groupId>xerces</groupId>
-                            <artifactId>xercesImpl</artifactId>
-                            <version>2.6.1</version>
-                        </docletArtifact>
-                    </docletArtifacts>
-                    <!-- the following option is required as a work around for
-                         version 2.5 of the javadoc plugin which will be used
-                         by a maven version > 2.0.9 -->
-                    <useStandardDocletOptions>false</useStandardDocletOptions>
-                    <additionalparam>-output ${project.build.outputDirectory}/resourcedoc.xml</additionalparam>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+            <!--<plugin>-->
+                <!--<groupId>org.apache.maven.plugins</groupId>-->
+                <!--<artifactId>maven-javadoc-plugin</artifactId>-->
+                <!--<version>2.4</version>-->
+                <!--<executions>-->
+                    <!--<execution>-->
+                        <!--<goals>-->
+                            <!--<goal>javadoc</goal>-->
+                        <!--</goals>-->
+                        <!--<phase>compile</phase>-->
+                    <!--</execution>-->
+                <!--</executions>-->
+                <!--<configuration>-->
+                    <!--<encoding>UTF-8</encoding>-->
+                    <!--<verbose>false</verbose>-->
+                    <!--<show>public</show>-->
+                    <!--<subpackages>com.fluxtream.domain</subpackages>-->
+                    <!--<doclet>com.sun.jersey.wadl.resourcedoc.ResourceDoclet</doclet>-->
+                        <!--<docletPath>${path.separator}${project.build.outputDirectory}</docletPath>-->
+                        <!--<docletArtifacts>-->
+                        <!--<docletArtifact>-->
+                            <!--<groupId>com.sun.jersey.contribs</groupId>-->
+                            <!--<artifactId>wadl-resourcedoc-doclet</artifactId>-->
+                            <!--<version>1.11</version>-->
+                        <!--</docletArtifact>-->
+                        <!--&lt;!&ndash;-->
+                            <!--Also specify jersey and xerces as doclet artifacts as the ResourceDoclet-->
+                            <!--uses classes provided by them to generate the resourcedoc.-->
+                         <!--&ndash;&gt;-->
+                        <!--<docletArtifact>-->
+                            <!--<groupId>com.sun.jersey</groupId>-->
+                            <!--<artifactId>jersey-server</artifactId>-->
+                            <!--<version>1.11</version>-->
+                        <!--</docletArtifact>-->
+                        <!--<docletArtifact>-->
+                            <!--<groupId>xerces</groupId>-->
+                            <!--<artifactId>xercesImpl</artifactId>-->
+                            <!--<version>2.6.1</version>-->
+                        <!--</docletArtifact>-->
+                    <!--</docletArtifacts>-->
+                    <!--&lt;!&ndash; the following option is required as a work around for-->
+                         <!--version 2.5 of the javadoc plugin which will be used-->
+                         <!--by a maven version > 2.0.9 &ndash;&gt;-->
+                    <!--<useStandardDocletOptions>false</useStandardDocletOptions>-->
+                    <!--<additionalparam>-output ${project.build.outputDirectory}/resourcedoc.xml</additionalparam>-->
+                <!--</configuration>-->
+            <!--</plugin>-->
+        <!--</plugins>-->
+    <!--</build>-->
 	<dependencies>
 		<dependency>
 			<groupId>commons-configuration</groupId>

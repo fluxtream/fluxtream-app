@@ -45,7 +45,6 @@ define(["App"], function(App) {
         });
         $(".dashboard-list-header button").click(function(evt) {
             var dashboardName = $(".dashboard-list-header input").val();
-            console.log("dashboardName: " + dashboardName);
             createDashboard(dashboardName);
         });
         $(".dashboard-list-item-name").editable(function(value, settings) {

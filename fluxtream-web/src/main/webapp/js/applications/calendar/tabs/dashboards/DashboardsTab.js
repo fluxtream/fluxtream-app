@@ -67,7 +67,7 @@ define(["applications/calendar/tabs/Tab",
                 row = {widgets:[]};
                 rows.push(row);
             }
-            row.widgets.push(activeWidgetInfos[i]);
+            row.widgets.push(activeWidgetInfos[i].manifest);
         }
         App.loadMustacheTemplate("applications/calendar/tabs/dashboards/dashboardsTabTemplates.html","widgetsGrid", function(template){
             var html = template.render({rows: rows});
@@ -104,11 +104,12 @@ define(["applications/calendar/tabs/Tab",
     }
 
    function loadWidget(widgetInfo) {
+       var that = this;
        require([widgetInfo.manifest.WidgetRepositoryURL + "/"
                     + widgetInfo.manifest.WidgetName + "/"
                     + widgetInfo.manifest.WidgetName + ".js"],
                function(WidgetModule) {
-                   WidgetModule.load(widgetInfo, digest);
+                   WidgetModule.load(widgetInfo, digest, dashboardsTab.activeDashboard);
                });
    }
 
@@ -149,7 +150,6 @@ define(["applications/calendar/tabs/Tab",
     }
 
     function createDashboard(dashboardName) {
-        console.log("creating a dashboard: " + dashboardName);
         $.ajax({
             url: "/api/dashboards",
             type: "post",
@@ -162,12 +162,10 @@ define(["applications/calendar/tabs/Tab",
     }
 
     function demoteDashboard(dashboardId) {
-        console.log("demoting a dashboard: " + dashboardId);
         ManageDashboards.update();
     }
 
     function promoteDashboard(dashboardId) {
-        console.log("promoting a dashboard: " + dashboardId);
         ManageDashboards.update();
     }
 

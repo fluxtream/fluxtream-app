@@ -2,38 +2,83 @@ define(function() {
 
     function DashboardWidget() {}
 
-    DashboardWidget.prototype.load = function(widgetInfo, dgst) {
+    DashboardWidget.prototype.load = function(widgetInfo, dgst, dashboardId) {
         this.manifest = widgetInfo.manifest;
         this.digest = dgst;
+        this.dashboardId = dashboardId;
         _.bindAll(this);
         this.init();
-        var that = this;
         if (this.manifest.HasSettings) {
             this.settings = widgetInfo.settings;
+            var that = this;
             $("#" + widgetInfo.manifest.WidgetName + "-widget-settings").click(function () {
-                that.settings(that.settings);
+                that.showSettingsDialog(that.settings);
             });
         }
     }
 
-    DashboardWidget.prototype.settings = function(settings) {
+    DashboardWidget.prototype.showSettingsDialog = function(settings) {
         var that = this;
         App.loadMustacheTemplate("applications/calendar/tabs/dashboards/dashboardsTabTemplates.html","widgetSettings",function(template) {
             var html = template.render({"manifest" : that.manifest});
             App.makeModal(html);
-            that.loadWidgetSettings(that.settings);
+            that.loadWidgetSettingsForm();
+            $("#save-settings-" + that.manifest.WidgetName).click(function() {
+                that.validateSettings();
+            });
         });
     }
 
-    DashboardWidget.prototype.loadWidgetSettings = function(settings) {
+    DashboardWidget.prototype.validateSettings = function() {
+        alert("WARNING: '" + this.manifest.WidgetName + "' widget's validateSettings()  method is not yet implemented!");
+    }
+
+    DashboardWidget.prototype.saveSettings = function(settings) {
+        var that = this;
+        $.ajax({
+            url: "/api/dashboards/" + that.dashboardId + "/widgets/" + that.manifest.WidgetName + "/settings",
+            type: "POST",
+            data: {settingsJSON : JSON.stringify(settings)},
+            success: function() {
+                App.closeModal();
+            },
+            error: function() {
+                alert("Oops. We couldn't save your settings. Sorry about that.")
+            }
+        });
+    }
+
+    DashboardWidget.prototype.loadWidgetSettingsForm = function() {
         var that = this;
         require(["text!" + this.manifest.WidgetRepositoryURL + "/"
                      + this.manifest.WidgetName + "/settings.mustache"], function(html) {
-            console.log("loading widget settings");
-            console.log(settings);
             var selector = "#" + that.manifest.WidgetName + "-widgetSettings";
             $(selector).replaceWith(html);
+            that.loadWidgetSettingsData();
         });
+    }
+
+    DashboardWidget.prototype.loadWidgetSettingsData = function() {
+        var that = this;
+        $.ajax({
+            url: "/api/dashboards/" + that.dashboardId + "/widgets/" + that.manifest.WidgetName + "/settings",
+            type: "GET",
+            success: function(widgetSettings) {
+                that.defaultSettings(widgetSettings);
+                that.bindWidgetSettings(widgetSettings);
+            },
+            error: function() {
+                alert("Oops. We couldn't get your settings. Sorry about that.")
+            }
+        })
+    }
+
+    DashboardWidget.prototype.bindWidgetSettings = function(widgetSettings) {
+        alert("WARNING: '" + this.manifest.WidgetName + "' widget's bindWidgetSettings()  method is not yet implemented!");
+    }
+
+    DashboardWidget.prototype.defaultSettings = function(widgetSettings) {
+        alert("WARNING: '" + this.manifest.WidgetName + "' widget's defaultSettings()  method is not yet implemented!");
     }
 
     DashboardWidget.prototype.addCommas = function(nStr) {

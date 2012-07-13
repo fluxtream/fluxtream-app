@@ -31,11 +31,25 @@ define(["core/DashboardWidget"], function(DashboardWidget) {
         $("#averageSteps-widget .flx-body").append(
             html.render(params)
         );
+    };
+
+    StepsTaken.validateSettings = function() {
+        var dailyGoal = $("#averageStepsDailyGoal").val();
+        this.saveSettings({"dailyGoal" : dailyGoal});
+    };
+
+    StepsTaken.bindWidgetSettings = function(widgetSettings) {
+        $("#averageStepsDailyGoal").val(widgetSettings.dailyGoal);
+    }
+
+    StepsTaken.defaultSettings = function(widgetSettings) {
+        if (typeof(widgetSettings.dailyGoal)=="undefined")
+            widgetSettings.dailyGoal = 0;
     }
 
     StepsTaken.noSteps = function() {
         return "No Steps Recorded " + this.getPrettyTimeUnit();
-    }
+    };
 
     return StepsTaken;
 })
