@@ -607,7 +607,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 dateLabel = monthsOfYearFull[parseInt(dateSplits[1])] + " " + dateSplits[0];
                 break;
             case "YEAR":
-                sate = "timeline/year/" + date;
+                state = "timeline/year/" + date;
                 Calendar.tabState = "year/" + date;
                 dateLabel = date;
                 break;
