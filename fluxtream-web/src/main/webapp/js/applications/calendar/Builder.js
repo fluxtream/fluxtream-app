@@ -40,7 +40,7 @@ define([], function() {
                     return;
 				var state = App.state.getState("calendar");
 				state = state.substring(state.indexOf("/"));
-				Calendar.renderState(tab+state);
+				Calendar.renderState(tab+state,Calendar.digestTabState != state.substring(1));
 			});
 		}
 		var t = tabExistsForTimeUnit(Calendar.currentTabName, Calendar.timeUnit)?Calendar.currentTabName:tabs[Calendar.timeUnit][0];
