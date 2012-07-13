@@ -5,6 +5,7 @@ import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.fluxtream.TimeUnit;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -70,12 +71,12 @@ public class NavController {
 
 	@RequestMapping(value = "/nav/setToToday.json")
 	public void setToToday(HttpServletRequest request,
-			HttpServletResponse response) throws IOException {
+			HttpServletResponse response,  @RequestParam("timeUnit") String timeUnit) throws IOException {
 		logger.info("action=setToToday");
 		response.setContentType("application/json; charset=utf-8");
 		HomeModel homeModel = (HomeModel) request.getSession().getAttribute(
 				"homeModel");
-		homeModel.setToToday();
+		homeModel.setToToday(TimeUnit.fromValue(timeUnit));
 		updateComment(homeModel, request);
 		response.getWriter().write(homeModel.toJSONString(env, getConfigState(request)));
 	}

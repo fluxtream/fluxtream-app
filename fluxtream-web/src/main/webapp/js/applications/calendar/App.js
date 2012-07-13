@@ -20,13 +20,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 		$(".menuPrevButton").click(function(e) {
 			fetchState("/nav/decrementTimespan.json?state=" + Calendar.tabState); });
 		$(".menuTodayButton").click(function(e) {
-			Calendar.timeUnit = "DAY";
-			var t = Builder.tabExistsForTimeUnit(Calendar.currentTabName, Calendar.timeUnit)?Calendar.currentTabName:Builder.tabs[Calendar.timeUnit][0];
-			Calendar.currentTabName = t;
-            Calendar.updateButtonStates();
-			Builder.bindTimeUnitsMenu(Calendar);
-			Builder.createTabs(Calendar);
-			fetchState("/nav/setToToday.json");
+			fetchState("/nav/setToToday.json?timeUnit=" + Calendar.timeUnit);
 		});
 	};
 
@@ -85,7 +79,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 		if (state==null||state==="") {
 			Builder.bindTimeUnitsMenu(Calendar);
 			Builder.createTabs(Calendar);
-			fetchState("/nav/setToToday.json");
+			fetchState("/nav/setToToday.json?timeUnit=DAY");
             return;
 		}
 		var splits = state.split("/");
@@ -135,6 +129,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 					Calendar.currentTab.saveState();
 				}
 				Calendar.tabState = response.state;
+                updateDisplays();
                 Calendar.start = response.start;
                 Calendar.end  = response.end;
 				FlxState.router.navigate("app/calendar/" + Calendar.currentTabName + "/" + response.state);
@@ -569,21 +564,11 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         return dateString;
     }
 
-    var viewBtnIds = {DAY:"#dayViewBtn",WEEK:"#weekViewBtn",MONTH:"#monthViewBtn",YEAR:"#yearViewBtn"};
-
     Calendar.dateChanged = function(date, rangeType) {
         console.log("Calendar.dateChanged(" + date + ", " + rangeType + ")");
         console.log("updating url...");
 
-
-        for (var type in viewBtnIds){
-            if (type == rangeType){
-                $(viewBtnIds[type]).addClass("active");
-            }
-            else{
-                $(viewBtnIds[type]).removeClass("active");
-            }
-        }
+        var oldTimeUnit = Calendar.timeUnit;
 
         Calendar.timeUnit = rangeType;
 
@@ -627,13 +612,45 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         FlxState.router.navigate("app/calendar/" + state, {trigger: false, replace: true});
         FlxState.saveState("calendar", state);
 
+        if (oldTimeUnit != Calendar.timeUnit)
+            Builder.createTabs(Calendar);
 
-
+        updateDisplays();
 
         console.log("dateLabel: " + dateLabel);
 
         $("#currentTimespanLabel span").html(dateLabel);
     };
+
+    var viewBtnIds = {DAY:"#dayViewBtn",WEEK:"#weekViewBtn",MONTH:"#monthViewBtn",YEAR:"#yearViewBtn"};
+    var todayButtonDisplays = {DAY:"Today",WEEK:"This Week",MONTH:"This Month",YEAR:"This Year"};
+
+    function updateDisplays(){
+        var rangeType;
+        switch (Calendar.tabState.substring(0,Calendar.tabState.indexOf("/"))){
+            case "date":
+                rangeType = "DAY";
+                break;
+            case "week":
+                rangeType = "WEEK";
+                break;
+            case "month":
+                rangeType = "MONTH";
+                break;
+            case "year":
+                rangeType = "YEAR";
+                break;
+        }
+        for (var type in viewBtnIds){
+            if (type == rangeType){
+                $(viewBtnIds[type]).addClass("active");
+            }
+            else{
+                $(viewBtnIds[type]).removeClass("active");
+            }
+        }
+        $(".menuTodayButton span").text(todayButtonDisplays[rangeType]);
+    }
 
 	return Calendar;
 

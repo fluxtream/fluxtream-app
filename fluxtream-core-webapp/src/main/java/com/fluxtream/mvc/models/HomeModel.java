@@ -69,7 +69,7 @@ public class HomeModel {
 		this.viewType = VisualizationType.CLOCK;
 		this.dayVisualizationType = viewType;
 		this.aggregatedVisualizationType = VisualizationType.STATS;
-		setToToday();
+		setToToday(TimeUnit.DAY);
 	}
 
 	public void setTimeZone(TimeZone tz) {
@@ -237,11 +237,22 @@ public class HomeModel {
 		return "UNKNOWN_DATE";
 	}
 
-	public void setToToday() {
+	public void setToToday(TimeUnit timeUnit) {
+        this.timeUnit = timeUnit;
 		fromCalendar = TimeUtils.setFromMidnight(new GregorianCalendar(tz));
 		toCalendar = TimeUtils.setToMidnight(new GregorianCalendar(tz));
-		timeUnit = TimeUnit.DAY;
 		viewType = dayVisualizationType;
+        switch (timeUnit){
+            case WEEK:
+                setWeekTimeUnit();
+                break;
+            case MONTH:
+                setMonthTimeUnit();
+                break;
+            case YEAR:
+                setYearTimeUnit();
+                break;
+        }
 	}
 
 	public boolean isToday() {
