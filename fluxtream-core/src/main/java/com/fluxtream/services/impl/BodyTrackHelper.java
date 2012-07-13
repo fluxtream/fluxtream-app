@@ -30,6 +30,8 @@ public class BodyTrackHelper {
 
     static Logger LOG = Logger.getLogger(BodyTrackHelper.class);
 
+    static final boolean verboseOutput = false;
+
     @Autowired
     Configuration env;
 
@@ -77,9 +79,13 @@ public class BodyTrackHelper {
                     BufferedReader error = new BufferedReader(new InputStreamReader(pr.getErrorStream()));
                     String line=null;
                     try{
-                    while((line=error.readLine()) != null) { //output all console output from the execution
-                        System.out.println("BTDataStore: " + line);
-                    }
+                        if (verboseOutput){
+                            while((line=error.readLine()) != null) { //output all console output from the execution
+                                System.out.println("BTDataStore: " + line);
+                            }
+                        }
+                        else
+                            while (error.readLine() != null);
                     } catch(Exception e){}
                 }
 
@@ -142,9 +148,13 @@ public class BodyTrackHelper {
                     BufferedReader error = new BufferedReader(new InputStreamReader(pr.getErrorStream()));
                     String line=null;
                     try{
-                        while((line=error.readLine()) != null) { //output all console output from the execution
-                            System.out.println("BTDataStore-error: " + line);
+                        if (verboseOutput){
+                            while((line=error.readLine()) != null) { //output all console output from the execution
+                                System.out.println("BTDataStore-error: " + line);
+                            }
                         }
+                        else
+                            while (error.readLine() != null);
                     } catch(Exception e){}
                 }
 
@@ -202,9 +212,13 @@ public class BodyTrackHelper {
                     BufferedReader error = new BufferedReader(new InputStreamReader(pr.getErrorStream()));
                     String line=null;
                     try{
-                        while((line=error.readLine()) != null) { //output all console output from the execution
-                            System.out.println("BTDataStore-error: " + line);
+                        if (verboseOutput){
+                            while((line=error.readLine()) != null) { //output all console output from the execution
+                                System.out.println("BTDataStore-error: " + line);
+                            }
                         }
+                        else
+                            while(error.readLine() != null);
                     } catch(Exception e){}
                 }
 
