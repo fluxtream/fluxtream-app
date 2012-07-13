@@ -2804,6 +2804,10 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
         return connector.channelNames.length != 0;
     }
 
+    function connectorsAlwaysEnabled(){
+        return true;
+    }
+
     timelineTab.initialized = false;
     timelineTab.render = render;
     timelineTab.init = init;
@@ -2811,5 +2815,6 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
     timelineTab.newView = newView;
     timelineTab.setRange = setRange;
     timelineTab.connectorDisplayable = connectorDisplayable;
+    timelineTab.connectorsAlwaysEnabled = connectorsAlwaysEnabled;
     return timelineTab;
 });

@@ -158,8 +158,13 @@ define([], function() {
         Calendar.currentTab = tab;
         for (var i = 0; i < digest.selectedConnectors.length; i++){
             var button = $("#flx-connector-btn-" + digest.selectedConnectors[i].connectorName);
-            if (tab.connectorDisplayable(digest.selectedConnectors[i]))
+            if (tab.connectorDisplayable(digest.selectedConnectors[i])){
                 button.show();
+                if (tab.connectorsAlwaysEnabled()){
+                    button.removeClass("flx-disconnected");
+                    button.css("border-bottom-color",App.getConnectorConfig(digest.selectedConnectors[i].connectorName).color);
+                }
+            }
             else
                 button.hide();
 
