@@ -9,9 +9,12 @@ import javax.ws.rs.core.MediaType;
 import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.SignpostOAuthHelper;
+import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
+import com.fluxtream.services.BodyTrackStorageService;
 import com.fluxtream.services.GuestService;
+import com.fluxtream.services.JPADaoService;
 import com.google.gson.Gson;
 import net.sf.json.JSONObject;
 import oauth.signpost.OAuthConsumer;
@@ -25,6 +28,7 @@ import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -38,6 +42,13 @@ public class ApiCallController {
 
     @Autowired
     SignpostOAuthHelper signpostHelper;
+
+    @Qualifier("bodyTrackStorageServiceImpl")
+    @Autowired
+    BodyTrackStorageService bodyTrackStorageService;
+
+    @Autowired
+    JPADaoService jpaDaoService;
 
     Gson gson = new Gson();
 
