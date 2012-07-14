@@ -16,7 +16,9 @@ define(["core/DashboardWidget", "core/GrapherComponent"], function(DashboardWidg
             html.render({"manifest" : this.manifest})
         );
 
-        this.grapher = new GrapherComponent($("#stepsHistoryWidget"), 50, 0, "Fitbit.steps", this.digest.tbounds, "right", true);
+        var tbounds = {start:this.digest.tbounds.start - 12 * 3600 * 1000, end: this.digest.tbounds.end - 12 * 3600 * 1000};
+
+        this.grapher = new GrapherComponent($("#stepsHistoryWidget"), 50, 0, "Fitbit.steps", tbounds, "right", true);
 
         this.grapher.yAxis.setPaint(function(axis){
             var ctx = axis.canvas.getContext("2d");

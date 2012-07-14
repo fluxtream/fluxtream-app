@@ -30,6 +30,8 @@ public class BodyTrackHelper {
 
     static Logger LOG = Logger.getLogger(BodyTrackHelper.class);
 
+    static final boolean verboseOutput = false;
+
     @Autowired
     Configuration env;
 
@@ -77,9 +79,13 @@ public class BodyTrackHelper {
                     BufferedReader error = new BufferedReader(new InputStreamReader(pr.getErrorStream()));
                     String line=null;
                     try{
-                    while((line=error.readLine()) != null) { //output all console output from the execution
-                        System.out.println("BTDataStore: " + line);
-                    }
+                        if (verboseOutput){
+                            while((line=error.readLine()) != null) { //output all console output from the execution
+                                System.out.println("BTDataStore: " + line);
+                            }
+                        }
+                        else
+                            while (error.readLine() != null);
                     } catch(Exception e){}
                 }
 
@@ -142,9 +148,13 @@ public class BodyTrackHelper {
                     BufferedReader error = new BufferedReader(new InputStreamReader(pr.getErrorStream()));
                     String line=null;
                     try{
-                        while((line=error.readLine()) != null) { //output all console output from the execution
-                            System.out.println("BTDataStore-error: " + line);
+                        if (verboseOutput){
+                            while((line=error.readLine()) != null) { //output all console output from the execution
+                                System.out.println("BTDataStore-error: " + line);
+                            }
                         }
+                        else
+                            while (error.readLine() != null);
                     } catch(Exception e){}
                 }
 
@@ -185,7 +195,7 @@ public class BodyTrackHelper {
         }
     }
 
-    public String listSources(String uid){
+    public String listSources(long uid){
         try{
             String launchCommand = env.targetEnvironmentProps.getString("btdatastore.exec.location") + "/info " +
                                    env.targetEnvironmentProps.getString("btdatastore.db.location") + " -r " + uid;
@@ -202,9 +212,13 @@ public class BodyTrackHelper {
                     BufferedReader error = new BufferedReader(new InputStreamReader(pr.getErrorStream()));
                     String line=null;
                     try{
-                        while((line=error.readLine()) != null) { //output all console output from the execution
-                            System.out.println("BTDataStore-error: " + line);
+                        if (verboseOutput){
+                            while((line=error.readLine()) != null) { //output all console output from the execution
+                                System.out.println("BTDataStore-error: " + line);
+                            }
                         }
+                        else
+                            while(error.readLine() != null);
                     } catch(Exception e){}
                 }
 
@@ -231,7 +245,7 @@ public class BodyTrackHelper {
             return gson.toJson(response);
         }
         catch(Exception e){
-            return null;
+            return gson.toJson(new SourcesResponse(null));
         }
     }
 
@@ -275,6 +289,8 @@ public class BodyTrackHelper {
 
         public SourcesResponse(channelInfoResponse infoResponse){
             sources = new ArrayList<Source>();
+            if (infoResponse == null)
+                return;
 
             for (Map.Entry<String,ChannelSpecs> entry : infoResponse.channel_specs.entrySet()){
                 String fullName = entry.getKey();

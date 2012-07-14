@@ -99,6 +99,7 @@ define([ "core/FlxState" ], function(FlxState) {
 
     Tab.prototype.connectorToggled = function(){};
     Tab.prototype.connectorDisplayable = function(){return true};
+    Tab.prototype.connectorsAlwaysEnabled = function(){return false;}
 
 	return Tab;
 

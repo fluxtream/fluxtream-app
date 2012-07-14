@@ -8,6 +8,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     Calendar.tabState = null;
     Calendar.digest = null;
     Calendar.timeUnit = "DAY";
+    Calendar.digestTabState = false;
 
 	var start, end;
     Calendar.connectorEnabled = {"default":{}};
@@ -19,13 +20,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 		$(".menuPrevButton").click(function(e) {
 			fetchState("/nav/decrementTimespan.json?state=" + Calendar.tabState); });
 		$(".menuTodayButton").click(function(e) {
-			Calendar.timeUnit = "DAY";
-			var t = Builder.tabExistsForTimeUnit(Calendar.currentTabName, Calendar.timeUnit)?Calendar.currentTabName:Builder.tabs[Calendar.timeUnit][0];
-			Calendar.currentTabName = t;
-            Calendar.updateButtonStates();
-			Builder.bindTimeUnitsMenu(Calendar);
-			Builder.createTabs(Calendar);
-			fetchState("/nav/setToToday.json");
+			fetchState("/nav/setToToday.json?timeUnit=" + Calendar.timeUnit);
 		});
 	};
 
@@ -84,7 +79,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 		if (state==null||state==="") {
 			Builder.bindTimeUnitsMenu(Calendar);
 			Builder.createTabs(Calendar);
-			fetchState("/nav/setToToday.json");
+			fetchState("/nav/setToToday.json?timeUnit=DAY");
             return;
 		}
 		var splits = state.split("/");
@@ -134,6 +129,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 					Calendar.currentTab.saveState();
 				}
 				Calendar.tabState = response.state;
+                updateDisplays();
                 Calendar.start = response.start;
                 Calendar.end  = response.end;
 				FlxState.router.navigate("app/calendar/" + Calendar.currentTabName + "/" + response.state);
@@ -143,7 +139,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 				if (Calendar.timeUnit==="DAY") {
 					setDatepicker(response.state.split("/")[1]);
 				}
-                fetchCalendar("/api/calendar/all/" + response.state);
+                fetchCalendar("/api/calendar/all/" + response.state,response.state);
 			},
 			error : function() {
 				alert("error");
@@ -168,14 +164,15 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 		);
 	}
 
-	function fetchCalendar(url) {
-		$.ajax({ url: url,
+	function fetchCalendar(url,state) {
+		$.ajax({ calendarState:state, url: url,
 			success : function(response) {
                 if (Calendar.timeUnit==="DAY")
                     handleCityInfo(response);
                 else
                     $("#mainCity").empty();
                 Calendar.digest = response;
+                Calendar.digestTabState = this.calendarState;
                 enhanceDigest(Calendar.digest);
                 processDigest(Calendar.digest);
 				Builder.updateTab(Calendar.digest, Calendar);
@@ -522,28 +519,138 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 		return urlTimeUnit.toUpperCase();
 	}
 
+   function getWeekNumber(d) {
+       // Copy date so don't modify original
+       d = new Date(d);
+       d.setHours(0,0,0);
+       // Set to nearest Thursday: current date + 4 - current day number
+       // Make Sunday's day number 7
+       d.setDate(d.getDate() + 4 - (d.getDay()||7));
+       // Get first day of year
+       var yearStart = new Date(d.getFullYear(),0,1);
+       // Calculate full weeks to nearest Thursday
+       var weekNo = Math.ceil(( ( (d - yearStart) / 86400000) + 1)/7)
+       // Return array of year and week number
+       return [d.getFullYear(), weekNo];
+   }
+
+   function getDateRangeForWeek(year,week){
+       var yearStart = new Date(year,0,1);
+       var d = new Date((week * 7 - 1) * 86400000 - - yearStart);
+       var start = new Date(d);
+       var end = new Date(d);
+       start.setDate(d.getDate() + 1 - (d.getDay()||7));
+       end.setDate(d.getDate() + 7 - (d.getDay()||7));
+       return [start,end];
+   }
+
+    Calendar.toDateString = function(date,rangeType){
+        var dateString = "";
+        switch (rangeType){
+            case 'DAY':
+                dateString = date.getFullYear() + "-" + (date.getMonth() < 9 ? 0 : "") + (date.getMonth() + 1) + "-" + (date.getDate() < 10 ? 0 : "") + date.getDate();
+                break;
+            case 'WEEK':
+                var weekInfo = getWeekNumber(date);
+                dateString = weekInfo[0] + "/" + weekInfo[1];
+                break;
+            case 'MONTH':
+                dateString = date.getFullYear() + "/" + (date.getMonth() < 10 ? 0 : "") + date.getMonth();
+                break;
+            case 'YEAR':
+                dateString =  date.getFullYear();
+                break;
+        }
+        return dateString;
+    }
+
     Calendar.dateChanged = function(date, rangeType) {
         console.log("Calendar.dateChanged(" + date + ", " + rangeType + ")");
         console.log("updating url...");
 
-        var state = "timeline/date/" + date;
-        FlxState.router.navigate("app/calendar/" + state, {trigger: false, replace: true});
-        FlxState.saveState("calendar", state);
-        Calendar.tabState = "date/" + date;
-        Calendar.timeUnit = "DAY";
+        var oldTimeUnit = Calendar.timeUnit;
 
-        var dateSplits = date.split("-"),
-            d = new Date(Number(dateSplits[0]),Number(dateSplits[1])-1,Number(dateSplits[2]));
+        Calendar.timeUnit = rangeType;
+
+        var dateLabel, state;
         var daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
         var monthsOfYear = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
-            "Oct", "Nov", "Dec"];
-        var dateLabel = daysOfWeek[d.getDay()] +
-                    ", " + monthsOfYear[d.getMonth()] + " " + d.getDate() +
-                    ", " + (d.getYear()+1900);
+                            "Oct", "Nov", "Dec"];
+
+        var monthsOfYearFull = ["January","February","March","April","May","June","July",
+                                "August","September","October","November","December"];
+        switch (Calendar.timeUnit){
+            case "DAY":
+                state = "timeline/date/" + date;
+                Calendar.tabState = "date/" + date;
+                var dateSplits = date.split("-"),
+                    d = new Date(Number(dateSplits[0]),Number(dateSplits[1])-1,Number(dateSplits[2]));
+                dateLabel = daysOfWeek[d.getDay()] +
+                                ", " + monthsOfYear[d.getMonth()] + " " + d.getDate() +
+                                ", " + (d.getFullYear());
+                break;
+            case "WEEK":
+                state = "timeline/week/" + date;
+                Calendar.tabState = "week/" + date;
+                var dateSplits = date.split("/");
+                var range = getDateRangeForWeek(dateSplits[0],dateSplits[1]);
+                dateLabel = monthsOfYear[range[0].getMonth()] + " " + range[0].getDate() + " - " +
+                            monthsOfYear[range[1].getMonth()] + " " + range[1].getDate() + " " + range[1].getFullYear();
+                break;
+            case "MONTH":
+                state = "timeline/month/" + date;
+                Calendar.tabState = "month/" + date;
+                var dateSplits = date.split("/");
+                dateLabel = monthsOfYearFull[parseInt(dateSplits[1])] + " " + dateSplits[0];
+                break;
+            case "YEAR":
+                state = "timeline/year/" + date;
+                Calendar.tabState = "year/" + date;
+                dateLabel = date;
+                break;
+        }
+        FlxState.router.navigate("app/calendar/" + state, {trigger: false, replace: true});
+        FlxState.saveState("calendar", state);
+
+        if (oldTimeUnit != Calendar.timeUnit)
+            Builder.createTabs(Calendar);
+
+        updateDisplays();
+
         console.log("dateLabel: " + dateLabel);
 
         $("#currentTimespanLabel span").html(dateLabel);
     };
+
+    var viewBtnIds = {DAY:"#dayViewBtn",WEEK:"#weekViewBtn",MONTH:"#monthViewBtn",YEAR:"#yearViewBtn"};
+    var todayButtonDisplays = {DAY:"Today",WEEK:"This Week",MONTH:"This Month",YEAR:"This Year"};
+
+    function updateDisplays(){
+        var rangeType;
+        switch (Calendar.tabState.substring(0,Calendar.tabState.indexOf("/"))){
+            case "date":
+                rangeType = "DAY";
+                break;
+            case "week":
+                rangeType = "WEEK";
+                break;
+            case "month":
+                rangeType = "MONTH";
+                break;
+            case "year":
+                rangeType = "YEAR";
+                break;
+        }
+        for (var type in viewBtnIds){
+            if (type == rangeType){
+                $(viewBtnIds[type]).addClass("active");
+            }
+            else{
+                $(viewBtnIds[type]).removeClass("active");
+            }
+        }
+        $(".menuTodayButton span").text(todayButtonDisplays[rangeType]);
+    }
 
 	return Calendar;
 

@@ -29,17 +29,17 @@ define(["App"], function(App) {
     }
 
     function bindPanel() {
-        $(".dashboard-list-item .up").unbind("click");
-        $(".dashboard-list-item .down").unbind("click");
+        $(".dashboards-list").sortable({
+            axis:"y",
+            containment:".dashboards-list",
+            stop: function(event,ui){
+                dashboardsTab.reorderDone();
+            }
+        });
         $(".dashboard-list-item .remove").unbind("click");
         $(".dashboard-list-header button").unbind("click");
 
-        $(".dashboard-list-item .up").click(function(evt) {
-            promoteDashboard(evt);
-        });
-        $(".dashboard-list-item .down").click(function(evt) {
-            demoteDashboard(evt);
-        });
+
         $(".dashboard-list-item .remove").click(function(evt) {
             removeDashboard(evt);
         });
