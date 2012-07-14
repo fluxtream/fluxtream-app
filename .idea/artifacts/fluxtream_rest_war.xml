@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="fluxtream-rest:war">
+    <output-path>$PROJECT_DIR$/fluxtream-rest/target</output-path>
+    <root id="archive" name="rest.war">
+      <element id="artifact" artifact-name="fluxtream-rest:war exploded" />
+    </root>
+  </artifact>
+</component>

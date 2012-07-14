@@ -11,6 +11,7 @@
 		<module>fluxtream-connectors</module>
 <!-- 		<module>fluxtream-webapp</module> -->
 		<module>fluxtream-web</module>
+		<!--<module>fluxtream-rest</module>-->
 	</modules>
 	<build>
 		<resources>

@@ -63,6 +63,11 @@ public class AddressStore {
         }
     }
 
+    /**
+     * get an address
+     * @param index
+     * @return
+     */
     @GET
     @Path("/{index}")
     @Produces({MediaType.APPLICATION_JSON})
