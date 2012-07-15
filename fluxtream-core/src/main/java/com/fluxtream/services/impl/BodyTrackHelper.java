@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Set;
 import com.fluxtream.Configuration;
 import com.fluxtream.utils.HttpUtils;
+import com.fluxtream.utils.Utils;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -37,97 +38,55 @@ public class BodyTrackHelper {
 
     Gson gson = new Gson();
 
-    public void uploadToBodyTrack(long guestId, String deviceName, Collection<String> channelNames, List<List<Object>> data, Map<String,Object> channelSpecs) {
-        try {
-            /*Map<String, String> params = new HashMap<String,String>();
-            params.put("dev_nickname", deviceName);
-            params.put("channel_names", gson.toJson(channelNames));
-            params.put("data", gson.toJson(data));
+    public void uploadToBodyTrack(final long guestId,
+                                  final String deviceName,
+                                  final Collection<String> channelNames,
+                                  final List<List<Object>> data) {
+        new Thread() {
+            public void run()  {
+                try{
+                    final File tempFile = File.createTempFile("input",".json");
 
-            String result = HttpUtils.fetch("http://" + host + "/users/"
-                                            + user_id + "/upload", params, env);
-            if (result.toLowerCase().startsWith("awesome")) {
-                LOG.info("Data successfully uploaded to BodyTrack: guestId: "
-                         + user_id);
-            } else {
-                LOG.warn("Could not upload data to BodyTrack data store: "
-                         + result);
-            }*/
+                    Map<String,Object> tempFileMapping = new HashMap<String,Object>();
+                    tempFileMapping.put("data",data);
+                    tempFileMapping.put("channel_names",channelNames);
 
-            File tempFile = File.createTempFile("input",".json");
-            Map<String,Object> tempFileMapping = new HashMap<String,Object>();
-            tempFileMapping.put("data",data);
-            tempFileMapping.put("channel_names",channelNames);
-            tempFileMapping.put("channel_specs",gson.toJson(channelSpecs));
-            FileOutputStream fos = new FileOutputStream(tempFile);
-            fos.write(gson.toJson(tempFileMapping).getBytes());
-            fos.close();
-            Runtime rt = Runtime.getRuntime();
+                    FileOutputStream fos = new FileOutputStream(tempFile);
+                    final String bodyTrackJSONData = gson.toJson(tempFileMapping);
+                    fos.write(bodyTrackJSONData.getBytes());
+                    fos.close();
 
+                    Runtime rt = Runtime.getRuntime();
 
-            String launchCommand = env.targetEnvironmentProps.getString("btdatastore.exec.location") + "/import " +
-                                   env.targetEnvironmentProps.getString("btdatastore.db.location") + " " + guestId + " " +
-                                   deviceName + " \"" + tempFile.getAbsolutePath() + "\"";
-            System.out.println("BTDataStore: running with command: " + launchCommand);
+                    String launchCommand = env.targetEnvironmentProps.getString("btdatastore.exec.location") + "/import " +
+                                           env.targetEnvironmentProps.getString("btdatastore.db.location") + " " + guestId + " " +
+                                           deviceName + " " + tempFile.getAbsolutePath();
+                    System.out.println("BTDataStore: running with command: " + launchCommand);
 
-            //create process for operation
-            final Process pr = rt.exec(launchCommand);
+                    //create process for operation
+                    final Process pr = rt.exec(launchCommand);
 
-
-            new Thread(){//outputs the errorstream
-                public void run(){
-                    BufferedReader error = new BufferedReader(new InputStreamReader(pr.getErrorStream()));
+                    BufferedReader error = new BufferedReader(new InputStreamReader(pr.getInputStream()));
                     String line=null;
-                    try{
-                        if (verboseOutput){
-                            while((line=error.readLine()) != null) { //output all console output from the execution
-                                System.out.println("BTDataStore: " + line);
-                            }
+                    if (true){
+                        while((line=error.readLine()) != null) { //output all console output from the execution
+                            System.out.println("BTDataStore: " + line);
                         }
-                        else
-                            while (error.readLine() != null);
-                    } catch(Exception e){}
+                    }
+                    else
+                        while (error.readLine() != null);
+
+                    int exitValue = pr.waitFor();
+                    System.out.println("BTDataStore: exited with code " + exitValue);
+                    //tempFile.delete();
+                } catch (Exception e) {
+                    System.out.println("Could not persist to datastore");
+                    System.out.println(Utils.stackTrace(e));
                 }
 
-            }.start();
-
-            BufferedReader input = new BufferedReader(new InputStreamReader(pr.getInputStream()));
-
-            String line=null;
-
-            while((line=input.readLine()) != null) { //output all console output from the execution
-                System.out.println("BTDataStore: " + line);
             }
 
-            //get the exit value
-            int exitValue = pr.waitFor();
-            System.out.println("BTDataStore: exited with code " + exitValue);
-            tempFile.delete();
-        } catch (Exception e) {
-            LOG.warn("Could not upload data to BodyTrack data store: "
-                     + e.getMessage());
-        }
-    }
-
-    //TODO: update code to not use the alternate method directly
-    public void uploadToBodyTrack(long guestId, final Map<String, String> params) {
-        uploadToBodyTrack(guestId,params.get("dev_nickname"),gson.fromJson(params.get("channel_names"),List.class),
-                        gson.fromJson(params.get("data"),List.class),gson.fromJson(params.get("channel_sepcs"),Map.class));
-
-        /*try {
-            String result = HttpUtils.fetch("http://" + host + "/users/"
-                                            + user_id + "/upload", params, env);
-            if (result.toLowerCase().startsWith("awesome")) {
-                LOG.info("Data successfully uploaded to BodyTrack: guestId: "
-                         + user_id);
-            } else {
-                LOG.warn("Could not upload data to BodyTrack data store: "
-                         + result);
-            }
-        } catch (Exception e) {
-            LOG.warn("Could not upload data to BodyTrack data store: "
-                     + e.getMessage());
-        }*/
+        }.start();
     }
 
     public String fetchTile(String uid, String deviceNickname, String channelName, int level, int offset){

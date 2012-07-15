@@ -6,8 +6,10 @@ import com.fluxtream.domain.AbstractFacet;
  *
  * @author Candide Kemmler (candide@fluxtream.com)
  */
-public interface FieldHandler {
+public interface FieldConverter {
 
-    void handleField (final long guestId, AbstractFacet facet );
+    String convertField(final long guestId, AbstractFacet facet);
+
+    String getBodytrackChannelName();
 
 }

@@ -18,19 +18,7 @@ public abstract class BodymediaAbstractFacet extends AbstractFacet
     public String date;
     public long lastSync = 0;
     @Lob
-    public String Json;
-
-    public void setDate(final String date) {
-        this.date = date;
-    }
-
-    public void setLastSync(final long lastSync) {
-        this.lastSync = lastSync;
-    }
-
-    public void setJson(final String json) {
-        Json = json;
-    }
+    public String json;
 
     @Override
     protected void makeFullTextIndexable() {}

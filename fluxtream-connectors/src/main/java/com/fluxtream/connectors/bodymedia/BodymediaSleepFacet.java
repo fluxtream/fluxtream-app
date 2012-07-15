@@ -19,26 +19,11 @@ import org.hibernate.search.annotations.Indexed;
 public class BodymediaSleepFacet extends BodymediaAbstractFacet {
 
     //The sleep efficiency ratio provided by Bodymedia
-    double efficiency;
+    public double efficiency;
     //The total number of minutes spent lying awake
-    int totalLying;
+    public int totalLying;
     //The total number of minutes spent sleeping
-    int totalSleeping;
-
-    public void setEfficiency(final double efficiency)
-    {
-        this.efficiency = efficiency;
-    }
-
-    public void setTotalLying(final int totalLying)
-    {
-        this.totalLying = totalLying;
-    }
-
-    public void setTotalSleeping(final int totalSleeping)
-    {
-        this.totalSleeping = totalSleeping;
-    }
+    public int totalSleeping;
 
     @Override
 	protected void makeFullTextIndexable() {}

@@ -1,6 +1,9 @@
 package com.fluxtream.connectors.zeo;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.services.impl.BodyTrackHelper;
@@ -27,44 +30,19 @@ public class ZeoSleepGraphFieldHandler implements FieldHandler {
         ZeoSleepStatsFacet sleepStatsFacet = (ZeoSleepStatsFacet) facet;
         if (sleepStatsFacet.sleepGraph==null)
             return;
-        Map<String,String> params = new HashMap<String,String>();
-        createJsonBlockHeader(params);
-        JSONArray dataArray = new JSONArray();
-        populateDataArray(dataArray, ((ZeoSleepStatsFacet)facet).sleepGraph, facet.start);
-        params.put("data", dataArray.toString());
-        bodyTrackHelper.uploadToBodyTrack(guestId , params);
-    }
-
-    private void createJsonBlockHeader(Map<String,String> params) {
-        JSONArray channelNamesArray = new JSONArray();
-        channelNamesArray.add("Sleep_Graph");
-        params.put("dev_nickname", "Zeo");
-        params.put("channel_names", channelNamesArray.toString());
-        JSONObject channelSpecsObject = new JSONObject();
-        JSONObject zeoTypeObject = new JSONObject();
-        zeoTypeObject.accumulate("type", "zeo");
-        channelSpecsObject.accumulate("Sleep_Graph", zeoTypeObject);
-        params.put("channel_specs", channelSpecsObject.toString());
-    }
-
-    private void populateDataArray(final JSONArray dataArray, final String sleepGraph, long start) {
-        int graphSize = sleepGraph.length();
-        start /= 1000;
+        int graphSize = sleepStatsFacet.sleepGraph.length();
+        List<List<Object>> data = new ArrayList<List<Object>>();
         for (int i=0; i<graphSize; i++) {
-            addSleepGraphColumn(dataArray, sleepGraph, start+i*timeIncrement, i);
+            addSleepGraphColumn(data, sleepStatsFacet.sleepGraph, facet.start/1000+i*timeIncrement, i);
         }
+        bodyTrackHelper.uploadToBodyTrack(guestId , "Zeo", Arrays.asList("sleepGraph"), data);
     }
 
-    private void addSleepGraphColumn(final JSONArray dataArray, final String sleepGraph, final long time, final int i) {
-        JSONArray sleepGraphColumnArray = new JSONArray();
-        sleepGraphColumnArray.add(time);
-        sleepGraphColumnArray.add(Integer.valueOf(""+sleepGraph.charAt(i)));
-        dataArray.add(sleepGraphColumnArray);
-    }
-
-    @Override
-    public String getBodytrackChannelName() {
-        return "Sleep_Graph";
+    private void addSleepGraphColumn(final List<List<Object>> data, final String sleepGraph, final long time, final int i) {
+        List<Object> record = new ArrayList<Object>();
+        record.add(time);
+        record.add(Integer.valueOf(""+sleepGraph.charAt(i)));
+        data.add(record);
     }
 
 }

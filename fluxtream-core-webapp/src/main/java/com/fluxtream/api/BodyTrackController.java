@@ -45,5 +45,5 @@ public class BodyTrackController {
 		StatusModel status = new StatusModel(true, "Success!");
 		return gson.toJson(status);
 	}
-	
+
 }

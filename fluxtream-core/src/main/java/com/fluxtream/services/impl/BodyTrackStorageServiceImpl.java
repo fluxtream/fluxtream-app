@@ -2,13 +2,13 @@ package com.fluxtream.services.impl;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
+import com.google.gson.Gson;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.BeanFactory;
@@ -20,12 +20,10 @@ import com.fluxtream.TimeUnit;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.domain.AbstractFacet;
-import com.fluxtream.domain.ApiKey;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.BodyTrackStorageService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
-import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
 
 @Service
@@ -52,16 +50,18 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
     @Autowired
     BeanFactory beanFactory;
 
+    Gson gson = new Gson();
+
     private Hashtable<String, FieldHandler> fieldHandlers = new Hashtable<String, FieldHandler>();
 
 	@Override
 	public void storeApiData(long guestId, List<AbstractFacet> facets) {
 
-		Connector bodytrackConnector = Connector.getConnector("bodytrack");
-		ApiKey bodytrackApiKey = guestService.getApiKey(guestId,
-				bodytrackConnector);
-		if (bodytrackApiKey == null)
-			return;
+		//Connector bodytrackConnector = Connector.getConnector("bodytrack");
+		//ApiKey bodytrackApiKey = guestService.getApiKey(guestId,
+		//		bodytrackConnector);
+		//if (bodytrackApiKey == null)
+		//	return;
 
 		Map<String, List<AbstractFacet>> facetsByFacetName = sortFacetsByFacetName(facets);
 		Iterator<String> eachFacetName = facetsByFacetName.keySet().iterator();
@@ -76,60 +76,31 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 	private void storeDeviceData(long guestId,
 			Map<String, List<AbstractFacet>> facetsByDeviceNickname,
 			String facetName) {
-		Map<String, String> params = new HashMap<String, String>();
         String deviceName = getDeviceNickname(facetName);
-		params.put("dev_nickname", deviceName);
-		Map<String, String> channelNamesMapping = getChannelNamesMapping(facetName);
-		params.put("channel_names", makeJSONArray(channelNamesMapping.values(), true));
-		List<AbstractFacet> deviceFacets = facetsByDeviceNickname.get(facetName);
-		List<List<Object>> channelValues = extractChannelValuesFromFacets(channelNamesMapping, deviceFacets, guestId);
-		//String jsonArray = makeJSONArray(channelValues, false);
-		//params.put("data", jsonArray);
+        List<AbstractFacet> deviceFacets = facetsByDeviceNickname.get(facetName);
 
-        bodyTrackHelper.uploadToBodyTrack(guestId, deviceName, channelNamesMapping.values(), channelValues, new HashMap<String,Object>());
+        uploadDailyData(guestId, deviceName, deviceFacets, facetName);
+
+        List<FieldHandler> facetFieldHandlers = getFieldHandlers(facetName);
+        for (FieldHandler fieldHandler : facetFieldHandlers) {
+            uploadIntradayData(guestId, deviceName, deviceFacets, facetName, fieldHandler);
+        }
     }
 
-    private List<List<Object>> extractChannelValuesFromFacets(
-            Map<String, String> channelNamesMapping,
-            List<AbstractFacet> deviceFacets, final long guestId) {
-		List<List<Object>> channelValues = new ArrayList<List<Object>>();
-		for (AbstractFacet deviceFacet : deviceFacets) {
-			Iterator<String> eachFieldName = channelNamesMapping.keySet().iterator();
-            List<Object> values = new ArrayList<Object>();
-            values.add(deviceFacet.start/1000.0);
-			while (eachFieldName.hasNext()) {
-				String fieldName = (String) eachFieldName.next();
-                try {
-                    Field field;
-                    String bodyTrackMappedField = channelNamesMapping.get(fieldName);
-                    if (bodyTrackMappedField.startsWith("#")) {
-                        String fieldHandlerName = bodyTrackMappedField.substring(1);
-                        if (!fieldHandlerName.equalsIgnoreCase("NOOP")) {
-                            // #! indicates a "fieldHandler"
-                            if (fieldHandlerName.startsWith("!")) {
-                                FieldHandler fieldHandler = getFieldHandler(fieldHandlerName);
-                                fieldHandler.handleField(guestId, deviceFacet);
-                            } else {
-                                LOG.warn("********* NO SUPPORT FOR #fields FOR NOW **************** " + fieldHandlerName);
-                            }
-                            // else... it might be a "converter"... if/when there is a use-case for it
-                        }
-                        continue;
-                    }
-					field = deviceFacet.getClass().getField(fieldName);
-					Object channelValue = field.get(deviceFacet);
-					if (channelValue instanceof java.util.Date)
-                        values.add(((java.util.Date)channelValue).getTime());
-					else
-                        values.add(channelValue);
-				} catch (Exception e) {
-					throw new RuntimeException("No such Field: " + fieldName);
-				}
-			}
-			channelValues.add(values);
-		}
-		return channelValues;
-	}
+    private void uploadDailyData(long guestId,
+                                 String deviceName,
+                                 List<AbstractFacet> deviceFacets,
+                                 String facetName) {
+        List<String> dailyDataChannelNames = getDailyDataChannelNames(facetName);
+        List<List<Object>> dailyDataChannelValues = getDailyDataChannelValues(deviceFacets, dailyDataChannelNames);
+
+        bodyTrackHelper.uploadToBodyTrack(guestId, deviceName, dailyDataChannelNames, dailyDataChannelValues);
+    }
+
+    private void uploadIntradayData(long guestId, String deviceName, List<AbstractFacet> deviceFacets, String facetName, FieldHandler fieldHandler) {
+        for (AbstractFacet deviceFacet : deviceFacets)
+            fieldHandler.handleField(guestId, deviceFacet);
+    }
 
     private FieldHandler getFieldHandler(String fieldHandlerName) {
         fieldHandlerName = fieldHandlerName.substring(1);
@@ -140,39 +111,61 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
         return fieldHandlers.get(fieldHandlerName);
     }
 
-    private String makeJSONArray(Collection<String> values, boolean addQuotes) {
-		StringBuilder sb = new StringBuilder("[");
-		Iterator<String> eachChannelName = values.iterator();
-		for (int i=0; eachChannelName.hasNext(); i++) {
-			String channelName = (String) eachChannelName.next();
-			if (i>0) sb.append(",");
-			if (addQuotes)
-				sb.append("\"").append(channelName).append("\"");
-			else
-				sb.append(channelName);
-		}
-		sb.append("]");
-		return sb.toString();
-	}
+    private List<String> getDailyDataChannelNames(String facetName) {
+        String[] channelNamesMappings = env.bodytrackProperties.getStringArray(facetName + ".channel_names");
+        List<String> channelNames = new ArrayList<String>();
+        for (String mapping : channelNamesMappings) {
+            String[] terms = StringUtils.split(mapping, ":");
+            if (terms[1].startsWith("#"))
+                continue;
+            channelNames.add(terms[0]);
+        }
+        return channelNames;
+    }
 
-	private Map<String,String> getChannelNamesMapping(String facetName) {
-		String[] channelNamesMappings = env.bodytrackProperties.getStringArray(facetName + ".channel_names");
-		Map<String,String> mappings = new HashMap<String,String>();
-		for (String mapping : channelNamesMappings) {
-			String[] terms = StringUtils.split(mapping, ":");
+    private List<FieldHandler> getFieldHandlers(String facetName) {
+        String[] channelNamesMappings = env.bodytrackProperties.getStringArray(facetName + ".channel_names");
+        List<FieldHandler> fieldHandlers = new ArrayList<FieldHandler>();
+        for (String mapping : channelNamesMappings) {
+            String[] terms = StringUtils.split(mapping, ":");
             if (terms[1].startsWith("#")) {
-                String converterName = terms[1].substring(1);
-                if (converterName.equalsIgnoreCase("NOOP")||converterName.equalsIgnoreCase("OOP"))
+                String handlerName = terms[1].substring(1);
+                if (handlerName.equalsIgnoreCase("NOOP")||handlerName.equalsIgnoreCase("OOP"))
                     continue;
-                String bodytrackChannelName = getFieldHandler(converterName).getBodytrackChannelName();
-                mappings.put(terms[0], bodytrackChannelName);
-            } else
-    			mappings.put(terms[0], terms[1]);
-		}
-		return mappings;
-	}
+                FieldHandler fieldHandler = getFieldHandler(handlerName);
+                fieldHandlers.add(fieldHandler);
+            }
+        }
+        return fieldHandlers;
+    }
+    private List<List<Object>> getDailyDataChannelValues(
+            List<AbstractFacet> deviceFacets,
+            List<String> dailyDataChannelNames) {
+        List<List<Object>> channelValues = new ArrayList<List<Object>>();
+        storingFacets: for (AbstractFacet deviceFacet : deviceFacets) {
+            Iterator<String> eachFieldName = dailyDataChannelNames.iterator();
+            List<Object> values = new ArrayList<Object>();
+            values.add(deviceFacet.start/1000);
+            while (eachFieldName.hasNext()) {
+                String fieldName = (String) eachFieldName.next();
+                try {
+                    Field field;
+                    field = deviceFacet.getClass().getField(fieldName);
+                    Object channelValue = field.get(deviceFacet);
+                    if (channelValue instanceof java.util.Date)
+                        values.add(((java.util.Date)channelValue).getTime());
+                    else
+                        values.add(channelValue);
+                } catch (Exception e) {
+                    throw new RuntimeException("No such Field: " + fieldName);
+                }
+            }
+            channelValues.add(values);
+        }
+        return channelValues;
+    }
 
-	private Map<String, List<AbstractFacet>> sortFacetsByFacetName(List<AbstractFacet> facets) {
+    private Map<String, List<AbstractFacet>> sortFacetsByFacetName(List<AbstractFacet> facets) {
 		Map<String, List<AbstractFacet>> facetsByDeviceNickname = new HashMap<String, List<AbstractFacet>>();
 		for (AbstractFacet facet : facets) {
 			Connector connector = Connector.fromValue(facet.api);

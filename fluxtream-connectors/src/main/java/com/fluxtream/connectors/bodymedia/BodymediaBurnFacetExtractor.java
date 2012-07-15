@@ -93,11 +93,11 @@ public class BodymediaBurnFacetExtractor extends AbstractFacetExtractor
                     //The following call must be made to load data about he facets
                     super.extractCommonFacetData(burn, apiData);
                     burn.setTotalCalories(day.getInt("totalCalories"));
-                    burn.setDate(day.getString("date"));
+                    burn.date = day.getString("date");
                     burn.setEstimatedCalories(day.getInt("estimatedCalories"));
                     burn.setPredictedCalories(day.getInt("predictedCalories"));
-                    burn.setJson(day.getString("minutes"));
-                    burn.setLastSync(d.getMillis());
+                    burn.json = day.getString("minutes");
+                    burn.lastSync = d.getMillis();
 
                     DateTime date = formatter.parseDateTime(day.getString("date"));
                     burn.date = dateFormatter.print(date.getMillis());
