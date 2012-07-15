@@ -102,8 +102,8 @@ public class BodyTrackHelper {
             final Process pr = rt.exec(launchCommand);
 
 
-            new Thread(){//outputs the errorstream
-                public void run(){
+            //new Thread(){//outputs the errorstream
+            //    public void run(){
                     BufferedReader error = new BufferedReader(new InputStreamReader(pr.getErrorStream()));
                     String line=null;
                     try{
@@ -115,13 +115,11 @@ public class BodyTrackHelper {
                         else
                             while (error.readLine() != null);
                     } catch(Exception e){}
-                }
-
-            }.start();
+            //    }
+            //
+            //}.start();
 
             BufferedReader input = new BufferedReader(new InputStreamReader(pr.getInputStream()));
-
-            String line=null;
 
             String result = "";
 

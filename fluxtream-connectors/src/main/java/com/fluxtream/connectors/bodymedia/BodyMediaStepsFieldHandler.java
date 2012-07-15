@@ -38,7 +38,7 @@ public class BodyMediaStepsFieldHandler implements FieldHandler {
             record.add(totalSteps);
             data.add(record);
         }
-        final List<String> channelNames = Arrays.asList("Steps_Graph");
+        final List<String> channelNames = Arrays.asList("stepsGraph");
         bodyTrackHelper.uploadToBodyTrack(guestId, "BodyMedia", channelNames, data);
     }
 

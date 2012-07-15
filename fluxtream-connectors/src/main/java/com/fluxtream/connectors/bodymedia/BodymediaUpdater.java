@@ -28,7 +28,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Updater(prettyName = "BodyMedia", value = 88, objectTypes = {BodymediaBurnFacet.class, BodymediaSleepFacet.class, BodymediaStepsFacet.class}, hasFacets = true, additionalParameters = {"api_key"},
-         defaultChannels = {"Armband.mets", "Armband.lying"})
+         defaultChannels = {"BodyMedia.Mets", "BodyMedia.lying"})
 public class BodymediaUpdater extends AbstractUpdater {
 
     @Autowired
