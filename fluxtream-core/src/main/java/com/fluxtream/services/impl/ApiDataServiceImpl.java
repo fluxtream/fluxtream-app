@@ -39,6 +39,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,15 +63,18 @@ public class ApiDataServiceImpl implements ApiDataService {
 	@Autowired
 	GuestService guestService;
 
-	@Autowired
+    @Qualifier("JPAFacetDao")
+    @Autowired
 	FacetDao jpaDao;
 
 	@Autowired
 	BeanFactory beanFactory;
 
-	@Autowired
+    @Qualifier("bodyTrackStorageServiceImpl")
+    @Autowired
 	BodyTrackStorageService bodyTrackStorageService;
 
+    @Qualifier("metadataServiceImpl")
     @Autowired
     MetadataService metadataService;
 

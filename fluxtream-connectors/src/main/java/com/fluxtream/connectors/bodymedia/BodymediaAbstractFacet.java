@@ -18,28 +18,32 @@ public abstract class BodymediaAbstractFacet extends AbstractFacet
     public String date;
     public long lastSync = 0;
     @Lob
-    public String Json;
+    public String json;
 
     public String getDate() {
         return date;
     }
 
+    @SuppressWarnings("unused")
     public long getLastSync() {
         return lastSync;
     }
 
+    @SuppressWarnings("unused")
     public String getJson() {
-        return Json;
+        return json;
     }
 
     public void setDate(final String date) {
         this.date = date;
     }
 
+    @SuppressWarnings("unused")
     public void setLastSync(final long lastSync) {
         this.lastSync = lastSync;
     }
 
+    @SuppressWarnings("unused")
     public void setJson(final String json) {
         this.json = json;
     }

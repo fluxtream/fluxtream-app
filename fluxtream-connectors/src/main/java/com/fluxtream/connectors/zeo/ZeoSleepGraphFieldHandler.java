@@ -2,14 +2,10 @@ package com.fluxtream.connectors.zeo;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.services.impl.BodyTrackHelper;
 import com.fluxtream.services.impl.FieldHandler;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

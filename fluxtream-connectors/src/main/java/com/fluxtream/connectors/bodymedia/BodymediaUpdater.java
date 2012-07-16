@@ -174,7 +174,7 @@ public class BodymediaUpdater extends AbstractUpdater {
         }
         else {
             countFailedApiCall(updateInfo.apiKey.getGuestId(), updateInfo.objectTypes, then, requestUrl);
-            throw new Exception("Error: " + statusCode + "Unexpected error trying to get statuses");
+            throw new Exception("Error: " + statusCode + " Unexpected error trying to get statuses");
         }
     }
 }

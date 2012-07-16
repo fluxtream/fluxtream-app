@@ -36,8 +36,7 @@ public class JPADaoServiceImpl implements JPADaoService {
 	}
 
 	@Override
-	public <T> List<T> find(String queryName, Class<T> clazz, int firstResult,
-			int maxResults, Object... params) {
+	public <T> List<T> findWithLimit(String queryName, Class<T> clazz, int firstResult, int maxResults, Object... params) {
 		return JPAUtils.find(em, clazz, queryName, firstResult, maxResults,
 				params);
 	}
@@ -62,8 +61,7 @@ public class JPADaoServiceImpl implements JPADaoService {
     @Override
     public int execute(final String jpql) {
         Query query = em.createQuery(jpql);
-        int results = query.executeUpdate();
-        return results;
+        return query.executeUpdate();
     }
 
     private long countFacets(Class<? extends AbstractFacet> facetClass,
@@ -73,8 +71,7 @@ public class JPADaoServiceImpl implements JPADaoService {
 		String queryString = "SELECT count(e) FROM " + entityName + " e WHERE e.guestId=" + guestId;
 		Query countQuery = em.createQuery(queryString);
 		Object singleResult = countQuery.getSingleResult();
-		Long count = (Long) singleResult;
-		return count;
+        return (Long) singleResult;
 	}
 
 	@Override

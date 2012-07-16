@@ -19,12 +19,16 @@ import com.fluxtream.services.GuestService;
 import com.fluxtream.services.JPADaoService;
 import com.fluxtream.services.NotificationsService;
 import com.fluxtream.utils.Utils;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 public abstract class AbstractUpdater extends ApiClientSupport {
 
 	static Logger logger = Logger.getLogger(AbstractUpdater.class);
 
-	@Autowired
+    static final int RETRY_ATTEMPTS = 3;
+
+    @Qualifier("apiDataServiceImpl")
+    @Autowired
 	protected ApiDataService apiDataService;
 
 	@Autowired
@@ -33,13 +37,16 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 	@Autowired
 	protected JPADaoService jpaDaoService;
 
-	@Autowired
+    @Qualifier("JPAFacetDao")
+    @Autowired
 	protected FacetDao facetDao;
 
-	@Autowired
+    @Qualifier("notificationsServiceImpl")
+    @Autowired
 	protected NotificationsService notificationsService;
 
-	@Autowired
+    @Qualifier("bodyTrackStorageServiceImpl")
+    @Autowired
 	protected BodyTrackStorageService bodyTrackStorageService;
 
 	private static Vector<RunningUpdate> runningUpdates = new Vector<RunningUpdate>();
@@ -52,18 +59,17 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 		return Connector.getConnector(connectorName);
 	}
 
-	private final String getConnectorName(String beanClassName) {
+	private String getConnectorName(String beanClassName) {
 		int startIndex = "com.fluxtream.connectors.".length();
-		String connectorName = beanClassName.substring(startIndex,
-				beanClassName.indexOf(".", startIndex + 1));
-		return connectorName;
+        return beanClassName.substring(startIndex,
+                beanClassName.indexOf(".", startIndex + 1));
 	}
 
 	public AbstractUpdater() {
 	}
 
 	@Autowired
-	final protected void setConnectorUpdateService(ConnectorUpdateService ads) {
+	final protected void setConnectorUpdateService(@Qualifier("connectorUpdateServiceImpl") ConnectorUpdateService ads) {
 		Connector connector = connector();
 		ads.addUpdater(connector, this);
 	}
@@ -85,10 +91,15 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 		}
 
 		public boolean equals(Object o) {
-			RunningUpdate ru = (RunningUpdate) o;
-			return ru.api == api && ru.objectTypes == objectTypes
-					&& ru.updateInfo.isIdentical(updateInfo)
-					&& ru.guestId == guestId;
+            if(o instanceof  RunningUpdate)
+            {
+                RunningUpdate ru = (RunningUpdate) o;
+                return ru.api == api && ru.objectTypes == objectTypes
+                        && ru.updateInfo.isIdentical(updateInfo)
+                        && ru.guestId == guestId;
+            }
+            else
+                return false;
 		}
 
 	}
@@ -96,23 +107,29 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 	public final UpdateResult updateDataHistory(UpdateInfo updateInfo)
 			throws Exception {
 
-		try {
-			updateConnectorDataHistory(updateInfo);
-			bodyTrackStorageService.storeInitialHistory(
-					updateInfo.getGuestId(), updateInfo.apiKey.getConnector()
-							.getName());
-		} catch (RateLimitReachedException e) {
-			logger.info("guestId="
-					+ updateInfo.apiKey.getGuestId()
-					+ " action=bg_update stage=return_results result=rateLimitReached");
-			return UpdateResult.rateLimitReachedResult();
-		} catch (Throwable t) {
-			String stackTrace = stackTrace(t);
-			logger.info("guestId=" + updateInfo.apiKey.getGuestId()
-					+ " action=bg_update stage=return_results result=failed \n"
-					+ stackTrace);
-			return UpdateResult.failedResult(stackTrace);
-		}
+        String stackTrace = null;
+        for(int i=0; i<RETRY_ATTEMPTS; i++)
+        {
+            try {
+                updateConnectorDataHistory(updateInfo);
+                bodyTrackStorageService.storeInitialHistory(
+                        updateInfo.getGuestId(), updateInfo.apiKey.getConnector()
+                                .getName());
+
+                return UpdateResult.successResult();
+            } catch (RateLimitReachedException e) {
+                logger.info("guestId="
+                        + updateInfo.apiKey.getGuestId()
+                        + " action=bg_update stage=return_results result=rateLimitReached");
+                return UpdateResult.rateLimitReachedResult();
+            } catch (Throwable t) {
+                stackTrace = stackTrace(t);
+                logger.info("guestId=" + updateInfo.apiKey.getGuestId()
+                        + " action=bg_update stage=return_results result=failed \n"
+                        + stackTrace);
+            }
+        }
+        return UpdateResult.failedResult(stackTrace);
 
 		// String message = "Your " + connector().prettyName() +
 		// " history has been imported";
@@ -123,8 +140,6 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 		// ") history has been imported";
 		// notificationsService.addNotification(updateInfo.apiKey.getGuestId(),
 		// Notification.Type.INFO, message);
-
-		return UpdateResult.successResult();
 	}
 
 	// private String objectTypesString(List<ObjectType> list) {
@@ -136,7 +151,7 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 	// return result.toString();
 	// }
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked","unused"})
 	protected final <T extends AbstractUserProfile> T saveUserProfile(
 			UpdateInfo updateInfo, Class<T> clazz) throws Exception {
 		AbstractUserProfile loadUserProfile = loadUserProfile(updateInfo, clazz);
@@ -145,6 +160,7 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 		return (T) loadUserProfile;
 	}
 
+    @SuppressWarnings("unused")
 	protected <T extends AbstractUserProfile> T loadUserProfile(
 			UpdateInfo updateInfo, Class<T> clazz) throws Exception {
 		throw new RuntimeException("Not Implemented");
@@ -184,15 +200,18 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 				apiDataService.eraseApiData(updateInfo.apiKey.getGuestId(),
 						connector(), updateInfo.objectTypes,
 						updateInfo.getTimeInterval());
-			try {
-				updateConnectorData(updateInfo);
-				updateResult.type = UpdateResult.ResultType.UPDATE_SUCCEEDED;
-			} catch (Exception e) {
-				updateResult = new UpdateResult(
-						UpdateResult.ResultType.UPDATE_FAILED);
-				updateResult.stackTrace = Utils.stackTrace(e);
-				e.printStackTrace();
-			}
+            for(int i = 0; i<RETRY_ATTEMPTS; i++){
+                try {
+                    updateConnectorData(updateInfo);
+                    updateResult.type = UpdateResult.ResultType.UPDATE_SUCCEEDED;
+                    break;
+                } catch (Exception e) {
+                    updateResult = new UpdateResult(
+                            UpdateResult.ResultType.UPDATE_FAILED);
+                    updateResult.stackTrace = Utils.stackTrace(e);
+                    e.printStackTrace();
+                }
+            }
 		} finally {
 			runningUpdates.remove(runningUpdate);
 		}

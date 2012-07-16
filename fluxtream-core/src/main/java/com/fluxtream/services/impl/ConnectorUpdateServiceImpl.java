@@ -11,7 +11,6 @@ import javax.persistence.PersistenceContext;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.ScheduleResult;
-import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.connectors.updaters.UpdateInfo.UpdateType;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ApiNotification;
@@ -27,6 +26,7 @@ import com.fluxtream.utils.JPAUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
@@ -44,7 +44,8 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 	@Autowired
 	BeanFactory beanFactory;
 
-	@Autowired
+    @Qualifier("apiDataServiceImpl")
+    @Autowired
 	ApiDataService apiDataService;
 
 	@Autowired
@@ -79,7 +80,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
     @Override
     public List<ScheduleResult> updateConnectorObjectType(final long guestId, final Connector connector, int objectTypes) {
         List<ScheduleResult> scheduleResults = new ArrayList<ScheduleResult>();
-        UpdateWorkerTask updateWorkerTask = getScheduledUpdateTask(guestId, connector.getName(), objectTypes);
+        getScheduledUpdateTask(guestId, connector.getName(), objectTypes);
         scheduleObjectTypeUpdate(guestId, connector, objectTypes, scheduleResults);
         return scheduleResults;
     }
@@ -90,9 +91,9 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
             scheduleResults.add(new ScheduleResult(connector.getName(), objectTypes, ScheduleResult.ResultType.ALREADY_SCHEDULED, updateWorkerTask.timeScheduled));
         }
         else {
-            UpdateInfo.UpdateType updateType = isHistoryUpdateCompleted(guestId, connector.getName(), objectTypes)
-                                               ? UpdateInfo.UpdateType.INCREMENTAL_UPDATE
-                                               : UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE;
+            UpdateType updateType = isHistoryUpdateCompleted(guestId, connector.getName(), objectTypes)
+                                               ? UpdateType.INCREMENTAL_UPDATE
+                                               : UpdateType.INITIAL_HISTORY_UPDATE;
             final ScheduleResult scheduleResult = scheduleUpdate(guestId, connector.getName(), objectTypes, updateType, System.currentTimeMillis());
             scheduleResults.add(scheduleResult);
         }
@@ -101,7 +102,6 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
     @Override
     public List<ScheduleResult> updateAllConnectors(final long guestId) {
         List<ConnectorInfo> connectors =  systemService.getConnectors();
-        List<Long> apiKeyIds = new ArrayList<Long>();
         List<ScheduleResult> scheduleResults = new ArrayList<ScheduleResult>();
         for (int i = 0; i < connectors.size(); i++){
             if (!guestService.hasApiKey(guestId, connectors.get(i).getApi())) {
@@ -164,14 +164,14 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 		logger.debug("looking for a job...");
 		List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em,
 				UpdateWorkerTask.class, "updateWorkerTasks.byStatus",
-				UpdateWorkerTask.Status.SCHEDULED, System.currentTimeMillis());
+				Status.SCHEDULED, System.currentTimeMillis());
 		if (updateWorkerTasks.size() == 0) {
 			logger.debug("nothing to do");
 			return;
 		}
 		for (UpdateWorkerTask updateWorkerTask : updateWorkerTasks) {
 			logger.debug("executing update: " + updateWorkerTask);
-			setUpdateWorkerTaskStatus(updateWorkerTask.getId(), UpdateWorkerTask.Status.IN_PROGRESS);
+			setUpdateWorkerTaskStatus(updateWorkerTask.getId(), Status.IN_PROGRESS);
 			logger.info("guestId=" + updateWorkerTask.getGuestId() +
 					"action=bg_update stage=launch");
 			UpdateTask updateTask = beanFactory.getBean(UpdateTask.class);
@@ -207,7 +207,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 			updateWorkerTask.connectorName = connectorName;
 			updateWorkerTask.objectTypes = objectTypes;
 			updateWorkerTask.updateType = updateType;
-			updateWorkerTask.status = UpdateWorkerTask.Status.SCHEDULED;
+			updateWorkerTask.status = Status.SCHEDULED;
 			updateWorkerTask.timeScheduled = timeScheduled;
 			if (jsonParams!=null&&jsonParams.length>0)
 				updateWorkerTask.jsonParams = jsonParams[0];
@@ -239,7 +239,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 		List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em,
 				UpdateWorkerTask.class, "updateWorkerTasks.completed",
 				Status.DONE, guestId,
-				UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE, objectTypes,
+				UpdateType.INITIAL_HISTORY_UPDATE, objectTypes,
 				connectorName);
 		return updateWorkerTasks.size() > 0;
 	}
@@ -272,22 +272,19 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 
 	@Override
 	public ApiUpdate getLastUpdate(long guestId, Connector api) {
-		ApiUpdate lastUpdate = JPAUtils.findUnique(em, ApiUpdate.class,
-				"apiUpdates.last", guestId, api.value());
-		return lastUpdate;
+        return JPAUtils.findUnique(em, ApiUpdate.class,
+                "apiUpdates.last", guestId, api.value());
 	}
 
 	@Override
 	public ApiUpdate getLastSuccessfulUpdate(long guestId, Connector api) {
-		ApiUpdate lastUpdate = JPAUtils.findUnique(em, ApiUpdate.class, "apiUpdates.last.successful.byApi", guestId, api.value());
-		return lastUpdate;
+        return JPAUtils.findUnique(em, ApiUpdate.class, "apiUpdates.last.successful.byApi", guestId, api.value());
 	}
 
     @Override
     public List<ApiUpdate> getUpdates(long guestId, final Connector connector, final int pageSize, final int page) {
-        List<ApiUpdate> updates = JPAUtils.findPaged(em, ApiUpdate.class, "apiUpdates.last.paged", pageSize, page,
+        return JPAUtils.findPaged(em, ApiUpdate.class, "apiUpdates.last.paged", pageSize, page,
                                                      guestId, connector.value());
-        return updates;
     }
 
     @Override
@@ -295,10 +292,9 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 			int objectTypes) {
 		if (objectTypes == -1)
 			return getLastSuccessfulUpdate(guestId, api);
-		ApiUpdate lastUpdate = JPAUtils.findUnique(em, ApiUpdate.class,
-				"apiUpdates.last.successful.byApiAndObjectTypes", guestId,
-				api.value(), objectTypes);
-		return lastUpdate;
+        return JPAUtils.findUnique(em, ApiUpdate.class,
+                "apiUpdates.last.successful.byApiAndObjectTypes", guestId,
+                api.value(), objectTypes);
 	}
 
     @Override
@@ -323,14 +319,11 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 				UpdateWorkerTask.class, "updateWorkerTasks.isScheduled",
 				Status.SCHEDULED, Status.IN_PROGRESS, guestId,
 				connector.getName());
-        List<UpdateWorkerTask> result = new ArrayList<UpdateWorkerTask>();
         for (UpdateWorkerTask workerTask : updateWorkerTask) {
             if (hasStalled(workerTask)) {
                 workerTask.status = Status.STALLED;
                 em.merge(workerTask);
-                continue;
-            } else
-                result.add(workerTask);
+            }
         }
 		return updateWorkerTask;
 	}
@@ -348,39 +341,34 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 
 	@Override
 	public long getTotalNumberOfGuestsUsingConnector(Connector connector) {
-		long n = JPAUtils.count(em, "apiKey.count.byApi",
-				connector.value());
-		return n;
+        return JPAUtils.count(em, "apiKey.count.byApi",
+                connector.value());
 	}
 
 	@Override
 	public long getTotalNumberOfUpdates(Connector connector) {
-		long n = JPAUtils.count(em, "apiUpdates.count.all",
-				connector.value());
-		return n;
+        return JPAUtils.count(em, "apiUpdates.count.all",
+                connector.value());
 	}
 
 	@Override
 	public long getNumberOfUpdates(long guestId, Connector connector) {
-		long n = JPAUtils.count(em,
-				"apiUpdates.count.byGuest", guestId, connector.value());
-		return n;
+        return JPAUtils.count(em,
+                "apiUpdates.count.byGuest", guestId, connector.value());
 	}
 
 	@Override
 	public long getTotalNumberOfUpdatesSince(Connector connector, long then) {
-		long n = JPAUtils.count(em,
-				"apiUpdates.count.all.since", connector.value(), then);
-		return n;
+        return JPAUtils.count(em,
+                "apiUpdates.count.all.since", connector.value(), then);
 	}
 
 	@Override
 	public long getNumberOfUpdatesSince(long guestId, Connector connector,
 			long then) {
-		long n = JPAUtils.count(em,
-				"apiUpdates.count.byGuest.since", guestId, connector.value(),
-				then);
-		return n;
+        return JPAUtils.count(em,
+                "apiUpdates.count.byGuest.since", guestId, connector.value(),
+                then);
 	}
 
 	@Override
