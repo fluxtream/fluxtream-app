@@ -78,7 +78,7 @@ public class BodyTrackHelper {
 
                     int exitValue = pr.waitFor();
                     System.out.println("BTDataStore: exited with code " + exitValue);
-                    //tempFile.delete();
+                    tempFile.delete();
                 } catch (Exception e) {
                     System.out.println("Could not persist to datastore");
                     System.out.println(Utils.stackTrace(e));
@@ -102,8 +102,8 @@ public class BodyTrackHelper {
             final Process pr = rt.exec(launchCommand);
 
 
-            //new Thread(){//outputs the errorstream
-            //    public void run(){
+            new Thread(){//outputs the errorstream
+                public void run(){
                     BufferedReader error = new BufferedReader(new InputStreamReader(pr.getErrorStream()));
                     String line=null;
                     try{
@@ -115,12 +115,13 @@ public class BodyTrackHelper {
                         else
                             while (error.readLine() != null);
                     } catch(Exception e){}
-            //    }
-            //
-            //}.start();
+                }
+
+            }.start();
 
             BufferedReader input = new BufferedReader(new InputStreamReader(pr.getInputStream()));
 
+            String line = "";
             String result = "";
 
             while((line=input.readLine()) != null) { //output all console output from the execution
