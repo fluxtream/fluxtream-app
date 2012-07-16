@@ -7,7 +7,6 @@ define(function() {
         this.digest = dgst;
         this.dashboardId = dashboardId;
         _.bindAll(this);
-        this.init();
         if (this.manifest.HasSettings) {
             this.settings = widgetInfo.settings;
             var that = this;
@@ -15,6 +14,21 @@ define(function() {
                 that.showSettingsDialog(that.settings);
             });
         }
+        this.init();
+    }
+
+
+    DashboardWidget.prototype.init = function() {
+        var that = this;
+        require(["text!" + this.manifest.WidgetRepositoryURL + "/"
+                     + this.manifest.WidgetName + "/" + this.manifest.WidgetName + ".mustache"], function(template) {
+            that.template = Hogan.compile(template);
+            that.postLoad();
+        });
+    };
+
+    DashboardWidget.prototype.postLoad = function() {
+        alert("WARNING: '" + this.manifest.WidgetName + "' widget's postLoad()  method is not yet implemented!");
     }
 
     DashboardWidget.prototype.showSettingsDialog = function(settings) {
@@ -34,6 +48,7 @@ define(function() {
     }
 
     DashboardWidget.prototype.saveSettings = function(settings) {
+        this.settings = settings;
         var that = this;
         $.ajax({
             url: "/api/dashboards/" + that.dashboardId + "/widgets/" + that.manifest.WidgetName + "/settings",
@@ -41,6 +56,7 @@ define(function() {
             data: {settingsJSON : JSON.stringify(settings)},
             success: function() {
                 App.closeModal();
+                that.postLoad();
             },
             error: function() {
                 alert("Oops. We couldn't save your settings. Sorry about that.")
@@ -65,6 +81,10 @@ define(function() {
             type: "GET",
             success: function(widgetSettings) {
                 that.defaultSettings(widgetSettings);
+                $("#widgetSettings form").submit(function(evt) {
+                    that.validateSettings();
+                    evt.preventDefault();
+                });
                 that.bindWidgetSettings(widgetSettings);
             },
             error: function() {

@@ -87,13 +87,13 @@
         <div class="modal-header">
             <h3>{{manifest.WidgetTitle.en}} Widget Settings<a href="#" class="close" data-dismiss="modal">&times;</a></h3>
         </div>
-        <div class="modal-body">
+        <div class="modal-body" id="widgetSettings">
             <div id="{{manifest.WidgetName}}-widgetSettings">
                 (this whole div will be replaced)
             </div>
         </div>
         <div class="modal-footer">
-            <button class="btn" id="save-settings-{{manifest.WidgetName}}">Save</button>
+            <button class="btn btn-primary" id="save-settings-{{manifest.WidgetName}}">Save</button>
             <button class="btn" onclick="App.closeModal()">Cancel</button>
         </div>
     </div>
