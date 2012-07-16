@@ -11,8 +11,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import com.fluxtream.Configuration;
+import com.fluxtream.domain.ChannelStyle;
 import com.fluxtream.utils.HttpUtils;
+import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.Utils;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -21,13 +25,18 @@ import org.apache.log4j.Logger;
 import com.google.gson.JsonParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  *
  * @author Candide Kemmler (candide@fluxtream.com)
  */
 @Component
+@Transactional(readOnly = true)
 public class BodyTrackHelper {
+
+    @PersistenceContext
+    EntityManager em;
 
     static Logger LOG = Logger.getLogger(BodyTrackHelper.class);
 
@@ -208,6 +217,14 @@ public class BodyTrackHelper {
 
             SourcesResponse response = new SourcesResponse(infoResponse);
 
+            for (Source source : response.sources){
+                for (Channel channel : source.channels){
+                    ChannelStyle userStyle = getDefaultStyle(uid,source.name,channel.name);
+                    if (userStyle != null)
+                        channel.style = userStyle;
+                }
+            }
+
             //get the exit value
             int exitValue = pr.waitFor();
             System.out.println("BTDataStore: exited with code " + exitValue);
@@ -216,6 +233,39 @@ public class BodyTrackHelper {
         catch(Exception e){
             return gson.toJson(new SourcesResponse(null));
         }
+    }
+
+    public void setDefaultStyle(final long uid, final String deviceName, final String channelName, final ChannelStyle style) {
+        setDefaultStyle(uid,deviceName,channelName, gson.toJson(style));
+
+    }
+
+    @Transactional(readOnly = false)
+    public void setDefaultStyle(final long uid, final String deviceName, final String channelName, final String style) {
+        com.fluxtream.domain.ChannelStyle savedStyle = JPAUtils.findUnique(em, com.fluxtream.domain.ChannelStyle.class,
+                                                      "channelStyle.byDeviceNameAndChannelName",
+                                                      uid, deviceName, channelName);
+        if (savedStyle==null) {
+            savedStyle = new com.fluxtream.domain.ChannelStyle();
+            savedStyle.guestId = uid;
+            savedStyle.channelName = channelName;
+            savedStyle.deviceName = deviceName;
+            savedStyle.json = style;
+            em.persist(savedStyle);
+        } else {
+            savedStyle.json = style;
+            em.merge(savedStyle);
+        }
+    }
+
+    private ChannelStyle getDefaultStyle(long uid, String deviceName, String channelName){
+        com.fluxtream.domain.ChannelStyle savedStyle = JPAUtils.findUnique(em, com.fluxtream.domain.ChannelStyle.class,
+                                                                           "channelStyle.byDeviceNameAndChannelName",
+                                                                           uid, deviceName, channelName);
+        if(savedStyle == null)
+            return null;
+        return gson.fromJson(savedStyle.json,ChannelStyle.class);
+
     }
 
     private static class GetTileResponse{
@@ -310,6 +360,8 @@ public class BodyTrackHelper {
     }
 
     private static class ChannelStyle{
+        HighlightStyling highlight;
+        CommentStyling comments;
         ArrayList<Style> styles;
 
         public static ChannelStyle getDefaultChannelStyle(String name){
@@ -331,9 +383,28 @@ public class BodyTrackHelper {
 
     }
 
+    private static class CommentStyling{
+        Boolean show;
+        Integer verticalMargin;
+        ArrayList<Style> styles;
+    }
+
+    private static class HighlightStyling{
+        Integer lineWidth;
+        ArrayList<Style> styles;
+    }
+
     private static class Style{
         String type;
-        int lineWidth;
+        Integer lineWidth;
+        String color;
+        String fillColor;
+        Integer marginWidth;
+        String numberFormat;
+        Integer verticalOffset;
+        Integer radius;
+        Boolean fill;
+        Boolean show;
     }
 
 }

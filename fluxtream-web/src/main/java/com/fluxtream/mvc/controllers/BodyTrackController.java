@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -38,7 +37,7 @@ public class BodyTrackController {
 	GuestService guestService;
 
     @Autowired
-    BodyTrackHelper bodyTrackhelper;
+    BodyTrackHelper bodyTrackHelper;
 
 	@RequestMapping(value = "/bodytrack/UID")
 	public void bodyTrackUIDFetch(HttpServletResponse response)
@@ -56,7 +55,7 @@ public class BodyTrackController {
 			@PathVariable("ChannelName") String channelName,
 			@PathVariable("Level") int level,
 			@PathVariable("Offset") int offset) throws IOException {
-        String result = bodyTrackhelper.fetchTile(uid,deviceNickname,channelName,level,offset);
+        String result = bodyTrackHelper.fetchTile(uid,deviceNickname,channelName,level,offset);
         response.getWriter().write(result);
 	}
 
@@ -157,7 +156,7 @@ public class BodyTrackController {
 	@RequestMapping(value = "/bodytrack/users/{UID}/sources/list")
 	public void bodyTrackSourcesList(HttpServletResponse response,
 			@PathVariable("UID") long uid) throws IOException {
-        response.getWriter().write(bodyTrackhelper.listSources(uid));
+        response.getWriter().write(bodyTrackHelper.listSources(uid));
 	}
 
 	@RequestMapping(value = "/bodytrack/users/{UID}/sources/default_graph_specs")
@@ -249,12 +248,7 @@ public class BodyTrackController {
 			@PathVariable("ChannelName") String channelName,
 			@RequestParam("user_default_style") String style)
             throws IOException {
-        String user_id = guestService.getApiKeyAttribute(uid,Connector.getConnector("bodytrack"), "user_id");
-		String bodyTrackUrl = "http://localhost:3000/users/" + user_id
-				+ "/channels/" + deviceNickname + "." + channelName
-				+ "/set?user_default_style="
-				+ URLEncoder.encode(style, "utf-8");
-		writeTunnelResponse(bodyTrackUrl, response);
+        bodyTrackHelper.setDefaultStyle(uid,deviceNickname,channelName,style);
 	}
 
 	private void writeTunnelResponse(String tunnelUrl,
