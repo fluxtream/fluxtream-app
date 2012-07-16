@@ -78,10 +78,10 @@ public class BodymediaStepFacetExtractor extends AbstractFacetExtractor
                     JSONObject day = (JSONObject) o;
                     BodymediaStepsFacet steps = new BodymediaStepsFacet();
                     super.extractCommonFacetData(steps, apiData);
-                    steps.setTotalSteps(day.getInt("totalSteps"));
-                    steps.setDate(day.getString("date"));
-                    steps.setJson(day.getString("hours"));
-                    steps.setLastSync(d.getMillis());
+                    steps.totalSteps = day.getInt("totalSteps");
+                    steps.date = day.getString("date");
+                    steps.json = day.getString("hours");
+                    steps.lastSync = d.getMillis();
 
                     DateTime date = formatter.parseDateTime(day.getString("date"));
                     steps.date = dateFormatter.print(date.getMillis());

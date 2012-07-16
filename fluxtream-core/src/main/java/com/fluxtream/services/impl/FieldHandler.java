@@ -10,6 +10,4 @@ public interface FieldHandler {
 
     void handleField (final long guestId, AbstractFacet facet );
 
-    String getBodytrackChannelName();
-
 }

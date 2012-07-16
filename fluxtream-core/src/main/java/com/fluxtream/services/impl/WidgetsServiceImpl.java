@@ -91,12 +91,20 @@ public class WidgetsServiceImpl implements WidgetsService {
     @Override
     @Transactional(readOnly=false)
     public void saveWidgetSettings(final long guestId, final long dashboardId, final String widgetName, final String settingsJSON) {
-        WidgetSettings settings = new WidgetSettings();
-        settings.guestId = guestId;
-        settings.dashboardId = dashboardId;
-        settings.widgetName = widgetName;
-        settings.settingsJSON = settingsJSON;
-        em.persist(settings);
+        WidgetSettings settings = JPAUtils.findUnique(em, WidgetSettings.class,
+                                                      "widgetSettings.byDashboardAndName",
+                                                      guestId, dashboardId, widgetName);
+        if (settings==null) {
+            settings = new WidgetSettings();
+            settings.guestId = guestId;
+            settings.dashboardId = dashboardId;
+            settings.widgetName = widgetName;
+            settings.settingsJSON = settingsJSON;
+            em.persist(settings);
+        } else {
+            settings.settingsJSON = settingsJSON;
+            em.merge(settings);
+        }
     }
 
     @Override

@@ -33,20 +33,16 @@
                     <button class="btn">Add</button>
                 </div>
             </div>
-            <div class="dashboards-list">
+            <ul class="dashboards-list">
                 {{#dashboards}}
-                <div class="dashboard-list-item" id="dashboard-{{id}}">
-                    <div class="reorder">
-                        <a class="up"><i class="icon-caret-up"></i></a>
-                        <a class="down"><i class="icon-caret-down"></i></a>
-                    </div>
+                <li class="dashboard-list-item" id="dashboard-{{id}}" dashboardid="{{id}}">
                     <div class="dashboard-list-item-name">{{name}}</div>
                     <div class="remove">
                         <a><i class="icon-trash"></i></a>
                     </div>
-                </div>
+                </li>
                 {{/dashboards}}
-            </div>
+            </ul>
         </form>
     </div>
 </template>
@@ -77,7 +73,7 @@
     <ul id="dashboardTabs" class="nav nav-tabs">
         <li>
             <button id="addWidgetButton" class="btn btn-small">Add Widget&nbsp;<i class="icon-plus"></i></button>
-            <button id="manageDashboardsButton" class="btn dropdown-toggle">Manage Dashboards&nbsp;<i class="icon-caret-down"></i></button>
+            <button id="manageDashboardsButton" notthide="1" class="btn dropdown-toggle">Manage Dashboards&nbsp;<i class="icon-caret-down"></i></button>
         </li>
         {{#dashboards}}
         <li style="cursor:pointer" class="dashboardName{{#active}} active{{/active}}" id="dashboard-{{id}}">
@@ -91,13 +87,13 @@
         <div class="modal-header">
             <h3>{{manifest.WidgetTitle.en}} Widget Settings<a href="#" class="close" data-dismiss="modal">&times;</a></h3>
         </div>
-        <div class="modal-body">
+        <div class="modal-body" id="widgetSettings">
             <div id="{{manifest.WidgetName}}-widgetSettings">
                 (this whole div will be replaced)
             </div>
         </div>
         <div class="modal-footer">
-            <button class="btn" id="save-settings-{{manifest.WidgetName}}">Save</button>
+            <button class="btn btn-primary" id="save-settings-{{manifest.WidgetName}}">Save</button>
             <button class="btn" onclick="App.closeModal()">Cancel</button>
         </div>
     </div>

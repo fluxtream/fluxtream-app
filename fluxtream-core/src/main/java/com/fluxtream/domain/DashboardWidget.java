@@ -18,7 +18,6 @@ import org.codehaus.plexus.util.StringUtils;
 @XmlRootElement
 public class DashboardWidget {
 
-
     public Map<String,String> WidgetDescription = new HashMap<String,String>();
     public Map<String,String> WidgetTitle = new HashMap<String,String>();
     public List<String> SupportedLanguages;

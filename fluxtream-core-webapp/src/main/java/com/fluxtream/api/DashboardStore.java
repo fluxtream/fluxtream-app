@@ -98,7 +98,8 @@ public class DashboardStore {
         if (dashboardWidget.HasSettings) {
             final WidgetSettings widgetSettings = widgetsService.getWidgetSettings(guestId, dashboard.getId(),
                                                                                    dashboardWidget.WidgetName);
-            widgetJSON.accumulate("settings", JSONObject.fromObject(widgetSettings.settingsJSON));
+            final JSONObject jsonSettings = JSONObject.fromObject(widgetSettings.settingsJSON);
+            widgetJSON.accumulate("settings", jsonSettings);
         }
 
         return widgetJSON;

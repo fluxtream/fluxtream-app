@@ -1,7 +1,8 @@
 package com.fluxtream.connectors.bodymedia;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.services.impl.BodyTrackHelper;
 import com.fluxtream.services.impl.FieldHandler;
@@ -24,55 +25,40 @@ public class BodyMediaBurnFieldHandler implements FieldHandler {
     @Override
     public void handleField ( final long guestId, AbstractFacet facet) {
         BodymediaBurnFacet burnFacet = (BodymediaBurnFacet) facet;
-        if(burnFacet.getJson() == null)
+        if (burnFacet.json == null) {
             return;
-        Map<String, String> params = populateParams();
-        JSONArray data = parseData(burnFacet.getJson(), burnFacet.start);
-        params.put("data", data.toString());
-        bodyTrackHelper.uploadToBodyTrack(guestId, params);
-    }
-
-    private Map<String, String> populateParams() {
-        HashMap<String, String> params = new HashMap<String, String>();
-        params.put("dev_nickname", "Bodymedia");
-
-        JSONArray channelNamesArray = new JSONArray();
-        channelNamesArray.add("Calories_Burned");
-        params.put("chanel_names", channelNamesArray.toString());
-
-        JSONObject channelSpecsObject;
-        channelSpecsObject = new JSONObject();
-        JSONObject bodymediaTypeObject = new JSONObject();
-        bodymediaTypeObject.accumulate("type", "Float");
-        bodymediaTypeObject.accumulate("units", "calories");
-        channelSpecsObject.accumulate("Burn_Graph", bodymediaTypeObject);
-        params.put("channel_specs", channelSpecsObject.toString());
-        return params;
-    }
-
-    private JSONArray parseData(final String jsonString, final long start) {
-        JSONArray json = JSONArray.fromObject(jsonString);
-        JSONArray data = new JSONArray();
-        data.add(parseJsonData(json, start));
-        return data;
-    }
-
-    private JSONArray parseJsonData(final JSONArray jsonArray, long start) {
-        JSONArray json = new JSONArray();
-        for(int i = 0; i < jsonArray.size(); i++)
-        {
-            JSONObject burn = (JSONObject) jsonArray.get(i);
-            JSONArray day = new JSONArray();
-            day.add((start/100) + i*60);
-            day.add(burn.get("cals"));
-            json.add(day);
         }
-        return json;
+        JSONArray burnJson = JSONArray.fromObject(burnFacet.json);
+        List<List<Object>> data = new ArrayList<List<Object>>();
+        for(int i=0; i<burnJson.size(); i++) {
+            JSONObject jsonRecord = burnJson.getJSONObject(i);
+            long when = (facet.start/1000) + 60;
+            final String source = jsonRecord.getString("source");
+            final double mets = jsonRecord.getDouble("mets");
+            final int caloriesBurned = jsonRecord.getInt("cals");
+            final String activityType = jsonRecord.getString("activityType");
+            List<Object> record = new ArrayList<Object>();
+            record.add(when);
+            record.add(onBody(source));
+            record.add(mets);
+            record.add(caloriesBurned);
+            record.add(intensity(activityType));
+            data.add(record);
+        }
+        final List<String> channelNames = Arrays.asList("onBody", "mets", "caloriesBurned", "actitityType");
+        bodyTrackHelper.uploadToBodyTrack(guestId, "BodyMedia", channelNames, data);
     }
 
-    @Override
-    public String getBodytrackChannelName() {
-        return "Burn_Graph";
+    private int intensity(final String activityType) {
+        if (activityType.equals("M"))
+            return 1;
+        else if (activityType.equals("V"))
+            return 2;
+        return 0;
+    }
+
+    private int onBody(final String source) {
+        return source.equalsIgnoreCase("D")?1:0;
     }
 
 }

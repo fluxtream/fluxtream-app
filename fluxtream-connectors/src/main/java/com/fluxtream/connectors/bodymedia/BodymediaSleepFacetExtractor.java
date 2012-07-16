@@ -77,7 +77,7 @@ public class BodymediaSleepFacetExtractor extends AbstractFacetExtractor
         if(bodymediaResponse.has("Failed"))
         {
             BodymediaSleepFacet sleep = new BodymediaSleepFacet();
-            sleep.setDate(bodymediaResponse.getString("Date"));
+            sleep.date = bodymediaResponse.getString("Date");
         }
         else
         {
@@ -90,12 +90,12 @@ public class BodymediaSleepFacetExtractor extends AbstractFacetExtractor
                     JSONObject day = (JSONObject) o;
                     BodymediaSleepFacet sleep = new BodymediaSleepFacet();
                     super.extractCommonFacetData(sleep, apiData);
-                    sleep.setDate(day.getString("date"));
-                    sleep.setEfficiency(day.getDouble("efficiency"));
-                    sleep.setTotalLying(day.getInt("totalLying"));
-                    sleep.setTotalSleeping(day.getInt("totalSleep"));
-                    sleep.setJson(day.getString("sleepPeriods"));
-                    sleep.setLastSync(d.getMillis());
+                    sleep.date = day.getString("date");
+                    sleep.efficiency = day.getDouble("efficiency");
+                    sleep.totalLying = day.getInt("totalLying");
+                    sleep.totalSleeping = day.getInt("totalSleep");
+                    sleep.json = day.getString("sleepPeriods");
+                    sleep.lastSync = d.getMillis();
 
                     DateTime date = formatter.parseDateTime(day.getString("date"));
                     sleep.date = dateFormatter.print(date.getMillis());

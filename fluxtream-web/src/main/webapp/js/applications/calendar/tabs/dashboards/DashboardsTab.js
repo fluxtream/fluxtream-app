@@ -169,6 +169,22 @@ define(["applications/calendar/tabs/Tab",
         ManageDashboards.update();
     }
 
+    function reorderDone(){
+        var ordering = "";
+        var children = $(".dashboards-list").children();
+        for (var i = 0; i < children.length; i++){
+            if (i != 0)
+                ordering += ",";
+            ordering += $(children[i]).attr('dashboardid');
+        }
+        $.ajax({
+            url: "/api/dashboards/reorder",
+            type:"post",
+            data: {dashboardIds:ordering}
+        })
+    }
+
+
     var dashboardsTab = new Tab("dashboards", "Candide Kemmler", "icon-chart", true);
 	dashboardsTab.render = render;
     dashboardsTab.connectorDisplayable = function(connector) { return false; }
@@ -178,6 +194,7 @@ define(["applications/calendar/tabs/Tab",
     dashboardsTab.demoteDashboard = demoteDashboard;
     dashboardsTab.promoteDashboard = promoteDashboard;
     dashboardsTab.updateDashboardTabs = makeDashboardTabs;
+    dashboardsTab.reorderDone = reorderDone;
 	return dashboardsTab;
 	
 });

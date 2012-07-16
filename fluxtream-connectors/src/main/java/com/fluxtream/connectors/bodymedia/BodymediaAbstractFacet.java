@@ -18,7 +18,7 @@ public abstract class BodymediaAbstractFacet extends AbstractFacet
     public String date;
     public long lastSync = 0;
     @Lob
-    public String json;
+    public String Json;
 
     public String getDate() {
         return date;
@@ -29,7 +29,7 @@ public abstract class BodymediaAbstractFacet extends AbstractFacet
     }
 
     public String getJson() {
-        return json;
+        return Json;
     }
 
     public void setDate(final String date) {

@@ -21,8 +21,4 @@ public class BodymediaStepsFacet extends BodymediaAbstractFacet {
     //The total number of steps taken that day
     public int totalSteps;
 
-    public void setTotalSteps(final int totalSteps)
-    {
-        this.totalSteps = totalSteps;
-    }
 }

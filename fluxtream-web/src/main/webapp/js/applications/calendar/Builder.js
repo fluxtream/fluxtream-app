@@ -40,7 +40,7 @@ define([], function() {
                     return;
 				var state = App.state.getState("calendar");
 				state = state.substring(state.indexOf("/"));
-				Calendar.renderState(tab+state);
+				Calendar.renderState(tab+state,Calendar.digestTabState != state.substring(1));
 			});
 		}
 		var t = tabExistsForTimeUnit(Calendar.currentTabName, Calendar.timeUnit)?Calendar.currentTabName:tabs[Calendar.timeUnit][0];
@@ -158,8 +158,13 @@ define([], function() {
         Calendar.currentTab = tab;
         for (var i = 0; i < digest.selectedConnectors.length; i++){
             var button = $("#flx-connector-btn-" + digest.selectedConnectors[i].connectorName);
-            if (tab.connectorDisplayable(digest.selectedConnectors[i]))
+            if (tab.connectorDisplayable(digest.selectedConnectors[i])){
                 button.show();
+                if (tab.connectorsAlwaysEnabled()){
+                    button.removeClass("flx-disconnected");
+                    button.css("border-bottom-color",App.getConnectorConfig(digest.selectedConnectors[i].connectorName).color);
+                }
+            }
             else
                 button.hide();
 
