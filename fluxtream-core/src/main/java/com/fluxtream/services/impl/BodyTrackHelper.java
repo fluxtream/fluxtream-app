@@ -42,51 +42,62 @@ public class BodyTrackHelper {
                                   final String deviceName,
                                   final Collection<String> channelNames,
                                   final List<List<Object>> data) {
-        new Thread() {
-            public void run()  {
-                try{
-                    final File tempFile = File.createTempFile("input",".json");
+        try{
+            final File tempFile = File.createTempFile("input",".json");
 
-                    Map<String,Object> tempFileMapping = new HashMap<String,Object>();
-                    tempFileMapping.put("data",data);
-                    tempFileMapping.put("channel_names",channelNames);
+            Map<String,Object> tempFileMapping = new HashMap<String,Object>();
+            tempFileMapping.put("data",data);
+            tempFileMapping.put("channel_names",channelNames);
 
-                    FileOutputStream fos = new FileOutputStream(tempFile);
-                    final String bodyTrackJSONData = gson.toJson(tempFileMapping);
-                    fos.write(bodyTrackJSONData.getBytes());
-                    fos.close();
+            FileOutputStream fos = new FileOutputStream(tempFile);
+            final String bodyTrackJSONData = gson.toJson(tempFileMapping);
+            fos.write(bodyTrackJSONData.getBytes());
+            fos.close();
 
-                    Runtime rt = Runtime.getRuntime();
+            Runtime rt = Runtime.getRuntime();
 
-                    String launchCommand = env.targetEnvironmentProps.getString("btdatastore.exec.location") + "/import " +
-                                           env.targetEnvironmentProps.getString("btdatastore.db.location") + " " + guestId + " " +
-                                           deviceName + " " + tempFile.getAbsolutePath();
-                    System.out.println("BTDataStore: running with command: " + launchCommand);
+            String launchCommand = env.targetEnvironmentProps.getString("btdatastore.exec.location") + "/import " +
+                                   env.targetEnvironmentProps.getString("btdatastore.db.location") + " " + guestId + " " +
+                                   deviceName + " " + tempFile.getAbsolutePath();
+            System.out.println("BTDataStore: running with command: " + launchCommand);
 
-                    //create process for operation
-                    final Process pr = rt.exec(launchCommand);
+            //create process for operation
+            final Process pr = rt.exec(launchCommand);
 
-                    BufferedReader error = new BufferedReader(new InputStreamReader(pr.getInputStream()));
+            new Thread(){//outputs the errorstream
+                public void run(){
+                    BufferedReader error = new BufferedReader(new InputStreamReader(pr.getErrorStream()));
                     String line=null;
-                    if (true){
-                        while((line=error.readLine()) != null) { //output all console output from the execution
-                            System.out.println("BTDataStore: " + line);
+                    try{
+                        if (verboseOutput){
+                            while((line=error.readLine()) != null) { //output all console output from the execution
+                                System.out.println("BTDataStore-error: " + line);
+                            }
                         }
-                    }
-                    else
-                        while (error.readLine() != null);
-
-                    int exitValue = pr.waitFor();
-                    System.out.println("BTDataStore: exited with code " + exitValue);
-                    tempFile.delete();
-                } catch (Exception e) {
-                    System.out.println("Could not persist to datastore");
-                    System.out.println(Utils.stackTrace(e));
+                        else
+                            while (error.readLine() != null);
+                    } catch(Exception e){}
                 }
 
+            }.start();
+
+            BufferedReader input = new BufferedReader(new InputStreamReader(pr.getInputStream()));
+
+            String line = "";
+            String result = "";
+
+            while((line=input.readLine()) != null) { //output all console output from the execution
+                System.out.println("BTDataStore: " + line);
+                result += line;
             }
 
-        }.start();
+            int exitValue = pr.waitFor();
+            System.out.println("BTDataStore: exited with code " + exitValue);
+            tempFile.delete();
+        } catch (Exception e) {
+            System.out.println("Could not persist to datastore");
+            System.out.println(Utils.stackTrace(e));
+        }
     }
 
     public String fetchTile(String uid, String deviceNickname, String channelName, int level, int offset){
