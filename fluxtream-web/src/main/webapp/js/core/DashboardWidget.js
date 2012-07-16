@@ -9,6 +9,7 @@ define(function() {
         _.bindAll(this);
         if (this.manifest.HasSettings) {
             this.settings = widgetInfo.settings;
+            this.defaultSettings(this.settings);
             var that = this;
             $("#" + widgetInfo.manifest.WidgetName + "-widget-settings").click(function () {
                 that.showSettingsDialog(that.settings);
