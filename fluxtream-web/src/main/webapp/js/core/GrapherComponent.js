@@ -96,39 +96,32 @@ define(["applications/calendar/tabs/timeline/BodyTrack"],function(BodyTrack){
         var deviceName = channelName.substring(0,periodLocation);
         var subChannelName = channelName.substring(periodLocation+1);
 
+        component.plot = new DataSeriesPlot(channelDatasource(App.getUID(), deviceName, subChannelName),component.xAxis,component.yAxis,grapherStyle);
 
-
-
-        BodyTrack.LOGIN.getStatus(function(status){
-
-            component.plot = new DataSeriesPlot(channelDatasource(status.user_id, deviceName, subChannelName),component.xAxis,component.yAxis,grapherStyle);
-
-            var afterload = function(stats){
-                if (stats.has_data){
-                    var yMax = stats.y_max;
-                    var yMin = positiveOnly ? 0 : stats.y_min;
-                    var yDiff = yMax - yMin;
-                    if(yDiff < 1e-10) {
-                        component.yAxis.setRange(yMin - 0.5, yMin + 0.5);
-                    } else {
-                        var padding = 0.075 * yDiff;
-                        component.yAxis.setRange(positiveOnly ? yMin : yMin - padding, yMax + padding);
-                    }
-                    component.plot.setStyle( component.plot.getStyle()); // Trigger a repaint)
+        var afterload = function(stats){
+            if (stats.has_data){
+                var yMax = stats.y_max;
+                var yMin = positiveOnly ? 0 : stats.y_min;
+                var yDiff = yMax - yMin;
+                if(yDiff < 1e-10) {
+                    component.yAxis.setRange(yMin - 0.5, yMin + 0.5);
+                } else {
+                    var padding = 0.075 * yDiff;
+                    component.yAxis.setRange(positiveOnly ? yMin : yMin - padding, yMax + padding);
                 }
-            };
-
-            var fixBounds = function(){
-                afterload( component.plot.getStatistics( component.xAxis.getMin(), component.xAxis.getMax(),["has_data", "y_max", "y_min"]));
+                component.plot.setStyle( component.plot.getStyle()); // Trigger a repaint)
             }
+        };
 
-            //currently there is no better way with the api to get the necessary height
-            $.doTimeout(250,fixBounds);
+        var fixBounds = function(){
+            afterload( component.plot.getStatistics( component.xAxis.getMin(), component.xAxis.getMax(),["has_data", "y_max", "y_min"]));
+        }
+
+        //currently there is no better way with the api to get the necessary height
+        $.doTimeout(250,fixBounds);
 
 
-            component.plotContainer = new PlotContainer(component.plotContainerContainer.attr('id'), true,[ component.plot]);
-
-        });
+        component.plotContainer = new PlotContainer(component.plotContainerContainer.attr('id'), true,[ component.plot]);
 
 
 

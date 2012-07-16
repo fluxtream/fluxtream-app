@@ -432,7 +432,13 @@ define(
             return $("#flxUsername").html();
         }
 
+        function getUID(){
+            return $("#flxUID").html();
+        }
+
+
         App.getUsername = getUsername;
+        App.getUID = getUID;
         App.initialize = initialize;
         App.renderApp = renderApp;
         App.state = FlxState;

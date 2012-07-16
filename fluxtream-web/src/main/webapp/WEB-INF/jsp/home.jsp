@@ -42,6 +42,7 @@
 
 <body>
     <div id="flxUsername" style="display:none;"><%=ControllerHelper.getGuest().username%></div>
+    <div id="flxUID" style="display:none;"><%=ControllerHelper.getGuestId()%></div>
 
 	<div id="content">
 
