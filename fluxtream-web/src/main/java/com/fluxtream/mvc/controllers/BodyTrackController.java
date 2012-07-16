@@ -114,12 +114,14 @@ public class BodyTrackController {
         }
     }
 
+    //TODO:implement views
     @RequestMapping(value = "/bodytrack/users/{UID}/views")
 	public void bodyTrackViews(HttpServletResponse response,
 			@PathVariable("UID") long uid) throws IOException {
-        String user_id = guestService.getApiKeyAttribute(uid,Connector.getConnector("bodytrack"), "user_id");
+        response.getWriter().write("[]");
+        /*String user_id = guestService.getApiKeyAttribute(uid,Connector.getConnector("bodytrack"), "user_id");
 		String tunnelUrl = "http://localhost:3000/users/" + user_id + "/views";
-		writeTunnelResponse(tunnelUrl, response);
+		writeTunnelResponse(tunnelUrl, response);*/
 	}
 
 	@RequestMapping(value = "/bodytrack/users/{UID}/views/get")
@@ -205,12 +207,14 @@ public class BodyTrackController {
         postTunnelRequest(bodyTrackUrl, response, tunneledParameters);
      }
 
+    //TODO: implement tags
 	@RequestMapping(value = "/bodytrack/users/{UID}/tags")
 	public void bodyTrackTags(HttpServletResponse response,
 			@PathVariable("UID") long uid) throws IOException {
-        String user_id = guestService.getApiKeyAttribute(uid,Connector.getConnector("bodytrack"), "user_id");
+        response.getWriter().write("[]");
+        /*String user_id = guestService.getApiKeyAttribute(uid,Connector.getConnector("bodytrack"), "user_id");
 		String tunnelUrl = "http://localhost:3000/users/" + user_id + "/tags";
-		writeTunnelResponse(tunnelUrl, response);
+		writeTunnelResponse(tunnelUrl, response);*/
 	}
 
 	@RequestMapping(value = "/bodytrack/users/{UID}/tags/{LOGREC_ID}/get")
@@ -255,6 +259,7 @@ public class BodyTrackController {
 
 	private void writeTunnelResponse(String tunnelUrl,
 			HttpServletResponse response) throws IOException {
+        System.out.println("tunneled URL: " + tunnelUrl);
 		String contents = HttpUtils.fetch(tunnelUrl, env);
 		response.getWriter().write(contents);
 	}
@@ -262,6 +267,7 @@ public class BodyTrackController {
 	private void postTunnelRequest(String tunnelUrl,
 			HttpServletResponse response, Map<String, String> params)
             throws IOException {
+        System.out.println("tunneled URL: " + tunnelUrl);
 		String contents = HttpUtils.fetch(tunnelUrl, params, env);
 		response.getWriter().write(contents);
 	}
