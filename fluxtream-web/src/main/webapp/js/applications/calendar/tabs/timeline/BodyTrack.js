@@ -1,5 +1,5 @@
 define([], function() {
-	var APP, PREFS, TOOLS, LOGIN, TAG_MANAGER, VIEWS, SOURCES;
+	var APP, PREFS, TOOLS, TAG_MANAGER, VIEWS, SOURCES;
 	var BodyTrack = {};
 
 	APP = {
@@ -9,17 +9,12 @@ define([], function() {
 
 				// Wait for grapher to load before initializing tabs
 				//window.grapherLoad = function() {
+                    VIEWS.getAvailableList(function() {
+                        callback();
+                    });
 
-				LOGIN.getStatus(function(data) {
-					if (LOGIN.user_id > -1) {
-						VIEWS.getAvailableList(function() {
-							callback();
-						});
-
-						// Initialize the TAG_MANAGER
-						TAG_MANAGER.init();
-					} 
-				}); 
+                    // Initialize the TAG_MANAGER
+                    TAG_MANAGER.init();
 				//};
 			}
 	};
@@ -209,7 +204,7 @@ define([], function() {
 					return 0;
 				};
 
-				TOOLS.loadJson("/bodytrack/users/" + LOGIN.user_id + "/tags",
+				TOOLS.loadJson("/bodytrack/users/" + App.getUID() + "/tags",
 						{},
 						{
 							success : function(data, textStatus, jqXHR) {
@@ -269,29 +264,6 @@ define([], function() {
 			}
 	};
 
-	LOGIN = {
-			user_id : -1,
-
-			// populate login data field
-			getStatus : function(callback) {
-				$.ajax({
-					cache   : false,
-					type    : "GET",
-					url     : "/bodytrack/UID",
-					success : function(data, textStatus, jqXHR) {
-						var parsed = JSON.parse(data);
-						if ((typeof parsed !== "undefined") &&
-								(typeof parsed["user_id"] !== "undefined")) {
-							LOGIN.user_id = parsed["user_id"];
-						}
-						if (typeof callback === "function") {
-							callback(parsed);
-						}
-					}
-				});
-			}
-	}; // LOGIN
-
 	VIEWS = {
 			data : "",
 			availableList : [],
@@ -301,7 +273,7 @@ define([], function() {
 				$.ajax({
 					cache   : false,
 					type    : "GET",
-					url     : "/bodytrack/users/" + LOGIN.user_id + "/views",
+					url     : "/bodytrack/users/" + App.getUID() + "/views",
 					success : function(data, textStatus, jqXHR) {
 						var parsed = JSON.parse(data);
 						VIEWS.availableList = parsed.views;
@@ -320,7 +292,7 @@ define([], function() {
 				$.ajax({
 					cache   : false,
 					type    : "GET",
-					url     : "/bodytrack/users/" + LOGIN.user_id + "/views/get",
+					url     : "/bodytrack/users/" + App.getUID() + "/views/get",
 					data    : { "id" : id },
 					success : function(data, textStatus, jqXHR) {
 						VIEWS.data = JSON.parse(data);
@@ -340,7 +312,7 @@ define([], function() {
 				$.ajax({
 					cache   : false,
 					type    : "POST",
-					url     : "/bodytrack/users/" + LOGIN.user_id + "/views/set",
+					url     : "/bodytrack/users/" + App.getUID() + "/views/set",
 					data    : {
 						"name" : name,
 						"data" : JSON.stringify(VIEWS.data)
@@ -379,7 +351,7 @@ define([], function() {
 				$.ajax({
 					cache   : false,
 					type    : "GET",
-					url     : "/bodytrack/users/" + LOGIN.user_id + "/sources/list",
+					url     : "/bodytrack/users/" + App.getUID() + "/sources/list",
 					success : function(data, textStatus, jqXHR) {
 						var parsed = JSON.parse(data);
 						SOURCES.availableList = parsed.sources;
@@ -398,7 +370,7 @@ define([], function() {
 				$.ajax({
 					cache   : false,
 					type    : "GET",
-					url     : "/bodytrack/users/" + LOGIN.user_id + "/sources",
+					url     : "/bodytrack/users/" + App.getUID() + "/sources",
 					success : function(data, textStatus, jqXHR) {
 						var parsed = JSON.parse(data);
 						SOURCES.configuredList = parsed.sources;
@@ -417,7 +389,7 @@ define([], function() {
 				$.ajax({
 					cache   : false,
 					type    : "GET",
-					url     : "/bodytrack/users/" + LOGIN.user_id + "/sources/discovery",
+					url     : "/bodytrack/users/" + App.getUID() + "/sources/discovery",
 					success : function(data, textStatus, jqXHR) {
 						var parsed = JSON.parse(data);
 						SOURCES.discoveryList = parsed.sources;
@@ -436,7 +408,7 @@ define([], function() {
 				$.ajax({
 					cache   : false,
 					type    : "GET",
-					url     : "/bodytrack/users/" + LOGIN.user_id + "/sources/default_graph_specs",
+					url     : "/bodytrack/users/" + App.getUID() + "/sources/default_graph_specs",
 					data    : { "name" : device_name },
 					success : function(data, textStatus, jqXHR) {
 						if (typeof callback === "function") {
@@ -536,7 +508,6 @@ define([], function() {
 	BodyTrack.APP 		  = APP;
 	BodyTrack.PREFS 	  = PREFS;
 	BodyTrack.TOOLS 	  = TOOLS;
-	BodyTrack.LOGIN 	  = LOGIN;
 	BodyTrack.TAG_MANAGER = TAG_MANAGER;
 	BodyTrack.VIEWS 	  = VIEWS;
 	BodyTrack.SOURCES 	  = SOURCES;

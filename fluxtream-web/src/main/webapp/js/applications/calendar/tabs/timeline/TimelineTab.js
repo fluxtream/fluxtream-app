@@ -5,7 +5,6 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
     var APP 		= BodyTrack.APP;
     var PREFS 		= BodyTrack.PREFS;
     var TOOLS 		= BodyTrack.TOOLS;
-    var LOGIN 	    = BodyTrack.LOGIN;
     var TAG_MANAGER = BodyTrack.TAG_MANAGER;
     var VIEWS 		= BodyTrack.VIEWS;
     var SOURCES 	= BodyTrack.SOURCES;
@@ -804,10 +803,10 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
                 }
                 willJoinUsingAnd = !!photoStyle['filters']['tag']['isAndJoin'];
             }
-            plot = new PhotoSeriesPlot(photoDatasource(LOGIN.user_id, channel["device_name"], tags,	willJoinUsingAnd),
+            plot = new PhotoSeriesPlot(photoDatasource(App.getUID(), channel["device_name"], tags,	willJoinUsingAnd),
                 dateAxis,
                 yAxis,
-                LOGIN.user_id,
+                App.getUID(),
                 channel["style"]);
             plot.addDataPointListener(photoDataPointListener(channelElementId));
         } else if ("comments" == channel["channel_name"]) {
@@ -822,19 +821,19 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
                 willJoinUsingAnd = !!commentStyle['filters']['tag']['isAndJoin'];
             }
             alert("Implement commentDatasource and CommentSeriesPlot");
-//			var commentDatasource = commentDatasource(LOGIN.user_id,
+//			var commentDatasource = commentDatasource(App.getUID(),
 //			channel["device_name"],
 //			tags,
 //			willJoinUsingAnd);
 //			plot = new CommentSeriesPlot(commentDatasource,
 //			dateAxis,
 //			yAxis,
-//			LOGIN.user_id,
+//			App.getUID(),
 //			channel["style"]);
 //			plot.addDataPointListener(commentDataPointListener(channelElementId));
         } else {
             // Set up the plot and axes for this channel using the grapher API
-            plot = new DataSeriesPlot(channelDatasource(LOGIN.user_id, channel["device_name"], channel["channel_name"]),
+            plot = new DataSeriesPlot(channelDatasource(App.getUID(), channel["device_name"], channel["channel_name"]),
                 dateAxis,
                 yAxis,
                 channel["style"]);
@@ -1412,7 +1411,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
 
                 plot.setStyle(newStyle);
 
-                plot.setDatasource(photoDatasource(LOGIN.user_id,
+                plot.setDatasource(photoDatasource(App.getUID(),
                     channel["device_name"],
                     newStyle['filters']["tag"]["tags"],
                     newStyle['filters']["tag"]["isAndJoin"]
@@ -1810,7 +1809,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
                     shouldLoadPreviousNeighbor = !!shouldLoadPreviousNeighbor;
                     isAndJoin = !!isAndJoin;
 
-                    var url = "/bodytrack/users/" + LOGIN.user_id + "/log_items/get";
+                    var url = "/bodytrack/users/" + App.getUID() + "/log_items/get";
                     var urlParams = {
                         "id"         : currentPhotoId,
                         "time"       : currentPhotoTimestamp,
@@ -2064,7 +2063,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
         logrecId = TOOLS.parseInt(logrecId, -1);
         if (logrecId >= 0) {
 
-            var url = "/bodytrack/users/" + LOGIN.user_id + "/logrecs/" + logrecId + "/get";
+            var url = "/bodytrack/users/" + App.getUID() + "/logrecs/" + logrecId + "/get";
 
             TOOLS.loadJson(url, {}, callbacks);
         }
@@ -2108,8 +2107,8 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
 
                 var createPhotoDialog = function(photoId, timestamp, completionCallback) {
 
-                    var mediumResImageUrl = Hogan.compile($("#_timeline_photo_dialog_medium_res_image_url_template").html()).render({"photoId" : photoId, "userId" : LOGIN.user_id});
-                    var highResImageUrl = Hogan.compile($("#_timeline_photo_dialog_high_res_image_url_template").html()).render({"photoId" : photoId, "userId" : LOGIN.user_id});
+                    var mediumResImageUrl = Hogan.compile($("#_timeline_photo_dialog_medium_res_image_url_template").html()).render({"photoId" : photoId, "userId" : App.getUID()});
+                    var highResImageUrl = Hogan.compile($("#_timeline_photo_dialog_high_res_image_url_template").html()).render({"photoId" : photoId, "userId" : App.getUID()});
                     $("#_timeline_photo_dialog").html(Hogan.compile($("#_timeline_photo_dialog_template").html()).render({"photoUrl" : mediumResImageUrl}));
 
                     var updateGoToNeighborOnSaveWidgets = function() {
@@ -2372,7 +2371,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
                             $.ajax({
                                 cache    : false,
                                 type     : "POST",
-                                url      : "/bodytrack/users/" + LOGIN.user_id + "/logrecs/" + photoId + "/set",
+                                url      : "/bodytrack/users/" + App.getUID() + "/logrecs/" + photoId + "/set",
                                 data     : {
                                     "tags"    : getUserSelectedTags().join(','),
                                     "comment" : $("#_timeline_photo_dialog_comment").val()
@@ -2547,7 +2546,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
             var errorCallback = callbacks['error'];
             var completeCallback = callbacks['complete'];
 
-            var url = "/bodytrack/users/" + LOGIN.user_id + "/channels/" + encodeURIComponent(channel["device_name"]) + "." + encodeURIComponent(channel["channel_name"]) + "/set";
+            var url = "/bodytrack/users/" + App.getUID() + "/channels/" + encodeURIComponent(channel["device_name"]) + "." + encodeURIComponent(channel["channel_name"]) + "/set";
             $.ajax({
                 cache    : false,
                 type     : "POST",

@@ -1,14 +1,27 @@
 define(["applications/calendar/tabs/timeline/BodyTrack"],function(BodyTrack){
 
-    var grapherStyle = {"comments":{"show":false,"styles":[{"type":"point","show":false,"lineWidth":1,"radius":3,"color":"rgb(0, 102, 0)","fill":true,"fillColor":"rgb(0, 102, 0)"}],"verticalMargin":4},"styles":[{"type":"line","show":false,"color":"rgb(0, 102, 0)","lineWidth":1},{"type":"lollipop","show":true,"lineWidth":5,"radius":0,"color":"rgb(0, 102, 0)","fill":false},{"type":"point","show":false,"lineWidth":1,"radius":2,"color":"rgb(0, 102, 0)","fill":true,"fillColor":"rgb(0, 102, 0)"},{"type":"value","show":true,"fillColor":"rgb(0, 102, 0)","marginWidth":5,"verticalOffset":7,"numberFormat":"###,##0"}],"highlight":{"styles":[{"type":"value","show":true,"fillColor":"rgb(0, 102, 0)","marginWidth":5,"verticalOffset":7,"numberFormat":"###,##0"}],"lineWidth":6}};
+    var defaultStyle = {"styles":[{"type":"line","lineWidth":1}]};
 
-    var GrapherComponent = function(parentElement, yAxisWidth, xAxisHeight, channelName, tbounds, yAxisPosition, positiveOnly){
+    var GrapherComponent = function(parentElement, channelName, tbounds, options){
+        if (options == null)
+            options = {};
+
+        var yAxisWidth = options.yAxisWidth == null ? 0 : options.yAxisWidth;
+        var xAxisHeight = options.xAxisHeight == null ? 0 : options.xAxisHeight;
+        var xAxisPosition = options.xAxisPosition == null ? "bottom" : options.xAxisPosition;
+        var yAxisPosition = options.yAxisPosition == null ? "right" : options.yAxisPosition;
+        var positiveOnly = options.positiveOnly == null ? false : options.positiveOnly;
+        var grapherStyle = options.style == null ? defaultStyle : options.style;
+
         var component = this;
         this.channelName = channelName;
+        this.parent = $(parentElement);
+        var width = this.parent.width() - yAxisWidth;
+        var height = this.parent.height() - xAxisHeight;
         this.width = width;
         this.height = height;
         this.tbounds = tbounds;
-        this.parent = $(parentElement);
+
 
         var dateAxisDivId = this.parent.attr("id") + "_GrapherDateAxis";
         var numberAxisDivId = this.parent.attr("id") + "_GrapherNumberAxis";
@@ -19,8 +32,7 @@ define(["applications/calendar/tabs/timeline/BodyTrack"],function(BodyTrack){
         this.numberAxisContainer = $("<div id=\"" + numberAxisDivId + "\"></div>");
         this.plotContainerContainer = $("<div id=\"" + plotContainerDivId + "\"></div>");
 
-        var width = parentElement.width() - yAxisWidth;
-        var height = parentElement.height() - xAxisHeight;
+
 
         this.dateAxisContainer.css("width",width + "px");
         this.dateAxisContainer.css("height",height + "px");
