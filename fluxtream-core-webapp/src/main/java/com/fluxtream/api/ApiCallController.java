@@ -1,6 +1,7 @@
 package com.fluxtream.api;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -65,6 +66,18 @@ public class ApiCallController {
         String api_key = env.get("bodymediaConsumerKey");
         return getUserRegistrationDate(api_key, consumer);
 
+    }
+
+    @POST
+    @Path("/bodytrackHandler")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String handleZeo(@QueryParam("username") String username, @QueryParam("connector") String conn) {
+        Guest guest = guestService.getGuest(username);
+        AbstractFacet facet = jpaDaoService.findOne("bodymedia." + conn + ".between", AbstractFacet.class, guest.getId(), new Long(0), System.currentTimeMillis());
+        ArrayList<AbstractFacet> facets = new ArrayList<AbstractFacet>();
+        facets.add(facet);
+        bodyTrackStorageService.storeApiData(guest.getId(), facets);
+        return null;
     }
 
     OAuthConsumer setupConsumer(ApiKey apiKey)

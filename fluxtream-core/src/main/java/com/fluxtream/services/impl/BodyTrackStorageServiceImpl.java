@@ -3,17 +3,13 @@ package com.fluxtream.services.impl;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
-import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import com.fluxtream.Configuration;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.TimeUnit;
@@ -25,8 +21,13 @@ import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.BodyTrackStorageService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 @Service
 @Component
@@ -40,10 +41,12 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 	@Autowired
 	GuestService guestService;
 
-	@Autowired
+    @Qualifier("apiDataServiceImpl")
+    @Autowired
 	ApiDataService apiDataService;
 
-	@Autowired
+    @Qualifier("metadataServiceImpl")
+    @Autowired
 	MetadataService metadataService;
 
     @Autowired
@@ -64,23 +67,17 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 			return;
 
 		Map<String, List<AbstractFacet>> facetsByFacetName = sortFacetsByFacetName(facets);
-		Iterator<String> eachFacetName = facetsByFacetName.keySet().iterator();
-		while (eachFacetName.hasNext()) {
-			String facetName = (String) eachFacetName.next();
-			storeDeviceData(guestId, facetsByFacetName,
-                            facetName);
-		}
+        for (final String facetName : facetsByFacetName.keySet()) {
+            storeDeviceData(guestId, facetsByFacetName, facetName);
+        }
 
 	}
 
 	private void storeDeviceData(long guestId,
 			Map<String, List<AbstractFacet>> facetsByDeviceNickname,
 			String facetName) {
-		Map<String, String> params = new HashMap<String, String>();
         String deviceName = getDeviceNickname(facetName);
-		params.put("dev_nickname", deviceName);
 		Map<String, String> channelNamesMapping = getChannelNamesMapping(facetName);
-		params.put("channel_names", makeJSONArray(channelNamesMapping.values(), true));
 		List<AbstractFacet> deviceFacets = facetsByDeviceNickname.get(facetName);
 		List<List<Object>> channelValues = extractChannelValuesFromFacets(channelNamesMapping, deviceFacets, guestId);
 		//String jsonArray = makeJSONArray(channelValues, false);
@@ -94,11 +91,9 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
             List<AbstractFacet> deviceFacets, final long guestId) {
 		List<List<Object>> channelValues = new ArrayList<List<Object>>();
 		for (AbstractFacet deviceFacet : deviceFacets) {
-			Iterator<String> eachFieldName = channelNamesMapping.keySet().iterator();
             List<Object> values = new ArrayList<Object>();
             values.add(deviceFacet.start/1000.0);
-			while (eachFieldName.hasNext()) {
-				String fieldName = (String) eachFieldName.next();
+            for(String fieldName : channelNamesMapping.keySet()){
                 try {
                     Field field;
                     String bodyTrackMappedField = channelNamesMapping.get(fieldName);
@@ -118,8 +113,8 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
                     }
 					field = deviceFacet.getClass().getField(fieldName);
 					Object channelValue = field.get(deviceFacet);
-					if (channelValue instanceof java.util.Date)
-                        values.add(((java.util.Date)channelValue).getTime());
+					if (channelValue instanceof Date)
+                        values.add(((Date)channelValue).getTime());
 					else
                         values.add(channelValue);
 				} catch (Exception e) {
@@ -134,7 +129,8 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
     private FieldHandler getFieldHandler(String fieldHandlerName) {
         fieldHandlerName = fieldHandlerName.substring(1);
         if (fieldHandlers.get(fieldHandlerName)==null) {
-            FieldHandler fieldHandler = (FieldHandler)beanFactory.getBean(fieldHandlerName);
+            FieldHandler fieldHandler;
+            fieldHandler = (FieldHandler)beanFactory.getBean(fieldHandlerName);
             fieldHandlers.put(fieldHandlerName, fieldHandler);
         }
         return fieldHandlers.get(fieldHandlerName);
@@ -144,7 +140,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 		StringBuilder sb = new StringBuilder("[");
 		Iterator<String> eachChannelName = values.iterator();
 		for (int i=0; eachChannelName.hasNext(); i++) {
-			String channelName = (String) eachChannelName.next();
+			String channelName = eachChannelName.next();
 			if (i>0) sb.append(",");
 			if (addQuotes)
 				sb.append("\"").append(channelName).append("\"");
@@ -165,7 +161,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
                 if (converterName.equalsIgnoreCase("NOOP")||converterName.equalsIgnoreCase("OOP"))
                     continue;
                 String bodytrackChannelName = getFieldHandler(converterName).getBodytrackChannelName();
-                mappings.put(terms[0], bodytrackChannelName);
+                mappings.put(terms[0], "#!" + bodytrackChannelName);
             } else
     			mappings.put(terms[0], terms[1]);
 		}

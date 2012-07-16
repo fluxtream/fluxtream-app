@@ -17,7 +17,7 @@ public class BodymediaSleepFacetVO extends AbstractFacetVO<BodymediaSleepFacet>{
         this.efficiency = facet.efficiency;
         this.totalSleeping = new DurationModel(facet.totalSleeping*60);
         this.totalLying = new DurationModel(facet.totalLying*60);
-        this.sleepJson = facet.Json;
+        this.sleepJson = facet.json;
     }
 
 }
