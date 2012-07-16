@@ -3,6 +3,8 @@ package com.fluxtream.connectors.fitbit;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fluxtream.connectors.vos.AbstractInstantFacetVO;
+import com.fluxtream.connectors.vos.AbstractTimedFacetVO;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
@@ -10,7 +12,7 @@ import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.vos.AbstractFacetVO;
 import com.fluxtream.domain.GuestSettings;
 
-public class FitbitActivityFacetVO extends AbstractFacetVO<FitbitActivityFacet>{
+public class FitbitActivityFacetVO extends AbstractInstantFacetVO<FitbitActivityFacet> {
 
 	int steps;
 	int caloriesOut;
