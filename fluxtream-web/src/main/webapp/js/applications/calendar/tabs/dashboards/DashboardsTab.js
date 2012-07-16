@@ -175,7 +175,11 @@ define(["applications/calendar/tabs/Tab",
         for (var i = 0; i < children.length; i++){
             if (i != 0)
                 ordering += ",";
-            ordering += $(children[i]).attr('dashboardid');
+            var tabId = $(children[i]).attr('dashboardid');
+            ordering += tabId;
+            var tab = $("#dashboard-" + tabId);
+            tab.remove();
+            $("#dashboardTabs").append(tab);
         }
         $.ajax({
             url: "/api/dashboards/reorder",
