@@ -104,11 +104,13 @@ public class BodyTrackHelper {
         }
     }
 
-    public void uploadToBodyTrack(final long guestId,
+    public void uploadToBodyTrack(final Long uid,
                                   final String deviceName,
                                   final Collection<String> channelNames,
                                   final List<List<Object>> data) {
         try{
+            if (uid == null)
+                throw new IllegalArgumentException();
             final File tempFile = File.createTempFile("input",".json");
 
             Map<String,Object> tempFileMapping = new HashMap<String,Object>();
@@ -120,7 +122,7 @@ public class BodyTrackHelper {
             fos.write(bodyTrackJSONData.getBytes());
             fos.close();
 
-            executeDataStore("import",new Object[]{guestId,deviceName,tempFile.getAbsolutePath()});
+            executeDataStore("import",new Object[]{uid,deviceName,tempFile.getAbsolutePath()});
             tempFile.delete();
         } catch (Exception e) {
             System.out.println("Could not persist to datastore");
@@ -128,29 +130,29 @@ public class BodyTrackHelper {
         }
     }
 
-    public String fetchTile(String uid, String deviceNickname, String channelName, int level, int offset){
+    public String fetchTile(Long uid, String deviceNickname, String channelName, int level, int offset){
         try{
-
+            if (uid == null)
+                throw new IllegalArgumentException();
             String result = executeDataStore("gettile",new Object[]{uid,deviceNickname + "." + channelName,level,offset});
 
             GetTileResponse tileResponse = gson.fromJson(result,GetTileResponse.class);
 
             if (tileResponse.data == null){
-                tileResponse.data = new Object[0][];
-                tileResponse.level = level;
-                tileResponse.offset = offset;
-                tileResponse.fields = new String[]{"time", "mean", "stddev", "count"};
+                tileResponse = GetTileResponse.getEmptyTile(level,offset);
             }//TODO:several fields are missing still and should be implemented
 
             return gson.toJson(tileResponse);
         }
         catch(Exception e){
-            return null;
+            return gson.toJson(GetTileResponse.getEmptyTile(level,offset));
         }
     }
 
-    public String listSources(long uid){
+    public String listSources(Long uid){
         try{
+            if (uid == null)
+                throw new IllegalArgumentException();
             String result = executeDataStore("info",new Object[]{"-r",uid});
 
             channelInfoResponse infoResponse = gson.fromJson(result,channelInfoResponse.class);
@@ -172,26 +174,32 @@ public class BodyTrackHelper {
         }
     }
 
-    public void setDefaultStyle(final long uid, final String deviceName, final String channelName, final ChannelStyle style) {
+    public void setDefaultStyle(final Long uid, final String deviceName, final String channelName, final ChannelStyle style) {
         setDefaultStyle(uid,deviceName,channelName, gson.toJson(style));
-
     }
 
     @Transactional(readOnly = false)
-    public void setDefaultStyle(final long uid, final String deviceName, final String channelName, final String style) {
-        com.fluxtream.domain.ChannelStyle savedStyle = JPAUtils.findUnique(em, com.fluxtream.domain.ChannelStyle.class,
-                                                      "channelStyle.byDeviceNameAndChannelName",
-                                                      uid, deviceName, channelName);
-        if (savedStyle==null) {
-            savedStyle = new com.fluxtream.domain.ChannelStyle();
-            savedStyle.guestId = uid;
-            savedStyle.channelName = channelName;
-            savedStyle.deviceName = deviceName;
-            savedStyle.json = style;
-            em.persist(savedStyle);
-        } else {
-            savedStyle.json = style;
-            em.merge(savedStyle);
+    public void setDefaultStyle(final Long uid, final String deviceName, final String channelName, final String style) {
+        try{
+            if (uid == null)
+                throw new IllegalArgumentException();
+            com.fluxtream.domain.ChannelStyle savedStyle = JPAUtils.findUnique(em, com.fluxtream.domain.ChannelStyle.class,
+                                                          "channelStyle.byDeviceNameAndChannelName",
+                                                          uid, deviceName, channelName);
+            if (savedStyle==null) {
+                savedStyle = new com.fluxtream.domain.ChannelStyle();
+                savedStyle.guestId = uid;
+                savedStyle.channelName = channelName;
+                savedStyle.deviceName = deviceName;
+                savedStyle.json = style;
+                em.persist(savedStyle);
+            } else {
+                savedStyle.json = style;
+                em.merge(savedStyle);
+            }
+        }
+        catch (Exception e){
+
         }
     }
 
@@ -211,6 +219,15 @@ public class BodyTrackHelper {
         int level;
         int offset;
         int sample_width;
+
+        public static GetTileResponse getEmptyTile(int level, int offset){
+            GetTileResponse tileResponse = new GetTileResponse();
+            tileResponse.data = new Object[0][];
+            tileResponse.level = level;
+            tileResponse.offset = offset;
+            tileResponse.fields = new String[]{"time", "mean", "stddev", "count"};
+            return tileResponse;
+        }
     }
 
     private static class channelInfoResponse{
