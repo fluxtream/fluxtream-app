@@ -197,7 +197,7 @@ define(["applications/calendar/tabs/Tab", "applications/calendar/tabs/photos/Pho
         }
         if (currentArray.length != 0){
             if (currentDate != prevDate)
-                list.append("<hr><div>" + currentDate + "</div>");
+                list.append("<hr><div style=\"margin-bottom:15px\">" + currentDate + "</div>");
             list.append("<div class=\"flx-listItem\">" + currentArray[0].getDetails(currentArray) + "</div>");
         }
         if (list.children().length == 0)
