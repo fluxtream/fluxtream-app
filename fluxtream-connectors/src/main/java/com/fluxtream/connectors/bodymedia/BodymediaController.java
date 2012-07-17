@@ -1,19 +1,15 @@
 package com.fluxtream.connectors.bodymedia;
 
-import static com.fluxtream.utils.Utils.hash;
-
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.fluxtream.Configuration;
+import com.fluxtream.connectors.Connector;
+import com.fluxtream.domain.Guest;
+import com.fluxtream.mvc.controllers.ControllerHelper;
+import com.fluxtream.services.GuestService;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.OAuthProvider;
 import oauth.signpost.basic.DefaultOAuthConsumer;
@@ -23,18 +19,10 @@ import oauth.signpost.exception.OAuthExpectationFailedException;
 import oauth.signpost.exception.OAuthMessageSignerException;
 import oauth.signpost.exception.OAuthNotAuthorizedException;
 import oauth.signpost.http.HttpParameters;
-
-import org.apache.commons.httpclient.HttpException;
 import org.apache.http.client.HttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-
-import com.fluxtream.Configuration;
-import com.fluxtream.connectors.Connector;
-import com.fluxtream.domain.Guest;
-import com.fluxtream.mvc.controllers.ControllerHelper;
-import com.fluxtream.services.GuestService;
 
 @Controller
 @RequestMapping(value = "/bodymedia")
@@ -50,8 +38,7 @@ public class BodymediaController {
 	private static final String BODYMEDIA_OAUTH_PROVIDER = "bodymediaOAuthProvider";
 
 	@RequestMapping(value = "/token")
-	public String getToken(HttpServletRequest request,
-			HttpServletResponse response) throws IOException, ServletException,
+	public String getToken(HttpServletRequest request) throws IOException, ServletException,
 			OAuthMessageSignerException, OAuthNotAuthorizedException,
 			OAuthExpectationFailedException, OAuthCommunicationException {
 
@@ -88,9 +75,7 @@ public class BodymediaController {
 	}
 
 	@RequestMapping(value = "/upgradeToken")
-	public String upgradeToken(HttpServletRequest request,
-			HttpServletResponse response) throws NoSuchAlgorithmException,
-			HttpException, IOException, OAuthMessageSignerException,
+	public String upgradeToken(HttpServletRequest request) throws NoSuchAlgorithmException, IOException, OAuthMessageSignerException,
 			OAuthNotAuthorizedException, OAuthExpectationFailedException,
 			OAuthCommunicationException {
 
@@ -114,25 +99,5 @@ public class BodymediaController {
 
 	private Connector connector() {
 		return Connector.getConnector("bodymedia");
-	}
-
-	Map<String, String> toMap(String... params) {
-		HashMap<String, String> map = new HashMap<String, String>();
-		for (int i = 0; i < params.length;)
-			map.put(params[i++], params[i++]);
-		return map;
-	}
-
-	String getApiSig(Map<String, String> params)
-			throws NoSuchAlgorithmException, UnsupportedEncodingException {
-		Object[] key = params.keySet().toArray();
-		Arrays.sort(key);
-		String toHash = "";
-		for (int i = 0; i < key.length; i++)
-			toHash += key[i]
-					+ new String(params.get(key[i]).getBytes(), "UTF-8");
-		toHash += env.get("lastfmConsumerSecret");
-		String hashed = hash(toHash);
-		return hashed;
 	}
 }

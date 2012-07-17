@@ -13,7 +13,7 @@ import org.hibernate.search.annotations.Indexed;
 	@NamedQuery(name = "bodymedia.sleep.between", query = "SELECT facet FROM Facet_BodymediaSleep facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=?"),
     @NamedQuery(name = "bodymedia.sleep.getFailedUpdate", query = "SELECT facet FROM Facet_BodymediaSleep facet WHERE facet.guestId=? AND facet.lastSync=1"),
     @NamedQuery(name = "bodymedia.sleep.getDaysPrior", query = "SELECT facet FROM Facet_BodymediaSleep facet WHERE facet.guestId=? AND facet.start<? ORDER BY facet.start DESC"),
-    @NamedQuery(name = "bodymedia.sleep.getLastSync", query = "SELECT facet FROM Facet_BodymediaSleep facet WHERE facet.guestId=? ORDER BY facet.lastSync DESC")
+    @NamedQuery(name = "bodymedia.sleep.getByLastSync", query = "SELECT facet FROM Facet_BodymediaSleep facet WHERE facet.guestId=? ORDER BY facet.lastSync DESC")
 })
 @Indexed
 public class BodymediaSleepFacet extends BodymediaAbstractFacet {

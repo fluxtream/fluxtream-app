@@ -1,6 +1,8 @@
 package com.fluxtream.api;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -19,10 +21,15 @@ import com.fluxtream.services.JPADaoService;
 import com.google.gson.Gson;
 import net.sf.json.JSONObject;
 import oauth.signpost.OAuthConsumer;
+import oauth.signpost.OAuthProvider;
+import oauth.signpost.basic.DefaultOAuthConsumer;
 import oauth.signpost.commonshttp.CommonsHttpOAuthConsumer;
+import oauth.signpost.commonshttp.CommonsHttpOAuthProvider;
 import oauth.signpost.exception.OAuthCommunicationException;
+import oauth.signpost.exception.OAuthException;
 import oauth.signpost.exception.OAuthExpectationFailedException;
 import oauth.signpost.exception.OAuthMessageSignerException;
+import oauth.signpost.http.HttpParameters;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
@@ -71,7 +78,7 @@ public class ApiCallController {
     @POST
     @Path("/bodytrackHandler")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String handleZeo(@QueryParam("username") String username, @QueryParam("connector") String conn) {
+    public String handleBodytrack(@QueryParam("username") String username, @QueryParam("connector") String conn) {
         Guest guest = guestService.getGuest(username);
         AbstractFacet facet = jpaDaoService.findOne("bodymedia." + conn + ".between", AbstractFacet.class, guest.getId(), 0L, System.currentTimeMillis());
         ArrayList<AbstractFacet> facets = new ArrayList<AbstractFacet>();
@@ -140,4 +147,51 @@ public class ApiCallController {
         return "Error: " + statusCode;
     }
 
+    @POST
+    @Path("/bodymediaReg")
+    @Produces({MediaType.TEXT_PLAIN})
+    public String addBodymedia(@QueryParam("username") String username)
+    {
+        Guest g = guestService.getGuest(username);
+
+        String oauthCallback = env.get("homeBaseUrl") + "bodymedia/upgradeToken";
+
+        if (g.getId() != null)
+            oauthCallback += "?guestId=" + g.getId();
+
+        String apiKey = env.get("bodymediaConsumerKey");
+        OAuthConsumer consumer = new DefaultOAuthConsumer(
+                apiKey,
+                env.get("bodymediaConsumerSecret"));
+        HttpParameters additionalParameter = new HttpParameters();
+        additionalParameter.put("api_key", apiKey);
+        consumer.setAdditionalParameters(additionalParameter);
+
+        HttpClient httpClient = env.getHttpClient();
+
+        OAuthProvider provider = new CommonsHttpOAuthProvider(
+                "https://api.bodymedia.com/oauth/request_token?api_key="+apiKey,
+                "https://api.bodymedia.com/oauth/access_token?api_key="+apiKey,
+                "https://api.bodymedia.com/oauth/authorize?api_key="+apiKey, httpClient);
+
+        String approvalPageUrl;
+        try {
+            approvalPageUrl = provider.retrieveRequestToken(consumer,
+                    oauthCallback);
+        }
+        catch (OAuthException e) {
+            return "RequestToken Failed";
+        }
+
+        System.out.println("the token secret is: " + consumer.getTokenSecret());
+      		approvalPageUrl+="&oauth_api=" + apiKey;
+        try {
+            approvalPageUrl = URLDecoder.decode(approvalPageUrl, "UTF-8");
+        }
+        catch (UnsupportedEncodingException e) {
+            return gson.toJson(e);
+        }
+
+        return "redirect:" + approvalPageUrl;
+    }
 }

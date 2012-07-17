@@ -57,26 +57,28 @@ public class BodymediaUpdater extends AbstractUpdater {
     }
 
     public void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception {
-        OAuthConsumer consumer = setupConsumer(updateInfo.apiKey);
-        String api_key = env.get("bodymediaConsumerKey");
 
-        String userRegistrationDate = getUserRegistrationDate(updateInfo, api_key, consumer);
         for(ObjectType ot : updateInfo.objectTypes())
         {
             String date = jpaDaoService.findOne("bodymedia." + ot.getName() + ".getFailedUpdate",
                                                 String.class, updateInfo.getGuestId());
-            DateTime today;
+            DateTime end;
             if(date!=null)
             {
-                today = formatter.parseDateTime(date);
+                end = formatter.parseDateTime(date);
             }
             else
             {
-                //DateTime should be initialized to today
-                today = new DateTime();
+                //DateTime should be initialized to the current time
+                end = new DateTime();
             }
-            DateTime start = formatter.parseDateTime(userRegistrationDate);
-            retrieveHistory(updateInfo, ot, url.get(ot), maxIncrement.get(ot), start, today);
+
+            OAuthConsumer consumer = setupConsumer(updateInfo.apiKey);
+            String api_key = env.get("bodymediaConsumerKey");
+            String startDate = getUserRegistrationDate(updateInfo, api_key, consumer);
+            DateTime start = formatter.parseDateTime(startDate);
+
+            retrieveHistory(updateInfo, ot, url.get(ot), maxIncrement.get(ot), start, end);
         }
     }
 
@@ -149,11 +151,27 @@ public class BodymediaUpdater extends AbstractUpdater {
             }
             else {
                 end = new DateTime();
-                BodymediaAbstractFacet startDate = jpaDaoService.findOne("bodymedia." + ot.getName() + ".getLastSync", BodymediaAbstractFacet.class, updateInfo.getGuestId());
-                start = formatter.parseDateTime(startDate.date);
+                start = getStartDate(updateInfo, ot);
             }
             retrieveHistory(updateInfo, ot, url.get(ot), maxIncrement.get(ot), start, end);
         }
+    }
+
+    public DateTime getStartDate(UpdateInfo updateInfo, ObjectType ot) throws Exception
+    {
+        BodymediaAbstractFacet facet = jpaDaoService.findOne("bodymedia." + ot.getName() + ".getByLastSync", BodymediaAbstractFacet.class, updateInfo.getGuestId());
+        String startDate;
+        if(facet == null)
+        {
+            OAuthConsumer consumer = setupConsumer(updateInfo.apiKey);
+            String api_key = env.get("bodymediaConsumerKey");
+            startDate = getUserRegistrationDate(updateInfo, api_key, consumer);
+        }
+        else
+        {
+            startDate = facet.date;
+        }
+        return formatter.parseDateTime(startDate);
     }
 
     public String getUserRegistrationDate(UpdateInfo updateInfo, String api_key, OAuthConsumer consumer) throws Exception {

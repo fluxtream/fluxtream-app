@@ -67,7 +67,7 @@ define(function() {
         syncAllBtn.click(function(){
             setAllToSyncing();
             event.preventDefault();
-            $.ajax("/api/sync/all",{
+            $.ajax("/sync/all",{
                 type:"POST"
             });
         });

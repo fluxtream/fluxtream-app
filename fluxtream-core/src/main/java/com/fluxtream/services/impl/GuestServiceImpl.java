@@ -16,6 +16,7 @@ import com.fluxtream.connectors.google_latitude.LocationFacet;
 import net.sf.json.JSONObject;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.authentication.encoding.ShaPasswordEncoder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -52,13 +53,16 @@ public class GuestServiceImpl implements GuestService {
 	@PersistenceContext
 	EntityManager em;
 
-	@Autowired
+    @Qualifier("apiDataServiceImpl")
+    @Autowired
 	ApiDataService apiDataService;
 
-	@Autowired
+    @Qualifier("metadataServiceImpl")
+    @Autowired
 	MetadataService metadataService;
 
-	@Autowired
+    @Qualifier("connectorUpdateServiceImpl")
+    @Autowired
 	ConnectorUpdateService connectorUpdateService;
 
 	LookupService geoIpLookupService;
@@ -71,8 +75,7 @@ public class GuestServiceImpl implements GuestService {
 				"guest.byUsername", username);
 		if (guest == null)
 			return null;
-		FlxUserDetails user = new FlxUserDetails(guest);
-		return user;
+        return new FlxUserDetails(guest);
 	}
 
 	public UserDetails loadUserByEmail(String email)
@@ -81,8 +84,7 @@ public class GuestServiceImpl implements GuestService {
 				"guest.byEmail", email);
 		if (guest == null)
 			return null;
-		FlxUserDetails user = new FlxUserDetails(guest);
-		return user;
+        return new FlxUserDetails(guest);
 	}
 
 	@Transactional(readOnly = false)
@@ -120,9 +122,8 @@ public class GuestServiceImpl implements GuestService {
 
 	@Override
 	public Guest getGuest(String username) {
-		final Guest guest = JPAUtils.findUnique(em, Guest.class,
-				"guest.byUsername", username);
-		return guest;
+        return JPAUtils.findUnique(em, Guest.class,
+                "guest.byUsername", username);
 	}
 
 	@Override
@@ -164,8 +165,7 @@ public class GuestServiceImpl implements GuestService {
 	public void removeApiKey(long guestId, Connector connector) {
 		ApiKey apiKey = JPAUtils.findUnique(em, ApiKey.class, "apiKey.byApi",
 				guestId, connector.value());
-		if (connector != null)
-			em.remove(apiKey);
+        em.remove(apiKey);
 		if (connector == Connector.getConnector("google_latitude"))
 			JPAUtils.execute(em, "context.delete.all", guestId);
 		apiDataService.eraseApiData(guestId, connector);
@@ -184,9 +184,8 @@ public class GuestServiceImpl implements GuestService {
 
 	@Override
 	public List<ApiKey> getApiKeys(long guestId) {
-		List<ApiKey> keys = JPAUtils.find(em, ApiKey.class, "apiKeys.all",
-				guestId);
-		return keys;
+        return JPAUtils.find(em, ApiKey.class, "apiKeys.all",
+                guestId);
 	}
 
 	@Override
@@ -198,9 +197,8 @@ public class GuestServiceImpl implements GuestService {
 
 	@Override
 	public ApiKey getApiKey(long guestId, Connector api) {
-		ApiKey apiKey = JPAUtils.findUnique(em, ApiKey.class, "apiKey.byApi",
-				guestId, api.value());
-		return apiKey;
+        return JPAUtils.findUnique(em, ApiKey.class, "apiKey.byApi",
+                guestId, api.value());
 	}
 
 	@Override
@@ -225,7 +223,7 @@ public class GuestServiceImpl implements GuestService {
 	}
 
 	@Override
-	@Secured({ "ROLE_ADMIN", "ROLE_ROOT" })
+    @Secured({ "ROLE_ADMIN", "ROLE_ROOT" })
 	public List<Guest> getAllGuests() {
 		List<Guest> all = JPAUtils.find(em, Guest.class, "guests.all",
 				(Object[]) null);
@@ -296,9 +294,8 @@ public class GuestServiceImpl implements GuestService {
 
 	@Override
 	public ResetPasswordToken getToken(String token) {
-		ResetPasswordToken ptoken = JPAUtils.findUnique(em,
-				ResetPasswordToken.class, "passwordToken.byToken", token);
-		return ptoken;
+        return JPAUtils.findUnique(em,
+                ResetPasswordToken.class, "passwordToken.byToken", token);
 	}
 
 	@Override
@@ -314,9 +311,8 @@ public class GuestServiceImpl implements GuestService {
 
 	@Override
 	public Guest getGuestByEmail(String email) {
-		final Guest guest = JPAUtils.findUnique(em, Guest.class,
-				"guest.byEmail", email);
-		return guest;
+        return JPAUtils.findUnique(em, Guest.class,
+                "guest.byEmail", email);
 	}
 
 	@Override
@@ -358,7 +354,7 @@ public class GuestServiceImpl implements GuestService {
                         locationFacet,
                         LocationFacet.Source.OTHER);
             }
-            catch (Exception e){
+            catch (Exception ignored){
             }
 		} else {
             String ip2locationKey = env.get("ip2location.apiKey");
