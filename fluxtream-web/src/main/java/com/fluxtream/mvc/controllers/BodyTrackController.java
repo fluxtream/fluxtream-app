@@ -39,15 +39,6 @@ public class BodyTrackController {
     @Autowired
     BodyTrackHelper bodyTrackHelper;
 
-	@RequestMapping(value = "/bodytrack/UID")
-	public void bodyTrackUIDFetch(HttpServletResponse response)
-            throws IOException {
-		long guestId = ControllerHelper.getGuestId();
-		JSONObject json = new JSONObject();
-		json.accumulate("user_id", guestId);
-		response.getWriter().write(json.toString());
-	}
-
 	@RequestMapping(value = "/bodytrack/tiles/{UID}/{DeviceNickname}.{ChannelName}/{Level}.{Offset}.json")
 	public void bodyTrackTileFetch(HttpServletResponse response,
 			@PathVariable("UID") String uid,
