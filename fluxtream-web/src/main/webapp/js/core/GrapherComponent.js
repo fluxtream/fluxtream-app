@@ -109,29 +109,42 @@ define(["applications/calendar/tabs/timeline/BodyTrack"],function(BodyTrack){
         var subChannelName = channelName.substring(periodLocation+1);
 
         component.plot = new DataSeriesPlot(channelDatasource(App.getUID(), deviceName, subChannelName),component.xAxis,component.yAxis,grapherStyle);
+        component.parent.css("opacity",0);
 
         var afterload = function(stats){
-            if (stats.has_data){
+            if (stats != null && stats.has_data){
                 var yMax = stats.y_max;
                 var yMin = positiveOnly ? 0 : stats.y_min;
                 var yDiff = yMax - yMin;
+                var bounds;
                 if(yDiff < 1e-10) {
-                    component.yAxis.setRange(yMin - 0.5, yMin + 0.5);
+                    bounds = [yMin - 0.5, yMin + 0.5];
                 } else {
                     var padding = 0.075 * yDiff;
-                    component.yAxis.setRange(positiveOnly ? yMin : yMin - padding, yMax + padding);
+                    bounds = [positiveOnly ? yMin : yMin - padding, yMax + padding];
                 }
+                if (bounds[0] == component.yAxis.getMin() && bounds[1] == component.yAxis.getMax()){
+                    $.doTimeout(10,function(){
+                        component.parent.css("opacity",1);
+                    })
+                    return;
+                }
+                component.yAxis.setRange(bounds[0], bounds[1]);
                 component.plot.setStyle( component.plot.getStyle()); // Trigger a repaint)
             }
+            else if (stats != null && stats.data_pending == false){
+                component.parent.css("opacity",1);
+                return;
+            }
+            console.log("rechecking for afterload");
+            $.doTimeout(10,getStats);
+            return;
         };
 
-        var fixBounds = function(){
-            afterload( component.plot.getStatistics( component.xAxis.getMin(), component.xAxis.getMax(),["has_data", "y_max", "y_min"]));
+        var getStats = function(){
+            afterload(component.plot.getStatistics( component.xAxis.getMin(), component.xAxis.getMax(),["has_data", "y_max", "y_min"],afterload));
         }
-
-        //currently there is no better way with the api to get the necessary height
-        $.doTimeout(250,fixBounds);
-
+        getStats();
 
         component.plotContainer = new PlotContainer(component.plotContainerContainer.attr('id'), true,[ component.plot]);
 
