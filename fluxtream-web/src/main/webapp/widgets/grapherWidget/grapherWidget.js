@@ -1,19 +1,20 @@
 define(["core/DashboardWidget", "core/GrapherComponent", "applications/calendar/tabs/timeline/BodyTrack"], function(DashboardWidget,GrapherComponent,BodyTrack) {
 
-    var StepsHistory = new DashboardWidget();
+    var GrapherWidget = new DashboardWidget();
 
-    StepsHistory.init = function() {
+    GrapherWidget.init = function() {
         require(["text!" + this.manifest.WidgetRepositoryURL + "/"
-                     + this.manifest.WidgetName + "/stepsHistory.mustache"], function(template) {
-            StepsHistory.postLoad(template);
+                     + this.manifest.WidgetName + "/grapherWidget.mustache"], function(template) {
+            GrapherWidget.postLoad(template);
         });
     };
 
-    StepsHistory.postLoad = function(template) {
+    GrapherWidget.postLoad = function(template) {
+        this.setTitle(this.settings.title);
         if (template != null){
             var html = Hogan.compile(template);
-            $("#stepsHistory-widget .flx-body").empty();
-            $("#stepsHistory-widget .flx-body").append(
+            $("#grapherWidget-widget .flx-body").empty();
+            $("#grapherWidget-widget .flx-body").append(
                 html.render({"manifest" : this.manifest})
             );
             this.grapher = null;
@@ -22,7 +23,7 @@ define(["core/DashboardWidget", "core/GrapherComponent", "applications/calendar/
         var channelName = this.settings.deviceName + "." + this.settings.channelName
 
         if (this.grapher != null && this.grapher.channelName != channelName){
-            $("#stepsHistoryWidget").empty();
+            $("#grapherWidgetWidget").empty();
             this.grapher = null;
         }
         else if (this.grapher != null){
@@ -31,7 +32,7 @@ define(["core/DashboardWidget", "core/GrapherComponent", "applications/calendar/
 
         if (this.grapher == null){
             var tbounds = {start:this.digest.tbounds.start - 12 * 3600 * 1000, end: this.digest.tbounds.end - 12 * 3600 * 1000};
-            this.grapher = new GrapherComponent($("#stepsHistoryWidget"),channelName,tbounds,{
+            this.grapher = new GrapherComponent($("#grapherWidgetWidget"),channelName,tbounds,{
                 yAxisPosition:"right",
                 yAxisWidth:50,
                 xAxisHeight:0,
@@ -68,15 +69,17 @@ define(["core/DashboardWidget", "core/GrapherComponent", "applications/calendar/
         }
     }
 
-    StepsHistory.validateSettings = function(){
-        this.saveSettings(this.defaultSettings({
+    GrapherWidget.validateSettings = function(){
+        this.saveSettings({
             deviceName:$("#deviceSelector").val(),
             channelName:$("#channelSelector").val(),
-            style:this.getStyleFromConfigurationControls()
-        }));
+            style:this.getStyleFromConfigurationControls(),
+            title:$("#titleInput").val()
+        });
     }
 
-    StepsHistory.bindWidgetSettings = function(widgetSettings){
+    GrapherWidget.bindWidgetSettings = function(widgetSettings){
+        $("#titleInput").val(widgetSettings.title);
         bindStyleEditor(widgetSettings.style);
         BodyTrack.SOURCES.getAvailableList(function (sources){
 
@@ -104,13 +107,15 @@ define(["core/DashboardWidget", "core/GrapherComponent", "applications/calendar/
 
 
     var defaultStyle = {styles:[{type:"lollipop",show:true,lineWidth:5,radius:0,color:"rgb(0, 102, 0)",fill:false},{type:"value",show:true,fillColor:"rgb(0, 102, 0)",marginWidth:5,verticalOffset:7,numberFormat:"###,##0"}],highlight:{styles:[{type:"value",show:true,fillColor:"rgb(0, 102, 0)",marginWidth:5,verticalOffset:7,numberFormat:"###,##0"}],lineWidth:5}};
-    StepsHistory.defaultSettings = function(widgetSettings){
+    GrapherWidget.defaultSettings = function(widgetSettings){
         if (widgetSettings.deviceName == null)
             widgetSettings.deviceName = "Fitbit";
         if (widgetSettings.channelName == null)
             widgetSettings.channelName = "steps";
         if (widgetSettings.style == null)
             widgetSettings.style = defaultStyle;
+        if (widgetSettings.title == null)
+            widgetSettings.title = "Grapher";
         return widgetSettings;
     }
 
@@ -219,7 +224,7 @@ define(["core/DashboardWidget", "core/GrapherComponent", "applications/calendar/
             commentsStyle['type-ui'] += '-filled';
         }
         
-        var channelElementId = "stepsHistoryStyleConfig";
+        var channelElementId = "grapherWidgetStyleConfig";
         var isZeo = false;
         /* Configure the Zeo options ------------------------------------------------------------------------------ */
         $("#" + channelElementId + "-config-zeo-show").prop("checked", isZeo);
@@ -394,10 +399,10 @@ define(["core/DashboardWidget", "core/GrapherComponent", "applications/calendar/
         $("#color_selector").css("zIndex","20000");
     }
 
-    StepsHistory.getStyleFromConfigurationControls = function(){
+    GrapherWidget.getStyleFromConfigurationControls = function(){
 
         var newStyle = this.grapher.plot.getStyle();
-        var channelElementId = "stepsHistoryStyleConfig";
+        var channelElementId = "grapherWidgetStyleConfig";
 
         newStyle['styles'] = [];                // completely overwrite the existing styles array
         newStyle['highlight'] = {};             // completely overwrite the existing highlight object
@@ -508,5 +513,5 @@ define(["core/DashboardWidget", "core/GrapherComponent", "applications/calendar/
 
     }
 
-    return StepsHistory;
+    return GrapherWidget;
 })

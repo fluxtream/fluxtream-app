@@ -47,11 +47,70 @@ public class BodyTrackHelper {
 
     Gson gson = new Gson();
 
-    public void uploadToBodyTrack(final long guestId,
+    private String executeDataStore(String commandName, Object[] parameters){
+        try{
+            Runtime rt = Runtime.getRuntime();
+            String launchCommand = env.targetEnvironmentProps.getString("btdatastore.exec.location") + "/" + commandName + " " +
+                                   env.targetEnvironmentProps.getString("btdatastore.db.location");
+            for (Object param : parameters){
+                launchCommand += ' ';
+                String part = param.toString();
+                if (part.indexOf(' ') == -1){
+                    launchCommand += part;
+                }
+                else{
+                    launchCommand += "\"" + part + "\"";
+                }
+            }
+            System.out.println("BTDataStore: running with command: " + launchCommand);
+
+            //create process for operation
+            final Process pr = rt.exec(launchCommand);
+
+            new Thread(){//outputs the errorstream
+                public void run(){
+                    BufferedReader error = new BufferedReader(new InputStreamReader(pr.getErrorStream()));
+                    String line=null;
+                    try{
+                        if (verboseOutput){
+                            while((line=error.readLine()) != null) { //output all console output from the execution
+                                System.out.println("BTDataStore-error: " + line);
+                            }
+                        }
+                        else
+                            while (error.readLine() != null);
+                    } catch(Exception e){}
+                }
+
+            }.start();
+
+            BufferedReader input = new BufferedReader(new InputStreamReader(pr.getInputStream()));
+
+            String line;
+            String result = "";
+
+            while((line=input.readLine()) != null) { //output all console output from the execution
+                System.out.println("BTDataStore: " + line);
+                result += line;
+            }
+
+            int exitValue = pr.waitFor();
+            System.out.println("BTDataStore: exited with code " + exitValue);
+            return result;
+        }
+        catch (Exception e){
+            System.out.println("BTDataStore: datastore execution failed!");
+            return null;
+        }
+    }
+
+    public void uploadToBodyTrack(final Long uid,
                                   final String deviceName,
                                   final Collection<String> channelNames,
                                   final List<List<Object>> data) {
         try{
+            if (uid == null)
+                throw new IllegalArgumentException();
             final File tempFile = File.createTempFile("input",".json");
 
             Map<String,Object> tempFileMapping = new HashMap<String,Object>();
@@ -63,45 +122,7 @@ public class BodyTrackHelper {
             fos.write(bodyTrackJSONData.getBytes());
             fos.close();
 
-            Runtime rt = Runtime.getRuntime();
-
-            String launchCommand = env.targetEnvironmentProps.getString("btdatastore.exec.location") + "/import " +
-                                   env.targetEnvironmentProps.getString("btdatastore.db.location") + " " + guestId + " " +
-                                   deviceName + " " + tempFile.getAbsolutePath();
-            System.out.println("BTDataStore: running with command: " + launchCommand);
-
-            //create process for operation
-            final Process pr = rt.exec(launchCommand);
-
-            new Thread(){//outputs the errorstream
-                public void run(){
-                    BufferedReader error = new BufferedReader(new InputStreamReader(pr.getErrorStream()));
-                    String line=null;
-                    try{
-                        if (verboseOutput){
-                            while((line=error.readLine()) != null) { //output all console output from the execution
-                                System.out.println("BTDataStore-error: " + line);
-                            }
-                        }
-                        else
-                            while (error.readLine() != null);
-                    } catch(Exception e){}
-                }
-
-            }.start();
-
-            BufferedReader input = new BufferedReader(new InputStreamReader(pr.getInputStream()));
-
-            String line = "";
-            String result = "";
-
-            while((line=input.readLine()) != null) { //output all console output from the execution
-                System.out.println("BTDataStore: " + line);
-                result += line;
-            }
-
-            int exitValue = pr.waitFor();
-            System.out.println("BTDataStore: exited with code " + exitValue);
+            executeDataStore("import",new Object[]{uid,deviceName,tempFile.getAbsolutePath()});
             tempFile.delete();
         } catch (Exception e) {
             System.out.println("Could not persist to datastore");
@@ -109,109 +130,30 @@ public class BodyTrackHelper {
         }
     }
 
-    public String fetchTile(String uid, String deviceNickname, String channelName, int level, int offset){
+    public String fetchTile(Long uid, String deviceNickname, String channelName, int level, int offset){
         try{
-            String launchCommand = env.targetEnvironmentProps.getString("btdatastore.exec.location") + "/gettile " +
-                                   env.targetEnvironmentProps.getString("btdatastore.db.location") + " " + uid + " " +
-                                   deviceNickname + "." + channelName + " " + level + " " + offset;
-            System.out.println("BTDataStore: running with command: " + launchCommand);
-
-            Runtime rt = Runtime.getRuntime();
-
-            //create process for operation
-            final Process pr = rt.exec(launchCommand);
-
-
-            new Thread(){//outputs the errorstream
-                public void run(){
-                    BufferedReader error = new BufferedReader(new InputStreamReader(pr.getErrorStream()));
-                    String line=null;
-                    try{
-                        if (verboseOutput){
-                            while((line=error.readLine()) != null) { //output all console output from the execution
-                                System.out.println("BTDataStore-error: " + line);
-                            }
-                        }
-                        else
-                            while (error.readLine() != null);
-                    } catch(Exception e){}
-                }
-
-            }.start();
-
-            BufferedReader input = new BufferedReader(new InputStreamReader(pr.getInputStream()));
-
-            String line = "";
-            String result = "";
-
-            while((line=input.readLine()) != null) { //output all console output from the execution
-                System.out.println("BTDataStore: " + line);
-                result += line;
-            }
+            if (uid == null)
+                throw new IllegalArgumentException();
+            String result = executeDataStore("gettile",new Object[]{uid,deviceNickname + "." + channelName,level,offset});
 
             GetTileResponse tileResponse = gson.fromJson(result,GetTileResponse.class);
 
-            Map<String,Object> resultMapping = new HashMap<String,Object>();
-
             if (tileResponse.data == null){
-                tileResponse.data = new Object[0][];
-                tileResponse.level = level;
-                tileResponse.offset = offset;
-                tileResponse.fields = new String[]{"time", "mean", "stddev", "count"};
+                tileResponse = GetTileResponse.getEmptyTile(level,offset);
             }//TODO:several fields are missing still and should be implemented
-            tileResponse.putIntoMap(resultMapping);
 
-
-
-            //get the exit value
-            int exitValue = pr.waitFor();
-            System.out.println("BTDataStore: exited with code " + exitValue);
-            return gson.toJson(resultMapping);
+            return gson.toJson(tileResponse);
         }
         catch(Exception e){
-            return null;
+            return gson.toJson(GetTileResponse.getEmptyTile(level,offset));
         }
     }
 
-    public String listSources(long uid){
+    public String listSources(Long uid){
         try{
-            String launchCommand = env.targetEnvironmentProps.getString("btdatastore.exec.location") + "/info " +
-                                   env.targetEnvironmentProps.getString("btdatastore.db.location") + " -r " + uid;
-            System.out.println("BTDataStore: running with command: " + launchCommand);
-
-            Runtime rt = Runtime.getRuntime();
-
-            //create process for operation
-            final Process pr = rt.exec(launchCommand);
-
-
-            new Thread(){//outputs the errorstream
-                public void run(){
-                    BufferedReader error = new BufferedReader(new InputStreamReader(pr.getErrorStream()));
-                    String line=null;
-                    try{
-                        if (verboseOutput){
-                            while((line=error.readLine()) != null) { //output all console output from the execution
-                                System.out.println("BTDataStore-error: " + line);
-                            }
-                        }
-                        else
-                            while(error.readLine() != null);
-                    } catch(Exception e){}
-                }
-
-            }.start();
-
-            BufferedReader input = new BufferedReader(new InputStreamReader(pr.getInputStream()));
-
-            String line=null;
-
-            String result = "";
-
-            while((line=input.readLine()) != null) { //output all console output from the execution
-                System.out.println("BTDataStore: " + line);
-                result += line;
-            }
+            if (uid == null)
+                throw new IllegalArgumentException();
+            String result = executeDataStore("info",new Object[]{"-r",uid});
 
             channelInfoResponse infoResponse = gson.fromJson(result,channelInfoResponse.class);
 
@@ -225,9 +167,6 @@ public class BodyTrackHelper {
                 }
             }
 
-            //get the exit value
-            int exitValue = pr.waitFor();
-            System.out.println("BTDataStore: exited with code " + exitValue);
             return gson.toJson(response);
         }
         catch(Exception e){
@@ -235,26 +174,32 @@ public class BodyTrackHelper {
         }
     }
 
-    public void setDefaultStyle(final long uid, final String deviceName, final String channelName, final ChannelStyle style) {
+    public void setDefaultStyle(final Long uid, final String deviceName, final String channelName, final ChannelStyle style) {
         setDefaultStyle(uid,deviceName,channelName, gson.toJson(style));
-
     }
 
     @Transactional(readOnly = false)
-    public void setDefaultStyle(final long uid, final String deviceName, final String channelName, final String style) {
-        com.fluxtream.domain.ChannelStyle savedStyle = JPAUtils.findUnique(em, com.fluxtream.domain.ChannelStyle.class,
-                                                      "channelStyle.byDeviceNameAndChannelName",
-                                                      uid, deviceName, channelName);
-        if (savedStyle==null) {
-            savedStyle = new com.fluxtream.domain.ChannelStyle();
-            savedStyle.guestId = uid;
-            savedStyle.channelName = channelName;
-            savedStyle.deviceName = deviceName;
-            savedStyle.json = style;
-            em.persist(savedStyle);
-        } else {
-            savedStyle.json = style;
-            em.merge(savedStyle);
+    public void setDefaultStyle(final Long uid, final String deviceName, final String channelName, final String style) {
+        try{
+            if (uid == null)
+                throw new IllegalArgumentException();
+            com.fluxtream.domain.ChannelStyle savedStyle = JPAUtils.findUnique(em, com.fluxtream.domain.ChannelStyle.class,
+                                                          "channelStyle.byDeviceNameAndChannelName",
+                                                          uid, deviceName, channelName);
+            if (savedStyle==null) {
+                savedStyle = new com.fluxtream.domain.ChannelStyle();
+                savedStyle.guestId = uid;
+                savedStyle.channelName = channelName;
+                savedStyle.deviceName = deviceName;
+                savedStyle.json = style;
+                em.persist(savedStyle);
+            } else {
+                savedStyle.json = style;
+                em.merge(savedStyle);
+            }
+        }
+        catch (Exception e){
+
         }
     }
 
@@ -275,13 +220,13 @@ public class BodyTrackHelper {
         int offset;
         int sample_width;
 
-
-        void putIntoMap(Map<String,Object> map){
-            map.put("data",data);
-            map.put("fields",fields);
-            map.put("level",level);
-            map.put("offset",offset);
-            map.put("sample_width",sample_width);
+        public static GetTileResponse getEmptyTile(int level, int offset){
+            GetTileResponse tileResponse = new GetTileResponse();
+            tileResponse.data = new Object[0][];
+            tileResponse.level = level;
+            tileResponse.offset = offset;
+            tileResponse.fields = new String[]{"time", "mean", "stddev", "count"};
+            return tileResponse;
         }
     }
 

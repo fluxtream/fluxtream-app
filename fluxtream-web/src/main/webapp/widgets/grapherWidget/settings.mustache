@@ -1,5 +1,11 @@
 <form class="form-horizontal">
     <fieldset>
+    <div class="control-group">
+                <label class="control-label" for="titleInput">Title: </label>
+                <div class="controls">
+                    <input id="titleInput">
+                </div>
+            </div>
         <div class="control-group">
             <label class="control-label" for="deviceSelector">Device: </label>
             <div class="controls">
@@ -17,24 +23,24 @@
         <div class="_timeline_channelConfig" style="display:block;">
         <div class="_timeline_data_series_plot_config_right_area">
             <table border="0" cellpadding="0" cellspacing="0">
-              <tr id="stepsHistoryStyleConfig-config-color-override">
+              <tr id="grapherWidgetStyleConfig-config-color-override">
                 <td>
                   <label class="_timeline_sectionTitle">Channel Color</label>
                 </td>
                 <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
-                <td><input id="stepsHistoryStyleConfig-config-color-override-color" type="text"/></td>
+                <td><input id="grapherWidgetStyleConfig-config-color-override-color" type="text"/></td>
                 <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
                 <td colspan="3"><label>Changing this color will set all the colors below to match</label></td>
               </tr>
-              <tr id="stepsHistoryStyleConfig-config-lines">
+              <tr id="grapherWidgetStyleConfig-config-lines">
                 <td>
-                  <input id="stepsHistoryStyleConfig-config-lines-show" type="checkbox" value="true"/><label for="stepsHistoryStyleConfig-config-lines-show" class="_timeline_sectionTitle">Lines</label>
+                  <input id="grapherWidgetStyleConfig-config-lines-show" type="checkbox" value="true"/><label for="grapherWidgetStyleConfig-config-lines-show" class="_timeline_sectionTitle">Lines</label>
                 </td>
                 <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
-                <td><input id="stepsHistoryStyleConfig-config-lines-color" type="text"/></td>
+                <td><input id="grapherWidgetStyleConfig-config-lines-color" type="text"/></td>
                 <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
                 <td>
-                  <select id="stepsHistoryStyleConfig-config-lines-lineWidth" class="_timeline_channelConfig_image_menu">
+                  <select id="grapherWidgetStyleConfig-config-lines-lineWidth" class="_timeline_channelConfig_image_menu">
                     <option value="1" title="/static/images/msdropdown/lineWidth1.png"></option>
                     <option value="2" title="/static/images/msdropdown/lineWidth2.png"></option>
                     <option value="3" title="/static/images/msdropdown/lineWidth3.png"></option>
@@ -45,15 +51,15 @@
                 <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
                 <td>&nbsp;</td>
               </tr>
-              <tr id="stepsHistoryStyleConfig-config-points">
+              <tr id="grapherWidgetStyleConfig-config-points">
                 <td>
-                  <input id="stepsHistoryStyleConfig-config-points-show" type="checkbox" value="true"/><label for="stepsHistoryStyleConfig-config-points-show" class="_timeline_sectionTitle">Points</label>
+                  <input id="grapherWidgetStyleConfig-config-points-show" type="checkbox" value="true"/><label for="grapherWidgetStyleConfig-config-points-show" class="_timeline_sectionTitle">Points</label>
                 </td>
                 <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
-                <td><input id="stepsHistoryStyleConfig-config-points-color" type="text"/></td>
+                <td><input id="grapherWidgetStyleConfig-config-points-color" type="text"/></td>
                 <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
                 <td>
-                  <select id="stepsHistoryStyleConfig-config-points-radius" class="_timeline_channelConfig_image_menu">
+                  <select id="grapherWidgetStyleConfig-config-points-radius" class="_timeline_channelConfig_image_menu">
                     <option value="1" title="/static/images/msdropdown/pointSize1.png"></option>
                     <option value="2" title="/static/images/msdropdown/pointSize2.png"></option>
                     <option value="3" title="/static/images/msdropdown/pointSize3.png"></option>
@@ -66,7 +72,7 @@
                   <table border="0" cellpadding="0" cellspacing="0" style="width:auto">
                     <tr>
                       <td style="padding-right:3px">
-                        <select id="stepsHistoryStyleConfig-config-points-type" class="_timeline_channelConfig_image_menu">
+                        <select id="grapherWidgetStyleConfig-config-points-type" class="_timeline_channelConfig_image_menu">
                           <option value="point-filled" title="/static/images/msdropdown/pointStyleCircleFilled.png"></option>
                           <option value="square-filled" title="/static/images/msdropdown/pointStyleSquareFilled.png"></option>
                           <option value="point" title="/static/images/msdropdown/pointStyleCircle.png"></option>
@@ -75,22 +81,22 @@
                           <option value="plus" title="/static/images/msdropdown/pointStylePlus.png"></option>
                         </select>
                       </td>
-                      <td id="stepsHistoryStyleConfig-config-points-fillColor-container">
-                        <input id="stepsHistoryStyleConfig-config-points-fillColor" type="text"/>
+                      <td id="grapherWidgetStyleConfig-config-points-fillColor-container">
+                        <input id="grapherWidgetStyleConfig-config-points-fillColor" type="text"/>
                       </td>
                     </tr>
                   </table>
                 </td>
               </tr>
-              <tr id="stepsHistoryStyleConfig-config-bars">
+              <tr id="grapherWidgetStyleConfig-config-bars">
                 <td>
-                  <input id="stepsHistoryStyleConfig-config-bars-show" type="checkbox" value="true"/><label for="stepsHistoryStyleConfig-config-bars-show" class="_timeline_sectionTitle">Bars</label>
+                  <input id="grapherWidgetStyleConfig-config-bars-show" type="checkbox" value="true"/><label for="grapherWidgetStyleConfig-config-bars-show" class="_timeline_sectionTitle">Bars</label>
                 </td>
                 <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
-                <td><input id="stepsHistoryStyleConfig-config-bars-color" type="text"/></td>
+                <td><input id="grapherWidgetStyleConfig-config-bars-color" type="text"/></td>
                 <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
                 <td>
-                  <select id="stepsHistoryStyleConfig-config-bars-lineWidth" class="_timeline_channelConfig_image_menu">
+                  <select id="grapherWidgetStyleConfig-config-bars-lineWidth" class="_timeline_channelConfig_image_menu">
                     <option value="1" title="/static/images/msdropdown/barWidth1.png"></option>
                     <option value="2" title="/static/images/msdropdown/barWidth2.png"></option>
                     <option value="3" title="/static/images/msdropdown/barWidth3.png"></option>
@@ -101,15 +107,15 @@
                 <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
                 <td>&nbsp;</td>
               </tr>
-              <tr id="stepsHistoryStyleConfig-config-values">
+              <tr id="grapherWidgetStyleConfig-config-values">
                 <td>
-                  <input id="stepsHistoryStyleConfig-config-values-show" type="checkbox" value="true"/><label for="stepsHistoryStyleConfig-config-values-show" class="_timeline_sectionTitle">Values</label>
+                  <input id="grapherWidgetStyleConfig-config-values-show" type="checkbox" value="true"/><label for="grapherWidgetStyleConfig-config-values-show" class="_timeline_sectionTitle">Values</label>
                 </td>
                 <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
-                <td><input id="stepsHistoryStyleConfig-config-values-fillColor" type="text"/></td>
+                <td><input id="grapherWidgetStyleConfig-config-values-fillColor" type="text"/></td>
                 <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
                 <td>
-                  <select id="stepsHistoryStyleConfig-config-values-numberFormat" class="_timeline_channelConfig_image_menu">
+                  <select id="grapherWidgetStyleConfig-config-values-numberFormat" class="_timeline_channelConfig_image_menu">
                     <option value="###,##0.0##">#.###</option>
                     <option value="###,##0.0#">#.##</option>
                     <option value="###,##0.0">#.#</option>
@@ -120,24 +126,24 @@
                 <td>
                   <table border="0" cellpadding="0" cellspacing="0">
                     <tr>
-                      <td><label for="stepsHistoryStyleConfig-config-values-verticalOffset">Position:</label></td>
+                      <td><label for="grapherWidgetStyleConfig-config-values-verticalOffset">Position:</label></td>
                       <td style="padding-left:2px">
-                        <select id="stepsHistoryStyleConfig-config-values-verticalOffset" class="_timeline_channelConfig_image_menu">
+                        <select id="grapherWidgetStyleConfig-config-values-verticalOffset" class="_timeline_channelConfig_image_menu">
                           <option value="7">Above</option>
                           <option value="-3">On</option>
                           <option value="-13">Below</option>
                         </select>
                       </td>
-                      <td style="padding-left:10px"><label for="stepsHistoryStyleConfig-config-values-showOnlyOnHighlight">Visible:</label></td>
+                      <td style="padding-left:10px"><label for="grapherWidgetStyleConfig-config-values-showOnlyOnHighlight">Visible:</label></td>
                       <td style="padding-left:2px">
-                        <select id="stepsHistoryStyleConfig-config-values-showOnlyOnHighlight" style="width:70px">
+                        <select id="grapherWidgetStyleConfig-config-values-showOnlyOnHighlight" style="width:70px">
                           <option value="false">Always</option>
                           <option value="true">Mouseover</option>
                         </select>
                       </td>
-                      <td id="stepsHistoryStyleConfig-config-values-marginWidth-label-container" style="padding-left:10px"><label for="stepsHistoryStyleConfig-config-values-marginWidth">Margin:</label></td>
-                      <td id="stepsHistoryStyleConfig-config-values-marginWidth-container" style="padding-left:2px">
-                        <select id="stepsHistoryStyleConfig-config-values-marginWidth" class="_timeline_channelConfig_image_menu">
+                      <td id="grapherWidgetStyleConfig-config-values-marginWidth-label-container" style="padding-left:10px"><label for="grapherWidgetStyleConfig-config-values-marginWidth">Margin:</label></td>
+                      <td id="grapherWidgetStyleConfig-config-values-marginWidth-container" style="padding-left:2px">
+                        <select id="grapherWidgetStyleConfig-config-values-marginWidth" class="_timeline_channelConfig_image_menu">
                           <option value="5">5</option>
                           <option value="10">10</option>
                           <option value="15">15</option>
@@ -149,15 +155,15 @@
                   </table>
                 </td>
               </tr>
-              <tr id="stepsHistoryStyleConfig-config-comments">
+              <tr id="grapherWidgetStyleConfig-config-comments">
                 <td>
-                  <input id="stepsHistoryStyleConfig-config-comments-show" type="checkbox" value="true"/><label for="stepsHistoryStyleConfig-config-comments-show" class="_timeline_sectionTitle">Comments</label>
+                  <input id="grapherWidgetStyleConfig-config-comments-show" type="checkbox" value="true"/><label for="grapherWidgetStyleConfig-config-comments-show" class="_timeline_sectionTitle">Comments</label>
                 </td>
                 <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
-                <td><input id="stepsHistoryStyleConfig-config-comments-color" type="text"/></td>
+                <td><input id="grapherWidgetStyleConfig-config-comments-color" type="text"/></td>
                 <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
                 <td>
-                  <select id="stepsHistoryStyleConfig-config-comments-radius" class="_timeline_channelConfig_image_menu">
+                  <select id="grapherWidgetStyleConfig-config-comments-radius" class="_timeline_channelConfig_image_menu">
                     <option value="1" title="/static/images/msdropdown/pointSize1.png"></option>
                     <option value="2" title="/static/images/msdropdown/pointSize2.png"></option>
                     <option value="3" title="/static/images/msdropdown/pointSize3.png"></option>
@@ -170,7 +176,7 @@
                   <table border="0" cellpadding="0" cellspacing="0" style="width:auto">
                     <tr>
                       <td style="padding-right:3px">
-                        <select id="stepsHistoryStyleConfig-config-comments-type" class="_timeline_channelConfig_image_menu">
+                        <select id="grapherWidgetStyleConfig-config-comments-type" class="_timeline_channelConfig_image_menu">
                           <option value="point-filled" title="/static/images/msdropdown/pointStyleCircleFilled.png"></option>
                           <option value="square-filled" title="/static/images/msdropdown/pointStyleSquareFilled.png"></option>
                           <option value="point" title="/static/images/msdropdown/pointStyleCircle.png"></option>
@@ -179,16 +185,16 @@
                           <option value="plus" title="/static/images/msdropdown/pointStylePlus.png"></option>
                         </select>
                       </td>
-                      <td id="stepsHistoryStyleConfig-config-comments-fillColor-container">
-                        <input id="stepsHistoryStyleConfig-config-comments-fillColor" type="text"/>
+                      <td id="grapherWidgetStyleConfig-config-comments-fillColor-container">
+                        <input id="grapherWidgetStyleConfig-config-comments-fillColor" type="text"/>
                       </td>
                     </tr>
                   </table>
                 </td>
               </tr>
-              <tr id="stepsHistoryStyleConfig-config-zeo" style="display:none">
+              <tr id="grapherWidgetStyleConfig-config-zeo" style="display:none">
                 <td>
-                  <input id="stepsHistoryStyleConfig-config-zeo-show" type="checkbox" value="true"/><label for="stepsHistoryStyleConfig-config-zeo-show" class="_timeline_sectionTitle">Zeo</label>
+                  <input id="grapherWidgetStyleConfig-config-zeo-show" type="checkbox" value="true"/><label for="grapherWidgetStyleConfig-config-zeo-show" class="_timeline_sectionTitle">Zeo</label>
                 </td>
                 <td>&nbsp;</td>
                 <td>&nbsp;</td>

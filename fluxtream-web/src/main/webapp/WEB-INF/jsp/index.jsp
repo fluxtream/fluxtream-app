@@ -21,6 +21,13 @@
     <!--[if lt IE 9]>
     <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
+
+    <!-- For IE 7 and 8 Media Query Support -->
+    <script type="text/javascript" src="/${release}/assets-home/js/respond.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+    <script src="/static/js/bootstrap-2.0.2.min.js"></script>
+    <script type="text/javascript" src="/${release}/assets-home/js/welcome.js"></script>
+
     <!-- fav icons -->
     <link rel="shortcut icon" href="/favicon.ico">
 </head>
@@ -37,14 +44,14 @@
             <input type="submit" value="Submit" class="btn " />
             <input type="hidden" name="login[_csrf_token]" value="965e5cf220b402ba98a8344266bb804d" id="login__csrf_token" />      </form>
 
-        <form method="post" action="/index.php/en/register" style="display:none" id="recoverForm">
+        <form method="post" action="support/sendResetRequest" style="display:none" id="recoverForm">
 
             <label for="recover_email">Enter your email</label>      	<input title="Enter your email" type="text" name="recover[email]" id="recover_email" />
             <input type="submit" id="mc-embedded-subscribe" class="btn" value="Submit">
             <input type="hidden" name="recover[_csrf_token]" value="ebb981ef2ee1ad730d0e676d2af2336c" id="recover__csrf_token" />
         </form>
         <p id="recoverPasswordFeedback" style="display:none;" class="sysInfo">A confirmation link has been emailed to you_XXX</p>
-        <p><a href="/index.php/en/recover-password" id="lostPasswdLink">Lost password?</a></p>
+        <p><a href="#" id="lostPasswdLink">Lost password?</a></p>
     </div>
 </div>
 
@@ -182,33 +189,21 @@
         </div>
     </div><!--end row-->
 </div><!--end container-->
-<!-- For IE 7 and 8 Media Query Support -->
-<script type="text/javascript" src="/${release}/assets-home/js/respond.js"></script>
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-<script type="text/javascript">
-    $(document).ready(function() {
-        $('#toggleLoginPanel').click(function() {
-            if ($('#login').is(':visible')) {
-                $('#login').slideUp();
-            } else {
-                $('#login').slideDown();
-                $('#login_email').focus();
-            }
-            return false;
-        });
 
-        $('#lostPasswdLink').click(function() {
-            $('#loginForm').hide();
-            $('#recoverForm').show();
-            $('#recoverForm').submit(function() { $(this).ajaxSubmit({success: handleRecoverCallback }); return false; });
-            return false;
-        });
-    });
-
-
-
-
-</script>
+<div class="modal fade hide" id="loginFailedModal">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h3>Login Failed</h3>
+    </div>
+    <div class="modal-body">
+        <div class="alert alert-error">
+            <strong>Bad login credentials!</strong> We could not authenticate you properly. Either your username or password were incorrect.
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a href="#" class="btn" data-dismiss="modal">Ok</a>
+    </div>
+</div>
 
 <script type="text/javascript"> // Tracker Google Analytics
 

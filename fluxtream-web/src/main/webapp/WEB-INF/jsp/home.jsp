@@ -15,10 +15,10 @@
 <meta name="description" content="">
 <meta name="author" content="">
 
-<g:compress>
-	<link rel="stylesheet" href="/static/css/bootstrap-2.0.3.min.css">
-	<link rel="stylesheet"
-		href="/static/css/bootstrap-responsive-2.0.3.min.css">
+<link rel="stylesheet" href="/static/css/bootstrap-2.0.3.min.css">
+<link rel="stylesheet"
+      href="/static/css/bootstrap-responsive-2.0.3.min.css">
+    <g:compress>
 	<link rel="stylesheet" href="/css/flx.css">
 	<link rel="stylesheet" href="/css/bodytrack.css">
 	<link rel="stylesheet" href="/css/datepicker.css">
@@ -127,7 +127,8 @@
 				|| document
 						.write('<script src="/static/js/jquery-1.7.1.min.js"><\/script>')
 	</script>
-	<g:compress>
+    <script src="/static/js/bootstrap-2.0.2.min.js"></script>
+    <g:compress>
 		<script src="/static/js/jquery-ui-1.8.18.custom.min.js"></script>
 		<script src="/static/js/jquery.ui.sortable-bt.js"></script>
 		<script src="/static/tiny_mce/jquery.tinymce.js"></script>
@@ -141,7 +142,6 @@
 		<script src="/static/js/jqplot-plugins/jqplot.categoryAxisRenderer.min.js"></script>
 		<script src="/static/js/jqplot-plugins/jqplot.pointLabels.min.js"></script>
 		<script src="/static/js/jqplot-plugins/jqplot.barRenderer.min.js"></script>
-		<script src="/static/js/bootstrap-2.0.2.min.js"></script>
 		<script src="/static/js/raphael-2.1.0.js"></script>
 		<script src="/static/js/underscore-1.3.3-min.js"></script>
 		<script src="/static/js/backbone-0.9.2-min.js"></script>

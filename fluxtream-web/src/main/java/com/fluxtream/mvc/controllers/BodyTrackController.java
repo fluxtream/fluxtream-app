@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.domain.Guest;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.impl.BodyTrackHelper;
 import com.fluxtream.utils.HttpUtils;
@@ -39,22 +40,16 @@ public class BodyTrackController {
     @Autowired
     BodyTrackHelper bodyTrackHelper;
 
-	@RequestMapping(value = "/bodytrack/UID")
-	public void bodyTrackUIDFetch(HttpServletResponse response)
-            throws IOException {
-		long guestId = ControllerHelper.getGuestId();
-		JSONObject json = new JSONObject();
-		json.accumulate("user_id", guestId);
-		response.getWriter().write(json.toString());
-	}
-
 	@RequestMapping(value = "/bodytrack/tiles/{UID}/{DeviceNickname}.{ChannelName}/{Level}.{Offset}.json")
 	public void bodyTrackTileFetch(HttpServletResponse response,
-			@PathVariable("UID") String uid,
+			@PathVariable("UID") Long uid,
 			@PathVariable("DeviceNickname") String deviceNickname,
 			@PathVariable("ChannelName") String channelName,
 			@PathVariable("Level") int level,
 			@PathVariable("Offset") int offset) throws IOException {
+        if (!checkForPermissionAccess(uid)){
+            uid = null;
+        }
         String result = bodyTrackHelper.fetchTile(uid,deviceNickname,channelName,level,offset);
         response.getWriter().write(result);
 	}
@@ -62,7 +57,10 @@ public class BodyTrackController {
     @RequestMapping(value = "/bodytrack/users/{UID}/log_items/get")
     public void bodyTrackLogItemsGet(HttpServletResponse response,
                                      HttpServletRequest request,
-                                     @PathVariable("UID") long uid) throws IOException {
+                                     @PathVariable("UID") Long uid) throws IOException {
+        if (!checkForPermissionAccess(uid)){
+            uid = null;
+        }
         String user_id = guestService.getApiKeyAttribute(uid,Connector.getConnector("bodytrack"), "user_id");
         String bodyTrackUrl = "http://localhost:3000/users/" + user_id + "/log_items/get";
         String pstr = request.getQueryString();
@@ -74,10 +72,13 @@ public class BodyTrackController {
 
     @RequestMapping(value = "/bodytrack/photos/{UID}/{Level}.{Offset}.json")
 	public void bodyTrackPhotoTileFetch(HttpServletResponse response,
-			HttpServletRequest request, @PathVariable("UID") long uid,
+			HttpServletRequest request, @PathVariable("UID") Long uid,
 			@PathVariable("Level") String level,
 			@PathVariable("Offset") String offset) throws HttpException,
 			IOException {
+        if (!checkForPermissionAccess(uid)){
+            uid = null;
+        }
         String user_id = guestService.getApiKeyAttribute(uid,Connector.getConnector("bodytrack"), "user_id");
 		String bodyTrackUrl = "http://localhost:3000/photos/" + user_id + "/"
 				+ level + "." + offset + ".json";
@@ -94,8 +95,11 @@ public class BodyTrackController {
                              "/bodytrack/users/{UID}/logphotos/{PhotoSpec}.jpg"})
     public void bodyTrackLogPhotosFetch(HttpServletResponse response,
                                         HttpServletRequest request,
-                                        @PathVariable("UID") long uid,
+                                        @PathVariable("UID") Long uid,
                                         @PathVariable("PhotoSpec") String photoSpec) throws IOException {
+        if (!checkForPermissionAccess(uid)){
+            uid = null;
+        }
         String user_id = guestService.getApiKeyAttribute(uid,Connector.getConnector("bodytrack"), "user_id");
         String bodyTrackUrl = "http://localhost:3000/users/" + user_id + "/logphotos/" + photoSpec + ".jpg";
         String pstr = request.getQueryString();
@@ -116,7 +120,10 @@ public class BodyTrackController {
     //TODO:implement views
     @RequestMapping(value = "/bodytrack/users/{UID}/views")
 	public void bodyTrackViews(HttpServletResponse response,
-			@PathVariable("UID") long uid) throws IOException {
+			@PathVariable("UID") Long uid) throws IOException {
+        if (!checkForPermissionAccess(uid)){
+            uid = null;
+        }
         response.getWriter().write("[]");
         /*String user_id = guestService.getApiKeyAttribute(uid,Connector.getConnector("bodytrack"), "user_id");
 		String tunnelUrl = "http://localhost:3000/users/" + user_id + "/views";
@@ -125,8 +132,11 @@ public class BodyTrackController {
 
 	@RequestMapping(value = "/bodytrack/users/{UID}/views/get")
 	public void bodyTrackView(HttpServletResponse response,
-			@PathVariable("UID") long uid, @RequestParam("id") String id)
+			@PathVariable("UID") Long uid, @RequestParam("id") String id)
             throws IOException {
+        if (!checkForPermissionAccess(uid)){
+            uid = null;
+        }
         String user_id = guestService.getApiKeyAttribute(uid,Connector.getConnector("bodytrack"), "user_id");
 		String tunnelUrl = "http://localhost:3000/users/" + user_id
 				+ "/views/get?id=" + id;
@@ -135,8 +145,11 @@ public class BodyTrackController {
 
 	@RequestMapping(value = "/bodytrack/users/{UID}/views/set")
 	public void bodyTrackSetView(HttpServletResponse response,
-			@PathVariable("UID") long uid, @RequestParam("name") String name,
+			@PathVariable("UID") Long uid, @RequestParam("name") String name,
 			@RequestParam("data") String data) throws IOException {
+        if (!checkForPermissionAccess(uid)){
+            uid = null;
+        }
         String user_id = guestService.getApiKeyAttribute(uid,Connector.getConnector("bodytrack"), "user_id");
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("name", name);
@@ -147,7 +160,10 @@ public class BodyTrackController {
 
 	@RequestMapping(value = "/bodytrack/users/{UID}/sources")
 	public void bodyTrackSources(HttpServletResponse response,
-			@PathVariable("UID") long uid) throws IOException {
+			@PathVariable("UID") Long uid) throws IOException {
+        if (!checkForPermissionAccess(uid)){
+            uid = null;
+        }
         String user_id = guestService.getApiKeyAttribute(uid,Connector.getConnector("bodytrack"), "user_id");
 		String tunnelUrl = "http://localhost:3000/users/" + user_id + "/sources";
 		writeTunnelResponse(tunnelUrl, response);
@@ -155,14 +171,20 @@ public class BodyTrackController {
 
 	@RequestMapping(value = "/bodytrack/users/{UID}/sources/list")
 	public void bodyTrackSourcesList(HttpServletResponse response,
-			@PathVariable("UID") long uid) throws IOException {
+			@PathVariable("UID") Long uid) throws IOException {
+        if (!checkForPermissionAccess(uid)){
+            uid = null;
+        }
         response.getWriter().write(bodyTrackHelper.listSources(uid));
 	}
 
 	@RequestMapping(value = "/bodytrack/users/{UID}/sources/default_graph_specs")
 	public void bodyTrackGetDefaultGraphSpecs(HttpServletResponse response,
-			@PathVariable("UID") long uid, @RequestParam("name") String name)
+			@PathVariable("UID") Long uid, @RequestParam("name") String name)
             throws IOException {
+        if (!checkForPermissionAccess(uid)){
+            uid = null;
+        }
         String user_id = guestService.getApiKeyAttribute(uid,Connector.getConnector("bodytrack"), "user_id");
 		String tunnelUrl = "http://localhost:3000/users/" + user_id
 				+ "/sources/default_graph_specs?name=" + name;
@@ -171,8 +193,11 @@ public class BodyTrackController {
 
     @RequestMapping(value = "/bodytrack/users/{UID}/logrecs/{LOGREC_ID}/get")
     public void bodyTrackGetMetadata(HttpServletResponse response,
-    			HttpServletRequest request, @PathVariable("UID") long uid,
+    			HttpServletRequest request, @PathVariable("UID") Long uid,
     			@PathVariable("LOGREC_ID") String LOGREC_ID) throws IOException {
+        if (!checkForPermissionAccess(uid)){
+            uid = null;
+        }
         String user_id = guestService.getApiKeyAttribute(uid,Connector.getConnector("bodytrack"), "user_id");
     	String bodyTrackUrl = "http://localhost:3000/users/" + user_id + "/logrecs/" + LOGREC_ID + "/get";
     	String pstr = request.getQueryString();
@@ -184,8 +209,11 @@ public class BodyTrackController {
 
     @RequestMapping(value = "/bodytrack/users/{UID}/logrecs/{LOGREC_ID}/set")
     public void bodyTrackSetMetadata(HttpServletResponse response,
-        		HttpServletRequest request, @PathVariable("UID") long uid,
+        		HttpServletRequest request, @PathVariable("UID") Long uid,
         		@PathVariable("LOGREC_ID") String LOGREC_ID) throws Exception {
+        if (!checkForPermissionAccess(uid)){
+            uid = null;
+        }
         // Here is the URL we need to proxy to.  This is a post so we need to copy
         // params one by one.  The API is documented at:
         //   https://fluxtream.atlassian.net/wiki/display/FLX/BodyTrack+server+APIs#BodyTrackserverAPIs-usersUIDlogrecsLOGRECIDset
@@ -209,7 +237,10 @@ public class BodyTrackController {
     //TODO: implement tags
 	@RequestMapping(value = "/bodytrack/users/{UID}/tags")
 	public void bodyTrackTags(HttpServletResponse response,
-			@PathVariable("UID") long uid) throws IOException {
+			@PathVariable("UID") Long uid) throws IOException {
+        if (!checkForPermissionAccess(uid)){
+            uid = null;
+        }
         response.getWriter().write("[]");
         /*String user_id = guestService.getApiKeyAttribute(uid,Connector.getConnector("bodytrack"), "user_id");
 		String tunnelUrl = "http://localhost:3000/users/" + user_id + "/tags";
@@ -218,9 +249,12 @@ public class BodyTrackController {
 
 	@RequestMapping(value = "/bodytrack/users/{UID}/tags/{LOGREC_ID}/get")
 	public void bodyTrackGetTags(HttpServletResponse response,
-			@PathVariable("UID") long uid,
+			@PathVariable("UID") Long uid,
 			@PathVariable("LOGREC_ID") String LOGREC_ID) throws HttpException,
 			IOException {
+        if (!checkForPermissionAccess(uid)){
+            uid = null;
+        }
         String user_id = guestService.getApiKeyAttribute(uid,Connector.getConnector("bodytrack"), "user_id");
 		String tunnelUrl = "http://localhost:3000/users/" + user_id + "/tags/"
 				+ LOGREC_ID + "/get";
@@ -229,10 +263,13 @@ public class BodyTrackController {
 
 	@RequestMapping(value = "/bodytrack/users/{UID}/tags/{LOGREC_ID}/set")
 	public void bodyTrackSetTags(HttpServletResponse response,
-			@PathVariable("UID") long uid,
+			@PathVariable("UID") Long uid,
 			@PathVariable("LOGREC_ID") String LOGREC_ID,
 			@RequestParam("tags") String tags) throws HttpException,
 			IOException {
+        if (!checkForPermissionAccess(uid)){
+            uid = null;
+        }
         String user_id = guestService.getApiKeyAttribute(uid,Connector.getConnector("bodytrack"), "user_id");
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("tags", tags);
@@ -243,11 +280,14 @@ public class BodyTrackController {
 
 	@RequestMapping(value = "/bodytrack/users/{UID}/channels/{DeviceNickname}.{ChannelName}/set")
 	public void bodyTrackChannelSet(HttpServletResponse response,
-			@PathVariable("UID") long uid,
+			@PathVariable("UID") Long uid,
 			@PathVariable("DeviceNickname") String deviceNickname,
 			@PathVariable("ChannelName") String channelName,
 			@RequestParam("user_default_style") String style)
             throws IOException {
+        if (!checkForPermissionAccess(uid)){
+            uid = null;
+        }
         bodyTrackHelper.setDefaultStyle(uid,deviceNickname,channelName,style);
 	}
 
@@ -265,5 +305,10 @@ public class BodyTrackController {
 		String contents = HttpUtils.fetch(tunnelUrl, params, env);
 		response.getWriter().write(contents);
 	}
+
+    private boolean checkForPermissionAccess(long targetUid){
+        Guest guest = ControllerHelper.getGuest();
+        return targetUid == guest.getId() || guest.hasRole(Guest.ROLE_ADMIN) || guest.hasRole(Guest.ROLE_ADMIN);
+    }
 
 }
