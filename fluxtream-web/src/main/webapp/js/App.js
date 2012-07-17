@@ -146,8 +146,22 @@ define(
         };
 
         function makeModal(html) {
-            $("#modal").replaceWith(html);
-            $("#modal").modal();
+            var dialog = $(html);
+            dialog.addClass("modal");
+            dialog.addClass("hide");
+            $("body").append(dialog);
+            dialog.modal();
+            dialog.on("hidden",function(){
+                dialog.remove();
+            });
+            var backdrops = $(".modal-backdrop");
+            if (backdrops.length > 1){
+                var zIndex = $(backdrops[backdrops.length - 2]).css("zIndex");
+                zIndex += 20;
+                $(backdrops[backdrops.length - 1]).css("zIndex",zIndex);
+                zIndex++;
+                dialog.css("zIndex",zIndex);
+            }
         }
 
         App.makeModal = makeModal;
