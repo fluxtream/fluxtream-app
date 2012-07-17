@@ -113,17 +113,8 @@ define(function() {
                     updates[i].time = App.formatDate(updates[i].ts, true);
                 var html = template.render({connectorName : connectorName,
                                             updates : updates});
-                $("body").append(html);
-                $("#viewUpdatesModal").modal();
 
-                $("#viewUpdatesModal").css("zIndex","1052");
-
-                $("#viewUpdatesModal").on("hidden",function(){
-                    $("#viewUpdatesModal").remove();
-                });
-
-                var backdrops = $(".modal-backdrop");
-                $(backdrops[backdrops.length - 1]).css("zIndex","1051");
+                App.makeModal(html);
             }
         });
     }

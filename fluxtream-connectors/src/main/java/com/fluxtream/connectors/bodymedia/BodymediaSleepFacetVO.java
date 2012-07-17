@@ -2,10 +2,11 @@ package com.fluxtream.connectors.bodymedia;
 
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.vos.AbstractFacetVO;
+import com.fluxtream.connectors.vos.AbstractInstantFacetVO;
 import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.mvc.models.DurationModel;
 
-public class BodymediaSleepFacetVO extends AbstractFacetVO<BodymediaSleepFacet>{
+public class BodymediaSleepFacetVO extends AbstractInstantFacetVO<BodymediaSleepFacet> {
 
     double efficiency;
     DurationModel totalLying;

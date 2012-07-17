@@ -107,8 +107,7 @@
 		</div>
 
 
-		<div id="modal"></div>
-        <div id="loading" style="display: none; min-height: 250px">
+		<div id="loading" style="display: none; min-height: 250px">
             <img style="border: none" src="/${release}/images/loading.gif" />
         </div>
 
