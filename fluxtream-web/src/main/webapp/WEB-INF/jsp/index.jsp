@@ -44,14 +44,14 @@
             <input type="submit" value="Submit" class="btn " />
             <input type="hidden" name="login[_csrf_token]" value="965e5cf220b402ba98a8344266bb804d" id="login__csrf_token" />      </form>
 
-        <form method="post" action="/index.php/en/register" style="display:none" id="recoverForm">
+        <form method="post" action="support/sendResetRequest" style="display:none" id="recoverForm">
 
             <label for="recover_email">Enter your email</label>      	<input title="Enter your email" type="text" name="recover[email]" id="recover_email" />
             <input type="submit" id="mc-embedded-subscribe" class="btn" value="Submit">
             <input type="hidden" name="recover[_csrf_token]" value="ebb981ef2ee1ad730d0e676d2af2336c" id="recover__csrf_token" />
         </form>
         <p id="recoverPasswordFeedback" style="display:none;" class="sysInfo">A confirmation link has been emailed to you_XXX</p>
-        <p><a href="/index.php/en/recover-password" id="lostPasswdLink">Lost password?</a></p>
+        <p><a href="#" id="lostPasswdLink">Lost password?</a></p>
     </div>
 </div>
 
