@@ -135,6 +135,10 @@ define(function() {
         else return "YEAR";
     }
 
+    DashboardWidget.prototype.setTitle=function(title){
+        $("#" + this.manifest.WidgetName + "-widget-title").text(title);
+    }
+
     return DashboardWidget;
 
 });
