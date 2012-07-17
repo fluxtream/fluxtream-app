@@ -196,6 +196,8 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
                 var channels = digest.selectedConnectors[i].channelNames;
                 for (var i = 0; i < channels.length; i++){
                     var channel = getSourceChannelByFullName(channels[i]);
+                    if (channel == null)
+                        continue;
                     var channelMapping = sourcesMap[channel.id]
                     if (enabled)
                         addChannel(channelMapping,null);
@@ -214,9 +216,11 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
 
     function updateLoadViewDropdown(){
         App.loadMustacheTemplate("applications/calendar/tabs/timeline/timelineTemplates.html","loadViewsDropdown",function(template){
-            VIEWS.availableList[0].first = true;
+            if (VIEWS.availableList.length > 0)
+                VIEWS.availableList[0].first = true;
             var newloadDropdown = $(template.render(VIEWS));
-            delete VIEWS.availableList[0].first;
+            if (VIEWS.availableList.length > 0)
+                delete VIEWS.availableList[0].first;
             $("#_timeline_load_view_submenu").replaceWith(newloadDropdown);
 
             $("a._timeline_load_link").click(function (event){

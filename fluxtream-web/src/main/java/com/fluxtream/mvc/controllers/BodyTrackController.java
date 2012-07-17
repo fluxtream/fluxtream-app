@@ -124,7 +124,7 @@ public class BodyTrackController {
         if (!checkForPermissionAccess(uid)){
             uid = null;
         }
-        response.getWriter().write("[]");
+        response.getWriter().write("{\"views\":[]}");
         /*String user_id = guestService.getApiKeyAttribute(uid,Connector.getConnector("bodytrack"), "user_id");
 		String tunnelUrl = "http://localhost:3000/users/" + user_id + "/views";
 		writeTunnelResponse(tunnelUrl, response);*/
