@@ -14,12 +14,12 @@
     <link href="/${release}/assets-home/css/style-responsive-red.css" rel="stylesheet">
     <link href="/${release}/assets-home/css/style.css" rel="stylesheet">
     <!-- Google Web Font-->
-    <link href='http://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
-    <link href='http://fonts.googleapis.com/css?family=Droid+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Droid+Sans:400,700' rel='stylesheet' type='text/css'>
     <!--[if IE 7]><link rel="stylesheet" href="/${release}/assets-home/css/font-awesome-ie7.css"><![endif]-->
     <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
-    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
     <!-- fav icons -->
     <link rel="shortcut icon" href="/favicon.ico">
@@ -184,7 +184,7 @@
 </div><!--end container-->
 <!-- For IE 7 and 8 Media Query Support -->
 <script type="text/javascript" src="/${release}/assets-home/js/respond.js"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
 <script type="text/javascript">
     $(document).ready(function() {
         $('#toggleLoginPanel').click(function() {
