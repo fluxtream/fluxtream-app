@@ -21,7 +21,8 @@
 	<http pattern="/apple-touch-icon-precomposed.png" security="none" />
 	<http pattern="/get-invitation*" security="none" />
 	<http pattern="/createAccount*" security="none" />
-	<http pattern="/createAccountForm*" security="none" />
+    <http pattern="/register*" security="none" />
+    <http pattern="/createAccountForm*" security="none" />
     <http pattern="/widgets.json" security="none" />
     <http pattern="/widgets/**" security="none" />
 

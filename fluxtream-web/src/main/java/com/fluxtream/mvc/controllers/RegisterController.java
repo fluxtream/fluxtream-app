@@ -27,9 +27,13 @@ public class RegisterController {
 	
 	@Autowired
 	GuestService guestService;
-	
 
-	@RequestMapping("/createAccountForm")
+    @RequestMapping("/register")
+    public String register() {
+        return "register";
+    }
+
+    @RequestMapping("/createAccountForm")
 	public String createAccountForm() {
 		return "createAccount";
 	}
@@ -40,7 +44,7 @@ public class RegisterController {
 		@RequestParam("username") String username,
 		@RequestParam("firstname") String firstname,
 		@RequestParam("lastname") String lastname,
-		@RequestParam("password") String password,
+		@RequestParam("password1") String password,
 		@RequestParam("password2") String password2,
 //		@RequestParam("recaptchaChallenge") String challenge,
 //		@RequestParam("recaptchaResponse") String uresponse,
@@ -88,7 +92,7 @@ public class RegisterController {
 			return new ModelAndView("accountCreationComplete");
 		} else {
 			logger.info("action=register errors=true");
-			ModelAndView mav = new ModelAndView("createAccount");
+            ModelAndView mav = new ModelAndView("register");
 			mav.addObject("email", email);
 			mav.addObject("username", username);
 			mav.addObject("firstname", firstname);
