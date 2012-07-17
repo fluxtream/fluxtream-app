@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.domain.Guest;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.impl.BodyTrackHelper;
 import com.fluxtream.utils.HttpUtils;
@@ -306,7 +307,8 @@ public class BodyTrackController {
 	}
 
     private boolean checkForPermissionAccess(long targetUid){
-        return targetUid == ControllerHelper.getGuest().getId();
+        Guest guest = ControllerHelper.getGuest();
+        return targetUid == guest.getId() || guest.hasRole(Guest.ROLE_ADMIN) || guest.hasRole(Guest.ROLE_ADMIN);
     }
 
 }
