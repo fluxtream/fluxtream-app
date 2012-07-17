@@ -36,7 +36,7 @@ $(document).ready(function() {
             $('#login').slideUp();
         } else {
             $('#login').slideDown();
-            $('#login_email').focus();
+            $('#f_username').focus();
         }
         return false;
     });
@@ -45,6 +45,7 @@ $(document).ready(function() {
         $('#loginForm').hide();
         $('#recoverForm').show();
         $('#recoverForm').submit(function() { $(this).ajaxSubmit({success: handleRecoverCallback }); return false; });
+        $('#recover_email').focus();
         return false;
     });
 
