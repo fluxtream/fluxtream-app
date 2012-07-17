@@ -185,7 +185,7 @@ define(["applications/calendar/tabs/Tab", "applications/calendar/tabs/photos/Pho
                         currentArray[currentArray.length] = item.facet;
                     else{
                         if (currentDate != prevDate){
-                            list.append("<hr><div>" + currentDate + "</div>");
+                            list.append("<hr><div style=\"margin-bottom:15px\">" + currentDate + "</div>");
                             prevDate = currentDate;
                         }
                         list.append("<div class=\"flx-listItem\">" + currentArray[0].getDetails(currentArray) + "</div>");
