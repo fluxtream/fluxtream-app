@@ -777,9 +777,16 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
             .html(channel["channel_name"])
             .shorten();
 
+        var yMin = channel.min;
+        var yMax = channel.max;
+        if (yMin == yMax){
+            yMin -= 1;
+            yMax += 1;
+        }
+
         var yAxis = new NumberAxis(yAxisElementId, "vertical", {
-            "min" : channel["min"],
-            "max" : channel["max"]
+            "min" : yMin,
+            "max" : yMax
         });
 
         // Now that yAxis is initialized, if this is a new view,
