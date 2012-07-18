@@ -112,8 +112,7 @@
                 <h2>Documentation</h2>
                 <div class="dividerHoriBot">
                     <ul>
-                        <li><a href="#">Build instructions</a></li>
-                        <li><a href="#">API documentation</a></li>
+                        <li><a href="https://github.com/fluxtream/fluxtream-app/wiki" target="_blank">Build instructions</a></li>
                     </ul>
                 </div>
                 <h2>Stay in the loop</h2>
