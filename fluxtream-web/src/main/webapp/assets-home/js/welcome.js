@@ -57,7 +57,10 @@ $(document).ready(function() {
     setCookie("timeZone", timezone.name(), 1);
     setCookie("date", currentYear + "-" + currentMonth + "-" + currentDate, 1);
 
-    if (params["username"] != null){
+    if (typeof params["username"] != "undefined"){
         $("#loginFailedModal").modal();
+    }
+    else if (typeof params["subscribed"] != "undefined"){
+        $("#subscribedModal").modal();
     }
 });
