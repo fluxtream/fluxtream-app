@@ -15,6 +15,7 @@ import net.sf.json.JSONObject;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Component;
 
 import com.fluxtream.Configuration;
@@ -26,6 +27,7 @@ import com.google.gson.Gson;
 @Path("/admin")
 @Component("RESTAdminController")
 @Scope("request")
+@Secured({ "ROLE_ADMIN", "ROLE_ROOT" })
 public class AdminController {
 
 	@Autowired
