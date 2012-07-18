@@ -25,8 +25,6 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 
 	static Logger logger = Logger.getLogger(AbstractUpdater.class);
 
-    static final int RETRY_ATTEMPTS = 3;
-
     @Qualifier("apiDataServiceImpl")
     @Autowired
 	protected ApiDataService apiDataService;
@@ -107,49 +105,26 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 	public final UpdateResult updateDataHistory(UpdateInfo updateInfo)
 			throws Exception {
 
-        String stackTrace = null;
-        for(int i=0; i<RETRY_ATTEMPTS; i++)
-        {
-            try {
-                updateConnectorDataHistory(updateInfo);
-                bodyTrackStorageService.storeInitialHistory(
-                        updateInfo.getGuestId(), updateInfo.apiKey.getConnector()
-                                .getName());
+        try {
+            updateConnectorDataHistory(updateInfo);
+            bodyTrackStorageService.storeInitialHistory(
+                    updateInfo.getGuestId(), updateInfo.apiKey.getConnector()
+                            .getName());
 
-                return UpdateResult.successResult();
-            } catch (RateLimitReachedException e) {
-                logger.info("guestId="
-                        + updateInfo.apiKey.getGuestId()
-                        + " action=bg_update stage=return_results result=rateLimitReached");
-                return UpdateResult.rateLimitReachedResult();
-            } catch (Throwable t) {
-                stackTrace = stackTrace(t);
-                logger.info("guestId=" + updateInfo.apiKey.getGuestId()
-                        + " action=bg_update stage=return_results result=failed \n"
-                        + stackTrace);
-            }
+            return UpdateResult.successResult();
+        } catch (RateLimitReachedException e) {
+            logger.info("guestId="
+                    + updateInfo.apiKey.getGuestId()
+                    + " action=bg_update stage=return_results result=rateLimitReached");
+            return UpdateResult.rateLimitReachedResult();
+        } catch (Throwable t) {
+            String stackTrace = stackTrace(t);
+            logger.info("guestId=" + updateInfo.apiKey.getGuestId()
+                    + " action=bg_update stage=return_results result=failed \n"
+                    + stackTrace);
+            return UpdateResult.failedResult(stackTrace);
         }
-        return UpdateResult.failedResult(stackTrace);
-
-		// String message = "Your " + connector().prettyName() +
-		// " history has been imported";
-		// if
-		// (updateInfo.objectTypes()!=null&&updateInfo.objectTypes().size()>0)
-		// message = "Your " + connector().prettyName() + " (" +
-		// objectTypesString(updateInfo.objectTypes()) +
-		// ") history has been imported";
-		// notificationsService.addNotification(updateInfo.apiKey.getGuestId(),
-		// Notification.Type.INFO, message);
 	}
-
-	// private String objectTypesString(List<ObjectType> list) {
-	// StringBuffer result = new StringBuffer();
-	// for (int i=0; i<list.size(); i++) {
-	// if (i>0) result.append(", ");
-	// result.append(list.get(i).prettyname());
-	// }
-	// return result.toString();
-	// }
 
 	@SuppressWarnings({"unchecked","unused"})
 	protected final <T extends AbstractUserProfile> T saveUserProfile(
@@ -200,17 +175,14 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 				apiDataService.eraseApiData(updateInfo.apiKey.getGuestId(),
 						connector(), updateInfo.objectTypes,
 						updateInfo.getTimeInterval());
-            for(int i = 0; i<RETRY_ATTEMPTS; i++){
-                try {
-                    updateConnectorData(updateInfo);
-                    updateResult.type = UpdateResult.ResultType.UPDATE_SUCCEEDED;
-                    break;
-                } catch (Exception e) {
-                    updateResult = new UpdateResult(
-                            UpdateResult.ResultType.UPDATE_FAILED);
-                    updateResult.stackTrace = Utils.stackTrace(e);
-                    e.printStackTrace();
-                }
+            try {
+                updateConnectorData(updateInfo);
+                updateResult.type = UpdateResult.ResultType.UPDATE_SUCCEEDED;
+            } catch (Exception e) {
+                updateResult = new UpdateResult(
+                        UpdateResult.ResultType.UPDATE_FAILED);
+                updateResult.stackTrace = Utils.stackTrace(e);
+                e.printStackTrace();
             }
 		} finally {
 			runningUpdates.remove(runningUpdate);

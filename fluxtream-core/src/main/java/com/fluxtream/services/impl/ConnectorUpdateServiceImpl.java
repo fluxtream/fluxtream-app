@@ -85,6 +85,15 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
         return scheduleResults;
     }
 
+    /**
+     * Schedules a new update if there is no update for the user for this ObjectType
+     * @param guestId The user's id
+     * @param connector The Connector that is to be updated
+     * @param objectTypes the integer bitmask of object types to be updated
+     * @param scheduleResults The result of adding the update will be added to the list. \result.type will be of type
+     *                        ScheduleResult.ResultType. If there was a previously existing \result.type will be
+     *                        ALREADY_SCHEDULED
+     */
     private void scheduleObjectTypeUpdate(long guestId, Connector connector, int objectTypes, List<ScheduleResult> scheduleResults) {
         UpdateWorkerTask updateWorkerTask = getScheduledUpdateTask(guestId, connector.getName(), objectTypes);
         if (updateWorkerTask != null) {

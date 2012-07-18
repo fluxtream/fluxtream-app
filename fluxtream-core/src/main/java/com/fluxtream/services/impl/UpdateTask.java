@@ -6,6 +6,7 @@ import static com.fluxtream.utils.Utils.stackTrace;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -27,10 +28,12 @@ class UpdateTask implements Runnable {
 
 	Logger logger = Logger.getLogger(UpdateTask.class);
 
-	@Autowired
+    @Qualifier("connectorUpdateServiceImpl")
+    @Autowired
 	ConnectorUpdateService connectorUpdateService;
 
-	@Autowired
+    @Qualifier("apiDataServiceImpl")
+    @Autowired
 	ApiDataService apiDataService;
 
 	@Autowired
@@ -141,7 +144,7 @@ class UpdateTask implements Runnable {
 		stringBuilder.append(" objectType=");
 		stringBuilder.append(su.objectTypes);
 		logger.info(stringBuilder.toString());
-		connectorUpdateService.setUpdateWorkerTaskStatus(su.getId(), UpdateWorkerTask.Status.DONE);
+		connectorUpdateService.setUpdateWorkerTaskStatus(su.getId(), Status.DONE);
 	}
 
 	private void abort() {
@@ -221,8 +224,7 @@ class UpdateTask implements Runnable {
 	private int getMaxRetries(Connector connector) {
 		String key = connector.getName() + ".maxRetries";
         if (env.connectors.containsKey(key)) {
-            int retries = Integer.valueOf((String)env.connectors.getProperty(key));
-            return retries;
+            return Integer.valueOf((String)env.connectors.getProperty(key));
         }
         else {
             return Integer.valueOf((String)env.connectors.getProperty("maxRetries"));
@@ -232,8 +234,7 @@ class UpdateTask implements Runnable {
 	private int getShortRetryDelay(Connector connector) {
 		String key = connector.getName() + ".shortRetryDelay";
         if (env.connectors.containsKey(key)) {
-            int delay = Integer.valueOf((String)env.connectors.getProperty(key));
-            return delay;
+            return Integer.valueOf((String)env.connectors.getProperty(key));
         }
         else {
             return Integer.valueOf((String)env.connectors.getProperty("shortRetryDelay"));
@@ -243,8 +244,7 @@ class UpdateTask implements Runnable {
 	private int getLongRetryDelay(Connector connector) {
 		String key = connector.getName() + ".longRetryDelay";
         if (env.connectors.containsKey(key)) {
-            Integer delay = Integer.valueOf((String)env.connectors.getProperty(key));
-            return delay;
+            return Integer.valueOf((String)env.connectors.getProperty(key));
         }
         else {
             return Integer.valueOf((String)env.connectors.getProperty("longRetryDelay"));
