@@ -37,8 +37,8 @@
     <div class="cont cf">
 
         <form method="post" action="signIn" id="loginForm">
-            <label for="f_username">Email</label>
-                <input title="Email" autocorrect="off" autocapitalize="off" autocomplete="on" onkeypress="if(event.which==13) document.forms[0].submit();" id="f_username" name="f_username" placeholder="Username" value="<%=request.getParameter("username") != null ? request.getParameter("username") : ""%>" type="text">
+            <label for="f_username">Username</label>
+                <input title="Username" autocorrect="off" autocapitalize="off" autocomplete="on" onkeypress="if(event.which==13) document.forms[0].submit();" id="f_username" name="f_username" placeholder="Username" value="<%=request.getParameter("username") != null ? request.getParameter("username") : ""%>" type="text">
             <label for="f_password">Password</label>
                 <input title="Password" value="" onkeypress="if(event.which==13) document.forms[0].submit();" id="f_password" name="f_password" placeholder="Password" type="password"></input>
             <input type="submit" value="Submit" class="btn " />
@@ -112,8 +112,7 @@
                 <h2>Documentation</h2>
                 <div class="dividerHoriBot">
                     <ul>
-                        <li><a href="#">Build instructions</a></li>
-                        <li><a href="#">API documentation</a></li>
+                        <li><a href="https://github.com/fluxtream/fluxtream-app/wiki" target="_blank">Build instructions</a></li>
                     </ul>
                 </div>
                 <h2>Stay in the loop</h2>
@@ -199,6 +198,19 @@
         <div class="alert alert-error">
             <strong>Bad login credentials!</strong> We could not authenticate you properly. Either your username or password were incorrect.
         </div>
+    </div>
+    <div class="modal-footer">
+        <a href="#" class="btn" data-dismiss="modal">Ok</a>
+    </div>
+</div>
+
+<div class="modal fade hide" id="subscribedModal">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h3>Thank You!</h3>
+    </div>
+    <div class="modal-body">
+            <strong>Thanks for subscribing!</strong> We'll send you an email when we (re-)open the doors to the website and you'll be among the first to know.
     </div>
     <div class="modal-footer">
         <a href="#" class="btn" data-dismiss="modal">Ok</a>

@@ -154,4 +154,34 @@ public class ConnectorStore {
         return gson.toJson(result);
     }
 
+    @GET
+    @Path("/filters")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String getConnectorFilterState(){
+        try{
+            Guest user = ControllerHelper.getGuest();
+            String filterState = settingsService.getConnectorFilterState(user.getId());
+            return filterState;
+        }
+        catch (Exception e){
+            return "{}";
+        }
+    }
+
+    @POST
+    @Path("/filters")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String setConnectorFilterState(@FormParam("filterState") String stateJSON){
+        StatusModel result;
+        try{
+            Guest user = ControllerHelper.getGuest();
+            settingsService.setConnectorFilterState(user.getId(),stateJSON);
+            result = new StatusModel(true,"Successfully updated filters state!");
+        }
+        catch (Exception e){
+            result = new StatusModel(false,"Failed to udpate filters state!");
+        }
+        return gson.toJson(result);
+    }
+
 }

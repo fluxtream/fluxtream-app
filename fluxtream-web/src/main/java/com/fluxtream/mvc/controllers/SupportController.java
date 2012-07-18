@@ -83,8 +83,22 @@ public class SupportController {
 			vars.put("username", guest.firstname);
 		else
 			vars.put("username", guest.username);
-		String mailMessage = VelocityEngineUtils.mergeTemplateIntoString(
-				velocityEngine, "resetPassword.vm", vars);
+        String mailMessage ="Hi " + vars.get("username") + ",\n" +
+                            "\n" +
+                            "Someone requested that your Fluxtream.com password be reset.\n" +
+                            "\n" +
+                            "If this wasn't you, there's nothing to worry about - simply ignore this email and nothing will change.\n" +
+                            "\n" +
+                            "If you DID ask to reset the password on your Fluxtream account, just click here to make it happen:\n" +
+                            "\n" +
+                            vars.get("homeBaseUrl") + "support/resetPassword?token=" + vars.get("token") + "\n" +
+                            "\n" +
+                            "Thanks,\n" +
+                            "\n" +
+                            "The Fluxtream Team";
+
+		//String mailMessage = VelocityEngineUtils.mergeTemplateIntoString(
+		//		velocityEngine, "resetPassword.vm", vars);
 		message.setText(mailMessage);
 		sender.send(message);
 		ModelAndView mav = new ModelAndView("support/resetRequestSent");

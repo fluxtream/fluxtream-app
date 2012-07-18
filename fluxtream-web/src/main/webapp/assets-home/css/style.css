@@ -20,7 +20,7 @@ a .bd {font-size: 10px; text-decoration: none;}
 #login a:hover {color: white;}
 #login p {float:left;font-size:12px;font-weight:500;padding-top: 9px;}
 .ie7 #login p {display: block; float: none; width: 100%; margin-left: 380px;}
-#login form {padding-top:6px;float:right; width: 660px; margin-right: 110px; }
+#login form {padding-top:6px;float:right; width: 700px; margin-right: 110px; }
 .ie7 #login form {float: none;}
 #login label {margin:0 5px 0 0; color: #0E4466; display: inline;}
 #login input {margin:0 16px 0 0;padding:2px 4px; display: inline;}

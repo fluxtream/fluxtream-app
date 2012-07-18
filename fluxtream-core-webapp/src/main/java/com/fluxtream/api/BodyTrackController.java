@@ -7,6 +7,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import com.fluxtream.mvc.controllers.ControllerHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -41,9 +42,20 @@ public class BodyTrackController {
 			@QueryParam("connectorName") String connectorName) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
 		Guest guest = guestService.getGuest(username);
-		bodytrackStorageService.storeInitialHistory(guest.getId(), connectorName);
-		StatusModel status = new StatusModel(true, "Success!");
+        StatusModel status;
+        if (!checkForPermissionAccess(guest.getId())){
+            status = new StatusModel(true, "Failure!");
+        }
+        else{
+            bodytrackStorageService.storeInitialHistory(guest.getId(), connectorName);
+            status = new StatusModel(true, "Success!");
+        }
 		return gson.toJson(status);
 	}
+
+    private boolean checkForPermissionAccess(long targetUid){
+        Guest guest = ControllerHelper.getGuest();
+        return targetUid == guest.getId() || guest.hasRole(Guest.ROLE_ADMIN) || guest.hasRole(Guest.ROLE_ADMIN);
+    }
 
 }

@@ -314,13 +314,15 @@ public class BodyTrackHelper {
             style.styles = new ArrayList<Style>();
              if (name.equals("Sleep_Graph")){
                  Style subStyle = new Style();
-                 subStyle.type = "Zeo";
+                 subStyle.type = "zeo";
+                 subStyle.show = true;
                  style.styles.add(subStyle);
              }
             else{
                  Style subStyle = new Style();
                  subStyle.type = "line";
                  subStyle.lineWidth = 1;
+                 subStyle.show = true;
                  style.styles.add(subStyle);
              }
             return style;

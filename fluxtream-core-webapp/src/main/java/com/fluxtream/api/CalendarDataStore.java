@@ -163,7 +163,7 @@ public class CalendarDataStore {
         setVisitedCities(digest, guestId, dayMetadata);
         setNotifications(digest, guestId);
         setCurrentAddress(digest, guestId, dayMetadata.start);
-        digest.settings = new SettingsModel(settings);
+        digest.settings = new SettingsModel(settings,guest);
         return gson.toJson(digest);
 	}
 
@@ -272,7 +272,7 @@ public class CalendarDataStore {
         setVisitedCities(digest, guestId, dayMetadata);
         setNotifications(digest, guestId);
         setCurrentAddress(digest, guestId, dayMetadata.start);
-        digest.settings = new SettingsModel(settings);
+        digest.settings = new SettingsModel(settings,guest);
         return gson.toJson(digest);
 	}
 
@@ -355,7 +355,7 @@ public class CalendarDataStore {
         setVisitedCities(digest, guestId, dayMetadata);
         setNotifications(digest, guestId);
         setCurrentAddress(digest, guestId, dayMetadata.start);
-        digest.settings = new SettingsModel(settings);
+        digest.settings = new SettingsModel(settings,guest);
         return gson.toJson(digest);
 	}
 
@@ -402,7 +402,7 @@ public class CalendarDataStore {
 		setVisitedCities(digest, guestId, dayMetadata);
 		setNotifications(digest, guestId);
 		setCurrentAddress(digest, guestId, dayMetadata.start);
-		digest.settings = new SettingsModel(settings);
+		digest.settings = new SettingsModel(settings,guest);
 
 		// NewRelic.setTransactionName(null, "/api/log/all/date");
 		return gson.toJson(digest);
