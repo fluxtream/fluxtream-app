@@ -63,5 +63,4 @@ public interface SettingsService {
     public void setConnectorFilterState(long guestId, String stateJSON);
 
     public String getConnectorFilterState(long guestId);
-	
 }

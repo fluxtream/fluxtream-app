@@ -1,7 +1,7 @@
 define(
-    [ "core/FlxState", "Addresses", "ManageConnectors", "AddConnectors", "ConnectorConfig",
+    [ "core/FlxState", "Addresses", "ManageConnectors", "AddConnectors", "ConnectorConfig", "Settings",
       "libs/jquery.form", "libs/jquery.qtip.min", "libs/jquery.jeditable.mini" ],
-    function(FlxState, Addresses, ManageConnectors, AddConnectors, ConnectorConfig) {
+    function(FlxState, Addresses, ManageConnectors, AddConnectors, ConnectorConfig, Settings) {
 
         var App = {};
         var toLoad = 0, loaded = 0;
@@ -134,15 +134,7 @@ define(
         }
 
         App.settings = function() {
-            $.ajax({
-                       url : "/settings/main",
-                       success : function(html) {
-                           makeModal(html);
-                           $("#settingsForm").ajaxForm(function() {
-                               $("#modal").empty();
-                           });
-                       }
-                   });
+            Settings.show();
         };
 
         function makeModal(html) {
