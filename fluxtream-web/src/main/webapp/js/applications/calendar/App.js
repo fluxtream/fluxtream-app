@@ -15,6 +15,14 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     var buttons = {};
 
 	Calendar.setup = function() {
+        $.ajax("/api/connectors/filters",{
+            success:function(data){
+                for (var member in data){
+                    Calendar.connectorEnabled[member] = data[member];
+                }
+            }
+
+        });
 		$(".menuNextButton").click(function(e) {
 			fetchState("/nav/incrementTimespan.json?state=" + Calendar.tabState); });
 		$(".menuPrevButton").click(function(e) {
@@ -259,6 +267,15 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 event.preventDefault();
                 $(document).click(); //needed for click away to work on tooltips in clock tab
                 connectorClicked(event.data.button,event.data.objectTypeNames,event.data.connectorName);
+                var uploadData = {};
+                for (var member in Calendar.connectorEnabled){
+                    if (member != "default")
+                        uploadData[member] = Calendar.connectorEnabled[member];
+                }
+                $.ajax("/api/connectors/filters",{
+                    type:"POST",
+                    data:{filterState:JSON.stringify(uploadData)}
+                });
             });
             if (Calendar.connectorEnabled["default"][digest.selectedConnectors[i].connectorName] == null)
                 Calendar.connectorEnabled["default"][digest.selectedConnectors[i].connectorName] = true;

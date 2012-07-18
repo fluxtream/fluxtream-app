@@ -59,5 +59,9 @@ public interface SettingsService {
                               Double longitude, Long since, Long until, Double radius, String jsonString);
 
 	public void setTemperatureUnit(long guestId, TemperatureUnit temperatureUnit);
+
+    public void setConnectorFilterState(long guestId, String stateJSON);
+
+    public String getConnectorFilterState(long guestId);
 	
 }
