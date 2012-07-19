@@ -224,9 +224,8 @@ public class ApiDataServiceImpl implements ApiDataService {
 	public List<AbstractFacet> getApiDataFacets(long guestId,
 			Connector connector, ObjectType objectType,
 			TimeInterval timeInterval) {
-		List<AbstractFacet> facets = jpaDao.getFacetsBetween(connector,
-				guestId, objectType, timeInterval);
-		return facets;
+        return jpaDao.getFacetsBetween(connector,
+                guestId, objectType, timeInterval);
 	}
 
     @Override
@@ -262,7 +261,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 					newFacets.add(newFacet);
 			}
 		}
-		bodyTrackStorageService.storeApiData(updateInfo.getGuestId(), newFacets);
+		//bodyTrackStorageService.storeApiData(updateInfo.getGuestId(), newFacets);
 	}
 
 	private static Map<String, String> facetEntityNames = new ConcurrentHashMap<String,String>();
@@ -298,7 +297,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 				ObjectType[] objectType = connector.getObjectTypesForValue(facet.objectType);
 				if (objectType!=null&&objectType.length!=0)
 					sb.append(" objectType=").append(objectType[0].getName());
-				else if (objectType.length>1) {
+				else if (objectType!=null && objectType.length>1) {
 					sb.append(" objectType=[");
 					for (int i = 0; i < objectType.length; i++) {
 						ObjectType type = objectType[i];
@@ -406,8 +405,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 	public long getNumberOfDays(long guestId) {
 		Query query = em.createQuery("select count(md) from ContextualInfo md WHERE md.guestId=" + guestId);
 		Object singleResult = query.getSingleResult();
-		Long count = (Long) singleResult;
-		return count;
+        return (Long) singleResult;
 	}
 
 }

@@ -1,6 +1,5 @@
 package com.fluxtream.api;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import javax.ws.rs.DELETE;
@@ -58,6 +57,29 @@ public class UpdateWorkerTaskStore {
         return array.toString();
     }
 
+    @GET
+    @Path("/all")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String getUpdateTasksAll() {
+        long guestId = ControllerHelper.getGuestId();
+        final Collection<Connector> connectors = Connector.getAllConnectors();
+        JSONArray res = new JSONArray();
+        for(Connector c : connectors)
+        {
+            final List<UpdateWorkerTask> scheduledUpdates =
+                    connectorUpdateService.getScheduledUpdateTasks(guestId, Connector.getConnector(c.getName()));
+            JSONArray array = new JSONArray();
+            for (UpdateWorkerTask scheduledUpdate : scheduledUpdates) {
+                array.add(toJSON(scheduledUpdate));
+            }
+            JSONObject connectorStatus = new JSONObject();
+            connectorStatus.accumulate("name", c.getName());
+            connectorStatus.accumulate("status", array);
+            res.add(connectorStatus);
+        }
+        return res.toString();
+    }
+
     private JSONObject toJSON(UpdateWorkerTask task) {
         JSONObject json = new JSONObject();
         json.accumulate("objectTypes", task.getObjectTypes());
@@ -98,15 +120,8 @@ public class UpdateWorkerTaskStore {
     @Produces({MediaType.APPLICATION_JSON})
     public String deleteUpdateTasksAll()
     {
-        List<StatusModel> res = new ArrayList<StatusModel>();
-        long guestId = ControllerHelper.getGuestId();
-        final Collection<Connector> connectors = Connector.getAllConnectors();
-        for(Connector c : connectors)
-        {
-            connectorUpdateService.deleteScheduledUpdateTasks(guestId, c);
-            res.add(new StatusModel(true, "successfully deleted pending update tasks for " + c.getName()));
-        }
-        return gson.toJson(res);
+        connectorUpdateService.cleanupRunningUpdateTasks();
+        return gson.toJson(new StatusModel(true, "successfully deleted all tasks" ));
     }
 
 }

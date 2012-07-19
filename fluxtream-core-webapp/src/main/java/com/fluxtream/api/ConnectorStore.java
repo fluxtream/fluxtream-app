@@ -26,6 +26,7 @@ import com.fluxtream.services.SettingsService;
 import com.fluxtream.services.SystemService;
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -46,9 +47,11 @@ public class ConnectorStore {
     @Autowired
     SettingsService settingsService;
 
+    @Qualifier("connectorUpdateServiceImpl")
     @Autowired
     ConnectorUpdateService connectorUpdateService;
 
+    @Qualifier("apiDataServiceImpl")
     @Autowired
     private ApiDataService apiDataService;
 
@@ -60,7 +63,6 @@ public class ConnectorStore {
     public String getInstalledConnectors(){
         Guest user = ControllerHelper.getGuest();
         List<ConnectorInfo> connectors =  sysService.getConnectors();
-        List<Long> apiKeyIds = new ArrayList<Long>();
         for (int i = 0; i < connectors.size(); i++){
             if (!guestService.hasApiKey(user.getId(), connectors.get(i).getApi())) {
                 connectors.remove(i--);
@@ -89,7 +91,6 @@ public class ConnectorStore {
             if (connector.enabled)
                 connectors.add(connector);
         }
-        List<Long> apiKeyIds = new ArrayList<Long>();
         for (int i = 0; i < connectors.size(); i++){
             if (guestService.hasApiKey(user.getId(), connectors.get(i).getApi()))
                 connectors.remove(i--);
@@ -99,7 +100,6 @@ public class ConnectorStore {
     }
 
     private boolean checkIfSyncInProgress(long guestId, Connector connector){
-        boolean syncing = false;
         final List<UpdateWorkerTask> scheduledUpdates = connectorUpdateService.getScheduledUpdateTasks(guestId, connector);
         return (scheduledUpdates.size()!=0);
     }

@@ -138,21 +138,24 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
             List<AbstractFacet> deviceFacets,
             List<String> dailyDataChannelNames) {
         List<List<Object>> channelValues = new ArrayList<List<Object>>();
-        storingFacets: for (AbstractFacet deviceFacet : deviceFacets) {
+        for (AbstractFacet deviceFacet : deviceFacets) {
             Iterator<String> eachFieldName = dailyDataChannelNames.iterator();
             List<Object> values = new ArrayList<Object>();
-            values.add(deviceFacet.start/1000);
+            values.add(deviceFacet.start / 1000);
             while (eachFieldName.hasNext()) {
-                String fieldName = (String) eachFieldName.next();
+                String fieldName = eachFieldName.next();
                 try {
                     Field field;
                     field = deviceFacet.getClass().getField(fieldName);
                     Object channelValue = field.get(deviceFacet);
-                    if (channelValue instanceof java.util.Date)
+                    if (channelValue instanceof java.util.Date) {
                         values.add(((java.util.Date)channelValue).getTime());
-                    else
+                    }
+                    else {
                         values.add(channelValue);
-                } catch (Exception e) {
+                    }
+                }
+                catch (Exception e) {
                     throw new RuntimeException("No such Field: " + fieldName);
                 }
             }
@@ -185,7 +188,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 	private String getDeviceNickname(String connectorAndObjectType) {
 		Iterator<String> keys = env.bodytrackProperties.getKeys();
 		while (keys.hasNext()) {
-			String key = (String) keys.next();
+			String key = keys.next();
 			if (key.startsWith(connectorAndObjectType)) {
 				if (key.endsWith("dev_nickname"))
 					return (String) env.bodytrackProperties.getProperty(key);
@@ -200,7 +203,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 				System.currentTimeMillis(), TimeUnit.DAY, TimeZone.getDefault());
 		List<AbstractFacet> facets = apiDataService.getApiDataFacets(guestId,
 				Connector.getConnector(connectorName), null, timeInterval);
-		storeApiData(guestId, facets);
+		//storeApiData(guestId, facets);
 	}
 
 }

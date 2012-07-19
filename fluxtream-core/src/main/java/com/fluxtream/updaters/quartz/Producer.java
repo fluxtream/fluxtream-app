@@ -30,10 +30,10 @@ public class Producer {
         roles.add("ROLE_ROOT");
         as(roles);
         try {
-            List<Guest> guests = guestService.getAllGuests();
-            for (Guest g : guests) {
-                connectorUpdateService.updateAllConnectors(g.getId());
-            }
+            //List<Guest> guests = guestService.getAllGuests();
+            //for (Guest g : guests) {
+            //    connectorUpdateService.updateAllConnectors(g.getId());
+            //}
         }
         catch (Exception e) {
             System.out.println(e.getClass());

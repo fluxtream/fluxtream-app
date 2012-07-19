@@ -90,25 +90,23 @@ class UpdateTask implements Runnable {
 
 	private void updateDataHistory(Connector connector, ApiKey apiKey,
 			AbstractUpdater updater) {
-        for(int i = 0; i < 10; i++)
-        {
-            try {
-                UpdateInfo updateInfo = UpdateInfo.initialHistoryUpdateInfo(apiKey,
-                        su.objectTypes);
-                UpdateResult updateResult = updater.updateDataHistory(updateInfo);
-                handleUpdateResult(connector, updateResult);
-            } catch (Exception e) {
-                String stackTrace = stackTrace(e);
-                logger.warn("guestId=" + su.guestId + " action=bg_update type=initialHistory "
-                        + "stage=unexpected_exception connector="
-                        + su.connectorName + " objectType=" + su.objectTypes);
-                retry(connector, new UpdateWorkerTask.AuditTrailEntry(new Date(), "unexpected exception", "retry", stackTrace));
-            }
+        try {
+            UpdateInfo updateInfo = UpdateInfo.initialHistoryUpdateInfo(apiKey,
+                    su.objectTypes);
+            UpdateResult updateResult = updater.updateDataHistory(updateInfo);
+            handleUpdateResult(connector, updateResult);
+        } catch (Exception e) {
+            String stackTrace = stackTrace(e);
+            logger.warn("guestId=" + su.guestId + " action=bg_update type=initialHistory "
+                    + "stage=unexpected_exception connector="
+                    + su.connectorName + " objectType=" + su.objectTypes);
+            retry(connector, new UpdateWorkerTask.AuditTrailEntry(new Date(), "unexpected exception", "retry", stackTrace));
         }
 	}
 
 	private void handleUpdateResult(Connector connector,
 			UpdateResult updateResult) {
+        logger.warn("Handling Result");
 		switch (updateResult.type) {
 		case DUPLICATE_UPDATE:
 			warn();
