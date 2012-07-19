@@ -17,7 +17,9 @@ public class ChannelStyle extends AbstractEntity {
 
     @Index(name="guestId")
     public long guestId;
+    @Index(name="deviceName")
     public String deviceName;
+    @Index(name="channelName")
     public String channelName;
     @Lob
     public String json;
