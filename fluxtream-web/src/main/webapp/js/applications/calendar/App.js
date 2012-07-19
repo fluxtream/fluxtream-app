@@ -24,10 +24,16 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
         });
 		$(".menuNextButton").click(function(e) {
+            if (Calendar.currentTab.timeNavigation("next"))
+                return;
 			fetchState("/nav/incrementTimespan.json?state=" + Calendar.tabState); });
 		$(".menuPrevButton").click(function(e) {
+            if (Calendar.currentTab.timeNavigation("prev"))
+                return;
 			fetchState("/nav/decrementTimespan.json?state=" + Calendar.tabState); });
 		$(".menuTodayButton").click(function(e) {
+            if (Calendar.currentTab.timeNavigation("today"))
+                return;
 			fetchState("/nav/setToToday.json?timeUnit=" + Calendar.timeUnit);
 		});
 	};

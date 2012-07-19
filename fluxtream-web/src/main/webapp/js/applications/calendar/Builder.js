@@ -58,8 +58,11 @@ define([], function() {
                 btn.removeClass("active");
             btn.unbind("click");
             btn.click(function(event){
+
                 var timeUnit = $(event.target).attr("unit"),
                     url = "/nav/set" + capitalizeFirstLetter(timeUnit.toLowerCase()) + "TimeUnit.json";
+                if (Calendar.currentTab.timeNavigation(timeUnit))
+                    return;
                 $.ajax({ url:url,
                    success : function(response) {
                        var t = tabExistsForTimeUnit(Calendar.currentTabName, timeUnit)?Calendar.currentTabName:tabs[timeUnit][0];
