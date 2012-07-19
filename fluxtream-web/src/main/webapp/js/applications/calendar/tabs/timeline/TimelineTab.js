@@ -133,7 +133,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
         $("#_timeline_channels").disableSelection();
 
         // Click handlers
-        $("#_timeline_new_view_btn").click(newView);
+        $("#_timeline_new_view_btn").click(function(event){event.preventDefault(); newView()});
         //$("#_timeline_load_view_btn").click(toggleLoadDialog);
 
         updateLoadViewDropdown();
@@ -474,13 +474,11 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
         });
     }
 
-    function newView() {
-        var now = new Date();
-        now = now.getTime()/1000.0;
-        newView(now - 86400.0, now);
-    }
-
     function newView(start, end) {
+        if (start == null || end == null){
+            start = digest.tbounds.start/1000;
+            end = digest.tbounds.end/1000;
+        }
 
         VIEWS.data = {
             "name" : newViewName,

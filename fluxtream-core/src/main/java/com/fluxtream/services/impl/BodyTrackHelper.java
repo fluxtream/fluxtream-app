@@ -15,6 +15,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import com.fluxtream.Configuration;
 import com.fluxtream.domain.ChannelStyle;
+import com.fluxtream.domain.GrapherView;
 import com.fluxtream.utils.HttpUtils;
 import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.Utils;
@@ -210,6 +211,71 @@ public class BodyTrackHelper {
         if(savedStyle == null)
             return null;
         return gson.fromJson(savedStyle.json,ChannelStyle.class);
+
+    }
+
+    @Transactional(readOnly = false)
+    public String saveView(long uid, String viewName, String viewJSON){
+        GrapherView view = JPAUtils.findUnique(em, GrapherView.class,"grapherView.byName",uid,viewName);
+        if (view == null){
+            view = new GrapherView();
+            view.guestId = uid;
+            view.name = viewName;
+            view.json = viewJSON;
+            view.lastUsed = System.currentTimeMillis();
+            em.persist(view);
+        }
+        else{
+            view.json = viewJSON;
+            em.merge(view);
+        }
+        AddViewResult result = new AddViewResult();
+        result.saved_view_id = view.getId();
+        result.populateViews(em, uid);
+        return gson.toJson(result);
+    }
+
+    public String listViews(long uid){
+        ViewsList list = new ViewsList();
+        list.populateViews(em,uid);
+        return gson.toJson(list);
+    }
+
+    @Transactional(readOnly = false)
+    public String getView(long uid, long viewId){
+        GrapherView view = JPAUtils.findUnique(em, GrapherView.class,"grapherView.byId",uid,viewId);
+        if (view != null){
+            view.lastUsed = System.currentTimeMillis();
+            em.merge(view);
+        }
+        return view == null ? "{\"error\",\"No matching view found for user " + uid + "\"}" : view.json;
+    }
+
+    private static class ViewsList{
+        ArrayList<ViewStub> views = new ArrayList<ViewStub>();
+
+        void populateViews(EntityManager em, long uid){
+            List<GrapherView> viewList = JPAUtils.find(em, GrapherView.class,"grapherView",uid);
+            for (GrapherView view : viewList){
+                views.add(new ViewStub(view));
+            }
+        }
+    }
+
+    public static class AddViewResult extends ViewsList{
+        long saved_view_id;
+    }
+
+    private static class ViewStub{
+        long id;
+        long last_used;
+        String name;
+
+        public ViewStub(GrapherView view){
+            id = view.getId();
+            last_used = view.lastUsed;
+            name = view.name;
+        }
 
     }
 

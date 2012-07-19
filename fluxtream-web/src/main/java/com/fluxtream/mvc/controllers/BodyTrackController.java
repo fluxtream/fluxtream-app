@@ -117,30 +117,23 @@ public class BodyTrackController {
         }
     }
 
-    //TODO:implement views
-    @RequestMapping(value = "/bodytrack/users/{UID}/views")
+        @RequestMapping(value = "/bodytrack/users/{UID}/views")
 	public void bodyTrackViews(HttpServletResponse response,
 			@PathVariable("UID") Long uid) throws IOException {
         if (!checkForPermissionAccess(uid)){
             uid = null;
         }
-        response.getWriter().write("{\"views\":[]}");
-        /*String user_id = guestService.getApiKeyAttribute(uid,Connector.getConnector("bodytrack"), "user_id");
-		String tunnelUrl = "http://localhost:3000/users/" + user_id + "/views";
-		writeTunnelResponse(tunnelUrl, response);*/
+        response.getWriter().write(bodyTrackHelper.listViews(uid));
 	}
 
 	@RequestMapping(value = "/bodytrack/users/{UID}/views/get")
 	public void bodyTrackView(HttpServletResponse response,
-			@PathVariable("UID") Long uid, @RequestParam("id") String id)
+			@PathVariable("UID") Long uid, @RequestParam("id") long id)
             throws IOException {
         if (!checkForPermissionAccess(uid)){
             uid = null;
         }
-        String user_id = guestService.getApiKeyAttribute(uid,Connector.getConnector("bodytrack"), "user_id");
-		String tunnelUrl = "http://localhost:3000/users/" + user_id
-				+ "/views/get?id=" + id;
-		writeTunnelResponse(tunnelUrl, response);
+        response.getWriter().write(bodyTrackHelper.getView(uid,id));
 	}
 
 	@RequestMapping(value = "/bodytrack/users/{UID}/views/set")
@@ -150,12 +143,7 @@ public class BodyTrackController {
         if (!checkForPermissionAccess(uid)){
             uid = null;
         }
-        String user_id = guestService.getApiKeyAttribute(uid,Connector.getConnector("bodytrack"), "user_id");
-		Map<String, String> params = new HashMap<String, String>();
-		params.put("name", name);
-		params.put("data", data);
-		String tunnelUrl = "http://localhost:3000/users/" + user_id + "/views/set";
-		postTunnelRequest(tunnelUrl, response, params);
+        response.getWriter().write(bodyTrackHelper.saveView(uid,name,data));
 	}
 
 	@RequestMapping(value = "/bodytrack/users/{UID}/sources")
