@@ -192,8 +192,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     fetchState("/nav/setDate.json?date=" + formatted);
                 }
                 else if (Calendar.timeUnit == "WEEK"){
-                    var week = getWeekNumber(event.date)[1];
-                    fetchState("/nav/setWeek.json?week=" + week + "&year=" + curr_year);
+                    var weekNumber = getWeekNumber(event.date);
+                    fetchState("/nav/setWeek.json?week=" + weekNumber[1] + "&year=" + weekNumber[0]);
                 }
 				$(".datepicker").hide();
 			}
