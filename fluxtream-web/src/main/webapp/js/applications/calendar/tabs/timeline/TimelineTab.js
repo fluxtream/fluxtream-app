@@ -2835,7 +2835,8 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
     }
 
     function timeNavigation(nav){
-        switch (nav){
+        var splits = nav.split("/");
+        switch (splits[0]){
             case "prev":
                 gotoTime("back");
                 break;
@@ -2867,6 +2868,49 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
                 var diff = end - dateAxis.getMax();
                 dateAxis.setRange(dateAxis.getMin() + diff, dateAxis.getMax() + diff);
                 break;
+            case "set":
+                switch (splits[1]){
+                    case "date":
+                        var dateParts = splits[2].split("-");
+                        var year = dateParts[0];
+                        var month = parseInt(dateParts[1]) - 1;
+                        var day = dateParts[2];
+                        var start = new Date(year,month,day,0,0,0,0).getTime()/1000;
+                        var end = new Date(year,month,day,11,59,59,999).getTime()/1000;
+                        dateAxis.setRange(start,end);
+                        break;
+                    case "week":
+                        var datePartsStart = splits[2].split("-");
+                        var datePartsEnd = splits[3].split("-");
+                        var yearStart = datePartsStart[0];
+                        var monthStart = parseInt(datePartsStart[1]) - 1;
+                        var dayStart = datePartsStart[2];
+                        var yearEnd = datePartsEnd[0];
+                        var monthEnd = parseInt(datePartsEnd[1]) - 1;
+                        var dayEnd = datePartsEnd[2];
+                        var start = new Date(yearStart,monthStart,dayStart,0,0,0,0).getTime()/1000;
+                        var end = new Date(yearEnd,monthEnd,dayEnd,11,59,59,999).getTime()/1000;
+                        dateAxis.setRange(start,end);
+                        break;
+                    case "month":
+                        var year = splits[2];
+                        var month = splits[3];
+                        var start = new Date(year,month,1,0,0,0,0).getTime()/1000;
+                        var end = new Date(year,month,App.getLastDayOfMonth(year,month),11,59,59,999).getTime()/1000;
+                        dateAxis.setRange(start,end);
+                        break;
+                    case "year":
+                        var year = splits[2];
+                        var start = new Date(year,0,1,0,0,0,0).getTime() /1000;
+                        var end = new Date(year,11,31,11,59,59,999).getTime() /1000;
+                        dateAxis.setRange(start,end);
+                        break;
+                    default:
+                        return false;
+                }
+                break;
+            default:
+                return false;
         }
         return true;
     }

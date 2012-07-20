@@ -420,6 +420,16 @@ define(
             $(".application").load("/search/0?q=" + $(".search-query").val());
         };
 
+        var monthEndDays = [31,28,31,30,31,30,31,31,30,31,30,31];
+
+        App.getLastDayOfMonth = function(year,month){
+            return monthEndDays[month] + ((month == 1 && App.isLeapYear(year)) ? 1 : 0);
+        }
+
+        App.isLeapYear = function(year){
+            return (year % 400 == 0) || (year % 100 != 0 && year % 4 == 0);
+        }
+
         function carousel(photoId) {
             $(".carousel-inner div.item").removeClass("active");
             $(".carousel-inner #photo-"+photoId).addClass("active");

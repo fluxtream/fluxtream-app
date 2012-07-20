@@ -183,16 +183,22 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         $("#datepicker").attr("data-date", currentDate);
 		$("#datepicker").unbind("changeDate");
 		$("#datepicker").datepicker().on(
-			"changeDate", function(event) {
-				var curr_date = event.date.getDate();
-				var curr_month = event.date.getMonth() + 1;
-				var curr_year = event.date.getFullYear();
+			"changeDate", function(event) {;
                 if (Calendar.timeUnit == "DAY"){
-                    var formatted = curr_year + "-" + curr_month + "-" + curr_date;
+                    var formatted = App.formatDateAsDatePicker(event.date);
+                    if (Calendar.currentTab.timeNavigation("set/date/" + formatted)){
+                        $(".datepicker").hide();
+                        return;
+                    }
                     fetchState("/nav/setDate.json?date=" + formatted);
                 }
                 else if (Calendar.timeUnit == "WEEK"){
                     var weekNumber = getWeekNumber(event.date);
+                    var range = getDateRangeForWeek(weekNumber[0],weekNumber[1]);
+                    if (Calendar.currentTab.timeNavigation("set/week/" + App.formatDateAsDatePicker(range[0]) + "/" + App.formatDateAsDatePicker(range[1]))){
+                        $(".datepicker").hide();
+                        return;
+                    }
                     fetchState("/nav/setWeek.json?week=" + weekNumber[1] + "&year=" + weekNumber[0]);
                 }
 				$(".datepicker").hide();
@@ -208,6 +214,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         });
         $(".datepicker-years td").click(function(event){
             if (Calendar.timeUnit == "YEAR" && $(event.target).hasClass("year")){
+                if (Calendar.currentTab.timeNavigation("set/year/" + $(event.target).text())){
+                    $(".datepicker").hide();
+                    return;
+                }
                 fetchState("/nav/setYear.json?year=" + $(event.target).text());
                 $(".datepicker").hide();
             }
@@ -252,6 +262,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     case "Dec":
                         month = 11;
                         break;
+                }
+                if (Calendar.currentTab.timeNavigation("set/month/" + $(".datepicker-months .switch").text() + "/" + month)){
+                    $(".datepicker").hide();
+                    return;
                 }
                 fetchState("/nav/setMonth.json?year=" + $(".datepicker-months .switch").text() + "&month=" + month);
                 $(".datepicker").hide();
