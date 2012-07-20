@@ -150,25 +150,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 				FlxState.saveState("calendar", Calendar.currentTabName + "/" + response.state);
                 document.title = "Fluxtream Calendar | " + response.currentTimespanLabel + " (" + Calendar.currentTabName + ")";
 				$("#currentTimespanLabel span").html(response.currentTimespanLabel);
-                switch (Calendar.timeUnit){
-                    case "DAY":
-                        setDatepicker(response.state.split("/")[1]);
-                        break;
-                    case "WEEK":
-                        var splits = response.state.split("/");
-                        var d = getDateRangeForWeek(splits[1],splits[2])[0];
-                        setDatepicker(App.formatDateAsDatePicker(d));
-                        break;
-                    case "MONTH":
-                        var splits = response.state.split("/");
-                        var d = new Date(splits[1],splits[2],1,0,0,0,0);
-                        setDatepicker(App.formatDateAsDatePicker(d));
-                        break;
-                    case "YEAR":
-                        var d = new Date(response.state.split("/")[1],0,1,0,0,0,0);
-                        setDatepicker(App.formatDateAsDatePicker(d));
-                        break;
-                }
+                updateDatepicker();
                 fetchCalendar("/api/calendar/all/" + response.state,response.state);
 			},
 			error : function() {
@@ -176,6 +158,28 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 			}
 		});
 	}
+
+    function updateDatepicker(){
+        switch (Calendar.timeUnit){
+            case "DAY":
+                setDatepicker(Calendar.tabState.split("/")[1]);
+                break;
+            case "WEEK":
+                var splits = Calendar.tabState.split("/");
+                var d = getDateRangeForWeek(splits[1],splits[2])[0];
+                setDatepicker(App.formatDateAsDatePicker(d));
+                break;
+            case "MONTH":
+                var splits = Calendar.tabState.split("/");
+                var d = new Date(splits[1],splits[2],1,0,0,0,0);
+                setDatepicker(App.formatDateAsDatePicker(d));
+                break;
+            case "YEAR":
+                var d = new Date(Calendar.tabState.split("/")[1],0,1,0,0,0,0);
+                setDatepicker(App.formatDateAsDatePicker(d));
+                break;
+        }
+    }
 
 	function setDatepicker(currentDate) {
         $(".datepicker.dropdown-menu").remove();
@@ -750,6 +754,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         console.log("dateLabel: " + dateLabel);
 
         $("#currentTimespanLabel span").html(dateLabel);
+        updateDatepicker();
     };
 
     var viewBtnIds = {DAY:"#dayViewBtn",WEEK:"#weekViewBtn",MONTH:"#monthViewBtn",YEAR:"#yearViewBtn"};
