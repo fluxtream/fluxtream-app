@@ -6,6 +6,7 @@ import static com.fluxtream.utils.Utils.stackTrace;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -30,7 +31,7 @@ class UpdateTask implements Runnable {
 	@Autowired
 	ConnectorUpdateService connectorUpdateService;
 
-	@Autowired
+    @Autowired
 	ApiDataService apiDataService;
 
 	@Autowired
@@ -66,10 +67,31 @@ class UpdateTask implements Runnable {
 		case PUSH_TRIGGERED_UPDATE:
 			pushTriggeredUpdate(connector, apiKey, updater);
 			break;
-		}
+        case INCREMENTAL_UPDATE:
+            updateData(connector, apiKey, updater);
+            break;
+        default:
+            logger.warn("UpdateType was not handled");
+            connectorUpdateService.setUpdateWorkerTaskStatus(su.getId(), Status.FAILED);
+        }
 	}
 
-	private void pushTriggeredUpdate(Connector connector, ApiKey apiKey,
+    private void updateData(final Connector connector, final ApiKey apiKey, final AbstractUpdater updater) {
+        try {
+            UpdateInfo updateInfo = UpdateInfo.refreshFeedUpdateInfo(apiKey,
+                                                                     su.objectTypes);
+            UpdateResult updateResult = updater.updateData(updateInfo);
+            handleUpdateResult(connector, updateResult);
+        } catch (Throwable e) {
+            String stackTrace = stackTrace(e);
+            logger.warn("guestId=" + su.guestId + " action=bg_update type=initialHistory "
+                        + "stage=unexpected_exception connector="
+                        + su.connectorName + " objectType=" + su.objectTypes);
+            retry(connector, new UpdateWorkerTask.AuditTrailEntry(new Date(), "unexpected exception", "retry", stackTrace));
+        }
+    }
+
+    private void pushTriggeredUpdate(Connector connector, ApiKey apiKey,
 			AbstractUpdater updater) {
 		try {
 			UpdateInfo updateInfo = UpdateInfo.pushTriggeredUpdateInfo(apiKey,
@@ -138,7 +160,7 @@ class UpdateTask implements Runnable {
 		stringBuilder.append(" objectType=");
 		stringBuilder.append(su.objectTypes);
 		logger.info(stringBuilder.toString());
-		connectorUpdateService.setUpdateWorkerTaskStatus(su.getId(), UpdateWorkerTask.Status.DONE);
+		connectorUpdateService.setUpdateWorkerTaskStatus(su.getId(), Status.DONE);
 	}
 
 	private void abort() {

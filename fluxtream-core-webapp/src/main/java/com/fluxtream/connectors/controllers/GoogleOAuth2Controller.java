@@ -48,7 +48,8 @@ public class GoogleOAuth2Controller {
 		String authorizeUrl = "https://accounts.google.com/o/oauth2/auth?client_id=" + clientId +
 			"&redirect_uri=" + redirectUri +
 			"&scope=" + scope +
-			"&response_type=code";
+			"&response_type=code&" +
+            "access_type=offline";
 		
 		return "redirect:" + authorizeUrl;
 	}
@@ -67,7 +68,7 @@ public class GoogleOAuth2Controller {
 		params.put("client_secret", env.get("google.client.secret"));
 		params.put("redirect_uri", redirectUri);
 		params.put("grant_type", "authorization_code");
-		
+
 		String fetched = HttpUtils.fetch(swapTokenUrl, params, env);
 		
 		JSONObject token = JSONObject.fromObject(fetched);
@@ -83,7 +84,7 @@ public class GoogleOAuth2Controller {
 				"tokenExpires", String.valueOf(System.currentTimeMillis() + (token.getLong("expires_in")*1000)));
 		guestService.setApiKeyAttribute(guest.getId(), scopedApi,
 				"refreshToken", token.getString("refresh_token"));
-		
-		return "redirect:/home/from/"+scopedApi.getName();
-	}
+
+		return "redirect:/app/from/"+scopedApi.getName();
+    }
 }
