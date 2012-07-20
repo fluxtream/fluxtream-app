@@ -203,9 +203,11 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
                         addChannel(channelMapping,null);
                     else{
                         var channelElement = $("#_timeline_channel_" + channelMapping.device_name + "_" + channelMapping.channel_name);
-                        var channelElementId = channelElement.parent().attr("id");
-                        plotContainersMap[channelElementId].removePlot(plotsMap[channelElementId]);
-                        $(channelElement).remove();
+                        if (channelElement.length != 0){
+                            var channelElementId = channelElement.parent().attr("id");
+                            plotContainersMap[channelElementId].removePlot(plotsMap[channelElementId]);
+                            $(channelElement).remove();
+                        }
                     }
 
                 }
