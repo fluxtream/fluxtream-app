@@ -95,6 +95,7 @@ public class GoogleLatitudeUpdater extends AbstractGoogleOAuthUpdater {
 			latitudeUrl.minTime = String.valueOf(minTime);
 			latitudeUrl.maxTime = String.valueOf(maxTime);
 			latitudeUrl.put("location", "all");
+            latitudeUrl.put("key", key);
             latitudeUrl.put("access_token", accessToken);
 			request.url = latitudeUrl;
 			requestUrl = latitudeUrl.build();
