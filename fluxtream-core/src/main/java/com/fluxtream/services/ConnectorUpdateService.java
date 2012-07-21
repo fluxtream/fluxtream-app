@@ -70,11 +70,24 @@ public interface ConnectorUpdateService {
 
 	public void pollScheduledUpdates();
 
+    /**
+     * Sets the updateWorkerTask to the given status
+     * @param updateWorkerTaskId the id of the task whose status is to be updated
+     * @param status the status to set the task to
+     */
 	public void setUpdateWorkerTaskStatus(long updateWorkerTaskId, UpdateWorkerTask.Status status);
 
 	public ScheduleResult reScheduleUpdateTask(UpdateWorkerTask updateWorkerTask, long time,
                                                boolean incrementRetries, UpdateWorkerTask.AuditTrailEntry auditTrailEntry);
 
+    /**
+     * Returns a list of all scheduled updates for the connector for the given user
+     * NOTE: If a tasks has been running for over 10 hours, this method will set that
+     * tasks status to UpdateWorkerTask.Status.STALLED and will still return that result
+     * @param guestId the user whose status is being retrieved
+     * @param connector The connector for which the tasks are being retrieved
+     * @return a list of scheduled tasks
+     */
 	public List<UpdateWorkerTask> getScheduledUpdateTasks(long guestId, Connector connector);
 
 	public void deleteScheduledUpdateTasks(long guestId, Connector connector);

@@ -69,10 +69,16 @@ class UpdateTask implements Runnable {
 		case PUSH_TRIGGERED_UPDATE:
 			pushTriggeredUpdate(connector, apiKey, updater);
 			break;
+        case INCREMENTAL_UPDATE:
+            updateData(connector, apiKey, updater);
+            break;
+        default:
+            logger.warn("UpdateType was not handled");
+            connectorUpdateService.setUpdateWorkerTaskStatus(su.getId(), Status.FAILED);
 		}
 	}
 
-	private void pushTriggeredUpdate(Connector connector, ApiKey apiKey,
+    private void pushTriggeredUpdate(Connector connector, ApiKey apiKey,
 			AbstractUpdater updater) {
 		try {
 			UpdateInfo updateInfo = UpdateInfo.pushTriggeredUpdateInfo(apiKey,
@@ -104,9 +110,23 @@ class UpdateTask implements Runnable {
         }
 	}
 
+    private void updateData(final Connector connector, final ApiKey apiKey, final AbstractUpdater updater) {
+        try
+        {
+            UpdateInfo updateInfo = UpdateInfo.IncrementalUpdateInfo(apiKey, su.objectTypes);
+            UpdateResult result = updater.updateData(updateInfo);
+            handleUpdateResult(connector, result);
+        } catch (Exception e){
+            String stackTrace = stackTrace(e);
+            logger.warn("guestId=" + su.guestId + " action=bg_update type=initialHistory "
+                    + "stage=unexpected_exception connector="
+                    + su.connectorName + " objectType=" + su.objectTypes);
+            retry(connector, new UpdateWorkerTask.AuditTrailEntry(new Date(), "unexpected exception", "retry", stackTrace));
+        }
+    }
+
 	private void handleUpdateResult(Connector connector,
 			UpdateResult updateResult) {
-        logger.warn("Handling Result");
 		switch (updateResult.type) {
 		case DUPLICATE_UPDATE:
 			warn();

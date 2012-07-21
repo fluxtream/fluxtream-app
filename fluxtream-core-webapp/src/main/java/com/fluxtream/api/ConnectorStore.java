@@ -72,8 +72,8 @@ public class ConnectorStore {
                 Connector conn = Connector.fromValue(connector.api);
                 connector.lastSync = getLastSync(user.getId(),conn);
                 connector.latestData = getLatestData(user.getId(), conn);
-                connector.errors = checkForErrors(user.getId(),conn);
-                connector.syncing = checkIfSyncInProgress(user.getId(),conn);
+                connector.errors = true; //checkForErrors(user.getId(),conn);
+                connector.syncing = false; //checkIfSyncInProgress(user.getId(),conn);
                 connector.channels = settingsService.getChannelsForConnector(user.getId(),conn);
             }
         }
