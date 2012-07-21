@@ -14,12 +14,12 @@
     <link href="/${release}/assets-home/css/style-responsive-red.css" rel="stylesheet">
     <link href="/${release}/assets-home/css/style.css" rel="stylesheet">
     <!-- Google Web Font-->
-    <link href='//fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
-    <link href='//fonts.googleapis.com/css?family=Droid+Sans:400,700' rel='stylesheet' type='text/css'>
+    <%--<link href='//fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic,700italic' rel='stylesheet' type='text/css'>--%>
+    <%--<link href='//fonts.googleapis.com/css?family=Droid+Sans:400,700' rel='stylesheet' type='text/css'>--%>
     <!--[if IE 7]><link rel="stylesheet" href="/${release}/assets-home/css/font-awesome-ie7.css"><![endif]-->
     <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
-    <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <!--<script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>-->
     <![endif]-->
 
     <!-- For IE 7 and 8 Media Query Support -->

@@ -5,10 +5,10 @@ import java.util.HashMap;
 import java.util.Map;
 import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
-import com.fluxtream.domain.ApiKey;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.utils.HttpUtils;
 import net.sf.json.JSONObject;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -24,6 +24,7 @@ public class GoogleOAuth2Helper {
 
     @Autowired
     Configuration env;
+    Logger logger = Logger.getLogger(GoogleOAuth2Helper.class);
 
     public String getAccessToken(long guestId, Connector connector) throws IOException {
         final String expiresString = guestService.getApiKeyAttribute(guestId, connector, "tokenExpires");
