@@ -3,6 +3,7 @@ package com.fluxtream.api;
 import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -12,6 +13,7 @@ import com.fluxtream.Configuration;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.mvc.controllers.ControllerHelper;
+import com.fluxtream.mvc.models.SettingsModel;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
@@ -39,72 +41,43 @@ public class SettingsStore {
     GuestService guestService;
 
     @Autowired
-    MetadataService metadataService;
-
-    @Autowired
     SettingsService settingsService;
-
-    @Autowired
-    Configuration env;
-
-    private static final DateTimeFormatter datePickerDateFormatter = DateTimeFormat
-            .forPattern("MM/dd/yyyy");
 
     private final Gson gson = new Gson();
 
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
-    public String getSettings(HttpServletRequest request,
-                                    HttpServletResponse response) {
-        //long guestId = ControllerHelper.getGuestId();
-        //Guest guest = guestService.getGuestById(guestId);
-        //GuestSettings settings = settingsService.getSettings(guestId);
-        //ModelAndView mav = new ModelAndView("settings/index");
-        //mav.addObject("settings", settings);
-        //mav.addObject("firstname", guest.firstname == null ? ""
-        //                                                   : guest.firstname);
-        //mav.addObject("lastname", guest.lastname == null ? "" : guest.lastname);
-        //
-        //return mav;
-        return "{}";
+    public String getSettings() {
+        Guest guest = ControllerHelper.getGuest();
+        GuestSettings settings = settingsService.getSettings(guest.getId());
+        return gson.toJson(new SettingsModel(settings,guest));
     }
 
     @POST
     @Produces({ MediaType.APPLICATION_JSON })
-    public String saveSettings() throws IOException {
-        //String firstname = request.getParameter("guest_firstname");
-        //String lastname = request.getParameter("guest_lastname");
-        //String length_measure_unit = request
-        //        .getParameter("length_measure_unit");
-        //String weight_measure_unit = request
-        //        .getParameter("weight_measure_unit");
-        //String distance_measure_unit = request
-        //        .getParameter("distance_measure_unit");
-        //String temperature_unit = request
-        //        .getParameter("temperature_unit");
-        //
-        //GuestSettings.LengthMeasureUnit lengthUnit = Enum.valueOf(
-        //        GuestSettings.LengthMeasureUnit.class, length_measure_unit);
-        //GuestSettings.DistanceMeasureUnit distanceUnit = Enum.valueOf(
-        //        GuestSettings.DistanceMeasureUnit.class, distance_measure_unit);
-        //GuestSettings.WeightMeasureUnit weightUnit = Enum.valueOf(
-        //        GuestSettings.WeightMeasureUnit.class, weight_measure_unit);
-        //GuestSettings.TemperatureUnit temperatureUnit = Enum.valueOf(
-        //        GuestSettings.TemperatureUnit.class, temperature_unit); //
-        //
-        //long guestId = ControllerHelper.getGuestId();
-        //
-        //settingsService.setLengthMeasureUnit(guestId, lengthUnit);
-        //settingsService.setDistanceMeasureUnit(guestId, distanceUnit);
-        //settingsService.setWeightMeasureUnit(guestId, weightUnit);
-        //settingsService.setTemperatureUnit(guestId, temperatureUnit);
-        //
-        //settingsService.setFirstname(guestId, firstname);
-        //settingsService.setLastname(guestId, lastname);
-        //StatusModel status = new StatusModel(true, "firstname was set");
-        //String statusJson = gson.toJson(status);
-        //return statusJson;
-        return "{}";
+    public String saveSettings(@FormParam("guest_firstname") String firstName, @FormParam("guest_lastname") String lastName,
+                               @FormParam("length_measure_unit") String lengthUnit, @FormParam("distance_measure_unit") String distanceUnit,
+                               @FormParam("weight_measure_unit") String weightUnit, @FormParam("temperature_unit") String temperatureUnit) throws IOException {
+        GuestSettings.LengthMeasureUnit lngUnt = Enum.valueOf(
+                GuestSettings.LengthMeasureUnit.class, lengthUnit);
+        GuestSettings.DistanceMeasureUnit dstUnt = Enum.valueOf(
+                GuestSettings.DistanceMeasureUnit.class, distanceUnit);
+        GuestSettings.WeightMeasureUnit whtUnt = Enum.valueOf(
+                GuestSettings.WeightMeasureUnit.class, weightUnit);
+        GuestSettings.TemperatureUnit tempUnt = Enum.valueOf(
+                GuestSettings.TemperatureUnit.class, temperatureUnit);
+
+        long guestId = ControllerHelper.getGuestId();
+
+        settingsService.setLengthMeasureUnit(guestId, lngUnt);
+        settingsService.setDistanceMeasureUnit(guestId, dstUnt);
+        settingsService.setWeightMeasureUnit(guestId, whtUnt);
+        settingsService.setTemperatureUnit(guestId, tempUnt);
+
+        settingsService.setFirstname(guestId, firstName);
+        settingsService.setLastname(guestId, lastName);
+        StatusModel status = new StatusModel(true, "settings updated!");
+        return gson.toJson(status);
     }
 
 

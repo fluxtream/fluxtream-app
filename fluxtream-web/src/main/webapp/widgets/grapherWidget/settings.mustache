@@ -1,0 +1,208 @@
+<form class="form-horizontal">
+    <fieldset>
+    <div class="control-group">
+                <label class="control-label" for="titleInput">Title: </label>
+                <div class="controls">
+                    <input id="titleInput">
+                </div>
+            </div>
+        <div class="control-group">
+            <label class="control-label" for="deviceSelector">Device: </label>
+            <div class="controls">
+                <select id="deviceSelector" disabled>
+                </select>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label" for="channelSelector">Channel: </label>
+            <div class="controls">
+                <select id="channelSelector" disabled>
+                </select>
+            </div>
+        </div>
+        <div class="_timeline_channelConfig" style="display:block;">
+        <div class="_timeline_data_series_plot_config_right_area">
+            <table border="0" cellpadding="0" cellspacing="0">
+              <tr id="grapherWidgetStyleConfig-config-color-override">
+                <td>
+                  <label class="_timeline_sectionTitle">Channel Color</label>
+                </td>
+                <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                <td><input id="grapherWidgetStyleConfig-config-color-override-color" type="text"/></td>
+                <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                <td colspan="3"><label>Changing this color will set all the colors below to match</label></td>
+              </tr>
+              <tr id="grapherWidgetStyleConfig-config-lines">
+                <td>
+                  <input id="grapherWidgetStyleConfig-config-lines-show" type="checkbox" value="true"/><label for="grapherWidgetStyleConfig-config-lines-show" class="_timeline_sectionTitle">Lines</label>
+                </td>
+                <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                <td><input id="grapherWidgetStyleConfig-config-lines-color" type="text"/></td>
+                <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                <td>
+                  <select id="grapherWidgetStyleConfig-config-lines-lineWidth" class="_timeline_channelConfig_image_menu">
+                    <option value="1" title="/static/images/msdropdown/lineWidth1.png"></option>
+                    <option value="2" title="/static/images/msdropdown/lineWidth2.png"></option>
+                    <option value="3" title="/static/images/msdropdown/lineWidth3.png"></option>
+                    <option value="4" title="/static/images/msdropdown/lineWidth4.png"></option>
+                    <option value="5" title="/static/images/msdropdown/lineWidth5.png"></option>
+                  </select>
+                </td>
+                <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                <td>&nbsp;</td>
+              </tr>
+              <tr id="grapherWidgetStyleConfig-config-points">
+                <td>
+                  <input id="grapherWidgetStyleConfig-config-points-show" type="checkbox" value="true"/><label for="grapherWidgetStyleConfig-config-points-show" class="_timeline_sectionTitle">Points</label>
+                </td>
+                <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                <td><input id="grapherWidgetStyleConfig-config-points-color" type="text"/></td>
+                <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                <td>
+                  <select id="grapherWidgetStyleConfig-config-points-radius" class="_timeline_channelConfig_image_menu">
+                    <option value="1" title="/static/images/msdropdown/pointSize1.png"></option>
+                    <option value="2" title="/static/images/msdropdown/pointSize2.png"></option>
+                    <option value="3" title="/static/images/msdropdown/pointSize3.png"></option>
+                    <option value="4" title="/static/images/msdropdown/pointSize4.png"></option>
+                    <option value="5" title="/static/images/msdropdown/pointSize5.png"></option>
+                  </select>
+                </td>
+                <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                <td>
+                  <table border="0" cellpadding="0" cellspacing="0" style="width:auto">
+                    <tr>
+                      <td style="padding-right:3px">
+                        <select id="grapherWidgetStyleConfig-config-points-type" class="_timeline_channelConfig_image_menu">
+                          <option value="point-filled" title="/static/images/msdropdown/pointStyleCircleFilled.png"></option>
+                          <option value="square-filled" title="/static/images/msdropdown/pointStyleSquareFilled.png"></option>
+                          <option value="point" title="/static/images/msdropdown/pointStyleCircle.png"></option>
+                          <option value="square" title="/static/images/msdropdown/pointStyleSquare.png"></option>
+                          <option value="cross" title="/static/images/msdropdown/pointStyleCross.png"></option>
+                          <option value="plus" title="/static/images/msdropdown/pointStylePlus.png"></option>
+                        </select>
+                      </td>
+                      <td id="grapherWidgetStyleConfig-config-points-fillColor-container">
+                        <input id="grapherWidgetStyleConfig-config-points-fillColor" type="text"/>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <tr id="grapherWidgetStyleConfig-config-bars">
+                <td>
+                  <input id="grapherWidgetStyleConfig-config-bars-show" type="checkbox" value="true"/><label for="grapherWidgetStyleConfig-config-bars-show" class="_timeline_sectionTitle">Bars</label>
+                </td>
+                <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                <td><input id="grapherWidgetStyleConfig-config-bars-color" type="text"/></td>
+                <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                <td>
+                  <select id="grapherWidgetStyleConfig-config-bars-lineWidth" class="_timeline_channelConfig_image_menu">
+                    <option value="1" title="/static/images/msdropdown/barWidth1.png"></option>
+                    <option value="2" title="/static/images/msdropdown/barWidth2.png"></option>
+                    <option value="3" title="/static/images/msdropdown/barWidth3.png"></option>
+                    <option value="4" title="/static/images/msdropdown/barWidth4.png"></option>
+                    <option value="5" title="/static/images/msdropdown/barWidth5.png"></option>
+                  </select>
+                </td>
+                <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                <td>&nbsp;</td>
+              </tr>
+              <tr id="grapherWidgetStyleConfig-config-values">
+                <td>
+                  <input id="grapherWidgetStyleConfig-config-values-show" type="checkbox" value="true"/><label for="grapherWidgetStyleConfig-config-values-show" class="_timeline_sectionTitle">Values</label>
+                </td>
+                <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                <td><input id="grapherWidgetStyleConfig-config-values-fillColor" type="text"/></td>
+                <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                <td>
+                  <select id="grapherWidgetStyleConfig-config-values-numberFormat" class="_timeline_channelConfig_image_menu">
+                    <option value="###,##0.0##">#.###</option>
+                    <option value="###,##0.0#">#.##</option>
+                    <option value="###,##0.0">#.#</option>
+                    <option value="###,##0">#</option>
+                  </select>
+                </td>
+                <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                <td>
+                  <table border="0" cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td><label for="grapherWidgetStyleConfig-config-values-verticalOffset">Position:</label></td>
+                      <td style="padding-left:2px">
+                        <select id="grapherWidgetStyleConfig-config-values-verticalOffset" class="_timeline_channelConfig_image_menu">
+                          <option value="7">Above</option>
+                          <option value="-3">On</option>
+                          <option value="-13">Below</option>
+                        </select>
+                      </td>
+                      <td style="padding-left:10px"><label for="grapherWidgetStyleConfig-config-values-showOnlyOnHighlight">Visible:</label></td>
+                      <td style="padding-left:2px">
+                        <select id="grapherWidgetStyleConfig-config-values-showOnlyOnHighlight" style="width:70px">
+                          <option value="false">Always</option>
+                          <option value="true">Mouseover</option>
+                        </select>
+                      </td>
+                      <td id="grapherWidgetStyleConfig-config-values-marginWidth-label-container" style="padding-left:10px"><label for="grapherWidgetStyleConfig-config-values-marginWidth">Margin:</label></td>
+                      <td id="grapherWidgetStyleConfig-config-values-marginWidth-container" style="padding-left:2px">
+                        <select id="grapherWidgetStyleConfig-config-values-marginWidth" class="_timeline_channelConfig_image_menu">
+                          <option value="5">5</option>
+                          <option value="10">10</option>
+                          <option value="15">15</option>
+                          <option value="20">20</option>
+                          <option value="25">25</option>
+                        </select>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <tr id="grapherWidgetStyleConfig-config-comments">
+                <td>
+                  <input id="grapherWidgetStyleConfig-config-comments-show" type="checkbox" value="true"/><label for="grapherWidgetStyleConfig-config-comments-show" class="_timeline_sectionTitle">Comments</label>
+                </td>
+                <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                <td><input id="grapherWidgetStyleConfig-config-comments-color" type="text"/></td>
+                <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                <td>
+                  <select id="grapherWidgetStyleConfig-config-comments-radius" class="_timeline_channelConfig_image_menu">
+                    <option value="1" title="/static/images/msdropdown/pointSize1.png"></option>
+                    <option value="2" title="/static/images/msdropdown/pointSize2.png"></option>
+                    <option value="3" title="/static/images/msdropdown/pointSize3.png"></option>
+                    <option value="4" title="/static/images/msdropdown/pointSize4.png"></option>
+                    <option value="5" title="/static/images/msdropdown/pointSize5.png"></option>
+                  </select>
+                </td>
+                <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                <td>
+                  <table border="0" cellpadding="0" cellspacing="0" style="width:auto">
+                    <tr>
+                      <td style="padding-right:3px">
+                        <select id="grapherWidgetStyleConfig-config-comments-type" class="_timeline_channelConfig_image_menu">
+                          <option value="point-filled" title="/static/images/msdropdown/pointStyleCircleFilled.png"></option>
+                          <option value="square-filled" title="/static/images/msdropdown/pointStyleSquareFilled.png"></option>
+                          <option value="point" title="/static/images/msdropdown/pointStyleCircle.png"></option>
+                          <option value="square" title="/static/images/msdropdown/pointStyleSquare.png"></option>
+                          <option value="cross" title="/static/images/msdropdown/pointStyleCross.png"></option>
+                          <option value="plus" title="/static/images/msdropdown/pointStylePlus.png"></option>
+                        </select>
+                      </td>
+                      <td id="grapherWidgetStyleConfig-config-comments-fillColor-container">
+                        <input id="grapherWidgetStyleConfig-config-comments-fillColor" type="text"/>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <tr id="grapherWidgetStyleConfig-config-zeo" style="display:none">
+                <td>
+                  <input id="grapherWidgetStyleConfig-config-zeo-show" type="checkbox" value="true"/><label for="grapherWidgetStyleConfig-config-zeo-show" class="_timeline_sectionTitle">Zeo</label>
+                </td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+              </tr>
+            </table>
+          </div>
+          </div>
+          <br>
+    </fieldset>
+</form>

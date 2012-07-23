@@ -41,7 +41,7 @@
                             </td>
                             <td class="desc" style="background:inherit">
                                 <p style=""><b>{{name}}</b></p><br/>
-                                <a href="#">Settings <i class="icon-cog"></i></a>
+                                <a href="#" id="settings-{{connectorName}}">Settings <i class="icon-cog"></i></a>
                             </td>
                             <td class="lastSync" style="background:inherit">
                                 <p id="lastSync-{{connectorName}}" {{#syncing}}style="display:none;"{{/syncing}}>{{lastSync}}</p>
@@ -124,7 +124,7 @@
 
 </template>
 <template id="viewUpdates">
-    <div id="viewUpdatesModal" class="modal hide fade" style="width: 650px">
+    <div id="viewUpdatesModal" class="modal hide fade" style="width: 650px; margin-left:-325px">
 
         <div class="modal-header">
             <a class="close" data-dismiss="modal">&times;</a>
@@ -154,7 +154,61 @@
             </table>
         </div>
         <div class="modal-footer">
-            <button id="closeBtn" class="btn" onclick="$('#addAddressDialog').modal('hide')">Close</button>
+            <button class="btn" onclick="$('#viewUpdatesModal').modal('hide')">Close</button>
+        </div>
+    </div>
+</template>
+<template id="settings">
+    <div id="{{conectorName}}SettingsDialog" class="modal hide fade" style="width:960px; margin-left:-480px;">
+
+        <div class="modal-header">
+            <a class="close" data-dismiss="modal">&times;</a>
+            <h3>{{name}} Settings</h3>
+        </div>
+
+        <div class="modal-body">
+            <div class="row-fluid">
+                <div class="span3">
+                    <ul class="nav nav-list flx-nav-list">
+                        <li>
+                            <a href="#" id="generalSettingsLink" style="color:grey">General settings</a>
+                        </li>
+                        <li class="active">
+                            <a href="#" id="timelineSettingsLink">Timeline Settings</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="span9 set-device">
+                    <form class="form-inline">
+                        <table class="table flx-channel-table">
+                            <thead>
+                            <tr>
+                                <th>Select</th>
+                                <th>Name</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {{#channelNames}}
+                            <tr>
+                                <td><input type="checkbox" id="{{name}}-checkbox"></td>
+                                <td class="flx-channel-name"><label for="1">{{displayName}}</label></td>
+                            </tr>
+                            {{/channelNames}}
+                            </tbody>
+                            <tfoot>
+                            <tr>
+                                <td colspan="3">
+                                    <button class="btn" id="saveChannelsList">Save changes</button>
+                                </td>
+                            </tr>
+                            </tfoot>
+                        </table>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn" onclick="$('#{{conectorName}}SettingsDialog').modal('hide')">Close</button>
         </div>
     </div>
 </template>

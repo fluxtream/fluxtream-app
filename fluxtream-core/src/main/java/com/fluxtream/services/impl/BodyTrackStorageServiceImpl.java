@@ -203,7 +203,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 				System.currentTimeMillis(), TimeUnit.DAY, TimeZone.getDefault());
 		List<AbstractFacet> facets = apiDataService.getApiDataFacets(guestId,
 				Connector.getConnector(connectorName), null, timeInterval);
-		//storeApiData(guestId, facets);
+		storeApiData(guestId, facets);
 	}
 
 }

@@ -32,6 +32,11 @@ public class SystemServiceImpl implements SystemService {
 
 	static Map<String, Connector> scopedApis = new Hashtable<String, Connector>();
 
+    static {
+        scopedApis.put("https://www.googleapis.com/auth/latitude.all.best",
+                       Connector.getConnector("google_latitude"));
+    }
+
 	@Override
 	public List<ConnectorInfo> getConnectors() {
 		List<ConnectorInfo> all = JPAUtils.find(em, ConnectorInfo.class,
@@ -114,7 +119,7 @@ public class SystemServiceImpl implements SystemService {
 		em.persist(new ConnectorInfo("Google Latitude",
 				"/images/connectors/connector-google_latitude.jpg", res
 						.getString("google_latitude"),
-				"/google_latitude/token", Connector
+				"/google/oauth2/token?scope=https://www.googleapis.com/auth/latitude.all.best", Connector
 						.getConnector("google_latitude"), 9, true));
 		em.persist(new ConnectorInfo("Last fm",
 				"/images/connectors/connector-lastfm.jpg", res

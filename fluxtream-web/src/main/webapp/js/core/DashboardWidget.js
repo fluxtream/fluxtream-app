@@ -9,6 +9,7 @@ define(function() {
         _.bindAll(this);
         if (this.manifest.HasSettings) {
             this.settings = widgetInfo.settings;
+            this.defaultSettings(this.settings);
             var that = this;
             $("#" + widgetInfo.manifest.WidgetName + "-widget-settings").click(function () {
                 that.showSettingsDialog(that.settings);
@@ -132,6 +133,10 @@ define(function() {
         else if (this.digest.tbounds.end-this.digest.tbounds.start===7*ONE_DAY-1)
             return "WEEK";
         else return "YEAR";
+    }
+
+    DashboardWidget.prototype.setTitle=function(title){
+        $("#" + this.manifest.WidgetName + "-widget-title").text(title);
     }
 
     return DashboardWidget;

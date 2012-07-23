@@ -1,4 +1,4 @@
-define(function() {
+define(["applications/calendar/tabs/timeline/BodyTrack"],function(BodyTrack) {
 
     var connectors;
 
@@ -102,6 +102,60 @@ define(function() {
                 viewUpdates(template, connector);
             });
         });
+        var settingsBtn = $("#settings-" + connector.connectorName);
+        settingsBtn.click(function(event){
+            event.preventDefault();
+            connectorSettings(connector);
+        });
+    }
+
+    function connectorSettings(connector){
+        BodyTrack.SOURCES.getAvailableList(function(sources){
+            var source = null;
+            for (var i = 0; i < sources.length; i++){
+                if (sources[i].name == connector.name){
+                    source = sources[i];
+                    break;
+                }
+            }
+            var channelNames = [];
+            for (var i = 0; source != null && i < source.channels.length; i++){
+                channelNames[channelNames.length] = {name: source.name + source.channels[i].name,
+                    displayName: source.name + "." + source.channels[i].name
+                };
+            }
+            App.loadMustacheTemplate("connectorMgmtTemplates.html","settings",function(template){
+                App.makeModal(template.render({
+                    connectorName:connector.connectorName,
+                    name:connector.name,
+                    channelNames:channelNames
+                }));
+
+                for (var i = 0; i < connector.channels.length; i++){
+                    var name = connector.channels[i];
+                    var index = name.substring(0,name.indexOf(".")) + name.substring(name.indexOf(".") + 1);
+                    $("#" + index + "-checkbox")[0].checked = true;
+                }
+
+                $("#saveChannelsList").click(function(event){
+                    event.preventDefault();
+                    var channelList = "";
+                    for (var i = 0; source != null && i < source.channels.length; i++){
+                        if ($("#" + source.name + source.channels[i].name + "-checkbox")[0].checked){
+                            if (channelList == "")
+                                channelList = source.name + "." + source.channels[i].name;
+                            else
+                                channelList += "," + source.name + "." + source.channels[i].name;
+                        }
+                    }
+                    $.ajax({
+                        url:"/api/connectors/" + connector.name + "/channels",
+                        type:"POST",
+                        data:{channels:channelList}
+                    })
+                });
+            });
+        });
     }
 
     function viewUpdates(template, connector) {
@@ -113,17 +167,8 @@ define(function() {
                     updates[i].time = App.formatDate(updates[i].ts, true);
                 var html = template.render({connectorName : connectorName,
                                             updates : updates});
-                $("body").append(html);
-                $("#viewUpdatesModal").modal();
 
-                $("#viewUpdatesModal").css("zIndex","1052");
-
-                $("#viewUpdatesModal").on("hidden",function(){
-                    $("#viewUpdatesModal").remove();
-                });
-
-                var backdrops = $(".modal-backdrop");
-                $(backdrops[backdrops.length - 1]).css("zIndex","1051");
+                App.makeModal(html);
             }
         });
     }

@@ -1,7 +1,7 @@
 define(
-    [ "core/FlxState", "Addresses", "ManageConnectors", "AddConnectors", "ConnectorConfig",
+    [ "core/FlxState", "Addresses", "ManageConnectors", "AddConnectors", "ConnectorConfig", "Settings",
       "libs/jquery.form", "libs/jquery.qtip.min", "libs/jquery.jeditable.mini" ],
-    function(FlxState, Addresses, ManageConnectors, AddConnectors, ConnectorConfig) {
+    function(FlxState, Addresses, ManageConnectors, AddConnectors, ConnectorConfig, Settings) {
 
         var App = {};
         var toLoad = 0, loaded = 0;
@@ -134,20 +134,26 @@ define(
         }
 
         App.settings = function() {
-            $.ajax({
-                       url : "/settings/main",
-                       success : function(html) {
-                           makeModal(html);
-                           $("#settingsForm").ajaxForm(function() {
-                               $("#modal").empty();
-                           });
-                       }
-                   });
+            Settings.show();
         };
 
         function makeModal(html) {
-            $("#modal").replaceWith(html);
-            $("#modal").modal();
+            var dialog = $(html);
+            dialog.addClass("modal");
+            dialog.addClass("hide");
+            $("body").append(dialog);
+            dialog.modal();
+            dialog.on("hidden",function(){
+                dialog.remove();
+            });
+            var backdrops = $(".modal-backdrop");
+            if (backdrops.length > 1){
+                var zIndex = $(backdrops[backdrops.length - 2]).css("zIndex");
+                zIndex += 20;
+                $(backdrops[backdrops.length - 1]).css("zIndex",zIndex);
+                zIndex++;
+                dialog.css("zIndex",zIndex);
+            }
         }
 
         App.makeModal = makeModal;
@@ -432,7 +438,13 @@ define(
             return $("#flxUsername").html();
         }
 
+        function getUID(){
+            return $("#flxUID").html();
+        }
+
+
         App.getUsername = getUsername;
+        App.getUID = getUID;
         App.initialize = initialize;
         App.renderApp = renderApp;
         App.state = FlxState;

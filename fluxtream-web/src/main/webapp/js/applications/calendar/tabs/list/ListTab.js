@@ -166,6 +166,8 @@ define(["applications/calendar/tabs/Tab", "applications/calendar/tabs/photos/Pho
     }*/
 
     function repopulateList(){
+        var currentDate = null;
+        var prevDate = null;
         list.empty();
         var visibleCount = 0;
         var currentArray = [];
@@ -174,19 +176,30 @@ define(["applications/calendar/tabs/Tab", "applications/calendar/tabs/photos/Pho
            if (item.visible){
                visibleCount++;
                if (visibleCount >= currentPage * maxPerPage && visibleCount <= (currentPage + 1) * maxPerPage){
-                    if (currentArray.length == 0)
+                    var facetDate = App.formatDate(item.facet.start);
+                    if (currentArray.length == 0){
                         currentArray = [item.facet];
-                    else if (currentArray[0].shouldGroup(item.facet))
+                        currentDate = facetDate;
+                    }
+                    else if (currentArray[0].shouldGroup(item.facet) && facetDate == currentDate)
                         currentArray[currentArray.length] = item.facet;
-                   else{
+                    else{
+                        if (currentDate != prevDate){
+                            list.append("<hr><div style=\"margin-bottom:15px\">" + currentDate + "</div>");
+                            prevDate = currentDate;
+                        }
                         list.append("<div class=\"flx-listItem\">" + currentArray[0].getDetails(currentArray) + "</div>");
                         currentArray = [item.facet];
+                        currentDate = facetDate;
                     }
                }
            }
         }
-        if (currentArray.length != 0)
+        if (currentArray.length != 0){
+            if (currentDate != prevDate)
+                list.append("<hr><div style=\"margin-bottom:15px\">" + currentDate + "</div>");
             list.append("<div class=\"flx-listItem\">" + currentArray[0].getDetails(currentArray) + "</div>");
+        }
         if (list.children().length == 0)
             list.append("Sorry, no data to show.");
         var photos = $(".flx-box.picasa-photo img");

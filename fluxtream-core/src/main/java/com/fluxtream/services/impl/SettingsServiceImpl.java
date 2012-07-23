@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.domain.ConnectorFilterState;
 import com.sun.jersey.core.util.StringIgnoreCaseKeyComparator;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,7 +89,32 @@ public class SettingsServiceImpl implements SettingsService {
 		em.merge(settings);
 	}
 
-	@Override
+    @Override
+    @Transactional(readOnly = false)
+    public void setConnectorFilterState(final long guestId, final String stateJSON) {
+         ConnectorFilterState filterState = JPAUtils.findUnique(em, ConnectorFilterState.class,
+                                                                           "connectorFilterState",
+                                                                           guestId);
+        if (filterState==null) {
+            filterState = new ConnectorFilterState();
+            filterState.guestId = guestId;
+            filterState.stateJSON = stateJSON;
+            em.persist(filterState);
+        } else {
+            filterState.stateJSON = stateJSON;
+            em.merge(filterState);
+        }
+    }
+
+    @Override
+    public String getConnectorFilterState(final long guestId) {
+        ConnectorFilterState filterState = JPAUtils.findUnique(em, ConnectorFilterState.class,
+                                                               "connectorFilterState",
+                                                               guestId);
+        return filterState == null ? "{}" : filterState.stateJSON;
+    }
+
+    @Override
 	@Transactional(readOnly = false)
 	public void setLengthMeasureUnit(long guestId, LengthMeasureUnit unit) {
 		GuestSettings settings = JPAUtils.findUnique(em, GuestSettings.class,

@@ -1,0 +1,10 @@
+{
+"WidgetDescription" : {"en" : "Displays a graph of one of your data sources."},
+"WidgetIcon" : "grapherWidget.png",
+"WidgetName" : "grapherWidget",
+"WidgetTitle" : {"en" : "Grapher"},
+"HasSettings" : true,
+"SupportedLanguages" : "en",
+"VendorIdentifier" : "Fluxtream.com",
+"RequiredConnectors":"bodymedia, fitbit"
+}

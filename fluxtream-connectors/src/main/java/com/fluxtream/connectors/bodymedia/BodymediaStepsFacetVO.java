@@ -2,10 +2,10 @@ package com.fluxtream.connectors.bodymedia;
 
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.vos.AbstractFacetVO;
+import com.fluxtream.connectors.vos.AbstractInstantFacetVO;
 import com.fluxtream.domain.GuestSettings;
 
-@SuppressWarnings("unused")
-public class BodymediaStepsFacetVO extends AbstractFacetVO<BodymediaStepsFacet>{
+public class BodymediaStepsFacetVO extends AbstractInstantFacetVO<BodymediaStepsFacet> {
 
     public int totalSteps;
 

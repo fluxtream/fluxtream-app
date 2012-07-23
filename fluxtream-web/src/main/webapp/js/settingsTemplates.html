@@ -1,0 +1,59 @@
+<template id="dialog">
+    <div id="modal" class="modal fade hide in">
+        <div class="modal-header">
+            <a class="close" data-dismiss="modal">&times;</a>
+            <h3>Settings</h3>
+        </div>
+        <form id="settingsForm" action="/api/settings" method="POST" style="margin:0">
+            <div class="modal-body">
+                <h3>Your Personal Details</h3>
+                <table>
+                    <tbody><tr>
+                        <td><label for="guest_firstname">First name</label></td>
+                        <td><input type="text" name="guest_firstname" id="guest_firstname"></td>
+                    </tr>
+                    <tr>
+                        <td><label for="guest_lastname">Last name</label></td>
+                        <td><input type="text" name="guest_lastname" id="guest_lastname"></td>
+                    </tr>
+                    </tbody></table>
+                <h3>Units of measure Preferences</h3>
+                <table>
+                    <tbody><tr>
+                        <td><label for="length_measure_unit">Length Measure</label></td>
+                        <td><select name="length_measure_unit" id="length_measure_unit">
+                            <option value="SI">Cm</option>
+                            <option value="FEET_INCHES">Feet/Inches</option>
+                        </select></td>
+                    </tr>
+                    <tr>
+                        <td><label for="distance_measure_unit">Distance Measure</label></td>
+                        <td><select name="distance_measure_unit" id="distance_measure_unit">
+                            <option value="SI">Km</option>
+                            <option value="MILES_YARDS">Miles/Yards</option>
+                        </select></td>
+                    </tr>
+                    <tr>
+                        <td><label for="weight_measure_unit">Weight Measure</label></td>
+                        <td><select name="weight_measure_unit" id="weight_measure_unit">
+                            <option value="SI">Kg/Grams</option>
+                            <option value="STONES">Stones</option>
+                            <option value="POUNDS">Pounds</option>
+                        </select></td>
+                    </tr>
+                    <tr>
+                        <td><label for="temperature_unit">Temperatures</label></td>
+                        <td><select name="temperature_unit" id="temperature_unit">
+                            <option value="CELSIUS">Celsius</option>
+                            <option value="FAHRENHEIT">Fahrenheit</option>
+                        </select></td>
+                    </tr>
+                    </tbody></table>
+            </div>
+        </form>
+        <div class="modal-footer">
+            <input type="submit" value="Save Settings" class="btn btn-primary" id="saveSettingsBtn">
+            <button class="btn" onclick="App.closeModal()">Close</button>
+        </div>
+    </div>
+</template>

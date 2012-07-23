@@ -41,9 +41,7 @@ define(function() {
 
     function confirmDelete(index){
         App.loadMustacheTemplate("addressesTemplate.html","deleteAddressConfirm",function(template){
-            $("body").append(template.render({address:addresses[index].address}));
-            $("#deleteAddressConfirmDialog").modal();
-
+            App.makeModal(template.render({address:addresses[index].address}));
 
             var confirmDelete = $("#confirmDeleteBtn");
 
@@ -58,26 +56,12 @@ define(function() {
                 });
 
             });
-
-            $("#deleteAddressConfirmDialog").css("zIndex","1052");
-            var backdrops = $(".modal-backdrop");
-            $(backdrops[backdrops.length - 1]).css("zIndex","1051");
-
-            $("#deleteAddressConfirmDialog").on("hidden",function(){
-                $("#deleteAddressConfirmDialog").remove();
-            });
         });
     }
 
     function addressDialogInitializer(html){
-        $("body").append(html);
-        $("#addAddressDialog").modal();
+        App.makeModal(html);
 
-        $("#addAddressDialog").css("zIndex","1052");
-
-        $("#addAddressDialog").on("hidden",function(){
-            $("#addAddressDialog").remove();
-        });
 
         var backdrops = $(".modal-backdrop");
         $(backdrops[backdrops.length - 1]).css("zIndex","1051");

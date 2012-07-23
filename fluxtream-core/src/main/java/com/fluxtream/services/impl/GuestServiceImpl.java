@@ -12,6 +12,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
+import com.fluxtream.connectors.OAuth2Helper;
 import com.fluxtream.connectors.google_latitude.LocationFacet;
 import net.sf.json.JSONObject;
 
@@ -64,6 +65,9 @@ public class GuestServiceImpl implements GuestService {
     @Qualifier("connectorUpdateServiceImpl")
     @Autowired
 	ConnectorUpdateService connectorUpdateService;
+
+    @Autowired
+    OAuth2Helper oAuth2Helper;
 
 	LookupService geoIpLookupService;
 
@@ -165,6 +169,9 @@ public class GuestServiceImpl implements GuestService {
 	public void removeApiKey(long guestId, Connector connector) {
 		ApiKey apiKey = JPAUtils.findUnique(em, ApiKey.class, "apiKey.byApi",
 				guestId, connector.value());
+        final String refreshTokenRemoveURL = apiKey.getAttributeValue("refreshTokenRemoveURL", env);
+        if (refreshTokenRemoveURL !=null)
+            oAuth2Helper.revokeRefreshToken(guestId, connector, refreshTokenRemoveURL);
         em.remove(apiKey);
 		if (connector == Connector.getConnector("google_latitude"))
 			JPAUtils.execute(em, "context.delete.all", guestId);
@@ -203,6 +210,7 @@ public class GuestServiceImpl implements GuestService {
 
 	@Override
 	@Transactional(readOnly = false)
+    @Secured({ "ROLE_ADMIN", "ROLE_ROOT" })
 	public void eraseGuestInfo(String username) throws Exception {
 		Guest guest = getGuest(username);
 		if (guest == null)

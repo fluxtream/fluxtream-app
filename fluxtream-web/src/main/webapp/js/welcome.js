@@ -45,7 +45,7 @@ function submitCreateAccountForm() {
 		url:"/createAccount",
 		type: "POST",
 		data: {invitationCode: invitationCode, email: email,
-			password: password, password2: password2,
+			password1: password, password2: password2,
 			username: username, firstname: firstname,
 			lastname: lastname},
 		success: function(html) {

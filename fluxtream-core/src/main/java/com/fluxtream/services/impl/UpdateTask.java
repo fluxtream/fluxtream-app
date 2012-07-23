@@ -75,7 +75,7 @@ class UpdateTask implements Runnable {
         default:
             logger.warn("UpdateType was not handled");
             connectorUpdateService.setUpdateWorkerTaskStatus(su.getId(), Status.FAILED);
-		}
+        }
 	}
 
     private void pushTriggeredUpdate(Connector connector, ApiKey apiKey,
