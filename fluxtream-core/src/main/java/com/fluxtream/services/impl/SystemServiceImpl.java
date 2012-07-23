@@ -62,6 +62,10 @@ public class SystemServiceImpl implements SystemService {
 
 	private void initializeConnectorList() {
 		ResourceBundle res = ResourceBundle.getBundle("messages/connectors");
+        em.persist(new ConnectorInfo("QuantifiedMind",
+                                     "/images/connectors/connector-quantifiedmind.jpg", res.getString("quantifiedmind"),
+                                     "ajax:/quantifiedmind/getTokenDialog", Connector.getConnector("quantifiedmind"), 0,
+                                     true));
 		em.persist(new ConnectorInfo("OpenPath",
 				"/images/connectors/connector-openpaths.jpg", res.getString("openpath"),
 				"ajax:/openPath/enterCredentials", Connector.getConnector("openpath"), 0, false));

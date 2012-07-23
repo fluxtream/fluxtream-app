@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @Component
 @Controller
-@Updater(prettyName = "Zeo", value = 3, updateStrategyType = UpdateStrategyType.PUSH,
+@Updater(prettyName = "Zeo", value = 3, updateStrategyType = UpdateStrategyType.INCREMENTAL,
 	objectTypes = { ZeoSleepStatsFacet.class }, extractor = ZeoSleepStatsFacetExtractor.class,
     defaultChannels = {"Zeo.Sleep_Graph"})
 @JsonFacetCollection(ZeoFacetVOCollection.class)

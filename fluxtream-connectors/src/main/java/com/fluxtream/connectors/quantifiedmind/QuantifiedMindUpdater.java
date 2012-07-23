@@ -1,0 +1,69 @@
+package com.fluxtream.connectors.quantifiedmind;
+
+import java.net.URL;
+import com.fluxtream.connectors.Connector;
+import com.fluxtream.connectors.annotations.Updater;
+import com.fluxtream.connectors.updaters.AbstractUpdater;
+import com.fluxtream.connectors.updaters.UpdateInfo;
+import com.fluxtream.domain.ApiUpdate;
+import com.fluxtream.services.GuestService;
+import com.fluxtream.utils.HttpUtils;
+import com.fluxtream.utils.Utils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+/**
+ * @author candide
+ *
+ */
+
+@Component
+@Updater(prettyName = "QuantifiedMind", value = 100, updateStrategyType = Connector.UpdateStrategyType.INCREMENTAL,
+         objectTypes = {QuantifiedMindTestFacet.class}, extractor = QuantifiedMindTestFacetExtractor.class)
+public class QuantifiedMindUpdater extends AbstractUpdater {
+
+    @Autowired
+    GuestService guestService;
+
+    public QuantifiedMindUpdater() {
+        super();
+    }
+
+    @Override
+    protected void updateConnectorDataHistory(final UpdateInfo updateInfo) throws Exception {
+        if (!connectorUpdateService.isHistoryUpdateCompleted(updateInfo.getGuestId(), connector().getName(), updateInfo.objectTypes)) {
+            apiDataService.eraseApiData(updateInfo.getGuestId(), connector());
+        }
+        loadHistory(updateInfo, 0, System.currentTimeMillis());
+    }
+
+    @Override
+    public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
+        ApiUpdate lastUpdate = connectorUpdateService.getLastSuccessfulUpdate(updateInfo.apiKey.getGuestId(), connector());
+        loadHistory(updateInfo, lastUpdate.ts, System.currentTimeMillis());
+    }
+
+    private void loadHistory(UpdateInfo updateInfo, long from, long to) throws Exception {
+        String queryUrl = "request url not set yet";
+        long then = System.currentTimeMillis();
+        String username = guestService.getApiKeyAttribute(updateInfo.getGuestId(),
+                                                          Connector.getConnector("quantifiedmind"),
+                                                          "username");
+        String token = guestService.getApiKeyAttribute(updateInfo.getGuestId(),
+                                                       Connector.getConnector("quantifiedmind"),
+                                                       "token");
+        try {
+            String url = "http://www.quantified-mind.com/api/get_session_data?username=" + username + "&token=" + token;
+            final String json = HttpUtils.fetch(url, env);
+            apiDataService.cacheApiDataJSON(updateInfo, json, -1, -1);
+        }
+        catch (Exception e) {
+            countFailedApiCall(updateInfo.apiKey.getGuestId(), updateInfo.objectTypes, then, queryUrl);
+            throw new Exception("Could not get QuantifiedMind tests: "
+                                + e.getMessage() + "\n" + Utils.stackTrace(e));
+        }
+
+        countSuccessfulApiCall(updateInfo.apiKey.getGuestId(), updateInfo.objectTypes, then, queryUrl);
+    }
+
+}

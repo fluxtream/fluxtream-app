@@ -18,7 +18,12 @@ public class KhanAcademyUpdater extends AbstractUpdater {
 		super();
 	}
 
-	@Override
+    @Override
+    protected void updateConnectorDataHistory(final UpdateInfo updateInfo) throws Exception {
+        throw new RuntimeException("Not Yet Implemented");
+    }
+
+    @Override
 	public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
 	}
 
