@@ -47,6 +47,7 @@ define(["core/FlxState"], function(FlxState) {
 			} else {
 				nextAppDiv.removeClass("dormant");
 				nextAppDiv.addClass("active");
+                this.renderState(state, true);
 			}
 		} else {
 			this.renderState(state, true);
