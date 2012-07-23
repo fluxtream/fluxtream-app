@@ -73,7 +73,7 @@ define(
             if (loaded === toLoad) {
                 App.apps = apps;
                 // we create the top apps menu
-//                createAppsMenu();
+                createAppsMenu();
                 // we start the history
                 Backbone.history.start({
                                            pushState : true
