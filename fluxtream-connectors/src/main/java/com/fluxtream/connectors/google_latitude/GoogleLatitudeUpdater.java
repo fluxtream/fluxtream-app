@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.fluxtream.connectors.controllers.GoogleOAuth2Helper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -32,6 +33,9 @@ public class GoogleLatitudeUpdater extends AbstractGoogleOAuthUpdater {
 	@Autowired
 	ApiDataService apiDataService;
 
+    @Autowired
+    GoogleOAuth2Helper oAuth2Helper;
+
 	public GoogleLatitudeUpdater() {
 		super();
 	}
@@ -52,10 +56,11 @@ public class GoogleLatitudeUpdater extends AbstractGoogleOAuthUpdater {
 
 	private void loadHistory(UpdateInfo updateInfo, long from, long to)
 			throws Exception {
+        String accessToken = oAuth2Helper.getAccessToken(updateInfo.getGuestId(), updateInfo.apiKey.getConnector());
 		HttpTransport transport = this.getTransport(updateInfo.apiKey);
 		String key = env.get("google_latitudeApiKey");
 		List<LocationFacet> locationList = executeList(updateInfo, transport,
-				key, 1000, from, to);
+				key, 1000, from, to, accessToken);
 		if (locationList != null && locationList.size() > 0) {
 			List<LocationFacet> storedLocations = new ArrayList<LocationFacet>();
 			for (LocationFacet locationResource : locationList) {
@@ -78,7 +83,7 @@ public class GoogleLatitudeUpdater extends AbstractGoogleOAuthUpdater {
 
 	private List<LocationFacet> executeList(UpdateInfo updateInfo,
 			HttpTransport transport, String key, int maxResults, long minTime,
-			long maxTime) throws Exception {
+			long maxTime, String accessToken) throws Exception {
 		long then = System.currentTimeMillis();
 		String requestUrl = "request url not set yet";
 		try {
@@ -90,6 +95,8 @@ public class GoogleLatitudeUpdater extends AbstractGoogleOAuthUpdater {
 			latitudeUrl.minTime = String.valueOf(minTime);
 			latitudeUrl.maxTime = String.valueOf(maxTime);
 			latitudeUrl.put("location", "all");
+            latitudeUrl.put("key", key);
+            latitudeUrl.put("access_token", accessToken);
 			request.url = latitudeUrl;
 			requestUrl = latitudeUrl.build();
 			HttpResponse response = request.execute();

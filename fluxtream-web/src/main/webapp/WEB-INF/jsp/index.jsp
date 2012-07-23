@@ -14,12 +14,12 @@
     <link href="/${release}/assets-home/css/style-responsive-red.css" rel="stylesheet">
     <link href="/${release}/assets-home/css/style.css" rel="stylesheet">
     <!-- Google Web Font-->
-    <link href='//fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
-    <link href='//fonts.googleapis.com/css?family=Droid+Sans:400,700' rel='stylesheet' type='text/css'>
+    <%--<link href='//fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic,700italic' rel='stylesheet' type='text/css'>--%>
+    <%--<link href='//fonts.googleapis.com/css?family=Droid+Sans:400,700' rel='stylesheet' type='text/css'>--%>
     <!--[if IE 7]><link rel="stylesheet" href="/${release}/assets-home/css/font-awesome-ie7.css"><![endif]-->
     <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
-    <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <!--<script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>-->
     <![endif]-->
 
     <!-- For IE 7 and 8 Media Query Support -->
@@ -122,8 +122,8 @@
                     <div id="mc_embed_signup">
                         <p>Leave us your email below, and we'll notify you the minute we (re-)open the doors.</p>
                         <form action="http://fluxtream.createsend.com/t/j/s/ydtkyk/"  method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate form-inline">
-                            <input type="email" name="cm-ydtkyk-ydtkyk" id="ydtkyk-ydtkyk" name="EMAIL" class="span3 input-large email" id="mce-EMAIL" placeholder="email address"/>
-                            <input type="submit" id="mc-embedded-subscribe" class="btn btn-success btn-large" value="Subscribe" />
+                            <input type="email" name="cm-ydtkyk-ydtkyk" id="ydtkyk-ydtkyk" name="EMAIL" class="span3 input-large email" id="mce-EMAIL" placeholder="Just type your email address and..."/>
+                            <input type="submit" id="mc-embedded-subscribe" class="btn btn-success btn-large" value="Request an invite" />
                         </form>
                     </div>
 

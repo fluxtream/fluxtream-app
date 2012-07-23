@@ -25,6 +25,8 @@ import com.fluxtream.services.GuestService;
 import com.fluxtream.services.SettingsService;
 import com.fluxtream.services.SystemService;
 import com.google.gson.Gson;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -60,6 +62,7 @@ public class ConnectorStore {
     public String getInstalledConnectors(){
         Guest user = ControllerHelper.getGuest();
         List<ConnectorInfo> connectors =  sysService.getConnectors();
+        JSONArray connectorsArray = new JSONArray();
         List<Long> apiKeyIds = new ArrayList<Long>();
         for (int i = 0; i < connectors.size(); i++){
             if (!guestService.hasApiKey(user.getId(), connectors.get(i).getApi())) {
@@ -67,15 +70,25 @@ public class ConnectorStore {
             }
             else {
                 ConnectorInfo connector = connectors.get(i);
+                JSONObject connectorJson = new JSONObject();
                 Connector conn = Connector.fromValue(connector.api);
-                connector.lastSync = getLastSync(user.getId(),conn);
-                connector.latestData = getLatestData(user.getId(), conn);
-                connector.errors = checkForErrors(user.getId(),conn);
-                connector.syncing = checkIfSyncInProgress(user.getId(),conn);
-                connector.channels = settingsService.getChannelsForConnector(user.getId(),conn);
+                connectorJson.accumulate("name", connector.name);
+                connectorJson.accumulate("connectUrl", connector.connectUrl);
+                connectorJson.accumulate("image", connector.image);
+                connectorJson.accumulate("connectorName", connector.connectorName);
+                connectorJson.accumulate("enabled", connector.enabled);
+                connectorJson.accumulate("manageable", connector.manageable);
+                connectorJson.accumulate("text", connector.text);
+                connectorJson.accumulate("api", connector.api);
+                connectorJson.accumulate("lastSync", getLastSync(user.getId(), conn));
+                connectorJson.accumulate("latestData", getLatestData(user.getId(), conn));
+                connectorJson.accumulate("errors", checkForErrors(user.getId(), conn));
+                connectorJson.accumulate("syncing", checkIfSyncInProgress(user.getId(), conn));
+                connectorJson.accumulate("channels", settingsService.getChannelsForConnector(user.getId(),conn));
+                connectorsArray.add(connectorJson);
             }
         }
-        return gson.toJson(connectors);
+        return connectorsArray.toString();
     }
 
     @GET
@@ -106,7 +119,7 @@ public class ConnectorStore {
 
     private boolean checkForErrors(long guestId, Connector connector){
         ApiUpdate update = connectorUpdateService.getLastUpdate(guestId,connector);
-        return update == null || !update.success;
+        return update==null || !update.success;
     }
 
     private long getLastSync(long guestId, Connector connector){

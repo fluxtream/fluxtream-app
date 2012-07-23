@@ -15,6 +15,46 @@ define(function() {
 		});
 	}
 
+    function getQuantifiedMindToken() {
+        $.ajax({
+            url: "http://quantifiedmind.com/authenticate/get_token",
+            success: function(data) {
+                try {
+                    var jsonToken = JSON.parse(data);
+                    setQuantifiedMindToken(jsonToken.token);
+                } catch (err) {
+                    quantifiedMindLogin();
+                }
+            }
+        })
+    }
+
+    function setQuantifiedMindToken(token) {
+        $.ajax({
+            url:"/quantifiedmind/setToken",
+            data: { token: token },
+            type: "POST",
+            success: function(html) {
+                $(".addConnectorsMain").html(html);
+            },
+            error: function() {
+                alert("There was an error");
+            }
+        });
+    }
+
+    function quantifiedMindLogin() {
+        $.ajax({
+            url:"/quantifiedmind/login",
+            success: function(html) {
+                $(".addConnectorsMain").html(html);
+            },
+            error: function() {
+                alert("There was an error");
+            }
+        });
+    }
+
 	function submitToodledoCredentials() {
 		var username = $("input#toodledo-username").val(),
 			password = $("input#toodledo-password").val();
@@ -119,7 +159,8 @@ define(function() {
 	Connectors.submitToodledoCredentials = submitToodledoCredentials;
 	Connectors.submitNikePlusCredentials = submitNikePlusCredentials;
 	Connectors.submitOpenPathKeypair = submitOpenPathKeypair;
-	
+    Connectors.getQuantifiedMindToken = getQuantifiedMindToken;
+
 	Connectors.submitBodytrackCredentials = function() {
 		var username = $("input#bodytrack-username").val(),
 		password = $("input#bodytrack-password").val(),

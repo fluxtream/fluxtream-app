@@ -512,6 +512,17 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 }
             }
         }
+
+        // START HACK
+        var zeo = false;
+        for (var i=0; i<params.facets.length; i++) {
+            if (facets[i].type=="zeo-sleep") {
+                if (zeo) delete facets[i];
+                zeo = true;
+            }
+        }
+        // END HACK
+
         for (var i=0; i<params.facets.length; i++) {
             params.facets[i].manyFacets = params.facets.length>0?" many":"";
             for (var member in params.facets[i]) {
