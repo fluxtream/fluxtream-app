@@ -301,6 +301,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         else{//day
             weatherIcon = weatherInfo == null ? "" : weatherInfo.weatherIconUrlDay;
         }
+        weatherIcon = "/" + FLX_RELEASE_NUMBER + "/" + weatherIcon;
         var orientation, tailOrientation;
         var angle = toPolar([0,0],offX,offY)[1];
         if (angle < 45 || angle > 315){
