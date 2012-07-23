@@ -445,7 +445,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             map.fitBounds(map.gpsBounds);
             map.highlightTimespan(dayStart,dayEnd);
         }
-        if (ttpdiv != null && ttpdiv.qtip != null){
+        if (ttpdiv != null){
             ttpdiv.remove();
             ttpdiv = null;
         }
