@@ -55,7 +55,7 @@ define(
                     .append(
                     "<button id=\""
                         + app.name
-                        + "MenuButton\" class=\"btn\" "
+                        + "MenuButton\" class=\"btn appMenuBtn\" "
                         + "onclick=\"javascript:App.renderApp('"
                         + app.name + "')\">"
                         + "<i class=\"" + app.icon

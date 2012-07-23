@@ -15,7 +15,8 @@ define(["core/FlxState"], function(FlxState) {
 	 * previous app and call renderState() on the new one
 	 */
 	Application.prototype.render = function(state) {
-		$("#"+this.name+"MenuButton").button('toggle');
+        $(".appMenuBtn.active").removeClass("active");
+		$("#"+this.name+"MenuButton").addClass('active');
 		if (state==="last")
 			state = FlxState.getState(this.name);
 		that = this;
