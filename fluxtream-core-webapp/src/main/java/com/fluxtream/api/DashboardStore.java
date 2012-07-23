@@ -37,7 +37,7 @@ import org.springframework.stereotype.Component;
 @Path("/dashboards")
 @Component("RESTDashboardStore")
 @Scope("request")
-public class DashboardStore {
+    public class DashboardStore {
 
     @Autowired
     DashboardsService dashboardsService;
