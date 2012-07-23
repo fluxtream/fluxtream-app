@@ -1,6 +1,6 @@
 define(
     [ "core/FlxState", "Addresses", "ManageConnectors", "AddConnectors", "ConnectorConfig", "Settings",
-      "libs/jquery.form", "libs/jquery.qtip.min", "libs/jquery.jeditable.mini" ],
+      "libs/jquery.form", "libs/jquery.jeditable.mini" ],
     function(FlxState, Addresses, ManageConnectors, AddConnectors, ConnectorConfig, Settings) {
 
         var App = {};
@@ -419,6 +419,16 @@ define(
         App.search = function() {
             $(".application").load("/search/0?q=" + $(".search-query").val());
         };
+
+        var monthEndDays = [31,28,31,30,31,30,31,31,30,31,30,31];
+
+        App.getLastDayOfMonth = function(year,month){
+            return monthEndDays[month] + ((month == 1 && App.isLeapYear(year)) ? 1 : 0);
+        }
+
+        App.isLeapYear = function(year){
+            return (year % 400 == 0) || (year % 100 != 0 && year % 4 == 0);
+        }
 
         function carousel(photoId) {
             $(".carousel-inner div.item").removeClass("active");

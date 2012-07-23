@@ -388,11 +388,11 @@ public class HomeModel {
 
     public void setYearTimeUnit() {
 		this.timeUnit = TimeUnit.YEAR;
-		fromCalendar.set(Calendar.YEAR, fromCalendar.get(Calendar.YEAR));
+		//fromCalendar.set(Calendar.YEAR, fromCalendar.get(Calendar.YEAR));
 		fromCalendar.set(Calendar.MONTH, Calendar.JANUARY);
         fromCalendar.set(Calendar.DATE, 1);
 		fromCalendar = TimeUtils.setFromMidnight(fromCalendar);
-		toCalendar.set(Calendar.YEAR, toCalendar.get(Calendar.YEAR));
+		toCalendar.set(Calendar.YEAR, fromCalendar.get(Calendar.YEAR));
 		toCalendar.set(Calendar.MONTH, Calendar.DECEMBER);
 		toCalendar.set(Calendar.DAY_OF_MONTH,
 				toCalendar.getActualMaximum(Calendar.DAY_OF_MONTH));
@@ -403,12 +403,12 @@ public class HomeModel {
 	public void setMonthTimeUnit() {
 		Calendar c = Calendar.getInstance(tz);
 		this.timeUnit = TimeUnit.MONTH;
-		fromCalendar.set(Calendar.YEAR, c.get(Calendar.YEAR));
-		fromCalendar.set(Calendar.MONTH, c.get(Calendar.MONTH));
+		/*fromCalendar.set(Calendar.YEAR, c.get(Calendar.YEAR));
+		fromCalendar.set(Calendar.MONTH, c.get(Calendar.MONTH));*/
 		fromCalendar.set(Calendar.DAY_OF_MONTH, 1);
 		fromCalendar = TimeUtils.setFromMidnight(fromCalendar);
-		toCalendar.set(Calendar.YEAR, c.get(Calendar.YEAR));
-		toCalendar.set(Calendar.MONTH, c.get(Calendar.MONTH));
+		toCalendar.set(Calendar.YEAR, fromCalendar.get(Calendar.YEAR));
+		toCalendar.set(Calendar.MONTH, fromCalendar.get(Calendar.MONTH));
 		toCalendar.set(Calendar.DAY_OF_MONTH,
 				toCalendar.getActualMaximum(Calendar.DAY_OF_MONTH));
 		toCalendar = TimeUtils.setToMidnight(toCalendar);
@@ -427,13 +427,13 @@ public class HomeModel {
 	public void setWeekTimeUnit() {
 		Calendar c = Calendar.getInstance(tz);
 		this.timeUnit = TimeUnit.WEEK;
-		fromCalendar.set(Calendar.YEAR, c.get(Calendar.YEAR));
-		fromCalendar.set(Calendar.MONTH, c.get(Calendar.MONTH));
+		//fromCalendar.set(Calendar.YEAR, c.get(Calendar.YEAR));
+		//fromCalendar.set(Calendar.MONTH, c.get(Calendar.MONTH));
 		fromCalendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
 		fromCalendar = TimeUtils.setFromMidnight(fromCalendar);
 		toCalendar.add(Calendar.WEEK_OF_YEAR, 1);
-		toCalendar.set(Calendar.YEAR, c.get(Calendar.YEAR));
-		toCalendar.set(Calendar.MONTH, c.get(Calendar.MONTH));
+		toCalendar.set(Calendar.YEAR, fromCalendar.get(Calendar.YEAR));
+		toCalendar.set(Calendar.MONTH, fromCalendar.get(Calendar.MONTH));
 		toCalendar.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
 		toCalendar = TimeUtils.setToMidnight(toCalendar);
 		this.viewType = this.aggregatedVisualizationType;

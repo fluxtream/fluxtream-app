@@ -225,15 +225,12 @@ public class CalendarDataStore {
 
         long guestId = guest.getId();
 
-        int endDayNum;
-        if (month == 2 && isLeapYear(year)){
-            endDayNum = 29;
-        }
-        else{
-            Calendar c = Calendar.getInstance();
-            c.set(Calendar.MONTH,month);
-            endDayNum = c.getActualMaximum(Calendar.DAY_OF_MONTH);
-        }
+
+
+        Calendar c = Calendar.getInstance();
+        c.set(Calendar.YEAR,year);
+        c.set(Calendar.MONTH,month);
+        int endDayNum = c.getActualMaximum(Calendar.DAY_OF_MONTH);
 
         isLeapYear(year);
 

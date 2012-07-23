@@ -129,28 +129,28 @@
     <script src="/static/js/bootstrap-2.0.2.min.js"></script>
     <g:compress>
 		<script src="/static/js/jquery-ui-1.8.18.custom.min.js"></script>
-		<script src="/static/js/jquery.ui.sortable-bt.js"></script>
+		<script src="/static/js/jquery.ui.sortable-1.8.2-bt-1.0.0.js"></script>
 		<script src="/static/tiny_mce/jquery.tinymce.js"></script>
-		<script src="/static/js/json2.js"></script>
-		<script src="/static/js/jquery.autoGrowInput.js"></script>
-		<script src="/static/js/jquery.colorPicker.js"></script>
-		<script src="/static/js/jquery.dd-uncompressed.js"></script>
-		<script src="/static/js/jquery.tagedit.js"></script>
-		<script src="/static/js/jquery.shorten.js"></script>
-		<script src="/static/js/jquery.jqplot.min.js"></script>
+		<script src="/static/js/json2-2011.10.19.js"></script>
+		<script src="/static/js/jquery.autoGrowInput-1.0.0.js"></script>
+		<script src="/static/js/jquery.colorPicker-2012.01.27.js"></script>
+		<script src="/static/js/jquery.dd-2.37.5-uncompressed.js"></script>
+		<script src="/static/js/jquery.tagedit-1.2.1.js"></script>
+		<script src="/static/js/jquery.shorten-1.0.0.js"></script>
+		<script src="/static/js/jquery.jqplot-1.0.0b2.min.js"></script>
 		<script src="/static/js/jqplot-plugins/jqplot.categoryAxisRenderer.min.js"></script>
 		<script src="/static/js/jqplot-plugins/jqplot.pointLabels.min.js"></script>
 		<script src="/static/js/jqplot-plugins/jqplot.barRenderer.min.js"></script>
 		<script src="/static/js/raphael-2.1.0.js"></script>
 		<script src="/static/js/underscore-1.3.3-min.js"></script>
 		<script src="/static/js/backbone-0.9.2-min.js"></script>
-        <script src="/static/js/jquery.ba-dotimeout.min.js"></script>
-        <script src="/static/js/jquery.masonry.min.js"></script>
+        <script src="/static/js/jquery.ba-dotimeout-1.0.0.min.js"></script>
+        <script src="/static/js/jquery.masonry-2.1.03.min.js"></script>
 	</g:compress>
 	
 	<!--  TODO: validate version numbers for these libs -->
 	<script src="/static/grapher4/grapher2.nocache.js"></script>
 	
-	<script data-main="/${release}/js/main.js" src="/static/js/require.js"></script>
+	<script data-main="/${release}/js/main.js" src="/static/js/require-1.0.3.js"></script>
 </body>
 </html>

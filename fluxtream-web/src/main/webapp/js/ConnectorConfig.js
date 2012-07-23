@@ -12,7 +12,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
         },
         fitbit:{
             color: "#21b5cf",
-            mapicon: "/static/images/mapicons/aed-2.png",
+            mapicon: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/aed-2.png",
             mapshadow: null,
             facets:{
                 activity_summary:{
@@ -46,7 +46,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
         },
         lastfm:{
             color: "rgb(253, 73, 56)",
-            mapicon: "/static/images/mapicons/music.png",
+            mapicon: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/music.png",
             mapshadow: null,
             facets:{
                 recent_track:{
@@ -67,7 +67,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
         },
         withings:{
             color: "#16924e",
-            mapicon: "/static/images/mapicons/medicalstore.png",
+            mapicon: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/medicalstore.png",
             mapshadow: null,
             facets:{
                 blood_pressure:{
@@ -89,7 +89,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
         },
         picasa:{
             color: "#8c2ebb",
-            mapicon: "/static/images/mapicons/photo.png",
+            mapicon: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/photo.png",
             mapshadow: null,
             facets:{
                 photo:{
@@ -103,7 +103,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
         },
         twitter:{
             color: "rgb(146, 51, 239)",
-            mapicon: "/static/images/mapicons/tweet.png",
+            mapicon: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/tweet.png",
             mapshadow: null,
             facets:{
                 tweet:{
@@ -131,7 +131,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
         },
         google_calendar:{
             color: "rgb(146, 218, 70)",
-            mapicon: "/static/images/mapicons/calendar-3.png",
+            mapicon: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/calendar-3.png",
             mapshadow: null,
             facets:{
                 entry:{
