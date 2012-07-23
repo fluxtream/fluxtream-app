@@ -33,7 +33,7 @@ define([], function() {
 	state.saveTabState = storeTab;
 	state.getTabState = restoreTab;
 	state.router = new Backbone.Router();
-	state.apps = ["calendar"];
+	state.apps = ["calendar","bodytrack"];
 	state.defaultApp = "calendar";
 	
 	return state;
