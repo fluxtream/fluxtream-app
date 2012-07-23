@@ -31,7 +31,7 @@ import com.fluxtream.utils.HttpUtils;
 
 @Component
 @Controller
-@Updater(prettyName = "Zeo", value = 3, updateStrategyType = UpdateStrategyType.PUSH,
+@Updater(prettyName = "Zeo", value = 3, updateStrategyType = UpdateStrategyType.INCREMENTAL,
 	objectTypes = { ZeoSleepStatsFacet.class }, extractor = ZeoSleepStatsFacetExtractor.class,
     defaultChannels = {"Zeo.Sleep_Graph"})
 @JsonFacetCollection(ZeoFacetVOCollection.class)

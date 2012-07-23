@@ -31,6 +31,11 @@ public class FreshbooksUpdater extends AbstractUpdater {
 		super();
 	}
 
+    @Override
+    protected void updateConnectorDataHistory(final UpdateInfo updateInfo) throws Exception {
+        throw new RuntimeException("Not Yet Implemented");
+    }
+
 	TimeInterval timeInterval;
 	
 	@Override

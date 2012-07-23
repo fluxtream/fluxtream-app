@@ -155,10 +155,8 @@ public abstract class AbstractUpdater extends ApiClientSupport {
      * @param updateInfo update information for the connector
      * @throws Exception If an api's limit has been reached or if an update fails for another reason
      */
-	protected void updateConnectorDataHistory(UpdateInfo updateInfo)
-			throws Exception {
-		throw new RuntimeException("Not Implemented");
-	}
+	protected abstract void updateConnectorDataHistory(UpdateInfo updateInfo)
+			throws Exception;
 
 	public final UpdateResult updateData(UpdateInfo updateInfo) {
 		if (hasReachedRateLimit(connector(), updateInfo.apiKey.getGuestId())) {
