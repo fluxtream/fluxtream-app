@@ -62,6 +62,10 @@ public class SystemServiceImpl implements SystemService {
 
 	private void initializeConnectorList() {
 		ResourceBundle res = ResourceBundle.getBundle("messages/connectors");
+        em.persist(new ConnectorInfo("Github",
+                                     "/images/connectors/connector-github.jpg",
+                                     res.getString("github"),
+                                     singlyAuthorizeUrl("github"), Connector.getConnector("github"), 20, true));
         em.persist(new ConnectorInfo("QuantifiedMind",
                                      "/images/connectors/connector-quantifiedmind.jpg", res.getString("quantifiedmind"),
                                      "ajax:/quantifiedmind/getTokenDialog", Connector.getConnector("quantifiedmind"), 0,
@@ -170,10 +174,6 @@ public class SystemServiceImpl implements SystemService {
 		// res.getString("foursquare"),
 		// "/foursquare/token", Connector.getConnector("foursquare"), 18,
 		// false));
-		// em.persist(new ConnectorInfo("Github",
-		// "/images/connectors/connector-github.jpg",
-		// res.getString("github"),
-		// "/github/token", Connector.getConnector("github"), 20, false));
 		// em.persist(new ConnectorInfo("Nike +",
 		// "/images/connectors/connector-nikeplus.jpg",
 		// res.getString("nikeplus"),
@@ -186,7 +186,17 @@ public class SystemServiceImpl implements SystemService {
 		// false));
 	}
 
-	@Override
+    private String singlyAuthorizeUrl(final String service) {
+        return (new StringBuilder("https://api.singly.com/oauth/authorize?client_id=")
+            .append(env.get("singly.client.id"))
+            .append("&redirect_uri=")
+            .append(env.get("homeBaseUrl"))
+            .append("singly/" + service + "/callback")
+            .append("&service=")
+            .append(service)).toString();
+    }
+
+    @Override
 	public Connector getApiFromGoogleScope(String scope) {
 		return scopedApis.get(scope);
 	}

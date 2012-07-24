@@ -1,6 +1,5 @@
-package com.fluxtream.connectors.quantifiedmind;
+package com.fluxtream.connectors.singly.github;
 
-import java.net.URL;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
@@ -9,8 +8,6 @@ import com.fluxtream.domain.ApiUpdate;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.utils.HttpUtils;
 import com.fluxtream.utils.Utils;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -20,14 +17,14 @@ import org.springframework.stereotype.Component;
  */
 
 @Component
-@Updater(prettyName = "QuantifiedMind", value = 100, updateStrategyType = Connector.UpdateStrategyType.INCREMENTAL,
-         objectTypes = {QuantifiedMindTestFacet.class}, extractor = QuantifiedMindTestFacetExtractor.class)
-public class QuantifiedMindUpdater extends AbstractUpdater {
+@Updater(prettyName = "Github", value = 200, updateStrategyType = Connector.UpdateStrategyType.INCREMENTAL,
+         objectTypes = {GithubPushFacet.class}, extractor = GithubPushFacetExtractor.class)
+public class GithubUpdater extends AbstractUpdater {
 
     @Autowired
     GuestService guestService;
 
-    public QuantifiedMindUpdater() {
+    public GithubUpdater() {
         super();
     }
 
@@ -48,28 +45,17 @@ public class QuantifiedMindUpdater extends AbstractUpdater {
     private void loadHistory(UpdateInfo updateInfo, long from, long to) throws Exception {
         String queryUrl = "request url not set yet";
         long then = System.currentTimeMillis();
-        String username = guestService.getApiKeyAttribute(updateInfo.getGuestId(),
-                                                          Connector.getConnector("quantifiedmind"),
-                                                          "username");
-        String token = guestService.getApiKeyAttribute(updateInfo.getGuestId(),
-                                                       Connector.getConnector("quantifiedmind"),
-                                                       "token");
+
+        String accessToken = guestService.getApiKeyAttribute(updateInfo.getGuestId(), Connector.getConnector("github"), "accessToken");
+
         try {
-            boolean partialResult = true;
-            do {
-                queryUrl = "http://www.quantified-mind.com/api/get_session_data?username=" + username + "&token=" + token;
-                final String json = HttpUtils.fetch(queryUrl, env);
-                JSONObject jsonObject = JSONObject.fromObject(json);
-                String status = jsonObject.getString("status");
-                partialResult = status.equals("partial");
-                JSONArray sessionData = jsonObject.getJSONArray("session_data");
-                final String sessionDataJSON = sessionData.toString();
-                apiDataService.cacheApiDataJSON(updateInfo, sessionDataJSON, -1, -1);
-            } while (partialResult);
+            queryUrl = "https://api.singly.com/services/github/events?limit=10000&access_token=" + accessToken + "&since=" + from + "&until=" + to;
+            final String json = HttpUtils.fetch(queryUrl, env);
+            apiDataService.cacheApiDataJSON(updateInfo, json, -1, -1);
         }
         catch (Exception e) {
             countFailedApiCall(updateInfo.apiKey.getGuestId(), updateInfo.objectTypes, then, queryUrl);
-            throw new Exception("Could not get QuantifiedMind tests: "
+            throw new Exception("Could not get GitHub Commits (from Singly): "
                                 + e.getMessage() + "\n" + Utils.stackTrace(e));
         }
 
