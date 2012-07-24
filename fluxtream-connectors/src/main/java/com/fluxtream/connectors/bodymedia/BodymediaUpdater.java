@@ -41,7 +41,7 @@ public class BodymediaUpdater extends AbstractUpdater {
     private final HashMap<ObjectType, String> url = new HashMap<ObjectType, String>();
     private final HashMap<ObjectType, Integer> maxIncrement = new HashMap<ObjectType, Integer>();
 
-    private final DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyyMMdd");
+    private final DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd");
 
     public BodymediaUpdater() {
         super();
