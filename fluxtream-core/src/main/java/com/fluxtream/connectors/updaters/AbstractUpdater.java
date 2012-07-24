@@ -48,15 +48,8 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 
 	final protected Connector connector() {
 		if (connectorName == null)
-			connectorName = getConnectorName(this.getClass().getName());
+			connectorName = Connector.getConnectorName(this.getClass().getName());
 		return Connector.getConnector(connectorName);
-	}
-
-	private final String getConnectorName(String beanClassName) {
-		int startIndex = "com.fluxtream.connectors.".length();
-		String connectorName = beanClassName.substring(startIndex,
-				beanClassName.indexOf(".", startIndex + 1));
-		return connectorName;
 	}
 
 	public AbstractUpdater() {

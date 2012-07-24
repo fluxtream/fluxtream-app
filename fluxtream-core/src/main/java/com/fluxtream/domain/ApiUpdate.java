@@ -1,6 +1,7 @@
 package com.fluxtream.domain;
 
 import javax.persistence.Entity;
+import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 
@@ -57,6 +58,7 @@ public class ApiUpdate extends AbstractEntity {
 	@Type(type="yes_no")
 	public boolean success;
 
+    @Lob
     @Expose
     public String query;
 }
