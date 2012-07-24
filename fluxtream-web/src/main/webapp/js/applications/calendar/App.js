@@ -24,10 +24,16 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
         });
 		$(".menuNextButton").click(function(e) {
+            if (Calendar.currentTab.timeNavigation("next"))
+                return;
 			fetchState("/nav/incrementTimespan.json?state=" + Calendar.tabState); });
 		$(".menuPrevButton").click(function(e) {
+            if (Calendar.currentTab.timeNavigation("prev"))
+                return;
 			fetchState("/nav/decrementTimespan.json?state=" + Calendar.tabState); });
 		$(".menuTodayButton").click(function(e) {
+            if (Calendar.currentTab.timeNavigation("today"))
+                return;
 			fetchState("/nav/setToToday.json?timeUnit=" + Calendar.timeUnit);
 		});
 	};
@@ -144,9 +150,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 				FlxState.saveState("calendar", Calendar.currentTabName + "/" + response.state);
                 document.title = "Fluxtream Calendar | " + response.currentTimespanLabel + " (" + Calendar.currentTabName + ")";
 				$("#currentTimespanLabel span").html(response.currentTimespanLabel);
-				if (Calendar.timeUnit==="DAY") {
-					setDatepicker(response.state.split("/")[1]);
-				}
+                updateDatepicker();
                 fetchCalendar("/api/calendar/all/" + response.state,response.state);
 			},
 			error : function() {
@@ -155,21 +159,134 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 		});
 	}
 
+    function updateDatepicker(){
+        switch (Calendar.timeUnit){
+            case "DAY":
+                setDatepicker(Calendar.tabState.split("/")[1]);
+                break;
+            case "WEEK":
+                var splits = Calendar.tabState.split("/");
+                var d = getDateRangeForWeek(splits[1],splits[2])[0];
+                setDatepicker(App.formatDateAsDatePicker(d));
+                break;
+            case "MONTH":
+                var splits = Calendar.tabState.split("/");
+                var d = new Date(splits[1],splits[2],1,0,0,0,0);
+                setDatepicker(App.formatDateAsDatePicker(d));
+                break;
+            case "YEAR":
+                var d = new Date(Calendar.tabState.split("/")[1],0,1,0,0,0,0);
+                setDatepicker(App.formatDateAsDatePicker(d));
+                break;
+        }
+    }
+
 	function setDatepicker(currentDate) {
         $(".datepicker.dropdown-menu").remove();
         $("#datepicker").replaceWith("<a data-date-format=\"yyyy-mm-dd\" id=\"datepicker\"><i class=\"icon-calendar icon-large\"></i></a>");
         $("#datepicker").attr("data-date", currentDate);
 		$("#datepicker").unbind("changeDate");
 		$("#datepicker").datepicker().on(
-			"changeDate", function(event) {
-				var curr_date = event.date.getDate();
-				var curr_month = event.date.getMonth() + 1;
-				var curr_year = event.date.getFullYear();
-				var formatted = curr_year + "-" + curr_month + "-" + curr_date;
-				fetchState("/nav/setDate.json?date=" + formatted);
+			"changeDate", function(event) {;
+                if (Calendar.timeUnit == "DAY"){
+                    var formatted = App.formatDateAsDatePicker(event.date);
+                    if (Calendar.currentTab.timeNavigation("set/date/" + formatted)){
+                        $(".datepicker").hide();
+                        return;
+                    }
+                    fetchState("/nav/setDate.json?date=" + formatted);
+                }
+                else if (Calendar.timeUnit == "WEEK"){
+                    var weekNumber = getWeekNumber(event.date);
+                    var range = getDateRangeForWeek(weekNumber[0],weekNumber[1]);
+                    if (Calendar.currentTab.timeNavigation("set/week/" + App.formatDateAsDatePicker(range[0]) + "/" + App.formatDateAsDatePicker(range[1]))){
+                        $(".datepicker").hide();
+                        return;
+                    }
+                    fetchState("/nav/setWeek.json?week=" + weekNumber[1] + "&year=" + weekNumber[0]);
+                }
 				$(".datepicker").hide();
 			}
 		);
+        $("#datepicker").click(function(){
+            if (Calendar.timeUnit == "MONTH" || Calendar.timeUnit == "YEAR"){
+                $(".datepicker-days .switch").click();
+            }
+            if (Calendar.timeUnit == "YEAR"){
+                $(".datepicker-months .switch").click();
+            }
+        });
+        $(".datepicker-years td").click(function(event){
+            if (Calendar.timeUnit == "YEAR" && $(event.target).hasClass("year")){
+                if (Calendar.currentTab.timeNavigation("set/year/" + $(event.target).text())){
+                    $(".datepicker").hide();
+                    return;
+                }
+                fetchState("/nav/setYear.json?year=" + $(event.target).text());
+                $(".datepicker").hide();
+            }
+        });
+        $(".datepicker-months td").click(function(event){
+            if (Calendar.timeUnit == "MONTH" && $(event.target).hasClass("month")){
+                var month;
+                switch ($(event.target).text()){
+                    case "Jan":
+                        month = 0;
+                        break;
+                    case "Feb":
+                        month = 1;
+                        break;
+                    case "Mar":
+                        month = 2;
+                        break;
+                    case "Apr":
+                        month = 3;
+                        break;
+                    case "May":
+                        month = 4;
+                        break;
+                    case "Jun":
+                        month = 5;
+                        break;
+                    case "Jul":
+                        month = 6;
+                        break;
+                    case "Aug":
+                        month = 7;
+                        break;
+                    case "Sep":
+                        month = 8;
+                        break;
+                    case "Oct":
+                        month = 9;
+                        break;
+                    case "Nov":
+                        month = 10;
+                        break;
+                    case "Dec":
+                        month = 11;
+                        break;
+                }
+                if (Calendar.currentTab.timeNavigation("set/month/" + $(".datepicker-months .switch").text() + "/" + month)){
+                    $(".datepicker").hide();
+                    return;
+                }
+                fetchState("/nav/setMonth.json?year=" + $(".datepicker-months .switch").text() + "&month=" + month);
+                $(".datepicker").hide();
+            }
+        });
+        if (Calendar.timeUnit == "WEEK"){
+            var dayStart = parseInt(currentDate.split("-")[2]);
+            var count = 0;
+            var dayElements = $(".datepicker-days td");
+            for (var i = 0; i < dayElements.length && count < 7; i++){
+                var element = $(dayElements[i])
+                if (element.text() == dayStart || count != 0){
+                    element.addClass("active");
+                    count++;
+                }
+            }
+        }
 	}
 
 	function fetchCalendar(url,state) {
@@ -648,6 +765,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         console.log("dateLabel: " + dateLabel);
 
         $("#currentTimespanLabel span").html(dateLabel);
+        updateDatepicker();
     };
 
     var viewBtnIds = {DAY:"#dayViewBtn",WEEK:"#weekViewBtn",MONTH:"#monthViewBtn",YEAR:"#yearViewBtn"};

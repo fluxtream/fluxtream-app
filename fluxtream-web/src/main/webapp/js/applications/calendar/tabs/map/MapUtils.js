@@ -80,7 +80,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     function addAddress(map,address,clickable){
-        var icon = "/static/images/mapicons/";
+        var icon = "/" + FLX_RELEASE_NUMBER + "/images/mapicons/";
         switch (address.type){
             default:
             case "ADDRESS_HOME":

@@ -185,7 +185,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
             }
 
             for (var connectorName in connectorEnabled){
-                connectorToggled(connectorName,null,true);
+                connectorToggled(connectorName,null,connectorEnabled[connectorName]);
             }
         });
     } // init
@@ -203,9 +203,11 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
                         addChannel(channelMapping,null);
                     else{
                         var channelElement = $("#_timeline_channel_" + channelMapping.device_name + "_" + channelMapping.channel_name);
-                        var channelElementId = channelElement.parent().attr("id");
-                        plotContainersMap[channelElementId].removePlot(plotsMap[channelElementId]);
-                        $(channelElement).remove();
+                        if (channelElement.length != 0){
+                            var channelElementId = channelElement.parent().attr("id");
+                            plotContainersMap[channelElementId].removePlot(plotsMap[channelElementId]);
+                            $(channelElement).remove();
+                        }
                     }
 
                 }
@@ -1630,14 +1632,7 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
             });
             var prevDateString = null;
             dateAxis.addAxisChangeListener(function() {
-                var timeUnit = "DAY";
-                var range = dateAxis.getMax() - dateAxis.getMin();
-                if (range > 364 * 24 * 3600)
-                    timeUnit = "YEAR";
-                else if (range > 27 * 24 * 3600)
-                    timeUnit = "MONTH";
-                else if (range > 6 * 24 * 3600)
-                    timeUnit = "WEEK";
+                var timeUnit = getCurrentTimeUnit();
                 var center = (dateAxis.getMin() + dateAxis.getMax()) / 2.0;
                 var date = new Date(center * 1000);
                 var dateChangeBuffer = 24 * 3600 * 1000 / 12;
@@ -1669,6 +1664,18 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
                 addChannel(yAxes[i], null);
             }
         }
+    }
+
+    function getCurrentTimeUnit(){
+        var timeUnit = "DAY";
+        var range = dateAxis.getMax() - dateAxis.getMin();
+        if (range > 364 * 24 * 3600)
+            timeUnit = "YEAR";
+        else if (range > 27 * 24 * 3600)
+            timeUnit = "MONTH";
+        else if (range > 6 * 24 * 3600)
+            timeUnit = "WEEK";
+        return timeUnit;
     }
 
     // Helper function which converts the given channels object to an array
@@ -2821,6 +2828,95 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
         return true;
     }
 
+    function setZoom(seconds){
+        var curMin = dateAxis.getMin();
+        var curMax = dateAxis.getMax();
+        var diff = curMax - curMin;
+        var changeAmt = (seconds - diff)/2;
+        dateAxis.setRange(curMin - changeAmt, curMax + changeAmt);
+    }
+
+    function timeNavigation(nav){
+        var splits = nav.split("/");
+        switch (splits[0]){
+            case "prev":
+                gotoTime("back");
+                break;
+            case "next":
+                gotoTime("forward");
+                break;
+            case "DAY":
+                if (getCurrentTimeUnit() != "DAY"){
+                    setZoom(24*3600);
+                }
+                break;
+            case "WEEK":
+                if (getCurrentTimeUnit() != "WEEK"){
+                    setZoom(7*24*3600);
+                }
+                break;
+            case "MONTH":
+                if (getCurrentTimeUnit() != "MONTH"){
+                    setZoom(30*24*3600);
+                }
+                break;
+            case "YEAR":
+                if (getCurrentTimeUnit() != "YEAR"){
+                    setZoom(365*24*3600);
+                }
+                break;
+            case "today":
+                var end = new Date().getTime() / 1000;
+                var diff = end - dateAxis.getMax();
+                dateAxis.setRange(dateAxis.getMin() + diff, dateAxis.getMax() + diff);
+                break;
+            case "set":
+                switch (splits[1]){
+                    case "date":
+                        var dateParts = splits[2].split("-");
+                        var year = dateParts[0];
+                        var month = parseInt(dateParts[1]) - 1;
+                        var day = dateParts[2];
+                        var start = new Date(year,month,day,0,0,0,0).getTime()/1000;
+                        var end = new Date(year,month,day,11,59,59,999).getTime()/1000;
+                        dateAxis.setRange(start,end);
+                        break;
+                    case "week":
+                        var datePartsStart = splits[2].split("-");
+                        var datePartsEnd = splits[3].split("-");
+                        var yearStart = datePartsStart[0];
+                        var monthStart = parseInt(datePartsStart[1]) - 1;
+                        var dayStart = datePartsStart[2];
+                        var yearEnd = datePartsEnd[0];
+                        var monthEnd = parseInt(datePartsEnd[1]) - 1;
+                        var dayEnd = datePartsEnd[2];
+                        var start = new Date(yearStart,monthStart,dayStart,0,0,0,0).getTime()/1000;
+                        var end = new Date(yearEnd,monthEnd,dayEnd,11,59,59,999).getTime()/1000;
+                        dateAxis.setRange(start,end);
+                        break;
+                    case "month":
+                        var year = splits[2];
+                        var month = splits[3];
+                        var start = new Date(year,month,1,0,0,0,0).getTime()/1000;
+                        var end = new Date(year,month,App.getLastDayOfMonth(year,month),11,59,59,999).getTime()/1000;
+                        dateAxis.setRange(start,end);
+                        break;
+                    case "year":
+                        var year = splits[2];
+                        var start = new Date(year,0,1,0,0,0,0).getTime() /1000;
+                        var end = new Date(year,11,31,11,59,59,999).getTime() /1000;
+                        dateAxis.setRange(start,end);
+                        break;
+                    default:
+                        return false;
+                }
+                break;
+            default:
+                return false;
+        }
+        return true;
+    }
+
     timelineTab.initialized = false;
     timelineTab.render = render;
     timelineTab.init = init;
@@ -2829,5 +2925,6 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "applications/calenda
     timelineTab.setRange = setRange;
     timelineTab.connectorDisplayable = connectorDisplayable;
     timelineTab.connectorsAlwaysEnabled = connectorsAlwaysEnabled;
+    timelineTab.timeNavigation = timeNavigation;
     return timelineTab;
 });

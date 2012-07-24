@@ -348,37 +348,37 @@ public class MetadataServiceImpl implements MetadataService {
         for (WeatherInfo weatherInfo : weather){
             switch (weatherInfo.weatherCode){
                 case 395://Moderate or heavy snow in area with thunder
-                    weatherInfo.weatherIconUrl = "/static/images/climacons/CS.png";
-                    weatherInfo.weatherIconUrlDay = "/static/images/climacons/CSS.png";
-                    weatherInfo.weatherIconUrlNight = "/static/images/climacons/CSM.png";
+                    weatherInfo.weatherIconUrl = "images/climacons/CS.png";
+                    weatherInfo.weatherIconUrlDay = "images/climacons/CSS.png";
+                    weatherInfo.weatherIconUrlNight = "images/climacons/CSM.png";
                     break;
                 case 389://Moderate or heavy rain in area with thunder
-                    weatherInfo.weatherIconUrl = "/static/images/climacons/CL.png";
-                    weatherInfo.weatherIconUrlDay = "/static/images/climacons/CL.png";
-                    weatherInfo.weatherIconUrlNight = "/static/images/climacons/CL.png";
+                    weatherInfo.weatherIconUrl = "images/climacons/CL.png";
+                    weatherInfo.weatherIconUrlDay = "images/climacons/CL.png";
+                    weatherInfo.weatherIconUrlNight = "images/climacons/CL.png";
                     break;
                 case 200://Thundery outbreaks in nearby
                 case 386://Patchy light rain in area with thunder
                 case 392://Patchy light snow in area with thunder
-                    weatherInfo.weatherIconUrl = "/static/images/climacons/CL.png";
-                    weatherInfo.weatherIconUrlDay = "/static/images/climacons/CLS.png";
-                    weatherInfo.weatherIconUrlNight = "/static/images/climacons/CLM.png";
+                    weatherInfo.weatherIconUrl = "images/climacons/CL.png";
+                    weatherInfo.weatherIconUrlDay = "images/climacons/CLS.png";
+                    weatherInfo.weatherIconUrlNight = "images/climacons/CLM.png";
                     break;
                 case 113://Clear/Sunny
-                    weatherInfo.weatherIconUrl = "/static/images/climacons/Sun.png";
-                    weatherInfo.weatherIconUrlDay = "/static/images/climacons/Sun.png";
-                    weatherInfo.weatherIconUrlNight = "/static/images/climacons/Moon.png";
+                    weatherInfo.weatherIconUrl = "images/climacons/Sun.png";
+                    weatherInfo.weatherIconUrlDay = "images/climacons/Sun.png";
+                    weatherInfo.weatherIconUrlNight = "images/climacons/Moon.png";
                     break;
                 case 116://Partly Cloudy
-                    weatherInfo.weatherIconUrl = "/static/images/climacons/Cloud.png";
-                    weatherInfo.weatherIconUrlDay = "/static/images/climacons/CS1.png";//CS#1.png
-                    weatherInfo.weatherIconUrlNight = "/static/images/climacons/CM.png";
+                    weatherInfo.weatherIconUrl = "images/climacons/Cloud.png";
+                    weatherInfo.weatherIconUrlDay = "images/climacons/CS1.png";//CS#1.png
+                    weatherInfo.weatherIconUrlNight = "images/climacons/CM.png";
                     break;
                 case 122://Overcast
                 case 119://Cloudy
-                    weatherInfo.weatherIconUrl = "/static/images/climacons/Cloud.png";
-                    weatherInfo.weatherIconUrlDay = "/static/images/climacons/Cloud.png";
-                    weatherInfo.weatherIconUrlNight = "/static/images/climacons/Cloud.png";
+                    weatherInfo.weatherIconUrl = "images/climacons/Cloud.png";
+                    weatherInfo.weatherIconUrlDay = "images/climacons/Cloud.png";
+                    weatherInfo.weatherIconUrlNight = "images/climacons/Cloud.png";
                     break;
                 case 299://Moderate rain at times
                 case 302://Moderate rain
@@ -390,16 +390,16 @@ public class MetadataServiceImpl implements MetadataService {
                 case 353://Light rain shower
                 case 356://Moderate or heavy rain shower
                 case 359://Torrentail rain shower
-                    weatherInfo.weatherIconUrl = "/static/images/climacons/CD.png";
-                    weatherInfo.weatherIconUrlDay = "/static/images/climacons/CDS.png";
-                    weatherInfo.weatherIconUrlNight = "/static/images/climacons/CDM.png";
+                    weatherInfo.weatherIconUrl = "images/climacons/CD.png";
+                    weatherInfo.weatherIconUrlDay = "images/climacons/CDS.png";
+                    weatherInfo.weatherIconUrlNight = "images/climacons/CDM.png";
                     break;
                 case 263://patchy light drizzle
                 case 176://patchy rain nearby
                 case 143://Mist
-                    weatherInfo.weatherIconUrl = "/static/images/climacons/CD_Alt.png";
-                    weatherInfo.weatherIconUrlDay = "/static/images/climacons/CDS_Alt.png";
-                    weatherInfo.weatherIconUrlNight = "/static/images/climacons/CDM_Alt.png";
+                    weatherInfo.weatherIconUrl = "images/climacons/CD_Alt.png";
+                    weatherInfo.weatherIconUrlDay = "images/climacons/CDS_Alt.png";
+                    weatherInfo.weatherIconUrlNight = "images/climacons/CDM_Alt.png";
                     break;
                 case 227://Blowing snow
                 case 230://Blizzard
@@ -409,31 +409,31 @@ public class MetadataServiceImpl implements MetadataService {
                 case 338://Heavy snow
                 case 368://Light snow showers
                 case 371://Moderate or heavy snow showers
-                    weatherInfo.weatherIconUrl = "/static/images/climacons/CS.png";
-                    weatherInfo.weatherIconUrlDay = "/static/images/climacons/CSS.png";
-                    weatherInfo.weatherIconUrlNight = "/static/images/climacons/CSM.png";
+                    weatherInfo.weatherIconUrl = "images/climacons/CS.png";
+                    weatherInfo.weatherIconUrlDay = "images/climacons/CSS.png";
+                    weatherInfo.weatherIconUrlNight = "images/climacons/CSM.png";
                     break;
                 case 179://Patchy snow nearby
                 case 323://Patchy Light snow
                 case 325://Light snow
-                    weatherInfo.weatherIconUrl = "/static/images/climacons/CSA.png";
-                    weatherInfo.weatherIconUrlDay = "/static/images/climacons/CSSA.png";
-                    weatherInfo.weatherIconUrlNight = "/static/images/climacons/CSMA.png";
+                    weatherInfo.weatherIconUrl = "images/climacons/CSA.png";
+                    weatherInfo.weatherIconUrlDay = "images/climacons/CSSA.png";
+                    weatherInfo.weatherIconUrlNight = "images/climacons/CSMA.png";
                     break;
                 case 281://Freezing drizzle
                 case 185: //Patchy freezing drizzle nearby
                 case 182://Patchy sleet nearby
                 case 311://Light freezing rain
                 case 317://Light sleet
-                    weatherInfo.weatherIconUrl = "/static/images/climacons/CH.png";
-                    weatherInfo.weatherIconUrlDay = "/static/images/climacons/CHS.png";
-                    weatherInfo.weatherIconUrlNight = "/static/images/climacons/CHM.png";
+                    weatherInfo.weatherIconUrl = "images/climacons/CH.png";
+                    weatherInfo.weatherIconUrlDay = "images/climacons/CHS.png";
+                    weatherInfo.weatherIconUrlNight = "images/climacons/CHM.png";
                     break;
                 case 260://Freezing Fog
                 case 248://Fog
-                    weatherInfo.weatherIconUrl = "/static/images/climacons/Fog.png";
-                    weatherInfo.weatherIconUrlDay = "/static/images/climacons/FS.png";
-                    weatherInfo.weatherIconUrlNight = "/static/images/climacons/FM.png";
+                    weatherInfo.weatherIconUrl = "images/climacons/Fog.png";
+                    weatherInfo.weatherIconUrlDay = "images/climacons/FS.png";
+                    weatherInfo.weatherIconUrlNight = "images/climacons/FM.png";
                     break;
                 case 314://Moderate or Heavy freezing rain
                 case 320://Moderate or heavy sleet
@@ -443,14 +443,14 @@ public class MetadataServiceImpl implements MetadataService {
                 case 365://Moderate or heavy sleet
                 case 374://Light showrs of ice pellets
                 case 377://Moderate or heavy showres of ice pellets
-                    weatherInfo.weatherIconUrl = "/static/images/climacons/CH_Alt.png";
-                    weatherInfo.weatherIconUrlDay = "/static/images/climacons/CHS_Alt.png";
-                    weatherInfo.weatherIconUrlNight = "/static/images/climacons/CHM_Alt.png";
+                    weatherInfo.weatherIconUrl = "images/climacons/CH_Alt.png";
+                    weatherInfo.weatherIconUrlDay = "images/climacons/CHS_Alt.png";
+                    weatherInfo.weatherIconUrlNight = "images/climacons/CHM_Alt.png";
                     break;
                 default:
-                    weatherInfo.weatherIconUrl = "/static/images/climacons/WC.png";
-                    weatherInfo.weatherIconUrlDay = "/static/images/climacons/WC.png";
-                    weatherInfo.weatherIconUrlNight = "/static/images/climacons/WC.png";
+                    weatherInfo.weatherIconUrl = "images/climacons/WC.png";
+                    weatherInfo.weatherIconUrlDay = "images/climacons/WC.png";
+                    weatherInfo.weatherIconUrlNight = "images/climacons/WC.png";
                     break;
             }
         }

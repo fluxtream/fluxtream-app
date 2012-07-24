@@ -164,8 +164,13 @@ public class WidgetsServiceImpl implements WidgetsService {
         final List<DashboardWidgetsRepository> repositoryURLs = getWidgetRepositories(guestId);
         List<DashboardWidget> userWidgets = new ArrayList<DashboardWidget>();
         for (DashboardWidgetsRepository repositoryURL : repositoryURLs) {
-            List<DashboardWidget> widgetsList = getWidgetsList(repositoryURL.url,false);
-            userWidgets.addAll(widgetsList);
+            try{
+                List<DashboardWidget> widgetsList = getWidgetsList(repositoryURL.url,false);
+                userWidgets.addAll(widgetsList);
+            }
+            catch (Exception e){
+                System.out.println(e.getMessage());
+            }
         }
         return userWidgets;
     }

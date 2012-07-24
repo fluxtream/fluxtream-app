@@ -301,6 +301,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         else{//day
             weatherIcon = weatherInfo == null ? "" : weatherInfo.weatherIconUrlDay;
         }
+        weatherIcon = "/" + FLX_RELEASE_NUMBER + "/" + weatherIcon;
         var orientation, tailOrientation;
         var angle = toPolar([0,0],offX,offY)[1];
         if (angle < 45 || angle > 315){
@@ -341,36 +342,41 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             var tail = ttpdiv.find(".flx-toolTipTail-" + orientation);
             parent.append(ttpdiv);
 
-            var displayX = x;
-            var displayY = y;
+            var repositionTooltip = function(){
+                var displayX = x;
+                var displayY = y;
 
-            if (orientation == "Left" || orientation == "Right"){
-                displayY += offY - ttpdiv.height()/2;
-                tail.css("top",ttpdiv.height()/2 - offY - 10);
-            }
-            else{
-                displayX += offX - ttpdiv.width()/2;
-                tail.css("left",ttpdiv.width()/2 - offX - 10);
-            }
-            displayY -= 50;
-            switch(orientation){
-                case "Left":
-                    displayX += 10;
-                    break;
-                case "Right":
-                    displayX -= 10 + ttpdiv.width();
-                    break;
-                case "Top":
-                    displayY += 10;
-                    break;
-                case "Bottom":
-                    displayY -= 10 + ttpdiv.height();
-                    break;
+                if (orientation == "Left" || orientation == "Right"){
+                    displayY += offY - ttpdiv.height()/2;
+                    tail.css("top",ttpdiv.height()/2 - offY - 10);
+                }
+                else{
+                    displayX += offX - ttpdiv.width()/2;
+                    tail.css("left",ttpdiv.width()/2 - offX - 10);
+                }
+                displayY -= 50;
+                switch(orientation){
+                    case "Left":
+                        displayX += 10;
+                        break;
+                    case "Right":
+                        displayX -= 10 + ttpdiv.width();
+                        break;
+                    case "Top":
+                        displayY += 10;
+                        break;
+                    case "Bottom":
+                        displayY -= 10 + ttpdiv.height();
+                        break;
+                }
+
+
+                ttpdiv.css("left",displayX);
+                ttpdiv.css("top",displayY);
+
             }
 
 
-            ttpdiv.css("left",displayX);
-            ttpdiv.css("top",displayY);
 
             $("#mapPlaceHolder").append(document.getElementById("clockMap"));
             var lastSeen = $("#lastSeenLocation");
@@ -385,6 +391,12 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                     }
                 }
             });
+
+            repositionTooltip();
+
+            ttpdiv.imagesLoaded(function(){
+                repositionTooltip();
+            })
        });
 
     }
@@ -434,7 +446,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             map.fitBounds(map.gpsBounds);
             map.highlightTimespan(dayStart,dayEnd);
         }
-        if (ttpdiv != null && ttpdiv.qtip != null){
+        if (ttpdiv != null){
             ttpdiv.remove();
             ttpdiv = null;
         }
