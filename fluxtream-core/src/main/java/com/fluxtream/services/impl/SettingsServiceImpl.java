@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.domain.ConnectorChannelSet;
 import com.fluxtream.domain.ConnectorFilterState;
 import com.sun.jersey.core.util.StringIgnoreCaseKeyComparator;
 import org.apache.commons.lang.StringUtils;
@@ -172,13 +173,13 @@ public class SettingsServiceImpl implements SettingsService {
 
     @Override
     public String[] getChannelsForConnector(final long guestId, final Connector connector) {
-        String savedChannels = guestService.getApiKeyAttribute(guestId, connector, "channels");
+        ConnectorChannelSet channelSet =  JPAUtils.findUnique(em, ConnectorChannelSet.class, "connectorChannelSet.byApi", guestId, connector.value());
         String[] channels;
-        if (savedChannels == null){
+        if (channelSet == null){
             channels = connector.getDefaultChannels();
         }
         else{
-            channels = savedChannels.split(",");
+            channels = channelSet.channels.split(",");
         }
         return channels;
     }
@@ -186,7 +187,17 @@ public class SettingsServiceImpl implements SettingsService {
     @Override
     @Transactional(readOnly = false)
     public void setChannelsForConnector(final long guestId, final Connector connector, String[] channels) {
-        guestService.setApiKeyAttribute(guestId,connector,"channels",StringUtils.join(channels,","));
+        ConnectorChannelSet channelSet =  JPAUtils.findUnique(em, ConnectorChannelSet.class, "connectorChannelSet.byApi", guestId, connector.value());
+        if (channelSet==null) {
+            channelSet = new ConnectorChannelSet();
+            channelSet.guestId = guestId;
+            channelSet.api = connector.value();
+            channelSet.channels = StringUtils.join(channels,",");
+            em.persist(channelSet);
+        } else {
+            channelSet.channels = StringUtils.join(channels,",");
+            em.merge(channelSet);
+        }
     }
 
     @Override
