@@ -67,7 +67,7 @@ define(["applications/calendar/tabs/timeline/BodyTrack"],function(BodyTrack) {
         syncAllBtn.click(function(){
             setAllToSyncing();
             event.preventDefault();
-            $.ajax("/api/sync/all",{
+            $.ajax("/sync/all",{
                 type:"POST"
             });
         });
@@ -91,7 +91,7 @@ define(["applications/calendar/tabs/timeline/BodyTrack"],function(BodyTrack) {
         syncNowBtn.click(function(event){
             event.preventDefault();
             setToSyncing(connector.connectorName)
-            $.ajax("/api/sync/" + connector.connectorName,{
+            $.ajax("/sync/" + connector.connectorName,{
                 type:"POST"
             });
         });

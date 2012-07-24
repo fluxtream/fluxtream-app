@@ -1,6 +1,9 @@
 package com.fluxtream.api;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.util.ArrayList;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -9,22 +12,31 @@ import javax.ws.rs.core.MediaType;
 import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.SignpostOAuthHelper;
+import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
+import com.fluxtream.services.BodyTrackStorageService;
 import com.fluxtream.services.GuestService;
+import com.fluxtream.services.JPADaoService;
 import com.google.gson.Gson;
 import net.sf.json.JSONObject;
 import oauth.signpost.OAuthConsumer;
+import oauth.signpost.OAuthProvider;
+import oauth.signpost.basic.DefaultOAuthConsumer;
 import oauth.signpost.commonshttp.CommonsHttpOAuthConsumer;
+import oauth.signpost.commonshttp.CommonsHttpOAuthProvider;
 import oauth.signpost.exception.OAuthCommunicationException;
+import oauth.signpost.exception.OAuthException;
 import oauth.signpost.exception.OAuthExpectationFailedException;
 import oauth.signpost.exception.OAuthMessageSignerException;
+import oauth.signpost.http.HttpParameters;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -38,6 +50,13 @@ public class ApiCallController {
 
     @Autowired
     SignpostOAuthHelper signpostHelper;
+
+    @Qualifier("bodyTrackStorageServiceImpl")
+    @Autowired
+    BodyTrackStorageService bodyTrackStorageService;
+
+    @Autowired
+    JPADaoService jpaDaoService;
 
     Gson gson = new Gson();
 
@@ -54,6 +73,18 @@ public class ApiCallController {
         String api_key = env.get("bodymediaConsumerKey");
         return getUserRegistrationDate(api_key, consumer);
 
+    }
+
+    @POST
+    @Path("/bodytrackHandler")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String handleBodytrack(@QueryParam("username") String username, @QueryParam("connector") String conn) {
+        Guest guest = guestService.getGuest(username);
+        AbstractFacet facet = jpaDaoService.findOne("bodymedia." + conn + ".between", AbstractFacet.class, guest.getId(), 0L, System.currentTimeMillis());
+        ArrayList<AbstractFacet> facets = new ArrayList<AbstractFacet>();
+        facets.add(facet);
+        bodyTrackStorageService.storeApiData(guest.getId(), facets);
+        return null;
     }
 
     OAuthConsumer setupConsumer(ApiKey apiKey)
@@ -116,4 +147,51 @@ public class ApiCallController {
         return "Error: " + statusCode;
     }
 
+    @POST
+    @Path("/bodymediaReg")
+    @Produces({MediaType.TEXT_PLAIN})
+    public String addBodymedia(@QueryParam("username") String username)
+    {
+        Guest g = guestService.getGuest(username);
+
+        String oauthCallback = env.get("homeBaseUrl") + "bodymedia/upgradeToken";
+
+        if (g.getId() != null)
+            oauthCallback += "?guestId=" + g.getId();
+
+        String apiKey = env.get("bodymediaConsumerKey");
+        OAuthConsumer consumer = new DefaultOAuthConsumer(
+                apiKey,
+                env.get("bodymediaConsumerSecret"));
+        HttpParameters additionalParameter = new HttpParameters();
+        additionalParameter.put("api_key", apiKey);
+        consumer.setAdditionalParameters(additionalParameter);
+
+        HttpClient httpClient = env.getHttpClient();
+
+        OAuthProvider provider = new CommonsHttpOAuthProvider(
+                "https://api.bodymedia.com/oauth/request_token?api_key="+apiKey,
+                "https://api.bodymedia.com/oauth/access_token?api_key="+apiKey,
+                "https://api.bodymedia.com/oauth/authorize?api_key="+apiKey, httpClient);
+
+        String approvalPageUrl;
+        try {
+            approvalPageUrl = provider.retrieveRequestToken(consumer,
+                    oauthCallback);
+        }
+        catch (OAuthException e) {
+            return "RequestToken Failed";
+        }
+
+        System.out.println("the token secret is: " + consumer.getTokenSecret());
+      		approvalPageUrl+="&oauth_api=" + apiKey;
+        try {
+            approvalPageUrl = URLDecoder.decode(approvalPageUrl, "UTF-8");
+        }
+        catch (UnsupportedEncodingException e) {
+            return gson.toJson(e);
+        }
+
+        return "redirect:" + approvalPageUrl;
+    }
 }

@@ -20,6 +20,9 @@ public class ScheduleResult {
     @Expose
     List<ObjectType> types;
 
+    @Expose
+    public ResultType type = ResultType.NO_RESULT;
+
     private static final DateTimeFormatter fmt = ISODateTimeFormat.dateTime().withZone(DateTimeZone.forID("UTC"));
 
     public ScheduleResult(String connectorName, int objectTypes, ResultType resultType, long ts) {
@@ -28,11 +31,6 @@ public class ScheduleResult {
         type = resultType;
         when = fmt.print(ts);
 	}
-	
-	public ScheduleResult() {}
-
-    @Expose
-	public ResultType type = ResultType.NO_RESULT;
 
 	public enum ResultType {
 		NO_RESULT, ALREADY_SCHEDULED,

@@ -1,7 +1,5 @@
 package com.fluxtream.api;
 
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -10,20 +8,18 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.updaters.ScheduleResult;
-import com.fluxtream.connectors.updaters.UpdateInfo;
-import com.fluxtream.domain.ConnectorInfo;
-import com.fluxtream.domain.Guest;
-import com.fluxtream.domain.UpdateWorkerTask;
 import com.fluxtream.mvc.controllers.ControllerHelper;
 import com.fluxtream.mvc.models.StatusModel;
-import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.SystemService;
+import com.fluxtream.updaters.quartz.Producer;
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
 
 /**
  *
@@ -40,11 +36,9 @@ public class SyncController {
     @Autowired
     SystemService sysService;
 
+    @Qualifier("connectorUpdateServiceImpl")
     @Autowired
     ConnectorUpdateService connectorUpdateService;
-
-    @Autowired
-    private ApiDataService apiDataService;
 
     Gson gson = new Gson();
 
@@ -82,4 +76,13 @@ public class SyncController {
         return gson.toJson(scheduleResults);
     }
 
+    @POST
+    @Path("/producerTest")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String TestUPdate()
+    {
+        Producer p = new Producer();
+        p.scheduleIncrementalUpdates();
+        return gson.toJson(null);
+    }
 }

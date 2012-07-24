@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 /**
  *
  * @author Candide Kemmler (candide@fluxtream.com)
+ * @author Prasanth Somasundar
  */
 @Component("bodyMediaBurnJson")
 public class BodyMediaBurnFieldHandler implements FieldHandler {

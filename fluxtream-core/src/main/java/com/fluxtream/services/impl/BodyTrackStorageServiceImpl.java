@@ -8,12 +8,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
-import com.google.gson.Gson;
-import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import com.fluxtream.Configuration;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.TimeUnit;
@@ -24,13 +18,16 @@ import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.BodyTrackStorageService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 @Service
 @Component
 public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
-
-	static Logger LOG = Logger.getLogger(BodyTrackStorageServiceImpl.class);
 
 	@Autowired
 	Configuration env;
@@ -38,10 +35,12 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 	@Autowired
 	GuestService guestService;
 
-	@Autowired
+    @Qualifier("apiDataServiceImpl")
+    @Autowired
 	ApiDataService apiDataService;
 
-	@Autowired
+    @Qualifier("metadataServiceImpl")
+    @Autowired
 	MetadataService metadataService;
 
     @Autowired
@@ -50,7 +49,6 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
     @Autowired
     BeanFactory beanFactory;
 
-    Gson gson = new Gson();
 
     private Hashtable<String, FieldHandler> fieldHandlers = new Hashtable<String, FieldHandler>();
 
@@ -64,12 +62,9 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 		//	return;
 
 		Map<String, List<AbstractFacet>> facetsByFacetName = sortFacetsByFacetName(facets);
-		Iterator<String> eachFacetName = facetsByFacetName.keySet().iterator();
-		while (eachFacetName.hasNext()) {
-			String facetName = (String) eachFacetName.next();
-			storeDeviceData(guestId, facetsByFacetName,
-                            facetName);
-		}
+        for (final String facetName : facetsByFacetName.keySet()) {
+            storeDeviceData(guestId, facetsByFacetName, facetName);
+        }
 
 	}
 
@@ -83,7 +78,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 
         List<FieldHandler> facetFieldHandlers = getFieldHandlers(facetName);
         for (FieldHandler fieldHandler : facetFieldHandlers) {
-            uploadIntradayData(guestId, deviceName, deviceFacets, facetName, fieldHandler);
+            uploadIntradayData(guestId, deviceFacets, fieldHandler);
         }
     }
 
@@ -97,7 +92,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
         bodyTrackHelper.uploadToBodyTrack(guestId, deviceName, dailyDataChannelNames, dailyDataChannelValues);
     }
 
-    private void uploadIntradayData(long guestId, String deviceName, List<AbstractFacet> deviceFacets, String facetName, FieldHandler fieldHandler) {
+    private void uploadIntradayData(long guestId, List<AbstractFacet> deviceFacets, FieldHandler fieldHandler) {
         for (AbstractFacet deviceFacet : deviceFacets)
             fieldHandler.handleField(guestId, deviceFacet);
     }
@@ -105,7 +100,8 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
     private FieldHandler getFieldHandler(String fieldHandlerName) {
         fieldHandlerName = fieldHandlerName.substring(1);
         if (fieldHandlers.get(fieldHandlerName)==null) {
-            FieldHandler fieldHandler = (FieldHandler)beanFactory.getBean(fieldHandlerName);
+            FieldHandler fieldHandler;
+            fieldHandler = (FieldHandler)beanFactory.getBean(fieldHandlerName);
             fieldHandlers.put(fieldHandlerName, fieldHandler);
         }
         return fieldHandlers.get(fieldHandlerName);
@@ -142,21 +138,24 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
             List<AbstractFacet> deviceFacets,
             List<String> dailyDataChannelNames) {
         List<List<Object>> channelValues = new ArrayList<List<Object>>();
-        storingFacets: for (AbstractFacet deviceFacet : deviceFacets) {
+        for (AbstractFacet deviceFacet : deviceFacets) {
             Iterator<String> eachFieldName = dailyDataChannelNames.iterator();
             List<Object> values = new ArrayList<Object>();
-            values.add(deviceFacet.start/1000);
+            values.add(deviceFacet.start / 1000);
             while (eachFieldName.hasNext()) {
-                String fieldName = (String) eachFieldName.next();
+                String fieldName = eachFieldName.next();
                 try {
                     Field field;
                     field = deviceFacet.getClass().getField(fieldName);
                     Object channelValue = field.get(deviceFacet);
-                    if (channelValue instanceof java.util.Date)
+                    if (channelValue instanceof java.util.Date) {
                         values.add(((java.util.Date)channelValue).getTime());
-                    else
+                    }
+                    else {
                         values.add(channelValue);
-                } catch (Exception e) {
+                    }
+                }
+                catch (Exception e) {
                     throw new RuntimeException("No such Field: " + fieldName);
                 }
             }
@@ -189,7 +188,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 	private String getDeviceNickname(String connectorAndObjectType) {
 		Iterator<String> keys = env.bodytrackProperties.getKeys();
 		while (keys.hasNext()) {
-			String key = (String) keys.next();
+			String key = keys.next();
 			if (key.startsWith(connectorAndObjectType)) {
 				if (key.endsWith("dev_nickname"))
 					return (String) env.bodytrackProperties.getProperty(key);

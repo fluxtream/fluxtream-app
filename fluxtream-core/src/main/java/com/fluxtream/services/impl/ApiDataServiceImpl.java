@@ -39,6 +39,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,15 +63,18 @@ public class ApiDataServiceImpl implements ApiDataService {
 	@Autowired
 	GuestService guestService;
 
-	@Autowired
+    @Qualifier("JPAFacetDao")
+    @Autowired
 	FacetDao jpaDao;
 
 	@Autowired
 	BeanFactory beanFactory;
 
-	@Autowired
+    @Qualifier("bodyTrackStorageServiceImpl")
+    @Autowired
 	BodyTrackStorageService bodyTrackStorageService;
 
+    @Qualifier("metadataServiceImpl")
     @Autowired
     MetadataService metadataService;
 
@@ -220,9 +224,8 @@ public class ApiDataServiceImpl implements ApiDataService {
 	public List<AbstractFacet> getApiDataFacets(long guestId,
 			Connector connector, ObjectType objectType,
 			TimeInterval timeInterval) {
-		List<AbstractFacet> facets = jpaDao.getFacetsBetween(connector,
-				guestId, objectType, timeInterval);
-		return facets;
+        return jpaDao.getFacetsBetween(connector,
+                guestId, objectType, timeInterval);
 	}
 
     @Override
@@ -294,7 +297,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 				ObjectType[] objectType = connector.getObjectTypesForValue(facet.objectType);
 				if (objectType!=null&&objectType.length!=0)
 					sb.append(" objectType=").append(objectType[0].getName());
-				else if (objectType.length>1) {
+				else if (objectType!=null && objectType.length>1) {
 					sb.append(" objectType=[");
 					for (int i = 0; i < objectType.length; i++) {
 						ObjectType type = objectType[i];
@@ -402,8 +405,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 	public long getNumberOfDays(long guestId) {
 		Query query = em.createQuery("select count(md) from ContextualInfo md WHERE md.guestId=" + guestId);
 		Object singleResult = query.getSingleResult();
-		Long count = (Long) singleResult;
-		return count;
+        return (Long) singleResult;
 	}
 
 }

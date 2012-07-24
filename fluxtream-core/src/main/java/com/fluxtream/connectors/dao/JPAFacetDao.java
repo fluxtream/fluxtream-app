@@ -6,6 +6,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.lang.reflect.Method;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import com.fluxtream.TimeInterval;
@@ -24,7 +25,8 @@ public class JPAFacetDao implements FacetDao {
 	@Autowired
 	GuestService guestService;
 
-	@Autowired
+    @Qualifier("connectorUpdateServiceImpl")
+    @Autowired
 	ConnectorUpdateService connectorUpdateService;
 
 	@PersistenceContext
@@ -71,7 +73,7 @@ public class JPAFacetDao implements FacetDao {
                 Method m = c.getMethod("getLatestFacet",EntityManager.class,Long.class,Connector.class,ObjectType.class);
                 facet = (AbstractFacet) m.invoke(null,em,guestId,connector,objectType);
             }
-            catch (Exception e) {
+            catch (Exception ignored) {
             }
         } else {
             if (connector.objectTypes()!=null) {
@@ -82,7 +84,7 @@ public class JPAFacetDao implements FacetDao {
                         Method m = c.getMethod("getLatestFacet",EntityManager.class,Long.class,Connector.class,ObjectType.class);
                         fac = (AbstractFacet) m.invoke(null,em,guestId,connector,type);
                     }
-                    catch (Exception e) {
+                    catch (Exception ignored) {
                     }
                     if (facet == null || (fac != null && fac.end > facet.end))
                         facet = fac;
@@ -93,7 +95,7 @@ public class JPAFacetDao implements FacetDao {
                     Method m = c.getMethod("getLatestFacet",EntityManager.class,Long.class,Connector.class,ObjectType.class);
                     facet = (AbstractFacet) m.invoke(null,em,guestId,connector,null);
                 }
-                catch (Exception e) {
+                catch (Exception ignored) {
                 }
             }
         }

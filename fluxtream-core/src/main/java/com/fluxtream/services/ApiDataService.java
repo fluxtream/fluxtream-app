@@ -1,18 +1,14 @@
 package com.fluxtream.services;
 
 import java.util.List;
-
-import com.fluxtream.connectors.google_latitude.LocationFacet;
-import net.sf.json.JSONObject;
-
-import org.dom4j.Document;
-
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
+import com.fluxtream.connectors.google_latitude.LocationFacet;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
-import org.springframework.transaction.annotation.Transactional;
+import net.sf.json.JSONObject;
+import org.dom4j.Document;
 
 public interface ApiDataService {
 

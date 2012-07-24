@@ -28,9 +28,11 @@ class UpdateTask implements Runnable {
 
 	Logger logger = Logger.getLogger(UpdateTask.class);
 
-	@Autowired
+    @Qualifier("connectorUpdateServiceImpl")
+    @Autowired
 	ConnectorUpdateService connectorUpdateService;
 
+    @Qualifier("apiDataServiceImpl")
     @Autowired
 	ApiDataService apiDataService;
 
@@ -76,21 +78,6 @@ class UpdateTask implements Runnable {
         }
 	}
 
-    private void updateData(final Connector connector, final ApiKey apiKey, final AbstractUpdater updater) {
-        try {
-            UpdateInfo updateInfo = UpdateInfo.refreshFeedUpdateInfo(apiKey,
-                                                                     su.objectTypes);
-            UpdateResult updateResult = updater.updateData(updateInfo);
-            handleUpdateResult(connector, updateResult);
-        } catch (Throwable e) {
-            String stackTrace = stackTrace(e);
-            logger.warn("guestId=" + su.guestId + " action=bg_update type=initialHistory "
-                        + "stage=unexpected_exception connector="
-                        + su.connectorName + " objectType=" + su.objectTypes);
-            retry(connector, new UpdateWorkerTask.AuditTrailEntry(new Date(), "unexpected exception", "retry", stackTrace));
-        }
-    }
-
     private void pushTriggeredUpdate(Connector connector, ApiKey apiKey,
 			AbstractUpdater updater) {
 		try {
@@ -109,19 +96,34 @@ class UpdateTask implements Runnable {
 
 	private void updateDataHistory(Connector connector, ApiKey apiKey,
 			AbstractUpdater updater) {
-		try {
-			UpdateInfo updateInfo = UpdateInfo.initialHistoryUpdateInfo(apiKey,
-					su.objectTypes);
-			UpdateResult updateResult = updater.updateDataHistory(updateInfo);
-			handleUpdateResult(connector, updateResult);
-		} catch (Throwable e) {
-			String stackTrace = stackTrace(e);
-			logger.warn("guestId=" + su.guestId + " action=bg_update type=initialHistory "
-					+ "stage=unexpected_exception connector="
-					+ su.connectorName + " objectType=" + su.objectTypes);
-			retry(connector, new UpdateWorkerTask.AuditTrailEntry(new Date(), "unexpected exception", "retry", stackTrace));
-		}
+        try {
+            UpdateInfo updateInfo = UpdateInfo.initialHistoryUpdateInfo(apiKey,
+                    su.objectTypes);
+            UpdateResult updateResult = updater.updateDataHistory(updateInfo);
+            handleUpdateResult(connector, updateResult);
+        } catch (Exception e) {
+            String stackTrace = stackTrace(e);
+            logger.warn("guestId=" + su.guestId + " action=bg_update type=initialHistory "
+                    + "stage=unexpected_exception connector="
+                    + su.connectorName + " objectType=" + su.objectTypes);
+            retry(connector, new UpdateWorkerTask.AuditTrailEntry(new Date(), "unexpected exception", "retry", stackTrace));
+        }
 	}
+
+    private void updateData(final Connector connector, final ApiKey apiKey, final AbstractUpdater updater) {
+        try
+        {
+            UpdateInfo updateInfo = UpdateInfo.IncrementalUpdateInfo(apiKey, su.objectTypes);
+            UpdateResult result = updater.updateData(updateInfo);
+            handleUpdateResult(connector, result);
+        } catch (Exception e){
+            String stackTrace = stackTrace(e);
+            logger.warn("guestId=" + su.guestId + " action=bg_update type=initialHistory "
+                    + "stage=unexpected_exception connector="
+                    + su.connectorName + " objectType=" + su.objectTypes);
+            retry(connector, new UpdateWorkerTask.AuditTrailEntry(new Date(), "unexpected exception", "retry", stackTrace));
+        }
+    }
 
 	private void handleUpdateResult(Connector connector,
 			UpdateResult updateResult) {
@@ -240,8 +242,7 @@ class UpdateTask implements Runnable {
 	private int getMaxRetries(Connector connector) {
 		String key = connector.getName() + ".maxRetries";
         if (env.connectors.containsKey(key)) {
-            int retries = Integer.valueOf((String)env.connectors.getProperty(key));
-            return retries;
+            return Integer.valueOf((String)env.connectors.getProperty(key));
         }
         else {
             return Integer.valueOf((String)env.connectors.getProperty("maxRetries"));
@@ -251,8 +252,7 @@ class UpdateTask implements Runnable {
 	private int getShortRetryDelay(Connector connector) {
 		String key = connector.getName() + ".shortRetryDelay";
         if (env.connectors.containsKey(key)) {
-            int delay = Integer.valueOf((String)env.connectors.getProperty(key));
-            return delay;
+            return Integer.valueOf((String)env.connectors.getProperty(key));
         }
         else {
             return Integer.valueOf((String)env.connectors.getProperty("shortRetryDelay"));
@@ -262,8 +262,7 @@ class UpdateTask implements Runnable {
 	private int getLongRetryDelay(Connector connector) {
 		String key = connector.getName() + ".longRetryDelay";
         if (env.connectors.containsKey(key)) {
-            Integer delay = Integer.valueOf((String)env.connectors.getProperty(key));
-            return delay;
+            return Integer.valueOf((String)env.connectors.getProperty(key));
         }
         else {
             return Integer.valueOf((String)env.connectors.getProperty("longRetryDelay"));

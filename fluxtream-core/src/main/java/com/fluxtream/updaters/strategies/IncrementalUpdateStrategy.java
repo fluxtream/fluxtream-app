@@ -32,7 +32,7 @@ public class IncrementalUpdateStrategy extends AbstractUpdateStrategy {
 			if (lastUpdate!=null && (now-lastUpdate.ts<refreshDelay()))
 				return UpdateInfo.noopUpdateInfo(apiKey, objectTypes);
 			else
-				return UpdateInfo.refreshFeedUpdateInfo(apiKey, objectTypes);
+				return UpdateInfo.IncrementalUpdateInfo(apiKey, objectTypes);
 		}  else
 			return UpdateInfo.noopUpdateInfo(apiKey, objectTypes);
 	}

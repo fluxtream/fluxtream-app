@@ -16,7 +16,7 @@ import org.hibernate.search.annotations.Indexed;
 	@NamedQuery(name = "bodymedia.burn.between", query = "SELECT facet FROM Facet_BodymediaBurn facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=?"),
     @NamedQuery(name = "bodymedia.burn.getFailedUpdate", query = "SELECT facet FROM Facet_BodymediaBurn facet WHERE facet.guestId=? AND facet.lastSync=1"),
     @NamedQuery(name = "bodymedia.burn.getDaysPrior", query = "SELECT facet FROM Facet_BodymediaBurn facet WHERE facet.guestId=? AND facet.start<? ORDER BY facet.start DESC"),
-    @NamedQuery(name = "bodymedia.burn.getLastSync", query = "SELECT facet FROM Facet_BodymediaBurn facet WHERE facet.guestId=? ORDER BY facet.lastSync DESC")
+    @NamedQuery(name = "bodymedia.burn.getByLastSync", query = "SELECT facet FROM Facet_BodymediaBurn facet WHERE facet.guestId=? ORDER BY facet.lastSync DESC")
 })
 @Indexed
 public class BodymediaBurnFacet extends BodymediaAbstractFacet {

@@ -4,13 +4,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.fluxtream.Configuration;
 import com.fluxtream.services.ConnectorUpdateService;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 public class ApiClientSupport {
 
 	@Autowired
 	protected Configuration env;
 
-	@Autowired
+    @Qualifier("connectorUpdateServiceImpl")
+    @Autowired
 	protected ConnectorUpdateService connectorUpdateService;
 
 	protected final boolean hasReachedRateLimit(Connector connector, long guestId) {
@@ -21,20 +23,16 @@ public class ApiClientSupport {
 		int count = Integer.valueOf(rateLimitString.split("/")[0]);
 		int millis = Integer.valueOf(rateLimitString.split("/")[1]);
 		long then = System.currentTimeMillis() - millis;
+        long numberOfUpdates;
 		if (rateLimitString.endsWith("/user")) {
-			long numberOfUpdates = connectorUpdateService
+			numberOfUpdates = connectorUpdateService
 					.getNumberOfUpdatesSince(guestId, connector, then);
-			if (numberOfUpdates >= count) {
-				return true;
-			}
-			return false;
-		} else {
-			long numberOfUpdates = connectorUpdateService
+
+        } else {
+			numberOfUpdates = connectorUpdateService
 					.getTotalNumberOfUpdatesSince(connector, then);
-			if (numberOfUpdates >= count)
-				return true;
-			return false;
-		}
+        }
+        return numberOfUpdates >= count;
 	}
 	
 }

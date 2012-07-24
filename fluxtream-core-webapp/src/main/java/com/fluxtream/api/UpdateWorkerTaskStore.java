@@ -1,17 +1,15 @@
 package com.fluxtream.api;
 
-import java.util.Date;
+import java.util.Collection;
 import java.util.List;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
-import com.fluxtream.domain.ApiUpdate;
 import com.fluxtream.domain.UpdateWorkerTask;
 import com.fluxtream.mvc.controllers.ControllerHelper;
 import com.fluxtream.mvc.models.StatusModel;
@@ -21,10 +19,10 @@ import com.google.gson.GsonBuilder;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.joda.time.DateTimeZone;
-import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -39,6 +37,7 @@ public class UpdateWorkerTaskStore {
 
     Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
 
+    @Qualifier("connectorUpdateServiceImpl")
     @Autowired
     ConnectorUpdateService connectorUpdateService;
 
@@ -47,9 +46,7 @@ public class UpdateWorkerTaskStore {
     @GET
     @Path("/{connector}")
     @Produces({MediaType.APPLICATION_JSON})
-    public String getUpdateTasks(@PathParam("connector") String connectorName,
-                             @QueryParam("pageSize") int pageSize,
-                             @QueryParam("page") int page) {
+    public String getUpdateTasks(@PathParam("connector") String connectorName) {
         long guestId = ControllerHelper.getGuestId();
         final List<UpdateWorkerTask> scheduledUpdates =
                 connectorUpdateService.getScheduledUpdateTasks(guestId, Connector.getConnector(connectorName));
@@ -58,6 +55,29 @@ public class UpdateWorkerTaskStore {
             array.add(toJSON(scheduledUpdate));
         }
         return array.toString();
+    }
+
+    @GET
+    @Path("/all")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String getUpdateTasksAll() {
+        long guestId = ControllerHelper.getGuestId();
+        final Collection<Connector> connectors = Connector.getAllConnectors();
+        JSONArray res = new JSONArray();
+        for(Connector c : connectors)
+        {
+            final List<UpdateWorkerTask> scheduledUpdates =
+                    connectorUpdateService.getScheduledUpdateTasks(guestId, Connector.getConnector(c.getName()));
+            JSONArray array = new JSONArray();
+            for (UpdateWorkerTask scheduledUpdate : scheduledUpdates) {
+                array.add(toJSON(scheduledUpdate));
+            }
+            JSONObject connectorStatus = new JSONObject();
+            connectorStatus.accumulate("name", c.getName());
+            connectorStatus.accumulate("status", array);
+            res.add(connectorStatus);
+        }
+        return res.toString();
     }
 
     private JSONObject toJSON(UpdateWorkerTask task) {
@@ -75,10 +95,7 @@ public class UpdateWorkerTaskStore {
     @GET
     @Path("/{connector}/{objectType}")
     @Produces({MediaType.APPLICATION_JSON})
-    public String getObjectTypeUpdateTasks(@PathParam("connector") String connectorName,
-                                           @PathParam("objectType") String objectTypeName,
-                                           @QueryParam("pageSize") int pageSize,
-                                           @QueryParam("page") int page) {
+    public String getObjectTypeUpdateTasks(@PathParam("connector") String connectorName, @PathParam("objectType") String objectTypeName) {
         long guestId = ControllerHelper.getGuestId();
         final Connector connector = Connector.getConnector(connectorName);
         final ObjectType objectType = ObjectType.getObjectType(connector, objectTypeName);
@@ -90,14 +107,21 @@ public class UpdateWorkerTaskStore {
     @DELETE
     @Path("/{connector}")
     @Produces({MediaType.APPLICATION_JSON})
-    public String deleteUpdateTasks(@PathParam("connector") String connectorName,
-                                    @QueryParam("pageSize") int pageSize,
-                                    @QueryParam("page") int page) {
+    public String deleteUpdateTasks(@PathParam("connector") String connectorName) {
         long guestId = ControllerHelper.getGuestId();
         final Connector connector = Connector.getConnector(connectorName);
         connectorUpdateService.deleteScheduledUpdateTasks(guestId, connector);
         StatusModel statusModel = new StatusModel(true, "successfully deleted pending update tasks for " + connectorName);
         return gson.toJson(statusModel);
+    }
+
+    @DELETE
+    @Path("/all")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String deleteUpdateTasksAll()
+    {
+        connectorUpdateService.cleanupRunningUpdateTasks();
+        return gson.toJson(new StatusModel(true, "successfully deleted all tasks" ));
     }
 
 }

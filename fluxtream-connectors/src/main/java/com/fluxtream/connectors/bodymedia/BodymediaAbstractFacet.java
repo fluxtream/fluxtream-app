@@ -20,6 +20,34 @@ public abstract class BodymediaAbstractFacet extends AbstractFacet
     @Lob
     public String json;
 
+    public String getDate() {
+        return date;
+    }
+
+    @SuppressWarnings("unused")
+    public long getLastSync() {
+        return lastSync;
+    }
+
+    @SuppressWarnings("unused")
+    public String getJson() {
+        return json;
+    }
+
+    public void setDate(final String date) {
+        this.date = date;
+    }
+
+    @SuppressWarnings("unused")
+    public void setLastSync(final long lastSync) {
+        this.lastSync = lastSync;
+    }
+
+    @SuppressWarnings("unused")
+    public void setJson(final String json) {
+        this.json = json;
+    }
+
     @Override
     protected void makeFullTextIndexable() {}
 }

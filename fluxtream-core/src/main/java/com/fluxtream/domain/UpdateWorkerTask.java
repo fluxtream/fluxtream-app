@@ -34,8 +34,6 @@ import com.fluxtream.connectors.updaters.UpdateInfo;
 public class UpdateWorkerTask extends AbstractEntity {
 
     public static class AuditTrailEntry {
-        public AuditTrailEntry() {
-        }
 
         public AuditTrailEntry(final Date date, final String reason, final String nextAction, String stackTrace) {
             this.date = date;
@@ -62,8 +60,9 @@ public class UpdateWorkerTask extends AbstractEntity {
 
 	public long timeScheduled;
 
-	public static enum Status { SCHEDULED, IN_PROGRESS, DONE, FAILED, STALLED };
-	public UpdateInfo.UpdateType updateType;
+	public static enum Status { SCHEDULED, IN_PROGRESS, DONE, FAILED, STALLED }
+
+    public UpdateInfo.UpdateType updateType;
 	
 	public long guestId;
 	public int objectTypes;
@@ -84,21 +83,21 @@ public class UpdateWorkerTask extends AbstractEntity {
     public void addAuditTrailEntry(AuditTrailEntry auditTrailEntry) {
         if (auditTrail==null) auditTrail = "";
         StringBuilder sb = new StringBuilder(auditTrail);
-        sb.append("\\n")
-                .append(auditTrailEntry.date.toString())
+        sb.append("\\n").append(auditTrailEntry.date.toString())
                 .append(" - reason: ")
                 .append(auditTrailEntry.reason)
-                .append(" - next action: " + auditTrailEntry.nextAction);
+                .append(" - next action: ")
+                .append(auditTrailEntry.nextAction);
         if (auditTrailEntry.stackTrace!=null)
-                sb.append("stackTracke: \n" + auditTrailEntry.stackTrace);
+                sb.append("stackTracke: \n")
+                  .append(auditTrailEntry.stackTrace);
         this.auditTrail = sb.toString();
     }
 	
 	public long getGuestId() { return guestId; }
 	public int getObjectTypes() { return objectTypes; }
-	public UpdateInfo.UpdateType getUpdateType() { return updateType; }
-	
-	public String toString() {
+
+    public String toString() {
 		StringBuffer sb = new StringBuffer();
 		sb.append(guestId);
 		sb.append("/");

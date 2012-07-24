@@ -1,0 +1,78 @@
+package com.fluxtream.connectors.singly.github;
+
+import java.util.ArrayList;
+import java.util.List;
+import com.fluxtream.ApiData;
+import com.fluxtream.connectors.Connector;
+import com.fluxtream.connectors.ObjectType;
+import com.fluxtream.domain.AbstractFacet;
+import com.fluxtream.facets.extractors.AbstractFacetExtractor;
+import com.fluxtream.services.GuestService;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+/**
+ *
+ * @author Candide Kemmler (candide@fluxtream.com)
+ */
+@Component
+public class GithubPushFacetExtractor extends AbstractFacetExtractor {
+
+    @Autowired
+    GuestService guestService;
+
+    DateTimeFormatter dateTimeFormatter =
+            DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+    @Override
+    public List<AbstractFacet> extractFacets(final ApiData apiData, final ObjectType objectType) throws Exception {
+        List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
+
+        String login = guestService.getApiKeyAttribute(apiData.updateInfo.getGuestId(),
+                                                       Connector.getConnector("github"), "login");
+
+        JSONArray eventsArray = JSONArray.fromObject(apiData.json);
+        for(int i=0; i<eventsArray.size(); i++) {
+            JSONObject eventJson = eventsArray.getJSONObject(i);
+            JSONObject eventData = eventJson.getJSONObject("data");
+            if (eventData==null) continue;
+            if (eventData.getString("type").equals("PushEvent")) {
+                GithubPushFacet facet = new GithubPushFacet();
+
+                JSONObject payload = eventData.getJSONObject("payload");
+
+                if (payload==null) continue;
+
+                JSONObject actor = eventData.getJSONObject("actor");
+
+                if (actor==null||!actor.getString("login").equals(login))
+                    continue;
+
+                final JSONArray commits = payload.getJSONArray("commits");
+
+                this.extractCommonFacetData(facet, apiData);
+                String timestamp = eventData.getString("created_at");
+                facet.start = dateTimeFormatter.parseDateTime(timestamp).getMillis();
+                facet.end = facet.start;
+
+                facet.commitsJSON = commits.toString();
+
+                JSONObject repo = eventData.getJSONObject("repo");
+
+                if (repo!=null) {
+                    facet.repoName = repo.getString("name");
+                    facet.repoURL = repo.getString("url");
+                }
+
+                facets.add(facet);
+
+            }
+        }
+
+        return facets;
+    }
+}

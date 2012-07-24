@@ -93,7 +93,7 @@ public class UpdateInfo implements Cloneable {
 		return updateInfo;
 	}
 	
-	public static final UpdateInfo refreshFeedUpdateInfo(ApiKey apiKey, int objectTypes) {
+	public static final UpdateInfo IncrementalUpdateInfo(ApiKey apiKey, int objectTypes) {
 		UpdateInfo updateInfo = new UpdateInfo(apiKey);
 		updateInfo.updateType = UpdateType.INCREMENTAL_UPDATE;
 		updateInfo.objectTypes = objectTypes;

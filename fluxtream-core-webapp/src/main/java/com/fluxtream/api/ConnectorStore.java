@@ -28,6 +28,7 @@ import com.google.gson.Gson;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -48,9 +49,11 @@ public class ConnectorStore {
     @Autowired
     SettingsService settingsService;
 
+    @Qualifier("connectorUpdateServiceImpl")
     @Autowired
     ConnectorUpdateService connectorUpdateService;
 
+    @Qualifier("apiDataServiceImpl")
     @Autowired
     private ApiDataService apiDataService;
 
@@ -63,7 +66,6 @@ public class ConnectorStore {
         Guest user = ControllerHelper.getGuest();
         List<ConnectorInfo> connectors =  sysService.getConnectors();
         JSONArray connectorsArray = new JSONArray();
-        List<Long> apiKeyIds = new ArrayList<Long>();
         for (int i = 0; i < connectors.size(); i++){
             if (!guestService.hasApiKey(user.getId(), connectors.get(i).getApi())) {
                 connectors.remove(i--);
@@ -102,7 +104,6 @@ public class ConnectorStore {
             if (connector.enabled)
                 connectors.add(connector);
         }
-        List<Long> apiKeyIds = new ArrayList<Long>();
         for (int i = 0; i < connectors.size(); i++){
             if (guestService.hasApiKey(user.getId(), connectors.get(i).getApi()))
                 connectors.remove(i--);
@@ -112,13 +113,12 @@ public class ConnectorStore {
     }
 
     private boolean checkIfSyncInProgress(long guestId, Connector connector){
-        boolean syncing = false;
         final List<UpdateWorkerTask> scheduledUpdates = connectorUpdateService.getScheduledUpdateTasks(guestId, connector);
         return (scheduledUpdates.size()!=0);
     }
 
     private boolean checkForErrors(long guestId, Connector connector){
-        ApiUpdate update = connectorUpdateService.getLastUpdate(guestId,connector);
+        ApiUpdate update = connectorUpdateService.getLastUpdate(guestId, connector);
         return update==null || !update.success;
     }
 
@@ -129,7 +129,7 @@ public class ConnectorStore {
     }
 
     private long getLatestData(long guestId, Connector connector){
-        AbstractFacet facet = apiDataService.getLatestApiDataFacet(guestId,connector,null);
+        AbstractFacet facet = apiDataService.getLatestApiDataFacet(guestId, connector, null);
         return facet == null ? Long.MAX_VALUE : facet.end;
     }
 
@@ -173,8 +173,7 @@ public class ConnectorStore {
     public String getConnectorFilterState(){
         try{
             Guest user = ControllerHelper.getGuest();
-            String filterState = settingsService.getConnectorFilterState(user.getId());
-            return filterState;
+            return settingsService.getConnectorFilterState(user.getId());
         }
         catch (Exception e){
             return "{}";
@@ -188,7 +187,7 @@ public class ConnectorStore {
         StatusModel result;
         try{
             Guest user = ControllerHelper.getGuest();
-            settingsService.setConnectorFilterState(user.getId(),stateJSON);
+            settingsService.setConnectorFilterState(user.getId(), stateJSON);
             result = new StatusModel(true,"Successfully updated filters state!");
         }
         catch (Exception e){
