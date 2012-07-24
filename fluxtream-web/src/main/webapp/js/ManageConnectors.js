@@ -46,9 +46,9 @@ define(["applications/calendar/tabs/timeline/BodyTrack"],function(BodyTrack) {
             }
             var html = template.render({connectors:params});
             if (update){
-                var scrollTop = $(".modal-body").scrollTop();
+                var scrollTop = $("#modal .modal-body").scrollTop();
                 $("#modal").html($(html).html());
-                $(".modal-body").scrollTop(scrollTop);
+                $("#modal .modal-body").scrollTop(scrollTop);
             }
             else
                 App.makeModal(html);
@@ -137,8 +137,7 @@ define(["applications/calendar/tabs/timeline/BodyTrack"],function(BodyTrack) {
                     $("#" + index + "-checkbox")[0].checked = true;
                 }
 
-                $("#saveChannelsList").click(function(event){
-                    event.preventDefault();
+                $("#" + connector.connectorName + "SettingsDialog input").click(function(event){
                     var channelList = "";
                     for (var i = 0; source != null && i < source.channels.length; i++){
                         if ($("#" + source.name + source.channels[i].name + "-checkbox")[0].checked){
