@@ -1,4 +1,4 @@
-define(["core/DashboardWidget", "core/GrapherComponent", "applications/calendar/tabs/timeline/BodyTrack"], function(DashboardWidget,GrapherComponent,BodyTrack) {
+define(["core/DashboardWidget", "core/GrapherComponent", "core/grapher/BTCore"], function(DashboardWidget,GrapherComponent,BodyTrack) {
 
     var GrapherWidget = new DashboardWidget();
 

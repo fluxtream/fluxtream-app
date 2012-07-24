@@ -1,4 +1,4 @@
-define(["applications/calendar/tabs/timeline/BodyTrack"],function(BodyTrack) {
+define(["core/grapher/BTCore"],function(BodyTrack) {
 
     var connectors;
 
@@ -133,6 +133,8 @@ define(["applications/calendar/tabs/timeline/BodyTrack"],function(BodyTrack) {
 
                 for (var i = 0; i < connector.channels.length; i++){
                     var name = connector.channels[i];
+                    if (name == "")
+                        break;
                     var index = name.substring(0,name.indexOf(".")) + name.substring(name.indexOf(".") + 1);
                     $("#" + index + "-checkbox")[0].checked = true;
                 }

@@ -1,4 +1,4 @@
-define(["applications/calendar/tabs/timeline/BodyTrack"],function(BodyTrack){
+define(["core/grapher/BTCore"],function(BodyTrack){
 
     var defaultStyle = {"styles":[{"type":"line","lineWidth":1}]};
 

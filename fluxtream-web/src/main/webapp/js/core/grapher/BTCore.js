@@ -6,16 +6,12 @@ define([], function() {
 			isInitialized : false,
 
 			init : function(callback) {
+                VIEWS.getAvailableList(function() {
+                    callback();
+                });
 
-				// Wait for grapher to load before initializing tabs
-				//window.grapherLoad = function() {
-                    VIEWS.getAvailableList(function() {
-                        callback();
-                    });
-
-                    // Initialize the TAG_MANAGER
-                    TAG_MANAGER.init();
-				//};
+                // Initialize the TAG_MANAGER
+                TAG_MANAGER.init();
 			}
 	};
 
@@ -362,6 +358,7 @@ define([], function() {
 					},
 					error   : function(jqXHR, textStatus, errorThrown) {
 						SOURCES.availableList = []
+						console.log("Error fetching available list");
 						console.log("Error fetching available list");
 					}
 				});
