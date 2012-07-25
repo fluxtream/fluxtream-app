@@ -1,4 +1,4 @@
-define(["applications/calendar/tabs/Tab", "core/FlxState", "core/grapher/Grapher",
+define(["applications/calendar/tabs/Tab", "core/FlxState", "core/Grapher/grapher",
         "applications/calendar/App"],
     function(Tab, FlxState, Grapher, Calendar) {
 

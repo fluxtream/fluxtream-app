@@ -1,4 +1,4 @@
-define(["core/Application", "core/FlxState", "core/grapher/Grapher"], function(Application, FlxState, Grapher) {
+define(["core/Application", "core/FlxState", "core/Grapher/grapher"], function(Application, FlxState, Grapher) {
 
     var BodyTrack = new Application("bodytrack", "Candide Kemmler", "icon-bookmark");
 
