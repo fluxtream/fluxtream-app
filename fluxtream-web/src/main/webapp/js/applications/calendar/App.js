@@ -36,6 +36,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 return;
 			fetchState("/nav/setToToday.json?timeUnit=" + Calendar.timeUnit);
 		});
+        Builder.init(this);
 	};
 
 	Calendar.initialize = function () {

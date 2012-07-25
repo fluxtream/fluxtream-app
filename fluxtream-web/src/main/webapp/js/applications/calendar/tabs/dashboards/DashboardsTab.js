@@ -1,13 +1,13 @@
-define(["applications/calendar/tabs/Tab",
+define(["core/Tab",
         "applications/calendar/App", "applications/calendar/tabs/dashboards/ManageDashboards",
         "applications/calendar/tabs/dashboards/AddWidget"],
        function(Tab, Calendar, ManageDashboards, AddWidget) {
 	
 	var digest, dashboardData;
 
-	function render(digestInfo, timeUnit, dashboardId) {
+	function render(params) {
         _.bindAll(this);
-		digest = digestInfo;
+		digest = params.digest;
         $.ajax({
                 url: "/api/dashboards",
                 success: function(dashboards) {
@@ -189,7 +189,7 @@ define(["applications/calendar/tabs/Tab",
     }
 
 
-    var dashboardsTab = new Tab("dashboards", "Candide Kemmler", "icon-chart", true);
+    var dashboardsTab = new Tab("calendar", "dashboards", "Candide Kemmler", "icon-dashboard", true);
 	dashboardsTab.render = render;
     dashboardsTab.connectorDisplayable = function(connector) { return false; }
     dashboardsTab.populateTemplate = populateTemplate;

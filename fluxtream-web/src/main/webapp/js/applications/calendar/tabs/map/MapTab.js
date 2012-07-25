@@ -1,4 +1,4 @@
-define(["applications/calendar/tabs/Tab",
+define(["core/Tab",
         "applications/calendar/App",
        "applications/calendar/tabs/map/MapUtils"], function(Tab, Calendar, MapUtils) {
 
@@ -8,13 +8,13 @@ define(["applications/calendar/tabs/Tab",
 
     var oldState = null;
 
-    function render(digest, timeUnit, calendarState, connectorEnabled) {
+    function render(params) {
         this.getTemplate("text!applications/calendar/tabs/map/map.html", "map", function(){
-            if (calendarState == oldState)
+            if (params.calendarState == oldState)
                 return;
             else
-                oldState = calendarState;
-            setup(digest,calendarState,connectorEnabled);
+                oldState = params.calendarState;
+            setup(params.digest,params.calendarState,params.connectorEnabled);
         });
     }
 
@@ -106,7 +106,7 @@ define(["applications/calendar/tabs/Tab",
         return false;
     }
 
-    var mapTab = new Tab("map", "Candide Kemmler", "icon-map-marker", true);
+    var mapTab = new Tab("calendar", "map", "Candide Kemmler", "icon-map-marker", true);
     mapTab.render = render;
     mapTab.connectorToggled = connectorToggled;
     mapTab.connectorDisplayable = connectorDisplayable;

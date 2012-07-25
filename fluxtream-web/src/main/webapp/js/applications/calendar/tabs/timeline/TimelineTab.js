@@ -1,4 +1,4 @@
-define(["applications/calendar/tabs/Tab", "core/FlxState", "core/Grapher/grapher",
+define(["core/Tab", "core/FlxState", "core/Grapher/grapher",
         "applications/calendar/App"],
     function(Tab, FlxState, Grapher, Calendar) {
 
@@ -996,34 +996,10 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "core/Grapher/grapher
         }
     }
 
-    function render(dgest, timeUnit, calendarState, cEn) {
-        digest = dgest;
-        connectorEnabled = cEn;
-        this.getTemplate("text!applications/calendar/tabs/timeline/template.html", "timeline", function() {
-            setup(digest, timeUnit);
-        });
-        timelineTab.setRange(digest.tbounds.start/1000, digest.tbounds.end/1000);
-    }
 
-    var timelineTab = new Tab("timeline", "Candide Kemmler", "icon-film", false);
+
+    var timelineTab = new Tab("calendar", "timeline", "Candide Kemmler", "icon-film", false);
     var digest;
-
-    function setup(digest, timeUnit) {
-
-        $(window).resize(function(){
-            clearTimeout(BodyTrack.TOOLS.resizeTimer);
-            BodyTrack.TOOLS.resizeTimer = setTimeout(BodyTrack.TOOLS.resizeHandler, 100);
-        });
-
-        if (!timelineTab.initialized) {
-            APP.init(function() {
-                timelineTab.init(function() {
-                    timelineTab.newView(Calendar.start/1000, Calendar.end/1000);
-                    timelineTab.initialized = true;
-                });
-            });
-        }
-    }
 
     function connectorDisplayable(connector){
         return connector.channelNames.length != 0;
@@ -1033,17 +1009,17 @@ define(["applications/calendar/tabs/Tab", "core/FlxState", "core/Grapher/grapher
         return true;
     }
 
-    var timelineTab = new Tab("timeline", "Candide Kemmler", "icon-film", false);
-    var digest;
+
     var grapher = null;
     var connectorEnabled;
 
-    function render(dgest, timeUnit, calendarState, cEn) {
-        digest = dgest;
-        connectorEnabled = cEn;
+    function render(params) {
+        digest = params.digest;
+        connectorEnabled = params.connectorEnabled;
         this.getTemplate("text!applications/calendar/tabs/timeline/template.html", "timeline", function() {
-            setup(digest, timeUnit);
+            setup(digest, params.timeUnit);
         });
+        timelineTab.setRange(digest.tbounds.start/1000, digest.tbounds.end/1000);
     }
 
 

@@ -1,4 +1,4 @@
-define(["applications/calendar/tabs/Tab",
+define(["core/Tab",
         "applications/calendar/App", "applications/calendar/tabs/photos/PhotoUtils"], function(Tab, Calendar, PhotoUtils) {
 
     var maxWidth = 200;
@@ -8,14 +8,14 @@ define(["applications/calendar/tabs/Tab",
     var oldState = null;
 
 
-    function render(dgest, timeUnit, calendarState, cEn) {
+    function render(params) {
         this.getTemplate("text!applications/calendar/tabs/photos/photos.html", "photos", function() {
-            if (calendarState == oldState)
+            if (params.calendarState == oldState)
                 return;
             else
-                oldState = calendarState;
-            digest = dgest;
-            connectorEnabled = cEn;
+                oldState = params.calendarState;
+            digest = params.digest;
+            connectorEnabled = params.connectorEnabled;
             setup(digest,connectorEnabled);
         });
     }
@@ -119,7 +119,7 @@ define(["applications/calendar/tabs/Tab",
         return false;
     }
 
-    var photosTab = new Tab("photos", "Candide Kemmler", "icon-camera", true);
+    var photosTab = new Tab("calendar", "photos", "Candide Kemmler", "icon-camera", true);
     photosTab.render = render;
     photosTab.connectorToggled = connectorToggled;
     photosTab.connectorDisplayable = connectorDisplayable;

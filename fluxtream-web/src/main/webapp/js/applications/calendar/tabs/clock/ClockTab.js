@@ -1,6 +1,6 @@
 define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         "applications/calendar/tabs/clock/ClockConfig",
-        "applications/calendar/tabs/Tab",
+        "core/Tab",
         "applications/calendar/App",
         "applications/calendar/tabs/map/MapUtils",
         "App"], function(DrawingUtils, Config, Tab, Log, MapUtils, App) {
@@ -19,10 +19,11 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 
     App.addHideTooltipListener(hideEventInfo);
 
-	function render(digest, timeUnit, calendarState, connectorEnabled) {
+	function render(params) {
+
         hideEventInfo();
         this.getTemplate("text!applications/calendar/tabs/clock/clock.html", "clock", function() {
-			 setup(digest, timeUnit, connectorEnabled);
+			 setup(params.digest, params.timeUnit, params.connectorEnabled);
 		});
 	}
 	
@@ -664,7 +665,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         return false;
     }
 
-	var clockTab = new Tab("clock", "Candide Kemmler", "icon-time", true);
+	var clockTab = new Tab("calendar", "clock", "Candide Kemmler", "icon-time", true);
     document.qTipUpdate = qTipUpdate;
     document.hideQTipMap = hideQTipMap;
 	clockTab.render = render;
