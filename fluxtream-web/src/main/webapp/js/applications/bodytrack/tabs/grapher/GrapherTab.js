@@ -13,6 +13,8 @@ define(["core/Tab","core/Grapher/grapher"], function(Tab,Grapher) {
     function setup(){
         if (grapher == null)
             grapher = new Grapher($("#grapherContainer"),{showFullControls:true,showDeleteBtn:true});
+        else
+            grapher.updateViews();
     }
 
 	return grapherTab;

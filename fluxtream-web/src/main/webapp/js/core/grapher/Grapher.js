@@ -168,7 +168,7 @@ define(["core/Grapher/BTCore"], function(BTCore) {
             if ($(event.delegateTarget).hasClass("disabled"))
                 return;
             if ($("#" + grapher.grapherId + "_timeline_viewName").text() != newViewName)
-                saveView($("#" + grapher.grapherId + "_timeline_viewName").text());
+                grapher.saveView($("#" + grapher.grapherId + "_timeline_viewName").text());
             else
                 $("#" + grapher.grapherId + "_timeline_save_view_dropdown").doTimeout(50,"click");
         });
@@ -233,11 +233,13 @@ define(["core/Grapher/BTCore"], function(BTCore) {
 
     function updateSaveViewDropdown(grapher){
         App.loadMustacheTemplate("core/Grapher/timelineTemplates.html","saveViewDropdown",function(template){
-            VIEWS.viewsPresent = VIEWS.availableList.length != 0;
-            VIEWS.grapherId = grapher.grapherId;
-            var newSaveDropDown = $(template.render(VIEWS));
-            delete VIEWS.viewsPresent;
-            delete VIEWS.grapherId;
+            var params = {viewsPresent: VIEWS.availableList.length != 0,
+                          grapherId: grapher.grapherId,
+                          availableList: VIEWS.availableList.map(function(view){
+                              return {name: view.name,
+                                      last_used: App.formatDate(view.last_used,true)};
+                          })};
+            var newSaveDropDown = $(template.render(params));
             $("#" + grapher.grapherId + "_timeline_save_view_dropdown-submenu").replaceWith(newSaveDropDown);
 
             $("#" + grapher.grapherId + "_timeline_save_view_dropdown-submenu").click(function (event){
@@ -1485,7 +1487,7 @@ define(["core/Grapher/BTCore"], function(BTCore) {
 
         // Update xAxis min/max
         if (l > 0) {
-            plot = plotsMap[channelIds[0]];
+            plot = grapher.plotsMap[channelIds[0]];
             xAxis = plot.getHorizontalAxis();
             VIEWS.data["v2"]["x_axis"]["min"] = xAxis.getMin();
             VIEWS.data["v2"]["x_axis"]["max"] = xAxis.getMax();
@@ -1493,9 +1495,9 @@ define(["core/Grapher/BTCore"], function(BTCore) {
 
         // Update yAxis min/max, order, height
         for (i = 0; i < l; i++) {
-            plot = plotsMap[channelIds[i]];
+            plot = grapher.plotsMap[channelIds[i]];
             yAxis = plot.getVerticalAxis();
-            channel = channelsMap[channelIds[i]];
+            channel = grapher.channelsMap[channelIds[i]];
             if (plot instanceof DataSeriesPlot || plot instanceof PhotoSeriesPlot) {
                 channel["style"] = plot.getStyle();
                 channel["channel_height"] = $("#" + yAxis.getPlaceholder()).height();
@@ -2758,6 +2760,11 @@ define(["core/Grapher/BTCore"], function(BTCore) {
         var diff = curMax - curMin;
         var changeAmt = (seconds - diff)/2;
         this.dateAxis.setRange(curMin - changeAmt, curMax + changeAmt);
+    }
+
+    Grapher.prototype.updateViews = function(){
+        updateSaveViewDropdown(this);
+        updateLoadViewDropdown(this);
     }
 
     return Grapher;

@@ -1,4 +1,6 @@
 define([], function() {
+
+
 	var APP, PREFS, TOOLS, TAG_MANAGER, VIEWS, SOURCES;
 	var BodyTrack = {};
 
@@ -283,6 +285,27 @@ define([], function() {
 				});
 			},
 
+            delete : function(id,callback){
+                $.ajax({
+                    cache: false,
+                    type : "DELETE",
+                    url  : "/api/bodytrack/users/" + App.getUID() + "/views/" + id,
+                    success: function(data, textStatus, jqXHR){
+                        if (data.result != "OK")
+                            callback(false);
+                        else{
+                            VIEWS.getAvailableList(function(){
+                                callback(true);
+                            });
+                        }
+
+                    },
+                    error : function (jqXHR, textStatus, errorThrown){
+                        callback(false);
+                    }
+                })
+            },
+
 			// Set view data
 			load : function(id, callback) {
 				$.ajax({
@@ -509,7 +532,6 @@ define([], function() {
 	BodyTrack.VIEWS 	  = VIEWS;
 	BodyTrack.SOURCES 	  = SOURCES;
 
-	// for debugging
 	window.BodyTrack = BodyTrack;
 
 	return BodyTrack;

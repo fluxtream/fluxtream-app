@@ -9,6 +9,7 @@ import java.util.Map;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.DELETE;
 import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.Guest;
@@ -117,7 +118,7 @@ public class BodyTrackController {
         }
     }
 
-        @RequestMapping(value = "/bodytrack/users/{UID}/views")
+    @RequestMapping(value = "/bodytrack/users/{UID}/views")
 	public void bodyTrackViews(HttpServletResponse response,
 			@PathVariable("UID") Long uid) throws IOException {
         if (!checkForPermissionAccess(uid)){

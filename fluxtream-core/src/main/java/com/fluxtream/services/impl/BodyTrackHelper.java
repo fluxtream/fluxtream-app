@@ -235,13 +235,19 @@ public class BodyTrackHelper {
     }
 
     @Transactional(readOnly = false)
-    public String getView(long uid, long viewId){
+    public String getView(Long uid, long viewId){
         GrapherView view = JPAUtils.findUnique(em, GrapherView.class,"grapherView.byId",uid,viewId);
         if (view != null){
             view.lastUsed = System.currentTimeMillis();
             em.merge(view);
         }
         return view == null ? "{\"error\",\"No matching view found for user " + uid + "\"}" : view.json;
+    }
+
+    @Transactional(readOnly = false)
+    public void deleteView(Long uid, long viewId){
+        GrapherView view = JPAUtils.findUnique(em, GrapherView.class,"grapherView.byId",uid,viewId);
+        em.remove(view);
     }
 
     private static class ViewsList{

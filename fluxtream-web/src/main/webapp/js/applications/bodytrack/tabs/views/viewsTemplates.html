@@ -1,0 +1,22 @@
+<template id="viewsList">
+    <table class="table table-striped">
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Last used</th>
+        <th>Time range</th>
+        <th>Delete</th>
+    </tr>
+    </thead>
+    {{#list}}
+        <tr>
+            <td>{{name}}</td>
+            <td>{{description}}</td>
+            <td>{{last_used}}</td>
+            <td>{{time_range}}</td>
+            <td><button style="background-color:transparent;border:none;" class="icon-trash icon-large" id="delete-view-{{id}}"></button></td>
+        </tr>
+    {{/list}}
+    </table>
+</template>
