@@ -1,6 +1,6 @@
 define(["core/Tab","core/Grapher/grapher"], function(Tab,Grapher) {
 	
-	var grapherTab = new Tab("bodytrack", "grapher", "Candide Kemmler", "icon-time", true);
+	var grapherTab = new Tab("bodytrack", "grapher", "Candide Kemmler", "icon-film", true);
 
     var grapher = null;
 
