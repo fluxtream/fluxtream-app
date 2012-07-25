@@ -51,8 +51,7 @@ define([],function(){
     }
 
     TabInterface.prototype.setActiveTab = function(tabname){
-        this.tabs[tabname].nav.children().tab('show');
-        this.tabs[tabname].tab.render(this.getRenderParams());
+        setFieldValue(this,tabname,"active",true);
     }
 
     TabInterface.prototype.getNav = function(){
@@ -81,6 +80,22 @@ define([],function(){
             ti.nav.append(value);
         }
         updateNav(ti,tabname);
+        switch (key){
+            case "active":
+                if (ti.tabs[tabname].nav != null){
+                    ti.tabs[tabname].nav.children().tab('show');
+                    ti.tabs[tabname].tab.render(ti.getRenderParams());
+                }
+                break;
+            case "nav":
+                if (ti.tabs[tabname].active)
+                    ti.tabs[tabname].nav.children().tab('show');
+                break;
+            case "tab":
+                if (ti.tabs[tabname].active)
+                    ti.tabs[tabname].tab.render(ti.getRenderParams());
+                break;
+        }
     }
 
     function capitalizeFirstLetter(string) {

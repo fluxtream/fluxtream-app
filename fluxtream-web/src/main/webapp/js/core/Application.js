@@ -42,8 +42,8 @@ define(["core/FlxState"], function(FlxState) {
 					$("#applications").append(html);
 					
 					App.activeApp = App.apps[that.name];
+                    App.activeApp.setup();
 					App.activeApp.renderState(state, true);
-					App.activeApp.setup();
 				});
 			} else {
 				nextAppDiv.removeClass("dormant");
