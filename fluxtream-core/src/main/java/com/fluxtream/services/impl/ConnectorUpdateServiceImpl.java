@@ -326,7 +326,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
     public List<UpdateWorkerTask> getScheduledUpdateTasks(long guestId, Connector connector) {
 		List<UpdateWorkerTask> updateWorkerTask = JPAUtils.find(em,
 				UpdateWorkerTask.class, "updateWorkerTasks.isScheduled",
-				Status.SCHEDULED, Status.IN_PROGRESS, guestId,
+				Status.IN_PROGRESS, Status.IN_PROGRESS, guestId,
 				connector.getName());
         for (UpdateWorkerTask workerTask : updateWorkerTask) {
             if (hasStalled(workerTask)) {
