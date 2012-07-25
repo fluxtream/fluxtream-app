@@ -1,4 +1,4 @@
-define(["core/grapher/BTCore"], function(BTCore) {
+define(["core/Grapher/BTCore"], function(BTCore) {
 
     var Grapher = function(parentElement,options){
         if (options == null) options = {};
@@ -11,7 +11,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
         var grapher = this;
         for (var param in options)
             grapher[param] = options[param];
-        App.loadMustacheTemplate("core/grapher/timelineTemplates.html","mainGrapherApp",function(template){
+        App.loadMustacheTemplate("core/Grapher/timelineTemplates.html","mainGrapherApp",function(template){
             parentElement.append(template.render(grapher));
             setup(grapher);
         });
@@ -106,7 +106,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
         });
 
         // Make the channel list sortable
-        App.loadMustacheTemplate("core/grapher/timelineTemplates.html","channelTemplate",function(template){
+        App.loadMustacheTemplate("core/Grapher/timelineTemplates.html","channelTemplate",function(template){
             $("#" + grapher.grapherId + "_timeline_channels").sortable({
                 handle      : '.flx-channel',
                 axis        : 'y',
@@ -207,7 +207,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
     } // init
 
     function updateLoadViewDropdown(grapher){
-        App.loadMustacheTemplate("core/grapher/timelineTemplates.html","loadViewsDropdown",function(template){
+        App.loadMustacheTemplate("core/Grapher/timelineTemplates.html","loadViewsDropdown",function(template){
             if (VIEWS.availableList.length > 0)
                 VIEWS.availableList[0].first = true;
             VIEWS.grapherId = grapher.grapherId;
@@ -232,7 +232,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
     }
 
     function updateSaveViewDropdown(grapher){
-        App.loadMustacheTemplate("core/grapher/timelineTemplates.html","saveViewDropdown",function(template){
+        App.loadMustacheTemplate("core/Grapher/timelineTemplates.html","saveViewDropdown",function(template){
             VIEWS.viewsPresent = VIEWS.availableList.length != 0;
             VIEWS.grapherId = grapher.grapherId;
             var newSaveDropDown = $(template.render(VIEWS));
@@ -341,14 +341,14 @@ define(["core/grapher/BTCore"], function(BTCore) {
             }
 
             // Render add channels area
-            App.loadMustacheTemplate("core/grapher/timelineTemplates.html","sourcesList",function(template){
+            App.loadMustacheTemplate("core/Grapher/timelineTemplates.html","sourcesList",function(template){
                 $("#" + grapher.grapherId + "_timeline_addChannelsArea").html(template.render({
                     sources: SOURCES.availableList
                 }));
             });
 
             // Drag event handler for channels
-            App.loadMustacheTemplate("core/grapher/timelineTemplates.html","channelTemplate",function(template){
+            App.loadMustacheTemplate("core/Grapher/timelineTemplates.html","channelTemplate",function(template){
                 $("#" + grapher.grapherId + "_timeline_addChannelsArea ul ._timeline_sources_channel").draggable({
                     connectToSortable : "#" + grapher.grapherId + "_timeline_channels",
                     revert: "invalid",
@@ -696,7 +696,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
             var channel = grapher.sourcesMap[channel.id];
         }
 
-        App.loadMustacheTemplate("core/grapher/timelineTemplates.html","channelTemplate",function(template){
+        App.loadMustacheTemplate("core/Grapher/timelineTemplates.html","channelTemplate",function(template){
             var max_time;
 
             // VERY important to clone the given channel here!
