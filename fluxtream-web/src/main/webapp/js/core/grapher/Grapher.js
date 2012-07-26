@@ -39,7 +39,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
     function init(grapher, callback) {
         // Unsaved changes dialog handler
         $(window).bind("beforeunload", function() {
-            grapher.updateViewData();
+            updateViewData(grapher);
             var newvdata = JSON.stringify(VIEWS.data);
             if (loadedViewStr != newvdata) {
                 hasUnsavedChanges = true;
