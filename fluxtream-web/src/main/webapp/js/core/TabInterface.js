@@ -54,6 +54,13 @@ define([],function(){
         setFieldValue(this,tabname,"active",true);
     }
 
+    TabInterface.prototype.getActiveTab = function(){
+        for (var tabname in this.tabs)
+            if (this.tabs[tabname].active)
+                return this.tabs[tabname].tab;
+        return null;
+    }
+
     TabInterface.prototype.getNav = function(){
         return this.nav;
     }

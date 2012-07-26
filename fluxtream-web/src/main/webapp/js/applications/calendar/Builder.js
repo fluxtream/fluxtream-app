@@ -132,38 +132,7 @@ define(["core/TabInterface"], function(TabInterface) {
             return {digest:digest,timeUnit:Calendar.timeUnit,calendarState:Calendar.tabState,connectorEnabled:Calendar.connectorEnabled[Calendar.currentTabName]};
         });
         tabInterface.setActiveTab(Calendar.currentTabName);
-		/*handleNotifications(digest);
-		if (tabs[Calendar.currentTabName]==null) {
-			require([ "applications/calendar/tabs/" + Calendar.currentTabName + "/"
-					+ capitalizeFirstLetter(Calendar.currentTabName) + "Tab"],
-				function(tab) {
-					tabs[Calendar.currentTabName] = tab;
-					renderTab(tab, digest, Calendar);
-				}
-			);
-		} else {
-			renderTab(tabs[Calendar.currentTabName], digest, Calendar);
-		}*/
-	}
-	
-	function renderTab(tab, digest, Calendar) {
-		var currentTab = "#calendarTabs a." + Calendar.currentTabName+"-tab";
-		$(currentTab).tab("show");
-		tab.render(digest, Calendar.timeUnit, Calendar.tabState, Calendar.connectorEnabled[Calendar.currentTabName]);
-        Calendar.currentTab = tab;
-        for (var i = 0; i < digest.selectedConnectors.length; i++){
-            var button = $("#flx-connector-btn-" + digest.selectedConnectors[i].connectorName);
-            if (tab.connectorDisplayable(digest.selectedConnectors[i])){
-                button.show();
-                if (tab.connectorsAlwaysEnabled()){
-                    button.removeClass("flx-disconnected");
-                    button.css("border-bottom-color",App.getConnectorConfig(digest.selectedConnectors[i].connectorName).color);
-                }
-            }
-            else
-                button.hide();
-
-        }
+        Calendar.currentTab = tabInterface.getActiveTab();
 	}
 	
 	function tabExistsForTimeUnit(tab, unit) {
@@ -186,10 +155,6 @@ define(["core/TabInterface"], function(TabInterface) {
     function isValidTimeUnit(timeUnit) {
         return timeUnit==="date"||timeUnit==="week"||
                timeUnit==="month"||timeUnit==="year";
-    }
-
-    Builder.preloadTabs = function(){
-
     }
 	
 	Builder.tabExistsForTimeUnit = tabExistsForTimeUnit;
