@@ -812,7 +812,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     grapher.dateAxis,
                     yAxis,
                     channel["style"]);
-                plot.addDataPointListener(dataPointListener);
+                plot.addDataPointListener(function(pointObj, sourceInfo){dataPointListener(grapher,pointObj, sourceInfo)});
             }
 
             var plotContainer = new PlotContainer(plotElementId, false, [plot]);
@@ -2019,11 +2019,13 @@ define(["core/grapher/BTCore"], function(BTCore) {
         return cache;
     }
 
-    function dataPointListener(pointObj, sourceInfo) {
+    function dataPointListener(grapher, pointObj, sourceInfo) {
         if (pointObj) {
-            $("#_timeline_dataPointValueLabel").html(Hogan.compile($("#_timeline_data_point_value_label_template").html()).render(pointObj));
+            App.loadMustacheTemplate("core/grapher/timelineTemplates.html","dataPointValueLabel",function (template){
+                $("#" + grapher.grapherId + "_timeline_dataPointValueLabel").html(template.render(pointObj));
+            });
         } else {
-            $("#_timeline_dataPointValueLabel").html("");
+            $("#" + grapher.grapherId + "_timeline_dataPointValueLabel").html("");
         }
     }
 
