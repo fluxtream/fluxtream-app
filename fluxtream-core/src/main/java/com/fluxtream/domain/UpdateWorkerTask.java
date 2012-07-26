@@ -58,7 +58,7 @@ import com.fluxtream.connectors.updaters.UpdateInfo;
                 "AND (updt.status=2 " +
                     "OR updt.status=3 " +
                     "OR updt.status=4)" +
-                "ORDER BY updt.timeScheduled DESC" +
+                "ORDER BY updt.timeScheduled DESC " +
                 "LIMIT 1")
 })
 public class UpdateWorkerTask extends AbstractEntity {
@@ -90,7 +90,7 @@ public class UpdateWorkerTask extends AbstractEntity {
 
 	public long timeScheduled;
 
-	public static enum Status { SCHEDULED, IN_PROGRESS, DONE, FAILED, STALLED};
+	public static enum Status { SCHEDULED, IN_PROGRESS, DONE, FAILED, STALLED}
 
     public UpdateInfo.UpdateType updateType;
 	
