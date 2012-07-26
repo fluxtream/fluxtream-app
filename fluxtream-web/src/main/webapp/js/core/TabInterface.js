@@ -98,7 +98,7 @@ define([],function(){
         switch (key){
             case "active":
                 if (ti.tabs[tabname].nav != null && value){
-                    if (oldTab != null)
+                    if (oldTab != null && oldTab != ti.tabs[tabname])
                         setFieldValue(ti,oldTab.tab.name,"active",false);
                     ti.tabs[tabname].nav.children().tab('show');
                     ti.tabs[tabname].tab.render(ti.getRenderParams());
