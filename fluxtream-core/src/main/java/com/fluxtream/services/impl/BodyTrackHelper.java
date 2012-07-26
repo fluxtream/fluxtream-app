@@ -224,13 +224,13 @@ public class BodyTrackHelper {
         }
         AddViewResult result = new AddViewResult();
         result.saved_view_id = view.getId();
-        result.populateViews(em, uid);
+        result.populateViews(em, gson, uid);
         return gson.toJson(result);
     }
 
     public String listViews(long uid){
         ViewsList list = new ViewsList();
-        list.populateViews(em,uid);
+        list.populateViews(em, gson, uid);
         return gson.toJson(list);
     }
 
@@ -253,10 +253,10 @@ public class BodyTrackHelper {
     private static class ViewsList{
         ArrayList<ViewStub> views = new ArrayList<ViewStub>();
 
-        void populateViews(EntityManager em, long uid){
+        void populateViews(EntityManager em, Gson gson, long uid){
             List<GrapherView> viewList = JPAUtils.find(em, GrapherView.class,"grapherView",uid);
             for (GrapherView view : viewList){
-                views.add(new ViewStub(view));
+                views.add(new ViewStub(view,gson));
             }
         }
     }
@@ -269,13 +269,34 @@ public class BodyTrackHelper {
         long id;
         long last_used;
         String name;
+        AxisRange time_range;
 
-        public ViewStub(GrapherView view){
+        public ViewStub(GrapherView view,Gson gson){
             id = view.getId();
             last_used = view.lastUsed;
             name = view.name;
+            ViewJSON json = gson.fromJson(view.json,ViewJSON.class);
+            time_range = new AxisRange();
+            time_range.min = json.v2.x_axis.min * 1000;
+            time_range.max = json.v2.x_axis.max * 1000;
         }
 
+    }
+
+    private static class ViewJSON{
+        String name;
+        ViewData v2;
+    }
+
+    private static class ViewData{
+        AxisRange x_axis;
+        boolean show_add_pane;
+        ArrayList<ViewChannelData> y_axes;
+    }
+
+    private static class AxisRange{
+        double min;
+        double max;
     }
 
     private static class GetTileResponse{
@@ -359,6 +380,7 @@ public class BodyTrackHelper {
         double max_time;
         String name;
 
+        public Channel(){}
         public Channel(String name, ChannelSpecs specs){
             this.name = name;
             max = specs.channel_bounds.max_value;
@@ -368,6 +390,13 @@ public class BodyTrackHelper {
             style = builtin_default_style = ChannelStyle.getDefaultChannelStyle(name);
         }
     }
+
+    private static class ViewChannelData extends Channel{
+        int channel_height;
+        String channel_name;
+        String device_name;
+    }
+
 
     private static class ChannelStyle{
         HighlightStyling highlight;

@@ -14,7 +14,7 @@
             <td>{{name}}</td>
             <td>{{description}}</td>
             <td>{{last_used}}</td>
-            <td>{{time_range}}</td>
+            <td>{{#time_range}}{{min}} - {{max}}{{/time_range}}</td>
             <td><button style="background-color:transparent;border:none;" class="icon-trash icon-large" id="delete-view-{{id}}"></button></td>
         </tr>
     {{/list}}
