@@ -1,4 +1,4 @@
-define(["core/Tab","core/Grapher/BTCore"], function(Tab,BTCore) {
+define(["core/Tab","core/grapher/BTCore"], function(Tab,BTCore) {
 	
 	var viewsTab = new Tab("bodytrack", "views", "Candide Kemmler", "icon-facetime-video", true);
 

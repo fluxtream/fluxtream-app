@@ -21,7 +21,7 @@ if (aggressiveLoading) {
         "text!applications/calendar/facetTemplates.html",
         "text!applications/calendar/tabs/clock/clockTemplate.html",
         "text!applications/calendar/tabs/photos/photosTemplate.html",
-        "text!core/Grapher/timelineTemplates.html",
+        "text!core/grapher/timelineTemplates.html",
         "text!applications/calendar/tabs/dashboards/dashboardsTabTemplates.html"
     ]);
 
@@ -51,7 +51,6 @@ if (aggressiveLoading) {
         "text!applications/calendar/tabs/diary/yearDiary.html",
         "text!applications/calendar/tabs/list/list.html",
         "text!applications/calendar/tabs/map/map.html",
-        "text!applications/calendar/tabs/photos/photos.html",
-        "text!core/Grapher/template.html"
+        "text!applications/calendar/tabs/photos/photos.html"
     ]);
 }

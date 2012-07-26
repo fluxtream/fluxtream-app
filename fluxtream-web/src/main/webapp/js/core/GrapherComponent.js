@@ -1,4 +1,4 @@
-define(["core/Grapher/BTCore"],function(BodyTrack){
+define(["core/grapher/BTCore"],function(BodyTrack){
 
     var defaultStyle = {"styles":[{"type":"line","lineWidth":1}]};
 

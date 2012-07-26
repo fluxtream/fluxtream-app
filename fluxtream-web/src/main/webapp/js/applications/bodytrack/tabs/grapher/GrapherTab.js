@@ -1,4 +1,4 @@
-define(["core/Tab","core/Grapher/grapher"], function(Tab,Grapher) {
+define(["core/Tab","core/grapher/Grapher"], function(Tab,Grapher) {
 	
 	var grapherTab = new Tab("bodytrack", "grapher", "Candide Kemmler", "icon-film", true);
 
