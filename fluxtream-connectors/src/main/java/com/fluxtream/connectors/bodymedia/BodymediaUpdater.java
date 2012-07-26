@@ -27,7 +27,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Component
-@Updater(prettyName = "BodyMedia", value = 88, objectTypes = {BodymediaBurnFacet.class, BodymediaSleepFacet.class, BodymediaStepsFacet.class}, hasFacets = true, additionalParameters = {"api_key"},
+@Updater(prettyName = "BodyMedia", value = 88,
+         objectTypes = {BodymediaBurnFacet.class, BodymediaSleepFacet.class, BodymediaStepsFacet.class},
+         hasFacets = true,
+         additionalParameters = {"api_key"},
          defaultChannels = {"BodyMedia.mets", "BodyMedia.lying"})
 public class BodymediaUpdater extends AbstractUpdater {
 

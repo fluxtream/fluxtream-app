@@ -49,7 +49,7 @@ public class UpdateWorkerTaskStore {
     public String getUpdateTasks(@PathParam("connector") String connectorName) {
         long guestId = ControllerHelper.getGuestId();
         final List<UpdateWorkerTask> scheduledUpdates =
-                connectorUpdateService.getScheduledUpdateTasks(guestId, Connector.getConnector(connectorName));
+                connectorUpdateService.getScheduledOrInProgressUpdateTasks(guestId, Connector.getConnector(connectorName));
         JSONArray array = new JSONArray();
         for (UpdateWorkerTask scheduledUpdate : scheduledUpdates) {
             array.add(toJSON(scheduledUpdate));
@@ -67,7 +67,7 @@ public class UpdateWorkerTaskStore {
         for(Connector c : connectors)
         {
             final List<UpdateWorkerTask> scheduledUpdates =
-                    connectorUpdateService.getScheduledUpdateTasks(guestId, Connector.getConnector(c.getName()));
+                    connectorUpdateService.getScheduledOrInProgressUpdateTasks(guestId, Connector.getConnector(c.getName()));
             JSONArray array = new JSONArray();
             for (UpdateWorkerTask scheduledUpdate : scheduledUpdates) {
                 array.add(toJSON(scheduledUpdate));

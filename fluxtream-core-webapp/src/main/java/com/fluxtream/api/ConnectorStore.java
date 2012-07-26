@@ -11,6 +11,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.connectors.updaters.ScheduleResult;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ApiUpdate;
@@ -113,13 +114,13 @@ public class ConnectorStore {
     }
 
     private boolean checkIfSyncInProgress(long guestId, Connector connector){
-        final List<UpdateWorkerTask> scheduledUpdates = connectorUpdateService.getScheduledUpdateTasks(guestId, connector);
+        final List<UpdateWorkerTask> scheduledUpdates = connectorUpdateService.getUpdatingUpdateTasks(guestId, connector);
         return (scheduledUpdates.size()!=0);
     }
 
     private boolean checkForErrors(long guestId, Connector connector){
-        ApiUpdate update = connectorUpdateService.getLastUpdate(guestId, connector);
-        return update==null || !update.success;
+        UpdateWorkerTask update = connectorUpdateService.getLastFinishedUpdateTask(guestId, connector);
+        return update==null || update.status!= UpdateWorkerTask.Status.DONE;
     }
 
     private long getLastSync(long guestId, Connector connector){

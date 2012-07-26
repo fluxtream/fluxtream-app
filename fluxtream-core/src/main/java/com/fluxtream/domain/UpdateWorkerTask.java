@@ -9,27 +9,57 @@ import com.fluxtream.connectors.updaters.UpdateInfo;
 
 @Entity(name="ScheduledUpdate")
 @NamedQueries ( {
-	@NamedQuery(name = "updateWorkerTasks.delete.all",
-			query = "DELETE FROM ScheduledUpdate updt WHERE updt.guestId=?"),
-	@NamedQuery(name = "updateWorkerTasks.delete.byApi",
-			query = "DELETE FROM ScheduledUpdate updt WHERE updt.guestId=? AND updt.connectorName=?"),
-	@NamedQuery(name = "updateWorkerTasks.delete.byApiAndObjectType",
-			query = "DELETE FROM ScheduledUpdate updt WHERE updt.guestId=? AND updt.connectorName=? AND updt.objectTypes=?"),
-	@NamedQuery(name = "updateWorkerTasks.delete.byStatus",
-			query = "DELETE FROM ScheduledUpdate updt WHERE updt.status=?"),
-	@NamedQuery( name="updateWorkerTasks.byStatus",
-			query="SELECT updt FROM ScheduledUpdate updt WHERE updt.status=? AND updt.timeScheduled<?"),
-    @NamedQuery( name="updateWorkerTasks.isScheduled",
-                 query="SELECT updt FROM ScheduledUpdate updt WHERE (updt.status=? OR updt.status=?) AND updt.guestId=? " +
-                       "AND updt.connectorName=?"),
-    @NamedQuery( name="updateWorkerTasks.withObjectTypes.isScheduled",
-		query="SELECT updt FROM ScheduledUpdate updt WHERE (updt.status=? OR updt.status=?) AND updt.guestId=? " +
-				"AND updt.objectTypes=? AND updt.connectorName=?"),
-	@NamedQuery( name="updateWorkerTasks.completed",
-		query="SELECT updt FROM ScheduledUpdate updt WHERE updt.status=? " +
+	@NamedQuery( name = "updateWorkerTasks.delete.all",
+		query = "DELETE FROM ScheduledUpdate updt " +
+                "WHERE updt.guestId=?"),
+	@NamedQuery( name = "updateWorkerTasks.delete.byApi",
+		query = "DELETE FROM ScheduledUpdate updt " +
+                "WHERE updt.guestId=? " +
+                "AND updt.connectorName=?"),
+	@NamedQuery( name = "updateWorkerTasks.delete.byApiAndObjectType",
+		query = "DELETE FROM ScheduledUpdate updt " +
+                "WHERE updt.guestId=? " +
+                "AND updt.connectorName=? " +
+                "AND updt.objectTypes=?"),
+	@NamedQuery( name = "updateWorkerTasks.delete.byStatus",
+		query = "DELETE FROM ScheduledUpdate updt " +
+                "WHERE updt.status=?"),
+	@NamedQuery( name = "updateWorkerTasks.byStatus",
+		query = "SELECT updt FROM ScheduledUpdate updt " +
+                "WHERE updt.status=? " +
+                "AND updt.timeScheduled<?"),
+    @NamedQuery( name = "updateWorkerTasks.isScheduledOrInProgress",
+        query = "SELECT updt FROM ScheduledUpdate updt " +
+                "WHERE (updt.status=? OR updt.status=?) " +
+                "AND updt.guestId=? " +
+                "AND updt.connectorName=?"),
+    @NamedQuery( name = "updateWorkerTasks.withObjectTypes.isScheduled",
+		query = "SELECT updt FROM ScheduledUpdate updt " +
+                "WHERE (updt.status=? OR updt.status=?) " +
+                "AND updt.guestId=? " +
+			    "AND updt.objectTypes=? AND updt.connectorName=?"),
+	@NamedQuery( name = "updateWorkerTasks.completed",
+		query = "SELECT updt FROM ScheduledUpdate updt " +
+                "WHERE updt.status=? " +
 				"AND updt.guestId=? " +
-				"AND updt.updateType=? AND updt.objectTypes=? " +
-				"AND updt.connectorName=?")
+				"AND updt.updateType=? " +
+                "AND updt.objectTypes=? " +
+				"AND updt.connectorName=?"),
+    @NamedQuery( name = "updateWorkerTasks.isInProgressOrScheduledBefore",
+        query = "SELECT updt FROM ScheduledUpdate updt " +
+                "WHERE (updt.status=1 " +
+                    "OR (updt.status=0 " +
+                        "AND updt.timeScheduled<?))" +
+                "AND updt.guestId=? " +
+                "AND updt.connectorName=? "),
+    @NamedQuery( name = "updateWorkerTasks.getLastFinishedTask",
+        query = "SELECT updt FROM ScheduledUpdate updt " +
+                "WHERE updt.timeScheduled<?" +
+                "AND (updt.status=2 " +
+                    "OR updt.status=3 " +
+                    "OR updt.status=4)" +
+                "ORDER BY updt.timeScheduled DESC" +
+                "LIMIT 1")
 })
 public class UpdateWorkerTask extends AbstractEntity {
 
@@ -60,7 +90,7 @@ public class UpdateWorkerTask extends AbstractEntity {
 
 	public long timeScheduled;
 
-	public static enum Status { SCHEDULED, IN_PROGRESS, DONE, FAILED, STALLED }
+	public static enum Status { SCHEDULED, IN_PROGRESS, DONE, FAILED, STALLED};
 
     public UpdateInfo.UpdateType updateType;
 	

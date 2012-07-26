@@ -323,10 +323,10 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 
     @Override
     @Transactional(readOnly = false)
-    public List<UpdateWorkerTask> getScheduledUpdateTasks(long guestId, Connector connector) {
+    public List<UpdateWorkerTask> getScheduledOrInProgressUpdateTasks(long guestId, Connector connector) {
 		List<UpdateWorkerTask> updateWorkerTask = JPAUtils.find(em,
-				UpdateWorkerTask.class, "updateWorkerTasks.isScheduled",
-				Status.IN_PROGRESS, Status.IN_PROGRESS, guestId,
+				UpdateWorkerTask.class, "updateWorkerTasks.isScheduledOrInProgress",
+				Status.SCHEDULED, Status.IN_PROGRESS, guestId,
 				connector.getName());
         for (UpdateWorkerTask workerTask : updateWorkerTask) {
             if (hasStalled(workerTask)) {
@@ -336,6 +336,21 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
         }
 		return updateWorkerTask;
 	}
+
+    @Override
+    public List<UpdateWorkerTask> getUpdatingUpdateTasks(final long guestId, final Connector connector) {
+        List<UpdateWorkerTask> updateWorkerTask = JPAUtils.find(em,
+                UpdateWorkerTask.class, "updateWorkerTasks.isInProgressOrScheduledBefore",
+                System.currentTimeMillis(), guestId,
+                connector.getName());
+        for (UpdateWorkerTask workerTask : updateWorkerTask) {
+            if (hasStalled(workerTask)) {
+                workerTask.status = Status.STALLED;
+                em.merge(workerTask);
+            }
+        }
+        return updateWorkerTask;
+    }
 
     private boolean hasStalled(UpdateWorkerTask updateWorkerTask) {
         return System.currentTimeMillis()-updateWorkerTask.timeScheduled>3600000;
@@ -380,7 +395,12 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
                 then);
 	}
 
-	@Override
+    @Override
+    public UpdateWorkerTask getLastFinishedUpdateTask(final long guestId, final Connector connector) {
+        return JPAUtils.findUnique(em, UpdateWorkerTask.class, "updateWorkerTasks.getLastFinishedTask", System.currentTimeMillis());
+    }
+
+    @Override
 	public Set<Long> getConnectorGuests(Connector connector) {
 		List<ApiKey> keys = JPAUtils.find(em, ApiKey.class, "apiKeys.byConnector", connector.value());
 		Set<Long> guestIds = new HashSet<Long>();
