@@ -2,13 +2,14 @@ package com.fluxtream.connectors.singly.github;
 
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.vos.AbstractFacetVO;
+import com.fluxtream.connectors.vos.AbstractInstantFacetVO;
 import com.fluxtream.domain.GuestSettings;
 
 /**
  *
  * @author Candide Kemmler (candide@fluxtream.com)
  */
-public class GithubPushFacetVO extends AbstractFacetVO<GithubPushFacet> {
+public class GithubPushFacetVO extends AbstractInstantFacetVO<GithubPushFacet> {
 
     public String commitsJSON;
 

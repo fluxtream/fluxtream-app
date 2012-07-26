@@ -268,6 +268,21 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                     clock: true //just has to be nonnull, gps data has special treatment
                 }
             }
+        },
+        github:{
+            color: "rgb(255, 178, 0)",
+            mapicon: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/computers.png",
+            mapshadow: null,
+            facets: {
+                push:{
+                    list: true,
+                    photos: false,
+                    map: true,
+                    gps: false,
+                    clock: ClockConfig.MIND_CATEGORY
+                }
+            }
+
         }
     }
 

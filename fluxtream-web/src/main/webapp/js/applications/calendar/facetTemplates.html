@@ -413,3 +413,18 @@
         <span class="flx-data">{{address}}</span>
     </div>
 </template>
+<template id="github-push">
+    <div class="flx-box" style="border-left-color:{{color}}">
+        <span class="flx-deviceIcon"></span>
+        <div class="facetDetails">
+            {{#facets}}
+            <div class="facetDetails{{manyFacets}}">
+                <div class="flx-tTime">{{time}}</div>
+                <div class="flx-data">
+                    Pushed to <a target="_blank" href="https://www.github.com/{{repoName}}">{{repoName}}</a>
+                </div>
+            </div>
+            {{/facets}}
+        </div>
+    </div>
+</template>
