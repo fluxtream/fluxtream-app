@@ -133,6 +133,19 @@ define(["core/TabInterface"], function(TabInterface) {
         });
         tabInterface.setActiveTab(Calendar.currentTabName);
         Calendar.currentTab = tabInterface.getActiveTab();
+        for (var i = 0; i < digest.selectedConnectors.length; i++){
+            var button = $("#flx-connector-btn-" + digest.selectedConnectors[i].connectorName);
+            if (Calendar.currentTab.connectorDisplayable(digest.selectedConnectors[i])){
+                button.show();
+                if (Calendar.currentTab.connectorsAlwaysEnabled()){
+                    button.removeClass("flx-disconnected");
+                    button.css("border-bottom-color",App.getConnectorConfig(digest.selectedConnectors[i].connectorName).color);
+                }
+            }
+            else
+                button.hide();
+
+        }
 	}
 	
 	function tabExistsForTimeUnit(tab, unit) {

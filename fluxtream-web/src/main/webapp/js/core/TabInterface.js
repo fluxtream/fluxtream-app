@@ -54,11 +54,16 @@ define([],function(){
         setFieldValue(this,tabname,"active",true);
     }
 
+    function getActiveTab(ti){
+        for (var tabname in ti.tabs)
+            if (ti.tabs[tabname].active)
+                return ti.tabs[tabname];
+        return null
+    }
+
     TabInterface.prototype.getActiveTab = function(){
-        for (var tabname in this.tabs)
-            if (this.tabs[tabname].active)
-                return this.tabs[tabname].tab;
-        return null;
+        var tab = getActiveTab(this);
+        return tab == null ? null : tab.tab;
     }
 
     TabInterface.prototype.getNav = function(){
@@ -80,6 +85,9 @@ define([],function(){
     }
 
     function setFieldValue(ti,tabname,key,value){
+        var oldTab = null;
+        if (key == "active")
+            oldTab = getActiveTab(ti);
         if (ti.tabs[tabname] == null)
             ti.tabs[tabname] = {};
         ti.tabs[tabname][key] = value;
@@ -89,7 +97,9 @@ define([],function(){
         updateNav(ti,tabname);
         switch (key){
             case "active":
-                if (ti.tabs[tabname].nav != null){
+                if (ti.tabs[tabname].nav != null && value){
+                    if (oldTab != null)
+                        setFieldValue(ti,oldTab.tab.name,"active",false);
                     ti.tabs[tabname].nav.children().tab('show');
                     ti.tabs[tabname].tab.render(ti.getRenderParams());
                 }
