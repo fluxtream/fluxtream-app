@@ -57,7 +57,7 @@ define(
                         + app.name
                         + "MenuButton\" class=\"btn appMenuBtn\" "
                         + "onclick=\"javascript:App.renderApp('"
-                        + app.name + "')\">"
+                        + app.name + "','last')\">"
                         + "<i class=\"" + app.icon
                         + "  icon-large\"></i></button>");
             }
@@ -127,10 +127,10 @@ define(
             });
         }
 
-        function renderApp(appName) {
+        function renderApp(appName,state) {
             App.activeApp.saveState();
             App.activeApp=App.apps[appName];
-            App.apps[appName].render("last");
+            App.apps[appName].render(state);
         }
 
         App.settings = function() {

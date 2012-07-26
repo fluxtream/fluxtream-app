@@ -513,6 +513,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
         if ($("#" + this.grapherId + "_timeline_addChannelsArea").css("display") === "none") {
             this.toggleAddChannelsPane();
         }
+        $(window).resize();
     }
 
     Grapher.prototype.loadView = function(id, mode, callback) {
@@ -556,7 +557,8 @@ define(["core/grapher/BTCore"], function(BTCore) {
     }
 
     // Load all channels associated with device_name into a new view
-    function loadSource(device_name, callback) {
+    Grapher.prototype.loadSource = function(device_name, callback) {
+        var grapher = this;
         SOURCES.getDefaultGraphSpecs(device_name, function(data) {
             var i, l;
 
@@ -579,16 +581,16 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     "min"            : data.channels[i]["min"],
                     "max"            : data.channels[i]["max"],
                     "style"          : data.channels[i]["style"],
-                    "channel_height" : data.channels[i]["channel_height"]
+                    "channel_height" : 67
                 });
             }
 
             loadedViewStr = JSON.stringify(VIEWS.data);
             hasUnsavedChanges = true;
-            renderView(VIEWS.data);
+            renderView(grapher, VIEWS.data);
 
             if ($("#_timeline_addChannelsArea").css("display") !== "none") {
-                toggleAddChannelsPane();
+                grapher.toggleAddChannelsPane();
             }
 
             if (typeof callback === "function") {
@@ -754,12 +756,12 @@ define(["core/grapher/BTCore"], function(BTCore) {
             // Now that yAxis is initialized, if this is a new view,
             // set xAxis range to be the latest 24 hrs of data from the
             // first added channel
-            if ((VIEWS.data["name"] == newViewName) &&
+            /*if ((VIEWS.data["name"] == newViewName) &&
                 channel.hasOwnProperty("max_time") &&
                 ($("#_timeline_channels ._timeline_channel").length == 0)) {
                 max_time = channel["max_time"];
                 grapher.dateAxis.setRange(max_time - 86400.0, max_time);
-            }
+            }*/
 
             // TODO: The following should be keying off of "type" rather than "name" fields
             var plot = null;
@@ -1613,7 +1615,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 grapher.addChannel(yAxes[i], null);
             }
         }
-        $(window).resize();//fixes issue of no date axis when window no channels are in view.
+        //$(window).resize();//fixes issue of no date axis when window no channels are in view.
     }
 
     Grapher.prototype.getCurrentTimeUnit = function(){

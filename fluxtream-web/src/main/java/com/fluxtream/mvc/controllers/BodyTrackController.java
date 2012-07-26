@@ -174,10 +174,7 @@ public class BodyTrackController {
         if (!checkForPermissionAccess(uid)){
             uid = null;
         }
-        String user_id = guestService.getApiKeyAttribute(uid,Connector.getConnector("bodytrack"), "user_id");
-		String tunnelUrl = "http://localhost:3000/users/" + user_id
-				+ "/sources/default_graph_specs?name=" + name;
-		writeTunnelResponse(tunnelUrl, response);
+        response.getWriter().write(bodyTrackHelper.getSourceInfo(uid,name));
 	}
 
     @RequestMapping(value = "/bodytrack/users/{UID}/logrecs/{LOGREC_ID}/get")

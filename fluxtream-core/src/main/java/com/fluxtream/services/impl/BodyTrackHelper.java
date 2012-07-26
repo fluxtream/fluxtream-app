@@ -168,6 +168,23 @@ public class BodyTrackHelper {
         }
     }
 
+    public String getSourceInfo(final Long uid, final String deviceName) {
+        try{
+            if (uid == null)
+                throw new IllegalArgumentException();
+            String result = executeDataStore("info",new Object[]{"-r",uid});
+
+            channelInfoResponse infoResponse = gson.fromJson(result,channelInfoResponse.class);
+
+            SourceInfo response = new SourceInfo(infoResponse,deviceName);
+
+            return gson.toJson(response);
+        }
+        catch(Exception e){
+            return gson.toJson(new SourcesResponse(null));
+        }
+    }
+
     public void setDefaultStyle(final Long uid, final String deviceName, final String channelName, final ChannelStyle style) {
         setDefaultStyle(uid,deviceName,channelName, gson.toJson(style));
     }
@@ -366,9 +383,43 @@ public class BodyTrackHelper {
         }
     }
 
+    private static class SourceInfo{
+        Source info;
+
+        public SourceInfo(channelInfoResponse infoResponse, String deviceName){
+            info = new Source();
+            info.name = deviceName;
+            info.channels = new ArrayList<Channel>();
+            info.max_time = System.currentTimeMillis() / 1000.0;
+            info.min_time = info.max_time - 1;
+            if (infoResponse == null)
+                return;
+
+            for (Map.Entry<String,ChannelSpecs> entry : infoResponse.channel_specs.entrySet()){
+                String fullName = entry.getKey();
+                ChannelSpecs specs = entry.getValue();
+                String[] split = fullName.split("\\.");
+                String devName = split[0];
+                String channelName = split[1];
+                Source source = null;
+                if (devName.equals(deviceName)){
+                    Channel channel = new Channel(channelName,specs);
+                    info.channels.add(channel);
+                    if (channel.min_time < info.min_time)
+                        info.min_time = channel.min_time;
+                    if (channel.max_time > info.max_time)
+                        info.max_time = channel.max_time;
+                }
+            }
+        }
+
+    }
+
     private static class Source{
         String name;
         ArrayList<Channel> channels;
+        Double min_time;
+        Double max_time;
     }
 
     private static class Channel{
@@ -376,8 +427,8 @@ public class BodyTrackHelper {
         ChannelStyle style;
         double max;
         double min;
-        double min_time;
-        double max_time;
+        Double min_time;
+        Double max_time;
         String name;
 
         public Channel(){}
@@ -392,7 +443,7 @@ public class BodyTrackHelper {
     }
 
     private static class ViewChannelData extends Channel{
-        int channel_height;
+        Integer channel_height;
         String channel_name;
         String device_name;
     }

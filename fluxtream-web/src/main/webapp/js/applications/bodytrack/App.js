@@ -33,7 +33,12 @@ define(["core/Application", "core/FlxState", "core/TabInterface"], function(Appl
                 return;
             }
 
-            bt.render(pathElements[2]);
+            var state = "";
+            for (var i = 2; i < pathElements.length; i++){
+                state += "/" + pathElements[i];
+            }
+
+            bt.render(state);
         });
     };
 
@@ -44,11 +49,16 @@ define(["core/Application", "core/FlxState", "core/TabInterface"], function(Appl
         if (state===null) state = "";
         else if (state.indexOf("/") != 0) state = "/" + state;
 
-        var tabName = state.substring(1);
-        if (tabName == ""){
+        var splits = state.split("/");
+
+        var tabName = splits[1];
+        if (tabName == "" || tabName == null){
             this.renderState(tabNames[0]);
             return;
         }
+        tabInterface.setRenderParamsFunction(function(){
+            return {stateParts:splits};
+        });
         tabInterface.setActiveTab(tabName);
         FlxState.router.navigate("app/bodytrack" + state);
         FlxState.saveState("bodytrack", state);

@@ -273,7 +273,7 @@ define([], function() {
 					type    : "GET",
 					url     : "/bodytrack/users/" + App.getUID() + "/views",
 					success : function(data, textStatus, jqXHR) {
-						var parsed = JSON.parse(data);
+						var parsed = JSON.parse(jqXHR.responseText);
 						VIEWS.availableList = parsed.views;
 						if (typeof callback === "function") {
 							callback(parsed.views);
@@ -314,7 +314,7 @@ define([], function() {
 					url     : "/bodytrack/users/" + App.getUID() + "/views/get",
 					data    : { "id" : id },
 					success : function(data, textStatus, jqXHR) {
-						VIEWS.data = JSON.parse(data);
+						VIEWS.data = JSON.parse(jqXHR.responseText);
 						if (typeof callback === "function") {
 							callback(VIEWS.data);
 						}
@@ -341,7 +341,7 @@ define([], function() {
 					// and id of newly saved view
 					success : function(data, textStatus, jqXHR) {
 						var i, l;
-						var parsed = JSON.parse(data);
+						var parsed = JSON.parse(jqXHR.responseText);
 						VIEWS.availableList = parsed.views;
 
 						l = VIEWS.saveCallbackList.length;
@@ -372,7 +372,7 @@ define([], function() {
 					type    : "GET",
 					url     : "/bodytrack/users/" + App.getUID() + "/sources/list",
 					success : function(data, textStatus, jqXHR) {
-						var parsed = JSON.parse(data);
+						var parsed = JSON.parse(jqXHR.responseText);
 						SOURCES.availableList = parsed.sources;
 
 						if (typeof callback === "function") {
@@ -392,7 +392,7 @@ define([], function() {
 					type    : "GET",
 					url     : "/bodytrack/users/" + App.getUID() + "/sources",
 					success : function(data, textStatus, jqXHR) {
-						var parsed = JSON.parse(data);
+						var parsed = JSON.parse(jqXHR.responseText);
 						SOURCES.configuredList = parsed.sources;
 
 						if (typeof callback === "function") {
@@ -411,7 +411,7 @@ define([], function() {
 					type    : "GET",
 					url     : "/bodytrack/users/" + App.getUID() + "/sources/discovery",
 					success : function(data, textStatus, jqXHR) {
-						var parsed = JSON.parse(data);
+						var parsed = JSON.parse(jqXHR.responseText);
 						SOURCES.discoveryList = parsed.sources;
 
 						if (typeof callback === "function") {
@@ -432,7 +432,7 @@ define([], function() {
 					data    : { "name" : device_name },
 					success : function(data, textStatus, jqXHR) {
 						if (typeof callback === "function") {
-							callback(JSON.parse(data).info);
+							callback(JSON.parse(jqXHR.responseText).info);
 						}
 					},
 					error   : function(jqXHR, textStatus, errorThrown) {
