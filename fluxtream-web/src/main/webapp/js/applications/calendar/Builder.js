@@ -132,7 +132,15 @@ define(["core/TabInterface"], function(TabInterface) {
             return {digest:digest,timeUnit:Calendar.timeUnit,calendarState:Calendar.tabState,connectorEnabled:Calendar.connectorEnabled[Calendar.currentTabName]};
         });
         tabInterface.setActiveTab(Calendar.currentTabName);
+        updateCurrentTab(digest, Calendar);
+	}
+
+    function updateCurrentTab(digest, Calendar){
         Calendar.currentTab = tabInterface.getActiveTab();
+        if (Calendar.currentTab == null){
+            $.doTimeout(50,function(){updateCurrentTab(digest, Calendar)});
+            return;
+        }
         for (var i = 0; i < digest.selectedConnectors.length; i++){
             var button = $("#flx-connector-btn-" + digest.selectedConnectors[i].connectorName);
             if (Calendar.currentTab.connectorDisplayable(digest.selectedConnectors[i])){
@@ -144,9 +152,9 @@ define(["core/TabInterface"], function(TabInterface) {
             }
             else
                 button.hide();
-
         }
-	}
+
+    }
 	
 	function tabExistsForTimeUnit(tab, unit) {
 		var tabExistsForTimeUnit = false;
