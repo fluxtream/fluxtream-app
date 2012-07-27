@@ -257,6 +257,13 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 event.preventDefault();
                 grapher.saveView($("#" + grapher.grapherId + "_timeline_save_view_dropdown_name").val());
                 $("body").click();
+            });
+
+            $("#" + grapher.grapherId + "_timeline_save_view_dropdown_name").keypress(function(event){
+                if (event.keyCode == 13){
+                    event.preventDefault();
+                    $("#" + grapher.grapherId + "_timeline_save_view_dropdown_save_btn").click();
+                }
             })
 
         })
@@ -1615,7 +1622,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 grapher.addChannel(yAxes[i], null);
             }
         }
-        //$(window).resize();//fixes issue of no date axis when window no channels are in view.
+        $(window).resize();//fixes issue of no date axis when window no channels are in view.
     }
 
     Grapher.prototype.getCurrentTimeUnit = function(){
