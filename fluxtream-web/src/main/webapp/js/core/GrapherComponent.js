@@ -136,7 +136,6 @@ define(["core/grapher/BTCore"],function(BodyTrack){
                 component.parent.css("opacity",1);
                 return;
             }
-            console.log("rechecking for afterload");
             $.doTimeout(10,getStats);
             return;
         };
