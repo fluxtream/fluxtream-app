@@ -149,7 +149,8 @@ define(
             var backdrops = $(".modal-backdrop");
             if (backdrops.length > 1){
                 var zIndex = $(backdrops[backdrops.length - 2]).css("zIndex");
-                zIndex += 20;
+                zIndex++;
+                zIndex += 19;
                 $(backdrops[backdrops.length - 1]).css("zIndex",zIndex);
                 zIndex++;
                 dialog.css("zIndex",zIndex);
