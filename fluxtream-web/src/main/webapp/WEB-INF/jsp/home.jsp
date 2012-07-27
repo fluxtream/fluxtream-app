@@ -53,7 +53,7 @@
 						data-target=".nav-collapse"> <span class="icon-bar"></span> <span
 						class="icon-bar"></span> <span class="icon-bar"></span>
 					</a>
-                    <a class="brand" href="/app"><img
+                    <a class="brand" href="javascript:App.renderApp(App.state.defaultApp)"><img
                             src="/${release}/images/header-logo-v4.png" width=94 height=20/></a>
 					<div class="nav-collapse">
 						<%--<form class="navbar-search" action="javascript:App.search()">--%>
