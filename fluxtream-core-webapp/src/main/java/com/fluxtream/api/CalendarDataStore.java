@@ -107,6 +107,7 @@ public class CalendarDataStore {
         //this implementation is just a dirt hacky way to make it work and some aspects (weather info) don't work
 
         DigestModel digest = new DigestModel();
+        digest.timeUnit = "WEEK";
         if (filter == null) {
             filter = "";
         }
@@ -217,6 +218,7 @@ public class CalendarDataStore {
 		return gson.toJson(digest);*/
 
         DigestModel digest = new DigestModel();
+        digest.timeUnit = "MONTH";
         if (filter == null) {
             filter = "";
         }
@@ -304,6 +306,7 @@ public class CalendarDataStore {
         return gson.toJson(digest);*/
 
         DigestModel digest = new DigestModel();
+        digest.timeUnit = "YEAR";
         if (filter == null) {
             filter = "";
         }
@@ -363,6 +366,7 @@ public class CalendarDataStore {
 			@QueryParam("filter") String filter) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
 		DigestModel digest = new DigestModel();
+        digest.timeUnit = "DAY";
         if (filter == null) {
             filter = "";
         }
