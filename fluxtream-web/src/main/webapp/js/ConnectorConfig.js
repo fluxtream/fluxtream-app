@@ -268,6 +268,34 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                     clock: true //just has to be nonnull, gps data has special treatment
                 }
             }
+        },
+        quantifiedmind: {
+            color : "rgb(20,20,20)",
+            mapicon :new google.maps.MarkerImage("https://www.google.com/latitude/apps/static/red_measle.png",null,null,new google.maps.Point(5,5),null),
+            mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
+            facets : {
+                test : {
+                    list : true,
+                    photos : false,
+                    map : true,
+                    gps : false,
+                    clock : ClockConfig.BODY_CATEGORY
+                }
+            }
+        },
+        github: {
+            color : "rgb(5,5,5)",
+            mapicon :new google.maps.MarkerImage("https://www.google.com/latitude/apps/static/red_measle.png",null,null,new google.maps.Point(5,5),null),
+            mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
+            facets : {
+                push : {
+                    list : true,
+                    photos : false,
+                    map : true,
+                    gps : false,
+                    clock : ClockConfig.SOCIAL_CATEGORY
+                }
+            }
         }
     }
 
