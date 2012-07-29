@@ -8,7 +8,6 @@ import javax.servlet.http.HttpServletRequest;
 import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.updaters.UpdateInfo;
-import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.mvc.controllers.ControllerHelper;
 import com.fluxtream.services.GuestService;
