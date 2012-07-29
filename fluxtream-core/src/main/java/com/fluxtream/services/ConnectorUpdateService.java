@@ -1,5 +1,6 @@
 package com.fluxtream.services;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import com.fluxtream.connectors.Connector;
@@ -104,5 +105,5 @@ public interface ConnectorUpdateService {
 	public long getNumberOfUpdatesSince(long guestId, Connector connector,
 			long then);
 
-    public UpdateWorkerTask getLastFinishedUpdateTask(long guestId, Connector connector);
+    public Collection<UpdateWorkerTask> getLastFinishedUpdateTasks(long guestId, Connector connector);
 }

@@ -52,14 +52,15 @@ import com.fluxtream.connectors.updaters.UpdateInfo;
                         "AND updt.timeScheduled<?))" +
                 "AND updt.guestId=? " +
                 "AND updt.connectorName=? "),
-    @NamedQuery( name = "updateWorkerTasks.getLastFinishedTask",
+    @NamedQuery( name = "updateWorkerTasks.getLastFinishedTaskByObjectType",
         query = "SELECT updt FROM ScheduledUpdate updt " +
-                "WHERE updt.timeScheduled<?" +
+                "WHERE updt.timeScheduled<? " +
                 "AND (updt.status=2 " +
                     "OR updt.status=3 " +
-                    "OR updt.status=4)" +
-                "ORDER BY updt.timeScheduled DESC " +
-                "LIMIT 1")
+                    "OR updt.status=4) " +
+                "AND updt.guestId=? " +
+                "AND updt.connectorName=? " +
+                "ORDER BY updt.timeScheduled DESC")
 })
 public class UpdateWorkerTask extends AbstractEntity {
 

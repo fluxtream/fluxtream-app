@@ -1,6 +1,7 @@
 package com.fluxtream.services.impl;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -396,8 +397,25 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 	}
 
     @Override
-    public UpdateWorkerTask getLastFinishedUpdateTask(final long guestId, final Connector connector) {
-        return JPAUtils.findUnique(em, UpdateWorkerTask.class, "updateWorkerTasks.getLastFinishedTask", System.currentTimeMillis());
+    public Collection<UpdateWorkerTask> getLastFinishedUpdateTasks(final long guestId, final Connector connector) {
+        List<UpdateWorkerTask> tasks = JPAUtils.find(em, UpdateWorkerTask.class, "updateWorkerTasks.getLastFinishedTaskByObjectType",
+                                        System.currentTimeMillis(),
+                                        guestId,
+                                        connector.getName());
+        HashMap<Integer, UpdateWorkerTask> seen = new HashMap<Integer, UpdateWorkerTask>();
+        for(UpdateWorkerTask task : tasks)
+        {
+            if(seen.containsKey(task.objectTypes))
+            {
+                if(seen.get(task.objectTypes).timeScheduled < task.timeScheduled)
+                    seen.put(task.objectTypes, task);
+            }
+            else
+            {
+                seen.put(task.objectTypes, task);
+            }
+        }
+        return seen.values();
     }
 
     @Override

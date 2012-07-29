@@ -1,6 +1,7 @@
 package com.fluxtream.api;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
@@ -11,7 +12,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.connectors.Connector;
-import com.fluxtream.connectors.updaters.ScheduleResult;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ApiUpdate;
@@ -119,8 +119,12 @@ public class ConnectorStore {
     }
 
     private boolean checkForErrors(long guestId, Connector connector){
-        UpdateWorkerTask update = connectorUpdateService.getLastFinishedUpdateTask(guestId, connector);
-        return update==null || update.status!= UpdateWorkerTask.Status.DONE;
+        Collection<UpdateWorkerTask> update = connectorUpdateService.getLastFinishedUpdateTasks(guestId, connector);
+        for(UpdateWorkerTask workerTask : update)
+        {
+            if(workerTask == null || workerTask.status!= UpdateWorkerTask.Status.DONE) return true;
+        }
+        return false;
     }
 
     private long getLastSync(long guestId, Connector connector){
