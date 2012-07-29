@@ -13,6 +13,10 @@ import com.fluxtream.utils.TimeUtils;
 import net.sf.json.JSONObject;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.commonshttp.CommonsHttpOAuthConsumer;
+import oauth.signpost.exception.OAuthCommunicationException;
+import oauth.signpost.exception.OAuthExpectationFailedException;
+import oauth.signpost.exception.OAuthMessageSignerException;
+import oauth.signpost.exception.OAuthNotAuthorizedException;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
@@ -88,10 +92,13 @@ public class BodymediaUpdater extends AbstractUpdater {
         }
     }
 
-    private void checkAndReplaceOauthToken(UpdateInfo updateInfo) {
+    private void checkAndReplaceOauthToken(UpdateInfo updateInfo) throws OAuthExpectationFailedException,
+                                                                         OAuthMessageSignerException,
+                                                                         OAuthNotAuthorizedException,
+                                                                         OAuthCommunicationException {
         String time = guestService.getApiKeyAttribute(updateInfo.getGuestId(), connector(), "xoauth_token_expiration_time");
         if(Long.parseLong(time) < System.currentTimeMillis()/1000)
-            bodymediaController.replaceToken();
+            bodymediaController.replaceToken(updateInfo);
     }
 
     /**
