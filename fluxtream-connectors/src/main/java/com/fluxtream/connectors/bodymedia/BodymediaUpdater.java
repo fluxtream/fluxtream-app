@@ -41,10 +41,13 @@ public class BodymediaUpdater extends AbstractUpdater {
     @Autowired
     MetadataService metadataService;
 
+    @Autowired
+    BodymediaController bodymediaController;
+
     private final HashMap<ObjectType, String> url = new HashMap<ObjectType, String>();
     private final HashMap<ObjectType, Integer> maxIncrement = new HashMap<ObjectType, Integer>();
 
-    private final DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd");
+    private final DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyyMMdd");
 
     public BodymediaUpdater() {
         super();
@@ -60,7 +63,7 @@ public class BodymediaUpdater extends AbstractUpdater {
     }
 
     public void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception {
-
+        checkAndReplaceOauthToken(updateInfo);
         for(ObjectType ot : updateInfo.objectTypes())
         {
             String date = jpaDaoService.findOne("bodymedia." + ot.getName() + ".getFailedUpdate",
@@ -85,6 +88,12 @@ public class BodymediaUpdater extends AbstractUpdater {
         }
     }
 
+    private void checkAndReplaceOauthToken(UpdateInfo updateInfo) {
+        String time = guestService.getApiKeyAttribute(updateInfo.getGuestId(), connector(), "xoauth_token_expiration_time");
+        if(Long.parseLong(time) < System.currentTimeMillis()/1000)
+            bodymediaController.replaceToken();
+    }
+
     /**
      * Retrieves that history for the given facet from the start date to the end date. It peforms the api calls in reverse order
      * starting from the end date. This is so that the most recent information is retrieved first.
@@ -97,7 +106,6 @@ public class BodymediaUpdater extends AbstractUpdater {
      * @throws Exception If either storing the data fails or if the rate limit is reached on Bodymedia's api
      */
     private void retrieveHistory(UpdateInfo updateInfo, ObjectType ot, String urlExtension, int increment, DateTime start, DateTime end) throws Exception {
-        DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyyMMdd");
         DateTimeComparator comparator = DateTimeComparator.getDateOnlyInstance();
         DateTime current = end;
         try {
@@ -143,6 +151,7 @@ public class BodymediaUpdater extends AbstractUpdater {
     }
 
     public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
+        checkAndReplaceOauthToken(updateInfo);
         for (ObjectType ot : updateInfo.objectTypes()) {
             BodymediaAbstractFacet endDate = jpaDaoService.findOne("bodymedia." + ot.getName() + ".getFailedUpdate", BodymediaAbstractFacet.class, updateInfo.getGuestId());
             DateTime start, end;
