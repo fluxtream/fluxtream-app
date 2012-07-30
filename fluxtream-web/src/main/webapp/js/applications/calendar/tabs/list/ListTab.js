@@ -21,10 +21,12 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
     var maxPerPage = 250;
     var currentPage = 0;
     var photoCarouselHTML;
+    var timeZoneOffset;
 
     var rendererCount = 0;
 
     function setup(digest,connectorEnabled){
+        timeZoneOffset = digest.timeZoneOffset;
         list = $("#list");
         pagination = $("#pagination");
         currentPage = 0;
@@ -56,7 +58,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
                         items[j] = item;
                         break;
                     }
-                    if (items[j].facet.start > item.facet.start || item.facet.start == null){
+                    if (items[j].facet.start + timeZoneOffset > item.facet.start + timeZoneOffset || item.facet.start + timeZoneOffset == null){
                         items.splice(j,0,item);
                         break;
                     }
@@ -176,7 +178,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
            if (item.visible){
                visibleCount++;
                if (visibleCount >= currentPage * maxPerPage && visibleCount <= (currentPage + 1) * maxPerPage){
-                    var facetDate = App.formatDate(item.facet.start);
+                    var facetDate = App.formatDate(item.facet.start  + timeZoneOffset,false,true);
                     if (currentArray.length == 0){
                         currentArray = [item.facet];
                         currentDate = facetDate;

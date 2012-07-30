@@ -36,7 +36,7 @@
 			access="hasRole('ROLE_USER')" />
 		<intercept-url pattern="/facets/setComment.json*"
 			access="hasRole('ROLE_USER')" />
-		<intercept-url pattern='/api/**' access="hasAnyRole('ROLE_USER','ROLE_DEMO')" />
+		<intercept-url pattern='/api/**' access="true" />
 		<intercept-url pattern="/**"
 			access="hasAnyRole('ROLE_USER','ROLE_DEMO')" />
 
