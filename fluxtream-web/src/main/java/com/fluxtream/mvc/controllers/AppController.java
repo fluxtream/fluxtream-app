@@ -91,6 +91,28 @@ public class AppController {
         return mav;
     }
 
+    @RequestMapping(value = { "/explorer" })
+    public ModelAndView explorer(HttpServletRequest request) {
+
+        long guestId = ControllerHelper.getGuestId();
+
+        ModelAndView mav = new ModelAndView("snippets");
+        String targetEnvironment = env.get("environment");
+        mav.addObject("prod", targetEnvironment.equals("prod"));
+        if (request.getSession(false) == null)
+            return mav;
+
+        Authentication auth = SecurityContextHolder.getContext()
+                .getAuthentication();
+        if (auth == null || !auth.isAuthenticated())
+            return mav;
+        mav.setViewName("explorer");
+
+        String release = env.get("release");
+        mav.addObject("release", release);
+        return mav;
+    }
+
     public ModelAndView home(HttpServletRequest request) {
 		logger.info("action=loggedIn");
 
