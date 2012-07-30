@@ -130,7 +130,7 @@
     <g:compress>
 		<script src="/static/js/jquery-ui-1.8.18.custom.min.js"></script>
 		<script src="/static/js/jquery.ui.sortable-1.8.2-bt-1.0.0.js"></script>
-		<script src="/static/tiny_mce/jquery.tinymce.js"></script>
+		<script src="/static/tiny_mce-3.5b1/jquery.tinymce.js"></script>
 		<script src="/static/js/json2-2011.10.19.js"></script>
 		<script src="/static/js/jquery.autoGrowInput-1.0.0.js"></script>
 		<script src="/static/js/jquery.colorPicker-2012.01.27.js"></script>
