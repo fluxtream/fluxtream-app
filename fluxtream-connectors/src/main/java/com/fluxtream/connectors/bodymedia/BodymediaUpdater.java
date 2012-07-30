@@ -67,7 +67,7 @@ public class BodymediaUpdater extends AbstractUpdater {
     }
 
     public void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception {
-        checkAndReplaceOauthToken(updateInfo);
+        //checkAndReplaceOauthToken(updateInfo);
         for(ObjectType ot : updateInfo.objectTypes())
         {
             String date = jpaDaoService.findOne("bodymedia." + ot.getName() + ".getFailedUpdate",
@@ -96,7 +96,7 @@ public class BodymediaUpdater extends AbstractUpdater {
                                                                          OAuthMessageSignerException,
                                                                          OAuthNotAuthorizedException,
                                                                          OAuthCommunicationException {
-        String time = guestService.getApiKeyAttribute(updateInfo.getGuestId(), connector(), "xoauth_token_expiration_time");
+        String time = guestService.getApiKeyAttribute(updateInfo.getGuestId(), connector(), "tokenExpiration");
         if(Long.parseLong(time) < System.currentTimeMillis()/1000)
             bodymediaController.replaceToken(updateInfo);
     }
@@ -158,7 +158,7 @@ public class BodymediaUpdater extends AbstractUpdater {
     }
 
     public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
-        checkAndReplaceOauthToken(updateInfo);
+        //checkAndReplaceOauthToken(updateInfo);
         for (ObjectType ot : updateInfo.objectTypes()) {
             BodymediaAbstractFacet endDate = jpaDaoService.findOne("bodymedia." + ot.getName() + ".getFailedUpdate", BodymediaAbstractFacet.class, updateInfo.getGuestId());
             DateTime start, end;
