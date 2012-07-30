@@ -421,9 +421,9 @@ define(
             var minutes = Math.floor(minuteOfDay%60);
             if (minutes<10) minutes = "0" + minutes;
             if (hour<12)
-                return (hour == 0 ? 12 : hour) + ":" + minutes + " AM";
+                return [(hour == 0 ? 12 : hour) + ":" + minutes, "am"];
             else
-                return (hour > 12 ? hour - 12 : 12) + ":" + minutes + " PM";
+                return [(hour > 12 ? hour - 12 : 12) + ":" + minutes, "pm"];
         }
 
         App.formatDateAsDatePicker = function(date){

@@ -487,12 +487,13 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                                 newFacet[member] = "IP lookup";
                                 break;
                             default:
-                                newFacet[memeber] = data[member];
+                                newFacet[member] = data[member];
                                 break;
                         }
                         break;
                     case "startMinute":
-                        newFacet.time = App.formatMinuteOfDay(data[member]);
+                        newFacet.time = App.formatMinuteOfDay(data[member])[0];
+                        newFacet.ampm = App.formatMinuteOfDay(data[member])[1];
                         break;
                     case "userName":
                         newFacet[member] = data[member];

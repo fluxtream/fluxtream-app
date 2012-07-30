@@ -336,7 +336,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                 orientation:orientation,
                 oppositeOrientation:tailOrientation,
                 color:color,
-                time: App.formatMinuteOfDay(minute),
+                time: App.formatMinuteOfDay(minute)[0],
+                ampm: App.formatMinuteOfDay(minute)[1],
                 tooltipData:contents
             }));
             ttpdiv.css("position","absolute");
