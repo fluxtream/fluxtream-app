@@ -19,6 +19,7 @@ public class TimeOfDayVO {
                 hourOfDay -=12;
                 this.ampm = "pm";
             }
+            this.hours = String.valueOf(hourOfDay);
         } else {
             this.hours = String.valueOf(minutes/60);
         }
