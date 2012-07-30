@@ -140,6 +140,7 @@ public class CalendarDataStore {
 
         digest.tbounds = getStartEndResponseBoundaries(dayMetadata.start,
                                                        dayMetadata.end);
+        digest.timeZoneOffset = TimeZone.getTimeZone(dayMetadata.timeZone).getOffset((digest.tbounds.start + digest.tbounds.end)/2);
 
         City city = metadataService.getMainCity(guestId, dayMetadata);
 
@@ -247,6 +248,7 @@ public class CalendarDataStore {
 
         digest.tbounds = getStartEndResponseBoundaries(dayMetadata.start,
                                                        dayMetadata.end);
+        digest.timeZoneOffset = TimeZone.getTimeZone(dayMetadata.timeZone).getOffset((digest.tbounds.start + digest.tbounds.end)/2);
 
         City city = metadataService.getMainCity(guestId, dayMetadata);
 
@@ -326,6 +328,7 @@ public class CalendarDataStore {
 
         digest.tbounds = getStartEndResponseBoundaries(dayMetadata.start,
                                                        dayMetadata.end);
+        digest.timeZoneOffset = TimeZone.getTimeZone(dayMetadata.timeZone).getOffset((digest.tbounds.start + digest.tbounds.end)/2);
 
         City city = metadataService.getMainCity(guestId, dayMetadata);
 
@@ -379,6 +382,7 @@ public class CalendarDataStore {
 				date, true);
 		digest.tbounds = getStartEndResponseBoundaries(dayMetadata.start,
 				dayMetadata.end);
+        digest.timeZoneOffset = TimeZone.getTimeZone(dayMetadata.timeZone).getOffset((digest.tbounds.start + digest.tbounds.end)/2);
 
 		City city = metadataService.getMainCity(guestId, dayMetadata);
 

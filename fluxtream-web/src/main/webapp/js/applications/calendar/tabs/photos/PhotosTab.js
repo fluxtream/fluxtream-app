@@ -71,20 +71,19 @@ define(["core/Tab",
             var currentGroup = [];
             var currentDate = null;
             for (var i = 0; i < data.length; i++){
-               var date = new Date(data[i].start);
+               var date = App.formatDate(data[i].start + digest.timeZoneOffset,false,true);
                if (currentDate == null){
                    currentDate = date;
                }
-               else if (currentDate.getMonth() != date.getMonth() || currentDate.getYear() != date.getYear()
-                   || currentDate.getDate() != date.getDate()) {
-                   $("#photoTab").append(template.render({date:App.formatDate(currentDate),photos:currentGroup}));
+               else if (currentDate != date) {
+                   $("#photoTab").append(template.render({date:currentDate,photos:currentGroup}));
                    currentGroup = [];
                    currentDate = date;
                }
                 currentGroup[currentGroup.length] = data[i];
             }
             if (currentGroup.length != 0){
-                $("#photoTab").append(template.render({date:App.formatDate(currentDate),photos:currentGroup}));
+                $("#photoTab").append(template.render({date:currentDate,photos:currentGroup}));
             }
             for (var i = 0; i < data.length; i++){
                 $("#photo-" + i).click({i:i},function(event){

@@ -32,6 +32,7 @@ public class DigestModel {
 	public List<ConnectorDigestModel> selectedConnectors = new ArrayList<ConnectorDigestModel>();
     public List<WeatherInfo> hourlyWeatherData = null;
     public String timeUnit;
+    public long timeZoneOffset;
 
 	@SuppressWarnings("rawtypes")
 	public Map<String,Collection> cachedData
