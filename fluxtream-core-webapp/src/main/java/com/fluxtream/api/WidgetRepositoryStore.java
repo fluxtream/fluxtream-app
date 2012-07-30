@@ -40,31 +40,46 @@ public class WidgetRepositoryStore {
     @Path("/")
     @Produces({ MediaType.APPLICATION_JSON })
     public String getWidgetRepositories() {
-        long guestId = ControllerHelper.getGuestId();
-        final List<DashboardWidgetsRepository> repositories = widgetsService.getWidgetRepositories(guestId);
-        JSONArray result = new JSONArray();
-        for (DashboardWidgetsRepository repository : repositories) {
-            result.add(repository.url);
+        try{
+            long guestId = ControllerHelper.getGuestId();
+            final List<DashboardWidgetsRepository> repositories = widgetsService.getWidgetRepositories(guestId);
+            JSONArray result = new JSONArray();
+            for (DashboardWidgetsRepository repository : repositories) {
+                result.add(repository.url);
+            }
+            return result.toString();
         }
-        return result.toString();
+        catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Failed to get widget repositories: " + e.getMessage()));
+        }
     }
 
     @POST
     @Path("/")
     @Produces({ MediaType.APPLICATION_JSON })
     public String addWidgetRepositoryURL(@FormParam("url") String url) {
-        long guestId = ControllerHelper.getGuestId();
-        try { widgetsService.addWidgetRepositoryURL(guestId, url); }
-        catch (RuntimeException rte) { return handleRuntimeException(rte); }
-        return gson.toJson(new StatusModel(true, "added widget repository"));
+        try{
+            long guestId = ControllerHelper.getGuestId();
+            try { widgetsService.addWidgetRepositoryURL(guestId, url); }
+            catch (RuntimeException rte) { return handleRuntimeException(rte); }
+            return gson.toJson(new StatusModel(true, "added widget repository"));
+        }
+        catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Failed to add widget repository: " + e.getMessage()));
+        }
     }
 
     @DELETE
     @Produces({ MediaType.APPLICATION_JSON })
     @Path("/")
     public String removeWidgetRepositoryURL(@QueryParam("url") String url) {
-        long guestId = ControllerHelper.getGuestId();
-        widgetsService.removeWidgetRepositoryURL(guestId, url);
-        return gson.toJson(new StatusModel(true, "removed widget repository"));
+        try{
+            long guestId = ControllerHelper.getGuestId();
+            widgetsService.removeWidgetRepositoryURL(guestId, url);
+            return gson.toJson(new StatusModel(true, "removed widget repository"));
+        }
+        catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Failed to delete widget repository: " + e.getMessage()));
+        }
     }
 }
