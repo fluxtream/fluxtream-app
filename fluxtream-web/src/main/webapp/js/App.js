@@ -55,9 +55,9 @@ define(
                     .append(
                     "<button id=\""
                         + app.name
-                        + "MenuButton\" class=\"btn\" "
+                        + "MenuButton\" class=\"btn appMenuBtn\" "
                         + "onclick=\"javascript:App.renderApp('"
-                        + app.name + "')\">"
+                        + app.name + "','last')\">"
                         + "<i class=\"" + app.icon
                         + "  icon-large\"></i></button>");
             }
@@ -73,7 +73,7 @@ define(
             if (loaded === toLoad) {
                 App.apps = apps;
                 // we create the top apps menu
-//                createAppsMenu();
+                createAppsMenu();
                 // we start the history
                 Backbone.history.start({
                                            pushState : true
@@ -127,10 +127,10 @@ define(
             });
         }
 
-        function renderApp(appName) {
+        function renderApp(appName,state) {
             App.activeApp.saveState();
             App.activeApp=App.apps[appName];
-            App.apps[appName].render("last");
+            App.apps[appName].render(state);
         }
 
         App.settings = function() {
@@ -149,7 +149,8 @@ define(
             var backdrops = $(".modal-backdrop");
             if (backdrops.length > 1){
                 var zIndex = $(backdrops[backdrops.length - 2]).css("zIndex");
-                zIndex += 20;
+                zIndex++;
+                zIndex += 19;
                 $(backdrops[backdrops.length - 1]).css("zIndex",zIndex);
                 zIndex++;
                 dialog.css("zIndex",zIndex);

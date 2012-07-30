@@ -1,16 +1,16 @@
-define(["applications/calendar/tabs/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Tab, PhotoUtils) {
+define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Tab, PhotoUtils) {
 
-    var listTab = new Tab("list", "Candide Kemmler", "icon-list", true);
+    var listTab = new Tab("calendar", "list", "Candide Kemmler", "icon-list", true);
 
     var oldState = null;
 
-    function render(digest, timeUnit, calendarState, connectorEnabled) {
+    function render(params) {
         this.getTemplate("text!applications/calendar/tabs/list/list.html", "list", function(){
-            if (calendarState == oldState)
+            if (params.calendarState == oldState)
                 return;
             else
-                oldState = calendarState;
-            setup(digest,connectorEnabled);
+                oldState = params.calendarState;
+            setup(params.digest,params.connectorEnabled);
         });
     }
 

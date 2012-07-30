@@ -1,6 +1,7 @@
 define([ "core/FlxState" ], function(FlxState) {
 
-	function Tab(aname, anauthor, anicon, needsTemplating) {
+	function Tab(appname, aname, anauthor, anicon, needsTemplating) {
+        this.appname = appname;
 		this.name = aname;
 		this.author = anauthor;
 		this.icon = anicon;
@@ -31,7 +32,7 @@ define([ "core/FlxState" ], function(FlxState) {
 	};
 
     Tab.prototype.getTabContents = function(uri, id, domReady, isResource, forceLoad, tabData) {
-		var nextTabId = id + "-tab",
+		var nextTabId = this.appname + "-" + id + "-tab",
             nextTabDiv = $("#"+nextTabId),
             that = this;
 		var noTab = $(".tab").length==0;
@@ -82,7 +83,7 @@ define([ "core/FlxState" ], function(FlxState) {
 		if (forceLoad && $("#"+nextTabId).length>0) {
 			$("#"+nextTabId).replaceWith(template);
 		} else {
-			$("#tabs").append(template);
+			$("#" + this.appname + "-app #tabs").append(template);
 		}
 		if (domReady!=null)
 			domReady(template);

@@ -168,6 +168,23 @@ public class BodyTrackHelper {
         }
     }
 
+    public String getSourceInfo(final Long uid, final String deviceName) {
+        try{
+            if (uid == null)
+                throw new IllegalArgumentException();
+            String result = executeDataStore("info",new Object[]{"-r",uid});
+
+            channelInfoResponse infoResponse = gson.fromJson(result,channelInfoResponse.class);
+
+            SourceInfo response = new SourceInfo(infoResponse,deviceName);
+
+            return gson.toJson(response);
+        }
+        catch(Exception e){
+            return gson.toJson(new SourcesResponse(null));
+        }
+    }
+
     public void setDefaultStyle(final Long uid, final String deviceName, final String channelName, final ChannelStyle style) {
         setDefaultStyle(uid,deviceName,channelName, gson.toJson(style));
     }
@@ -224,18 +241,18 @@ public class BodyTrackHelper {
         }
         AddViewResult result = new AddViewResult();
         result.saved_view_id = view.getId();
-        result.populateViews(em, uid);
+        result.populateViews(em, gson, uid);
         return gson.toJson(result);
     }
 
     public String listViews(long uid){
         ViewsList list = new ViewsList();
-        list.populateViews(em,uid);
+        list.populateViews(em, gson, uid);
         return gson.toJson(list);
     }
 
     @Transactional(readOnly = false)
-    public String getView(long uid, long viewId){
+    public String getView(Long uid, long viewId){
         GrapherView view = JPAUtils.findUnique(em, GrapherView.class,"grapherView.byId",uid,viewId);
         if (view != null){
             view.lastUsed = System.currentTimeMillis();
@@ -244,13 +261,19 @@ public class BodyTrackHelper {
         return view == null ? "{\"error\",\"No matching view found for user " + uid + "\"}" : view.json;
     }
 
+    @Transactional(readOnly = false)
+    public void deleteView(Long uid, long viewId){
+        GrapherView view = JPAUtils.findUnique(em, GrapherView.class,"grapherView.byId",uid,viewId);
+        em.remove(view);
+    }
+
     private static class ViewsList{
         ArrayList<ViewStub> views = new ArrayList<ViewStub>();
 
-        void populateViews(EntityManager em, long uid){
+        void populateViews(EntityManager em, Gson gson, long uid){
             List<GrapherView> viewList = JPAUtils.find(em, GrapherView.class,"grapherView",uid);
             for (GrapherView view : viewList){
-                views.add(new ViewStub(view));
+                views.add(new ViewStub(view,gson));
             }
         }
     }
@@ -263,13 +286,34 @@ public class BodyTrackHelper {
         long id;
         long last_used;
         String name;
+        AxisRange time_range;
 
-        public ViewStub(GrapherView view){
+        public ViewStub(GrapherView view,Gson gson){
             id = view.getId();
             last_used = view.lastUsed;
             name = view.name;
+            ViewJSON json = gson.fromJson(view.json,ViewJSON.class);
+            time_range = new AxisRange();
+            time_range.min = json.v2.x_axis.min * 1000;
+            time_range.max = json.v2.x_axis.max * 1000;
         }
 
+    }
+
+    private static class ViewJSON{
+        String name;
+        ViewData v2;
+    }
+
+    private static class ViewData{
+        AxisRange x_axis;
+        boolean show_add_pane;
+        ArrayList<ViewChannelData> y_axes;
+    }
+
+    private static class AxisRange{
+        double min;
+        double max;
     }
 
     private static class GetTileResponse{
@@ -339,9 +383,43 @@ public class BodyTrackHelper {
         }
     }
 
+    private static class SourceInfo{
+        Source info;
+
+        public SourceInfo(channelInfoResponse infoResponse, String deviceName){
+            info = new Source();
+            info.name = deviceName;
+            info.channels = new ArrayList<Channel>();
+            info.max_time = System.currentTimeMillis() / 1000.0;
+            info.min_time = info.max_time - 1;
+            if (infoResponse == null)
+                return;
+
+            for (Map.Entry<String,ChannelSpecs> entry : infoResponse.channel_specs.entrySet()){
+                String fullName = entry.getKey();
+                ChannelSpecs specs = entry.getValue();
+                String[] split = fullName.split("\\.");
+                String devName = split[0];
+                String channelName = split[1];
+                Source source = null;
+                if (devName.equals(deviceName)){
+                    Channel channel = new Channel(channelName,specs);
+                    info.channels.add(channel);
+                    if (channel.min_time < info.min_time)
+                        info.min_time = channel.min_time;
+                    if (channel.max_time > info.max_time)
+                        info.max_time = channel.max_time;
+                }
+            }
+        }
+
+    }
+
     private static class Source{
         String name;
         ArrayList<Channel> channels;
+        Double min_time;
+        Double max_time;
     }
 
     private static class Channel{
@@ -349,10 +427,11 @@ public class BodyTrackHelper {
         ChannelStyle style;
         double max;
         double min;
-        double min_time;
-        double max_time;
+        Double min_time;
+        Double max_time;
         String name;
 
+        public Channel(){}
         public Channel(String name, ChannelSpecs specs){
             this.name = name;
             max = specs.channel_bounds.max_value;
@@ -362,6 +441,13 @@ public class BodyTrackHelper {
             style = builtin_default_style = ChannelStyle.getDefaultChannelStyle(name);
         }
     }
+
+    private static class ViewChannelData extends Channel{
+        Integer channel_height;
+        String channel_name;
+        String device_name;
+    }
+
 
     private static class ChannelStyle{
         HighlightStyling highlight;

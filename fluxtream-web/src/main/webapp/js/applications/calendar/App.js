@@ -36,6 +36,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 return;
 			fetchState("/nav/setToToday.json?timeUnit=" + Calendar.timeUnit);
 		});
+        Builder.init(this);
 	};
 
 	Calendar.initialize = function () {
@@ -710,9 +711,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     }
 
     Calendar.dateChanged = function(date, rangeType) {
-        console.log("Calendar.dateChanged(" + date + ", " + rangeType + ")");
-        console.log("updating url...");
-
         var oldTimeUnit = Calendar.timeUnit;
 
         Calendar.timeUnit = rangeType;
@@ -761,8 +759,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             Builder.createTabs(Calendar);
 
         updateDisplays();
-
-        console.log("dateLabel: " + dateLabel);
 
         $("#currentTimespanLabel span").html(dateLabel);
         updateDatepicker();

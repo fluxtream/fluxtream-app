@@ -1,13 +1,15 @@
 package com.fluxtream.api;
 
-import javax.ws.rs.GET;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.fluxtream.mvc.controllers.ControllerHelper;
+import com.fluxtream.services.impl.BodyTrackHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -30,6 +32,9 @@ public class BodyTrackController {
 	@Autowired
 	BodyTrackStorageService bodytrackStorageService;
 
+    @Autowired
+    BodyTrackHelper bodyTrackHelper;
+
 	Gson gson = new Gson();
 
 	@Autowired
@@ -51,7 +56,25 @@ public class BodyTrackController {
             status = new StatusModel(true, "Success!");
         }
 		return gson.toJson(status);
-	}
+    }
+
+    @DELETE
+    @Path("/users/{UID}/views/{id}")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String deleteBodytrackView(@PathParam("UID") Long uid, @PathParam("id") long viewId){
+        StatusModel status;
+        try{
+            if (!checkForPermissionAccess(uid)){
+                uid = null;
+            }
+            bodyTrackHelper.deleteView(uid,viewId);
+            status = new StatusModel(true,"successfully deleted view " + viewId);
+        }
+        catch (Exception e){
+            status = new StatusModel(false,"failed to delete view " + viewId);
+        }
+        return gson.toJson(status);
+    }
 
     private boolean checkForPermissionAccess(long targetUid){
         Guest guest = ControllerHelper.getGuest();

@@ -15,7 +15,8 @@ define(["core/FlxState"], function(FlxState) {
 	 * previous app and call renderState() on the new one
 	 */
 	Application.prototype.render = function(state) {
-		$("#"+this.name+"MenuButton").button('toggle');
+        $(".appMenuBtn.active").removeClass("active");
+		$("#"+this.name+"MenuButton").addClass('active');
 		if (state==="last")
 			state = FlxState.getState(this.name);
 		that = this;
@@ -41,12 +42,13 @@ define(["core/FlxState"], function(FlxState) {
 					$("#applications").append(html);
 					
 					App.activeApp = App.apps[that.name];
+                    App.activeApp.setup();
 					App.activeApp.renderState(state, true);
-					App.activeApp.setup();
 				});
 			} else {
 				nextAppDiv.removeClass("dormant");
 				nextAppDiv.addClass("active");
+                this.renderState(state, true);
 			}
 		} else {
 			this.renderState(state, true);

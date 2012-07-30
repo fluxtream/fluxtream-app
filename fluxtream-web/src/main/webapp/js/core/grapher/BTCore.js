@@ -1,4 +1,6 @@
 define([], function() {
+
+
 	var APP, PREFS, TOOLS, TAG_MANAGER, VIEWS, SOURCES;
 	var BodyTrack = {};
 
@@ -6,16 +8,12 @@ define([], function() {
 			isInitialized : false,
 
 			init : function(callback) {
+                VIEWS.getAvailableList(function() {
+                    callback();
+                });
 
-				// Wait for grapher to load before initializing tabs
-				//window.grapherLoad = function() {
-                    VIEWS.getAvailableList(function() {
-                        callback();
-                    });
-
-                    // Initialize the TAG_MANAGER
-                    TAG_MANAGER.init();
-				//};
+                // Initialize the TAG_MANAGER
+                TAG_MANAGER.init();
 			}
 	};
 
@@ -150,12 +148,13 @@ define([], function() {
 					$.ajax({
 						cache    : false,
 						type     : "GET",
+                        dataType: 'json',
 						url      : url,
 						data     : urlParams,
 						success  : function(data, textStatus, jqXHR) {
 							try {
 								if (typeof successCallback === 'function') {
-									successCallback(typeof data === 'string' ? JSON.parse(data) : data);
+									successCallback(data);
 								}
 							}
 							catch (ex) {
@@ -209,9 +208,8 @@ define([], function() {
 						{
 							success : function(data, textStatus, jqXHR) {
 								try {
-									var jsonData = typeof data === 'string' ? JSON.parse(data) : data;
-									if (jQuery.isArray(jsonData)) {
-										TAG_MANAGER.tags = jsonData.sort(caseInsensitiveSort);
+									if (jQuery.isArray(data)) {
+										TAG_MANAGER.tags = data.sort(caseInsensitiveSort);
 									}
 
 									if (typeof successCallback === 'function') {
@@ -273,12 +271,12 @@ define([], function() {
 				$.ajax({
 					cache   : false,
 					type    : "GET",
+                    dataType: 'json',
 					url     : "/bodytrack/users/" + App.getUID() + "/views",
 					success : function(data, textStatus, jqXHR) {
-						var parsed = JSON.parse(data);
-						VIEWS.availableList = parsed.views;
+						VIEWS.availableList = data.views;
 						if (typeof callback === "function") {
-							callback(parsed.views);
+							callback(data.views);
 						}
 					},
 					error   : function(jqXHR, textStatus, errorThrown) {
@@ -287,15 +285,37 @@ define([], function() {
 				});
 			},
 
+            delete : function(id,callback){
+                $.ajax({
+                    cache: false,
+                    type : "DELETE",
+                    url  : "/api/bodytrack/users/" + App.getUID() + "/views/" + id,
+                    success: function(data, textStatus, jqXHR){
+                        if (data.result != "OK")
+                            callback(false);
+                        else{
+                            VIEWS.getAvailableList(function(){
+                                callback(true);
+                            });
+                        }
+
+                    },
+                    error : function (jqXHR, textStatus, errorThrown){
+                        callback(false);
+                    }
+                })
+            },
+
 			// Set view data
 			load : function(id, callback) {
 				$.ajax({
 					cache   : false,
 					type    : "GET",
+                    dataType: 'json',
 					url     : "/bodytrack/users/" + App.getUID() + "/views/get",
 					data    : { "id" : id },
 					success : function(data, textStatus, jqXHR) {
-						VIEWS.data = JSON.parse(data);
+						VIEWS.data = data;
 						if (typeof callback === "function") {
 							callback(VIEWS.data);
 						}
@@ -312,6 +332,7 @@ define([], function() {
 				$.ajax({
 					cache   : false,
 					type    : "POST",
+                    dataType: 'json',
 					url     : "/bodytrack/users/" + App.getUID() + "/views/set",
 					data    : {
 						"name" : name,
@@ -322,15 +343,14 @@ define([], function() {
 					// and id of newly saved view
 					success : function(data, textStatus, jqXHR) {
 						var i, l;
-						var parsed = JSON.parse(data);
-						VIEWS.availableList = parsed.views;
+						VIEWS.availableList = data.views;
 
 						l = VIEWS.saveCallbackList.length;
 						for (i = 0; i < l; i++) {
 							VIEWS.saveCallbackList[i]();
 						}
 						if (typeof callback === "function") {
-							callback(parsed.views, parsed.saved_view_id);
+							callback(data.views, data.saved_view_id);
 						}
 					}
 				});
@@ -351,13 +371,13 @@ define([], function() {
 				$.ajax({
 					cache   : false,
 					type    : "GET",
+                    dataType: 'json',
 					url     : "/bodytrack/users/" + App.getUID() + "/sources/list",
 					success : function(data, textStatus, jqXHR) {
-						var parsed = JSON.parse(data);
-						SOURCES.availableList = parsed.sources;
+						SOURCES.availableList = data.sources;
 
 						if (typeof callback === "function") {
-							callback(parsed.sources);
+							callback(data.sources);
 						}
 					},
 					error   : function(jqXHR, textStatus, errorThrown) {
@@ -370,13 +390,13 @@ define([], function() {
 				$.ajax({
 					cache   : false,
 					type    : "GET",
+                    dataType: 'json',
 					url     : "/bodytrack/users/" + App.getUID() + "/sources",
 					success : function(data, textStatus, jqXHR) {
-						var parsed = JSON.parse(data);
-						SOURCES.configuredList = parsed.sources;
+						SOURCES.configuredList = data.sources;
 
 						if (typeof callback === "function") {
-							callback(parsed.sources);
+							callback(data.sources);
 						}
 					},
 					error   : function(jqXHR, textStatus, errorThrown) {
@@ -389,13 +409,13 @@ define([], function() {
 				$.ajax({
 					cache   : false,
 					type    : "GET",
+                    dataType: 'json',
 					url     : "/bodytrack/users/" + App.getUID() + "/sources/discovery",
 					success : function(data, textStatus, jqXHR) {
-						var parsed = JSON.parse(data);
-						SOURCES.discoveryList = parsed.sources;
+						SOURCES.discoveryList = data.sources;
 
 						if (typeof callback === "function") {
-							callback(parsed.sources);
+							callback(data.sources);
 						}
 					},
 					error   : function(jqXHR, textStatus, errorThrown) {
@@ -408,11 +428,12 @@ define([], function() {
 				$.ajax({
 					cache   : false,
 					type    : "GET",
+                    dataType: 'json',
 					url     : "/bodytrack/users/" + App.getUID() + "/sources/default_graph_specs",
 					data    : { "name" : device_name },
 					success : function(data, textStatus, jqXHR) {
 						if (typeof callback === "function") {
-							callback(JSON.parse(data).info);
+							callback(data.info);
 						}
 					},
 					error   : function(jqXHR, textStatus, errorThrown) {
@@ -512,7 +533,6 @@ define([], function() {
 	BodyTrack.VIEWS 	  = VIEWS;
 	BodyTrack.SOURCES 	  = SOURCES;
 
-	// for debugging
 	window.BodyTrack = BodyTrack;
 
 	return BodyTrack;

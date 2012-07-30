@@ -1,10 +1,10 @@
 define(["applications/calendar/tabs/diary/Status",
-        "applications/calendar/tabs/Tab",
+        "core/Tab",
         "applications/calendar/App"], function(status, Tab, Calendar) {
 	
-	function render(digest, timeUnit) {
-        this.getTemplate("text!applications/calendar/tabs/diary/" + timeUnit.toLowerCase() + "Diary.html", "diary-" + timeUnit, function() {
-			setup(digest, timeUnit);
+	function render(params) {
+        this.getTemplate("text!applications/calendar/tabs/diary/" + params.timeUnit.toLowerCase() + "Diary.html", "diary-" + params.timeUnit, function() {
+			setup(params.digest, params.timeUnit);
 		});
 	}
 	
@@ -35,7 +35,7 @@ define(["applications/calendar/tabs/diary/Status",
 		});
 	}
 	
-	var diaryTab = new Tab("diary", "Candide Kemmler", "icon-pencil", true);
+	var diaryTab = new Tab("calendar", "diary", "Candide Kemmler", "icon-pencil", true);
 	diaryTab.render = render;
 	return diaryTab;
 	

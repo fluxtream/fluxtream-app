@@ -3,21 +3,21 @@
 /*   overflow-y: hidden; */
 /* } */
 
-#_timeline_mainContentArea {
+._timeline_mainContentArea {
     position: relative;
 }
 
-#_timeline_mainContentArea #_timeline_dataTable {
+._timeline_mainContentArea ._timeline_dataTable {
     margin-top: 10px;
     border-spacing: 0px;
     table-layout: fixed;
     width: 100%;
 }
 
-#_timeline_mainContentArea #_timeline_dataTable td {
+._timeline_mainContentArea ._timeline_dataTable td {
 }
 
-#_timeline_viewName {
+._timeline_viewName {
     float: left;
     width: 200px;
     font-size: 1.2em;
@@ -45,20 +45,20 @@
     padding: 7px 10px;
 }
 
-#_timeline_addChannelsArea #_timeline_sources_find {
+._timeline_addChannelsArea #_timeline_sources_find {
     text-align: center;
     margin-bottom: 5px;
 }
 
-#_timeline_addChannelsArea span input {
+._timeline_addChannelsArea span input {
     width: 100px;
     border: 1px solid #d1d2d3;
     font-size: 1em;
     vertical-align: middle;
 }
 
-#_timeline_addChannelsArea ul {
-/*     min-height: 100%; */
+._timeline_addChannelsArea ul {
+    /*     min-height: 100%; */
     height: auto;
     overflow-x: hidden;
     overflow-y: auto;
@@ -68,11 +68,11 @@
     border-top: 3px solid #D1D2D3;
 }
 
-#_timeline_addChannelsArea ul li {
+._timeline_addChannelsArea ul li {
     width: 100%;
 }
 
-#_timeline_addChannelsArea ul li ._timeline_sources_name {
+._timeline_addChannelsArea ul li ._timeline_sources_name {
     font-weight: bold;
     background-color: #d1d2d3;
     padding: 5px 9px;
@@ -85,33 +85,37 @@
     user-select: none;
 }
 
-#_timeline_addChannelsArea ul li ._timeline_sources_name ._timeline_sources_name_arrow {
+._timeline_addChannelsArea ul li ._timeline_sources_name ._timeline_sources_name_arrow {
     font-size: 1.0em;
 }
 
-#_timeline_addChannelsArea ul li ul {
+._timeline_addChannelsArea ul li ul {
     display: none;
 }
 
-#_timeline_addChannelsArea ul li ul ._timeline_sources_channel {
+._timeline_addChannelsArea ul li ul ._timeline_sources_channel {
     padding: 2px 5px 2px 9px;
     cursor: pointer;
 }
 
-#_timeline_channelsArea {
+._timeline_channelsArea {
     vertical-align: top;
     padding: 0 1px;
     width: auto;
 }
 
-#_timeline_channelsWrapper {
-/*     min-height: 100%; */
+._timeline_channelsWrapper {
+    /*     min-height: 100%; */
     height: auto;
     overflow-x: hidden;
     overflow-y: auto;
 }
 
-#_timeline_channels {
+._timeline_channelsWrapper table{
+    width:100%;
+}
+
+._timeline_channels {
     border: 1px solid #D1D2D3;
     list-style-type: none;
     margin: 0;
@@ -119,14 +123,14 @@
 }
 
 
-#_timeline_channelsWrapper_footer {
-  /* This footer allows the user to scroll the page enough so that
-   * channel config widgets don't get chopped off by the bottom of
-   * the window. */
-  height: 120px;
-  min-height: 120px;
-  max-height: 120px;
-  background-color: #ffffff;
+._timeline_channelsWrapper_footer {
+    /* This footer allows the user to scroll the page enough so that
+ * channel config widgets don't get chopped off by the bottom of
+ * the window. */
+    height: 120px;
+    min-height: 120px;
+    max-height: 120px;
+    background-color: #ffffff;
 }
 
 ._timeline_channel {
@@ -136,7 +140,7 @@
 }
 
 ._timeline_channel_hover {
-	background-color: rgba(0, 50, 10, 0.3);
+    background-color: rgba(0, 50, 10, 0.3);
 }
 
 ._timeline_channel table {
@@ -144,19 +148,19 @@
 }
 
 ._timeline_channel table ._timeline_channeltd {
-  width: 200px;
+    width: 200px;
 }
 
 ._timeline_channel table ._timeline_plottd {
-  width: auto;
+    width: auto;
 }
 
 ._timeline_channel table ._timeline_yaxistd {
-  width: 30px;
+    width: 30px;
 }
 
 ._timeline_channelTabAndPlot {
-  position: relative;
+    position: relative;
 }
 
 ._timeline_channelTab {
@@ -169,7 +173,7 @@
 }
 
 ._timeline_channelTable {
-	height: 100%;
+    height: 100%;
 }
 
 ._timeline_btnShowAllY {
@@ -182,65 +186,65 @@
 }
 
 ._timeline_btnGear {
-  float: right;
-  margin-left: 6px;
-  margin-right: 2px;
-  padding: 0;
+    float: right;
+    margin-left: 6px;
+    margin-right: 2px;
+    padding: 0;
 }
 
 ._timeline_delete_btn {
-  margin-left: 6px;
-  margin-right: 6px;
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-  background: url(../static/images/delete.png) no-repeat 0 0;
+    margin-left: 6px;
+    margin-right: 6px;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    background: url(../static/images/delete.png) no-repeat 0 0;
 }
 
 ._timeline_delete_btn:hover {
-  background-position: 0 -20px;
+    background-position: 0 -20px;
 }
 
 ._timeline_channelName {
-  font-family: "Arial", verdana, sans-serif;
-  font-size: 1.1em;
-  font-weight: bold;
-  text-overflow: ellipsis;
-  overflow: hidden;
+    font-family: "Arial", verdana, sans-serif;
+    font-size: 1.1em;
+    font-weight: bold;
+    text-overflow: ellipsis;
+    overflow: hidden;
 }
 
 ._timeline_channelSource {
-  font-family: "Arial", verdana, sans-serif;
-  font-size: 0.7em;
-  font-weight: bold;
-  color: #4D4D4D;
+    font-family: "Arial", verdana, sans-serif;
+    font-size: 0.7em;
+    font-weight: bold;
+    color: #4D4D4D;
 }
 
 ._timeline_channelFilter {
-  display:none;
-  overflow: hidden;
-  margin-top: 5px;
-  padding: 0;
-  font-family: "Arial", verdana, sans-serif;
-  font-style: italic;
-  font-size: 9px;
-  font-weight: normal;
-  color: #363636;
-  width: 141px;
+    display:none;
+    overflow: hidden;
+    margin-top: 5px;
+    padding: 0;
+    font-family: "Arial", verdana, sans-serif;
+    font-style: italic;
+    font-size: 9px;
+    font-weight: normal;
+    color: #363636;
+    width: 141px;
 }
 
 ._timeline_channelFilter_label {
-  font-weight: bold;
+    font-weight: bold;
 }
 
 .close_btn {
-  position: absolute;
-  right: -17px;
-  top: -16px;
-  width: 30px;
-  height: 30px;
-  cursor: pointer;
-  background: url(../static/images/closebox.png) no-repeat 0 0;
+    position: absolute;
+    right: -17px;
+    top: -16px;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    background: url(../static/images/closebox.png) no-repeat 0 0;
 }
 
 ._timeline_plotContainer {
@@ -261,73 +265,77 @@
 }
 
 ._timeline_channelConfig table td {
-  font-family: "Arial", verdana, sans-serif;
-  padding: 1px 0 1px 0;
+    font-family: "Arial", verdana, sans-serif;
+    padding: 1px 0 1px 0;
 }
 
 ._timeline_channelConfig select {
-  font-family: "Arial", verdana, sans-serif;
-  font-size: 0.9em;
+    font-family: "Arial", verdana, sans-serif;
+    font-size: 0.9em;
 }
 
 ._timeline_channelConfig ._timeline_sectionTitle {
-  font-weight: bold;
-  display: inline;
-  font-size: 8pt;
+    font-weight: bold;
+    display: inline;
+    font-size: 8pt;
 }
 
 ._timeline_channelConfig_table_cell_padding {
-  width:10px;
-  min-width:5px;
+    width:10px;
+    min-width:5px;
 }
 
 ._timeline_channelConfig_image_menu {
-  width:45px;
+    width:45px;
 }
 
 ._timeline_channelConfig label {
-  display: inline;
-  font-weight: normal;
-  font-size: 7pt;
+    display: inline;
+    font-weight: normal;
+    font-size: 7pt;
 }
 
 ._timeline_photo_series_plot_config {
-  display: none;
-  padding-left: 202px;
+    display: none;
+    padding-left: 202px;
 }
 
 ._timeline_data_series_plot_config {
-  display: none;
+    display: none;
 }
 
 ._timeline_data_series_plot_config_left_area {
-  font-size: 8pt;
-  width: 202px;
-  min-width: 202px;
-  max-width: 202px;
+    font-size: 8pt;
+    width: 202px;
+    min-width: 202px;
+    max-width: 202px;
 }
 
 ._timeline_data_series_plot_config_left_area > div {
-  padding-left: 5px;
+    padding-left: 5px;
 }
 
 ._timeline_data_series_plot_config_right_area {
-  width: auto;
+    width: auto;
 }
 
-#_timeline_dateAxisAndChannelsArea {
-  padding: 0;
-  margin: 0;
-  border: 0;
-  width: 100%;
+._timeline_dateAxisAndChannelsArea {
+    padding: 0;
+    margin: 0;
+    border: 0;
+    width: 100%;
 }
 
-#_timeline_gotozoom {
-   width: 202px;
-   height: 70px;
-   margin-left: 1px;
-   border: 1px solid #CCCCCC;
-   background: #BCBCBC;
+._timeline_dateAxisAndChannelsArea table{
+    width:100%;
+ }
+
+._timeline_gotozoom {
+    width: 202px;
+    height: 70px;
+    margin-left: 1px;
+    border: 1px solid #CCCCCC;
+    background: #BCBCBC;
 }
 
 ._timeline_gotozoom_button {
@@ -339,7 +347,7 @@
     margin: 10px 0 0 3px;
 }
 
-#_timeline_gotozoom_separator {
+._timeline_gotozoom_separator {
     float: left;
     width: 2;
     height: 29;
@@ -347,47 +355,22 @@
     margin: 8px 2px 0 4px;
 }
 
-#_timeline_gotoBeginning_button {
-    background: url(../static/images/btn_beginning.png) no-repeat 0 0;
-    margin-left: 12px;
+._timeline_dateAxisContainer {
+    width: auto;
+    height:70px;
+    margin: 0 53px 0 0px;
+    padding: 0;
+    border: 1px solid #CCCCCC;
+    border-bottom-width: 0;
 }
 
-#_timeline_gotoBack_button {
-    background: url(../static/images/btn_back.png) no-repeat 0 0;
-}
-
-#_timeline_gotoForward_button {
-    background: url(../static/images/btn_forward.png) no-repeat 0 0;
-}
-
-#_timeline_gotoEnd_button {
-    background: url(../static/images/btn_end.png) no-repeat 0 0;
-}
-
-#_timeline_zoomOut_button {
-    background: url(../static/images/btn_zoomout.png) no-repeat 0 0;
-}
-
-#_timeline_zoomIn_button {
-    background: url(../static/images/btn_zoomin.png) no-repeat 0 0;
-}
-
-#_timeline_dateAxisContainer {
-  width: auto;
-  height:70px;
-  margin: 0 53px 0 0px;
-  padding: 0;
-  border: 1px solid #CCCCCC;
-  border-bottom-width: 0;
-}
-
-#_timeline_dateAxis {
+._timeline_dateAxis {
     width: auto;
     height: 70px;
     z-index: 2;
 }
 
-#_timeline_dataPointValueLabel {
+._timeline_dataPointValueLabel {
     width: auto;
     min-width: 200px;
     text-align: right;
@@ -397,156 +380,156 @@
 }
 
 .ui-dialog .ui-dialog-content {
-  padding: 5px;
+    padding: 5px;
 }
 
-#_timeline_photo_dialog {
-  display:none;
+._timeline_photo_dialog {
+    display:none;
 }
 
 ._timeline_photo_dialog_loading_table {
-  min-width: 300px;
-  min-height: 300px;
-  width: 300px;
-  height: 300px;
-  background-color: white;
-  color: black;
+    min-width: 300px;
+    min-height: 300px;
+    width: 300px;
+    height: 300px;
+    background-color: white;
+    color: black;
 }
 
 ._timeline_photo_dialog_table {
-  min-width: 300px;
-  min-height: 300px;
-  height: auto;
+    min-width: 300px;
+    min-height: 300px;
+    height: auto;
 }
 
-#_timeline_photo_dialog_photo_table {
-  min-width: 300px;
-  min-height: 300px;
-  width: 300px;
-  height: 300px;
-  background-color: black;
+._timeline_photo_dialog_photo_table {
+    min-width: 300px;
+    min-height: 300px;
+    width: 300px;
+    height: 300px;
+    background-color: black;
 }
 
-#_timeline_photo_dialog_timestamp {
-  font-size: 9pt;
-  width: 300px;
-  min-width: 300px;
-  border-bottom: 1px solid #aaaaaa;
-  padding-bottom:2px;
+._timeline_photo_dialog_timestamp {
+    font-size: 9pt;
+    width: 300px;
+    min-width: 300px;
+    border-bottom: 1px solid #aaaaaa;
+    padding-bottom:2px;
 }
 
-#_timeline_photo_dialog_comment {
-  margin: 12px 0 0 0;
-  padding: 0 2px 0 2px;
-  width: 294px;
-  max-width: 300px;
-  height: auto;
-  font-size: .85em;
-  border: 1px solid #c6c6c6;
+._timeline_photo_dialog_comment {
+    margin: 12px 0 0 0;
+    padding: 0 2px 0 2px;
+    width: 294px;
+    max-width: 300px;
+    height: auto;
+    font-size: .85em;
+    border: 1px solid #c6c6c6;
 }
 
-#_timeline_photo_dialog_tags_editor_area {
-  display:none;
+._timeline_photo_dialog_tags_editor_area {
+    display:none;
 }
 
-#_timeline_photo_dialog_previous_button {
-  margin:140px 10px 0 0;
+._timeline_photo_dialog_previous_button {
+    margin:140px 10px 0 0;
 }
 
-#_timeline_photo_dialog_next_button {
-  margin:140px 0 0 10px;
+._timeline_photo_dialog_next_button {
+    margin:140px 0 0 10px;
 }
 
 ._timeline_left_arrow{
-  padding: 0;
-  border: none;
-  width:10px;
-  height:19px;
-  cursor: pointer;
-  background: url(../static/images/leftArrow.png) no-repeat 0 0;
+    padding: 0;
+    border: none;
+    width:10px;
+    height:19px;
+    cursor: pointer;
+    background: url(../static/images/leftArrow.png) no-repeat 0 0;
 }
 
 ._timeline_left_arrow:hover{
-  background-position: 0 -19px;
+    background-position: 0 -19px;
 }
 
 ._timeline_right_arrow{
-  padding: 0;
-  border: none;
-  width:10px;
-  height:19px;
-  cursor: pointer;
-  background: url(../static/images/rightArrow.png) no-repeat 0 0;
+    padding: 0;
+    border: none;
+    width:10px;
+    height:19px;
+    cursor: pointer;
+    background: url(../static/images/rightArrow.png) no-repeat 0 0;
 }
 
 ._timeline_right_arrow:hover{
-  background-position: 0 -19px;
+    background-position: 0 -19px;
 }
 
 ._timeline_photo_tags_input {
-  width: 288px;
-  max-width: 288px;
+    width: 288px;
+    max-width: 288px;
 }
 
 ._timeline_photo_tags_filter {
-  width: auto;
+    width: auto;
 }
 
 .ui-menu-item {
-  font-size: 0.75em;
+    font-size: 0.75em;
 }
 
 .ui-autocomplete {
-  max-height: 160px;
-  overflow-y: auto;
-  /* prevent horizontal scrollbar */
-  overflow-x: hidden;
-  /* add padding to account for vertical scrollbar */
-  padding-right: 20px;
+    max-height: 160px;
+    overflow-y: auto;
+    /* prevent horizontal scrollbar */
+    overflow-x: hidden;
+    /* add padding to account for vertical scrollbar */
+    padding-right: 20px;
 }
 
-#_timeline_photo_dialog_form_status{
-  line-height:100px;
-  min-height:100px;
-  height:100px;
-  width:300px;
-  text-align: center;
-  vertical-align: middle;
-  display:none;
+._timeline_photo_dialog_form_status{
+    line-height:100px;
+    min-height:100px;
+    height:100px;
+    width:300px;
+    text-align: center;
+    vertical-align: middle;
+    display:none;
 }
 
-#_timeline_photo_dialog_tags_editor {
-  margin-top: 10px;
+._timeline_photo_dialog_tags_editor {
+    margin-top: 10px;
 }
 
-#_timeline_photo_dialog_form_buttons {
-  margin-top: 10px;
-  font-size:smaller;
-  text-align:right;
+._timeline_photo_dialog_form_buttons {
+    margin-top: 10px;
+    font-size:smaller;
+    text-align:right;
 }
 
-#_timeline_photo_dialog_revert_button {
+._timeline_photo_dialog_revert_button {
 }
 
-#_timeline_photo_dialog_save_button {
+._timeline_photo_dialog_save_button {
 }
 
-#_timeline_photo_dialog_save_preferences {
-  clear: both;
-  margin-top: 10px;
-  padding-top: 5px;
-  border-top: 1px solid #aaaaaa;
-  text-align: center;
+._timeline_photo_dialog_save_preferences {
+    clear: both;
+    margin-top: 10px;
+    padding-top: 5px;
+    border-top: 1px solid #aaaaaa;
+    text-align: center;
 }
 
-#_timeline_photo_dialog_save_preferences label {
-  font-size: 8pt;
-  font-weight: normal;
-  display: inline;
-  color: #aaaaaa;
+._timeline_photo_dialog_save_preferences label {
+    font-size: 8pt;
+    font-weight: normal;
+    display: inline;
+    color: #aaaaaa;
 }
 
-#_timeline_photo_dialog_save_should_goto_neighbor_choice {
+._timeline_photo_dialog_save_should_goto_neighbor_choice {
     font-size: 7pt;
     margin: 0;
     width: auto;
@@ -618,8 +601,8 @@ canvas {
 }
 
 .button_toggle {
-  background-color: #18b054;
-  color: #fff;
+    background-color: #18b054;
+    color: #fff;
 }
 
 #_timeline_view_dialog {

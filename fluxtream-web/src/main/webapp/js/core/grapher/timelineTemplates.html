@@ -1,0 +1,411 @@
+<template id="mainGrapherApp">
+    <div class="row-fluid">
+        <div id="{{grapherId}}_timeline_messageArea">Loading...</div>
+
+        <div id="{{grapherId}}_timeline_mainContentArea" class="_timeline_mainContentArea" style="display:none">
+    <span {{^showFullControls}}style="display:none;"{{/showFullControls}}>
+      <span id="{{grapherId}}_timeline_viewName" class="_timeline_viewName" style="font-size:18px; color:#333;"></span>
+
+        <div class="btn-group" style="display:inline-block; vertical-align:middle;">
+            <a href="#" class="btn" id="{{grapherId}}_timeline_new_view_btn">New View</a>
+        </div>
+        <div class="btn-group" style="display:inline-block; vertical-align:middle;">
+            <a href="#" class="btn dropdown-toggle" data-toggle="dropdown" id="{{grapherId}}_timeline_load_view_btn">Load View <span class="caret"></span></a>
+            <ul class="dropdown-menu load-view-subMenu" id="{{grapherId}}_timeline_load_view_submenu">
+            </ul>
+        </div>
+        <div class="btn-group dropdown save-view-subMenu" style="display:inline-block; vertical-align:middle;">
+            <a href="#" id="{{grapherId}}_timeline_save_view_btn" class="btn">Save view</a>
+            <a href="#" id="{{grapherId}}_timeline_save_view_dropdown" class="btn dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
+            <ul id="{{grapherId}}_timeline_save_view_dropdown-submenu" class="dropdown-menu">
+            </ul>
+        </div>
+      <a href="#" class="btn disabled" id="{{grapherId}}_timeline_add_channels_btn">Add Channels</a>
+      <a href="#" class="btn disabled" id="{{grapherId}}_timeline_show_details_btn">Show Details</a>
+    </span>
+            <div id="{{grapherId}}_timeline_view_dialog"></div>
+
+            <table id="{{grapherId}}_timeline_dataTable" class="_timeline_dataTable" border="0" cellpadding="0" cellspacing="0" class="fullHeight">
+                <tr valign="top">
+                    <td id="{{grapherId}}_timeline_addChannelsArea" class="_timeline_pane _timeline_addChannelsArea"></td>
+                    <td id="{{grapherId}}_timeline_dateAxisAndChannelsArea" class="_timeline_dateAxisAndChannelsArea" style="display: none;">
+                        <table border="0" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td>
+                                    <div id="{{grapherId}}_timeline_gotozoom" class="_timeline_gotozoom" style="width: 230px; padding-left: 5px;">
+                                        <div class="flx-channel-navigation">
+                                            <div class="btn-toolbar">
+                                                <div class="btn-group">
+                                                    <a id="{{grapherId}}_timeline_new_zoomIn_button" href="#" class="btn"> <i class="icon-zoom-in"></i> </a>
+                                                    <a id="{{grapherId}}_timeline_new_zoomOut_button" href="#" class="btn"> <i class="icon-zoom-out"></i> </a>
+                                                </div>
+                                                <div class="btn-group">
+                                                    <a id="{{grapherId}}_timeline_new_gotoBeginning_button" href="#" class="btn"> <i class="icon-fast-backward"></i> </a>
+                                                    <a id="{{grapherId}}_timeline_new_gotoBack_button" href="#" class="btn"> <i class="icon-step-backward"></i> </a>
+                                                    <a id="{{grapherId}}_timeline_new_gotoForward_button" href="#" class="btn"> <i class="icon-step-forward"></i> </a>
+                                                    <a id="{{grapherId}}_timeline_new_gotoEnd_button" href="#" class="btn"> <i class="icon-fast-forward"></i> </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div id="{{grapherId}}_timeline_dateAxisContainer" class="_timeline_dateAxisContainer">
+                                        <div id="{{grapherId}}_timeline_dateAxis" class="_timeline_dateAxis"></div>
+                                        <div id="{{grapherId}}_timeline_dataPointValueLabel" class="_timeline_dataPointValueLabel"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                        <div id="{{grapherId}}_timeline_channelsArea" class="_timeline_channelsArea" style="display: none;">
+                            <div id="{{grapherId}}_timeline_channelsWrapper" class="_timeline_channelsWrapper">
+                                <table border="0" cellpadding="0" cellspacing="0">
+                                    <tr>
+                                        <td>
+                                            <ul id="{{grapherId}}_timeline_channels" class="_timeline_channels"></ul>
+                                            <div id="{{grapherId}}_timeline_channelsWrapper_footer" class="_timeline_channelsWrapper_footer"></div>
+                                        </td>
+                                        <td width="20" style="width:20px;"><!-- This area is for the scrollbar when you have lots of channels --></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </td>
+                    <td id="{{grapherId}}_timeline_detailsArea" class="_timeline_pane">
+                        <div class="_timeline_pane_title">Details</div>
+                    </td>
+                </tr>
+            </table>
+
+        </div>
+        <div id="{{grapherId}}_timeline_photo_dialog" class="_timeline_photo_dialog"></div>
+    </div>
+</template>
+<template id="loadViewsDropdown">
+    <ul class="dropdown-menu load-view-subMenu" id="{{grapherId}}_timeline_load_view_submenu">
+        {{#availableList}}
+        {{^first}}
+        <li class="divider"></li>
+        {{/first}}
+        <li class="flx-clearfix">
+            <div class="flx-floatL view-id">
+                <a viewId="{{id}}" href="#" class="_timeline_load_link">
+                    <h4>{{name}}</h4>
+                    <p>{{description}}</p>
+                </a>
+            </div>
+            <ul class="flx-floater view-filters">
+                <li><a viewId="{{id}}" href="#" class="_timeline_load_link _timeline_time_only">Time only <i class="icon-time"></i></a></li>
+                <li><a viewId="{{id}}" href="#" class="_timeline_load_link _timeline_channel_only">Channel only <i class="icon-list"></i></a></li>
+            </ul>
+        </li>
+        {{/availableList}}
+    </ul>
+</template>
+<template id="saveViewDropdown">
+    <ul id="{{grapherId}}_timeline_save_view_dropdown-submenu" class="dropdown-menu">
+        <li>
+            <form>
+                <input id="{{grapherId}}_timeline_save_view_dropdown_name" type="text" title="insert view name" style="display:inline">
+                <a id="{{grapherId}}_timeline_save_view_dropdown_save_btn" href="#" class="btn btn-mini">save</a>
+            </form>
+            {{#viewsPresent}}
+            <h5>Or save as one of the views bellow</h5>
+            {{/viewsPresent}}
+        </li>
+        {{#availableList}}
+        <li class="divider"></li>
+        <li>
+            <a viewname="{{name}}" class="_timeline_save_view_dropdown_save_link" class="savedView" href="#">
+                <div><h4>{{name}}</h4><p>{{last_used}}</p></div>
+                <div>{{description}}</div>
+            </a>
+        </li>
+        {{/availableList}}
+    </ul>
+</template>
+<template id="channelTemplate">
+<li id="{{channelElementId}}">
+<div id="{{grapherId}}_timeline_channel_{{deviceName}}_{{channelName}}" class="_timeline_channel">
+<div class="_timeline_channelTabAndPlot">
+    <table border="0" cellpadding="0" cellspacing="0">
+        <tr>
+            <td class="_timeline_channeltd" rowspan="2">
+                <div class="flx-channel" id="_timeline_channelTab_{{plotId}}">
+                    <div class="flx-remove-channel" id="{{channelElementId}}_delete_btn">{{#showDeleteBtn}}<a href="#"><i class="icon-remove-sign"></i></a>{{/showDeleteBtn}}{{^showDeleteBtn}}<span><i style="opacity:0" class="icon-remove-sign"></i></span>{{/showDeleteBtn}}</div>
+                    <div class="flx-channel-name">
+                        <h4>{{deviceName}}</h4>
+                        <p>{{channelName}}</p>
+                    </div>
+                    <ul class="flx-channel-controls">
+                        <li><a href="#" id="{{channelElementId}}_btnShowAllY"><i class="icon-resize-vertical"></i></a></li>
+                        <li><a href="#" id="{{channelElementId}}_btnGear"><i class="icon-pencil"></i></a></li>
+                    </ul>
+                </div>
+            </td>
+            <td class="_timeline_plottd">
+                <div id="{{plotElementId}}_container" class="_timeline_plotContainer">
+                    <div id="{{plotElementId}}" class="_timeline_channelPlot"
+                         style="height: {{channelHeight}}px"></div>
+                </div>
+            </td>
+            <td class="_timeline_yaxistd">
+                <div id="{{yAxisElementId}}_container" class="_timeline_yAxisContainer">
+                    <div id="{{yAxisElementId}}" class="_timeline_yAxis"
+                         style="height: {{channelHeight}}px"></div>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <div style="height: {{CHANNEL_PADDING}}px"></div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="3">
+                <div class="_timeline_dragArea" id="{{channelElementId}}_dragArea"></div>
+            </td>
+        </tr>
+    </table>
+</div>
+<div class="_timeline_channelConfig">
+<table border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td>
+<table border="0" cellpadding="0" cellspacing="0" style="width:auto" class="_timeline_photo_series_plot_config">
+    <tr>
+        <td style="font-size:8pt">
+            Show photos that contain
+            <select id="{{channelElementId}}-photo-tags-isAndJoin">
+                <option value="false">any</option>
+                <option value="true">all</option>
+            </select>
+            of the tags selected below.<br><br>
+            <form id="{{channelElementId}}-photo-tags-filter" style="margin-right:10px" action="" method="post" onsubmit="return false;">
+                <input type="text" name="tag[]" value="" class="tag"/>
+            </form>
+        </td>
+    </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" style="width:auto" class="_timeline_data_series_plot_config">
+    <tr>
+        <td class="_timeline_data_series_plot_config_left_area">
+            <div id="{{channelElementId}}-save-default-style">
+                <a href="" onclick="return false;">Save as default style for {{channelName}}</a>
+            </div>
+            <div id="{{channelElementId}}-save-default-style-status" style="display:none"></div>
+        </td>
+        <td class="_timeline_data_series_plot_config_right_area">
+            <table border="0" cellpadding="0" cellspacing="0">
+                <tr id="{{channelElementId}}-config-color-override">
+                    <td>
+                        <label class="_timeline_sectionTitle">Channel Color</label>
+                    </td>
+                    <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                    <td><input id="{{channelElementId}}-config-color-override-color" type="text"/></td>
+                    <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                    <td colspan="3"><label>Changing this color will set all the colors below to match</label></td>
+                </tr>
+                <tr id="{{channelElementId}}-config-lines">
+                    <td>
+                        <input id="{{channelElementId}}-config-lines-show" type="checkbox" value="true"/><label for="{{channelElementId}}-config-lines-show" class="_timeline_sectionTitle">Lines</label>
+                    </td>
+                    <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                    <td><input id="{{channelElementId}}-config-lines-color" type="text"/></td>
+                    <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                    <td>
+                        <select id="{{channelElementId}}-config-lines-lineWidth" class="_timeline_channelConfig_image_menu">
+                            <option value="1" title="/static/images/msdropdown/lineWidth1.png"></option>
+                            <option value="2" title="/static/images/msdropdown/lineWidth2.png"></option>
+                            <option value="3" title="/static/images/msdropdown/lineWidth3.png"></option>
+                            <option value="4" title="/static/images/msdropdown/lineWidth4.png"></option>
+                            <option value="5" title="/static/images/msdropdown/lineWidth5.png"></option>
+                        </select>
+                    </td>
+                    <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                    <td>&nbsp;</td>
+                </tr>
+                <tr id="{{channelElementId}}-config-points">
+                    <td>
+                        <input id="{{channelElementId}}-config-points-show" type="checkbox" value="true"/><label for="{{channelElementId}}-config-points-show" class="_timeline_sectionTitle">Points</label>
+                    </td>
+                    <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                    <td><input id="{{channelElementId}}-config-points-color" type="text"/></td>
+                    <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                    <td>
+                        <select id="{{channelElementId}}-config-points-radius" class="_timeline_channelConfig_image_menu">
+                            <option value="1" title="/static/images/msdropdown/pointSize1.png"></option>
+                            <option value="2" title="/static/images/msdropdown/pointSize2.png"></option>
+                            <option value="3" title="/static/images/msdropdown/pointSize3.png"></option>
+                            <option value="4" title="/static/images/msdropdown/pointSize4.png"></option>
+                            <option value="5" title="/static/images/msdropdown/pointSize5.png"></option>
+                        </select>
+                    </td>
+                    <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                    <td>
+                        <table border="0" cellpadding="0" cellspacing="0" style="width:auto">
+                            <tr>
+                                <td style="padding-right:3px">
+                                    <select id="{{channelElementId}}-config-points-type" class="_timeline_channelConfig_image_menu">
+                                        <option value="point-filled" title="/static/images/msdropdown/pointStyleCircleFilled.png"></option>
+                                        <option value="square-filled" title="/static/images/msdropdown/pointStyleSquareFilled.png"></option>
+                                        <option value="point" title="/static/images/msdropdown/pointStyleCircle.png"></option>
+                                        <option value="square" title="/static/images/msdropdown/pointStyleSquare.png"></option>
+                                        <option value="cross" title="/static/images/msdropdown/pointStyleCross.png"></option>
+                                        <option value="plus" title="/static/images/msdropdown/pointStylePlus.png"></option>
+                                    </select>
+                                </td>
+                                <td id="{{channelElementId}}-config-points-fillColor-container">
+                                    <input id="{{channelElementId}}-config-points-fillColor" type="text"/>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr id="{{channelElementId}}-config-bars">
+                    <td>
+                        <input id="{{channelElementId}}-config-bars-show" type="checkbox" value="true"/><label for="{{channelElementId}}-config-bars-show" class="_timeline_sectionTitle">Bars</label>
+                    </td>
+                    <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                    <td><input id="{{channelElementId}}-config-bars-color" type="text"/></td>
+                    <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                    <td>
+                        <select id="{{channelElementId}}-config-bars-lineWidth" class="_timeline_channelConfig_image_menu">
+                            <option value="1" title="/static/images/msdropdown/barWidth1.png"></option>
+                            <option value="2" title="/static/images/msdropdown/barWidth2.png"></option>
+                            <option value="3" title="/static/images/msdropdown/barWidth3.png"></option>
+                            <option value="4" title="/static/images/msdropdown/barWidth4.png"></option>
+                            <option value="5" title="/static/images/msdropdown/barWidth5.png"></option>
+                        </select>
+                    </td>
+                    <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                    <td>&nbsp;</td>
+                </tr>
+                <tr id="{{channelElementId}}-config-values">
+                    <td>
+                        <input id="{{channelElementId}}-config-values-show" type="checkbox" value="true"/><label for="{{channelElementId}}-config-values-show" class="_timeline_sectionTitle">Values</label>
+                    </td>
+                    <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                    <td><input id="{{channelElementId}}-config-values-fillColor" type="text"/></td>
+                    <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                    <td>
+                        <select id="{{channelElementId}}-config-values-numberFormat" class="_timeline_channelConfig_image_menu">
+                            <option value="###,##0.0##">#.###</option>
+                            <option value="###,##0.0#">#.##</option>
+                            <option value="###,##0.0">#.#</option>
+                            <option value="###,##0">#</option>
+                        </select>
+                    </td>
+                    <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                    <td>
+                        <table border="0" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td><label for="{{channelElementId}}-config-values-verticalOffset">Position:</label></td>
+                                <td style="padding-left:2px">
+                                    <select id="{{channelElementId}}-config-values-verticalOffset" class="_timeline_channelConfig_image_menu">
+                                        <option value="7">Above</option>
+                                        <option value="-3">On</option>
+                                        <option value="-13">Below</option>
+                                    </select>
+                                </td>
+                                <td style="padding-left:10px"><label for="{{channelElementId}}-config-values-showOnlyOnHighlight">Visible:</label></td>
+                                <td style="padding-left:2px">
+                                    <select id="{{channelElementId}}-config-values-showOnlyOnHighlight" style="width:70px">
+                                        <option value="false">Always</option>
+                                        <option value="true">Mouseover</option>
+                                    </select>
+                                </td>
+                                <td id="{{channelElementId}}-config-values-marginWidth-label-container" style="padding-left:10px"><label for="{{channelElementId}}-config-values-marginWidth">Margin:</label></td>
+                                <td id="{{channelElementId}}-config-values-marginWidth-container" style="padding-left:2px">
+                                    <select id="{{channelElementId}}-config-values-marginWidth" class="_timeline_channelConfig_image_menu">
+                                        <option value="5">5</option>
+                                        <option value="10">10</option>
+                                        <option value="15">15</option>
+                                        <option value="20">20</option>
+                                        <option value="25">25</option>
+                                    </select>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr id="{{channelElementId}}-config-comments">
+                    <td>
+                        <input id="{{channelElementId}}-config-comments-show" type="checkbox" value="true"/><label for="{{channelElementId}}-config-comments-show" class="_timeline_sectionTitle">Comments</label>
+                    </td>
+                    <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                    <td><input id="{{channelElementId}}-config-comments-color" type="text"/></td>
+                    <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                    <td>
+                        <select id="{{channelElementId}}-config-comments-radius" class="_timeline_channelConfig_image_menu">
+                            <option value="1" title="/static/images/msdropdown/pointSize1.png"></option>
+                            <option value="2" title="/static/images/msdropdown/pointSize2.png"></option>
+                            <option value="3" title="/static/images/msdropdown/pointSize3.png"></option>
+                            <option value="4" title="/static/images/msdropdown/pointSize4.png"></option>
+                            <option value="5" title="/static/images/msdropdown/pointSize5.png"></option>
+                        </select>
+                    </td>
+                    <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
+                    <td>
+                        <table border="0" cellpadding="0" cellspacing="0" style="width:auto">
+                            <tr>
+                                <td style="padding-right:3px">
+                                    <select id="{{channelElementId}}-config-comments-type" class="_timeline_channelConfig_image_menu">
+                                        <option value="point-filled" title="/static/images/msdropdown/pointStyleCircleFilled.png"></option>
+                                        <option value="square-filled" title="/static/images/msdropdown/pointStyleSquareFilled.png"></option>
+                                        <option value="point" title="/static/images/msdropdown/pointStyleCircle.png"></option>
+                                        <option value="square" title="/static/images/msdropdown/pointStyleSquare.png"></option>
+                                        <option value="cross" title="/static/images/msdropdown/pointStyleCross.png"></option>
+                                        <option value="plus" title="/static/images/msdropdown/pointStylePlus.png"></option>
+                                    </select>
+                                </td>
+                                <td id="{{channelElementId}}-config-comments-fillColor-container">
+                                    <input id="{{channelElementId}}-config-comments-fillColor" type="text"/>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr id="{{channelElementId}}-config-zeo" style="display:none">
+                    <td>
+                        <input id="{{channelElementId}}-config-zeo-show" type="checkbox" value="true"/><label for="{{channelElementId}}-config-zeo-show" class="_timeline_sectionTitle">Zeo</label>
+                    </td>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</li>
+</template>
+<template id="sourcesList">
+    <div class="_timeline_pane_title">Add Channels</div>
+    <div id="_timeline_sources_find">
+    <span>
+      <input type="text" />
+      <a href="#" class="button" id="_timeline_sources_find_btn">Reset</a>
+    </span>
+    </div>
+    <ul id="_timeline_sources_list">
+        {{#sources}}
+        <li>
+            <div class="_timeline_sources_name">
+                <span class="_timeline_sources_name_arrow">&#9658;</span>
+                <span>{{ name }}</span>
+            </div>
+            <ul>
+                {{#channels}}
+                <li class="_timeline_sources_channel" id="{{ id }}">{{ name }}</li>
+                {{/channels}}
+            </ul>
+        </li>
+        {{/sources}}
+    </ul>
+</template>

@@ -1,4 +1,4 @@
-define(["applications/calendar/tabs/timeline/BodyTrack"],function(BodyTrack){
+define(["core/grapher/BTCore"],function(BodyTrack){
 
     var defaultStyle = {"styles":[{"type":"line","lineWidth":1}]};
 
@@ -136,7 +136,6 @@ define(["applications/calendar/tabs/timeline/BodyTrack"],function(BodyTrack){
                 component.parent.css("opacity",1);
                 return;
             }
-            console.log("rechecking for afterload");
             $.doTimeout(10,getStats);
             return;
         };

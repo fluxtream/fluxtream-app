@@ -1,51 +1,39 @@
-define([], function() {
+define(["core/TabInterface"], function(TabInterface) {
 	
 	var Builder = {};
-	var tabs = {};
+
+    var tabsPath = "applications/calendar/tabs/";
+    var tabPaths = [tabsPath + "clock/ClockTab", tabsPath + "dashboards/DashboardsTab", tabsPath + "diary/DiaryTab",
+                    tabsPath + "list/ListTab", tabsPath + "map/MapTab", tabsPath + "photos/PhotosTab", tabsPath + "timeline/TimelineTab"];
+
+    var tabInterface = new TabInterface(tabPaths);
+
 	
 	var tabs = {
+        "fullList":["clock","dashboards","diary","map","photos","list","timeline"],
         "DAY":["clock", "dashboards", "map", "photos", "list", "timeline"],
         "WEEK":["dashboards", "map", "photos", "list", "timeline"],
         "MONTH":["dashboards", "map", "photos", "list", "timeline"],
         "YEAR":["dashboards", "photos", "list", "timeline"]
 	};
-	
-	var tab_icons = {
-		clock: "icon-time",
-        dashboards: "icon-dashboard",
-		map: "icon-map-marker",
-		diary: "icon-pencil",
-		photos: "icon-camera",
-		views: "icon-eye-open",
-		list: "icon-list",
-        timeline: "icon-film"
-    };
+    tabInterface.setTabVisibility(tabs.fullList,true);
+
+    Builder.init = function(Calendar){
+        $("#calendarTabs").replaceWith(tabInterface.getNav());
+        tabInterface.getNav().addClickListener(function(tabName){
+            var state = App.state.getState("calendar");
+            state = state.substring(state.indexOf("/"));
+            Calendar.renderState(tabName+state,Calendar.digestTabState != state.substring(1));
+        });
+    }
 	
 	function capitalizeFirstLetter(string) {
 	    return string.charAt(0).toUpperCase() + string.slice(1);
 	}
 	
 	function createTabs(Calendar) {
-		$("#calendarTabs").empty();
-		for (var i=0; i<tabs[Calendar.timeUnit].length; i++) {
-			var tab = "<li style=\"cursor:pointer\">";
-			tab += "<a class=\"" + tabs[Calendar.timeUnit][i] + "-tab\" tabname=\"" + tabs[Calendar.timeUnit][i] + "\" data-toggle=\"tab\">"
-				+ "<i class=\"" + tab_icons[tabs[Calendar.timeUnit][i]] + "\"></i> " + capitalizeFirstLetter(tabs[Calendar.timeUnit][i]) + "</a></li>";
-            tab = $(tab);
-			$("#calendarTabs").append(tab);
-			$(tab.children()[0]).click(function(event) {
-                event.preventDefault();
-				var tab = $(event.delegateTarget).attr("tabname");
-                if (typeof(tab)==="undefined")
-                    return;
-				var state = App.state.getState("calendar");
-				state = state.substring(state.indexOf("/"));
-				Calendar.renderState(tab+state,Calendar.digestTabState != state.substring(1));
-			});
-		}
-		var t = tabExistsForTimeUnit(Calendar.currentTabName, Calendar.timeUnit)?Calendar.currentTabName:tabs[Calendar.timeUnit][0];
-		var currentTab = "#calendarTabs a." + t + "-tab";
-		$(currentTab).tab("show");
+		tabInterface.setTabVisibility(tabs.fullList,false);
+        tabInterface.setTabVisibility(tabs[Calendar.timeUnit],true);
 	}
 	
 	function bindTimeUnitsMenu(Calendar) {
@@ -140,39 +128,33 @@ define([], function() {
 	}
 	
 	function updateTab(digest, Calendar) {
-		handleNotifications(digest);
-		if (tabs[Calendar.currentTabName]==null) {
-			require([ "applications/calendar/tabs/" + Calendar.currentTabName + "/"
-					+ capitalizeFirstLetter(Calendar.currentTabName) + "Tab"],
-				function(tab) {
-					tabs[Calendar.currentTavName] = tab;
-					renderTab(tab, digest, Calendar);
-				}
-			);
-		} else {
-			renderTab(tabs[Calendar.currentTabName], digest, Calendar);
-		}
+        tabInterface.setRenderParamsFunction(function(){
+            return {digest:digest,timeUnit:Calendar.timeUnit,calendarState:Calendar.tabState,connectorEnabled:Calendar.connectorEnabled[Calendar.currentTabName]};
+        });
+        tabInterface.setActiveTab(Calendar.currentTabName);
+        updateCurrentTab(digest, Calendar);
 	}
-	
-	function renderTab(tab, digest, Calendar) {
-		var currentTab = "#calendarTabs a." + Calendar.currentTabName+"-tab";
-		$(currentTab).tab("show");
-		tab.render(digest, Calendar.timeUnit, Calendar.tabState, Calendar.connectorEnabled[Calendar.currentTabName]);
-        Calendar.currentTab = tab;
+
+    function updateCurrentTab(digest, Calendar){
+        Calendar.currentTab = tabInterface.getActiveTab();
+        if (Calendar.currentTab == null){
+            $.doTimeout(50,function(){updateCurrentTab(digest, Calendar)});
+            return;
+        }
         for (var i = 0; i < digest.selectedConnectors.length; i++){
             var button = $("#flx-connector-btn-" + digest.selectedConnectors[i].connectorName);
-            if (tab.connectorDisplayable(digest.selectedConnectors[i])){
+            if (Calendar.currentTab.connectorDisplayable(digest.selectedConnectors[i])){
                 button.show();
-                if (tab.connectorsAlwaysEnabled()){
+                if (Calendar.currentTab.connectorsAlwaysEnabled()){
                     button.removeClass("flx-disconnected");
                     button.css("border-bottom-color",App.getConnectorConfig(digest.selectedConnectors[i].connectorName).color);
                 }
             }
             else
                 button.hide();
-
         }
-	}
+
+    }
 	
 	function tabExistsForTimeUnit(tab, unit) {
 		var tabExistsForTimeUnit = false;
@@ -184,8 +166,8 @@ define([], function() {
 	}
 
     function isValidTabName(tabName) {
-        for (var name in tab_icons) {
-            if (name===tabName)
+        for (var i = 0; i < tabs.fullList.length; i++) {
+            if (tabs.fullList[i]===tabName)
                 return true;
         }
         return false;
