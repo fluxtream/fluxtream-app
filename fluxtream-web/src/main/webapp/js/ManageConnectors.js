@@ -67,7 +67,7 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
         syncAllBtn.click(function(){
             setAllToSyncing();
             event.preventDefault();
-            $.ajax("/sync/all",{
+            $.ajax("/api/sync/all",{
                 type:"POST"
             });
         });
@@ -91,7 +91,7 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
         syncNowBtn.click(function(event){
             event.preventDefault();
             setToSyncing(connector.connectorName)
-            $.ajax("/sync/" + connector.connectorName,{
+            $.ajax("/api/sync/" + connector.connectorName,{
                 type:"POST"
             });
         });

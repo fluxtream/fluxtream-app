@@ -32,7 +32,7 @@ public class Producer {
         try {
             List<Guest> guests = guestService.getAllGuests();
             for (Guest g : guests) {
-                connectorUpdateService.updateAllConnectors(g.getId());
+                //connectorUpdateService.updateAllConnectors(g.getId());
             }
         }
         catch (Exception e) {

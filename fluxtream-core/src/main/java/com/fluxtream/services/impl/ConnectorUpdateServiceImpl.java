@@ -1,6 +1,7 @@
 package com.fluxtream.services.impl;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -323,9 +324,9 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 
     @Override
     @Transactional(readOnly = false)
-    public List<UpdateWorkerTask> getScheduledUpdateTasks(long guestId, Connector connector) {
+    public List<UpdateWorkerTask> getScheduledOrInProgressUpdateTasks(long guestId, Connector connector) {
 		List<UpdateWorkerTask> updateWorkerTask = JPAUtils.find(em,
-				UpdateWorkerTask.class, "updateWorkerTasks.isScheduled",
+				UpdateWorkerTask.class, "updateWorkerTasks.isScheduledOrInProgress",
 				Status.SCHEDULED, Status.IN_PROGRESS, guestId,
 				connector.getName());
         for (UpdateWorkerTask workerTask : updateWorkerTask) {
@@ -336,6 +337,21 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
         }
 		return updateWorkerTask;
 	}
+
+    @Override
+    public List<UpdateWorkerTask> getUpdatingUpdateTasks(final long guestId, final Connector connector) {
+        List<UpdateWorkerTask> updateWorkerTask = JPAUtils.find(em,
+                UpdateWorkerTask.class, "updateWorkerTasks.isInProgressOrScheduledBefore",
+                System.currentTimeMillis(), guestId,
+                connector.getName());
+        for (UpdateWorkerTask workerTask : updateWorkerTask) {
+            if (hasStalled(workerTask)) {
+                workerTask.status = Status.STALLED;
+                em.merge(workerTask);
+            }
+        }
+        return updateWorkerTask;
+    }
 
     private boolean hasStalled(UpdateWorkerTask updateWorkerTask) {
         return System.currentTimeMillis()-updateWorkerTask.timeScheduled>3600000;
@@ -380,7 +396,29 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
                 then);
 	}
 
-	@Override
+    @Override
+    public Collection<UpdateWorkerTask> getLastFinishedUpdateTasks(final long guestId, final Connector connector) {
+        List<UpdateWorkerTask> tasks = JPAUtils.find(em, UpdateWorkerTask.class, "updateWorkerTasks.getLastFinishedTaskByObjectType",
+                                        System.currentTimeMillis(),
+                                        guestId,
+                                        connector.getName());
+        HashMap<Integer, UpdateWorkerTask> seen = new HashMap<Integer, UpdateWorkerTask>();
+        for(UpdateWorkerTask task : tasks)
+        {
+            if(seen.containsKey(task.objectTypes))
+            {
+                if(seen.get(task.objectTypes).timeScheduled < task.timeScheduled)
+                    seen.put(task.objectTypes, task);
+            }
+            else
+            {
+                seen.put(task.objectTypes, task);
+            }
+        }
+        return seen.values();
+    }
+
+    @Override
 	public Set<Long> getConnectorGuests(Connector connector) {
 		List<ApiKey> keys = JPAUtils.find(em, ApiKey.class, "apiKeys.byConnector", connector.value());
 		Set<Long> guestIds = new HashSet<Long>();

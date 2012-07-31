@@ -47,37 +47,47 @@ public class UpdateWorkerTaskStore {
     @Path("/{connector}")
     @Produces({MediaType.APPLICATION_JSON})
     public String getUpdateTasks(@PathParam("connector") String connectorName) {
-        long guestId = ControllerHelper.getGuestId();
-        final List<UpdateWorkerTask> scheduledUpdates =
-                connectorUpdateService.getScheduledUpdateTasks(guestId, Connector.getConnector(connectorName));
-        JSONArray array = new JSONArray();
-        for (UpdateWorkerTask scheduledUpdate : scheduledUpdates) {
-            array.add(toJSON(scheduledUpdate));
+        try{
+            long guestId = ControllerHelper.getGuestId();
+            final List<UpdateWorkerTask> scheduledUpdates =
+                    connectorUpdateService.getScheduledOrInProgressUpdateTasks(guestId, Connector.getConnector(connectorName));
+            JSONArray array = new JSONArray();
+            for (UpdateWorkerTask scheduledUpdate : scheduledUpdates) {
+                array.add(toJSON(scheduledUpdate));
+            }
+            return array.toString();
         }
-        return array.toString();
+        catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Failed to get udpate tasks: " + e.getMessage()));
+        }
     }
 
     @GET
     @Path("/all")
     @Produces({MediaType.APPLICATION_JSON})
     public String getUpdateTasksAll() {
-        long guestId = ControllerHelper.getGuestId();
-        final Collection<Connector> connectors = Connector.getAllConnectors();
-        JSONArray res = new JSONArray();
-        for(Connector c : connectors)
-        {
-            final List<UpdateWorkerTask> scheduledUpdates =
-                    connectorUpdateService.getScheduledUpdateTasks(guestId, Connector.getConnector(c.getName()));
-            JSONArray array = new JSONArray();
-            for (UpdateWorkerTask scheduledUpdate : scheduledUpdates) {
-                array.add(toJSON(scheduledUpdate));
+        try{
+            long guestId = ControllerHelper.getGuestId();
+            final Collection<Connector> connectors = Connector.getAllConnectors();
+            JSONArray res = new JSONArray();
+            for(Connector c : connectors)
+            {
+                final List<UpdateWorkerTask> scheduledUpdates =
+                        connectorUpdateService.getScheduledOrInProgressUpdateTasks(guestId, Connector.getConnector(c.getName()));
+                JSONArray array = new JSONArray();
+                for (UpdateWorkerTask scheduledUpdate : scheduledUpdates) {
+                    array.add(toJSON(scheduledUpdate));
+                }
+                JSONObject connectorStatus = new JSONObject();
+                connectorStatus.accumulate("name", c.getName());
+                connectorStatus.accumulate("status", array);
+                res.add(connectorStatus);
             }
-            JSONObject connectorStatus = new JSONObject();
-            connectorStatus.accumulate("name", c.getName());
-            connectorStatus.accumulate("status", array);
-            res.add(connectorStatus);
+            return res.toString();
         }
-        return res.toString();
+        catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Failed to get update tasks: " + e.getMessage()));
+        }
     }
 
     private JSONObject toJSON(UpdateWorkerTask task) {
@@ -96,23 +106,33 @@ public class UpdateWorkerTaskStore {
     @Path("/{connector}/{objectType}")
     @Produces({MediaType.APPLICATION_JSON})
     public String getObjectTypeUpdateTasks(@PathParam("connector") String connectorName, @PathParam("objectType") String objectTypeName) {
-        long guestId = ControllerHelper.getGuestId();
-        final Connector connector = Connector.getConnector(connectorName);
-        final ObjectType objectType = ObjectType.getObjectType(connector, objectTypeName);
-        final UpdateWorkerTask scheduledUpdate =
-                connectorUpdateService.getScheduledUpdateTask(guestId, connector.getName(), objectType.value());
-        return scheduledUpdate!=null?toJSON(scheduledUpdate).toString():"{}";
+        try{
+            long guestId = ControllerHelper.getGuestId();
+            final Connector connector = Connector.getConnector(connectorName);
+            final ObjectType objectType = ObjectType.getObjectType(connector, objectTypeName);
+            final UpdateWorkerTask scheduledUpdate =
+                    connectorUpdateService.getScheduledUpdateTask(guestId, connector.getName(), objectType.value());
+            return scheduledUpdate!=null?toJSON(scheduledUpdate).toString():"{}";
+        }
+        catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Failed to get update tasks: " + e.getMessage()));
+        }
     }
 
     @DELETE
     @Path("/{connector}")
     @Produces({MediaType.APPLICATION_JSON})
     public String deleteUpdateTasks(@PathParam("connector") String connectorName) {
-        long guestId = ControllerHelper.getGuestId();
-        final Connector connector = Connector.getConnector(connectorName);
-        connectorUpdateService.deleteScheduledUpdateTasks(guestId, connector);
-        StatusModel statusModel = new StatusModel(true, "successfully deleted pending update tasks for " + connectorName);
-        return gson.toJson(statusModel);
+        try{
+            long guestId = ControllerHelper.getGuestId();
+            final Connector connector = Connector.getConnector(connectorName);
+            connectorUpdateService.deleteScheduledUpdateTasks(guestId, connector);
+            StatusModel statusModel = new StatusModel(true, "successfully deleted pending update tasks for " + connectorName);
+            return gson.toJson(statusModel);
+        }
+        catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Failed to get update tasks: " + e.getMessage()));
+        }
     }
 
     @DELETE

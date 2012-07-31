@@ -1,6 +1,7 @@
 package com.fluxtream.api;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
@@ -63,63 +64,77 @@ public class ConnectorStore {
     @Path("/installed")
     @Produces({MediaType.APPLICATION_JSON})
     public String getInstalledConnectors(){
-        Guest user = ControllerHelper.getGuest();
-        List<ConnectorInfo> connectors =  sysService.getConnectors();
-        JSONArray connectorsArray = new JSONArray();
-        for (int i = 0; i < connectors.size(); i++){
-            if (!guestService.hasApiKey(user.getId(), connectors.get(i).getApi())) {
-                connectors.remove(i--);
+        try{
+            Guest user = ControllerHelper.getGuest();
+            List<ConnectorInfo> connectors =  sysService.getConnectors();
+            JSONArray connectorsArray = new JSONArray();
+            for (int i = 0; i < connectors.size(); i++){
+                if (!guestService.hasApiKey(user.getId(), connectors.get(i).getApi())) {
+                    connectors.remove(i--);
+                }
+                else {
+                    ConnectorInfo connector = connectors.get(i);
+                    JSONObject connectorJson = new JSONObject();
+                    Connector conn = Connector.fromValue(connector.api);
+                    connectorJson.accumulate("name", connector.name);
+                    connectorJson.accumulate("connectUrl", connector.connectUrl);
+                    connectorJson.accumulate("image", connector.image);
+                    connectorJson.accumulate("connectorName", connector.connectorName);
+                    connectorJson.accumulate("enabled", connector.enabled);
+                    connectorJson.accumulate("manageable", connector.manageable);
+                    connectorJson.accumulate("text", connector.text);
+                    connectorJson.accumulate("api", connector.api);
+                    connectorJson.accumulate("lastSync", getLastSync(user.getId(), conn));
+                    connectorJson.accumulate("latestData", getLatestData(user.getId(), conn));
+                    connectorJson.accumulate("errors", checkForErrors(user.getId(), conn));
+                    connectorJson.accumulate("syncing", checkIfSyncInProgress(user.getId(), conn));
+                    connectorJson.accumulate("channels", settingsService.getChannelsForConnector(user.getId(),conn));
+                    connectorsArray.add(connectorJson);
+                }
             }
-            else {
-                ConnectorInfo connector = connectors.get(i);
-                JSONObject connectorJson = new JSONObject();
-                Connector conn = Connector.fromValue(connector.api);
-                connectorJson.accumulate("name", connector.name);
-                connectorJson.accumulate("connectUrl", connector.connectUrl);
-                connectorJson.accumulate("image", connector.image);
-                connectorJson.accumulate("connectorName", connector.connectorName);
-                connectorJson.accumulate("enabled", connector.enabled);
-                connectorJson.accumulate("manageable", connector.manageable);
-                connectorJson.accumulate("text", connector.text);
-                connectorJson.accumulate("api", connector.api);
-                connectorJson.accumulate("lastSync", getLastSync(user.getId(), conn));
-                connectorJson.accumulate("latestData", getLatestData(user.getId(), conn));
-                connectorJson.accumulate("errors", checkForErrors(user.getId(), conn));
-                connectorJson.accumulate("syncing", checkIfSyncInProgress(user.getId(), conn));
-                connectorJson.accumulate("channels", settingsService.getChannelsForConnector(user.getId(),conn));
-                connectorsArray.add(connectorJson);
-            }
+            return connectorsArray.toString();
         }
-        return connectorsArray.toString();
+        catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Failed to get installed connectors: " + e.getMessage()));
+        }
     }
 
     @GET
     @Path("/uninstalled")
     @Produces({MediaType.APPLICATION_JSON})
     public String getUninstalledConnectors(){
-        Guest user = ControllerHelper.getGuest();
-        List<ConnectorInfo> allConnectors =  sysService.getConnectors();
-        List<ConnectorInfo> connectors = new ArrayList<ConnectorInfo>();
-        for (ConnectorInfo connector : allConnectors) {
-            if (connector.enabled)
-                connectors.add(connector);
-        }
-        for (int i = 0; i < connectors.size(); i++){
-            if (guestService.hasApiKey(user.getId(), connectors.get(i).getApi()))
-                connectors.remove(i--);
-        }
+        try{
+            Guest user = ControllerHelper.getGuest();
+            List<ConnectorInfo> allConnectors =  sysService.getConnectors();
+            List<ConnectorInfo> connectors = new ArrayList<ConnectorInfo>();
+            for (ConnectorInfo connector : allConnectors) {
+                if (connector.enabled)
+                    connectors.add(connector);
+            }
+            for (int i = 0; i < connectors.size(); i++){
+                if (guestService.hasApiKey(user.getId(), connectors.get(i).getApi()))
+                    connectors.remove(i--);
+            }
 
-        return gson.toJson(connectors);
+            return gson.toJson(connectors);
+        }
+        catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Failed to get uninstalled connectors: " + e.getMessage()));
+        }
     }
 
     private boolean checkIfSyncInProgress(long guestId, Connector connector){
-        final List<UpdateWorkerTask> scheduledUpdates = connectorUpdateService.getScheduledUpdateTasks(guestId, connector);
+        final List<UpdateWorkerTask> scheduledUpdates = connectorUpdateService.getUpdatingUpdateTasks(guestId, connector);
         return (scheduledUpdates.size()!=0);
     }
 
     private boolean checkForErrors(long guestId, Connector connector){
-        ApiUpdate update = connectorUpdateService.getLastUpdate(guestId, connector);
-        return update==null || !update.success;
+        Collection<UpdateWorkerTask> update = connectorUpdateService.getLastFinishedUpdateTasks(guestId, connector);
+        for(UpdateWorkerTask workerTask : update)
+        {
+            if(workerTask == null || workerTask.status!= UpdateWorkerTask.Status.DONE) return true;
+        }
+        return false;
     }
 
     private long getLastSync(long guestId, Connector connector){
@@ -137,9 +152,9 @@ public class ConnectorStore {
     @Path("/{connector}")
     @Produces({MediaType.APPLICATION_JSON})
     public String deleteConnector(@PathParam("connector") String connector){
-        Guest user = ControllerHelper.getGuest();
         StatusModel result;
         try{
+            Guest user = ControllerHelper.getGuest();
             Connector apiToRemove = Connector.fromString(connector);
             guestService.removeApiKey(user.getId(), apiToRemove);
             result = new StatusModel(true,"Successfully removed " + connector + ".");
@@ -176,7 +191,7 @@ public class ConnectorStore {
             return settingsService.getConnectorFilterState(user.getId());
         }
         catch (Exception e){
-            return "{}";
+            return gson.toJson(new StatusModel(false,"Failed to get filters: " + e.getMessage()));
         }
     }
 

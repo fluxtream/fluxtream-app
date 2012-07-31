@@ -1,7 +1,6 @@
 package com.fluxtream.connectors.bodymedia;
 
 import com.fluxtream.TimeInterval;
-import com.fluxtream.connectors.vos.AbstractFacetVO;
 import com.fluxtream.connectors.vos.AbstractInstantFacetVO;
 import com.fluxtream.domain.GuestSettings;
 
@@ -18,5 +17,6 @@ public class BodymediaBurnFacetVO extends AbstractInstantFacetVO<BodymediaBurnFa
         this.totalCalories = facet.totalCalories;
         this.estimatedCalories = facet.estimatedCalories;
         this.predictedCalories = facet.predictedCalories;
+        this.burnJson = facet.getJson();
     }
 }

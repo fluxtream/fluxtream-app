@@ -46,16 +46,22 @@ public class BodyTrackController {
 	public String loadHistory(@QueryParam("username") String username,
 			@QueryParam("connectorName") String connectorName) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
-		Guest guest = guestService.getGuest(username);
         StatusModel status;
-        if (!checkForPermissionAccess(guest.getId())){
-            status = new StatusModel(true, "Failure!");
+        try{
+            Guest guest = guestService.getGuest(username);
+
+            if (!checkForPermissionAccess(guest.getId())){
+                status = new StatusModel(false, "Failure!");
+            }
+            else{
+                bodytrackStorageService.storeInitialHistory(guest.getId(), connectorName);
+                status = new StatusModel(true, "Success!");
+            }
         }
-        else{
-            bodytrackStorageService.storeInitialHistory(guest.getId(), connectorName);
-            status = new StatusModel(true, "Success!");
+        catch (Exception e){
+            status = new StatusModel(false,"Failure!");
         }
-		return gson.toJson(status);
+        return gson.toJson(status);
     }
 
     @DELETE
