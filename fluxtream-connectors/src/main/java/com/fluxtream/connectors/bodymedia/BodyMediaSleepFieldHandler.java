@@ -2,10 +2,7 @@ package com.fluxtream.connectors.bodymedia;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import com.fluxtream.connectors.zeo.ZeoSleepStatsFacet;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.services.impl.BodyTrackHelper;
 import com.fluxtream.services.impl.FieldHandler;

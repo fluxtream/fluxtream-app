@@ -1,8 +1,8 @@
 package com.fluxtream.services;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.ScheduleResult;
@@ -88,7 +88,9 @@ public interface ConnectorUpdateService {
      * @param connector The connector for which the tasks are being retrieved
      * @return a list of scheduled tasks
      */
-	public List<UpdateWorkerTask> getScheduledUpdateTasks(long guestId, Connector connector);
+	public List<UpdateWorkerTask> getScheduledOrInProgressUpdateTasks(long guestId, Connector connector);
+
+    public List<UpdateWorkerTask> getUpdatingUpdateTasks(long guestId, Connector connector);
 
 	public void deleteScheduledUpdateTasks(long guestId, Connector connector);
 
@@ -102,4 +104,6 @@ public interface ConnectorUpdateService {
 
 	public long getNumberOfUpdatesSince(long guestId, Connector connector,
 			long then);
+
+    public Collection<UpdateWorkerTask> getLastFinishedUpdateTasks(long guestId, Connector connector);
 }

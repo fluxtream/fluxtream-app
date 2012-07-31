@@ -1,6 +1,7 @@
 package com.fluxtream.api;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
@@ -123,13 +124,17 @@ public class ConnectorStore {
     }
 
     private boolean checkIfSyncInProgress(long guestId, Connector connector){
-        final List<UpdateWorkerTask> scheduledUpdates = connectorUpdateService.getScheduledUpdateTasks(guestId, connector);
+        final List<UpdateWorkerTask> scheduledUpdates = connectorUpdateService.getUpdatingUpdateTasks(guestId, connector);
         return (scheduledUpdates.size()!=0);
     }
 
     private boolean checkForErrors(long guestId, Connector connector){
-        ApiUpdate update = connectorUpdateService.getLastUpdate(guestId, connector);
-        return update==null || !update.success;
+        Collection<UpdateWorkerTask> update = connectorUpdateService.getLastFinishedUpdateTasks(guestId, connector);
+        for(UpdateWorkerTask workerTask : update)
+        {
+            if(workerTask == null || workerTask.status!= UpdateWorkerTask.Status.DONE) return true;
+        }
+        return false;
     }
 
     private long getLastSync(long guestId, Connector connector){

@@ -72,19 +72,19 @@ public class SystemServiceImpl implements SystemService {
                                      true));
 		em.persist(new ConnectorInfo("OpenPath",
 				"/images/connectors/connector-openpaths.jpg", res.getString("openpath"),
-				"ajax:/openPath/enterCredentials", Connector.getConnector("openpath"), 0, false));
+				"ajax:/openPath/enterCredentials", Connector.getConnector("openpath"), 0, true));
 		em.persist(new ConnectorInfo("Toodledo",
 				"/images/connectors/connector-toodledo.jpg", res
 						.getString("toodledo"),
 				"ajax:/toodledo/enterCredentials", Connector
 						.getConnector("toodledo"), 1, false));
-        //final ConnectorInfo bodyTrackConnectorInfo = new ConnectorInfo("BodyTrack",
-        //                                                               "/images/connectors/connector-bodyTrack.jpg",
-        //                                                               res.getString("bodytrack"),
-        //                                                               "ajax:/bodytrack/enterCredentials",
-        //                                                               Connector.getConnector("bodytrack"), 2, true);
-        //bodyTrackConnectorInfo.manageable = false;
-        //em.persist(bodyTrackConnectorInfo);
+        final ConnectorInfo bodyTrackConnectorInfo = new ConnectorInfo("BodyTrack",
+                                                                       "/images/connectors/connector-bodyTrack.jpg",
+                                                                       res.getString("bodytrack"),
+                                                                       "ajax:/bodytrack/enterCredentials",
+                                                                       Connector.getConnector("bodytrack"), 2, false);
+        bodyTrackConnectorInfo.manageable = false;
+        em.persist(bodyTrackConnectorInfo);
 		em.persist(new ConnectorInfo("Zeo",
 				"/images/connectors/connector-zeo.jpg", res
 						.getString("zeo"), "/zeo/subscribe", Connector
