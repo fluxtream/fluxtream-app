@@ -4,6 +4,10 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import javax.mail.BodyPart;
+import javax.mail.internet.MimeMultipart;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -90,18 +94,16 @@ public class BodyTrackController {
     }
 
     @POST
-    @Path("/users/{UID}/upload")
+    @Path("/upload")
     @Produces({MediaType.APPLICATION_JSON})
-    public String uploadToBodytrack(@PathParam("UID") Long uid, @FormParam("dev_nickname") String deviceNickanme, @FormParam("channel_names") String channels,
+    public String uploadToBodytrack(@FormParam("dev_nickname") String deviceNickanme, @FormParam("channel_names") String channels,
                                     @FormParam("data") String data){
         StatusModel status;
         try{
-            if (!checkForPermissionAccess(uid)) {
-                uid = null;
-            }
+            long uid = ControllerHelper.getGuestId();
             Type channelsType =  new TypeToken<Collection<String>>(){}.getType();
             Type dataType = new TypeToken<List<List<Long>>>(){}.getType();
-            bodyTrackHelper.uploadToBodyTrack(uid,deviceNickanme,(Collection<String>) gson.fromJson(channels,channelsType),(List<List<Object>>) gson.fromJson(data,dataType));
+            bodyTrackHelper.uploadToBodyTrack(uid, deviceNickanme, (Collection<String>)gson.fromJson(channels, channelsType), (List<List<Object>>)gson.fromJson(data, dataType));
             status = new StatusModel(true,"Upload successful!");
         }
         catch (Exception e){
