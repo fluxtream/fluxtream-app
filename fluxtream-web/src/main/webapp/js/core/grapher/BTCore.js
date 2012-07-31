@@ -383,7 +383,6 @@ define([], function() {
 					error   : function(jqXHR, textStatus, errorThrown) {
 						SOURCES.availableList = []
 						console.log("Error fetching available list");
-						console.log("Error fetching available list");
 					}
 				});
 			},

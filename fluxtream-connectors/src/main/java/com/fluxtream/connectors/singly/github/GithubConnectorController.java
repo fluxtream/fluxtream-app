@@ -30,11 +30,6 @@ public class GithubConnectorController {
     @Autowired
     Configuration env;
 
-    @RequestMapping(value = "/test")
-    public void test(HttpServletResponse response, @RequestParam("code") String code) throws IOException {
-        response.getWriter().write("hahahaha");
-    }
-
     @RequestMapping(value = "/callback")
     public String getToken(HttpServletRequest request) throws IOException {
         String code = request.getParameter("code");

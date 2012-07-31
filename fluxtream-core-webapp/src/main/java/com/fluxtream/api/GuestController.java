@@ -50,13 +50,18 @@ public class GuestController {
 	@Produces({ MediaType.APPLICATION_JSON })
 	public String getCurrentGuest() throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
-		long guestId = ControllerHelper.getGuestId();
+        try{
+            long guestId = ControllerHelper.getGuestId();
 
-		Guest guest = guestService.getGuestById(guestId);
-		GuestModel guestModel = new GuestModel(guest);
+            Guest guest = guestService.getGuestById(guestId);
+            GuestModel guestModel = new GuestModel(guest);
 
-		// NewRelic.setTransactionName(null, "/api/log/all/date");
-		return gson.toJson(guestModel);
+            // NewRelic.setTransactionName(null, "/api/log/all/date");
+            return gson.toJson(guestModel);
+        }
+        catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Failed to get current guest: " + e.getMessage()));
+        }
 	}
 
 	@GET
@@ -65,23 +70,28 @@ public class GuestController {
 	public String getOAuthTokens(@PathParam("connector") String connectorName)
 			throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException {
-		long guestId = ControllerHelper.getGuestId();
+        try{
+            long guestId = ControllerHelper.getGuestId();
 
-		ApiKey apiKey = guestService.getApiKey(guestId,
-                                               Connector.getConnector(connectorName));
-		if (apiKey != null) {
-			OAuthTokensModel oauthTokensModel = new OAuthTokensModel();
-			oauthTokensModel.accessToken = apiKey.getAttributeValue(
-					"accessToken", env);
-			oauthTokensModel.tokenSecret = apiKey.getAttributeValue(
-					"tokenSecret", env);
+            ApiKey apiKey = guestService.getApiKey(guestId,
+                                                   Connector.getConnector(connectorName));
+            if (apiKey != null) {
+                OAuthTokensModel oauthTokensModel = new OAuthTokensModel();
+                oauthTokensModel.accessToken = apiKey.getAttributeValue(
+                        "accessToken", env);
+                oauthTokensModel.tokenSecret = apiKey.getAttributeValue(
+                        "tokenSecret", env);
 
-			return gson.toJson(oauthTokensModel);
-		} else {
-			StatusModel result = new StatusModel(false,
-					"Guest does not have that connector: " + connectorName);
-			return gson.toJson(result);
-		}
+                return gson.toJson(oauthTokensModel);
+            } else {
+                StatusModel result = new StatusModel(false,
+                        "Guest does not have that connector: " + connectorName);
+                return gson.toJson(result);
+            }
+        }
+        catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Failed to get OAuth Tokens: " + e.getMessage()));
+        }
 	}
 
     @POST
@@ -92,21 +102,26 @@ public class GuestController {
                                  @FormParam("tokenSecret")String tokenSecret)
             throws InstantiationException, IllegalAccessException,
                    ClassNotFoundException {
-        long guestId = ControllerHelper.getGuestId();
+        try{
+            long guestId = ControllerHelper.getGuestId();
 
-        ApiKey apiKey = guestService.getApiKey(guestId,
-                                               Connector.getConnector(connectorName));
-        if (apiKey != null) {
-            guestService.setApiKeyAttribute(guestId, apiKey.getConnector(), "accessToken", accessToken);
-            guestService.setApiKeyAttribute(guestId, apiKey.getConnector(), "tokenSecret", tokenSecret);
+            ApiKey apiKey = guestService.getApiKey(guestId,
+                                                   Connector.getConnector(connectorName));
+            if (apiKey != null) {
+                guestService.setApiKeyAttribute(guestId, apiKey.getConnector(), "accessToken", accessToken);
+                guestService.setApiKeyAttribute(guestId, apiKey.getConnector(), "tokenSecret", tokenSecret);
 
-            StatusModel result = new StatusModel(true,
-                                                 "Successfully updated oauth tokens: " + connectorName);
-            return gson.toJson(result);
-        } else {
-            StatusModel result = new StatusModel(false,
-                                                 "Guest does not have that connector: " + connectorName);
-            return gson.toJson(result);
+                StatusModel result = new StatusModel(true,
+                                                     "Successfully updated oauth tokens: " + connectorName);
+                return gson.toJson(result);
+            } else {
+                StatusModel result = new StatusModel(false,
+                                                     "Guest does not have that connector: " + connectorName);
+                return gson.toJson(result);
+            }
+        }
+        catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Failed to set OAuth Tokens: " + e.getMessage()));
         }
     }
 
@@ -157,17 +172,22 @@ public class GuestController {
 	@Produces({ MediaType.APPLICATION_JSON })
 	public String list() throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException {
-		List<Guest> list = guestService.getAllGuests();
-		JSONArray array = new JSONArray();
-		for (Guest guest : list) {
-			JSONObject guestJson = new JSONObject();
-			guestJson.accumulate("username", guest.username)
-					.accumulate("firstname", guest.firstname)
-					.accumulate("lastname", guest.lastname)
-					.accumulate("roles", guest.getUserRoles());
-			array.add(guestJson);
-		}
-		return array.toString();
+        try{
+            List<Guest> list = guestService.getAllGuests();
+            JSONArray array = new JSONArray();
+            for (Guest guest : list) {
+                JSONObject guestJson = new JSONObject();
+                guestJson.accumulate("username", guest.username)
+                        .accumulate("firstname", guest.firstname)
+                        .accumulate("lastname", guest.lastname)
+                        .accumulate("roles", guest.getUserRoles());
+                array.add(guestJson);
+            }
+            return array.toString();
+        }
+        catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Failed to list guests: " + e.getMessage()));
+        }
 	}
 
 	@GET
@@ -182,7 +202,7 @@ public class GuestController {
 			return array.toString();
 		} catch (Exception e) {
 			StatusModel result = new StatusModel(false,
-					"Could not create guest: " + e.getMessage());
+					"Could not get roles: " + e.getMessage());
 			return gson.toJson(result);
 		}
 

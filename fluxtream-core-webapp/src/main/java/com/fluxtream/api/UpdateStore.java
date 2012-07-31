@@ -11,6 +11,7 @@ import javax.ws.rs.core.MediaType;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.ApiUpdate;
 import com.fluxtream.mvc.controllers.ControllerHelper;
+import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -38,9 +39,14 @@ public class UpdateStore {
     public String getUpdates(@PathParam("connector") String connectorName,
                              @QueryParam("pageSize") int pageSize,
                              @QueryParam("page") int page) {
-        long guestId = ControllerHelper.getGuestId();
-        final List<ApiUpdate> updates = connectorUpdateService.getUpdates(guestId, Connector.getConnector(connectorName), pageSize, page);
-        return gson.toJson(updates);
+        try{
+            long guestId = ControllerHelper.getGuestId();
+            final List<ApiUpdate> updates = connectorUpdateService.getUpdates(guestId, Connector.getConnector(connectorName), pageSize, page);
+            return gson.toJson(updates);
+        }
+        catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Failed to get updates: " + e.getMessage()));
+        }
     }
 
 }

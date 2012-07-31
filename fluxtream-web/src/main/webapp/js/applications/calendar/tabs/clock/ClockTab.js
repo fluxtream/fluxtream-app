@@ -219,13 +219,14 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 						var end = item.endMinute, instantWidth = 2;
 						if (orbit===config.BODY_CATEGORY.orbit)
 							instantWidth=18;
-						if (start>end) { start = 0; }
+						//if (start>end) { start = 0; }
 						var instantaneous = typeof(item.endMinute)=="undefined"||item.endMinute===item.startMinute,
                             span;
 						if (instantaneous)
 							span = paintSpan(paper, start,start+instantWidth, orbit, color, .9);
-						else
-							span = paintSpan(paper, start,(start<=end?end:1440), orbit, color, .9);
+						else{
+							span = paintSpan(paper, start,/*(start<=end?end:1440)*/ end, orbit, color, .9);
+                        }
 						span.node.item = item;
                         $(span.node).attr("notthide",true);
 						$(span.node).css("cursor", "pointer");
@@ -335,7 +336,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                 orientation:orientation,
                 oppositeOrientation:tailOrientation,
                 color:color,
-                time: App.formatMinuteOfDay(minute),
+                time: App.formatMinuteOfDay(minute)[0],
+                ampm: App.formatMinuteOfDay(minute)[1],
                 tooltipData:contents
             }));
             ttpdiv.css("position","absolute");
@@ -454,11 +456,14 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 	}
 
 	function arc(center, radius, startAngle, endAngle) {
-		if (endAngle - startAngle < 2)
+		if (endAngle - startAngle < 2 && endAngle - startAngle >= 0)
 			endAngle += 1;
 		var angle = startAngle,
 			coords = toCoords(center, radius, angle),
 			path = "M " + coords[0] + " " + coords[1];
+        if (angle > endAngle){
+            angle -= 360;
+        }
 		while (angle <= endAngle) {
 			coords = toCoords(center, radius, angle);
 			path += " L " + coords[0] + " " + coords[1];

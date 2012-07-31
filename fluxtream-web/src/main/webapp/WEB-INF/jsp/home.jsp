@@ -53,7 +53,7 @@
 						data-target=".nav-collapse"> <span class="icon-bar"></span> <span
 						class="icon-bar"></span> <span class="icon-bar"></span>
 					</a>
-                    <a class="brand" href="/app"><img
+                    <a class="brand" href="javascript:App.renderApp(App.state.defaultApp)"><img
                             src="/${release}/images/header-logo-v4.png" width=94 height=20/></a>
 					<div class="nav-collapse">
 						<%--<form class="navbar-search" action="javascript:App.search()">--%>
@@ -130,7 +130,7 @@
     <g:compress>
 		<script src="/static/js/jquery-ui-1.8.18.custom.min.js"></script>
 		<script src="/static/js/jquery.ui.sortable-1.8.2-bt-1.0.0.js"></script>
-		<script src="/static/tiny_mce/jquery.tinymce.js"></script>
+		<script src="/static/tiny_mce-3.5b1/jquery.tinymce.js"></script>
 		<script src="/static/js/json2-2011.10.19.js"></script>
 		<script src="/static/js/jquery.autoGrowInput-1.0.0.js"></script>
 		<script src="/static/js/jquery.colorPicker-2012.01.27.js"></script>

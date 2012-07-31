@@ -15,6 +15,7 @@ import com.fluxtream.connectors.SignpostOAuthHelper;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
+import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.BodyTrackStorageService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.JPADaoService;
@@ -67,24 +68,34 @@ public class ApiCallController {
 	@Path("/bodymedia/getRegistrationDate")
 	@Produces({ MediaType.APPLICATION_JSON })
 	public String getRegistrationDate(@QueryParam("username") String username) {
-		Guest guest = guestService.getGuest(username);
-        final ApiKey apiKey = guestService.getApiKey(guest.getId(), Connector.getConnector("bodymedia"));
-        OAuthConsumer consumer = setupConsumer(apiKey);
-        String api_key = env.get("bodymediaConsumerKey");
-        return getUserRegistrationDate(api_key, consumer);
-
+        try{
+            Guest guest = guestService.getGuest(username);
+            final ApiKey apiKey = guestService.getApiKey(guest.getId(), Connector.getConnector("bodymedia"));
+            OAuthConsumer consumer = setupConsumer(apiKey);
+            String api_key = env.get("bodymediaConsumerKey");
+            return getUserRegistrationDate(api_key, consumer);
+        }
+        catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Failed to retrieve registration date: " + e.getMessage()));
+        }
     }
 
     @POST
     @Path("/bodytrackHandler")
     @Produces({ MediaType.APPLICATION_JSON })
     public String handleBodytrack(@QueryParam("username") String username, @QueryParam("connector") String conn) {
-        Guest guest = guestService.getGuest(username);
-        AbstractFacet facet = jpaDaoService.findOne("bodymedia." + conn + ".between", AbstractFacet.class, guest.getId(), 0L, System.currentTimeMillis());
-        ArrayList<AbstractFacet> facets = new ArrayList<AbstractFacet>();
-        facets.add(facet);
-        bodyTrackStorageService.storeApiData(guest.getId(), facets);
-        return null;
+        try{
+            Guest guest = guestService.getGuest(username);
+            AbstractFacet facet = jpaDaoService.findOne("bodymedia." + conn + ".between", AbstractFacet.class, guest.getId(), 0L, System.currentTimeMillis());
+            ArrayList<AbstractFacet> facets = new ArrayList<AbstractFacet>();
+            facets.add(facet);
+            bodyTrackStorageService.storeApiData(guest.getId(), facets);
+            return null;
+        }
+        catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Failed: " + e.getMessage()));
+
+        }
     }
 
     OAuthConsumer setupConsumer(ApiKey apiKey)
@@ -152,46 +163,51 @@ public class ApiCallController {
     @Produces({MediaType.TEXT_PLAIN})
     public String addBodymedia(@QueryParam("username") String username)
     {
-        Guest g = guestService.getGuest(username);
+        try{
+            Guest g = guestService.getGuest(username);
 
-        String oauthCallback = env.get("homeBaseUrl") + "bodymedia/upgradeToken";
+            String oauthCallback = env.get("homeBaseUrl") + "bodymedia/upgradeToken";
 
-        if (g.getId() != null)
-            oauthCallback += "?guestId=" + g.getId();
+            if (g.getId() != null)
+                oauthCallback += "?guestId=" + g.getId();
 
-        String apiKey = env.get("bodymediaConsumerKey");
-        OAuthConsumer consumer = new DefaultOAuthConsumer(
-                apiKey,
-                env.get("bodymediaConsumerSecret"));
-        HttpParameters additionalParameter = new HttpParameters();
-        additionalParameter.put("api_key", apiKey);
-        consumer.setAdditionalParameters(additionalParameter);
+            String apiKey = env.get("bodymediaConsumerKey");
+            OAuthConsumer consumer = new DefaultOAuthConsumer(
+                    apiKey,
+                    env.get("bodymediaConsumerSecret"));
+            HttpParameters additionalParameter = new HttpParameters();
+            additionalParameter.put("api_key", apiKey);
+            consumer.setAdditionalParameters(additionalParameter);
 
-        HttpClient httpClient = env.getHttpClient();
+            HttpClient httpClient = env.getHttpClient();
 
-        OAuthProvider provider = new CommonsHttpOAuthProvider(
-                "https://api.bodymedia.com/oauth/request_token?api_key="+apiKey,
-                "https://api.bodymedia.com/oauth/access_token?api_key="+apiKey,
-                "https://api.bodymedia.com/oauth/authorize?api_key="+apiKey, httpClient);
+            OAuthProvider provider = new CommonsHttpOAuthProvider(
+                    "https://api.bodymedia.com/oauth/request_token?api_key="+apiKey,
+                    "https://api.bodymedia.com/oauth/access_token?api_key="+apiKey,
+                    "https://api.bodymedia.com/oauth/authorize?api_key="+apiKey, httpClient);
 
-        String approvalPageUrl;
-        try {
-            approvalPageUrl = provider.retrieveRequestToken(consumer,
-                    oauthCallback);
+            String approvalPageUrl;
+            try {
+                approvalPageUrl = provider.retrieveRequestToken(consumer,
+                        oauthCallback);
+            }
+            catch (OAuthException e) {
+                return "RequestToken Failed";
+            }
+
+            System.out.println("the token secret is: " + consumer.getTokenSecret());
+                approvalPageUrl+="&oauth_api=" + apiKey;
+            try {
+                approvalPageUrl = URLDecoder.decode(approvalPageUrl, "UTF-8");
+            }
+            catch (UnsupportedEncodingException e) {
+                return gson.toJson(e);
+            }
+
+            return "redirect:" + approvalPageUrl;
         }
-        catch (OAuthException e) {
-            return "RequestToken Failed";
+        catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Failed: " + e.getMessage()));
         }
-
-        System.out.println("the token secret is: " + consumer.getTokenSecret());
-      		approvalPageUrl+="&oauth_api=" + apiKey;
-        try {
-            approvalPageUrl = URLDecoder.decode(approvalPageUrl, "UTF-8");
-        }
-        catch (UnsupportedEncodingException e) {
-            return gson.toJson(e);
-        }
-
-        return "redirect:" + approvalPageUrl;
     }
 }

@@ -22,6 +22,8 @@ define([],function(){
                 else
                     target = target.parent();
             }
+            if (target == null)
+                return;
             var targetName = null;
             for (var tabname in tabs)
                 if (tabs[tabname].nav[0] == target[0]){

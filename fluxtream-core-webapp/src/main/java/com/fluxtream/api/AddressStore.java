@@ -213,7 +213,13 @@ public class AddressStore {
             return updateAddress(guest.username,index,address,latitude,longitude,radius,since,until,newType);
 
         } catch (Exception e){
-            return addAddress(input,address,latitude,longitude,radius,since,until, ControllerHelper.getGuest().username);
+            try{
+                return addAddress(input,address,latitude,longitude,radius,since,until, ControllerHelper.getGuest().username);
+            }
+            catch (Exception e1){
+                StatusModel result = new StatusModel(false, "Could not add/update guest addresses: " + e1.getMessage());
+                return gson.toJson(result);
+            }
         }
     }
 

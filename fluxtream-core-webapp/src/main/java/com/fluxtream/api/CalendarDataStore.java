@@ -23,6 +23,7 @@ import com.fluxtream.domain.Guest;
 import com.fluxtream.mvc.models.AddressModel;
 import com.fluxtream.mvc.models.ConnectorDataModel;
 import com.fluxtream.mvc.models.ConnectorDigestModel;
+import com.fluxtream.mvc.models.StatusModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -103,68 +104,75 @@ public class CalendarDataStore {
 			@PathParam("week") int week, @QueryParam("filter") String filter)
 			throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException {
-        //TODO:proper week data retrieval implementation
-        //this implementation is just a dirt hacky way to make it work and some aspects (weather info) don't work
+        try{
+            //TODO:proper week data retrieval implementation
+            //this implementation is just a dirt hacky way to make it work and some aspects (weather info) don't work
 
-        DigestModel digest = new DigestModel();
-        if (filter == null) {
-            filter = "";
-        }
+            DigestModel digest = new DigestModel();
+            digest.timeUnit = "WEEK";
+            if (filter == null) {
+                filter = "";
+            }
 
-        Guest guest = ControllerHelper.getGuest();
+            Guest guest = ControllerHelper.getGuest();
 
-        long guestId = guest.getId();
+            long guestId = guest.getId();
 
-        Calendar c = Calendar.getInstance();
-        c.set(Calendar.YEAR,year);
-        c.set(Calendar.WEEK_OF_YEAR,week);
-        c.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
-        DecimalFormat datePartFormat = new DecimalFormat("00");
-        DayMetadataFacet dayMetaStart = metadataService.getDayMetadata(guest.getId(), year + "-" + datePartFormat.format(c.get(Calendar.MONTH) + 1) +
-                                                                                      "-" + datePartFormat.format(c.get(Calendar.DAY_OF_MONTH)), true);
-        int newDay = c.get(Calendar.DAY_OF_YEAR) + 6;
-        if (newDay > (isLeapYear(year) ? 366 : 365)){
-            newDay -= isLeapYear(year) ? 366 : 365;
-            year += 1;
+            Calendar c = Calendar.getInstance();
             c.set(Calendar.YEAR,year);
+            c.set(Calendar.WEEK_OF_YEAR,week);
+            c.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+            DecimalFormat datePartFormat = new DecimalFormat("00");
+            DayMetadataFacet dayMetaStart = metadataService.getDayMetadata(guest.getId(), year + "-" + datePartFormat.format(c.get(Calendar.MONTH) + 1) +
+                                                                                          "-" + datePartFormat.format(c.get(Calendar.DAY_OF_MONTH)), true);
+            int newDay = c.get(Calendar.DAY_OF_YEAR) + 6;
+            if (newDay > (isLeapYear(year) ? 366 : 365)){
+                newDay -= isLeapYear(year) ? 366 : 365;
+                year += 1;
+                c.set(Calendar.YEAR,year);
+            }
+            c.set(Calendar.DAY_OF_YEAR,newDay);
+            DayMetadataFacet dayMetaEnd = metadataService.getDayMetadata(guest.getId(), year + "-" + datePartFormat.format(c.get(Calendar.MONTH) + 1) +
+                                                                                        "-" + datePartFormat.format(c.get(Calendar.DAY_OF_MONTH)), true);
+
+            DayMetadataFacet dayMetadata = new DayMetadataFacet();
+            dayMetadata.timeZone = dayMetaStart.timeZone;
+            dayMetadata.start = dayMetaStart.start;
+            dayMetadata.end = dayMetaEnd.end;
+
+            digest.tbounds = getStartEndResponseBoundaries(dayMetadata.start,
+                                                           dayMetadata.end);
+            digest.timeZoneOffset = TimeZone.getTimeZone(dayMetadata.timeZone).getOffset((digest.tbounds.start + digest.tbounds.end)/2);
+
+            City city = metadataService.getMainCity(guestId, dayMetadata);
+
+            /*if (city != null){                          well
+                digest.hourlyWeatherData = metadataService.getWeatherInfo(city.geo_latitude,city.geo_longitude, date, 0, 24 * 60);
+                Collections.sort(digest.hourlyWeatherData);
+            }*/
+
+            setSolarInfo(digest, city, guestId, dayMetadata);
+
+            List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter);
+            digest.selectedConnectors = connectorInfos(guestId,apiKeySelection);
+            List<ApiKey> allApiKeys = guestService.getApiKeys(guestId);
+            allApiKeys = removeConnectorsWithoutFacets(allApiKeys);
+            digest.nApis = allApiKeys.size();
+            GuestSettings settings = settingsService.getSettings(guestId);
+
+            setCachedData(digest, allApiKeys, settings, apiKeySelection,
+                          dayMetadata);
+
+            copyMetadata(digest, dayMetadata);
+            setVisitedCities(digest, guestId, dayMetadata);
+            setNotifications(digest, guestId);
+            setCurrentAddress(digest, guestId, dayMetadata.start);
+            digest.settings = new SettingsModel(settings,guest);
+            return gson.toJson(digest);
         }
-        c.set(Calendar.DAY_OF_YEAR,newDay);
-        DayMetadataFacet dayMetaEnd = metadataService.getDayMetadata(guest.getId(), year + "-" + datePartFormat.format(c.get(Calendar.MONTH) + 1) +
-                                                                                    "-" + datePartFormat.format(c.get(Calendar.DAY_OF_MONTH)), true);
-
-        DayMetadataFacet dayMetadata = new DayMetadataFacet();
-        dayMetadata.timeZone = dayMetaStart.timeZone;
-        dayMetadata.start = dayMetaStart.start;
-        dayMetadata.end = dayMetaEnd.end;
-
-        digest.tbounds = getStartEndResponseBoundaries(dayMetadata.start,
-                                                       dayMetadata.end);
-
-        City city = metadataService.getMainCity(guestId, dayMetadata);
-
-        /*if (city != null){
-            digest.hourlyWeatherData = metadataService.getWeatherInfo(city.geo_latitude,city.geo_longitude, date, 0, 24 * 60);
-            Collections.sort(digest.hourlyWeatherData);
-        }*/
-
-        setSolarInfo(digest, city, guestId, dayMetadata);
-
-        List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter);
-        digest.selectedConnectors = connectorInfos(guestId,apiKeySelection);
-        List<ApiKey> allApiKeys = guestService.getApiKeys(guestId);
-        allApiKeys = removeConnectorsWithoutFacets(allApiKeys);
-        digest.nApis = allApiKeys.size();
-        GuestSettings settings = settingsService.getSettings(guestId);
-
-        setCachedData(digest, allApiKeys, settings, apiKeySelection,
-                      dayMetadata);
-
-        copyMetadata(digest, dayMetadata);
-        setVisitedCities(digest, guestId, dayMetadata);
-        setNotifications(digest, guestId);
-        setCurrentAddress(digest, guestId, dayMetadata.start);
-        digest.settings = new SettingsModel(settings,guest);
-        return gson.toJson(digest);
+        catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Failed to get digest: " + e.getMessage()));
+        }
 	}
 
     private boolean isLeapYear(int year){
@@ -182,95 +190,68 @@ public class CalendarDataStore {
 			@PathParam("month") int month,
 			@QueryParam("filter") String filter) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
-        /*if (filter == null) {
-            filter = "";
-        }
+        try{
+            DigestModel digest = new DigestModel();
+            digest.timeUnit = "MONTH";
+            if (filter == null) {
+                filter = "";
+            }
 
-        Guest guest = ControllerHelper.getGuest();
+            Guest guest = ControllerHelper.getGuest();
 
-        int endDayNum;
-        if (Integer.parseInt(month) == 2 && isLeapYear(Integer.parseInt(year))){
-            endDayNum = 29;
-        }
-        else{
+            long guestId = guest.getId();
+
+
+
             Calendar c = Calendar.getInstance();
-            c.set(Calendar.MONTH,Integer.parseInt(month));
-            endDayNum = c.getActualMaximum(Calendar.DAY_OF_MONTH);
+            c.set(Calendar.YEAR,year);
+            c.set(Calendar.MONTH,month);
+            int endDayNum = c.getActualMaximum(Calendar.DAY_OF_MONTH);
+
+            isLeapYear(year);
+
+            DayMetadataFacet dayMetaStart = metadataService.getDayMetadata(guest.getId(), year + "-" + (month + 1) + "-01", true);
+
+            DayMetadataFacet dayMetaEnd = metadataService.getDayMetadata(guest.getId(), year + "-" + (month + 1) + "-" + endDayNum, true);
+
+            DayMetadataFacet dayMetadata = new DayMetadataFacet();
+            dayMetadata.timeZone = dayMetaStart.timeZone;
+            dayMetadata.start = dayMetaStart.start;
+            dayMetadata.end = dayMetaEnd.end;
+
+            digest.tbounds = getStartEndResponseBoundaries(dayMetadata.start,
+                                                           dayMetadata.end);
+            digest.timeZoneOffset = TimeZone.getTimeZone(dayMetadata.timeZone).getOffset((digest.tbounds.start + digest.tbounds.end)/2);
+
+            City city = metadataService.getMainCity(guestId, dayMetadata);
+
+            /*if (city != null){
+                digest.hourlyWeatherData = metadataService.getWeatherInfo(city.geo_latitude,city.geo_longitude, date, 0, 24 * 60);
+                Collections.sort(digest.hourlyWeatherData);
+            }*/
+
+            setSolarInfo(digest, city, guestId, dayMetadata);
+
+            List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter);
+            digest.selectedConnectors = connectorInfos(guestId,apiKeySelection);
+            List<ApiKey> allApiKeys = guestService.getApiKeys(guestId);
+            allApiKeys = removeConnectorsWithoutFacets(allApiKeys);
+            digest.nApis = allApiKeys.size();
+            GuestSettings settings = settingsService.getSettings(guestId);
+
+            setCachedData(digest, allApiKeys, settings, apiKeySelection,
+                          dayMetadata);
+
+            copyMetadata(digest, dayMetadata);
+            setVisitedCities(digest, guestId, dayMetadata);
+            setNotifications(digest, guestId);
+            setCurrentAddress(digest, guestId, dayMetadata.start);
+            digest.settings = new SettingsModel(settings,guest);
+            return gson.toJson(digest);
         }
-
-            isLeapYear(Integer.parseInt(year));
-
-        DayMetadataFacet dayMetaStart = metadataService.getDayMetadata(guest.getId(), year + "-" + (Integer.parseInt(month) + 1) + "-01", true);
-
-        DayMetadataFacet dayMetaEnd = metadataService.getDayMetadata(guest.getId(), year + "-" + (Integer.parseInt(month) + 1) + "-" + endDayNum, true);
-
-        TimeBoundariesModel tbounds = new TimeBoundariesModel();
-        tbounds.start = dayMetaStart.start;
-        tbounds.end = dayMetaEnd.end;
-
-        long guestId = guest.getId();
-        List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter);
-
-        DigestModel digest = new DigestModel();
-        digest.tbounds = tbounds;
-        digest.selectedConnectors = connectorInfos(guestId,apiKeySelection);
-		return gson.toJson(digest);*/
-
-        DigestModel digest = new DigestModel();
-        if (filter == null) {
-            filter = "";
+        catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Failed to get digest: " + e.getMessage()));
         }
-
-        Guest guest = ControllerHelper.getGuest();
-
-        long guestId = guest.getId();
-
-
-
-        Calendar c = Calendar.getInstance();
-        c.set(Calendar.YEAR,year);
-        c.set(Calendar.MONTH,month);
-        int endDayNum = c.getActualMaximum(Calendar.DAY_OF_MONTH);
-
-        isLeapYear(year);
-
-        DayMetadataFacet dayMetaStart = metadataService.getDayMetadata(guest.getId(), year + "-" + (month + 1) + "-01", true);
-
-        DayMetadataFacet dayMetaEnd = metadataService.getDayMetadata(guest.getId(), year + "-" + (month + 1) + "-" + endDayNum, true);
-
-        DayMetadataFacet dayMetadata = new DayMetadataFacet();
-        dayMetadata.timeZone = dayMetaStart.timeZone;
-        dayMetadata.start = dayMetaStart.start;
-        dayMetadata.end = dayMetaEnd.end;
-
-        digest.tbounds = getStartEndResponseBoundaries(dayMetadata.start,
-                                                       dayMetadata.end);
-
-        City city = metadataService.getMainCity(guestId, dayMetadata);
-
-        /*if (city != null){
-            digest.hourlyWeatherData = metadataService.getWeatherInfo(city.geo_latitude,city.geo_longitude, date, 0, 24 * 60);
-            Collections.sort(digest.hourlyWeatherData);
-        }*/
-
-        setSolarInfo(digest, city, guestId, dayMetadata);
-
-        List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter);
-        digest.selectedConnectors = connectorInfos(guestId,apiKeySelection);
-        List<ApiKey> allApiKeys = guestService.getApiKeys(guestId);
-        allApiKeys = removeConnectorsWithoutFacets(allApiKeys);
-        digest.nApis = allApiKeys.size();
-        GuestSettings settings = settingsService.getSettings(guestId);
-
-        setCachedData(digest, allApiKeys, settings, apiKeySelection,
-                      dayMetadata);
-
-        copyMetadata(digest, dayMetadata);
-        setVisitedCities(digest, guestId, dayMetadata);
-        setNotifications(digest, guestId);
-        setCurrentAddress(digest, guestId, dayMetadata.start);
-        digest.settings = new SettingsModel(settings,guest);
-        return gson.toJson(digest);
 	}
 
 	@GET
@@ -279,81 +260,64 @@ public class CalendarDataStore {
 	public String getAllConnectorsYearData(@PathParam("year") int year,
 			@QueryParam("filter") String filter) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
-       /*if (filter == null) {
-            filter = "";
-        }
+       try{
+            DigestModel digest = new DigestModel();
+            digest.timeUnit = "YEAR";
+            if (filter == null) {
+                filter = "";
+            }
 
-        Guest guest = ControllerHelper.getGuest();
+            Guest guest = ControllerHelper.getGuest();
 
-        DayMetadataFacet dayMetaStart = metadataService.getDayMetadata(guest.getId(), year + "-01-01", true);
+            long guestId = guest.getId();
 
-        DayMetadataFacet dayMetaEnd = metadataService.getDayMetadata(guest.getId(), year + "-12-31", true);
+            DayMetadataFacet dayMetaStart = metadataService.getDayMetadata(guest.getId(), year + "-01-01", true);
 
-        TimeBoundariesModel tbounds = new TimeBoundariesModel();
-        tbounds.start = dayMetaStart.start;
-        tbounds.end = dayMetaEnd.end;
+            DayMetadataFacet dayMetaEnd = metadataService.getDayMetadata(guest.getId(), year + "-12-31", true);
 
+            DayMetadataFacet dayMetadata = new DayMetadataFacet();
+            dayMetadata.timeZone = dayMetaStart.timeZone;
+            dayMetadata.start = dayMetaStart.start;
+            dayMetadata.end = dayMetaEnd.end;
 
+            digest.tbounds = getStartEndResponseBoundaries(dayMetadata.start,
+                                                           dayMetadata.end);
+            digest.timeZoneOffset = TimeZone.getTimeZone(dayMetadata.timeZone).getOffset((digest.tbounds.start + digest.tbounds.end)/2);
 
-        long guestId = guest.getId();
-        List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter);
+            City city = metadataService.getMainCity(guestId, dayMetadata);
 
-        DigestModel digest = new DigestModel();
-        digest.tbounds = tbounds;
-        digest.selectedConnectors = connectorInfos(guestId,apiKeySelection);
-        return gson.toJson(digest);*/
+            /*if (city != null){
+                digest.hourlyWeatherData = metadataService.getWeatherInfo(city.geo_latitude,city.geo_longitude, date, 0, 24 * 60);
+                Collections.sort(digest.hourlyWeatherData);
+            }*/
 
-        DigestModel digest = new DigestModel();
-        if (filter == null) {
-            filter = "";
-        }
+            setSolarInfo(digest, city, guestId, dayMetadata);
 
-        Guest guest = ControllerHelper.getGuest();
+            List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter);
+            digest.selectedConnectors = connectorInfos(guestId,apiKeySelection);
+            List<ApiKey> allApiKeys = guestService.getApiKeys(guestId);
+            allApiKeys = removeConnectorsWithoutFacets(allApiKeys);
+            digest.nApis = allApiKeys.size();
+            GuestSettings settings = settingsService.getSettings(guestId);
 
-        long guestId = guest.getId();
+            List<ApiKey> userKeys = new ArrayList<ApiKey>(allApiKeys);
+            for (int i = 0; i < userKeys.size(); i++)
+                if (userKeys.get(i).getConnector().getName().equals("google_latitude"))
+                    userKeys.remove(i--);
 
-        DayMetadataFacet dayMetaStart = metadataService.getDayMetadata(guest.getId(), year + "-01-01", true);
+            setCachedData(digest, userKeys, settings, apiKeySelection,
+                          dayMetadata);
 
-        DayMetadataFacet dayMetaEnd = metadataService.getDayMetadata(guest.getId(), year + "-12-31", true);
-
-        DayMetadataFacet dayMetadata = new DayMetadataFacet();
-        dayMetadata.timeZone = dayMetaStart.timeZone;
-        dayMetadata.start = dayMetaStart.start;
-        dayMetadata.end = dayMetaEnd.end;
-
-        digest.tbounds = getStartEndResponseBoundaries(dayMetadata.start,
-                                                       dayMetadata.end);
-
-        City city = metadataService.getMainCity(guestId, dayMetadata);
-
-        /*if (city != null){
-            digest.hourlyWeatherData = metadataService.getWeatherInfo(city.geo_latitude,city.geo_longitude, date, 0, 24 * 60);
-            Collections.sort(digest.hourlyWeatherData);
-        }*/
-
-        setSolarInfo(digest, city, guestId, dayMetadata);
-
-        List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter);
-        digest.selectedConnectors = connectorInfos(guestId,apiKeySelection);
-        List<ApiKey> allApiKeys = guestService.getApiKeys(guestId);
-        allApiKeys = removeConnectorsWithoutFacets(allApiKeys);
-        digest.nApis = allApiKeys.size();
-        GuestSettings settings = settingsService.getSettings(guestId);
-
-        List<ApiKey> userKeys = new ArrayList<ApiKey>(allApiKeys);
-        for (int i = 0; i < userKeys.size(); i++)
-            if (userKeys.get(i).getConnector().getName().equals("google_latitude"))
-                userKeys.remove(i--);
-
-        setCachedData(digest, userKeys, settings, apiKeySelection,
-                      dayMetadata);
-
-        copyMetadata(digest, dayMetadata);
-        setVisitedCities(digest, guestId, dayMetadata);
-        setNotifications(digest, guestId);
-        setCurrentAddress(digest, guestId, dayMetadata.start);
-        digest.settings = new SettingsModel(settings,guest);
-        return gson.toJson(digest);
+            copyMetadata(digest, dayMetadata);
+            setVisitedCities(digest, guestId, dayMetadata);
+            setNotifications(digest, guestId);
+            setCurrentAddress(digest, guestId, dayMetadata.start);
+            digest.settings = new SettingsModel(settings,guest);
+            return gson.toJson(digest);
+       }
+       catch (Exception e){
+           return gson.toJson(new StatusModel(false,"Failed to get digest: " + e.getMessage()));
+       }
 	}
 
 	@GET
@@ -362,47 +326,54 @@ public class CalendarDataStore {
 	public String getAllConnectorsDayData(@PathParam("date") String date,
 			@QueryParam("filter") String filter) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
-		DigestModel digest = new DigestModel();
-        if (filter == null) {
-            filter = "";
+        try{
+            DigestModel digest = new DigestModel();
+            digest.timeUnit = "DAY";
+            if (filter == null) {
+                filter = "";
+            }
+
+            Guest guest = ControllerHelper.getGuest();
+
+            long guestId = guest.getId();
+
+            DayMetadataFacet dayMetadata = metadataService.getDayMetadata(guestId,
+                    date, true);
+            digest.tbounds = getStartEndResponseBoundaries(dayMetadata.start,
+                    dayMetadata.end);
+            digest.timeZoneOffset = TimeZone.getTimeZone(dayMetadata.timeZone).getOffset((digest.tbounds.start + digest.tbounds.end)/2);
+
+            City city = metadataService.getMainCity(guestId, dayMetadata);
+
+            if (city != null){
+                digest.hourlyWeatherData = metadataService.getWeatherInfo(city.geo_latitude,city.geo_longitude, date, 0, 24 * 60);
+                Collections.sort(digest.hourlyWeatherData);
+            }
+
+            setSolarInfo(digest, city, guestId, dayMetadata);
+
+            List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter);
+            digest.selectedConnectors = connectorInfos(guestId,apiKeySelection);
+            List<ApiKey> allApiKeys = guestService.getApiKeys(guestId);
+            allApiKeys = removeConnectorsWithoutFacets(allApiKeys);
+            digest.nApis = allApiKeys.size();
+            GuestSettings settings = settingsService.getSettings(guestId);
+
+            setCachedData(digest, allApiKeys, settings, apiKeySelection,
+                    dayMetadata);
+
+            copyMetadata(digest, dayMetadata);
+            setVisitedCities(digest, guestId, dayMetadata);
+            setNotifications(digest, guestId);
+            setCurrentAddress(digest, guestId, dayMetadata.start);
+            digest.settings = new SettingsModel(settings,guest);
+
+            // NewRelic.setTransactionName(null, "/api/log/all/date");
+            return gson.toJson(digest);
         }
-
-        Guest guest = ControllerHelper.getGuest();
-
-		long guestId = guest.getId();
-
-		DayMetadataFacet dayMetadata = metadataService.getDayMetadata(guestId,
-				date, true);
-		digest.tbounds = getStartEndResponseBoundaries(dayMetadata.start,
-				dayMetadata.end);
-
-		City city = metadataService.getMainCity(guestId, dayMetadata);
-
-        if (city != null){
-            digest.hourlyWeatherData = metadataService.getWeatherInfo(city.geo_latitude,city.geo_longitude, date, 0, 24 * 60);
-            Collections.sort(digest.hourlyWeatherData);
+        catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Failed to get digest: " + e.getMessage()));
         }
-
-		setSolarInfo(digest, city, guestId, dayMetadata);
-
-		List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter);
-        digest.selectedConnectors = connectorInfos(guestId,apiKeySelection);
-		List<ApiKey> allApiKeys = guestService.getApiKeys(guestId);
-		allApiKeys = removeConnectorsWithoutFacets(allApiKeys);
-		digest.nApis = allApiKeys.size();
-		GuestSettings settings = settingsService.getSettings(guestId);
-
-		setCachedData(digest, allApiKeys, settings, apiKeySelection,
-				dayMetadata);
-
-		copyMetadata(digest, dayMetadata);
-		setVisitedCities(digest, guestId, dayMetadata);
-		setNotifications(digest, guestId);
-		setCurrentAddress(digest, guestId, dayMetadata.start);
-		digest.settings = new SettingsModel(settings,guest);
-
-		// NewRelic.setTransactionName(null, "/api/log/all/date");
-		return gson.toJson(digest);
 	}
 
 	private List<ApiKey> removeConnectorsWithoutFacets(List<ApiKey> allApiKeys) {
@@ -423,36 +394,41 @@ public class CalendarDataStore {
 			@PathParam("connectorName") String connectorName)
 			throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException {
-		Connector connector = Connector.getConnector(connectorName);
+        try{
+            Connector connector = Connector.getConnector(connectorName);
 
-		long guestId = ControllerHelper.getGuestId();
-		DayMetadataFacet dayMetadata = metadataService.getDayMetadata(guestId,
-				date, true);
-		GuestSettings settings = settingsService.getSettings(guestId);
-		ConnectorResponseModel day = prepareConnectorResponseModel(dayMetadata);
-		ObjectType[] objectTypes = connector.objectTypes();
-		ApiKey apiKey = guestService.getApiKey(ControllerHelper.getGuestId(),
-				connector);
-		calendarDataHelper.refreshApiData(dayMetadata, apiKey, null, day);
-        if (objectTypes != null) {
-            for (ObjectType objectType : objectTypes) {
-                Collection<AbstractFacetVO<AbstractFacet>> facetCollection = getFacetVos(dayMetadata, settings,
-                                                                                         connector, objectType);
-                if (facetCollection.size() > 0) {
-                    day.payload = facetCollection;
+            long guestId = ControllerHelper.getGuestId();
+            DayMetadataFacet dayMetadata = metadataService.getDayMetadata(guestId,
+                                                                          date, true);
+            GuestSettings settings = settingsService.getSettings(guestId);
+            ConnectorResponseModel day = prepareConnectorResponseModel(dayMetadata);
+            ObjectType[] objectTypes = connector.objectTypes();
+            ApiKey apiKey = guestService.getApiKey(ControllerHelper.getGuestId(),
+                                                   connector);
+            calendarDataHelper.refreshApiData(dayMetadata, apiKey, null, day);
+            if (objectTypes != null) {
+                for (ObjectType objectType : objectTypes) {
+                    Collection<AbstractFacetVO<AbstractFacet>> facetCollection = getFacetVos(dayMetadata, settings,
+                                                                                             connector, objectType);
+                    if (facetCollection.size() > 0) {
+                        day.payload = facetCollection;
+                    }
                 }
             }
-        }
-        else {
-            Collection<AbstractFacetVO<AbstractFacet>> facetCollection = getFacetVos(dayMetadata, settings,
-                                                                                     connector, null);
-            day.payload = facetCollection;
-        }
+            else {
+                Collection<AbstractFacetVO<AbstractFacet>> facetCollection = getFacetVos(dayMetadata, settings,
+                                                                                         connector, null);
+                day.payload = facetCollection;
+            }
 
-		String json = gson.toJson(day);
-		// NewRelic.setTransactionName(null, "/api/log/" + connectorName +
-		// "/date");
-		return json;
+            String json = gson.toJson(day);
+            // NewRelic.setTransactionName(null, "/api/log/" + connectorName +
+            // "/date");
+            return json;
+        }
+        catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Failed to get digest: " + e.getMessage()));
+        }
 	}
 
 	private ConnectorResponseModel prepareConnectorResponseModel(
@@ -547,41 +523,46 @@ public class CalendarDataStore {
                                         @PathParam("end") long end)
             throws InstantiationException, IllegalAccessException,
                    ClassNotFoundException {
-        long guestId = ControllerHelper.getGuestId();
-        GuestSettings settings = settingsService.getSettings(guestId);
-        TimeInterval timeInterval = new TimeInterval(start, end, TimeUnit.DAY, TimeZone.getTimeZone("UTC"));
-        String[] names = connectorNames.split(",");
-        String[] types = objectTypes.split(",");
-        if (names.length!=types.length) {
-            throw new RuntimeException("You need to supply the exact same number of connector names" +
-                                       "and objectType names");
-        }
-        List<ConnectorDataModel> dataModels = new ArrayList<ConnectorDataModel>();
-        for (int i=0; i<names.length; i++) {
-            Connector connector = Connector.getConnector(names[i]);
-            ObjectType objectType = ObjectType.getObjectType(connector, types[i]);
-            List<AbstractFacet> objectTypeFacets = calendarDataHelper.getFacets(
-                    connector,
-                    objectType,
-                    timeInterval);
-            Collection<AbstractFacetVO<AbstractFacet>> facetCollection = new ArrayList<AbstractFacetVO<AbstractFacet>>();
-            if (objectTypeFacets != null) {
-                for (AbstractFacet abstractFacet : objectTypeFacets) {
-                    AbstractFacetVO<AbstractFacet> facetVO = AbstractFacetVO
-                            .getFacetVOClass(abstractFacet).newInstance();
-                    facetVO.extractValues(abstractFacet,
-                                          timeInterval, settings);
-                    facetCollection.add(facetVO);
-                }
+        try{
+            long guestId = ControllerHelper.getGuestId();
+            GuestSettings settings = settingsService.getSettings(guestId);
+            TimeInterval timeInterval = new TimeInterval(start, end, TimeUnit.DAY, TimeZone.getTimeZone("UTC"));
+            String[] names = connectorNames.split(",");
+            String[] types = objectTypes.split(",");
+            if (names.length!=types.length) {
+                throw new RuntimeException("You need to supply the exact same number of connector names" +
+                                           "and objectType names");
             }
-            ConnectorDataModel dataModel = new ConnectorDataModel();
-            dataModel.connector = names[i];
-            dataModel.objectType = types[i];
-            dataModel.facetVos = facetCollection;
-            dataModels.add(dataModel);
-        }
+            List<ConnectorDataModel> dataModels = new ArrayList<ConnectorDataModel>();
+            for (int i=0; i<names.length; i++) {
+                Connector connector = Connector.getConnector(names[i]);
+                ObjectType objectType = ObjectType.getObjectType(connector, types[i]);
+                List<AbstractFacet> objectTypeFacets = calendarDataHelper.getFacets(
+                        connector,
+                        objectType,
+                        timeInterval);
+                Collection<AbstractFacetVO<AbstractFacet>> facetCollection = new ArrayList<AbstractFacetVO<AbstractFacet>>();
+                if (objectTypeFacets != null) {
+                    for (AbstractFacet abstractFacet : objectTypeFacets) {
+                        AbstractFacetVO<AbstractFacet> facetVO = AbstractFacetVO
+                                .getFacetVOClass(abstractFacet).newInstance();
+                        facetVO.extractValues(abstractFacet,
+                                              timeInterval, settings);
+                        facetCollection.add(facetVO);
+                    }
+                }
+                ConnectorDataModel dataModel = new ConnectorDataModel();
+                dataModel.connector = names[i];
+                dataModel.objectType = types[i];
+                dataModel.facetVos = facetCollection;
+                dataModels.add(dataModel);
+            }
 
-        return gson.toJson(dataModels);
+            return gson.toJson(dataModels);
+        }
+        catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Failed to get digest: " + e.getMessage()));
+        }
     }
 
 

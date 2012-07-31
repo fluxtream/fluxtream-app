@@ -195,12 +195,10 @@ define(["core/grapher/BTCore"], function(BTCore) {
 
         // Load sources
         getSources(grapher, function() {
-            console.log("getSources is called");
             $("#" + grapher.grapherId + "_timeline_messageArea").hide();
             $("#" + grapher.grapherId + "_timeline_mainContentArea").show();
 
             if (typeof callback === "function") {
-                console.log("callback is called: " + callback);
                 callback();
             }
         });
@@ -257,6 +255,13 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 event.preventDefault();
                 grapher.saveView($("#" + grapher.grapherId + "_timeline_save_view_dropdown_name").val());
                 $("body").click();
+            });
+
+            $("#" + grapher.grapherId + "_timeline_save_view_dropdown_name").keypress(function(event){
+                if (event.keyCode == 13){
+                    event.preventDefault();
+                    $("#" + grapher.grapherId + "_timeline_save_view_dropdown_save_btn").click();
+                }
             })
 
         })
@@ -305,9 +310,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
     }; // getTimeFromSource
 
     function getSources(grapher, callback) {
-        console.log("about to getAvailableList.");
         SOURCES.getAvailableList(function(data) {
-            console.log("getting available list");
 
             var i, j, l, m;
             var src;
@@ -505,7 +508,6 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 y_axes : []
             }
         };
-        console.log("newView is being called");
         loadedViewStr = JSON.stringify(VIEWS.data);
         hasUnsavedChanges = true;
         renderView(this, VIEWS.data);
@@ -1522,7 +1524,6 @@ define(["core/grapher/BTCore"], function(BTCore) {
 
     // Render view to page
     function renderView(grapher, view, mode) {
-        console.log("renderView is being called");
         var yAxes, i, l;
         var channel;
         mode = mode || "both";
@@ -1615,7 +1616,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 grapher.addChannel(yAxes[i], null);
             }
         }
-        //$(window).resize();//fixes issue of no date axis when window no channels are in view.
+        $(window).resize();//fixes issue of no date axis when window no channels are in view.
     }
 
     Grapher.prototype.getCurrentTimeUnit = function(){
@@ -1683,7 +1684,6 @@ define(["core/grapher/BTCore"], function(BTCore) {
             for (i = 0; i < l; i++) {
                 if (yAxes[i].hasOwnProperty("style")) {
                     if (!yAxes[i]['style'].hasOwnProperty("styles")) {
-                        console.log("Patching v2 view");
                         view['v2']['y_axes'][i]['style']['styles'] = yAxes[i]['style']['style-types'];
                     }
                 }
@@ -1692,7 +1692,6 @@ define(["core/grapher/BTCore"], function(BTCore) {
         }
 
         /*** Upgrade view data to v2 format ***/
-        console.log("Upgrading view to v2");
 
         // Validate fields
         xAxes = view['x_axes'];
