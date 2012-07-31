@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.List;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -79,7 +80,7 @@ public class BodyTrackController {
             if (!checkForPermissionAccess(uid)){
                 uid = null;
             }
-            bodyTrackHelper.deleteView(uid,viewId);
+            bodyTrackHelper.deleteView(uid, viewId);
             status = new StatusModel(true,"successfully deleted view " + viewId);
         }
         catch (Exception e){
@@ -107,6 +108,114 @@ public class BodyTrackController {
             status = new StatusModel(false,"Upload failed!");
         }
         return gson.toJson(status);
+    }
+
+    @GET
+    @Path("/tiles/{UID}/{DeviceNickname}.{ChannelName}/{Level}.{Offset}.json")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String fetchTile(@PathParam("UID") Long uid, @PathParam("DeviceNickname") String deviceNickname,
+                                   @PathParam("ChannelName") String channelName, @PathParam("Level") int level, @PathParam("Offset") int offset){
+        try{
+            if (!checkForPermissionAccess(uid)){
+                uid = null;
+            }
+            return bodyTrackHelper.fetchTile(uid, deviceNickname, channelName, level, offset);
+        } catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Access Denied"));
+        }
+    }
+
+    @GET
+    @Path("/users/{UID}/views")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String getViews(@PathParam("UID") Long uid) {
+        try{
+            if (!checkForPermissionAccess(uid)){
+                uid = null;
+            }
+            return bodyTrackHelper.listViews(uid);
+        }
+        catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Access Denied"));
+        }
+    }
+
+    @GET
+    @Path("/users/{UID}/views/{id}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String bodyTrackView(@PathParam("UID") Long uid, @PathParam("id") long id) {
+        try{
+            if (!checkForPermissionAccess(uid)){
+                uid = null;
+            }
+            String result = bodyTrackHelper.getView(uid,id);
+            return result == null ? gson.toJson(new StatusModel(false,"Failed to get view")) : result;
+        }
+        catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Access Denied"));
+        }
+    }
+
+    @POST
+    @Path("/users/{UID}/views")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String setView(@PathParam("UID") Long uid, @FormParam("name") String name, @FormParam("data") String data) {
+        try{
+            if (!checkForPermissionAccess(uid)){
+                uid = null;
+            }
+            return bodyTrackHelper.saveView(uid,name,data);
+        }
+        catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Access Denied"));
+        }
+    }
+
+    @GET
+    @Path("/users/{UID}/sources/list")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String getSourceList(@PathParam("UID") Long uid) {
+        try{
+            if (!checkForPermissionAccess(uid)){
+                uid = null;
+            }
+            return bodyTrackHelper.listSources(uid);
+        }
+        catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Access Denied"));
+        }
+    }
+
+    @GET
+    @Path(value = "/users/{UID}/sources/{source}/default_graph_specs")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String bodyTrackGetDefaultGraphSpecs(@PathParam("UID") Long uid, @PathParam("source") String name) {
+        try{
+            if (!checkForPermissionAccess(uid)){
+                uid = null;
+            }
+            return bodyTrackHelper.getSourceInfo(uid,name);
+        }
+        catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Access Denied"));
+        }
+    }
+
+    @POST
+    @Path("/users/{UID}/channels/{DeviceNickname}.{ChannelName}/set")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String setDefaultStyle(@PathParam("UID") Long uid, @PathParam("DeviceNickname") String deviceNickname,
+                                @PathParam("ChannelName") String channelName, @FormParam("user_default_style") String style) {
+        try{
+            if (!checkForPermissionAccess(uid)){
+                uid = null;
+            }
+            bodyTrackHelper.setDefaultStyle(uid,deviceNickname,channelName,style);
+            return gson.toJson(new StatusModel(true,"Channel style set"));
+        }
+        catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Access Denied"));
+        }
     }
 
     private boolean checkForPermissionAccess(long targetUid){

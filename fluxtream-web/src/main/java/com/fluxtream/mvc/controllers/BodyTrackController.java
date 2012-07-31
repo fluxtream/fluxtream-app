@@ -41,20 +41,6 @@ public class BodyTrackController {
     @Autowired
     BodyTrackHelper bodyTrackHelper;
 
-	@RequestMapping(value = "/bodytrack/tiles/{UID}/{DeviceNickname}.{ChannelName}/{Level}.{Offset}.json")
-	public void bodyTrackTileFetch(HttpServletResponse response,
-			@PathVariable("UID") Long uid,
-			@PathVariable("DeviceNickname") String deviceNickname,
-			@PathVariable("ChannelName") String channelName,
-			@PathVariable("Level") int level,
-			@PathVariable("Offset") int offset) throws IOException {
-        if (!checkForPermissionAccess(uid)){
-            uid = null;
-        }
-        String result = bodyTrackHelper.fetchTile(uid,deviceNickname,channelName,level,offset);
-        response.getWriter().write(result);
-	}
-
     @RequestMapping(value = "/bodytrack/users/{UID}/log_items/get")
     public void bodyTrackLogItemsGet(HttpServletResponse response,
                                      HttpServletRequest request,
@@ -118,35 +104,6 @@ public class BodyTrackController {
         }
     }
 
-    @RequestMapping(value = "/bodytrack/users/{UID}/views")
-	public void bodyTrackViews(HttpServletResponse response,
-			@PathVariable("UID") Long uid) throws IOException {
-        if (!checkForPermissionAccess(uid)){
-            uid = null;
-        }
-        response.getWriter().write(bodyTrackHelper.listViews(uid));
-	}
-
-	@RequestMapping(value = "/bodytrack/users/{UID}/views/get")
-	public void bodyTrackView(HttpServletResponse response,
-			@PathVariable("UID") Long uid, @RequestParam("id") long id)
-            throws IOException {
-        if (!checkForPermissionAccess(uid)){
-            uid = null;
-        }
-        response.getWriter().write(bodyTrackHelper.getView(uid,id));
-	}
-
-	@RequestMapping(value = "/bodytrack/users/{UID}/views/set")
-	public void bodyTrackSetView(HttpServletResponse response,
-			@PathVariable("UID") Long uid, @RequestParam("name") String name,
-			@RequestParam("data") String data) throws IOException {
-        if (!checkForPermissionAccess(uid)){
-            uid = null;
-        }
-        response.getWriter().write(bodyTrackHelper.saveView(uid,name,data));
-	}
-
 	@RequestMapping(value = "/bodytrack/users/{UID}/sources")
 	public void bodyTrackSources(HttpServletResponse response,
 			@PathVariable("UID") Long uid) throws IOException {
@@ -156,25 +113,6 @@ public class BodyTrackController {
         String user_id = guestService.getApiKeyAttribute(uid,Connector.getConnector("bodytrack"), "user_id");
 		String tunnelUrl = "http://localhost:3000/users/" + user_id + "/sources";
 		writeTunnelResponse(tunnelUrl, response);
-	}
-
-	@RequestMapping(value = "/bodytrack/users/{UID}/sources/list")
-	public void bodyTrackSourcesList(HttpServletResponse response,
-			@PathVariable("UID") Long uid) throws IOException {
-        if (!checkForPermissionAccess(uid)){
-            uid = null;
-        }
-        response.getWriter().write(bodyTrackHelper.listSources(uid));
-	}
-
-	@RequestMapping(value = "/bodytrack/users/{UID}/sources/default_graph_specs")
-	public void bodyTrackGetDefaultGraphSpecs(HttpServletResponse response,
-			@PathVariable("UID") Long uid, @RequestParam("name") String name)
-            throws IOException {
-        if (!checkForPermissionAccess(uid)){
-            uid = null;
-        }
-        response.getWriter().write(bodyTrackHelper.getSourceInfo(uid,name));
 	}
 
     @RequestMapping(value = "/bodytrack/users/{UID}/logrecs/{LOGREC_ID}/get")
@@ -262,19 +200,6 @@ public class BodyTrackController {
 		String tunnelUrl = "http://localhost:3000/users/" + user_id + "/tags/"
 				+ LOGREC_ID + "/set";
 		postTunnelRequest(tunnelUrl, response, params);
-	}
-
-	@RequestMapping(value = "/bodytrack/users/{UID}/channels/{DeviceNickname}.{ChannelName}/set")
-	public void bodyTrackChannelSet(HttpServletResponse response,
-			@PathVariable("UID") Long uid,
-			@PathVariable("DeviceNickname") String deviceNickname,
-			@PathVariable("ChannelName") String channelName,
-			@RequestParam("user_default_style") String style)
-            throws IOException {
-        if (!checkForPermissionAccess(uid)){
-            uid = null;
-        }
-        bodyTrackHelper.setDefaultStyle(uid,deviceNickname,channelName,style);
 	}
 
 	private void writeTunnelResponse(String tunnelUrl,

@@ -2515,7 +2515,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
             var errorCallback = callbacks['error'];
             var completeCallback = callbacks['complete'];
 
-            var url = "/bodytrack/users/" + App.getUID() + "/channels/" + encodeURIComponent(channel["device_name"]) + "." + encodeURIComponent(channel["channel_name"]) + "/set";
+            var url = "/api/bodytrack/users/" + App.getUID() + "/channels/" + encodeURIComponent(channel["device_name"]) + "." + encodeURIComponent(channel["channel_name"]) + "/set";
             $.ajax({
                 cache    : false,
                 type     : "POST",

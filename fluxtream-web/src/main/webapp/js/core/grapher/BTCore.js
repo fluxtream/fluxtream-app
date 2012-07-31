@@ -272,7 +272,7 @@ define([], function() {
 					cache   : false,
 					type    : "GET",
                     dataType: 'json',
-					url     : "/bodytrack/users/" + App.getUID() + "/views",
+					url     : "/api/bodytrack/users/" + App.getUID() + "/views",
 					success : function(data, textStatus, jqXHR) {
 						VIEWS.availableList = data.views;
 						if (typeof callback === "function") {
@@ -312,8 +312,7 @@ define([], function() {
 					cache   : false,
 					type    : "GET",
                     dataType: 'json',
-					url     : "/bodytrack/users/" + App.getUID() + "/views/get",
-					data    : { "id" : id },
+					url     : "/api/bodytrack/users/" + App.getUID() + "/views/" + id,
 					success : function(data, textStatus, jqXHR) {
 						VIEWS.data = data;
 						if (typeof callback === "function") {
@@ -327,13 +326,12 @@ define([], function() {
 			// callback returns same response as VIEWS.getAvailableList()
 			save : function(name, callback) {
 				// Update view data before saving with new name
-				VIEWS.data["name"] = name;
-
+                VIEWS.data.name = name;
 				$.ajax({
 					cache   : false,
 					type    : "POST",
                     dataType: 'json',
-					url     : "/bodytrack/users/" + App.getUID() + "/views/set",
+					url     : "/api/bodytrack/users/" + App.getUID() + "/views",
 					data    : {
 						"name" : name,
 						"data" : JSON.stringify(VIEWS.data)
@@ -372,7 +370,7 @@ define([], function() {
 					cache   : false,
 					type    : "GET",
                     dataType: 'json',
-					url     : "/bodytrack/users/" + App.getUID() + "/sources/list",
+					url     : "/api/bodytrack/users/" + App.getUID() + "/sources/list",
 					success : function(data, textStatus, jqXHR) {
 						SOURCES.availableList = data.sources;
 
@@ -429,8 +427,7 @@ define([], function() {
 					cache   : false,
 					type    : "GET",
                     dataType: 'json',
-					url     : "/bodytrack/users/" + App.getUID() + "/sources/default_graph_specs",
-					data    : { "name" : device_name },
+					url     : "/api/bodytrack/users/" + App.getUID() + "/sources/" + device_name + "/default_graph_specs",
 					success : function(data, textStatus, jqXHR) {
 						if (typeof callback === "function") {
 							callback(data.info);
@@ -444,7 +441,7 @@ define([], function() {
 	}; // SOURCES
 
     window.channelDatasource = function(userId, deviceName, channelName) {
-        var urlPrefix = "/bodytrack/tiles/" + userId + "/" + deviceName + "."
+        var urlPrefix = "/api/bodytrack/tiles/" + userId + "/" + deviceName + "."
                             + channelName + "/";
         return __createDatasource(urlPrefix);
     }
