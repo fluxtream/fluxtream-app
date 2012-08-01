@@ -1,42 +1,24 @@
 package com.fluxtream.mvc.models;
 
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.List;
 import java.util.TimeZone;
 
+import com.fluxtream.services.MetadataService;
 import net.sf.json.JSONObject;
 
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
 import com.fluxtream.Configuration;
-import com.fluxtream.TimeInterval;
 import com.fluxtream.TimeUnit;
-import com.fluxtream.services.ApiDataService;
-import com.fluxtream.utils.RandomString;
 import com.fluxtream.utils.TimeUtils;
 import com.fluxtream.utils.Utils;
 
-@Component
-@Scope(value = "prototype")
-public class HomeModel {
-
-	@Autowired
-	ApiDataService apiDataService;
-
-	private TimeZone tz;
-	private VisualizationType viewType;
-	private VisualizationType dayVisualizationType;
-	private VisualizationType aggregatedVisualizationType;
-	List<String> uncheckedConnectors;
+public class CalendarModel {
 
 	public TimeUnit timeUnit = TimeUnit.DAY;
 
@@ -53,68 +35,22 @@ public class HomeModel {
 
 	public Calendar fromCalendar;
 	public Calendar toCalendar;
-	public boolean forceUpdate;
-	@SuppressWarnings("unused")
-	private final static RandomString randomString = new RandomString(64);
 
 	private String title;
 
-	public String getDate() {
-		return jsDateFormatter.withZone(DateTimeZone.forTimeZone(this.tz))
-				.print(this.getStart());
-	}
+    public CalendarModel(long guestId, MetadataService metadataService) {
+        final TimeZone currentTimeZone = metadataService.getTimeZone(guestId, System.currentTimeMillis());
+        setToToday(TimeUnit.DAY, currentTimeZone);
+    }
 
-	public void init(String timeZone) {
-		setTimeZone(TimeZone.getTimeZone(timeZone));
-		this.viewType = VisualizationType.CLOCK;
-		this.dayVisualizationType = viewType;
-		this.aggregatedVisualizationType = VisualizationType.STATS;
-		setToToday(TimeUnit.DAY);
-	}
+    public static CalendarModel fromState(long guestId, MetadataService metadataService, final String state) {
+        CalendarModel calendarModel = new CalendarModel(guestId, metadataService);
+        calendarModel.parseState(guestId, metadataService, state);
+        return calendarModel;
+    }
 
-	public void setTimeZone(TimeZone tz) {
-		this.tz = tz;
-		if (fromCalendar != null)
-			fromCalendar.setTimeZone(tz);
-		if (toCalendar != null)
-			toCalendar.setTimeZone(tz);
-	}
-
-	public List<String> getUncheckedConnectors() {
-		if (uncheckedConnectors == null)
-			uncheckedConnectors = new ArrayList<String>();
-		return uncheckedConnectors;
-	}
-
-	public void setUncheckedConnectors(String[] connectorNames) {
-		if (uncheckedConnectors == null)
-			uncheckedConnectors = new ArrayList<String>();
-		for (String connectorName : connectorNames) {
-			if (!uncheckedConnectors.contains(connectorName))
-				uncheckedConnectors.add(connectorName);
-		}
-	}
-
-	public void setCheckedConnectors(String[] connectorNames) {
-		if (uncheckedConnectors == null)
-			uncheckedConnectors = new ArrayList<String>();
-		for (String connectorName : connectorNames) {
-			if (uncheckedConnectors.contains(connectorName))
-				uncheckedConnectors.remove(connectorName);
-		}
-	}
-
-	public TimeInterval getTimeInterval() {
-		return new TimeInterval(this.fromCalendar.getTimeInMillis(),
-				this.toCalendar.getTimeInMillis(), this.timeUnit, tz);
-	}
-
-	public TimeZone getTimeZone() {
-		return tz;
-	}
-
-	public void setYear(int year) {
-		setYearTimeUnit();
+	public void setYear(final long guestId, final MetadataService metadataService, int year) {
+        this.timeUnit = TimeUnit.YEAR;
 		fromCalendar.set(Calendar.YEAR, year);
 		fromCalendar.set(Calendar.MONTH, Calendar.JANUARY);
 		fromCalendar.set(Calendar.DATE, 1);
@@ -125,9 +61,10 @@ public class HomeModel {
 		toCalendar = TimeUtils.setToMidnight(fromCalendar);
 	}
 
-	public void setDate(String formattedDate) {
-		setDayTimeUnit();
-		Date date = new Date(jsDateFormatter.withZone(
+	public void setDate(final long guestId, final MetadataService metadataService, String formattedDate) {
+        this.timeUnit = TimeUnit.DAY;
+        final TimeZone tz = metadataService.getTimeZone(guestId, formattedDate);
+        Date date = new Date(jsDateFormatter.withZone(
 				DateTimeZone.forTimeZone(tz)).parseMillis(formattedDate));
 		fromCalendar.setTime(date);
 		fromCalendar = TimeUtils.setFromMidnight(fromCalendar);
@@ -135,8 +72,8 @@ public class HomeModel {
 		toCalendar = TimeUtils.setToMidnight(fromCalendar);
 	}
 
-	public void setWeek(int year, int week) {
-		setWeekTimeUnit();
+	public void setWeek(final long guestId, final MetadataService metadataService, int year, int week) {
+        this.timeUnit = TimeUnit.WEEK;
 		fromCalendar.set(Calendar.YEAR, year);
 		fromCalendar.set(Calendar.WEEK_OF_YEAR, week);
 		fromCalendar.set(Calendar.HOUR_OF_DAY, 0);
@@ -152,8 +89,8 @@ public class HomeModel {
 		toCalendar.set(Calendar.MILLISECOND, 999);
 	}
 
-	public void setMonth(int year, int month) {
-		setMonthTimeUnit();
+	public void setMonth(final long guestId, final MetadataService metadataService, int year, int month) {
+        this.timeUnit = timeUnit.MONTH;
 		fromCalendar.set(Calendar.YEAR, year);
 		fromCalendar.set(Calendar.MONTH, month);
 		fromCalendar.set(Calendar.HOUR_OF_DAY, 0);
@@ -188,18 +125,12 @@ public class HomeModel {
 		return toCalendar.getTimeInMillis();
 	}
 
-	public VisualizationType getViewType() {
-		return this.viewType;
-	}
-	
-	public String toJSONString(Configuration env, String configKey) {
+	public String toJSONString(long guestId, MetadataService metadataService, Configuration env) {
 		JSONObject json = new JSONObject();
-		json.put("visualizationType", viewType.toString());
 		json.put("timeUnit", timeUnit.toString());
 		json.put("currentTimespanLabel", timespanLabel());
-		json.put("isToday", isToday());
-		json.put("state", getUrlDate());
-		json.put("timeHash", getTimeHash(env, configKey));
+		json.put("isToday", isToday(guestId, metadataService));
+		json.put("state", getState());
         json.put("start", getStart());
         json.put("end", getEnd());
 		if (this.title != null) {
@@ -221,10 +152,10 @@ public class HomeModel {
 		return Utils.hash(toHash);
 	}
 
-	private String getUrlDate() {
+	private String getState() {
 		if (timeUnit == TimeUnit.DAY)
 			return "date/"
-					+ jsDateFormatter.withZone(DateTimeZone.forTimeZone(tz))
+					+ jsDateFormatter.withZone(DateTimeZone.forTimeZone(fromCalendar.getTimeZone()))
 							.print(fromCalendar.getTimeInMillis());
 		else if (timeUnit == TimeUnit.WEEK)
 			return "week/" + fromCalendar.get(Calendar.YEAR) + "/"
@@ -237,28 +168,28 @@ public class HomeModel {
 		return "UNKNOWN_DATE";
 	}
 
-	public void setToToday(TimeUnit timeUnit) {
+	public void setToToday(TimeUnit timeUnit, TimeZone tz) {
         this.timeUnit = timeUnit;
 		fromCalendar = TimeUtils.setFromMidnight(new GregorianCalendar(tz));
 		toCalendar = TimeUtils.setToMidnight(new GregorianCalendar(tz));
-		viewType = dayVisualizationType;
         switch (timeUnit){
             case WEEK:
-                setWeekTimeUnit();
+                this.timeUnit = TimeUnit.WEEK;
                 break;
             case MONTH:
-                setMonthTimeUnit();
+                this.timeUnit = TimeUnit.MONTH;
                 break;
             case YEAR:
-                setYearTimeUnit();
+                this.timeUnit = TimeUnit.YEAR;
                 break;
         }
 	}
 
-	public boolean isToday() {
+	public boolean isToday(long guestId, MetadataService metadataService) {
 		if (timeUnit != TimeUnit.DAY)
 			return false;
-		Calendar today = Calendar.getInstance(tz);
+        final TimeZone currentUserTimeZone = metadataService.getTimeZone(guestId, System.currentTimeMillis());
+        Calendar today = Calendar.getInstance(currentUserTimeZone);
 		boolean result = fromCalendar.get(Calendar.YEAR) == today
 				.get(Calendar.YEAR);
 		result &= fromCalendar.get(Calendar.MONTH) == today.get(Calendar.MONTH);
@@ -272,15 +203,15 @@ public class HomeModel {
 		switch (this.timeUnit) {
 		case DAY:
 			currentTimespanLabel = currentDateFormatter.withZone(
-					DateTimeZone.forTimeZone(tz)).print(
+					DateTimeZone.forTimeZone(fromCalendar.getTimeZone())).print(
 					fromCalendar.getTimeInMillis());
 			break;
 		case WEEK:
 			String from = shortDayFormatter.withZone(
-					DateTimeZone.forTimeZone(tz)).print(
+					DateTimeZone.forTimeZone(fromCalendar.getTimeZone())).print(
 					fromCalendar.getTimeInMillis());
 			String to = shortDayFormatter
-					.withZone(DateTimeZone.forTimeZone(tz)).print(
+					.withZone(DateTimeZone.forTimeZone(toCalendar.getTimeZone())).print(
 							toCalendar.getTimeInMillis());
 			String year = currentYearFormatter.print(fromCalendar
 					.getTimeInMillis());
@@ -288,12 +219,12 @@ public class HomeModel {
 			break;
 		case MONTH:
 			currentTimespanLabel = currentMonthFormatter.withZone(
-					DateTimeZone.forTimeZone(tz)).print(
+					DateTimeZone.forTimeZone(fromCalendar.getTimeZone())).print(
 					fromCalendar.getTimeInMillis());
 			break;
 		case YEAR:
 			currentTimespanLabel = currentYearFormatter.withZone(
-					DateTimeZone.forTimeZone(tz)).print(
+					DateTimeZone.forTimeZone(fromCalendar.getTimeZone())).print(
 					fromCalendar.getTimeInMillis());
 			break;
 		}
@@ -301,25 +232,11 @@ public class HomeModel {
 		return currentTimespanLabel;
 	}
 
-	public void setViewType(VisualizationType vt) {
-		this.viewType = vt;
-		switch (vt) {
-		case CLOCK:
-		case TIMELINE:
-			this.dayVisualizationType = vt;
-			break;
-		case STATS:
-		case LIST:
-			this.dayVisualizationType = vt;
-			this.aggregatedVisualizationType = vt;
-		}
-	}
-
-	public void incrementTimespan(final String state) {
-        syncState(state);
+	public void incrementTimespan(final long guestId, final MetadataService metadataService, final String state) {
+        parseState(guestId, metadataService, state);
 		switch (this.timeUnit) {
 		case DAY:
-			if (!isToday()) {
+			if (!isToday(guestId, metadataService)) {
 				fromCalendar.add(Calendar.DATE, 1);
 				toCalendar.add(Calendar.DATE, 1);
 			}
@@ -339,8 +256,8 @@ public class HomeModel {
 		}
 	}
 
-	public void decrementTimespan(final String state) {
-        syncState(state);
+	public void decrementTimespan(final long guestId, final MetadataService metadataService, final String state) {
+        parseState(guestId, metadataService, state);
 		switch (this.timeUnit) {
 		case DAY:
 			fromCalendar.add(Calendar.DATE, -1);
@@ -361,82 +278,72 @@ public class HomeModel {
 		}
 	}
 
-    private void syncState(final String state) {
+    private void parseState(final long guestId, final MetadataService metadataService, final String state) {
         String[] stateParts = state.split("/");
         TimeUnit timeUnit = TimeUnit.fromValue(stateParts[0].equals("date")?"day":stateParts[0]);
+
         switch(timeUnit) {
             case DAY:
-                setDate(stateParts[1]);
+                setDate(guestId, metadataService, stateParts[1]);
                 break;
             case WEEK:
                 int year = Integer.valueOf(stateParts[1]);
                 int week = Integer.valueOf(stateParts[2]);
-                setWeek(year, week);
+                setWeek(guestId, metadataService, year, week);
                 break;
             case MONTH:
                 year = Integer.valueOf(stateParts[1]);
                 int month = Integer.valueOf(stateParts[2]);
-                setMonth(year, month);
+                setMonth(guestId, metadataService, year, month);
                 break;
             case YEAR:
                 year = Integer.valueOf(stateParts[1]);
-                setYear(year);
+                setYear(guestId, metadataService, year);
                 break;
         }
     }
 
-
     public void setYearTimeUnit() {
-		this.timeUnit = TimeUnit.YEAR;
-		//fromCalendar.set(Calendar.YEAR, fromCalendar.get(Calendar.YEAR));
-		fromCalendar.set(Calendar.MONTH, Calendar.JANUARY);
+        this.timeUnit = TimeUnit.YEAR;
+        //fromCalendar.set(Calendar.YEAR, fromCalendar.get(Calendar.YEAR));
+        fromCalendar.set(Calendar.MONTH, Calendar.JANUARY);
         fromCalendar.set(Calendar.DATE, 1);
-		fromCalendar = TimeUtils.setFromMidnight(fromCalendar);
-		toCalendar.set(Calendar.YEAR, fromCalendar.get(Calendar.YEAR));
-		toCalendar.set(Calendar.MONTH, Calendar.DECEMBER);
-		toCalendar.set(Calendar.DAY_OF_MONTH,
-				toCalendar.getActualMaximum(Calendar.DAY_OF_MONTH));
-		toCalendar = TimeUtils.setToMidnight(toCalendar);
-		this.viewType = this.aggregatedVisualizationType;
-	}
+        fromCalendar = TimeUtils.setFromMidnight(fromCalendar);
+        toCalendar.set(Calendar.YEAR, fromCalendar.get(Calendar.YEAR));
+        toCalendar.set(Calendar.MONTH, Calendar.DECEMBER);
+        toCalendar.set(Calendar.DAY_OF_MONTH,
+                       toCalendar.getActualMaximum(Calendar.DAY_OF_MONTH));
+        toCalendar = TimeUtils.setToMidnight(toCalendar);
+    }
 
-	public void setMonthTimeUnit() {
-		Calendar c = Calendar.getInstance(tz);
-		this.timeUnit = TimeUnit.MONTH;
-		/*fromCalendar.set(Calendar.YEAR, c.get(Calendar.YEAR));
-		fromCalendar.set(Calendar.MONTH, c.get(Calendar.MONTH));*/
-		fromCalendar.set(Calendar.DAY_OF_MONTH, 1);
-		fromCalendar = TimeUtils.setFromMidnight(fromCalendar);
-		toCalendar.set(Calendar.YEAR, fromCalendar.get(Calendar.YEAR));
-		toCalendar.set(Calendar.MONTH, fromCalendar.get(Calendar.MONTH));
-		toCalendar.set(Calendar.DAY_OF_MONTH,
-				toCalendar.getActualMaximum(Calendar.DAY_OF_MONTH));
-		toCalendar = TimeUtils.setToMidnight(toCalendar);
-		this.viewType = this.aggregatedVisualizationType;
-	}
+    public void setMonthTimeUnit() {
+        this.timeUnit = TimeUnit.MONTH;
+        fromCalendar.set(Calendar.DAY_OF_MONTH, 1);
+        fromCalendar = TimeUtils.setFromMidnight(fromCalendar);
+        toCalendar.set(Calendar.YEAR, fromCalendar.get(Calendar.YEAR));
+        toCalendar.set(Calendar.MONTH, fromCalendar.get(Calendar.MONTH));
+        toCalendar.set(Calendar.DAY_OF_MONTH,
+                       toCalendar.getActualMaximum(Calendar.DAY_OF_MONTH));
+        toCalendar = TimeUtils.setToMidnight(toCalendar);
+    }
 
-	public void setDayTimeUnit() {
+    public void setDayTimeUnit() {
         timeUnit = TimeUnit.DAY;
         //fromCalendar.set(Calendar.DATE, 1);
         fromCalendar = TimeUtils.setFromMidnight(fromCalendar);
-		toCalendar.set(Calendar.DATE, fromCalendar.get(Calendar.DATE));
-		toCalendar = TimeUtils.setToMidnight(toCalendar);
-		this.viewType = this.dayVisualizationType;
-	}
+        toCalendar.set(Calendar.DATE, fromCalendar.get(Calendar.DATE));
+        toCalendar = TimeUtils.setToMidnight(toCalendar);
+    }
 
-	public void setWeekTimeUnit() {
-		Calendar c = Calendar.getInstance(tz);
-		this.timeUnit = TimeUnit.WEEK;
-		//fromCalendar.set(Calendar.YEAR, c.get(Calendar.YEAR));
-		//fromCalendar.set(Calendar.MONTH, c.get(Calendar.MONTH));
-		fromCalendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
-		fromCalendar = TimeUtils.setFromMidnight(fromCalendar);
-		toCalendar.add(Calendar.WEEK_OF_YEAR, 1);
-		toCalendar.set(Calendar.YEAR, fromCalendar.get(Calendar.YEAR));
-		toCalendar.set(Calendar.MONTH, fromCalendar.get(Calendar.MONTH));
-		toCalendar.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
-		toCalendar = TimeUtils.setToMidnight(toCalendar);
-		this.viewType = this.aggregatedVisualizationType;
-	}
+    public void setWeekTimeUnit() {
+        this.timeUnit = TimeUnit.WEEK;
+        fromCalendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+        fromCalendar = TimeUtils.setFromMidnight(fromCalendar);
+        toCalendar.add(Calendar.WEEK_OF_YEAR, 1);
+        toCalendar.set(Calendar.YEAR, fromCalendar.get(Calendar.YEAR));
+        toCalendar.set(Calendar.MONTH, fromCalendar.get(Calendar.MONTH));
+        toCalendar.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
+        toCalendar = TimeUtils.setToMidnight(toCalendar);
+    }
 
 }
