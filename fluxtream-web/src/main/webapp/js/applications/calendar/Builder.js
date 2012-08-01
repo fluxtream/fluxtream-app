@@ -48,10 +48,11 @@ define(["core/TabInterface"], function(TabInterface) {
             btn.click(function(event){
 
                 var timeUnit = $(event.target).attr("unit"),
-                    url = "/nav/set" + capitalizeFirstLetter(timeUnit.toLowerCase()) + "TimeUnit.json";
+                    url = "/api/calendar/nav/set" + capitalizeFirstLetter(timeUnit.toLowerCase()) + "TimeUnit" + "?state=" + Calendar.tabState;
                 if (Calendar.currentTab.timeNavigation(timeUnit))
                     return;
                 $.ajax({ url:url,
+                   type: "POST",
                    success : function(response) {
                        var t = tabExistsForTimeUnit(Calendar.currentTabName, timeUnit)?Calendar.currentTabName:tabs[timeUnit][0];
                        Calendar.currentTabName = t;
@@ -98,8 +99,8 @@ define(["core/TabInterface"], function(TabInterface) {
 			button.removeClass("disabled");
 			button.click(function(event) {
 				var timeUnit = $(event.target).attr("class"),
-				url = "/nav/set" + capitalizeFirstLetter(targetTimeUnit.toLowerCase()) + "TimeUnit.json";
-				$.ajax({ url:url,
+				url = "/api/calendar/nav/set" + capitalizeFirstLetter(targetTimeUnit.toLowerCase()) + "TimeUnit";
+				$.ajax({ url:url + "&state=" + Calendar.tabState,
 					success : function(response) {
 						Calendar.renderState(Calendar.currentTabName + "/" + response.state);
 					},
@@ -112,6 +113,7 @@ define(["core/TabInterface"], function(TabInterface) {
 	}
 
 	function handleNotifications(digestInfo) {
+        console.log("handling notifications");
 		$(".notification").remove();
 		$("#notificationIds").empty();
 		if (typeof(digestInfo.notifications)!="undefined") {
@@ -185,6 +187,7 @@ define(["core/TabInterface"], function(TabInterface) {
 	Builder.updateTab = updateTab;
     Builder.isValidTabName = isValidTabName;
     Builder.isValidTimeUnit = isValidTimeUnit;
+    Builder.handleNotifications = handleNotifications;
 
     return Builder;
 	

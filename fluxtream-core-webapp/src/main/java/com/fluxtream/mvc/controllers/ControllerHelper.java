@@ -7,7 +7,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.fluxtream.auth.FlxUserDetails;
 import com.fluxtream.domain.Guest;
-import com.fluxtream.mvc.models.HomeModel;
+import com.fluxtream.mvc.models.CalendarModel;
 
 public class ControllerHelper {
 	
@@ -33,9 +33,9 @@ public class ControllerHelper {
 		return guest;
 	}
 
-	public static HomeModel getHomeModel(HttpServletRequest request) {
-		HomeModel homeModel = (HomeModel) request.getSession().getAttribute("homeModel");
-		return homeModel;
+	public static CalendarModel getHomeModel(HttpServletRequest request) {
+		CalendarModel calendarModel = (CalendarModel) request.getSession().getAttribute("calendarModel");
+		return calendarModel;
 	}
 
 }
