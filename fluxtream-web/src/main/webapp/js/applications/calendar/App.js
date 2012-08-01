@@ -306,6 +306,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 				$("#tabs").css("opacity", "1");
 				$(".calendar-navigation-button").toggleClass("disabled");
 				$(".loading").hide();
+                Builder.handleNotifications(response);
 			},
 			error: function() {
 				alert("error fetching calendar");

@@ -5,6 +5,7 @@ define(["core/DashboardWidget"], function(DashboardWidget) {
     StepsTaken.postLoad = function() {
         $("#stepsTaken-widget .flx-body").empty();
         var steps = 0, averageSteps = 0, measures = 0;
+
         if (typeof(this.digest.cachedData["fitbit-activity_summary"])!="undefined" &&
             typeof(this.digest.cachedData["fitbit-activity_summary"][0])!="undefined") {
             for (var i=0; i<this.digest.cachedData["fitbit-activity_summary"].length; i++) {

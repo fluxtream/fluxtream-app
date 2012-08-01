@@ -113,6 +113,7 @@ define(["core/TabInterface"], function(TabInterface) {
 	}
 
 	function handleNotifications(digestInfo) {
+        console.log("handling notifications");
 		$(".notification").remove();
 		$("#notificationIds").empty();
 		if (typeof(digestInfo.notifications)!="undefined") {
@@ -186,6 +187,7 @@ define(["core/TabInterface"], function(TabInterface) {
 	Builder.updateTab = updateTab;
     Builder.isValidTabName = isValidTabName;
     Builder.isValidTimeUnit = isValidTimeUnit;
+    Builder.handleNotifications = handleNotifications;
 
     return Builder;
 	
