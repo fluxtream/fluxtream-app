@@ -436,39 +436,6 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             map.highlightSection.setMap(map);
     }
 
-    //Image display overlay definition
-    function ImageDisplayOverlay(map,latlng,imgUrl){
-        this._map = map;
-        this._latlng = latlng;
-        this._imgUrl = imgUrl;
-        this._img = null;
-
-        this.setMap(map);
-    }
-    ImageDisplayOverlay.prototype = new google.maps.OverlayView();
-    ImageDisplayOverlay.prototype.onAdd = function() {
-        this._img = document.createElement("div");
-        this._img.style.position = "absolute";
-        this._img.style.width = "64px";
-        this._img.style.height = "64px";
-        img = document.createElement("img");
-        img.style.position = "relative";
-        img.className = "mapImageOverlay";
-        img.src = this._imgUrl;
-        this._img.appendChild(img);
-        this.getPanes().overlayLayer.appendChild(this._img);
-    }
-    ImageDisplayOverlay.prototype.onRemove = function() {
-        this._img.parentNode.removeChild(this._img);
-        this._img = null;
-    }
-    ImageDisplayOverlay.prototype.draw = function() {
-        var overlayProjection = this.getProjection();
-        var position = this.getProjection().fromLatLngToDivPixel(this._latlng);
-        this._img.style.left = position.x - 32 + "px";
-        this._img.style.top = position.y - 32 + "px";
-    }
-
     function createMapPositionControls(map){
         var control = $("<div></div>");
         control.css("background","white");
