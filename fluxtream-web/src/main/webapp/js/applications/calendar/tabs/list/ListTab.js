@@ -84,8 +84,10 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
     function rebuildPagination(){
         pagination.empty();
         var totalPages = getTotalPages();
-        if (totalPages>1)
+        if (totalPages>1){
             pagination.show();
+            setTabParam(currentPage + 1);
+        }
         else {
             pagination.hide();
             setTabParam(null);
@@ -234,7 +236,6 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
                 return false;
             currentPage = Number(pageNum);
         }
-        setTabParam(currentPage + 1);
         rebuildPagination();
         repopulateList();
         return false;

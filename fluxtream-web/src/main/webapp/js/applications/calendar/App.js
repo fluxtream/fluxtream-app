@@ -122,7 +122,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 			// time didn't change
             document.title = "Fluxtream Calendar | " + $("#currentTimespanLabel").text().trim() + " (" + Calendar.currentTabName + ")";
 			Builder.updateTab(Calendar.digest, Calendar);
-			FlxState.router.navigate("app/calendar/" + state);
+			FlxState.router.navigate("app/calendar/" + state + (Calendar.tabParam == null ? "" : "/" + Calendar.tabParam));
 			FlxState.saveState("calendar", state);
 			return;
 		} else {

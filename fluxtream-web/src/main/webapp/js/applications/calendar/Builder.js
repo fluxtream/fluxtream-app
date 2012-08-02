@@ -61,7 +61,7 @@ define(["core/TabInterface"], function(TabInterface) {
                        var t = tabExistsForTimeUnit(Calendar.currentTabName, timeUnit)?Calendar.currentTabName:tabs[timeUnit][0];
                        Calendar.currentTabName = t;
                        Calendar.updateButtonStates();
-                       Calendar.renderState(Calendar.currentTabName + "/" + response.state);
+                       Calendar.renderState(Calendar.currentTabName + "/" + response.state + (Calendar.tabParam == null ? "" : "/" + Calendar.tabParam));
                    },
                    error : function() {
                        alert("error");
