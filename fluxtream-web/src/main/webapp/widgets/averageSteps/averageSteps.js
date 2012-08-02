@@ -6,12 +6,20 @@ define(["core/DashboardWidget"], function(DashboardWidget) {
         $("#stepsTaken-widget .flx-body").empty();
         var steps = 0, averageSteps = 0, measures = 0;
 
-        if (typeof(this.digest.cachedData["fitbit-activity_summary"])!="undefined" &&
-            typeof(this.digest.cachedData["fitbit-activity_summary"][0])!="undefined") {
-            for (var i=0; i<this.digest.cachedData["fitbit-activity_summary"].length; i++) {
-                if (this.digest.cachedData["fitbit-activity_summary"][i].steps>0) {
+        var stepsArray = null;
+        if (typeof(this.digest.cachedData["bodymedia-steps"])!="undefined" &&
+            typeof(this.digest.cachedData["bodymedia-steps"][0])!="undefined")
+            stepsArray = this.digest.cachedData["bodymedia-steps"];
+        else if (typeof(this.digest.cachedData["fitbit-activity_summary"])!="undefined" &&
+            typeof(this.digest.cachedData["fitbit-activity_summary"][0])!="undefined")
+            stepsArray = this.digest.cachedData["fitbit-activity_summary"];
+
+        if (stepsArray != null) {
+            for (var i=0; i<stepsArray.length; i++) {
+                var steps = stepsArray[i].steps == null ? stepsArray[i].totalSteps : stepsArray[i].steps;
+                if (steps>0) {
                     measures++;
-                    averageSteps+=this.digest.cachedData["fitbit-activity_summary"][i].steps;
+                    averageSteps+=steps;
                 }
             }
             if (averageSteps>0) {
