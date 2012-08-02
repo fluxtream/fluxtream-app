@@ -94,7 +94,7 @@ public class BodyTrackHelper {
         }
         catch (Exception e){
             System.out.println("BTDataStore: datastore execution failed!");
-            return null;
+            throw new RuntimeException("Datastore execution failed");
         }
     }
 
