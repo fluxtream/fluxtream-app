@@ -23,7 +23,11 @@ define(["core/TabInterface"], function(TabInterface) {
         tabInterface.getNav().addClickListener(function(tabName){
             var state = App.state.getState("calendar");
             state = state.substring(state.indexOf("/"));
-            Calendar.renderState(tabName+state,Calendar.digestTabState != state.substring(1));
+            if (Calendar.tabParam != null){
+                Calendar.tabParam = null;
+                state = state.substring(0,state.lastIndexOf("/"));
+            }
+            Calendar.render(tabName+state);
         });
     }
 	
@@ -131,7 +135,7 @@ define(["core/TabInterface"], function(TabInterface) {
 	
 	function updateTab(digest, Calendar) {
         tabInterface.setRenderParamsFunction(function(){
-            return {digest:digest,timeUnit:Calendar.timeUnit,calendarState:Calendar.tabState,connectorEnabled:Calendar.connectorEnabled[Calendar.currentTabName]};
+            return {digest:digest,timeUnit:Calendar.timeUnit,calendarState:Calendar.tabState,connectorEnabled:Calendar.connectorEnabled[Calendar.currentTabName],tabParam:Calendar.tabParam,setTabParam:Calendar.setTabParam};
         });
         tabInterface.setActiveTab(Calendar.currentTabName);
         updateCurrentTab(digest, Calendar);

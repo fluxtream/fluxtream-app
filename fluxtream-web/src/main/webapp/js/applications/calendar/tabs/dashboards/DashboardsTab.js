@@ -5,15 +5,22 @@ define(["core/Tab",
 	
 	var digest, dashboardData;
 
+    var setTabParam;
+
 	function render(params) {
+        setTabParam = params.setTabParam;
+        if (params.tabParam != null)
+            dashboardsTab.activeDashboard = parseInt(params.tabParam);
         _.bindAll(this);
 		digest = params.digest;
         $.ajax({
                 url: "/api/dashboards",
                 success: function(dashboards) {
-                    for (var i=0; i<dashboards.length; i++) {
-                        if (dashboards[i].active)
-                            dashboardsTab.activeDashboard = dashboards[i].id;
+                    if (dashboardsTab.activeDashboard == null){
+                        for (var i=0; i<dashboards.length; i++) {
+                            if (dashboards[i].active)
+                                dashboardsTab.activeDashboard = dashboards[i].id;
+                        }
                     }
                     dashboardsTab.populateTemplate({dashboards : dashboards});
                 }
@@ -23,6 +30,7 @@ define(["core/Tab",
     }
 
    function populateTemplate(dashboardsTemplateData) {
+       setTabParam(dashboardsTab.activeDashboard);
         this.getTemplate("text!applications/calendar/tabs/dashboards/dashboards.html", "dashboards",
                          function() {
                              makeDashboardTabs(dashboardsTemplateData);
@@ -35,6 +43,7 @@ define(["core/Tab",
         App.loadMustacheTemplate("applications/calendar/tabs/dashboards/dashboardsTabTemplates.html","dashboardTabs", function(template){
             var html = template.render(dashboardsTemplateData);
             $("#dashboardTabs").replaceWith(html);
+            $("#dashboard-" + dashboardsTab.activeDashboard).children().tab("show");
             $("#addWidgetButton").unbind();
             $("#manageDashboardsButton").unbind();
             $(".dashboardName").unbind();
@@ -190,6 +199,7 @@ define(["core/Tab",
 
 
     var dashboardsTab = new Tab("calendar", "dashboards", "Candide Kemmler", "icon-dashboard", true);
+    dashboardsTab.activeDashboard = null;
 	dashboardsTab.render = render;
     dashboardsTab.connectorDisplayable = function(connector) { return false; }
     dashboardsTab.populateTemplate = populateTemplate;

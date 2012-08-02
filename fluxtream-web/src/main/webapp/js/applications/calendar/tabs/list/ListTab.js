@@ -4,13 +4,16 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
 
     var oldState = null;
 
+    var setTabParam;
+
     function render(params) {
+        setTabParam = params.setTabParam;
         this.getTemplate("text!applications/calendar/tabs/list/list.html", "list", function(){
             if (params.calendarState == oldState)
                 return;
             else
                 oldState = params.calendarState;
-            setup(params.digest,params.connectorEnabled);
+            setup(params.digest,params.connectorEnabled,params.tabParam == null ? 0 : parseInt(params.tabParam) - 1);
         });
     }
 
@@ -25,11 +28,11 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
 
     var rendererCount = 0;
 
-    function setup(digest,connectorEnabled){
+    function setup(digest,connectorEnabled,page){
         timeZoneOffset = digest.timeZoneOffset;
         list = $("#list");
         pagination = $("#pagination");
-        currentPage = 0;
+        currentPage = page;
         items = [];
         itemGroups = {};
         list.empty();
@@ -85,6 +88,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
             pagination.show();
         else {
             pagination.hide();
+            setTabParam(null);
             return;
         }
         var pageList = $("<ul></ul>");
@@ -217,19 +221,20 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
         var pageNum = $(event.target).attr("pageNumber");
         if (pageNum == "prev"){
             if (currentPage == 0)
-                return;
+                return false;
             currentPage--;
         }
         else if (pageNum == "next"){
             if (currentPage >= getTotalPages() - 1)
-                return;
+                return false;
             currentPage++;
         }
         else{
             if (currentPage == pageNum)
-                return;
+                return false;
             currentPage = Number(pageNum);
         }
+        setTabParam(currentPage + 1);
         rebuildPagination();
         repopulateList();
         return false;
