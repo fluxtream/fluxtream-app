@@ -22,3 +22,16 @@
         </section>
     </div>
 </template>
+<template id="averageBP">
+    <div class="flx-widget-typo">
+        <section class="main-widget-data">
+            {{#systolic}}
+            <div class="big-data-figure">Systolic: {{systolic}}<span class="data-unit">mmHg</span></div>
+            <div class="big-data-figure">Diastolic: {{diastolic}}<span class="data-unit">mmHg</span></div>
+            {{/systolic}}
+            {{#noMeasure}}
+            <div class="big-data-figure"><span class="data-unit">(No Measure)</span></div>
+            {{/noMeasure}}
+        </section>
+    </div>
+</template>
