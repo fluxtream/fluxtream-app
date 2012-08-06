@@ -90,7 +90,7 @@ public interface ConnectorUpdateService {
      */
 	public List<UpdateWorkerTask> getScheduledOrInProgressUpdateTasks(long guestId, Connector connector);
 
-    public List<UpdateWorkerTask> getUpdatingUpdateTasks(long guestId, Connector connector);
+    public Collection<UpdateWorkerTask> getUpdatingUpdateTasks(long guestId, Connector connector);
 
 	public void deleteScheduledUpdateTasks(long guestId, Connector connector);
 

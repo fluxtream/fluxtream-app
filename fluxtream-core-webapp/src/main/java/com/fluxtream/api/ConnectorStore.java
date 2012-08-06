@@ -124,7 +124,7 @@ public class ConnectorStore {
     }
 
     private boolean checkIfSyncInProgress(long guestId, Connector connector){
-        final List<UpdateWorkerTask> scheduledUpdates = connectorUpdateService.getUpdatingUpdateTasks(guestId, connector);
+        final Collection<UpdateWorkerTask> scheduledUpdates = connectorUpdateService.getUpdatingUpdateTasks(guestId, connector);
         return (scheduledUpdates.size()!=0);
     }
 

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -328,8 +327,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
     public List<UpdateWorkerTask> getScheduledOrInProgressUpdateTasks(long guestId, Connector connector) {
 		List<UpdateWorkerTask> updateWorkerTask = JPAUtils.find(em,
 				UpdateWorkerTask.class, "updateWorkerTasks.isScheduledOrInProgress",
-				Status.SCHEDULED, Status.IN_PROGRESS, guestId,
-				connector.getName());
+				guestId, connector.getName());
         for (UpdateWorkerTask workerTask : updateWorkerTask) {
             if (hasStalled(workerTask)) {
                 workerTask.status = Status.STALLED;
@@ -340,21 +338,33 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 	}
 
     @Override
-    public List<UpdateWorkerTask> getUpdatingUpdateTasks(final long guestId, final Connector connector) {
-        List<UpdateWorkerTask> updateWorkerTask = JPAUtils.find(em,
+    public Collection<UpdateWorkerTask> getUpdatingUpdateTasks(final long guestId, final Connector connector) {
+        List<UpdateWorkerTask> tasks = JPAUtils.find(em,
                 UpdateWorkerTask.class, "updateWorkerTasks.isInProgressOrScheduledBefore",
                 System.currentTimeMillis(), guestId,
                 connector.getName());
-        Iterator<UpdateWorkerTask> i = updateWorkerTask.iterator();
-        while(i.hasNext()) {
-            UpdateWorkerTask workerTask = i.next();
-            if (hasStalled(workerTask)) {
-                workerTask.status = Status.STALLED;
-                em.merge(workerTask);
-                i.remove();
+        HashMap<Integer, UpdateWorkerTask> seen = new HashMap<Integer, UpdateWorkerTask>();
+        for(UpdateWorkerTask task : tasks)
+        {
+            if(hasStalled(task))
+            {
+                task.status = Status.STALLED;
+                em.merge(task);
+            }
+            else
+            {
+                if(seen.containsKey(task.objectTypes))
+                {
+                    if(seen.get(task.objectTypes).timeScheduled < task.timeScheduled)
+                        seen.put(task.objectTypes, task);
+                }
+                else
+                {
+                    seen.put(task.objectTypes, task);
+                }
             }
         }
-        return updateWorkerTask;
+        return seen.values();
     }
 
     private boolean hasStalled(UpdateWorkerTask updateWorkerTask) {
