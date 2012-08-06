@@ -93,7 +93,7 @@ public class ZeoSleepStatsFacetExtractor extends AbstractFacetExtractor {
 		int hours = o.getInt("hour");
 		int minutes = o.getInt("minute");
 		int seconds = o.getInt("second");
-		
+
 		String date = String.valueOf(year) + "-" + String.valueOf(month) + "-" + String.valueOf(day);
 		TimeZone guestTimeZoneForDate = getGuestTimeZoneForDate(apiData, date);
 		Calendar c = Calendar.getInstance(guestTimeZoneForDate);
@@ -103,7 +103,7 @@ public class ZeoSleepStatsFacetExtractor extends AbstractFacetExtractor {
 		c.set(Calendar.MONTH, month - 1);
 		c.set(Calendar.SECOND, seconds);
 		c.set(Calendar.YEAR, year);
-		
+
 		if (key.equals("bedTime"))
 			facet.endTimeStorage = toTimeStorage(year, month, day, hours, minutes, seconds);
 		else

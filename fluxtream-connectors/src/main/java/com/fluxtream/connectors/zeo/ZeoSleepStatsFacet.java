@@ -1,16 +1,13 @@
 package com.fluxtream.connectors.zeo;
 
 import java.util.Date;
-
 import javax.persistence.Entity;
 import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
-import org.hibernate.search.annotations.Indexed;
-
 import com.fluxtream.domain.AbstractFloatingTimeZoneFacet;
+import org.hibernate.search.annotations.Indexed;
 
 @Entity(name="Facet_ZeoSleepStats")
 @NamedQueries({
