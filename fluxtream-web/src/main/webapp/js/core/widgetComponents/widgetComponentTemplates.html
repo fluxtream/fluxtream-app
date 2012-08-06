@@ -35,3 +35,15 @@
         </section>
     </div>
 </template>
+<template id="averageCaloriesBurned">
+    <div class="flx-widget-typo">
+        <section class="main-widget-data">
+            {{#weight}}
+            <div class="big-data-figure"><span>Burned</span> {{calories}}<span class="data-unit">calories}</span></div>
+            {{/weight}}
+            {{#noMeasure}}
+            <div class="big-data-figure"><span class="data-unit">(No Measure)</span></div>
+            {{/noMeasure}}
+        </section>
+    </div>
+</template>

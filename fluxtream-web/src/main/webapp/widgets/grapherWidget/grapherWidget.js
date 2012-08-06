@@ -1,6 +1,6 @@
 define(["core/DashboardWidget", "core/widgetComponents/GrapherComponent", "core/grapher/BTCore",
-        "core/widgetComponents/averageSteps"], function(DashboardWidget,GrapherComponent,BodyTrack,
-    AverageStepsComponent) {
+        "core/widgetComponents/averageSteps", "core/widgetComponents/averageCaloriesBurned"],
+    function(DashboardWidget,GrapherComponent,BodyTrack,AverageStepsComponent,AverageCaloriesBurnedComponent) {
 
     var GrapherWidget = new DashboardWidget();
 
@@ -35,6 +35,15 @@ define(["core/DashboardWidget", "core/widgetComponents/GrapherComponent", "core/
                     $("#grapherWidgetWidget").empty();
                     new AverageStepsComponent(this,$("#grapherWidgetWidget"),this.digest.cachedData["bodymedia-steps"],"steps");
                     return;
+                case "Fitbit.caloriesOut":
+                    $("#grapherWidgetWidget").empty();
+                    new AverageCaloriesBurnedComponent(this,$("#grapherWidgetWidget"),this.digest.cachedData["fitbit-activity_summary"],"caloriesOut");
+                    return;
+                /*case "BodyMedia.caloriesBurned":
+                    $("#grapherWidgetWidget").empty();
+                    new AverageCaloriesBurnedComponent(this,$("#grapherWidgetWidget"),this.digest.cachedData["bodymedia-steps"],"steps");
+                    return;         */
+
             }
         }
 
