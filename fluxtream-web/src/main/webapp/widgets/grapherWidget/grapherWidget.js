@@ -425,7 +425,7 @@ define(["core/DashboardWidget", "core/widgetComponents/GrapherComponent", "core/
         newStyle['highlight'] = {};             // completely overwrite the existing highlight object
         newStyle['highlight']['styles'] = [];   // initialize the highlight styles array
 
-        var isZeo = $("#" + channelElementId + "-config-zeo-show").is(':checked');
+        var isZeo = $("#channelSelector").val() == "Sleep_Graph";
         var highlightLineWidth = 0;
 
         if (isZeo) {
