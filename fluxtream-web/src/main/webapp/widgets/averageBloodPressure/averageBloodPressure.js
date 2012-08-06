@@ -9,10 +9,10 @@ define(["core/DashboardWidget","core/widgetComponents/averageBloodPressure"], fu
         });
     }
 
-    AverageWeight.postLoad = function(template) {
+    AverageBloodPressure.postLoad = function(template) {
         var html = Hogan.compile(template);
-        $("#averageWeight-widget .flx-body").empty();
-        $("#averageWeight-widget .flx-body").append(html.render({}))
+        $("#averageBloodPressure-widget .flx-body").empty();
+        $("#averageBloodPressure-widget .flx-body").append(html.render({}))
         var bloodPressureArray = null;
         var systolicParam = ""
         var diastolicParam = ""

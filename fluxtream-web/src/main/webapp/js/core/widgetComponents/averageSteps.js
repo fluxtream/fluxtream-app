@@ -6,6 +6,7 @@ define([],function(){
         App.loadMustacheTemplate("core/widgetComponents/widgetComponentTemplates.html","averageSteps",function(template){
             var steps = 0;
             var averageSteps = 0;
+            var measures = 0;
             if (dataArray != null) {
                 for (var i=0; i<dataArray.length; i++) {
                     if (dataArray[i][stepsParamName]>0) {
