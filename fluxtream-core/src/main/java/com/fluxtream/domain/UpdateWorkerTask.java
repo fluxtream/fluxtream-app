@@ -30,7 +30,8 @@ import com.fluxtream.connectors.updaters.UpdateInfo;
                 "AND updt.timeScheduled<?"),
     @NamedQuery( name = "updateWorkerTasks.isScheduledOrInProgress",
         query = "SELECT updt FROM ScheduledUpdate updt " +
-                "WHERE (updt.status=? OR updt.status=?) " +
+                "WHERE (updt.status=0 " +
+                    "OR updt.status=1) " +
                 "AND updt.guestId=? " +
                 "AND updt.connectorName=?"),
     @NamedQuery( name = "updateWorkerTasks.withObjectTypes.isScheduled",
@@ -52,7 +53,7 @@ import com.fluxtream.connectors.updaters.UpdateInfo;
                         "AND updt.timeScheduled<?))" +
                 "AND updt.guestId=? " +
                 "AND updt.connectorName=? "),
-    @NamedQuery( name = "updateWorkerTasks.getLastFinishedTaskByObjectType",
+    @NamedQuery( name = "updateWorkerTasks.getLastFinishedTask",
         query = "SELECT updt FROM ScheduledUpdate updt " +
                 "WHERE updt.timeScheduled<? " +
                 "AND (updt.status=2 " +

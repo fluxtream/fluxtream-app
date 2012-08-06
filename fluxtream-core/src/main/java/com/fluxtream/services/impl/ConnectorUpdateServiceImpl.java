@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -344,10 +345,13 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
                 UpdateWorkerTask.class, "updateWorkerTasks.isInProgressOrScheduledBefore",
                 System.currentTimeMillis(), guestId,
                 connector.getName());
-        for (UpdateWorkerTask workerTask : updateWorkerTask) {
+        Iterator<UpdateWorkerTask> i = updateWorkerTask.iterator();
+        while(i.hasNext()) {
+            UpdateWorkerTask workerTask = i.next();
             if (hasStalled(workerTask)) {
                 workerTask.status = Status.STALLED;
                 em.merge(workerTask);
+                i.remove();
             }
         }
         return updateWorkerTask;
@@ -398,10 +402,11 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 
     @Override
     public Collection<UpdateWorkerTask> getLastFinishedUpdateTasks(final long guestId, final Connector connector) {
-        List<UpdateWorkerTask> tasks = JPAUtils.find(em, UpdateWorkerTask.class, "updateWorkerTasks.getLastFinishedTaskByObjectType",
-                                        System.currentTimeMillis(),
-                                        guestId,
-                                        connector.getName());
+        List<UpdateWorkerTask> tasks = JPAUtils.find(em, UpdateWorkerTask.class,
+                                                     "updateWorkerTasks.getLastFinishedTask",
+                                                     System.currentTimeMillis(),
+                                                     guestId,
+                                                     connector.getName());
         HashMap<Integer, UpdateWorkerTask> seen = new HashMap<Integer, UpdateWorkerTask>();
         for(UpdateWorkerTask task : tasks)
         {
