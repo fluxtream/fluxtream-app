@@ -6,13 +6,14 @@ define([],function(){
             var weight = 0;
             var averageWeight = 0;
             var measures = 0;
-            for (var i=0; i<dataArray.length; i++) {
+            for (var i=0; dataArray != null && i<dataArray.length; i++) {
                 if (dataArray[i][weightParamName]>0) {
                     measures++;
                     averageWeight+=dataArray[i][weightParamName];
                 }
             }
-            weight = Math.round((averageWeight/measures)*100)/100;
+            if (averageWeight != 0)
+                weight = Math.round((averageWeight/measures)*100)/100;
             var unit = parentWidget.digest.settings.weightMeasureUnit;
             if (unit==="SI")
                 unit = "kg";
