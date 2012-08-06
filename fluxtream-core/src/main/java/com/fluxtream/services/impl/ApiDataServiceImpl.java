@@ -261,7 +261,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 					newFacets.add(newFacet);
 			}
 		}
-		bodyTrackStorageService.storeApiData(updateInfo.getGuestId(), newFacets);
+		//bodyTrackStorageService.storeApiData(updateInfo.getGuestId(), newFacets);
 	}
 
 	private static Map<String, String> facetEntityNames = new ConcurrentHashMap<String,String>();

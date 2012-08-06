@@ -43,10 +43,8 @@ public class WithingsConnectorController {
 	@Autowired
 	ConnectorUpdateService connectorUpdateService;
 	
-	@SuppressWarnings("unchecked")
 	@RequestMapping(value = "/chooseWithingsUser")
-	public ModelAndView chooseWithingsUser(
-			HttpServletRequest request,
+	public ModelAndView chooseWithingsUser( HttpServletRequest request,
 			HttpServletResponse response) throws UnsupportedEncodingException {
 		String publickey = request.getParameter("chosenUser");
 		List<UsersListResponseUser> withingsUsers = (List<UsersListResponseUser>) request.getSession()
@@ -61,8 +59,6 @@ public class WithingsConnectorController {
 					"There is no user with specified id: " + guestId);
 			return mav;
 		} else {
-			subscribeToNotifications();
-			
 			connectorUpdateService.scheduleUpdate(guestId, "withings", 3,
 					UpdateType.INITIAL_HISTORY_UPDATE,
 					System.currentTimeMillis());
@@ -77,10 +73,6 @@ public class WithingsConnectorController {
 		return mav;
 	}
 
-	private void subscribeToNotifications() {
-		
-	}
-	
 	@RequestMapping(value = "/notify")
 	public String notifyMeasurement(HttpServletRequest request, HttpServletResponse response) {
 		return null;
