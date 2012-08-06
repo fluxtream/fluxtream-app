@@ -69,7 +69,9 @@ public class BodymediaStepFacetExtractor extends AbstractFacetExtractor
         /* burnJson is a JSONArray that contains a seperate JSONArray and calorie counts for each day
          */
         JSONObject bodymediaResponse = JSONObject.fromObject(apiData.json);
-            JSONArray daysArray = bodymediaResponse.getJSONArray("days");
+        JSONArray daysArray = bodymediaResponse.getJSONArray("days");
+        if(bodymediaResponse.has("lastSync"))
+        {
             DateTime d = form.parseDateTime(bodymediaResponse.getJSONObject("lastSync").getString("dateTime"));
             for(Object o : daysArray)
             {
@@ -96,6 +98,7 @@ public class BodymediaStepFacetExtractor extends AbstractFacetExtractor
                 else
                     throw new JSONException("Days array is not a proper JSONObject");
             }
+        }
         return facets;
     }
 }

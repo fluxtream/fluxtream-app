@@ -82,33 +82,36 @@ public class BodymediaSleepFacetExtractor extends AbstractFacetExtractor
         else
         {
             JSONArray daysArray = bodymediaResponse.getJSONArray("days");
-            DateTime d = form.parseDateTime(bodymediaResponse.getJSONObject("lastSync").getString("dateTime"));
-            for(Object o : daysArray)
+            if(bodymediaResponse.has("lastSync"))
             {
-                if(o instanceof JSONObject)
+                DateTime d = form.parseDateTime(bodymediaResponse.getJSONObject("lastSync").getString("dateTime"));
+                for(Object o : daysArray)
                 {
-                    JSONObject day = (JSONObject) o;
-                    BodymediaSleepFacet sleep = new BodymediaSleepFacet();
-                    super.extractCommonFacetData(sleep, apiData);
-                    sleep.date = day.getString("date");
-                    sleep.efficiency = day.getDouble("efficiency");
-                    sleep.totalLying = day.getInt("totalLying");
-                    sleep.totalSleeping = day.getInt("totalSleep");
-                    sleep.json = day.getString("sleepPeriods");
-                    sleep.lastSync = d.getMillis();
+                    if(o instanceof JSONObject)
+                    {
+                        JSONObject day = (JSONObject) o;
+                        BodymediaSleepFacet sleep = new BodymediaSleepFacet();
+                        super.extractCommonFacetData(sleep, apiData);
+                        sleep.date = day.getString("date");
+                        sleep.efficiency = day.getDouble("efficiency");
+                        sleep.totalLying = day.getInt("totalLying");
+                        sleep.totalSleeping = day.getInt("totalSleep");
+                        sleep.json = day.getString("sleepPeriods");
+                        sleep.lastSync = d.getMillis();
 
-                    DateTime date = formatter.parseDateTime(day.getString("date"));
-                    sleep.date = dateFormatter.print(date.getMillis());
-                    TimeZone timeZone = metadataService.getTimeZone(apiData.updateInfo.getGuestId(), date.getMillis());
-                    long fromMidnight = TimeUtils.fromMidnight(date.getMillis(), timeZone);
-                    long toMidnight = TimeUtils.toMidnight(date.getMillis(), timeZone);
-                    sleep.start = fromMidnight;
-                    sleep.end = toMidnight;
+                        DateTime date = formatter.parseDateTime(day.getString("date"));
+                        sleep.date = dateFormatter.print(date.getMillis());
+                        TimeZone timeZone = metadataService.getTimeZone(apiData.updateInfo.getGuestId(), date.getMillis());
+                        long fromMidnight = TimeUtils.fromMidnight(date.getMillis(), timeZone);
+                        long toMidnight = TimeUtils.toMidnight(date.getMillis(), timeZone);
+                        sleep.start = fromMidnight;
+                        sleep.end = toMidnight;
 
-                    facets.add(sleep);
+                        facets.add(sleep);
+                    }
+                    else
+                        throw new JSONException("Days array is not a proper JSONObject");
                 }
-                else
-                    throw new JSONException("Days array is not a proper JSONObject");
             }
         }
         return facets;
