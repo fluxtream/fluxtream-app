@@ -39,8 +39,7 @@ public class ZeoRestController {
 	}
 	
 	@RequestMapping(value = "/submitCredentials")
-	public ModelAndView userSubscribed(@PathVariable final Long guestId, HttpServletRequest request,
-                                       HttpServletResponse response) throws Exception {
+	public String userSubscribed(HttpServletRequest request, HttpServletResponse response) throws Exception {
         String email = request.getParameter("username");
         String password = request.getParameter("password");
         email = email.trim();
@@ -53,10 +52,9 @@ public class ZeoRestController {
             required.add("password");
         if (required.size()!=0) {
             request.setAttribute("required", required);
+            return "connectors/zeo/enterCredentials";
         }
-        ModelAndView mav = new ModelAndView("connectors/zeo/success");
-        mav.addObject("guestId", guestId);
-        return mav;
+        return "connectors/zeo/success";
 	}
 
 }
