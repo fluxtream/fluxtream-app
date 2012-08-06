@@ -2,11 +2,18 @@ package com.fluxtream.mvc.controllers;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
-
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-
+import com.fluxtream.Configuration;
+import com.fluxtream.connectors.Connector;
+import com.fluxtream.domain.Guest;
+import com.fluxtream.domain.Notification.Type;
+import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.ConnectorUpdateService;
+import com.fluxtream.services.GuestService;
+import com.fluxtream.services.MetadataService;
+import com.fluxtream.services.NotificationsService;
+import com.fluxtream.utils.SecurityUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,17 +23,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
-
-import com.fluxtream.Configuration;
-import com.fluxtream.connectors.Connector;
-import com.fluxtream.domain.Guest;
-import com.fluxtream.domain.Notification.Type;
-import com.fluxtream.mvc.models.HomeModel;
-import com.fluxtream.services.ApiDataService;
-import com.fluxtream.services.GuestService;
-import com.fluxtream.services.MetadataService;
-import com.fluxtream.services.NotificationsService;
-import com.fluxtream.utils.SecurityUtils;
 
 @Controller
 public class AppController {
@@ -193,10 +189,6 @@ public class AppController {
 		for (Cookie cookie : cookies) {
 			if (cookie.getName().equalsIgnoreCase("timeZone")) {
 				timeZone = cookie.getValue();
-
-				HomeModel homeModel = beanFactory.getBean(HomeModel.class);
-				homeModel.init(timeZone);
-				request.getSession().setAttribute("homeModel", homeModel);
 			} else if (cookie.getName().equalsIgnoreCase("date")) {
 				date = cookie.getValue();
 			}

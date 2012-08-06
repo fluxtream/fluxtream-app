@@ -94,7 +94,7 @@ public class BodyTrackHelper {
         }
         catch (Exception e){
             System.out.println("BTDataStore: datastore execution failed!");
-            return null;
+            throw new RuntimeException("Datastore execution failed");
         }
     }
 
@@ -121,6 +121,7 @@ public class BodyTrackHelper {
         } catch (Exception e) {
             System.out.println("Could not persist to datastore");
             System.out.println(Utils.stackTrace(e));
+            throw new RuntimeException("Could not persist to datastore");
         }
     }
 

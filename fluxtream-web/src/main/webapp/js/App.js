@@ -305,7 +305,8 @@ define(
         App.discardNotifications = function() {
             var ids = $("#notificationIds").html();
             $.ajax({
-                       url : "/notifications/discard?ids=" + ids,
+                       url : "/api/notifications?ids=" + ids,
+                       type: "DELETE",
                        success : function() {
                            $("#notifications").alert("close");
                        }

@@ -7,6 +7,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.fluxtream.mvc.models.CalendarModel;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +25,6 @@ import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.metadata.DayMetadataFacet;
 import com.fluxtream.mvc.controllers.ControllerHelper;
 import com.fluxtream.mvc.models.ConnectorResponseModel;
-import com.fluxtream.mvc.models.HomeModel;
 import com.fluxtream.mvc.models.TimeBoundariesModel;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.ConnectorUpdateService;
@@ -54,11 +54,6 @@ public class CalendarDataHelper {
 		return tb;
 	}
 
-	boolean isToday(HttpServletRequest request) {
-		HomeModel homeModel = getHomeModel(request);
-		return homeModel.isToday();
-	}
-
 	void removeGoogleLatitude(long guestId, List<ApiKey> userKeys) {
 		for (ApiKey apiKey : userKeys) {
 			if (apiKey.getConnector().getName().equals("google_latitude")) {
@@ -66,16 +61,6 @@ public class CalendarDataHelper {
 				return;
 			}
 		}
-	}
-
-	static void setJsonCacheHeaders(HttpServletResponse response,
-			int cacheMillis) {
-		response.setContentType("application/json; charset=utf-8");
-		Calendar c = Calendar.getInstance();
-		c.add(Calendar.MILLISECOND, cacheMillis);
-		DateTimeFormatter format = DateTimeFormat
-				.forPattern("EEE, d MMM yyyy HH:mm:ss Z");
-		response.setHeader("Expires", format.print(c.getTimeInMillis()));
 	}
 
 	public List<AbstractFacet> getFacets(Connector connector,
@@ -181,9 +166,9 @@ public class CalendarDataHelper {
 		return updateResult;
 	}
 
-	HomeModel getHomeModel(HttpServletRequest request) {
-		HomeModel homeModel = (HomeModel) request.getSession().getAttribute(
-				"homeModel");
-		return homeModel;
+	CalendarModel getHomeModel(HttpServletRequest request) {
+		CalendarModel calendarModel = (CalendarModel) request.getSession().getAttribute(
+				"calendarModel");
+		return calendarModel;
 	}
 }
