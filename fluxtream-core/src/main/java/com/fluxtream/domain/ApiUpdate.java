@@ -12,7 +12,9 @@ import org.hibernate.annotations.Type;
 @Entity(name="ApiUpdates")
 @NamedQueries ( {
 	@NamedQuery(name = "apiUpdates.count.all.since",
-		query = "SELECT COUNT(updt) FROM ApiUpdates updt WHERE updt.api=? AND updt.ts>?"),
+		query = "SELECT COUNT(updt) FROM ApiUpdates updt " +
+                "WHERE updt.api=? " +
+                "AND updt.ts>?"),
 	@NamedQuery(name = "apiUpdates.count.byGuest.since",
 		query = "SELECT COUNT(updt) FROM ApiUpdates updt WHERE updt.guestId=? AND updt.api=? AND updt.ts>?"),
 	@NamedQuery(name = "apiUpdates.count.all",

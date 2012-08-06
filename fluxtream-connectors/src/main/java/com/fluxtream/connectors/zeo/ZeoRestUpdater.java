@@ -1,6 +1,5 @@
 package com.fluxtream.connectors.zeo;
 
-import java.util.TimeZone;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.Connector.UpdateStrategyType;
 import com.fluxtream.connectors.annotations.JsonFacetCollection;
@@ -12,7 +11,7 @@ import com.fluxtream.domain.ApiUpdate;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.utils.HttpUtils;
 import org.apache.log4j.Logger;
-import org.joda.time.DateTimeZone;
+import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +45,7 @@ public class ZeoRestUpdater extends AbstractUpdater {
 	@Override
 	protected void updateConnectorDataHistory(UpdateInfo updateInfo)
 			throws Exception {
-		getBulkSleepRecordsSinceDate(updateInfo);
+		getBulkSleepRecordsSinceDate(updateInfo, null);
 	}
 
 	@Override
@@ -55,12 +54,9 @@ public class ZeoRestUpdater extends AbstractUpdater {
 				.getLastSuccessfulUpdate(updateInfo.getGuestId(),
 						Connector.getConnector("zeo"));
 
-		TimeZone currentTimeZone = metadataService
-				.getCurrentTimeZone(updateInfo.getGuestId());
+        DateTime date = new DateTime(lastSuccessfulUpdate.ts);
 
-        formatter.withZone(DateTimeZone.forTimeZone(currentTimeZone)).print(lastSuccessfulUpdate.ts);
-
-		getBulkSleepRecordsSinceDate(updateInfo);
+		getBulkSleepRecordsSinceDate(updateInfo, date);
 	}
 
 	@RequestMapping(value = "/zeo/{guestId}/notify")
@@ -83,13 +79,16 @@ public class ZeoRestUpdater extends AbstractUpdater {
 				now);
 	}
 
-	private void getBulkSleepRecordsSinceDate(UpdateInfo updateInfo) throws Exception {
+	private void getBulkSleepRecordsSinceDate(UpdateInfo updateInfo, DateTime d) throws Exception {
 		String zeoApiKey = env.get("zeoApiKey");
+
+        String date = (d==null)?"":d.toString(formatter);
 
 		long then = System.currentTimeMillis();
 		String bulkUrl = "http://api.myzeo.com:8080/zeows/api/v1/json/"
 				+ "sleeperService/getBulkSleepRecordsSinceDate?key="
-				+ zeoApiKey + "&userid=" + updateInfo.getGuestId() + "&date=";
+				+ zeoApiKey + "&userid=" + updateInfo.getGuestId() + "&date=" +
+                date;
 		String bulkResult;
 		try {
 			bulkResult = HttpUtils.fetch(bulkUrl, env,

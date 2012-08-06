@@ -98,13 +98,13 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
     }
 
     private FieldHandler getFieldHandler(String fieldHandlerName) {
-        fieldHandlerName = fieldHandlerName.substring(1);
-        if (fieldHandlers.get(fieldHandlerName)==null) {
+        String HandlerName = fieldHandlerName.substring(1);
+        if (fieldHandlers.get(HandlerName)==null) {
             FieldHandler fieldHandler;
-            fieldHandler = (FieldHandler)beanFactory.getBean(fieldHandlerName);
-            fieldHandlers.put(fieldHandlerName, fieldHandler);
+            fieldHandler = (FieldHandler)beanFactory.getBean(HandlerName);
+            fieldHandlers.put(HandlerName, fieldHandler);
         }
-        return fieldHandlers.get(fieldHandlerName);
+        return fieldHandlers.get(HandlerName);
     }
 
     private List<String> getDailyDataChannelNames(String facetName) {
@@ -134,6 +134,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
         }
         return fieldHandlers;
     }
+
     private List<List<Object>> getDailyDataChannelValues(
             List<AbstractFacet> deviceFacets,
             List<String> dailyDataChannelNames) {

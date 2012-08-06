@@ -130,6 +130,7 @@ public class ConnectorStore {
 
     private boolean checkForErrors(long guestId, Connector connector){
         Collection<UpdateWorkerTask> update = connectorUpdateService.getLastFinishedUpdateTasks(guestId, connector);
+        if(update.size() < 1) return false;
         for(UpdateWorkerTask workerTask : update)
         {
             if(workerTask == null || workerTask.status!= UpdateWorkerTask.Status.DONE) return true;
