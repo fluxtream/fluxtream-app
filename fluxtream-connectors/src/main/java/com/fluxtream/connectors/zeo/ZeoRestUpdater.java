@@ -46,7 +46,6 @@ public class ZeoRestUpdater extends AbstractUpdater {
     @Autowired
     JPADaoService jpaDaoService;
 
-    private BASE64Encoder enc = new BASE64Encoder();
 
 	private static final DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd");
 
@@ -148,7 +147,9 @@ public class ZeoRestUpdater extends AbstractUpdater {
      * @return the result provided by the zeo api
      * @throws IOException If a URL is malformed, or connection to the zeo api services could not be created
      */
-    private String callURL(String url_address, String username, String password) throws IOException {
+    public static String callURL(String url_address, String username, String password) throws IOException {
+
+        BASE64Encoder enc = new BASE64Encoder();
 
         URL url = new URL(url_address);
         URLConnection connection = url.openConnection();

@@ -57,8 +57,19 @@ public class ZeoRestController {
         if (required.size()!=0) {
             request.setAttribute("required", required);
             return new ModelAndView("connectors/zeo/enterCredentials");
-
         }
+        try{
+            String zeoApiKey = env.get("zeoApiKey");
+            String baseUrl = "http://api.myzeo.com:8080/zeows/api/v1/json/sleeperService/";
+            String datesUrl = baseUrl + "getDatesWithSleepDataInRange?key=" + zeoApiKey;
+            ZeoRestUpdater.callURL(datesUrl, email, password);
+        }
+        catch (IOException e)
+        {
+            request.setAttribute("errorMessage", "The credentials provided are invalid");
+            return new ModelAndView("connectors/zeo/enterCredentials");
+        }
+
         long guestId = ControllerHelper.getGuestId();
         guestService.setApiKeyAttribute(guestId, Connector.getConnector("zeo"), "username", email);
         guestService.setApiKeyAttribute(guestId, Connector.getConnector("zeo"), "password", password);

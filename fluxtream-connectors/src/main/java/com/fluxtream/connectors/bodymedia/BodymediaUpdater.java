@@ -52,6 +52,7 @@ public class BodymediaUpdater extends AbstractUpdater {
     private final HashMap<ObjectType, Integer> maxIncrement = new HashMap<ObjectType, Integer>();
 
     private final DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyyMMdd");
+    private final DateTimeFormatter formatter2 = DateTimeFormat.forPattern("yyyy-MM-dd");
 
     public BodymediaUpdater() {
         super();
@@ -190,7 +191,11 @@ public class BodymediaUpdater extends AbstractUpdater {
         {
             startDate = facet.date;
         }
-        return formatter.parseDateTime(startDate);
+        try{
+            return formatter.parseDateTime(startDate);
+        } catch (IllegalArgumentException e){
+            return formatter2.parseDateTime(startDate);
+        }
     }
 
     public String getUserRegistrationDate(UpdateInfo updateInfo, String api_key, OAuthConsumer consumer) throws Exception {
