@@ -25,8 +25,6 @@ public interface MetadataService {
 
 	DayMetadataFacet getDayMetadata(long guestId, String date, boolean create);
 
-    void adjustTileTimes(long guestId, Object[][] data);
-
 	void setTraveling(long guestId, String date, TravelType travelType);
 
 	LocationFacet getLastLocation(long guestId, long time);

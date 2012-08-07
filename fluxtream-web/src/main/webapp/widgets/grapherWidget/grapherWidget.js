@@ -33,7 +33,7 @@ define(["core/DashboardWidget", "core/widgetComponents/GrapherComponent", "core/
                 this.grapher.plot.setStyle(this.settings.style);
             }
 
-            var tbounds = {start:this.digest.tbounds.start - 12 * 3600 * 1000, end: this.digest.tbounds.end - 12 * 3600 * 1000};
+            var tbounds = {start:this.digest.tbounds.start - 12 * 3600 * 1000, end: this.digest.tbounds.end + 12 * 3600 * 1000};
 
             if (this.grapher == null){
                 $("#grapherWidgetWidget").empty();
@@ -72,67 +72,67 @@ define(["core/DashboardWidget", "core/widgetComponents/GrapherComponent", "core/
                     }
                 });
             }
-            var tiles = GrapherWidget.getTiles(tbounds);
+            var tileURIs = GrapherWidget.getTileURIs(tbounds,channelName);
             var dataCount = 0;
             var that = this;
-            var tileFetcher = channelDatasource(App.getUID(),this.settings.deviceName,this.settings.channelName);
-            var checkForTileData = function(offset){
-                tileFetcher(tiles[offset].level,tiles[offset].offset,function(data){
-                    data = JSON.parse(data).data;
-                    for (var i = 0; i < data.length; i++){
-                        if (data[i][3] == 0)
-                            continue;
-                        var ts = data[i][0]*1000;
-                        if (ts >= tbounds.start && ts <= tbounds.end)
-                            dataCount++;
-                    }
-                    offset++;
-                    if (offset == tiles.length){//no data
-                        if (dataCount == 1){
-                            switch (channelName){
-                                case "Fitbit.steps":
-                                    $("#grapherWidgetWidget").empty();
-                                    that.grapher = null;
-                                    new AverageStepsComponent(that,$("#grapherWidgetWidget"),that.digest.cachedData["fitbit-activity_summary"],"steps");
-                                    return;
-                                case "BodyMedia.totalSteps":
-                                    $("#grapherWidgetWidget").empty();
-                                    that.grapher = null;
-                                    new AverageStepsComponent(that,$("#grapherWidgetWidget"),that.digest.cachedData["bodymedia-steps"],"steps");
-                                    return;
-                                case "Fitbit.caloriesOut":
-                                    $("#grapherWidgetWidget").empty();
-                                    that.grapher = null;
-                                    new AverageCaloriesBurnedComponent(that,$("#grapherWidgetWidget"),that.digest.cachedData["fitbit-activity_summary"],"caloriesOut");
-                                    return;
+            var checkURIForData = function(offset){
+                var uri = tileURIs[offset];
+                $.ajax(uri,{
+                    success: function(data){
+                        data = data.data;
+                        for (var i = 0; i < data.length; i++){
+                            var ts = data[i][0]*1000;
+                            if (ts >= tbounds.start && ts <= tbounds.end)
+                                dataCount++;
+                        }
+                        offset++;
+                        if (offset == tileURIs.length){//no data
+                            if (dataCount == 1){
+                                switch (channelName){
+                                    case "Fitbit.steps":
+                                        $("#grapherWidgetWidget").empty();
+                                        that.grapher = null;
+                                        new AverageStepsComponent(that,$("#grapherWidgetWidget"),that.digest.cachedData["fitbit-activity_summary"],"steps");
+                                        return;
+                                    case "BodyMedia.totalSteps":
+                                        $("#grapherWidgetWidget").empty();
+                                        that.grapher = null;
+                                        new AverageStepsComponent(that,$("#grapherWidgetWidget"),that.digest.cachedData["bodymedia-steps"],"steps");
+                                        return;
+                                    case "Fitbit.caloriesOut":
+                                        $("#grapherWidgetWidget").empty();
+                                        that.grapher = null;
+                                        new AverageCaloriesBurnedComponent(that,$("#grapherWidgetWidget"),that.digest.cachedData["fitbit-activity_summary"],"caloriesOut");
+                                        return;
+                                }
+                            }
+                            else if (dataCount == 0){
+                                $("#grapherWidgetWidget").empty();
+                                that.grapher = null;
+                                App.loadMustacheTemplate("/widgets/grapherWidget/grapherWidgetTemplates.html","noData",function(template){
+                                    $("#grapherWidgetWidget").append(template.render({}));
+                                })
                             }
                         }
-                        else if (dataCount == 0){
-                            $("#grapherWidgetWidget").empty();
-                            that.grapher = null;
-                            App.loadMustacheTemplate("/widgets/grapherWidget/grapherWidgetTemplates.html","noData",function(template){
-                                $("#grapherWidgetWidget").append(template.render({}));
-                            })
+                        else{
+                            checkURIForData(offset);
                         }
-                    }
-                    else{
-                        checkForTileData(offset);
                     }
                 });
             }
-            checkForTileData(0);
+            checkURIForData(0);
         }
 
-        GrapherWidget.getTiles = function(tbounds){
+        GrapherWidget.getTileURIs = function(tbounds,channelName){
             var level = Math.floor(Math.log((tbounds.end - tbounds.start) / 1000 / 512)/Math.LN2);
             var tileWidth = Math.pow(2,9+level);
             var firstTile = Math.floor(tbounds.start/1000/tileWidth);
             var lastTile = Math.floor(tbounds.end/1000/tileWidth);
-            var tiles = [];
+            var tileURIs = [];
             for (var i = firstTile; i <= lastTile; i++){
-                tiles[tiles.length] = {level:level,offset:i};
+                tileURIs[tileURIs.length] = "/api/bodytrack/tiles/" + App.getUID() + "/" + channelName + "/" + level + "." + i + ".json";
             }
-            return tiles;
+            return tileURIs;
         }
 
         GrapherWidget.validateSettings = function(){

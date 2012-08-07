@@ -13,7 +13,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import com.fluxtream.Configuration;
 import com.fluxtream.domain.GrapherView;
-import com.fluxtream.services.MetadataService;
 import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.Utils;
 import com.google.gson.Gson;
@@ -39,9 +38,6 @@ public class BodyTrackHelper {
 
     @Autowired
     Configuration env;
-
-    @Autowired
-    MetadataService metadataService;
 
     Gson gson = new Gson();
 
@@ -140,9 +136,6 @@ public class BodyTrackHelper {
             if (tileResponse.data == null){
                 tileResponse = GetTileResponse.getEmptyTile(level,offset);
             }//TODO:several fields are missing still and should be implemented
-
-
-            metadataService.adjustTileTimes(uid,tileResponse.data);
 
             return gson.toJson(tileResponse);
         }
