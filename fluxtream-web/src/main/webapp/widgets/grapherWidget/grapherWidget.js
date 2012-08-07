@@ -74,6 +74,7 @@ define(["core/DashboardWidget", "core/widgetComponents/GrapherComponent", "core/
             }
             var tileURIs = GrapherWidget.getTileURIs(tbounds,channelName);
             var dataCount = 0;
+            var that = this;
             var checkURIForData = function(offset){
                 var uri = tileURIs[offset];
                 $.ajax(uri,{
@@ -90,24 +91,24 @@ define(["core/DashboardWidget", "core/widgetComponents/GrapherComponent", "core/
                                 switch (channelName){
                                     case "Fitbit.steps":
                                         $("#grapherWidgetWidget").empty();
-                                        this.grapher = null;
-                                        new AverageStepsComponent(this,$("#grapherWidgetWidget"),this.digest.cachedData["fitbit-activity_summary"],"steps");
+                                        that.grapher = null;
+                                        new AverageStepsComponent(that,$("#grapherWidgetWidget"),that.digest.cachedData["fitbit-activity_summary"],"steps");
                                         return;
                                     case "BodyMedia.totalSteps":
                                         $("#grapherWidgetWidget").empty();
-                                        this.grapher = null;
-                                        new AverageStepsComponent(this,$("#grapherWidgetWidget"),this.digest.cachedData["bodymedia-steps"],"steps");
+                                        that.grapher = null;
+                                        new AverageStepsComponent(that,$("#grapherWidgetWidget"),that.digest.cachedData["bodymedia-steps"],"steps");
                                         return;
                                     case "Fitbit.caloriesOut":
                                         $("#grapherWidgetWidget").empty();
-                                        this.grapher = null;
-                                        new AverageCaloriesBurnedComponent(this,$("#grapherWidgetWidget"),this.digest.cachedData["fitbit-activity_summary"],"caloriesOut");
+                                        that.grapher = null;
+                                        new AverageCaloriesBurnedComponent(that,$("#grapherWidgetWidget"),that.digest.cachedData["fitbit-activity_summary"],"caloriesOut");
                                         return;
                                 }
                             }
                             else if (dataCount == 0){
                                 $("#grapherWidgetWidget").empty();
-                                this.grapher = null;
+                                that.grapher = null;
                                 App.loadMustacheTemplate("/widgets/grapherWidget/grapherWidgetTemplates.html","noData",function(template){
                                     $("#grapherWidgetWidget").append(template.render({}));
                                 })
