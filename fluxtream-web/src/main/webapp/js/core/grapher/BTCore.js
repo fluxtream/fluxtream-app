@@ -510,6 +510,11 @@ define([], function() {
                        success : function(data, textStatus, jqXHR) {
                            try {
                                if (success_callback) {
+                               for (var i = 0; i < data.data.length; i++){
+                                   var ts = data.data[i][0]*1000;
+                                   var date = new Date(ts);
+                                   data.data[i][0] += date.getTimezoneOffset() * 60;
+                               }
                                    // we must always send the JSON as a String...
                                    success_callback(typeof data === 'string' ? data : JSON.stringify(data));
                                }

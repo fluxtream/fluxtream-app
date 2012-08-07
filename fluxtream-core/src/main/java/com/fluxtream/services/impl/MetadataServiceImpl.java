@@ -121,7 +121,23 @@ public class MetadataServiceImpl implements MetadataService {
 		}
 	}
 
-	@Transactional(readOnly = false)
+    @Override
+    public void adjustTileTimes(final long guestId, Object[][] data) {
+        String lastDate = null;
+        long lastTimezoneOffset = 0;
+        for (int i = 0; i < data.length; i++){
+            long timestamp = (Integer) data[i][0] * 1000l;
+            String date = formatter.print(timestamp);
+            if (!date.equals(lastDate)){
+                lastDate = date;
+                DayMetadataFacet dayMetadata = getDayMetadata(guestId,date,true);
+                lastTimezoneOffset = TimeZone.getTimeZone(dayMetadata.timeZone).getOffset(timestamp);
+            }
+            data[i][0] = (timestamp + lastTimezoneOffset) / 1000.0;
+        }
+    }
+
+    @Transactional(readOnly = false)
 	public DayMetadataFacet copyNextDailyContextualInfo(long guestId,
 			String date) {
 		DayMetadataFacet next = getNextExistingDayMetadata(guestId, date);
