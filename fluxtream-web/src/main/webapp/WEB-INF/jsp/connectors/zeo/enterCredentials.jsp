@@ -17,7 +17,7 @@
 		<tr><td colspan="2"><span class="formError"><%=errorMessage%></span></td></tr>
 	<% } %>
 	<tr>
-	<td>Username:</td><td><input autocorrect="off" autocapitalize="off" class="focushere" id="zeo-username" value="<%=username%>"></input></td>
+	<td>Email:</td><td><input autocorrect="off" autocapitalize="off" class="focushere" id="zeo-username" value="<%=username%>"></input></td>
 	<% if (required.contains("username")) { %>
 	<td>
 		<span class="formError">* username is required</span>

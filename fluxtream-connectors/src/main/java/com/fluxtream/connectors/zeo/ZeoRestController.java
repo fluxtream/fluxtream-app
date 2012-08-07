@@ -6,13 +6,14 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.fluxtream.Configuration;
+import com.fluxtream.connectors.Connector;
+import com.fluxtream.mvc.controllers.ControllerHelper;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.GuestService;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -39,22 +40,31 @@ public class ZeoRestController {
 	}
 	
 	@RequestMapping(value = "/submitCredentials")
-	public String userSubscribed(HttpServletRequest request, HttpServletResponse response) throws Exception {
+	public ModelAndView userSubscribed(HttpServletRequest request, HttpServletResponse response) throws Exception {
         String email = request.getParameter("username");
         String password = request.getParameter("password");
         email = email.trim();
         password = password.trim();
         request.setAttribute("username", email);
         List<String> required = new ArrayList<String>();
-        if (email.equals(""))
+        if (email.equals("")) {
             required.add("username");
-        if (password.equals(""))
+        }
+        if (password.equals("")) {
             required.add("password");
+        }
         if (required.size()!=0) {
             request.setAttribute("required", required);
-            return "connectors/zeo/enterCredentials";
+            return new ModelAndView("connectors/zeo/enterCredentials");
+
         }
-        return "connectors/zeo/success";
+        long guestId = ControllerHelper.getGuestId();
+        guestService.setApiKeyAttribute(guestId, Connector.getConnector("zeo"), "username", email);
+        guestService.setApiKeyAttribute(guestId, Connector.getConnector("zeo"), "password", password);
+
+        ModelAndView mav = new ModelAndView("connectors/zeo/success");
+        mav.addObject("guestId", guestId);
+        return mav;
 	}
 
 }
