@@ -30,17 +30,9 @@ public class ZeoSleepStatsFacetExtractor extends AbstractFacetExtractor {
 
 		JSONObject response = JSONObject.fromObject(apiData.json).getJSONObject("response");
 
-		if (response.has("sleepRecords")) {
-			JSONObject sleepRecordsWrapper = response .optJSONObject("sleepRecords");
-            //In the case that there is no data, sleepRecords will be null even though it exists in the JSON
-            if(sleepRecordsWrapper != null)
-            {
-                JSONArray sleepStatsArray = sleepRecordsWrapper.getJSONArray("sleepRecord");
-                for (Object json : sleepStatsArray)
-                {
-                    extractStatsData(facets, apiData, (JSONObject) json);
-                }
-            }
+		if (response.has("sleepRecord")) {
+			JSONObject sleepRecords = response.optJSONObject("sleepRecord");
+            extractStatsData(facets, apiData, sleepRecords);
 		} else if (response.has("sleepStats")) {
 			extractStatsData(facets, apiData, response.getJSONObject("sleepStats"));
 		}

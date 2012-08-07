@@ -15,6 +15,8 @@ import com.fluxtream.connectors.updaters.UpdateInfo.UpdateType;
 import com.fluxtream.domain.ApiUpdate;
 import com.fluxtream.services.JPADaoService;
 import com.fluxtream.services.MetadataService;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -91,39 +93,64 @@ public class ZeoRestUpdater extends AbstractUpdater {
 
 	private void getBulkSleepRecordsSinceDate(UpdateInfo updateInfo, DateTime d) throws Exception {
 		String zeoApiKey = env.get("zeoApiKey");
+		long then = System.currentTimeMillis();
+		String baseUrl = "http://api.myzeo.com:8080/zeows/api/v1/json/sleeperService/";
 
         String date = (d==null)?"":("&dateFrom=" + d.toString(formatter));
+        String datesUrl = baseUrl + "getDatesWithSleepDataInRange?key=" + zeoApiKey + date;
 
-		long then = System.currentTimeMillis();
-		String bulkUrl = "http://api.myzeo.com:8080/zeows/api/v1/json/"
-				+ "sleeperService/getDatesWithSleepDataInRange?key="
-				+ zeoApiKey + date;
-		String bulkResult;
+        String username = guestService.getApiKeyAttribute(updateInfo.getGuestId(), connector(), "username");
+        String password = guestService.getApiKeyAttribute(updateInfo.getGuestId(), connector(), "password");
+
+        String days;
 		try {
-			bulkResult = callURL(updateInfo.getGuestId(), bulkUrl);
-		} catch (IOException e) {
-			countFailedApiCall(updateInfo.getGuestId(), -1, then, bulkUrl);
-			throw e;
-		}
-		countSuccessfulApiCall(updateInfo.getGuestId(), -1, then, bulkUrl);
+			days = callURL(datesUrl, username, password);
+            countSuccessfulApiCall(updateInfo.getGuestId(), -1, then, datesUrl);
+        } catch (IOException e) {
+            countFailedApiCall(updateInfo.getGuestId(), -1, then, datesUrl);
+            throw e;
+        }
+        JSONArray dates = JSONObject.fromObject(days).getJSONObject("response")
+                                                    .getJSONObject("dateList")
+                                                    .getJSONArray("date");
+        if(dates != null)
+        {
+            String statsUrl = baseUrl + "getSleepRecordForDate?key=" + zeoApiKey + "&date=";
+            for(Object o : dates)
+            {
+                JSONObject json = (JSONObject) o;
+                int year = json.getInt("year");
+                int month = json.getInt("month");
+                int day = json.getInt("day");
+                String finalStatsUrl = statsUrl + year + "-" + month + "-" + day;
+                try{
+                    String bulkResult = callURL(finalStatsUrl, username, password);
+                    apiDataService.cacheApiDataJSON(updateInfo, bulkResult, -1, -1);
+                }
+                catch (IOException e)
+                {
+                    countFailedApiCall(updateInfo.getGuestId(), -1, then, datesUrl);
+                    throw e;
+                }
+            }
+        }
 
-		apiDataService.cacheApiDataJSON(updateInfo, bulkResult, -1, -1);
 	}
 
     /**
      * Calls the url after adding authentication information that the user provided when the connector was added
-     * @param guestId The user of this connector
+     * Based on code samples provided by zeo.
      * @param url_address The url to call
+     * @param username the guest's Zeo username
+     * @param password the guest's Zeo password
      * @return the result provided by the zeo api
      * @throws IOException If a URL is malformed, or connection to the zeo api services could not be created
      */
-    private String callURL(long guestId, String url_address) throws IOException {
+    private String callURL(String url_address, String username, String password) throws IOException {
 
         URL url = new URL(url_address);
         URLConnection connection = url.openConnection();
 
-        String username = guestService.getApiKeyAttribute(guestId, connector(), "username");
-        String password = guestService.getApiKeyAttribute(guestId, connector(), "password");
         String usernameAndPassword = username + ":" + password;
         String encodedAuth = enc.encode(usernameAndPassword.getBytes());
 

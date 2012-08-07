@@ -38,7 +38,8 @@ public class ZeoRestController {
         ModelAndView mav = new ModelAndView("connectors/zeo/enterCredentials");
         return mav;
 	}
-	
+
+    //TODO check to see if username and password are  correct.
 	@RequestMapping(value = "/submitCredentials")
 	public ModelAndView userSubscribed(HttpServletRequest request, HttpServletResponse response) throws Exception {
         String email = request.getParameter("username");
