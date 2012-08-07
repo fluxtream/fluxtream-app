@@ -110,27 +110,29 @@ public class ZeoRestUpdater extends AbstractUpdater {
             countFailedApiCall(updateInfo.getGuestId(), -1, then, datesUrl);
             throw e;
         }
-        JSONArray dates = JSONObject.fromObject(days).getJSONObject("response")
-                                                    .getJSONObject("dateList")
-                                                    .getJSONArray("date");
-        if(dates != null)
+        JSONObject dateList = JSONObject.fromObject(days).getJSONObject("response").optJSONObject("dateList");
+        if(dateList != null)
         {
-            String statsUrl = baseUrl + "getSleepRecordForDate?key=" + zeoApiKey + "&date=";
-            for(Object o : dates)
+            JSONArray dates = dateList.optJSONArray("date");
+            if(dates != null)
             {
-                JSONObject json = (JSONObject) o;
-                int year = json.getInt("year");
-                int month = json.getInt("month");
-                int day = json.getInt("day");
-                String finalStatsUrl = statsUrl + year + "-" + month + "-" + day;
-                try{
-                    String bulkResult = callURL(finalStatsUrl, username, password);
-                    apiDataService.cacheApiDataJSON(updateInfo, bulkResult, -1, -1);
-                }
-                catch (IOException e)
+                String statsUrl = baseUrl + "getSleepRecordForDate?key=" + zeoApiKey + "&date=";
+                for(Object o : dates)
                 {
-                    countFailedApiCall(updateInfo.getGuestId(), -1, then, datesUrl);
-                    throw e;
+                    JSONObject json = (JSONObject) o;
+                    int year = json.getInt("year");
+                    int month = json.getInt("month");
+                    int day = json.getInt("day");
+                    String finalStatsUrl = statsUrl + year + "-" + month + "-" + day;
+                    try{
+                        String bulkResult = callURL(finalStatsUrl, username, password);
+                        apiDataService.cacheApiDataJSON(updateInfo, bulkResult, -1, -1);
+                    }
+                    catch (IOException e)
+                    {
+                        countFailedApiCall(updateInfo.getGuestId(), -1, then, datesUrl);
+                        throw e;
+                    }
                 }
             }
         }
