@@ -1,0 +1,10 @@
+{
+    "WidgetDescription" : {"en" : "Average Blood Pressure per day, week or year"},
+    "WidgetIcon" : "averageBloodPressure.png",
+    "WidgetName" : "averageBloodPressure",
+    "WidgetTitle" : {"en" : "Average Blood Pressure"},
+    "HasSettings" : false,
+    "SupportedLanguages" : "en",
+    "VendorIdentifier" : "Fluxtream.com",
+    "RequiredConnectors":"withings"
+}

@@ -1,4 +1,6 @@
-define(["core/DashboardWidget", "core/GrapherComponent", "core/grapher/BTCore"], function(DashboardWidget,GrapherComponent,BodyTrack) {
+define(["core/DashboardWidget", "core/widgetComponents/GrapherComponent", "core/grapher/BTCore",
+        "core/widgetComponents/averageSteps"], function(DashboardWidget,GrapherComponent,BodyTrack,
+    AverageStepsComponent) {
 
     var GrapherWidget = new DashboardWidget();
 
@@ -20,7 +22,21 @@ define(["core/DashboardWidget", "core/GrapherComponent", "core/grapher/BTCore"],
             this.grapher = null;
         }
 
-        var channelName = this.settings.deviceName + "." + this.settings.channelName
+
+        var channelName = this.settings.deviceName + "." + this.settings.channelName;
+
+        if (this.getTimeUnit() == "DAY"){
+            switch (channelName){
+                case "Fitbit.steps":
+                    $("#grapherWidgetWidget").empty();
+                    new AverageStepsComponent(this,$("#grapherWidgetWidget"),this.digest.cachedData["fitbit-activity_summary"],"steps");
+                    return;
+                case "BodyMedia.totalSteps":
+                    $("#grapherWidgetWidget").empty();
+                    new AverageStepsComponent(this,$("#grapherWidgetWidget"),this.digest.cachedData["bodymedia-steps"],"steps");
+                    return;
+            }
+        }
 
         if (this.grapher != null && this.grapher.channelName != channelName){
             $("#grapherWidgetWidget").empty();
@@ -31,6 +47,7 @@ define(["core/DashboardWidget", "core/GrapherComponent", "core/grapher/BTCore"],
         }
 
         if (this.grapher == null){
+            $("#grapherWidgetWidget").empty();
             var tbounds = {start:this.digest.tbounds.start - 12 * 3600 * 1000, end: this.digest.tbounds.end - 12 * 3600 * 1000};
             this.grapher = new GrapherComponent($("#grapherWidgetWidget"),channelName,tbounds,{
                 yAxisPosition:"right",
@@ -401,7 +418,7 @@ define(["core/DashboardWidget", "core/GrapherComponent", "core/grapher/BTCore"],
 
     GrapherWidget.getStyleFromConfigurationControls = function(){
 
-        var newStyle = this.grapher.plot.getStyle();
+        var newStyle = {};
         var channelElementId = "grapherWidgetStyleConfig";
 
         newStyle['styles'] = [];                // completely overwrite the existing styles array

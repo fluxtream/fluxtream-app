@@ -1,4 +1,4 @@
-define(["core/DashboardWidget"], function(DashboardWidget) {
+define(["core/DashboardWidget","core/widgetComponents/averageWeight"], function(DashboardWidget,AverageWeightComponent) {
 
     var AverageWeight = new DashboardWidget();
 
@@ -12,26 +12,15 @@ define(["core/DashboardWidget"], function(DashboardWidget) {
     AverageWeight.postLoad = function(template) {
         var html = Hogan.compile(template);
         $("#averageWeight-widget .flx-body").empty();
-        var weight = 0;
+        $("#averageWeight-widget .flx-body").append(html.render({}))
+        var weightArray = null;
+        var weightParam = ""
         if (typeof(this.digest.cachedData["withings-weight"])!="undefined" &&
             typeof(this.digest.cachedData["withings-weight"][0])!="undefined") {
-            var averageWeight = 0;
-            var measures = 0;
-            for (var i=0; i<this.digest.cachedData["withings-weight"].length; i++) {
-                if (this.digest.cachedData["withings-weight"][i].weight>0) {
-                    measures++;
-                    averageWeight+=this.digest.cachedData["withings-weight"][i].weight;
-                }
-            }
-            weight = Math.round((averageWeight/measures)*100)/100;
+            weightArray = this.digest.cachedData["withings-weight"];
+            weightParam = "weight"
         }
-        var unit = this.digest.settings.weightMeasureUnit;
-        if (unit==="SI")
-            unit = "kg";
-        else unit = unit.toLowerCase();
-        $("#averageWeight-widget .flx-body").append(
-            html.render({"manifest" : this.manifest, "weight" : weight>0?weight:null, "unit" : unit, "noMeasure" : weight===0})
-        );
+        new AverageWeightComponent(this,$("#averageWeightWidget"),weightArray,weightParam);
     }
 
     return AverageWeight;
