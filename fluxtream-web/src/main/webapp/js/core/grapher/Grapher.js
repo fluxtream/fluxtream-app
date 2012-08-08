@@ -389,7 +389,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
             $("#" + grapher.grapherId + "_timeline_addChannelsArea ul li ._timeline_sources_channel").click(function() {
                 var c = grapher.sourcesMap[this.id];
                 grapher.addChannel(c, null);
-                $("#" + grapher.grapherId + "_timeline_channelsWrapper").animate({scrollTop:$("#" + grapher.grapherId + "_timeline_channelsWrapper").prop("scrollHeight")}, 500);
+                //$("#" + grapher.grapherId + "_timeline_channelsWrapper").animate({scrollTop:0}, 500);
             });
 
             // Add channels pane reset button
@@ -732,7 +732,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
 
             var html = template.render(templateValues);
             if (target == null || target == undefined || target == "") {
-                $("#" + grapher.grapherId + "_timeline_channels").append(html);
+                $("#" + grapher.grapherId + "_timeline_channels").prepend(html);
             }
             else {
                 $(target).replaceWith(html);
