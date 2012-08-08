@@ -124,10 +124,16 @@ public class ConnectorStore {
     }
 
     private boolean checkIfSyncInProgress(long guestId, Connector connector){
-        final List<UpdateWorkerTask> scheduledUpdates = connectorUpdateService.getUpdatingUpdateTasks(guestId, connector);
+        final Collection<UpdateWorkerTask> scheduledUpdates = connectorUpdateService.getUpdatingUpdateTasks(guestId, connector);
         return (scheduledUpdates.size()!=0);
     }
 
+    /**
+     * Returns whether there was an error in the last update of the connector
+     * @param guestId The id of the guest whose connector is being checked
+     * @param connector the connector being checked
+     * @return true if there was and error false otherwise
+     */
     private boolean checkForErrors(long guestId, Connector connector){
         Collection<UpdateWorkerTask> update = connectorUpdateService.getLastFinishedUpdateTasks(guestId, connector);
         if(update.size() < 1) return false;

@@ -327,8 +327,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
     public List<UpdateWorkerTask> getScheduledOrInProgressUpdateTasks(long guestId, Connector connector) {
 		List<UpdateWorkerTask> updateWorkerTask = JPAUtils.find(em,
 				UpdateWorkerTask.class, "updateWorkerTasks.isScheduledOrInProgress",
-				Status.SCHEDULED, Status.IN_PROGRESS, guestId,
-				connector.getName());
+				guestId, connector.getName());
         for (UpdateWorkerTask workerTask : updateWorkerTask) {
             if (hasStalled(workerTask)) {
                 workerTask.status = Status.STALLED;
@@ -339,18 +338,33 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 	}
 
     @Override
-    public List<UpdateWorkerTask> getUpdatingUpdateTasks(final long guestId, final Connector connector) {
-        List<UpdateWorkerTask> updateWorkerTask = JPAUtils.find(em,
+    public Collection<UpdateWorkerTask> getUpdatingUpdateTasks(final long guestId, final Connector connector) {
+        List<UpdateWorkerTask> tasks = JPAUtils.find(em,
                 UpdateWorkerTask.class, "updateWorkerTasks.isInProgressOrScheduledBefore",
                 System.currentTimeMillis(), guestId,
                 connector.getName());
-        for (UpdateWorkerTask workerTask : updateWorkerTask) {
-            if (hasStalled(workerTask)) {
-                workerTask.status = Status.STALLED;
-                em.merge(workerTask);
+        HashMap<Integer, UpdateWorkerTask> seen = new HashMap<Integer, UpdateWorkerTask>();
+        for(UpdateWorkerTask task : tasks)
+        {
+            if(hasStalled(task))
+            {
+                task.status = Status.STALLED;
+                em.merge(task);
+            }
+            else
+            {
+                if(seen.containsKey(task.objectTypes))
+                {
+                    if(seen.get(task.objectTypes).timeScheduled < task.timeScheduled)
+                        seen.put(task.objectTypes, task);
+                }
+                else
+                {
+                    seen.put(task.objectTypes, task);
+                }
             }
         }
-        return updateWorkerTask;
+        return seen.values();
     }
 
     private boolean hasStalled(UpdateWorkerTask updateWorkerTask) {
@@ -398,10 +412,11 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 
     @Override
     public Collection<UpdateWorkerTask> getLastFinishedUpdateTasks(final long guestId, final Connector connector) {
-        List<UpdateWorkerTask> tasks = JPAUtils.find(em, UpdateWorkerTask.class, "updateWorkerTasks.getLastFinishedTaskByObjectType",
-                                        System.currentTimeMillis(),
-                                        guestId,
-                                        connector.getName());
+        List<UpdateWorkerTask> tasks = JPAUtils.find(em, UpdateWorkerTask.class,
+                                                     "updateWorkerTasks.getLastFinishedTask",
+                                                     System.currentTimeMillis(),
+                                                     guestId,
+                                                     connector.getName());
         HashMap<Integer, UpdateWorkerTask> seen = new HashMap<Integer, UpdateWorkerTask>();
         for(UpdateWorkerTask task : tasks)
         {
