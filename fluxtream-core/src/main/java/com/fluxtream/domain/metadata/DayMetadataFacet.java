@@ -33,7 +33,9 @@ import com.fluxtream.domain.AbstractFacet;
 	@NamedQuery( name="context.day.next",
 		query="SELECT context FROM ContextualInfo context WHERE context.guestId=? and context.start>? ORDER BY context.start ASC"),
 	@NamedQuery( name="context.byDate",
-		query="SELECT context FROM ContextualInfo context WHERE context.guestId=? and context.date=?")
+		query="SELECT context FROM ContextualInfo context WHERE context.guestId=? and context.date=?"),
+    @NamedQuery( name="context.all",
+        query="SELECT context FROM ContextualInfo context WHERE context.guestId=? ORDER BY context.start ASC")
 })
 @Indexed
 public class DayMetadataFacet extends AbstractFacet {
