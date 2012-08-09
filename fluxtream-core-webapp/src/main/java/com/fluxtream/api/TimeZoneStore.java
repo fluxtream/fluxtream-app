@@ -36,12 +36,14 @@ public class TimeZoneStore {
         List<DayMetadataFacet> metaData = metadataService.getAllDayMetadata(ControllerHelper.getGuestId());
         for (DayMetadataFacet dayMetadata  : metaData){
             TimeZoneSegmentModel curTimeZone;
-            if (timeZoneMapping.timeZones.size() == 0 || !timeZoneMapping.timeZones.get(timeZoneMapping.timeZones.size() - 1).timeZone.equals(dayMetadata.timeZone)){
+            if (timeZoneMapping.timeZones.size() == 0 || !timeZoneMapping.timeZones.get(timeZoneMapping.timeZones.size() - 1).name.equals(dayMetadata.timeZone)){
                 curTimeZone = new TimeZoneSegmentModel();
-                curTimeZone.timeZone = dayMetadata.timeZone;
+                curTimeZone.name = dayMetadata.timeZone;
                 curTimeZone.start = dayMetadata.start;
-                curTimeZone.tz = TimeZone.getTimeZone(curTimeZone.timeZone);
+                curTimeZone.tz = TimeZone.getTimeZone(curTimeZone.name);
                 curTimeZone.start +=  curTimeZone.tz.getOffset(curTimeZone.start);
+                curTimeZone.offset = curTimeZone.tz.getRawOffset();
+                curTimeZone.usesDST = curTimeZone.tz.useDaylightTime();
                 timeZoneMapping.timeZones.add(curTimeZone);
             }
             else{

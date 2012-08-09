@@ -3,7 +3,9 @@ package com.fluxtream.mvc.models;
 import java.util.TimeZone;
 
 public class TimeZoneSegmentModel {
-    public String timeZone;
+    public String name;
+    public int offset;
+    public boolean usesDST;
     public transient TimeZone tz;
     public long start;
     public long end;
