@@ -80,7 +80,7 @@ public class BodymediaBurnFacetExtractor extends AbstractFacetExtractor
         /* burnJson is a JSONArray that contains a seperate JSONArray and calorie counts for each day
          */
         JSONObject bodymediaResponse = JSONObject.fromObject(apiData.json);
-        if(bodymediaResponse.has("days"))
+        if(bodymediaResponse.has("days") && bodymediaResponse.has("lastSync"))
         {
             DateTime d = form.parseDateTime(bodymediaResponse.getJSONObject("lastSync").getString("dateTime"));
             JSONArray daysArray = bodymediaResponse.getJSONArray("days");

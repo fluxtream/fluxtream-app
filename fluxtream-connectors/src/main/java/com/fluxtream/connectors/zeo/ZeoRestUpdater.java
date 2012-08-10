@@ -1,6 +1,10 @@
 package com.fluxtream.connectors.zeo;
 
-import java.util.TimeZone;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.Connector.UpdateStrategyType;
 import com.fluxtream.connectors.annotations.JsonFacetCollection;
@@ -9,10 +13,12 @@ import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.connectors.updaters.UpdateInfo.UpdateType;
 import com.fluxtream.domain.ApiUpdate;
+import com.fluxtream.services.JPADaoService;
 import com.fluxtream.services.MetadataService;
-import com.fluxtream.utils.HttpUtils;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import org.apache.log4j.Logger;
-import org.joda.time.DateTimeZone;
+import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +27,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import sun.misc.BASE64Encoder;
 
 @Component
 @Controller
@@ -36,8 +43,11 @@ public class ZeoRestUpdater extends AbstractUpdater {
     @Autowired
 	MetadataService metadataService;
 
-	private static final DateTimeFormatter formatter = DateTimeFormat
-			.forPattern("yyyy-MM-dd");
+    @Autowired
+    JPADaoService jpaDaoService;
+
+
+	private static final DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd");
 
 	public ZeoRestUpdater() {
 		super();
@@ -46,23 +56,20 @@ public class ZeoRestUpdater extends AbstractUpdater {
 	@Override
 	protected void updateConnectorDataHistory(UpdateInfo updateInfo)
 			throws Exception {
-		getBulkSleepRecordsSinceDate(updateInfo);
+		getBulkSleepRecordsSinceDate(updateInfo, null);
 	}
 
 	@Override
 	protected void updateConnectorData(UpdateInfo updateInfo) throws Exception {
-		ApiUpdate lastSuccessfulUpdate = connectorUpdateService
-				.getLastSuccessfulUpdate(updateInfo.getGuestId(),
-						Connector.getConnector("zeo"));
+		ZeoSleepStatsFacet lastFacet = jpaDaoService.findOne("zeo.sleep.getNewest",
+                                                        ZeoSleepStatsFacet.class, updateInfo.getGuestId());
 
-		TimeZone currentTimeZone = metadataService
-				.getCurrentTimeZone(updateInfo.getGuestId());
+        DateTime date = new DateTime(lastFacet.end);
 
-        formatter.withZone(DateTimeZone.forTimeZone(currentTimeZone)).print(lastSuccessfulUpdate.ts);
-
-		getBulkSleepRecordsSinceDate(updateInfo);
+		getBulkSleepRecordsSinceDate(updateInfo, date);
 	}
 
+    @Deprecated
 	@RequestMapping(value = "/zeo/{guestId}/notify")
 	public void notifyMeasurement(@PathVariable final Long guestId) {
 
@@ -83,26 +90,88 @@ public class ZeoRestUpdater extends AbstractUpdater {
 				now);
 	}
 
-	private void getBulkSleepRecordsSinceDate(UpdateInfo updateInfo) throws Exception {
+	private void getBulkSleepRecordsSinceDate(UpdateInfo updateInfo, DateTime d) throws Exception {
 		String zeoApiKey = env.get("zeoApiKey");
-
 		long then = System.currentTimeMillis();
-		String bulkUrl = "http://api.myzeo.com:8080/zeows/api/v1/json/"
-				+ "sleeperService/getBulkSleepRecordsSinceDate?key="
-				+ zeoApiKey + "&userid=" + updateInfo.getGuestId() + "&date=";
-		String bulkResult;
-		try {
-			bulkResult = HttpUtils.fetch(bulkUrl, env,
-					env.get("zeoDeveloperUsername"),
-					env.get("zeoDeveloperPassword"));
-		} catch (Throwable t) {
-			t.printStackTrace();
-			countFailedApiCall(updateInfo.getGuestId(), -1, then, bulkUrl);
-			throw new Exception(t);
-		}
-		countSuccessfulApiCall(updateInfo.getGuestId(), -1, then, bulkUrl);
+		String baseUrl = "http://api.myzeo.com:8080/zeows/api/v1/json/sleeperService/";
 
-		apiDataService.cacheApiDataJSON(updateInfo, bulkResult, -1, -1);
+        String date = (d==null)?"":("&dateFrom=" + d.toString(formatter));
+        String datesUrl = baseUrl + "getDatesWithSleepDataInRange?key=" + zeoApiKey + date;
+
+        String username = guestService.getApiKeyAttribute(updateInfo.getGuestId(), connector(), "username");
+        String password = guestService.getApiKeyAttribute(updateInfo.getGuestId(), connector(), "password");
+
+        String days;
+		try {
+			days = callURL(datesUrl, username, password);
+            countSuccessfulApiCall(updateInfo.getGuestId(), -1, then, datesUrl);
+        } catch (IOException e) {
+            countFailedApiCall(updateInfo.getGuestId(), -1, then, datesUrl);
+            throw e;
+        }
+        JSONObject dateList = JSONObject.fromObject(days).getJSONObject("response").optJSONObject("dateList");
+        if(dateList != null)
+        {
+            JSONArray dates = dateList.optJSONArray("date");
+            if(dates != null)
+            {
+                String statsUrl = baseUrl + "getSleepRecordForDate?key=" + zeoApiKey + "&date=";
+                for(Object o : dates)
+                {
+                    JSONObject json = (JSONObject) o;
+                    int year = json.getInt("year");
+                    int month = json.getInt("month");
+                    int day = json.getInt("day");
+                    String finalStatsUrl = statsUrl + year + "-" + month + "-" + day;
+                    try{
+                        String bulkResult = callURL(finalStatsUrl, username, password);
+                        apiDataService.cacheApiDataJSON(updateInfo, bulkResult, -1, -1);
+                    }
+                    catch (IOException e)
+                    {
+                        countFailedApiCall(updateInfo.getGuestId(), -1, then, datesUrl);
+                        throw e;
+                    }
+                }
+            }
+        }
+
 	}
+
+    /**
+     * Calls the url after adding authentication information that the user provided when the connector was added
+     * Based on code samples provided by zeo.
+     * @param url_address The url to call
+     * @param username the guest's Zeo username
+     * @param password the guest's Zeo password
+     * @return the result provided by the zeo api
+     * @throws IOException If a URL is malformed, or connection to the zeo api services could not be created
+     */
+    public static String callURL(String url_address, String username, String password) throws IOException {
+
+        BASE64Encoder enc = new BASE64Encoder();
+
+        URL url = new URL(url_address);
+        URLConnection connection = url.openConnection();
+
+        String usernameAndPassword = username + ":" + password;
+        String encodedAuth = enc.encode(usernameAndPassword.getBytes());
+
+        connection.setRequestProperty("Authorization", "Basic " + encodedAuth);
+        connection.addRequestProperty("Referer", "fluxtream.com");
+        connection.addRequestProperty("Accept", "application/json");
+
+        String line;
+
+        StringBuilder builder = new StringBuilder();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+
+        while((line = reader.readLine()) != null) {
+             builder.append(line);
+        }
+
+        return builder.toString();
+
+    }
 
 }

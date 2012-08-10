@@ -31,8 +31,7 @@ abstract class AbstractUpdateStrategy implements UpdateStrategy {
                                                                                   objectTypes);
 		if (!historyComplete) {
 			boolean isAlreadyScheduled = connectorUpdateService
-                 .getScheduledUpdateTasks(apiKey.getGuestId(),
-                                    apiKey.getConnector()).size()>0;
+                 .getScheduledOrInProgressUpdateTasks(apiKey.getGuestId(), apiKey.getConnector()).size()>0;
 			return !isAlreadyScheduled;
 		}
 		return false;

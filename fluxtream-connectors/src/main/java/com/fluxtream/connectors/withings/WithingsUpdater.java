@@ -1,15 +1,13 @@
 package com.fluxtream.connectors.withings;
 
-import static com.fluxtream.utils.HttpUtils.fetch;
-
-import org.springframework.stereotype.Component;
-
 import com.fluxtream.connectors.annotations.JsonFacetCollection;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
-import com.fluxtream.connectors.updaters.RateLimitReachedException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiUpdate;
+import org.springframework.stereotype.Component;
+
+import static com.fluxtream.utils.HttpUtils.fetch;
 
 @Component
 @Updater(prettyName = "Withings", value = 4, objectTypes = {
@@ -22,11 +20,10 @@ public class WithingsUpdater extends AbstractUpdater {
 	}
 
 	@Override
-	protected void updateConnectorDataHistory(UpdateInfo updateInfo)
-			throws RateLimitReachedException, Exception {
+	protected void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception {
 		// get user info and find out first seen date
 		long then = System.currentTimeMillis();
-		String json = "";
+		String json;
 		
 		String url = "http://wbsapi.withings.net/measure?action=getmeas";
 		url += "&userid="
@@ -51,7 +48,7 @@ public class WithingsUpdater extends AbstractUpdater {
 
 	public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
 		long then = System.currentTimeMillis();
-		String json = "";
+		String json;
 		
 		ApiUpdate lastSuccessfulUpdate = connectorUpdateService
 				.getLastSuccessfulUpdate(updateInfo.apiKey.getGuestId(),

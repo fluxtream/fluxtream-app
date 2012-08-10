@@ -1,0 +1,49 @@
+<template id="averageSteps">
+    <div class="flx-widget-typo">
+        <section  class="main-widget-data">
+            {{#steps}}
+            <div class="big-data-figure" style="color:{{color}}">{{steps}}<span class="data-unit">steps</span></div>
+            {{/steps}}
+            {{#noMeasure}}
+            <div class="big-data-figure"><span class="data-unit">{{noMeasureMsg}}</span></div>
+            {{/noMeasure}}
+        </section>
+    </div>
+</template>
+<template id="averageWeight">
+    <div class="flx-widget-typo">
+        <section class="main-widget-data">
+            {{#weight}}
+            <div class="big-data-figure">{{weight}}<span class="data-unit">{{unit}}</span></div>
+            {{/weight}}
+            {{#noMeasure}}
+            <div class="big-data-figure"><span class="data-unit">(No Measure)</span></div>
+            {{/noMeasure}}
+        </section>
+    </div>
+</template>
+<template id="averageBP">
+    <div class="flx-widget-typo">
+        <section class="main-widget-data">
+            {{#systolic}}
+            <div class="big-data-figure">Systolic: {{systolic}}<span class="data-unit">mmHg</span>
+            <br>Diastolic: {{diastolic}}<span class="data-unit">mmHg</span></div>
+            {{/systolic}}
+            {{#noMeasure}}
+            <div class="big-data-figure"><span class="data-unit">(No Measure)</span></div>
+            {{/noMeasure}}
+        </section>
+    </div>
+</template>
+<template id="averageCaloriesBurned">
+    <div class="flx-widget-typo">
+        <section class="main-widget-data">
+            {{#weight}}
+            <div class="big-data-figure"><span>Burned</span> {{calories}}<span class="data-unit">calories}</span></div>
+            {{/weight}}
+            {{#noMeasure}}
+            <div class="big-data-figure"><span class="data-unit">(No Measure)</span></div>
+            {{/noMeasure}}
+        </section>
+    </div>
+</template>

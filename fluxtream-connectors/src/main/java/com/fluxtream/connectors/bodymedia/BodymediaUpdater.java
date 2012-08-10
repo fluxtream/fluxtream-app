@@ -13,6 +13,10 @@ import com.fluxtream.utils.TimeUtils;
 import net.sf.json.JSONObject;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.commonshttp.CommonsHttpOAuthConsumer;
+import oauth.signpost.exception.OAuthCommunicationException;
+import oauth.signpost.exception.OAuthExpectationFailedException;
+import oauth.signpost.exception.OAuthMessageSignerException;
+import oauth.signpost.exception.OAuthNotAuthorizedException;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
@@ -27,7 +31,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Component
-@Updater(prettyName = "BodyMedia", value = 88, objectTypes = {BodymediaBurnFacet.class, BodymediaSleepFacet.class, BodymediaStepsFacet.class}, hasFacets = true, additionalParameters = {"api_key"},
+@Updater(prettyName = "BodyMedia", value = 88,
+         objectTypes = {BodymediaBurnFacet.class, BodymediaSleepFacet.class, BodymediaStepsFacet.class},
+         hasFacets = true,
+         additionalParameters = {"api_key"},
          defaultChannels = {"BodyMedia.mets", "BodyMedia.lying"})
 public class BodymediaUpdater extends AbstractUpdater {
 
@@ -38,10 +45,14 @@ public class BodymediaUpdater extends AbstractUpdater {
     @Autowired
     MetadataService metadataService;
 
+    @Autowired
+    BodymediaController bodymediaController;
+
     private final HashMap<ObjectType, String> url = new HashMap<ObjectType, String>();
     private final HashMap<ObjectType, Integer> maxIncrement = new HashMap<ObjectType, Integer>();
 
-    private final DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd");
+    private final DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyyMMdd");
+    private final DateTimeFormatter formatter2 = DateTimeFormat.forPattern("yyyy-MM-dd");
 
     public BodymediaUpdater() {
         super();
@@ -57,7 +68,7 @@ public class BodymediaUpdater extends AbstractUpdater {
     }
 
     public void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception {
-
+        //checkAndReplaceOauthToken(updateInfo);
         for(ObjectType ot : updateInfo.objectTypes())
         {
             String date = jpaDaoService.findOne("bodymedia." + ot.getName() + ".getFailedUpdate",
@@ -82,6 +93,15 @@ public class BodymediaUpdater extends AbstractUpdater {
         }
     }
 
+    private void checkAndReplaceOauthToken(UpdateInfo updateInfo) throws OAuthExpectationFailedException,
+                                                                         OAuthMessageSignerException,
+                                                                         OAuthNotAuthorizedException,
+                                                                         OAuthCommunicationException {
+        String time = guestService.getApiKeyAttribute(updateInfo.getGuestId(), connector(), "tokenExpiration");
+        if(Long.parseLong(time) < System.currentTimeMillis()/1000)
+            bodymediaController.replaceToken(updateInfo);
+    }
+
     /**
      * Retrieves that history for the given facet from the start date to the end date. It peforms the api calls in reverse order
      * starting from the end date. This is so that the most recent information is retrieved first.
@@ -94,7 +114,6 @@ public class BodymediaUpdater extends AbstractUpdater {
      * @throws Exception If either storing the data fails or if the rate limit is reached on Bodymedia's api
      */
     private void retrieveHistory(UpdateInfo updateInfo, ObjectType ot, String urlExtension, int increment, DateTime start, DateTime end) throws Exception {
-        DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyyMMdd");
         DateTimeComparator comparator = DateTimeComparator.getDateOnlyInstance();
         DateTime current = end;
         try {
@@ -140,6 +159,7 @@ public class BodymediaUpdater extends AbstractUpdater {
     }
 
     public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
+        //checkAndReplaceOauthToken(updateInfo);
         for (ObjectType ot : updateInfo.objectTypes()) {
             BodymediaAbstractFacet endDate = jpaDaoService.findOne("bodymedia." + ot.getName() + ".getFailedUpdate", BodymediaAbstractFacet.class, updateInfo.getGuestId());
             DateTime start, end;
@@ -171,7 +191,11 @@ public class BodymediaUpdater extends AbstractUpdater {
         {
             startDate = facet.date;
         }
-        return formatter.parseDateTime(startDate);
+        try{
+            return formatter.parseDateTime(startDate);
+        } catch (IllegalArgumentException e){
+            return formatter2.parseDateTime(startDate);
+        }
     }
 
     public String getUserRegistrationDate(UpdateInfo updateInfo, String api_key, OAuthConsumer consumer) throws Exception {

@@ -389,7 +389,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
             $("#" + grapher.grapherId + "_timeline_addChannelsArea ul li ._timeline_sources_channel").click(function() {
                 var c = grapher.sourcesMap[this.id];
                 grapher.addChannel(c, null);
-                $("#" + grapher.grapherId + "_timeline_channelsWrapper").animate({scrollTop:$("#" + grapher.grapherId + "_timeline_channelsWrapper").prop("scrollHeight")}, 500);
+                //$("#" + grapher.grapherId + "_timeline_channelsWrapper").animate({scrollTop:0}, 500);
             });
 
             // Add channels pane reset button
@@ -732,7 +732,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
 
             var html = template.render(templateValues);
             if (target == null || target == undefined || target == "") {
-                $("#" + grapher.grapherId + "_timeline_channels").append(html);
+                $("#" + grapher.grapherId + "_timeline_channels").prepend(html);
             }
             else {
                 $(target).replaceWith(html);
@@ -814,7 +814,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     grapher.dateAxis,
                     yAxis,
                     channel["style"]);
-                plot.addDataPointListener(dataPointListener);
+                plot.addDataPointListener(function(pointObj, sourceInfo){dataPointListener(grapher,pointObj, sourceInfo)});
             }
 
             var plotContainer = new PlotContainer(plotElementId, false, [plot]);
@@ -2018,11 +2018,13 @@ define(["core/grapher/BTCore"], function(BTCore) {
         return cache;
     }
 
-    function dataPointListener(pointObj, sourceInfo) {
+    function dataPointListener(grapher, pointObj, sourceInfo) {
         if (pointObj) {
-            $("#_timeline_dataPointValueLabel").html(Hogan.compile($("#_timeline_data_point_value_label_template").html()).render(pointObj));
+            App.loadMustacheTemplate("core/grapher/timelineTemplates.html","dataPointValueLabel",function (template){
+                $("#" + grapher.grapherId + "_timeline_dataPointValueLabel").html(template.render(pointObj));
+            });
         } else {
-            $("#_timeline_dataPointValueLabel").html("");
+            $("#" + grapher.grapherId + "_timeline_dataPointValueLabel").html("");
         }
     }
 
@@ -2513,7 +2515,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
             var errorCallback = callbacks['error'];
             var completeCallback = callbacks['complete'];
 
-            var url = "/bodytrack/users/" + App.getUID() + "/channels/" + encodeURIComponent(channel["device_name"]) + "." + encodeURIComponent(channel["channel_name"]) + "/set";
+            var url = "/api/bodytrack/users/" + App.getUID() + "/channels/" + encodeURIComponent(channel["device_name"]) + "." + encodeURIComponent(channel["channel_name"]) + "/set";
             $.ajax({
                 cache    : false,
                 type     : "POST",

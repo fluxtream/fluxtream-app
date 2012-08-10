@@ -23,7 +23,11 @@ define(["core/TabInterface"], function(TabInterface) {
         tabInterface.getNav().addClickListener(function(tabName){
             var state = App.state.getState("calendar");
             state = state.substring(state.indexOf("/"));
-            Calendar.renderState(tabName+state,Calendar.digestTabState != state.substring(1));
+            if (Calendar.tabParam != null){
+                Calendar.tabParam = null;
+                state = state.substring(0,state.lastIndexOf("/"));
+            }
+            Calendar.render(tabName+state);
         });
     }
 	
@@ -48,15 +52,16 @@ define(["core/TabInterface"], function(TabInterface) {
             btn.click(function(event){
 
                 var timeUnit = $(event.target).attr("unit"),
-                    url = "/nav/set" + capitalizeFirstLetter(timeUnit.toLowerCase()) + "TimeUnit.json";
+                    url = "/api/calendar/nav/set" + capitalizeFirstLetter(timeUnit.toLowerCase()) + "TimeUnit" + "?state=" + Calendar.tabState;
                 if (Calendar.currentTab.timeNavigation(timeUnit))
                     return;
                 $.ajax({ url:url,
+                   type: "POST",
                    success : function(response) {
                        var t = tabExistsForTimeUnit(Calendar.currentTabName, timeUnit)?Calendar.currentTabName:tabs[timeUnit][0];
                        Calendar.currentTabName = t;
                        Calendar.updateButtonStates();
-                       Calendar.renderState(Calendar.currentTabName + "/" + response.state);
+                       Calendar.renderState(Calendar.currentTabName + "/" + response.state + (Calendar.tabParam == null ? "" : "/" + Calendar.tabParam));
                    },
                    error : function() {
                        alert("error");
@@ -98,8 +103,8 @@ define(["core/TabInterface"], function(TabInterface) {
 			button.removeClass("disabled");
 			button.click(function(event) {
 				var timeUnit = $(event.target).attr("class"),
-				url = "/nav/set" + capitalizeFirstLetter(targetTimeUnit.toLowerCase()) + "TimeUnit.json";
-				$.ajax({ url:url,
+				url = "/api/calendar/nav/set" + capitalizeFirstLetter(targetTimeUnit.toLowerCase()) + "TimeUnit";
+				$.ajax({ url:url + "&state=" + Calendar.tabState,
 					success : function(response) {
 						Calendar.renderState(Calendar.currentTabName + "/" + response.state);
 					},
@@ -112,6 +117,7 @@ define(["core/TabInterface"], function(TabInterface) {
 	}
 
 	function handleNotifications(digestInfo) {
+        console.log("handling notifications");
 		$(".notification").remove();
 		$("#notificationIds").empty();
 		if (typeof(digestInfo.notifications)!="undefined") {
@@ -129,7 +135,7 @@ define(["core/TabInterface"], function(TabInterface) {
 	
 	function updateTab(digest, Calendar) {
         tabInterface.setRenderParamsFunction(function(){
-            return {digest:digest,timeUnit:Calendar.timeUnit,calendarState:Calendar.tabState,connectorEnabled:Calendar.connectorEnabled[Calendar.currentTabName]};
+            return {digest:digest,timeUnit:Calendar.timeUnit,calendarState:Calendar.tabState,connectorEnabled:Calendar.connectorEnabled[Calendar.currentTabName],tabParam:Calendar.tabParam,setTabParam:Calendar.setTabParam};
         });
         tabInterface.setActiveTab(Calendar.currentTabName);
         updateCurrentTab(digest, Calendar);
@@ -185,6 +191,7 @@ define(["core/TabInterface"], function(TabInterface) {
 	Builder.updateTab = updateTab;
     Builder.isValidTabName = isValidTabName;
     Builder.isValidTimeUnit = isValidTimeUnit;
+    Builder.handleNotifications = handleNotifications;
 
     return Builder;
 	

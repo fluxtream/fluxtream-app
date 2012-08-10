@@ -46,11 +46,16 @@ public class SyncController {
     @Path("/{connector}")
     @Produces({MediaType.APPLICATION_JSON})
     public String updateConnector(@PathParam("connector") String connectorName){
-        final List<ScheduleResult> scheduleResults = connectorUpdateService.updateConnector(ControllerHelper.getGuestId(),
-                                                                                            Connector.getConnector(connectorName));
-        StatusModel statusModel = new StatusModel(true, "successfully added update worker tasks to the queue (see details)");
-        statusModel.payload = scheduleResults;
-        return gson.toJson(scheduleResults);
+        try{
+            final List<ScheduleResult> scheduleResults = connectorUpdateService.updateConnector(ControllerHelper.getGuestId(),
+                                                                                                Connector.getConnector(connectorName));
+            StatusModel statusModel = new StatusModel(true, "successfully added update worker tasks to the queue (see details)");
+            statusModel.payload = scheduleResults;
+            return gson.toJson(scheduleResults);
+        }
+        catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Failed to schedule update: " + e.getMessage()));
+        }
     }
 
     @POST
@@ -58,28 +63,38 @@ public class SyncController {
     @Produces({MediaType.APPLICATION_JSON})
     public String updateConnectorObjectType(@PathParam("connector") String connectorName,
                                             @PathParam("objectTypes") int objectTypes){
-        final List<ScheduleResult> scheduleResults = connectorUpdateService.updateConnectorObjectType(ControllerHelper.getGuestId(),
-                                                                                            Connector.getConnector(connectorName),
-                                                                                            objectTypes);
-        StatusModel statusModel = new StatusModel(true, "successfully added update worker tasks to the queue (see details)");
-        statusModel.payload = scheduleResults;
-        return gson.toJson(scheduleResults);
+        try{
+            final List<ScheduleResult> scheduleResults = connectorUpdateService.updateConnectorObjectType(ControllerHelper.getGuestId(),
+                                                                                                Connector.getConnector(connectorName),
+                                                                                                objectTypes);
+            StatusModel statusModel = new StatusModel(true, "successfully added update worker tasks to the queue (see details)");
+            statusModel.payload = scheduleResults;
+            return gson.toJson(scheduleResults);
+        }
+        catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Failed to schedule update: " + e.getMessage()));
+        }
     }
 
     @POST
     @Path("/all")
     @Produces({MediaType.APPLICATION_JSON})
     public String updateAllConnectors(){
-        final List<ScheduleResult> scheduleResults = connectorUpdateService.updateAllConnectors(ControllerHelper.getGuestId());
-        StatusModel statusModel = new StatusModel(true, "successfully added update worker tasks to the queue (see details)");
-        statusModel.payload = scheduleResults;
-        return gson.toJson(scheduleResults);
+        try{
+            final List<ScheduleResult> scheduleResults = connectorUpdateService.updateAllConnectors(ControllerHelper.getGuestId());
+            StatusModel statusModel = new StatusModel(true, "successfully added update worker tasks to the queue (see details)");
+            statusModel.payload = scheduleResults;
+            return gson.toJson(scheduleResults);
+        }
+        catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Failed to schedule udpates: " + e.getMessage()));
+        }
     }
 
     @POST
     @Path("/producerTest")
     @Produces({MediaType.APPLICATION_JSON})
-    public String TestUPdate()
+    public String TestUpdate()
     {
         Producer p = new Producer();
         p.scheduleIncrementalUpdates();

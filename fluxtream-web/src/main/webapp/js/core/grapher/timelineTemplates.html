@@ -63,7 +63,6 @@
                                     <tr>
                                         <td>
                                             <ul id="{{grapherId}}_timeline_channels" class="_timeline_channels"></ul>
-                                            <div id="{{grapherId}}_timeline_channelsWrapper_footer" class="_timeline_channelsWrapper_footer"></div>
                                         </td>
                                         <td width="20" style="width:20px;"><!-- This area is for the scrollbar when you have lots of channels --></td>
                                     </tr>
@@ -408,4 +407,7 @@
         </li>
         {{/sources}}
     </ul>
+</template>
+<template id="dataPointValueLabel">
+    {{dateString}} {{valueString}}
 </template>

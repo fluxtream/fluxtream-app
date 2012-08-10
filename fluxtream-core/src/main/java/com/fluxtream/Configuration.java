@@ -29,12 +29,18 @@ public class Configuration implements InitializingBean {
 	public PropertiesConfiguration connectors;
 	
 	public PropertiesConfiguration oauth;
-	
-	private Map<String,String> countries;
+
+    public PropertiesConfiguration lastCommitProperties;
+
+    private Map<String,String> countries;
 	
 	private Map<String,String> countryCodes;
-	
-	public void setCommonProperties(PropertiesConfiguration properties) throws IOException {
+
+    public void setLastCommitProperties(PropertiesConfiguration properties) throws IOException {
+        this.lastCommitProperties = properties;
+    }
+
+    public void setCommonProperties(PropertiesConfiguration properties) throws IOException {
 		this.commonProperties = properties;
 	}
 	
@@ -77,7 +83,9 @@ public class Configuration implements InitializingBean {
 	
 	public String get(String key) {
 		String property = (String)commonProperties.getProperty(key);
-		if (property==null)
+        if (property==null)
+            property = (String) lastCommitProperties.getProperty(key);
+        if (property==null)
 			property = (String) targetEnvironmentProps.getProperty(key);
 		if (property==null)
 			property = (String) oauth.getProperty(key);

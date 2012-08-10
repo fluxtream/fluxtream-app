@@ -14,40 +14,27 @@ import com.fluxtream.services.MetadataService;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ZeoSleepStatsFacetExtractor extends AbstractFacetExtractor {
 
-	@Autowired
+    @Qualifier("metadataServiceImpl")
+    @Autowired
 	MetadataService metadataService;
 
 	public List<AbstractFacet> extractFacets(ApiData apiData,
 			ObjectType objectType) {
 		List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
-		JSONObject sleepStatsResponse = JSONObject.fromObject(apiData.json);
 
-		JSONObject response = sleepStatsResponse.getJSONObject("response");
+		JSONObject response = JSONObject.fromObject(apiData.json).getJSONObject("response");
 
-		if (response.has("sleepRecords")) {
-
-			JSONObject sleepRecordsWrapper = response
-					.optJSONObject("sleepRecords");
-            //In the case that there is no data, sleepRecords will be null even though it exists in the JSON
-            if(sleepRecordsWrapper != null)
-            {
-                JSONArray sleepStatsArray = sleepRecordsWrapper
-                        .getJSONArray("sleepRecord");
-                for (int i = 0; i < sleepStatsArray.size(); i++)
-                {
-                    extractStatsData(facets, apiData,
-                            sleepStatsArray.getJSONObject(i));
-                }
-            }
-
+		if (response.has("sleepRecord")) {
+			JSONObject sleepRecords = response.optJSONObject("sleepRecord");
+            extractStatsData(facets, apiData, sleepRecords);
 		} else if (response.has("sleepStats")) {
-			extractStatsData(facets, apiData,
-					response.getJSONObject("sleepStats"));
+			extractStatsData(facets, apiData, response.getJSONObject("sleepStats"));
 		}
 
 		return facets;
@@ -59,15 +46,13 @@ public class ZeoSleepStatsFacetExtractor extends AbstractFacetExtractor {
 		super.extractCommonFacetData(facet, apiData);
 		facet.zq = sleepStats.getInt("zq");
 		facet.bedTime = getZeoTime(sleepStats, "bedTime", apiData, facet);
-		facet.riseTime = getZeoTime(sleepStats, "riseTime",
-				apiData, facet);
+		facet.riseTime = getZeoTime(sleepStats, "riseTime", apiData, facet);
 		facet.start = facet.bedTime.getTime();
 		facet.end = facet.riseTime.getTime();
 		facet.morningFeel = sleepStats.getInt("morningFeel");
 		facet.totalZ = sleepStats.getInt("totalZ");
 		facet.timeInDeepPercentage = sleepStats.getInt("timeInDeepPercentage");
-		facet.timeInLightPercentage = sleepStats
-				.getInt("timeInLightPercentage");
+		facet.timeInLightPercentage = sleepStats .getInt("timeInLightPercentage");
 		facet.timeInRemPercentage = sleepStats.getInt("timeInRemPercentage");
 		facet.timeInWakePercentage = sleepStats.getInt("timeInWakePercentage");
 		facet.awakenings = sleepStats.getInt("awakenings");
@@ -77,8 +62,8 @@ public class ZeoSleepStatsFacetExtractor extends AbstractFacetExtractor {
 	}
 	
 	private enum Phase {
-		UNDEFINED, WAKE, REM, LIGHT, DEEP;
-	}
+		UNDEFINED, WAKE, REM, LIGHT, DEEP
+    }
 
 	private String getSleepGraph(JSONObject sleepStats) {
 		JSONArray sleepGraphArray = sleepStats.getJSONArray("sleepGraph");
@@ -100,12 +85,9 @@ public class ZeoSleepStatsFacetExtractor extends AbstractFacetExtractor {
 		int hours = o.getInt("hour");
 		int minutes = o.getInt("minute");
 		int seconds = o.getInt("second");
-		
-		StringBuffer date = new StringBuffer(String.valueOf(year)).append("-")
-				.append(String.valueOf(month)).append("-")
-				.append(String.valueOf(day));
-		TimeZone guestTimeZoneForDate = getGuestTimeZoneForDate(apiData,
-				date.toString());
+
+		String date = String.valueOf(year) + "-" + String.valueOf(month) + "-" + String.valueOf(day);
+		TimeZone guestTimeZoneForDate = getGuestTimeZoneForDate(apiData, date);
 		Calendar c = Calendar.getInstance(guestTimeZoneForDate);
 		c.set(Calendar.DAY_OF_MONTH, day);
 		c.set(Calendar.HOUR_OF_DAY, hours);
@@ -113,7 +95,7 @@ public class ZeoSleepStatsFacetExtractor extends AbstractFacetExtractor {
 		c.set(Calendar.MONTH, month - 1);
 		c.set(Calendar.SECOND, seconds);
 		c.set(Calendar.YEAR, year);
-		
+
 		if (key.equals("bedTime"))
 			facet.endTimeStorage = toTimeStorage(year, month, day, hours, minutes, seconds);
 		else
@@ -125,16 +107,7 @@ public class ZeoSleepStatsFacetExtractor extends AbstractFacetExtractor {
 	private String toTimeStorage(int year, int month, int day, int hours,
 			int minutes, int seconds) {
 		//yyyy-MM-dd'T'HH:mm:ss.SSS
-		StringBuffer sb = new StringBuffer();
-		sb.append(year).append("-")
-			.append(year).append("-")
-			.append(month).append("-")
-			.append(day).append("T")
-			.append(hours).append(":")
-			.append(minutes).append(":")
-			.append(seconds).append(".")
-			.append("000");
-		return null;
+        return year + "-" + month + "-" + day + "T" + hours + ":" + minutes + ":" + seconds + "." + "000";
 	}
 	
 	private TimeZone getGuestTimeZoneForDate(ApiData apiData, String date) {
@@ -143,5 +116,4 @@ public class ZeoSleepStatsFacetExtractor extends AbstractFacetExtractor {
 						date, true);
 		return TimeZone.getTimeZone(dailyContextualInfo.timeZone);
 	}
-
 }

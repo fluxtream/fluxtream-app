@@ -38,19 +38,29 @@ public class WidgetCollection {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public List<DashboardWidget> getAvailableWidgetsList() {
-        long guestId = ControllerHelper.getGuestId();
-        List<DashboardWidget> widgets = widgetsService.getAvailableWidgetsList(guestId);
-        return widgets;
+    public String getAvailableWidgetsList() {
+        try{
+            long guestId = ControllerHelper.getGuestId();
+            List<DashboardWidget> widgets = widgetsService.getAvailableWidgetsList(guestId);
+            return gson.toJson(widgets);
+        }
+        catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Failed to get available widgets: " + e.getMessage()));
+        }
     }
 
     @POST
     @Path("/refresh")
     @Produces({ MediaType.APPLICATION_JSON })
     public String refreshWidgets() {
-        long guestId = ControllerHelper.getGuestId();
-        widgetsService.refreshWidgets(guestId);
-        return gson.toJson(new StatusModel(true, "widgets refreshed"));
+        try{
+            long guestId = ControllerHelper.getGuestId();
+            widgetsService.refreshWidgets(guestId);
+            return gson.toJson(new StatusModel(true, "widgets refreshed"));
+        }
+        catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Failed to regresh widgets: " + e.getMessage()));
+        }
     }
 
 }

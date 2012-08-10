@@ -4,13 +4,16 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
 
     var oldState = null;
 
+    var setTabParam;
+
     function render(params) {
+        setTabParam = params.setTabParam;
         this.getTemplate("text!applications/calendar/tabs/list/list.html", "list", function(){
             if (params.calendarState == oldState)
                 return;
             else
                 oldState = params.calendarState;
-            setup(params.digest,params.connectorEnabled);
+            setup(params.digest,params.connectorEnabled,params.tabParam == null ? 0 : parseInt(params.tabParam) - 1);
         });
     }
 
@@ -21,13 +24,15 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
     var maxPerPage = 250;
     var currentPage = 0;
     var photoCarouselHTML;
+    var timeZoneOffset;
 
     var rendererCount = 0;
 
-    function setup(digest,connectorEnabled){
+    function setup(digest,connectorEnabled,page){
+        timeZoneOffset = digest.timeZoneOffset;
         list = $("#list");
         pagination = $("#pagination");
-        currentPage = 0;
+        currentPage = page;
         items = [];
         itemGroups = {};
         list.empty();
@@ -56,7 +61,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
                         items[j] = item;
                         break;
                     }
-                    if (items[j].facet.start > item.facet.start || item.facet.start == null){
+                    if (items[j].facet.start + timeZoneOffset > item.facet.start + timeZoneOffset || item.facet.start + timeZoneOffset == null){
                         items.splice(j,0,item);
                         break;
                     }
@@ -79,10 +84,13 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
     function rebuildPagination(){
         pagination.empty();
         var totalPages = getTotalPages();
-        if (totalPages>1)
+        if (totalPages>1){
             pagination.show();
+            setTabParam(currentPage + 1);
+        }
         else {
             pagination.hide();
+            setTabParam(null);
             return;
         }
         var pageList = $("<ul></ul>");
@@ -176,7 +184,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
            if (item.visible){
                visibleCount++;
                if (visibleCount >= currentPage * maxPerPage && visibleCount <= (currentPage + 1) * maxPerPage){
-                    var facetDate = App.formatDate(item.facet.start);
+                    var facetDate = App.formatDate(item.facet.start  + timeZoneOffset,false,true);
                     if (currentArray.length == 0){
                         currentArray = [item.facet];
                         currentDate = facetDate;
@@ -215,17 +223,17 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
         var pageNum = $(event.target).attr("pageNumber");
         if (pageNum == "prev"){
             if (currentPage == 0)
-                return;
+                return false;
             currentPage--;
         }
         else if (pageNum == "next"){
             if (currentPage >= getTotalPages() - 1)
-                return;
+                return false;
             currentPage++;
         }
         else{
             if (currentPage == pageNum)
-                return;
+                return false;
             currentPage = Number(pageNum);
         }
         rebuildPagination();

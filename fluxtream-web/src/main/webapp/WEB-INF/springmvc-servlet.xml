@@ -12,7 +12,8 @@
 		<property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_OVERRIDE" />
 		<property name="locations">
 			<list>
-				<value>classpath:common.properties</value>
+                <value>classpath:lastcommit.properties</value>
+                <value>classpath:common.properties</value>
 				<value>classpath:${TARGET_ENV}.properties</value>
 			</list>
 		</property>

@@ -305,7 +305,8 @@ define(
         App.discardNotifications = function() {
             var ids = $("#notificationIds").html();
             $.ajax({
-                       url : "/notifications/discard?ids=" + ids,
+                       url : "/api/notifications?ids=" + ids,
+                       type: "DELETE",
                        success : function() {
                            $("#notifications").alert("close");
                        }
@@ -326,15 +327,43 @@ define(
             }
         };
 
-        App.formatDate = function(date, includeTime){
+        App.formatDate = function(date, includeTime, UTC){
             if (includeTime == null)
                 includeTime = false;
-            if (typeof(date) == "number")
-                date = new Date(date);
+            if (UTC == null)
+                UTC = false;
+            if (typeof(date) == "number"){
+                if (!UTC)
+                    date = new Date(date);
+                else{
+                    var ms = date;
+                    date = new Date(0);
+                    date.setUTCMilliseconds(ms);
+                }
+            }
             if (isNaN(date.getFullYear()))
                 return "Present";
             var value = "";
-            switch (date.getMonth()){
+            var year, month, day, hour, minute, second;
+            if (UTC){
+                year = date.getUTCFullYear();
+                month = date.getUTCMonth();
+                day = date.getUTCDate();
+                hour = date.getUTCHours();
+                minute = date.getUTCMinutes();
+                second = date.getUTCSeconds();
+            }
+            else{
+                year = date.getFullYear();
+                month = date.getMonth();
+                day = date.getDate();
+                hour = date.getHours();
+                minute = date.getMinutes();
+                second = date.getSeconds();
+
+            }
+
+            switch (month){
                 case 0:
                     value += "January";
                     break;
@@ -372,18 +401,18 @@ define(
                     value += "December";
                     break;
             }
-            value += " " + date.getDate();
-            value += ", " + date.getFullYear();
+            value += " " + day;
+            value += ", " + year;
             if (includeTime){
-                value += " " + date.getHours();
+                value += " " + hour;
                 value += ":"
-                if (date.getMinutes() < 10)
+                if (minute < 10)
                     value += "0";
-                value += date.getMinutes();
+                value += minute;
                 value += ":"
-                if (date.getSeconds() < 10)
+                if (second < 10)
                     value += "0";
-                value += date.getSeconds();
+                value += second;
             }
             return value;
         }

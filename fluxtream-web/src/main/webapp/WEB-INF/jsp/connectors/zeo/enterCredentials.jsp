@@ -1,6 +1,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"
 %><%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"
-%><%@ page isELIgnored="false"%><%@ page import="java.util.*" %>
+%><%@ page isELIgnored="false"
+%><%@ page import="java.util.*" %>
 <%
 	List<String> required = new ArrayList<String>();
 	if (request.getAttribute("required")!=null) required = (ArrayList<String>) request.getAttribute("required");
@@ -10,13 +11,13 @@
 	
 	String errorMessage = null;
 	if (request.getAttribute("errorMessage")!=null) errorMessage = (String) request.getAttribute("errorMessage");
-%><p>Please enter your Zeo credentials</p>
+%><p>Please enter your zeo credentials</p>
 <table>
 	<% if (errorMessage!=null) { %>
 		<tr><td colspan="2"><span class="formError"><%=errorMessage%></span></td></tr>
 	<% } %>
 	<tr>
-	<td>Username:</td><td><input autocorrect="off" autocapitalize="off" class="focushere" id="zeo-username" value="<%=username%>"></input></td>
+	<td>Email:</td><td><input autocorrect="off" autocapitalize="off" class="focushere" id="zeo-username" value="<%=username%>"></input></td>
 	<% if (required.contains("username")) { %>
 	<td>
 		<span class="formError">* username is required</span>
@@ -24,7 +25,7 @@
 	<% } %>
 	</tr>
 	<tr>
-	<td>Password:</td><td><input autocorrect="off" autocapitalize="off" id="zeo-password" type="password" onkeypress="if(event.which==13) submitZeoCredentials()"></input></td>
+	<td>Password:</td><td><input autocorrect="off" autocapitalize="off" onkeypress="if(event.which==13) Connectors.submitZeoCredentials()" id="zeo-password" type="password"></input></td>
 	<% if (required.contains("password")) { %>
 	<td>
 		<span class="formError">* password is required</span>
@@ -32,6 +33,6 @@
 	<% } %>
 	</tr>
 	<tr>
-	<td colspan="2"><button onclick="submitZeoCredentials()">Send</button></td>
+	<td colspan="2"><button onclick="Connectors.submitZeoCredentials()">Send</button></td>
 	</tr>
 </table>

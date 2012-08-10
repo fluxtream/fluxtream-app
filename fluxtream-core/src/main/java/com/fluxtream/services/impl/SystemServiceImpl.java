@@ -65,48 +65,54 @@ public class SystemServiceImpl implements SystemService {
         em.persist(new ConnectorInfo("Github",
                                      "/images/connectors/connector-github.jpg",
                                      res.getString("github"),
-                                     singlyAuthorizeUrl("github"), Connector.getConnector("github"), 20, true));
+                                     singlyAuthorizeUrl("github"),
+                                     Connector.getConnector("github"), 20, true));
         em.persist(new ConnectorInfo("QuantifiedMind",
-                                     "/images/connectors/connector-quantifiedmind.jpg", res.getString("quantifiedmind"),
-                                     "ajax:/quantifiedmind/getTokenDialog", Connector.getConnector("quantifiedmind"), 0,
-                                     true));
+                                     "/images/connectors/connector-quantifiedmind.jpg",
+                                     res.getString("quantifiedmind"),
+                                     "ajax:/quantifiedmind/getTokenDialog",
+                                     Connector.getConnector("quantifiedmind"), 0, true));
 		em.persist(new ConnectorInfo("OpenPath",
-				"/images/connectors/connector-openpaths.jpg", res.getString("openpath"),
-				"ajax:/openPath/enterCredentials", Connector.getConnector("openpath"), 0, false));
+				                     "/images/connectors/connector-openpaths.jpg",
+                                     res.getString("openpath"),
+                                     "ajax:/openPath/enterCredentials",
+                                     Connector.getConnector("openpath"), 0, true));
 		em.persist(new ConnectorInfo("Toodledo",
-				"/images/connectors/connector-toodledo.jpg", res
-						.getString("toodledo"),
-				"ajax:/toodledo/enterCredentials", Connector
-						.getConnector("toodledo"), 1, false));
-        //final ConnectorInfo bodyTrackConnectorInfo = new ConnectorInfo("BodyTrack",
-        //                                                               "/images/connectors/connector-bodyTrack.jpg",
-        //                                                               res.getString("bodytrack"),
-        //                                                               "ajax:/bodytrack/enterCredentials",
-        //                                                               Connector.getConnector("bodytrack"), 2, true);
-        //bodyTrackConnectorInfo.manageable = false;
-        //em.persist(bodyTrackConnectorInfo);
+                                     "/images/connectors/connector-toodledo.jpg",
+                                     res .getString("toodledo"),
+				                     "ajax:/toodledo/enterCredentials",
+                                     Connector.getConnector("toodledo"), 1, false));
+        final ConnectorInfo bodyTrackConnectorInfo = new ConnectorInfo("BodyTrack",
+                                                                       "/images/connectors/connector-bodyTrack.jpg",
+                                                                       res.getString("bodytrack"),
+                                                                       "ajax:/bodytrack/enterCredentials",
+                                                                       Connector.getConnector("bodytrack"), 2, false);
+        bodyTrackConnectorInfo.manageable = false;
+        em.persist(bodyTrackConnectorInfo);
 		em.persist(new ConnectorInfo("Zeo",
-				"/images/connectors/connector-zeo.jpg", res
-						.getString("zeo"), "/zeo/subscribe", Connector
-						.getConnector("zeo"), 3, true));
+				                     "/images/connectors/connector-zeo.jpg",
+                                     res.getString("zeo"),
+                                     "ajax:/zeo/enterCredentials",
+                                     Connector.getConnector("zeo"), 3, true));
 		em.persist(new ConnectorInfo("Withings B Scale",
-				"/images/connectors/connector-withings-bodyscale.jpg", res
-						.getString("withings"),
-				"ajax:/withings/enterCredentials", Connector
-						.getConnector("WITHINGS"), 4, true));
+				                     "/images/connectors/connector-withings-bodyscale.jpg",
+                                     res.getString("withings"),
+                                     "ajax:/withings/enterCredentials",
+                                     Connector.getConnector("WITHINGS"), 4, true));
 		em.persist(new ConnectorInfo("Google Calendar",
-				"/images/connectors/connector-google_calendar.jpg", res
-						.getString("google_calendar"), "/calendar/token",
-				Connector.getConnector("google_calendar"), 5, true));
-		// em.persist(new ConnectorInfo("Withings BPM",
-		// "/images/connectors/connector-focus-whithings.jpg", "Text " +
-		// moreLink(Connector.getConnector("WITHINGS")),
-		// "ajax:/withings/enterCredentials",
-		// Connector.getConnector("WITHINGS"), 4));
+				                     "/images/connectors/connector-google_calendar.jpg",
+                                     res.getString("google_calendar"),
+                                     "/calendar/token",
+				                     Connector.getConnector("google_calendar"), 5, true));
 		em.persist(new ConnectorInfo("Fitbit",
-				"/images/connectors/connector-fitbit.jpg", res
-						.getString("fitbit"), "/fitbit/token", Connector
-						.getConnector("fitbit"), 7, true));
+				                     "/images/connectors/connector-fitbit.jpg",
+                                     res.getString("fitbit"), "/fitbit/token",
+                                     Connector.getConnector("fitbit"), 7, true));
+        // em.persist(new ConnectorInfo("Withings BPM",
+        // "/images/connectors/connector-focus-whithings.jpg", "Text " +
+        // moreLink(Connector.getConnector("WITHINGS")),
+        // "ajax:/withings/enterCredentials",
+        // Connector.getConnector("WITHINGS"), 4));
 		// em.persist(new ConnectorInfo("Freshbooks",
 		// "/images/connectors/connector-freshbooks.jpeg",
 		// res.getString("freshbooks"), "/freshbooks/token",
@@ -121,34 +127,39 @@ public class SystemServiceImpl implements SystemService {
 		// "/google/oauth2/token?scope=http://picasaweb.google.com/data/",
 		// Api.fromValue("PICASA"), 8));
 		em.persist(new ConnectorInfo("Picasa",
-				"/images/connectors/connector-picasa.jpg", res
-						.getString("picasa"), "/picasa/token", Connector
-						.getConnector("picasa"), 8, true));
+				                     "/images/connectors/connector-picasa.jpg",
+                                     res.getString("picasa"),
+                                     "/picasa/token",
+                                     Connector.getConnector("picasa"), 8, true));
 		em.persist(new ConnectorInfo("Google Latitude",
-				"/images/connectors/connector-google_latitude.jpg", res
-						.getString("google_latitude"),
-				"/google/oauth2/token?scope=https://www.googleapis.com/auth/latitude.all.best", Connector
-						.getConnector("google_latitude"), 9, true));
+				                     "/images/connectors/connector-google_latitude.jpg",
+                                     res.getString("google_latitude"),
+				                     "/google/oauth2/token?scope=https://www.googleapis.com/auth/latitude.all.best",
+                                     Connector.getConnector("google_latitude"), 9, true));
 		em.persist(new ConnectorInfo("Last fm",
-				"/images/connectors/connector-lastfm.jpg", res
-						.getString("lastfm"), "/lastfm/token", Connector
-						.getConnector("LASTFM"), 10, true));
+				                     "/images/connectors/connector-lastfm.jpg",
+                                     res.getString("lastfm"),
+                                     "/lastfm/token",
+                                     Connector.getConnector("LASTFM"), 10, true));
 		em.persist(new ConnectorInfo("SMS Backup",
-				"/images/connectors/connector-sms_backup.jpg", res
-						.getString("sms_backup"),
-				"ajax:/smsBackup/enterCredentials", Connector
-						.getConnector("SMS_BACKUP"), 11, false));
+				                     "/images/connectors/connector-sms_backup.jpg",
+                                     res.getString("sms_backup"),
+				                     "ajax:/smsBackup/enterCredentials",
+                                     Connector.getConnector("SMS_BACKUP"), 11, false));
 		em.persist(new ConnectorInfo("Twitter",
-				"/images/connectors/connector-twitter.jpg", res
-						.getString("twitter"), "/twitter/token", Connector
-						.getConnector("twitter"), 12, true));
-		String flickrDesc = res.getString("flickr");
+				                     "/images/connectors/connector-twitter.jpg",
+                                     res.getString("twitter"), "/twitter/token",
+                                     Connector.getConnector("twitter"), 12, true));
 		em.persist(new ConnectorInfo("Flickr",
-				"/images/connectors/connector-flickr.jpg", flickrDesc,
-				"/flickr/token", Connector.getConnector("flickr"), 13, false));
+				                     "/images/connectors/connector-flickr.jpg",
+                                     res.getString("flickr"),
+                                     "/flickr/token",
+                                     Connector.getConnector("flickr"), 13, false));
 		em.persist(new ConnectorInfo("BodyMedia",
-				"/images/connectors/connector-bodymedia.jpg", res.getString("bodymedia"),
-				"/bodymedia/token", Connector.getConnector("bodymedia"), 14, true));
+				                     "/images/connectors/connector-bodymedia.jpg",
+                                     res.getString("bodymedia"),
+                                     "/bodymedia/token",
+                                     Connector.getConnector("bodymedia"), 14, true));
 		// em.persist(new ConnectorInfo("Dropbox",
 		// "/images/connectors/connector-dropbox.jpg",
 		// res.getString("dropbox"),
@@ -191,7 +202,9 @@ public class SystemServiceImpl implements SystemService {
             .append(env.get("singly.client.id"))
             .append("&redirect_uri=")
             .append(env.get("homeBaseUrl"))
-            .append("singly/" + service + "/callback")
+            .append("singly/")
+                    .append(service)
+                    .append("/callback")
             .append("&service=")
             .append(service)).toString();
     }
