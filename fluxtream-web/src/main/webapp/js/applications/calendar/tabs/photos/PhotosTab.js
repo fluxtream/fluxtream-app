@@ -9,6 +9,7 @@ define(["core/Tab",
 
 
     function render(params) {
+        params.setTabParam(null);
         this.getTemplate("text!applications/calendar/tabs/photos/photos.html", "photos", function() {
             if (params.calendarState == oldState)
                 return;

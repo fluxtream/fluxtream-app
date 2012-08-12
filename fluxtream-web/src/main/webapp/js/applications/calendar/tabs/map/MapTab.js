@@ -9,6 +9,7 @@ define(["core/Tab",
     var oldState = null;
 
     function render(params) {
+        params.setTabParam(null);
         this.getTemplate("text!applications/calendar/tabs/map/map.html", "map", function(){
             if (params.calendarState == oldState)
                 return;

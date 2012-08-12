@@ -20,7 +20,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
     App.addHideTooltipListener(hideEventInfo);
 
 	function render(params) {
-
+        params.setTabParam(null);
         hideEventInfo();
         this.getTemplate("text!applications/calendar/tabs/clock/clock.html", "clock", function() {
 			 setup(params.digest, params.timeUnit, params.connectorEnabled);
