@@ -121,7 +121,12 @@ public class MetadataServiceImpl implements MetadataService {
 		}
 	}
 
-	@Transactional(readOnly = false)
+    @Override
+    public List<DayMetadataFacet> getAllDayMetadata(final long guestId) {
+        return JPAUtils.find(em, DayMetadataFacet.class,"context.all",guestId);
+    }
+
+    @Transactional(readOnly = false)
 	public DayMetadataFacet copyNextDailyContextualInfo(long guestId,
 			String date) {
 		DayMetadataFacet next = getNextExistingDayMetadata(guestId, date);

@@ -32,41 +32,42 @@ define([ "core/FlxState" ], function(FlxState) {
 	};
 
     Tab.prototype.getTabContents = function(uri, id, domReady, isResource, forceLoad, tabData) {
-		var nextTabId = this.appname + "-" + id + "-tab",
-            nextTabDiv = $("#"+nextTabId),
-            that = this;
-		var noTab = $(".tab").length==0;
-		var tabChanged = $(".tab").length>0
-			&& $(".tab.active").length>0
-			&& $(".tab.active").attr("id")!=nextTabId;
-		if ( noTab || tabChanged || forceLoad) {
-			if (tabChanged) {
-				var currentTabDiv = $(".tab.active");
-				currentTabDiv.removeClass("active");
-				currentTabDiv.addClass("dormant");
-			}
-			if (nextTabDiv.length==0 || forceLoad) {
-				if (isResource)
-					require([uri], function(template) {
-                        that.insertTabContents(template, nextTabId, domReady, forceLoad, tabData);
-					});
-				else
-					$.ajax({
-						url : uri,
-						success: function(html) {
-							that.insertTabContents(html, nextTabId, domReady, forceLoad, tabData);
-						}
-					});
-			} else {
-				nextTabDiv.removeClass("dormant");
-				nextTabDiv.addClass("active");
-				if (domReady!=null)
-					domReady();
-			}
-		} else {
-			if (domReady!=null)
-				domReady();
-		}		
+        var that = this;
+        var onContenetsRetrieved = function(html){
+            var nextTabId = that.appname + "-" + id + "-tab",
+                nextTabDiv = $("#"+nextTabId);
+            var noTab = $(".tab").length==0;
+            var tabChanged = $(".tab").length>0
+                                 && $(".tab.active").length>0
+                && $(".tab.active").attr("id")!=nextTabId;
+            if ( noTab || tabChanged || forceLoad) {
+                if (tabChanged) {
+                    var currentTabDiv = $(".tab.active");
+                    currentTabDiv.removeClass("active");
+                    currentTabDiv.addClass("dormant");
+                }
+                if (nextTabDiv.length==0 || forceLoad) {
+                    that.insertTabContents(html, nextTabId, domReady, forceLoad, tabData);
+
+                } else {
+                    nextTabDiv.removeClass("dormant");
+                    nextTabDiv.addClass("active");
+                    if (domReady!=null)
+                        domReady();
+                }
+            } else {
+                if (domReady!=null)
+                    domReady();
+            }
+
+        }
+        if (isResource)
+            require([uri], onContenetsRetrieved);
+        else
+            $.ajax({
+                url : uri,
+                success: onContenetsRetrieved
+            });
 		
 	};
 	

@@ -18,6 +18,7 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
     }
 
     function render(params) {
+        params.setTabParam(null);
         digest = params.digest;
         connectorEnabled = params.connectorEnabled;
         this.getTemplate("text!applications/calendar/tabs/timeline/template.html", "timeline", function() {

@@ -18,21 +18,21 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                 activity_summary:{
                     list: true,
                     photos: false,
-                    map: true,
+                    map: false,
                     gps: false,
                     clock: null
                 },
                 logged_activity:{
                     list: true,
                     photos: false,
-                    map: true,
+                    map: false,
                     gps: false,
                     clock: null
                 },
                 sleep:{
                     list: true,
                     photos: false,
-                    map: true,
+                    map: false,
                     gps: false,
                     clock: ClockConfig.BODY_CATEGORY
                 }
