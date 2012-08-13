@@ -28,8 +28,23 @@
 .flx-sourceFilters4 a.zeo {
   border-bottom-color: #ffb200;
 }
+.flx-sourceFilters4 a.github {
+  border-bottom-color: #cc6600;
+}
+.flx-sourceFilters4 a.grapher {
+  border-bottom-color: #660033;
+}
+.flx-sourceFilters4 a.instagram {
+  border-bottom-color: #666633;
+}
+.flx-sourceFilters4 a.sms {
+  border-bottom-color: #336699;
+}
+.flx-sourceFilters4 a.quantifiedmind {
+  border-bottom-color: #ff6633;
+}
 .flx-deviceIcon {
-  background-size: 44px 1240px;
+  background-size: 44px 1440px;
   width: 42px;
   height: 42px;
   background-repeat: no-repeat;
@@ -112,6 +127,55 @@
 .flx-deviceIcon.smsbackup-call-log-out {
   background-position: 0 -799px;
 }
+.flx-deviceIcon.github-push {
+  background-position: 0 -1262px;
+}
+.flx-deviceIcon.quantifiedmind {
+  background-position: 0 -1360px;
+}
+.flx-deviceIcon.grapher {
+  background-position: 0 -1218px;
+}
+.flx-deviceIcon.bloodpressure {
+  background-position: 0 -1309px;
+}
+.flx-listItem .flx-box.twitter {
+  border-left-color: #9233ef;
+}
+.flx-listItem .flx-box.bm {
+  border-left-color: #c79409;
+}
+.flx-listItem .flx-box.picasa {
+  border-left-color: #8c2ebb;
+}
+.flx-listItem .flx-box.fitbit {
+  border-left-color: #21b5cf;
+}
+.flx-listItem .flx-box.calendar {
+  border-left-color: #92da46;
+}
+.flx-listItem .flx-box.withings,
+.flx-listItem .flx-box.blood-pressure {
+  border-left-color: #16924e;
+}
+.flx-listItem .flx-box.lastfm {
+  border-left-color: #fd4938;
+}
+.flx-listItem .flx-box.instagram {
+  border-left-color: #666633;
+}
+.flx-listItem .flx-box.sms {
+  border-left-color: #336699;
+}
+.flx-listItem .flx-box.grapher {
+  border-left-color: #660033;
+}
+.flx-listItem .flx-box.quantifiedmind {
+  border-left-color: #ff6633;
+}
+.flx-listItem .flx-box.github {
+  border-left-color: #cc6600;
+}
 ::selection {
   background: #ffff9e;
 }
@@ -163,7 +227,7 @@ body {
   background-image: url('../../images/bg.gif');
   height: 100%;
   overflow-x: hidden;
-  color: #000000;
+  color: #333333;
 }
 html {
   height: 100%;
@@ -279,7 +343,7 @@ div#currentTimespanLabel span {
 .emptyList {
   width: 100%;
   text-align: center;
-  color: #000000;
+  color: #333333;
 }
 /* icons */
 *[class|='flx-icon'] {
@@ -501,6 +565,36 @@ a img {
   -o-box-shadow: 0 0px 4px rgba(80, 80, 80, 0.6);
   box-shadow: 0 0px 4px rgba(80, 80, 80, 0.6);
 }
+/*
+.flx-deviceIcon { background-size:44px 1240px; width: 42px; height: 42px; background-repeat: no-repeat; float:left; margin-right: 10px; background-image: url(../images/devices-ic.png);} 
+.flx-deviceIcon.withings { background-position: 0 -1173px; }
+.flx-deviceIcon.fitbit { background-position: 0 -1088px; }
+.flx-deviceIcon.twitter-tweet { background-position: 0 -128px; }
+.flx-deviceIcon.twitter-dm-in { background-position: 0 -421px; }
+.flx-deviceIcon.twitter-dm-out { background-position: 0 -464px; }
+.flx-deviceIcon.twitter-mention { background-position: 0 -508px; }
+.flx-deviceIcon.zeo-sleep { background-position: 0 -4px; }
+.flx-deviceIcon.calendar { background-position: 0 -255px; }
+.flx-deviceIcon.lastfm { background-position: 0 -86px; }
+.flx-deviceIcon.bm-sleep { background-position: 0 -632px; }
+.flx-deviceIcon.bm-steps { background-position: 0 -675px; }
+.flx-deviceIcon.bm-burn { background-position: 0 -588px; }
+.flx-deviceIcon.latitude { background-position: 0 -355px; }
+.flx-deviceIcon.picasa { background-position: 0 -924px; }
+.flx-deviceIcon.withings-blood_pressure { background-position: 0 -339px; }
+.flx-deviceIcon.bodymedia-burn { background-position: 0 -589px; }
+.flx-deviceIcon.bodymedia-sleep { background-position: 0 -633px; }
+.flx-deviceIcon.bodymedia-steps { background-position: 0 -673px; }
+.flx-deviceIcon.fitbit-activity_summary { background-position: 0 -1088px; }
+.flx-deviceIcon.fitbit-logged_activity { background-position: 0 -1131px; }
+.flx-deviceIcon.fitbit-sleep { background-position: 0 -1050px; }
+.flx-deviceIcon.flickr-photo { background-position: 0 -924px; }
+.flx-deviceIcon.instagram-photo { background-position: 0 -924px; }
+.flx-deviceIcon.smsbackup-call-log-in { background-position: 0 -840px; }
+.flx-deviceIcon.smsbackup-call-log-out { background-position: 0 -799px; }
+.flx-deviceIcon.github-push { background-position: 0 -799px; }
+
+*/
 .flx-toolTipData .flx-data {
   max-width: 270px;
   overflow: hidden;
@@ -508,7 +602,7 @@ a img {
 }
 .flx-toolTipData .flx-data span {
   font-size: 14px;
-  color: #8c8c8c;
+  color: #bfbfbf;
 }
 .flx-toolTipData .flx-tTime {
   font-size: 16px;
@@ -516,7 +610,7 @@ a img {
 }
 .flx-toolTipData .flx-tTime span {
   font-size: 11px;
-  color: #8c8c8c;
+  color: #bfbfbf;
 }
 .flx-miniGraph {
   float: left;
@@ -649,8 +743,8 @@ a img {
   color: #808080;
 }
 .flx-sourceFilters4 li a.flx-disconnected {
-  border-bottom-color: #cccccc;
-  color: #cccccc;
+  border-bottom-color: #b3b3b3;
+  color: #b3b3b3;
   cursor: default;
   border-bottom-width: 1px;
   padding-bottom: 10px;
@@ -829,7 +923,7 @@ table .remove i {
 }
 .flx-channel .flx-channel-name h4 {
   font-size: 18px;
-  color: #4d4d4d;
+  color: #808080;
 }
 .flx-channel .flx-channel-name p {
   margin: 0;
@@ -978,7 +1072,7 @@ table .remove i {
   font-size: 14px;
 }
 .set-device .flx-channel-table .description {
-  color: #737373;
+  color: #a6a6a6;
   line-height: 21px;
 }
 .flx-nav-list {
@@ -988,7 +1082,7 @@ table .remove i {
   overflow: hidden;
   height: 100%;
   padding: 15px 15px;
-  border: 1px solid #e6e6e6;
+  border: 1px solid #e5e5e5;
   border-left-width: 5px;
   margin-bottom: 5px;
   max-width: 693px;
@@ -1011,7 +1105,7 @@ table .remove i {
   text-transform: none;
 }
 .flx-listItem .flx-box .flx-tRange {
-  color: #999999;
+  color: #cccccc;
   font-size: 14px;
   text-transform: none;
   padding: 0 13px 0 10px;
@@ -1023,13 +1117,13 @@ table .remove i {
 }
 .flx-listItem .flx-box .flx-tRange span span {
   font-size: 15px;
-  color: #000000;
+  color: #333333;
   display: inline;
 }
 .flx-listItem .flx-box .flx-description {
   overflow: hidden;
   height: 100%;
-  color: #333333;
+  color: #666666;
   display: block;
   max-width: 450px;
 }
@@ -1040,30 +1134,16 @@ table .remove i {
 .flx-listItem .flx-box .flx-more {
   color: #999999;
 }
-.flx-listItem .flx-box.twitter {
-  border-left-color: #9233ef;
-}
-.flx-listItem .flx-box.bm {
-  border-left-color: #c79409;
-}
-.flx-listItem .flx-box.picasa {
-  border-left-color: #8c2ebb;
-}
-.flx-listItem .flx-box.fitbit {
-  border-left-color: #21b5cf;
-}
-.flx-listItem .flx-box.calendar {
-  border-left-color: #92da46;
-}
-.flx-listItem .flx-box.withings {
-  border-left-color: #16924e;
-}
-.flx-listItem .flx-box.lastfm {
-  border-left-color: #fd4938;
-}
-.flx-listItem .flx-box.bodymedia {
-  border-left-color: #ae5c5c;
-}
+/*
+.flx-listItem .flx-box.twitter { border-left-color: @twitter; }
+.flx-listItem .flx-box.bm { border-left-color: @bodyTrack; }
+.flx-listItem .flx-box.picasa { border-left-color: @picasa; }
+.flx-listItem .flx-box.fitbit { border-left-color: @fitbit; }
+.flx-listItem .flx-box.calendar { border-left-color: @ggleCal; }
+.flx-listItem .flx-box.withings { border-left-color: @withings; }
+.flx-listItem .flx-box.lastfm { border-left-color: @lastFM; }
+.flx-listItem .flx-box.bodymedia { border-left-color: @bodymedia; }
+*/
 .flx-listItem .gathered {
   padding-bottom: 0;
 }
@@ -1077,11 +1157,11 @@ table .remove i {
 }
 .flx-text {
   font-size: 14px;
-  color: #000000;
+  color: #333333;
   line-height: 12px;
 }
 .flx-widget-typo {
-  color: #333333;
+  color: #666666;
 }
 .flx-widget-typo .main-widget-data {
   position: relative;
@@ -1091,7 +1171,7 @@ table .remove i {
   position: absolute;
   top: 50px;
   left: 0;
-  color: #666666;
+  color: #999999;
   font-size: 4em;
   width: 100%;
   font-weight: bold;

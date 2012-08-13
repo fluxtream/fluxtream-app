@@ -300,14 +300,44 @@
         <div class="row-fluid"> 
             <div class="flx-listItem">
                 <div class="flx-box" style="border-left-color:{{color}}">
-                    <span class="flx-deviceIcon instagram-photo"></span>
+                    <span class="flx-deviceIcon github-push"></span>
                     <div class="flx-tTime">12:48 <span>pm</span></div>
                     <div class="flx-data">
-                        <span style="background:url('/images/avatarDummies/malarkey.png'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
-                        <span class="flx-description">I took this picture of a triple talented bastard</span>
+                        <span class="flx-description">commit sprite of connectors icons</span>
                     </div>
                 </div>
             </div>
+            <div class="flx-listItem">
+                <div class="flx-box" style="border-left-color:{{color}}">
+                    <span class="flx-deviceIcon quantifiedmind"></span>
+                    <div class="flx-tTime">12:48 <span>pm</span></div>
+                    <div class="flx-data">
+                        <span class="flx-description">scored <strong>78</strong> at Coffee experiment</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flx-listItem">
+                <div class="flx-box" style="border-left-color:{{color}}">
+                    <span class="flx-deviceIcon grapher"></span>
+                    <div class="flx-tTime">12:48 <span>pm</span></div>
+                    <div class="flx-data">
+                        <span style="background:url('/images/avatarDummies/graphdummy.png'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
+                        <span class="flx-description">A graph of some data</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flx-listItem">
+                <div class="flx-box" style="border-left-color:{{color}}">
+                    <span class="flx-deviceIcon bloodpressure"></span>
+                    <div class="flx-tTime">12:48 <span>pm</span></div>
+                    <div class="flx-data">
+                        <span class="flx-description"><strong>125 </strong>mmHG <strong>Systolic</strong></span>
+                        <span class="flx-description"><strong>84 </strong>mmHG <strong>Dyastolic</strong></span>
+                        <span class="flx-description"><strong>62 </strong>pulsations/min.</span>
+                    </div>
+                </div>
+            </div>
+            
             <div class="flx-listItem">
                 <div class="flx-box gathered" style="border-left-color:{{color}}">
                     <span class="flx-deviceIcon smsbackup-call-log-out"></span>

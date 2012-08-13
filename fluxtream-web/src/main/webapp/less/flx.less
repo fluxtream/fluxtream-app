@@ -262,13 +262,12 @@ a img { text-decoration: none; }
 
 // colors
 @white : #fff;
-@black : #000;
 @link-blue : #08C;
 @link-green : #07900c;
 @green-background:#B3E065;
 @border-color : #DDDDD9;
 @hd-bg-color : #EEEEE9;
-@grey : lighten(@black, 50%);
+@grey : lighten(@black, 30%);
 @tTborder : #08C;
 @strongBorder : 4px; 
 
@@ -346,6 +345,38 @@ a img { text-decoration: none; }
     }
     
 //---- once upon a time there was here a few lines about connectors icons
+
+/*
+.flx-deviceIcon { background-size:44px 1240px; width: 42px; height: 42px; background-repeat: no-repeat; float:left; margin-right: 10px; background-image: url(../images/devices-ic.png);} 
+.flx-deviceIcon.withings { background-position: 0 -1173px; }
+.flx-deviceIcon.fitbit { background-position: 0 -1088px; }
+.flx-deviceIcon.twitter-tweet { background-position: 0 -128px; }
+.flx-deviceIcon.twitter-dm-in { background-position: 0 -421px; }
+.flx-deviceIcon.twitter-dm-out { background-position: 0 -464px; }
+.flx-deviceIcon.twitter-mention { background-position: 0 -508px; }
+.flx-deviceIcon.zeo-sleep { background-position: 0 -4px; }
+.flx-deviceIcon.calendar { background-position: 0 -255px; }
+.flx-deviceIcon.lastfm { background-position: 0 -86px; }
+.flx-deviceIcon.bm-sleep { background-position: 0 -632px; }
+.flx-deviceIcon.bm-steps { background-position: 0 -675px; }
+.flx-deviceIcon.bm-burn { background-position: 0 -588px; }
+.flx-deviceIcon.latitude { background-position: 0 -355px; }
+.flx-deviceIcon.picasa { background-position: 0 -924px; }
+.flx-deviceIcon.withings-blood_pressure { background-position: 0 -339px; }
+.flx-deviceIcon.bodymedia-burn { background-position: 0 -589px; }
+.flx-deviceIcon.bodymedia-sleep { background-position: 0 -633px; }
+.flx-deviceIcon.bodymedia-steps { background-position: 0 -673px; }
+.flx-deviceIcon.fitbit-activity_summary { background-position: 0 -1088px; }
+.flx-deviceIcon.fitbit-logged_activity { background-position: 0 -1131px; }
+.flx-deviceIcon.fitbit-sleep { background-position: 0 -1050px; }
+.flx-deviceIcon.flickr-photo { background-position: 0 -924px; }
+.flx-deviceIcon.instagram-photo { background-position: 0 -924px; }
+.flx-deviceIcon.smsbackup-call-log-in { background-position: 0 -840px; }
+.flx-deviceIcon.smsbackup-call-log-out { background-position: 0 -799px; }
+.flx-deviceIcon.github-push { background-position: 0 -799px; }
+
+*/
+
 //---- they live appart now but are invoqued on top of this file ******
 
 
@@ -397,7 +428,7 @@ a img { text-decoration: none; }
 
         
         .flx-active { border-bottom-width: 4px; padding-bottom: 7px; color: @grey;}
-        a.flx-disconnected { border-bottom-color: lighten(@grey, 30%);color: lighten(@grey, 30%); cursor:default; border-bottom-width: 1px; padding-bottom:10px;}
+        a.flx-disconnected { border-bottom-color: lighten(@grey, 20%);color: lighten(@grey, 20%); cursor:default; border-bottom-width: 1px; padding-bottom:10px;}
         a:hover { text-decoration:none; 
         //border-bottom-width: 4px; padding-bottom: 7px; 
         background-color: lighten(@grey, 45%); }
@@ -564,10 +595,10 @@ table .remove { text-align:center;
 
 //---------LIST 
 
-.flx-listItem .flx-box { overflow: hidden; height: 100%; padding: 15px 15px; border: 1px solid lighten(@black, 90%); border-left-width: 5px; margin-bottom:5px; max-width: 693px; border-radius : 3px;
+.flx-listItem .flx-box { overflow: hidden; height: 100%; padding: 15px 15px; border: 1px solid lighten(@black, 70%); border-left-width: 5px; margin-bottom:5px; max-width: 693px; border-radius : 3px;
      .flx-deviceIcon, .flx-tTime, .flx-tRange { .flx-floatL }
      .flx-tTime { padding: 0 13px 0 10px; min-width:62px; height: 42px; font-size: 15px; 
-        span {color: lighten(@black, 60%); font-size:11px; text-transform: none;}
+        span {color: lighten(@black, 40%); font-size:11px; text-transform: none;}
      }
      .flx-tRange { color: lighten(@black, 60%); font-size:14px; text-transform: none; padding: 0 13px 0 10px; min-width:62px; height: 42px; 
          span { display: block;
@@ -581,6 +612,7 @@ table .remove { text-align:center;
  }
 
 
+/*
 .flx-listItem .flx-box.twitter { border-left-color: @twitter; }
 .flx-listItem .flx-box.bm { border-left-color: @bodyTrack; }
 .flx-listItem .flx-box.picasa { border-left-color: @picasa; }
@@ -589,6 +621,7 @@ table .remove { text-align:center;
 .flx-listItem .flx-box.withings { border-left-color: @withings; }
 .flx-listItem .flx-box.lastfm { border-left-color: @lastFM; }
 .flx-listItem .flx-box.bodymedia { border-left-color: @bodymedia; }
+*/
 
 
 .flx-listItem .gathered { padding-bottom:0; }
@@ -624,6 +657,10 @@ table .remove { text-align:center;
 
 
 //----------------- DISCARDED SNIPPETS
+
+// css styles bellow are there for archive backup only
+
+
 
 .flx-sourceFilters1 { list-style-type: none; overflow:hidden; height:100%;
     li { .flx-floatL;border-right: 1px solid transparent; padding-bottom: 20px;
