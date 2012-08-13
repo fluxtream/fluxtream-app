@@ -1132,7 +1132,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 /* add event handler for the Show all Y range link */
                 $("#" + channelElementId + " #" + channelElementId + "_btnShowAllY").click(function(event) {
                     event.preventDefault();
-                    var plot = plotsMap[channelElementId];
+                    var plot = grapher.plotsMap[channelElementId];
                     if (!(plot && !!plot.getStatistics)) {
                         // Photo plots don't have a getStatistics method
                         return false;
