@@ -112,7 +112,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 axis        : 'y',
                 tolerance   : 'pointer',
                 containment : "#" + grapher.grapherId + "_timeline_channels",
-                merge		: function(event, ui) {
+                /*merge		: function(event, ui) {
                     var templateValues = {
                         "deviceName"       : "Devices",
                         "channelName"      : "Compare Stub",
@@ -132,7 +132,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 },
                 mergeout	: function(event, ui) {
                     $(ui.droppable.item[0]).removeClass("_timeline_channel_hover");
-                },
+                },*/
                 receive     : function(event, ui) {	// received new channel to add
                     var i, l, c;
                     var src = sourcesMap[dragSourceId];
