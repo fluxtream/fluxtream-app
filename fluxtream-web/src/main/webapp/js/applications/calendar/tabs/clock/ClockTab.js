@@ -291,10 +291,10 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         var contents = facet.getDetails();
 
         showToolTip(tip_x,tip_y,offsetX,offsetY,contents,event.minuteOfDay,$(event.target).attr("stroke"),$(event.target).parent().parent(),
-                    markers[0] == null ? null : markers[0].getPosition());
+                    markers[0] == null ? null : markers[0].getPosition(),App.getFacetConnector(facet.type));
 	}
 
-    function showToolTip(x,y, offX, offY,contents,minute,color,parent,gpsPos){
+    function showToolTip(x,y, offX, offY,contents,minute,color,parent,gpsPos,sourceName){
         var weatherInfo = getWeatherData(minute);
         var weatherIcon;
         if (minute < solarInfo.sunrise || minute > solarInfo.sunset){//night
@@ -399,7 +399,20 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 
             ttpdiv.imagesLoaded(function(){
                 repositionTooltip();
-            })
+            });
+
+            $("#tootltipLoadList").click(function(event){
+                event.preventDefault();
+                $(".calendar-list-tab").click();
+            });
+            $("#tooltipLoadTimeLine").click(function(event){
+                event.preventDefault();
+                $(".calendar-timeline-tab").click();
+            });
+            $("#tooltipLoadBodyTrack").click(function(event){
+                event.preventDefault();
+                App.renderApp('bodytrack','/grapher/source/' + sourceName);
+            });
        });
 
     }
