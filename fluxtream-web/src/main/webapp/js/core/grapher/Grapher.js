@@ -11,6 +11,8 @@ define(["core/grapher/BTCore"], function(BTCore) {
         var grapher = this;
         for (var param in options)
             grapher[param] = options[param];
+        if (grapher.onLoad == null)
+            grapher.onLoad = function(){};
         App.loadMustacheTemplate("core/grapher/timelineTemplates.html","mainGrapherApp",function(template){
             parentElement.append(template.render(grapher));
             setup(grapher);
@@ -102,6 +104,11 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 var onload = grapher.onLoad;
                 grapher.onLoad = null;
                 onload();
+                $.doTimeout(1000,function(){
+                    $.ajax("/api/timezones/mapping",{success:function(mapping){
+                        grapher.dateAxis.setTimeZoneMapping(mapping);
+                    }});
+                });
             }
         });
 
