@@ -117,7 +117,7 @@ public class BodyTrackController {
     @Path("/tiles/{UID}/{DeviceNickname}.{ChannelName}/{Level}.{Offset}.json")
     @Produces({MediaType.APPLICATION_JSON})
     public String fetchTile(@PathParam("UID") Long uid, @PathParam("DeviceNickname") String deviceNickname,
-                                   @PathParam("ChannelName") String channelName, @PathParam("Level") int level, @PathParam("Offset") int offset){
+                                   @PathParam("ChannelName") String channelName, @PathParam("Level") int level, @PathParam("Offset") long offset){
         try{
             if (!checkForPermissionAccess(uid)){
                 uid = null;
