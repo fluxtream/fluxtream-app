@@ -95,6 +95,7 @@ public class BodyTrackController {
 
     @POST
     @Path("/upload")
+    @Consumes({MediaType.MULTIPART_FORM_DATA,MediaType.APPLICATION_FORM_URLENCODED})
     @Produces({MediaType.APPLICATION_JSON})
     public String uploadToBodytrack(@FormParam("dev_nickname") String deviceNickanme, @FormParam("channel_names") String channels,
                                     @FormParam("data") String data){
