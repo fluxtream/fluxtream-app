@@ -95,6 +95,7 @@ public class ZeoSleepStatsFacetExtractor extends AbstractFacetExtractor {
 		c.set(Calendar.MONTH, month - 1);
 		c.set(Calendar.SECOND, seconds);
 		c.set(Calendar.YEAR, year);
+        c.set(Calendar.MILLISECOND,0);
 
 		if (key.equals("bedTime"))
 			facet.endTimeStorage = toTimeStorage(year, month, day, hours, minutes, seconds);
