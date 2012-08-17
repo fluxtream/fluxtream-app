@@ -45,7 +45,7 @@ define(["core/Application", "core/FlxState", "core/TabInterface"], function(Appl
     BodyTrack.saveState = function() {
     };
 
-    BodyTrack.renderState = function(state) {
+    BodyTrack.renderState = function(state, forceReload, params) {
         if (state===null) state = "";
         else if (state.indexOf("/") != 0) state = "/" + state;
 
@@ -56,8 +56,9 @@ define(["core/Application", "core/FlxState", "core/TabInterface"], function(Appl
             this.renderState(tabNames[0]);
             return;
         }
+        params.stateParts = splits;
         tabInterface.setRenderParamsFunction(function(){
-            return {stateParts:splits};
+            return params;
         });
         tabInterface.setActiveTab(tabName);
 
@@ -72,7 +73,7 @@ define(["core/Application", "core/FlxState", "core/TabInterface"], function(Appl
         tabInterface.setTabVisibility(tabNames,true);
         var bt = this;
         tabInterface.getNav().addClickListener(function(tabName){
-            bt.renderState(tabName);
+            bt.render(tabName);
         });
     };
 

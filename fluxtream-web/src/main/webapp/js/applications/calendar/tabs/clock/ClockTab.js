@@ -411,7 +411,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             });
             $("#tooltipLoadBodyTrack").click(function(event){
                 event.preventDefault();
-                App.renderApp('bodytrack','/grapher/source/' + sourceName);
+                App.renderApp('bodytrack','/grapher/source/' + sourceName,{tbounds: {start:dayStart,end:dayEnd}});
             });
        });
 

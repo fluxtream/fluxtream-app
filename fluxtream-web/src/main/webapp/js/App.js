@@ -127,10 +127,12 @@ define(
             });
         }
 
-        function renderApp(appName,state) {
+        function renderApp(appName,state,params) {
+            if (params == null)
+                params = {};
             App.activeApp.saveState();
             App.activeApp=App.apps[appName];
-            App.apps[appName].render(state);
+            App.apps[appName].render(state,params);
         }
 
         App.settings = function() {
