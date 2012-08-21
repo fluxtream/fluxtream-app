@@ -32,7 +32,7 @@ public class BodyMediaBurnFieldHandler implements FieldHandler {
         List<List<Object>> data = new ArrayList<List<Object>>();
         for(int i=0; i<burnJson.size(); i++) {
             JSONObject jsonRecord = burnJson.getJSONObject(i);
-            long when = (facet.start/1000) + 60;
+            long when = (facet.start/1000) + 60*i;
             final String source = jsonRecord.getString("source");
             final double mets = jsonRecord.getDouble("mets");
             final int caloriesBurned = jsonRecord.getInt("cals");
