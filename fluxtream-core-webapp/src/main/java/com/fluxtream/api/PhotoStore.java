@@ -22,6 +22,7 @@ import com.fluxtream.connectors.vos.AbstractPhotoFacetVO;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
+import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.domain.metadata.City;
 import com.fluxtream.domain.metadata.DayMetadataFacet;
 import com.fluxtream.mvc.controllers.ControllerHelper;
@@ -30,6 +31,7 @@ import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
+import com.fluxtream.services.SettingsService;
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -41,6 +43,9 @@ import org.springframework.stereotype.Component;
 public class PhotoStore {
 
     private Gson gson = new Gson();
+
+    @Autowired
+    SettingsService settingsService;
 
     @Autowired
     private ApiDataService apiDataService;
@@ -89,7 +94,7 @@ public class PhotoStore {
                                                                                           "-" + datePartFormat.format(c.get(Calendar.DAY_OF_MONTH)), true);
             return gson.toJson(getPhotos(guest, new TimeInterval(dayMetaStart.start,dayMetaEnd.end,TimeUnit.WEEK,TimeZone.getTimeZone(dayMetaStart.timeZone))));
         } catch (Exception e){
-            StatusModel result = new StatusModel(false, "Could not get guest addresses: " + e.getMessage());
+            StatusModel result = new StatusModel(false, "Could not get photos: " + e.getMessage());
             return gson.toJson(result);
         }
     }
@@ -106,7 +111,7 @@ public class PhotoStore {
             DayMetadataFacet dayMetaEnd = metadataService.getDayMetadata(guest.getId(), year + "-12-31", true);
             return gson.toJson(getPhotos(guest, new TimeInterval(dayMetaStart.start,dayMetaEnd.end,TimeUnit.WEEK,TimeZone.getTimeZone(dayMetaStart.timeZone))));
         } catch (Exception e){
-            StatusModel result = new StatusModel(false, "Could not get guest addresses: " + e.getMessage());
+            StatusModel result = new StatusModel(false, "Could not get photos: " + e.getMessage());
             return gson.toJson(result);
         }
 
@@ -122,6 +127,7 @@ public class PhotoStore {
 
 
     private List<PhotoModel> getPhotos(Guest guest, TimeInterval timeInterval) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+        GuestSettings settings = settingsService.getSettings(guest.getId());
         List<ApiKey> userKeys = guestService.getApiKeys(guest.getId());
         List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
         for (ApiKey key : userKeys){
@@ -138,7 +144,7 @@ public class PhotoStore {
         for (AbstractFacet facet : facets) {
             Class<? extends AbstractFacetVO<AbstractFacet>> jsonFacetClass = AbstractFacetVO.getFacetVOClass(facet);
             AbstractInstantFacetVO<AbstractFacet> facetVo = (AbstractInstantFacetVO<AbstractFacet>) jsonFacetClass.newInstance();
-            facetVo.extractValues(facet, timeInterval, null);
+            facetVo.extractValues(facet, timeInterval, settings);
             photos.add(new PhotoModel((AbstractPhotoFacetVO) facetVo));
         }
         Collections.sort(photos,new Comparator<PhotoModel>(){
