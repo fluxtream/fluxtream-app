@@ -23,7 +23,7 @@ public class GithubUpdater extends AbstractUpdater {
 
     @Autowired
     GuestService guestService;
-
+    
     public GithubUpdater() {
         super();
     }

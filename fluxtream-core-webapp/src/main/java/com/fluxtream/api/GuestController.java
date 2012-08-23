@@ -2,6 +2,7 @@ package com.fluxtream.api;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.StringTokenizer;
 
 import javax.ws.rs.DELETE;
@@ -28,7 +29,6 @@ import com.fluxtream.domain.Guest;
 import com.fluxtream.mvc.controllers.ControllerHelper;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.mvc.models.guest.GuestModel;
-import com.fluxtream.mvc.models.guest.OAuthTokensModel;
 import com.fluxtream.services.GuestService;
 import com.google.gson.Gson;
 
@@ -64,7 +64,7 @@ public class GuestController {
         }
 	}
 
-	@GET
+    @GET
 	@Path("/{connector}/oauthTokens")
 	@Produces({ MediaType.APPLICATION_JSON })
 	public String getOAuthTokens(@PathParam("connector") String connectorName)
@@ -75,14 +75,11 @@ public class GuestController {
 
             ApiKey apiKey = guestService.getApiKey(guestId,
                                                    Connector.getConnector(connectorName));
-            if (apiKey != null) {
-                OAuthTokensModel oauthTokensModel = new OAuthTokensModel();
-                oauthTokensModel.accessToken = apiKey.getAttributeValue(
-                        "accessToken", env);
-                oauthTokensModel.tokenSecret = apiKey.getAttributeValue(
-                        "tokenSecret", env);
 
-                return gson.toJson(oauthTokensModel);
+            if (apiKey != null) {
+                final Map<String,String> atts = apiKey.getAttributes(env);
+
+                return gson.toJson(atts);
             } else {
                 StatusModel result = new StatusModel(false,
                         "Guest does not have that connector: " + connectorName);
@@ -168,7 +165,7 @@ public class GuestController {
 	}
 
 	@GET
-	@Path("/all")
+	@Path("/list")
 	@Produces({ MediaType.APPLICATION_JSON })
 	public String list() throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException {
@@ -180,6 +177,7 @@ public class GuestController {
                 guestJson.accumulate("username", guest.username)
                         .accumulate("firstname", guest.firstname)
                         .accumulate("lastname", guest.lastname)
+                        .accumulate("email", guest.email)
                         .accumulate("roles", guest.getUserRoles());
                 array.add(guestJson);
             }

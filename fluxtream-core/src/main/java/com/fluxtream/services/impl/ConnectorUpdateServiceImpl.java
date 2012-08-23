@@ -69,38 +69,47 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 	}
 
     @Override
-    public List<ScheduleResult> updateConnector(final long guestId, Connector connector){
-        int[] objectTypeValues = connector.objectTypeValues();
+    public List<ScheduleResult> updateConnector(final long guestId, Connector connector, boolean force){
         List<ScheduleResult> scheduleResults = new ArrayList<ScheduleResult>();
+        if (connector.updateStrategyType()== Connector.UpdateStrategyType.PUSH)
+            return scheduleResults;
+        int[] objectTypeValues = connector.objectTypeValues();
         for (int objectTypes : objectTypeValues) {
-            scheduleObjectTypeUpdate(guestId, connector, objectTypes, scheduleResults);
+            scheduleObjectTypeUpdate(guestId, connector, objectTypes, scheduleResults, force);
         }
         return scheduleResults;
     }
 
     @Override
-    public List<ScheduleResult> updateConnectorObjectType(final long guestId, final Connector connector, int objectTypes) {
+    public List<ScheduleResult> updateConnectorObjectType(final long guestId, final Connector connector, int objectTypes, boolean force) {
         List<ScheduleResult> scheduleResults = new ArrayList<ScheduleResult>();
+        if (connector.updateStrategyType()== Connector.UpdateStrategyType.PUSH)
+            return scheduleResults;
         getScheduledUpdateTask(guestId, connector.getName(), objectTypes);
-        scheduleObjectTypeUpdate(guestId, connector, objectTypes, scheduleResults);
+        scheduleObjectTypeUpdate(guestId, connector, objectTypes, scheduleResults, force);
         return scheduleResults;
     }
 
     /**
-     * Schedules a new update if there is no update for the user for this ObjectType
+     * Schedules a new update if there is no update for the user for this ObjectType and <code>force</code> is false
      * @param guestId The user's id
      * @param connector The Connector that is to be updated
      * @param objectTypes the integer bitmask of object types to be updated
      * @param scheduleResults The result of adding the update will be added to the list. \result.type will be of type
      *                        ScheduleResult.ResultType. If there was a previously existing \result.type will be
      *                        ALREADY_SCHEDULED
+     * @param force force an update (sync now)
      */
-    private void scheduleObjectTypeUpdate(long guestId, Connector connector, int objectTypes, List<ScheduleResult> scheduleResults) {
+    private void scheduleObjectTypeUpdate(long guestId, Connector connector, int objectTypes,
+                                          List<ScheduleResult> scheduleResults, boolean force) {
         UpdateWorkerTask updateWorkerTask = getScheduledUpdateTask(guestId, connector.getName(), objectTypes);
-        if (updateWorkerTask != null) {
+        if (!force && updateWorkerTask != null) {
             scheduleResults.add(new ScheduleResult(connector.getName(), objectTypes, ScheduleResult.ResultType.ALREADY_SCHEDULED, updateWorkerTask.timeScheduled));
         }
         else {
+            if (force)
+                deleteScheduledUpdateTasks(guestId, connector);
+
             UpdateType updateType = isHistoryUpdateCompleted(guestId, connector.getName(), objectTypes)
                                                ? UpdateType.INCREMENTAL_UPDATE
                                                : UpdateType.INITIAL_HISTORY_UPDATE;
@@ -119,7 +128,9 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
             }
             else {
                 Connector connector = connectors.get(i).getApi();
-                List<ScheduleResult> updateRes = updateConnector(guestId, connector);
+                if (connector.updateStrategyType()== Connector.UpdateStrategyType.PUSH)
+                    continue;
+                List<ScheduleResult> updateRes = updateConnector(guestId, connector, false);
                 scheduleResults.addAll(updateRes);
             }
         }
@@ -375,7 +386,8 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 	@Override
 	public void deleteScheduledUpdateTasks(long guestId, Connector connector) {
 		JPAUtils.execute(em, "updateWorkerTasks.delete.byApi", guestId,
-				connector.getName());
+				connector.getName(),
+                UpdateType.INITIAL_HISTORY_UPDATE);
 	}
 
 	@Override
@@ -433,14 +445,5 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
         return seen.values();
     }
 
-    @Override
-	public Set<Long> getConnectorGuests(Connector connector) {
-		List<ApiKey> keys = JPAUtils.find(em, ApiKey.class, "apiKeys.byConnector", connector.value());
-		Set<Long> guestIds = new HashSet<Long>();
-		for (ApiKey key : keys) {
-			guestIds.add(key.getGuestId());
-		}
-		return guestIds;
-	}
 
 }

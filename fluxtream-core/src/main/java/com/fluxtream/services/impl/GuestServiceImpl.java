@@ -3,7 +3,7 @@ package com.fluxtream.services.impl;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.Map;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
@@ -11,23 +11,11 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-
-import com.fluxtream.connectors.OAuth2Helper;
-import com.fluxtream.connectors.google_latitude.LocationFacet;
-import net.sf.json.JSONObject;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.security.access.annotation.Secured;
-import org.springframework.security.authentication.encoding.ShaPasswordEncoder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.fluxtream.Configuration;
 import com.fluxtream.auth.FlxUserDetails;
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.connectors.OAuth2Helper;
+import com.fluxtream.connectors.google_latitude.LocationFacet;
 import com.fluxtream.domain.AbstractUserProfile;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ApiKeyAttribute;
@@ -43,6 +31,15 @@ import com.fluxtream.utils.RandomString;
 import com.fluxtream.utils.SecurityUtils;
 import com.maxmind.geoip.Location;
 import com.maxmind.geoip.LookupService;
+import net.sf.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.authentication.encoding.ShaPasswordEncoder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Transactional(readOnly = true)
 @Service
@@ -189,7 +186,17 @@ public class GuestServiceImpl implements GuestService {
 		return apiKey.getAttributeValue(key, env);
 	}
 
-	@Override
+    @Override
+    public Map<String, String> getApiKeyAttributes(final long guestId, final Connector api, final String key) {
+        ApiKey apiKey = JPAUtils.findUnique(em, ApiKey.class, "apiKey.byApi",
+                                            guestId, api.value());
+        if (apiKey == null)
+            return null;
+
+        return apiKey.getAttributes(env);
+    }
+
+    @Override
 	public List<ApiKey> getApiKeys(long guestId) {
         return JPAUtils.find(em, ApiKey.class, "apiKeys.all",
                 guestId);
@@ -210,7 +217,7 @@ public class GuestServiceImpl implements GuestService {
 
 	@Override
 	@Transactional(readOnly = false)
-    @Secured({ "ROLE_ADMIN", "ROLE_ROOT" })
+    @Secured("ROLE_ADMIN")
 	public void eraseGuestInfo(String username) throws Exception {
 		Guest guest = getGuest(username);
 		if (guest == null)
@@ -231,7 +238,7 @@ public class GuestServiceImpl implements GuestService {
 	}
 
 	@Override
-    @Secured({ "ROLE_ADMIN", "ROLE_ROOT" })
+    @Secured("ROLE_ADMIN")
 	public List<Guest> getAllGuests() {
 		List<Guest> all = JPAUtils.find(em, Guest.class, "guests.all",
 				(Object[]) null);
@@ -243,7 +250,7 @@ public class GuestServiceImpl implements GuestService {
 
 	@Override
 	@Transactional(readOnly = false)
-	@Secured({ "ROLE_ADMIN", "ROLE_ROOT" })
+	@Secured("ROLE_ADMIN")
 	public void addRole(long guestId, String role) {
 		Guest guest = getGuestById(guestId);
 		if (guest.hasRole(role))
@@ -255,7 +262,7 @@ public class GuestServiceImpl implements GuestService {
 
 	@Override
 	@Transactional(readOnly = false)
-	@Secured({ "ROLE_ADMIN", "ROLE_ROOT" })
+	@Secured("ROLE_ADMIN")
 	public void removeRole(long guestId, String role) {
 		Guest guest = getGuestById(guestId);
 		if (!guest.hasRole(role))

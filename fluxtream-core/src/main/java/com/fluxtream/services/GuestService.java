@@ -2,6 +2,7 @@ package com.fluxtream.services;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.AbstractUserProfile;
@@ -38,7 +39,9 @@ public interface GuestService {
 
 	public String getApiKeyAttribute(long guestId, Connector api, String key);
 
-	public List<ApiKey> getApiKeys(long guestId);
+    public Map<String,String> getApiKeyAttributes(long guestId, Connector api, String key);
+
+    public List<ApiKey> getApiKeys(long guestId);
 
 	public boolean hasApiKey(long guestId, Connector api);
 

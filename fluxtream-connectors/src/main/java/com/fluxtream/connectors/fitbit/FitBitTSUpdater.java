@@ -7,6 +7,8 @@ import java.util.TimeZone;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.fluxtream.domain.Notification;
+import com.fluxtream.services.NotificationsService;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
@@ -62,6 +64,9 @@ public class FitBitTSUpdater extends AbstractUpdater {
 
 	@Autowired
 	ApiDataService apiDataService;
+
+    @Autowired
+    NotificationsService notificationsService;
 
 	private static final DateTimeFormatter dateFormat = DateTimeFormat
 			.forPattern("yyyy-MM-dd");
@@ -432,19 +437,22 @@ public class FitBitTSUpdater extends AbstractUpdater {
 				String ownerId = jsonUpdate.getString("ownerId");
 				String subscriptionId = jsonUpdate.getString("subscriptionId");
 
-				int objectTypes = 0;
+                FitbitUserProfile userProfile = jpaDaoService.findOne("fitbitUser.byEncodedId", FitbitUserProfile.class, ownerId);
+
+                long guestId = userProfile.guestId;
+
+                int objectTypes = 0;
 				if (collectionType.equals("foods")
 						|| collectionType.equals("body")) {
+                    notificationsService.addNotification(guestId, Notification.Type.INFO, "Received new body info from Fitbit");
 					continue;
 				} else if (collectionType.equals("activities")) {
-					objectTypes = 3;
+                    notificationsService.addNotification(guestId, Notification.Type.INFO, "Received new activity info from Fitbit");
+                    objectTypes = 3;
 				} else if (collectionType.equals("sleep")) {
-					objectTypes = 4;
+                    notificationsService.addNotification(guestId, Notification.Type.INFO, "Received new sleep info from Fitbit");
+                    objectTypes = 4;
 				}
-
-				FitbitUserProfile userProfile = jpaDaoService.findOne(
-						"fitbitUser.byEncodedId", FitbitUserProfile.class,
-						ownerId);
 
 				connectorUpdateService.addApiNotification(connector(),
 						userProfile.guestId, updatesString);

@@ -1,6 +1,8 @@
 package com.fluxtream.domain;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
@@ -70,6 +72,16 @@ public class ApiKey extends AbstractEntity {
 		}
 		return null;
 	}
+
+    public Map<String,String> getAttributes(Configuration env) {
+        Map<String,String> atts = new HashMap<String, String>();
+        if (attributes==null) return atts;
+        for (ApiKeyAttribute attribute : attributes) {
+            String attValue = env.decrypt(attribute.attributeValue);
+            atts.put(attribute.attributeKey, attValue);
+        }
+        return atts;
+    }
 
 	public void removeAttribute(String key) {
 		ApiKeyAttribute attribute = getAttribute(key);
