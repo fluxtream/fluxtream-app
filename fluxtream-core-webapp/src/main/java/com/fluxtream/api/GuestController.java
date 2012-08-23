@@ -174,7 +174,8 @@ public class GuestController {
             JSONArray array = new JSONArray();
             for (Guest guest : list) {
                 JSONObject guestJson = new JSONObject();
-                guestJson.accumulate("username", guest.username)
+                guestJson.accumulate("id", guest.getId())
+                        .accumulate("username", guest.username)
                         .accumulate("firstname", guest.firstname)
                         .accumulate("lastname", guest.lastname)
                         .accumulate("email", guest.email)
