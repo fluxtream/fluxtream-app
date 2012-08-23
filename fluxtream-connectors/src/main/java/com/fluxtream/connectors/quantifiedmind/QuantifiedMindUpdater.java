@@ -55,13 +55,18 @@ public class QuantifiedMindUpdater extends AbstractUpdater {
                                                        Connector.getConnector("quantifiedmind"),
                                                        "token");
         try {
-            boolean partialResult = true;
+            boolean partialResult = false;
+            String start_time = null;
             do {
                 queryUrl = "http://www.quantified-mind.com/api/get_session_data?username=" + username + "&token=" + token;
+                if (partialResult)
+                    queryUrl += "&start_time=" + start_time;
                 final String json = HttpUtils.fetch(queryUrl, env);
                 JSONObject jsonObject = JSONObject.fromObject(json);
                 String status = jsonObject.getString("status");
                 partialResult = status.equals("partial");
+                if (partialResult)
+                    start_time = jsonObject.getString("next_date");
                 JSONArray sessionData = jsonObject.getJSONArray("session_data");
                 final String sessionDataJSON = sessionData.toString();
                 apiDataService.cacheApiDataJSON(updateInfo, sessionDataJSON, -1, -1);
