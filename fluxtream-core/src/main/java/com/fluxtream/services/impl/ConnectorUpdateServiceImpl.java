@@ -71,8 +71,6 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
     @Override
     public List<ScheduleResult> updateConnector(final long guestId, Connector connector, boolean force){
         List<ScheduleResult> scheduleResults = new ArrayList<ScheduleResult>();
-        if (connector.updateStrategyType()== Connector.UpdateStrategyType.PUSH)
-            return scheduleResults;
         int[] objectTypeValues = connector.objectTypeValues();
         for (int objectTypes : objectTypeValues) {
             scheduleObjectTypeUpdate(guestId, connector, objectTypes, scheduleResults, force);
@@ -83,8 +81,6 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
     @Override
     public List<ScheduleResult> updateConnectorObjectType(final long guestId, final Connector connector, int objectTypes, boolean force) {
         List<ScheduleResult> scheduleResults = new ArrayList<ScheduleResult>();
-        if (connector.updateStrategyType()== Connector.UpdateStrategyType.PUSH)
-            return scheduleResults;
         getScheduledUpdateTask(guestId, connector.getName(), objectTypes);
         scheduleObjectTypeUpdate(guestId, connector, objectTypes, scheduleResults, force);
         return scheduleResults;
@@ -108,11 +104,14 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
         }
         else {
             if (force)
-                deleteScheduledUpdateTasks(guestId, connector);
+                deleteScheduledUpdateTasks(guestId, connector, false);
 
             UpdateType updateType = isHistoryUpdateCompleted(guestId, connector.getName(), objectTypes)
                                                ? UpdateType.INCREMENTAL_UPDATE
                                                : UpdateType.INITIAL_HISTORY_UPDATE;
+            // PUSH-type connectors don't need to be updated incrementally
+            if (connector.updateStrategyType()== Connector.UpdateStrategyType.PUSH && updateType==UpdateType.INCREMENTAL_UPDATE)
+                return;
             final ScheduleResult scheduleResult = scheduleUpdate(guestId, connector.getName(), objectTypes, updateType, System.currentTimeMillis());
             scheduleResults.add(scheduleResult);
         }
@@ -382,13 +381,25 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
         return System.currentTimeMillis()-updateWorkerTask.timeScheduled>3600000;
     }
 
+    /**
+     * delete pending tasks for a guest's connector
+     * @param guestId
+     * @param connector
+     * @param wipeOutHistory wether to delete everything including the initial history update that
+     *                       we use to track wether we need to everything from scratch or just do so
+     *                       incrementally
+     */
 	@Transactional(readOnly = false)
 	@Override
-	public void deleteScheduledUpdateTasks(long guestId, Connector connector) {
-		JPAUtils.execute(em, "updateWorkerTasks.delete.byApi", guestId,
-				connector.getName(),
-                UpdateType.INITIAL_HISTORY_UPDATE);
-	}
+	public void deleteScheduledUpdateTasks(long guestId, Connector connector, boolean wipeOutHistory) {
+        if (!wipeOutHistory)
+            JPAUtils.execute(em, "updateWorkerTasks.delete.byApi", guestId,
+                    connector.getName(),
+                    UpdateType.INITIAL_HISTORY_UPDATE);
+        else
+            JPAUtils.execute(em, "updateWorkerTasks.deleteAll.byApi", guestId,
+                             connector.getName());
+    }
 
 	@Override
 	public long getTotalNumberOfGuestsUsingConnector(Connector connector) {

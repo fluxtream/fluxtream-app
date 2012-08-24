@@ -173,7 +173,7 @@ public class GuestServiceImpl implements GuestService {
 		if (connector == Connector.getConnector("google_latitude"))
 			JPAUtils.execute(em, "context.delete.all", guestId);
 		apiDataService.eraseApiData(guestId, connector);
-		connectorUpdateService.deleteScheduledUpdateTasks(guestId, connector);
+		connectorUpdateService.deleteScheduledUpdateTasks(guestId, connector, true);
 		updateConnectorConfigStateKey(guestId);
 	}
 

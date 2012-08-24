@@ -92,7 +92,7 @@ public interface ConnectorUpdateService {
 
     public Collection<UpdateWorkerTask> getUpdatingUpdateTasks(long guestId, Connector connector);
 
-	public void deleteScheduledUpdateTasks(long guestId, Connector connector);
+	public void deleteScheduledUpdateTasks(long guestId, Connector connector, boolean wipeOutHistory);
 
 	public long getTotalNumberOfGuestsUsingConnector(Connector connector);
 
