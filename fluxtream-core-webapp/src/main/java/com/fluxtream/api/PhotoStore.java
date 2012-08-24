@@ -1,36 +1,29 @@
 package com.fluxtream.api;
 
 import java.text.DecimalFormat;
-import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.TimeZone;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.TimeUnit;
-import com.fluxtream.connectors.ObjectType;
-import com.fluxtream.connectors.vos.AbstractFacetVO;
 import com.fluxtream.connectors.vos.AbstractInstantFacetVO;
 import com.fluxtream.connectors.vos.AbstractPhotoFacetVO;
 import com.fluxtream.domain.AbstractFacet;
-import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
-import com.fluxtream.domain.GuestSettings;
-import com.fluxtream.domain.metadata.City;
 import com.fluxtream.domain.metadata.DayMetadataFacet;
-import com.fluxtream.mvc.controllers.ControllerHelper;
 import com.fluxtream.mvc.models.PhotoModel;
 import com.fluxtream.mvc.models.StatusModel;
-import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
+import com.fluxtream.services.PhotoService;
 import com.fluxtream.services.SettingsService;
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,10 +41,10 @@ public class PhotoStore {
     SettingsService settingsService;
 
     @Autowired
-    private ApiDataService apiDataService;
+    GuestService guestService;
 
     @Autowired
-    GuestService guestService;
+    PhotoService photoService;
 
     @Autowired
     MetadataService metadataService;
@@ -125,26 +118,10 @@ public class PhotoStore {
         return year % 4 == 0;
     }
 
-
     private List<PhotoModel> getPhotos(Guest guest, TimeInterval timeInterval) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
-        GuestSettings settings = settingsService.getSettings(guest.getId());
-        List<ApiKey> userKeys = guestService.getApiKeys(guest.getId());
-        List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
-        for (ApiKey key : userKeys){
-            if (!key.getConnector().hasImageObjectType())
-                continue;
-            ObjectType[] objectTypes = key.getConnector().objectTypes();
-            if (objectTypes == null)
-                facets.addAll(apiDataService.getApiDataFacets(guest.getId(), key.getConnector(), null, timeInterval));
-            else
-                for (ObjectType objectType : objectTypes)
-                    facets.addAll(apiDataService.getApiDataFacets(guest.getId(),key.getConnector(),objectType,timeInterval));
-        }
+        final List<AbstractInstantFacetVO<AbstractFacet>> facetVos = photoService.getPhotos(guest, timeInterval);
         List<PhotoModel> photos = new ArrayList<PhotoModel>();
-        for (AbstractFacet facet : facets) {
-            Class<? extends AbstractFacetVO<AbstractFacet>> jsonFacetClass = AbstractFacetVO.getFacetVOClass(facet);
-            AbstractInstantFacetVO<AbstractFacet> facetVo = (AbstractInstantFacetVO<AbstractFacet>) jsonFacetClass.newInstance();
-            facetVo.extractValues(facet, timeInterval, settings);
+        for (AbstractInstantFacetVO<AbstractFacet> facetVo : facetVos){
             photos.add(new PhotoModel((AbstractPhotoFacetVO) facetVo));
         }
         Collections.sort(photos,new Comparator<PhotoModel>(){
