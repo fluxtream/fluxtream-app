@@ -81,7 +81,7 @@ public class PicasaUpdater extends AbstractGoogleOAuthUpdater {
 			if (from != 0) {
 				entries = new ArrayList<PhotoEntry>();
 				for (PhotoEntry photoEntry : allEntries) {
-					if (photoEntry.getTimestamp().getTime() > from)
+					if (photoEntry.getUpdated().getValue() > from)
 						entries.add(photoEntry);
 				}
 			} else

@@ -96,7 +96,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 		payload.guestId = updateInfo.apiKey.getGuestId();
 		payload.timeUpdated = System.currentTimeMillis();
 
-		em.persist(payload);
+        persistFacet(payload);
 	}
 
 	/**

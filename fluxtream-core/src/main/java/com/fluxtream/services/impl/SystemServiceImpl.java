@@ -94,8 +94,8 @@ public class SystemServiceImpl implements SystemService {
                                      res.getString("zeo"),
                                      "ajax:/zeo/enterCredentials",
                                      Connector.getConnector("zeo"), 3, true));
-		em.persist(new ConnectorInfo("Withings B Scale",
-				                     "/images/connectors/connector-withings-bodyscale.jpg",
+		em.persist(new ConnectorInfo("Withings",
+				                     "/images/connectors/connector-withings.jpg",
                                      res.getString("withings"),
                                      "ajax:/withings/enterCredentials",
                                      Connector.getConnector("WITHINGS"), 4, true));

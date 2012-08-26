@@ -113,6 +113,7 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
         BodyTrack.SOURCES.getAvailableList(function(sources){
             var source = null;
             for (var i = 0; i < sources.length; i++){
+                console.log("source.name: " + sources[i].name + " <-> " + connector.name);
                 if (sources[i].name == connector.name){
                     source = sources[i];
                     break;
@@ -124,6 +125,8 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
                     displayName: source.name + "." + source.channels[i].name
                 };
             }
+            console.log("channelNames");
+            console.log(channelNames);
             App.loadMustacheTemplate("connectorMgmtTemplates.html","settings",function(template){
                 App.makeModal(template.render({
                     connectorName:connector.connectorName,

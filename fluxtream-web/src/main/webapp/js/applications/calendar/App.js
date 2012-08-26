@@ -150,7 +150,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     }
 
 	function fetchState(verb, url) {
-		$(".calendar-navigation-button").toggleClass("disabled");
+        $(".calendar-navigation-button").addClass("disabled");
 		$(".loading").show();
 		$("#tabs").css("opacity", ".3");
 		$.ajax({ url:url,
@@ -319,7 +319,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 processDigest(Calendar.digest);
 				Builder.updateTab(Calendar.digest, Calendar);
 				$("#tabs").css("opacity", "1");
-				$(".calendar-navigation-button").toggleClass("disabled");
+				$(".calendar-navigation-button").removeClass("disabled");
 				$(".loading").hide();
                 Builder.handleNotifications(response);
 			},

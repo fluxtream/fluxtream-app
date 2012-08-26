@@ -29,6 +29,13 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                     gps: false,
                     clock: null
                 },
+                body:{
+                    list: true,
+                    photos: false,
+                    map: false,
+                    gps: false,
+                    clock: ClockConfig.BODY_CATEGORY
+                },
                 sleep:{
                     list: true,
                     photos: false,
@@ -83,7 +90,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                     photos: false,
                     map: true,
                     gps: false,
-                    clock: null
+                    clock: ClockConfig.BODY_CATEGORY
                 }
             }
         },
@@ -157,7 +164,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                 }
             }
         },
-        bodymedia:{//TODO: properly configure bodymedia and facets
+        bodymedia:{
             color: "rgb(160, 67, 175)",
             mapicon: "http://maps.google.com/mapfiles/marker.png",
             mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
@@ -185,7 +192,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                 }
             }
         },
-        flickr:{//TODO: properly configure flickr and facets
+        flickr:{
             color: "",
             mapicon: "http://maps.google.com/mapfiles/marker.png",
             mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
@@ -199,7 +206,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                 }
             }
         },
-        sms_backup:{//TODO: properly configure sms_backup and facets
+        sms_backup:{
             color: "",
             mapicon: "http://maps.google.com/mapfiles/marker.png",
             mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
@@ -220,7 +227,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                 }
             }
         },
-        zeo:{//TODO: properly configure zeo and facets
+        zeo:{
             color: "rgb(255, 178, 0)",
             mapicon: "http://maps.google.com/mapfiles/marker.png",
             mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
@@ -234,7 +241,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                 }
             }
         },
-        toodledo:{//TODO: properly configure toodledo and facets
+        toodledo:{
             color: "",
             mapicon: "http://maps.google.com/mapfiles/marker.png",
             mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
@@ -255,7 +262,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                 }
             }
         },
-        openpath:{//TODO: properly configure openpath and facets
+        openpath:{
             color: "",
             mapicon : new google.maps.MarkerImage("https://www.google.com/latitude/apps/static/red_measle.png",null,null,new google.maps.Point(5,5),null),
             mapshadow: null,

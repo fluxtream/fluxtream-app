@@ -135,7 +135,7 @@
 </template>
 <template id="fitbit-sleep">
     <div class="flx-box" style="border-left-color:{{color}}">
-        <span class="flx-deviceIcon fitbit-sleep"></span>
+        <span class="flx-deviceIcon fitbit"></span>
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
@@ -152,6 +152,26 @@
                     <span class="flx-text">{{#startTime}}{{hours}}:{{minutes}}{{/startTime}}</span>
                     <span class="flx-dataLabel">Awake</span>
                     <span class="flx-text">{{minutesAwake.hours}} hours {{minutesAwake.minutes}} minutes</span>
+                </div>
+            </div>
+            {{/facets}}
+        </div>
+    </div>
+</template>
+<template id="fitbit-body">
+    <div class="flx-box" style="border-left-color:{{color}}">
+        <span class="flx-deviceIcon fitbit-sleep"></span>
+        <div class="facetDetails">
+            {{#facets}}
+            <div class="facetDetails">
+                <!--<div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>-->
+                <div class="flx-data">
+                    <span class="flx-dataLabel">Weight</span>
+                    <span class="flx-text">{{weight}} {{weightUnitLabel}}</span>
+                    <span class="flx-dataLabel">Fat</span>
+                    <span class="flx-text">{{fat}} {{weightUnitLabel}}</span>
+                    <span class="flx-dataLabel">Fat Percentage</span>
+                    <span class="flx-text">{{fatPercentage}} %</span>
                 </div>
             </div>
             {{/facets}}

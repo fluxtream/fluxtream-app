@@ -78,16 +78,18 @@ public class GoogleOAuth2Controller {
 		
 		Guest guest = ControllerHelper.getGuest();
 
-		guestService.setApiKeyAttribute(guest.getId(), scopedApi,
+        final String refresh_token = token.getString("refresh_token");
+
+        guestService.setApiKeyAttribute(guest.getId(), scopedApi,
 				"accessToken", token.getString("access_token"));
 		guestService.setApiKeyAttribute(guest.getId(), scopedApi,
 				"tokenExpires", String.valueOf(System.currentTimeMillis() + (token.getLong("expires_in")*1000)));
-		guestService.setApiKeyAttribute(guest.getId(), scopedApi,
-				"refreshToken", token.getString("refresh_token"));
+        guestService.setApiKeyAttribute(guest.getId(), scopedApi,
+				"refreshToken", refresh_token);
         guestService.setApiKeyAttribute(guest.getId(), scopedApi,
                                         "refreshTokenRemoveURL",
                                         "https://accounts.google.com/o/oauth2/revoke?token="
-                                        + token.getString("refresh_token"));
+                                        + refresh_token);
 
         return "redirect:/app/from/"+scopedApi.getName();
     }

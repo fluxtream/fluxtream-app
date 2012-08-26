@@ -38,14 +38,62 @@ public class FitbitFacetExtractor extends AbstractFacetExtractor {
 			extractSummaryActivityInfo(apiData, fitbitResponse, facets);
 		else if (objectType.getName().equals("logged_activity"))
 			extractLoggedActivities(apiData, fitbitResponse, facets);
-		else
+        else if (objectType.getName().equals("body"))
+            extractBodyMeasurementsInfo(apiData, fitbitResponse, facets);
+        else
 			logger.info("guestId=" + apiData.updateInfo.getGuestId() +
 					" connector=fitbit action=extractFacets error=no such objectType");
 
 		return facets;
 	}
 
-	private void extractSummaryActivityInfo(ApiData apiData,
+    private void extractBodyMeasurementsInfo(final ApiData apiData, final JSONObject fitbitResponse, final List<AbstractFacet> facets) {
+        long guestId = apiData.updateInfo.getGuestId();
+        logger.info("guestId=" + guestId +
+                    " connector=fitbit action=extractSummaryActivityInfo");
+
+        FitbitBodyMeasurementFacet facet = new FitbitBodyMeasurementFacet();
+
+        JSONObject fitbitBodyMeasurements = fitbitResponse.getJSONObject("body");
+
+        super.extractCommonFacetData(facet, apiData);
+
+        TimeZone timeZone = metadataService.getTimeZone(guestId, apiData.start);
+        logger.info(
+                "guestId=" + guestId +
+                " connector=fitbit action=extractBodyMeasurementsInfo time="
+                + apiData.start + " timeZone="
+                + timeZone.getDisplayName() + " date="
+                + apiData.getDate(timeZone));
+        facet.date = apiData.getDate(timeZone);
+
+        if (fitbitBodyMeasurements.containsKey("bicep"))
+            facet.bicep = fitbitBodyMeasurements.getDouble("bicep");
+        if (fitbitBodyMeasurements.containsKey("bmi"))
+            facet.bmi = fitbitBodyMeasurements.getDouble("bmi");
+        if (fitbitBodyMeasurements.containsKey("calf"))
+            facet.calf = fitbitBodyMeasurements.getDouble("calf");
+        if (fitbitBodyMeasurements.containsKey("chest"))
+            facet.chest = fitbitBodyMeasurements.getDouble("chest");
+        if (fitbitBodyMeasurements.containsKey("fat"))
+            facet.fat = fitbitBodyMeasurements.getDouble("fat");
+        if (fitbitBodyMeasurements.containsKey("forearm"))
+            facet.forearm = fitbitBodyMeasurements.getDouble("forearm");
+        if (fitbitBodyMeasurements.containsKey("hips"))
+            facet.hips = fitbitBodyMeasurements.getDouble("hips");
+        if (fitbitBodyMeasurements.containsKey("neck"))
+            facet.neck = fitbitBodyMeasurements.getDouble("neck");
+        if (fitbitBodyMeasurements.containsKey("thigh"))
+            facet.thigh = fitbitBodyMeasurements.getDouble("thigh");
+        if (fitbitBodyMeasurements.containsKey("waist"))
+            facet.waist = fitbitBodyMeasurements.getDouble("waist");
+        if (fitbitBodyMeasurements.containsKey("weight"))
+            facet.weight = fitbitBodyMeasurements.getDouble("weight");
+
+        facets.add(facet);
+    }
+
+    private void extractSummaryActivityInfo(ApiData apiData,
 			JSONObject fitbitResponse, List<AbstractFacet> facets) {
 		long guestId = apiData.updateInfo.getGuestId();
 		logger.info("guestId=" + guestId +
