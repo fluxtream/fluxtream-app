@@ -87,8 +87,8 @@ public abstract class AbstractFacetVO<T extends AbstractFacet> {
 		try {
 			String name = facet.getClass().getName();
 			if (voClasses.get(name) == null) {
-				name = name.substring(0, name.length() - 5);
-				String jsonFacetClassName = name + "FacetVO";
+				String namePrefix = name.substring(0, name.length() - 5);
+				String jsonFacetClassName = namePrefix + "FacetVO";
 				voClasses.put(name, (Class<? extends AbstractFacetVO<T>>) Class
 						.forName(jsonFacetClassName));
 			}
