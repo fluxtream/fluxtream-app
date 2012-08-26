@@ -1,6 +1,8 @@
 package com.fluxtream.mvc.controllers;
 
+import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +26,17 @@ public class ErrorController {
 
 	public final static String JSP_EXCEPTION_ATTR = "javax.servlet.jsp.jspException";
 
-	@RequestMapping(value = "/errors/{code}.html")
+    @RequestMapping(value = "/accessDenied")
+    public String accessDenied(HttpServletRequest request,
+                                     HttpServletResponse response) throws IOException {
+        if (request.getParameter("json")!=null) {
+            response.getWriter().write("{\"result\":\"KO\",\"message\":\"Access Denied\"}");
+            return null;
+        }
+        else return "accessDenied";
+    }
+
+                                  @RequestMapping(value = "/errors/{code}.html")
 	public ModelAndView handle404(@PathVariable("code") int code,
 			HttpServletRequest request) {
 		ModelAndView mav = new ModelAndView("error");
