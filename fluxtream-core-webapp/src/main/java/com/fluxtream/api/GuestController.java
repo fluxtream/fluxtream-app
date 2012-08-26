@@ -170,6 +170,8 @@ public class GuestController {
 	public String list() throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException {
         try{
+            final Guest me = ControllerHelper.getGuest();
+
             List<Guest> list = guestService.getAllGuests();
             JSONArray array = new JSONArray();
             for (Guest guest : list) {
