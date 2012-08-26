@@ -703,7 +703,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
        var d = new Date((week * 7 - 1) * 86400000 - - yearStart);
        var start = new Date(d);
        var end = new Date(d);
-       start.setDate(d.getDate() + 1 - (d.getDay()||7));
+       start.setDate(d.getDate() - (d.getDay()||7));
        end.setDate(d.getDate() + 7 - (d.getDay()||7));
        return [start,end];
    }
