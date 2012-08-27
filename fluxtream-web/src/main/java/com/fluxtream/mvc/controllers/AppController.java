@@ -61,7 +61,6 @@ public class AppController {
 		if (release != null)
 			mav.addObject("release", release);
 		String targetEnvironment = env.get("environment");
-		mav.addObject("prod", targetEnvironment.equals("prod"));
 		return mav;
 	}
 
@@ -72,7 +71,6 @@ public class AppController {
 
         ModelAndView mav = new ModelAndView("snippets");
         String targetEnvironment = env.get("environment");
-        mav.addObject("prod", targetEnvironment.equals("prod"));
         if (request.getSession(false) == null)
             return mav;
 
@@ -94,7 +92,6 @@ public class AppController {
 
         ModelAndView mav = new ModelAndView("snippets");
         String targetEnvironment = env.get("environment");
-        mav.addObject("prod", targetEnvironment.equals("prod"));
         if (request.getSession(false) == null)
             return mav;
 
@@ -116,7 +113,6 @@ public class AppController {
 
 		ModelAndView mav = new ModelAndView("redirect:main");
 		String targetEnvironment = env.get("environment");
-		mav.addObject("prod", targetEnvironment.equals("prod"));
 		if (request.getSession(false) == null)
 			return mav;
 

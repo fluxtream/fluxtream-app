@@ -40,14 +40,14 @@
             <label for="f_username">Username</label>
                 <input title="Username" autocorrect="off" autocapitalize="off" autocomplete="on" onkeypress="if(event.which==13) document.forms[0].submit();" id="f_username" name="f_username" placeholder="Username" value="<%=request.getParameter("username") != null ? request.getParameter("username") : ""%>" type="text">
             <label for="f_password">Password</label>
-                <input title="Password" value="" onkeypress="if(event.which==13) document.forms[0].submit();" id="f_password" name="f_password" placeholder="Password" type="password"></input>
+            <input title="Password" value="" onkeypress="if(event.which==13) document.forms[0].submit();" id="f_password" name="f_password" placeholder="Password" type="password"/>
             <input type="submit" value="Submit" class="btn " />
             <input type="hidden" name="login[_csrf_token]" value="965e5cf220b402ba98a8344266bb804d" id="login__csrf_token" />      </form>
 
         <form method="post" action="support/sendResetRequest" style="display:none" id="recoverForm">
 
             <label for="recover_email">Enter your email</label>      	<input title="Enter your email" type="text" name="recover[email]" id="recover_email" />
-            <input type="submit" id="mc-embedded-subscribe" class="btn" value="Submit">
+            <input type="submit" class="btn" value="Submit">
             <input type="hidden" name="recover[_csrf_token]" value="ebb981ef2ee1ad730d0e676d2af2336c" id="recover__csrf_token" />
         </form>
         <p id="recoverPasswordFeedback" style="display:none;" class="sysInfo">A confirmation link has been emailed to you_XXX</p>
@@ -89,7 +89,7 @@
     </div><!-- end .wrapper -->
     <div class="customer-card">
         <p><a href="http://www.flickr.com/people/25506891@N06/" target="_blank">Photo credit</a></p>
-        <h2><a href="http://creativecommons.org/licenses/by-nc-sa/2.0/deed.en" target="_blank">Nasos Zovo</h2></a>
+        <h2><a href="http://creativecommons.org/licenses/by-nc-sa/2.0/deed.en" target="_blank">Nasos Zovo</a></h2>
 
 
     </div>
@@ -217,20 +217,7 @@
     </div>
 </div>
 
-<script type="text/javascript"> // Tracker Google Analytics
-
-var _gaq = _gaq || [];
-_gaq.push(['_setAccount', 'UA-2318371-3']);
-_gaq.push(['_trackPageview']);
-
-(function() {
-    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-})();
-
-</script>
-
+<%@ include file="tracker.jsp"%>
 
 
 </body>

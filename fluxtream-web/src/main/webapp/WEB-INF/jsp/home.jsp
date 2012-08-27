@@ -2,7 +2,9 @@
 <%@ page pageEncoding="utf-8" contentType="text/html; charset=UTF-8"%><%@ taglib
 	prefix="c" uri="http://java.sun.com/jsp/jstl/core"%><%@ taglib
 	prefix="sec" uri="http://www.springframework.org/security/tags"%><%@ taglib
-	uri="http://granule.com/tags" prefix="g"%><!DOCTYPE html>
+	uri="http://granule.com/tags" prefix="g"%><%
+    Boolean local = (Boolean)request.getAttribute("local");
+%><!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -126,6 +128,7 @@
 				|| document
 						.write('<script src="/static/js/jquery-1.7.1.min.js"><\/script>')
 	</script>
+    <%@ include file="tracker.jsp"%>
     <script src="/static/js/bootstrap-2.0.2.min.js"></script>
     <g:compress>
 		<script src="/static/js/jquery-ui-1.8.18.custom.min.js"></script>
