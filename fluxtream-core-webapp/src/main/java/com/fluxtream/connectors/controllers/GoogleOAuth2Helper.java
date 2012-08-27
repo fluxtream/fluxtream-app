@@ -47,10 +47,12 @@ public class GoogleOAuth2Helper {
         String fetched = HttpUtils.fetch(swapTokenUrl, params, env);
 
         JSONObject token = JSONObject.fromObject(fetched);
+        final long now = System.currentTimeMillis();
+        long tokenExpires = now + (token.getLong("expires_in")*1000);
 
         guestService.setApiKeyAttribute(guestId, connector,
                                         "accessToken", token.getString("access_token"));
         guestService.setApiKeyAttribute(guestId, connector,
-                                        "tokenExpires", String.valueOf(System.currentTimeMillis() + (token.getLong("expires_in")*1000)));
+                                        "tokenExpires", String.valueOf(tokenExpires));
     }
 }
