@@ -1,4 +1,7 @@
 <!DOCTYPE html>
+<%
+    Boolean tracker = (Boolean)request.getAttribute("tracker");
+%>
 <html lang="en">
 <head>
     <meta charset="utf-8">
