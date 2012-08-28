@@ -26,7 +26,11 @@ public class QuantifiedMindTestFacetVO extends AbstractInstantFacetVO<Quantified
         this.test_name = facet.test_name;
         this.result_name = facet.result_name;
         this.session_timestamp = facet.session_timestamp;
-        this.result_value = facet.result_value;
+        this.result_value = round(facet.result_value);
+    }
+
+    double round(double v) {
+        return (double) Math.round(v * 100) / 100;
     }
 
 }

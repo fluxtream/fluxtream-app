@@ -14,8 +14,6 @@ import net.sf.json.JSONObject;
  */
 public class GithubPushFacetVO extends AbstractInstantFacetVO<GithubPushFacet> {
 
-    public String commitsJSON;
-
     public String repoName;
     public String repoURL;
 
@@ -25,10 +23,14 @@ public class GithubPushFacetVO extends AbstractInstantFacetVO<GithubPushFacet> {
         this.start = facet.start;
         this.repoName = facet.repoName;
         this.repoURL = facet.repoURL;
-        this.commitsJSON = facet.commitsJSON;
-        JSONArray jsonCommits = JSONArray.fromObject(commitsJSON);
-        if (jsonCommits!=null)
-            this.description = jsonCommits.size() + " commits";
+        JSONArray jsonCommits = JSONArray.fromObject(facet.commitsJSON);
+        StringBuilder sb = new StringBuilder();
+        for (int i=0; i<jsonCommits.size(); i++) {
+            JSONObject jsonObject = jsonCommits.getJSONObject(i);
+            if (i>0) sb.append(", ");
+            sb.append(jsonObject.getString("message"));
+        }
+        this.description = sb.toString();
     }
 
 }
