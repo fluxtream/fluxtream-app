@@ -152,6 +152,7 @@ public class GuestServiceImpl implements GuestService {
 			em.persist(apiKey);
 			updateConnectorConfigStateKey(guestId);
 		}
+        removeApiKeyAttribute(guestId, apiKey, key);
 		ApiKeyAttribute attr = new ApiKeyAttribute();
 		attr.attributeKey = key;
 		attr.setAttributeValue(value, env);
@@ -160,6 +161,13 @@ public class GuestServiceImpl implements GuestService {
 		em.merge(apiKey);
 		return apiKey;
 	}
+
+    @Transactional(readOnly = false)
+    private void removeApiKeyAttribute(long guestId, ApiKey apiKey, String key) {
+        List<ApiKeyAttribute> atts = JPAUtils.find(em, ApiKeyAttribute.class, "apiKeyAttribute.byKeyAndConnector", apiKey, key);
+        for (ApiKeyAttribute att : atts)
+            em.remove(att);
+    }
 
 	@Transactional(readOnly = false)
 	@Override

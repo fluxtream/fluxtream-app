@@ -221,7 +221,7 @@
 </div>
 
 <% if (tracker) { %>
-<%@ include file="tracker.jsp"%>
+<jsp:include page="tracker.jsp"/>
 <% } %>
 
 

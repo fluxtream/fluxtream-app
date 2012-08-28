@@ -69,7 +69,8 @@ public class AppController {
     private boolean hasTracker(HttpServletRequest request) {
         String trackerPath = request.getSession().getServletContext().getRealPath("/WEB-INF/jsp/tracker.jsp");
         File trackerFile = new File(trackerPath);
-        return trackerFile.exists();
+        final boolean fileExists = trackerFile.exists();
+        return fileExists;
     }
 
     @RequestMapping(value = { "/snippets" })
