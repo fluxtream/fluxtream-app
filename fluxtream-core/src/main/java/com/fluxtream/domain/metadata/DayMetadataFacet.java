@@ -25,7 +25,7 @@ import com.fluxtream.domain.AbstractFacet;
 	@NamedQuery( name="context.delete.all",
 		query="DELETE FROM ContextualInfo context WHERE context.guestId=?"),
 	@NamedQuery( name="context.day.when",
-		query="SELECT context FROM ContextualInfo context WHERE context.guestId=? AND context.start>? ORDER BY context.start DESC"),
+		query="SELECT context FROM ContextualInfo context WHERE context.guestId=? AND context.start<? and context.end>? ORDER BY context.start DESC"),
 	@NamedQuery( name="context.day.last",
 		query="SELECT context FROM ContextualInfo context WHERE context.guestId=? ORDER BY context.start DESC"),
 	@NamedQuery( name="context.day.oldest",

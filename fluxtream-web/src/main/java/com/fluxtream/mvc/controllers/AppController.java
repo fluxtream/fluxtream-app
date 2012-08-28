@@ -1,5 +1,6 @@
 package com.fluxtream.mvc.controllers;
 
+import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import javax.servlet.http.Cookie;
@@ -61,8 +62,15 @@ public class AppController {
 		if (release != null)
 			mav.addObject("release", release);
 		String targetEnvironment = env.get("environment");
+		mav.addObject("tracker", hasTracker(request));
 		return mav;
 	}
+
+    private boolean hasTracker(HttpServletRequest request) {
+        String trackerPath = request.getSession().getServletContext().getRealPath("/WEB-INF/jsp/tracker.jsp");
+        File trackerFile = new File(trackerPath);
+        return trackerFile.exists();
+    }
 
     @RequestMapping(value = { "/snippets" })
     public ModelAndView snippets(HttpServletRequest request) {
@@ -71,6 +79,7 @@ public class AppController {
 
         ModelAndView mav = new ModelAndView("snippets");
         String targetEnvironment = env.get("environment");
+        mav.addObject("tracker", hasTracker(request));
         if (request.getSession(false) == null)
             return mav;
 
@@ -92,6 +101,7 @@ public class AppController {
 
         ModelAndView mav = new ModelAndView("snippets");
         String targetEnvironment = env.get("environment");
+        mav.addObject("tracker", hasTracker(request));
         if (request.getSession(false) == null)
             return mav;
 
@@ -113,6 +123,7 @@ public class AppController {
 
 		ModelAndView mav = new ModelAndView("redirect:main");
 		String targetEnvironment = env.get("environment");
+        mav.addObject("tracker", hasTracker(request));
 		if (request.getSession(false) == null)
 			return mav;
 

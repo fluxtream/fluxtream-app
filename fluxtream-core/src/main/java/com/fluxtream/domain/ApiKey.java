@@ -1,7 +1,9 @@
 package com.fluxtream.domain;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -53,7 +55,14 @@ public class ApiKey extends AbstractEntity {
 
 	public void setAttribute(ApiKeyAttribute attr) {
 		attr.apiKey = this;
-		attributes.add(attr);
+        List<ApiKeyAttribute> toRemove = new ArrayList<ApiKeyAttribute>();
+        for (ApiKeyAttribute attribute : attributes) {
+            if (attribute.attributeKey.equals(attr.attributeKey))
+                toRemove.add(attribute);
+        }
+        for (ApiKeyAttribute attribute : toRemove)
+            attributes.remove(attribute);
+        attributes.add(attr);
 	}
 	
 	private ApiKeyAttribute getAttribute(String key) {
