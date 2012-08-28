@@ -154,7 +154,7 @@ public class SystemServiceImpl implements SystemService {
 				                     "/images/connectors/connector-flickr.jpg",
                                      res.getString("flickr"),
                                      "/flickr/token",
-                                     Connector.getConnector("flickr"), 13, false));
+                                     Connector.getConnector("flickr"), 13, true));
 		em.persist(new ConnectorInfo("BodyMedia",
 				                     "/images/connectors/connector-bodymedia.jpg",
                                      res.getString("bodymedia"),

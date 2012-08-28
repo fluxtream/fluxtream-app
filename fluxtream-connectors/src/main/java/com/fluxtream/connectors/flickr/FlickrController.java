@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -15,10 +16,11 @@ import java.util.TreeSet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import nu.xom.Element;
-
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
+import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -63,8 +65,8 @@ public class FlickrController {
 		params.put("method", "flickr.auth.getToken");
 		params.put("api_key", api_key);
 		params.put("frob", frob);
-		
-		String api_sig = sign(params);
+
+        String api_sig = sign(params);
 		
 		String getTokenUrl = "http://api.flickr.com/services/rest/" +
 			"?method=flickr.auth.getToken&api_key=" + api_key + "&frob=" + frob + "&api_sig=" + api_sig;
@@ -73,22 +75,31 @@ public class FlickrController {
 		long guestId = guest.getId();
 		
 		String authToken = fetch(getTokenUrl, env);
-		
+
+        StringReader stringReader = new StringReader(authToken);
+        StringBuilder sb = new StringBuilder();
+        final List<String> responseLines = IOUtils.readLines(stringReader);
+        sb.append("<root>");
+        for (int i=1; i<responseLines.size(); i++)
+            sb.append(responseLines.get(i));
+        sb.append("</root>");
+
         SAXReader reader = new SAXReader();
         Document document = reader.read(new StringReader(authToken));
 
-		Element user = (Element) document.selectSingleNode("auth/user");
+		Element user = (Element) document.selectSingleNode("rsp/auth/user");
 		
-		String username = user.getAttributeValue("username");
+		String username = user.attributeValue("username");
 		username = username.substring(1, username.length()-1);
 		
-		String nsid = user.getAttributeValue("nsid");
+		String nsid = user.attributeValue("nsid");
 		nsid = nsid.substring(1, nsid.length()-1);
 		
-		String fullname = user.getAttributeValue("fullname");
-		fullname = fullname.substring(1, fullname.length()-1);
+		String fullname = user.attributeValue("fullname");
+        if (StringUtils.isEmpty(fullname)&&fullname.length()>2)
+    		fullname = fullname.substring(1, fullname.length()-1);
 		
-		String token = document.selectSingleNode("auth/token/text()").getStringValue();
+		String token = document.selectSingleNode("rsp/auth/token/text()").getStringValue();
 		
 		Connector flickrConnector = Connector.getConnector("flickr");
 		
@@ -97,7 +108,7 @@ public class FlickrController {
 		guestService.setApiKeyAttribute(guestId, flickrConnector, "nsid", nsid);
 		guestService.setApiKeyAttribute(guestId, flickrConnector, "fullname", fullname);
 		
-		return "redirect://from/"+flickrConnector.getName();
+		return "redirect:/app/from/"+flickrConnector.getName();
 	}
 	
 	String sign(Map<String,String> parameters) throws NoSuchAlgorithmException {
