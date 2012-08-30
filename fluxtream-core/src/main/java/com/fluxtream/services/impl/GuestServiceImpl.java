@@ -150,7 +150,6 @@ public class GuestServiceImpl implements GuestService {
 			apiKey.setGuestId(guestId);
 			apiKey.setConnector(api);
 			em.persist(apiKey);
-			updateConnectorConfigStateKey(guestId);
 		}
         removeApiKeyAttribute(guestId, apiKey, key);
 		ApiKeyAttribute attr = new ApiKeyAttribute();
@@ -182,7 +181,8 @@ public class GuestServiceImpl implements GuestService {
 			JPAUtils.execute(em, "context.delete.all", guestId);
 		apiDataService.eraseApiData(guestId, connector);
 		connectorUpdateService.deleteScheduledUpdateTasks(guestId, connector, true);
-		updateConnectorConfigStateKey(guestId);
+        JPAUtils.execute(em, "tags.delete.all", guestId);
+        JPAUtils.execute(em, "notifications.delete.all", guestId);
 	}
 
 	@Override
@@ -400,13 +400,6 @@ public class GuestServiceImpl implements GuestService {
                         LocationFacet.Source.IP_TO_LOCATION);
 			}
 		}
-	}
-
-	@Override
-	@Transactional(readOnly = false)
-	public void updateConnectorConfigStateKey(long guestId) {
-		Guest guest = getGuestById(guestId);
-		guest.connectorConfigStateKey = randomString.nextString();
 	}
 
 }

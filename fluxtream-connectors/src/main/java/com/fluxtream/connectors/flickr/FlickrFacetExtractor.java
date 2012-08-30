@@ -5,9 +5,12 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import com.fluxtream.domain.Tag;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
+import org.apache.velocity.util.StringUtils;
+import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.stereotype.Component;
@@ -27,8 +30,8 @@ public class FlickrFacetExtractor extends AbstractFacetExtractor {
 			ObjectType objectType) {
 		List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
 
-		JSONObject feed = JSONObject.fromObject(apiData.json);
-		JSONObject photosWrapper = feed.getJSONObject("photos");
+        String feedString = apiData.jsonObject.toString();
+		JSONObject photosWrapper = apiData.jsonObject.getJSONObject("photos");
 
 		if (photosWrapper != null) {
 
@@ -51,24 +54,36 @@ public class FlickrFacetExtractor extends AbstractFacetExtractor {
 				facet.ispublic = Integer.valueOf(it.getString("ispublic")) == 1;
 				facet.isfriend = Integer.valueOf(it.getString("isfriend")) == 1;
 				facet.isfamily = Integer.valueOf(it.getString("isfamily")) == 1;
-				Date datetakenDate = null;
-				//TODO: set user's timezone for this date on format
-				try {
-					datetakenDate = new Date(format.parseMillis(it
-							.getString("datetaken")));
-				} catch (Exception e) {
-				}
-				if (datetakenDate != null) {
-					facet.datetaken = datetakenDate.getTime();
-					facet.start = datetakenDate.getTime();
-					facet.end = datetakenDate.getTime();
-				}
-				facet.dateupload = Long.valueOf(it.getString("dateupload")) * 1000;
+                final String datetaken = it.getString("datetaken");
+                final DateTime dateTime = format.parseDateTime(datetaken);
+                facet.startTimeStorage = facet.endTimeStorage = toTimeStorage(dateTime.getYear(), dateTime.getMonthOfYear(),
+                              dateTime.getDayOfMonth(), dateTime.getHourOfDay(),
+                              dateTime.getMinuteOfHour(), 0);
+                facet.datetaken = dateTime.getMillis();
+                facet.start = dateTime.getMillis();
+                facet.end = dateTime.getMillis();
+				facet.dateupload = it.getLong("dateupload")*1000;
 				facet.latitude = it.getString("latitude");
 				facet.longitude = it.getString("longitude");
 				facet.accuracy = it.getInt("accuracy");
-
-				facets.add(facet);
+                final String[] tagses = StringUtils.split(it.getString("tags"), " ");
+                StringBuilder sb = new StringBuilder();
+                for (int i=0; i<tagses.length; i++) {
+                    if (tagses[i].indexOf(":")!=-1)
+                        continue;
+                    Tag tag = new Tag();
+                    tag.name = tagses[i];
+                    if (facet.tagsList==null)
+                        facet.tagsList = new ArrayList<Tag>();
+                    else if (!facet.tagsList.contains(tag)) {
+                        if (facet.tagsList.size()>0)
+                            sb.append(", ");
+                    }
+                    facet.tagsList.add(tag);
+                    sb.append(tag.name);
+                }
+                facet.tags = sb.toString();
+                facets.add(facet);
 			}
 
 		}

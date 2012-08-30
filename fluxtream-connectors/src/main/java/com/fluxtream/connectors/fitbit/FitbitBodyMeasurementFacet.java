@@ -6,6 +6,8 @@ import javax.persistence.NamedQuery;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.domain.AbstractFloatingTimeZoneFacet;
 import org.hibernate.search.annotations.Indexed;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 /**
  *
@@ -41,8 +43,7 @@ public class FitbitBodyMeasurementFacet extends AbstractFloatingTimeZoneFacet {
     public double waist;
     public double weight;
 
-    public String date;
-
     @Override
     protected void makeFullTextIndexable() {}
+
 }

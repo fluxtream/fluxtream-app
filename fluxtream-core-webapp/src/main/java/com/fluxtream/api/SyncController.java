@@ -54,13 +54,6 @@ public class SyncController {
     private static final DateTimeFormatter fmt = ISODateTimeFormat.dateTime().withZone(DateTimeZone.forID("UTC"));
 
     @POST
-    @Path("/now/{connector}")
-    @Produces({MediaType.APPLICATION_JSON})
-    public String forceUpdateConnector(@PathParam("connector") String connectorName){
-        return sync(connectorName, true);
-    }
-
-    @POST
     @Path("/{connector}")
     @Produces({MediaType.APPLICATION_JSON})
     public String updateConnector(@PathParam("connector") String connectorName){
@@ -79,14 +72,6 @@ public class SyncController {
         catch (Exception e){
             return gson.toJson(new StatusModel(false,"Failed to schedule update: " + e.getMessage()));
         }
-    }
-
-    @POST
-    @Path("/now/{connector}/{objectTypes}")
-    @Produces({MediaType.APPLICATION_JSON})
-    public String forceUpdateConnectorObjectType(@PathParam("connector") String connectorName,
-                                            @PathParam("objectTypes") int objectTypes){
-        return syncConnectorObjectType(connectorName, objectTypes, true);
     }
 
     @POST
@@ -169,6 +154,17 @@ public class SyncController {
         response.accumulate("lastSuccessfulUpdate", lastSuccessfulUpdate!=null
             ? fmt.print(lastSuccessfulUpdate.ts) : "never");
         return response.toString();
+    }
+
+    @POST
+    @Path("/{connector}/reset")
+    @Produces({MediaType.APPLICATION_JSON})
+    public StatusModel resetConnector(@PathParam("connector") String connectorName) {
+        Connector connector = Connector.getConnector(connectorName);
+        Guest guest = ControllerHelper.getGuest();
+        final ApiUpdate lastSuccessfulUpdate = connectorUpdateService.getLastSuccessfulUpdate(guest.getId(), connector);
+        connectorUpdateService.deleteScheduledUpdateTasks(guest.getId(), connector, true);
+        return new StatusModel(true, "reset controller " + connectorName);
     }
 
     @POST

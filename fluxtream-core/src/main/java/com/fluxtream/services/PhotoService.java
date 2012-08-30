@@ -10,5 +10,8 @@ import com.fluxtream.domain.Guest;
  * @author Chris Bartley (bartley@cmu.edu)
  */
 public interface PhotoService {
-    List<AbstractInstantFacetVO<AbstractFacet>> getPhotos(Guest guest, TimeInterval timeInterval) throws ClassNotFoundException, IllegalAccessException, InstantiationException;
+
+    List<AbstractInstantFacetVO<AbstractFacet>> getPhotos(Guest guest, TimeInterval timeInterval)
+            throws ClassNotFoundException, IllegalAccessException, InstantiationException;
+
 }

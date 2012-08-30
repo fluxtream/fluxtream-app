@@ -14,6 +14,7 @@ import net.sf.json.JSONObject;
 
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.fluxtream.connectors.annotations.JsonFacetCollection;
@@ -30,10 +31,10 @@ import com.fluxtream.services.GuestService;
  */
 @Component
 @Updater(prettyName = "Flickr", value = 11, objectTypes = FlickrPhotoFacet.class, extractor = FlickrFacetExtractor.class)
-@JsonFacetCollection(FlickrFacetVOCollection.class)
 public class FlickrUpdater extends AbstractUpdater {
 
-	public GuestService guestService;
+    @Autowired
+	GuestService guestService;
 
 	private static final int ITEMS_PER_PAGE = 20;
 	private static final DateTimeFormatter dateFormat = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
@@ -63,6 +64,13 @@ public class FlickrUpdater extends AbstractUpdater {
 		for (int page = 0; retrievedItems == ITEMS_PER_PAGE; page++) {
 			JSONObject feed = retrievePhotoHistory(updateInfo, 0,
 					System.currentTimeMillis(), page);
+            if (feed.has("stat")) {
+                String stat = feed.getString("stat");
+                if (stat.equalsIgnoreCase("fail")) {
+                    String message = feed.getString("message");
+                    throw new RuntimeException("Could not retrieve Flickr history: " + message);
+                }
+            }
 			JSONObject photosWrapper = feed.getJSONObject("photos");
 
 			if (photosWrapper != null) {
@@ -109,38 +117,31 @@ public class FlickrUpdater extends AbstractUpdater {
 
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("method", "flickr.people.getPhotos");
-		params.put("api_key", api_key);
+        params.put("per_page", String.valueOf(ITEMS_PER_PAGE));
+        params.put("page", String.valueOf(page));
+        params.put("api_key", api_key);
 		params.put("user_id", nsid);
 		params.put("auth_token", token);
 		params.put("format", "json");
 		params.put("nojsoncallback", "1");
-		params.put("extras", "date_upload,date_taken,geo");
+		params.put("extras", "date_upload,date_taken,geo,tags");
 		params.put("min_taken_date", startDate);
 		params.put("max_taken_date", endDate);
-		params.put("per_page", String.valueOf(ITEMS_PER_PAGE));
-		params.put("page", String.valueOf(page));
 
 		String api_sig = sign(params);
 
-		String searchPhotosUrl = "http://api.flickr.com/services/rest/"
-				+ "?method=flickr.people.getPhotos&api_key="
-				+ api_key
-				+ "&per_page="
-				+ ITEMS_PER_PAGE
-				+ "&per_page="
-				+ page
-				+ "&user_id="
-				+ nsid
-				+ "&min_taken_date="
-				+ startDate
-				+ "&max_taken_date="
-				+ endDate
-				+ "&auth_token="
-				+ token
-				+ "&api_sig="
-				+ api_sig
-				+ "&format=json&nojsoncallback=1&extras=date_upload,date_taken,geo";
-		searchPhotosUrl = searchPhotosUrl.replace(" ", "%20");
+        String searchPhotosUrl = "http://api.flickr.com/services/rest/" +
+                                 "?method=flickr.people.getPhotos&api_key=" + api_key +
+                                 "&per_page=" + ITEMS_PER_PAGE +
+                                 "&page=" + page +
+                                 "&api_key=" + api_key +
+                                 "&user_id=" + nsid +
+                                 "&auth_token=" + token +
+                                 "&format=json&nojsoncallback=1&extras=date_upload,date_taken,geo,tags" +
+                                 "&min_taken_date=" + startDate +
+                                 "&max_taken_date=" + endDate +
+                                 "&api_sig=" + api_sig;
+        searchPhotosUrl = searchPhotosUrl.replace(" ", "%20");
 		String photosJson = null;
 		try {
 			photosJson = fetch(searchPhotosUrl, env);

@@ -4,33 +4,16 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import java.util.TimeZone;
-
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-
-import org.joda.time.DateTimeZone;
-import org.joda.time.MutableDateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import com.fluxtream.ApiData;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.domain.AbstractFacet;
-import com.fluxtream.domain.metadata.DayMetadataFacet;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
-import com.fluxtream.services.MetadataService;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.springframework.stereotype.Component;
 
 @Component
 public class FitbitSleepFacetExtractor extends AbstractFacetExtractor {
-
-	@Autowired
-	MetadataService metadataService;
-
-	private final static DateTimeFormatter format = DateTimeFormat
-			.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
 
 	public List<AbstractFacet> extractFacets(ApiData apiData,
 			ObjectType objectType) {
@@ -57,10 +40,7 @@ public class FitbitSleepFacetExtractor extends AbstractFacetExtractor {
 			super.extractCommonFacetData(facet, apiData);
 			String startTime = record.getString("startTime");
 			int duration = record.getInt("duration");
-
-			TimeZone timeZone = getGuestTimeZoneForDate(apiData,
-					startTime.substring(0, 10));
-			storeTime(startTime, duration, facet, timeZone);
+            facet.duration = duration;
 
 			if (record.containsKey("minutesAwake"))
 				facet.minutesAwake = record.getInt("minutesAwake");
@@ -70,10 +50,10 @@ public class FitbitSleepFacetExtractor extends AbstractFacetExtractor {
 				facet.minutesToFallAsleep = record
 						.getInt("minutesToFallAsleep");
 			Date startDate;
-			startDate = new Date(format.withZone(
-					DateTimeZone.forTimeZone(timeZone)).parseMillis(startTime));
-			facet.start = startDate.getTime();
-			facet.end = facet.start + duration;
+            facet.date = getDate(startTime);
+            facet.startTimeStorage = startTime;
+            facet.endTimeStorage = startTime;
+
 			if (record.containsKey("awakeningsCount"))
 				facet.awakeningsCount = record.getInt("awakeningsCount");
 			if (record.containsKey("timeInBed"))
@@ -85,26 +65,8 @@ public class FitbitSleepFacetExtractor extends AbstractFacetExtractor {
 		return facets;
 	}
 
-	private void storeTime(String startTime, int duration,
-			FitbitSleepFacet facet, TimeZone timeZone) {
-		facet.startTimeStorage = startTime;
-		MutableDateTime bedTimeUTC = format.withZone(
-				DateTimeZone.forTimeZone(timeZone)).parseMutableDateTime(
-				startTime);
-		bedTimeUTC.add(duration);
-		if (startTime.length()>=10)
-			facet.date = startTime.substring(0, 10);
-		String riseTimeString = format.withZone(
-				DateTimeZone.forTimeZone(timeZone)).print(
-				bedTimeUTC.getMillis());
-		facet.endTimeStorage = riseTimeString;
-	}
-
-	private TimeZone getGuestTimeZoneForDate(ApiData apiData, String date) {
-		DayMetadataFacet dailyContextualInfo = metadataService
-				.getDayMetadata(apiData.updateInfo.getGuestId(), date,
-						true);
-		return TimeZone.getTimeZone(dailyContextualInfo.timeZone);
-	}
-
+    private static String getDate(final String timeStr) {
+        int i = timeStr.indexOf("T");
+        return timeStr.substring(0, i);
+    }
 }

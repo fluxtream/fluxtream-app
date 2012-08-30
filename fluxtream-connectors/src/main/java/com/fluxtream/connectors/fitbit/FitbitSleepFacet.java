@@ -1,5 +1,8 @@
 package com.fluxtream.connectors.fitbit;
 
+import java.text.ParseException;
+import java.util.Date;
+import java.util.TimeZone;
 import javax.persistence.Entity;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -8,6 +11,10 @@ import org.hibernate.search.annotations.Indexed;
 
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.domain.AbstractFloatingTimeZoneFacet;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 @Entity(name="Facet_FitbitSleep")
 @ObjectTypeSpec(name = "sleep", value = 4, extractor=FitbitSleepFacetExtractor.class, prettyname = "Sleep")
@@ -28,7 +35,6 @@ import com.fluxtream.domain.AbstractFloatingTimeZoneFacet;
 @Indexed
 public class FitbitSleepFacet extends AbstractFloatingTimeZoneFacet {
 
-	public String date;
 	public boolean isMainSleep;
 	public long logId;
 	public int minutesToFallAsleep;
@@ -37,8 +43,17 @@ public class FitbitSleepFacet extends AbstractFloatingTimeZoneFacet {
 	public int minutesAwake;
 	public int awakeningsCount;
 	public int timeInBed;
+    public int duration;
 	
 	@Override
 	protected void makeFullTextIndexable() {}
-	
+
+    @Override
+    public void updateTimeInfo(TimeZone timeZone) throws ParseException {
+        super.updateTimeInfo(timeZone);
+        DateTime startDate = new DateTime(this.start);
+        DateTime endDate = startDate.withDurationAdded(this.duration*60000,1);
+        this.end = endDate.getMillis();
+    }
+
 }

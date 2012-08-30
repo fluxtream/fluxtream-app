@@ -37,6 +37,20 @@ public abstract class AbstractFacetExtractor {
 			facet.end = apiData.end;
 	}
 
+    protected String noon(String date) {
+        return date + "T12:00:00.000";
+    }
+
+    protected String toTimeStorage(int year, int month, int day, int hours,
+                                 int minutes, int seconds) {
+        //yyyy-MM-dd'T'HH:mm:ss.SSS
+        return (new StringBuilder()).append(year)
+                .append("-").append(month).append("-")
+                .append(day).append("T").append(hours)
+                .append(":").append(minutes).append(":")
+                .append(seconds).append(".000").toString();
+    }
+
 	public abstract List<AbstractFacet> extractFacets(ApiData apiData,
 			ObjectType objectType) throws Exception;
 }

@@ -8,6 +8,8 @@ import javax.persistence.NamedQuery;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.domain.AbstractFloatingTimeZoneFacet;
 import org.hibernate.search.annotations.Indexed;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 @Entity(name="Facet_ZeoSleepStats")
 @NamedQueries({
@@ -29,8 +31,6 @@ import org.hibernate.search.annotations.Indexed;
 public class ZeoSleepStatsFacet extends AbstractFloatingTimeZoneFacet {
 
 	public int zq;
-	public Date bedTime;
-	public Date riseTime;
 	public int awakenings;
 	public int morningFeel;
 	public int totalZ;
@@ -45,5 +45,5 @@ public class ZeoSleepStatsFacet extends AbstractFloatingTimeZoneFacet {
 	
 	@Override
 	protected void makeFullTextIndexable() {}
-	
+
 }

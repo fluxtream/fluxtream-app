@@ -22,9 +22,6 @@ public class FitbitFacetExtractor extends AbstractFacetExtractor {
 
 	Logger logger = Logger.getLogger(FitbitFacetExtractor.class);
 
-	@Autowired
-	MetadataService metadataService;
-
 	public List<AbstractFacet> extractFacets(ApiData apiData,
 			ObjectType objectType) {
 		List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
@@ -58,14 +55,11 @@ public class FitbitFacetExtractor extends AbstractFacetExtractor {
 
         super.extractCommonFacetData(facet, apiData);
 
-        TimeZone timeZone = metadataService.getTimeZone(guestId, apiData.start);
         logger.info(
                 "guestId=" + guestId +
-                " connector=fitbit action=extractBodyMeasurementsInfo time="
-                + apiData.start + " timeZone="
-                + timeZone.getDisplayName() + " date="
-                + apiData.getDate(timeZone));
-        facet.date = apiData.getDate(timeZone);
+                " connector=fitbit action=extractBodyMeasurementsInfo");
+        facet.date = apiData.getDate(TimeZone.getTimeZone("UTC"));
+        facet.startTimeStorage = facet.endTimeStorage = noon(facet.date);
 
         if (fitbitBodyMeasurements.containsKey("bicep"))
             facet.bicep = fitbitBodyMeasurements.getDouble("bicep");
@@ -104,14 +98,10 @@ public class FitbitFacetExtractor extends AbstractFacetExtractor {
 		JSONObject fitbitSummary = fitbitResponse.getJSONObject("summary");
 
 		super.extractCommonFacetData(facet, apiData);
-		TimeZone timeZone = metadataService.getTimeZone(guestId, apiData.start);
-		logger.info(
-				"guestId=" + guestId +
-				" connector=fitbit action=extractSummaryActivityInfo time="
-						+ apiData.start + " timeZone="
-						+ timeZone.getDisplayName() + " date="
-						+ apiData.getDate(timeZone));
-		facet.date = apiData.getDate(timeZone);
+		logger.info("guestId=" + guestId +
+                    " connector=fitbit action=extractSummaryActivityInfo");
+		facet.date = apiData.getDate(TimeZone.getTimeZone("UTC"));
+        facet.startTimeStorage = facet.endTimeStorage = noon(facet.date);
 
 		if (fitbitSummary.containsKey("activeScore"))
 			facet.activeScore = fitbitSummary.getInt("activeScore");
@@ -151,14 +141,14 @@ public class FitbitFacetExtractor extends AbstractFacetExtractor {
 			FitbitLoggedActivityFacet facet = new FitbitLoggedActivityFacet();
 			super.extractCommonFacetData(facet, apiData);
 
-			facet.date = apiData.getDate(metadataService.getTimeZone(
-					apiData.updateInfo.getGuestId(), apiData.start));
+			facet.date = apiData.getDate(TimeZone.getTimeZone("UTC"));
 
-			Date startDate = getStartTime(
-					loggedActivity.getString("startTime"), 0);
-			facet.start = startDate.getTime();
-			if (loggedActivity.containsKey("duration"))
-				facet.end = facet.start + loggedActivity.getInt("duration");
+            final String startTime = loggedActivity.getString("startTime");
+            facet.startTimeStorage = facet.endTimeStorage = facet.date+"T" + startTime+":00.000";
+			if (loggedActivity.containsKey("duration")) {
+                final int duration = loggedActivity.getInt("duration");
+                facet.duration = duration;
+            }
 			if (loggedActivity.containsKey("activityId"))
 				facet.activityId = loggedActivity.getLong("activityId");
 			if (loggedActivity.containsKey("activityParentId"))
@@ -183,17 +173,6 @@ public class FitbitFacetExtractor extends AbstractFacetExtractor {
 			facets.add(facet);
 		}
 
-	}
-
-	Date getStartTime(String s, long t) {
-		Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-		calendar.setTimeInMillis(t);
-		String[] splits = s.split(":");
-		int hour = Integer.valueOf(splits[0]);
-		int minutes = Integer.valueOf(splits[1]);
-		calendar.set(Calendar.HOUR_OF_DAY, hour);
-		calendar.set(Calendar.MINUTE, minutes);
-		return calendar.getTime();
 	}
 
 }

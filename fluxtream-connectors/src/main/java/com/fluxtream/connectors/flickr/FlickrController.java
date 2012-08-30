@@ -90,15 +90,9 @@ public class FlickrController {
 		Element user = (Element) document.selectSingleNode("rsp/auth/user");
 		
 		String username = user.attributeValue("username");
-		username = username.substring(1, username.length()-1);
-		
+
 		String nsid = user.attributeValue("nsid");
-		nsid = nsid.substring(1, nsid.length()-1);
-		
 		String fullname = user.attributeValue("fullname");
-        if (StringUtils.isEmpty(fullname)&&fullname.length()>2)
-    		fullname = fullname.substring(1, fullname.length()-1);
-		
 		String token = document.selectSingleNode("rsp/auth/token/text()").getStringValue();
 		
 		Connector flickrConnector = Connector.getConnector("flickr");

@@ -56,8 +56,6 @@ public interface GuestService {
 	public ResetPasswordToken createToken(long guestId);
 	
 	public void deleteToken(String token);
-	
-	public void updateConnectorConfigStateKey(long guestId);
 
 	public <T extends AbstractUserProfile> T getUserProfile(long guestId,
 			Class<T> clazz);

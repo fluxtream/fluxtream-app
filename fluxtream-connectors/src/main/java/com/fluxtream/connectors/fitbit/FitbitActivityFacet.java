@@ -13,6 +13,8 @@ import com.fluxtream.connectors.updaters.RateLimitReachedException;
 import com.fluxtream.domain.AbstractFloatingTimeZoneFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Updatable;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 @Entity(name="Facet_FitbitActivity")
 @ObjectTypeSpec(name = "activity_summary", value = 1, extractor=FitbitFacetExtractor.class, prettyname = "Activity Summary")
@@ -55,8 +57,6 @@ public class FitbitActivityFacet extends AbstractFloatingTimeZoneFacet implement
 	
 	@Lob
 	public String caloriesJson;
-	
-	public String date;
 
 	@Override
 	protected void makeFullTextIndexable() {}
@@ -67,5 +67,5 @@ public class FitbitActivityFacet extends AbstractFloatingTimeZoneFacet implement
 			((FitBitTSUpdater) updater).updateCaloriesIntraday(this, apiKey);
 		} catch (RateLimitReachedException exc) {}
 	}
-	
+
 }

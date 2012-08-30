@@ -36,8 +36,7 @@ public class Guest extends AbstractEntity {
 	@Index(name="email_index")
 	public String email;
 	public String salt;
-	public String connectorConfigStateKey;
-	
+
 	transient List<String> userRoles;
 	public String roles = ROLE_USER;
 
