@@ -10,11 +10,11 @@ define(["core/TabInterface"], function(TabInterface) {
 
 	
 	var tabs = {
-        "fullList":["clock","dashboards","diary","map","photos","list","timeline"],
-        "DAY":["clock", "dashboards", "map", "photos", "list", "timeline", "diary"],
-        "WEEK":["dashboards", "map", "photos", "list", "timeline", "diary"],
-        "MONTH":["dashboards", "map", "photos", "list", "timeline", "diary"],
-        "YEAR":["dashboards", "photos", "list", "timeline", "diary"]
+        "fullList":["clock","dashboards","map","photos","list","timeline"],
+        "DAY":["clock", "dashboards", "map", "photos", "list", "timeline"],
+        "WEEK":["dashboards", "map", "photos", "list", "timeline"],
+        "MONTH":["dashboards", "map", "photos", "list", "timeline"],
+        "YEAR":["dashboards", "photos", "list", "timeline"]
 	};
     tabInterface.setTabVisibility(tabs.fullList,true);
 
