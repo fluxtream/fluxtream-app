@@ -117,7 +117,6 @@ define(["core/TabInterface"], function(TabInterface) {
 	}
 
 	function handleNotifications(digestInfo) {
-        console.log("handling notifications");
 		$(".notification").remove();
 		$("#notificationIds").empty();
 		if (typeof(digestInfo.notifications)!="undefined") {
