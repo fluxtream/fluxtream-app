@@ -409,7 +409,17 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 }
                 $.ajax("/api/connectors/filters",{
                     type:"POST",
-                    data:{filterState:JSON.stringify(uploadData)}
+                    data:{filterState:JSON.stringify(uploadData)},
+                    success : function() {
+                        $.ajax("/api/connectors/filters",{
+                            success:function(data){
+                                for (var member in data){
+                                    Calendar.connectorEnabled[member] = data[member];
+                                }
+                            }
+
+                        });
+                    }
                 });
             });
             if (Calendar.connectorEnabled["default"][digest.selectedConnectors[i].connectorName] == null)

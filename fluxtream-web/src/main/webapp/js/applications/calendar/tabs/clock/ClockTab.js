@@ -16,6 +16,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
     var clockCircleElements = {};
     var selectedConnectors;
     var connectorEnabled;
+    var dgst;
 
     App.addHideTooltipListener(hideEventInfo);
 
@@ -28,6 +29,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 	}
 	
 	function setup(digest, timeUnit, cEn) {
+        dgst = digest;
         selectedConnectors = digest.selectedConnectors;
         connectorEnabled = cEn;
         hourlyWeatherData = digest.hourlyWeatherData;
@@ -165,41 +167,6 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             facetConfig.clock.orbit *= config.ORBIT_RATIO;
             drawTimedData(connectorData,facetConfig.clock);
         }
-		/*switch(connectorInfoId) {
-		case "fitbit-activity_summary":
-//			drawFitbitInfo(connectorData);
-			break;
-		case "google_latitude-location":
-			if (connectorData!=null&&typeof(connectorData)!="undefined")
-				locationBreakdown(connectorData, digest);
-			break;
-		case "withings-weight":
-//			drawWeightInfo(connectorData);
-			break;
-		case "picasa-photo":
-		case "flickr":
-		case "lastfm-recent_track":
-        case "lastfm-loved_track":
-			drawTimedData(connectorData, config.MEDIA_CATEGORY);
-			break;
-		case "sms_backup-sms":
-		case "sms_backup-call_Calendar":
-		case "twitter-dm":
-		case "twitter-tweet":
-		case "twitter-mention":
-			drawTimedData(connectorData, config.SOCIAL_CATEGORY);
-			break;
-		case "google_calendar-entry":
-		case "toodledo-task":
-			drawTimedData(connectorData, config.MIND_CATEGORY);
-			break;
-		case "zeo":
-//			updateSleepTabZeo(connectorData);
-		case "fitbit-sleep":
-		case "withings-bpm":
-			drawTimedData(connectorData, config.BODY_CATEGORY);
-			break;
-		}*/
 	}
 
 	function drawTimedData(payload, category) {
@@ -561,6 +528,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
     }
 
 	function locationBreakdown(positions, digest) {
+        if (!Log.connectorEnabled["clock"]["google_latitude"])
+            return;
         var collections = [];
         var currentCollection = null;
         for (var i = 0; i < positions.length; i++){
@@ -672,6 +641,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             for (var j = 0; j < clockCircleElements[objectTypeNames[i]].length; j++)
                 clockCircleElements[objectTypeNames[i]][j].style.display = enabled ? "inline" : "none";
         }
+        updateDataDisplay(dgst.cachedData["google_latitude-location"], "google_latitude-location", dgst);
     }
 
     function connectorDisplayable(connector){
