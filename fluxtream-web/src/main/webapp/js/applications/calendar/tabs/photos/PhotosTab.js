@@ -30,11 +30,15 @@ define(["core/Tab",
 
     function setup(digest, cEn){
         $("#photoTab").empty();
-        if (digest.cachedData["picasa-photo"] == null){
+        if (digest.cachedData["picasa-photo"] == null &&
+            digest.cachedData["flickr-photo"] == null){
             showNoPhotos();
             return;
         }
-        onDataRecieved(digest.cachedData["picasa-photo"]);
+        if (digest.cachedData["picasa-photo"]!=null)
+            onDataReceived(digest.cachedData["picasa-photo"]);
+        else if (digest.cachedData["flickr-photo"]!=null)
+            onDataReceived(digest.cachedData["flickr-photo"]);
     }
 
     function showNoPhotos(){
@@ -42,7 +46,7 @@ define(["core/Tab",
         $("#photoTab").append("<div class=\"emptyList\">(no photos)</div>");
     }
 
-    function onDataRecieved(photos){
+    function onDataReceived(photos){
         var data = [];
         $("#photoTab").empty();
         for (var i = 0; i < photos.length; i++){
