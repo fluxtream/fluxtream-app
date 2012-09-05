@@ -29,6 +29,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import static com.newrelic.api.agent.NewRelic.setTransactionName;
 
 /**
  *
@@ -57,6 +58,7 @@ public class SyncController {
     @Path("/{connector}")
     @Produces({MediaType.APPLICATION_JSON})
     public String updateConnector(@PathParam("connector") String connectorName){
+        setTransactionName(null, "POST /sync/" + connectorName);
         return sync(connectorName, false);
     }
 
@@ -79,6 +81,7 @@ public class SyncController {
     @Produces({MediaType.APPLICATION_JSON})
     public String updateConnectorObjectType(@PathParam("connector") String connectorName,
                                             @PathParam("objectTypes") int objectTypes){
+        setTransactionName(null, "POST /sync/" + connectorName + "/" + objectTypes);
         return syncConnectorObjectType(connectorName, objectTypes, false);
     }
 
@@ -101,6 +104,7 @@ public class SyncController {
     @Path("/all")
     @Produces({MediaType.APPLICATION_JSON})
     public String updateAllConnectors(){
+        setTransactionName(null, "POST /sync/all");
         try {
             final List<ScheduleResult> scheduleResults = connectorUpdateService.updateAllConnectors(ControllerHelper.getGuestId());
             StatusModel statusModel = new StatusModel(true, "successfully added update worker tasks to the queue (see details)");
@@ -126,6 +130,7 @@ public class SyncController {
     @Path("/{connector}/historyComplete")
     public String isHistoryComplete(@PathParam("connector") String connectorName,
                                     @FormParam("objectTypes") int objectTypes) {
+        setTransactionName(null, "POST /sync/" + connectorName + "/historyComplete");
         Guest user = ControllerHelper.getGuest();
         final boolean historyUpdateCompleted = connectorUpdateService.isHistoryUpdateCompleted(user.getId(), connectorName, objectTypes);
         JSONObject response = new JSONObject();
@@ -136,6 +141,7 @@ public class SyncController {
     @POST
     @Path("/{connector}/isSynching")
     public String isSynching(@PathParam("connector") String connectorName) {
+        setTransactionName(null, "POST /sync/" + connectorName + "/isSynching");
         Connector connector = Connector.getConnector(connectorName);
         Guest guest = ControllerHelper.getGuest();
         final Collection<UpdateWorkerTask> scheduledUpdates = connectorUpdateService.getUpdatingUpdateTasks(guest.getId(), connector);
@@ -147,6 +153,7 @@ public class SyncController {
     @POST
     @Path("/{connector}/lastSuccessfulUpdate")
     public String lastSuccessfulUpdate(@PathParam("connector") String connectorName) {
+        setTransactionName(null, "POST /sync/" + connectorName + "/lastSuccessfullUpdate");
         Connector connector = Connector.getConnector(connectorName);
         Guest guest = ControllerHelper.getGuest();
         final ApiUpdate lastSuccessfulUpdate = connectorUpdateService.getLastSuccessfulUpdate(guest.getId(), connector);
@@ -160,6 +167,7 @@ public class SyncController {
     @Path("/{connector}/reset")
     @Produces({MediaType.APPLICATION_JSON})
     public StatusModel resetConnector(@PathParam("connector") String connectorName) {
+        setTransactionName(null, "POST /sync/" + connectorName + "/reset");
         Connector connector = Connector.getConnector(connectorName);
         Guest guest = ControllerHelper.getGuest();
         final ApiUpdate lastSuccessfulUpdate = connectorUpdateService.getLastSuccessfulUpdate(guest.getId(), connector);
@@ -170,6 +178,7 @@ public class SyncController {
     @POST
     @Path("/{connector}/lastUpdate")
     public String lastFailedUpdate(@PathParam("connector") String connectorName) {
+        setTransactionName(null, "POST /sync/" + connectorName + "/lastUpdate");
         Connector connector = Connector.getConnector(connectorName);
         Guest guest = ControllerHelper.getGuest();
         final ApiUpdate lastUpdate = connectorUpdateService.getLastUpdate(guest.getId(), connector);

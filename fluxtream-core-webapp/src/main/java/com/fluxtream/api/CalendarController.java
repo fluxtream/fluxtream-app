@@ -19,6 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import static com.newrelic.api.agent.NewRelic.setTransactionName;
+
 /**
  *
  * @author Candide Kemmler (candide@fluxtream.com)
@@ -44,6 +46,7 @@ public class CalendarController {
     @Path(value = "/model")
     @Produces({ MediaType.APPLICATION_JSON } )
     public String getModel(@QueryParam("state") String state) throws IOException {
+        setTransactionName(null, "GET /calendar/nav/model");
         CalendarModel calendarModel = CalendarModel.fromState(ControllerHelper.getGuestId(), metadataService, state);
         return calendarModel.toJSONString(ControllerHelper.getGuestId(), metadataService, env);
     }
@@ -53,6 +56,7 @@ public class CalendarController {
     @Produces({ MediaType.APPLICATION_JSON })
     public String setToToday(@QueryParam("timeUnit") String timeUnit,
                              @QueryParam("state") String state) throws IOException {
+        setTransactionName(null, "POST /calendar/nav/setToToday");
         logger.info("action=setToToday");
         CalendarModel calendarModel = new CalendarModel(ControllerHelper.getGuestId(), metadataService);
         return calendarModel.toJSONString(ControllerHelper.getGuestId(), metadataService, env);
@@ -65,6 +69,7 @@ public class CalendarController {
                           @QueryParam("year") int year,
                           @QueryParam("week") int week)
             throws IOException {
+        setTransactionName(null, "GET /calendar/nav/getWeek");
         logger.info("action=setWeek year=" + year + " week=" + week);
         CalendarModel calendarModel = new CalendarModel(ControllerHelper.getGuestId(), metadataService);
         calendarModel.setWeek(ControllerHelper.getGuestId(), metadataService, year, week);
@@ -78,6 +83,7 @@ public class CalendarController {
                            @QueryParam("year") int year,
                            @QueryParam("month") int month)
             throws IOException {
+        setTransactionName(null, "GET /calendar/nav/getMonth");
         logger.info("action=setMonth year=" + year + " month=" + month);
         CalendarModel calendarModel = new CalendarModel(ControllerHelper.getGuestId(), metadataService);
         calendarModel.setMonth(ControllerHelper.getGuestId(), metadataService, year, month);
@@ -90,6 +96,7 @@ public class CalendarController {
     public String setYear(@QueryParam("state") String state,
                           @QueryParam("year") int year)
             throws IOException {
+        setTransactionName(null, "GET /calendar/nav/getYear");
         logger.info("action=setYear year=" + year);
         CalendarModel calendarModel = new CalendarModel(ControllerHelper.getGuestId(), metadataService);
         calendarModel.setYear(ControllerHelper.getGuestId(), metadataService, year);
@@ -101,6 +108,7 @@ public class CalendarController {
     @Produces({ MediaType.APPLICATION_JSON })
     public String setDate(@QueryParam("date") String date)
             throws IOException {
+        setTransactionName(null, "GET /calendar/nav/getDate");
         logger.info("action=setDate date=" + date);
         CalendarModel calendarModel = new CalendarModel(ControllerHelper.getGuestId(), metadataService);
         calendarModel.setDate(ControllerHelper.getGuestId(), metadataService, date);
@@ -111,6 +119,7 @@ public class CalendarController {
     @Path(value = "/decrementTimespan")
     @Produces({ MediaType.APPLICATION_JSON })
     public String decrementTimespan(@QueryParam("state") String state) throws IOException {
+        setTransactionName(null, "POST /calendar/nav/decrementTimespan");
         CalendarModel calendarModel = CalendarModel.fromState(ControllerHelper.getGuestId(), metadataService, state);
         calendarModel.decrementTimespan(ControllerHelper.getGuestId(), metadataService, state);
         logger.info("action=decrementTimespan");
@@ -121,6 +130,7 @@ public class CalendarController {
     @Path(value = "/incrementTimespan")
     @Produces({ MediaType.APPLICATION_JSON })
     public String incrementTimespan(@QueryParam("state") String state) throws IOException {
+        setTransactionName(null, "POST /calendar/nav/incrementTimespan");
         CalendarModel calendarModel = CalendarModel.fromState(ControllerHelper.getGuestId(), metadataService, state);
         calendarModel.incrementTimespan(ControllerHelper.getGuestId(), metadataService, state);
         logger.info("action=incrementTimespan");
@@ -131,6 +141,7 @@ public class CalendarController {
     @Path(value = "/setDayTimeUnit")
     @Produces({ MediaType.APPLICATION_JSON })
     public String setDayTimeUnit(@QueryParam("state") String state) throws IOException {
+        setTransactionName(null, "POST /calendar/nav/setDayTimeUnit");
         logger.info("action=setDayTimeUnit");
         CalendarModel calendarModel = CalendarModel.fromState(ControllerHelper.getGuestId(), metadataService, state);
         calendarModel.setDayTimeUnit();
@@ -141,6 +152,7 @@ public class CalendarController {
     @Path(value = "/setWeekTimeUnit")
     @Produces({ MediaType.APPLICATION_JSON })
     public String setWeekTimeUnit(@QueryParam("state") String state) throws IOException {
+        setTransactionName(null, "POST /calendar/nav/setWeekTimeUnit");
         CalendarModel calendarModel = CalendarModel.fromState(ControllerHelper.getGuestId(), metadataService, state);
         calendarModel.setWeekTimeUnit();
         logger.info("action=setWeekTimeUnit");
@@ -151,6 +163,7 @@ public class CalendarController {
     @Path(value = "/setMonthTimeUnit")
     @Produces({ MediaType.APPLICATION_JSON })
     public String setMonthTimeUnit(@QueryParam("state") String state) throws IOException {
+        setTransactionName(null, "POST /calendar/nav/setMonthTimeUnit");
         CalendarModel calendarModel = CalendarModel.fromState(ControllerHelper.getGuestId(), metadataService, state);
         calendarModel.setMonthTimeUnit();
         logger.info("action=setMonthTimeUnit");
@@ -161,6 +174,7 @@ public class CalendarController {
     @Path(value = "/setYearTimeUnit")
     @Produces({ MediaType.APPLICATION_JSON })
     public String setYearTimeUnit(@QueryParam("state") String state) throws IOException {
+        setTransactionName(null, "POST /calendar/nav/setYearTimeUnit");
         CalendarModel calendarModel = CalendarModel.fromState(ControllerHelper.getGuestId(), metadataService, state);
         calendarModel.setYearTimeUnit();
         logger.info("action=setYearTimeUnit");

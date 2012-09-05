@@ -41,6 +41,14 @@ $(document).ready(function() {
         return false;
     });
 
+    $("#registerShow").click(function() {
+        $("#registerModal").modal("show");
+    });
+
+    $("#registerClose").click(function() {
+        $("#registerModal").modal("hide");
+    });
+
     $('#lostPasswdLink').click(function() {
         $('#loginForm').hide();
         $('#recoverForm').show();

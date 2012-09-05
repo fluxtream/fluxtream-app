@@ -107,7 +107,7 @@ public class CalendarDataStore {
 			@PathParam("week") int week, @QueryParam("filter") String filter)
 			throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException {
-        setTransactionName(null, "/calendar/all/week/{year}/{week}");
+        setTransactionName(null, "GET /calendar/all/week/{year}/{week}");
         try{
             //TODO:proper week data retrieval implementation
             //this implementation is just a dirt hacky way to make it work and some aspects (weather info) don't work
@@ -194,7 +194,7 @@ public class CalendarDataStore {
 			@PathParam("month") int month,
 			@QueryParam("filter") String filter) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
-        setTransactionName(null, "/calendar/all/month/{year}/{month}");
+        setTransactionName(null, "GET /calendar/all/month/{year}/{month}");
         try{
             DigestModel digest = new DigestModel();
             digest.timeUnit = "MONTH";
@@ -265,7 +265,7 @@ public class CalendarDataStore {
 	public String getAllConnectorsYearData(@PathParam("year") int year,
 			@QueryParam("filter") String filter) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
-        setTransactionName(null, "/calendar/all/year/{year}");
+        setTransactionName(null, "GET /calendar/all/year/{year}");
         try{
             DigestModel digest = new DigestModel();
             digest.timeUnit = "YEAR";
@@ -332,7 +332,7 @@ public class CalendarDataStore {
 	public String getAllConnectorsDayData(@PathParam("date") String date,
 			@QueryParam("filter") String filter) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
-        setTransactionName(null, "/calendar/all/date/{date}");
+        setTransactionName(null, "GET /calendar/all/date/{date}");
         try{
             DigestModel digest = new DigestModel();
             digest.timeUnit = "DAY";
@@ -401,7 +401,7 @@ public class CalendarDataStore {
 			@PathParam("connectorName") String connectorName)
 			throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException {
-        setTransactionName(null, "/calendar/{connectorName}/date/{date}");
+        setTransactionName(null, "GET /calendar/" + connectorName + "/date/{date}");
         try{
             Connector connector = Connector.getConnector(connectorName);
 
@@ -532,7 +532,7 @@ public class CalendarDataStore {
             throws InstantiationException, IllegalAccessException,
                    ClassNotFoundException {
         try{
-            setTransactionName(null, "/calendar/days/{start}/{end}");
+            setTransactionName(null, "GET /calendar/days/{start}/{end}");
             long guestId = ControllerHelper.getGuestId();
             GuestSettings settings = settingsService.getSettings(guestId);
             TimeInterval timeInterval = new TimeInterval(start, end, TimeUnit.DAY, TimeZone.getTimeZone("UTC"));
