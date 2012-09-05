@@ -127,10 +127,12 @@ define(
             });
         }
 
-        function renderApp(appName,state) {
+        function renderApp(appName,state,params) {
+            if (params == null)
+                params = {};
             App.activeApp.saveState();
             App.activeApp=App.apps[appName];
-            App.apps[appName].render(state);
+            App.apps[appName].render(state,params);
         }
 
         App.settings = function() {
@@ -161,26 +163,31 @@ define(
         App.carousel = carousel;
 
         App.loadMustacheTemplate = function(templatePath,templateId,onLoad){
+            App.loadAllMustacheTemplates(templatePath,function(templates){
+                onLoad(templates[templateId]);
+            });
+        }
 
-            if (typeof(compiledTemplates[templateId])!="undefined") {
-                onLoad(compiledTemplates[templateId]);
+        var templateRegexp = new RegExp("<template id=\"[A-z0-9\\-.]*\">","ig");
+
+        App.loadAllMustacheTemplates = function(templatePath,onLoad){
+            if (compiledTemplates[templatePath] != null){
+                onLoad(compiledTemplates[templatePath]);
                 return;
             }
-
-            var that = this;
-            require(["text!" + templatePath], function(template) {
-                var html = template;
-                var templateStartSearch = "<template id=\"" + templateId + "\">";
-                var htmlStart = html.indexOf(templateStartSearch);
-                if (htmlStart == -1){//template not found
-                    onLoad(null);
-                    return;
+            require(["text!" + templatePath], function(template){
+                var templateData = {};
+                var matches = template.match(templateRegexp);
+                for (var i = 0; i < matches.length; i++){
+                    var curMatch = matches[i];
+                    var templateName = curMatch.substring(14,curMatch.length - 2);
+                    var start = template.indexOf(curMatch) + curMatch.length;
+                    var end = template.indexOf("</template>",start);
+                    var html = template.substring(start,end);
+                    templateData[templateName] = Hogan.compile(html);
                 }
-                htmlStart += templateStartSearch.length;
-                var htmlEnd = html.indexOf("</template>",htmlStart);
-                html = html.substring(htmlStart,htmlEnd);
-                compiledTemplates[templateId] = Hogan.compile(html);
-                onLoad(compiledTemplates[templateId]);
+                compiledTemplates[templatePath] = templateData;
+                onLoad(compiledTemplates[templatePath]);
             });
         }
 

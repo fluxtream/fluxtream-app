@@ -12,6 +12,7 @@ public class FlickrPhotoFacetVO extends
 		AbstractPhotoFacetVO<FlickrPhotoFacet> {
 
 	public String photoUrl;
+    public String thumbnailUrl;
 
 	@Override
 	public void fromFacet(FlickrPhotoFacet facet, TimeInterval timeInterval,
@@ -19,9 +20,12 @@ public class FlickrPhotoFacetVO extends
         start = facet.datetaken;
 		startMinute = toMinuteOfDay(new Date(facet.datetaken),
 				timeInterval.timeZone);
-		this.photoUrl = "http://farm" + facet.farm + ".static.flickr.com/"
+		this.thumbnailUrl = "http://farm" + facet.farm + ".static.flickr.com/"
 				+ facet.server + "/" + facet.flickrId + "_" + facet.secret
 				+ "_s.jpg";
+        this.photoUrl = "http://farm" + facet.farm + ".static.flickr.com/"
+                        + facet.server + "/" + facet.flickrId + "_" + facet.secret
+                        + "_z.jpg";
 		description = facet.title;
 	}
 

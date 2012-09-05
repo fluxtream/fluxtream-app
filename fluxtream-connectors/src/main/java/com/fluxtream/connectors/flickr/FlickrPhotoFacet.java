@@ -4,6 +4,7 @@ import javax.persistence.Entity;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 
+import com.fluxtream.domain.AbstractFloatingTimeZoneFacet;
 import org.hibernate.search.annotations.Indexed;
 
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
@@ -16,7 +17,7 @@ import com.fluxtream.domain.AbstractFacet;
 		@NamedQuery(name = "flickr.photo.between", query = "SELECT facet FROM Facet_FlickrPhoto facet WHERE facet.guestId=? AND facet.datetaken>=? AND facet.datetaken<=?")
 })
 @Indexed
-public class FlickrPhotoFacet extends AbstractFacet {
+public class FlickrPhotoFacet extends AbstractFloatingTimeZoneFacet {
 
 	public String flickrId;
 	public String owner;

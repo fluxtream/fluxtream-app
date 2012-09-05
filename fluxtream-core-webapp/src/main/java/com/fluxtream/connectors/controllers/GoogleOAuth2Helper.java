@@ -47,10 +47,18 @@ public class GoogleOAuth2Helper {
         String fetched = HttpUtils.fetch(swapTokenUrl, params, env);
 
         JSONObject token = JSONObject.fromObject(fetched);
+        final long expiresIn = token.getLong("expires_in");
+        final String access_token = token.getString("access_token");
+
+        final long now = System.currentTimeMillis();
+        long tokenExpires = now + (expiresIn*1000);
 
         guestService.setApiKeyAttribute(guestId, connector,
-                                        "accessToken", token.getString("access_token"));
+                                        "accessToken", access_token);
         guestService.setApiKeyAttribute(guestId, connector,
-                                        "tokenExpires", String.valueOf(System.currentTimeMillis() + (token.getLong("expires_in")*1000)));
+                                        "tokenExpires", String.valueOf(tokenExpires));
+
+        String storedAccessToken = guestService.getApiKeyAttribute(guestId, connector, "accessToken");
+        boolean areEqual = storedAccessToken.equals(access_token);
     }
 }

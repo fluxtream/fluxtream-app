@@ -1,6 +1,7 @@
 package com.fluxtream.domain;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
 
@@ -35,8 +36,7 @@ public class Guest extends AbstractEntity {
 	@Index(name="email_index")
 	public String email;
 	public String salt;
-	public String connectorConfigStateKey;
-	
+
 	transient List<String> userRoles;
 	public String roles = ROLE_USER;
 
@@ -49,9 +49,9 @@ public class Guest extends AbstractEntity {
 	public List<String> getUserRoles() {
 		if (userRoles==null) {
 			userRoles = new ArrayList<String>();
-			StringTokenizer st = new StringTokenizer(roles, ",");
-			while(st.hasMoreTokens())
-				userRoles.add(st.nextToken());
+            final String[] splits = StringUtils.split(roles, ",");
+			for(int i=0; i<splits.length; i++)
+				userRoles.add(""+splits[i].trim());
 		}
 		return userRoles;
 	}

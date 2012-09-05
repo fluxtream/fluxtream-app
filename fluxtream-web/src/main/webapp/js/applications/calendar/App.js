@@ -150,7 +150,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     }
 
 	function fetchState(verb, url) {
-		$(".calendar-navigation-button").toggleClass("disabled");
+        $(".calendar-navigation-button").addClass("disabled");
 		$(".loading").show();
 		$("#tabs").css("opacity", ".3");
 		$.ajax({ url:url,
@@ -319,7 +319,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 processDigest(Calendar.digest);
 				Builder.updateTab(Calendar.digest, Calendar);
 				$("#tabs").css("opacity", "1");
-				$(".calendar-navigation-button").toggleClass("disabled");
+				$(".calendar-navigation-button").removeClass("disabled");
 				$(".loading").hide();
                 Builder.handleNotifications(response);
 			},
@@ -409,7 +409,17 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 }
                 $.ajax("/api/connectors/filters",{
                     type:"POST",
-                    data:{filterState:JSON.stringify(uploadData)}
+                    data:{filterState:JSON.stringify(uploadData)},
+                    success : function() {
+                        $.ajax("/api/connectors/filters",{
+                            success:function(data){
+                                for (var member in data){
+                                    Calendar.connectorEnabled[member] = data[member];
+                                }
+                            }
+
+                        });
+                    }
                 });
             });
             if (Calendar.connectorEnabled["default"][digest.selectedConnectors[i].connectorName] == null)
@@ -703,7 +713,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
        var d = new Date((week * 7 - 1) * 86400000 - - yearStart);
        var start = new Date(d);
        var end = new Date(d);
-       start.setDate(d.getDate() + 1 - (d.getDay()||7));
+       start.setDate(d.getDate() - (d.getDay()||7));
        end.setDate(d.getDate() + 7 - (d.getDay()||7));
        return [start,end];
    }

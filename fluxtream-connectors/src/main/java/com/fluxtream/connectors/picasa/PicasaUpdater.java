@@ -49,7 +49,8 @@ public class PicasaUpdater extends AbstractGoogleOAuthUpdater {
 	public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
 		ApiUpdate lastUpdate = connectorUpdateService.getLastSuccessfulUpdate(
 				updateInfo.apiKey.getGuestId(), connector());
-		loadHistory(updateInfo, lastUpdate.ts, System.currentTimeMillis());
+        final long from = (lastUpdate == null) ? 0 : lastUpdate.ts;
+        loadHistory(updateInfo, from, System.currentTimeMillis());
 	}
 
 	private void loadHistory(UpdateInfo updateInfo, long from, long to)
@@ -70,6 +71,9 @@ public class PicasaUpdater extends AbstractGoogleOAuthUpdater {
 			myQuery.setStringCustomParameter("kind", "photo");
 			myQuery.setStringCustomParameter("max-results", "1000000");
 
+            // record the request url
+            queryUrl = myQuery.getUrl().toString();
+
 			AlbumFeed resultFeed = myService.query(myQuery, AlbumFeed.class);
 
 			List<PhotoEntry> allEntries = resultFeed.getPhotoEntries();
@@ -77,7 +81,7 @@ public class PicasaUpdater extends AbstractGoogleOAuthUpdater {
 			if (from != 0) {
 				entries = new ArrayList<PhotoEntry>();
 				for (PhotoEntry photoEntry : allEntries) {
-					if (photoEntry.getTimestamp().getTime() > from)
+					if (photoEntry.getUpdated().getValue() > from)
 						entries.add(photoEntry);
 				}
 			} else

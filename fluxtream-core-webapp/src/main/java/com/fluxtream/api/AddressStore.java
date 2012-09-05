@@ -1,33 +1,31 @@
 package com.fluxtream.api;
 
+import java.net.URLEncoder;
+import java.util.List;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.DefaultValue;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.Configuration;
 import com.fluxtream.domain.Guest;
+import com.fluxtream.domain.GuestAddress;
+import com.fluxtream.domain.metadata.DayMetadataFacet;
 import com.fluxtream.mvc.controllers.ControllerHelper;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.GuestService;
-import com.fluxtream.domain.GuestAddress;
-
-import com.fluxtream.domain.metadata.DayMetadataFacet;
+import com.fluxtream.services.MetadataService;
+import com.fluxtream.services.SettingsService;
 import com.fluxtream.utils.HttpUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.fluxtream.services.SettingsService;
-import com.fluxtream.services.MetadataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-
-import java.net.URLEncoder;
-import java.util.List;
 
 
 @Path("/addresses")

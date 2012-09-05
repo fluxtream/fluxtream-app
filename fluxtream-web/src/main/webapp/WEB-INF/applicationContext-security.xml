@@ -4,7 +4,7 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
 		http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd">
 
-	<global-method-security secured-annotations="enabled" />
+	<global-method-security secured-annotations="enabled"/>
 
 	<http pattern="/support/*" security="none" />
 	<http pattern="/**/notify" security="none" />
@@ -16,6 +16,7 @@
 	<http pattern="/${release}/images/**" security="none" />
     <http pattern="/images/**" security="none" />
     <http pattern="/welcome*" security="none" />
+    <http pattern="/accessDenied*" security="none" />
 	<http pattern="/notSupported" security="none" />
 	<http pattern="/favicon.ico" security="none" />
 	<http pattern="/apple-touch-icon-precomposed.png" security="none" />
@@ -26,19 +27,12 @@
     <http pattern="/widgets.json" security="none" />
     <http pattern="/widgets/**" security="none" />
 
+
     <http access-denied-page="/accessDenied" entry-point-ref="loginUrlAuthenticationEntryPoint"
 		use-expressions="true" create-session="ifRequired">
-		<intercept-url pattern="/${release}/admin/**" access="hasRole('ROLE_ADMIN')" />
-
-		<intercept-url pattern="/settings/**" access="hasRole('ROLE_USER')" />
-		<intercept-url pattern="/connectors/**" access="hasRole('ROLE_USER')" />
-		<intercept-url pattern="/facets/setEventComment.json*"
-			access="hasRole('ROLE_USER')" />
-		<intercept-url pattern="/facets/setComment.json*"
-			access="hasRole('ROLE_USER')" />
-		<intercept-url pattern='/api/**' access="true" />
+		<intercept-url pattern='/api/**' access="hasRole('ROLE_USER')"/>
 		<intercept-url pattern="/**"
-			access="hasAnyRole('ROLE_USER','ROLE_DEMO')" />
+			access="hasRole('ROLE_USER')" />
 
 		<http-basic/>
 		<custom-filter position="FORM_LOGIN_FILTER" ref="authFilter" />
@@ -58,7 +52,7 @@
 	</beans:bean>
 
 	<beans:bean id="loginUrlAuthenticationEntryPoint"
-		class="org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint">
+		class="com.fluxtream.auth.FlxLoginUrlAuthenticationEntryPoint">
 		<beans:property name="loginFormUrl" value="/welcome" />
 	</beans:bean>
 

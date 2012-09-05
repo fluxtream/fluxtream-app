@@ -1,5 +1,6 @@
 package com.fluxtream.services.impl;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -21,7 +22,9 @@ import com.fluxtream.connectors.google_latitude.LocationFacet;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.connectors.vos.AbstractFacetVO;
 import com.fluxtream.domain.AbstractFacet;
+import com.fluxtream.domain.AbstractFloatingTimeZoneFacet;
 import com.fluxtream.domain.AbstractUserProfile;
+import com.fluxtream.domain.Tag;
 import com.fluxtream.domain.metadata.City;
 import com.fluxtream.domain.metadata.DayMetadataFacet;
 import com.fluxtream.domain.metadata.WeatherInfo;
@@ -31,6 +34,7 @@ import com.fluxtream.services.BodyTrackStorageService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.thirdparty.helpers.WWOHelper;
+import com.fluxtream.utils.JPAUtils;
 import net.sf.json.JSONObject;
 import org.apache.log4j.Logger;
 import org.dom4j.Document;
@@ -96,7 +100,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 		payload.guestId = updateInfo.apiKey.getGuestId();
 		payload.timeUpdated = System.currentTimeMillis();
 
-		em.persist(payload);
+        persistFacet(payload);
 	}
 
 	/**
@@ -273,6 +277,15 @@ public class ApiDataServiceImpl implements ApiDataService {
 			entityName = entityAnnotation.name();
 			facetEntityNames.put(facet.getClass().getName(), entityName);
 		}
+        if (facet instanceof AbstractFloatingTimeZoneFacet) {
+            final AbstractFloatingTimeZoneFacet aftzFacet = (AbstractFloatingTimeZoneFacet)facet;
+            final TimeZone localTimeZone = metadataService.getTimeZone(facet.guestId, aftzFacet.date);
+            try {
+                aftzFacet.updateTimeInfo(localTimeZone);
+            } catch (ParseException e) {
+                throw new RuntimeException("Could not parse floating timezone facet's time storage");
+            }
+        }
 		Query query = em.createQuery("SELECT e FROM " + entityName + " e WHERE e.guestId=? AND e.start=? AND e.end=?");
 		query.setParameter(1, facet.guestId);
 		query.setParameter(2, facet.start);
@@ -283,12 +296,28 @@ public class ApiDataServiceImpl implements ApiDataService {
 			logDuplicateFacet(facet);
 			return null;
 		} else {
+            if (facet.tagsList!=null&&facet.tagsList.size()>0) {
+                persistTags(facet);
+            }
 			em.persist(facet);
 			return facet;
 		}
 	}
 
-	private void logDuplicateFacet(AbstractFacet facet) {
+    @Transactional(readOnly=false)
+    private void persistTags(final AbstractFacet facet) {
+        for (Tag tag : facet.tagsList) {
+            Tag guestTag = JPAUtils.findUnique(em, Tag.class, "tags.byName", facet.guestId, tag.name);
+            if (guestTag==null) {
+                guestTag = new Tag();
+                guestTag.guestId = facet.guestId;
+                guestTag.name = tag.name;
+                em.persist(guestTag);
+            }
+        }
+    }
+
+    private void logDuplicateFacet(AbstractFacet facet) {
 		try {
 			Connector connector = Connector.fromValue(facet.api);
 			StringBuilder sb = new StringBuilder(" action=persistFacet connector=");

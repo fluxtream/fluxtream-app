@@ -1,8 +1,8 @@
 <%@ page import="com.fluxtream.mvc.controllers.ControllerHelper" %>
 <%@ page pageEncoding="utf-8" contentType="text/html; charset=UTF-8"%><%@ taglib
-	prefix="c" uri="http://java.sun.com/jsp/jstl/core"%><%@ taglib
-	prefix="sec" uri="http://www.springframework.org/security/tags"%><%@ taglib
-	uri="http://granule.com/tags" prefix="g"%><!DOCTYPE html>
+	uri="http://granule.com/tags" prefix="g"%><%
+    Boolean tracker = (Boolean)request.getAttribute("tracker");
+%><!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="/static/css/bootstrap-2.0.3.min.css">
 <link rel="stylesheet"
       href="/static/css/bootstrap-responsive-2.0.3.min.css">
-    <g:compress>
+<g:compress>
 	<link rel="stylesheet" href="/css/flx.css">
 	<link rel="stylesheet" href="/css/bodytrack.css">
 	<link rel="stylesheet" href="/css/datepicker.css">
@@ -126,6 +126,9 @@
 				|| document
 						.write('<script src="/static/js/jquery-1.7.1.min.js"><\/script>')
 	</script>
+    <% if (tracker) { try{%>
+        <jsp:include page="tracker.jsp" />
+    <%} catch(Throwable t){} } %>
     <script src="/static/js/bootstrap-2.0.2.min.js"></script>
     <g:compress>
 		<script src="/static/js/jquery-ui-1.8.18.custom.min.js"></script>

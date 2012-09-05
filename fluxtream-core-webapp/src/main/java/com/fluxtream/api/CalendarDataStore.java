@@ -24,6 +24,7 @@ import com.fluxtream.mvc.models.AddressModel;
 import com.fluxtream.mvc.models.ConnectorDataModel;
 import com.fluxtream.mvc.models.ConnectorDigestModel;
 import com.fluxtream.mvc.models.StatusModel;
+import com.newrelic.api.agent.NewRelic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -59,6 +60,8 @@ import com.fluxtream.updaters.strategies.UpdateStrategyFactory;
 import com.google.gson.Gson;
 import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
 import com.luckycatlabs.sunrisesunset.dto.Location;
+
+import static com.newrelic.api.agent.NewRelic.*;
 
 @Path("/calendar")
 @Component("RESTCalendarDataStore")
@@ -104,6 +107,7 @@ public class CalendarDataStore {
 			@PathParam("week") int week, @QueryParam("filter") String filter)
 			throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException {
+        setTransactionName(null, "/calendar/all/week/{year}/{week}");
         try{
             //TODO:proper week data retrieval implementation
             //this implementation is just a dirt hacky way to make it work and some aspects (weather info) don't work
@@ -190,6 +194,7 @@ public class CalendarDataStore {
 			@PathParam("month") int month,
 			@QueryParam("filter") String filter) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
+        setTransactionName(null, "/calendar/all/month/{year}/{month}");
         try{
             DigestModel digest = new DigestModel();
             digest.timeUnit = "MONTH";
@@ -260,7 +265,8 @@ public class CalendarDataStore {
 	public String getAllConnectorsYearData(@PathParam("year") int year,
 			@QueryParam("filter") String filter) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
-       try{
+        setTransactionName(null, "/calendar/all/year/{year}");
+        try{
             DigestModel digest = new DigestModel();
             digest.timeUnit = "YEAR";
             if (filter == null) {
@@ -326,6 +332,7 @@ public class CalendarDataStore {
 	public String getAllConnectorsDayData(@PathParam("date") String date,
 			@QueryParam("filter") String filter) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
+        setTransactionName(null, "/calendar/all/date/{date}");
         try{
             DigestModel digest = new DigestModel();
             digest.timeUnit = "DAY";
@@ -394,6 +401,7 @@ public class CalendarDataStore {
 			@PathParam("connectorName") String connectorName)
 			throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException {
+        setTransactionName(null, "/calendar/{connectorName}/date/{date}");
         try{
             Connector connector = Connector.getConnector(connectorName);
 
@@ -524,6 +532,7 @@ public class CalendarDataStore {
             throws InstantiationException, IllegalAccessException,
                    ClassNotFoundException {
         try{
+            setTransactionName(null, "/calendar/days/{start}/{end}");
             long guestId = ControllerHelper.getGuestId();
             GuestSettings settings = settingsService.getSettings(guestId);
             TimeInterval timeInterval = new TimeInterval(start, end, TimeUnit.DAY, TimeZone.getTimeZone("UTC"));

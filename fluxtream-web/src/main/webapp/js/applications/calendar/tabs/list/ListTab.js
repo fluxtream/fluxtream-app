@@ -26,59 +26,64 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
     var photoCarouselHTML;
     var timeZoneOffset;
 
+    var templates;
+
     var rendererCount = 0;
 
     function setup(digest,connectorEnabled,page){
-        timeZoneOffset = digest.timeZoneOffset;
-        list = $("#list");
-        pagination = $("#pagination");
-        currentPage = page;
-        items = [];
-        itemGroups = {};
-        list.empty();
-        for (var connectorName in digest.cachedData){
-            if (!shouldDisplayInListView(connectorName))
-                continue;
-            for (var i = 0; i < digest.cachedData[connectorName].length; i++){
-                var item = {};
-                item.facet = digest.cachedData[connectorName][i];
-                item.visible = true;
-                if (connectorName == "picasa-photo")
-                    item.id = i;
-                var found = false;
-                for (var j = 0; j < digest.selectedConnectors.length; j++){
-                    for (var k = 0; !found && k < digest.selectedConnectors[j].facetTypes.length; k++){
-                        found = item.facet.type == digest.selectedConnectors[j].facetTypes[k];
-                    }
-                    if (found){
-                        item.visible = connectorEnabled[digest.selectedConnectors[j].connectorName];
-                        break;
-                    }
+        App.loadAllMustacheTemplates("applications/calendar/tabs/list/listTemplates.html",function(listTemplates){
+            templates = listTemplates;
+            timeZoneOffset = digest.timeZoneOffset;
+            list = $("#list");
+            pagination = $("#pagination");
+            currentPage = page;
+            items = [];
+            itemGroups = {};
+            list.empty();
+            for (var connectorName in digest.cachedData){
+                if (!shouldDisplayInListView(connectorName))
+                    continue;
+                for (var i = 0; i < digest.cachedData[connectorName].length; i++){
+                    var item = {};
+                    item.facet = digest.cachedData[connectorName][i];
+                    item.visible = true;
+                    if (connectorName == "picasa-photo")
+                        item.id = i;
+                    var found = false;
+                    for (var j = 0; j < digest.selectedConnectors.length; j++){
+                        for (var k = 0; !found && k < digest.selectedConnectors[j].facetTypes.length; k++){
+                            found = item.facet.type == digest.selectedConnectors[j].facetTypes[k];
+                        }
+                        if (found){
+                            item.visible = connectorEnabled[digest.selectedConnectors[j].connectorName];
+                            break;
+                        }
 
-                }
-                for (var j = 0; j <= items.length; j++){
-                    if (j == items.length){
-                        items[j] = item;
-                        break;
                     }
-                    if (items[j].facet.start + timeZoneOffset > item.facet.start + timeZoneOffset || item.facet.start + timeZoneOffset == null){
-                        items.splice(j,0,item);
-                        break;
-                    }
+                    for (var j = 0; j <= items.length; j++){
+                        if (j == items.length){
+                            items[j] = item;
+                            break;
+                        }
+                        if (items[j].facet.start + timeZoneOffset > item.facet.start + timeZoneOffset || item.facet.start + timeZoneOffset == null){
+                            items.splice(j,0,item);
+                            break;
+                        }
 
+                    }
+                    if (itemGroups[item.facet.type] == null)
+                        itemGroups[item.facet.type] = [];
+                    itemGroups[item.facet.type][itemGroups[item.facet.type].length] = item;
                 }
-                if (itemGroups[item.facet.type] == null)
-                    itemGroups[item.facet.type] = [];
-                itemGroups[item.facet.type][itemGroups[item.facet.type].length] = item;
             }
-        }
 
-        photoCarouselHTML = PhotoUtils.getCarouselHTML(digest);
+            photoCarouselHTML = PhotoUtils.getCarouselHTML(digest);
 
 
-        rebuildPagination();
-        repopulateList();
-        updateNumberOfEvents();
+            rebuildPagination();
+            repopulateList();
+            updateNumberOfEvents();
+        });
     }
 
     function rebuildPagination(){
@@ -193,10 +198,10 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
                         currentArray[currentArray.length] = item.facet;
                     else{
                         if (currentDate != prevDate){
-                            list.append("<hr><div style=\"margin-bottom:15px\">" + currentDate + "</div>");
+                            list.append(templates.date.render({date:currentDate}));
                             prevDate = currentDate;
                         }
-                        list.append("<div class=\"flx-listItem\">" + currentArray[0].getDetails(currentArray) + "</div>");
+                        list.append(templates.item.render({item:currentArray[0].getDetails(currentArray)}));
                         currentArray = [item.facet];
                         currentDate = facetDate;
                     }
@@ -205,8 +210,8 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
         }
         if (currentArray.length != 0){
             if (currentDate != prevDate)
-                list.append("<hr><div style=\"margin-bottom:15px\">" + currentDate + "</div>");
-            list.append("<div class=\"flx-listItem\">" + currentArray[0].getDetails(currentArray) + "</div>");
+                list.append(templates.date.render({date:currentDate}));
+            list.append(templates.item.render({item:currentArray[0].getDetails(currentArray)}));
         }
         if (list.children().length == 0)
             list.append("Sorry, no data to show.");

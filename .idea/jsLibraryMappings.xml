@@ -10,9 +10,7 @@
     <excludedPredefinedLibrary name="EcmaScript" />
     <excludedPredefinedLibrary name="EcmaScript Additional" />
     <excludedPredefinedLibrary name="EcmaScript L5" />
-    <excludedPredefinedLibrary name="EcmaScript for XML" />
     <excludedPredefinedLibrary name="HTML 5" />
-    <excludedPredefinedLibrary name="WebGL" />
   </component>
 </project>
 

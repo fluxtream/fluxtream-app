@@ -175,7 +175,8 @@ public class FitbitOAuthController {
 			String tokenSecret, long guestId) throws IOException,
 			OAuthMessageSignerException, OAuthExpectationFailedException,
 			OAuthCommunicationException {
-		String urlString = "http://api.fitbit.com/1/user/-/apiSubscriptions/1.json";
+        String subscriberId = env.get("fitbitSubscriberId");
+		String urlString = "http://api.fitbit.com/1/user/-/apiSubscriptions/" + subscriberId + ".json";
 		URL url = new URL(urlString);
 		HttpURLConnection request = (HttpURLConnection) url.openConnection();
 		request.setRequestMethod("POST");

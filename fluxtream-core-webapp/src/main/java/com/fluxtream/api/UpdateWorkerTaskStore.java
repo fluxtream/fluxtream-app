@@ -126,7 +126,7 @@ public class UpdateWorkerTaskStore {
         try{
             long guestId = ControllerHelper.getGuestId();
             final Connector connector = Connector.getConnector(connectorName);
-            connectorUpdateService.deleteScheduledUpdateTasks(guestId, connector);
+            connectorUpdateService.deleteScheduledUpdateTasks(guestId, connector, false);
             StatusModel statusModel = new StatusModel(true, "successfully deleted pending update tasks for " + connectorName);
             return gson.toJson(statusModel);
         }

@@ -95,6 +95,7 @@ public class BodyTrackController {
 
     @POST
     @Path("/upload")
+    @Consumes({MediaType.MULTIPART_FORM_DATA,MediaType.APPLICATION_FORM_URLENCODED})
     @Produces({MediaType.APPLICATION_JSON})
     public String uploadToBodytrack(@FormParam("dev_nickname") String deviceNickanme, @FormParam("channel_names") String channels,
                                     @FormParam("data") String data){
@@ -116,7 +117,7 @@ public class BodyTrackController {
     @Path("/tiles/{UID}/{DeviceNickname}.{ChannelName}/{Level}.{Offset}.json")
     @Produces({MediaType.APPLICATION_JSON})
     public String fetchTile(@PathParam("UID") Long uid, @PathParam("DeviceNickname") String deviceNickname,
-                                   @PathParam("ChannelName") String channelName, @PathParam("Level") int level, @PathParam("Offset") int offset){
+                                   @PathParam("ChannelName") String channelName, @PathParam("Level") int level, @PathParam("Offset") long offset){
         try{
             if (!checkForPermissionAccess(uid)){
                 uid = null;

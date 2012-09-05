@@ -14,7 +14,9 @@ define(["core/FlxState"], function(FlxState) {
 	 * with this app, destroy (unwire) the
 	 * previous app and call renderState() on the new one
 	 */
-	Application.prototype.render = function(state) {
+	Application.prototype.render = function(state,params) {
+        if (params == null)
+            params = {};
         $(".appMenuBtn.active").removeClass("active");
 		$("#"+this.name+"MenuButton").addClass('active');
 		if (state==="last")
@@ -43,15 +45,15 @@ define(["core/FlxState"], function(FlxState) {
 					
 					App.activeApp = App.apps[that.name];
                     App.activeApp.setup();
-					App.activeApp.renderState(state, true);
+					App.activeApp.renderState(state, true,params);
 				});
 			} else {
 				nextAppDiv.removeClass("dormant");
 				nextAppDiv.addClass("active");
-                this.renderState(state, true);
+                this.renderState(state, true,params);
 			}
 		} else {
-			this.renderState(state, true);
+			this.renderState(state, true,params);
 		}
 	};
 	

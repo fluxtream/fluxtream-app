@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 //  https://fluxtream.atlassian.net/wiki/display/FLX/BodyTrack+server+APIs
 
 @Controller
+@Deprecated
 public class BodyTrackController {
 
 	@Autowired

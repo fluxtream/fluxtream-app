@@ -21,9 +21,10 @@ public interface ConnectorUpdateService {
      * Schedules updates for the given connector for the user
      * @param guestId the user for whom the connector is to be updated
      * @param connector the connector to be updated
+     * @param force force an update (sync now)
      * @return A list containing data about what was scheduled
      */
-    public List<ScheduleResult> updateConnector(long guestId, Connector connector);
+    public List<ScheduleResult> updateConnector(long guestId, Connector connector, boolean force);
 
     /**
      * Schedules an updated for on ObjectType of the given connector for the given user
@@ -33,9 +34,10 @@ public interface ConnectorUpdateService {
      *                    The value of each objectType is defined in the ObjectType spec. Values are always powers of 2
      *                    which allows for the bitmask. For example: objectTypes = 5 means that both the objectType of
      *                    value 4 and the objectType of value 1 are to be updated
+     * @param force force an update (sync now)
      * @return A list containing data about what was scheduled
      */
-    public List<ScheduleResult> updateConnectorObjectType(long guestId, Connector connector, int objectTypes);
+    public List<ScheduleResult> updateConnectorObjectType(long guestId, Connector connector, int objectTypes, boolean force);
 
     public List<ScheduleResult> updateAllConnectors(long guestId);
 
@@ -47,13 +49,11 @@ public interface ConnectorUpdateService {
 
 	public ApiUpdate getLastUpdate(long guestId, Connector api);
 
-	public ApiUpdate getLastSuccessfulUpdate(long guestId, Connector api);
+    public ApiUpdate getLastSuccessfulUpdate(long guestId, Connector api);
 
 	public ApiUpdate getLastSuccessfulUpdate(long guestId, Connector api,
 			int objectTypes);
 
-	public Set<Long> getConnectorGuests(Connector connector);
-	
 	public void addApiUpdate(long guestId, Connector api, int objectTypes,
 			long ts, long elapsed, String query, boolean success);
 
@@ -92,7 +92,7 @@ public interface ConnectorUpdateService {
 
     public Collection<UpdateWorkerTask> getUpdatingUpdateTasks(long guestId, Connector connector);
 
-	public void deleteScheduledUpdateTasks(long guestId, Connector connector);
+	public void deleteScheduledUpdateTasks(long guestId, Connector connector, boolean wipeOutHistory);
 
 	public long getTotalNumberOfGuestsUsingConnector(Connector connector);
 

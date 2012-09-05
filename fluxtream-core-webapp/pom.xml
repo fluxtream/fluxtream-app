@@ -8,6 +8,11 @@
 	</parent>
 	<artifactId>fluxtream-core-webapp</artifactId>
 	<dependencies>
+        <dependency>
+            <groupId>com.newrelic</groupId>
+            <artifactId>newrelic-api</artifactId>
+            <version>2.7.0</version>
+        </dependency>
 		<dependency>
 			<groupId>com.fluxtream</groupId>
 			<artifactId>fluxtream-core</artifactId>

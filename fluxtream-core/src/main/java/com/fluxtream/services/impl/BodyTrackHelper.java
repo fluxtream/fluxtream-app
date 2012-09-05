@@ -125,7 +125,7 @@ public class BodyTrackHelper {
         }
     }
 
-    public String fetchTile(Long uid, String deviceNickname, String channelName, int level, int offset){
+    public String fetchTile(Long uid, String deviceNickname, String channelName, int level, long offset){
         try{
             if (uid == null)
                 throw new IllegalArgumentException();
@@ -321,10 +321,10 @@ public class BodyTrackHelper {
         Object[][] data;
         String[] fields;
         int level;
-        int offset;
+        long offset;
         int sample_width;
 
-        public static GetTileResponse getEmptyTile(int level, int offset){
+        public static GetTileResponse getEmptyTile(int level, long offset){
             GetTileResponse tileResponse = new GetTileResponse();
             tileResponse.data = new Object[0][];
             tileResponse.level = level;

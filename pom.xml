@@ -2,16 +2,14 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.fluxtream</groupId>
+    <version>1.0</version>
 	<artifactId>fluxtream-app</artifactId>
-	<version>1.0</version>
 	<packaging>pom</packaging>
 	<modules>
 		<module>fluxtream-core</module>
 		<module>fluxtream-core-webapp</module>
 		<module>fluxtream-connectors</module>
-<!-- 		<module>fluxtream-webapp</module> -->
 		<module>fluxtream-web</module>
-		<!--<module>fluxtream-rest</module>-->
 	</modules>
 	<build>
 		<resources>

@@ -54,7 +54,7 @@ public class FlxUserDetails implements UserDetails {
 	public Collection<GrantedAuthority> getAuthorities() {
 		Collection<GrantedAuthority> result = new ArrayList<GrantedAuthority>();
 		List<String> userRoles = guest.getUserRoles();
-		for (String userRole : userRoles)
+ 		for (String userRole : userRoles)
 			result.add(new SimpleGrantedAuthority(userRole));
 		return result;
 	}
