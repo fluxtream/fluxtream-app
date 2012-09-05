@@ -1,5 +1,5 @@
 <component name="ArtifactManager">
-  <artifact type="exploded-war" name="fluxtream-web:war exploded">
+  <artifact type="exploded-war" build-on-make="true" name="fluxtream-web:war exploded">
     <output-path>$PROJECT_DIR$/fluxtream-web/target/ROOT</output-path>
     <root id="root">
       <element id="javaee-facet-resources" facet="fluxtream-web/web/Web" />
