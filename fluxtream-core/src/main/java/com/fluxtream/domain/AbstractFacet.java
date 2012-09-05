@@ -1,5 +1,6 @@
 package com.fluxtream.domain;
 
+import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.Lob;
@@ -51,6 +52,11 @@ public abstract class AbstractFacet extends AbstractEntity {
 	@Index(name="objectType_index")
 	public int objectType;
 	
+	@Lob
+    public String tags;
+
+    public transient List<Tag> tagsList;
+
 	@Lob
 	@Field(index=org.hibernate.search.annotations.Index.TOKENIZED, store=Store.YES)
 	public String comment;
