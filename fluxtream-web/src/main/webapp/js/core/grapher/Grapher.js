@@ -774,7 +774,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
 
             // TODO: The following should be keying off of "type" rather than "name" fields
             var plot = null;
-            if ("photos" == channel["channel_name"]) {
+            if ("photo" == channel["channel_name"] || "photos" == channel["channel_name"]) {
                 var tags = [];
                 var willJoinUsingAnd = false;
                 var photoStyle = channel['style'];
@@ -788,7 +788,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     willJoinUsingAnd = !!photoStyle['filters']['tag']['isAndJoin'];
                 }
                 plot = new PhotoSeriesPlot(photoDatasource(App.getUID(), channel["device_name"], tags,	willJoinUsingAnd),
-                    dateAxis,
+                    grapher.dateAxis,
                     yAxis,
                     App.getUID(),
                     channel["style"]);

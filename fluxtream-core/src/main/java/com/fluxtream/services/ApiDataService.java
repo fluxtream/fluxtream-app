@@ -36,6 +36,7 @@ public interface ApiDataService {
 	public List<AbstractFacet> getApiDataFacets(long guestId, Connector api,
 			ObjectType objectType, TimeInterval timeInterval);
 
+    public AbstractFacet getOldestApiDataFacet(long guestId, Connector connector, ObjectType objectType);
     public AbstractFacet getLatestApiDataFacet(long guestId, Connector connector, ObjectType objectType);
 
 	public void eraseApiData(long guestId, Connector api);

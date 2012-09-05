@@ -61,16 +61,26 @@ public class JPAFacetDao implements FacetDao {
 		}
 		return facets;
 	}
+
+
+    @Override
+    public AbstractFacet getOldestFacet(final Connector connector, final long guestId, final ObjectType objectType) {
+        return getFacet(connector, guestId, objectType, "getOldestFacet");
+    }
+
     @Override
     public AbstractFacet getLatestFacet(final Connector connector, final long guestId, final ObjectType objectType) {
-        if (!connector.hasFacets()) return null;
+        return getFacet(connector, guestId, objectType, "getLatestFacet");
+    }
 
+    private AbstractFacet getFacet(final Connector connector, final long guestId, final ObjectType objectType, final String methodName) {
+        if (!connector.hasFacets()) return null;
 
         AbstractFacet facet = null;
         if (objectType!=null) {
             try {
                 Class c =  objectType.facetClass();
-                Method m = c.getMethod("getLatestFacet",EntityManager.class,Long.class,Connector.class,ObjectType.class);
+                Method m = c.getMethod(methodName,EntityManager.class,Long.class,Connector.class,ObjectType.class);
                 facet = (AbstractFacet) m.invoke(null,em,guestId,connector,objectType);
             }
             catch (Exception ignored) {
@@ -81,7 +91,7 @@ public class JPAFacetDao implements FacetDao {
                     AbstractFacet fac = null;
                     try {
                         Class c =  type.facetClass();
-                        Method m = c.getMethod("getLatestFacet",EntityManager.class,Long.class,Connector.class,ObjectType.class);
+                        Method m = c.getMethod(methodName,EntityManager.class,Long.class,Connector.class,ObjectType.class);
                         fac = (AbstractFacet) m.invoke(null,em,guestId,connector,type);
                     }
                     catch (Exception ignored) {
@@ -92,7 +102,7 @@ public class JPAFacetDao implements FacetDao {
             } else {
                 try {
                     Class c =  connector.facetClass();
-                    Method m = c.getMethod("getLatestFacet",EntityManager.class,Long.class,Connector.class,ObjectType.class);
+                    Method m = c.getMethod(methodName,EntityManager.class,Long.class,Connector.class,ObjectType.class);
                     facet = (AbstractFacet) m.invoke(null,em,guestId,connector,null);
                 }
                 catch (Exception ignored) {
