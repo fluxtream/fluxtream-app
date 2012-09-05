@@ -1,8 +1,13 @@
 package com.fluxtream.services.impl;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.TimeZone;
 import com.fluxtream.TimeInterval;
+import com.fluxtream.TimeUnit;
+import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.vos.AbstractFacetVO;
 import com.fluxtream.connectors.vos.AbstractInstantFacetVO;
@@ -35,9 +40,21 @@ public class PhotoServiceImpl implements PhotoService {
     GuestService guestService;
 
     @Override
-    public List<AbstractInstantFacetVO<AbstractFacet>> getPhotos(Guest guest, TimeInterval timeInterval) throws ClassNotFoundException,
-                                                                                                                IllegalAccessException,
-                                                                                                                InstantiationException {
+    public boolean hasPhotos(final Guest guest) {
+        if (guest != null) {
+            List<ApiKey> userKeys = guestService.getApiKeys(guest.getId());
+            for (ApiKey key : userKeys) {
+                if (key.getConnector().hasImageObjectType()) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    @Override
+    public List<AbstractInstantFacetVO<AbstractFacet>> getPhotos(Guest guest, TimeInterval timeInterval) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
         GuestSettings settings = settingsService.getSettings(guest.getId());
         List<ApiKey> userKeys = guestService.getApiKeys(guest.getId());
         List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
@@ -51,7 +68,9 @@ public class PhotoServiceImpl implements PhotoService {
             }
             else {
                 for (ObjectType objectType : objectTypes) {
-                    facets.addAll(apiDataService.getApiDataFacets(guest.getId(), key.getConnector(), objectType, timeInterval));
+                    if (objectType.isImageType()) {
+                        facets.addAll(apiDataService.getApiDataFacets(guest.getId(), key.getConnector(), objectType, timeInterval));
+                    }
                 }
             }
         }
@@ -63,5 +82,50 @@ public class PhotoServiceImpl implements PhotoService {
             photos.add(facetVo);
         }
         return photos;
+    }
+
+    @Override
+    public Map<String, TimeInterval> getPhotoChannelTimeRanges(long guestId) {
+        // TODO: This could really benefit from some caching.  The time ranges can only change upon updating a photo
+        // connector so it would be better to cache this info and then just refresh it whenever the connector is updated
+
+        Map<String, TimeInterval> photoChannelTimeRanges = new HashMap<String, TimeInterval>();
+
+        List<ApiKey> userKeys = guestService.getApiKeys(guestId);
+        for (ApiKey key : userKeys) {
+            final Connector connector = key.getConnector();
+            if (connector.hasImageObjectType()) {
+                // Check the object types, if any, to find the image object type(s)
+                ObjectType[] objectTypes = key.getConnector().objectTypes();
+                if (objectTypes == null) {
+                    final String channelName = constructChannelName(connector, "photos");
+                    final TimeInterval timeInterval = constructTimeIntervalFromOldestAndNewestFacets(guestId, connector, null);
+                    photoChannelTimeRanges.put(channelName, timeInterval);
+                }
+                else {
+                    for (ObjectType objectType : objectTypes) {
+                        if (objectType.isImageType()) {
+                            final String objectName = objectType.name();
+                            final String channelName = constructChannelName(connector, objectName);
+                            final TimeInterval timeInterval = constructTimeIntervalFromOldestAndNewestFacets(guestId, connector, null);
+                            photoChannelTimeRanges.put(channelName, timeInterval);
+                        }
+                    }
+                }
+            }
+        }
+        return photoChannelTimeRanges;
+    }
+
+    private String constructChannelName(final Connector connector, final String objectName) {
+        return connector.prettyName() + "." + objectName;
+    }
+
+    private TimeInterval constructTimeIntervalFromOldestAndNewestFacets(final long guestId, final Connector connector, final ObjectType objectType) {
+        final AbstractFacet oldestFacet = apiDataService.getOldestApiDataFacet(guestId, connector, objectType);
+        final AbstractFacet newestFacet = apiDataService.getLatestApiDataFacet(guestId, connector, objectType);
+
+        // TODO: Not sure if this is correct for time zones...
+        return new TimeInterval(oldestFacet.start, newestFacet.start, TimeUnit.DAY, TimeZone.getTimeZone("UTC"));
     }
 }

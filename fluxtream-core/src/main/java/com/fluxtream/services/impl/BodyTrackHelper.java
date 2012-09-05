@@ -12,11 +12,12 @@ import java.util.Map;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import com.fluxtream.Configuration;
+import com.fluxtream.TimeInterval;
 import com.fluxtream.domain.GrapherView;
+import com.fluxtream.services.PhotoService;
 import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.Utils;
 import com.google.gson.Gson;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,12 +33,13 @@ public class BodyTrackHelper {
     @PersistenceContext
     EntityManager em;
 
-    static Logger LOG = Logger.getLogger(BodyTrackHelper.class);
-
     static final boolean verboseOutput = false;
 
     @Autowired
     Configuration env;
+
+    @Autowired
+    PhotoService photoService;
 
     Gson gson = new Gson();
 
@@ -129,7 +131,7 @@ public class BodyTrackHelper {
         try{
             if (uid == null)
                 throw new IllegalArgumentException();
-            String result = executeDataStore("gettile",new Object[]{uid,deviceNickname + "." + channelName,level,offset});
+            String result = executeDataStore("gettile", new Object[]{uid, deviceNickname + "." + channelName, level, offset});
 
             GetTileResponse tileResponse = gson.fromJson(result,GetTileResponse.class);
 
@@ -150,10 +152,49 @@ public class BodyTrackHelper {
                 throw new IllegalArgumentException();
             String result = executeDataStore("info",new Object[]{"-r",uid});
 
-            channelInfoResponse infoResponse = gson.fromJson(result,channelInfoResponse.class);
+            ChannelInfoResponse infoResponse = gson.fromJson(result,ChannelInfoResponse.class);
 
+            // create the 'All' photos block
+            final Source allPhotosSource = new Source();
+            allPhotosSource.name = "All";
+            allPhotosSource.channels = new ArrayList<Channel>();
+            final Channel allPhotosChannel = new Channel();
+            allPhotosSource.channels.add(allPhotosChannel);
+            allPhotosChannel.name = "photos";
+            allPhotosChannel.type = "photos";
+            allPhotosChannel.builtin_default_style = new ChannelStyle();
+            allPhotosChannel.style = allPhotosChannel.builtin_default_style;
+            allPhotosChannel.min= 0;
+            allPhotosChannel.max= 1;
+            allPhotosChannel.min_time = Double.MAX_VALUE;
+            allPhotosChannel.max_time = Double.MIN_VALUE;
+
+            // Iterate over the various (photo) connectors, manually inserting each into the ChannelSpecs
+            final Map<String, TimeInterval> photoChannelTimeRanges = photoService.getPhotoChannelTimeRanges(uid);
+            for (final String channelName : photoChannelTimeRanges.keySet()) {
+                final ChannelSpecs channelSpecs = new ChannelSpecs();
+                final TimeInterval timeInterval = photoChannelTimeRanges.get(channelName);
+                channelSpecs.channel_bounds = new ChannelBounds();
+                channelSpecs.channel_bounds.min_time = timeInterval.start / 1000;
+                channelSpecs.channel_bounds.max_time = timeInterval.end / 1000;
+                channelSpecs.channel_bounds.min_value = 0;
+                channelSpecs.channel_bounds.max_value = 1;
+                infoResponse.channel_specs.put(channelName, channelSpecs);
+
+                // update the min/max times in ChannelInfoResponse and in the All photos channel
+                infoResponse.min_time = Math.min(infoResponse.min_time, channelSpecs.channel_bounds.min_time);
+                infoResponse.max_time = Math.max(infoResponse.max_time, channelSpecs.channel_bounds.max_time);
+                allPhotosChannel.min_time = Math.min(allPhotosChannel.min_time, channelSpecs.channel_bounds.min_time);
+                allPhotosChannel.max_time = Math.max(allPhotosChannel.max_time, channelSpecs.channel_bounds.max_time);
+            }
+
+            // create the respone
             SourcesResponse response = new SourcesResponse(infoResponse);
 
+            // add the All photos block to the response
+            response.sources.add(allPhotosSource);
+
+            // set default styles if necessary
             for (Source source : response.sources){
                 for (Channel channel : source.channels){
                     ChannelStyle userStyle = getDefaultStyle(uid,source.name,channel.name);
@@ -175,7 +216,7 @@ public class BodyTrackHelper {
                 throw new IllegalArgumentException();
             String result = executeDataStore("info",new Object[]{"-r",uid});
 
-            channelInfoResponse infoResponse = gson.fromJson(result,channelInfoResponse.class);
+            ChannelInfoResponse infoResponse = gson.fromJson(result,ChannelInfoResponse.class);
 
             SourceInfo response = new SourceInfo(infoResponse,deviceName);
 
@@ -334,7 +375,7 @@ public class BodyTrackHelper {
         }
     }
 
-    private static class channelInfoResponse{
+    private static class ChannelInfoResponse {
         Map<String,ChannelSpecs> channel_specs;
         double max_time;
         double min_time;
@@ -355,7 +396,7 @@ public class BodyTrackHelper {
     private static class SourcesResponse{
         ArrayList<Source> sources;
 
-        public SourcesResponse(channelInfoResponse infoResponse){
+        public SourcesResponse(ChannelInfoResponse infoResponse){
             sources = new ArrayList<Source>();
             if (infoResponse == null)
                 return;
@@ -387,7 +428,7 @@ public class BodyTrackHelper {
     private static class SourceInfo{
         Source info;
 
-        public SourceInfo(channelInfoResponse infoResponse, String deviceName){
+        public SourceInfo(ChannelInfoResponse infoResponse, String deviceName){
             info = new Source();
             info.name = deviceName;
             info.channels = new ArrayList<Channel>();
@@ -424,6 +465,7 @@ public class BodyTrackHelper {
     }
 
     private static class Channel{
+        String type;
         ChannelStyle builtin_default_style;
         ChannelStyle style;
         double max;

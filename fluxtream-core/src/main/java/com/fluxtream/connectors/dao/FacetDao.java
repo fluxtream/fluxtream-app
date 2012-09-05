@@ -11,6 +11,8 @@ public interface FacetDao {
 
 	public List<AbstractFacet> getFacetsBetween(Connector connector, long guestId, ObjectType objectType, TimeInterval timeInterval);
 
+    public AbstractFacet getOldestFacet(Connector connector, long guestId, ObjectType objectType);
+
     public AbstractFacet getLatestFacet(Connector connector, long guestId, ObjectType objectType);
 
 	public void deleteAllFacets(Connector connector, long guestId);

@@ -233,6 +233,11 @@ public class ApiDataServiceImpl implements ApiDataService {
 	}
 
     @Override
+    public AbstractFacet getOldestApiDataFacet(long guestId, Connector connector, ObjectType objectType){
+        return jpaDao.getOldestFacet(connector,guestId,objectType);
+    }
+
+    @Override
     public AbstractFacet getLatestApiDataFacet(long guestId, Connector connector, ObjectType objectType){
         return jpaDao.getLatestFacet(connector,guestId,objectType);
     }
