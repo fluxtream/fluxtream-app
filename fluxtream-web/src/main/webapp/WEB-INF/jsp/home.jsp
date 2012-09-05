@@ -35,6 +35,9 @@
 	src="https://maps-api-ssl.google.com/maps/api/js?libraries=geometry&v=3&sensor=false"
 	type="text/javascript"></script>
     <script src="/static/js/hogan-2.0.0.js"></script>
+    <script type="text/javascript">
+        var NREUMQ=NREUMQ||[];NREUMQ.push(["mark","firstbyte",new Date().getTime()]);
+    </script>
 
 <link rel="shortcut icon" href="/favicon.ico">
 
@@ -155,5 +158,9 @@
 	<script src="/static/grapher4/grapher2.nocache.js"></script>
 	
 	<script data-main="/${release}/js/main.js" src="/static/js/require-1.0.3.js"></script>
+    <script type="text/javascript">
+        (function(){var d=document;var e=d.createElement("script");e.async=true;e.src="https://d1ros97qkrwjf5.cloudfront.net/28/eum/rum-staging.js";e.type="text/javascript";var s=d.getElementsByTagName("script")[0];s.parentNode.insertBefore(e,s);})();
+        NREUMQ.push(["nrf2","beacon-1.newrelic.com","api-key",appID,"cA1WFkEJX1UBFxpYXF4HFwtdAlZB",0,1058,new Date().getTime()])
+    </script>
 </body>
 </html>
