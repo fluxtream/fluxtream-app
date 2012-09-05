@@ -9,7 +9,8 @@ a .bd {font-size: 10px; text-decoration: none;}
 .media .img img{display:block;}
 
 
-
+.regLink { float: right; margin-right: 20px; margin-top: 3px;font-weight: bold; font-family: inherit;text-shadow: 0 1px 1px rgb(85, 85, 85); color: #fff; }
+.regLink:hover { text-shadow: 0 3px 3px rgb(85, 85, 85); color: #fff; }
 
 #login .cont, #login-collapse {width:990px;padding: 0 30px; margin:0 auto;}
 .cf:before, .cf:after {content:"";display:table;}
@@ -20,10 +21,10 @@ a .bd {font-size: 10px; text-decoration: none;}
 #login a:hover {color: white;}
 #login p {float:left;font-size:12px;font-weight:500;padding-top: 9px;}
 .ie7 #login p {display: block; float: none; width: 100%; margin-left: 380px;}
-#login form {padding-top:6px;float:right; width: 700px; margin-right: 110px; }
+#login form {padding-top:6px;float:right; width: 600px; margin-right: 110px; }
 .ie7 #login form {float: none;}
 #login label {margin:0 5px 0 0; color: #0E4466; display: inline;}
-#login input {margin:0 16px 0 0;padding:2px 4px; display: inline;}
+#login input {margin:0 16px 0 0;padding:4px 8px; display: inline;}
 #login input {background: white; text-align: left; font-size: 14px; border-width: 1px; border-style: solid; border-color: #226EB5; -moz-border-radius:4px ;-webkit-border-radius:4px; border-radius: 4px; outline: none;}
 /*
 #login input[type="submit"] {border:2px solid #fff;margin:0 0 0 20px;background:#45bcd2;color:#fff;text-transform:uppercase;font-size:13px;letter-spacing:1px;padding:2px 6px;}
@@ -31,11 +32,13 @@ a .bd {font-size: 10px; text-decoration: none;}
 #login input[type="submit"]:hover {background:#0E5D86;color:#fff;}
 */
 
+#login input[type=text], #login input[type=password] {width:150px;}
+
 #login input.error {background-color: #FFADAD;border-color: #f40;border-width: 2px;}
 #login p.sysInfo {padding-top: 4px; font-size: 14px;}
 
 #login-collapse {text-align:center;text-shadow:0 0 0; }
-#login-collapse a {position:relative;top:-4px;float:right;background:#56A4DB;color:#fff;padding:8px 20px;display:block;margin-right:160px;
+#login-collapse a {position:relative;top:-4px;float:right;background:#56A4DB;color:#fff;padding:8px 20px;display:block;margin-right:225px;
     -webkit-border-radius:4px; -moz-border-radius:4px; border-radius:4px;}
 #login-collapse a span {border-bottom:1px solid rgba(255,255,255,.3); border-bottom: 0;}
 #login-collapse a:hover span {border-color:rgba(255,255,255,.8);}
@@ -182,6 +185,8 @@ textarea:focus {
           box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 82, 82, 0.6);
 }
 
+
+
 #features {margin-top:40px; text-align:center;}
 .featureicon{ color:#d23828; font-size:36px; margin-bottom:15px; padding:0 20px 0 0;}
 h2{ font-family: 'Droid Serif', serif; text-align:left;}
@@ -201,6 +206,10 @@ h3{ font-size:16px; font-family: 'Droid Serif', serif; line-height:26px; font-we
 #footer p{ font-size:10px; font-family: 'Droid Serif', serif;font-weight:400;}
 #footer .media {margin-top: 0;}
 
+
+
+
+
 /* MEDIA QUERIES CUSTOM  */
 
 
@@ -215,9 +224,11 @@ h3{ font-size:16px; font-family: 'Droid Serif', serif; line-height:26px; font-we
 		padding-top: 40px;
 		padding-left: 0px;
 	}
+	#login form { width: 400px; margin-right: 0px; }
 	#login .cont, #login-collapse {
-		width: 200px;
+		width: 400px;
 	}
+	#login input[type=text], #login input[type=password] {width:120px;}
 }
 
 @media (max-width: 767px) {
@@ -225,7 +236,7 @@ h3{ font-size:16px; font-family: 'Droid Serif', serif; line-height:26px; font-we
 		height: 300px;
 	}
 	.wrapper {
-		width: 480px;
+		width: 580px;
 	}
 	#intro .page-title-wrapper {
 		padding-top: 40px;
@@ -235,10 +246,12 @@ h3{ font-size:16px; font-family: 'Droid Serif', serif; line-height:26px; font-we
 		font-size: 24px;
 		line-height: 38px;
 	}
+	#login form { width: 600px; margin-right: 0px; }
 	#login .cont, #login-collapse {
-		width: 540px;
+		width: 500px;
 	}
 	#intro .customer-card {margin-left: 230px;}
+	#login input[type=text], #login input[type=password] {width:120px;}
 }
 
 @media (min-width: 768px) and (max-width: 979px) {
@@ -246,20 +259,30 @@ h3{ font-size:16px; font-family: 'Droid Serif', serif; line-height:26px; font-we
 		height: 430px;
 	}
   .wrapper {
-		width: 728px;
+		width: 658px;
 	}
 	#intro .page-title-wrapper {
-		padding-top: 70px;
-		padding-left: 350px;
+		padding-top: 90px;
+		padding-left: 250px;
 	}
+	#intro .page-title-wrapper h1 {
+		font-size: 28px;
+		line-height: 46px;
+	}
+	#login form { width: 600px; margin-right: 0px; }
 	#login .cont, #login-collapse {
-		width: 728px;
+		width: 753px;
 	}
-	#intro .customer-card {margin-left: 244px;}
+	#intro .customer-card {margin-left: 254px;}
+	
+	#login input[type=text], #login input[type=password] {width:150px;}
+	input.span3, textarea.span3, .uneditable-input.span3 {width: 103px;}
 }
 @media (min-width: 1200px) {
 	.wrapper {
-		width: 1100px;
+		width: 1000px;
 	}
-	#intro .customer-card {margin-left: 430px;}
+	#login form { width: 750px; margin-right: 110px; }
+	#intro .customer-card {margin-left: 380px;}
+	#login input[type=text], #login input[type=password] {width:220px;}
 }

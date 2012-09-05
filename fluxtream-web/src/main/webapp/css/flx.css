@@ -519,7 +519,6 @@ a img {
   width: 435px;
   padding: 5px;
   background: rgba(255, 255, 255, 0.75);
-  color: #666666;
   position: relative;
 }
 .strongBorder {
@@ -595,23 +594,15 @@ a img {
 .flx-deviceIcon.github-push { background-position: 0 -799px; }
 
 */
-.flx-toolTipData .flx-data {
-  max-width: 270px;
-  overflow: hidden;
-  height: 100%;
+/*
+.flx-toolTipData .flx-data { max-width:270px; overflow:hidden; height: 100%;
+    .flx-description { font-size: 14px; color:lighten(@black, 20%); }
+    .flx-text {  }
 }
-.flx-toolTipData .flx-data span {
-  font-size: 14px;
-  color: #bfbfbf;
+.flx-toolTipData .flx-tTime { font-size: 16px; margin-bottom: 5px;
+        span {color: lighten(@black, 40%); font-size:11px; text-transform: none;}
 }
-.flx-toolTipData .flx-tTime {
-  font-size: 16px;
-  margin-bottom: 5px;
-}
-.flx-toolTipData .flx-tTime span {
-  font-size: 11px;
-  color: #bfbfbf;
-}
+*/
 .flx-miniGraph {
   float: left;
   margin-top: -20px;
@@ -620,6 +611,7 @@ a img {
   overflow: hidden;
   height: 100%;
   margin: 10px 5px 0;
+  color: #666666;
 }
 .flx-toolTipContext h4 {
   font-size: 12px;
@@ -634,6 +626,7 @@ a img {
   float: left;
   width: 50%;
   margin-right: 5px;
+  color: #666666;
 }
 .flx-toolTipContext .flx-toolTipWeather {
   overflow: hidden;
@@ -645,13 +638,14 @@ a img {
   height: 110px;
 }
 .flx-toolTipContext .flx-toolTipWeather .flx-weatherDetails {
+  color: #666666;
   font-size: 12px;
   list-style-type: none;
   padding: 0 !important;
   margin: 0 !important;
 }
 .flx-toolTipContext .flx-toolTipWeather .flx-weatherDetails li {
-  width: 30%;
+  width: 29.5%;
   float: left;
   border-right: 1px solid #666666;
   font-weight: normal;
@@ -1132,6 +1126,55 @@ table .remove i {
   font-size: 14px;
 }
 .flx-listItem .flx-box .flx-more {
+  color: #999999;
+}
+.flx-toolTipData .flx-box .flx-data {
+  clear: left;
+  max-width: 250px;
+  padding-left: 10px;
+}
+.flx-toolTipData .flx-box .flx-deviceIcon,
+.flx-toolTipData .flx-box .flx-tTime,
+.flx-toolTipData .flx-box .flx-tRange {
+  float: left;
+}
+.flx-toolTipData .flx-box .flx-tTime {
+  padding: 0 13px 0 10px;
+  min-width: 62px;
+  height: 26px;
+  font-size: 15px;
+}
+.flx-toolTipData .flx-box .flx-tTime span {
+  color: #999999;
+  font-size: 11px;
+  text-transform: none;
+}
+.flx-toolTipData .flx-box .flx-tRange {
+  color: #cccccc;
+  font-size: 14px;
+  text-transform: none;
+  padding: 0 13px 0 10px;
+  min-width: 62px;
+  height: 42px;
+}
+.flx-toolTipData .flx-box .flx-tRange span {
+  display: block;
+}
+.flx-toolTipData .flx-box .flx-tRange span span {
+  font-size: 15px;
+  color: #333333;
+  display: inline;
+}
+.flx-toolTipData .flx-box .flx-description {
+  color: #666666;
+  display: block;
+  max-width: 450px;
+}
+.flx-toolTipData .flx-box .flx-description span {
+  font-weight: bold;
+  font-size: 14px;
+}
+.flx-toolTipData .flx-box .flx-more {
   color: #999999;
 }
 /*

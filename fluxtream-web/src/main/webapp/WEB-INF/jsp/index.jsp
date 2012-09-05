@@ -14,8 +14,8 @@
     <link href="/${release}/assets-home/css/style-responsive-red.css" rel="stylesheet">
     <link href="/${release}/assets-home/css/style.css" rel="stylesheet">
     <!-- Google Web Font-->
-    <%--<link href='//fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic,700italic' rel='stylesheet' type='text/css'>--%>
-    <%--<link href='//fonts.googleapis.com/css?family=Droid+Sans:400,700' rel='stylesheet' type='text/css'>--%>
+    <link href='//fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Droid+Sans:400,700' rel='stylesheet' type='text/css'>
     <!--[if IE 7]><link rel="stylesheet" href="/${release}/assets-home/css/font-awesome-ie7.css"><![endif]-->
     <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
@@ -26,6 +26,7 @@
     <script type="text/javascript" src="/${release}/assets-home/js/respond.js"></script>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
     <script src="/static/js/bootstrap-2.0.2.min.js"></script>
+    <script src="/static/js/bootstrap-modal.js"></script>
     <script type="text/javascript" src="/${release}/assets-home/js/welcome.js"></script>
 
     <!-- fav icons -->
@@ -76,11 +77,75 @@
         <div class="logo">
             <a href="#"><img src="/${release}/assets-home/img/logo-fulltext2.png"></a>
         </div>
-
+        
+        <!-- register modal -->
+        
+        <a href="#registerModal" role="button" class="regLink" data-toggle="modal" data-target="#myModal">Register</a>
+         
+        <div class="modal" id="registerModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="myModalLabel">Register</h3>
+          </div>
+          <div class="modal-body">
+            <form class="form-horizontal">
+              <div class="control-group">
+                <label class="control-label" for="inputRegEmail">Email</label>
+                <div class="controls">
+                  <input type="email" id="inputRegEmail" placeholder="ex: example@example.com">
+                </div>
+              </div>
+              <div class="control-group">
+                <label class="control-label" for="inputRegUsername">User Name</label>
+                <div class="controls">
+                  <input type="text" id="inputRegUsername" placeholder="ex: Johndoe">
+                </div>
+              </div>
+              <div class="control-group">
+                <label class="control-label" for="inputRegFirstName">First Name</label>
+                <div class="controls">
+                  <input type="email" id="inputRegFirstName" placeholder="ex: John">
+                </div>
+              </div>
+              <div class="control-group">
+                <label class="control-label" for="inputRegLastName">Last Name</label>
+                <div class="controls">
+                  <input type="email" id="inputRegLastName" placeholder="ex: Doe">
+                </div>
+              </div>
+              <div class="control-group">
+                <label class="control-label" for="inputRegPassword1">Password</label>
+                <div class="controls">
+                  <input type="password" id="inputRegPassword1" placeholder="Password">
+                </div>
+              </div>
+              <div class="control-group">
+                <label class="control-label" for="inputRegPassword2">re-type Password</label>
+                <div class="controls">
+                  <input type="password" id="inputRegPassword2" placeholder="Password">
+                </div>
+              </div>
+              <div class="control-group">
+                <div class="controls">
+                  <button type="submit" class="btn">Register</button>
+                </div>
+              </div>
+            </form>
+          </div>
+<!--
+          <div class="modal-footer">
+            <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+            <button class="btn btn-primary">Save changes</button>
+          </div>
+-->
+        </div>
+        
+        <!-- end register modal -->
+        
         <div class="page-title-wrapper">
             <div class="page-title">
                 <h1>
-                    <span class="title-wrap">An open-source<br>personal data<br>visualization framework<br>to help you<br>make sense of your life</span>
+                    <span class="title-wrap">An open-source<br>personal data<br>visualization framework<br>to help you make<br>sense of your life</span>
                 </h1>
             </div><!-- end .page-title -->
 
