@@ -1,12 +1,8 @@
 package com.fluxtream.api;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import javax.mail.BodyPart;
-import javax.mail.internet.MimeMultipart;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
@@ -230,6 +226,31 @@ public class BodyTrackController {
         }
         catch (Exception e){
             return gson.toJson(new StatusModel(false,"Access Denied"));
+        }
+    }
+
+    @GET
+    @Path("/photos/{UID}/{DeviceNickname}.{ChannelName}/{Level}.{Offset}.json")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String fetchPhotos(@PathParam("UID") Long uid,
+                              @PathParam("DeviceNickname") String deviceNickname,
+                              @PathParam("ChannelName") String channelName,
+                              @PathParam("Level") int level,
+                              @PathParam("Offset") long offset) {
+        try {
+            if (!checkForPermissionAccess(uid)) {
+                uid = null;
+            }
+            return "{"+
+                   "\"UID\":" + uid +
+                   "\"DeviceNickname\":" + deviceNickname +
+                   "\"ChannelName\":" + channelName +
+                   "\"Level\":" + level +
+                   "\"Offset\":" + offset +
+                   "}";
+        }
+        catch (Exception e) {
+            return gson.toJson(new StatusModel(false, "Access Denied"));
         }
     }
 
