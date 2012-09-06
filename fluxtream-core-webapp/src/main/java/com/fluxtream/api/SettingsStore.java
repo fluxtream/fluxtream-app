@@ -19,6 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import static com.newrelic.api.agent.NewRelic.setTransactionName;
+
 /**
  *
  * @author Candide Kemmler (candide@fluxtream.com)
@@ -55,6 +57,7 @@ public class SettingsStore {
     public String saveSettings(@FormParam("guest_firstname") String firstName, @FormParam("guest_lastname") String lastName,
                                @FormParam("length_measure_unit") String lengthUnit, @FormParam("distance_measure_unit") String distanceUnit,
                                @FormParam("weight_measure_unit") String weightUnit, @FormParam("temperature_unit") String temperatureUnit) throws IOException {
+        setTransactionName(null, "POST /settings");
         try{
             GuestSettings.LengthMeasureUnit lngUnt = Enum.valueOf(
                     GuestSettings.LengthMeasureUnit.class, lengthUnit);

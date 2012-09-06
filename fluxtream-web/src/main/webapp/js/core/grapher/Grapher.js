@@ -774,7 +774,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
 
             // TODO: The following should be keying off of "type" rather than "name" fields
             var plot = null;
-            if ("photos" == channel["channel_name"]) {
+            if ("photo" == channel["channel_name"] || "photos" == channel["channel_name"]) {
                 var tags = [];
                 var willJoinUsingAnd = false;
                 var photoStyle = channel['style'];
@@ -788,7 +788,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     willJoinUsingAnd = !!photoStyle['filters']['tag']['isAndJoin'];
                 }
                 plot = new PhotoSeriesPlot(photoDatasource(App.getUID(), channel["device_name"], tags,	willJoinUsingAnd),
-                    dateAxis,
+                    grapher.dateAxis,
                     yAxis,
                     App.getUID(),
                     channel["style"]);
@@ -1604,6 +1604,21 @@ define(["core/grapher/BTCore"], function(BTCore) {
             grapher.dateAxis = new DateAxis(grapher.grapherId + "_timeline_dateAxis", "horizontal", {
                 "min" : view["v2"]["x_axis"]["min"],
                 "max" : view["v2"]["x_axis"]["max"]
+            });
+            grapher.dateAxis.addAxisChangeListener(function() {
+                var center = (grapher.dateAxis.getMin() + grapher.dateAxis.getMax()) / 2.0;
+                var utcOffsetHrs = new Date(center * 1000).getTimezoneOffset() / -60;
+                // 60 mins/hour, and offset is backwards of the convention
+                // e.g. Pittsburgh's date.getTimezoneOffset() is 240 or 300 depending on time of year
+
+                var utcOffset = "UTC";
+
+                if (utcOffsetHrs < 0)
+                    utcOffset = "UTC - " + (-1 * utcOffsetHrs);
+                else if (utcOffsetHrs > 0)
+                    utcOffset = "UTC + " + utcOffsetHrs;
+
+                $("#" + grapher.grapherId + "_timeline_dataPointTimeZoneLabel").html(utcOffset);
             });
 
             // Create y-axes
@@ -2565,7 +2580,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
     function dragAreaOnMouseDown(grapher, plotId) {
         var channelElementId = grapher.grapherId + "_timeline_channel_" + plotId;
         var plotElementId = grapher.grapherId + "_timeline_plot_" + plotId;
-        var yAxisElementId = "_timeline_yAxis_" + plotId;
+        var yAxisElementId = grapher.grapherId + "_timeline_yAxis_" + plotId;
 
         var mostRecentY = null;
         var resizeTimer = null;

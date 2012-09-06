@@ -32,6 +32,8 @@ import com.fluxtream.services.BodyTrackStorageService;
 import com.fluxtream.services.GuestService;
 import com.google.gson.Gson;
 
+import static com.newrelic.api.agent.NewRelic.setTransactionName;
+
 @Path("/bodytrack")
 @Component("RESTBodytrackController")
 @Scope("request")
@@ -57,6 +59,7 @@ public class BodyTrackController {
 	public String loadHistory(@QueryParam("username") String username,
 			@QueryParam("connectorName") String connectorName) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
+        setTransactionName(null, "POST /bodytrack/uploadHistory");
         StatusModel status;
         try{
             Guest guest = guestService.getGuest(username);
@@ -79,6 +82,7 @@ public class BodyTrackController {
     @Path("/users/{UID}/views/{id}")
     @Produces({ MediaType.APPLICATION_JSON })
     public String deleteBodytrackView(@PathParam("UID") Long uid, @PathParam("id") long viewId){
+        setTransactionName(null, "DELETE /bodytrack/users/{UID}/views/{id}");
         StatusModel status;
         try{
             if (!checkForPermissionAccess(uid)){
@@ -99,6 +103,7 @@ public class BodyTrackController {
     @Produces({MediaType.APPLICATION_JSON})
     public String uploadToBodytrack(@FormParam("dev_nickname") String deviceNickanme, @FormParam("channel_names") String channels,
                                     @FormParam("data") String data){
+        setTransactionName(null, "POST /bodytrack/upload");
         StatusModel status;
         try{
             long uid = ControllerHelper.getGuestId();
@@ -118,6 +123,7 @@ public class BodyTrackController {
     @Produces({MediaType.APPLICATION_JSON})
     public String fetchTile(@PathParam("UID") Long uid, @PathParam("DeviceNickname") String deviceNickname,
                                    @PathParam("ChannelName") String channelName, @PathParam("Level") int level, @PathParam("Offset") long offset){
+        setTransactionName(null, "GET /bodytrack/tiles/{UID}/" + deviceNickname + "." + channelName + "/{Level}.{Offset}.json");
         try{
             if (!checkForPermissionAccess(uid)){
                 uid = null;
@@ -132,6 +138,7 @@ public class BodyTrackController {
     @Path("/users/{UID}/views")
     @Produces({MediaType.APPLICATION_JSON})
     public String getViews(@PathParam("UID") Long uid) {
+        setTransactionName(null, "GET /bodytrack/users/{UID}/views");
         try{
             if (!checkForPermissionAccess(uid)){
                 uid = null;
@@ -147,6 +154,7 @@ public class BodyTrackController {
     @Path("/users/{UID}/views/{id}")
     @Produces({MediaType.APPLICATION_JSON})
     public String bodyTrackView(@PathParam("UID") Long uid, @PathParam("id") long id) {
+        setTransactionName(null, "GET /bodytrack/users/{UID}/views/{id}");
         try{
             if (!checkForPermissionAccess(uid)){
                 uid = null;
@@ -163,6 +171,7 @@ public class BodyTrackController {
     @Path("/users/{UID}/views")
     @Produces({MediaType.APPLICATION_JSON})
     public String setView(@PathParam("UID") Long uid, @FormParam("name") String name, @FormParam("data") String data) {
+        setTransactionName(null, "POST /bodytrack/users/{UID}/views");
         try{
             if (!checkForPermissionAccess(uid)){
                 uid = null;
@@ -178,6 +187,7 @@ public class BodyTrackController {
     @Path("/users/{UID}/sources/list")
     @Produces({MediaType.APPLICATION_JSON})
     public String getSourceList(@PathParam("UID") Long uid) {
+        setTransactionName(null, "GET /bodytrack/users/{UID}/sources/list");
         try{
             if (!checkForPermissionAccess(uid)){
                 uid = null;
@@ -193,6 +203,7 @@ public class BodyTrackController {
     @Path(value = "/users/{UID}/sources/{source}/default_graph_specs")
     @Produces({MediaType.APPLICATION_JSON})
     public String bodyTrackGetDefaultGraphSpecs(@PathParam("UID") Long uid, @PathParam("source") String name) {
+        setTransactionName(null, "GET /bodytrack/users/{UID}/sources/{source}/default_graph_specs");
         try{
             if (!checkForPermissionAccess(uid)){
                 uid = null;
@@ -209,6 +220,7 @@ public class BodyTrackController {
     @Produces({MediaType.APPLICATION_JSON})
     public String setDefaultStyle(@PathParam("UID") Long uid, @PathParam("DeviceNickname") String deviceNickname,
                                 @PathParam("ChannelName") String channelName, @FormParam("user_default_style") String style) {
+        setTransactionName(null, "POST /users/{UID}/channels/" + deviceNickname + "." + channelName + "/set");
         try{
             if (!checkForPermissionAccess(uid)){
                 uid = null;

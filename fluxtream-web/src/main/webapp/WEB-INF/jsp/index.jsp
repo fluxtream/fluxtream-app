@@ -29,7 +29,6 @@
     <script type="text/javascript" src="/${release}/assets-home/js/respond.js"></script>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
     <script src="/static/js/bootstrap-2.0.2.min.js"></script>
-    <script src="/static/js/bootstrap-modal.js"></script>
     <script type="text/javascript" src="/${release}/assets-home/js/welcome.js"></script>
 
     <!-- fav icons -->
@@ -83,65 +82,8 @@
         
         <!-- register modal -->
         
-        <a href="#registerModal" role="button" class="regLink" data-toggle="modal" data-target="#myModal">Register</a>
-         
-        <div class="modal" id="registerModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-            <h3 id="myModalLabel">Register</h3>
-          </div>
-          <div class="modal-body">
-            <form class="form-horizontal">
-              <div class="control-group">
-                <label class="control-label" for="inputRegEmail">Email</label>
-                <div class="controls">
-                  <input type="email" id="inputRegEmail" placeholder="ex: example@example.com">
-                </div>
-              </div>
-              <div class="control-group">
-                <label class="control-label" for="inputRegUsername">User Name</label>
-                <div class="controls">
-                  <input type="text" id="inputRegUsername" placeholder="ex: Johndoe">
-                </div>
-              </div>
-              <div class="control-group">
-                <label class="control-label" for="inputRegFirstName">First Name</label>
-                <div class="controls">
-                  <input type="email" id="inputRegFirstName" placeholder="ex: John">
-                </div>
-              </div>
-              <div class="control-group">
-                <label class="control-label" for="inputRegLastName">Last Name</label>
-                <div class="controls">
-                  <input type="email" id="inputRegLastName" placeholder="ex: Doe">
-                </div>
-              </div>
-              <div class="control-group">
-                <label class="control-label" for="inputRegPassword1">Password</label>
-                <div class="controls">
-                  <input type="password" id="inputRegPassword1" placeholder="Password">
-                </div>
-              </div>
-              <div class="control-group">
-                <label class="control-label" for="inputRegPassword2">re-type Password</label>
-                <div class="controls">
-                  <input type="password" id="inputRegPassword2" placeholder="Password">
-                </div>
-              </div>
-              <div class="control-group">
-                <div class="controls">
-                  <button type="submit" class="btn">Register</button>
-                </div>
-              </div>
-            </form>
-          </div>
-<!--
-          <div class="modal-footer">
-            <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
-            <button class="btn btn-primary">Save changes</button>
-          </div>
--->
-        </div>
+        <a role="button" style="cursor:pointer" id="registerShow" class="regLink">Register</a>
+
         
         <!-- end register modal -->
         
@@ -283,6 +225,65 @@
     <div class="modal-footer">
         <a href="#" class="btn" data-dismiss="modal">Ok</a>
     </div>
+</div>
+
+
+<div style="display:none" class="modal" id="registerModal">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h3 id="myModalLabel">Register</h3>
+    </div>
+    <div class="modal-body">
+        <form class="form-horizontal" form action="createAccount" method="POST">
+            <div class="control-group">
+                <label class="control-label" for="email">Email</label>
+                <div class="controls">
+                    <input type="email" autocorrect="off" autocapitalize="off" id="email" name="email" placeholder="ex: example@example.com">
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="username">User Name</label>
+                <div class="controls">
+                    <input type="text" autocorrect="off" autocapitalize="off" id="username" name="username" placeholder="ex: Johndoe">
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="firstname">First Name</label>
+                <div class="controls">
+                    <input type="email" autocapitalize="off" id="firstname" name="firstname" placeholder="ex: John">
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="lastname">Last Name</label>
+                <div class="controls">
+                    <input type="email" autocapitalize="off" id="lastname" name="lastname" placeholder="ex: Doe">
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="password">Password</label>
+                <div class="controls">
+                    <input type="password" name="password" id="password" placeholder="Password">
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="password2">re-type Password</label>
+                <div class="controls">
+                    <input type="password" name="password2" id="password2" placeholder="Password">
+                </div>
+            </div>
+            <div class="control-group">
+                <div class="controls">
+                    <button type="submit" class="btn">Register</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <!--
+              <div class="modal-footer">
+                <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+                <button class="btn btn-primary">Save changes</button>
+              </div>
+    -->
 </div>
 
 <% if (tracker) { %>

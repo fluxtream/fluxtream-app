@@ -370,13 +370,26 @@
     z-index: 2;
 }
 
-._timeline_dataPointValueLabel {
-    width: auto;
-    min-width: 200px;
-    text-align: right;
-    padding: 0 5px 0 5px;
+._timeline_dateAxisLabelRegion {
+    min-width: 400px;
+    height: 20px;
+    padding: 0;
     margin-top: -20px;
     z-index: 1;
+}
+
+._timeline_dataPointTimeZoneLabel {
+    height: 20px;
+    padding: 0 5px 0 5px;
+    text-align: left;
+    color: #778899;
+}
+
+._timeline_dataPointValueLabel {
+    height: 20px;
+    padding: 0 5px 0 5px;
+    text-align: right;
+    margin-top: -20px;
 }
 
 .ui-dialog .ui-dialog-content {
