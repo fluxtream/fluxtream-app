@@ -286,3 +286,12 @@ h3{ font-size:16px; font-family: 'Droid Serif', serif; line-height:26px; font-we
 	#intro .customer-card {margin-left: 380px;}
 	#login input[type=text], #login input[type=password] {width:220px;}
 }
+
+@media (min-width: 1400px) { 
+    .logo { padding-top: 0; top:18px; }
+
+}
+@media (min-width: 1600px) { 
+    .logo { top:116px; left:-50px;}
+
+}
