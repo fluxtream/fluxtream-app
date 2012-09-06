@@ -162,11 +162,19 @@ define(
         App.makeModal = makeModal;
         App.carousel = carousel;
 
+        App.fetchCompiledMustacheTemplate = function(templatePath,templateId) {
+            if (typeof compiledTemplates[templatePath] !== 'undefined') {
+                return compiledTemplates[templatePath][templateId];
+            }
+            console.log("App.fetchCompiledMustacheTemplate(): Unknown template path [" + templatePath + "] and/or template ID [" + templateId + "].  Returning null.");
+            return null;
+        };
+
         App.loadMustacheTemplate = function(templatePath,templateId,onLoad){
             App.loadAllMustacheTemplates(templatePath,function(templates){
                 onLoad(templates[templateId]);
             });
-        }
+        };
 
         var templateRegexp = new RegExp("<template id=\"[A-z0-9\\-.]*\">","ig");
 
