@@ -170,8 +170,8 @@
                         <a href="http://quantifiedself.com/" target="_blank"><img class="img" src="/${release}/assets-home/img/qs.png"></a>
                     </div>
                     <div class="bd">
-                        <h3>Quantfied Self 2012</h3>
-                        <p>We will be presenting an Ignite Plus talk at the Quantfied Self Conference in Stanford : "Data aggregation and exploration with Fluxtream/BodyTrack"</p>
+                        <h3>Quantified Self 2012</h3>
+                        <p>We will be presenting an Ignite Plus talk at the Quantified Self Conference in Stanford : "Data aggregation and exploration with Fluxtream/BodyTrack"</p>
                     </div>
                 </div>
             </div>
