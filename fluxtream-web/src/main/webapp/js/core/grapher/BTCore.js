@@ -448,12 +448,9 @@ define([], function() {
 
     // If allTags is true, we require all tags to be present.
     // Otherwise, any tag in tags is OK (the default)
-    window.photoDatasource = function(userId, deviceName, tags, allTags, nsfw) {
-        var urlPrefix = "/bodytrack/photos/" + userId + "/";
+    window.photoDatasource = function(userId, deviceName, channelName, tags, allTags, nsfw) {
+        var urlPrefix = "/api/bodytrack/photos/" + userId + "/"+ (deviceName == null ? "All" : deviceName) + "." + channelName + "/";
         var urlParams = {};
-        if (deviceName != null && deviceName.toLowerCase() != "all") {
-            urlParams["dev_nickname"] = deviceName;
-        }
         if (tags != null && tags.length > 0) {
             if (!!allTags) {
                 urlParams["all_tags"] = tags.join(",");

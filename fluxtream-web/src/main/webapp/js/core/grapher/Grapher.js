@@ -787,7 +787,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     }
                     willJoinUsingAnd = !!photoStyle['filters']['tag']['isAndJoin'];
                 }
-                plot = new PhotoSeriesPlot(photoDatasource(App.getUID(), channel["device_name"], tags,	willJoinUsingAnd),
+                plot = new PhotoSeriesPlot(photoDatasource(App.getUID(), channel["device_name"], channel["channel_name"], tags, willJoinUsingAnd),
                     grapher.dateAxis,
                     yAxis,
                     App.getUID(),
@@ -1369,7 +1369,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
 
                 var updatePhotoSeriesPlotChannelConfig = function() {
                     var channelElement = $(this).parents("._timeline_channel").parent();
-                    var plot = plotsMap[channelElement.attr("id")];
+                    var plot = grapher.plotsMap[channelElement.attr("id")];
                     var newStyle = plot.getStyle();
                     //console.log("----------------------------------------\nOLD JSON: " + JSON.stringify(newStyle,null,3));
 
@@ -1387,7 +1387,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
 
                     // Display the filter settings in the channel tab
                     if (userSelectedTags.length > 0) {
-                        var filterHtml = Hogan.compile($("#_timeline_channel_tab_filter_template").html()).render({"value":userSelectedTags.join(", ")});
+                        var filterHtml = App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_channel_tab_filter_template").render({"value":userSelectedTags.join(", ")});
                         $("#" + channelElementId + "-timeline-channel-filter").html(filterHtml).shorten();
                     } else {
                         $("#" + channelElementId + "-timeline-channel-filter").text('').hide();
@@ -1399,6 +1399,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
 
                     plot.setDatasource(photoDatasource(App.getUID(),
                         channel["device_name"],
+                        channel["channel_name"],
                         newStyle['filters']["tag"]["tags"],
                         newStyle['filters']["tag"]["isAndJoin"]
                     ));
@@ -1431,11 +1432,11 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 // seed the tag filter editor with the tags currently saved in the channel (if any)
                 if (tagFilter['tags'].length > 0) {
                     $.each(tagFilter['tags'], function(index, value) {
-                        var tagHtml = Hogan.compile($("#_timeline_photo_dialog_tags_editor_tag_template").html()).render({"value" : value});
+                        var tagHtml = App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_tags_editor_tag_template").render({"value" : value});
                         $("#" + channelElementId + "-photo-tags-filter").append(tagHtml);
                     });
                 } else {
-                    var tagHtml = Hogan.compile($("#_timeline_photo_dialog_tags_editor_tag_template").html()).render({"value" : ""});
+                    var tagHtml = App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_tags_editor_tag_template").render({"value" : ""});
                     $("#" + channelElementId + "-photo-tags-filter").append(tagHtml);
                 }
 
@@ -2098,9 +2099,9 @@ define(["core/grapher/BTCore"], function(BTCore) {
 
                 var createPhotoDialog = function(photoId, timestamp, completionCallback) {
 
-                    var mediumResImageUrl = Hogan.compile($("#_timeline_photo_dialog_medium_res_image_url_template").html()).render({"photoId" : photoId, "userId" : App.getUID()});
-                    var highResImageUrl = Hogan.compile($("#_timeline_photo_dialog_high_res_image_url_template").html()).render({"photoId" : photoId, "userId" : App.getUID()});
-                    $("#_timeline_photo_dialog").html(Hogan.compile($("#_timeline_photo_dialog_template").html()).render({"photoUrl" : mediumResImageUrl}));
+                    var mediumResImageUrl = App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_medium_res_image_url_template").render({"photoId" : photoId, "userId" : App.getUID()});
+                    var highResImageUrl = App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_high_res_image_url_template").render({"photoId" : photoId, "userId" : App.getUID()});
+                    $("#_timeline_photo_dialog").html(App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_high_res_image_url_template").render({"photoUrl" : mediumResImageUrl}));
 
                     var updateGoToNeighborOnSaveWidgets = function() {
                         var isEnabled = $("#_timeline_photo_dialog_save_should_goto_neighbor").is(':checked');
@@ -2248,7 +2249,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                         };
 
                         // build the form for the metadata editor
-                        var photoMetadataForm = Hogan.compile($("#_timeline_photo_dialog_form_template").html()).render({});
+                        var photoMetadataForm = App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_form_template").render({});
                         $("#_timeline_photo_dialog_form").html(photoMetadataForm);
 
                         // fill in the timestamp
@@ -2280,11 +2281,11 @@ define(["core/grapher/BTCore"], function(BTCore) {
                         if ($.isArray(tags) && tags.length > 0) {
                             $.each(tags,
                                 function(index, value) {
-                                    var tagHtml =Hogan.compile($("#_timeline_photo_dialog_tags_editor_tag_template").html()).render({"value" : value});
+                                    var tagHtml =App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_tags_editor_tag_template").render({"value" : value});
                                     $("#_timeline_photo_dialog_tags_editor").append(tagHtml);
                                 });
                         } else {
-                            var tagHtml = Hogan.compile($("#_timeline_photo_dialog_tags_editor_tag_template").html()).render({"value" : ""});
+                            var tagHtml = App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_tags_editor_tag_template").render({"value" : ""});
                             $("#_timeline_photo_dialog_tags_editor").append(tagHtml);
                         }
 
@@ -2513,7 +2514,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     });
 
                 // Open the dialog
-                $("#_timeline_photo_dialog").html(Hogan.compile($("#_timeline_photo_dialog_loading_template").html()).render({}));
+                $("#_timeline_photo_dialog").html(App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_loading_template").render({}));
                 $("#_timeline_photo_dialog")['dialog']('open');
             }
         };
