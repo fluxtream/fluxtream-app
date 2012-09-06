@@ -19,6 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import static com.newrelic.api.agent.NewRelic.setTransactionName;
+
 /**
  *
  * @author Candide Kemmler (candide@fluxtream.com)
@@ -39,6 +41,7 @@ public class UpdateStore {
     public String getUpdates(@PathParam("connector") String connectorName,
                              @QueryParam("pageSize") int pageSize,
                              @QueryParam("page") int page) {
+        setTransactionName(null, "GET /updates/" + connectorName);
         try{
             long guestId = ControllerHelper.getGuestId();
             final List<ApiUpdate> updates = connectorUpdateService.getUpdates(guestId, Connector.getConnector(connectorName), pageSize, page);

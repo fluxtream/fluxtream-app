@@ -326,7 +326,7 @@ a img { text-decoration: none; }
 //----------TOOLTIP 
 
 .flx-clockToolTipContainer { margin-top:50px; } 
-.flx-toolTipBody { width:435px; padding: 5px; background: rgba(255,255,255,0.75); color: lighten(black, 40%); position: relative; }
+.flx-toolTipBody { width:435px; padding: 5px; background: rgba(255,255,255,0.75); position: relative; }
 
 .strongBorder {border: 1px solid @tTborder;} 
 .strongBorder-Right { .strongBorder; border-right-width: 4px; }
@@ -380,26 +380,30 @@ a img { text-decoration: none; }
 //---- they live appart now but are invoqued on top of this file ******
 
 
+/*
 .flx-toolTipData .flx-data { max-width:270px; overflow:hidden; height: 100%;
-    span { font-size: 14px; color: lighten(@black, 55%); }
+    .flx-description { font-size: 14px; color:lighten(@black, 20%); }
+    .flx-text {  }
 }
 .flx-toolTipData .flx-tTime { font-size: 16px; margin-bottom: 5px;
-    span { font-size: 11px; color: lighten(@black, 55%); }
+        span {color: lighten(@black, 40%); font-size:11px; text-transform: none;}
 }
+*/
 .flx-miniGraph { .flx-floatL; margin-top:-20px; }
 
-.flx-toolTipContext { overflow:hidden; height:100%; margin:10px 5px 0;
+.flx-toolTipContext { overflow:hidden; height:100%; margin:10px 5px 0;color: lighten(black, 40%);
     h4 { font-size : 12px; font-weight:normal; min-height:45px;
         span { font-size:18px; font-weight:bold} }
-    .flx-toolTipLocation { .flx-floatL; width : 50%; margin-right:5px;} 
+    .flx-toolTipLocation { .flx-floatL; width : 50%; margin-right:5px; color: lighten(black, 40%);} 
     .flx-toolTipWeather { overflow:hidden; height:100%;
         .weatherIcon { margin: 20px auto ; width:100px; height: 110px; }
         .flx-weatherDetails { 
+            color: lighten(black, 40%);
             font-size:12px;
             list-style-type:none;
             padding:0 !important;
             margin:0 !important;
-            li { width:30%; .flx-floatL; border-right: 1px solid lighten(black, 40%); font-weight:normal; padding:0 3px;
+            li { width:29.5%; .flx-floatL; border-right: 1px solid lighten(black, 40%); font-weight:normal; padding:0 3px;
                 span { font-weight: bold; }
             }
             li:last-child { border-right:0; }
@@ -610,6 +614,25 @@ table .remove { text-align:center;
      }
      .flx-more { color: lighten(@grey, 10%); }
  }
+
+
+.flx-toolTipData .flx-box { 
+     .flx-data { clear:left; max-width: 250px; padding-left: 10px;}
+     .flx-deviceIcon, .flx-tTime, .flx-tRange { .flx-floatL }
+     .flx-tTime { padding: 0 13px 0 10px; min-width:62px; height: 26px; font-size: 15px; 
+        span {color: lighten(@black, 40%); font-size:11px; text-transform: none;}
+     }
+     .flx-tRange { color: lighten(@black, 60%); font-size:14px; text-transform: none; padding: 0 13px 0 10px; min-width:62px; height: 42px; 
+         span { display: block;
+            span { font-size: 15px; color: @black; display: inline;}
+            }
+     }
+     .flx-description { color:lighten(@black, 20%); display:block; max-width: 450px; 
+     span { font-weight:bold; font-size: 14px; }
+     }
+     .flx-more { color: lighten(@grey, 10%); }
+ }
+
 
 
 /*

@@ -1,6 +1,6 @@
 mvn install:install-file  -Dfile=gdata-core-1.0.jar -DgroupId=gdata -DartifactId=core -Dversion=1.0 -Dpackaging=jar
 mvn install:install-file  -Dfile=linkedin-j-1.0.jar -DgroupId=com.linkedin -DartifactId=linkedin-j -Dversion=1.0 -Dpackaging=jar
-mvn install:install-file  -Dfile=newrelic-api-2.1.2.jar -DgroupId=com.newrelic -DartifactId=newrelic-api -Dversion=2.1.2 -Dpackaging=jar
+mvn install:install-file  -Dfile=newrelic-api-2.7.0.jar -DgroupId=com.newrelic -DartifactId=newrelic-api -Dversion=2.7.0 -Dpackaging=jar
 mvn install:install-file  -Dfile=restfb-1.6.6.jar -DgroupId=com.restfb -DartifactId=restfb -Dversion=1.6.6 -Dpackaging=jar
 mvn install:install-file  -Dfile=client-1.0.jar -DgroupId=gdata -DartifactId=client -Dversion=1.0 -Dpackaging=jar
 mvn install:install-file  -Dfile=contacts-3.0.jar -DgroupId=gdata -DartifactId=contacts -Dversion=3.0 -Dpackaging=jar

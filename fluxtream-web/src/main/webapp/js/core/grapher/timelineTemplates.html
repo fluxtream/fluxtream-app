@@ -52,7 +52,10 @@
                                 <td>
                                     <div id="{{grapherId}}_timeline_dateAxisContainer" class="_timeline_dateAxisContainer">
                                         <div id="{{grapherId}}_timeline_dateAxis" class="_timeline_dateAxis"></div>
-                                        <div id="{{grapherId}}_timeline_dataPointValueLabel" class="_timeline_dataPointValueLabel"></div>
+                                        <div id="{{grapherId}}_timeline_dateAxisLabelRegion" class="_timeline_dateAxisLabelRegion">
+                                            <div id="{{grapherId}}_timeline_dataPointTimeZoneLabel" class="_timeline_dataPointTimeZoneLabel"></div>
+                                            <div id="{{grapherId}}_timeline_dataPointValueLabel" class="_timeline_dataPointValueLabel"></div>
+                                        </div>
                                     </div>
                                 </td>
                             </tr>
@@ -411,3 +414,74 @@
 <template id="dataPointValueLabel">
     {{dateString}} {{valueString}}
 </template>
+
+<template id="_timeline_photo_dialog_loading_template">
+  <table border="0" cellpadding="0" cellspacing="0" class="_timeline_photo_dialog_loading_table">
+    <tr valign="middle">
+      <td align="center"><img src="/images/loading.gif" /><br>Loading...</td>
+    </tr>
+  </table>
+</template>
+
+<template id="_timeline_photo_dialog_medium_res_image_url_template">
+  /users/{{userId}}/logphotos/{{photoId}}.300.jpg
+</template>
+
+<template id="_timeline_photo_dialog_high_res_image_url_template">
+  /users/{{userId}}/logphotos/{{photoId}}.jpg
+</template>
+
+<template id="_timeline_photo_dialog_template">
+  <div style="width:1px;height:1px;"><img id="_timeline_photo_dialog_tabhelper_pre_proxy_backward" src="/images/clear.gif" width="1" height="1" tabindex="95"/></div>
+  <table border="0" cellpadding="0" cellspacing="0" class="_timeline_photo_dialog_table">
+    <tr valign="top">
+      <td rowspan="2" style="width:20px"><button id="_timeline_photo_dialog_previous_button" tabindex="96" class="_timeline_left_arrow"></button></td>
+      <td>
+        <table border="0" cellpadding="0" cellspacing="0" class="_timeline_photo_dialog_photo_table">
+          <tr valign="middle">
+            <td align="center">
+              <img id="_timeline_photo_dialog_image" src="{{photoUrl}}">
+            </td>
+          </tr>
+        </table>
+      </td>
+      <td rowspan="2" style="width:20px"><button id="_timeline_photo_dialog_next_button" tabindex="97" class="_timeline_right_arrow"></button></td>
+    </tr>
+    <tr valign="top" id="_timeline_photo_dialog_form_container">
+      <td>
+        <div id="_timeline_photo_dialog_form_status"></div>
+        <div id="_timeline_photo_dialog_form"></div>
+        <div id="_timeline_photo_dialog_save_preferences">
+          <input id="_timeline_photo_dialog_save_should_goto_neighbor" type="checkbox" value="true" tabindex="107"><label for="_timeline_photo_dialog_save_should_goto_neighbor">After saving, go to the </label><select id="_timeline_photo_dialog_save_should_goto_neighbor_choice" tabindex="108" disabled="disabled"><option value="1">next</option><option value="-1">previous</option></select><label for="_timeline_photo_dialog_save_should_goto_neighbor"> photo.</label><img id="_timeline_photo_dialog_post_proxy_forward" src="/images/clear.gif" width="1" height="1" tabindex="109"/>
+        </div>
+      </td>
+    </tr>
+  </table>
+</template>
+
+<template id="_timeline_photo_dialog_form_template">
+  <div style="width:1px; height:1px">
+    <img id="_timeline_photo_dialog_comment_tabhelper_pre_proxy_forward" src="/images/clear.gif" width="1" height="1" tabindex="98"/>
+    <img id="_timeline_photo_dialog_comment_tabhelper_pre_proxy_backward" src="/images/clear.gif" width="1" height="1" tabindex="99"/>
+  </div>
+  <div id="_timeline_photo_dialog_timestamp"></div>
+  <textarea rows="2" id="_timeline_photo_dialog_comment" tabindex="100"></textarea>
+  <div style="width:1px;height:1px;">
+    <img id="_timeline_photo_dialog_tags_editor_tabhelper_pre_proxy_forward" src="/images/clear.gif" width="1" height="1" tabindex="101"/>
+  </div>
+  <form id="_timeline_photo_dialog_tags_editor" action="" method="post" onsubmit="return false;"></form>
+  <form id="_timeline_photo_dialog_form_buttons" action="" method="post" onsubmit="return false;">
+    <div style="width:1px; height:1px">
+      <img id="_timeline_photo_dialog_tags_editor_tabhelper_post_proxy_forward" src="/images/clear.gif" width="1" height="1" tabindex="103"/>
+      <img id="_timeline_photo_dialog_tags_editor_tabhelper_post_proxy_backward" src="/images/clear.gif" width="1" height="1" tabindex="104"/>
+    </div>
+    <button id="_timeline_photo_dialog_revert_button" tabindex="106">Revert</button>
+    <button id="_timeline_photo_dialog_save_button" tabindex="105">Save</button>
+  </form>
+</template>
+
+<template id="_timeline_photo_dialog_tags_editor_tag_template">
+  <input type="text" name="tag[]" value="{{value}}" class="tag"/>
+</template>
+
+<template id="_timeline_channel_tab_filter_template"><span class="_timeline_channelFilter_label">Tags</span>: {{value}}</template>

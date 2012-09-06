@@ -17,8 +17,8 @@
     <link href="/${release}/assets-home/css/style-responsive-red.css" rel="stylesheet">
     <link href="/${release}/assets-home/css/style.css" rel="stylesheet">
     <!-- Google Web Font-->
-    <%--<link href='//fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic,700italic' rel='stylesheet' type='text/css'>--%>
-    <%--<link href='//fonts.googleapis.com/css?family=Droid+Sans:400,700' rel='stylesheet' type='text/css'>--%>
+    <link href='//fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Droid+Sans:400,700' rel='stylesheet' type='text/css'>
     <!--[if IE 7]><link rel="stylesheet" href="/${release}/assets-home/css/font-awesome-ie7.css"><![endif]-->
     <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
@@ -79,11 +79,18 @@
         <div class="logo">
             <a href="#"><img src="/${release}/assets-home/img/logo-fulltext2.png"></a>
         </div>
+        
+        <!-- register modal -->
+        
+        <a role="button" style="cursor:pointer" id="registerShow" class="regLink">Register</a>
 
+        
+        <!-- end register modal -->
+        
         <div class="page-title-wrapper">
             <div class="page-title">
                 <h1>
-                    <span class="title-wrap">An open-source<br>personal data<br>visualization framework<br>to help you<br>make sense of your life</span>
+                    <span class="title-wrap">An open-source<br>personal data<br>visualization framework<br>to help you make<br>sense of your life</span>
                 </h1>
             </div><!-- end .page-title -->
 
@@ -163,8 +170,8 @@
                         <a href="http://quantifiedself.com/" target="_blank"><img class="img" src="/${release}/assets-home/img/qs.png"></a>
                     </div>
                     <div class="bd">
-                        <h3>Quantfied Self 2012</h3>
-                        <p>We will be presenting an Ignite Plus talk at the Quantfied Self Conference in Stanford : "Data aggregation and exploration with Fluxtream/BodyTrack"</p>
+                        <h3>Quantified Self 2012</h3>
+                        <p>We will be presenting an Ignite Plus talk at the Quantified Self Conference in Stanford : "Data aggregation and exploration with Fluxtream/BodyTrack"</p>
                     </div>
                 </div>
             </div>
@@ -218,6 +225,65 @@
     <div class="modal-footer">
         <a href="#" class="btn" data-dismiss="modal">Ok</a>
     </div>
+</div>
+
+
+<div style="display:none" class="modal" id="registerModal">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h3 id="myModalLabel">Register</h3>
+    </div>
+    <div class="modal-body">
+        <form class="form-horizontal" form action="createAccount" method="POST">
+            <div class="control-group">
+                <label class="control-label" for="email">Email</label>
+                <div class="controls">
+                    <input type="email" autocorrect="off" autocapitalize="off" id="email" name="email" placeholder="ex: example@example.com">
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="username">User Name</label>
+                <div class="controls">
+                    <input type="text" autocorrect="off" autocapitalize="off" id="username" name="username" placeholder="ex: Johndoe">
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="firstname">First Name</label>
+                <div class="controls">
+                    <input type="text" autocapitalize="off" id="firstname" name="firstname" placeholder="ex: John">
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="lastname">Last Name</label>
+                <div class="controls">
+                    <input type="text" autocapitalize="off" id="lastname" name="lastname" placeholder="ex: Doe">
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="password1">Password</label>
+                <div class="controls">
+                    <input type="password" name="password1" id="password1" placeholder="Password">
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="password2">re-type Password</label>
+                <div class="controls">
+                    <input type="password" name="password2" id="password2" placeholder="Password">
+                </div>
+            </div>
+            <div class="control-group">
+                <div class="controls">
+                    <button type="submit" class="btn">Register</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <!--
+              <div class="modal-footer">
+                <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+                <button class="btn btn-primary">Save changes</button>
+              </div>
+    -->
 </div>
 
 <% if (tracker) { %>
