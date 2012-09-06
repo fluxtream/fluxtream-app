@@ -237,6 +237,7 @@ public class BodyTrackController {
                               @PathParam("ChannelName") String channelName,
                               @PathParam("Level") int level,
                               @PathParam("Offset") long offset) {
+        setTransactionName(null, "GET /bodytrack/photos/{UID}/" + deviceNickname + "." + channelName + "/{Level}.{Offset}.json");
         try {
             if (!checkForPermissionAccess(uid)) {
                 uid = null;
