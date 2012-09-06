@@ -250,19 +250,19 @@
             <div class="control-group">
                 <label class="control-label" for="firstname">First Name</label>
                 <div class="controls">
-                    <input type="email" autocapitalize="off" id="firstname" name="firstname" placeholder="ex: John">
+                    <input type="text" autocapitalize="off" id="firstname" name="firstname" placeholder="ex: John">
                 </div>
             </div>
             <div class="control-group">
                 <label class="control-label" for="lastname">Last Name</label>
                 <div class="controls">
-                    <input type="email" autocapitalize="off" id="lastname" name="lastname" placeholder="ex: Doe">
+                    <input type="text" autocapitalize="off" id="lastname" name="lastname" placeholder="ex: Doe">
                 </div>
             </div>
             <div class="control-group">
-                <label class="control-label" for="password">Password</label>
+                <label class="control-label" for="password1">Password</label>
                 <div class="controls">
-                    <input type="password" name="password" id="password" placeholder="Password">
+                    <input type="password" name="password1" id="password1" placeholder="Password">
                 </div>
             </div>
             <div class="control-group">
