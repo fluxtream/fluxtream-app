@@ -277,6 +277,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
             }
         },
         quantifiedmind: {
+            filterLabel: "QuantMind",
             color : "rgb(20,20,20)",
             mapicon :new google.maps.MarkerImage("https://www.google.com/latitude/apps/static/red_measle.png",null,null,new google.maps.Point(5,5),null),
             mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
