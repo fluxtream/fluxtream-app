@@ -50,7 +50,7 @@
   background-repeat: no-repeat;
   float: left;
   margin-right: 10px;
-  background-image: url(../images/devices-ic2.png);
+  background-image: url(../images/devices-ic.png);
 }
 .flx-deviceIcon.withings {
   background-position: 0 -1134px;
@@ -80,13 +80,13 @@
   background-position: 0 -84px;
 }
 .flx-deviceIcon.bm-sleep {
-  background-position: 0 -628px;
+  background-position: 0 -610px;
 }
 .flx-deviceIcon.bm-steps {
-  background-position: 0 -671px;
+  background-position: 0 -651px;
 }
 .flx-deviceIcon.bm-burn {
-  background-position: 0 -930px;
+  background-position: 0 -568px;
 }
 .flx-deviceIcon.latitude {
   background-position: 0 -351px;
@@ -114,6 +114,9 @@
 }
 .flx-deviceIcon.fitbit-sleep {
   background-position: 0 -1012px;
+}
+.flx-deviceIcon.fitbit-body {
+  background-position: 0 -1362px;
 }
 .flx-deviceIcon.flickr-photo {
   background-position: 0 -890px;
