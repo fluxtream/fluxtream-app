@@ -207,7 +207,7 @@ h3{ font-size:16px; font-family: 'Droid Serif', serif; line-height:26px; font-we
 #footer .media {margin-top: 0;}
 
 
-
+.error { color: rgb(214, 18, 12); }
 
 
 /* MEDIA QUERIES CUSTOM  */
