@@ -92,7 +92,7 @@ public class RegisterController {
 			return new ModelAndView("accountCreationComplete");
 		} else {
 			logger.info("action=register errors=true");
-            ModelAndView mav = new ModelAndView("register");
+            ModelAndView mav = new ModelAndView("createAccount");
 			mav.addObject("email", email);
 			mav.addObject("username", username);
 			mav.addObject("firstname", firstname);
