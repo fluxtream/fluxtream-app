@@ -3,9 +3,8 @@ package com.fluxtream.api;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
+import java.util.SortedSet;
 import java.util.TimeZone;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -14,9 +13,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.TimeUnit;
-import com.fluxtream.connectors.vos.AbstractInstantFacetVO;
-import com.fluxtream.connectors.vos.AbstractPhotoFacetVO;
-import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.metadata.DayMetadataFacet;
 import com.fluxtream.mvc.models.PhotoModel;
@@ -124,17 +120,13 @@ public class PhotoStore {
     }
 
     private List<PhotoModel> getPhotos(Guest guest, TimeInterval timeInterval) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
-        final List<AbstractInstantFacetVO<AbstractFacet>> facetVos = photoService.getPhotos(guest, timeInterval);
-        List<PhotoModel> photos = new ArrayList<PhotoModel>();
-        for (AbstractInstantFacetVO<AbstractFacet> facetVo : facetVos){
-            photos.add(new PhotoModel((AbstractPhotoFacetVO) facetVo));
-        }
-        Collections.sort(photos,new Comparator<PhotoModel>(){
-            public int compare(PhotoModel o1, PhotoModel o2){
-                return (int) (o1.timeTaken - o2.timeTaken);
-            }
+        final SortedSet<PhotoService.Photo> photos = photoService.getPhotos(guest.getId(), timeInterval);
 
-        });
-        return photos;
+        List<PhotoModel> photoModels = new ArrayList<PhotoModel>();
+        for (final PhotoService.Photo photo : photos) {
+            photoModels.add(new PhotoModel(photo.getAbstractPhotoFacetVO()));
+        }
+
+        return photoModels;
     }
 }

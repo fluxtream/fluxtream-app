@@ -33,120 +33,92 @@
 	if (request.getAttribute("lastname") != null)
 		lastname = (String) request.getAttribute("lastname");
 %>
-<div class="modal hide">
-	<div class="modal-header">
-		<a class="close" data-dismiss="modal">×</a>
-		<h3>Create your account</h3>
-	</div>
-
-
-	<div class="modal-body">
-		<table class="modalFormNewAccount">
-			<tr>
-				<td valign="top"><label>E-mail</label></td>
-				<td><input autocorrect="off" autocapitalize="off" id="email" name="email" value="<%=email%>"
-					type="text"></input> <%
- 	if (required.contains("email")) {
- %>
-					<div class="formErrorCont">
-						<div class="icon"></div>
-						<span class="formError">Email is required</span>
-					</div> <%
- 	} else if (errors.contains("userExists")) {
- %>
-					<div class="formErrorCont">
-						<div class="icon"></div>
-						<span class="formError">This email address is already used</span>
-					</div> <%
- 	}
- %></td>
-			</tr>
-			<tr>
-				<td valign="top"><label>Username</label></td>
-				<td><input autocorrect="off" autocapitalize="off" id="username" name="username" value="<%=username%>"></input>
-					<br> <%
- 	if (required.contains("username")) {
- %>
-					<div class="formErrorCont">
-						<div class="icon"></div>
-						<span class="formError">Username is required</span>
-					</div> <%
- 	} else if (errors.contains("usernameTaken")) {
- %>
-					<div class="formErrorCont">
-						<div class="icon"></div>
-						<span class="formError username">This username is already
-							taken</span>
-					</div> <%
- 	}
- %></td>
-			</tr>
-			<tr>
-				<td valign="top"><label>First name</label></td>
-				<td><input id="firstname" name="firstname"
-					value="<%=firstname%>"></input></td>
-			</tr>
-
-			<tr>
-				<td valign="top"><label>Last name</label></td>
-				<td><input id="lastname" name="lastname" value="<%=lastname%>"></input></td>
-			</tr>
-
-			<tr>
-				<td valign="top"><label>Password</label></td>
-				<td><input type="password" name="password1" id="password1"></input><br>
-					<%
-						if (required.contains("password")) {
-					%>
-					<div class="formErrorCont">
-						<div class="icon"></div>
-						<span class="formError">Password is required</span>
-					</div> <%
- 	} else if (errors.contains("passwordTooShort")) {
- %>
-					<div class="formErrorCont">
-						<div class="icon"></div>
-						<span class="formError">Password must be at least 8
-							characters long</span>
-					</div> <%
- 	} else if (errors.contains("passwordsDontMatch")) {
- %>
-					<div class="formErrorCont">
-						<div class="icon"></div>
-						<span class="formError">Passwords don't match</span>
-					</div> <%
- 	}
- %></td>
-			</tr>
-			<tr>
-				<td valign="top"><label>Re-type password</label></td>
-				<td valign="top"><input type="password" name="password2"
-					id="password2"></input><br> <%
- 	if (required.contains("password2")) {
- %>
-					<div class="formErrorCont">
-						<div class="icon"></div>
-						<span class="formError">Password verification is required</span>
-					</div> <%
- 	}
- %></td>
-			</tr>
-			<tr>
-				<td colspan="3" id="recaptcha"></td>
-			</tr>
-			<%
-				if (errors.contains("wrongCaptcha")) {
-			%>
-			<tr>
-				<td colspan="3">Wrong Captcha answer. Are you human?</td>
-			</tr>
-			<%
-				}
-			%>
-		</table>
-	</div>
-	<div class="modal-footer">
-		<button onclick="submitCreateAccountForm()" class="btn btn-primary">Create
-			Account</button>
-	</div>
+<div class="modal" id="registerModal">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h3 id="myModalLabel">Register</h3>
+    </div>
+    <form class="form-horizontal" action="javascript:void(0)">
+        <div class="modal-body">
+            <div class="control-group">
+                <label class="control-label" for="email">Email</label>
+                <div class="controls">
+                    <input type="email" value="<%=email%>" autocorrect="off" autocapitalize="off" id="email" name="email" placeholder="ex: example@example.com">
+                <%
+                    if (required.contains("email")) {
+                %>
+                <span class="help-inline error">E-mail is required</span>
+                <% } else if (errors.contains("userExists")) { %>
+                <span class="help-inline error">This e-mail address is already used</span>
+                <% } %>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="username">User Name</label>
+                <div class="controls">
+                    <input type="text" value="<%=username%>" autocorrect="off" autocapitalize="off" id="username" name="username" placeholder="ex: Johndoe">
+                <%
+                    if (required.contains("username")) {
+                %>
+                <span class="help-inline error">Username is required</span>
+                <% } else if (errors.contains("usernameTaken")) { %>
+                <span class="help-inline error">This username is already taken</span>
+                <% } %>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="firstname">First Name</label>
+                <div class="controls">
+                    <input type="text" value="<%=firstname%>" autocapitalize="off" id="firstname" name="firstname" placeholder="ex: John">
+                <%
+                    if (required.contains("firstname")) {
+                %>
+                <span class="help-inline error">First name is required</span>
+                <% } %>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="lastname">Last Name</label>
+                <div class="controls">
+                    <input type="text" value="<%=lastname%>" autocapitalize="off" id="lastname" name="lastname" placeholder="ex: Doe">
+                <%
+                    if (required.contains("lastname")) {
+                %>
+                <span class="help-inline error">Last name is required</span>
+                <% } %>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="password">Password</label>
+                <div class="controls">
+                    <input type="password" name="password1" id="password" placeholder="Password">
+                <%
+                    if (required.contains("password")) {
+                %>
+                <span class="help-inline error">Password is required</span>
+                <% } else if (errors.contains("passwordsDontMatch")) { %>
+                <span class="help-inline error">Passwords don't match</span>
+                <% } else if (errors.contains("passwordTooShort")) { %>
+                <span class="help-inline error">Password must be at least 8 characters long</span>
+                <% } %>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="password2">re-type Password</label>
+                <div class="controls">
+                    <input type="password" name="password2" id="password2" placeholder="Password">
+                <%
+                    if (required.contains("password2")) {
+                %>
+                <span class="help-inline error">Verification is required</span>
+                <% } %>
+                </div>
+            </div>
+            <div class="control-group">
+                <div class="controls">
+                    <button type="submit" id="submitCreateAccountForm" class="btn btn-primary">Register</button>
+                </div>
+            </div>
+        </div>
+    </form>
 </div>
