@@ -262,8 +262,8 @@ public class BodyTrackController {
             }
 
             // first use Level and Offset to calculate the desired start and end times
-            final long startTimeMillis = LevelOffsetHelper.offsetAtLevelToUnixTime(level, offset) * 1000;
-            final long endTimeMillis = LevelOffsetHelper.offsetAtLevelToUnixTime(level, offset+1) * 1000;
+            final long startTimeMillis = (long)(LevelOffsetHelper.offsetAtLevelToUnixTime(level, offset) * 1000);
+            final long endTimeMillis = (long)(LevelOffsetHelper.offsetAtLevelToUnixTime(level, offset + 1) * 1000);
 
             // TODO: Not sure if this is correct for time zones...
             final TimeInterval timeInterval = new TimeInterval(startTimeMillis, endTimeMillis, TimeUnit.DAY, TimeZone.getTimeZone("UTC"));
@@ -387,12 +387,12 @@ public class BodyTrackController {
          * Returns the time in seconds of a bin in a tile at a given level. This is 2^level seconds, so level 0 bins
          * are 1 second, level 4 are 16 secs, etc.
          */
-        private static long levelToBinSeconds(final int level) {
-            return (long)Math.pow(2, level);
+        private static double levelToBinSeconds(final int level) {
+            return Math.pow(2, level);
         }
 
         /** Returns the duration in seconds of a tile at a given level.  For level 0 this is TILE_BIN_NUM seconds. */
-        private static long levelToDuration(final int level) {
+        private static double levelToDuration(final int level) {
             return levelToBinSeconds(level) * NUM_BINS_PER_TILE;
         }
 
@@ -400,7 +400,7 @@ public class BodyTrackController {
          * Returns the unixtime of the start of a tile at a given offset and level.  This is the duration at that
          * level times the offset.
          */
-        private static long offsetAtLevelToUnixTime(final int level, final long offset) {
+        private static double offsetAtLevelToUnixTime(final int level, final long offset) {
             return levelToDuration(level) * offset;
         }
     }
