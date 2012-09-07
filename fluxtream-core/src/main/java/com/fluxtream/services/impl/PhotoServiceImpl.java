@@ -1,19 +1,20 @@
 package com.fluxtream.services.impl;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedSet;
 import java.util.TimeZone;
+import java.util.TreeSet;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.TimeUnit;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.vos.AbstractFacetVO;
 import com.fluxtream.connectors.vos.AbstractInstantFacetVO;
+import com.fluxtream.connectors.vos.AbstractPhotoFacetVO;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
-import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.GuestService;
@@ -40,46 +41,81 @@ public class PhotoServiceImpl implements PhotoService {
     GuestService guestService;
 
     @Override
-    public boolean hasPhotos(final Guest guest) {
-        if (guest != null) {
-            List<ApiKey> userKeys = guestService.getApiKeys(guest.getId());
-            for (ApiKey key : userKeys) {
-                if (key.getConnector().hasImageObjectType()) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    @Override
-    public List<AbstractInstantFacetVO<AbstractFacet>> getPhotos(Guest guest, TimeInterval timeInterval) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
-        GuestSettings settings = settingsService.getSettings(guest.getId());
-        List<ApiKey> userKeys = guestService.getApiKeys(guest.getId());
-        List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
+    public SortedSet<Photo> getPhotos(long guestId, TimeInterval timeInterval) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+        List<ApiKey> userKeys = guestService.getApiKeys(guestId);
+        SortedSet<Photo> photos = new TreeSet<Photo>();
         for (ApiKey key : userKeys) {
-            if (!key.getConnector().hasImageObjectType()) {
+            final Connector connector = key.getConnector();
+            if (!connector.hasImageObjectType()) {
                 continue;
             }
-            ObjectType[] objectTypes = key.getConnector().objectTypes();
+            ObjectType[] objectTypes = connector.objectTypes();
             if (objectTypes == null) {
-                facets.addAll(apiDataService.getApiDataFacets(guest.getId(), key.getConnector(), null, timeInterval));
+                List<AbstractFacet> facets = apiDataService.getApiDataFacets(guestId, connector, null, timeInterval);
+                photos.addAll(convertFacetsToVOs(guestId, timeInterval, facets, connector, null));
             }
             else {
                 for (ObjectType objectType : objectTypes) {
                     if (objectType.isImageType()) {
-                        facets.addAll(apiDataService.getApiDataFacets(guest.getId(), key.getConnector(), objectType, timeInterval));
+                        List<AbstractFacet> facets = apiDataService.getApiDataFacets(guestId, connector, objectType, timeInterval);
+                        photos.addAll(convertFacetsToVOs(guestId, timeInterval, facets, connector, objectType));
                     }
                 }
             }
         }
-        List<AbstractInstantFacetVO<AbstractFacet>> photos = new ArrayList<AbstractInstantFacetVO<AbstractFacet>>();
+        return photos;
+    }
+
+    @Override
+    public SortedSet<Photo> getPhotos(final long guestId, final TimeInterval timeInterval, final String connectorPrettyName, final String objectTypeName) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+
+        if ("All".equals(connectorPrettyName) && "photos".equals(objectTypeName)) {
+            return getPhotos(guestId, timeInterval);
+        }
+
+        SortedSet<Photo> photos = new TreeSet<Photo>();
+        final Connector connector = findConnectorByPrettyName(guestId, connectorPrettyName);
+        if (connector != null && connector.hasImageObjectType()) {
+
+            ObjectType[] objectTypes = connector.objectTypes();
+            if (objectTypes == null) {
+                List<AbstractFacet> facets = apiDataService.getApiDataFacets(guestId, connector, null, timeInterval);
+                photos.addAll(convertFacetsToVOs(guestId, timeInterval, facets, connector, null));
+            }
+            else {
+                for (ObjectType objectType : objectTypes) {
+                    if (objectType.isImageType() && objectType.getName().equals(objectTypeName)) {
+                        List<AbstractFacet> facets = apiDataService.getApiDataFacets(guestId, connector, objectType, timeInterval);
+                        photos.addAll(convertFacetsToVOs(guestId, timeInterval, facets, connector, objectType));
+                        break;
+                    }
+                }
+            }
+        }
+
+        return photos;
+    }
+
+    private Connector findConnectorByPrettyName(final long guestId, final String connectorPrettyName) {
+        List<ApiKey> userKeys = guestService.getApiKeys(guestId);
+        for (ApiKey key : userKeys) {
+            final Connector connector = key.getConnector();
+            if (connector.prettyName().equals(connectorPrettyName)) {
+                return connector;
+            }
+        }
+
+        return null;
+    }
+
+    private SortedSet<Photo> convertFacetsToVOs(final long guestId, final TimeInterval timeInterval, final List<AbstractFacet> facets, final Connector connector, final ObjectType objectType) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+        GuestSettings settings = settingsService.getSettings(guestId);
+        SortedSet<Photo> photos = new TreeSet<Photo>();
         for (AbstractFacet facet : facets) {
             Class<? extends AbstractFacetVO<AbstractFacet>> jsonFacetClass = AbstractFacetVO.getFacetVOClass(facet);
             AbstractInstantFacetVO<AbstractFacet> facetVo = (AbstractInstantFacetVO<AbstractFacet>)jsonFacetClass.newInstance();
             facetVo.extractValues(facet, timeInterval, settings);
-            photos.add(facetVo);
+            photos.add(new PhotoImpl((AbstractPhotoFacetVO)facetVo, connector, objectType));
         }
         return photos;
     }
@@ -127,5 +163,95 @@ public class PhotoServiceImpl implements PhotoService {
 
         // TODO: Not sure if this is correct for time zones...
         return new TimeInterval(oldestFacet.start, newestFacet.start, TimeUnit.DAY, TimeZone.getTimeZone("UTC"));
+    }
+
+    private static final class PhotoImpl implements Photo, Comparable<Photo> {
+
+        private final AbstractPhotoFacetVO facetVo;
+        private final Connector connector;
+        private final ObjectType objectType;
+
+        private PhotoImpl(final AbstractPhotoFacetVO facetVo, final Connector connector, final ObjectType objectType) {
+            this.facetVo = facetVo;
+            this.connector = connector;
+            this.objectType = objectType;
+        }
+
+        @Override
+        public AbstractPhotoFacetVO getAbstractPhotoFacetVO() {
+            return facetVo;
+        }
+
+        @Override
+        public Connector getConnector() {
+            return connector;
+        }
+
+        @Override
+        public ObjectType getObjectType() {
+            return objectType;
+        }
+
+        @Override
+        public int compareTo(final Photo that) {
+            int comparison = (int)(this.getAbstractPhotoFacetVO().start - that.getAbstractPhotoFacetVO().start);
+            if (comparison != 0) {
+                return comparison;
+            }
+            comparison = connector.getName().compareTo(that.getConnector().getName());
+            if (comparison != 0) {
+                return comparison;
+            }
+            if (objectType == null) {
+                if (that.getObjectType() != null) {
+                    return 1;
+                }
+            }
+            else {
+                if (that.getObjectType() == null) {
+                    return -1;
+                }
+                else {
+                    comparison = objectType.getName().compareTo(that.getObjectType().getName());
+                    if (comparison != 0) {
+                        return comparison;
+                    }
+                }
+            }
+
+            return this.getAbstractPhotoFacetVO().photoUrl.compareTo(that.getAbstractPhotoFacetVO().photoUrl);
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            final PhotoImpl photo = (PhotoImpl)o;
+
+            if (connector != null ? !connector.equals(photo.connector) : photo.connector != null) {
+                return false;
+            }
+            if (facetVo != null ? !facetVo.equals(photo.facetVo) : photo.facetVo != null) {
+                return false;
+            }
+            if (objectType != null ? !objectType.equals(photo.objectType) : photo.objectType != null) {
+                return false;
+            }
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = facetVo != null ? facetVo.hashCode() : 0;
+            result = 31 * result + (connector != null ? connector.hashCode() : 0);
+            result = 31 * result + (objectType != null ? objectType.hashCode() : 0);
+            return result;
+        }
     }
 }
