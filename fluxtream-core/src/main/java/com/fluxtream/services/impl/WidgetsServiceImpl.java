@@ -30,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Candide Kemmler (candide@fluxtream.com)
  */
 @Service
+@Transactional(readOnly=true)
 public class WidgetsServiceImpl implements WidgetsService {
 
     @PersistenceContext

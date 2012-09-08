@@ -50,6 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Component
+@Transactional(readOnly=true)
 public class ApiDataServiceImpl implements ApiDataService {
 
 	static Logger logger = Logger.getLogger(ApiDataServiceImpl.class);
@@ -107,7 +108,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 	 * contained in the connector data itself
 	 */
 	@Override
-	@Transactional(readOnly = true)
+	@Transactional(readOnly = false)
 	public void cacheApiDataJSON(UpdateInfo updateInfo, JSONObject jsonObject,
 			long start, long end) throws Exception {
 		ApiData apiData = new ApiData(updateInfo, start, end);
@@ -120,7 +121,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 	 * contained in the connector data itself
 	 */
 	@Override
-	@Transactional(readOnly = true)
+	@Transactional(readOnly = false)
 	public void cacheApiDataJSON(UpdateInfo updateInfo, String json,
 			long start, long end) throws Exception {
 		ApiData apiData = new ApiData(updateInfo, start, end);
@@ -133,7 +134,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 	 * contained in the connector data itself
 	 */
 	@Override
-	@Transactional(readOnly = true)
+	@Transactional(readOnly = false)
 	public void cacheApiDataXML(UpdateInfo updateInfo, Document xmlDocument,
 			long start, long end) throws Exception {
 		ApiData apiData = new ApiData(updateInfo, start, end);
@@ -146,7 +147,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 	 * contained in the connector data itself
 	 */
 	@Override
-	@Transactional(readOnly = true)
+	@Transactional(readOnly = false)
 	public void cacheApiDataXML(UpdateInfo updateInfo, String xml, long start,
 			long end) throws Exception {
 		ApiData apiData = new ApiData(updateInfo, start, end);
@@ -274,6 +275,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 
 	private static Map<String, String> facetEntityNames = new ConcurrentHashMap<String,String>();
 
+    @Transactional(readOnly = false)
 	private AbstractFacet persistFacet(AbstractFacet facet) {
 		String entityName = facetEntityNames.get(facet.getClass().getName());
 		if (entityName==null) {
@@ -347,6 +349,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 	}
 
 	@Override
+    @Transactional(readOnly = false)
 	public void cacheEmptyData(UpdateInfo updateInfo, long fromMidnight,
 			long toMidnight) {
 		Connector connector = updateInfo.apiKey.getConnector();
@@ -368,6 +371,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 	}
 
 	@Override
+    @Transactional(readOnly = false)
 	public void setFacetComment(long guestId, ObjectType objectType,
 			long facetId, String text) {
 		AbstractFacet facet = em.find(objectType.facetClass(), facetId);
@@ -376,6 +380,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 	}
 
 	@Override
+    @Transactional(readOnly = false)
 	public void setFacetComment(long guestId, Connector connector,
 			long facetId, String text) {
 		Class<? extends AbstractFacet> facetClass = connector.facetClass();
