@@ -1265,6 +1265,77 @@ table .remove i {
   color: #468847;
   background-color: #dff0d8;
 }
+.flx-credits {
+  float: left;
+  margin-right: 30px;
+}
+.feedback-call {
+  height: 100%;
+}
+.anne,
+.bubbles,
+.candide {
+  float: left;
+}
+.anne,
+.candide {
+  background: url(../images/spriteAandC.png) no-repeat 0 0;
+  width: 40px;
+  height: 40px;
+  background-size: 100%;
+}
+.candide {
+  background-position-y: -40px;
+}
+.bubbles {
+  padding: 0 12px 0 15px;
+  margin-top: -14px;
+}
+.bubbles .bubble1,
+.bubbles .bubble2 {
+  position: relative;
+}
+.bubbles .bubble1 p,
+.bubbles .bubble2 p {
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+  background-color: #21b5cf;
+  color: #ffffff;
+  padding: 5px 10px;
+  margin: 0 0 5px;
+  font-weight: 400;
+}
+.bubbles .bubble1 p a,
+.bubbles .bubble2 p a {
+  color: navy;
+}
+.bubbles .bubble1 .tail,
+.bubbles .bubble2 .tail {
+  position: absolute;
+  top: 5px;
+  width: 0;
+  height: 0;
+  border-width: 10px;
+  border-style: solid;
+  border-color: transparent;
+}
+.bubbles .bubble1 p {
+  width: 133px;
+}
+.bubbles .bubble2 p {
+  margin-left: 20px;
+}
+.bubbles .bubble1 .tail {
+  border-right-color: #21b5cf;
+  left: -17px;
+  border-bottom-width: 0;
+}
+.bubbles .bubble2 .tail {
+  border-left-color: #21b5cf;
+  right: -17px;
+  border-top-width: 0;
+}
 .flx-sourceFilters1 {
   list-style-type: none;
   overflow: hidden;
