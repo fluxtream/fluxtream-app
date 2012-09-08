@@ -11,11 +11,11 @@
 	   </div>
 	   <div class="bubbles">
 	       <div class="bubble1">
-	           <p>We value your <a href="mailto:arwright@andrew.cmu.edu">opinion</a></p>
+	           <p>We value <a href="mailto:arwright@andrew.cmu.edu">your opinion</a></p>
 	           <span class="tail"></span>
 	       </div>
 	       <div class="bubble2">
-	           <p>Send us your <a href="mailto:candide@fluxtream.com">feedback</a></p>
+	           <p>Pls send us <a href="mailto:candide@fluxtream.com">your feedback</a></p>
 	           <span class="tail"></span>
 	       </div>
 	   </div>
