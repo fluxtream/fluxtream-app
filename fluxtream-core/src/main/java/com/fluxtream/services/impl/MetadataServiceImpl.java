@@ -33,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Component
+@Transactional(readOnly=true)
 public class MetadataServiceImpl implements MetadataService {
 
 	Logger logger = Logger.getLogger(MetadataServiceImpl.class);

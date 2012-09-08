@@ -28,6 +28,7 @@ import com.fluxtream.services.SettingsService;
 import com.fluxtream.utils.JPAUtils;
 
 @Service
+@Transactional(readOnly=true)
 public class SettingsServiceImpl implements SettingsService {
 
 	@Autowired

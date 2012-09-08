@@ -21,6 +21,7 @@ import com.fluxtream.utils.JPAUtils;
 
 @Service
 @Scope("singleton")
+@Transactional(readOnly=true)
 public class SystemServiceImpl implements SystemService {
 
 	@Autowired

@@ -35,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Component
+@Transactional(readOnly=true)
 public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 
 	static Logger logger = Logger.getLogger(ConnectorUpdateServiceImpl.class);
@@ -216,6 +217,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 	}
 
 	@Override
+    @Transactional(readOnly = false)
 	public ScheduleResult scheduleUpdate(long guestId, String connectorName,
 			int objectTypes, UpdateType updateType, long timeScheduled,
 			String... jsonParams) {

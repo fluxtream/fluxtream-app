@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Component
+@Transactional(readOnly=true)
 public class NotificationsServiceImpl implements NotificationsService {
 
 	@PersistenceContext
