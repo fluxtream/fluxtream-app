@@ -164,7 +164,7 @@ public class BodyTrackHelper {
             allPhotosChannel.type = "photos";
             allPhotosChannel.builtin_default_style = new ChannelStyle();
             allPhotosChannel.style = allPhotosChannel.builtin_default_style;
-            allPhotosChannel.min= 0;
+            allPhotosChannel.min= .6;
             allPhotosChannel.max= 1;
             allPhotosChannel.min_time = Double.MAX_VALUE;
             allPhotosChannel.max_time = Double.MIN_VALUE;
@@ -177,7 +177,7 @@ public class BodyTrackHelper {
                 channelSpecs.channel_bounds = new ChannelBounds();
                 channelSpecs.channel_bounds.min_time = timeInterval.start / 1000;
                 channelSpecs.channel_bounds.max_time = timeInterval.end / 1000;
-                channelSpecs.channel_bounds.min_value = 0;
+                channelSpecs.channel_bounds.min_value = .6;
                 channelSpecs.channel_bounds.max_value = 1;
                 infoResponse.channel_specs.put(channelName, channelSpecs);
 
