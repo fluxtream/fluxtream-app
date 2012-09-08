@@ -27,7 +27,6 @@ import com.fluxtream.services.GuestService;
 import com.fluxtream.services.SettingsService;
 import com.fluxtream.utils.JPAUtils;
 
-@Transactional(readOnly = true)
 @Service
 public class SettingsServiceImpl implements SettingsService {
 

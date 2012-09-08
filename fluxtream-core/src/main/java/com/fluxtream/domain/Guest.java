@@ -29,7 +29,7 @@ public class Guest extends AbstractEntity {
 	public static final String ROLE_ADMIN = "ROLE_ADMIN";
 	public static final String ROLE_COACH = "ROLE_COACH";
 	public static final String ROLE_ROOT = "ROLE_ROOT";
-	
+
 	@Index(name="username_index")
 	public String username;
 	public String firstname, lastname, password;
