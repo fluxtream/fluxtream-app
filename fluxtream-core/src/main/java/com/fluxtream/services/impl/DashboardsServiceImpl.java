@@ -27,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Candide Kemmler (candide@fluxtream.com)
  */
-@Transactional(readOnly = true)
 @Service
 public class DashboardsServiceImpl implements DashboardsService {
 

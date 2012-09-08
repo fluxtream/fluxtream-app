@@ -19,7 +19,6 @@ import com.fluxtream.domain.ConnectorInfo;
 import com.fluxtream.services.SystemService;
 import com.fluxtream.utils.JPAUtils;
 
-@Transactional(readOnly = true)
 @Service
 @Scope("singleton")
 public class SystemServiceImpl implements SystemService {
