@@ -620,7 +620,7 @@
             <div class="flx-toolTipData">
                 <h3 class="flx-dataType">Weight</h3>
                     <ul class="flx-toolTipLinks">
-                        <li><a href="#">List <i class="icon-list"></i></a></li>
+                        <!-- <li><a href="#">List <i class="icon-list"></i></a></li> -->
                         <li><a href="#">Timeline <i class="icon-film"></i></a></li>
                         <li><a href="#">Bodytrack <i class="icon-lemon"></i></a></li>
                     </ul>
@@ -1039,7 +1039,7 @@
                             <div class="flx-toolTipData">
                                 <h3 class="flx-dataType">Weight</h3>
                                     <ul class="flx-toolTipLinks">
-                                        <li><a href="#">List <i class="icon-list"></i></a></li>
+                                        <!-- <li><a href="#">List <i class="icon-list"></i></a></li> -->
                                         <li><a href="#">Timeline <i class="icon-film"></i></a></li>
                                         <li><a href="#">Bodytrack <i class="icon-lemon"></i></a></li>
                                     </ul>

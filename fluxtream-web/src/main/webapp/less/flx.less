@@ -678,6 +678,29 @@ table .remove { text-align:center;
 }
 
 
+//----------FOOTER
+
+.flx-credits { float: left; margin-right: 30px;}
+.feedback-call { height: 100%; }
+.anne, .bubbles, .candide { .flx-floatL; }
+.anne, .candide { background: url(../images/spriteAandC.png) no-repeat 0 0; width: 40px; height: 40px; background-size: 100%; }
+.candide { background-position-y: -40px; }
+.bubbles { padding: 0 12px 0 15px; margin-top: -14px;
+    .bubble1, .bubble2 { position: relative; 
+         p { .border-radius; background-color: @fitbit; color: @white; padding: 5px 10px; margin: 0 0 5px; font-weight: 400;
+             a { color: navy; }
+         }
+        .tail { position: absolute; top: 5px; width: 0; height: 0; border-width: 10px; border-style: solid; border-color: transparent; }
+     } 
+    .bubble1 p { width: 133px; }
+    .bubble2 p { margin-left: 20px; }
+    .bubble1 .tail { border-right-color: @fitbit; left:-17px; border-bottom-width: 0;}
+    .bubble2 .tail { border-left-color:  @fitbit; right: -17px; border-top-width: 0; } 
+}
+
+
+
+
 
 //----------------- DISCARDED SNIPPETS
 
