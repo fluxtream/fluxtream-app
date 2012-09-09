@@ -7,6 +7,7 @@ import com.fluxtream.connectors.annotations.JsonFacetCollection;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractGoogleOAuthUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
+import com.fluxtream.utils.Utils;
 import com.google.gdata.client.authn.oauth.OAuthHmacSha1Signer;
 import com.google.gdata.client.calendar.CalendarQuery;
 import com.google.gdata.client.calendar.CalendarService;
@@ -68,7 +69,7 @@ public class GoogleCalendarUpdater extends AbstractGoogleOAuthUpdater {
             countFailedApiCall(updateInfo.apiKey.getGuestId(),
                                updateInfo.objectTypes,
                                then,
-                               requestUrl);
+                               requestUrl, Utils.stackTrace(e));
             throw e;
         }
 

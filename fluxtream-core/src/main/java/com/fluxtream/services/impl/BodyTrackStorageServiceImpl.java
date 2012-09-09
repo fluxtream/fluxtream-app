@@ -19,6 +19,7 @@ import com.fluxtream.services.BodyTrackStorageService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -28,6 +29,8 @@ import org.springframework.stereotype.Service;
 @Service
 @Component
 public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
+
+    static Logger logger = Logger.getLogger(BodyTrackStorageServiceImpl.class);
 
 	@Autowired
 	Configuration env;
@@ -54,6 +57,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 
 	@Override
 	public void storeApiData(long guestId, List<AbstractFacet> facets) {
+        logStoreApiData(guestId, facets);
 
 		//Connector bodytrackConnector = Connector.getConnector("bodytrack");
 		//ApiKey bodytrackApiKey = guestService.getApiKey(guestId,
@@ -68,7 +72,21 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 
 	}
 
-	private void storeDeviceData(long guestId,
+    private void logStoreApiData(final long guestId, final List<AbstractFacet> facets) {
+        StringBuilder sb = new StringBuilder("module=updateQueue component=bodytrackStorageService action=storeApiData")
+                .append(" guestId=").append(guestId);
+        if (facets.size()>0) {
+            try {
+                String connectorName = Connector.fromValue(facets.get(0).api).getName();
+                sb.append(" connector=" + connectorName);
+            } catch (Throwable t) {
+                sb.append(" message=\"could not figure out connector name...\"");
+            }
+        }
+        logger.info(sb.toString());
+    }
+
+    private void storeDeviceData(long guestId,
 			Map<String, List<AbstractFacet>> facetsByDeviceNickname,
 			String facetName) {
         String deviceName = getDeviceNickname(facetName);
@@ -200,6 +218,8 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 
 	@Override
 	public void storeInitialHistory(long guestId, String connectorName) {
+        logger.info("module=updateQueue component=bodytrackStorageService action=storeInitialHistory" +
+                    " guestId=" + guestId + " connector=" + connectorName);
 		TimeInterval timeInterval = new TimeInterval(0,
 				System.currentTimeMillis(), TimeUnit.DAY, TimeZone.getDefault());
 		List<AbstractFacet> facets = apiDataService.getApiDataFacets(guestId,

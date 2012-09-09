@@ -5,6 +5,7 @@ import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiUpdate;
+import com.fluxtream.utils.Utils;
 import org.springframework.stereotype.Component;
 
 import static com.fluxtream.utils.HttpUtils.fetch;
@@ -41,7 +42,7 @@ public class WithingsUpdater extends AbstractUpdater {
 					updateInfo.objectTypes, then, url);
 		} catch (Exception e) {
 			countFailedApiCall(updateInfo.apiKey.getGuestId(),
-					updateInfo.objectTypes, then, url);
+					updateInfo.objectTypes, then, url, Utils.stackTrace(e));
 			throw e;
 		}
 		if (!json.equals(""))
@@ -69,7 +70,7 @@ public class WithingsUpdater extends AbstractUpdater {
 					updateInfo.objectTypes, then, url);
 		} catch (Exception e) {
 			countFailedApiCall(updateInfo.apiKey.getGuestId(),
-					updateInfo.objectTypes, then, url);
+					updateInfo.objectTypes, then, url, Utils.stackTrace(e));
 			throw e;
 		}
 		apiDataService.cacheApiDataJSON(updateInfo, json, -1, -1);

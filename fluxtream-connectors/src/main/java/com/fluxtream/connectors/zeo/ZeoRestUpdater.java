@@ -15,6 +15,7 @@ import com.fluxtream.connectors.updaters.UpdateInfo.UpdateType;
 import com.fluxtream.domain.ApiUpdate;
 import com.fluxtream.services.JPADaoService;
 import com.fluxtream.services.MetadataService;
+import com.fluxtream.utils.Utils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.log4j.Logger;
@@ -106,7 +107,7 @@ public class ZeoRestUpdater extends AbstractUpdater {
 			days = callURL(datesUrl, username, password);
             countSuccessfulApiCall(updateInfo.getGuestId(), -1, then, datesUrl);
         } catch (IOException e) {
-            countFailedApiCall(updateInfo.getGuestId(), -1, then, datesUrl);
+            countFailedApiCall(updateInfo.getGuestId(), -1, then, datesUrl, Utils.stackTrace(e));
             throw e;
         }
         JSONObject dateList = JSONObject.fromObject(days).getJSONObject("response").optJSONObject("dateList");
@@ -129,7 +130,7 @@ public class ZeoRestUpdater extends AbstractUpdater {
                     }
                     catch (IOException e)
                     {
-                        countFailedApiCall(updateInfo.getGuestId(), -1, then, datesUrl);
+                        countFailedApiCall(updateInfo.getGuestId(), -1, then, datesUrl, Utils.stackTrace(e));
                         throw e;
                     }
                 }

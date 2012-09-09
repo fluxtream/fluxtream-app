@@ -73,7 +73,8 @@ public class QuantifiedMindUpdater extends AbstractUpdater {
             } while (partialResult);
         }
         catch (Exception e) {
-            countFailedApiCall(updateInfo.apiKey.getGuestId(), updateInfo.objectTypes, then, queryUrl);
+            countFailedApiCall(updateInfo.apiKey.getGuestId(), updateInfo.objectTypes, then,
+                               queryUrl, Utils.stackTrace(e));
             throw new Exception("Could not get QuantifiedMind tests: "
                                 + e.getMessage() + "\n" + Utils.stackTrace(e));
         }

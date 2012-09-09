@@ -25,9 +25,11 @@ import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.SettingsService;
 import com.fluxtream.services.SystemService;
+import com.fluxtream.utils.Utils;
 import com.google.gson.Gson;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
@@ -42,6 +44,8 @@ import static com.newrelic.api.agent.NewRelic.setTransactionName;
 @Component("RESTConnectorStore")
 @Scope("request")
 public class ConnectorStore {
+
+    Logger logger = Logger.getLogger(ConnectorStore.class);
 
     @Autowired
     GuestService guestService;
@@ -67,12 +71,12 @@ public class ConnectorStore {
     @Produces({MediaType.APPLICATION_JSON})
     public String getInstalledConnectors(){
         setTransactionName(null, "GET /connectors/installed");
-        try{
-            Guest user = ControllerHelper.getGuest();
+        Guest guest = ControllerHelper.getGuest();
+        try {
             List<ConnectorInfo> connectors =  sysService.getConnectors();
             JSONArray connectorsArray = new JSONArray();
             for (int i = 0; i < connectors.size(); i++){
-                if (!guestService.hasApiKey(user.getId(), connectors.get(i).getApi())) {
+                if (!guestService.hasApiKey(guest.getId(), connectors.get(i).getApi())) {
                     connectors.remove(i--);
                 }
                 else {
@@ -87,17 +91,24 @@ public class ConnectorStore {
                     connectorJson.accumulate("manageable", connector.manageable);
                     connectorJson.accumulate("text", connector.text);
                     connectorJson.accumulate("api", connector.api);
-                    connectorJson.accumulate("lastSync", getLastSync(user.getId(), conn));
-                    connectorJson.accumulate("latestData", getLatestData(user.getId(), conn));
-                    connectorJson.accumulate("errors", checkForErrors(user.getId(), conn));
-                    connectorJson.accumulate("syncing", checkIfSyncInProgress(user.getId(), conn));
-                    connectorJson.accumulate("channels", settingsService.getChannelsForConnector(user.getId(),conn));
+                    connectorJson.accumulate("lastSync", getLastSync(guest.getId(), conn));
+                    connectorJson.accumulate("latestData", getLatestData(guest.getId(), conn));
+                    connectorJson.accumulate("errors", checkForErrors(guest.getId(), conn));
+                    connectorJson.accumulate("syncing", checkIfSyncInProgress(guest.getId(), conn));
+                    connectorJson.accumulate("channels", settingsService.getChannelsForConnector(guest.getId(), conn));
                     connectorsArray.add(connectorJson);
                 }
             }
+            StringBuilder sb = new StringBuilder("module=API component=connectorStore action=getInstalledConnectors")
+                    .append(" guestId=").append(guest.getId());
+            logger.info(sb.toString());
             return connectorsArray.toString();
         }
-        catch (Exception e){
+        catch (Exception e) {
+            StringBuilder sb = new StringBuilder("module=API component=connectorStore action=getInstalledConnectors")
+                    .append(" guestId=").append(guest.getId())
+                    .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
+            logger.warn(sb.toString());
             return gson.toJson(new StatusModel(false,"Failed to get installed connectors: " + e.getMessage()));
         }
     }
@@ -107,8 +118,8 @@ public class ConnectorStore {
     @Produces({MediaType.APPLICATION_JSON})
     public String getUninstalledConnectors(){
         setTransactionName(null, "GET /connectors/uninstalled");
-        try{
-            Guest user = ControllerHelper.getGuest();
+        Guest guest = ControllerHelper.getGuest();
+        try {
             List<ConnectorInfo> allConnectors =  sysService.getConnectors();
             List<ConnectorInfo> connectors = new ArrayList<ConnectorInfo>();
             for (ConnectorInfo connector : allConnectors) {
@@ -116,13 +127,19 @@ public class ConnectorStore {
                     connectors.add(connector);
             }
             for (int i = 0; i < connectors.size(); i++){
-                if (guestService.hasApiKey(user.getId(), connectors.get(i).getApi()))
+                if (guestService.hasApiKey(guest.getId(), connectors.get(i).getApi()))
                     connectors.remove(i--);
             }
-
+            StringBuilder sb = new StringBuilder("module=API component=connectorStore action=getUninstalledConnectors")
+                    .append(" guestId=").append(guest.getId());
+            logger.info(sb.toString());
             return gson.toJson(connectors);
         }
-        catch (Exception e){
+        catch (Exception e) {
+            StringBuilder sb = new StringBuilder("module=API component=connectorStore action=getUninstalledConnectors")
+                    .append(" guestId=").append(guest.getId())
+                    .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
+            logger.warn(sb.toString());
             return gson.toJson(new StatusModel(false,"Failed to get uninstalled connectors: " + e.getMessage()));
         }
     }
@@ -164,13 +181,22 @@ public class ConnectorStore {
     @Produces({MediaType.APPLICATION_JSON})
     public String deleteConnector(@PathParam("connector") String connector){
         StatusModel result;
+        Guest guest = ControllerHelper.getGuest();
         try{
-            Guest user = ControllerHelper.getGuest();
             Connector apiToRemove = Connector.fromString(connector);
-            guestService.removeApiKey(user.getId(), apiToRemove);
+            guestService.removeApiKey(guest.getId(), apiToRemove);
             result = new StatusModel(true,"Successfully removed " + connector + ".");
+            StringBuilder sb = new StringBuilder("module=API component=connectorStore action=deleteConnector")
+                    .append(" connector=").append(connector)
+                    .append(" guestId=").append(guest.getId());
+            logger.info(sb.toString());
         }
         catch (Exception e){
+            StringBuilder sb = new StringBuilder("module=API component=connectorStore action=deleteConnector")
+                    .append(" connector=").append(connector)
+                    .append(" guestId=").append(guest.getId())
+                    .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
+            logger.warn(sb.toString());
             result = new StatusModel(false,"Failed to remove " + connector + ".");
         }
         return gson.toJson(result);
@@ -181,13 +207,23 @@ public class ConnectorStore {
     @Produces({MediaType.APPLICATION_JSON})
     public String setConnectorChannels(@PathParam("connector") String connectorName, @FormParam("channels") String channels){
         StatusModel result;
-        try{
-            Guest user = ControllerHelper.getGuest();
-            ApiKey apiKey = guestService.getApiKey(user.getId(), Connector.getConnector(connectorName));
-            settingsService.setChannelsForConnector(user.getId(),apiKey.getConnector(),channels.split(","));
+        Guest guest = ControllerHelper.getGuest();
+        try {
+            ApiKey apiKey = guestService.getApiKey(guest.getId(), Connector.getConnector(connectorName));
+            settingsService.setChannelsForConnector(guest.getId(),apiKey.getConnector(),channels.split(","));
             result = new StatusModel(true,"Successfully updated channels for " + connectorName + ".");
+            StringBuilder sb = new StringBuilder("module=API component=connectorStore action=setConnectorChannels")
+                    .append(" connector=").append(connectorName)
+                    .append(" channels=").append(channels)
+                    .append(" guestId=").append(guest.getId());
+            logger.info(sb.toString());
         }
-        catch (Exception e){
+        catch (Exception e) {
+            StringBuilder sb = new StringBuilder("module=API component=connectorStore action=setConnectorChannels")
+                    .append(" connector=").append(connectorName)
+                    .append(" guestId=").append(guest.getId())
+                    .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
+            logger.warn(sb.toString());
             result = new StatusModel(false,"Failed to set channels for " + connectorName + ".");
         }
         return gson.toJson(result);
@@ -197,11 +233,18 @@ public class ConnectorStore {
     @Path("/filters")
     @Produces({MediaType.APPLICATION_JSON})
     public String getConnectorFilterState(){
-        try{
-            Guest user = ControllerHelper.getGuest();
-            return settingsService.getConnectorFilterState(user.getId());
+        Guest guest = ControllerHelper.getGuest();
+        try {
+            StringBuilder sb = new StringBuilder("module=API component=connectorStore action=getConnectorFilterState")
+                    .append(" guestId=").append(guest.getId());
+            logger.info(sb.toString());
+            return settingsService.getConnectorFilterState(guest.getId());
         }
-        catch (Exception e){
+        catch (Exception e) {
+            StringBuilder sb = new StringBuilder("module=API component=connectorStore action=getConnectorFilterState")
+                    .append(" guestId=").append(guest.getId())
+                    .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
+            logger.warn(sb.toString());
             return gson.toJson(new StatusModel(false,"Failed to get filters: " + e.getMessage()));
         }
     }
@@ -211,12 +254,21 @@ public class ConnectorStore {
     @Produces({MediaType.APPLICATION_JSON})
     public String setConnectorFilterState(@FormParam("filterState") String stateJSON){
         StatusModel result;
-        try{
-            Guest user = ControllerHelper.getGuest();
-            settingsService.setConnectorFilterState(user.getId(), stateJSON);
+        Guest guest = ControllerHelper.getGuest();
+        try {
+            settingsService.setConnectorFilterState(guest.getId(), stateJSON);
+            StringBuilder sb = new StringBuilder("module=API component=connectorStore action=setConnectorFilterState")
+                    .append(" filterState=").append(stateJSON)
+                    .append(" guestId=").append(guest.getId());
+            logger.info(sb.toString());
             result = new StatusModel(true,"Successfully updated filters state!");
         }
-        catch (Exception e){
+        catch (Exception e) {
+            StringBuilder sb = new StringBuilder("module=API component=connectorStore action=setConnectorFilterState")
+                    .append(" guestId=").append(guest.getId())
+                    .append(" filterState=").append(stateJSON)
+                    .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
+            logger.warn(sb.toString());
             result = new StatusModel(false,"Failed to udpate filters state!");
         }
         return gson.toJson(result);

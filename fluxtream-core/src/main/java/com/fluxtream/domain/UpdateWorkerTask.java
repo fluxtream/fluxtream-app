@@ -137,7 +137,7 @@ public class UpdateWorkerTask extends AbstractEntity {
 	public int getObjectTypes() { return objectTypes; }
 
     public String toString() {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append(guestId);
 		sb.append("/");
 		sb.append(connectorName);

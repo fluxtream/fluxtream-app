@@ -1,6 +1,8 @@
 package com.fluxtream.connectors.lastfm;
 
 import static com.fluxtream.utils.HttpUtils.fetch;
+
+import com.fluxtream.utils.Utils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
@@ -177,7 +179,7 @@ public class LastFmUpdater extends AbstractUpdater {
 			return result;
 		} catch (Exception e) {
 			countFailedApiCall(updateInfo.getGuestId(), updateInfo.objectTypes,
-					then, query);
+					then, query, Utils.stackTrace(e));
 			throw e;
 		}
 	}
@@ -210,7 +212,7 @@ public class LastFmUpdater extends AbstractUpdater {
 			return result;
 		} catch (Exception e) {
 			countFailedApiCall(updateInfo.getGuestId(), updateInfo.objectTypes,
-					then, query);
+					then, query, Utils.stackTrace(e));
 			throw e;
 		}
 	}

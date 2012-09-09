@@ -172,7 +172,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 			RuntimeException exception = new RuntimeException(
 					"null UpdateWorkerTask trying to set its status: "
 							+ updateWorkerTaskId);
-			logger.error("action=bg_update stage=unknown error");
+			logger.error("module=updateQueue component=connectorUpdateService action=setUpdateWorkerTaskStatus");
 			throw exception;
 		}
 		updt.status = status;
@@ -181,19 +181,18 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 	@Override
 	@Transactional(readOnly = false)
 	public void pollScheduledUpdates() {
-		logger.debug("looking for a job...");
 		List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em,
 				UpdateWorkerTask.class, "updateWorkerTasks.byStatus",
 				Status.SCHEDULED, System.currentTimeMillis());
 		if (updateWorkerTasks.size() == 0) {
-			logger.debug("nothing to do");
+			logger.info("module=updateQueue component=connectorUpdateService action=pollScheduledUpdates message=\"Nothing to do\"");
 			return;
 		}
 		for (UpdateWorkerTask updateWorkerTask : updateWorkerTasks) {
-			logger.debug("executing update: " + updateWorkerTask);
+            logger.info("module=updateQueue component=connectorUpdateService action=pollScheduledUpdates" +
+                        " message=\"Executing update: " +
+                        " \"" + updateWorkerTask);
 			setUpdateWorkerTaskStatus(updateWorkerTask.getId(), Status.IN_PROGRESS);
-			logger.info("guestId=" + updateWorkerTask.getGuestId() +
-					"action=bg_update stage=launch");
 			UpdateTask updateTask = beanFactory.getBean(UpdateTask.class);
 			updateTask.su = updateWorkerTask;
 			try {
@@ -206,8 +205,6 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 
 	@Override
 	public void addUpdater(Connector connector, AbstractUpdater updater) {
-		logger.info("adding updater for connector: " + connector + " : "
-				+ updater.getClass());
 		updaters.put(connector, updater);
 	}
 
@@ -222,6 +219,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 			int objectTypes, UpdateType updateType, long timeScheduled,
 			String... jsonParams) {
 		UpdateWorkerTask updateScheduled = getScheduledUpdateTask(guestId, connectorName, objectTypes);
+        ScheduleResult scheduleResult = null;
 		if (updateScheduled==null) {
 			UpdateWorkerTask updateWorkerTask = new UpdateWorkerTask();
 			updateWorkerTask.guestId = guestId;
@@ -234,24 +232,23 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 				updateWorkerTask.jsonParams = jsonParams[0];
 			em.persist(updateWorkerTask);
 			long now = System.currentTimeMillis();
-			return new ScheduleResult(connectorName, objectTypes,
-					timeScheduled <= now ? ScheduleResult.ResultType.SCHEDULED_UPDATE_IMMEDIATE
-							: ScheduleResult.ResultType.SCHEDULED_UPDATE_DEFERRED,
-                    timeScheduled);
+            scheduleResult = new ScheduleResult(connectorName, objectTypes,
+                   timeScheduled <= now
+                       ? ScheduleResult.ResultType.SCHEDULED_UPDATE_IMMEDIATE
+                       : ScheduleResult.ResultType.SCHEDULED_UPDATE_DEFERRED,
+                   timeScheduled);
 		} else {
-			StringBuilder sb = new StringBuilder();
-			sb.append("guestId=");
-			sb.append(guestId);
-			sb.append(" action=bg_update stage=reject_scheduling ");
-			sb.append("connectorName=");
-			sb.append(connectorName);
-			sb.append(" objectTypes=");
-			sb.append(objectTypes);
-			logger.info(sb.toString());
-			return new ScheduleResult(connectorName, objectTypes,
-					ScheduleResult.ResultType.ALREADY_SCHEDULED,
-                    updateScheduled.timeScheduled);
+            scheduleResult = new ScheduleResult(connectorName, objectTypes,
+                                                ScheduleResult.ResultType.ALREADY_SCHEDULED,
+                                                updateScheduled.timeScheduled);
 		}
+        StringBuilder sb = new StringBuilder("module=updateQueue component=connectorUpdateService action=scheduleUpdate")
+                .append(" guestId=").append(guestId)
+                .append(" connectorName=").append(connectorName)
+                .append(" objectTypes=").append(objectTypes)
+                .append(" resultType=").append(scheduleResult.type.toString());
+        logger.info(sb.toString());
+        return scheduleResult;
 	}
 
 	@Override

@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import com.fluxtream.utils.Utils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
@@ -149,7 +150,7 @@ public class FlickrUpdater extends AbstractUpdater {
 					updateInfo.objectTypes, then, searchPhotosUrl);
 		} catch (Exception e) {
 			countFailedApiCall(updateInfo.getGuestId(), updateInfo.objectTypes,
-					then, searchPhotosUrl);
+					then, searchPhotosUrl, Utils.stackTrace(e));
 			throw e;
 		}
 

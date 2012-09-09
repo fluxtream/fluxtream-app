@@ -10,26 +10,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.NavigableSet;
 import java.util.TimeZone;
-
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
-
-import com.fluxtream.TimeUnit;
-import com.fluxtream.domain.Guest;
-import com.fluxtream.mvc.models.AddressModel;
-import com.fluxtream.mvc.models.ConnectorDataModel;
-import com.fluxtream.mvc.models.ConnectorDigestModel;
-import com.fluxtream.mvc.models.StatusModel;
-import com.newrelic.api.agent.NewRelic;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-
 import com.fluxtream.TimeInterval;
+import com.fluxtream.TimeUnit;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.updaters.UpdateInfo;
@@ -37,6 +25,7 @@ import com.fluxtream.connectors.vos.AbstractFacetVO;
 import com.fluxtream.connectors.vos.ImageVOCollection;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.GuestAddress;
 import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.domain.Notification;
@@ -44,11 +33,15 @@ import com.fluxtream.domain.metadata.City;
 import com.fluxtream.domain.metadata.DayMetadataFacet;
 import com.fluxtream.domain.metadata.DayMetadataFacet.VisitedCity;
 import com.fluxtream.mvc.controllers.ControllerHelper;
+import com.fluxtream.mvc.models.AddressModel;
+import com.fluxtream.mvc.models.ConnectorDataModel;
+import com.fluxtream.mvc.models.ConnectorDigestModel;
 import com.fluxtream.mvc.models.ConnectorResponseModel;
 import com.fluxtream.mvc.models.DigestModel;
 import com.fluxtream.mvc.models.NotificationModel;
 import com.fluxtream.mvc.models.SettingsModel;
 import com.fluxtream.mvc.models.SolarInfoModel;
+import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.mvc.models.TimeBoundariesModel;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.GuestService;
@@ -57,16 +50,23 @@ import com.fluxtream.services.NotificationsService;
 import com.fluxtream.services.SettingsService;
 import com.fluxtream.updaters.strategies.UpdateStrategy;
 import com.fluxtream.updaters.strategies.UpdateStrategyFactory;
+import com.fluxtream.utils.Utils;
 import com.google.gson.Gson;
 import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
 import com.luckycatlabs.sunrisesunset.dto.Location;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-import static com.newrelic.api.agent.NewRelic.*;
+import static com.newrelic.api.agent.NewRelic.setTransactionName;
 
 @Path("/calendar")
 @Component("RESTCalendarDataStore")
 @Scope("request")
 public class CalendarDataStore {
+
+    Logger logger = Logger.getLogger(CalendarDataStore.class);
 
 	@Autowired
 	GuestService guestService;
@@ -108,7 +108,10 @@ public class CalendarDataStore {
 			throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException {
         setTransactionName(null, "GET /calendar/all/week/{year}/{week}");
+        Guest guest = ControllerHelper.getGuest();
+        long guestId = guest.getId();
         try{
+            long then = System.currentTimeMillis();
             //TODO:proper week data retrieval implementation
             //this implementation is just a dirt hacky way to make it work and some aspects (weather info) don't work
 
@@ -117,10 +120,6 @@ public class CalendarDataStore {
             if (filter == null) {
                 filter = "";
             }
-
-            Guest guest = ControllerHelper.getGuest();
-
-            long guestId = guest.getId();
 
             Calendar c = Calendar.getInstance();
             c.set(Calendar.YEAR,year);
@@ -172,9 +171,23 @@ public class CalendarDataStore {
             setNotifications(digest, guestId);
             setCurrentAddress(digest, guestId, dayMetadata.start);
             digest.settings = new SettingsModel(settings,guest);
+
+            StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getAllConnectorsWeekData")
+                    .append(" year=").append(year)
+                    .append(" week=").append(week)
+                    .append(" timeTaken=").append(System.currentTimeMillis()-then)
+                    .append(" guestId=").append(guestId);
+            logger.info(sb.toString());
+
             return gson.toJson(digest);
         }
         catch (Exception e){
+            StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getAllConnectorsWeekData")
+                    .append(" year=").append(year)
+                    .append(" week=").append(week)
+                    .append(" guestId=").append(guestId)
+                    .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
+            logger.warn(sb.toString());
             return gson.toJson(new StatusModel(false,"Failed to get digest: " + e.getMessage()));
         }
 	}
@@ -195,18 +208,15 @@ public class CalendarDataStore {
 			@QueryParam("filter") String filter) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
         setTransactionName(null, "GET /calendar/all/month/{year}/{month}");
+        Guest guest = ControllerHelper.getGuest();
+        long guestId = guest.getId();
         try{
+            long then = System.currentTimeMillis();
             DigestModel digest = new DigestModel();
             digest.timeUnit = "MONTH";
             if (filter == null) {
                 filter = "";
             }
-
-            Guest guest = ControllerHelper.getGuest();
-
-            long guestId = guest.getId();
-
-
 
             Calendar c = Calendar.getInstance();
             c.set(Calendar.YEAR,year);
@@ -252,9 +262,23 @@ public class CalendarDataStore {
             setNotifications(digest, guestId);
             setCurrentAddress(digest, guestId, dayMetadata.start);
             digest.settings = new SettingsModel(settings,guest);
+
+            StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getAllConnectorsMonthData")
+                    .append(" year=").append(year)
+                    .append(" month=").append(month)
+                    .append(" timeTaken=").append(System.currentTimeMillis()-then)
+                    .append(" guestId=").append(guestId);
+            logger.info(sb.toString());
+
             return gson.toJson(digest);
         }
         catch (Exception e){
+            StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getAllConnectorsMonthData")
+                    .append(" year=").append(year)
+                    .append(" month=").append(month)
+                    .append(" guestId=").append(guestId)
+                    .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
+            logger.warn(sb.toString());
             return gson.toJson(new StatusModel(false,"Failed to get digest: " + e.getMessage()));
         }
 	}
@@ -266,16 +290,15 @@ public class CalendarDataStore {
 			@QueryParam("filter") String filter) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
         setTransactionName(null, "GET /calendar/all/year/{year}");
-        try{
+        Guest guest = ControllerHelper.getGuest();
+        long guestId = guest.getId();
+        try {
+            long then = System.currentTimeMillis();
             DigestModel digest = new DigestModel();
             digest.timeUnit = "YEAR";
             if (filter == null) {
                 filter = "";
             }
-
-            Guest guest = ControllerHelper.getGuest();
-
-            long guestId = guest.getId();
 
             DayMetadataFacet dayMetaStart = metadataService.getDayMetadata(guest.getId(), year + "-01-01", true);
 
@@ -319,9 +342,19 @@ public class CalendarDataStore {
             setNotifications(digest, guestId);
             setCurrentAddress(digest, guestId, dayMetadata.start);
             digest.settings = new SettingsModel(settings,guest);
+
+            StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getAllConnectorsYearData")
+                    .append(" year=").append(year)
+                    .append(" timeTaken=").append(System.currentTimeMillis()-then)
+                    .append(" guestId=").append(guestId);
+            logger.info(sb.toString());
             return gson.toJson(digest);
        }
        catch (Exception e){
+           StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getAllConnectorsYearData")
+                   .append(" year=").append(year)
+                   .append(" guestId=").append(guestId);
+           logger.warn(sb.toString());
            return gson.toJson(new StatusModel(false,"Failed to get digest: " + e.getMessage()));
        }
 	}
@@ -333,16 +366,15 @@ public class CalendarDataStore {
 			@QueryParam("filter") String filter) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
         setTransactionName(null, "GET /calendar/all/date/{date}");
+        Guest guest = ControllerHelper.getGuest();
+        long guestId = guest.getId();
         try{
+            long then = System.currentTimeMillis();
             DigestModel digest = new DigestModel();
             digest.timeUnit = "DAY";
             if (filter == null) {
                 filter = "";
             }
-
-            Guest guest = ControllerHelper.getGuest();
-
-            long guestId = guest.getId();
 
             DayMetadataFacet dayMetadata = metadataService.getDayMetadata(guestId,
                     date, true);
@@ -375,10 +407,18 @@ public class CalendarDataStore {
             setCurrentAddress(digest, guestId, dayMetadata.start);
             digest.settings = new SettingsModel(settings,guest);
 
-            // NewRelic.setTransactionName(null, "/api/log/all/date");
+            StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getAllConnectorsDayData")
+                    .append(" date=").append(date)
+                    .append(" timeTaken=").append(System.currentTimeMillis()-then)
+                    .append(" guestId=").append(guestId);
+            logger.info(sb.toString());
             return gson.toJson(digest);
         }
         catch (Exception e){
+            StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getAllConnectorsYearData")
+                    .append(" date=").append(date)
+                    .append(" guestId=").append(guestId);
+            logger.warn(sb.toString());
             return gson.toJson(new StatusModel(false,"Failed to get digest: " + e.getMessage()));
         }
 	}
@@ -403,6 +443,7 @@ public class CalendarDataStore {
 			ClassNotFoundException {
         setTransactionName(null, "GET /calendar/" + connectorName + "/date/{date}");
         try{
+            long then = System.currentTimeMillis();
             Connector connector = Connector.getConnector(connectorName);
 
             long guestId = ControllerHelper.getGuestId();
@@ -429,9 +470,14 @@ public class CalendarDataStore {
                 day.payload = facetCollection;
             }
 
+            StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getConnectorData")
+                    .append(" date=").append(date)
+                    .append(" connector=").append(connectorName)
+                    .append(" timeTaken=").append(System.currentTimeMillis()-then)
+                    .append(" guestId=").append(guestId);
+            logger.info(sb.toString());
+
             String json = gson.toJson(day);
-            // NewRelic.setTransactionName(null, "/api/log/" + connectorName +
-            // "/date");
             return json;
         }
         catch (Exception e){
