@@ -27,8 +27,8 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Candide Kemmler (candide@fluxtream.com)
  */
-@Transactional(readOnly = true)
 @Service
+@Transactional(readOnly=true)
 public class DashboardsServiceImpl implements DashboardsService {
 
     @PersistenceContext

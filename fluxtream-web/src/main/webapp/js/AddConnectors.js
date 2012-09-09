@@ -31,4 +31,5 @@ define(function() {
     var AddConnectors = {};
     AddConnectors.show = show;
     return AddConnectors;
+
 });

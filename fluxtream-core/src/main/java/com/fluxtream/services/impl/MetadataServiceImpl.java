@@ -32,8 +32,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(readOnly = true)
 @Component
+@Transactional(readOnly=true)
 public class MetadataServiceImpl implements MetadataService {
 
 	Logger logger = Logger.getLogger(MetadataServiceImpl.class);

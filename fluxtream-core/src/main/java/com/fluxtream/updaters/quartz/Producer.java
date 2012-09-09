@@ -7,6 +7,8 @@ import com.fluxtream.auth.FlxUserDetails;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
+import com.fluxtream.utils.Utils;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.Authentication;
@@ -16,28 +18,30 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 public class Producer {
 
-    @Qualifier("connectorUpdateServiceImpl")
+    Logger logger = Logger.getLogger(Producer.class);
+
     @Autowired
     private ConnectorUpdateService connectorUpdateService;
 
-    @Qualifier("guestServiceImpl")
     @Autowired
     private GuestService guestService;
 
     public void scheduleIncrementalUpdates() {
-        List<String> roles = new ArrayList<String>();
-        roles.add("ROLE_ADMIN");
-        roles.add("ROLE_ROOT");
-        as(roles);
-        try {
-            List<Guest> guests = guestService.getAllGuests();
-            for (Guest g : guests) {
-                //connectorUpdateService.updateAllConnectors(g.getId());
-            }
-        }
-        catch (Exception e) {
-            System.out.println(e.getClass());
-        }
+        logger.info("module=updateQueue component=producer action=scheduleIncrementalUpdates");
+        //List<String> roles = new ArrayList<String>();
+        //roles.add("ROLE_ADMIN");
+        //roles.add("ROLE_ROOT");
+        //as(roles);
+        //try {
+        //    List<Guest> guests = guestService.getAllGuests();
+        //    for (Guest g : guests) {
+        //        connectorUpdateService.updateAllConnectors(g.getId());
+        //    }
+        //}
+        //catch (Exception e) {
+        //    String stackTrace = Utils.stackTrace(e);
+        //    logger.error("module=updateQueue component=producer message=Could not update all connectors stackTrace=" + stackTrace);
+        //}
     }
 
     private static void as(final List<String> roles) {

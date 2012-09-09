@@ -1,5 +1,6 @@
-define(["core/Application", "core/FlxState", "applications/calendar/Builder", "libs/bootstrap-datepicker"],
-       function(Application, FlxState, Builder) {
+define(["core/Application", "core/FlxState", "applications/calendar/Builder", "libs/bootstrap-datepicker",
+        "ConnectorConfig"],
+       function(Application, FlxState, Builder, ConnectorConfig) {
 
 	var Calendar = new Application("calendar", "Candide Kemmler", "icon-calendar");
 
@@ -392,7 +393,11 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 enabled =  digest.cachedData[digest.selectedConnectors[i].facetTypes[j]] != null;
             }
             enabled = enabled ? "" : "flx-disconnected";
-            var button = $('<li><a href="#" id="flx-connector-btn-' + digest.selectedConnectors[i].connectorName + '" class="flx-active ' + enabled + '">' + digest.selectedConnectors[i].prettyName + '</button></li>');
+            var filterLabel = digest.selectedConnectors[i].prettyName;
+            if (typeof (App.getConnectorConfig(digest.selectedConnectors[i].connectorName).filterLabel)!="undefined")
+                filterLabel = App.getConnectorConfig(digest.selectedConnectors[i].connectorName).filterLabel;
+            var button = $('<li><a href="#" id="flx-connector-btn-' + digest.selectedConnectors[i].connectorName + '" class="flx-active '
+                               + enabled + '">' + filterLabel + '</button></li>');
             if (enabled == "")
                 button.children().css("border-bottom-color",App.getConnectorConfig(digest.selectedConnectors[i].connectorName).color);
             selectedConnectors.append(button);
