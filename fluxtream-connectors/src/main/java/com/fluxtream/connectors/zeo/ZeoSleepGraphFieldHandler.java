@@ -37,7 +37,7 @@ public class ZeoSleepGraphFieldHandler implements FieldHandler {
     private void addSleepGraphColumn(final List<List<Object>> data, final String sleepGraph, final long time, final int i) {
         List<Object> record = new ArrayList<Object>();
         record.add(time);
-        record.add(Integer.valueOf(""+sleepGraph.charAt(i)));
+        record.add(5-Integer.valueOf(""+sleepGraph.charAt(i)));
         data.add(record);
     }
 
