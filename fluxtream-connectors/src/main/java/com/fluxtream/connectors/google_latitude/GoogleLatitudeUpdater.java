@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.fluxtream.connectors.controllers.GoogleOAuth2Helper;
+import com.fluxtream.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -106,7 +107,7 @@ public class GoogleLatitudeUpdater extends AbstractGoogleOAuthUpdater {
 			return result;
 		} catch (Exception e) {
 			countFailedApiCall(updateInfo.apiKey.getGuestId(),
-					updateInfo.objectTypes, then, requestUrl);
+					updateInfo.objectTypes, then, requestUrl, Utils.stackTrace(e));
 			throw e;
 		}
 	}

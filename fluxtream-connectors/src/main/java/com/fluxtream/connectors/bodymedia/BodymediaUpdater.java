@@ -215,7 +215,8 @@ public class BodymediaUpdater extends AbstractUpdater {
             return userInfo.getString("registrationDate");
         }
         else {
-            countFailedApiCall(updateInfo.apiKey.getGuestId(), updateInfo.objectTypes, then, requestUrl);
+            final String reasonPhrase = response.getStatusLine().getReasonPhrase();
+            countFailedApiCall(updateInfo.apiKey.getGuestId(), updateInfo.objectTypes, then, requestUrl, reasonPhrase);
             throw new Exception("Error: " + statusCode + " Unexpected error trying to get statuses");
         }
     }

@@ -100,6 +100,8 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 			throws Exception {
 
         try {
+            logger.info("module=updateQueue component=updater action=updateDataHistory" +
+                " guestId=" + updateInfo.getGuestId() + " connector=" + updateInfo.apiKey.getConnector().getName());
             updateConnectorDataHistory(updateInfo);
             bodyTrackStorageService.storeInitialHistory(
                     updateInfo.getGuestId(), updateInfo.apiKey.getConnector()
@@ -107,15 +109,20 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 
             return UpdateResult.successResult();
         } catch (RateLimitReachedException e) {
-            logger.info("guestId="
-                    + updateInfo.apiKey.getGuestId()
-                    + " action=bg_update stage=return_results result=rateLimitReached");
+            StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=updateDataHistory")
+                    .append(" message=\"rate limit was reached exception\" connector=")
+                    .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
+                    .append(updateInfo.apiKey.getGuestId());
+            logger.warn(sb.toString());
             return UpdateResult.rateLimitReachedResult();
         } catch (Throwable t) {
             String stackTrace = stackTrace(t);
-            logger.info("guestId=" + updateInfo.apiKey.getGuestId()
-                    + " action=bg_update stage=return_results result=failed \n"
-                    + stackTrace);
+            StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=updateDataHistory")
+                    .append(" message=\"Unexpected exception\" connector=")
+                    .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
+                    .append(updateInfo.apiKey.getGuestId())
+                    .append(" stackTrace=<![CDATA[" + stackTrace + "]]>");
+            logger.warn(sb.toString());
             return UpdateResult.failedResult(stackTrace);
         }
 	}
@@ -145,9 +152,11 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 
 	public final UpdateResult updateData(UpdateInfo updateInfo) {
 		if (hasReachedRateLimit(connector(), updateInfo.apiKey.getGuestId())) {
-			logger.warn("rate limit was reached: connector: "
-					+ updateInfo.apiKey.getConnector().toString() + ", guest: "
-					+ updateInfo.apiKey.getGuestId());
+            StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=updateData")
+                               .append(" message=\"rate limit was reached\" connector=")
+                               .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
+                               .append(updateInfo.apiKey.getGuestId());
+			logger.warn(sb.toString());
 			return new UpdateResult(
 					UpdateResult.ResultType.HAS_REACHED_RATE_LIMIT);
 		}
@@ -184,12 +193,25 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 
 	final protected void countSuccessfulApiCall(long guestId, int objectTypes,
 			long then, String query) {
+        StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=countSuccessfulApiCall")
+                .append(" connector=" + connector().getName())
+                .append(" objectTypes=" + objectTypes)
+                .append(" guestId=").append(guestId)
+                .append(" query=").append(query);
+        logger.info(sb.toString());
 		connectorUpdateService.addApiUpdate(guestId, connector(), objectTypes,
 				then, System.currentTimeMillis() - then, query, true);
 	}
 
 	final protected void countFailedApiCall(long guestId, int objectTypes,
-			long then, String query) {
+			long then, String query, String stackTrace) {
+        StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=countFailedApiCall")
+                .append(" connector=" + connector().getName())
+                .append(" objectTypes=" + objectTypes)
+                .append(" guestId=").append(guestId)
+                .append(" query=").append(query)
+                .append(" stackTrace=<![CDATA[").append(stackTrace).append("]]>");
+        logger.info(sb.toString());
 		connectorUpdateService.addApiUpdate(guestId, connector(), objectTypes,
 				then, System.currentTimeMillis() - then, query, false);
 	}

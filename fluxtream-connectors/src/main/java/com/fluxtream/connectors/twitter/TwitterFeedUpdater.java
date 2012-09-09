@@ -7,6 +7,7 @@
     import com.fluxtream.connectors.updaters.AbstractUpdater;
     import com.fluxtream.connectors.updaters.UpdateInfo;
     import com.fluxtream.domain.ApiKey;
+    import com.fluxtream.utils.Utils;
     import net.sf.json.JSONArray;
     import net.sf.json.JSONObject;
     import oauth.signpost.OAuthConsumer;
@@ -249,8 +250,8 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 			}
 			return statuses.size();
 		} else {
-			countFailedApiCall(updateInfo.apiKey.getGuestId(),
-					updateInfo.objectTypes, then, requestUrl);
+            final String reasonPhrase = response.getStatusLine().getReasonPhrase();
+            countFailedApiCall(updateInfo.apiKey.getGuestId(), updateInfo.objectTypes, then, requestUrl, reasonPhrase);
 			throw new Exception("Unexpected error trying to get statuses");
 		}
 	}
@@ -279,8 +280,9 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 			}
 			return directMessages.size();
 		} else {
+            final String reasonPhrase = response.getStatusLine().getReasonPhrase();
 			countFailedApiCall(updateInfo.apiKey.getGuestId(),
-					updateInfo.objectTypes, then, requestUrl);
+					updateInfo.objectTypes, then, requestUrl, reasonPhrase);
 			throw new Exception("Unexpected error trying to get received messages");
 		}
 	}
@@ -309,8 +311,8 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 			}
 			return directMessages.size();
 		} else {
-			countFailedApiCall(updateInfo.apiKey.getGuestId(),
-					updateInfo.objectTypes, then, requestUrl);
+            final String reasonPhrase = response.getStatusLine().getReasonPhrase();
+            countFailedApiCall(updateInfo.apiKey.getGuestId(), updateInfo.objectTypes, then, requestUrl, reasonPhrase);
 			throw new Exception("Unexpected error trying to get sent messages");
 		}
 	}
@@ -338,10 +340,10 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 			}
 			return mentions.size();
 		} else {
-			countFailedApiCall(updateInfo.apiKey.getGuestId(),
-					updateInfo.objectTypes, then, requestUrl);
-			Exception exception = new Exception("Unexpected error trying to get mentions: " + response.getStatusLine().getReasonPhrase());
-			logger.warn("guestId=" + updateInfo.apiKey.getGuestId() + " action=update connectorName=twitter objectType=mentions error");
+            final String reasonPhrase = response.getStatusLine().getReasonPhrase();
+            countFailedApiCall(updateInfo.apiKey.getGuestId(),
+                               updateInfo.objectTypes, then, requestUrl, reasonPhrase);
+            Exception exception = new Exception("Unexpected error trying to get mentions: " + reasonPhrase);
 			throw exception;
 		}
 	}

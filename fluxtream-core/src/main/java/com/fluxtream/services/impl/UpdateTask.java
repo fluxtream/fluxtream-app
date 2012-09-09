@@ -49,15 +49,12 @@ class UpdateTask implements Runnable {
 
 	@Override
 	public void run() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("guestId=");
-		sb.append(su.getGuestId());
-		sb.append(" action=bg_update stage=start");
-		sb.append(" connectorName=");
-		sb.append(su.connectorName);
-		sb.append(" objectType=");
-		sb.append(su.objectTypes);
+		StringBuilder sb = new StringBuilder("module=updateQueue component=worker action=start")
+                .append(" guestId=").append(su.getGuestId())
+                .append(" connector=").append(su.connectorName)
+                .append(" objectType=").append(su.objectTypes);
 		logger.info(sb.toString());
+
 		Connector connector = Connector.getConnector(su.connectorName);
 		ApiKey apiKey = guestService.getApiKey(su.guestId, connector);
 		AbstractUpdater updater = connectorUpdateService.getUpdater(connector);
@@ -73,7 +70,7 @@ class UpdateTask implements Runnable {
             updateData(connector, apiKey, updater);
             break;
         default:
-            logger.warn("UpdateType was not handled");
+            logger.warn("module=updateQueue component=worker message=\"UpdateType was not handled (" + su.updateType + ")\"");
             connectorUpdateService.setUpdateWorkerTaskStatus(su.getId(), Status.FAILED);
         }
 	}
@@ -81,15 +78,18 @@ class UpdateTask implements Runnable {
     private void pushTriggeredUpdate(Connector connector, ApiKey apiKey,
 			AbstractUpdater updater) {
 		try {
+            logger.info("module=updateQueue component=worker action=pushTriggeredUpdate " +
+                        "connector=" + connector.getName() + " guestId=" + apiKey.getGuestId());
 			UpdateInfo updateInfo = UpdateInfo.pushTriggeredUpdateInfo(apiKey,
 					su.objectTypes, su.jsonParams);
 			UpdateResult updateResult = updater.updateData(updateInfo);
 			handleUpdateResult(connector, updateResult);
 		} catch (Throwable e) {
 			String stackTrace = stackTrace(e);
-			logger.warn("guestId=" + su.guestId + " action=bg_update type=initialHistory "
-					+ "stage=unexpected_exception connector="
-					+ su.connectorName + " objectType=" + su.objectTypes);
+			logger.warn("module=updateQueue component=worker action=pushTriggeredUpdate " +
+                        "message=\"Unexpected Exception\" " +
+                        "guestId=" + su.guestId + " objectType=" + su.objectTypes +
+                        " stackTrace=<![CDATA[" + stackTrace + "]]>");
 			retry(connector, new UpdateWorkerTask.AuditTrailEntry(new Date(), "unexpected exception", "retry", stackTrace));
 		}
 	}
@@ -97,15 +97,19 @@ class UpdateTask implements Runnable {
 	private void updateDataHistory(Connector connector, ApiKey apiKey,
 			AbstractUpdater updater) {
         try {
+            logger.info("module=updateQueue component=worker action=updateDataHistory " +
+                        "connector=" + connector.getName() + " guestId=" + apiKey.getGuestId());
             UpdateInfo updateInfo = UpdateInfo.initialHistoryUpdateInfo(apiKey,
                     su.objectTypes);
             UpdateResult updateResult = updater.updateDataHistory(updateInfo);
             handleUpdateResult(connector, updateResult);
         } catch (Exception e) {
             String stackTrace = stackTrace(e);
-            logger.warn("guestId=" + su.guestId + " action=bg_update type=initialHistory "
-                    + "stage=unexpected_exception connector="
-                    + su.connectorName + " objectType=" + su.objectTypes);
+            logger.warn("module=updateQueue component=worker action=updateDataHistory" +
+                        " guestId=" + su.guestId + " action=updateDataHistory" +
+                        " message=\"Unexpected Exception\" connector=" +
+                        su.connectorName + " objectType=" + su.objectTypes +
+                        " stackTrace=<![CDATA[" + stackTrace + "]]>");
             retry(connector, new UpdateWorkerTask.AuditTrailEntry(new Date(), "unexpected exception", "retry", stackTrace));
         }
 	}
@@ -113,14 +117,18 @@ class UpdateTask implements Runnable {
     private void updateData(final Connector connector, final ApiKey apiKey, final AbstractUpdater updater) {
         try
         {
+            logger.info("module=updateQueue component=worker action=\"updateData (incremental update)\"" +
+                        " connector=" + connector.getName() + " guestId=" + apiKey.getGuestId());
             UpdateInfo updateInfo = UpdateInfo.IncrementalUpdateInfo(apiKey, su.objectTypes);
             UpdateResult result = updater.updateData(updateInfo);
             handleUpdateResult(connector, result);
         } catch (Exception e){
             String stackTrace = stackTrace(e);
-            logger.warn("guestId=" + su.guestId + " action=bg_update type=initialHistory "
-                    + "stage=unexpected_exception connector="
-                    + su.connectorName + " objectType=" + su.objectTypes);
+            logger.warn("module=updateQueue component=worker action=\"updateData (incremental update)\"" +
+                        " guestId=" + su.guestId
+                        + " message=\"Unexpected Exception\" connector="
+                        + su.connectorName + " objectType=" + su.objectTypes +
+                        " stackTrace=<![CDATA[" + stackTrace + "]]>");
             retry(connector, new UpdateWorkerTask.AuditTrailEntry(new Date(), "unexpected exception", "retry", stackTrace));
         }
     }
@@ -129,7 +137,7 @@ class UpdateTask implements Runnable {
 			UpdateResult updateResult) {
 		switch (updateResult.type) {
 		case DUPLICATE_UPDATE:
-			warn();
+			duplicateUpdate();
 			break;
 		case HAS_REACHED_RATE_LIMIT:
 			longReschedule(connector, new UpdateWorkerTask.AuditTrailEntry(new Date(), updateResult.type.toString(), "long reschedule"));
@@ -146,50 +154,38 @@ class UpdateTask implements Runnable {
 		}
 	}
 
-	private void warn() {
-		logger.warn("guestId=" + su.getGuestId() + " action=bg_update stage=updating" +
-				" connectorName=" + su.connectorName + " objectType="
-						+ su.objectTypes + " reason=duplicate_update");
+	private void duplicateUpdate() {
+		logger.warn("module=updateQueue component=worker action=duplicateUpdate guestId=" + su.getGuestId() +
+				" connector=" + su.connectorName + " objectType="
+                + su.objectTypes);
 	}
 
 	private void success() {
-		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append("guestId=");
-		stringBuilder.append(su.getGuestId());
-		stringBuilder.append(" action=bg_update stage=success");
-		stringBuilder.append(" connectorName=");
-		stringBuilder.append(su.connectorName);
-		stringBuilder.append(" objectType=");
-		stringBuilder.append(su.objectTypes);
+		StringBuilder stringBuilder = new StringBuilder("module=updateQueue component=worker action=success")
+                .append(" guestId=").append(su.getGuestId())
+                .append(" connector=").append(su.objectTypes);
 		logger.info(stringBuilder.toString());
 		connectorUpdateService.setUpdateWorkerTaskStatus(su.getId(), Status.DONE);
 	}
 
 	private void abort() {
-		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append("guestId=");
-		stringBuilder.append(su.getGuestId());
-		stringBuilder.append(" action=bg_update stage=no_result");
-		stringBuilder.append(" connectorName=");
-		stringBuilder.append(su.connectorName);
-		stringBuilder.append(" objectType=");
-		stringBuilder.append(su.objectTypes);
+		StringBuilder stringBuilder = new StringBuilder("module=updateQueue component=worker action=abort")
+                .append(" guestId=").append(su.getGuestId())
+                .append(" connector=").append(su.connectorName)
+                .append(" objectType=").append(su.objectTypes);
 		logger.info(stringBuilder.toString());
 		connectorUpdateService.setUpdateWorkerTaskStatus(su.getId(), Status.FAILED);
 	}
 
 	private void retry(Connector connector, UpdateWorkerTask.AuditTrailEntry auditTrailEntry) {
-		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append("guestId=");
-		stringBuilder.append(su.getGuestId());
-		stringBuilder.append(" action=bg_update stage=retry");
-		stringBuilder.append(" connectorName=");
-		stringBuilder.append(su.connectorName);
-		stringBuilder.append(" objectType=");
-		stringBuilder.append(su.objectTypes);
+		StringBuilder stringBuilder = new StringBuilder("module=updateQueue component=worker action=retry")
+                .append(" guestId=").append(su.getGuestId())
+                .append(" connector=").append(su.connectorName)
+                .append(" objectType=").append(su.objectTypes);
         if (auditTrailEntry.stackTrace!=null) {
-            stringBuilder.append("\n");
-            stringBuilder.append(auditTrailEntry.stackTrace);
+            stringBuilder.append(" stackTrace=<![CDATA[")
+                    .append(auditTrailEntry.stackTrace)
+                    .append("]]>");
         }
 		logger.info(stringBuilder.toString());
 		int maxRetries = 0;
@@ -208,14 +204,10 @@ class UpdateTask implements Runnable {
 	}
 
 	private void longReschedule(Connector connector, UpdateWorkerTask.AuditTrailEntry auditTrailEntry) {
-		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append("guestId=");
-		stringBuilder.append(su.getGuestId());
-		stringBuilder.append(" action=bg_update stage=failed");
-		stringBuilder.append(" connectorName=");
-		stringBuilder.append(su.connectorName);
-		stringBuilder.append("objectType=");
-		stringBuilder.append(su.objectTypes);
+		StringBuilder stringBuilder = new StringBuilder("module=updateQueue component=worker action=longReschedule")
+                .append(" guestId=").append(su.getGuestId())
+                .append(" connector=").append(su.connectorName)
+                .append(" objectType=").append(su.objectTypes);
 		logger.info(stringBuilder.toString());
 		// re-schedule when we are below rate limit again
 		connectorUpdateService.reScheduleUpdateTask(su, System.currentTimeMillis() + getLongRetryDelay(connector),
@@ -223,16 +215,11 @@ class UpdateTask implements Runnable {
 	}
 
 	private void shortReschedule(Connector connector, UpdateWorkerTask.AuditTrailEntry auditTrailEntry) {
-		StringBuilder sb = new StringBuilder();
-		sb.append("guestId=");
-		sb.append(su.getGuestId());
-		sb.append(" action=bg_update");
-		sb.append("stage=increment_retries connectorName=");
-		sb.append(su.connectorName);
-		sb.append(" objectType=");
-		sb.append(su.objectTypes);
-		sb.append(" retries=");
-		sb.append(String.valueOf(su.retries));
+		StringBuilder sb = new StringBuilder("module=updateQueue component=worker action=shortReschedule")
+                .append(" guestId=").append(su.getGuestId())
+                .append(" connector=").append(su.connectorName)
+                .append(" objectType=").append(su.objectTypes)
+                .append(" retries=").append(String.valueOf(su.retries));
 		logger.info(sb.toString());
 		// schedule 1 minute later, typically
 		connectorUpdateService.reScheduleUpdateTask(su, System.currentTimeMillis() + getShortRetryDelay(connector),

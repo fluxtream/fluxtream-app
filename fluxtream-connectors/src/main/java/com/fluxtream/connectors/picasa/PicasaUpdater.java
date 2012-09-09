@@ -89,7 +89,7 @@ public class PicasaUpdater extends AbstractGoogleOAuthUpdater {
 
 		} catch (Exception e) {
 			countFailedApiCall(updateInfo.apiKey.getGuestId(),
-					updateInfo.objectTypes, then, queryUrl);
+					updateInfo.objectTypes, then, queryUrl, Utils.stackTrace(e));
 			throw new Exception("Could not get Picasa photos: "
 					+ e.getMessage() + "\n" + Utils.stackTrace(e));
 		}

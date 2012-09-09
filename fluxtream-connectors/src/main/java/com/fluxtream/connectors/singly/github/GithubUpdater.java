@@ -54,7 +54,8 @@ public class GithubUpdater extends AbstractUpdater {
             apiDataService.cacheApiDataJSON(updateInfo, json, -1, -1);
         }
         catch (Exception e) {
-            countFailedApiCall(updateInfo.apiKey.getGuestId(), updateInfo.objectTypes, then, queryUrl);
+            countFailedApiCall(updateInfo.apiKey.getGuestId(), updateInfo.objectTypes, then,
+                               queryUrl, Utils.stackTrace(e));
             throw new Exception("Could not get GitHub Commits (from Singly): "
                                 + e.getMessage() + "\n" + Utils.stackTrace(e));
         }

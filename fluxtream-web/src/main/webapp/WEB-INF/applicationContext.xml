@@ -161,10 +161,12 @@
 			value="true"/>
 		<entry key="hibernate.c3p0.acquire_increment" value="4" />
 		<entry key="hibernate.c3p0.idle_test_period" value="3000" />
-		<entry key="hibernate.c3p0.max_size" value="30" />
+		<entry key="hibernate.c3p0.max_size" value="300" />
 		<entry key="hibernate.c3p0.max_statements" value="50" />
 		<entry key="hibernate.c3p0.min_size" value="5" />
-		<entry key="hibernate.c3p0.timeout" value="100" />
+        <entry key="hibernate.c3p0.initial_pool_size" value="50" />
+        <entry key="hibernate.c3p0.acquire_increment" value="10" />
+        <entry key="hibernate.c3p0.timeout" value="100" />
 		<entry key="hibernate.archive.autodetection" value="class, hbm" />
 		<entry key="hibernate.default_schema " value="flx" />
 		<entry key="hibernate.hbm2ddl.auto" value="update" />

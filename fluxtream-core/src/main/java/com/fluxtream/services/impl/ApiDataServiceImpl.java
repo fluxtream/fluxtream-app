@@ -35,6 +35,7 @@ import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.thirdparty.helpers.WWOHelper;
 import com.fluxtream.utils.JPAUtils;
+import com.fluxtream.utils.Utils;
 import net.sf.json.JSONObject;
 import org.apache.log4j.Logger;
 import org.dom4j.Document;
@@ -288,7 +289,14 @@ public class ApiDataServiceImpl implements ApiDataService {
             final TimeZone localTimeZone = metadataService.getTimeZone(facet.guestId, aftzFacet.date);
             try {
                 aftzFacet.updateTimeInfo(localTimeZone);
-            } catch (ParseException e) {
+            } catch (Throwable e) {
+                StringBuilder sb = new StringBuilder("module=updateQueue component=apiDataServiceImpl action=persistFacet")
+                        .append(" connector=").append(Connector.fromValue(facet.api).getName())
+                        .append(" objectType=").append(facet.objectType)
+                        .append(" guestId=").append(facet.guestId)
+                        .append(" message=\"Couldn't update updateTimeInfo\"")
+                        .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
+                logger.warn(sb.toString());
                 throw new RuntimeException("Could not parse floating timezone facet's time storage");
             }
         }
@@ -306,6 +314,11 @@ public class ApiDataServiceImpl implements ApiDataService {
                 persistTags(facet);
             }
 			em.persist(facet);
+            StringBuilder sb = new StringBuilder("module=updateQueue component=apiDataServiceImpl action=persistFacet")
+                    .append(" connector=").append(Connector.fromValue(facet.api).getName())
+                    .append(" objectType=").append(facet.objectType)
+                    .append(" guestId=").append(facet.guestId);
+            logger.info(sb.toString());
 			return facet;
 		}
 	}
@@ -318,6 +331,12 @@ public class ApiDataServiceImpl implements ApiDataService {
                 guestTag = new Tag();
                 guestTag.guestId = facet.guestId;
                 guestTag.name = tag.name;
+                StringBuilder sb = new StringBuilder("module=updateQueue component=apiDataServiceImpl action=persistTags")
+                        .append(" connector=").append(Connector.fromValue(facet.api).getName())
+                        .append(" objectType=").append(facet.objectType)
+                        .append(" guestId=").append(facet.guestId)
+                        .append(" tag=").append(tag.name);
+                logger.info(sb.toString());
                 em.persist(guestTag);
             }
         }
@@ -326,8 +345,10 @@ public class ApiDataServiceImpl implements ApiDataService {
     private void logDuplicateFacet(AbstractFacet facet) {
 		try {
 			Connector connector = Connector.fromValue(facet.api);
-			StringBuilder sb = new StringBuilder(" action=persistFacet connector=");
-			sb.append(connector.getName());
+			StringBuilder sb = new StringBuilder("module=updateQueue component=apiDataServiceImpl action=logDuplicateFacet")
+                    .append(" connector=" + connector.getName())
+                    .append(" objectType=").append(facet.objectType)
+                    .append(" guestId=" + facet.guestId);
 			if (facet.objectType!=-1) {
 				ObjectType[] objectType = connector.getObjectTypesForValue(facet.objectType);
 				if (objectType!=null&&objectType.length!=0)
@@ -342,7 +363,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 					sb.append("]");
 				}
 			}
-			logger.warn("guestId=" + facet.guestId + sb.toString());
+			logger.warn(sb.toString());
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
@@ -418,10 +439,13 @@ public class ApiDataServiceImpl implements ApiDataService {
                 .print(time);
 
         DayMetadataFacet info = metadataService.getDayMetadata(guestId, date, true);
+        TimeZone origTz = info.getTimeInterval().timeZone;
         servicesHelper.addCity(info, city);
         boolean timeZoneWasSet = servicesHelper.setTimeZone(info, city.geo_timezone);
-        if (timeZoneWasSet)
-            updateFloatingTimeZoneFacets(guestId, time);
+        if (timeZoneWasSet) {
+            TimeZone newTz = info.getTimeInterval().timeZone;
+            updateFloatingTimeZoneFacets(guestId, time, origTz, newTz);
+        }
 
         TimeZone tz = TimeZone.getTimeZone(info.timeZone);
         List<WeatherInfo> weatherInfo = metadataService.getWeatherInfo(city.geo_latitude,
@@ -433,9 +457,17 @@ public class ApiDataServiceImpl implements ApiDataService {
         em.merge(info);
     }
 
-    private void updateFloatingTimeZoneFacets(long guestId, long time) {
+    private void updateFloatingTimeZoneFacets(long guestId, long time, TimeZone origTz, TimeZone newTz) {
         // TODO Auto-generated method stub
+        // Find the connectors that use floating time zone
+        //   For each find the call that we should make to update the timezone
+        //   Pass time, origTz, and newTz to that
 
+        // The calls to update the timzeon for a given connector should in general:
+        //    Compute the unixtime corresponding to 'time' as computed in origTz for finding affected facets
+        //    Most likely way to do this is compute delta in millis of origTz-newTz
+        //    and either add or subtract that from time (would need to think for a while about which)
+        //    and do whatever's appropriate to update them
     }
 
 

@@ -12,6 +12,7 @@ import javax.mail.MessagingException;
 import javax.mail.Store;
 import javax.mail.search.SentDateTerm;
 
+import com.fluxtream.utils.Utils;
 import org.springframework.stereotype.Component;
 
 import com.fluxtream.connectors.Connector;
@@ -198,7 +199,7 @@ public class SmsBackupUpdater extends AbstractUpdater {
 			return smsLog;
 		} catch (Exception ex) {
 			countFailedApiCall(updateInfo.getGuestId(), smsObjectType.value(),
-					then, query);
+					then, query, Utils.stackTrace(ex));
 			throw ex;
 		}
 	}
@@ -232,7 +233,7 @@ public class SmsBackupUpdater extends AbstractUpdater {
 			return smsLog;
 		} catch (Exception ex) {
 			countFailedApiCall(updateInfo.getGuestId(), smsObjectType.value(),
-					then, query);
+					then, query, Utils.stackTrace(ex));
 			throw ex;
 		}
 	}
@@ -267,7 +268,7 @@ public class SmsBackupUpdater extends AbstractUpdater {
 			return callLog;
 		} catch (Exception ex) {
 			countFailedApiCall(updateInfo.getGuestId(),
-					callLogObjectType.value(), then, query);
+					callLogObjectType.value(), then, query, Utils.stackTrace(ex));
 			throw ex;
 		}
 	}
@@ -332,7 +333,7 @@ public class SmsBackupUpdater extends AbstractUpdater {
 			return callLog;
 		} catch (Exception ex) {
 			countFailedApiCall(updateInfo.getGuestId(),
-					callLogObjectType.value(), then, query);
+					callLogObjectType.value(), then, query, Utils.stackTrace(ex));
 			throw ex;
 		}
 	}
