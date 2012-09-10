@@ -120,6 +120,11 @@ public class PhotoServiceImpl implements PhotoService {
         return photos;
     }
 
+    /**
+     * Returns a {@link Map} of photo channels (a {@link String} which is of the form {connector_pretty_name}.{object_name})
+     * mapped to a {@link TimeInterval} which specifies the time range for that channel.  May return an empty
+     * {@link Map}, but guaranteed to not return <code>null</code>.
+     */
     @Override
     public Map<String, TimeInterval> getPhotoChannelTimeRanges(long guestId) {
         // TODO: This could really benefit from some caching.  The time ranges can only change upon updating a photo
