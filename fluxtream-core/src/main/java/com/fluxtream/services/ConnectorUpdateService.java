@@ -12,10 +12,13 @@ import com.fluxtream.domain.UpdateWorkerTask;
 
 public interface ConnectorUpdateService {
 
-    /**
-     * Delete all scheduled tasks that are in progress
-     */
-	public void cleanupRunningUpdateTasks();
+    public List<UpdateInfo> getAllRunningUpdates();
+
+    public List<UpdateInfo> getRunningUpdates(long guestId);
+
+    public boolean addRunningUpdate(UpdateInfo updateInfo, AbstractUpdater updater);
+
+    public void removeRunningUpdate(UpdateInfo updateInfo);
 
     /**
      * Schedules updates for the given connector for the user
@@ -92,7 +95,9 @@ public interface ConnectorUpdateService {
 
     public Collection<UpdateWorkerTask> getUpdatingUpdateTasks(long guestId, Connector connector);
 
-	public void deleteScheduledUpdateTasks(long guestId, Connector connector, boolean wipeOutHistory);
+	public void stopUpdating(long guestId, Connector connector, boolean wipeOutHistory);
+
+    public void shutdown();
 
 	public long getTotalNumberOfGuestsUsingConnector(Connector connector);
 

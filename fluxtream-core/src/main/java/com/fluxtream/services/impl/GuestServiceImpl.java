@@ -179,10 +179,8 @@ public class GuestServiceImpl implements GuestService {
         em.remove(apiKey);
 		if (connector == Connector.getConnector("google_latitude"))
 			JPAUtils.execute(em, "context.delete.all", guestId);
+        connectorUpdateService.stopUpdating(guestId, connector, true);
 		apiDataService.eraseApiData(guestId, connector);
-		connectorUpdateService.deleteScheduledUpdateTasks(guestId, connector, true);
-        JPAUtils.execute(em, "tags.delete.all", guestId);
-        JPAUtils.execute(em, "notifications.delete.all", guestId);
 	}
 
 	@Override
@@ -242,6 +240,8 @@ public class GuestServiceImpl implements GuestService {
 		JPAUtils.execute(em, "settings.delete.all", guest.getId());
 		JPAUtils.execute(em, "context.delete.all", guest.getId());
 		JPAUtils.execute(em, "updateWorkerTasks.delete.all", guest.getId());
+        JPAUtils.execute(em, "tags.delete.all", guest.getId());
+        JPAUtils.execute(em, "notifications.delete.all", guest.getId());
 		em.remove(guest);
 	}
 

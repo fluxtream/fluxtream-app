@@ -7,9 +7,10 @@ import java.util.Map;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.domain.ApiKey;
+import com.google.gson.annotations.Expose;
 
 public class UpdateInfo implements Cloneable {
-	
+
 	public ApiKey apiKey;
 	public TimeInterval timeInterval;
 	public String jsonParams;
@@ -25,7 +26,7 @@ public class UpdateInfo implements Cloneable {
 		PUSH_TRIGGERED_UPDATE
 	}
 	
-	private UpdateType updateType;
+	UpdateType updateType;
 	
 	UpdateInfo(ApiKey apiKey) {this.apiKey = apiKey;}
 	
@@ -33,27 +34,29 @@ public class UpdateInfo implements Cloneable {
 		List<ObjectType> connectorTypes = ObjectType.getObjectTypes(apiKey.getConnector(), objectTypes);
 		return connectorTypes;
 	}
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof UpdateInfo)) return false;
+        UpdateInfo other = (UpdateInfo) o;
+        boolean sameUser = other.apiKey.getGuestId() == apiKey.getGuestId();
+        if (!sameUser) return false;
+        boolean sameData =  other.apiKey.getConnector().getName().equals(apiKey.getConnector().getName())
+                && other.objectTypes == objectTypes;
+        if (!sameData) return false;
+        boolean sameTimeInterval = timeInterval==null
+                                 ? other.timeInterval==null
+                                 : other.timeInterval.start == timeInterval.start && other.timeInterval.end == timeInterval.start;
+        if (!sameTimeInterval) return false;
+        boolean sameUpdateType = updateType == other.updateType;
+        if (!sameUpdateType) return false;
+        return true;
+    }
 	
 	public long getGuestId() {
 		return apiKey.getGuestId();
 	}
 	
-	public boolean isIdentical(Object o) {
-		UpdateInfo ui = (UpdateInfo) o;
-		if (updateType!=ui.updateType)
-			return false;
-		if (updateType==UpdateType.TIME_INTERVAL_UPDATE)
-			return ui.timeInterval.equals(timeInterval) && ui.apiKey.getGuestId() == apiKey.getGuestId();
-		else
-			return ui.apiKey.getGuestId()==apiKey.getGuestId();
-	}
-	
-	UpdateInfo(ApiKey apiKey, TimeInterval timeInterval) {
-		this.apiKey = apiKey;
-		this.timeInterval = timeInterval;
-		this.updateType = UpdateType.TIME_INTERVAL_UPDATE;
-	}
-
 	public TimeInterval getTimeInterval() {
 		return timeInterval;
 	}

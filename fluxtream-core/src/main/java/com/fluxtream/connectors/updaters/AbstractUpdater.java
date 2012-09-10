@@ -2,8 +2,6 @@ package com.fluxtream.connectors.updaters;
 
 import static com.fluxtream.utils.Utils.stackTrace;
 
-import java.util.Vector;
-
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -25,9 +23,11 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 
 	static Logger logger = Logger.getLogger(AbstractUpdater.class);
 
-    @Qualifier("apiDataServiceImpl")
     @Autowired
 	protected ApiDataService apiDataService;
+
+    @Autowired
+    protected ConnectorUpdateService connectorUpdateService;
 
 	@Autowired
 	protected GuestService guestService;
@@ -39,17 +39,15 @@ public abstract class AbstractUpdater extends ApiClientSupport {
     @Autowired
 	protected FacetDao facetDao;
 
-    @Qualifier("notificationsServiceImpl")
     @Autowired
 	protected NotificationsService notificationsService;
 
-    @Qualifier("bodyTrackStorageServiceImpl")
     @Autowired
 	protected BodyTrackStorageService bodyTrackStorageService;
 
-	private static Vector<RunningUpdate> runningUpdates = new Vector<RunningUpdate>();
-
 	private String connectorName;
+    private boolean busy;
+    protected boolean interruptionRequested;
 
 	final protected Connector connector() {
 		if (connectorName == null)
@@ -57,7 +55,15 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 		return Connector.getConnector(connectorName);
 	}
 
-	public AbstractUpdater() {
+    public void stopUpdating() {
+        interruptionRequested = true;
+    }
+
+    public boolean isBusyUpdating() {
+        return busy;
+    }
+
+    public AbstractUpdater() {
 	}
 
 	@Autowired
@@ -66,48 +72,29 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 		ads.addUpdater(connector, this);
 	}
 
-	// TODO: this is not clusterizable -> should be done with redis
-	private class RunningUpdate {
-		Connector api;
-		int objectTypes;
-		UpdateInfo updateInfo;
-		long guestId;
-
-		public RunningUpdate(Connector api, int objectTypes,
-				UpdateInfo updateInfo, long guestId) {
-			super();
-			this.api = api;
-			this.objectTypes = objectTypes;
-			this.updateInfo = updateInfo;
-			this.guestId = guestId;
-		}
-
-		public boolean equals(Object o) {
-            if(o instanceof  RunningUpdate)
-            {
-                RunningUpdate ru = (RunningUpdate) o;
-                return ru.api == api && ru.objectTypes == objectTypes
-                        && ru.updateInfo.isIdentical(updateInfo)
-                        && ru.guestId == guestId;
-            }
-            else
-                return false;
-		}
-
-	}
-
 	public final UpdateResult updateDataHistory(UpdateInfo updateInfo)
 			throws Exception {
 
         try {
             logger.info("module=updateQueue component=updater action=updateDataHistory" +
                 " guestId=" + updateInfo.getGuestId() + " connector=" + updateInfo.apiKey.getConnector().getName());
+
+            boolean added = connectorUpdateService.addRunningUpdate(updateInfo, this);
+
+            if (!added)
+                return new UpdateResult(UpdateResult.ResultType.DUPLICATE_UPDATE);
+
+            busy = true;
+
+
             updateConnectorDataHistory(updateInfo);
             bodyTrackStorageService.storeInitialHistory(
                     updateInfo.getGuestId(), updateInfo.apiKey.getConnector()
                             .getName());
 
+
             return UpdateResult.successResult();
+        // TODO: in case of a problem here, we really should reset the connector's data
         } catch (RateLimitReachedException e) {
             StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=updateDataHistory")
                     .append(" message=\"rate limit was reached exception\" connector=")
@@ -124,6 +111,8 @@ public abstract class AbstractUpdater extends ApiClientSupport {
                     .append(" stackTrace=<![CDATA[" + stackTrace + "]]>");
             logger.warn(sb.toString());
             return UpdateResult.failedResult(stackTrace);
+        } finally {
+            connectorUpdateService.removeRunningUpdate(updateInfo);
         }
 	}
 
@@ -161,14 +150,12 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 					UpdateResult.ResultType.HAS_REACHED_RATE_LIMIT);
 		}
 
-		// prevent two equivalent updates of running at the same time
-		RunningUpdate runningUpdate = new RunningUpdate(
-				updateInfo.apiKey.getConnector(), updateInfo.objectTypes,
-				updateInfo, updateInfo.apiKey.getGuestId());
+        boolean added = connectorUpdateService.addRunningUpdate(updateInfo, this);
 
-		if (runningUpdates.contains(runningUpdate))
+		if (!added)
 			return new UpdateResult(UpdateResult.ResultType.DUPLICATE_UPDATE);
-		runningUpdates.add(runningUpdate);
+
+        busy = true;
 
 		UpdateResult updateResult = new UpdateResult();
 		try {
@@ -186,8 +173,11 @@ public abstract class AbstractUpdater extends ApiClientSupport {
                 e.printStackTrace();
             }
 		} finally {
-			runningUpdates.remove(runningUpdate);
+
+			connectorUpdateService.removeRunningUpdate(updateInfo);
 		}
+
+        busy = false;
 		return updateResult;
 	}
 

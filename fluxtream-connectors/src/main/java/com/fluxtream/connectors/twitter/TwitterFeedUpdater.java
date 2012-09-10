@@ -151,7 +151,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 		TweetFacet oldestTweet = jpaDaoService.findOne("twitter.tweet.oldest", TweetFacet.class, updateInfo.apiKey.getGuestId());
 		if (oldestTweet!=null) {
 			int olderTweets = 1;
-			while(olderTweets>0) {
+			while(!interruptionRequested && olderTweets>0) {
 				olderTweets = getStatusesBefore(updateInfo, screen_name, oldestTweet.tweetId-1, consumer);
 				oldestTweet = jpaDaoService.findOne("twitter.tweet.oldest", TweetFacet.class, updateInfo.apiKey.getGuestId());
 			}
@@ -163,7 +163,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 		TwitterMentionFacet oldestMention = jpaDaoService.findOne("twitter.mention.oldest", TwitterMentionFacet.class, updateInfo.apiKey.getGuestId());
 		if (oldestMention!=null) {
 			int olderMentions = 1;
-			while(olderMentions>0) {
+			while(!interruptionRequested && olderMentions>0) {
 				olderMentions = getMentionsBefore(updateInfo, oldestMention.twitterId-1, consumer);
 				oldestMention = jpaDaoService.findOne("twitter.mention.oldest", TwitterMentionFacet.class, updateInfo.apiKey.getGuestId());
 			}
@@ -175,7 +175,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 		TwitterDirectMessageFacet oldestDM = jpaDaoService.findOne("twitter.received.dm.oldest", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
 		if (oldestDM!=null) {
 			int olderDMs = 1;
-			while(olderDMs>0) {
+			while(!interruptionRequested && olderDMs>0) {
 				olderDMs = getDirectMessagesReceivedBefore(updateInfo, oldestDM.twitterId-1, consumer);
 				oldestDM = jpaDaoService.findOne("twitter.received.dm.oldest", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
 			}
@@ -187,7 +187,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 		TwitterDirectMessageFacet oldestDM = jpaDaoService.findOne("twitter.sent.dm.oldest", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
 		if (oldestDM!=null) {
 			int olderDMs = 1;
-			while(olderDMs>0) {
+			while(!interruptionRequested && olderDMs>0) {
 				olderDMs = getDirectMessagesSentBefore(updateInfo, oldestDM.twitterId-1, consumer);
 				oldestDM = jpaDaoService.findOne("twitter.sent.dm.oldest", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
 			}

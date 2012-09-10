@@ -132,23 +132,13 @@ public class UpdateWorkerTaskStore {
         try{
             long guestId = ControllerHelper.getGuestId();
             final Connector connector = Connector.getConnector(connectorName);
-            connectorUpdateService.deleteScheduledUpdateTasks(guestId, connector, false);
+            connectorUpdateService.stopUpdating(guestId, connector, false);
             StatusModel statusModel = new StatusModel(true, "successfully deleted pending update tasks for " + connectorName);
             return gson.toJson(statusModel);
         }
         catch (Exception e){
             return gson.toJson(new StatusModel(false,"Failed to get update tasks: " + e.getMessage()));
         }
-    }
-
-    @DELETE
-    @Path("/all")
-    @Produces({MediaType.APPLICATION_JSON})
-    public String deleteUpdateTasksAll()
-    {
-        setTransactionName(null, "GET /updateTasks/all");
-        connectorUpdateService.cleanupRunningUpdateTasks();
-        return gson.toJson(new StatusModel(true, "successfully deleted all tasks" ));
     }
 
 }

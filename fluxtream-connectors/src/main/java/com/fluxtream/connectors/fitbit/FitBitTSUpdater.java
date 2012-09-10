@@ -192,6 +192,10 @@ public class FitBitTSUpdater extends AbstractUpdater {
 	public void loadTimeSeries(String uri, ApiKey apiKey,
 			ObjectType objectType, String fieldName)
 			throws RateLimitReachedException {
+        
+        if (interruptionRequested)
+            return;
+
 		String json = signpostHelper.makeRestCall(connector(), apiKey,
 				uri.hashCode(), "http://api.fitbit.com/1/user/-/" + uri
 						+ "/date/today/max.json");
