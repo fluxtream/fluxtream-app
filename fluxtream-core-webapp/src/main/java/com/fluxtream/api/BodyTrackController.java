@@ -187,7 +187,7 @@ public class BodyTrackController {
             if (!checkForPermissionAccess(uid)){
                 uid = null;
             }
-            return bodyTrackHelper.saveView(uid,name,data);
+            return bodyTrackHelper.saveView(uid, name, data);
         }
         catch (Exception e){
             return gson.toJson(new StatusModel(false,"Access Denied"));
@@ -316,18 +316,18 @@ public class BodyTrackController {
     }
 
     @GET
-    @Path("/users/{UID}/log_items/get/{unixTime}/{count}")
+    @Path("/photos/{UID}/{DeviceNickname}.{ChannelName}/{unixTime}/{count}")
     @Produces({MediaType.APPLICATION_JSON})
-    public String getLogItems(@PathParam("UID") long uid,
-                              @PathParam("unixTime") double unixTimeInSecs,
-                              @PathParam("count") int desiredCount,
-                              @QueryParam("id") Long logItemId,
-                              @QueryParam("types") List<String> types,
-                              @QueryParam("isDesc") boolean isDescendingOrder,
-                              @QueryParam("tags") List<String> tags,
-                              @QueryParam("isMatchAllTags") boolean isMatchAllTags
-                              ) {
-        setTransactionName(null, "GET /users/{UID}/log_items/get");
+    public String getPhotosBeforeOrAfterTime(@PathParam("UID") long uid,
+                                             @PathParam("DeviceNickname") String deviceNickname,
+                                             @PathParam("ChannelName") String channelName,
+                                             @PathParam("unixTime") long unixTimeInSecs,
+                                             @PathParam("count") int desiredCount,
+                                             @QueryParam("isBefore") boolean isGetPhotosBeforeTime,
+                                             @QueryParam("tags") List<String> tags,
+                                             @QueryParam("isMatchAllTags") boolean isMatchAllTags
+                                             ) {
+        setTransactionName(null, "GET /bodytrack/photos/{UID}/" + deviceNickname + "." + channelName + "/{unixTime}/{count}");
 
         LOG.info("BodyTrackController.logItemsGet(" + uid + ")");
         try {
@@ -335,18 +335,25 @@ public class BodyTrackController {
                 return gson.toJson(new StatusModel(false, "Invalid User ID (null)"));
              }
 
-            // http://localhost:8080/api/bodytrack/users/1/log_items/get/1243058810/20?types=foo,bar,baz&desc=true&id=3&tags=bif,borf,boff&isDesc=true&isMatchAllTags=true
+            // http://localhost:8080/api/bodytrack/photos/1/All.photos/1243058810/20?desc=true&tags=bif,borf,boff&isDesc=true&isMatchAllTags=true
 
+            final SortedSet<PhotoService.Photo> photos = photoService.getPhotos(uid,
+                                                                                unixTimeInSecs * 1000,
+                                                                                deviceNickname,
+                                                                                channelName,
+                                                                                desiredCount,
+                                                                                isGetPhotosBeforeTime);
             return "{" +
                    "\"uid\":" + uid +
+                   ",\"deviceNickname\":\"" + deviceNickname + "\"" +
+                   ",\"channelName\":\"" + channelName + "\"" +
                    ",\"unixTimeInSecs\":" + unixTimeInSecs +
-                   ",\"time\":\"" + new Date((long)(unixTimeInSecs * 1000)) + "\"" +
+                   ",\"time\":\"" + new Date(unixTimeInSecs * 1000) + "\"" +
                    ",\"desiredCount\":" + desiredCount +
-                   ",\"id\":" + logItemId +
-                   ",\"types\":" + types +
-                   ",\"isDesc\":" + isDescendingOrder +
+                   ",\"isBefore\":" + isGetPhotosBeforeTime +
                    ",\"tags\":" + tags +
                    ",\"isMatchAllTags\":" + isMatchAllTags +
+                   ",\"photos.size()\":" + photos.size() +
                    "}";
         }
         catch (Exception e) {

@@ -11,6 +11,7 @@ import javax.persistence.Query;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
+import org.apache.log4j.Logger;
 import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
 import org.hibernate.search.annotations.Field;
@@ -20,8 +21,10 @@ import org.hibernate.search.annotations.Store;
 @MappedSuperclass
 @Indexed
 public abstract class AbstractFacet extends AbstractEntity {
-	
-	public AbstractFacet() {
+
+    private static final Logger LOG = Logger.getLogger(AbstractFacet.class);
+
+    public AbstractFacet() {
 		ObjectTypeSpec objectType = this.getClass().getAnnotation(ObjectTypeSpec.class);
 		if (objectType!=null)
 			this.objectType = objectType.value();
@@ -96,6 +99,44 @@ public abstract class AbstractFacet extends AbstractEntity {
         Query query = em.createQuery("select facet from " + entity.name() + " facet where facet.guestId = " + guestId + " order by facet.end " + sortOrder + " limit 1");
         query.setMaxResults(1);
         return (AbstractFacet)query.getResultList().get(0);
+    }
+
+    public static List<AbstractFacet> getFacetsBefore(EntityManager em,
+                                                      Long guestId,
+                                                      Connector connector,
+                                                      ObjectType objType,
+                                                      Long timeInMillis,
+                                                      Integer desiredCount) {
+        return getFacetsBeforeOrAfter(em, guestId, connector, objType, timeInMillis, desiredCount, "<=");
+    }
+
+    public static List<AbstractFacet> getFacetsAfter(EntityManager em,
+                                                     Long guestId,
+                                                     Connector connector,
+                                                     ObjectType objType,
+                                                     Long timeInMillis,
+                                                     Integer desiredCount){
+        return getFacetsBeforeOrAfter(em, guestId, connector, objType, timeInMillis, desiredCount, ">=");
+    }
+
+    private static List<AbstractFacet> getFacetsBeforeOrAfter(EntityManager em,
+                                                             Long guestId,
+                                                             Connector connector,
+                                                             ObjectType objType,
+                                                             Long timeInMillis,
+                                                             Integer desiredCount,
+                                                             String timeComparator){
+        final Class facetClass;
+        if (objType != null) {
+            facetClass = objType.facetClass();
+        }
+        else {
+            facetClass = connector.facetClass();
+        }
+        final Entity entity = (Entity)facetClass.getAnnotation(Entity.class);
+        final Query query = em.createQuery("select facet from " + entity.name() + " facet where facet.guestId = " + guestId + " and facet.start "+ timeComparator +" " + timeInMillis + " order by facet.start asc limit " + desiredCount);
+        query.setMaxResults(desiredCount);
+        return (List<AbstractFacet>)query.getResultList();
     }
 
     protected abstract void makeFullTextIndexable();
