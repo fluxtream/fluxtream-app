@@ -86,12 +86,13 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 
             busy = true;
 
-
+            // TODO: these two belong in a transaction
             updateConnectorDataHistory(updateInfo);
             bodyTrackStorageService.storeInitialHistory(
                     updateInfo.getGuestId(), updateInfo.apiKey.getConnector()
                             .getName());
 
+            busy = false;
 
             return UpdateResult.successResult();
         // TODO: in case of a problem here, we really should reset the connector's data
@@ -178,6 +179,7 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 		}
 
         busy = false;
+
 		return updateResult;
 	}
 

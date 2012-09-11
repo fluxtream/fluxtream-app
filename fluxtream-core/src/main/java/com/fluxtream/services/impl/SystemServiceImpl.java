@@ -45,13 +45,17 @@ public class SystemServiceImpl implements SystemService {
     @Override
     @Secured("ROLE_ADMIN")
     public void shutdown() {
-        connectorUpdateService.shutdown();
+        new Thread() {
+            public void run() {
+                connectorUpdateService.shutdown();
+            }
+        }.start();
     }
 
     @Override
     @Secured("ROLE_ADMIN")
     public boolean isShutdown() {
-        return false;
+        return connectorUpdateService.isShutdown();
     }
 
     @Override

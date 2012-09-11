@@ -492,6 +492,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
         }
     }
 
+    @Override
     public boolean isShutdown() {
         return (isShuttingDown && runningUpdates.size()==0);
     }

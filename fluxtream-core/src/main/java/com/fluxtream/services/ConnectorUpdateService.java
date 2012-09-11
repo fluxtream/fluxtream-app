@@ -99,6 +99,8 @@ public interface ConnectorUpdateService {
 
     public void shutdown();
 
+    public boolean isShutdown();
+
 	public long getTotalNumberOfGuestsUsingConnector(Connector connector);
 
 	public long getTotalNumberOfUpdates(Connector connector);
