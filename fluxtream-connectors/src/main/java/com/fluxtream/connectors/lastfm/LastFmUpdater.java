@@ -70,7 +70,7 @@ public class LastFmUpdater extends AbstractUpdater {
 			apiDataService.eraseApiData(updateInfo.getGuestId(), connector(),
 					lovedTrackObjectType.value());
 		int retrievedItems = ITEMS_PER_PAGE;
-		for (int page = 0; retrievedItems >= ITEMS_PER_PAGE; page++) {
+		for (int page = 0; !interruptionRequested && retrievedItems >= ITEMS_PER_PAGE; page++) {
 			JSONObject lovedTracksHistory = getLovedTracks(updateInfo, 0,
 					System.currentTimeMillis(), page);
 			JSONObject lovedTracks = lovedTracksHistory
@@ -95,7 +95,7 @@ public class LastFmUpdater extends AbstractUpdater {
 			apiDataService.eraseApiData(updateInfo.getGuestId(), connector(),
 					recentTrackObjectType.value());
 		int retrievedItems = ITEMS_PER_PAGE;
-		for (int page = 0; retrievedItems >= ITEMS_PER_PAGE; page++) {
+		for (int page = 0; !interruptionRequested && retrievedItems >= ITEMS_PER_PAGE; page++) {
 			JSONObject recentTracksHistory = getRecentTracks(updateInfo, 0,
 					System.currentTimeMillis(), page);
 			JSONObject recentTracks = recentTracksHistory

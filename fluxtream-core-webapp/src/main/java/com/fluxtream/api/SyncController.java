@@ -171,7 +171,7 @@ public class SyncController {
         Connector connector = Connector.getConnector(connectorName);
         Guest guest = ControllerHelper.getGuest();
         final ApiUpdate lastSuccessfulUpdate = connectorUpdateService.getLastSuccessfulUpdate(guest.getId(), connector);
-        connectorUpdateService.deleteScheduledUpdateTasks(guest.getId(), connector, true);
+        connectorUpdateService.stopUpdating(guest.getId(), connector, true);
         return new StatusModel(true, "reset controller " + connectorName);
     }
 

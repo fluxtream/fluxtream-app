@@ -8,8 +8,10 @@ import java.util.ResourceBundle;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
+import com.fluxtream.services.ConnectorUpdateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +26,9 @@ import com.fluxtream.utils.JPAUtils;
 @Transactional(readOnly=true)
 public class SystemServiceImpl implements SystemService {
 
+    @Autowired
+    ConnectorUpdateService connectorUpdateService;
+
 	@Autowired
 	Configuration env;
 
@@ -37,7 +42,23 @@ public class SystemServiceImpl implements SystemService {
                        Connector.getConnector("google_latitude"));
     }
 
-	@Override
+    @Override
+    @Secured("ROLE_ADMIN")
+    public void shutdown() {
+        new Thread() {
+            public void run() {
+                connectorUpdateService.shutdown();
+            }
+        }.start();
+    }
+
+    @Override
+    @Secured("ROLE_ADMIN")
+    public boolean isShutdown() {
+        return connectorUpdateService.isShutdown();
+    }
+
+    @Override
 	public List<ConnectorInfo> getConnectors() {
 		List<ConnectorInfo> all = JPAUtils.find(em, ConnectorInfo.class,
 				"connectors.all", (Object[]) null);
@@ -82,13 +103,6 @@ public class SystemServiceImpl implements SystemService {
                                      res .getString("toodledo"),
 				                     "ajax:/toodledo/enterCredentials",
                                      Connector.getConnector("toodledo"), 1, false));
-        final ConnectorInfo bodyTrackConnectorInfo = new ConnectorInfo("BodyTrack",
-                                                                       "/images/connectors/connector-bodyTrack.jpg",
-                                                                       res.getString("bodytrack"),
-                                                                       "ajax:/bodytrack/enterCredentials",
-                                                                       Connector.getConnector("bodytrack"), 2, false);
-        bodyTrackConnectorInfo.manageable = false;
-        em.persist(bodyTrackConnectorInfo);
 		em.persist(new ConnectorInfo("Zeo",
 				                     "/images/connectors/connector-zeo.jpg",
                                      res.getString("zeo"),

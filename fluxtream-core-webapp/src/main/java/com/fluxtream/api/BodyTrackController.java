@@ -4,6 +4,7 @@ import java.awt.Dimension;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TimeZone;
@@ -246,11 +247,11 @@ public class BodyTrackController {
     @GET
     @Path("/photos/{UID}/{DeviceNickname}.{ChannelName}/{Level}.{Offset}.json")
     @Produces({MediaType.APPLICATION_JSON})
-    public String fetchPhotos(@PathParam("UID") Long uid,
-                              @PathParam("DeviceNickname") String deviceNickname,
-                              @PathParam("ChannelName") String channelName,
-                              @PathParam("Level") int level,
-                              @PathParam("Offset") long offset) {
+    public String fetchPhotoTile(@PathParam("UID") Long uid,
+                                 @PathParam("DeviceNickname") String deviceNickname,
+                                 @PathParam("ChannelName") String channelName,
+                                 @PathParam("Level") int level,
+                                 @PathParam("Offset") long offset) {
         setTransactionName(null, "GET /bodytrack/photos/{UID}/" + deviceNickname + "." + channelName + "/{Level}.{Offset}.json");
         try {
             if (!checkForPermissionAccess(uid)) {
@@ -296,20 +297,60 @@ public class BodyTrackController {
                         photoA = new PhotoItem(photoB);
                         filteredPhotos.add(photoA);
                     } else {
-                        // Not enough of a gap , increment count on photoA
+                        // Not enough of a gap, increment count on photoA
                         photoA.incrementCount();
                     }
                 }
             }
 
             if (LOG.isDebugEnabled()) {
-                LOG.debug("BodyTrackController.fetchPhotos(): num photos filtered from " + photos.size() + " to " + filteredPhotos.size());
+                LOG.debug("BodyTrackController.fetchPhotoTile(): num photos filtered from " + photos.size() + " to " + filteredPhotos.size());
             }
 
             return gson.toJson(filteredPhotos);
         }
         catch (Exception e) {
-            LOG.error("BodyTrackController.fetchPhotos(): Exception while trying to fetch photos: ", e);
+            LOG.error("BodyTrackController.fetchPhotoTile(): Exception while trying to fetch photos: ", e);
+            return gson.toJson(new StatusModel(false, "Access Denied"));
+        }
+    }
+
+    @GET
+    @Path("/users/{UID}/log_items/get/{unixTime}/{count}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String getLogItems(@PathParam("UID") long uid,
+                              @PathParam("unixTime") double unixTimeInSecs,
+                              @PathParam("count") int desiredCount,
+                              @QueryParam("id") Long logItemId,
+                              @QueryParam("types") List<String> types,
+                              @QueryParam("isDesc") boolean isDescendingOrder,
+                              @QueryParam("tags") List<String> tags,
+                              @QueryParam("isMatchAllTags") boolean isMatchAllTags
+                              ) {
+        setTransactionName(null, "GET /users/{UID}/log_items/get");
+
+        LOG.info("BodyTrackController.logItemsGet(" + uid + ")");
+        try {
+            if (!checkForPermissionAccess(uid)) {
+                return gson.toJson(new StatusModel(false, "Invalid User ID (null)"));
+             }
+
+            // http://localhost:8080/api/bodytrack/users/1/log_items/get/1243058810/20?types=foo,bar,baz&desc=true&id=3&tags=bif,borf,boff&isDesc=true&isMatchAllTags=true
+
+            return "{" +
+                   "\"uid\":" + uid +
+                   ",\"unixTimeInSecs\":" + unixTimeInSecs +
+                   ",\"time\":\"" + new Date((long)(unixTimeInSecs * 1000)) + "\"" +
+                   ",\"desiredCount\":" + desiredCount +
+                   ",\"id\":" + logItemId +
+                   ",\"types\":" + types +
+                   ",\"isDesc\":" + isDescendingOrder +
+                   ",\"tags\":" + tags +
+                   ",\"isMatchAllTags\":" + isMatchAllTags +
+                   "}";
+        }
+        catch (Exception e) {
+            LOG.error("BodyTrackController.logItemsGet(): Exception while trying to fetch log items: ", e);
             return gson.toJson(new StatusModel(false, "Access Denied"));
         }
     }

@@ -11,7 +11,9 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import com.fluxtream.api.gson.UpdateInfoSerializer;
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ApiUpdate;
@@ -27,6 +29,7 @@ import com.fluxtream.services.SettingsService;
 import com.fluxtream.services.SystemService;
 import com.fluxtream.utils.Utils;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.log4j.Logger;
@@ -64,7 +67,33 @@ public class ConnectorStore {
     @Autowired
     private ApiDataService apiDataService;
 
-    Gson gson = new Gson();
+    Gson gson;
+
+    public ConnectorStore() {
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.registerTypeAdapter(UpdateInfo.class, new UpdateInfoSerializer());
+        gson = gsonBuilder.create();
+    }
+
+    @GET
+    @Path("/synching")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String getSynchingConnectors(){
+        Guest guest = ControllerHelper.getGuest();
+        try {
+            final List<UpdateInfo> runningUpdates = connectorUpdateService.getRunningUpdates(guest.getId());
+            StringBuilder sb = new StringBuilder("module=API component=connectorStore action=getSynchingConnectors")
+                    .append(" guestId=").append(guest.getId());
+            logger.info(sb.toString());
+            return gson.toJson(runningUpdates);
+        } catch (Exception e) {
+            StringBuilder sb = new StringBuilder("module=API component=connectorStore action=getSynchingConnectors")
+                    .append(" guestId=").append(guest.getId())
+                    .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
+            logger.warn(sb.toString());
+            return gson.toJson(new StatusModel(false,"Failed to get installed connectors: " + e.getMessage()));
+        }
+    }
 
     @GET
     @Path("/installed")

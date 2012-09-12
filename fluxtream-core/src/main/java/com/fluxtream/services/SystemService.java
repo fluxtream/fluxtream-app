@@ -7,6 +7,10 @@ import com.fluxtream.domain.ConnectorInfo;
 
 public interface SystemService {
 
+    public void shutdown();
+
+    public boolean isShutdown();
+
 	public List<ConnectorInfo> getConnectors();
 	
 	public Connector getApiFromGoogleScope(String scope);
