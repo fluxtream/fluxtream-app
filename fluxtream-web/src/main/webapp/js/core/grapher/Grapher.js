@@ -2194,16 +2194,23 @@ define(["core/grapher/BTCore"], function(BTCore) {
                                 }
 
                                 theImage.attr("src",highResImageUrl).height(imageHeight).width(imageWidth);
-                                $("#_timeline_photo_dialog_photo_table").height(imageHeight).width(imageWidth);
+                                $("._timeline_photo_dialog_photo_table").height(imageHeight).width(imageWidth);
                                 centerPhotoDialog(grapher);
                             });
                         } else {
                             // fade the form back in and show the medium-res version of the image
                             formContainer.fadeIn(100, function() {
                                 var imageHeight = 300;
-                                var imageWidth = imageAspectRatio * imageHeight;
+                                var imageWidth = 300;
+
+                                if (imageAspectRatio > 1) {
+                                    imageHeight = Math.round(imageWidth / imageAspectRatio);
+                                } else {
+                                    imageWidth = imageAspectRatio * imageHeight;
+                                }
+
                                 theImage.height(imageHeight).width(imageWidth);
-                                $("#_timeline_photo_dialog_photo_table").height(imageHeight).width(imageWidth);
+                                $("._timeline_photo_dialog_photo_table").height(300).width(300);
                                 centerPhotoDialog(grapher);
                                 theImage.attr("src", mediumResImageUrl);
                             });
