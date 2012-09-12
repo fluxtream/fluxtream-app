@@ -107,25 +107,6 @@ public abstract class AbstractFacet extends AbstractEntity {
                                                       ObjectType objType,
                                                       Long timeInMillis,
                                                       Integer desiredCount) {
-        return getFacetsBeforeOrAfter(em, guestId, connector, objType, timeInMillis, desiredCount, "<=");
-    }
-
-    public static List<AbstractFacet> getFacetsAfter(EntityManager em,
-                                                     Long guestId,
-                                                     Connector connector,
-                                                     ObjectType objType,
-                                                     Long timeInMillis,
-                                                     Integer desiredCount){
-        return getFacetsBeforeOrAfter(em, guestId, connector, objType, timeInMillis, desiredCount, ">=");
-    }
-
-    private static List<AbstractFacet> getFacetsBeforeOrAfter(EntityManager em,
-                                                             Long guestId,
-                                                             Connector connector,
-                                                             ObjectType objType,
-                                                             Long timeInMillis,
-                                                             Integer desiredCount,
-                                                             String timeComparator){
         final Class facetClass;
         if (objType != null) {
             facetClass = objType.facetClass();
@@ -134,7 +115,26 @@ public abstract class AbstractFacet extends AbstractEntity {
             facetClass = connector.facetClass();
         }
         final Entity entity = (Entity)facetClass.getAnnotation(Entity.class);
-        final Query query = em.createQuery("select facet from " + entity.name() + " facet where facet.guestId = " + guestId + " and facet.start "+ timeComparator +" " + timeInMillis + " order by facet.start asc limit " + desiredCount);
+        final Query query = em.createQuery("select facet from " + entity.name() + " facet where facet.guestId = " + guestId + " and facet.start <= " + timeInMillis + " order by facet.start desc limit " + desiredCount);
+        query.setMaxResults(desiredCount);
+        return (List<AbstractFacet>)query.getResultList();
+    }
+
+    public static List<AbstractFacet> getFacetsAfter(EntityManager em,
+                                                     Long guestId,
+                                                     Connector connector,
+                                                     ObjectType objType,
+                                                     Long timeInMillis,
+                                                     Integer desiredCount){
+        final Class facetClass;
+        if (objType != null) {
+            facetClass = objType.facetClass();
+        }
+        else {
+            facetClass = connector.facetClass();
+        }
+        final Entity entity = (Entity)facetClass.getAnnotation(Entity.class);
+        final Query query = em.createQuery("select facet from " + entity.name() + " facet where facet.guestId = " + guestId + " and facet.start >= " + timeInMillis + " order by facet.start asc limit " + desiredCount);
         query.setMaxResults(desiredCount);
         return (List<AbstractFacet>)query.getResultList();
     }

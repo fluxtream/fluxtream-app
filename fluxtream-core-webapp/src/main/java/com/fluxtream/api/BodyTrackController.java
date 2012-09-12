@@ -4,7 +4,6 @@ import java.awt.Dimension;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TimeZone;
@@ -329,13 +328,10 @@ public class BodyTrackController {
                                              ) {
         setTransactionName(null, "GET /bodytrack/photos/{UID}/" + deviceNickname + "." + channelName + "/{unixTime}/{count}");
 
-        LOG.info("BodyTrackController.logItemsGet(" + uid + ")");
         try {
             if (!checkForPermissionAccess(uid)) {
                 return gson.toJson(new StatusModel(false, "Invalid User ID (null)"));
              }
-
-            // http://localhost:8080/api/bodytrack/photos/1/All.photos/1243058810/20?desc=true&tags=bif,borf,boff&isDesc=true&isMatchAllTags=true
 
             final SortedSet<PhotoService.Photo> photos = photoService.getPhotos(uid,
                                                                                 unixTimeInSecs * 1000,
@@ -343,21 +339,16 @@ public class BodyTrackController {
                                                                                 channelName,
                                                                                 desiredCount,
                                                                                 isGetPhotosBeforeTime);
-            return "{" +
-                   "\"uid\":" + uid +
-                   ",\"deviceNickname\":\"" + deviceNickname + "\"" +
-                   ",\"channelName\":\"" + channelName + "\"" +
-                   ",\"unixTimeInSecs\":" + unixTimeInSecs +
-                   ",\"time\":\"" + new Date(unixTimeInSecs * 1000) + "\"" +
-                   ",\"desiredCount\":" + desiredCount +
-                   ",\"isBefore\":" + isGetPhotosBeforeTime +
-                   ",\"tags\":" + tags +
-                   ",\"isMatchAllTags\":" + isMatchAllTags +
-                   ",\"photos.size()\":" + photos.size() +
-                   "}";
+
+            // create the JSON response
+            final List<PhotoItem> photoItems = new ArrayList<PhotoItem>();
+            for (final PhotoService.Photo photo : photos) {
+                photoItems.add(new PhotoItem(photo));
+            }
+            return gson.toJson(photoItems);
         }
         catch (Exception e) {
-            LOG.error("BodyTrackController.logItemsGet(): Exception while trying to fetch log items: ", e);
+            LOG.error("BodyTrackController.getPhotosBeforeOrAfterTime(): Exception while trying to fetch log items: ", e);
             return gson.toJson(new StatusModel(false, "Access Denied"));
         }
     }
@@ -376,6 +367,8 @@ public class BodyTrackController {
         String comment;
         long begin_d;
         String begin;
+        long end_d;
+        String end;
         String dev_id;
         String dev_nickname;
         String channel_name;
@@ -389,10 +382,12 @@ public class BodyTrackController {
 
 
             this.id = photoFacetVO.id;
-            this.description = photoFacetVO.description;
-            this.comment = photoFacetVO.comment;
+            this.description = photoFacetVO.description == null ? "" : photoFacetVO.description;
+            this.comment = photoFacetVO.comment == null ? "" : photoFacetVO.comment;
             this.begin_d = photoFacetVO.start / 1000; // convert millis to seconds
             this.begin = DATE_TIME_FORMATTER.print(photoFacetVO.start);
+            this.end_d = this.begin_d;
+            this.end = this.begin;
             this.dev_id = photo.getConnector().getName();
             this.dev_nickname = photo.getConnector().prettyName();
             this.channel_name = photo.getObjectType().getName();

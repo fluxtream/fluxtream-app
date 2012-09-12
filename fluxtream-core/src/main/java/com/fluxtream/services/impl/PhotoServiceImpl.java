@@ -1,5 +1,6 @@
 package com.fluxtream.services.impl;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -80,20 +81,40 @@ public class PhotoServiceImpl implements PhotoService {
                                       final boolean isGetPhotosBeforeTime)
             throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 
-        return getPhotos(guestId,
-                         null,
-                         connectorPrettyName,
-                         objectTypeName,
-                         new PhotoFacetFinderStrategy() {
-                             public List<AbstractFacet> find(final Connector connector, final ObjectType objectType) {
-                                 if (isGetPhotosBeforeTime) {
-                                     return apiDataService.getApiDataFacetsBefore(guestId, connector, objectType, timeInMillis, desiredCount);
-                                 }
-                                 else {
-                                     return apiDataService.getApiDataFacetsAfter(guestId, connector, objectType, timeInMillis, desiredCount);
-                                 }
-                             }
-                         });
+        // make sure the count is >= 1
+        final int cleanedDesiredCount = Math.max(1, desiredCount);
+
+        final SortedSet<Photo> photos = getPhotos(guestId, null, connectorPrettyName, objectTypeName, new PhotoFacetFinderStrategy() {
+            public List<AbstractFacet> find(final Connector connector, final ObjectType objectType) {
+                if (isGetPhotosBeforeTime) {
+                    return apiDataService.getApiDataFacetsBefore(guestId, connector, objectType, timeInMillis, cleanedDesiredCount);
+                }
+                else {
+                    return apiDataService.getApiDataFacetsAfter(guestId, connector, objectType, timeInMillis, cleanedDesiredCount);
+                }
+            }
+        });
+
+        // Make sure we don't return more than requested (which may happen if we're merging from multiple photo channels,
+        // which can happen for the All.photos device/channel).
+        if (photos.size() > cleanedDesiredCount) {
+
+            // first convert to a list for easier extraction
+            List<Photo> photosList = new ArrayList<Photo>(photos);
+
+            final SortedSet<Photo> photosSubset = new TreeSet<Photo>();
+            if (isGetPhotosBeforeTime) {
+                // get the last N photos
+                photosSubset.addAll(photosList.subList((photosList.size() - cleanedDesiredCount), photosList.size()));
+            }
+            else {
+                // get the first N photos
+                photosSubset.addAll(photosList.subList(0, cleanedDesiredCount));
+            }
+            return photosSubset;
+        }
+
+        return photos;
     }
 
     /**
@@ -134,12 +155,13 @@ public class PhotoServiceImpl implements PhotoService {
     }
 
     /**
-     * TODO:
-     * Returns all photos for {@link Connector}(s) specified by the given <code>connectorPrettyName</code>, and optionally
-     * narrowed by the {@link ObjectType} specified by the given <code>objectTypeName</code>.  If the
-     * <code>objectTypeName</code> is <code>null</code>, or specifies an invalid ObjectType, then, this method returns photos from all image ObjectTypes for
-     * the given {@link Connector}.  If non-<code>null</code>, then it returns only photos from the
-     * <code>specificObjectType</code>, but only if it is an image {@link ObjectType}.
+     * Returns all photos for {@link Connector}(s) specified by the given <code>connectorPrettyName</code>, and
+     * optionally narrowed by the {@link ObjectType} specified by the given <code>objectTypeName</code>.  If the
+     * <code>connectorPrettyName</code> is equal to the {@link #ALL_DEVICES_NAME}, then this method checks every
+     * Connector for whether it has an image ObjectType and, if so, adds the relevant photos from each image ObjectType
+     * belonging to the Connector.  If the <code>connectorPrettyName</code> is not equal to the
+     * {@link #ALL_DEVICES_NAME}, then this method finds the specified Connector and ObjectType and adds the photos. May
+     * return an empty {@link SortedSet}, but guaranteeed to not return <code>null</code>.
      */
     private SortedSet<Photo> getPhotos(final long guestId,
                                        final TimeInterval timeInterval,
@@ -291,32 +313,18 @@ public class PhotoServiceImpl implements PhotoService {
 
         @Override
         public int compareTo(final Photo that) {
-            int comparison = (int)(this.getAbstractPhotoFacetVO().start - that.getAbstractPhotoFacetVO().start);
+
+            final Long thisStart = this.getAbstractPhotoFacetVO().start;
+            final Long thatStart = that.getAbstractPhotoFacetVO().start;
+            int comparison = thisStart.compareTo(thatStart);
             if (comparison != 0) {
                 return comparison;
-            }
-            comparison = connector.getName().compareTo(that.getConnector().getName());
-            if (comparison != 0) {
-                return comparison;
-            }
-            if (objectType == null) {
-                if (that.getObjectType() != null) {
-                    return 1;
-                }
-            }
-            else {
-                if (that.getObjectType() == null) {
-                    return -1;
-                }
-                else {
-                    comparison = objectType.getName().compareTo(that.getObjectType().getName());
-                    if (comparison != 0) {
-                        return comparison;
-                    }
-                }
             }
 
-            return this.getAbstractPhotoFacetVO().photoUrl.compareTo(that.getAbstractPhotoFacetVO().photoUrl);
+            final String thisId = this.getConnector().getName() + "." + this.getObjectType().getName() + "." + this.getAbstractPhotoFacetVO().id + "." + this.getAbstractPhotoFacetVO().photoUrl;
+            final String thatId = that.getConnector().getName() + "." + that.getObjectType().getName() + "." + that.getAbstractPhotoFacetVO().id + "." + that.getAbstractPhotoFacetVO().photoUrl;
+
+            return thisId.compareTo(thatId);
         }
 
         @Override
