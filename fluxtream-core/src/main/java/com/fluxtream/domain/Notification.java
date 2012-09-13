@@ -13,12 +13,16 @@ import org.hibernate.annotations.Index;
 			+ "FROM Notifications notification "
 			+ "WHERE notification.guestId=? AND notification.deleted=false "
 			+ "ORDER BY notification.ts DESC"),
+    @NamedQuery(name="notifications.withTypeAndMessage", query="SELECT notification "
+            + "FROM Notifications notification WHERE "
+            + "notification.guestId=? AND notification.deleted=false "
+            + "AND notification.type=? AND notification.message=?"),
 	@NamedQuery(name = "notifications.delete.all",
 		query = "DELETE FROM Notifications notification WHERE notification.guestId=?") }
 )
 public class Notification extends AbstractEntity {
 
-	public static enum Type {
+    public static enum Type {
 		WARNING, ERROR, INFO
 	}
 
@@ -32,6 +36,11 @@ public class Notification extends AbstractEntity {
 
 	@Lob
 	public String message;
+
+    public int repeated;
+
+    @Lob
+    public String stackTrace;
 
 	long ts;
 

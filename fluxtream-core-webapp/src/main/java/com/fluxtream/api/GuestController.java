@@ -123,6 +123,41 @@ public class GuestController {
     }
 
     @POST
+    @Path("/{connector}/oauth2Tokens")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String setOAuth2Tokens(@PathParam("connector") String connectorName,
+                                  @FormParam("tokenExpires") String tokenExpires,
+                                  @FormParam("refreshTokenRemoveURL") String refreshTokenRemoveURL,
+                                  @FormParam("accessToken") String accessToken,
+                                  @FormParam("refreshToken")String refreshToken)
+            throws InstantiationException, IllegalAccessException,
+                   ClassNotFoundException {
+        try{
+            long guestId = ControllerHelper.getGuestId();
+
+            ApiKey apiKey = guestService.getApiKey(guestId,
+                                                   Connector.getConnector(connectorName));
+            if (apiKey != null) {
+                guestService.setApiKeyAttribute(guestId, apiKey.getConnector(), "accessToken", accessToken);
+                guestService.setApiKeyAttribute(guestId, apiKey.getConnector(), "tokenExpires", tokenExpires);
+                guestService.setApiKeyAttribute(guestId, apiKey.getConnector(), "refreshTokenRemoveURL", refreshTokenRemoveURL);
+                guestService.setApiKeyAttribute(guestId, apiKey.getConnector(), "refreshToken", refreshToken);
+
+                StatusModel result = new StatusModel(true,
+                                                     "Successfully updated oauth2 tokens: " + connectorName);
+                return gson.toJson(result);
+            } else {
+                StatusModel result = new StatusModel(false,
+                                                     "Guest does not have that connector: " + connectorName);
+                return gson.toJson(result);
+            }
+        }
+        catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Failed to set OAuth2 Tokens: " + e.getMessage()));
+        }
+    }
+
+    @POST
 	@Path("/create")
 	@Produces({ MediaType.APPLICATION_JSON })
 	public String createGuest(@FormParam("username") String username,

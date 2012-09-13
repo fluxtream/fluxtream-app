@@ -2,6 +2,7 @@ package com.fluxtream.connectors.updaters;
 
 import static com.fluxtream.utils.Utils.stackTrace;
 
+import com.fluxtream.domain.Notification;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -111,6 +112,14 @@ public abstract class AbstractUpdater extends ApiClientSupport {
                     .append(updateInfo.apiKey.getGuestId())
                     .append(" stackTrace=<![CDATA[" + stackTrace + "]]>");
             logger.warn(sb.toString());
+            String message = (new StringBuilder("We were unable to import your "))
+                    .append(updateInfo.apiKey.getConnector().prettyName())
+                    .append(" data (")
+                    .append("error message: \"")
+                    .append(t.getMessage()).append("\")").toString();
+            notificationsService.addNotification(updateInfo.apiKey.getGuestId(),
+                                                 Notification.Type.WARNING,
+                                                 message, stackTrace);
             return UpdateResult.failedResult(stackTrace);
         } finally {
             connectorUpdateService.removeRunningUpdate(updateInfo);
@@ -168,10 +177,23 @@ public abstract class AbstractUpdater extends ApiClientSupport {
                 updateConnectorData(updateInfo);
                 updateResult.type = UpdateResult.ResultType.UPDATE_SUCCEEDED;
             } catch (Exception e) {
+                final String stackTrace = Utils.stackTrace(e);
+                StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=updateData")
+                        .append(" message=\"Unexpected exception\" connector=")
+                        .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
+                        .append(updateInfo.apiKey.getGuestId());
+                logger.warn(sb.toString());
+                String message = (new StringBuilder("We were unable to sync your "))
+                        .append(updateInfo.apiKey.getConnector().prettyName())
+                        .append(" connector (")
+                        .append("error message: \"")
+                        .append(e.getMessage()).append("\")").toString();
+                notificationsService.addNotification(updateInfo.apiKey.getGuestId(),
+                                                     Notification.Type.WARNING,
+                                                     message, stackTrace);
                 updateResult = new UpdateResult(
                         UpdateResult.ResultType.UPDATE_FAILED);
-                updateResult.stackTrace = Utils.stackTrace(e);
-                e.printStackTrace();
+                updateResult.stackTrace = stackTrace;
             }
 		} finally {
 
