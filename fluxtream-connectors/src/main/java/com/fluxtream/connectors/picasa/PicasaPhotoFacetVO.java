@@ -35,7 +35,13 @@ public class PicasaPhotoFacetVO extends AbstractPhotoFacetVO<PicasaPhotoFacet> {
 		thumbnailsJson = facet.thumbnailsJson;
 	}
 
-	public String getThumbnail(int index) {
+    @Override
+    public String getPhotoUrl() {
+        return photoUrl;
+    }
+
+    @Override
+    public String getThumbnail(int index) {
 		if (thumbnails == null)
 			thumbnails = JSONArray.fromObject(thumbnailsJson);
 		if (index > thumbnails.size())

@@ -175,9 +175,16 @@ public class MetadataServiceImpl implements MetadataService {
 			return null;
 		}
 		VisitedCity mostVisited = cities.last();
-		City city = JPAUtils.findUnique(em, City.class,
-				"city.byNameAndCountryCode", mostVisited.name,
-				env.getCountryCode(mostVisited.country));
+        City city = null;
+        if (mostVisited.state!=null)
+            city = JPAUtils.findUnique(em, City.class,
+                                       "city.byNameStateAndCountryCode", mostVisited.name,
+                                       mostVisited.state,
+                                       env.getCountryCode(mostVisited.country));
+        else
+            city = JPAUtils.findUnique(em, City.class,
+                    "city.byNameAndCountryCode", mostVisited.name,
+                    env.getCountryCode(mostVisited.country));
 		return city;
 	}
 

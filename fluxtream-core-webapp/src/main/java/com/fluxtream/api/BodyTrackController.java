@@ -186,7 +186,7 @@ public class BodyTrackController {
             if (!checkForPermissionAccess(uid)){
                 uid = null;
             }
-            return bodyTrackHelper.saveView(uid,name,data);
+            return bodyTrackHelper.saveView(uid, name, data);
         }
         catch (Exception e){
             return gson.toJson(new StatusModel(false,"Access Denied"));
@@ -246,11 +246,11 @@ public class BodyTrackController {
     @GET
     @Path("/photos/{UID}/{DeviceNickname}.{ChannelName}/{Level}.{Offset}.json")
     @Produces({MediaType.APPLICATION_JSON})
-    public String fetchPhotos(@PathParam("UID") Long uid,
-                              @PathParam("DeviceNickname") String deviceNickname,
-                              @PathParam("ChannelName") String channelName,
-                              @PathParam("Level") int level,
-                              @PathParam("Offset") long offset) {
+    public String fetchPhotoTile(@PathParam("UID") Long uid,
+                                 @PathParam("DeviceNickname") String deviceNickname,
+                                 @PathParam("ChannelName") String channelName,
+                                 @PathParam("Level") int level,
+                                 @PathParam("Offset") long offset) {
         setTransactionName(null, "GET /bodytrack/photos/{UID}/" + deviceNickname + "." + channelName + "/{Level}.{Offset}.json");
         try {
             if (!checkForPermissionAccess(uid)) {
@@ -296,20 +296,59 @@ public class BodyTrackController {
                         photoA = new PhotoItem(photoB);
                         filteredPhotos.add(photoA);
                     } else {
-                        // Not enough of a gap , increment count on photoA
+                        // Not enough of a gap, increment count on photoA
                         photoA.incrementCount();
                     }
                 }
             }
 
             if (LOG.isDebugEnabled()) {
-                LOG.debug("BodyTrackController.fetchPhotos(): num photos filtered from " + photos.size() + " to " + filteredPhotos.size());
+                LOG.debug("BodyTrackController.fetchPhotoTile(): num photos filtered from " + photos.size() + " to " + filteredPhotos.size());
             }
 
             return gson.toJson(filteredPhotos);
         }
         catch (Exception e) {
-            LOG.error("BodyTrackController.fetchPhotos(): Exception while trying to fetch photos: ", e);
+            LOG.error("BodyTrackController.fetchPhotoTile(): Exception while trying to fetch photos: ", e);
+            return gson.toJson(new StatusModel(false, "Access Denied"));
+        }
+    }
+
+    @GET
+    @Path("/photos/{UID}/{DeviceNickname}.{ChannelName}/{unixTime}/{count}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String getPhotosBeforeOrAfterTime(@PathParam("UID") long uid,
+                                             @PathParam("DeviceNickname") String deviceNickname,
+                                             @PathParam("ChannelName") String channelName,
+                                             @PathParam("unixTime") long unixTimeInSecs,
+                                             @PathParam("count") int desiredCount,
+                                             @QueryParam("isBefore") boolean isGetPhotosBeforeTime,
+                                             @QueryParam("tags") List<String> tags,
+                                             @QueryParam("isMatchAllTags") boolean isMatchAllTags
+                                             ) {
+        setTransactionName(null, "GET /bodytrack/photos/{UID}/" + deviceNickname + "." + channelName + "/{unixTime}/{count}");
+
+        try {
+            if (!checkForPermissionAccess(uid)) {
+                return gson.toJson(new StatusModel(false, "Invalid User ID (null)"));
+             }
+
+            final SortedSet<PhotoService.Photo> photos = photoService.getPhotos(uid,
+                                                                                unixTimeInSecs * 1000,
+                                                                                deviceNickname,
+                                                                                channelName,
+                                                                                desiredCount,
+                                                                                isGetPhotosBeforeTime);
+
+            // create the JSON response
+            final List<PhotoItem> photoItems = new ArrayList<PhotoItem>();
+            for (final PhotoService.Photo photo : photos) {
+                photoItems.add(new PhotoItem(photo));
+            }
+            return gson.toJson(photoItems);
+        }
+        catch (Exception e) {
+            LOG.error("BodyTrackController.getPhotosBeforeOrAfterTime(): Exception while trying to fetch log items: ", e);
             return gson.toJson(new StatusModel(false, "Access Denied"));
         }
     }
@@ -328,6 +367,8 @@ public class BodyTrackController {
         String comment;
         long begin_d;
         String begin;
+        long end_d;
+        String end;
         String dev_id;
         String dev_nickname;
         String channel_name;
@@ -341,10 +382,12 @@ public class BodyTrackController {
 
 
             this.id = photoFacetVO.id;
-            this.description = photoFacetVO.description;
-            this.comment = photoFacetVO.comment;
+            this.description = photoFacetVO.description == null ? "" : photoFacetVO.description;
+            this.comment = photoFacetVO.comment == null ? "" : photoFacetVO.comment;
             this.begin_d = photoFacetVO.start / 1000; // convert millis to seconds
             this.begin = DATE_TIME_FORMATTER.print(photoFacetVO.start);
+            this.end_d = this.begin_d;
+            this.end = this.begin;
             this.dev_id = photo.getConnector().getName();
             this.dev_nickname = photo.getConnector().prettyName();
             this.channel_name = photo.getObjectType().getName();
@@ -358,7 +401,7 @@ public class BodyTrackController {
                 }
             }
 
-            this.url = photoFacetVO.photoUrl;
+            this.url = photoFacetVO.getPhotoUrl();
         }
 
         public void incrementCount() {

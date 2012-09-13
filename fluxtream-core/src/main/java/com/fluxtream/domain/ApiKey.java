@@ -14,6 +14,7 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 
+import com.google.gson.annotations.Expose;
 import org.hibernate.annotations.Index;
 
 import com.fluxtream.Configuration;
@@ -36,9 +37,11 @@ import com.fluxtream.connectors.Connector;
 })
 public class ApiKey extends AbstractEntity {
 
+    @Expose
 	@Index(name="guestId_index")
 	private long guestId;
-	
+
+    @Expose
 	@Index(name="api_index")
 	private int api;
 	

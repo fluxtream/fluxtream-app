@@ -176,9 +176,9 @@ public class AppController {
 		String remoteAddr = request.getHeader("X-Forwarded-For");
 		if (remoteAddr == null)
 			remoteAddr = request.getRemoteAddr();
+        initializeWithTimeZone(request, guestId);
 		guestService.checkIn(guestId, remoteAddr);
         connectorUpdateService.updateAllConnectors(guestId);
-        initializeWithTimeZone(request, guestId);
 	}
 	
 	private boolean hasTimezoneCookie(HttpServletRequest request) {

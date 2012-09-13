@@ -154,45 +154,50 @@ public class BodyTrackHelper {
 
             ChannelInfoResponse infoResponse = gson.fromJson(result,ChannelInfoResponse.class);
 
+            // Iterate over the various (photo) connectors (if any), manually inserting each into the ChannelSpecs
+            final Map<String, TimeInterval> photoChannelTimeRanges = photoService.getPhotoChannelTimeRanges(uid);
+
             // create the 'All' photos block
             final Source allPhotosSource = new Source();
-            allPhotosSource.name = "All";
-            allPhotosSource.channels = new ArrayList<Channel>();
-            final Channel allPhotosChannel = new Channel();
-            allPhotosSource.channels.add(allPhotosChannel);
-            allPhotosChannel.name = "photos";
-            allPhotosChannel.type = "photos";
-            allPhotosChannel.builtin_default_style = new ChannelStyle();
-            allPhotosChannel.style = allPhotosChannel.builtin_default_style;
-            allPhotosChannel.min= .6;
-            allPhotosChannel.max= 1;
-            allPhotosChannel.min_time = Double.MAX_VALUE;
-            allPhotosChannel.max_time = Double.MIN_VALUE;
+            if (!photoChannelTimeRanges.isEmpty()) {
+                allPhotosSource.name = PhotoService.ALL_DEVICES_NAME;
+                allPhotosSource.channels = new ArrayList<Channel>();
+                final Channel allPhotosChannel = new Channel();
+                allPhotosSource.channels.add(allPhotosChannel);
+                allPhotosChannel.name = PhotoService.DEFAULT_PHOTOS_CHANNEL_NAME;
+                allPhotosChannel.type = PhotoService.DEFAULT_PHOTOS_CHANNEL_NAME;
+                allPhotosChannel.builtin_default_style = new ChannelStyle();
+                allPhotosChannel.style = allPhotosChannel.builtin_default_style;
+                allPhotosChannel.min = .6;
+                allPhotosChannel.max = 1;
+                allPhotosChannel.min_time = Double.MAX_VALUE;
+                allPhotosChannel.max_time = Double.MIN_VALUE;
 
-            // Iterate over the various (photo) connectors, manually inserting each into the ChannelSpecs
-            final Map<String, TimeInterval> photoChannelTimeRanges = photoService.getPhotoChannelTimeRanges(uid);
-            for (final String channelName : photoChannelTimeRanges.keySet()) {
-                final ChannelSpecs channelSpecs = new ChannelSpecs();
-                final TimeInterval timeInterval = photoChannelTimeRanges.get(channelName);
-                channelSpecs.channel_bounds = new ChannelBounds();
-                channelSpecs.channel_bounds.min_time = timeInterval.start / 1000;
-                channelSpecs.channel_bounds.max_time = timeInterval.end / 1000;
-                channelSpecs.channel_bounds.min_value = .6;
-                channelSpecs.channel_bounds.max_value = 1;
-                infoResponse.channel_specs.put(channelName, channelSpecs);
+                for (final String channelName : photoChannelTimeRanges.keySet()) {
+                    final ChannelSpecs channelSpecs = new ChannelSpecs();
+                    final TimeInterval timeInterval = photoChannelTimeRanges.get(channelName);
+                    channelSpecs.channel_bounds = new ChannelBounds();
+                    channelSpecs.channel_bounds.min_time = timeInterval.start / 1000;
+                    channelSpecs.channel_bounds.max_time = timeInterval.end / 1000;
+                    channelSpecs.channel_bounds.min_value = .6;
+                    channelSpecs.channel_bounds.max_value = 1;
+                    infoResponse.channel_specs.put(channelName, channelSpecs);
 
-                // update the min/max times in ChannelInfoResponse and in the All photos channel
-                infoResponse.min_time = Math.min(infoResponse.min_time, channelSpecs.channel_bounds.min_time);
-                infoResponse.max_time = Math.max(infoResponse.max_time, channelSpecs.channel_bounds.max_time);
-                allPhotosChannel.min_time = Math.min(allPhotosChannel.min_time, channelSpecs.channel_bounds.min_time);
-                allPhotosChannel.max_time = Math.max(allPhotosChannel.max_time, channelSpecs.channel_bounds.max_time);
+                    // update the min/max times in ChannelInfoResponse and in the All photos channel
+                    infoResponse.min_time = Math.min(infoResponse.min_time, channelSpecs.channel_bounds.min_time);
+                    infoResponse.max_time = Math.max(infoResponse.max_time, channelSpecs.channel_bounds.max_time);
+                    allPhotosChannel.min_time = Math.min(allPhotosChannel.min_time, channelSpecs.channel_bounds.min_time);
+                    allPhotosChannel.max_time = Math.max(allPhotosChannel.max_time, channelSpecs.channel_bounds.max_time);
+                }
             }
 
             // create the respone
             SourcesResponse response = new SourcesResponse(infoResponse);
 
             // add the All photos block to the response
-            response.sources.add(allPhotosSource);
+            if (!photoChannelTimeRanges.isEmpty()) {
+                response.sources.add(allPhotosSource);
+            }
 
             // set default styles if necessary
             for (Source source : response.sources){

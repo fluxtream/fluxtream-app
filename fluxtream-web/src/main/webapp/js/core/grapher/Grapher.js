@@ -792,7 +792,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     yAxis,
                     App.getUID(),
                     channel["style"]);
-                plot.addDataPointListener(photoDataPointListener(channelElementId));
+                plot.addDataPointListener(photoDataPointListener(grapher, channel, channelElementId));
             } else if ("comments" == channel["channel_name"]) {
                 var commentStyle = channel['style'];
                 if (typeof commentStyle !== 'undefined' &&
@@ -1773,7 +1773,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
         return true;
     }
 
-    function createPhotoDialogCache(channelFilterTags, isAndJoin) {
+    function createPhotoDialogCache(channel, channelFilterTags, isAndJoin) {
         var cache = {
             photos                             : [],
             photosById                         : {}, // maps photo ID to an index in the photos array
@@ -1799,14 +1799,9 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     shouldLoadPreviousNeighbor = !!shouldLoadPreviousNeighbor;
                     isAndJoin = !!isAndJoin;
 
-                    var url = "/bodytrack/users/" + App.getUID() + "/log_items/get";
+                    var url = "/api/bodytrack/photos/" + App.getUID() + "/" + channel['device_name'] + "." + channel['channel_name'] + "/" + currentPhotoTimestamp + "/" + cache.NUM_PHOTOS_TO_FETCH;
                     var urlParams = {
-                        "id"         : currentPhotoId,
-                        "time"       : currentPhotoTimestamp,
-                        "type"       : "photos",
-                        "descending" : shouldLoadPreviousNeighbor,
-                        "exclusive"  : false,
-                        "count"      : cache.NUM_PHOTOS_TO_FETCH
+                        "isBefore" : shouldLoadPreviousNeighbor
                     };
 
                     if (isAndJoin) {
@@ -1826,7 +1821,8 @@ define(["core/grapher/BTCore"], function(BTCore) {
                                             "comment"         : photo['comment'],
                                             "tags"            : photo['tags'],
                                             "timestamp"       : photo['end_d'],
-                                            "timestampString" : photo['end']
+                                            "timestampString" : photo['end'],
+                                            "url"             : photo['url']
                                         };
                                     });
 
@@ -1892,12 +1888,12 @@ define(["core/grapher/BTCore"], function(BTCore) {
                         cache.__loadFollowing(photoId,
                             timestamp,
                             function(followingPhotosMetadata) {
-                                // Create the initial cache.  We do this by first reversing the array
-                                // containing the preceding photos, then slicing off the first element
+
+                                // Create the initial cache.  We do this by first slicing off the first element
                                 // of the array containing the following photos (since it's a dupe
                                 // of the last element in the reverse precedingPhotosMetadata
-                                // array) and then concatenating the two together.
-                                cache.photos = precedingPhotosMetadata.reverse().concat(followingPhotosMetadata.slice(1));
+                                // array) and then concatenating with the preceding photos.
+                                cache.photos = precedingPhotosMetadata.concat(followingPhotosMetadata.slice(1));
 
                                 // now create the map which maps photo ID to photo array element index
                                 $.each(cache.photos, function(index, photo) {
@@ -2061,7 +2057,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
         }
     }
 
-    function photoDataPointListener(channelElementId) {
+    function photoDataPointListener(grapher, channel, channelElementId) {
         return function(pointObj, sourceInfo) {
             if (pointObj && sourceInfo && sourceInfo['info']) {
 
@@ -2095,13 +2091,15 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 var channelFilterTags = getTagFilterForChannel();
 
                 // create the photo cache
-                var photoCache = createPhotoDialogCache(channelFilterTags, isAndJoin);
+                var photoCache = createPhotoDialogCache(channel, channelFilterTags, isAndJoin);
 
                 var createPhotoDialog = function(photoId, timestamp, completionCallback) {
 
-                    var mediumResImageUrl = App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_medium_res_image_url_template").render({"photoId" : photoId, "userId" : App.getUID()});
-                    var highResImageUrl = App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_high_res_image_url_template").render({"photoId" : photoId, "userId" : App.getUID()});
-                    $("#_timeline_photo_dialog").html(App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_high_res_image_url_template").render({"photoUrl" : mediumResImageUrl}));
+                    var mediumResImageUrl = photoCache.getPhotoMetadata(photoId)['url'];    // TODO: use medium-res version
+                    var highResImageUrl = photoCache.getPhotoMetadata(photoId)['url'];
+                    var photoDialogTemplate = App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_template");
+                    var photoDialogHtml = photoDialogTemplate.render({"photoUrl" : mediumResImageUrl});
+                    $("#" + grapher.grapherId + "_timeline_photo_dialog").html(photoDialogHtml);
 
                     var updateGoToNeighborOnSaveWidgets = function() {
                         var isEnabled = $("#_timeline_photo_dialog_save_should_goto_neighbor").is(':checked');
@@ -2196,17 +2194,24 @@ define(["core/grapher/BTCore"], function(BTCore) {
                                 }
 
                                 theImage.attr("src",highResImageUrl).height(imageHeight).width(imageWidth);
-                                $("#_timeline_photo_dialog_photo_table").height(imageHeight).width(imageWidth);
-                                centerPhotoDialog();
+                                $("._timeline_photo_dialog_photo_table").height(imageHeight).width(imageWidth);
+                                centerPhotoDialog(grapher);
                             });
                         } else {
                             // fade the form back in and show the medium-res version of the image
                             formContainer.fadeIn(100, function() {
                                 var imageHeight = 300;
-                                var imageWidth = imageAspectRatio * imageHeight;
+                                var imageWidth = 300;
+
+                                if (imageAspectRatio > 1) {
+                                    imageHeight = Math.round(imageWidth / imageAspectRatio);
+                                } else {
+                                    imageWidth = imageAspectRatio * imageHeight;
+                                }
+
                                 theImage.height(imageHeight).width(imageWidth);
-                                $("#_timeline_photo_dialog_photo_table").height(imageHeight).width(imageWidth);
-                                centerPhotoDialog();
+                                $("._timeline_photo_dialog_photo_table").height(300).width(300);
+                                centerPhotoDialog(grapher);
                                 theImage.attr("src", mediumResImageUrl);
                             });
                         }
@@ -2270,10 +2275,10 @@ define(["core/grapher/BTCore"], function(BTCore) {
                         // close on ESC for the photo dialog.  We don't want the ESC key to close
                         // the dialog when the user is editing the comment.
                         $("#_timeline_photo_dialog_comment").focus(function() {
-                            $("#_timeline_photo_dialog")['dialog']("option", "closeOnEscape", false);
+                            $("#" + grapher.grapherId + "_timeline_photo_dialog")['dialog']("option", "closeOnEscape", false);
                         });
                         $("#_timeline_photo_dialog_comment").blur(function() {
-                            $("#_timeline_photo_dialog")['dialog']("option", "closeOnEscape", true);
+                            $("#" + grapher.grapherId + "_timeline_photo_dialog")['dialog']("option", "closeOnEscape", true);
                         });
                         $("#_timeline_photo_dialog_comment").keyup(setEnabledStateOfRevertAndSaveButtons);
 
@@ -2317,16 +2322,16 @@ define(["core/grapher/BTCore"], function(BTCore) {
                         $('#_timeline_photo_dialog_tags_editor input.tag').tagedit(tagEditorOptions);
                         $('#_timeline_photo_dialog_tags_editor').bind('tagsChanged', setEnabledStateOfRevertAndSaveButtons);
                         $('#_timeline_photo_dialog_tags_editor').bind('receivedFocus', function() {
-                            $("#_timeline_photo_dialog")['dialog']("option", "closeOnEscape", false);
+                            $("#" + grapher.grapherId + "_timeline_photo_dialog")['dialog']("option", "closeOnEscape", false);
                         });
                         $('#_timeline_photo_dialog_tags_editor').bind('tabToNextElement', function(event) {
-                            $("#_timeline_photo_dialog")['dialog']("option", "closeOnEscape", true);
+                            $("#" + grapher.grapherId + "_timeline_photo_dialog")['dialog']("option", "closeOnEscape", true);
 
                             $("#_timeline_photo_dialog_tags_editor_tabhelper_post_proxy_forward").focus();
                             return false;
                         });
                         $('#_timeline_photo_dialog_tags_editor').bind('tabToPreviousElement', function(event) {
-                            $("#_timeline_photo_dialog")['dialog']("option", "closeOnEscape", true);
+                            $("#" + grapher.grapherId + "_timeline_photo_dialog")['dialog']("option", "closeOnEscape", true);
 
                             $("#_timeline_photo_dialog_comment").select().focus();
                             return false;
@@ -2509,20 +2514,20 @@ define(["core/grapher/BTCore"], function(BTCore) {
                         createPhotoDialog(sourceInfo['info']['imageId'],
                             pointObj['date'],
                             function() {
-                                centerPhotoDialog();
+                                centerPhotoDialog(grapher);
                             });
                     });
 
                 // Open the dialog
-                $("#_timeline_photo_dialog").html(App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_loading_template").render({}));
-                $("#_timeline_photo_dialog")['dialog']('open');
+                $("#" + grapher.grapherId + "_timeline_photo_dialog").html(App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_loading_template").render({}));
+                $("#" + grapher.grapherId + "_timeline_photo_dialog")['dialog']('open');
             }
         };
     }
 
-    function centerPhotoDialog() {
+    function centerPhotoDialog(grapher) {
         // center the dialog
-        $("#_timeline_photo_dialog")['dialog']("option", "position", 'center');
+        $("#" + grapher.grapherId + "_timeline_photo_dialog")['dialog']("option", "position", 'center');
     }
 
     function saveDefaultChannelStyle(channel, defaultStyleObj, callbacks) {
