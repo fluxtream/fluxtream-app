@@ -798,7 +798,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     };
 
     var viewBtnIds = {DAY:"#dayViewBtn",WEEK:"#weekViewBtn",MONTH:"#monthViewBtn",YEAR:"#yearViewBtn"};
-    var todayButtonDisplays = {DAY:"Today",WEEK:"This Week",MONTH:"This Month",YEAR:"This Year"};
 
     function updateDisplays(){
         var rangeType;
@@ -824,7 +823,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 $(viewBtnIds[type]).removeClass("active");
             }
         }
-        $(".menuTodayButton span").text(todayButtonDisplays[rangeType]);
     }
 
 	return Calendar;
