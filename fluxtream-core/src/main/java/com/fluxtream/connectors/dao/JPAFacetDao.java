@@ -5,6 +5,7 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.lang.reflect.Method;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
@@ -22,7 +23,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class JPAFacetDao implements FacetDao {
 
-	@Autowired
+    private static final Logger LOG = Logger.getLogger(JPAFacetDao.class);
+
+    @Autowired
 	GuestService guestService;
 
     @Qualifier("connectorUpdateServiceImpl")
@@ -65,51 +68,124 @@ public class JPAFacetDao implements FacetDao {
 
     @Override
     public AbstractFacet getOldestFacet(final Connector connector, final long guestId, final ObjectType objectType) {
-        return getFacet(connector, guestId, objectType, "getOldestFacet");
+        return getFacet(guestId, connector, objectType, "getOldestFacet");
     }
 
     @Override
     public AbstractFacet getLatestFacet(final Connector connector, final long guestId, final ObjectType objectType) {
-        return getFacet(connector, guestId, objectType, "getLatestFacet");
+        return getFacet(guestId, connector, objectType, "getLatestFacet");
     }
 
-    private AbstractFacet getFacet(final Connector connector, final long guestId, final ObjectType objectType, final String methodName) {
-        if (!connector.hasFacets()) return null;
+    @Override
+    public List<AbstractFacet> getFacetsBefore(final long guestId, final Connector connector, final ObjectType objectType, final long timeInMillis, final int desiredCount) {
+        return getFacets(guestId, connector, objectType, timeInMillis, desiredCount, "getFacetsBefore");
+    }
+
+    @Override
+    public List<AbstractFacet> getFacetsAfter(final long guestId, final Connector connector, final ObjectType objectType, final long timeInMillis, final int desiredCount) {
+        return getFacets(guestId, connector, objectType, timeInMillis, desiredCount, "getFacetsAfter");
+    }
+
+    private AbstractFacet getFacet(final long guestId, final Connector connector, final ObjectType objectType, final String methodName) {
+        if (!connector.hasFacets()) {
+            return null;
+        }
 
         AbstractFacet facet = null;
-        if (objectType!=null) {
+        if (objectType != null) {
             try {
-                Class c =  objectType.facetClass();
-                Method m = c.getMethod(methodName,EntityManager.class,Long.class,Connector.class,ObjectType.class);
-                facet = (AbstractFacet) m.invoke(null,em,guestId,connector,objectType);
+                Class c = objectType.facetClass();
+                Method m = c.getMethod(methodName, EntityManager.class, Long.class, Connector.class, ObjectType.class);
+                facet = (AbstractFacet)m.invoke(null, em, guestId, connector, objectType);
             }
             catch (Exception ignored) {
+                if (LOG.isInfoEnabled()) {
+                    LOG.info("JPAFacetDao.getFacet(): ignoring exception '" + ignored.getClass() + "' while trying to invoke method '" + methodName + "'");
+                }
             }
-        } else {
-            if (connector.objectTypes()!=null) {
+        }
+        else {
+            if (connector.objectTypes() != null) {
                 for (ObjectType type : connector.objectTypes()) {
                     AbstractFacet fac = null;
                     try {
-                        Class c =  type.facetClass();
-                        Method m = c.getMethod(methodName,EntityManager.class,Long.class,Connector.class,ObjectType.class);
-                        fac = (AbstractFacet) m.invoke(null,em,guestId,connector,type);
+                        Class c = type.facetClass();
+                        Method m = c.getMethod(methodName, EntityManager.class, Long.class, Connector.class, ObjectType.class);
+                        fac = (AbstractFacet)m.invoke(null, em, guestId, connector, type);
                     }
                     catch (Exception ignored) {
+                        if (LOG.isInfoEnabled()) {
+                            LOG.info("JPAFacetDao.getFacet(): ignoring exception '" + ignored.getClass() + "' while trying to invoke method '" + methodName + "'");
+                        }
                     }
-                    if (facet == null || (fac != null && fac.end > facet.end))
+                    if (facet == null || (fac != null && fac.end > facet.end)) {
                         facet = fac;
+                    }
                 }
-            } else {
+            }
+            else {
                 try {
-                    Class c =  connector.facetClass();
-                    Method m = c.getMethod(methodName,EntityManager.class,Long.class,Connector.class,ObjectType.class);
-                    facet = (AbstractFacet) m.invoke(null,em,guestId,connector,null);
+                    Class c = connector.facetClass();
+                    Method m = c.getMethod(methodName, EntityManager.class, Long.class, Connector.class, ObjectType.class);
+                    facet = (AbstractFacet)m.invoke(null, em, guestId, connector, null);
                 }
                 catch (Exception ignored) {
+                    if (LOG.isInfoEnabled()) {
+                        LOG.info("JPAFacetDao.getFacet(): ignoring exception '" + ignored.getClass() + "' while trying to invoke method '" + methodName + "'");
+                    }
                 }
             }
         }
         return facet;
+    }
+
+    private List<AbstractFacet> getFacets(final long guestId, final Connector connector, final ObjectType objectType, final long timeInMillis, final int desiredCount, final String methodName) {
+        if (!connector.hasFacets()) {
+            return null;
+        }
+
+        List<AbstractFacet> facets = null;
+        if (objectType != null) {
+            try {
+                Class c = objectType.facetClass();
+                Method m = c.getMethod(methodName, EntityManager.class, Long.class, Connector.class, ObjectType.class, Long.class, Integer.class );
+                facets = (List<AbstractFacet>)m.invoke(null, em, guestId, connector, objectType, timeInMillis, desiredCount);
+            }
+            catch (Exception ignored) {
+                if (LOG.isInfoEnabled()) {
+                    LOG.info("JPAFacetDao.getFacets(): ignoring exception '" + ignored.getClass() + "' while trying to invoke method '" + methodName + "'");
+                }
+            }
+        }
+        else {
+            if (connector.objectTypes() != null) {
+                for (ObjectType type : connector.objectTypes()) {
+                    try {
+                        Class c = type.facetClass();
+                        Method m = c.getMethod(methodName, EntityManager.class, Long.class, Connector.class, ObjectType.class, Long.class, Integer.class);
+                        facets = (List<AbstractFacet>)m.invoke(null, em, guestId, connector, type, timeInMillis, desiredCount);
+                    }
+                    catch (Exception ignored) {
+                        if (LOG.isInfoEnabled()) {
+                            LOG.info("JPAFacetDao.getFacets(): ignoring exception '" + ignored.getClass() + "' while trying to invoke method '" + methodName + "'");
+                        }
+                    }
+                }
+            }
+            else {
+                try {
+                    Class c = connector.facetClass();
+                    Method m = c.getMethod(methodName, EntityManager.class, Long.class, Connector.class, ObjectType.class, Long.class, Integer.class);
+                    facets = (List<AbstractFacet>)m.invoke(null, em, guestId, connector, null, timeInMillis, desiredCount);
+                }
+                catch (Exception ignored) {
+                    if (LOG.isInfoEnabled()) {
+                        LOG.info("JPAFacetDao.getFacets(): ignoring exception '" + ignored.getClass() + "' while trying to invoke method '" + methodName + "'");
+                    }
+                }
+            }
+        }
+        return facets;
     }
 
     @Override

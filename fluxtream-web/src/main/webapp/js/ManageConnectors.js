@@ -50,8 +50,9 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
                 $("#modal").html($(html).html());
                 $("#modal .modal-body").scrollTop(scrollTop);
             }
-            else
+            else{
                 App.makeModal(html);
+            }
             bindDialog();
         });
     }
@@ -78,6 +79,7 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
         $("#modal").on("hide",function(){
             hidden = true;
             $.doTimeout("manageConnectorsUpdater");
+            App.activeApp.renderState(App.state.getState(App.activeApp.name),true)
         })
     }
 

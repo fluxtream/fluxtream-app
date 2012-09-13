@@ -12,17 +12,23 @@ import com.fluxtream.connectors.vos.AbstractPhotoFacetVO;
  */
 public interface PhotoService {
 
-    interface Photo extends Comparable<Photo> {
-        AbstractPhotoFacetVO getAbstractPhotoFacetVO();
+    String ALL_DEVICES_NAME = "All";
 
+    String DEFAULT_PHOTOS_CHANNEL_NAME = "photo";
+
+    interface Photo extends Comparable<Photo> {
+
+        AbstractPhotoFacetVO getAbstractPhotoFacetVO();
         Connector getConnector();
 
         ObjectType getObjectType();
-    }
 
+    }
     SortedSet<Photo> getPhotos(long guestId, TimeInterval timeInterval) throws ClassNotFoundException, IllegalAccessException, InstantiationException;
 
     SortedSet<Photo> getPhotos(long guestId, TimeInterval timeInterval, String connectorPrettyName, String objectTypeName) throws ClassNotFoundException, IllegalAccessException, InstantiationException;
+
+    SortedSet<Photo> getPhotos(long guestId, long timeInMillis, String connectorPrettyName, String objectTypeName, int desiredCount, boolean isGetPhotosBeforeTime) throws InstantiationException, IllegalAccessException, ClassNotFoundException;
 
     Map<String, TimeInterval> getPhotoChannelTimeRanges(long guestId);
 }

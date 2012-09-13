@@ -243,6 +243,17 @@ public class ApiDataServiceImpl implements ApiDataService {
         return jpaDao.getLatestFacet(connector,guestId,objectType);
     }
 
+    @Override
+    public List<AbstractFacet> getApiDataFacetsBefore(final long guestId, final Connector connector, final ObjectType objectType, final long timeInMillis, final int desiredCount) {
+        return jpaDao.getFacetsBefore(guestId, connector, objectType, timeInMillis, desiredCount);
+    }
+
+    @Override
+    public List<AbstractFacet> getApiDataFacetsAfter(final long guestId, final Connector connector, final ObjectType objectType, final long timeInMillis, final int desiredCount) {
+        return jpaDao.getFacetsAfter(guestId, connector, objectType, timeInMillis, desiredCount);
+    }
+
+
 	@Transactional(readOnly = false)
 	private void extractFacets(ApiData apiData, int objectTypes,
 			UpdateInfo updateInfo) throws Exception {

@@ -160,12 +160,12 @@ public class BodyTrackHelper {
             // create the 'All' photos block
             final Source allPhotosSource = new Source();
             if (!photoChannelTimeRanges.isEmpty()) {
-                allPhotosSource.name = "All";
+                allPhotosSource.name = PhotoService.ALL_DEVICES_NAME;
                 allPhotosSource.channels = new ArrayList<Channel>();
                 final Channel allPhotosChannel = new Channel();
                 allPhotosSource.channels.add(allPhotosChannel);
-                allPhotosChannel.name = "photos";
-                allPhotosChannel.type = "photos";
+                allPhotosChannel.name = PhotoService.DEFAULT_PHOTOS_CHANNEL_NAME;
+                allPhotosChannel.type = PhotoService.DEFAULT_PHOTOS_CHANNEL_NAME;
                 allPhotosChannel.builtin_default_style = new ChannelStyle();
                 allPhotosChannel.style = allPhotosChannel.builtin_default_style;
                 allPhotosChannel.min = .6;

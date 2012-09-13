@@ -39,6 +39,26 @@ public interface ApiDataService {
     public AbstractFacet getOldestApiDataFacet(long guestId, Connector connector, ObjectType objectType);
     public AbstractFacet getLatestApiDataFacet(long guestId, Connector connector, ObjectType objectType);
 
+    /**
+     * Returns up to <code>desiredCount</code> facets which have a timestamp equal to or before the given
+     * <code>timeInMillis</code>.  Returns <code>null</code> if no facets are found.
+     */
+    public List<AbstractFacet> getApiDataFacetsBefore(long guestId,
+                                                      Connector connector,
+                                                      ObjectType objectType,
+                                                      long timeInMillis,
+                                                      int desiredCount);
+
+    /**
+     * Returns up to <code>desiredCount</code> facets which have a timestamp equal to or after the given
+     * <code>timeInMillis</code>.  Returns <code>null</code> if no facets are found.
+     */
+    public List<AbstractFacet> getApiDataFacetsAfter(long guestId,
+                                                     Connector connector,
+                                                     ObjectType objectType,
+                                                     long timeInMillis,
+                                                     int desiredCount);
+
 	public void eraseApiData(long guestId, Connector api);
 
 	public void eraseApiData(long guestId, Connector api, int objectTypes);
@@ -53,7 +73,7 @@ public interface ApiDataService {
 
 	public void cacheEmptyData(UpdateInfo updateInfo, long fromMidnight,
 			long toMidnight);
-	
+
 	public long getNumberOfDays(long guestId);
 
     void addGuestLocation(long guestId, LocationFacet locationResource,
