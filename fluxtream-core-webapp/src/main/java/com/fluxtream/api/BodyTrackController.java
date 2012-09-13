@@ -401,7 +401,7 @@ public class BodyTrackController {
                 }
             }
 
-            this.url = photoFacetVO.photoUrl;
+            this.url = photoFacetVO.getPhotoUrl();
         }
 
         public void incrementCount() {

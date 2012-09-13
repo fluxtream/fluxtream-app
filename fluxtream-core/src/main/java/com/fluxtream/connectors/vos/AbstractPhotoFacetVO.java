@@ -10,6 +10,7 @@ public abstract class AbstractPhotoFacetVO<T extends AbstractFacet> extends
 
 	public String photoUrl;
 	
+	public abstract String getPhotoUrl();
 	public abstract String getThumbnail(int index);
 	public abstract List<Dimension> getThumbnailSizes();
 }

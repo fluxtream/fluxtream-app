@@ -29,9 +29,14 @@ public class FlickrPhotoFacetVO extends
 		description = facet.title;
 	}
 
-	@Override
+    @Override
+    public String getPhotoUrl() {
+        return photoUrl;
+    }
+
+    @Override
 	public String getThumbnail(int index) {
-		return photoUrl;
+		return thumbnailUrl;
 	}
 
 	@Override
