@@ -346,7 +346,6 @@ public class GuestServiceImpl implements GuestService {
 	}
 
 	@Override
-	@Transactional(readOnly = false)
 	public void checkIn(long guestId, String ipAddress) throws IOException {
 		if (SecurityUtils.isStealth())
 			return;
