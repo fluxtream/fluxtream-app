@@ -11,7 +11,7 @@ import org.hibernate.annotations.Index;
 @NamedQueries ( {
     @NamedQuery( name="city.byNameStateAndCountryCode",
                  query="SELECT city from cities1000 city WHERE city.geo_name=? AND " +
-                       "city.state=? AND city.geo_country_code=?"),
+                       "city.geo_admin1_code=? AND city.geo_country_code=?"),
 	@NamedQuery( name="city.byNameAndCountryCode",
 			query="SELECT city from cities1000 city WHERE city.geo_name=? AND city.geo_country_code=?")
 })
