@@ -1,19 +1,17 @@
 <template id="infoNotification">
     <div class="alert alert-success fade in" id="notification-{{id}}">
         <a onclick="App.discardNotification('{{id}}')" class="close">&times;</a>
-        <p>{{message}}</p>
     </div>
 </template>
 <template id="warningNotification">
     <div class="alert alert-block fade in" id="notification-{{id}}">
         <a onclick="App.discardNotification('{{id}}')" class="close">&times;</a>
         <h4>Warning!</h4>
-        <p>{{message}}</p>
     </div>
 </template>
 <template id="errorNotification">
     <div class="alert alert-error fade in" id="notification-{{id}}">
         <a onclick="App.discardNotification('{{id}}')" class="close">&times;</a>
-        <p>{{message}}</p>
+        <h4>Error!</h4>
     </div>
 </template>

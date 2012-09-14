@@ -61,7 +61,16 @@ public class CalendarModel {
 		toCalendar = TimeUtils.setToMidnight(fromCalendar);
 	}
 
-	public void setDate(final long guestId, final MetadataService metadataService, String formattedDate) {
+    public static void main(final String[] args) {
+        final String formattedDate = "2012-05-30";
+        final TimeZone tz = TimeZone.getTimeZone("Europe/Brussels");
+        final long l = jsDateFormatter.withZone(DateTimeZone.forTimeZone(tz)).parseMillis(formattedDate);
+        Date date = new Date(jsDateFormatter.withZone(
+                DateTimeZone.forTimeZone(tz)).parseMillis(formattedDate));
+        System.out.println(new Date(l));
+    }
+
+    public void setDate(final long guestId, final MetadataService metadataService, String formattedDate) {
         this.timeUnit = TimeUnit.DAY;
         final TimeZone tz = metadataService.getTimeZone(guestId, formattedDate);
         Date date = new Date(jsDateFormatter.withZone(

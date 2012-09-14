@@ -129,10 +129,11 @@ define(["core/TabInterface"], function(TabInterface) {
     function showNotification(notification) {
         App.loadMustacheTemplate("notificationTemplates.html",
             notification.type+"Notification",
-            function(template)
-            {
-                var html = template.render(notification);
+            function(template) {
+                var html = template.render(notification), message = notification.message;
                 $("#notifications").append(html);
+                if (notification.repeated>1) message += " (" + notification.repeated + "x)";
+                $("#notification-" + notification.id).append(message);
             });
     }
 	

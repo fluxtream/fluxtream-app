@@ -8,6 +8,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.fluxtream.domain.Notification;
+import com.fluxtream.services.NotificationsService;
 import net.sf.json.JSONObject;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +36,9 @@ public class GoogleOAuth2Controller {
 	
 	@Autowired
 	GuestService guestService;
+
+    @Autowired
+    NotificationsService notificationsService;
 
 	@RequestMapping(value = "/token")
 	public String getToken(HttpServletRequest request,
@@ -78,6 +83,19 @@ public class GoogleOAuth2Controller {
 		
 		Guest guest = ControllerHelper.getGuest();
 
+        if (!token.has("refresh_token")) {
+            String message = (new StringBuilder("<p>We couldn't get your oauth2 refresh token.</p>"))
+                    .append("<p>Obviously, something went wrong.</p>")
+                    .append("<p>You'll have to surf to your ")
+                    .append("<a target='_new'  href='https://accounts.google.com/b/0/IssuedAuthSubTokens'>token mgmt page at Google's</a> ")
+                    .append("and hit \"Revoke Access\" next to \"fluxtream — Google Latitude\"</p>")
+                    .append("<p>Then please, add the Google Latitude connector again./p>")
+                    .append("<p>We apologize for the inconvenience</p>").toString();
+            notificationsService.addNotification(guest.getId(),
+                                                 Notification.Type.ERROR,
+                                                 message);
+            return "redirect:/app";
+        }
         final String refresh_token = token.getString("refresh_token");
 
         guestService.setApiKeyAttribute(guest.getId(), scopedApi,

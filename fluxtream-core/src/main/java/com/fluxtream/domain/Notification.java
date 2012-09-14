@@ -37,7 +37,7 @@ public class Notification extends AbstractEntity {
 	@Lob
 	public String message;
 
-    public int repeated;
+    public int repeated = 1;
 
     @Lob
     public String stackTrace;

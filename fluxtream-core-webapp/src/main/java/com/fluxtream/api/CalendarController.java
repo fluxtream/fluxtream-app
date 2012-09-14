@@ -1,6 +1,7 @@
 package com.fluxtream.api;
 
 import java.io.IOException;
+import java.util.Date;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -149,7 +150,9 @@ public class CalendarController {
                 .append(" guestId=").append(guestId);
         logger.info(sb.toString());
         CalendarModel calendarModel = CalendarModel.fromState(guestId, metadataService, state);
+        final Date stateDate = calendarModel.fromCalendar.getTime();
         calendarModel.decrementTimespan(guestId, metadataService, state);
+        final Date nextDate = calendarModel.fromCalendar.getTime();
         return calendarModel.toJSONString(guestId, metadataService, env);
     }
 
