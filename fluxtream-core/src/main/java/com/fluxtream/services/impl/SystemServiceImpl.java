@@ -43,22 +43,6 @@ public class SystemServiceImpl implements SystemService {
     }
 
     @Override
-    @Secured("ROLE_ADMIN")
-    public void shutdown() {
-        new Thread() {
-            public void run() {
-                connectorUpdateService.shutdown();
-            }
-        }.start();
-    }
-
-    @Override
-    @Secured("ROLE_ADMIN")
-    public boolean isShutdown() {
-        return connectorUpdateService.isShutdown();
-    }
-
-    @Override
 	public List<ConnectorInfo> getConnectors() {
 		List<ConnectorInfo> all = JPAUtils.find(em, ConnectorInfo.class,
 				"connectors.all", (Object[]) null);

@@ -62,7 +62,7 @@ public class GoogleLatitudeUpdater extends AbstractGoogleOAuthUpdater {
 		String key = env.get("google_latitudeApiKey");
 		List<LocationFacet> locationList = executeList(updateInfo, transport,
 				key, 1000, from, to, accessToken);
-		if (!interruptionRequested && locationList != null && locationList.size() > 0) {
+		if (locationList != null && locationList.size() > 0) {
 			List<LocationFacet> storedLocations = new ArrayList<LocationFacet>();
 			for (LocationFacet locationResource : locationList) {
 				if (locationResource.timestampMs==0)

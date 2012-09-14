@@ -54,48 +54,4 @@ public class SystemController {
         gson = gsonBuilder.create();
     }
 
-    @GET
-    @Path("/runningUpdates")
-    @Produces({MediaType.APPLICATION_JSON})
-    public String getAllRunningUpdates(){
-        try {
-            final List<UpdateInfo> runningUpdates = connectorUpdateService.getAllRunningUpdates();
-            StringBuilder sb = new StringBuilder("module=API component=connectorStore action=getAllRunningUpdates");
-            logger.info(sb.toString());
-            return gson.toJson(runningUpdates);
-        } catch (Exception e) {
-            StringBuilder sb = new StringBuilder("module=API component=connectorStore action=getAllRunningUpdates")
-                    .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
-            logger.warn(sb.toString());
-            return gson.toJson(new StatusModel(false,"Failed to get all running updates: " + e.getMessage()));
-        }
-    }
-
-    @POST
-    @Path("/shutdown")
-    @Produces({MediaType.APPLICATION_JSON})
-    public StatusModel shutdown(@PathParam("connector") String connectorName){
-        setTransactionName(null, "POST /system/shutdown");
-        long guestId = ControllerHelper.getGuestId();
-        StringBuilder sb = new StringBuilder("module=API component=systemController action=shutdown")
-                .append(" guestId=").append(guestId);
-        logger.info(sb.toString());
-        sysService.shutdown();
-        return new StatusModel(true, "Service shutdown has been requested");
-    }
-
-    @GET
-    @Path("/isShutdown")
-    @Produces({MediaType.APPLICATION_JSON})
-    public String isShutdown(@PathParam("connector") String connectorName){
-        setTransactionName(null, "GET /system/isShutdown");
-        final boolean shutdown = sysService.isShutdown();
-        long guestId = ControllerHelper.getGuestId();
-        StringBuilder sb = new StringBuilder("module=API component=systemController action=shutdown")
-                .append(" guestId=").append(guestId)
-                .append(" shutdown=").append(shutdown);
-        logger.info(sb.toString());
-        return (new StringBuilder("{\"isShutdown\":\"").append(shutdown).append("\"}")).toString();
-    }
-
 }

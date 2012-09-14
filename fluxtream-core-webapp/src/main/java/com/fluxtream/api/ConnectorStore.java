@@ -76,26 +76,6 @@ public class ConnectorStore {
     }
 
     @GET
-    @Path("/synching")
-    @Produces({MediaType.APPLICATION_JSON})
-    public String getSynchingConnectors(){
-        Guest guest = ControllerHelper.getGuest();
-        try {
-            final List<UpdateInfo> runningUpdates = connectorUpdateService.getRunningUpdates(guest.getId());
-            StringBuilder sb = new StringBuilder("module=API component=connectorStore action=getSynchingConnectors")
-                    .append(" guestId=").append(guest.getId());
-            logger.info(sb.toString());
-            return gson.toJson(runningUpdates);
-        } catch (Exception e) {
-            StringBuilder sb = new StringBuilder("module=API component=connectorStore action=getSynchingConnectors")
-                    .append(" guestId=").append(guest.getId())
-                    .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
-            logger.warn(sb.toString());
-            return gson.toJson(new StatusModel(false,"Failed to get installed connectors: " + e.getMessage()));
-        }
-    }
-
-    @GET
     @Path("/installed")
     @Produces({MediaType.APPLICATION_JSON})
     public String getInstalledConnectors(){

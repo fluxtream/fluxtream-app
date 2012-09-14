@@ -116,7 +116,7 @@ public class BodymediaUpdater extends AbstractUpdater {
     private void retrieveHistory(UpdateInfo updateInfo, ObjectType ot, String urlExtension, int increment, DateTime start, DateTime end) throws Exception {
         DateTimeComparator comparator = DateTimeComparator.getDateOnlyInstance();
         DateTime current = end;
-            while (!interruptionRequested && comparator.compare(current, start) > 0)
+            while (comparator.compare(current, start) > 0)
             //@ loop_invariant date.compareTo(userRegistrationDate) >= 0;
             {
                 String startPeriod = current.minusDays(increment - 1).toString(formatter);
