@@ -116,7 +116,6 @@ public class BodymediaUpdater extends AbstractUpdater {
     private void retrieveHistory(UpdateInfo updateInfo, ObjectType ot, String urlExtension, int increment, DateTime start, DateTime end) throws Exception {
         DateTimeComparator comparator = DateTimeComparator.getDateOnlyInstance();
         DateTime current = end;
-        try {
             while (!interruptionRequested && comparator.compare(current, start) > 0)
             //@ loop_invariant date.compareTo(userRegistrationDate) >= 0;
             {
@@ -136,14 +135,7 @@ public class BodymediaUpdater extends AbstractUpdater {
             //The following call may fail due to bodymedia's api. That is expected behavior
             String jsonResponse = signpostHelper.makeRestCall(connector(), updateInfo.apiKey, ot.value(), minutesUrl);
             apiDataService.cacheApiDataJSON(updateInfo, jsonResponse, -1, -1);
-        }
-        catch (Exception e) {
-            JSONObject json = new JSONObject();
-            json.put("Failed", "");
-            json.put("Date", current.toString(formatter));
-            apiDataService.cacheApiDataJSON(updateInfo, json, -1, -1);
-        }
-    }
+     }
 
     OAuthConsumer setupConsumer(ApiKey apiKey) {
         String api_key = env.get("bodymediaConsumerKey");
