@@ -16,6 +16,7 @@ var aggressiveLoading = false;
 
 if (aggressiveLoading) {
     require([
+        "text!notificationTemplates.html",
         "text!connectorMgmtTemplates.html",
         "text!addressesTemplate.html",
         "text!applications/calendar/facetTemplates.html",
