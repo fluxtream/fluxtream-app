@@ -1,6 +1,7 @@
 package com.fluxtream.connectors.controllers;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -104,10 +105,11 @@ public class GoogleOAuth2Controller {
 				"tokenExpires", String.valueOf(System.currentTimeMillis() + (token.getLong("expires_in")*1000)));
         guestService.setApiKeyAttribute(guest.getId(), scopedApi,
 				"refreshToken", refresh_token);
+        final String encodedRefreshToken = URLEncoder.encode(refresh_token, "UTF-8");
         guestService.setApiKeyAttribute(guest.getId(), scopedApi,
                                         "refreshTokenRemoveURL",
                                         "https://accounts.google.com/o/oauth2/revoke?token="
-                                        + refresh_token);
+                                        + encodedRefreshToken);
 
         return "redirect:/app/from/"+scopedApi.getName();
     }

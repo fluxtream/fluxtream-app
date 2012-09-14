@@ -1,6 +1,8 @@
 package com.fluxtream.connectors;
 
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import com.fluxtream.Configuration;
 import com.fluxtream.utils.HttpUtils;
 import org.apache.log4j.Logger;

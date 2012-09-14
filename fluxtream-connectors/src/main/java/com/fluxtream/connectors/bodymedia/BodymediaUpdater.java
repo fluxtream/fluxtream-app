@@ -117,7 +117,7 @@ public class BodymediaUpdater extends AbstractUpdater {
         DateTimeComparator comparator = DateTimeComparator.getDateOnlyInstance();
         DateTime current = end;
         try {
-            while (!interruptionRequested && comparator.compare(current, start) > 0)
+            while (comparator.compare(current, start) > 0)
             //@ loop_invariant date.compareTo(userRegistrationDate) >= 0;
             {
                 String startPeriod = current.minusDays(increment - 1).toString(formatter);
