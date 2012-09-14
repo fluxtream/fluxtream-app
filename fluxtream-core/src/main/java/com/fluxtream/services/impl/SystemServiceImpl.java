@@ -97,7 +97,7 @@ public class SystemServiceImpl implements SystemService {
 				                     "/images/connectors/connector-openpaths.jpg",
                                      res.getString("openpath"),
                                      "ajax:/openPath/enterCredentials",
-                                     Connector.getConnector("openpath"), 0, true));
+                                     Connector.getConnector("openpath"), 0, false));
 		em.persist(new ConnectorInfo("Toodledo",
                                      "/images/connectors/connector-toodledo.jpg",
                                      res .getString("toodledo"),
