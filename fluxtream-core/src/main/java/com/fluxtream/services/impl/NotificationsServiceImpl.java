@@ -22,14 +22,43 @@ public class NotificationsServiceImpl implements NotificationsService {
 	@Override
 	@Transactional(readOnly = false)
 	public void addNotification(long guestId, Type type, String message) {
-		Notification notification = new Notification();
-		notification.guestId = guestId;
-		notification.type = type;
-		notification.message = message;
-		em.persist(notification);
+        final Notification sameNotification = JPAUtils.findUnique(em,
+              Notification.class,
+              "notifications.withTypeAndMessage",
+              guestId, type, message);
+        if (sameNotification==null) {
+            Notification notification = new Notification();
+            notification.guestId = guestId;
+            notification.type = type;
+            notification.message = message;
+            em.persist(notification);
+        } else {
+            sameNotification.repeated++;
+            em.merge(sameNotification);
+        }
 	}
 
-	@Override
+    @Override
+    public void addNotification(final long guestId, final Type type, final String message, final String stackTrace) {
+        final Notification sameNotification = JPAUtils.findUnique(em,
+                                                                  Notification.class,
+                                                                  "notifications.withMessage",
+                                                                  guestId, message);
+        if (sameNotification==null) {
+            Notification notification = new Notification();
+            notification.guestId = guestId;
+            notification.type = type;
+            notification.message = message;
+            notification.stackTrace = stackTrace;
+            em.persist(notification);
+        } else {
+            sameNotification.stackTrace = stackTrace;
+            sameNotification.repeated++;
+            em.merge(sameNotification);
+        }
+    }
+
+    @Override
 	@Transactional(readOnly = false)
 	public void deleteNotification(long guestId, long notificationId) {
 		Notification notification = em.find(Notification.class, notificationId);

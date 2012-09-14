@@ -317,15 +317,15 @@ define(
                 "/connectors/availableConnectors?page=" + page);
         };
 
-        App.discardNotifications = function() {
-            var ids = $("#notificationIds").html();
+        App.discardNotification = function(notificationId) {
             $.ajax({
-                       url : "/api/notifications?ids=" + ids,
-                       type: "DELETE",
-                       success : function() {
-                           $("#notifications").alert("close");
-                       }
-                   });
+                    url: "/api/notifications/" + notificationId,
+                    type: "DELETE",
+                    success: function() {
+                        $("#notification-" + notificationId).remove()
+                    }
+                }
+            );
         };
 
         App.showCarousel = function(photoId) {

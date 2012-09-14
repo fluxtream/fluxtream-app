@@ -117,20 +117,24 @@ define(["core/TabInterface"], function(TabInterface) {
 	}
 
 	function handleNotifications(digestInfo) {
-		$(".notification").remove();
-		$("#notificationIds").empty();
+		$(".alert").remove();
 		if (typeof(digestInfo.notifications)!="undefined") {
-			$(".alert-message").addClass("success");
 			for (n=0; n<digestInfo.notifications.length; n++) {
-				var notification = digestInfo.notifications[n];
-				$("#notifications").append("<p class=\"notification\">" + notification.message + "</p>");
-				if (n>0)
-					$("#notificationIds").append(",");
-				$("#notificationIds").append(notification.id);
+                showNotification(digestInfo.notifications[n]);
 			}
-			$("#notifications").show();
+            $("#notifications").show();
 		}
 	}
+
+    function showNotification(notification) {
+        App.loadMustacheTemplate("notificationTemplates.html",
+            notification.type+"Notification",
+            function(template)
+            {
+                var html = template.render(notification);
+                $("#notifications").append(html);
+            });
+    }
 	
 	function updateTab(digest, Calendar) {
         tabInterface.setRenderParamsFunction(function(){
