@@ -257,10 +257,8 @@ public class CalendarModel {
         parseState(guestId, metadataService, state);
 		switch (this.timeUnit) {
 		case DAY:
-			if (!isToday(guestId, metadataService)) {
-				fromCalendar.add(Calendar.DATE, 1);
-				toCalendar.add(Calendar.DATE, 1);
-			}
+			fromCalendar.add(Calendar.DATE, 1);
+			toCalendar.add(Calendar.DATE, 1);
 			break;
 		case WEEK:
 			fromCalendar.add(Calendar.WEEK_OF_YEAR, 1);
