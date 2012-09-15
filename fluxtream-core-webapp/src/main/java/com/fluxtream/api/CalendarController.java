@@ -150,9 +150,9 @@ public class CalendarController {
                 .append(" guestId=").append(guestId);
         logger.info(sb.toString());
         CalendarModel calendarModel = CalendarModel.fromState(guestId, metadataService, state);
-        final Date stateDate = calendarModel.fromCalendar.getTime();
+        final Date stateDate = calendarModel.getStartTime();
         calendarModel.decrementTimespan(guestId, metadataService, state);
-        final Date nextDate = calendarModel.fromCalendar.getTime();
+        final Date nextDate = calendarModel.getStartTime();
         return calendarModel.toJSONString(guestId, metadataService, env);
     }
 
