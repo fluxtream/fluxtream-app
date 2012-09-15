@@ -1,7 +1,9 @@
 package com.fluxtream.api;
 
 import java.io.IOException;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.TimeZone;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -16,6 +18,9 @@ import com.fluxtream.mvc.models.CalendarModel;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
 import org.apache.log4j.Logger;
+import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -87,6 +92,53 @@ public class CalendarController {
         CalendarModel calendarModel = new CalendarModel(guestId, metadataService);
         calendarModel.setWeek(guestId, metadataService, year, week);
         return calendarModel.toJSONString(guestId, metadataService, env);
+    }
+
+    private static final DateTimeFormatter jsDateFormatter = DateTimeFormat
+            .forPattern("yyyy-MM-dd");
+
+    @GET
+    @Path(value="/getDateRangeForWeek")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String getDateRangeForWeek(@QueryParam("week") int week,
+                                      @QueryParam("year") int year) {
+        final Calendar fromCalendar = Calendar.getInstance();
+        fromCalendar.setTimeZone(TimeZone.getTimeZone("UTC"));
+        fromCalendar.set(Calendar.YEAR, year);
+        fromCalendar.set(Calendar.WEEK_OF_YEAR, week);
+        fromCalendar.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
+        fromCalendar.set(Calendar.HOUR_OF_DAY, 0);
+        fromCalendar.set(Calendar.MINUTE, 0);
+        fromCalendar.set(Calendar.SECOND, 0);
+        fromCalendar.set(Calendar.MILLISECOND, 0);
+        String date = jsDateFormatter.print(fromCalendar.getTimeInMillis());
+        final TimeZone tz = metadataService.getTimeZone(ControllerHelper.getGuestId(), date);
+        fromCalendar.setTimeZone(tz);
+
+        final Calendar toCalendar = Calendar.getInstance();
+        toCalendar.setTimeZone(tz);
+        toCalendar.set(Calendar.YEAR, year);
+        toCalendar.set(Calendar.WEEK_OF_YEAR, week);
+        toCalendar.set(Calendar.DAY_OF_WEEK, Calendar.SATURDAY);
+        toCalendar.set(Calendar.HOUR_OF_DAY, 23);
+        toCalendar.set(Calendar.MINUTE, 59);
+        toCalendar.set(Calendar.SECOND, 59);
+        toCalendar.set(Calendar.MILLISECOND, 999);
+        return "[" + fromCalendar.getTimeInMillis() + "," + toCalendar.getTimeInMillis() + "]";
+    }
+
+    @GET
+    @Path(value="/getMeTheJavaComputedWeekForThisDate")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String getDateWeek(@QueryParam("formattedDate") String formattedDate) {
+        final TimeZone tz = metadataService.getTimeZone(ControllerHelper.getGuestId(), formattedDate);
+        final String[] splits = formattedDate.split("-");
+        Calendar c = Calendar.getInstance(tz);
+        c.set(Calendar.YEAR, Integer.valueOf(splits[0]));
+        c.set(Calendar.MONTH,  Integer.valueOf(splits[1])-1);
+        c.set(Calendar.DATE, Integer.valueOf(splits[2]));
+        c.setTimeZone(tz);
+        return "[" + c.get(Calendar.YEAR) + "," + c.get(Calendar.WEEK_OF_YEAR) + "]";
     }
 
     @GET

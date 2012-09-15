@@ -118,8 +118,10 @@ define(["core/TabInterface"], function(TabInterface) {
 
 	function handleNotifications(digestInfo) {
 		$(".alert").remove();
+        $("#notifications").empty();
 		if (typeof(digestInfo.notifications)!="undefined") {
-			for (n=0; n<digestInfo.notifications.length; n++) {
+			for (var n=0; n<digestInfo.notifications.length; n++) {
+                console.log("showing a notification " + n)
                 showNotification(digestInfo.notifications[n]);
 			}
             $("#notifications").show();
@@ -130,10 +132,12 @@ define(["core/TabInterface"], function(TabInterface) {
         App.loadMustacheTemplate("notificationTemplates.html",
             notification.type+"Notification",
             function(template) {
-                var html = template.render(notification), message = notification.message;
-                $("#notifications").append(html);
-                if (notification.repeated>1) message += " (" + notification.repeated + "x)";
-                $("#notification-" + notification.id).append(message);
+                if ($("#notification-" + notification.id).length==0) {
+                    var html = template.render(notification), message = notification.message;
+                    $("#notifications").append(html);
+                    if (notification.repeated>1) message += " (" + notification.repeated + "x)";
+                    $("#notification-" + notification.id).append(message);
+                }
             });
     }
 	

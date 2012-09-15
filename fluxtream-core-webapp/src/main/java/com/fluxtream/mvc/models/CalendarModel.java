@@ -64,12 +64,15 @@ public class CalendarModel {
 	}
 
     public static void main(final String[] args) {
-        final String formattedDate = "2012-05-30";
+        final String formattedDate = "2011-11-15";
         final TimeZone tz = TimeZone.getTimeZone("Europe/Brussels");
         final long l = jsDateFormatter.withZone(DateTimeZone.forTimeZone(tz)).parseMillis(formattedDate);
-        Date date = new Date(jsDateFormatter.withZone(
-                DateTimeZone.forTimeZone(tz)).parseMillis(formattedDate));
-        System.out.println(new Date(l));
+        Calendar c = Calendar.getInstance(tz);
+        set(c, Calendar.YEAR, 2011);
+        set(c, Calendar.MONTH, 10);
+        set(c, Calendar.DATE, 6);
+        c.setTimeZone(tz);
+        System.out.println("Computed week: " + c.get(Calendar.WEEK_OF_YEAR));
     }
 
     public void setDate(final long guestId, final MetadataService metadataService, String formattedDate) {
@@ -79,15 +82,18 @@ public class CalendarModel {
 				DateTimeZone.forTimeZone(tz)).parseMillis(formattedDate));
         fromCalendar.clear();
 		fromCalendar.setTime(date);
+        fromCalendar.setTimeZone(tz);
 		fromCalendar = TimeUtils.setFromMidnight(fromCalendar);
         toCalendar.clear();
 		toCalendar.setTime(date);
+        toCalendar.setTimeZone(tz);
 		toCalendar = TimeUtils.setToMidnight(fromCalendar);
 	}
 
 	public void setWeek(final long guestId, final MetadataService metadataService, int year, int week) {
         this.timeUnit = TimeUnit.WEEK;
 
+        fromCalendar.setTimeZone(TimeZone.getTimeZone("UTC"));
         set(fromCalendar, Calendar.YEAR, year);
         set(fromCalendar, Calendar.WEEK_OF_YEAR, week);
         set(fromCalendar, Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
@@ -95,7 +101,11 @@ public class CalendarModel {
         set(fromCalendar, Calendar.MINUTE, 0);
         set(fromCalendar, Calendar.SECOND, 0);
         set(fromCalendar, Calendar.MILLISECOND, 0);
+        String date = jsDateFormatter.print(fromCalendar.getTimeInMillis());
+        final TimeZone tz = metadataService.getTimeZone(guestId, date);
+        fromCalendar.setTimeZone(tz);
 
+        toCalendar.setTimeZone(tz);
         set(toCalendar, Calendar.YEAR, year);
         set(toCalendar, Calendar.WEEK_OF_YEAR, week);
         set(toCalendar, Calendar.DAY_OF_WEEK, Calendar.SATURDAY);
@@ -108,6 +118,7 @@ public class CalendarModel {
 	public void setMonth(final long guestId, final MetadataService metadataService, int year, int month) {
         this.timeUnit = timeUnit.MONTH;
 
+        fromCalendar.setTimeZone(TimeZone.getTimeZone("UTC"));
         set(fromCalendar, Calendar.YEAR, year);
         set(fromCalendar, Calendar.MONTH, month);
         set(fromCalendar, Calendar.DATE, 1);
@@ -115,6 +126,11 @@ public class CalendarModel {
         set(fromCalendar, Calendar.MINUTE, 0);
         set(fromCalendar, Calendar.SECOND, 0);
         set(fromCalendar, Calendar.MILLISECOND, 0);
+        String date = jsDateFormatter.print(fromCalendar.getTimeInMillis());
+        final TimeZone tz = metadataService.getTimeZone(guestId, date);
+        fromCalendar.setTimeZone(tz);
+
+        toCalendar.setTimeZone(tz);
 
         set(toCalendar, Calendar.YEAR, year);
         set(toCalendar, Calendar.MONTH, month);
@@ -334,8 +350,7 @@ public class CalendarModel {
 
         set(toCalendar, Calendar.YEAR, fromCalendar.get(Calendar.YEAR));
         set(toCalendar, Calendar.MONTH, Calendar.DECEMBER);
-        set(toCalendar, Calendar.DAY_OF_MONTH,
-                       toCalendar.getActualMaximum(Calendar.DAY_OF_MONTH));
+        set(toCalendar, Calendar.DAY_OF_MONTH, toCalendar.getActualMaximum(Calendar.DAY_OF_MONTH));
         toCalendar = TimeUtils.setToMidnight(toCalendar);
     }
 
@@ -347,8 +362,7 @@ public class CalendarModel {
 
         set(toCalendar, Calendar.YEAR, fromCalendar.get(Calendar.YEAR));
         set(toCalendar, Calendar.MONTH, fromCalendar.get(Calendar.MONTH));
-        set(toCalendar, Calendar.DAY_OF_MONTH,
-                       toCalendar.getActualMaximum(Calendar.DAY_OF_MONTH));
+        set(toCalendar, Calendar.DAY_OF_MONTH, toCalendar.getActualMaximum(Calendar.DAY_OF_MONTH));
         toCalendar = TimeUtils.setToMidnight(toCalendar);
     }
 

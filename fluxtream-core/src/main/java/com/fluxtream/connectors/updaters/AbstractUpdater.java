@@ -1,19 +1,11 @@
 package com.fluxtream.connectors.updaters;
 
-import java.util.List;
-import java.util.Map;
-
-import static com.fluxtream.utils.Utils.stackTrace;
-
-import com.fluxtream.domain.Notification;
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import com.fluxtream.connectors.ApiClientSupport;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.dao.FacetDao;
 import com.fluxtream.connectors.updaters.UpdateInfo.UpdateType;
 import com.fluxtream.domain.AbstractUserProfile;
+import com.fluxtream.domain.Notification;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.BodyTrackStorageService;
 import com.fluxtream.services.ConnectorUpdateService;
@@ -21,7 +13,11 @@ import com.fluxtream.services.GuestService;
 import com.fluxtream.services.JPADaoService;
 import com.fluxtream.services.NotificationsService;
 import com.fluxtream.utils.Utils;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+
+import static com.fluxtream.utils.Utils.stackTrace;
 
 public abstract class AbstractUpdater extends ApiClientSupport {
 
@@ -159,14 +155,14 @@ public abstract class AbstractUpdater extends ApiClientSupport {
                         .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
                         .append(updateInfo.apiKey.getGuestId());
                 logger.warn(sb.toString());
-                String message = (new StringBuilder("We were unable to sync your "))
-                        .append(updateInfo.apiKey.getConnector().prettyName())
-                        .append(" connector (")
-                        .append("error message: \"")
-                        .append(e.getMessage()).append("\")").toString();
-                notificationsService.addNotification(updateInfo.apiKey.getGuestId(),
-                                                     Notification.Type.WARNING,
-                                                     message, stackTrace);
+                //String message = (new StringBuilder("We were unable to sync your "))
+                //        .append(updateInfo.apiKey.getConnector().prettyName())
+                //        .append(" connector (")
+                //        .append("error message: \"")
+                //        .append(e.getMessage()).append("\")").toString();
+                //notificationsService.addNotification(updateInfo.apiKey.getGuestId(),
+                //                                     Notification.Type.WARNING,
+                //                                     message, stackTrace);
                 updateResult = new UpdateResult(
                         UpdateResult.ResultType.UPDATE_FAILED);
                 updateResult.stackTrace = stackTrace;
