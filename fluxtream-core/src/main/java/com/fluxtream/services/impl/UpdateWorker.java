@@ -44,6 +44,9 @@ class UpdateWorker implements Runnable {
 
 	UpdateWorkerTask task;
 
+    private volatile boolean busy;
+    protected volatile boolean interruptionRequested;
+
 	public UpdateWorker() {
 	}
 
@@ -58,7 +61,7 @@ class UpdateWorker implements Runnable {
 		Connector connector = Connector.getConnector(task.connectorName);
 		ApiKey apiKey = guestService.getApiKey(task.guestId, connector);
 		AbstractUpdater updater = connectorUpdateService.getUpdater(connector);
-		
+
 		switch (task.updateType) {
 		case INITIAL_HISTORY_UPDATE:
 			updateDataHistory(connector, apiKey, updater);

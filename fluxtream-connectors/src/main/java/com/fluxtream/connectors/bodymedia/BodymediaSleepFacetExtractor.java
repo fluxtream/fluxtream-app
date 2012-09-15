@@ -99,13 +99,17 @@ public class BodymediaSleepFacetExtractor extends AbstractFacetExtractor
                         sleep.json = day.getString("sleepPeriods");
                         sleep.lastSync = d.getMillis();
 
+                        //https://developer.bodymedia.com/docs/read/api_reference_v2/Sleep_Service
+                        //  sleep data is from noon the previous day to noon the current day,
+                        //  so subtract MILLIS_IN_DAY/2 from midnight
+                        long MILLIS_IN_DAY = 86400000l;
                         DateTime date = formatter.parseDateTime(day.getString("date"));
                         sleep.date = dateFormatter.print(date.getMillis());
                         TimeZone timeZone = metadataService.getTimeZone(apiData.updateInfo.getGuestId(), date.getMillis());
-                        long fromMidnight = TimeUtils.fromMidnight(date.getMillis(), timeZone);
-                        long toMidnight = TimeUtils.toMidnight(date.getMillis(), timeZone);
-                        sleep.start = fromMidnight;
-                        sleep.end = toMidnight;
+                        long fromNoon = TimeUtils.fromMidnight(date.getMillis(), timeZone) - MILLIS_IN_DAY/2;
+                        long toNoon = TimeUtils.toMidnight(date.getMillis(), timeZone) - MILLIS_IN_DAY/2;
+                        sleep.start = fromNoon;
+                        sleep.end = toNoon;
 
                         facets.add(sleep);
                     }

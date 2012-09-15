@@ -60,8 +60,6 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
     @Autowired
     SystemService systemService;
 
-    private Map<UpdateInfo, AbstractUpdater> runningUpdates = new Hashtable();
-
 	@PersistenceContext
 	EntityManager em;
 
@@ -229,6 +227,14 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
                         " message=\"Executing update: " +
                         " \"" + updateWorkerTask);
 			setUpdateWorkerTaskStatus(updateWorkerTask.getId(), Status.IN_PROGRESS);
+
+            // TODO: re-think this through
+            // retrieve updater for the worker
+            // find out wether such an update task is already running
+            // if not create the worker
+            // let the updater know about the worker
+            // execute the worker
+
 			UpdateWorker updateWorker = beanFactory.getBean(UpdateWorker.class);
 			updateWorker.task = updateWorkerTask;
 			try {
@@ -435,29 +441,6 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 	@Override
 	public void stopUpdating(long guestId, Connector connector, boolean wipeOutHistory) {
         List<AbstractUpdater> toStop = new ArrayList<AbstractUpdater>();
-        for (UpdateInfo updateInfo : runningUpdates.keySet()) {
-            if (updateInfo.apiKey.getGuestId()==guestId &&
-                updateInfo.apiKey.getConnector()==connector) {
-                toStop.add(runningUpdates.get(updateInfo));
-            }
-        }
-        for (AbstractUpdater updater : toStop) {
-            updater.stopUpdating();
-            while (updater.isBusyUpdating())
-                try {
-                    StringBuilder sb = new StringBuilder("module=updateQueue component=connectorUpdateService action=stopUpdating")
-                            .append(" message=\"Stopping updater... Waiting...\"");
-                    logger.info(sb.toString());
-                    Thread.sleep(200);
-                }
-                catch (InterruptedException e) {
-                    StringBuilder sb = new StringBuilder("module=updateQueue component=connectorUpdateService action=stopUpdating")
-                            .append(" guestId=").append(guestId)
-                            .append(" connectorName=").append(connector.getName())
-                            .append(" message=\"InterruptedException while waiting for updater to complete\"");
-                    logger.warn(sb.toString());
-                }
-        }
         if (!wipeOutHistory)
             JPAUtils.execute(em, "updateWorkerTasks.delete.byApi", guestId,
                     connector.getName(),
@@ -469,61 +452,6 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 
     public void shutdown() {
         isShuttingDown = true;
-        if (runningUpdates.size()>0) {
-            final AbstractUpdater runningUpdater = runningUpdates.values().iterator().next();
-            while(runningUpdater.isBusyUpdating()) {
-                try {
-                    StringBuilder sb = new StringBuilder("module=updateQueue component=connectorUpdateService action=shutdown")
-                            .append(" message=\"Waiting for updaters to complete...\"");
-                    logger.info(sb.toString());
-                    Thread.sleep(200);
-                }
-                catch (InterruptedException e) {
-                    StringBuilder sb = new StringBuilder("module=updateQueue component=connectorUpdateService action=shutdown")
-                            .append(" message=\"InterruptedException shutting down\"");
-                    logger.warn(sb.toString());
-                }
-            }
-            shutdown();
-        } else {
-            StringBuilder sb = new StringBuilder("module=updateQueue component=connectorUpdateService action=shutdown")
-                    .append(" message=\"Shutdown complete!\"");
-            logger.info(sb.toString());
-        }
-    }
-
-    @Override
-    public boolean isShutdown() {
-        return (isShuttingDown && runningUpdates.size()==0);
-    }
-
-    @Override
-    public List<UpdateInfo> getAllRunningUpdates() {
-        return new ArrayList<UpdateInfo>(runningUpdates.keySet());
-    }
-
-    @Override
-    public List<UpdateInfo> getRunningUpdates(final long guestId) {
-        List<UpdateInfo> infos = new ArrayList<UpdateInfo>();
-        for (UpdateInfo updateInfo : runningUpdates.keySet()) {
-            if (updateInfo.apiKey.getGuestId()==guestId)
-                infos.add(updateInfo);
-        }
-        return infos;
-    }
-
-    @Override
-    public boolean addRunningUpdate(final UpdateInfo updateInfo, AbstractUpdater updater) {
-        if (runningUpdates.containsKey(updateInfo))
-            return false;
-        else
-            runningUpdates.put(updateInfo, updater);
-        return true;
-    }
-
-    @Override
-    public void removeRunningUpdate(final UpdateInfo updateInfo) {
-        runningUpdates.remove(updateInfo);
     }
 
 	@Override

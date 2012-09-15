@@ -36,7 +36,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 		$(".menuTodayButton").click(function(e) {
             if (Calendar.currentTab.timeNavigation("today"))
                 return;
-			fetchState("POST", "/api/calendar/nav/setToToday?timeUnit=" + Calendar.timeUnit);
+			fetchState("POST", "/api/calendar/nav/setToToday?timeUnit=DAY");
 		});
         Builder.init(this);
 	};
@@ -184,8 +184,13 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 break;
             case "WEEK":
                 var splits = Calendar.tabState.split("/");
-                var d = getDateRangeForWeek(splits[1],splits[2])[0];
-                setDatepicker(App.formatDateAsDatePicker(d));
+                if (typeof splits[2]=="undefined") {
+                    setDatepicker(splits[1]);
+                } else {
+                    var d = getDateRangeForWeek(splits[1],splits[2])[0],
+                        datePickerDate = App.formatDateAsDatePicker(d);
+                    setDatepicker(datePickerDate);
+                }
                 break;
             case "MONTH":
                 var splits = Calendar.tabState.split("/");
@@ -294,7 +299,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             }
         });
         if (Calendar.timeUnit == "WEEK"){
-            var dayStart = parseInt(currentDate.split("-")[2]);
+            var dayStart = parseInt(currentDate.split("-")[2],10);
             var count = 0;
             var dayElements = $(".datepicker-days td");
             for (var i = 0; i < dayElements.length && count < 7; i++){
@@ -698,30 +703,40 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 		return urlTimeUnit.toUpperCase();
 	}
 
-   function getWeekNumber(d) {
-       // Copy date so don't modify original
-       d = new Date(d);
-       d.setHours(0,0,0);
-       // Set to nearest Thursday: current date + 4 - current day number
-       // Make Sunday's day number 7
-       d.setDate(d.getDate() + 4 - (d.getDay()||7));
-       // Get first day of year
-       var yearStart = new Date(d.getFullYear(),0,1);
-       // Calculate full weeks to nearest Thursday
-       var weekNo = Math.ceil(( ( (d - yearStart) / 86400000) + 1)/7)
-       // Return array of year and week number
-       return [d.getFullYear(), weekNo];
+   function getWeekNumber(date) {
+       //OK let's have java compute that for us and avoid the discrepancy bug that way for now
+       var dateString = date.getFullYear() + "-" + (date.getMonth() < 9 ? 0 : "") + (date.getMonth() + 1) + "-" + (date.getDate() < 10 ? 0 : "") + date.getDate(),
+           result = null;
+       $.ajax({
+           url: "/api/calendar/nav/getMeTheJavaComputedWeekForThisDate?formattedDate=" + dateString,
+           async: false,
+           success: function(data) {
+               result = data;
+           }
+       });
+       return result;
    }
 
    function getDateRangeForWeek(year,week){
-       var yearStart = new Date(year,0,1);
-       var d = new Date((week * 7 - 1) * 86400000 - - yearStart);
-       var start = new Date(d);
-       var end = new Date(d);
-       start.setDate(d.getDate() - (d.getDay()||7));
-       end.setDate(d.getDate() + 7 - (d.getDay()||7));
-       return [start,end];
+       if (week==null) return null;
+       var result = null, range = null;
+       $.ajax({
+           url: "/api/calendar/nav/getDateRangeForWeek?year=" + year + "&week=" + week,
+           async: false,
+           success: function(data) {
+               result = data;
+           }
+       });
+       range = [new Date(result[0]+86400000), new Date(result[1]+86400000)];
+       return range;
    }
+
+   var w2date = function(year, wn, dayNb){
+       var j10 = new Date( year,0,10,12,0,0),
+           j4 = new Date( year,0,4,12,0,0),
+           mon1 = j4.getTime() - j10.getDay() * 86400000;
+       return new Date(mon1 + ((wn - 1)  * 7  + dayNb) * 86400000);
+   };
 
     Calendar.toDateString = function(date,rangeType){
         var dateString = "";
@@ -769,7 +784,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 state = "timeline/week/" + date;
                 Calendar.tabState = "week/" + date;
                 var dateSplits = date.split("/");
-                var range = getDateRangeForWeek(dateSplits[0],dateSplits[1]);
+                var range = getDateRangeForWeek(parseInt(dateSplits[0],10),parseInt(dateSplits[1],10));
                 dateLabel = monthsOfYear[range[0].getMonth()] + " " + range[0].getDate() + " - " +
                             monthsOfYear[range[1].getMonth()] + " " + range[1].getDate() + " " + range[1].getFullYear();
                 break;
@@ -798,7 +813,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     };
 
     var viewBtnIds = {DAY:"#dayViewBtn",WEEK:"#weekViewBtn",MONTH:"#monthViewBtn",YEAR:"#yearViewBtn"};
-    var todayButtonDisplays = {DAY:"Today",WEEK:"This Week",MONTH:"This Month",YEAR:"This Year"};
 
     function updateDisplays(){
         var rangeType;
@@ -824,7 +838,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 $(viewBtnIds[type]).removeClass("active");
             }
         }
-        $(".menuTodayButton span").text(todayButtonDisplays[rangeType]);
     }
 
 	return Calendar;

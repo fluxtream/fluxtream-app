@@ -42,8 +42,8 @@ public class NotificationsServiceImpl implements NotificationsService {
     public void addNotification(final long guestId, final Type type, final String message, final String stackTrace) {
         final Notification sameNotification = JPAUtils.findUnique(em,
                                                                   Notification.class,
-                                                                  "notifications.withMessage",
-                                                                  guestId, message);
+                                                                  "notifications.withTypeAndMessage",
+                                                                  guestId, type, message);
         if (sameNotification==null) {
             Notification notification = new Notification();
             notification.guestId = guestId;

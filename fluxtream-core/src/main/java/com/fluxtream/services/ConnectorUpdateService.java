@@ -12,14 +12,6 @@ import com.fluxtream.domain.UpdateWorkerTask;
 
 public interface ConnectorUpdateService {
 
-    public List<UpdateInfo> getAllRunningUpdates();
-
-    public List<UpdateInfo> getRunningUpdates(long guestId);
-
-    public boolean addRunningUpdate(UpdateInfo updateInfo, AbstractUpdater updater);
-
-    public void removeRunningUpdate(UpdateInfo updateInfo);
-
     /**
      * Schedules updates for the given connector for the user
      * @param guestId the user for whom the connector is to be updated
@@ -98,8 +90,6 @@ public interface ConnectorUpdateService {
 	public void stopUpdating(long guestId, Connector connector, boolean wipeOutHistory);
 
     public void shutdown();
-
-    public boolean isShutdown();
 
 	public long getTotalNumberOfGuestsUsingConnector(Connector connector);
 

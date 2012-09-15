@@ -1,16 +1,11 @@
 package com.fluxtream.connectors.updaters;
 
-import static com.fluxtream.utils.Utils.stackTrace;
-
-import com.fluxtream.domain.Notification;
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import com.fluxtream.connectors.ApiClientSupport;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.dao.FacetDao;
 import com.fluxtream.connectors.updaters.UpdateInfo.UpdateType;
 import com.fluxtream.domain.AbstractUserProfile;
+import com.fluxtream.domain.Notification;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.BodyTrackStorageService;
 import com.fluxtream.services.ConnectorUpdateService;
@@ -18,7 +13,11 @@ import com.fluxtream.services.GuestService;
 import com.fluxtream.services.JPADaoService;
 import com.fluxtream.services.NotificationsService;
 import com.fluxtream.utils.Utils;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+
+import static com.fluxtream.utils.Utils.stackTrace;
 
 public abstract class AbstractUpdater extends ApiClientSupport {
 
@@ -47,22 +46,12 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 	protected BodyTrackStorageService bodyTrackStorageService;
 
 	private String connectorName;
-    private boolean busy;
-    protected boolean interruptionRequested;
 
 	final protected Connector connector() {
 		if (connectorName == null)
 			connectorName = Connector.getConnectorName(this.getClass().getName());
 		return Connector.getConnector(connectorName);
 	}
-
-    public void stopUpdating() {
-        interruptionRequested = true;
-    }
-
-    public boolean isBusyUpdating() {
-        return busy;
-    }
 
     public AbstractUpdater() {
 	}
@@ -80,20 +69,10 @@ public abstract class AbstractUpdater extends ApiClientSupport {
             logger.info("module=updateQueue component=updater action=updateDataHistory" +
                 " guestId=" + updateInfo.getGuestId() + " connector=" + updateInfo.apiKey.getConnector().getName());
 
-            boolean added = connectorUpdateService.addRunningUpdate(updateInfo, this);
-
-            if (!added)
-                return new UpdateResult(UpdateResult.ResultType.DUPLICATE_UPDATE);
-
-            busy = true;
-
-            // TODO: these two belong in a transaction
             updateConnectorDataHistory(updateInfo);
             bodyTrackStorageService.storeInitialHistory(
                     updateInfo.getGuestId(), updateInfo.apiKey.getConnector()
                             .getName());
-
-            busy = false;
 
             return UpdateResult.successResult();
         // TODO: in case of a problem here, we really should reset the connector's data
@@ -112,17 +91,17 @@ public abstract class AbstractUpdater extends ApiClientSupport {
                     .append(updateInfo.apiKey.getGuestId())
                     .append(" stackTrace=<![CDATA[" + stackTrace + "]]>");
             logger.warn(sb.toString());
-            String message = (new StringBuilder("We were unable to import your "))
-                    .append(updateInfo.apiKey.getConnector().prettyName())
-                    .append(" data (")
-                    .append("error message: \"")
-                    .append(t.getMessage()).append("\")").toString();
+            sb = new StringBuilder("We were unable to import your ");
+                    sb.append(updateInfo.apiKey.getConnector().prettyName())
+                    .append(" data");
+            if (t.getMessage()!=null) {
+               sb .append(", error message: \"")
+                        .append(t.getMessage()).append("\")").toString();
+            }
             notificationsService.addNotification(updateInfo.apiKey.getGuestId(),
                                                  Notification.Type.WARNING,
-                                                 message, stackTrace);
+                                                 sb.toString(), stackTrace);
             return UpdateResult.failedResult(stackTrace);
-        } finally {
-            connectorUpdateService.removeRunningUpdate(updateInfo);
         }
 	}
 
@@ -160,13 +139,6 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 					UpdateResult.ResultType.HAS_REACHED_RATE_LIMIT);
 		}
 
-        boolean added = connectorUpdateService.addRunningUpdate(updateInfo, this);
-
-		if (!added)
-			return new UpdateResult(UpdateResult.ResultType.DUPLICATE_UPDATE);
-
-        busy = true;
-
 		UpdateResult updateResult = new UpdateResult();
 		try {
 			if (updateInfo.getUpdateType() == UpdateType.TIME_INTERVAL_UPDATE)
@@ -183,24 +155,26 @@ public abstract class AbstractUpdater extends ApiClientSupport {
                         .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
                         .append(updateInfo.apiKey.getGuestId());
                 logger.warn(sb.toString());
-                String message = (new StringBuilder("We were unable to sync your "))
-                        .append(updateInfo.apiKey.getConnector().prettyName())
-                        .append(" connector (")
-                        .append("error message: \"")
-                        .append(e.getMessage()).append("\")").toString();
-                notificationsService.addNotification(updateInfo.apiKey.getGuestId(),
-                                                     Notification.Type.WARNING,
-                                                     message, stackTrace);
+                //String message = (new StringBuilder("We were unable to sync your "))
+                //        .append(updateInfo.apiKey.getConnector().prettyName())
+                //        .append(" connector (")
+                //        .append("error message: \"")
+                //        .append(e.getMessage()).append("\")").toString();
+                //notificationsService.addNotification(updateInfo.apiKey.getGuestId(),
+                //                                     Notification.Type.WARNING,
+                //                                     message, stackTrace);
                 updateResult = new UpdateResult(
                         UpdateResult.ResultType.UPDATE_FAILED);
                 updateResult.stackTrace = stackTrace;
             }
-		} finally {
-
-			connectorUpdateService.removeRunningUpdate(updateInfo);
-		}
-
-        busy = false;
+		} catch (Throwable t) {
+            StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=updateData")
+                    .append(" message=\"Couldn't update data\" connector=")
+                    .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
+                    .append(updateInfo.apiKey.getGuestId())
+                    .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(t)).append("]]>");
+            logger.warn(sb.toString());
+        }
 
 		return updateResult;
 	}
