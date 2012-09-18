@@ -300,13 +300,14 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         });
         if (Calendar.timeUnit == "WEEK"){
             var dayStart = parseInt(currentDate.split("-")[2],10);
-            var count = 0;
-            var dayElements = $(".datepicker-days td");
-            for (var i = 0; i < dayElements.length && count < 7; i++){
-                var element = $(dayElements[i])
-                if (element.text() == dayStart || count != 0){
-                    element.addClass("active");
-                    count++;
+            var rowElements = $(".datepicker-days tr");
+            for (var j=0; j<rowElements.length; j++) {
+                var row = $(rowElements[j]);
+                var element = $(row.children()[0]);
+                var isDayStart = (element.text() == dayStart);
+                if (isDayStart) {
+                    for (var i=0; i<rowElements.length;i++)
+                        $(row.children()[i]).addClass("active");
                 }
             }
         }
