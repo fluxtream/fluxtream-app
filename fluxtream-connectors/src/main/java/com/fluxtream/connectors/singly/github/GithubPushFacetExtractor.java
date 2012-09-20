@@ -52,14 +52,17 @@ public class GithubPushFacetExtractor extends AbstractFacetExtractor {
                 if (actor==null||!actor.getString("login").equals(login))
                     continue;
 
-                final JSONArray commits = payload.getJSONArray("commits");
-
                 this.extractCommonFacetData(facet, apiData);
                 String timestamp = eventData.getString("created_at");
                 facet.start = dateTimeFormatter.parseDateTime(timestamp).getMillis();
                 facet.end = facet.start;
 
-                facet.commitsJSON = commits.toString();
+                if (payload.has("commits")) {
+                    final JSONArray commits = payload.getJSONArray("commits");
+                    facet.commitsJSON = commits.toString();
+                } else
+                    facet.commitsJSON = "{}";
+
 
                 JSONObject repo = eventData.getJSONObject("repo");
 

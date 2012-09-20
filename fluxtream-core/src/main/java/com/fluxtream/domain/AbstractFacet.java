@@ -1,10 +1,13 @@
 package com.fluxtream.domain;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.StringTokenizer;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.Lob;
 import javax.persistence.MappedSuperclass;
+import javax.persistence.PostLoad;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Query;
@@ -67,6 +70,35 @@ public abstract class AbstractFacet extends AbstractEntity {
 	@Field(index=org.hibernate.search.annotations.Index.TOKENIZED, store=Store.YES)
 	@Lob
 	public String fullTextDescription;
+
+    @PostLoad
+    void loadTags() {
+        StringTokenizer st = new StringTokenizer(tags);
+        while(st.hasMoreTokens()) {
+            String tag = st.nextToken();
+            if (tag.length()>0)
+                addTag(tag);
+        }
+    }
+
+    private void addTag(final String tagName) {
+        if (tagsList==null)
+            tagsList = new ArrayList<Tag>();
+        Tag tag = new Tag();
+        tag.name = tagName;
+        tagsList.add(tag);
+    }
+
+    @PrePersist
+    void persistTags() {
+        StringBuilder sb = new StringBuilder(",");
+        for (Tag tag : tagsList)
+            sb.append(tag.name).append(",");
+        if (sb.length()>1)
+            tags = sb.toString();
+        else
+            tags = "";
+    }
 	
 	@PrePersist @PreUpdate
 	protected void setFullTextDescription() {

@@ -45,7 +45,20 @@ public class FitbitBodyMeasurementFacetVO extends AbstractInstantFacetVO<FitbitB
         neck = facet.neck;
         thigh = facet.thigh;
         waist = facet.waist;
-        weight = round(facet.weight);
+        format(facet.weight, settings.weightMeasureUnit);
+    }
+
+    private void format(double weight, GuestSettings.WeightMeasureUnit weightMeasureUnit) {
+        switch (weightMeasureUnit) {
+            case SI:
+                this.weight = round(weight);
+                break;
+            case STONES:
+                this.weight = round(weight * 0.157473044f);
+                break;
+            default:
+                this.weight = round(weight * 2.20462262f);
+        }
     }
 
     double round(double v) {

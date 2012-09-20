@@ -76,8 +76,7 @@ public class FlickrFacetExtractor extends AbstractFacetExtractor {
                     if (facet.tagsList==null)
                         facet.tagsList = new ArrayList<Tag>();
                     else if (!facet.tagsList.contains(tag)) {
-                        if (facet.tagsList.size()>0)
-                            sb.append(", ");
+                        sb.append(", ");
                     }
                     facet.tagsList.add(tag);
                     sb.append(tag.name);

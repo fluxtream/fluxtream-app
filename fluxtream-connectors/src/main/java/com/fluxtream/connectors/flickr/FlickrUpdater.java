@@ -139,8 +139,8 @@ public class FlickrUpdater extends AbstractUpdater {
                                  "&user_id=" + nsid +
                                  "&auth_token=" + token +
                                  "&format=json&nojsoncallback=1&extras=date_upload,date_taken,geo,tags" +
-                                 "&min_taken_date=" + startDate +
-                                 "&max_taken_date=" + endDate +
+                                 "&min_upload_date=" + startDate +
+                                 "&max_upload_date=" + endDate +
                                  "&api_sig=" + api_sig;
         searchPhotosUrl = searchPhotosUrl.replace(" ", "%20");
 		String photosJson = null;
