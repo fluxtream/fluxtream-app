@@ -89,8 +89,7 @@ public abstract class AbstractFacet extends AbstractEntity {
         tagsList.add(tag);
     }
 
-    @PrePersist
-    void persistTags() {
+    protected void persistTags() {
         StringBuilder sb = new StringBuilder(",");
         for (Tag tag : tagsList)
             sb.append(tag.name).append(",");
@@ -109,6 +108,7 @@ public abstract class AbstractFacet extends AbstractEntity {
 				this.fullTextDescription = "";
 			this.fullTextDescription += this.comment;
 		}
+        persistTags();
 	}
 
     public static AbstractFacet getOldestFacet(EntityManager em, Long guestId, Connector connector, ObjectType objType) {
