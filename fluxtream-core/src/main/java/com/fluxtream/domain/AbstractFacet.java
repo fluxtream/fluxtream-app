@@ -73,6 +73,8 @@ public abstract class AbstractFacet extends AbstractEntity {
 
     @PostLoad
     void loadTags() {
+        if (tags==null||tags.equals(""))
+            return;
         StringTokenizer st = new StringTokenizer(tags);
         while(st.hasMoreTokens()) {
             String tag = st.nextToken();
@@ -90,6 +92,7 @@ public abstract class AbstractFacet extends AbstractEntity {
     }
 
     protected void persistTags() {
+        if (tagsList==null) return;
         StringBuilder sb = new StringBuilder(",");
         for (Tag tag : tagsList)
             sb.append(tag.name).append(",");
