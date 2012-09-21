@@ -53,7 +53,7 @@ define(["core/Application", "core/FlxState", "core/TabInterface"], function(Appl
 
         var tabName = splits[1];
         if (tabName == "" || tabName == null){
-            this.renderState(tabNames[0]);
+            this.renderState(tabNames[0], forceReload, params);
             return;
         }
         params.stateParts = splits;
