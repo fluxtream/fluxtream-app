@@ -518,13 +518,13 @@ public class FitBitTSUpdater extends AbstractUpdater {
                 int objectTypes = 0;
 				if (collectionType.equals("foods")
 						|| collectionType.equals("body")) {
-                    notificationsService.addNotification(guestId, Notification.Type.INFO, "Received new body info from Fitbit");
+                    //notificationsService.addNotification(guestId, Notification.Type.INFO, "Received new body info from Fitbit");
 					continue;
 				} else if (collectionType.equals("activities")) {
-                    notificationsService.addNotification(guestId, Notification.Type.INFO, "Received new activity info from Fitbit");
+                    //notificationsService.addNotification(guestId, Notification.Type.INFO, "Received new activity info from Fitbit");
                     objectTypes = 3;
 				} else if (collectionType.equals("sleep")) {
-                    notificationsService.addNotification(guestId, Notification.Type.INFO, "Received new sleep info from Fitbit");
+                    //notificationsService.addNotification(guestId, Notification.Type.INFO, "Received new sleep info from Fitbit");
                     objectTypes = 4;
 				}
 
