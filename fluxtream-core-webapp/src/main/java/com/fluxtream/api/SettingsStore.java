@@ -56,7 +56,8 @@ public class SettingsStore {
     @Produces({ MediaType.APPLICATION_JSON })
     public String saveSettings(@FormParam("guest_firstname") String firstName, @FormParam("guest_lastname") String lastName,
                                @FormParam("length_measure_unit") String lengthUnit, @FormParam("distance_measure_unit") String distanceUnit,
-                               @FormParam("weight_measure_unit") String weightUnit, @FormParam("temperature_unit") String temperatureUnit) throws IOException {
+                               @FormParam("weight_measure_unit") String weightUnit, @FormParam("temperature_unit") String temperatureUnit,
+                               @FormParam("password1") String password1, @FormParam("password2") String password2) throws IOException {
         setTransactionName(null, "POST /settings");
         try{
             GuestSettings.LengthMeasureUnit lngUnt = Enum.valueOf(
@@ -77,6 +78,22 @@ public class SettingsStore {
 
             settingsService.setFirstname(guestId, firstName);
             settingsService.setLastname(guestId, lastName);
+
+            if (password1.length()==0&&password2.length()>0)
+                return gson.toJson(new StatusModel(false, "Please fill in both password fields"));
+            else if (password2.length()==0&&password1.length()>0)
+                return gson.toJson(new StatusModel(false, "Password verification is required"));
+            else if (!(password1.length()==0&&password2.length()==0)) {
+                if (!password1.equals(password2)) {
+                    return gson.toJson(new StatusModel(false, "Passwords don't match"));
+                }
+                if (password1.length()<8) {
+                    return gson.toJson(new StatusModel(false, "Your password should be at least 8 characters long"));
+                } else {
+                    guestService.setPassword(guestId, password1);
+                }
+            }
+
             StatusModel status = new StatusModel(true, "settings updated!");
             return gson.toJson(status);
         }

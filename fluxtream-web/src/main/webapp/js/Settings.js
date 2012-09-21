@@ -40,13 +40,21 @@ define(function() {
                         event.preventDefault();
                         var formData = $("#settingsForm").serializeArray();
                         var submitdata = {};
-                        for (var i = 0; i < formData.length; i++){
+                        for (var i = 0; i < formData.length; i++) {
                             submitdata[formData[i].name] = formData[i].value;
                         }
+                        $("#setPasswordError").hide();
                         $.ajax("/api/settings",{
                             type:"POST",
                             data:submitdata,
-                            success:App.closeModal,
+                            success:function(status) {
+                                if (status.result=="OK")
+                                    App.closeModal();
+                                else {
+                                    $("#setPasswordError").show();
+                                    $("#setPasswordError").html(status.message);
+                                }
+                            },
                             error:App.closeModal
                         });
                     });
