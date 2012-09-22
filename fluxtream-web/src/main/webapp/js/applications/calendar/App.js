@@ -245,7 +245,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     $(".datepicker").hide();
                     return;
                 }
-                fetchState("GET", "/api/calendar/api/calendar/nav/getYear?year=" + $(event.target).text() + "&state=" + Calendar.tabState);
+                fetchState("GET", "/api/calendar/nav/getYear?year=" + $(event.target).text() + "&state=" + Calendar.tabState);
                 $(".datepicker").hide();
             }
         });

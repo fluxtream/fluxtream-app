@@ -17,5 +17,6 @@ public @interface ObjectTypeSpec {
 	boolean parallel() default false;
 	boolean isImageType() default false;
 	public String prettyname();
+    boolean isDateBased() default false;
 	
 }

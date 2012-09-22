@@ -59,6 +59,9 @@ public class FlickrFacetExtractor extends AbstractFacetExtractor {
                 facet.startTimeStorage = facet.endTimeStorage = toTimeStorage(dateTime.getYear(), dateTime.getMonthOfYear(),
                               dateTime.getDayOfMonth(), dateTime.getHourOfDay(),
                               dateTime.getMinuteOfHour(), 0);
+                facet.date = (new StringBuilder(dateTime.getYear()).append("-")
+                              .append(pad(dateTime.getMonthOfYear())).append("-")
+                              .append(pad(dateTime.getDayOfMonth()))).toString();
                 facet.datetaken = dateTime.getMillis();
                 facet.start = dateTime.getMillis();
                 facet.end = dateTime.getMillis();

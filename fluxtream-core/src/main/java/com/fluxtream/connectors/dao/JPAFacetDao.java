@@ -5,6 +5,7 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.lang.reflect.Method;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -36,7 +37,21 @@ public class JPAFacetDao implements FacetDao {
 	private EntityManager em;
 
 	public JPAFacetDao() {}
-	
+
+    @Override
+    public List<AbstractFacet> getFacetsByDates(Connector connector, long guestId, ObjectType objectType, List<String> dates) {
+        ArrayList<AbstractFacet> facets = new ArrayList<AbstractFacet>();
+        if (!connector.hasFacets()) return facets;
+
+        String queryName = connector.getName().toLowerCase()
+                           + "." + objectType.getName().toLowerCase()
+                           + ".byDates";
+        List<? extends AbstractFacet> found = JPAUtils.find(em, objectType.facetClass(), queryName, guestId, StringUtils.join(dates,","));
+        if (found!=null)
+            facets.addAll(found);
+        return facets;
+    }
+
 	@Override
 	public List<AbstractFacet> getFacetsBetween(Connector connector, long guestId, ObjectType objectType, TimeInterval timeInterval) {
 		ArrayList<AbstractFacet> facets = new ArrayList<AbstractFacet>();

@@ -170,6 +170,7 @@ public class Connector {
             objectType.name = ots.name();
             objectType.prettyname = ots.prettyname();
             objectType.isImageType = ots.isImageType();
+            objectType.isDateBased = ots.isDateBased();
             if (ots.extractor() != null) {
                 connector.addObjectTypeExtractorClass(
                         objectType.value, ots.extractor(),

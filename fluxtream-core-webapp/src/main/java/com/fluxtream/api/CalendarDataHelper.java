@@ -56,6 +56,20 @@ public class CalendarDataHelper {
 		}
 	}
 
+    public List<AbstractFacet> getFacets(Connector connector,
+                                         ObjectType objectType,
+                                         List<String> dates) {
+        List<AbstractFacet> facets = null;
+        try {
+            facets = apiDataService.getApiDataFacets(
+                    ControllerHelper.getGuestId(), connector, objectType,
+                    dates);
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+        return facets;
+    }
+
 	public List<AbstractFacet> getFacets(Connector connector,
 			ObjectType objectType, DayMetadataFacet dayMetadata,
 			int lookbackDays) {
@@ -68,47 +82,6 @@ public class CalendarDataHelper {
 			t.printStackTrace();
 		}
 		return facets;
-	}
-
-    public List<AbstractFacet> getFacets(Connector connector,
-                                         ObjectType objectType,
-                                         TimeInterval timeInterval) {
-        List<AbstractFacet> facets = null;
-        try {
-            facets = apiDataService.getApiDataFacets(
-                    ControllerHelper.getGuestId(), connector, objectType,
-                    timeInterval);
-        } catch (Throwable t) {
-            t.printStackTrace();
-        }
-        return facets;
-    }
-
-    public List<AbstractFacet> getFacets(DayMetadataFacet dayMetadata,
-			Connector connector, boolean lookback) {
-		ObjectType[] objectTypes = connector.objectTypes();
-		if (objectTypes == null)
-			return getFacets(connector, null, dayMetadata,
-					getLookbackDays(connector, null));
-		List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
-		for (ObjectType objectType : objectTypes) {
-			List<AbstractFacet> objectTypeFacets = getFacets(connector,
-					objectType, dayMetadata,
-					lookback ? getLookbackDays(connector, objectType) : 0);
-			if (objectTypeFacets != null)
-				facets.addAll(objectTypeFacets);
-		}
-		return facets;
-	}
-
-	private int getLookbackDays(Connector connector, ObjectType objectType) {
-		if (objectType != null) {
-			if (connector.getName().equals("withings")
-					&& objectType.getName().equals("weight"))
-				return 14; // TODO: strange results when this number is bigger
-							// (e.g. 25 or 30) -> understand why!
-		}
-		return 0;
 	}
 
 	void refreshApiData(DayMetadataFacet dayMetadata, ApiKey apiKey,

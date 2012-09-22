@@ -18,8 +18,7 @@ public class FlickrPhotoFacetVO extends
 	public void fromFacet(FlickrPhotoFacet facet, TimeInterval timeInterval,
 			GuestSettings settings) {
         start = facet.datetaken;
-		startMinute = toMinuteOfDay(new Date(facet.datetaken),
-				timeInterval.timeZone);
+		startMinute = minuteOfDayFromTimeStorage(facet.startTimeStorage);
 		this.thumbnailUrl = "http://farm" + facet.farm + ".static.flickr.com/"
 				+ facet.server + "/" + facet.flickrId + "_" + facet.secret
 				+ "_s.jpg";

@@ -12,6 +12,9 @@ import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.utils.SecurityUtils;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 public abstract class AbstractFacetVO<T extends AbstractFacet> {
 
@@ -20,7 +23,8 @@ public abstract class AbstractFacetVO<T extends AbstractFacet> {
 	public long id;
 	public String comment;
 	public String subType;
-	
+    protected static DateTimeFormatter timeStorageFormat = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
+
 	/**
 	 * Thread-safe cache for vo classes
 	 */
@@ -29,6 +33,11 @@ public abstract class AbstractFacetVO<T extends AbstractFacet> {
 	static {
 		voClasses = new Hashtable<String, Class<? extends AbstractFacetVO<? extends AbstractFacet>>>();
 	}
+
+    protected int minuteOfDayFromTimeStorage(String timeStorage) {
+        final DateTime dateTime = timeStorageFormat.parseDateTime(timeStorage);
+        return dateTime.getMinuteOfDay();
+    }
 
 	public void extractValues(T facet, TimeInterval timeInterval, GuestSettings settings) {
 		getType(facet);

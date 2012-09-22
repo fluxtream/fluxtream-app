@@ -33,6 +33,9 @@ public interface ApiDataService {
 	public void setFacetComment(long guestId, Connector connector,
 			long facetId, String text);
 
+    public List<AbstractFacet> getApiDataFacets(long guestId, Connector api,
+                                                ObjectType objectType, List<String> dates);
+
 	public List<AbstractFacet> getApiDataFacets(long guestId, Connector api,
 			ObjectType objectType, TimeInterval timeInterval);
 

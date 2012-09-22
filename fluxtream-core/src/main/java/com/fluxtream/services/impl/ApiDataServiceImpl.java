@@ -225,6 +225,14 @@ public class ApiDataServiceImpl implements ApiDataService {
 		}
 	}
 
+    @Override
+    public List<AbstractFacet> getApiDataFacets(long guestId,
+                                                Connector connector, ObjectType objectType,
+                                                List<String> dates) {
+        return jpaDao.getFacetsByDates(connector,
+                                       guestId, objectType, dates);
+    }
+
 	@Override
 	public List<AbstractFacet> getApiDataFacets(long guestId,
 			Connector connector, ObjectType objectType,

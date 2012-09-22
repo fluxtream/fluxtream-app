@@ -55,6 +55,9 @@ import com.google.gson.Gson;
 import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
 import com.luckycatlabs.sunrisesunset.dto.Location;
 import org.apache.log4j.Logger;
+import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -323,7 +326,7 @@ public class CalendarDataStore {
             setSolarInfo(digest, city, guestId, dayMetadata);
 
             List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter);
-            digest.selectedConnectors = connectorInfos(guestId,apiKeySelection);
+            digest.selectedConnectors = connectorInfos(guestId, apiKeySelection);
             List<ApiKey> allApiKeys = guestService.getApiKeys(guestId);
             allApiKeys = removeConnectorsWithoutFacets(allApiKeys);
             digest.nApis = allApiKeys.size();
@@ -457,8 +460,11 @@ public class CalendarDataStore {
             calendarDataHelper.refreshApiData(dayMetadata, apiKey, null, day);
             if (objectTypes != null) {
                 for (ObjectType objectType : objectTypes) {
-                    Collection<AbstractFacetVO<AbstractFacet>> facetCollection = getFacetVos(dayMetadata, settings,
-                                                                                             connector, objectType);
+                    Collection<AbstractFacetVO<AbstractFacet>> facetCollection = null;
+                    if (objectType.isDateBased())
+                        facetCollection = getFacetVos(Arrays.asList(date), settings, connector, objectType, dayMetadata.getTimeInterval());
+                    else
+                        facetCollection = getFacetVos(dayMetadata, settings, connector, objectType);
                     if (facetCollection.size() > 0) {
                         day.payload = facetCollection;
                     }
@@ -504,8 +510,18 @@ public class CalendarDataStore {
 			ObjectType[] objectTypes = connector.objectTypes();
             if (objectTypes != null) {
                 for (ObjectType objectType : objectTypes) {
-                    Collection<AbstractFacetVO<AbstractFacet>> facetCollection = getFacetVos(dayMetadata,
-                                                                                             settings, connector, objectType);
+                    Collection<AbstractFacetVO<AbstractFacet>> facetCollection = null;
+                    if (objectType.isDateBased())
+                        facetCollection = getFacetVos(toDates(dayMetadata.start,
+                                                              dayMetadata.end,
+                                                              TimeZone.getTimeZone(dayMetadata.timeZone)),
+                                                      settings,
+                                                      connector,
+                                                      objectType,
+                                                      dayMetadata.getTimeInterval());
+                    else
+                        facetCollection = getFacetVos(dayMetadata, settings, connector, objectType);
+
                     setFilterInfo(dayMetadata, digest, apiKeySelection, apiKey,
                                   connector, objectType, facetCollection);
                 }
@@ -519,7 +535,21 @@ public class CalendarDataStore {
 		}
 	}
 
-	@SuppressWarnings("rawtypes")
+    private static DateTimeFormatter simpleDateFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
+
+    private List<String> toDates(final long start, final long end, TimeZone timeZoneAtFirstDay) {
+        Calendar calendar = Calendar.getInstance();
+        List<String> dates = new ArrayList<String>();
+        calendar.setTimeInMillis(start);
+        long current = start;
+        for(current=start; current<end; current+=86400000) {
+            dates.add(simpleDateFormatter.withZone(DateTimeZone.forTimeZone(timeZoneAtFirstDay)).print(current));
+            current+=86400000;
+        }
+        return dates;
+    }
+
+    @SuppressWarnings("rawtypes")
 	private void setFilterInfo(DayMetadataFacet dayMetadata,
 			DigestModel digest, List<ApiKey> apiKeySelection, ApiKey apiKey,
 			Connector connector, ObjectType objectType,
@@ -544,9 +574,42 @@ public class CalendarDataStore {
 		}
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private Collection<AbstractFacetVO<AbstractFacet>> getFacetVos(List<String> dates,
+                                                                   GuestSettings settings,
+                                                                   Connector connector,
+                                                                   ObjectType objectType,
+                                                                   TimeInterval timeInterval)
+            throws InstantiationException, IllegalAccessException,
+                   ClassNotFoundException {
+        List<AbstractFacet> objectTypeFacets = calendarDataHelper.getFacets(
+                connector,
+                objectType,
+                dates);
+        return getAbstractFacetVOs(settings, objectTypeFacets, timeInterval);
+    }
+
+    private Collection<AbstractFacetVO<AbstractFacet>> getAbstractFacetVOs(final GuestSettings settings,
+                                                                           final List<AbstractFacet> objectTypeFacets,
+                                                                           final TimeInterval timeInterval)
+            throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+        Collection<AbstractFacetVO<AbstractFacet>> facetCollection = new ArrayList<AbstractFacetVO<AbstractFacet>>();
+        if (objectTypeFacets != null) {
+            for (AbstractFacet abstractFacet : objectTypeFacets) {
+                AbstractFacetVO<AbstractFacet> facetVO = AbstractFacetVO
+                        .getFacetVOClass(abstractFacet).newInstance();
+                facetVO.extractValues(abstractFacet,
+                                      timeInterval, settings);
+                facetCollection.add(facetVO);
+            }
+        }
+        return facetCollection;
+    }
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
 	private Collection<AbstractFacetVO<AbstractFacet>> getFacetVos(DayMetadataFacet dayMetadata,
-                                                                   GuestSettings settings, Connector connector, ObjectType objectType)
+                                                                   GuestSettings settings, Connector connector,
+                                                                   ObjectType objectType)
 			throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException {
         List<AbstractFacet> objectTypeFacets = calendarDataHelper.getFacets(
@@ -555,71 +618,8 @@ public class CalendarDataStore {
 				dayMetadata,
 				getLookbackDays(connector.getName(), objectType == null ? null
                                                                         : objectType.getName()));
-		Collection<AbstractFacetVO<AbstractFacet>> facetCollection = new ArrayList<AbstractFacetVO<AbstractFacet>>();
-		if (objectTypeFacets != null) {
-			for (AbstractFacet abstractFacet : objectTypeFacets) {
-				AbstractFacetVO<AbstractFacet> facetVO = AbstractFacetVO
-						.getFacetVOClass(abstractFacet).newInstance();
-				facetVO.extractValues(abstractFacet,
-						dayMetadata.getTimeInterval(), settings);
-				facetCollection.add(facetVO);
-			}
-		}
-		return facetCollection;
+        return getAbstractFacetVOs(settings, objectTypeFacets, dayMetadata.getTimeInterval());
 	}
-
-    @GET
-    @Path("/days/{start}/{end}")
-    @Produces({ MediaType.APPLICATION_JSON })
-    public String getDailyConnectorData(@QueryParam("connectorNames") String connectorNames,
-                                        @QueryParam("objectTypes") String objectTypes,
-                                        @PathParam("start") long start,
-                                        @PathParam("end") long end)
-            throws InstantiationException, IllegalAccessException,
-                   ClassNotFoundException {
-        try{
-            setTransactionName(null, "GET /calendar/days/{start}/{end}");
-            long guestId = ControllerHelper.getGuestId();
-            GuestSettings settings = settingsService.getSettings(guestId);
-            TimeInterval timeInterval = new TimeInterval(start, end, TimeUnit.DAY, TimeZone.getTimeZone("UTC"));
-            String[] names = connectorNames.split(",");
-            String[] types = objectTypes.split(",");
-            if (names.length!=types.length) {
-                throw new RuntimeException("You need to supply the exact same number of connector names" +
-                                           "and objectType names");
-            }
-            List<ConnectorDataModel> dataModels = new ArrayList<ConnectorDataModel>();
-            for (int i=0; i<names.length; i++) {
-                Connector connector = Connector.getConnector(names[i]);
-                ObjectType objectType = ObjectType.getObjectType(connector, types[i]);
-                List<AbstractFacet> objectTypeFacets = calendarDataHelper.getFacets(
-                        connector,
-                        objectType,
-                        timeInterval);
-                Collection<AbstractFacetVO<AbstractFacet>> facetCollection = new ArrayList<AbstractFacetVO<AbstractFacet>>();
-                if (objectTypeFacets != null) {
-                    for (AbstractFacet abstractFacet : objectTypeFacets) {
-                        AbstractFacetVO<AbstractFacet> facetVO = AbstractFacetVO
-                                .getFacetVOClass(abstractFacet).newInstance();
-                        facetVO.extractValues(abstractFacet,
-                                              timeInterval, settings);
-                        facetCollection.add(facetVO);
-                    }
-                }
-                ConnectorDataModel dataModel = new ConnectorDataModel();
-                dataModel.connector = names[i];
-                dataModel.objectType = types[i];
-                dataModel.facetVos = facetCollection;
-                dataModels.add(dataModel);
-            }
-
-            return gson.toJson(dataModels);
-        }
-        catch (Exception e){
-            return gson.toJson(new StatusModel(false,"Failed to get digest: " + e.getMessage()));
-        }
-    }
-
 
     private boolean needsUpdate(ApiKey apiKey, DayMetadataFacet dayMetadata) {
 		TimeInterval interval = dayMetadata.getTimeInterval();

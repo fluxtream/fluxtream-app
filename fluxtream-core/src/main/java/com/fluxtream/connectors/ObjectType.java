@@ -62,6 +62,7 @@ public class ObjectType {
 	
 	String name;
 	String prettyname;
+    boolean isDateBased;
 	
 	public static List<ObjectType> getObjectTypes(Connector connector, int objectTypes) {
 		List<ObjectType> connectorTypes = connectorObjectTypes.get(connector);
@@ -73,6 +74,10 @@ public class ObjectType {
 		}
 		return result;
 	}
+
+    public boolean isDateBased() {
+        return isDateBased;
+    }
 	
 	public String toString() {
 		return name;

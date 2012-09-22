@@ -8,6 +8,8 @@ import com.fluxtream.domain.AbstractFacet;
 
 public interface FacetDao {
 
+    public List<AbstractFacet> getFacetsByDates(Connector connector, long guestId, ObjectType objectType, List<String> dates);
+
     public List<AbstractFacet> getFacetsBetween(Connector connector, long guestId, ObjectType objectType, TimeInterval timeInterval);
 
     public AbstractFacet getOldestFacet(Connector connector, long guestId, ObjectType objectType);

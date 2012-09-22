@@ -88,7 +88,7 @@ public class ZeoSleepStatsFacetExtractor extends AbstractFacetExtractor {
             facet.startTimeStorage = toTimeStorage(year, month, day, hours, minutes, seconds);
 		else {
             facet.date = (new StringBuilder()).append(year)
-                    .append("-").append(month).append("-").append(day).toString();
+                    .append("-").append(pad(month)).append("-").append(pad(day)).toString();
             facet.endTimeStorage = toTimeStorage(year, month, day, hours, minutes, seconds);
         }
 

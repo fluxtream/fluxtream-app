@@ -11,9 +11,10 @@ import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.domain.AbstractFacet;
 
 @Entity(name="Facet_FlickrPhoto")
-@ObjectTypeSpec(name = "photo", value = 1, isImageType=true, prettyname = "Photos")
+@ObjectTypeSpec(name = "photo", value = 1, isImageType=true, prettyname = "Photos", isDateBased = true)
 @NamedQueries({
 		@NamedQuery(name = "flickr.photo.deleteAll", query = "DELETE FROM Facet_FlickrPhoto facet WHERE facet.guestId=?"),
+        @NamedQuery(name = "flickr.photo.byDates", query = "SELECT facet FROM Facet_FlickrPhoto facet WHERE facet.guestId=? AND facet.date IN ?"),
 		@NamedQuery(name = "flickr.photo.between", query = "SELECT facet FROM Facet_FlickrPhoto facet WHERE facet.guestId=? AND facet.datetaken>=? AND facet.datetaken<=?")
 })
 @Indexed

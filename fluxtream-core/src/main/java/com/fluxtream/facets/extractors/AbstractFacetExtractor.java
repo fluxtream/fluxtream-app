@@ -45,10 +45,16 @@ public abstract class AbstractFacetExtractor {
                                  int minutes, int seconds) {
         //yyyy-MM-dd'T'HH:mm:ss.SSS
         return (new StringBuilder()).append(year)
-                .append("-").append(month).append("-")
-                .append(day).append("T").append(hours)
-                .append(":").append(minutes).append(":")
-                .append(seconds).append(".000").toString();
+                .append("-").append(pad(month)).append("-")
+                .append(pad(day)).append("T").append(pad(hours))
+                .append(":").append(pad(minutes)).append(":")
+                .append(pad(seconds)).append(".000").toString();
+    }
+
+    protected static String pad(int i) {
+        return i<10
+               ? (new StringBuilder("0").append(i)).toString()
+               : String.valueOf(i);
     }
 
 	public abstract List<AbstractFacet> extractFacets(ApiData apiData,
