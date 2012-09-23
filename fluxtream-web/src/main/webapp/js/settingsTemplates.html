@@ -70,3 +70,81 @@
         </div>
     </div>
 </template>
+<template id="sharingDialog">
+    <div id="sharingModal" class="modal fade hide in">
+        <div class="modal-header">
+            <a class="close" data-dismiss="modal">&times;</a>
+            <h3>Sharing Settings</h3>
+        </div>
+        <div class="modal-body">
+            <div class="container-fluid">
+                <div class="row-fluid">
+                    <div class="span12">
+                        <div class="btn-group">
+                            <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+                                &lt;No Selected User&gt;
+                                <span class="caret"></span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                {{#buddies}}
+                                    <li><a href="">{{username}}</a></li>
+                                {{/buddies}}
+                                {{^buddies}}
+                                    <li><a href="javascript:void(0)"><i>Sharing with nobody yet...</i></a></li>
+                                {{/buddies}}
+                                <li class="divider"></li>
+                                <li><a href="javascript:App.findUserDialog()">Find User...</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div><br/>
+                <div class="row-fluid">
+                    <div class="span19" id="sharedConnectors">
+                        <div class="row-fluid">
+                            <div class="span4"><input disabled type="checkbox">&nbsp;Fitbit</input> </div>
+                            <div class="span4"><input disabled type="checkbox">&nbsp;Zeo</input> </div>
+                            <div class="span4"><input disabled type="checkbox">&nbsp;Withings</input> </div>
+                        </div>
+                        <div class="row-fluid">
+                            <div class="span4"><input disabled type="checkbox">&nbsp;BodyMedia</input> </div>
+                            <div class="span4"><input disabled type="checkbox">&nbsp;Google Latitude</input> </div>
+                            <div class="span4"><input disabled type="checkbox">&nbsp;Flickr</input> </div>
+                        </div>
+                        <div class="row-fluid">
+                            <div class="span4"><input disabled type="checkbox">&nbsp;Picasa</input> </div>
+                            <div class="span4"><input disabled type="checkbox">&nbsp;Google Calendar</input> </div>
+                            <div class="span4"><input disabled type="checkbox">&nbsp;Last FM</input> </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn" onclick="$('#sharingModal').modal('hide');">Close</button>
+        </div>
+    </div>
+</template>
+<template id="findUserDialog">
+    <div id="findUserModal" class="modal fade hide in">
+        <div class="modal-header">
+            <a class="close" data-dismiss="modal">&times;</a>
+            <h3>Invite User</h3>
+        </div>
+        <div class="modal-body">
+            <div class="container-fluid">
+                <form id="findUserForm" action="javascript:void(0);">
+                    <input type="text" placeholder="Please, Enter a Username..." id="findUserField" style="display:inline"/>
+                    <img class="loading-animation"
+                         src="/{{release}}/images/loading.gif"/>
+                    <span class="help-block">You need to enter the fluxtream username of the person you want to invite.
+                    If you don't already know it, please ask them to tell you what it is.</span>
+                </form>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary disabled" onclick="App.addBuddy($('#findUserField').val());"
+                    id="shareMyDataButton">Share My Data</button>
+            <button class="btn" onclick="$('#findUserModal').modal('hide');">Close</button>
+        </div>
+    </div>
+</template>

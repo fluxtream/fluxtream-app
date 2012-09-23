@@ -1,7 +1,8 @@
 define(
-    [ "core/FlxState", "Addresses", "ManageConnectors", "AddConnectors", "ConnectorConfig", "Settings",
+    [ "core/FlxState", "Addresses", "ManageConnectors", "AddConnectors", "ConnectorConfig", "Settings", "SharingDialog",
       "libs/jquery.form", "libs/jquery.jeditable.mini" ],
-    function(FlxState, Addresses, ManageConnectors, AddConnectors, ConnectorConfig, Settings) {
+    function(FlxState, Addresses, ManageConnectors, AddConnectors, ConnectorConfig, Settings,
+        SharingDialog ) {
 
         var App = {};
         var toLoad = 0, loaded = 0;
@@ -311,8 +312,55 @@ define(
             }
         };
 
+        App.sharingDialog = function() {
+            SharingDialog.show();
+        };
+
+        App.addBuddy = function(username) {
+            $.ajax({
+                url: "/api/sharing/findUser?username="+username,
+                success: function(status) {
+                    $('#findUserModal').modal('hide');
+                    $('#sharingDialog').modal('hide');
+                    SharingDialog.show();
+                }
+            });
+        }
+
+        App.findUserDialog = function() {
+            App.loadMustacheTemplate("settingsTemplates.html","findUserDialog",function(template){
+                var html = template.render({release : window.FLX_RELEASE_NUMBER});
+                App.makeModal(html);
+                $(".loading-animation").hide();
+                $("#findUserField").keypress(function(evt) {
+                    if (evt.which==13) {
+                        findUser($("#findUserField").val());
+                        $(".loading-animation").css("display", "inline");
+                    }
+                });
+            });
+        }
+
+        function findUser(username) {
+            $.ajax({
+                url: "/api/sharing/findUser?username="+username,
+                success: function(status) {
+                    $(".loading-animation").hide();
+                    if (status.result=="OK") {
+                        var message = status.message + " Is " + status.payload.fullname
+                            + " the person you're looking for? "
+                            +  "If yes, please hit the 'Share My Data' button below";
+                        $("#findUserForm .help-block").html(message);
+                        $("#shareMyDataButton").removeClass("disabled");
+                    } else {
+                        $("#findUserForm .help-block").html(status.message);
+                        $("#shareMyDataButton").addClass("disabled");
+                    }
+                }
+            });
+        }
+
         App.showConnectorsPage = function(page) {
-            console.log("showing connectors page " + page);
             $("#availableConnectors").load(
                 "/connectors/availableConnectors?page=" + page);
         };

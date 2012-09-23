@@ -242,6 +242,7 @@ public class GuestServiceImpl implements GuestService {
 		JPAUtils.execute(em, "updateWorkerTasks.delete.all", guest.getId());
         JPAUtils.execute(em, "tags.delete.all", guest.getId());
         JPAUtils.execute(em, "notifications.delete.all", guest.getId());
+        JPAUtils.execute(em, "sharingBuddies.delete.all", guest.getId());
 		em.remove(guest);
 	}
 

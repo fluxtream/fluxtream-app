@@ -85,6 +85,9 @@
 											class="icon-cog icon-large" style="float: right;"></i></a></li>
                                     <li><a href="javascript:App.addresses()">Addresses <i style="float: right;" class="icon-home icon-large"></i></a></li>
 									<li class="divider"></li>
+                                    <li><a href="javascript:App.sharingDialog()">Sharing... <i
+                                            class="icon-share" style="float: right;"></i></a></li>
+                                    <li class="divider"></li>
 									<li><a href="/logout">Logout <i style="float: right"
 											class="icon-off icon-large"></i></a></li>
 								</ul></li>

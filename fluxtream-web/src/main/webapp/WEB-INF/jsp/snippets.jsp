@@ -81,67 +81,50 @@
                     </div>
                 </div>
             </div>
-        </div>    
-
-
-
-<div class="container-fluid">
-    <div class="row-fluid">
-        <div class="span8">
-            <div class="row-fluid">
-                    <div class="set-device-header" style="padding-left:15px;">
-                        <h2>Fitbit</h2>
-                    </div>
-                    <div class="tabbable tabs-left">
-                      <ul class="nav nav-tabs span3">
-                          <li>
-                            <a href="#">General settings</a>
-                          </li>
-                          <li class="active">
-                            <a href="#">Advanced settings</a>
-                          </li>
-                      </ul>
-                      <div class="tab-content span8 set-device">
-                    <form class="form-inline">
-                        <table class="table flx-channel-table">
-                            <thead>
-                                <tr>
-                                    <th>Select</th>
-                                    <th>Name</th>
-                                    <th>Description</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><input type="checkbox" name="1" id="1"></td>
-                                    <td class="flx-channel-name"><label for="1">Fitbit sleep</label></td>
-                                    <td class="description">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. </td>
-                                </tr>
-                                <tr>
-                                    <td><input type="checkbox" name="2" id="2"></td>
-                                    <td class="flx-channel-name"><label for="2">Fitbit activity summary</label></td>
-                                    <td class="description">Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. </td>
-                                </tr>
-                                <tr>
-                                    <td><input type="checkbox" name="3" id="3"></td>
-                                    <td class="flx-channel-name"><label for="3">Fitbit log</label></td>
-                                    <td class="description">Quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. </td>
-                                </tr>
-                            </tbody>
-                            <tfoot>
-                                <tr>
-                                    <td colspan="3">
-                                        <button class="btn">Save changes</button>
-                                    </td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </form>
-                </div>
         </div>
-    </div>
-</div>        
-<div class="row-fluid">
+
+
+        <div class="container-fluid">
+            <div class="row-fluid">
+                <div class="span2">
+                    <div class="btn-group">
+                        <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+                            &lt;No Selected User&gt;
+                            <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a href="">Thomas Carton de Wiart</a></li>
+                            <li><a href="">Anne Wright</a></li>
+                            <li><a href="">Randy Sargent</a></li>
+                            <li class="divider"></li>
+                            <li><a href="">New User...</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div><br/>
+            <div class="row-fluid">
+                <div class="span9">
+                    <div class="row-fluid">
+                        <div class="span3"><input disabled=disabled type="checkbox">&nbsp;Fitbit</input> </div>
+                        <div class="span3"><input disabled=disabled type="checkbox">&nbsp;Zeo</input> </div>
+                        <div class="span3"><input disabled=disabled type="checkbox">&nbsp;Withings</input> </div>
+                    </div>
+                    <div class="row-fluid">
+                        <div class="span3"><input disabled=disabled type="checkbox">&nbsp;BodyMedia</input> </div>
+                        <div class="span3"><input disabled=disabled type="checkbox">&nbsp;Google Latitude</input> </div>
+                        <div class="span3"><input disabled=disabled type="checkbox">&nbsp;Flickr</input> </div>
+                    </div>
+                    <div class="row-fluid">
+                        <div class="span3"><input disabled=disabled type="checkbox">&nbsp;Picasa</input> </div>
+                        <div class="span3"><input disabled=disabled type="checkbox">&nbsp;Google Calendar</input> </div>
+                        <div class="span3"><input disabled=disabled type="checkbox">&nbsp;Last FM</input> </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="row-fluid">
 <div class="span8">
         <div class="row-fluid well">
             <div class="span4">
