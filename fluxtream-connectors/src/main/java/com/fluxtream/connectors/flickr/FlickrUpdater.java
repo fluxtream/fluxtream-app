@@ -109,8 +109,9 @@ public class FlickrUpdater extends AbstractUpdater {
 		String token = guestService.getApiKeyAttribute(
 				updateInfo.apiKey.getGuestId(), connector(), "token");
 
-		String startDate = dateFormat.print(from);
-		String endDate = dateFormat.print(to);
+        // The start/end upload dates should be in the form of a unix timestamp (see http://www.flickr.com/services/api/flickr.people.getPhotos.htm)
+		String startDate = String.valueOf(from / 1000);
+		String endDate = String.valueOf(to / 1000);
 
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("method", "flickr.people.getPhotos");
