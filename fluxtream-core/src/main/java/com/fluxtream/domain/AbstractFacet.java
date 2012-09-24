@@ -1,8 +1,10 @@
 package com.fluxtream.domain;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.Lob;
@@ -14,7 +16,6 @@ import javax.persistence.Query;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
-import org.apache.log4j.Logger;
 import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
 import org.hibernate.search.annotations.Field;
@@ -25,7 +26,7 @@ import org.hibernate.search.annotations.Store;
 @Indexed
 public abstract class AbstractFacet extends AbstractEntity {
 
-    private static final Logger LOG = Logger.getLogger(AbstractFacet.class);
+    private static final String TAG_DELIMITER = ",";
 
     public AbstractFacet() {
 		ObjectTypeSpec objectType = this.getClass().getAnnotation(ObjectTypeSpec.class);
@@ -57,11 +58,19 @@ public abstract class AbstractFacet extends AbstractEntity {
 	public int api;
 	@Index(name="objectType_index")
 	public int objectType;
-	
+
+    /**
+     * A string representation of the tags for this facet.  You should NEVER set this field directly.  Instead, always
+     * use the {@link #addTags} method which sets both this and the {@link #tagSet} fields.
+     */
 	@Lob
     public String tags;
 
-    public transient List<Tag> tagsList;
+    /**
+     * A {@link Set} representation of the tags for this facet.  You should NEVER set this field directly.  Instead,
+     * always use the {@link #addTags} method which sets both this and the {@link #tags} fields.
+     */
+    public transient Set<Tag> tagSet;
 
 	@Lob
 	@Field(index=org.hibernate.search.annotations.Index.TOKENIZED, store=Store.YES)
@@ -73,46 +82,97 @@ public abstract class AbstractFacet extends AbstractEntity {
 
     @PostLoad
     void loadTags() {
-        if (tags==null||tags.equals(""))
+        if (tags == null || tags.equals("")) {
             return;
+        }
         StringTokenizer st = new StringTokenizer(tags);
-        while(st.hasMoreTokens()) {
-            String tag = st.nextToken();
-            if (tag.length()>0)
+        while (st.hasMoreTokens()) {
+            String tag = st.nextToken().trim();
+            if (tag.length() > 0) {
                 addTag(tag);
+            }
         }
     }
 
     private void addTag(final String tagName) {
-        if (tagsList==null)
-            tagsList = new ArrayList<Tag>();
-        Tag tag = new Tag();
-        tag.name = tagName;
-        tagsList.add(tag);
+        if (tagName != null && tagName.length() > 0) {
+            if (tagSet == null) {
+                tagSet = new HashSet<Tag>();
+            }
+            Tag tag = new Tag();
+            tag.name = tagName;
+            tagSet.add(tag);
+        }
     }
 
     protected void persistTags() {
-        if (tagsList==null) return;
-        StringBuilder sb = new StringBuilder(",");
-        for (Tag tag : tagsList)
-            sb.append(tag.name).append(",");
-        if (sb.length()>1)
-            tags = sb.toString();
-        else
-            tags = "";
+        buildTagsStringFromTagsSet();
     }
-	
-	@PrePersist @PreUpdate
-	protected void setFullTextDescription() {
-		this.fullTextDescription = null;
-		makeFullTextIndexable();
-		if (this.comment!=null) {
-			if (this.fullTextDescription==null)
-				this.fullTextDescription = "";
-			this.fullTextDescription += this.comment;
-		}
+
+    private void buildTagsStringFromTagsSet() {
+        if (tagSet == null) {
+            return;
+        }
+        if (tagSet.size() > 0) {
+            final StringBuilder sb = new StringBuilder(TAG_DELIMITER);
+            for (final Tag tag : tagSet) {
+                if (tag.name.length() > 0) {
+                    sb.append(tag.name).append(TAG_DELIMITER);
+                }
+            }
+            if (sb.length() > 1) {
+                tags = sb.toString();
+            }
+        }
+        else {
+            tags = "";
+        }
+    }
+
+    @PrePersist
+    @PreUpdate
+    protected void setFullTextDescription() {
+        this.fullTextDescription = null;
+        makeFullTextIndexable();
+        if (this.comment != null) {
+            if (this.fullTextDescription == null) {
+                this.fullTextDescription = "";
+            }
+            this.fullTextDescription += " " + this.comment;
+            this.fullTextDescription = this.fullTextDescription.trim();
+        }
         persistTags();
-	}
+    }
+
+    /**
+     * Parses the given space-delimited tags {@link String}, replacing illegal characters with an underscore, and adds
+     * them to this instance's {@link #tags} and {@link #tagSet} fields.  One should ALWAYS use this method instead of
+     * directly setting the member fields.
+     *
+     * @see Tag#parseTags(String)
+     */
+    public void addTags(final String tagsStr) {
+        if (tagsStr != null && tagsStr.length() > 0) {
+            // create the Set if necessary
+            if (tagSet == null) {
+                tagSet = new HashSet<Tag>();
+            }
+
+            tagSet.addAll(Tag.parseTags(tagsStr));
+
+            // build the String representation
+            buildTagsStringFromTagsSet();
+        }
+    }
+
+    /** Returns an {@link Collections#unmodifiableSet(Set) unmodifiable Set} of the tags for this facet. */
+    public Set<Tag> getTags() {
+        return Collections.unmodifiableSet(tagSet);
+    }
+
+    public boolean hasTags() {
+        return tagSet != null && tagSet.size() > 0;
+    }
 
     public static AbstractFacet getOldestFacet(EntityManager em, Long guestId, Connector connector, ObjectType objType) {
         return getOldestOrLatestFacet(em, guestId, connector, objType, "asc");

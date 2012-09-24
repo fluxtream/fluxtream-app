@@ -1,30 +1,26 @@
 package com.fluxtream.connectors.flickr;
 
-import static com.fluxtream.utils.HttpUtils.fetch;
-import static com.fluxtream.utils.Utils.hash;
-
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
-
-import com.fluxtream.utils.Utils;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import com.fluxtream.connectors.annotations.JsonFacetCollection;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.RateLimitReachedException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiUpdate;
 import com.fluxtream.services.GuestService;
+import com.fluxtream.utils.Utils;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import static com.fluxtream.utils.HttpUtils.fetch;
+import static com.fluxtream.utils.Utils.hash;
 
 /**
  * @author candide
@@ -125,9 +121,9 @@ public class FlickrUpdater extends AbstractUpdater {
 		params.put("auth_token", token);
 		params.put("format", "json");
 		params.put("nojsoncallback", "1");
-		params.put("extras", "date_upload,date_taken,geo,tags");
-		params.put("min_taken_date", startDate);
-		params.put("max_taken_date", endDate);
+		params.put("extras", "date_upload,date_taken,description,geo,tags");
+		params.put("min_upload_date", startDate);
+		params.put("max_upload_date", endDate);
 
 		String api_sig = sign(params);
 
@@ -138,7 +134,7 @@ public class FlickrUpdater extends AbstractUpdater {
                                  "&api_key=" + api_key +
                                  "&user_id=" + nsid +
                                  "&auth_token=" + token +
-                                 "&format=json&nojsoncallback=1&extras=date_upload,date_taken,geo,tags" +
+                                 "&format=json&nojsoncallback=1&extras=date_upload,date_taken,description,geo,tags" +
                                  "&min_upload_date=" + startDate +
                                  "&max_upload_date=" + endDate +
                                  "&api_sig=" + api_sig;

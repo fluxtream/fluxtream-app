@@ -3,12 +3,6 @@ package com.fluxtream.connectors.picasa;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-
-import org.springframework.stereotype.Component;
-
 import com.fluxtream.connectors.annotations.JsonFacetCollection;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractGoogleOAuthUpdater;
@@ -23,6 +17,9 @@ import com.google.gdata.data.media.mediarss.MediaContent;
 import com.google.gdata.data.media.mediarss.MediaThumbnail;
 import com.google.gdata.data.photos.AlbumFeed;
 import com.google.gdata.data.photos.PhotoEntry;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.springframework.stereotype.Component;
 
 @Component
 @Updater(prettyName = "Picasa", value = 13, objectTypes = { PicasaPhotoFacet.class })
@@ -100,7 +97,7 @@ public class PicasaUpdater extends AbstractGoogleOAuthUpdater {
 		if (entries != null) {
 			for (PhotoEntry photoEntry : entries) {
 				PicasaPhotoFacet sentry = new PicasaPhotoFacet();
-				sentry.description = photoEntry.getDescription().getPlainText();
+				sentry.comment = photoEntry.getDescription().getPlainText();
 				sentry.photoId = photoEntry.getId();
 				List<MediaThumbnail> mediaThumbnails = photoEntry
 						.getMediaThumbnails();
