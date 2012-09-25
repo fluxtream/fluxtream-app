@@ -1,25 +1,27 @@
 package com.fluxtream.services;
 
 import java.util.List;
+import com.fluxtream.domain.CoachingBuddy;
 import com.fluxtream.domain.Guest;
-import com.fluxtream.domain.SharingBuddy;
 
 /**
  *
  * @author Candide Kemmler (candide@fluxtream.com)
  */
-public interface SharingService {
+public interface CoachingService {
 
-    public void addSharingBuddy(long guestId, String username);
+    public void addCoach(long guestId, String username);
 
-    public void removeSharingBuddy(long guestId, String username);
+    public void removeCoach(long guestId, String username);
 
     public void addSharedConnector(long guestId, String username, String connectorName, String filterJson);
 
     public void removeSharedConnector(long guestId, String username, String connectorName);
 
-    public List<Guest> getBuddies(long guestId);
+    public List<Guest> getCoaches(long guestId);
 
-    public SharingBuddy getSharingBuddy(long guestId, String username);
+    public List<Guest> getCoachees(long guestId);
+
+    public CoachingBuddy getCoach(long guestId, String username);
 
 }

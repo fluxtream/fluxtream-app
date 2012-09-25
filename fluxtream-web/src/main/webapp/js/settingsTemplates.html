@@ -74,13 +74,13 @@
     <div id="sharingModal" class="modal fade hide in">
         <div class="modal-header">
             <a class="close" data-dismiss="modal">&times;</a>
-            <h3>Sharing Buddies</h3>
+            <h3>Coaching Buddies</h3>
         </div>
         <div class="modal-body">
             <div class="container-fluid">
                 <div class="row-fluid">
                     <div class="span12">
-                        <div id="buddiesDropdown"/>
+                        <div id="coachesDropdown"/>
                     </div>
                 </div><br/>
                 <div class="row-fluid">
@@ -94,19 +94,19 @@
         </div>
     </div>
 </template>
-<template id="buddiesDropdown">
+<template id="coachesDropdown">
     <div class="btn-group">
         <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
-            {{selectedBuddy}}
+            {{selectedCoach}}
             <span class="caret"></span>
         </a>
         <ul class="dropdown-menu">
-            {{#buddies}}
-            <li><a href="javascript:App.sharingDialog.showBuddy('{{username}}')">{{fullname}}</a></li>
-            {{/buddies}}
-            {{^buddies}}
+            {{#coaches}}
+            <li><a href="javascript:App.sharingDialog.showCoach('{{username}}')">{{fullname}}</a></li>
+            {{/coaches}}
+            {{^coaches}}
             <li><a href="javascript:void(0)"><i>Your buddy list is empty</i></a></li>
-            {{/buddies}}
+            {{/coaches}}
             <li class="divider"></li>
             <li><a href="javascript:App.sharingDialog.findUserDialog()">Add Buddy...</a></li>
         </ul>
@@ -141,7 +141,7 @@
             </div>
         </div>
         <div class="modal-footer">
-            <button class="btn btn-primary disabled" onclick="App.sharingDialog.addBuddy($('#findUserField').val());"
+            <button class="btn btn-primary disabled" onclick="App.sharingDialog.addCoach($('#findUserField').val());"
                     id="shareMyDataButton">Add Buddy</button>
             <button class="btn" onclick="$('#findUserModal').modal('hide');">Close</button>
         </div>

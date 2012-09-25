@@ -3,8 +3,6 @@ package com.fluxtream.domain;
 import javax.persistence.Entity;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 import org.hibernate.annotations.Index;
 
 /**
@@ -15,7 +13,7 @@ import org.hibernate.annotations.Index;
 public class SharedConnector extends AbstractEntity {
 
     @ManyToOne
-    public SharingBuddy buddy;
+    public CoachingBuddy buddy;
 
     @Index(name = "connectorName")
     public String connectorName;

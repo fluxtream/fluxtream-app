@@ -38,12 +38,14 @@ import com.fluxtream.mvc.models.ConnectorDataModel;
 import com.fluxtream.mvc.models.ConnectorDigestModel;
 import com.fluxtream.mvc.models.ConnectorResponseModel;
 import com.fluxtream.mvc.models.DigestModel;
+import com.fluxtream.mvc.models.GuestModel;
 import com.fluxtream.mvc.models.NotificationModel;
 import com.fluxtream.mvc.models.SettingsModel;
 import com.fluxtream.mvc.models.SolarInfoModel;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.mvc.models.TimeBoundariesModel;
 import com.fluxtream.services.ApiDataService;
+import com.fluxtream.services.CoachingService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.NotificationsService;
@@ -92,6 +94,9 @@ public class CalendarDataStore {
 	@Autowired
     CalendarDataHelper calendarDataHelper;
 
+    @Autowired
+    CoachingService coachingService;
+
 	Gson gson = new Gson();
 
 	@GET
@@ -119,6 +124,7 @@ public class CalendarDataStore {
             //this implementation is just a dirt hacky way to make it work and some aspects (weather info) don't work
 
             DigestModel digest = new DigestModel();
+
             digest.timeUnit = "WEEK";
             if (filter == null) {
                 filter = "";
@@ -216,6 +222,7 @@ public class CalendarDataStore {
         try{
             long then = System.currentTimeMillis();
             DigestModel digest = new DigestModel();
+
             digest.timeUnit = "MONTH";
             if (filter == null) {
                 filter = "";
@@ -298,6 +305,7 @@ public class CalendarDataStore {
         try {
             long then = System.currentTimeMillis();
             DigestModel digest = new DigestModel();
+
             digest.timeUnit = "YEAR";
             if (filter == null) {
                 filter = "";
@@ -374,6 +382,7 @@ public class CalendarDataStore {
         try{
             long then = System.currentTimeMillis();
             DigestModel digest = new DigestModel();
+
             digest.timeUnit = "DAY";
             if (filter == null) {
                 filter = "";
@@ -425,6 +434,14 @@ public class CalendarDataStore {
             return gson.toJson(new StatusModel(false,"Failed to get digest: " + e.getMessage()));
         }
 	}
+
+    List<GuestModel> toGuestModels(List<Guest> guests) {
+        List<GuestModel> models = new ArrayList<GuestModel>();
+        for (Guest guest : guests) {
+            models.add(new GuestModel(guest));
+        }
+        return models;
+    }
 
 	private List<ApiKey> removeConnectorsWithoutFacets(List<ApiKey> allApiKeys) {
 		List<ApiKey> apiKeys = new ArrayList<ApiKey>();

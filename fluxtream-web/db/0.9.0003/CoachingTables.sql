@@ -1,4 +1,4 @@
-CREATE TABLE `SharingBuddies` (
+CREATE TABLE `CoachingBuddies` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `guestId` bigint(20) NOT NULL,
   `buddyId` bigint(20) NOT NULL,
@@ -13,5 +13,5 @@ CREATE TABLE `SharedConnectors` (
   `buddy_id` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `FK_BUDDY` (`buddy_id`),
-  CONSTRAINT `FK_BUDDY` FOREIGN KEY (`buddy_id`) REFERENCES `SharingBuddies` (`id`)
+  CONSTRAINT `FK_BUDDY` FOREIGN KEY (`buddy_id`) REFERENCES `CoachingBuddies` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;

@@ -4,19 +4,19 @@ define(function() {
         App.loadMustacheTemplate("settingsTemplates.html","sharingDialog",function(template){
             var html = template.render();
             App.makeModal(html);
-            updateBuddiesDropdown(null);
+            updateCoachesDropdown(null);
         });
     };
 
-    function updateBuddiesDropdown(username) {
+    function updateCoachesDropdown(username) {
         if (username==null)
             username = "< No Buddy Selected >";
-        $.ajax("/api/sharing/buddies",{
-            success:function(buddies){
-            App.loadMustacheTemplate("settingsTemplates.html","buddiesDropdown",function(template){
-                var html = template.render({buddies : buddies, selectedBuddy : username});
-                $("#buddiesDropdown").empty();
-                $("#buddiesDropdown").append(html);
+        $.ajax("/api/coaching/coaches",{
+            success:function(coaches){
+            App.loadMustacheTemplate("settingsTemplates.html","coachesDropdown",function(template){
+                var html = template.render({coaches : coaches, selectedCoach : username});
+                $("#coachesDropdown").empty();
+                $("#coachesDropdown").append(html);
             });
             }
         });
@@ -39,7 +39,7 @@ define(function() {
 
     function findUser(username) {
         $.ajax({
-            url: "/api/sharing/buddies/find",
+            url: "/api/coaching/coaches/find",
             data: {username : username},
             type: "POST",
             success: function(status) {
@@ -61,46 +61,46 @@ define(function() {
         });
     }
 
-    function showBuddy(username) {
-        $.ajax("/api/sharing/buddies/" + username,{
-            success:function(buddy) {
+    function showCoach(username) {
+        $.ajax("/api/coaching/coaches/" + username,{
+            success:function(coach) {
                 App.loadMustacheTemplate("settingsTemplates.html","sharedConnectors",function(template){
-                    updateBuddiesDropdown(username);
-                    var html = template.render({connectors : FlxUtils.rowsOf(buddy.sharedConnectors, 3),
+                    updateCoachesDropdown(username);
+                    var html = template.render({connectors : FlxUtils.rowsOf(coach.sharedConnectors, 3),
                                                 username : username});
                     $("#sharedConnectors").empty();
                     $("#sharedConnectors").append(html);
-                    $("#removeBuddyButton").remove();
-                    $("#buddiesDropdown").parent().append("<a class=\"btn btn-inverse\" " +
-                                                          "id=\"removeBuddyButton\">Remove Buddy " +
+                    $("#removeCoachButton").remove();
+                    $("#coachesDropdown").parent().append("<a class=\"btn btn-inverse\" " +
+                                                          "id=\"removeCoachButton\">Remove Buddy " +
                                                           "<i class=\"icon-trash\"></i></a>")
-                    $("#removeBuddyButton").click(function(){
-                        removeBuddy(username);
+                    $("#removeCoachButton").click(function(){
+                        removeCoach(username);
                     });
                 });
             }
         });
     }
 
-    function addBuddy(username) {
+    function addCoach(username) {
         $.ajax({
-            url: "/api/sharing/buddies/"+username,
+            url: "/api/coaching/coaches/"+username,
             type: "POST",
             success: function(status) {
                 $('#findUserModal').modal('hide');
-                showBuddy(username);
+                showCoach(username);
             }
         });
     }
 
-    function removeBuddy(username) {
+    function removeCoach(username) {
         $.ajax({
-            url: "/api/sharing/buddies/"+username,
+            url: "/api/coaching/coaches/"+username,
             type: "DELETE",
             success: function(status) {
-                $("#removeBuddyButton").remove();
+                $("#removeCoachButton").remove();
                 $("#sharedConnectors").empty();
-                updateBuddiesDropdown(null);
+                updateCoachesDropdown(null);
             }
         });
     }
@@ -110,12 +110,11 @@ define(function() {
             addSharedConnector(username, connectorName);
         else
             removeSharedConnector(username, connectorName);
-        console.log(username + "/" + connectorName + "/" + checked);
     }
 
     function addSharedConnector(username, connectorName) {
         $.ajax({
-            url: "/api/sharing/buddies/" + username + "/connectors/" + connectorName,
+            url: "/api/coaching/coaches/" + username + "/connectors/" + connectorName,
             data: {connectorName : connectorName},
             type: "POST",
             success: function() {console.log("OK")}
@@ -124,7 +123,7 @@ define(function() {
 
     function removeSharedConnector(username, connectorName) {
         $.ajax({
-            url: "/api/sharing/buddies/" + username + "/connectors/" + connectorName,
+            url: "/api/coaching/coaches/" + username + "/connectors/" + connectorName,
             type: "DELETE",
             success: function() {console.log("OK")}
         });
@@ -132,8 +131,8 @@ define(function() {
 
     var SharingDialog = {};
     SharingDialog.show = show;
-    SharingDialog.showBuddy = showBuddy;
-    SharingDialog.addBuddy = addBuddy;
+    SharingDialog.showCoach = showCoach;
+    SharingDialog.addCoach = addCoach;
     SharingDialog.findUserDialog = findUserDialog;
     SharingDialog.toggleSharedConnector = toggleSharedConnector;
     return SharingDialog;

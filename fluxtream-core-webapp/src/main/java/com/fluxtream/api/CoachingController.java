@@ -10,17 +10,16 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.CoachingBuddy;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.SharedConnector;
-import com.fluxtream.domain.SharingBuddy;
 import com.fluxtream.mvc.controllers.ControllerHelper;
 import com.fluxtream.mvc.models.GuestModel;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.GuestService;
-import com.fluxtream.services.SharingService;
+import com.fluxtream.services.CoachingService;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,22 +32,22 @@ import static com.newrelic.api.agent.NewRelic.setTransactionName;
  *
  * @author Candide Kemmler (candide@fluxtream.com)
  */
-@Path("/sharing")
-@Component("RESTSharingController")
+@Path("/coaching")
+@Component("RESTCoachingController")
 @Scope("request")
-public class SharingController {
+public class CoachingController {
 
     @Autowired
     GuestService guestService;
 
     @Autowired
-    SharingService sharingService;
+    CoachingService coachingService;
 
     @POST
-    @Path("/buddies/find")
+    @Path("/coaches/find")
     @Produces({MediaType.APPLICATION_JSON})
-    public StatusModel findUser(@FormParam("username") String username) {
-        setTransactionName(null, "POST /sharing/findUser?" + username);
+    public StatusModel findCoach(@FormParam("username") String username) {
+        setTransactionName(null, "POST /coaching/findUser?" + username);
         final Guest guest = guestService.getGuest(username);
         if (guest!=null) {
             StatusModel statusModel = new StatusModel(true, "Found user!");
@@ -59,27 +58,26 @@ public class SharingController {
     }
 
     @DELETE
-    @Path("/buddies/{username}")
+    @Path("/coaches/{username}")
     @Produces({MediaType.APPLICATION_JSON})
-    public List<GuestModel> removeBuddy(@PathParam("username") String username) {
-        setTransactionName(null, "DELETE /sharing/buddies/" + username);
+    public List<GuestModel> removeCoach(@PathParam("username") String username) {
+        setTransactionName(null, "DELETE /coaching/coaches/" + username);
         final long guestId = ControllerHelper.getGuestId();
-        sharingService.removeSharingBuddy(guestId,
-                                          username);
-        final List<Guest> buddies = sharingService.getBuddies(guestId);
-        final List<GuestModel> guestModels = toGuestModels(buddies);
+        coachingService.removeCoach(guestId, username);
+        final List<Guest> coaches = coachingService.getCoaches(guestId);
+        final List<GuestModel> guestModels = toGuestModels(coaches);
         return guestModels;
     }
 
     @POST
-    @Path("/buddies/{username}")
+    @Path("/coaches/{username}")
     @Produces({MediaType.APPLICATION_JSON})
-    public List<GuestModel> addBuddy(@PathParam("username") String username) {
-        setTransactionName(null, "POST /sharing/buddies/" + username);
+    public List<GuestModel> addCoach(@PathParam("username") String username) {
+        setTransactionName(null, "POST /coaching/coaches/" + username);
         final long guestId = ControllerHelper.getGuestId();
-        sharingService.addSharingBuddy(guestId, username);
-        final List<Guest> buddies = sharingService.getBuddies(guestId);
-        final List<GuestModel> guestModels = toGuestModels(buddies);
+        coachingService.addCoach(guestId, username);
+        final List<Guest> coaches = coachingService.getCoaches(guestId);
+        final List<GuestModel> guestModels = toGuestModels(coaches);
         return guestModels;
     }
 
@@ -92,15 +90,15 @@ public class SharingController {
     }
 
     @GET
-    @Path("/buddies/{username}")
+    @Path("/coaches/{username}")
     @Produces({MediaType.APPLICATION_JSON})
     public String getConnectorSharingInfo(@PathParam("username") String username) {
-        setTransactionName(null, "GET /sharing/" + username + "/connectors");
+        setTransactionName(null, "GET /coaching/" + username + "/connectors");
         final long guestId = ControllerHelper.getGuestId();
-        final SharingBuddy sharingBuddy = sharingService.getSharingBuddy(guestId, username);
-        final Set<SharedConnector> sharedConnectors = sharingBuddy.sharedConnectors;
+        final CoachingBuddy coachingBuddy = coachingService.getCoach(guestId, username);
+        final Set<SharedConnector> sharedConnectors = coachingBuddy.sharedConnectors;
         final List<ApiKey> apiKeys = guestService.getApiKeys(guestId);
-        JSONObject buddy = new JSONObject();
+        JSONObject coach = new JSONObject();
         JSONArray connectors = new JSONArray();
         for (ApiKey apiKey : apiKeys) {
             boolean isShared = false;
@@ -117,41 +115,41 @@ public class SharingController {
             connector.accumulate("shared", isShared);
             connectors.add(connector);
         }
-        buddy.accumulate("sharedConnectors", connectors);
+        coach.accumulate("sharedConnectors", connectors);
         Guest buddyGuest = guestService.getGuest(username);
-        buddy.accumulate("username", buddyGuest.username);
-        buddy.accumulate("fullname", buddyGuest.getGuestName());
-        return buddy.toString();
+        coach.accumulate("username", buddyGuest.username);
+        coach.accumulate("fullname", buddyGuest.getGuestName());
+        return coach.toString();
     }
 
     @GET
-    @Path("/buddies")
+    @Path("/coaches")
     @Produces({MediaType.APPLICATION_JSON})
-    public List<GuestModel> getBuddies(){
-        setTransactionName(null, "GET /sharing/buddies");
+    public List<GuestModel> getCoaches(){
+        setTransactionName(null, "GET /coaching/coaches");
         final long guestId = ControllerHelper.getGuestId();
-        final List<Guest> buddies = sharingService.getBuddies(guestId);
-        final List<GuestModel> guestModels = toGuestModels(buddies);
+        final List<Guest> coaches = coachingService.getCoaches(guestId);
+        final List<GuestModel> guestModels = toGuestModels(coaches);
         return guestModels;
     }
 
     @POST
-    @Path("/buddies/{username}/connectors/{connector}")
+    @Path("/coaches/{username}/connectors/{connector}")
     @Produces({MediaType.APPLICATION_JSON})
     public StatusModel addSharedConnector(@PathParam("username") String username,
                                           @PathParam("connector") String connectorName) {
-        setTransactionName(null, "POST /sharing/" + username + "/addSharedConnector");
-        sharingService.addSharedConnector(ControllerHelper.getGuestId(), username, connectorName, "{}");
+        setTransactionName(null, "POST /coaching/" + username + "/addSharedConnector");
+        coachingService.addSharedConnector(ControllerHelper.getGuestId(), username, connectorName, "{}");
         return new StatusModel(true, "Successfully added a connector (" + username + "/" + connectorName + ")");
     }
 
     @DELETE
-    @Path("/buddies/{username}/connectors/{connector}")
+    @Path("/coaches/{username}/connectors/{connector}")
     @Produces({MediaType.APPLICATION_JSON})
     public StatusModel removeSharedConnector(@PathParam("username") String username,
                                              @PathParam("connector") String connectorName) {
-        setTransactionName(null, "POST /sharing/" + username + "/removeSharedConnector");
-        sharingService.removeSharedConnector(ControllerHelper.getGuestId(), username, connectorName);
+        setTransactionName(null, "POST /coaching/" + username + "/removeSharedConnector");
+        coachingService.removeSharedConnector(ControllerHelper.getGuestId(), username, connectorName);
         return new StatusModel(true, "Successfully removed a connector (" + username + "/" + connectorName + ")");
     }
 

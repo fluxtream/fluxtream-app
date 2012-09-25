@@ -10,6 +10,7 @@ import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.Notification.Type;
 import com.fluxtream.services.ApiDataService;
+import com.fluxtream.services.CoachingService;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
@@ -47,6 +48,9 @@ public class AppController {
 
     @Autowired
     ConnectorUpdateService connectorUpdateService;
+
+    @Autowired
+    CoachingService coachingService;
 
     @Autowired
 	BeanFactory beanFactory;
@@ -140,6 +144,8 @@ public class AppController {
 
 		String release = env.get("release");
 		request.setAttribute("guestName", guest.getGuestName());
+        request.setAttribute("coachees", coachingService.getCoachees(guestId));
+
 		if (SecurityUtils.isDemoUser())
 			request.setAttribute("demo", true);
 		if (release != null)

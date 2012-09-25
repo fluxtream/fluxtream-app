@@ -1,7 +1,11 @@
 <%@ page import="com.fluxtream.mvc.controllers.ControllerHelper" %>
 <%@ page pageEncoding="utf-8" contentType="text/html; charset=UTF-8"%><%@ taglib
-	uri="http://granule.com/tags" prefix="g"%><%
+	uri="http://granule.com/tags" prefix="g"
+%><%@ page import="java.util.List"
+%><%@ page import="com.fluxtream.domain.Guest"
+%><%
     Boolean tracker = (Boolean)request.getAttribute("tracker");
+    List<Guest> coachees = (List<Guest>)request.getAttribute("coachees");
 %><!DOCTYPE html>
 <html lang="en">
 <head>
@@ -84,7 +88,10 @@
 									<li><a href="javascript:App.settings()">Settings <i
 											class="icon-cog icon-large" style="float: right;"></i></a></li>
                                     <li><a href="javascript:App.addresses()">Addresses <i style="float: right;" class="icon-home icon-large"></i></a></li>
-									<li class="divider"></li>
+									<li id="coachingDivider" class="divider"></li><%
+                                    for (Guest guest : coachees) {%>
+                                        <li><a href="">View <%=guest.getGuestName()%>'s data...</a></li>
+                                    <% } %>
                                     <li><a href="javascript:App.sharingDialog.show()">Sharing... <i
                                             class="icon-share" style="float: right;"></i></a></li>
                                     <li class="divider"></li>

@@ -14,16 +14,18 @@ import org.hibernate.annotations.Index;
  *
  * @author Candide Kemmler (candide@fluxtream.com)
  */
-@Entity(name = "SharingBuddies")
+@Entity(name = "CoachingBuddies")
 @NamedQueries({
-      @NamedQuery(name = "sharingBuddies.byGuestId",
-                  query = "SELECT buddy FROM SharingBuddies buddy WHERE buddy.guestId=?"),
-      @NamedQuery(name = "sharingBuddies.byGuestAndBuddyId",
-                  query = "SELECT buddy FROM SharingBuddies buddy WHERE buddy.guestId=? AND buddy.buddyId=?"),
-      @NamedQuery(name = "sharingBuddies.delete.all",
-                  query = "DELETE FROM SharingBuddies buddy WHERE buddy.guestId=?")
+      @NamedQuery(name = "coachingBuddies.byGuestId",
+                  query = "SELECT buddy FROM CoachingBuddies buddy WHERE buddy.guestId=?"),
+      @NamedQuery(name = "coachingBuddies.byBuddyId",
+                  query = "SELECT buddy FROM CoachingBuddies buddy WHERE buddy.buddyId=?"),
+      @NamedQuery(name = "coachingBuddies.byGuestAndBuddyId",
+                  query = "SELECT buddy FROM CoachingBuddies buddy WHERE buddy.guestId=? AND buddy.buddyId=?"),
+      @NamedQuery(name = "coachingBuddies.delete.all",
+                  query = "DELETE FROM CoachingBuddies buddy WHERE buddy.guestId=?")
 })
-public class SharingBuddy extends AbstractEntity {
+public class CoachingBuddy extends AbstractEntity {
 
     @Index(name = "guestId")
     public long guestId;
