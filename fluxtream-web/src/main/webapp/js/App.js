@@ -312,54 +312,6 @@ define(
             }
         };
 
-        App.sharingDialog = function() {
-            SharingDialog.show();
-        };
-
-        App.addBuddy = function(username) {
-            $.ajax({
-                url: "/api/sharing/findUser?username="+username,
-                success: function(status) {
-                    $('#findUserModal').modal('hide');
-                    $('#sharingDialog').modal('hide');
-                    SharingDialog.show();
-                }
-            });
-        }
-
-        App.findUserDialog = function() {
-            App.loadMustacheTemplate("settingsTemplates.html","findUserDialog",function(template){
-                var html = template.render({release : window.FLX_RELEASE_NUMBER});
-                App.makeModal(html);
-                $(".loading-animation").hide();
-                $("#findUserField").keypress(function(evt) {
-                    if (evt.which==13) {
-                        findUser($("#findUserField").val());
-                        $(".loading-animation").css("display", "inline");
-                    }
-                });
-            });
-        }
-
-        function findUser(username) {
-            $.ajax({
-                url: "/api/sharing/findUser?username="+username,
-                success: function(status) {
-                    $(".loading-animation").hide();
-                    if (status.result=="OK") {
-                        var message = status.message + " Is " + status.payload.fullname
-                            + " the person you're looking for? "
-                            +  "If yes, please hit the 'Share My Data' button below";
-                        $("#findUserForm .help-block").html(message);
-                        $("#shareMyDataButton").removeClass("disabled");
-                    } else {
-                        $("#findUserForm .help-block").html(status.message);
-                        $("#shareMyDataButton").addClass("disabled");
-                    }
-                }
-            });
-        }
-
         App.showConnectorsPage = function(page) {
             $("#availableConnectors").load(
                 "/connectors/availableConnectors?page=" + page);
@@ -379,12 +331,12 @@ define(
         App.showCarousel = function(photoId) {
             if ($("#photosCarousel").length==0) {
                 $.ajax({
-                           url : "/tabs/photos/carousel",
-                           success: function(html) {
-                               makeModal(html);
-                               carousel(photoId);
-                           }
-                       });
+                   url : "/tabs/photos/carousel",
+                   success: function(html) {
+                       makeModal(html);
+                       carousel(photoId);
+                   }
+                });
             } else {
                 carousel(photoId);
             }
@@ -545,6 +497,20 @@ define(
             return $("#flxUID").html();
         }
 
+        window.FlxUtils = {};
+        FlxUtils.rowsOf = function(array, size) {
+            if (array.length==0) return [[]];
+            var row = [array[0]], rows = [{row : row}], i=1;
+            for (; i<array.length; i++) {
+                if (i%size===0) {
+                    row = [];
+                    rows.push({row : row});
+                }
+                row.push(array[i]);
+            }
+            return rows;
+        }
+
 
         App.getUsername = getUsername;
         App.getUID = getUID;
@@ -554,6 +520,7 @@ define(
         App.fullHeight = fullHeight;
         App.invalidPath = invalidPath;
         App.geocoder = new google.maps.Geocoder();
+        App.sharingDialog = SharingDialog;
         window.App = App;
         return App;
 

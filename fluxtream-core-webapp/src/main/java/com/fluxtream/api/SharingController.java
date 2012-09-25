@@ -3,6 +3,8 @@ package com.fluxtream.api;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -42,11 +44,11 @@ public class SharingController {
     @Autowired
     SharingService sharingService;
 
-    @GET
-    @Path("/findUser")
+    @POST
+    @Path("/buddies/find")
     @Produces({MediaType.APPLICATION_JSON})
-    public StatusModel findUser(@QueryParam("username") String username) {
-        setTransactionName(null, "GET /sharing/findUser?" + username);
+    public StatusModel findUser(@FormParam("username") String username) {
+        setTransactionName(null, "POST /sharing/findUser?" + username);
         final Guest guest = guestService.getGuest(username);
         if (guest!=null) {
             StatusModel statusModel = new StatusModel(true, "Found user!");
@@ -56,14 +58,26 @@ public class SharingController {
             return new StatusModel(false, "No Such User: " + username + ". Please try again.");
     }
 
+    @DELETE
+    @Path("/buddies/{username}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public List<GuestModel> removeBuddy(@PathParam("username") String username) {
+        setTransactionName(null, "DELETE /sharing/buddies/" + username);
+        final long guestId = ControllerHelper.getGuestId();
+        sharingService.removeSharingBuddy(guestId,
+                                          username);
+        final List<Guest> buddies = sharingService.getBuddies(guestId);
+        final List<GuestModel> guestModels = toGuestModels(buddies);
+        return guestModels;
+    }
+
     @POST
     @Path("/buddies/{username}")
     @Produces({MediaType.APPLICATION_JSON})
-    public List<GuestModel> getBuddies(@PathParam("username") String username) {
+    public List<GuestModel> addBuddy(@PathParam("username") String username) {
         setTransactionName(null, "POST /sharing/buddies/" + username);
         final long guestId = ControllerHelper.getGuestId();
-        sharingService.addSharingBuddy(guestId,
-                                       username);
+        sharingService.addSharingBuddy(guestId, username);
         final List<Guest> buddies = sharingService.getBuddies(guestId);
         final List<GuestModel> guestModels = toGuestModels(buddies);
         return guestModels;
@@ -78,18 +92,7 @@ public class SharingController {
     }
 
     @GET
-    @Path("/buddies")
-    @Produces({MediaType.APPLICATION_JSON})
-    public List<GuestModel> getBuddies(){
-        setTransactionName(null, "GET /sharing/buddies");
-        final long guestId = ControllerHelper.getGuestId();
-        final List<Guest> buddies = sharingService.getBuddies(guestId);
-        final List<GuestModel> guestModels = toGuestModels(buddies);
-        return guestModels;
-    }
-
-    @GET
-    @Path("/{username}/connectors")
+    @Path("/buddies/{username}")
     @Produces({MediaType.APPLICATION_JSON})
     public String getConnectorSharingInfo(@PathParam("username") String username) {
         setTransactionName(null, "GET /sharing/" + username + "/connectors");
@@ -97,6 +100,7 @@ public class SharingController {
         final SharingBuddy sharingBuddy = sharingService.getSharingBuddy(guestId, username);
         final Set<SharedConnector> sharedConnectors = sharingBuddy.sharedConnectors;
         final List<ApiKey> apiKeys = guestService.getApiKeys(guestId);
+        JSONObject buddy = new JSONObject();
         JSONArray connectors = new JSONArray();
         for (ApiKey apiKey : apiKeys) {
             boolean isShared = false;
@@ -108,30 +112,46 @@ public class SharingController {
                 }
             }
             JSONObject connector = new JSONObject();
+            connector.accumulate("prettyName", apiKey.getConnector().prettyName());
             connector.accumulate("connectorName", connectorName);
             connector.accumulate("shared", isShared);
             connectors.add(connector);
         }
-        return connectors.toString();
+        buddy.accumulate("sharedConnectors", connectors);
+        Guest buddyGuest = guestService.getGuest(username);
+        buddy.accumulate("username", buddyGuest.username);
+        buddy.accumulate("fullname", buddyGuest.getGuestName());
+        return buddy.toString();
+    }
+
+    @GET
+    @Path("/buddies")
+    @Produces({MediaType.APPLICATION_JSON})
+    public List<GuestModel> getBuddies(){
+        setTransactionName(null, "GET /sharing/buddies");
+        final long guestId = ControllerHelper.getGuestId();
+        final List<Guest> buddies = sharingService.getBuddies(guestId);
+        final List<GuestModel> guestModels = toGuestModels(buddies);
+        return guestModels;
     }
 
     @POST
-    @Path("/{username}/addSharedConnector")
+    @Path("/buddies/{username}/connectors/{connector}")
     @Produces({MediaType.APPLICATION_JSON})
     public StatusModel addSharedConnector(@PathParam("username") String username,
-                                          @QueryParam("connector") String connectorName) {
+                                          @PathParam("connector") String connectorName) {
         setTransactionName(null, "POST /sharing/" + username + "/addSharedConnector");
         sharingService.addSharedConnector(ControllerHelper.getGuestId(), username, connectorName, "{}");
         return new StatusModel(true, "Successfully added a connector (" + username + "/" + connectorName + ")");
     }
 
-    @POST
-    @Path("/{username}/removeSharedConnector")
+    @DELETE
+    @Path("/buddies/{username}/connectors/{connector}")
     @Produces({MediaType.APPLICATION_JSON})
     public StatusModel removeSharedConnector(@PathParam("username") String username,
-                                             @QueryParam("connector") String connectorName) {
+                                             @PathParam("connector") String connectorName) {
         setTransactionName(null, "POST /sharing/" + username + "/removeSharedConnector");
-        sharingService.addSharedConnector(ControllerHelper.getGuestId(), username, connectorName, "{}");
+        sharingService.removeSharedConnector(ControllerHelper.getGuestId(), username, connectorName);
         return new StatusModel(true, "Successfully removed a connector (" + username + "/" + connectorName + ")");
     }
 
