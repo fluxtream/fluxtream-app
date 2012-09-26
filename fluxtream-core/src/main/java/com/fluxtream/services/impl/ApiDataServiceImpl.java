@@ -1,6 +1,5 @@
 package com.fluxtream.services.impl;
 
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -329,7 +328,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 			logDuplicateFacet(facet);
 			return null;
 		} else {
-            if (facet.tagsList!=null&&facet.tagsList.size()>0) {
+            if (facet.hasTags()) {
                 persistTags(facet);
             }
 			em.persist(facet);
@@ -344,7 +343,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 
     @Transactional(readOnly=false)
     private void persistTags(final AbstractFacet facet) {
-        for (Tag tag : facet.tagsList) {
+        for (Tag tag : facet.getTags()) {
             Tag guestTag = JPAUtils.findUnique(em, Tag.class, "tags.byName", facet.guestId, tag.name);
             if (guestTag==null) {
                 guestTag = new Tag();

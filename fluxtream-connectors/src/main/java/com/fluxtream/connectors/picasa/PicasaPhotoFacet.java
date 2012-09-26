@@ -1,16 +1,13 @@
 package com.fluxtream.connectors.picasa;
 
 import java.io.Serializable;
-
 import javax.persistence.Entity;
 import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-
-import org.hibernate.search.annotations.Indexed;
-
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.domain.AbstractFacet;
+import org.hibernate.search.annotations.Indexed;
 
 @SuppressWarnings("serial")
 @Entity(name="Facet_PicasaPhotoEntry")
@@ -28,9 +25,12 @@ public class PicasaPhotoFacet extends AbstractFacet implements Serializable {
 	public String thumbnailUrl;
 	public String photoUrl;
 	public String title;
+
+    /** @deprecated use the {@link AbstractFacet#comment} field instead */
 	@Lob
 	public String description;
-	@Lob
+
+    @Lob
 	public String thumbnailsJson;
 	
 	public PicasaPhotoFacet() {}

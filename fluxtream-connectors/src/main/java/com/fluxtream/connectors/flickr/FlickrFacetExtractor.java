@@ -1,24 +1,18 @@
 package com.fluxtream.connectors.flickr;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-
-import com.fluxtream.domain.Tag;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-
-import org.apache.velocity.util.StringUtils;
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-import org.springframework.stereotype.Component;
-
 import com.fluxtream.ApiData;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+import org.springframework.stereotype.Component;
 
 @Component
 public class FlickrFacetExtractor extends AbstractFacetExtractor {
@@ -51,6 +45,10 @@ public class FlickrFacetExtractor extends AbstractFacetExtractor {
 				facet.server = it.getString("server");
 				facet.farm = it.getString("farm");
 				facet.title = it.getString("title");
+                final JSONObject descriptionObject = it.getJSONObject("description");
+                if (descriptionObject != null) {
+                    facet.comment = descriptionObject.getString("_content");
+                }
 				facet.ispublic = Integer.valueOf(it.getString("ispublic")) == 1;
 				facet.isfriend = Integer.valueOf(it.getString("isfriend")) == 1;
 				facet.isfamily = Integer.valueOf(it.getString("isfamily")) == 1;
@@ -69,22 +67,7 @@ public class FlickrFacetExtractor extends AbstractFacetExtractor {
 				facet.latitude = it.getString("latitude");
 				facet.longitude = it.getString("longitude");
 				facet.accuracy = it.getInt("accuracy");
-                final String[] tagses = StringUtils.split(it.getString("tags"), " ");
-                StringBuilder sb = new StringBuilder();
-                for (int i=0; i<tagses.length; i++) {
-                    if (tagses[i].indexOf(":")!=-1)
-                        continue;
-                    Tag tag = new Tag();
-                    tag.name = tagses[i];
-                    if (facet.tagsList==null)
-                        facet.tagsList = new ArrayList<Tag>();
-                    else if (!facet.tagsList.contains(tag)) {
-                        sb.append(", ");
-                    }
-                    facet.tagsList.add(tag);
-                    sb.append(tag.name);
-                }
-                facet.tags = sb.toString();
+                facet.addTags(it.getString("tags"));
                 facets.add(facet);
 			}
 
