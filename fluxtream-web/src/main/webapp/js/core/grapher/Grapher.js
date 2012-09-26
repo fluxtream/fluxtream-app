@@ -64,7 +64,10 @@ define(["core/grapher/BTCore"], function(BTCore) {
             // * 1 pixel of border on ._timeline_channel
             var borderOffset = 2;
 
-            var widthOfAreaLeftOfPlotContainer = $("._timeline_channeltd").width() + borderOffset;
+            // Could also use ._timeline_channeltd, but $("._timeline_gotozoom").width() returns 0
+            // whenever there are no channels
+            var widthOfAreaLeftOfPlotContainer = $("._timeline_gotozoom").width() + borderOffset;
+            // TODO: Find a good way to get the ._timeline_yaxistd width even when with no channels
             var widthOfAreaRightOfPlotContainer = $("._timeline_yaxistd").width() + borderOffset;
 
             // the .plotContainer has a 1 pixel border around it, so set this to 2 to account for the left and right sides
