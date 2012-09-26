@@ -7,18 +7,15 @@ import java.util.TimeZone;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.Configuration;
-import com.fluxtream.TimeUnit;
-import com.fluxtream.mvc.controllers.ControllerHelper;
+import com.fluxtream.mvc.controllers.AuthHelper;
 import com.fluxtream.mvc.models.CalendarModel;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
 import org.apache.log4j.Logger;
-import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +50,7 @@ public class CalendarController {
     @Produces({ MediaType.APPLICATION_JSON } )
     public String getModel(@QueryParam("state") String state) throws IOException {
         setTransactionName(null, "GET /calendar/nav/model");
-        final long guestId = ControllerHelper.getGuestId();
+        final long guestId = AuthHelper.getGuestId();
         StringBuilder sb = new StringBuilder("module=API component=calendarController action=getModel")
                 .append(" guestId=").append(guestId);
         logger.info(sb.toString());
@@ -67,7 +64,7 @@ public class CalendarController {
     public String setToToday(@QueryParam("timeUnit") String timeUnit,
                              @QueryParam("state") String state) throws IOException {
         setTransactionName(null, "POST /calendar/nav/setToToday");
-        final long guestId = ControllerHelper.getGuestId();
+        final long guestId = AuthHelper.getGuestId();
         StringBuilder sb = new StringBuilder("module=API component=calendarController action=setToToday")
                 .append(" guestId=").append(guestId)
                 .append(" state=").append(state);
@@ -84,7 +81,7 @@ public class CalendarController {
                           @QueryParam("week") int week)
             throws IOException {
         setTransactionName(null, "GET /calendar/nav/getWeek");
-        final long guestId = ControllerHelper.getGuestId();
+        final long guestId = AuthHelper.getGuestId();
         StringBuilder sb = new StringBuilder("module=API component=calendarController action=getWeek")
                 .append(" state=").append(state)
                 .append(" guestId=").append(guestId);
@@ -112,7 +109,7 @@ public class CalendarController {
         fromCalendar.set(Calendar.SECOND, 0);
         fromCalendar.set(Calendar.MILLISECOND, 0);
         String date = jsDateFormatter.print(fromCalendar.getTimeInMillis());
-        final TimeZone tz = metadataService.getTimeZone(ControllerHelper.getGuestId(), date);
+        final TimeZone tz = metadataService.getTimeZone(AuthHelper.getGuestId(), date);
         fromCalendar.setTimeZone(tz);
 
         final Calendar toCalendar = Calendar.getInstance();
@@ -131,7 +128,7 @@ public class CalendarController {
     @Path(value="/getMeTheJavaComputedWeekForThisDate")
     @Produces({ MediaType.APPLICATION_JSON })
     public String getDateWeek(@QueryParam("formattedDate") String formattedDate) {
-        final TimeZone tz = metadataService.getTimeZone(ControllerHelper.getGuestId(), formattedDate);
+        final TimeZone tz = metadataService.getTimeZone(AuthHelper.getGuestId(), formattedDate);
         final String[] splits = formattedDate.split("-");
         Calendar c = Calendar.getInstance(tz);
         c.set(Calendar.YEAR, Integer.valueOf(splits[0]));
@@ -150,7 +147,7 @@ public class CalendarController {
             throws IOException {
         setTransactionName(null, "GET /calendar/nav/getMonth");
         logger.info("action=setMonth year=" + year + " month=" + month);
-        final long guestId = ControllerHelper.getGuestId();
+        final long guestId = AuthHelper.getGuestId();
         StringBuilder sb = new StringBuilder("module=API component=calendarController action=getMonth")
                 .append(" state=").append(state)
                 .append(" guestId=").append(guestId);
@@ -166,7 +163,7 @@ public class CalendarController {
                           @QueryParam("year") int year)
             throws IOException {
         setTransactionName(null, "GET /calendar/nav/getYear");
-        final long guestId = ControllerHelper.getGuestId();
+        final long guestId = AuthHelper.getGuestId();
         StringBuilder sb = new StringBuilder("module=API component=calendarController action=getYear")
                 .append(" state=").append(state)
                 .append(" guestId=").append(guestId);
@@ -181,7 +178,7 @@ public class CalendarController {
     public String setDate(@QueryParam("date") String date)
             throws IOException {
         setTransactionName(null, "GET /calendar/nav/getDate");
-        final long guestId = ControllerHelper.getGuestId();
+        final long guestId = AuthHelper.getGuestId();
         StringBuilder sb = new StringBuilder("module=API component=calendarController action=setDate")
                 .append(" guestId=").append(guestId)
                 .append(" date=").append(date);
@@ -196,7 +193,7 @@ public class CalendarController {
     @Produces({ MediaType.APPLICATION_JSON })
     public String decrementTimespan(@QueryParam("state") String state) throws IOException {
         setTransactionName(null, "POST /calendar/nav/decrementTimespan");
-        final long guestId = ControllerHelper.getGuestId();
+        final long guestId = AuthHelper.getGuestId();
         StringBuilder sb = new StringBuilder("module=API component=calendarController action=decrementTimespan")
                 .append(" state=").append(state)
                 .append(" guestId=").append(guestId);
@@ -213,7 +210,7 @@ public class CalendarController {
     @Produces({ MediaType.APPLICATION_JSON })
     public String incrementTimespan(@QueryParam("state") String state) throws IOException {
         setTransactionName(null, "POST /calendar/nav/incrementTimespan");
-        final long guestId = ControllerHelper.getGuestId();
+        final long guestId = AuthHelper.getGuestId();
         StringBuilder sb = new StringBuilder("module=API component=calendarController action=incrementTimespan")
                 .append(" state=").append(state)
                 .append(" guestId=").append(guestId);
@@ -228,7 +225,7 @@ public class CalendarController {
     @Produces({ MediaType.APPLICATION_JSON })
     public String setDayTimeUnit(@QueryParam("state") String state) throws IOException {
         setTransactionName(null, "POST /calendar/nav/setDayTimeUnit");
-        final long guestId = ControllerHelper.getGuestId();
+        final long guestId = AuthHelper.getGuestId();
         StringBuilder sb = new StringBuilder("module=API component=calendarController action=setDayTimeUnit")
                 .append(" state=").append(state)
                 .append(" guestId=").append(guestId);
@@ -243,7 +240,7 @@ public class CalendarController {
     @Produces({ MediaType.APPLICATION_JSON })
     public String setWeekTimeUnit(@QueryParam("state") String state) throws IOException {
         setTransactionName(null, "POST /calendar/nav/setWeekTimeUnit");
-        final long guestId = ControllerHelper.getGuestId();
+        final long guestId = AuthHelper.getGuestId();
         StringBuilder sb = new StringBuilder("module=API component=calendarController action=setWeekTimeUnit")
                 .append(" state=").append(state)
                 .append(" guestId=").append(guestId);
@@ -258,7 +255,7 @@ public class CalendarController {
     @Produces({ MediaType.APPLICATION_JSON })
     public String setMonthTimeUnit(@QueryParam("state") String state) throws IOException {
         setTransactionName(null, "POST /calendar/nav/setMonthTimeUnit");
-        final long guestId = ControllerHelper.getGuestId();
+        final long guestId = AuthHelper.getGuestId();
         StringBuilder sb = new StringBuilder("module=API component=calendarController action=setMonthTimeUnit")
                 .append(" state=").append(state)
                 .append(" guestId=").append(guestId);
@@ -273,7 +270,7 @@ public class CalendarController {
     @Produces({ MediaType.APPLICATION_JSON })
     public String setYearTimeUnit(@QueryParam("state") String state) throws IOException {
         setTransactionName(null, "POST /calendar/nav/setYearTimeUnit");
-        final long guestId = ControllerHelper.getGuestId();
+        final long guestId = AuthHelper.getGuestId();
         StringBuilder sb = new StringBuilder("module=API component=calendarController action=setYearTimeUnit")
                 .append(" state=").append(state)
                 .append(" guestId=").append(guestId);

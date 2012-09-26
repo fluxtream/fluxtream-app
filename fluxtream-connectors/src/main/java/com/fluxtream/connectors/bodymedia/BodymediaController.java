@@ -9,7 +9,7 @@ import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.Guest;
-import com.fluxtream.mvc.controllers.ControllerHelper;
+import com.fluxtream.mvc.controllers.AuthHelper;
 import com.fluxtream.services.GuestService;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.OAuthProvider;
@@ -86,7 +86,7 @@ public class BodymediaController {
 				.getAttribute(BODYMEDIA_OAUTH_PROVIDER);
 		String verifier = request.getParameter("oauth_verifier");
 		provider.retrieveAccessToken(consumer, verifier);
-		Guest guest = ControllerHelper.getGuest();
+		Guest guest = AuthHelper.getGuest();
 		
 		guestService.setApiKeyAttribute(guest.getId(), connector(),
 				"api_key", env.get("bodymediaConsumerKey"));

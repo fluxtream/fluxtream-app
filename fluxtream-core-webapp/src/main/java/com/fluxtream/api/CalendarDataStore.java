@@ -17,7 +17,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.TimeInterval;
-import com.fluxtream.TimeUnit;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.updaters.UpdateInfo;
@@ -25,6 +24,7 @@ import com.fluxtream.connectors.vos.AbstractFacetVO;
 import com.fluxtream.connectors.vos.ImageVOCollection;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.CoachingBuddy;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.GuestAddress;
 import com.fluxtream.domain.GuestSettings;
@@ -32,18 +32,19 @@ import com.fluxtream.domain.Notification;
 import com.fluxtream.domain.metadata.City;
 import com.fluxtream.domain.metadata.DayMetadataFacet;
 import com.fluxtream.domain.metadata.DayMetadataFacet.VisitedCity;
-import com.fluxtream.mvc.controllers.ControllerHelper;
+import com.fluxtream.mvc.controllers.AuthHelper;
 import com.fluxtream.mvc.models.AddressModel;
-import com.fluxtream.mvc.models.ConnectorDataModel;
 import com.fluxtream.mvc.models.ConnectorDigestModel;
 import com.fluxtream.mvc.models.ConnectorResponseModel;
 import com.fluxtream.mvc.models.DigestModel;
+import com.fluxtream.mvc.models.GuestModel;
 import com.fluxtream.mvc.models.NotificationModel;
 import com.fluxtream.mvc.models.SettingsModel;
 import com.fluxtream.mvc.models.SolarInfoModel;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.mvc.models.TimeBoundariesModel;
 import com.fluxtream.services.ApiDataService;
+import com.fluxtream.services.CoachingService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.NotificationsService;
@@ -92,6 +93,9 @@ public class CalendarDataStore {
 	@Autowired
     CalendarDataHelper calendarDataHelper;
 
+    @Autowired
+    CoachingService coachingService;
+
 	Gson gson = new Gson();
 
 	@GET
@@ -111,7 +115,7 @@ public class CalendarDataStore {
 			throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException {
         setTransactionName(null, "GET /calendar/all/week/{year}/{week}");
-        Guest guest = ControllerHelper.getGuest();
+        Guest guest = AuthHelper.getGuest();
         long guestId = guest.getId();
         try{
             long then = System.currentTimeMillis();
@@ -119,6 +123,7 @@ public class CalendarDataStore {
             //this implementation is just a dirt hacky way to make it work and some aspects (weather info) don't work
 
             DigestModel digest = new DigestModel();
+
             digest.timeUnit = "WEEK";
             if (filter == null) {
                 filter = "";
@@ -211,11 +216,12 @@ public class CalendarDataStore {
 			@QueryParam("filter") String filter) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
         setTransactionName(null, "GET /calendar/all/month/{year}/{month}");
-        Guest guest = ControllerHelper.getGuest();
+        Guest guest = AuthHelper.getGuest();
         long guestId = guest.getId();
         try{
             long then = System.currentTimeMillis();
             DigestModel digest = new DigestModel();
+
             digest.timeUnit = "MONTH";
             if (filter == null) {
                 filter = "";
@@ -293,11 +299,12 @@ public class CalendarDataStore {
 			@QueryParam("filter") String filter) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
         setTransactionName(null, "GET /calendar/all/year/{year}");
-        Guest guest = ControllerHelper.getGuest();
+        Guest guest = AuthHelper.getGuest();
         long guestId = guest.getId();
         try {
             long then = System.currentTimeMillis();
             DigestModel digest = new DigestModel();
+
             digest.timeUnit = "YEAR";
             if (filter == null) {
                 filter = "";
@@ -369,11 +376,17 @@ public class CalendarDataStore {
 			@QueryParam("filter") String filter) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
         setTransactionName(null, "GET /calendar/all/date/{date}");
-        Guest guest = ControllerHelper.getGuest();
+        Guest guest = AuthHelper.getGuest();
         long guestId = guest.getId();
+        final CoachingBuddy coachee = AuthHelper.getCoachee();
+        if (coachee!=null) {
+            guestId = coachee.guestId;
+            guest = guestService.getGuestById(guestId);
+        }
         try{
             long then = System.currentTimeMillis();
             DigestModel digest = new DigestModel();
+
             digest.timeUnit = "DAY";
             if (filter == null) {
                 filter = "";
@@ -426,6 +439,14 @@ public class CalendarDataStore {
         }
 	}
 
+    List<GuestModel> toGuestModels(List<Guest> guests) {
+        List<GuestModel> models = new ArrayList<GuestModel>();
+        for (Guest guest : guests) {
+            models.add(new GuestModel(guest));
+        }
+        return models;
+    }
+
 	private List<ApiKey> removeConnectorsWithoutFacets(List<ApiKey> allApiKeys) {
 		List<ApiKey> apiKeys = new ArrayList<ApiKey>();
 		for (ApiKey apiKey : allApiKeys) {
@@ -449,13 +470,13 @@ public class CalendarDataStore {
             long then = System.currentTimeMillis();
             Connector connector = Connector.getConnector(connectorName);
 
-            long guestId = ControllerHelper.getGuestId();
+            long guestId = AuthHelper.getGuestId();
             DayMetadataFacet dayMetadata = metadataService.getDayMetadata(guestId,
                                                                           date, true);
             GuestSettings settings = settingsService.getSettings(guestId);
             ConnectorResponseModel day = prepareConnectorResponseModel(dayMetadata);
             ObjectType[] objectTypes = connector.objectTypes();
-            ApiKey apiKey = guestService.getApiKey(ControllerHelper.getGuestId(),
+            ApiKey apiKey = guestService.getApiKey(AuthHelper.getGuestId(),
                                                    connector);
             calendarDataHelper.refreshApiData(dayMetadata, apiKey, null, day);
             if (objectTypes != null) {

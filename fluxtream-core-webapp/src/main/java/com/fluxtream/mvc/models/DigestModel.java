@@ -33,6 +33,7 @@ public class DigestModel {
     public List<WeatherInfo> hourlyWeatherData = null;
     public String timeUnit;
     public long timeZoneOffset;
+    public List<GuestModel> coachees;
 
 	@SuppressWarnings("rawtypes")
 	public Map<String,Collection> cachedData

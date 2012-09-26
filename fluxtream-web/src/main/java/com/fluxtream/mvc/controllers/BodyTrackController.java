@@ -2,21 +2,18 @@ package com.fluxtream.mvc.controllers;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.net.URLEncoder;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.DELETE;
 import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.impl.BodyTrackHelper;
 import com.fluxtream.utils.HttpUtils;
-import net.sf.json.JSONObject;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -219,7 +216,7 @@ public class BodyTrackController {
 	}
 
     private boolean checkForPermissionAccess(long targetUid){
-        Guest guest = ControllerHelper.getGuest();
+        Guest guest = AuthHelper.getGuest();
         return targetUid == guest.getId() || guest.hasRole(Guest.ROLE_ADMIN) || guest.hasRole(Guest.ROLE_ADMIN);
     }
 

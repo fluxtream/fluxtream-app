@@ -6,6 +6,7 @@ import java.util.List;
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 
+import com.fluxtream.mvc.controllers.AuthHelper;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -14,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.fluxtream.connectors.Connector;
-import com.fluxtream.mvc.controllers.ControllerHelper;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 
@@ -55,7 +55,7 @@ public class OpenPathConnectorController {
 			request.setAttribute("required", required);
 			return new ModelAndView("connectors/openpath/enterCredentials");
 		}
-		long guestId = ControllerHelper.getGuestId();
+		long guestId = AuthHelper.getGuestId();
 		boolean worked = false;
 		try {
 			OpenPathUpdater updater = beanFactory.getBean(OpenPathUpdater.class);

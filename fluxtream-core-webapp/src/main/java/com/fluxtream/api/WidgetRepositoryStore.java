@@ -9,9 +9,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
-import com.fluxtream.domain.DashboardWidget;
 import com.fluxtream.domain.DashboardWidgetsRepository;
-import com.fluxtream.mvc.controllers.ControllerHelper;
+import com.fluxtream.mvc.controllers.AuthHelper;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.WidgetsService;
 import com.google.gson.Gson;
@@ -41,7 +40,7 @@ public class WidgetRepositoryStore {
     @Produces({ MediaType.APPLICATION_JSON })
     public String getWidgetRepositories() {
         try{
-            long guestId = ControllerHelper.getGuestId();
+            long guestId = AuthHelper.getGuestId();
             final List<DashboardWidgetsRepository> repositories = widgetsService.getWidgetRepositories(guestId);
             JSONArray result = new JSONArray();
             for (DashboardWidgetsRepository repository : repositories) {
@@ -59,7 +58,7 @@ public class WidgetRepositoryStore {
     @Produces({ MediaType.APPLICATION_JSON })
     public String addWidgetRepositoryURL(@FormParam("url") String url) {
         try{
-            long guestId = ControllerHelper.getGuestId();
+            long guestId = AuthHelper.getGuestId();
             try { widgetsService.addWidgetRepositoryURL(guestId, url); }
             catch (RuntimeException rte) { return handleRuntimeException(rte); }
             return gson.toJson(new StatusModel(true, "added widget repository"));
@@ -74,7 +73,7 @@ public class WidgetRepositoryStore {
     @Path("/")
     public String removeWidgetRepositoryURL(@QueryParam("url") String url) {
         try{
-            long guestId = ControllerHelper.getGuestId();
+            long guestId = AuthHelper.getGuestId();
             widgetsService.removeWidgetRepositoryURL(guestId, url);
             return gson.toJson(new StatusModel(true, "removed widget repository"));
         }

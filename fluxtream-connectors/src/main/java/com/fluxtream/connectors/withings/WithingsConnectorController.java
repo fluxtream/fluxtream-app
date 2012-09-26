@@ -12,6 +12,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.fluxtream.mvc.controllers.AuthHelper;
 import org.apache.commons.httpclient.HttpException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -23,7 +24,6 @@ import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.updaters.UpdateInfo.UpdateType;
 import com.fluxtream.domain.Guest;
-import com.fluxtream.mvc.controllers.ControllerHelper;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import com.google.gson.Gson;
@@ -53,7 +53,7 @@ public class WithingsConnectorController {
 				.getAttribute("scaleUsers");
 		long userid = getUserIdWithPublicKey(
 				withingsUsers, publickey);
-		long guestId = ControllerHelper.getGuestId();
+		long guestId = AuthHelper.getGuestId();
 		Guest guest = guestService.getGuestById(Long.valueOf(guestId));
 		if (guest == null) {
 			ModelAndView mav = new ModelAndView("general-error");

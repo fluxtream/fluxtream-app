@@ -11,7 +11,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.Notification;
-import com.fluxtream.mvc.controllers.ControllerHelper;
+import com.fluxtream.mvc.controllers.AuthHelper;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.NotificationsService;
@@ -66,7 +66,7 @@ public class NotificationsStore {
     public String discardNotification(@PathParam("id") String idString)
             throws IOException {
 
-        long guestId = ControllerHelper.getGuestId();
+        long guestId = AuthHelper.getGuestId();
 
         long id = Long.valueOf(idString);
         notificationsService.deleteNotification(guestId, id);
@@ -82,7 +82,7 @@ public class NotificationsStore {
     public String discardNotifications(@QueryParam("ids") String ids)
             throws IOException {
 
-        long guestId = ControllerHelper.getGuestId();
+        long guestId = AuthHelper.getGuestId();
 
         String[] idStrings = ids.split(",");
         for (String idString : idStrings) {

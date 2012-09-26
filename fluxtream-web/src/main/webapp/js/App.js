@@ -1,7 +1,8 @@
 define(
-    [ "core/FlxState", "Addresses", "ManageConnectors", "AddConnectors", "ConnectorConfig", "Settings",
+    [ "core/FlxState", "Addresses", "ManageConnectors", "AddConnectors", "ConnectorConfig", "Settings", "SharingDialog",
       "libs/jquery.form", "libs/jquery.jeditable.mini" ],
-    function(FlxState, Addresses, ManageConnectors, AddConnectors, ConnectorConfig, Settings) {
+    function(FlxState, Addresses, ManageConnectors, AddConnectors, ConnectorConfig, Settings,
+        SharingDialog ) {
 
         var App = {};
         var toLoad = 0, loaded = 0;
@@ -205,7 +206,26 @@ define(
 
         App.eraseEverything = function() {
             var confirmed = confirm("Are you sure?");
+            //TODO: Woot?! Why is this empty?
         };
+
+        App.as = function(username) {
+            $.ajax({
+                url: "/api/coaching/coachees/" + username,
+                type: "POST",
+                success: function(status) {
+                    if (status.result=="OK") {
+                        location.reload();
+                    } else
+                        alert(status.message);
+                }
+            })
+        }
+
+        function glow(element) {
+            element.css("text-shadow", "0 0 10px white")
+                .css("color", "white");
+        }
 
         App.connectors = function() {
             AddConnectors.show();
@@ -312,7 +332,6 @@ define(
         };
 
         App.showConnectorsPage = function(page) {
-            console.log("showing connectors page " + page);
             $("#availableConnectors").load(
                 "/connectors/availableConnectors?page=" + page);
         };
@@ -331,12 +350,12 @@ define(
         App.showCarousel = function(photoId) {
             if ($("#photosCarousel").length==0) {
                 $.ajax({
-                           url : "/tabs/photos/carousel",
-                           success: function(html) {
-                               makeModal(html);
-                               carousel(photoId);
-                           }
-                       });
+                   url : "/tabs/photos/carousel",
+                   success: function(html) {
+                       makeModal(html);
+                       carousel(photoId);
+                   }
+                });
             } else {
                 carousel(photoId);
             }
@@ -497,6 +516,20 @@ define(
             return $("#flxUID").html();
         }
 
+        window.FlxUtils = {};
+        FlxUtils.rowsOf = function(array, size) {
+            if (array.length==0) return [[]];
+            var row = [array[0]], rows = [{row : row}], i=1;
+            for (; i<array.length; i++) {
+                if (i%size===0) {
+                    row = [];
+                    rows.push({row : row});
+                }
+                row.push(array[i]);
+            }
+            return rows;
+        }
+
 
         App.getUsername = getUsername;
         App.getUID = getUID;
@@ -506,6 +539,7 @@ define(
         App.fullHeight = fullHeight;
         App.invalidPath = invalidPath;
         App.geocoder = new google.maps.Geocoder();
+        App.sharingDialog = SharingDialog;
         window.App = App;
         return App;
 

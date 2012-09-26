@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.fluxtream.domain.CoachingBuddy;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,6 +15,7 @@ import com.fluxtream.domain.Guest;
 public class FlxUserDetails implements UserDetails {
 
 	private transient Guest guest;
+    public transient CoachingBuddy coachee;
 	
 	public FlxUserDetails(Guest guest) {
 		this.guest = guest;

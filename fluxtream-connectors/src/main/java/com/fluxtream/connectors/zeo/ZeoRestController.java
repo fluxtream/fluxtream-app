@@ -7,7 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
-import com.fluxtream.mvc.controllers.ControllerHelper;
+import com.fluxtream.mvc.controllers.AuthHelper;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.GuestService;
 import org.apache.log4j.Logger;
@@ -70,7 +70,7 @@ public class ZeoRestController {
             return new ModelAndView("connectors/zeo/enterCredentials");
         }
 
-        long guestId = ControllerHelper.getGuestId();
+        long guestId = AuthHelper.getGuestId();
         guestService.setApiKeyAttribute(guestId, Connector.getConnector("zeo"), "username", email);
         guestService.setApiKeyAttribute(guestId, Connector.getConnector("zeo"), "password", password);
 

@@ -70,3 +70,80 @@
         </div>
     </div>
 </template>
+<template id="sharingDialog">
+    <div id="sharingModal" class="modal fade hide in">
+        <div class="modal-header">
+            <a class="close" data-dismiss="modal">&times;</a>
+            <h3>Coaching Buddies</h3>
+        </div>
+        <div class="modal-body">
+            <div class="container-fluid">
+                <div class="row-fluid">
+                    <div class="span12">
+                        <div id="coachesDropdown"/>
+                    </div>
+                </div><br/>
+                <div class="row-fluid">
+                    <div class="span19" id="sharedConnectors">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn" onclick="$('#sharingModal').modal('hide');">Close</button>
+        </div>
+    </div>
+</template>
+<template id="coachesDropdown">
+    <div class="btn-group">
+        <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+            {{selectedCoach}}
+            <span class="caret"></span>
+        </a>
+        <ul class="dropdown-menu">
+            {{#coaches}}
+            <li><a href="javascript:App.sharingDialog.showCoach('{{username}}')">{{fullname}}</a></li>
+            {{/coaches}}
+            {{^coaches}}
+            <li><a href="javascript:void(0)"><i>Your buddy list is empty</i></a></li>
+            {{/coaches}}
+            <li class="divider"></li>
+            <li><a href="javascript:App.sharingDialog.findUserDialog()">Add Buddy...</a></li>
+        </ul>
+    </div>
+</template>
+<template id="sharedConnectors">
+    {{#connectors}}
+    <div class="row-fluid">
+        {{#row}}
+            <div class="span4"><input type="checkbox"
+                                      onclick="App.sharingDialog.toggleSharedConnector('{{username}}','{{connectorName}}', this.checked);"
+                                      value="{{connectorName}}" {{#shared}}checked=checked{{/shared}}>&nbsp;{{prettyName}}</input> </div>
+        {{/row}}
+    </div>
+    {{/connectors}}
+</template>
+<template id="findUserDialog">
+    <div id="findUserModal" class="modal fade hide in">
+        <div class="modal-header">
+            <a class="close" data-dismiss="modal">&times;</a>
+            <h3>Invite Buddy</h3>
+        </div>
+        <div class="modal-body">
+            <div class="container-fluid">
+                <form id="findUserForm" action="javascript:void(0);">
+                    <input type="text" placeholder="Please, Enter a Username..." id="findUserField" style="display:inline"/>
+                    <img class="loading-animation"
+                         src="/{{release}}/images/loading.gif"/>
+                    <div id="findUserMessage" class="alert alert-info">You need to enter the fluxtream username of the person you want to invite.
+                    If you don't already know it, please ask them to tell you what it is.</div>
+                </form>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary disabled" onclick="App.sharingDialog.addCoach($('#findUserField').val());"
+                    id="shareMyDataButton">Add Buddy</button>
+            <button class="btn" onclick="$('#findUserModal').modal('hide');">Close</button>
+        </div>
+    </div>
+</template>

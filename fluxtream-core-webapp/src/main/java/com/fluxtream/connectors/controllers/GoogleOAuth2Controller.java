@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.fluxtream.domain.Notification;
+import com.fluxtream.mvc.controllers.AuthHelper;
 import com.fluxtream.services.NotificationsService;
 import net.sf.json.JSONObject;
 
@@ -20,7 +21,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.Guest;
-import com.fluxtream.mvc.controllers.ControllerHelper;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.SystemService;
 import com.fluxtream.utils.HttpUtils;
@@ -82,7 +82,7 @@ public class GoogleOAuth2Controller {
 		String scope = (String) request.getSession().getAttribute("oauth2Scope");
 		Connector scopedApi = systemService.getApiFromGoogleScope(scope);
 		
-		Guest guest = ControllerHelper.getGuest();
+		Guest guest = AuthHelper.getGuest();
 
         if (!token.has("refresh_token")) {
             String message = (new StringBuilder("<p>We couldn't get your oauth2 refresh token.</p>"))

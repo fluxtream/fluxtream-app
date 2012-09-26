@@ -22,7 +22,7 @@ import com.fluxtream.TimeInterval;
 import com.fluxtream.TimeUnit;
 import com.fluxtream.connectors.vos.AbstractPhotoFacetVO;
 import com.fluxtream.domain.Guest;
-import com.fluxtream.mvc.controllers.ControllerHelper;
+import com.fluxtream.mvc.controllers.AuthHelper;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.BodyTrackStorageService;
 import com.fluxtream.services.GuestService;
@@ -116,7 +116,7 @@ public class BodyTrackController {
         setTransactionName(null, "POST /bodytrack/upload");
         StatusModel status;
         try{
-            long uid = ControllerHelper.getGuestId();
+            long uid = AuthHelper.getGuestId();
             Type channelsType =  new TypeToken<Collection<String>>(){}.getType();
             Type dataType = new TypeToken<List<List<Long>>>(){}.getType();
             bodyTrackHelper.uploadToBodyTrack(uid, deviceNickanme, (Collection<String>)gson.fromJson(channels, channelsType), (List<List<Object>>)gson.fromJson(data, dataType));
@@ -354,7 +354,7 @@ public class BodyTrackController {
     }
 
     private boolean checkForPermissionAccess(long targetUid){
-        Guest guest = ControllerHelper.getGuest();
+        Guest guest = AuthHelper.getGuest();
         return targetUid == guest.getId() || guest.hasRole(Guest.ROLE_ADMIN) || guest.hasRole(Guest.ROLE_ADMIN);
     }
 
