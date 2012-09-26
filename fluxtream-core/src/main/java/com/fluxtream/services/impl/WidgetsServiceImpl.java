@@ -147,8 +147,10 @@ public class WidgetsServiceImpl implements WidgetsService {
         final List<ApiKey> keys = guestService.getApiKeys(guestId);
         List<String> userConnectorNames = new ArrayList<String>();
         for (ApiKey key : keys) {
-            final String connectorName = key.getConnector().getName();
-            userConnectorNames.add(connectorName);
+            if(key!=null && key.getConnector()!=null && key.getConnector().getName()!=null) {
+                final String connectorName = key.getConnector().getName();
+                userConnectorNames.add(connectorName);
+            }
         }
         List<DashboardWidget> availableWidgetsList = new ArrayList<DashboardWidget>();
         for (DashboardWidget widget : allWidgets) {

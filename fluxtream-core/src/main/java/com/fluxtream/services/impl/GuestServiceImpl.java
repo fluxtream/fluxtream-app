@@ -174,13 +174,19 @@ public class GuestServiceImpl implements GuestService {
 		ApiKey apiKey = JPAUtils.findUnique(em, ApiKey.class, "apiKey.byApi",
 				guestId, connector.value());
         final String refreshTokenRemoveURL = apiKey.getAttributeValue("refreshTokenRemoveURL", env);
-        if (refreshTokenRemoveURL !=null)
-            oAuth2Helper.revokeRefreshToken(guestId, connector, refreshTokenRemoveURL);
-        em.remove(apiKey);
-		if (connector == Connector.getConnector("google_latitude"))
-			JPAUtils.execute(em, "context.delete.all", guestId);
-        connectorUpdateService.stopUpdating(guestId, connector, true);
-		apiDataService.eraseApiData(guestId, connector);
+        // Revoke refresh token might throw.  If it does we still want to remove the apiKeys from
+        // the DB which is why we put it in a try/finally block
+        try {
+             if (refreshTokenRemoveURL !=null)
+                oAuth2Helper.revokeRefreshToken(guestId, connector, refreshTokenRemoveURL);
+        }
+        finally {
+            em.remove(apiKey);
+            if (connector == Connector.getConnector("google_latitude"))
+                JPAUtils.execute(em, "context.delete.all", guestId);
+            connectorUpdateService.stopUpdating(guestId, connector, true);
+            apiDataService.eraseApiData(guestId, connector);
+        }
 	}
 
 	@Override
@@ -230,10 +236,14 @@ public class GuestServiceImpl implements GuestService {
 			return;
 		List<ApiKey> apiKeys = getApiKeys(guest.getId());
 		for (ApiKey key : apiKeys) {
-			apiDataService.eraseApiData(guest.getId(), key.getConnector());
+            if(key!=null && key.getConnector()!=null) {
+			    apiDataService.eraseApiData(guest.getId(), key.getConnector());
+            }
 		}
 		for (ApiKey apiKey : apiKeys) {
-			em.remove(apiKey);
+            if(apiKey!=null){
+			    em.remove(apiKey);
+            }
 		}
 		JPAUtils.execute(em, "addresses.delete.all", guest.getId());
 		JPAUtils.execute(em, "notifications.delete.all", guest.getId());
