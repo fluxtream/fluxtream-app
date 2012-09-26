@@ -16,8 +16,8 @@ import java.util.TreeSet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.fluxtream.mvc.controllers.AuthHelper;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -29,7 +29,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.Guest;
-import com.fluxtream.mvc.controllers.ControllerHelper;
 import com.fluxtream.services.GuestService;
 
 @Controller
@@ -71,7 +70,7 @@ public class FlickrController {
 		String getTokenUrl = "http://api.flickr.com/services/rest/" +
 			"?method=flickr.auth.getToken&api_key=" + api_key + "&frob=" + frob + "&api_sig=" + api_sig;
 
-		Guest guest = ControllerHelper.getGuest();
+		Guest guest = AuthHelper.getGuest();
 		long guestId = guest.getId();
 		
 		String authToken = fetch(getTokenUrl, env);

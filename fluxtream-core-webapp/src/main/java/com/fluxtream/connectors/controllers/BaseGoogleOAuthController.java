@@ -8,7 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.Guest;
-import com.fluxtream.mvc.controllers.ControllerHelper;
+import com.fluxtream.mvc.controllers.AuthHelper;
 import com.fluxtream.services.GuestService;
 import com.google.api.client.auth.oauth.OAuthAuthorizeTemporaryTokenUrl;
 import com.google.api.client.auth.oauth.OAuthCredentialsResponse;
@@ -70,7 +70,7 @@ public abstract class BaseGoogleOAuthController {
 		
 		createOAuthParameters(credentials).signRequestsUsingAuthorizationHeader(transport);
 		
-		Guest guest = ControllerHelper.getGuest();
+		Guest guest = AuthHelper.getGuest();
 
 		guestService().setApiKeyAttribute(guest.getId(), api, "accessToken", credentials.token);
 		guestService().setApiKeyAttribute(guest.getId(), api, "tokenSecret", credentials.tokenSecret);

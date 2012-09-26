@@ -8,6 +8,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.fluxtream.mvc.controllers.AuthHelper;
 import net.sf.json.JSONObject;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +19,6 @@ import org.springframework.web.servlet.ModelAndView;
 import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.Guest;
-import com.fluxtream.mvc.controllers.ControllerHelper;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.SystemService;
 import com.fluxtream.utils.HttpUtils;
@@ -102,7 +102,7 @@ public class FacebookConnectorController {
 			
 			if (!access_token.equals("")) {
 				Connector connector = Connector.getConnector("facebook");
-				Guest guest = ControllerHelper.getGuest();
+				Guest guest = AuthHelper.getGuest();
 		
 				guestService.setApiKeyAttribute(guest.getId(), connector,
 						"accessToken", access_token);

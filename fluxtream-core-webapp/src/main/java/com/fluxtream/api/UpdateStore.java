@@ -2,7 +2,6 @@ package com.fluxtream.api;
 
 import java.util.List;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -10,7 +9,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.ApiUpdate;
-import com.fluxtream.mvc.controllers.ControllerHelper;
+import com.fluxtream.mvc.controllers.AuthHelper;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.google.gson.Gson;
@@ -43,7 +42,7 @@ public class UpdateStore {
                              @QueryParam("page") int page) {
         setTransactionName(null, "GET /updates/" + connectorName);
         try{
-            long guestId = ControllerHelper.getGuestId();
+            long guestId = AuthHelper.getGuestId();
             final List<ApiUpdate> updates = connectorUpdateService.getUpdates(guestId, Connector.getConnector(connectorName), pageSize, page);
             return gson.toJson(updates);
         }

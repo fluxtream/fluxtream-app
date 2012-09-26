@@ -4,11 +4,10 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.Guest;
-import com.fluxtream.mvc.controllers.ControllerHelper;
+import com.fluxtream.mvc.controllers.AuthHelper;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.utils.HttpUtils;
 import net.sf.json.JSONArray;
@@ -17,8 +16,6 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.ModelAndView;
 
 @Controller()
 @RequestMapping("/singly/github")
@@ -35,7 +32,7 @@ public class GithubConnectorController {
         String code = request.getParameter("code");
         String error = request.getParameter("error");
 
-        Guest guest = ControllerHelper.getGuest();
+        Guest guest = AuthHelper.getGuest();
 
         if (StringUtils.isEmpty(error)) {
             String clientId = env.get("singly.client.id");

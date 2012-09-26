@@ -11,7 +11,7 @@ import javax.ws.rs.core.MediaType;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.domain.UpdateWorkerTask;
-import com.fluxtream.mvc.controllers.ControllerHelper;
+import com.fluxtream.mvc.controllers.AuthHelper;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.google.gson.Gson;
@@ -51,7 +51,7 @@ public class UpdateWorkerTaskStore {
     public String getUpdateTasks(@PathParam("connector") String connectorName) {
         setTransactionName(null, "GET /updateTasks/" + connectorName);
         try{
-            long guestId = ControllerHelper.getGuestId();
+            long guestId = AuthHelper.getGuestId();
             final List<UpdateWorkerTask> scheduledUpdates =
                     connectorUpdateService.getScheduledOrInProgressUpdateTasks(guestId, Connector.getConnector(connectorName));
             JSONArray array = new JSONArray();
@@ -71,7 +71,7 @@ public class UpdateWorkerTaskStore {
     public String getUpdateTasksAll() {
         setTransactionName(null, "GET /updateTasks/all");
         try{
-            long guestId = ControllerHelper.getGuestId();
+            long guestId = AuthHelper.getGuestId();
             final Collection<Connector> connectors = Connector.getAllConnectors();
             JSONArray res = new JSONArray();
             for(Connector c : connectors)
@@ -112,7 +112,7 @@ public class UpdateWorkerTaskStore {
     public String getObjectTypeUpdateTasks(@PathParam("connector") String connectorName, @PathParam("objectType") String objectTypeName) {
         setTransactionName(null, "GET /updateTasks/" + connectorName + "/" + objectTypeName);
         try{
-            long guestId = ControllerHelper.getGuestId();
+            long guestId = AuthHelper.getGuestId();
             final Connector connector = Connector.getConnector(connectorName);
             final ObjectType objectType = ObjectType.getObjectType(connector, objectTypeName);
             final UpdateWorkerTask scheduledUpdate =
@@ -130,7 +130,7 @@ public class UpdateWorkerTaskStore {
     public String deleteUpdateTasks(@PathParam("connector") String connectorName) {
         setTransactionName(null, "DELETE /updateTasks/" + connectorName);
         try{
-            long guestId = ControllerHelper.getGuestId();
+            long guestId = AuthHelper.getGuestId();
             final Connector connector = Connector.getConnector(connectorName);
             connectorUpdateService.stopUpdating(guestId, connector, false);
             StatusModel statusModel = new StatusModel(true, "successfully deleted pending update tasks for " + connectorName);

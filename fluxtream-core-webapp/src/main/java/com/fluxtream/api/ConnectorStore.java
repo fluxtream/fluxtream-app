@@ -20,7 +20,7 @@ import com.fluxtream.domain.ApiUpdate;
 import com.fluxtream.domain.ConnectorInfo;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.UpdateWorkerTask;
-import com.fluxtream.mvc.controllers.ControllerHelper;
+import com.fluxtream.mvc.controllers.AuthHelper;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.ConnectorUpdateService;
@@ -80,7 +80,7 @@ public class ConnectorStore {
     @Produces({MediaType.APPLICATION_JSON})
     public String getInstalledConnectors(){
         setTransactionName(null, "GET /connectors/installed");
-        Guest guest = ControllerHelper.getGuest();
+        Guest guest = AuthHelper.getGuest();
         try {
             List<ConnectorInfo> connectors =  sysService.getConnectors();
             JSONArray connectorsArray = new JSONArray();
@@ -127,7 +127,7 @@ public class ConnectorStore {
     @Produces({MediaType.APPLICATION_JSON})
     public String getUninstalledConnectors(){
         setTransactionName(null, "GET /connectors/uninstalled");
-        Guest guest = ControllerHelper.getGuest();
+        Guest guest = AuthHelper.getGuest();
         try {
             List<ConnectorInfo> allConnectors =  sysService.getConnectors();
             List<ConnectorInfo> connectors = new ArrayList<ConnectorInfo>();
@@ -190,7 +190,7 @@ public class ConnectorStore {
     @Produces({MediaType.APPLICATION_JSON})
     public String deleteConnector(@PathParam("connector") String connector){
         StatusModel result;
-        Guest guest = ControllerHelper.getGuest();
+        Guest guest = AuthHelper.getGuest();
         try{
             Connector apiToRemove = Connector.fromString(connector);
             guestService.removeApiKey(guest.getId(), apiToRemove);
@@ -216,7 +216,7 @@ public class ConnectorStore {
     @Produces({MediaType.APPLICATION_JSON})
     public String setConnectorChannels(@PathParam("connector") String connectorName, @FormParam("channels") String channels){
         StatusModel result;
-        Guest guest = ControllerHelper.getGuest();
+        Guest guest = AuthHelper.getGuest();
         try {
             ApiKey apiKey = guestService.getApiKey(guest.getId(), Connector.getConnector(connectorName));
             settingsService.setChannelsForConnector(guest.getId(),apiKey.getConnector(),channels.split(","));
@@ -242,7 +242,7 @@ public class ConnectorStore {
     @Path("/filters")
     @Produces({MediaType.APPLICATION_JSON})
     public String getConnectorFilterState(){
-        Guest guest = ControllerHelper.getGuest();
+        Guest guest = AuthHelper.getGuest();
         try {
             StringBuilder sb = new StringBuilder("module=API component=connectorStore action=getConnectorFilterState")
                     .append(" guestId=").append(guest.getId());
@@ -263,7 +263,7 @@ public class ConnectorStore {
     @Produces({MediaType.APPLICATION_JSON})
     public String setConnectorFilterState(@FormParam("filterState") String stateJSON){
         StatusModel result;
-        Guest guest = ControllerHelper.getGuest();
+        Guest guest = AuthHelper.getGuest();
         try {
             settingsService.setConnectorFilterState(guest.getId(), stateJSON);
             StringBuilder sb = new StringBuilder("module=API component=connectorStore action=setConnectorFilterState")

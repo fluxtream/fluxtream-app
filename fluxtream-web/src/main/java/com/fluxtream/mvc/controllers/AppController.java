@@ -80,7 +80,7 @@ public class AppController {
     @RequestMapping(value = { "/snippets" })
     public ModelAndView snippets(HttpServletRequest request) {
 
-        long guestId = ControllerHelper.getGuestId();
+        long guestId = AuthHelper.getGuestId();
 
         ModelAndView mav = new ModelAndView("snippets");
         String targetEnvironment = env.get("environment");
@@ -102,7 +102,7 @@ public class AppController {
     @RequestMapping(value = { "/explorer" })
     public ModelAndView explorer(HttpServletRequest request) {
 
-        long guestId = ControllerHelper.getGuestId();
+        long guestId = AuthHelper.getGuestId();
 
         ModelAndView mav = new ModelAndView("snippets");
         String targetEnvironment = env.get("environment");
@@ -124,7 +124,7 @@ public class AppController {
     public ModelAndView home(HttpServletRequest request) {
 		logger.info("action=loggedIn");
 
-		long guestId = ControllerHelper.getGuestId();
+		long guestId = AuthHelper.getGuestId();
 
 		ModelAndView mav = new ModelAndView("redirect:main");
 		String targetEnvironment = env.get("environment");
@@ -156,9 +156,9 @@ public class AppController {
 	@RequestMapping(value = { "/app*", "/app/**" })
 	public ModelAndView welcomeHome(HttpServletRequest request)
 			throws IOException, NoSuchAlgorithmException {
-		if (!hasTimezoneCookie(request)||ControllerHelper.getGuest()==null)
+		if (!hasTimezoneCookie(request)|| AuthHelper.getGuest()==null)
 			return new ModelAndView("redirect:/welcome");
-		long guestId = ControllerHelper.getGuestId();
+		long guestId = AuthHelper.getGuestId();
 		checkIn(request, guestId);
 		return home(request);
 	}
@@ -166,7 +166,7 @@ public class AppController {
 	@RequestMapping(value = "/app/from/{connectorName}")
 	public String home(HttpServletRequest request,
 			@PathVariable("connectorName") String connectorName) {
-		long guestId = ControllerHelper.getGuestId();
+		long guestId = AuthHelper.getGuestId();
         final Connector connector = Connector.getConnector(connectorName);
         String message = "You have successfully added a new connector: "
 				+ connector.prettyName()

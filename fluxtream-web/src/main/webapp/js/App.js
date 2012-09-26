@@ -206,7 +206,26 @@ define(
 
         App.eraseEverything = function() {
             var confirmed = confirm("Are you sure?");
+            //TODO: Woot?! Why is this empty?
         };
+
+        App.as = function(username) {
+            $.ajax({
+                url: "/api/coaching/coachees/" + username,
+                type: "POST",
+                success: function(status) {
+                    if (status.result=="OK") {
+                        location.reload();
+                    } else
+                        alert(status.message);
+                }
+            })
+        }
+
+        function glow(element) {
+            element.css("text-shadow", "0 0 10px white")
+                .css("color", "white");
+        }
 
         App.connectors = function() {
             AddConnectors.show();

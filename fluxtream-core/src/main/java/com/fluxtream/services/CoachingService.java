@@ -24,4 +24,6 @@ public interface CoachingService {
 
     public CoachingBuddy getCoach(long guestId, String username);
 
+    public CoachingBuddy getCoachee(long guestId, String username);
+
 }

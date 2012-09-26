@@ -15,7 +15,7 @@ import com.fluxtream.Configuration;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.GuestAddress;
 import com.fluxtream.domain.metadata.DayMetadataFacet;
-import com.fluxtream.mvc.controllers.ControllerHelper;
+import com.fluxtream.mvc.controllers.AuthHelper;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
@@ -54,7 +54,7 @@ public class AddressStore {
     public String getAddresses(){
         setTransactionName(null, "GET /addresses");
         try{
-            Guest guest = ControllerHelper.getGuest();
+            Guest guest = AuthHelper.getGuest();
             List<GuestAddress> addresses = settingsService.getAllAddresses(guest.getId());
             return gson.toJson(addresses);
         } catch (Exception e) {
@@ -74,7 +74,7 @@ public class AddressStore {
     public String getAddress(@PathParam("index") int index){
         setTransactionName(null, "GET /addresses/{index}");
         try{
-            Guest guest = ControllerHelper.getGuest();
+            Guest guest = AuthHelper.getGuest();
             List<GuestAddress> addresses = settingsService.getAllAddresses(guest.getId());
             return gson.toJson(addresses.get(index));
         } catch (Exception e) {
@@ -98,7 +98,7 @@ public class AddressStore {
     public String getAddressBySingleSelector(@PathParam("selector") String selector, @PathParam("index") int index){
         setTransactionName(null, "GET /addresses/{selector}/{index}");
         try{
-            Guest guest = ControllerHelper.getGuest();
+            Guest guest = AuthHelper.getGuest();
             List<GuestAddress> addresses;
             try{
                 addresses = getAddressesAtDate(guest,selector);
@@ -118,7 +118,7 @@ public class AddressStore {
     public String getAddressBySingleSelector(@PathParam("selector") String selector){
         setTransactionName(null, "GET /addresses/{selector}/all");
         try{
-            Guest guest = ControllerHelper.getGuest();
+            Guest guest = AuthHelper.getGuest();
             List<GuestAddress> addresses;
             try{
                 addresses = getAddressesAtDate(guest,selector);
@@ -139,7 +139,7 @@ public class AddressStore {
     public String getAddressesOfTypeAtDate(@PathParam("type") String type, @PathParam("date") String date){
         setTransactionName(null, "GET /addresses/{type}/{date}/all");
         try{
-            Guest guest = ControllerHelper.getGuest();
+            Guest guest = AuthHelper.getGuest();
             DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(),date,true);
             List<GuestAddress> addresses = settingsService.getAllAddressesOfTypeForDate(guest.getId(),type,(dayMeta.start + dayMeta.end)/2);
             return gson.toJson(addresses);
@@ -155,7 +155,7 @@ public class AddressStore {
     public String getAddressesOfTypeAtDate(@PathParam("type") String type, @PathParam("date") String date, @PathParam("index") int index){
         setTransactionName(null, "GET /addresses/{type}/{date}/{index}");
         try{
-            Guest guest = ControllerHelper.getGuest();
+            Guest guest = AuthHelper.getGuest();
             DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(),date,true);
             List<GuestAddress> addresses = settingsService.getAllAddressesOfTypeForDate(guest.getId(),type,(dayMeta.start + dayMeta.end)/2);
             return gson.toJson(addresses.get(index));
@@ -214,13 +214,13 @@ public class AddressStore {
                                    @FormParam("radius") @DefaultValue("-1") double radius){
         setTransactionName(null, "POST /addresses/{input}");
         try{
-            Guest guest = ControllerHelper.getGuest();
+            Guest guest = AuthHelper.getGuest();
             int index = Integer.parseInt(input);
             return updateAddress(guest.username,index,address,latitude,longitude,radius,since,until,newType);
 
         } catch (Exception e){
             try{
-                return addAddress(input,address,latitude,longitude,radius,since,until, ControllerHelper.getGuest().username);
+                return addAddress(input,address,latitude,longitude,radius,since,until, AuthHelper.getGuest().username);
             }
             catch (Exception e1){
                 StatusModel result = new StatusModel(false, "Could not add/update guest addresses: " + e1.getMessage());
@@ -236,7 +236,7 @@ public class AddressStore {
         setTransactionName(null, "DELETE /addresses/all");
         StatusModel result;
         try{
-            Guest guest = ControllerHelper.getGuest();
+            Guest guest = AuthHelper.getGuest();
             settingsService.deleteAllAddresses(guest.getId());
             result = new StatusModel(true, "Successfully deleted all addresses");
         } catch (Exception e) {
@@ -252,7 +252,7 @@ public class AddressStore {
         setTransactionName(null, "DELETE /addresses/{index}");
         StatusModel result;
         try{
-            Guest guest = ControllerHelper.getGuest();
+            Guest guest = AuthHelper.getGuest();
             settingsService.deleteAddressById(guest.getId(),settingsService.getAllAddresses(guest.getId()).get(index).id);
             result = new StatusModel(true, "Successfully deleted address");
         } catch (Exception e) {
@@ -268,7 +268,7 @@ public class AddressStore {
         setTransactionName(null, "DELETE /addresses/id/{index}");
         StatusModel result;
         try{
-            Guest guest = ControllerHelper.getGuest();
+            Guest guest = AuthHelper.getGuest();
             settingsService.deleteAddressById(guest.getId(),id);
             result = new StatusModel(true, "Successfully deleted address");
         } catch (Exception e) {
@@ -284,7 +284,7 @@ public class AddressStore {
         setTransactionName(null, "/addresses/{selector}/{index} (DELETE)");
         StatusModel result;
         try{
-            Guest guest = ControllerHelper.getGuest();
+            Guest guest = AuthHelper.getGuest();
             List<GuestAddress> addresses;
             try{
                 addresses = getAddressesAtDate(guest,selector);
@@ -307,7 +307,7 @@ public class AddressStore {
         setTransactionName(null, "DELETE /addresses/{selector}/all");
         StatusModel result;
         try{
-            Guest guest = ControllerHelper.getGuest();
+            Guest guest = AuthHelper.getGuest();
             try{
                 DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(),selector,true);
                 settingsService.deleteAllAddressesAtDate(guest.getId(),(dayMeta.start + dayMeta.end) / 2);
@@ -329,7 +329,7 @@ public class AddressStore {
         setTransactionName(null, "DELETE /{type}/{date}/all");
         StatusModel result;
         try{
-            Guest guest = ControllerHelper.getGuest();
+            Guest guest = AuthHelper.getGuest();
             DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(),date,true);
             settingsService.deleteAllAddressesOfTypeForDate(guest.getId(),type,(dayMeta.start + dayMeta.end)/2);
             result = new StatusModel(false, "Successfully deleted addresses");
@@ -346,7 +346,7 @@ public class AddressStore {
         setTransactionName(null, "DELETE /addresses/{type}/{date}/{index}");
         StatusModel result;
         try{
-            Guest guest = ControllerHelper.getGuest();
+            Guest guest = AuthHelper.getGuest();
             DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(),date,true);
             List<GuestAddress> addresses = settingsService.getAllAddressesOfTypeForDate(guest.getId(),type,(dayMeta.start + dayMeta.end)/2);
             settingsService.deleteAddressById(guest.getId(),addresses.get(index).id);
@@ -408,7 +408,7 @@ public class AddressStore {
         setTransactionName(null, "POST /addresses/selector/{index}");
         StatusModel result;
         try{
-            Guest guest = ControllerHelper.getGuest();
+            Guest guest = AuthHelper.getGuest();
             List<GuestAddress> addresses;
             try{
                 addresses = getAddressesAtDate(guest,selector);
@@ -431,7 +431,7 @@ public class AddressStore {
         setTransactionName(null, "POST /addresses/{type}/{date}/{index}");
         StatusModel result;
         try{
-            Guest guest = ControllerHelper.getGuest();
+            Guest guest = AuthHelper.getGuest();
             DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(),date,true);
             List<GuestAddress> addresses = settingsService.getAllAddressesOfTypeForDate(guest.getId(),type,(dayMeta.start + dayMeta.end)/2);
             settingsService.deleteAddressById(guest.getId(),addresses.get(index).id);

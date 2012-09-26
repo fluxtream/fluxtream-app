@@ -14,6 +14,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.fluxtream.mvc.controllers.AuthHelper;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
@@ -26,7 +27,6 @@ import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
-import com.fluxtream.mvc.controllers.ControllerHelper;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.mvc.models.guest.GuestModel;
 import com.fluxtream.services.GuestService;
@@ -51,7 +51,7 @@ public class GuestController {
 	public String getCurrentGuest() throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
         try{
-            long guestId = ControllerHelper.getGuestId();
+            long guestId = AuthHelper.getGuestId();
 
             Guest guest = guestService.getGuestById(guestId);
             GuestModel guestModel = new GuestModel(guest);
@@ -71,7 +71,7 @@ public class GuestController {
 			throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException {
         try{
-            long guestId = ControllerHelper.getGuestId();
+            long guestId = AuthHelper.getGuestId();
 
             ApiKey apiKey = guestService.getApiKey(guestId,
                                                    Connector.getConnector(connectorName));
@@ -100,7 +100,7 @@ public class GuestController {
             throws InstantiationException, IllegalAccessException,
                    ClassNotFoundException {
         try{
-            long guestId = ControllerHelper.getGuestId();
+            long guestId = AuthHelper.getGuestId();
 
             ApiKey apiKey = guestService.getApiKey(guestId,
                                                    Connector.getConnector(connectorName));
@@ -133,7 +133,7 @@ public class GuestController {
             throws InstantiationException, IllegalAccessException,
                    ClassNotFoundException {
         try{
-            long guestId = ControllerHelper.getGuestId();
+            long guestId = AuthHelper.getGuestId();
 
             ApiKey apiKey = guestService.getApiKey(guestId,
                                                    Connector.getConnector(connectorName));
@@ -205,7 +205,7 @@ public class GuestController {
 	public String list() throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException {
         try{
-            final Guest me = ControllerHelper.getGuest();
+            final Guest me = AuthHelper.getGuest();
 
             List<Guest> list = guestService.getAllGuests();
             JSONArray array = new JSONArray();

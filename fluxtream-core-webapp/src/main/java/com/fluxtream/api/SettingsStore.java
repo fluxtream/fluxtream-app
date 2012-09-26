@@ -9,7 +9,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.GuestSettings;
-import com.fluxtream.mvc.controllers.ControllerHelper;
+import com.fluxtream.mvc.controllers.AuthHelper;
 import com.fluxtream.mvc.models.SettingsModel;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.GuestService;
@@ -43,7 +43,7 @@ public class SettingsStore {
     @Produces({ MediaType.APPLICATION_JSON })
     public String getSettings() {
         try{
-            Guest guest = ControllerHelper.getGuest();
+            Guest guest = AuthHelper.getGuest();
             GuestSettings settings = settingsService.getSettings(guest.getId());
             return gson.toJson(new SettingsModel(settings,guest));
         }
@@ -69,7 +69,7 @@ public class SettingsStore {
             GuestSettings.TemperatureUnit tempUnt = Enum.valueOf(
                     GuestSettings.TemperatureUnit.class, temperatureUnit);
 
-            long guestId = ControllerHelper.getGuestId();
+            long guestId = AuthHelper.getGuestId();
 
             settingsService.setLengthMeasureUnit(guestId, lngUnt);
             settingsService.setDistanceMeasureUnit(guestId, dstUnt);

@@ -1,9 +1,10 @@
-<%@ page import="com.fluxtream.mvc.controllers.ControllerHelper" %>
+<%@ page import="com.fluxtream.mvc.controllers.AuthHelper" %>
 <%@ page pageEncoding="utf-8" contentType="text/html; charset=UTF-8"%><%@ taglib
 	uri="http://granule.com/tags" prefix="g"
 %><%@ page import="java.util.List"
 %><%@ page import="com.fluxtream.domain.Guest"
-%><%
+%>
+<%
     Boolean tracker = (Boolean)request.getAttribute("tracker");
     List<Guest> coachees = (List<Guest>)request.getAttribute("coachees");
 %><!DOCTYPE html>
@@ -45,8 +46,8 @@
 </head>
 
 <body>
-    <div id="flxUsername" style="display:none;"><%=ControllerHelper.getGuest().username%></div>
-    <div id="flxUID" style="display:none;"><%=ControllerHelper.getGuestId()%></div>
+    <div id="flxUsername" style="display:none;"><%=AuthHelper.getGuest().username%></div>
+    <div id="flxUID" style="display:none;"><%=AuthHelper.getGuestId()%></div>
 
 	<div id="content">
 
@@ -81,16 +82,32 @@
                                                 class="icon-list icon-large" style="float: right;"></i></a></li>
                                     </ul></li>
                                 <li class="divider-vertical"></li>
-							<li class="dropdown"><a href="#" class="dropdown-toggle"
-								data-toggle="dropdown"><%=request.getAttribute("fullname")%>
+							<li class="dropdown"><a href="#" class="dropdown-toggle" id="loggedInUser" <%if(AuthHelper.getCoachee()!=null){%>style="text-shadow:0 0 10px white; color:white"<%}%>
+								data-toggle="dropdown" self="<%=request.getAttribute("fullname")%>">
+                                    <%if (AuthHelper.getCoachee()==null) {%>
+                                        <%=request.getAttribute("fullname")%>
+                                    <% } else {
+                                        String coacheeUsername = null;
+                                        for (Guest coachee : coachees) {
+                                            if (coachee.getId()==AuthHelper.getCoachee().guestId) {
+                                                coacheeUsername = coachee.username;
+                                                break;
+                                            }
+                                        }
+                                    %>
+                                        * <%=coacheeUsername%>
+                                    <% } %>
 									<i class="icon-user icon-large"></i> <b class="caret"></b></a>
 								<ul class="dropdown-menu">
 									<li><a href="javascript:App.settings()">Settings <i
 											class="icon-cog icon-large" style="float: right;"></i></a></li>
                                     <li><a href="javascript:App.addresses()">Addresses <i style="float: right;" class="icon-home icon-large"></i></a></li>
 									<li id="coachingDivider" class="divider"></li><%
-                                    for (Guest guest : coachees) {%>
-                                        <li><a href="">View <%=guest.getGuestName()%>'s data...</a></li>
+                                    if (coachees.size()>0) {
+                                        for (Guest guest : coachees) {%>
+                                    <li><a href="javascript:App.as('<%=guest.username%>')">View <%=guest.getGuestName()%>'s data</a></li>
+                                        <%  } %>
+                                    <li><a href="javascript:App.as('self')">View My data</a></li>
                                     <% } %>
                                     <li><a href="javascript:App.sharingDialog.show()">Sharing... <i
                                             class="icon-share" style="float: right;"></i></a></li>

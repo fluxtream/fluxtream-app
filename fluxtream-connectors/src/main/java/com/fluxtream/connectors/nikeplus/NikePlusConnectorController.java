@@ -3,6 +3,7 @@ package com.fluxtream.connectors.nikeplus;
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 
+import com.fluxtream.mvc.controllers.AuthHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -10,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.fluxtream.connectors.Connector;
-import com.fluxtream.mvc.controllers.ControllerHelper;
 import com.fluxtream.services.GuestService;
 
 @Controller()
@@ -33,7 +33,7 @@ public class NikePlusConnectorController {
 		HttpServletRequest request ) throws MessagingException
 	{
 		ModelAndView mav = new ModelAndView("connectors/nikeplus/success");
-		long guestId = ControllerHelper.getGuestId();
+		long guestId = AuthHelper.getGuestId();
 		boolean worked = false;
 //		try { worked = (new NikePlusHelper(username)).testConnection(); }
 //		catch (Exception e) {}

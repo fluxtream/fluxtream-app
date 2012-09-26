@@ -13,7 +13,7 @@ import com.fluxtream.connectors.updaters.UpdateResult;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.metadata.DayMetadataFacet;
-import com.fluxtream.mvc.controllers.ControllerHelper;
+import com.fluxtream.mvc.controllers.AuthHelper;
 import com.fluxtream.mvc.models.CalendarModel;
 import com.fluxtream.mvc.models.ConnectorResponseModel;
 import com.fluxtream.mvc.models.TimeBoundariesModel;
@@ -59,11 +59,12 @@ public class CalendarDataHelper {
     public List<AbstractFacet> getFacets(Connector connector,
                                          ObjectType objectType,
                                          List<String> dates) {
-        List<AbstractFacet> facets = null;
+        List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
         try {
-            facets = apiDataService.getApiDataFacets(
-                    ControllerHelper.getGuestId(), connector, objectType,
-                    dates);
+            if (AuthHelper.isViewingGranted(connector.getName()))
+                facets = apiDataService.getApiDataFacets(
+                        AuthHelper.getVieweeId(), connector, objectType,
+                        dates);
         } catch (Throwable t) {
             t.printStackTrace();
         }
@@ -73,11 +74,12 @@ public class CalendarDataHelper {
 	public List<AbstractFacet> getFacets(Connector connector,
 			ObjectType objectType, DayMetadataFacet dayMetadata,
 			int lookbackDays) {
-		List<AbstractFacet> facets = null;
+		List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
 		try {
-			facets = apiDataService.getApiDataFacets(
-					ControllerHelper.getGuestId(), connector, objectType,
-					dayMetadata.getTimeInterval());
+            if (AuthHelper.isViewingGranted(connector.getName()))
+                facets = apiDataService.getApiDataFacets(
+                        AuthHelper.getVieweeId(), connector, objectType,
+                        dayMetadata.getTimeInterval());
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}

@@ -6,6 +6,7 @@ import java.util.List;
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 
+import com.fluxtream.mvc.controllers.AuthHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,7 +15,6 @@ import org.springframework.web.servlet.ModelAndView;
 
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.updaters.UpdateInfo.UpdateType;
-import com.fluxtream.mvc.controllers.ControllerHelper;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 
@@ -52,7 +52,7 @@ public class SmsBackupConnectorController {
 			return new ModelAndView("connectors/smsBackup/enterCredentials");
 		}
 		ModelAndView mav = new ModelAndView("connectors/smsBackup/setFolderNames");
-		long guestId = ControllerHelper.getGuestId();
+		long guestId = AuthHelper.getGuestId();
 		boolean worked = false;
 		try {
 			worked = (new SmsBackupHelper(email, password)).testConnection();
@@ -93,7 +93,7 @@ public class SmsBackupConnectorController {
 		}
 		
 		ModelAndView mav = new ModelAndView("connectors/smsBackup/success");
-		long guestId = ControllerHelper.getGuestId();
+		long guestId = AuthHelper.getGuestId();
 		guestService.setApiKeyAttribute(guestId,
 				Connector.getConnector("sms_backup"), "smsFolderName",
 				smsFolderName);

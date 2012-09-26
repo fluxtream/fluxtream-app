@@ -49,7 +49,7 @@ public class SearchController {
                                @RequestParam("q") String terms) throws Exception {
         logger.info("action=search");
 		
-		long guestId = ControllerHelper.getGuestId();
+		long guestId = AuthHelper.getGuestId();
 
 		List<AbstractFacet> facets = searchService.searchFacetsIndex(guestId,
 				terms);

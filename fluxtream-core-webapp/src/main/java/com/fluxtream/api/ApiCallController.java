@@ -18,7 +18,7 @@ import com.fluxtream.connectors.updaters.RateLimitReachedException;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
-import com.fluxtream.mvc.controllers.ControllerHelper;
+import com.fluxtream.mvc.controllers.AuthHelper;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.BodyTrackStorageService;
 import com.fluxtream.services.GuestService;
@@ -82,7 +82,7 @@ public class ApiCallController {
                 DateTimeZone.forTimeZone(TimeZone.getDefault())).print(System.currentTimeMillis());
 
         final Connector fitbitConnector = Connector.getConnector("fitbit");
-        Guest guest = ControllerHelper.getGuest();
+        Guest guest = AuthHelper.getGuest();
         final ApiKey apiKey = guestService.getApiKey(guest.getId(), fitbitConnector);
 
         try {
@@ -104,7 +104,7 @@ public class ApiCallController {
                 DateTimeZone.forTimeZone(TimeZone.getDefault())).print(System.currentTimeMillis());
 
         final Connector fitbitConnector = Connector.getConnector("fitbit");
-        Guest guest = ControllerHelper.getGuest();
+        Guest guest = AuthHelper.getGuest();
         final ApiKey apiKey = guestService.getApiKey(guest.getId(), fitbitConnector);
 
         try {

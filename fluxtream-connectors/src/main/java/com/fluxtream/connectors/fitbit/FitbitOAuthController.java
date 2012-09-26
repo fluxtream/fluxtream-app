@@ -8,6 +8,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.fluxtream.mvc.controllers.AuthHelper;
 import net.sf.json.JSONObject;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.OAuthProvider;
@@ -29,7 +30,6 @@ import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.SignpostOAuthHelper;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
-import com.fluxtream.mvc.controllers.ControllerHelper;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.GuestService;
 
@@ -147,7 +147,7 @@ public class FitbitOAuthController {
 				.getAttribute(FITBIT_OAUTH_PROVIDER);
 		String verifier = request.getParameter("oauth_verifier");
 		provider.retrieveAccessToken(consumer, verifier);
-		Guest guest = ControllerHelper.getGuest();
+		Guest guest = AuthHelper.getGuest();
 
 		guestService.setApiKeyAttribute(guest.getId(), connector(),
 				"accessToken", consumer.getToken());

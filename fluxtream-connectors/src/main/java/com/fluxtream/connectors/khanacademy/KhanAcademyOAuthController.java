@@ -6,6 +6,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.fluxtream.mvc.controllers.AuthHelper;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.OAuthProvider;
 import oauth.signpost.commonshttp.CommonsHttpOAuthConsumer;
@@ -22,7 +23,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.Guest;
-import com.fluxtream.mvc.controllers.ControllerHelper;
 import com.fluxtream.services.GuestService;
 import com.google.gdata.client.authn.oauth.OAuthException;
 
@@ -80,7 +80,7 @@ public class KhanAcademyOAuthController {
 		OAuthProvider provider = (OAuthProvider) request.getSession().getAttribute(KHAN_OAUTH_PROVIDER);
 		String verifier = request.getParameter("oauth_verifier");
 		provider.retrieveAccessToken(consumer, verifier);
-		Guest guest = ControllerHelper.getGuest();
+		Guest guest = AuthHelper.getGuest();
 		
 		guestService.setApiKeyAttribute(guest.getId(), Connector.getConnector("khanacademy"), "accessToken", consumer.getToken());
 		guestService.setApiKeyAttribute(guest.getId(), Connector.getConnector("khanacademy"), "tokenSecret", consumer.getTokenSecret());
