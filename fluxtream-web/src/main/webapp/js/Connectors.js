@@ -2,18 +2,31 @@ define(function() {
 	
 	var Connectors = {};
 	
-	function submitNikePlusCredentials() {
-		var username = $("input#nikeplus-username").val();
+	function submitMymeeFetchURL() {
+		var fetchURL = $("input#mymee-fetchURL").val();
 		$.ajax({
-			url:"/nikeplus/setUsername",
+			url:"/mymee/setFetchURL",
 			type: "POST",
-			data: {username: username},
+			data: {url: fetchURL},
 			success: function(html) {
 				$(".addConnectorsMain").html(html);
 				$(".focushere").focus();
 			}
 		});
 	}
+
+    function submitNikePlusCredentials() {
+        var username = $("input#nikeplus-username").val();
+        $.ajax({
+            url:"/nikeplus/setUsername",
+            type: "POST",
+            data: {username: username},
+            success: function(html) {
+                $(".addConnectorsMain").html(html);
+                $(".focushere").focus();
+            }
+        });
+    }
 
     function getQuantifiedMindToken() {
         $.ajax({
@@ -158,6 +171,7 @@ define(function() {
 	Connectors.submitZeoCredentials = submitZeoCredentials;
 	Connectors.submitToodledoCredentials = submitToodledoCredentials;
 	Connectors.submitNikePlusCredentials = submitNikePlusCredentials;
+    Connectors.submitMymeeFetchURL = submitMymeeFetchURL;
 	Connectors.submitOpenPathKeypair = submitOpenPathKeypair;
     Connectors.getQuantifiedMindToken = getQuantifiedMindToken;
 

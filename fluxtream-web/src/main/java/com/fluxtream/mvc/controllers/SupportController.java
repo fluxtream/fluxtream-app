@@ -97,8 +97,6 @@ public class SupportController {
                             "\n" +
                             "The Fluxtream Team";
 
-		//String mailMessage = VelocityEngineUtils.mergeTemplateIntoString(
-		//		velocityEngine, "resetPassword.vm", vars);
 		message.setText(mailMessage);
 		sender.send(message);
 		ModelAndView mav = new ModelAndView("support/resetRequestSent");

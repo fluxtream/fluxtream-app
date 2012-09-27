@@ -21,10 +21,13 @@ import com.fluxtream.Configuration;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.TimeUnit;
 import com.fluxtream.connectors.vos.AbstractPhotoFacetVO;
+import com.fluxtream.domain.CoachingBuddy;
 import com.fluxtream.domain.Guest;
+import com.fluxtream.domain.SharedConnector;
 import com.fluxtream.mvc.controllers.AuthHelper;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.BodyTrackStorageService;
+import com.fluxtream.services.CoachingService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.PhotoService;
 import com.fluxtream.services.impl.BodyTrackHelper;
@@ -54,6 +57,9 @@ public class BodyTrackController {
 
     @Autowired
     BodyTrackHelper bodyTrackHelper;
+
+    @Autowired
+    CoachingService coachingService;
 
     @Autowired
     PhotoService photoService;
@@ -134,8 +140,11 @@ public class BodyTrackController {
     public String fetchTile(@PathParam("UID") Long uid, @PathParam("DeviceNickname") String deviceNickname,
                                    @PathParam("ChannelName") String channelName, @PathParam("Level") int level, @PathParam("Offset") long offset){
         setTransactionName(null, "GET /bodytrack/tiles/{UID}/" + deviceNickname + "." + channelName + "/{Level}.{Offset}.json");
+        long loggedInUserId = AuthHelper.getGuestId();
+        boolean accessAllowed = checkForPermissionAccess(uid);
+        CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
         try{
-            if (!checkForPermissionAccess(uid)){
+            if (!accessAllowed&&coachee==null){
                 uid = null;
             }
             return bodyTrackHelper.fetchTile(uid, deviceNickname, channelName, level, offset);
@@ -149,8 +158,11 @@ public class BodyTrackController {
     @Produces({MediaType.APPLICATION_JSON})
     public String getViews(@PathParam("UID") Long uid) {
         setTransactionName(null, "GET /bodytrack/users/{UID}/views");
+        long loggedInUserId = AuthHelper.getGuestId();
+        boolean accessAllowed = checkForPermissionAccess(uid);
+        CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
         try{
-            if (!checkForPermissionAccess(uid)){
+            if (!accessAllowed&&coachee==null){
                 uid = null;
             }
             return bodyTrackHelper.listViews(uid);
@@ -198,11 +210,18 @@ public class BodyTrackController {
     @Produces({MediaType.APPLICATION_JSON})
     public String getSourceList(@PathParam("UID") Long uid) {
         setTransactionName(null, "GET /bodytrack/users/{UID}/sources/list");
+        final long loggedInUserId = AuthHelper.getGuestId();
+        boolean accessAllowed = checkForPermissionAccess(uid);
+        CoachingBuddy coachee = null;
+        if (!accessAllowed) {
+            coachee = coachingService.getCoachee(loggedInUserId, uid);
+            accessAllowed = (coachee!=null);
+        }
         try{
-            if (!checkForPermissionAccess(uid)){
+            if (!accessAllowed){
                 uid = null;
             }
-            return bodyTrackHelper.listSources(uid);
+            return bodyTrackHelper.listSources(uid, coachee);
         }
         catch (Exception e){
             return gson.toJson(new StatusModel(false,"Access Denied"));
@@ -355,7 +374,7 @@ public class BodyTrackController {
 
     private boolean checkForPermissionAccess(long targetUid){
         Guest guest = AuthHelper.getGuest();
-        return targetUid == guest.getId() || guest.hasRole(Guest.ROLE_ADMIN) || guest.hasRole(Guest.ROLE_ADMIN);
+        return targetUid == guest.getId() || guest.hasRole(Guest.ROLE_ADMIN);
     }
 
     private static class PhotoItem {

@@ -137,4 +137,12 @@ public class CoachingServiceImpl implements CoachingService {
                                                                 buddyGuest.getId(), guestId);
         return coachingBuddy;
     }
+
+    @Override
+    public CoachingBuddy getCoachee(final long guestId, final long coacheeId) {
+        final CoachingBuddy coachingBuddy = JPAUtils.findUnique(em, CoachingBuddy.class,
+                                                                "coachingBuddies.byGuestAndBuddyId",
+                                                                coacheeId, guestId);
+        return coachingBuddy;
+    }
 }

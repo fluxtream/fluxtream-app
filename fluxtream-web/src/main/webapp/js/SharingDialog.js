@@ -10,7 +10,7 @@ define(function() {
 
     function updateCoachesDropdown(username) {
         if (username==null)
-            username = "< No Buddy Selected >";
+            username = "< Please select a buddy >";
         $.ajax("/api/coaching/coaches",{
             success:function(coaches){
             App.loadMustacheTemplate("settingsTemplates.html","coachesDropdown",function(template){

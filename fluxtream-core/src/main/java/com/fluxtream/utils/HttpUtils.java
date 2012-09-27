@@ -7,7 +7,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import com.fluxtream.Configuration;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
@@ -41,8 +40,8 @@ public class HttpUtils {
         }
     };
 
-    public static String fetch(String url, Configuration env, String username, String password) throws IOException {
-        HttpClient client = env.getHttpClient();
+    public static String fetch(String url, String username, String password) throws IOException {
+        HttpClient client = new DefaultHttpClient();
         String content = "";
         try {
             HttpGet get = new HttpGet(url);
@@ -63,17 +62,17 @@ public class HttpUtils {
         return content;
     }
 
-    public static String fetch(String url, Configuration env) throws IOException {
-        return fetch(url, env, new BasicResponseHandler());
+    public static String fetch(String url) throws IOException {
+        return fetch(url, new BasicResponseHandler());
     }
 
     /** Calls the given <code>url</code> and returns the contents as a <code>byte[]</code>. */
-    public static byte[] fetchBinary(final String url, final Configuration env) throws IOException {
-        return fetch(url, env, BINARY_RESPONSE_HANDLER);
+    public static byte[] fetchBinary(final String url) throws IOException {
+        return fetch(url, BINARY_RESPONSE_HANDLER);
     }
 
-    public static String fetch(String url, Map<String, String> params, Configuration env) throws IOException {
-        HttpClient client = env.getHttpClient();
+    public static String fetch(String url, Map<String, String> params) throws IOException {
+        HttpClient client = new DefaultHttpClient();
         String content = "";
         try {
             HttpPost post = new HttpPost(url);
@@ -122,8 +121,8 @@ public class HttpUtils {
         }.start();
     }
 
-    private static <T> T fetch(final String url, final Configuration env, final ResponseHandler<T> responseHandler) throws IOException {
-        HttpClient client = env.getHttpClient();
+    private static <T> T fetch(final String url, final ResponseHandler<T> responseHandler) throws IOException {
+        HttpClient client = new DefaultHttpClient();
 
         T content;
         try {
@@ -143,4 +142,5 @@ public class HttpUtils {
         }
         return content;
     }
+
 }

@@ -50,7 +50,7 @@ public class GithubUpdater extends AbstractUpdater {
 
         try {
             queryUrl = "https://api.singly.com/services/github/events?limit=10000&access_token=" + accessToken + "&since=" + from + "&until=" + to;
-            final String json = HttpUtils.fetch(queryUrl, env);
+            final String json = HttpUtils.fetch(queryUrl);
             apiDataService.cacheApiDataJSON(updateInfo, json, -1, -1);
         }
         catch (Exception e) {

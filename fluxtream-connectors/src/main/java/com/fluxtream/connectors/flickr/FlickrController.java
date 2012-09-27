@@ -73,7 +73,7 @@ public class FlickrController {
 		Guest guest = AuthHelper.getGuest();
 		long guestId = guest.getId();
 		
-		String authToken = fetch(getTokenUrl, env);
+		String authToken = fetch(getTokenUrl);
 
         StringReader stringReader = new StringReader(authToken);
         StringBuilder sb = new StringBuilder();

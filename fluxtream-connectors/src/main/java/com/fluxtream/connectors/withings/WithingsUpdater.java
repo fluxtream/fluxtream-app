@@ -37,7 +37,7 @@ public class WithingsUpdater extends AbstractUpdater {
 		url += "&enddate=" + System.currentTimeMillis() / 1000;
 
 		try {
-			json = fetch(url, env);
+			json = fetch(url);
 			countSuccessfulApiCall(updateInfo.apiKey.getGuestId(),
 					updateInfo.objectTypes, then, url);
 		} catch (Exception e) {
@@ -65,7 +65,7 @@ public class WithingsUpdater extends AbstractUpdater {
 		url += "&enddate=" + System.currentTimeMillis() / 1000;
 		
 		try {
-			json = fetch(url, env);
+			json = fetch(url);
 			countSuccessfulApiCall(updateInfo.apiKey.getGuestId(),
 					updateInfo.objectTypes, then, url);
 		} catch (Exception e) {

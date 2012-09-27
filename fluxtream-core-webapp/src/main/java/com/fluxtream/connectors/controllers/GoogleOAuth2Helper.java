@@ -44,7 +44,7 @@ public class GoogleOAuth2Helper {
         params.put("client_secret", env.get("google.client.secret"));
         params.put("grant_type", "refresh_token");
 
-        String fetched = HttpUtils.fetch(swapTokenUrl, params, env);
+        String fetched = HttpUtils.fetch(swapTokenUrl, params);
 
         JSONObject token = JSONObject.fromObject(fetched);
         final long expiresIn = token.getLong("expires_in");

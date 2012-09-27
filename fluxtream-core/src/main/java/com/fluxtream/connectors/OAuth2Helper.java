@@ -1,8 +1,6 @@
 package com.fluxtream.connectors;
 
 import java.io.IOException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
 import com.fluxtream.Configuration;
 import com.fluxtream.utils.HttpUtils;
 import org.apache.log4j.Logger;
@@ -24,7 +22,7 @@ public class OAuth2Helper {
     public boolean revokeRefreshToken(long guestId, Connector connector,
                                       String removeRefreshTokenURL) {
         try {
-            HttpUtils.fetch(removeRefreshTokenURL, env);
+            HttpUtils.fetch(removeRefreshTokenURL);
         }
         catch (IOException e) {
             logger.error("Could not revoke token for user "

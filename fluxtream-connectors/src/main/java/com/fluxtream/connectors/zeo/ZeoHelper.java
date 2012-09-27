@@ -22,7 +22,7 @@ class ZeoHelper {
 		String url = "https://api.myzeo.com:8443/zeows/api/v1/json/sleeperService/getLatestSleepRecord?key="
 				+ apiKey + "&date=" + today;
 		try {
-			String s = HttpUtils.fetch(url, env, username, password);
+			String s = HttpUtils.fetch(url, username, password);
 			JSONObject json = JSONObject.fromObject(s);
 			JSONObject response = json.getJSONObject("response");
 			String name = response.getString("name");

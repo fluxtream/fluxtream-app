@@ -29,7 +29,7 @@ public class InstagramUpdater extends AbstractUpdater {
 				"https://api.instagram.com/v1/users/self/feed?access_token=" + accessToken;
 
 		String json;
-			json = fetch(feedUrl, env);
+			json = fetch(feedUrl);
 		
 		if (json!=null) {
 			apiDataService.cacheApiDataJSON(updateInfo, json, -1, -1);

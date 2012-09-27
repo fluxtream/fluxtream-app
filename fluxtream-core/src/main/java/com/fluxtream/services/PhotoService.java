@@ -6,6 +6,7 @@ import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.vos.AbstractPhotoFacetVO;
+import com.fluxtream.domain.CoachingBuddy;
 
 /**
  * @author Chris Bartley (bartley@cmu.edu)
@@ -30,5 +31,5 @@ public interface PhotoService {
 
     SortedSet<Photo> getPhotos(long guestId, long timeInMillis, String connectorPrettyName, String objectTypeName, int desiredCount, boolean isGetPhotosBeforeTime) throws InstantiationException, IllegalAccessException, ClassNotFoundException;
 
-    Map<String, TimeInterval> getPhotoChannelTimeRanges(long guestId);
+    Map<String, TimeInterval> getPhotoChannelTimeRanges(long guestId, final CoachingBuddy coachee);
 }

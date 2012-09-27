@@ -1,6 +1,5 @@
 package com.fluxtream.connectors.quantifiedmind;
 
-import java.net.URL;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
@@ -61,7 +60,7 @@ public class QuantifiedMindUpdater extends AbstractUpdater {
                 queryUrl = "http://www.quantified-mind.com/api/get_session_data?username=" + username + "&token=" + token;
                 if (partialResult)
                     queryUrl += "&start_time=" + start_time;
-                final String json = HttpUtils.fetch(queryUrl, env);
+                final String json = HttpUtils.fetch(queryUrl);
                 JSONObject jsonObject = JSONObject.fromObject(json);
                 String status = jsonObject.getString("status");
                 partialResult = status.equals("partial");

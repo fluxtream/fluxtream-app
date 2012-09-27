@@ -91,7 +91,7 @@ public class BodyTrackController {
         if (pstr != null) {
             bodyTrackUrl += "?" + pstr;
         }
-        final byte[] contents = HttpUtils.fetchBinary(bodyTrackUrl, env);
+        final byte[] contents = HttpUtils.fetchBinary(bodyTrackUrl);
         response.setContentLength(contents == null ? 0 : contents.length);
         if (contents != null) {
             final ByteArrayInputStream in = new ByteArrayInputStream(contents);
@@ -203,7 +203,7 @@ public class BodyTrackController {
 	private void writeTunnelResponse(String tunnelUrl,
 			HttpServletResponse response) throws IOException {
         System.out.println("tunneled URL: " + tunnelUrl);
-		String contents = HttpUtils.fetch(tunnelUrl, env);
+		String contents = HttpUtils.fetch(tunnelUrl);
 		response.getWriter().write(contents);
 	}
 
@@ -211,7 +211,7 @@ public class BodyTrackController {
 			HttpServletResponse response, Map<String, String> params)
             throws IOException {
         System.out.println("tunneled URL: " + tunnelUrl);
-		String contents = HttpUtils.fetch(tunnelUrl, params, env);
+		String contents = HttpUtils.fetch(tunnelUrl, params);
 		response.getWriter().write(contents);
 	}
 

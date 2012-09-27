@@ -13,6 +13,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import com.fluxtream.Configuration;
 import com.fluxtream.TimeInterval;
+import com.fluxtream.domain.CoachingBuddy;
 import com.fluxtream.domain.GrapherView;
 import com.fluxtream.services.PhotoService;
 import com.fluxtream.utils.JPAUtils;
@@ -146,7 +147,7 @@ public class BodyTrackHelper {
         }
     }
 
-    public String listSources(Long uid){
+    public String listSources(Long uid, CoachingBuddy coachee){
         try{
             if (uid == null)
                 throw new IllegalArgumentException();
@@ -155,7 +156,7 @@ public class BodyTrackHelper {
             ChannelInfoResponse infoResponse = gson.fromJson(result,ChannelInfoResponse.class);
 
             // Iterate over the various (photo) connectors (if any), manually inserting each into the ChannelSpecs
-            final Map<String, TimeInterval> photoChannelTimeRanges = photoService.getPhotoChannelTimeRanges(uid);
+            final Map<String, TimeInterval> photoChannelTimeRanges = photoService.getPhotoChannelTimeRanges(uid, coachee);
 
             // create the 'All' photos block
             final Source allPhotosSource = new Source();
@@ -192,7 +193,7 @@ public class BodyTrackHelper {
             }
 
             // create the respone
-            SourcesResponse response = new SourcesResponse(infoResponse);
+            SourcesResponse response = new SourcesResponse(infoResponse, coachee);
 
             // add the All photos block to the response
             if (!photoChannelTimeRanges.isEmpty()) {
@@ -211,7 +212,7 @@ public class BodyTrackHelper {
             return gson.toJson(response);
         }
         catch(Exception e){
-            return gson.toJson(new SourcesResponse(null));
+            return gson.toJson(new SourcesResponse(null, coachee));
         }
     }
 
@@ -228,7 +229,7 @@ public class BodyTrackHelper {
             return gson.toJson(response);
         }
         catch(Exception e){
-            return gson.toJson(new SourcesResponse(null));
+            return gson.toJson(new SourcesResponse(null, null));
         }
     }
 
@@ -398,10 +399,10 @@ public class BodyTrackHelper {
         double min_value;
     }
 
-    private static class SourcesResponse{
+    private class SourcesResponse {
         ArrayList<Source> sources;
 
-        public SourcesResponse(ChannelInfoResponse infoResponse){
+        public SourcesResponse(ChannelInfoResponse infoResponse, CoachingBuddy coachee){
             sources = new ArrayList<Source>();
             if (infoResponse == null)
                 return;
@@ -413,18 +414,20 @@ public class BodyTrackHelper {
                 String deviceName = split[0];
                 String channelName = split[1];
                 Source source = null;
-                for (Source src : sources)
-                    if (src.name.equals(deviceName)){
-                        source = src;
-                        break;
+                if (coachee==null || coachee.hasAccessToDevice(deviceName, env)) {
+                    for (Source src : sources)
+                        if (src.name.equals(deviceName)){
+                            source = src;
+                            break;
+                        }
+                    if (source == null){
+                        source = new Source();
+                        source.name = deviceName;
+                        source.channels = new ArrayList<Channel>();
+                        sources.add(source);
                     }
-                if (source == null){
-                    source = new Source();
-                    source.name = deviceName;
-                    source.channels = new ArrayList<Channel>();
-                    sources.add(source);
+                    source.channels.add(new Channel(channelName,specs));
                 }
-                source.channels.add(new Channel(channelName,specs));
             }
 
         }

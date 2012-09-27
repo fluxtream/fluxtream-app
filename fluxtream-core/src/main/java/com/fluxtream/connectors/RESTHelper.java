@@ -16,7 +16,7 @@ public class RESTHelper extends ApiClientSupport {
 		
 		long then = System.currentTimeMillis();
 		try {
-			String restResult = HttpUtils.fetch(urlString, env);
+			String restResult = HttpUtils.fetch(urlString);
 			connectorUpdateService.addApiUpdate(guestId, connector,
 					objectTypes, then, System.currentTimeMillis() - then,
 					urlString, true);

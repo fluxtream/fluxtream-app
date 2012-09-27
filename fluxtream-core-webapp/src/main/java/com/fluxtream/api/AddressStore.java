@@ -190,7 +190,7 @@ public class AddressStore {
             }
 
             String addressEncoded = URLEncoder.encode(address, "UTF-8");
-            String jsonString = HttpUtils.fetch("https://maps.googleapis.com/maps/api/geocode/json?sensor=false&address=" + addressEncoded, env);
+            String jsonString = HttpUtils.fetch("https://maps.googleapis.com/maps/api/geocode/json?sensor=false&address=" + addressEncoded);
 
             GuestAddress newAddress;
 
@@ -366,7 +366,7 @@ public class AddressStore {
             String jsonString = null;
             if (address != null){
                 String addressEncoded = URLEncoder.encode(address, "UTF-8");
-                jsonString = HttpUtils.fetch("https://maps.googleapis.com/maps/api/geocode/json?sensor=false&address=" + addressEncoded, env);
+                jsonString = HttpUtils.fetch("https://maps.googleapis.com/maps/api/geocode/json?sensor=false&address=" + addressEncoded);
             }
 
             Long startTime = null, endTime = null;

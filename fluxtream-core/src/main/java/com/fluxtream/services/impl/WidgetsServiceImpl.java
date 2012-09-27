@@ -185,7 +185,7 @@ public class WidgetsServiceImpl implements WidgetsService {
         JSONArray widgetsList = null;
         String widgetListString = null;
         try {
-            widgetListString = HttpUtils.fetch(baseURL + "widgets.json", env);
+            widgetListString = HttpUtils.fetch(baseURL + "widgets.json");
         }
         catch (IOException e) {
             throw new RuntimeException("Could not access widgets JSON URL: " + baseURL + "widgets.json");
@@ -202,7 +202,7 @@ public class WidgetsServiceImpl implements WidgetsService {
             for (int i=0; i<widgetsList.size(); i++) {
                 String widgetName = widgetsList.getString(i);
                 widgetUrl = baseURL + "widgets/" + widgetName + "/manifest.json";
-                manifestJSONString = HttpUtils.fetch(widgetUrl, env);
+                manifestJSONString = HttpUtils.fetch(widgetUrl);
                 JSONObject manifestJSON = null;
                 try {
                     manifestJSON = JSONObject.fromObject(manifestJSONString);

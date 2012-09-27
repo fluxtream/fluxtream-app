@@ -46,7 +46,7 @@ public class WWOHelper {
     public List<WeatherInfo> getWeatherInfo(double latitude, double longitude, String fdate) throws HttpException, IOException {
 		String wwoUrl = "http://www.worldweatheronline.com/feed/premium-weather-v2.ashx?" +
 "key=" + env.get("wwo.key") + "&feedkey=" + env.get("wwo.feedkey") + "&format=json&q=" + latitude + "," + longitude + "&date=" + fdate;
-		String wwoJson = fetch(wwoUrl, env);
+		String wwoJson = fetch(wwoUrl);
 		
 		JSONObject wwoInfo = JSONObject.fromObject(wwoJson);
 		List<WeatherInfo> weather = new ArrayList<WeatherInfo>();

@@ -142,7 +142,7 @@ public class FlickrUpdater extends AbstractUpdater {
         searchPhotosUrl = searchPhotosUrl.replace(" ", "%20");
 		String photosJson = null;
 		try {
-			photosJson = fetch(searchPhotosUrl, env);
+			photosJson = fetch(searchPhotosUrl);
 			countSuccessfulApiCall(updateInfo.getGuestId(),
 					updateInfo.objectTypes, then, searchPhotosUrl);
 		} catch (Exception e) {

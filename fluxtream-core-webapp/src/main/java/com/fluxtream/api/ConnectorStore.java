@@ -242,16 +242,18 @@ public class ConnectorStore {
     @Path("/filters")
     @Produces({MediaType.APPLICATION_JSON})
     public String getConnectorFilterState(){
-        Guest guest = AuthHelper.getGuest();
+        long vieweeId = AuthHelper.getGuestId();
+        if (vieweeId!=AuthHelper.getGuestId())
+            return "{}";
         try {
             StringBuilder sb = new StringBuilder("module=API component=connectorStore action=getConnectorFilterState")
-                    .append(" guestId=").append(guest.getId());
+                    .append(" guestId=").append(vieweeId);
             logger.info(sb.toString());
-            return settingsService.getConnectorFilterState(guest.getId());
+            return settingsService.getConnectorFilterState(vieweeId);
         }
         catch (Exception e) {
             StringBuilder sb = new StringBuilder("module=API component=connectorStore action=getConnectorFilterState")
-                    .append(" guestId=").append(guest.getId())
+                    .append(" guestId=").append(vieweeId)
                     .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
             logger.warn(sb.toString());
             return gson.toJson(new StatusModel(false,"Failed to get filters: " + e.getMessage()));
@@ -264,6 +266,8 @@ public class ConnectorStore {
     public String setConnectorFilterState(@FormParam("filterState") String stateJSON){
         StatusModel result;
         Guest guest = AuthHelper.getGuest();
+        if (guest.getId()==AuthHelper.getVieweeId())
+            return gson.toJson(new StatusModel(true, "You can't modify your coachee's filters"));
         try {
             settingsService.setConnectorFilterState(guest.getId(), stateJSON);
             StringBuilder sb = new StringBuilder("module=API component=connectorStore action=setConnectorFilterState")

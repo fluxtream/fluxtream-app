@@ -42,7 +42,7 @@ public class GithubConnectorController {
             params.put("client_secret", clientSecret);
             params.put("code", code);
 
-            final String tokenJSON = HttpUtils.fetch("https://api.singly.com/oauth/access_token", params, env);
+            final String tokenJSON = HttpUtils.fetch("https://api.singly.com/oauth/access_token", params);
             JSONObject jsonToken = JSONObject.fromObject(tokenJSON);
 
             String accessToken = jsonToken.getString("access_token");
@@ -60,7 +60,7 @@ public class GithubConnectorController {
     }
 
     private void getUserLogin(final long guestId, final String accessToken) throws IOException {
-        final String profileJson = HttpUtils.fetch("https://api.singly.com/services/github/self?access_token=" + accessToken, env);
+        final String profileJson = HttpUtils.fetch("https://api.singly.com/services/github/self?access_token=" + accessToken);
         JSONArray jsonProfileArray = JSONArray.fromObject(profileJson);
         JSONObject jsonProfile = jsonProfileArray.getJSONObject(0);
         final JSONObject profileData = jsonProfile.getJSONObject("data");

@@ -1,6 +1,7 @@
 package com.fluxtream;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,6 +37,8 @@ public class Configuration implements InitializingBean {
 	
 	private Map<String,String> countryCodes;
 
+    public Map<String,String> bodytrackToFluxtreamConnectorNames;
+
     public void setLastCommitProperties(PropertiesConfiguration properties) throws IOException {
         this.lastCommitProperties = properties;
     }
@@ -57,6 +60,15 @@ public class Configuration implements InitializingBean {
 	}
 	
 	public void setBodytrackProperties(PropertiesConfiguration properties) throws IOException {
+        final Iterator<String> keys = properties.getKeys();
+        bodytrackToFluxtreamConnectorNames = new ConcurrentHashMap<String,String>();
+        while(keys.hasNext()) {
+            String key = keys.next();
+            if (key.indexOf(".dev_nickname")!=-1) {
+                bodytrackToFluxtreamConnectorNames.put(properties.getString(key),
+                                                       key.substring(0, key.indexOf(".")));
+            }
+        }
 		this.bodytrackProperties = properties;
 	}
 	

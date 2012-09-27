@@ -64,7 +64,7 @@ public class LastFmController {
 				"format", "json",
 				"token", token, "api_key", api_key, "api_sig", api_sig);
 		String jsonResponse = HttpUtils.fetch(
-				"https://ws.audioscrobbler.com/2.0/", params, env);
+				"https://ws.audioscrobbler.com/2.0/", params);
 		
 		String sessionKey = LastfmHelper.getSessionKey(jsonResponse);
 		String username = LastfmHelper.getUsername(jsonResponse);

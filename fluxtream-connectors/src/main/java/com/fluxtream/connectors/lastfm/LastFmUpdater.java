@@ -172,7 +172,7 @@ public class LastFmUpdater extends AbstractUpdater {
 				+ ITEMS_PER_PAGE
 				+ "&format=json" + "&page=" + page;
 		try {
-			lovedTracksJson = fetch(query, env);
+			lovedTracksJson = fetch(query);
 			countSuccessfulApiCall(updateInfo.getGuestId(),
 					updateInfo.objectTypes, then, query);
 			JSONObject result = JSONObject.fromObject(lovedTracksJson);
@@ -205,7 +205,7 @@ public class LastFmUpdater extends AbstractUpdater {
 				+ ITEMS_PER_PAGE
 				+ "&format=json" + "&page=" + page;
 		try {
-			recentTracksJson = fetch(query, env);
+			recentTracksJson = fetch(query);
 			countSuccessfulApiCall(updateInfo.getGuestId(),
 					updateInfo.objectTypes, then, query);
 			JSONObject result = JSONObject.fromObject(recentTracksJson);

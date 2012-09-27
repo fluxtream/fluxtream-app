@@ -142,13 +142,13 @@ public class WithingsConnectorController {
 			String password) throws NoSuchAlgorithmException, HttpException,
 			IOException {
 		String passwordHash = hash(password);
-		String onceJson = fetch(WBSAPI_ONCE_ACTION_GET, env);
+		String onceJson = fetch(WBSAPI_ONCE_ACTION_GET);
 		WithingsOnceResponse once = new Gson().fromJson(onceJson,
 				WithingsOnceResponse.class);
 		String noonce = once.getBody().getOnce();
 		String code = email + ":" + passwordHash + ":" + noonce;
 		String hash = hash(code);
-		String json = fetch(WBSAPI_GETUSERSLIST + email + "&hash=" + hash, env);
+		String json = fetch(WBSAPI_GETUSERSLIST + email + "&hash=" + hash);
 		System.out.println(json);
 		UsersListResponse response = new Gson().fromJson(json,
 				UsersListResponse.class);

@@ -8,6 +8,7 @@ import javax.persistence.FetchType;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
+import com.fluxtream.Configuration;
 import org.hibernate.annotations.Index;
 
 /**
@@ -36,5 +37,20 @@ public class CoachingBuddy extends AbstractEntity {
     @OneToMany(mappedBy="buddy", fetch= FetchType.EAGER, cascade= CascadeType.ALL)
     public Set<SharedConnector> sharedConnectors = new HashSet<SharedConnector>();
 
+    public boolean hasAccessToConnector(String connectorName) {
+        boolean access = false;
+        for (SharedConnector sharedConnector : sharedConnectors) {
+            if (sharedConnector.connectorName.equals(connectorName))
+                return true;
+        }
+        return access;
+    }
+
+    public boolean hasAccessToDevice(String deviceName, Configuration env) {
+        String fluxtreamConnectorName = env.bodytrackToFluxtreamConnectorNames.get(deviceName);
+        if (fluxtreamConnectorName==null)
+            return true;
+        return hasAccessToConnector(fluxtreamConnectorName);
+    }
 
 }

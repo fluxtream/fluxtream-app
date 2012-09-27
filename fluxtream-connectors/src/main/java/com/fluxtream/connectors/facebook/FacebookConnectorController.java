@@ -75,7 +75,7 @@ public class FacebookConnectorController {
 			String swapTokenUrl = "https://graph.facebook.com/oauth/access_token?" +
 				"client_id=" + params.get("client_id") + "&redirect_uri=" + redirectUri +
 				"&client_secret=" + params.get("client_secret") + "&code=" + code;
-			fetched = HttpUtils.fetch(swapTokenUrl, env);
+			fetched = HttpUtils.fetch(swapTokenUrl);
 		} catch (RuntimeException e) {
 			errorMessage = e.getMessage();
 			hasError = true;

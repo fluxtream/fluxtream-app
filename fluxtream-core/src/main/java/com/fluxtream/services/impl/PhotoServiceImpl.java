@@ -16,6 +16,7 @@ import com.fluxtream.connectors.vos.AbstractInstantFacetVO;
 import com.fluxtream.connectors.vos.AbstractPhotoFacetVO;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.CoachingBuddy;
 import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.GuestService;
@@ -123,7 +124,7 @@ public class PhotoServiceImpl implements PhotoService {
      * {@link Map}, but guaranteed to not return <code>null</code>.
      */
     @Override
-    public Map<String, TimeInterval> getPhotoChannelTimeRanges(long guestId) {
+    public Map<String, TimeInterval> getPhotoChannelTimeRanges(long guestId, final CoachingBuddy coachee) {
         // TODO: This could really benefit from some caching.  The time ranges can only change upon updating a photo
         // connector so it would be better to cache this info and then just refresh it whenever the connector is updated
 
@@ -132,7 +133,8 @@ public class PhotoServiceImpl implements PhotoService {
         List<ApiKey> userKeys = guestService.getApiKeys(guestId);
         for (ApiKey key : userKeys) {
             final Connector connector = key.getConnector();
-            if (connector.hasImageObjectType()) {
+            if ((coachee==null||coachee.hasAccessToConnector(connector.getName()))
+                && connector.hasImageObjectType()) {
                 // Check the object types, if any, to find the image object type(s)
                 ObjectType[] objectTypes = key.getConnector().objectTypes();
                 if (objectTypes == null) {

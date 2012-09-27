@@ -75,7 +75,7 @@ public class GoogleOAuth2Controller {
 		params.put("redirect_uri", redirectUri);
 		params.put("grant_type", "authorization_code");
 
-		String fetched = HttpUtils.fetch(swapTokenUrl, params, env);
+		String fetched = HttpUtils.fetch(swapTokenUrl, params);
 		
 		JSONObject token = JSONObject.fromObject(fetched);
 		

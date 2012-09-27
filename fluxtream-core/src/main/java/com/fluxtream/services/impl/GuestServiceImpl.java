@@ -383,7 +383,7 @@ public class GuestServiceImpl implements GuestService {
             String ip2locationKey = env.get("ip2location.apiKey");
 			String jsonString = HttpUtils.fetch(
 					"http://api.ipinfodb.com/v3/ip-city/?key=" + ip2locationKey
-							+ "&ip=" + ipAddress + "&format=json", env);
+							+ "&ip=" + ipAddress + "&format=json");
 			JSONObject json = JSONObject.fromObject(jsonString);
 			String latitude = json.getString("latitude");
 			String longitude = json.getString("longitude");
