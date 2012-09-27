@@ -420,18 +420,12 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 }
                 $.ajax("/api/connectors/filters",{
                     type:"POST",
-                    data:{filterState:JSON.stringify(uploadData)},
-                    success : function() {
-                        $.ajax("/api/connectors/filters",{
-                            success:function(data){
-                                for (var member in data){
-                                    Calendar.connectorEnabled[member] = data[member];
-                                }
-                            }
-
-                        });
-                    }
+                    data:{filterState:JSON.stringify(uploadData)}
                 });
+                for (var member in uploadData){
+                    Calendar.connectorEnabled[member] = uploadData[member];
+                }
+
             });
             if (Calendar.connectorEnabled["default"][digest.selectedConnectors[i].connectorName] == null)
                 Calendar.connectorEnabled["default"][digest.selectedConnectors[i].connectorName] = true;

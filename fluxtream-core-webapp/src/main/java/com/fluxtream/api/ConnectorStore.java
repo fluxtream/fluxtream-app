@@ -255,8 +255,6 @@ public class ConnectorStore {
     @Produces({MediaType.APPLICATION_JSON})
     public String getConnectorFilterState(){
         long vieweeId = AuthHelper.getGuestId();
-        if (vieweeId!=AuthHelper.getGuestId())
-            return "{}";
         try {
             StringBuilder sb = new StringBuilder("module=API component=connectorStore action=getConnectorFilterState")
                     .append(" guestId=").append(vieweeId);
@@ -278,12 +276,8 @@ public class ConnectorStore {
     public String setConnectorFilterState(@FormParam("filterState") String stateJSON){
         StatusModel result;
         Guest guest = AuthHelper.getGuest();
-        // If no guest is logged in, return empty map
         if(guest==null)
             return "{}";
-
-        if (guest.getId()==AuthHelper.getVieweeId())
-            return gson.toJson(new StatusModel(true, "You can't modify your coachee's filters"));
         try {
             settingsService.setConnectorFilterState(guest.getId(), stateJSON);
             StringBuilder sb = new StringBuilder("module=API component=connectorStore action=setConnectorFilterState")

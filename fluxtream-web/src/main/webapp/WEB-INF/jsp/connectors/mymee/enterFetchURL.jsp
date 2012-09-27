@@ -17,7 +17,7 @@
 	<% } %>
 	<tr>
 	<td>Fetch URL:</td><td><input autocorrect="off" autocapitalize="off" style="width: 450px;"
-                                  onkeypress="if(event.which==13) App.submitMymeeFetchURL()"
+                                  onkeypress="if(event.which==13) Connectors.submitMymeeFetchURL()"
                                   class="focushere" id="mymee-fetchURL" value="<%=username%>"></td>
 	<% if (required.contains("fetchURL")) { %>
 	<td>
@@ -26,6 +26,6 @@
 	<% } %>
 	</tr>
 	<tr>
-	<td colspan="2"><button onclick="App.submitMymeeFetchURL()">Send</button></td>
+	<td colspan="2"><button onclick="Connectors.submitMymeeFetchURL()">Send</button></td>
 	</tr>
 </table>

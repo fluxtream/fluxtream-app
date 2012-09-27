@@ -34,14 +34,31 @@ public class MymeeUpdater extends AbstractUpdater {
 
     @Override
     protected void updateConnectorDataHistory(final UpdateInfo updateInfo) throws Exception {
-        if (!connectorUpdateService.isHistoryUpdateCompleted(updateInfo.getGuestId(), connector().getName(), updateInfo.objectTypes)) {
-            apiDataService.eraseApiData(updateInfo.getGuestId(), connector());
-        }
+        apiDataService.eraseApiData(updateInfo.getGuestId(), connector());
+        loadEverything(updateInfo);
     }
 
     @Override
     public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
-        ApiUpdate lastUpdate = connectorUpdateService.getLastSuccessfulUpdate(updateInfo.apiKey.getGuestId(), connector());
+        apiDataService.eraseApiData(updateInfo.getGuestId(), connector());
+        loadEverything(updateInfo);
+    }
+
+    private void loadEverything(final UpdateInfo updateInfo) throws Exception {
+        long then = System.currentTimeMillis();
+        String queryUrl = guestService.getApiKeyAttribute(updateInfo.getGuestId(), connector(), "fetchURL");
+        try {
+            final String json = HttpUtils.fetch(queryUrl);
+            apiDataService.cacheApiDataJSON(updateInfo, json, -1, -1);
+        }
+        catch (Exception e) {
+            countFailedApiCall(updateInfo.apiKey.getGuestId(), updateInfo.objectTypes, then,
+                               queryUrl, Utils.stackTrace(e));
+            throw new Exception("Could not get Mymee observations: "
+                                + e.getMessage() + "\n" + Utils.stackTrace(e));
+        }
+
+        countSuccessfulApiCall(updateInfo.apiKey.getGuestId(), updateInfo.objectTypes, then, queryUrl);
     }
 
 }
