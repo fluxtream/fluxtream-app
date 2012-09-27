@@ -81,6 +81,9 @@ public class ConnectorStore {
     public String getInstalledConnectors(){
         setTransactionName(null, "GET /connectors/installed");
         Guest guest = AuthHelper.getGuest();
+        // If no guest is logged in, return empty array
+        if(guest==null)
+            return "[]";
         try {
             List<ConnectorInfo> connectors =  sysService.getConnectors();
             JSONArray connectorsArray = new JSONArray();
@@ -128,6 +131,9 @@ public class ConnectorStore {
     public String getUninstalledConnectors(){
         setTransactionName(null, "GET /connectors/uninstalled");
         Guest guest = AuthHelper.getGuest();
+        // If no guest is logged in, return empty array
+        if(guest==null)
+            return "[]";
         try {
             List<ConnectorInfo> allConnectors =  sysService.getConnectors();
             List<ConnectorInfo> connectors = new ArrayList<ConnectorInfo>();
@@ -191,6 +197,9 @@ public class ConnectorStore {
     public String deleteConnector(@PathParam("connector") String connector){
         StatusModel result;
         Guest guest = AuthHelper.getGuest();
+        // If no guest is logged in, return empty array
+        if(guest==null)
+            return "{}";
         try{
             Connector apiToRemove = Connector.fromString(connector);
             guestService.removeApiKey(guest.getId(), apiToRemove);
@@ -217,6 +226,9 @@ public class ConnectorStore {
     public String setConnectorChannels(@PathParam("connector") String connectorName, @FormParam("channels") String channels){
         StatusModel result;
         Guest guest = AuthHelper.getGuest();
+        // If no guest is logged in, return empty array
+        if(guest==null)
+            return "{}";
         try {
             ApiKey apiKey = guestService.getApiKey(guest.getId(), Connector.getConnector(connectorName));
             settingsService.setChannelsForConnector(guest.getId(),apiKey.getConnector(),channels.split(","));
@@ -266,6 +278,10 @@ public class ConnectorStore {
     public String setConnectorFilterState(@FormParam("filterState") String stateJSON){
         StatusModel result;
         Guest guest = AuthHelper.getGuest();
+        // If no guest is logged in, return empty map
+        if(guest==null)
+            return "{}";
+
         if (guest.getId()==AuthHelper.getVieweeId())
             return gson.toJson(new StatusModel(true, "You can't modify your coachee's filters"));
         try {
