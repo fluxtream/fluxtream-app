@@ -132,8 +132,12 @@ public class PhotoServiceImpl implements PhotoService {
 
         List<ApiKey> userKeys = guestService.getApiKeys(guestId);
         for (ApiKey key : userKeys) {
-            final Connector connector = key.getConnector();
-            if ((coachee==null||coachee.hasAccessToConnector(connector.getName()))
+            Connector connector = null;
+            if(key!=null) {
+                connector = key.getConnector();
+            }
+            if (connector!=null && connector.getName()!=null &&
+                (coachee==null||coachee.hasAccessToConnector(connector.getName()))
                 && connector.hasImageObjectType()) {
                 // Check the object types, if any, to find the image object type(s)
                 ObjectType[] objectTypes = key.getConnector().objectTypes();
@@ -177,8 +181,11 @@ public class PhotoServiceImpl implements PhotoService {
         if (ALL_DEVICES_NAME.equals(connectorPrettyName)) {
             List<ApiKey> userKeys = guestService.getApiKeys(guestId);
             for (ApiKey key : userKeys) {
-                final Connector connector = key.getConnector();
-                if (connector.hasImageObjectType()) {
+                Connector connector = null;
+                if(key!=null && key.getConnector()!=null) {
+                    connector = key.getConnector();
+                }
+                if (connector!=null && connector.hasImageObjectType()) {
                     final ObjectType[] objectTypes = connector.objectTypes();
                     if (objectTypes != null) {
                         for (ObjectType objectType : objectTypes) {
@@ -209,9 +216,11 @@ public class PhotoServiceImpl implements PhotoService {
     private Connector findConnectorByPrettyName(final long guestId, final String connectorPrettyName) {
         List<ApiKey> userKeys = guestService.getApiKeys(guestId);
         for (ApiKey key : userKeys) {
-            final Connector connector = key.getConnector();
-            if (connector.prettyName().equals(connectorPrettyName)) {
-                return connector;
+            if(key!=null) {
+                final Connector connector = key.getConnector();
+                if (connector!=null && connector.prettyName()!=null && connector.prettyName().equals(connectorPrettyName)) {
+                    return connector;
+                }
             }
         }
 

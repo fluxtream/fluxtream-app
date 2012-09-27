@@ -450,7 +450,7 @@ public class CalendarDataStore {
 	private List<ApiKey> removeConnectorsWithoutFacets(List<ApiKey> allApiKeys) {
 		List<ApiKey> apiKeys = new ArrayList<ApiKey>();
 		for (ApiKey apiKey : allApiKeys) {
-            if (apiKey.getConnector().hasFacets()) {
+            if (apiKey!=null && apiKey.getConnector()!=null && apiKey.getConnector().hasFacets()) {
                 apiKeys.add(apiKey);
             }
 		}
@@ -734,17 +734,19 @@ public class CalendarDataStore {
     private List<ConnectorDigestModel> connectorInfos(long guestId, List<ApiKey> apis){
         List<ConnectorDigestModel> connectors = new ArrayList<ConnectorDigestModel>();
         for (ApiKey apiKey : apis){
-            Connector connector = apiKey.getConnector();
-            ConnectorDigestModel model = new ConnectorDigestModel();
-            connectors.add(model);
-            model.connectorName = connector.getName();
-            model.prettyName = connector.prettyName();
-            model.channelNames = settingsService.getChannelsForConnector(guestId,connector);
-            ObjectType[] objTypes = connector.objectTypes();
-            if (objTypes == null)
-                continue;
-            for (ObjectType obj : objTypes){
-                model.facetTypes.add(model.connectorName + "-" + obj.getName());
+            if(apiKey!=null && apiKey.getConnector()!=null && apiKey.getConnector().getName()!=null) {
+                Connector connector = apiKey.getConnector();
+                ConnectorDigestModel model = new ConnectorDigestModel();
+                connectors.add(model);
+                model.connectorName = connector.getName();
+                model.prettyName = connector.prettyName();
+                model.channelNames = settingsService.getChannelsForConnector(guestId,connector);
+                ObjectType[] objTypes = connector.objectTypes();
+                if (objTypes == null)
+                    continue;
+                for (ObjectType obj : objTypes){
+                    model.facetTypes.add(model.connectorName + "-" + obj.getName());
+                }
             }
         }
         return  connectors;
@@ -775,6 +777,12 @@ public class CalendarDataStore {
 			List<String> uncheckedConnectors) {
 		List<ApiKey> result = new ArrayList<ApiKey>();
 		there: for (ApiKey apiKey : apiKeys) {
+            // Check to make sure the apiKey is valid.  Skip if it is not.
+            if (apiKey==null || apiKey.getConnector()==null || apiKey.getConnector().getName()==null) {
+                continue there;
+            }
+
+            // Check if apiKey should be skipped due to being in uncheckedConnectors list.
 			for (int i = 0; i < uncheckedConnectors.size(); i++) {
 				String connectorName = uncheckedConnectors.get(i);
 				if (apiKey.getConnector().getName().equals(connectorName)) {

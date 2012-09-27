@@ -122,6 +122,10 @@ public class CoachingController {
         JSONArray connectors = new JSONArray();
         for (ApiKey apiKey : apiKeys) {
             boolean isShared = false;
+            // Make sure this apiKey is valid, skip if not
+            if(apiKey==null || apiKey.getConnector()==null || apiKey.getConnector().getName()==null)
+                continue;
+
             final String connectorName = apiKey.getConnector().getName();
             for (SharedConnector sharedConnector : sharedConnectors) {
                 if (sharedConnector.connectorName.equals(connectorName)) {
