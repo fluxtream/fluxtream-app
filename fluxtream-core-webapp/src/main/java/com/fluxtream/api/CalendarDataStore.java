@@ -117,6 +117,11 @@ public class CalendarDataStore {
         setTransactionName(null, "GET /calendar/all/week/{year}/{week}");
         Guest guest = AuthHelper.getGuest();
         long guestId = guest.getId();
+        final CoachingBuddy coachee = AuthHelper.getCoachee();
+        if (coachee!=null) {
+            guestId = coachee.guestId;
+            guest = guestService.getGuestById(guestId);
+        }
         try{
             long then = System.currentTimeMillis();
             //TODO:proper week data retrieval implementation
@@ -164,19 +169,19 @@ public class CalendarDataStore {
 
             setSolarInfo(digest, city, guestId, dayMetadata);
 
-            List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter);
+            List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter, coachee);
             digest.selectedConnectors = connectorInfos(guestId,apiKeySelection);
             List<ApiKey> allApiKeys = guestService.getApiKeys(guestId);
-            allApiKeys = removeConnectorsWithoutFacets(allApiKeys);
+            allApiKeys = removeConnectorsWithoutFacets(allApiKeys, coachee);
             digest.nApis = allApiKeys.size();
-            GuestSettings settings = settingsService.getSettings(guestId);
+            GuestSettings settings = settingsService.getSettings(AuthHelper.getGuestId());
 
             setCachedData(digest, allApiKeys, settings, apiKeySelection,
                           dayMetadata);
 
             copyMetadata(digest, dayMetadata);
             setVisitedCities(digest, guestId, dayMetadata);
-            setNotifications(digest, guestId);
+            setNotifications(digest, AuthHelper.getGuestId());
             setCurrentAddress(digest, guestId, dayMetadata.start);
             digest.settings = new SettingsModel(settings,guest);
 
@@ -218,6 +223,11 @@ public class CalendarDataStore {
         setTransactionName(null, "GET /calendar/all/month/{year}/{month}");
         Guest guest = AuthHelper.getGuest();
         long guestId = guest.getId();
+        final CoachingBuddy coachee = AuthHelper.getCoachee();
+        if (coachee!=null) {
+            guestId = coachee.guestId;
+            guest = guestService.getGuestById(guestId);
+        }
         try{
             long then = System.currentTimeMillis();
             DigestModel digest = new DigestModel();
@@ -256,21 +266,21 @@ public class CalendarDataStore {
 
             setSolarInfo(digest, city, guestId, dayMetadata);
 
-            List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter);
+            List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter, coachee);
             digest.selectedConnectors = connectorInfos(guestId,apiKeySelection);
             List<ApiKey> allApiKeys = guestService.getApiKeys(guestId);
-            allApiKeys = removeConnectorsWithoutFacets(allApiKeys);
+            allApiKeys = removeConnectorsWithoutFacets(allApiKeys, coachee);
             digest.nApis = allApiKeys.size();
-            GuestSettings settings = settingsService.getSettings(guestId);
+            GuestSettings settings = settingsService.getSettings(AuthHelper.getGuestId());
 
             setCachedData(digest, allApiKeys, settings, apiKeySelection,
                           dayMetadata);
 
             copyMetadata(digest, dayMetadata);
             setVisitedCities(digest, guestId, dayMetadata);
-            setNotifications(digest, guestId);
+            setNotifications(digest, AuthHelper.getGuestId());
             setCurrentAddress(digest, guestId, dayMetadata.start);
-            digest.settings = new SettingsModel(settings,guest);
+            digest.settings = new SettingsModel(settings, guest);
 
             StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getAllConnectorsMonthData")
                     .append(" year=").append(year)
@@ -301,6 +311,11 @@ public class CalendarDataStore {
         setTransactionName(null, "GET /calendar/all/year/{year}");
         Guest guest = AuthHelper.getGuest();
         long guestId = guest.getId();
+        final CoachingBuddy coachee = AuthHelper.getCoachee();
+        if (coachee!=null) {
+            guestId = coachee.guestId;
+            guest = guestService.getGuestById(guestId);
+        }
         try {
             long then = System.currentTimeMillis();
             DigestModel digest = new DigestModel();
@@ -332,12 +347,12 @@ public class CalendarDataStore {
 
             setSolarInfo(digest, city, guestId, dayMetadata);
 
-            List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter);
+            List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter, coachee);
             digest.selectedConnectors = connectorInfos(guestId, apiKeySelection);
             List<ApiKey> allApiKeys = guestService.getApiKeys(guestId);
-            allApiKeys = removeConnectorsWithoutFacets(allApiKeys);
+            allApiKeys = removeConnectorsWithoutFacets(allApiKeys, coachee);
             digest.nApis = allApiKeys.size();
-            GuestSettings settings = settingsService.getSettings(guestId);
+            GuestSettings settings = settingsService.getSettings(AuthHelper.getGuestId());
 
             List<ApiKey> userKeys = new ArrayList<ApiKey>(allApiKeys);
             for (int i = 0; i < userKeys.size(); i++)
@@ -349,7 +364,7 @@ public class CalendarDataStore {
 
             copyMetadata(digest, dayMetadata);
             setVisitedCities(digest, guestId, dayMetadata);
-            setNotifications(digest, guestId);
+            setNotifications(digest, AuthHelper.getGuestId());
             setCurrentAddress(digest, guestId, dayMetadata.start);
             digest.settings = new SettingsModel(settings,guest);
 
@@ -407,19 +422,19 @@ public class CalendarDataStore {
 
             setSolarInfo(digest, city, guestId, dayMetadata);
 
-            List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter);
+            List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter, coachee);
             digest.selectedConnectors = connectorInfos(guestId,apiKeySelection);
             List<ApiKey> allApiKeys = guestService.getApiKeys(guestId);
-            allApiKeys = removeConnectorsWithoutFacets(allApiKeys);
+            allApiKeys = removeConnectorsWithoutFacets(allApiKeys, coachee);
             digest.nApis = allApiKeys.size();
-            GuestSettings settings = settingsService.getSettings(guestId);
+            GuestSettings settings = settingsService.getSettings(AuthHelper.getGuestId());
 
             setCachedData(digest, allApiKeys, settings, apiKeySelection,
                     dayMetadata);
 
             copyMetadata(digest, dayMetadata);
             setVisitedCities(digest, guestId, dayMetadata);
-            setNotifications(digest, guestId);
+            setNotifications(digest, AuthHelper.getGuestId());
             setCurrentAddress(digest, guestId, dayMetadata.start);
             digest.settings = new SettingsModel(settings,guest);
 
@@ -447,10 +462,11 @@ public class CalendarDataStore {
         return models;
     }
 
-	private List<ApiKey> removeConnectorsWithoutFacets(List<ApiKey> allApiKeys) {
+	private List<ApiKey> removeConnectorsWithoutFacets(List<ApiKey> allApiKeys, CoachingBuddy coachee) {
 		List<ApiKey> apiKeys = new ArrayList<ApiKey>();
 		for (ApiKey apiKey : allApiKeys) {
-            if (apiKey!=null && apiKey.getConnector()!=null && apiKey.getConnector().hasFacets()) {
+            if (apiKey!=null && apiKey.getConnector()!=null && apiKey.getConnector().hasFacets()
+                && (coachee==null||coachee.hasAccessToConnector(apiKey.getConnector().getName()))) {
                 apiKeys.add(apiKey);
             }
 		}
@@ -760,7 +776,7 @@ public class CalendarDataStore {
 		return connectorNames;
 	}
 
-	private List<ApiKey> getApiKeySelection(long guestId, String filter) {
+	private List<ApiKey> getApiKeySelection(long guestId, String filter, CoachingBuddy coachee) {
 		List<ApiKey> userKeys = guestService.getApiKeys(guestId);
 		String[] uncheckedConnectors = filter.split(",");
 		List<String> filteredOutConnectors = new ArrayList<String>();
@@ -769,18 +785,22 @@ public class CalendarDataStore {
                     Arrays.asList(uncheckedConnectors));
         }
 		List<ApiKey> apiKeySelection = getCheckedApiKeys(userKeys,
-				filteredOutConnectors);
+				filteredOutConnectors, coachee);
 		return apiKeySelection;
 	}
 
 	private List<ApiKey> getCheckedApiKeys(List<ApiKey> apiKeys,
-			List<String> uncheckedConnectors) {
+			List<String> uncheckedConnectors, CoachingBuddy coachee) {
 		List<ApiKey> result = new ArrayList<ApiKey>();
 		there: for (ApiKey apiKey : apiKeys) {
+
             // Check to make sure the apiKey is valid.  Skip if it is not.
             if (apiKey==null || apiKey.getConnector()==null || apiKey.getConnector().getName()==null) {
-                continue there;
+                continue;
             }
+
+            if (coachee!=null && !coachee.hasAccessToConnector((apiKey.getConnector().getName())))
+                continue;
 
             // Check if apiKey should be skipped due to being in uncheckedConnectors list.
 			for (int i = 0; i < uncheckedConnectors.size(); i++) {
