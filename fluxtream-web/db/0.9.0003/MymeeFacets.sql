@@ -13,8 +13,15 @@ CREATE TABLE `Facet_MymeeObservation` (
 `note` longtext,
 `mymeeId` varchar(255) NOT NULL,
 `name` varchar(255) NOT NULL,
-`user` varchar(255) NOT NULL,
+`user` varchar(255),
 `timezoneOffset` int NOT NULL,
+`amount` int,
+`baseAmount` int,
+`unit` varchar(255),
+`baseUnit` varchar(255),
+`imageURL` varchar(255),
+`longitude` double NOT NULL,
+`latitude` double NOT NULL,
 PRIMARY KEY (`id`),
 KEY `isEmpty_index` (`isEmpty`),
 KEY `end_index` (`end`),
@@ -24,4 +31,4 @@ KEY `name` (`name`),
 KEY `objectType_index` (`objectType`),
 KEY `guestId_index` (`guestId`),
 KEY `timeUpdated_index` (`timeUpdated`)
-) ENGINE=InnoDB AUTO_INCREMENT=3231 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;

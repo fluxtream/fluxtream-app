@@ -494,7 +494,9 @@ public class CalendarDataStore {
             ObjectType[] objectTypes = connector.objectTypes();
             ApiKey apiKey = guestService.getApiKey(AuthHelper.getGuestId(),
                                                    connector);
+
             calendarDataHelper.refreshApiData(dayMetadata, apiKey, null, day);
+
             if (objectTypes != null) {
                 for (ObjectType objectType : objectTypes) {
                     Collection<AbstractFacetVO<AbstractFacet>> facetCollection = null;

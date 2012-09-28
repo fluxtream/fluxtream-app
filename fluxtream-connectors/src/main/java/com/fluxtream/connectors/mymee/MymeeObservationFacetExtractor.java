@@ -29,6 +29,7 @@ import org.springframework.stereotype.Component;
 public class MymeeObservationFacetExtractor extends AbstractFacetExtractor {
 
     protected static DateTimeFormatter iso8601Formatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
+    private static final DateTimeZone timeZone = DateTimeZone.forID("UTC");
 
     @Autowired
     Configuration env;
@@ -51,8 +52,6 @@ public class MymeeObservationFacetExtractor extends AbstractFacetExtractor {
 
             int timezoneOffset = valueObject.getInt("timezoneOffset");
             extractCommonFacetData(facet, apiData);
-
-            DateTimeZone timeZone = DateTimeZone.forID("UTC");
 
             final DateTime happened = iso8601Formatter.withZone(timeZone)
                     .parseDateTime(valueObject.getString("happened"));
@@ -82,8 +81,13 @@ public class MymeeObservationFacetExtractor extends AbstractFacetExtractor {
                 final JSONObject imageAttachment = valueObject.getJSONObject("_attachments");
                 final String imageName = (String) imageAttachment.names().get(0);
                 final String fetchURL = apiData.updateInfo.apiKey.getAttributeValue("fetchURL", env);
-
-                facet.imageURL = getBaseURL(fetchURL);
+                final String baseURL = getBaseURL(fetchURL);
+                final String mainDir = getMainDir(fetchURL);
+                if (baseURL!=null&&mainDir!=null) {
+                    facet.imageURL = new StringBuilder(baseURL).append("/")
+                            .append(mainDir).append("/").append(facet.mymeeId)
+                            .append("/").append(imageName).toString();
+                }
             }
 
             facets.add(facet);
@@ -95,16 +99,34 @@ public class MymeeObservationFacetExtractor extends AbstractFacetExtractor {
     public static String getBaseURL(String url) {
         try {
             URI uri = new URI(url);
-            return uri.getScheme() + uri.getHost();
+            return (new StringBuilder(uri.getScheme()).append("://").append(uri.getHost()).toString());
         }
         catch (URISyntaxException e) {
             return null;
         }
     }
 
+    public static String getMainDir(String url) {
+        try {
+            URI uri = new URI(url);
+            final String[] splits = uri.getRawPath().split("/");
+            if (splits.length>1)
+                return splits[1];
+        }
+        catch (URISyntaxException e) {
+            return null;
+        }
+        return null;
+    }
+
     public static void main(final String[] args) {
-        String text = "http://bodytrack:groupW55@mymee.couchone.com/a_mymee/_design/mymee/_view/all-observations";
-        System.out.println(getBaseURL(text));
+        //String text = "https://bodytrack:groupW55@mymee.couchone.com/a_mymee/_design/mymee/_view/all-observations";
+        //System.out.println(getBaseURL(text));
+        //System.out.println(getMainDir(text));
+        String datetime = "2012-09-27T16:45:59Z";
+        final DateTime happened = iso8601Formatter.withZone(timeZone)
+                .parseDateTime(datetime);
+        System.out.println(happened.getMillis());
     }
 
 }

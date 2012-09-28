@@ -14,6 +14,7 @@ import com.fluxtream.domain.AbstractFacet;
 @Entity(name="Facet_MymeeObservation")
 @ObjectTypeSpec(name = "observation", value = 1, extractor=MymeeObservationFacetExtractor.class, parallel=false, prettyname = "Observation")
 @NamedQueries({
+      @NamedQuery(name = "mymee.observation.byMymeeId", query = "SELECT facet FROM Facet_MymeeObservation facet WHERE facet.guestId=? AND facet.mymeeId=?"),
       @NamedQuery(name = "mymee.observation.deleteAll", query = "DELETE FROM Facet_MymeeObservation facet WHERE facet.guestId=?"),
       @NamedQuery(name = "mymee.observation.between", query = "SELECT facet FROM Facet_MymeeObservation facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=?")
 })
@@ -29,6 +30,9 @@ public class MymeeObservationFacet extends AbstractFacet {
     public String unit;
     public String baseUnit;
     public String imageURL;
+
+    public double latitude;
+    public double longitude;
 
     @Override
     protected void makeFullTextIndexable() {

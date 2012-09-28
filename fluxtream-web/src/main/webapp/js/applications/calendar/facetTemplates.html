@@ -468,3 +468,19 @@
         </div>
     </div>
 </template>
+<template id="mymee-observation">
+    <div class="flx-box" style="border-left-color:{{color}}">
+        <span class="flx-deviceIcon mymee-observation"></span>
+        <div class="facetDetails">
+            {{#facets}}
+            <div class="facetDetails">
+                <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
+                <div class="flx-data">
+                    <span class="flx-description">{{name}} {{amount}}</span>
+                    <span class="flx-description">{{note}}</span>
+                </div>
+            </div>
+            {{/facets}}
+        </div>
+    </div>
+</template>
