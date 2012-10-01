@@ -5,6 +5,7 @@ import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.mvc.controllers.AuthHelper;
+import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.utils.HttpUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,9 @@ public class MymeeConnectorController {
 
 	@Autowired
 	GuestService guestService;
+
+    @Autowired
+    ConnectorUpdateService connectorUpdateService;
 	
 	@RequestMapping(value = "/enterFetchURL")
 	public ModelAndView enterProvisioningURL() {
@@ -37,6 +41,7 @@ public class MymeeConnectorController {
 		catch (Exception e) {}
 		if (worked) {
 			guestService.setApiKeyAttribute(guestId, Connector.getConnector("mymee"), "fetchURL", url);
+            connectorUpdateService.updateConnector(guestId, Connector.getConnector("mymee"), false);
 			return mav;
 		} else {
 			request.setAttribute("errorMessage", "Sorry, the URL you provided did not work.\n" +

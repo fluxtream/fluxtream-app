@@ -262,6 +262,28 @@ public class BodyTrackHelper {
         }
     }
 
+    @Transactional(readOnly = false)
+    public void setBuiltinDefaultStyle(final Long uid, final String deviceName, final String channelName, final String style) {
+        try{
+            if (uid == null)
+                throw new IllegalArgumentException();
+            com.fluxtream.domain.ChannelStyle savedStyle = JPAUtils.findUnique(em, com.fluxtream.domain.ChannelStyle.class,
+                                                                               "channelStyle.byDeviceNameAndChannelName",
+                                                                               uid, deviceName, channelName);
+            if (savedStyle==null) {
+                savedStyle = new com.fluxtream.domain.ChannelStyle();
+                savedStyle.guestId = uid;
+                savedStyle.channelName = channelName;
+                savedStyle.deviceName = deviceName;
+                savedStyle.json = style;
+                em.persist(savedStyle);
+            }
+        }
+        catch (Exception e){
+
+        }
+    }
+
     private ChannelStyle getDefaultStyle(long uid, String deviceName, String channelName){
         com.fluxtream.domain.ChannelStyle savedStyle = JPAUtils.findUnique(em, com.fluxtream.domain.ChannelStyle.class,
                                                                            "channelStyle.byDeviceNameAndChannelName",
@@ -411,6 +433,9 @@ public class BodyTrackHelper {
                 String fullName = entry.getKey();
                 ChannelSpecs specs = entry.getValue();
                 String[] split = fullName.split("\\.");
+                // device.channelName._comment should not generate an entry
+                if (split.length>2)
+                    continue;
                 String deviceName = split[0];
                 String channelName = split[1];
                 Source source = null;
@@ -449,6 +474,9 @@ public class BodyTrackHelper {
                 String fullName = entry.getKey();
                 ChannelSpecs specs = entry.getValue();
                 String[] split = fullName.split("\\.");
+                // device.channelName._comment should not generate an entry
+                if (split.length>2)
+                    continue;
                 String devName = split[0];
                 String channelName = split[1];
                 Source source = null;
