@@ -20,11 +20,10 @@ import javax.ws.rs.core.MediaType;
 import com.fluxtream.Configuration;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.TimeUnit;
+import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.vos.AbstractPhotoFacetVO;
 import com.fluxtream.domain.CoachingBuddy;
 import com.fluxtream.domain.Guest;
-import com.fluxtream.domain.SharedConnector;
-import com.fluxtream.mvc.controllers.AuthHelper;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.BodyTrackStorageService;
 import com.fluxtream.services.CoachingService;
@@ -149,7 +148,7 @@ public class BodyTrackController {
             }
             return bodyTrackHelper.fetchTile(uid, deviceNickname, channelName, level, offset);
         } catch (Exception e){
-            return gson.toJson(new StatusModel(false,"Access Denied"));
+            return gson.toJson(new StatusModel(false, "Access Denied"));
         }
     }
 

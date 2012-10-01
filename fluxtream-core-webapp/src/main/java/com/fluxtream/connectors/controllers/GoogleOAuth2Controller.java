@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.fluxtream.domain.Notification;
-import com.fluxtream.mvc.controllers.AuthHelper;
+import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.services.NotificationsService;
 import net.sf.json.JSONObject;
 

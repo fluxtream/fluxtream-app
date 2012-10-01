@@ -13,7 +13,7 @@ import com.fluxtream.connectors.updaters.ScheduleResult;
 import com.fluxtream.domain.ApiUpdate;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.UpdateWorkerTask;
-import com.fluxtream.mvc.controllers.AuthHelper;
+import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;

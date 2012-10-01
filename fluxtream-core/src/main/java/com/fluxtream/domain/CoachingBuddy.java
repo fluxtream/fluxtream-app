@@ -53,4 +53,11 @@ public class CoachingBuddy extends AbstractEntity {
         return hasAccessToConnector(fluxtreamConnectorName);
     }
 
+    public boolean equals(Object o) {
+        if (!(o instanceof CoachingBuddy))
+            return false;
+        CoachingBuddy buddy = (CoachingBuddy) o;
+        return buddy.guestId == guestId && buddy.buddyId == buddyId;
+    }
+
 }
