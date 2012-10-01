@@ -177,8 +177,12 @@ public class BodyTrackController {
     @Produces({MediaType.APPLICATION_JSON})
     public String bodyTrackView(@PathParam("UID") Long uid, @PathParam("id") long id) {
         setTransactionName(null, "GET /bodytrack/users/{UID}/views/{id}");
+        long loggedInUserId = AuthHelper.getGuestId();
+        boolean accessAllowed = checkForPermissionAccess(uid);
+        CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
+
         try{
-            if (!checkForPermissionAccess(uid)){
+            if (!accessAllowed && coachee==null) {
                 uid = null;
             }
             String result = bodyTrackHelper.getView(uid,id);
@@ -194,8 +198,12 @@ public class BodyTrackController {
     @Produces({MediaType.APPLICATION_JSON})
     public String setView(@PathParam("UID") Long uid, @FormParam("name") String name, @FormParam("data") String data) {
         setTransactionName(null, "POST /bodytrack/users/{UID}/views");
+        long loggedInUserId = AuthHelper.getGuestId();
+        boolean accessAllowed = checkForPermissionAccess(uid);
+        CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
+
         try{
-            if (!checkForPermissionAccess(uid)){
+            if (!accessAllowed && coachee==null) {
                 uid = null;
             }
             return bodyTrackHelper.saveView(uid, name, data);
@@ -233,8 +241,12 @@ public class BodyTrackController {
     @Produces({MediaType.APPLICATION_JSON})
     public String bodyTrackGetDefaultGraphSpecs(@PathParam("UID") Long uid, @PathParam("source") String name) {
         setTransactionName(null, "GET /bodytrack/users/{UID}/sources/{source}/default_graph_specs");
+        long loggedInUserId = AuthHelper.getGuestId();
+        boolean accessAllowed = checkForPermissionAccess(uid);
+        CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
+
         try{
-            if (!checkForPermissionAccess(uid)){
+            if (!accessAllowed && coachee==null) {
                 uid = null;
             }
             return bodyTrackHelper.getSourceInfo(uid, name);
@@ -271,8 +283,12 @@ public class BodyTrackController {
                                  @PathParam("Level") int level,
                                  @PathParam("Offset") long offset) {
         setTransactionName(null, "GET /bodytrack/photos/{UID}/" + deviceNickname + "." + channelName + "/{Level}.{Offset}.json");
+        long loggedInUserId = AuthHelper.getGuestId();
+        boolean accessAllowed = checkForPermissionAccess(uid);
+        CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
+
         try {
-            if (!checkForPermissionAccess(uid)) {
+            if (!accessAllowed && coachee==null) {
                 uid = null;
             }
 
@@ -346,9 +362,12 @@ public class BodyTrackController {
                                              @QueryParam("isMatchAllTags") boolean isMatchAllTags
                                              ) {
         setTransactionName(null, "GET /bodytrack/photos/{UID}/" + deviceNickname + "." + channelName + "/{unixTime}/{count}");
+        long loggedInUserId = AuthHelper.getGuestId();
+        boolean accessAllowed = checkForPermissionAccess(uid);
+        CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
 
         try {
-            if (!checkForPermissionAccess(uid)) {
+            if (!accessAllowed && coachee==null) {
                 return gson.toJson(new StatusModel(false, "Invalid User ID (null)"));
              }
 
