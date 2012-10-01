@@ -3,7 +3,9 @@ package com.fluxtream.connectors.mymee;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import com.fluxtream.ApiData;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
@@ -16,6 +18,7 @@ import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiUpdate;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.JPADaoService;
+import com.fluxtream.services.impl.BodyTrackHelper;
 import com.fluxtream.utils.HttpUtils;
 import com.fluxtream.utils.Utils;
 import net.sf.json.JSONArray;
@@ -46,6 +49,17 @@ public class MymeeUpdater extends AbstractUpdater {
     protected static DateTimeFormatter iso8601Formatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
     private static final DateTimeZone timeZone = DateTimeZone.forID("UTC");
 
+    @Autowired
+    BodyTrackHelper bodytrackHelper;
+
+    final String lollipopStyle = "{\"styles\":[{\"type\":\"line\",\"show\":false,\"lineWidth\":1}," +
+                                 "{\"radius\":0,\"fill\":false,\"type\":\"lollipop\",\"show\":true,\"lineWidth\":1}," +
+                                 "{\"radius\":2,\"fill\":true,\"type\":\"point\",\"show\":true,\"lineWidth\":1}," +
+                                 "{\"marginWidth\":5,\"verticalOffset\":7," +
+                                 "\"numberFormat\":\"###,##0\",\"type\":\"value\",\"show\":true}]," +
+                                 "\"comments\":" +
+                                 "{\"styles\":[{\"radius\":3,\"fill\":true,\"type\":\"point\",\"show\":true,\"lineWidth\":1}]," +
+                                 "\"verticalMargin\":4,\"show\":true}}";
 
     public MymeeUpdater() {
         super();
@@ -78,14 +92,17 @@ public class MymeeUpdater extends AbstractUpdater {
 
         countSuccessfulApiCall(updateInfo.apiKey.getGuestId(), updateInfo.objectTypes, then, queryUrl);
 
-        if (json!=null)
-            extractFacets(json, updateInfo);
+        if (json!=null) {
+            Set<String> channelNames = extractFacets(json, updateInfo);
+            for (String channelName : channelNames)
+                bodytrackHelper.setBuiltinDefaultStyle(updateInfo.getGuestId(), "Mymee", channelName, lollipopStyle);
+        }
     }
 
-    public void extractFacets(final String json, final UpdateInfo updateInfo) throws Exception {
-
+    public Set<String> extractFacets(final String json, final UpdateInfo updateInfo) throws Exception {
         JSONObject mymeeData = JSONObject.fromObject(json);
         JSONArray array = mymeeData.getJSONArray("rows");
+        Set<String> channelNames = new HashSet<String>();
         for(int i=0; i<array.size(); i++) {
             MymeeObservationFacet facet = new MymeeObservationFacet();
 
@@ -115,6 +132,8 @@ public class MymeeUpdater extends AbstractUpdater {
                 continue;
 
             facet.name = valueObject.getString("name");
+            channelNames.add(facet.name);
+
             if (valueObject.has("note"))
                 facet.note = valueObject.getString("note");
             if (valueObject.has("user"))
@@ -152,6 +171,7 @@ public class MymeeUpdater extends AbstractUpdater {
 
             jpaDaoService.persist(facet);
         }
+        return channelNames;
     }
 
     public static String getBaseURL(String url) {

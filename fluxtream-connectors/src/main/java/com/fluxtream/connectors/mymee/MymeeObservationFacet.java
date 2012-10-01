@@ -22,8 +22,8 @@ public class MymeeObservationFacet extends AbstractFacet {
 
     public String mymeeId;
     public String name;
-    public String note = "";
-    public String user = "";
+    public String note;
+    public String user;
     public int timezoneOffset;
     public int amount;
     public int baseAmount;
