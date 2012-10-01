@@ -49,6 +49,9 @@ public class CoachingController {
     public StatusModel findCoach(@FormParam("username") String username) {
         setTransactionName(null, "POST /coaching/findUser?" + username);
         final Guest guest = guestService.getGuest(username);
+        final List<Guest> coaches = coachingService.getCoaches(AuthHelper.getGuestId());
+        if (coaches.contains(guest))
+            return new StatusModel(false, username + " is already in you coaching buddies list");
         if (guest!=null) {
             StatusModel statusModel = new StatusModel(true, "Found user!");
             statusModel.payload = new GuestModel(guest);

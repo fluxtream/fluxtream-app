@@ -56,6 +56,12 @@ public class Guest extends AbstractEntity {
 		return userRoles;
 	}
 
+    public boolean equals(Object o) {
+        if (! (o instanceof Guest))
+            return false;
+        return ((Guest)o).getId() == getId();
+    }
+
 	public String getGuestName() {
 		if (!StringUtils.isEmpty(firstname)){
 			if (!StringUtils.isEmpty(lastname))
