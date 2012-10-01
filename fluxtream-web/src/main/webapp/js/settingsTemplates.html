@@ -141,7 +141,7 @@
             </div>
         </div>
         <div class="modal-footer">
-            <button class="btn btn-primary disabled" onclick="App.sharingDialog.addCoach($('#findUserField').val());"
+            <button class="btn btn-primary disabled" onclick="if(!$(this).hasClass('disabled')) { App.sharingDialog.addCoach($('#findUserField').val());}"
                     id="shareMyDataButton">Add Buddy</button>
             <button class="btn" onclick="$('#findUserModal').modal('hide');">Close</button>
         </div>
