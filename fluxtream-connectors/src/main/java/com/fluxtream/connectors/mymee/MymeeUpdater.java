@@ -134,8 +134,10 @@ public class MymeeUpdater extends AbstractUpdater {
             facet.name = valueObject.getString("name");
             channelNames.add(facet.name);
 
-            if (valueObject.has("note"))
+            if (valueObject.has("note")) {
                 facet.note = valueObject.getString("note");
+                facet.comment = facet.note; // also store the comment in the comment field (this is required for photos)
+            }
             if (valueObject.has("user"))
                 facet.user = valueObject.getString("user");
 
