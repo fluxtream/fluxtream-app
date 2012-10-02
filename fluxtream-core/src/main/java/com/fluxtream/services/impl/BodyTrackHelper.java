@@ -177,6 +177,9 @@ public class BodyTrackHelper {
                 for (final String channelName : photoChannelTimeRanges.keySet()) {
                     final ChannelSpecs channelSpecs = new ChannelSpecs();
                     final TimeInterval timeInterval = photoChannelTimeRanges.get(channelName);
+
+                    // mark this channel as a photo channel so that the grapher can properly render it as a photo channel
+                    channelSpecs.channelType = PhotoService.DEFAULT_PHOTOS_CHANNEL_NAME;
                     channelSpecs.channel_bounds = new ChannelBounds();
                     channelSpecs.channel_bounds.min_time = timeInterval.start / 1000;
                     channelSpecs.channel_bounds.max_time = timeInterval.end / 1000;
@@ -411,6 +414,7 @@ public class BodyTrackHelper {
 
 
     private static class ChannelSpecs{
+        String channelType;
         ChannelBounds channel_bounds;
     }
 
@@ -517,6 +521,9 @@ public class BodyTrackHelper {
             min = specs.channel_bounds.min_value;
             min_time = specs.channel_bounds.min_time;
             max_time = specs.channel_bounds.max_time;
+            if (specs.channelType != null) {
+                type = specs.channelType;
+            }
             style = builtin_default_style = ChannelStyle.getDefaultChannelStyle(name);
         }
     }
