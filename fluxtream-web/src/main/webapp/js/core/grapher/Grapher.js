@@ -340,7 +340,8 @@ define(["core/grapher/BTCore"], function(BTCore) {
                         "channel_name" : src.channels[j]["name"],
                         "min"          : src.channels[j]["min"],
                         "max"          : src.channels[j]["max"],
-                        "style"        : src.channels[j]["style"]
+                        "style"        : src.channels[j]["style"],
+                        "type"        : src.channels[j]["type"]
                     };
 
                     if ((src.channels[j].hasOwnProperty("min_time")) &&
@@ -775,9 +776,8 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 grapher.dateAxis.setRange(max_time - 86400.0, max_time);
             }*/
 
-            // TODO: The following should be keying off of "type" rather than "name" fields
             var plot = null;
-            if ("photo" == channel["channel_name"] || "photos" == channel["channel_name"]) {
+            if (("photo" == channel['type']) || "photo" == channel["channel_name"] || "photos" == channel["channel_name"]) {
                 var tags = [];
                 var willJoinUsingAnd = false;
                 var photoStyle = channel['style'];
