@@ -1,16 +1,17 @@
 package com.fluxtream.connectors.mymee;
 
+import java.awt.Dimension;
 import java.util.Date;
+import java.util.List;
 import com.fluxtream.TimeInterval;
-import com.fluxtream.connectors.quantifiedmind.QuantifiedMindTestFacet;
-import com.fluxtream.connectors.vos.AbstractInstantFacetVO;
+import com.fluxtream.connectors.vos.AbstractPhotoFacetVO;
 import com.fluxtream.domain.GuestSettings;
 
 /**
  *
  * @author Candide Kemmler (candide@fluxtream.com)
  */
-public class MymeeObservationFacetVO extends AbstractInstantFacetVO<MymeeObservationFacet> {
+public class MymeeObservationFacetVO extends AbstractPhotoFacetVO<MymeeObservationFacet> {
 
     public String mymeeId;
     public String name;
@@ -47,4 +48,20 @@ public class MymeeObservationFacetVO extends AbstractInstantFacetVO<MymeeObserva
         return (double) Math.round(v * 100) / 100;
     }
 
+    @Override
+    public String getPhotoUrl() {
+        return this.imageURL;
+    }
+
+    @Override
+    public String getThumbnail(final int index) {
+        // TODO: is a thumbnail version available?
+        return this.imageURL;
+    }
+
+    @Override
+    public List<Dimension> getThumbnailSizes() {
+        // TODO
+        return null;
+    }
 }

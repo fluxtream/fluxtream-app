@@ -4,7 +4,6 @@ import javax.persistence.Entity;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
-import com.fluxtream.connectors.quantifiedmind.QuantifiedMindTestFacetExtractor;
 import com.fluxtream.domain.AbstractFacet;
 
 /**
@@ -12,11 +11,12 @@ import com.fluxtream.domain.AbstractFacet;
  * @author Candide Kemmler (candide@fluxtream.com)
  */
 @Entity(name="Facet_MymeeObservation")
-@ObjectTypeSpec(name = "observation", value = 1, extractor=MymeeObservationFacetExtractor.class, parallel=false, prettyname = "Observation")
+@ObjectTypeSpec(name = "observation", value = 1, isImageType=true, extractor=MymeeObservationFacetExtractor.class, parallel=false, prettyname = "Observation", photoFacetFinderStrategy=MyMeePhotoFacetFinderStrategy.class)
 @NamedQueries({
       @NamedQuery(name = "mymee.observation.byMymeeId", query = "SELECT facet FROM Facet_MymeeObservation facet WHERE facet.guestId=? AND facet.mymeeId=?"),
       @NamedQuery(name = "mymee.observation.deleteAll", query = "DELETE FROM Facet_MymeeObservation facet WHERE facet.guestId=?"),
-      @NamedQuery(name = "mymee.observation.between", query = "SELECT facet FROM Facet_MymeeObservation facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=?")
+      @NamedQuery(name = "mymee.observation.between", query = "SELECT facet FROM Facet_MymeeObservation facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=?"),
+      @NamedQuery(name = "mymee.photo.between", query = "SELECT facet FROM Facet_MymeeObservation facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=? AND facet.imageURL IS NOT NULL")
 })
 public class MymeeObservationFacet extends AbstractFacet {
 

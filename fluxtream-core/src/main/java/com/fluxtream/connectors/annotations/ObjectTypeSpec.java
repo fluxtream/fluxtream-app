@@ -4,7 +4,8 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
+import com.fluxtream.domain.DefaultPhotoFacetFinderStrategy;
+import com.fluxtream.domain.PhotoFacetFinderStrategy;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 
 @Retention(RetentionPolicy.RUNTIME)
@@ -18,5 +19,6 @@ public @interface ObjectTypeSpec {
 	boolean isImageType() default false;
 	public String prettyname();
     boolean isDateBased() default false;
-	
+    public Class<? extends PhotoFacetFinderStrategy> photoFacetFinderStrategy() default DefaultPhotoFacetFinderStrategy.class;
+
 }
