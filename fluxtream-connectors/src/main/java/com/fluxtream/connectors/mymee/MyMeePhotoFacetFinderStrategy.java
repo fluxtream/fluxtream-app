@@ -1,6 +1,5 @@
 package com.fluxtream.connectors.mymee;
 
-import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
@@ -25,11 +24,7 @@ public class MyMeePhotoFacetFinderStrategy implements PhotoFacetFinderStrategy {
 
     @Override
     public List<AbstractFacet> findAll(final long guestId, final Connector connector, final ObjectType objectType, final TimeInterval timeInterval) {
-        final List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
-        final String queryName = "mymee.photo.between";
-        final List<? extends AbstractFacet> found = JPAUtils.find(em, getFacetClass(connector, objectType), queryName, guestId, timeInterval.start, timeInterval.end);
-        facets.addAll(found);
-        return facets;
+        return (List<AbstractFacet>)JPAUtils.find(em, getFacetClass(connector, objectType), "mymee.photo.between", guestId, timeInterval.start, timeInterval.end);
     }
 
     @Override
