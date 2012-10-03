@@ -1,4 +1,4 @@
-<%@ page import="com.fluxtream.mvc.controllers.AuthHelper" %>
+<%@ page import="com.fluxtream.auth.AuthHelper" %>
 <%@ page pageEncoding="utf-8" contentType="text/html; charset=UTF-8"%><%@ taglib
 	uri="http://granule.com/tags" prefix="g"
 %><%@ page import="java.util.List"

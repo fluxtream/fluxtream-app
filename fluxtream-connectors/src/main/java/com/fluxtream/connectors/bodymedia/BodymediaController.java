@@ -9,7 +9,7 @@ import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.Guest;
-import com.fluxtream.mvc.controllers.AuthHelper;
+import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.services.GuestService;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.OAuthProvider;

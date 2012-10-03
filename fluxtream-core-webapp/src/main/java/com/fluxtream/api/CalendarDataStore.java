@@ -17,6 +17,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.TimeInterval;
+import com.fluxtream.auth.AuthHelper;
+import com.fluxtream.auth.CoachRevokedException;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.updaters.UpdateInfo;
@@ -32,7 +34,6 @@ import com.fluxtream.domain.Notification;
 import com.fluxtream.domain.metadata.City;
 import com.fluxtream.domain.metadata.DayMetadataFacet;
 import com.fluxtream.domain.metadata.DayMetadataFacet.VisitedCity;
-import com.fluxtream.mvc.controllers.AuthHelper;
 import com.fluxtream.mvc.models.AddressModel;
 import com.fluxtream.mvc.models.ConnectorDigestModel;
 import com.fluxtream.mvc.models.ConnectorResponseModel;
@@ -117,7 +118,12 @@ public class CalendarDataStore {
         setTransactionName(null, "GET /calendar/all/week/{year}/{week}");
         Guest guest = AuthHelper.getGuest();
         long guestId = guest.getId();
-        final CoachingBuddy coachee = AuthHelper.getCoachee();
+        CoachingBuddy coachee = null;
+        try {
+            coachee = AuthHelper.getCoachee();
+        } catch (CoachRevokedException e) {
+            return gson.toJson(new StatusModel(false, "Sorry, permission to access this data has been revoked."));
+        }
         if (coachee!=null) {
             guestId = coachee.guestId;
             guest = guestService.getGuestById(guestId);
@@ -223,7 +229,12 @@ public class CalendarDataStore {
         setTransactionName(null, "GET /calendar/all/month/{year}/{month}");
         Guest guest = AuthHelper.getGuest();
         long guestId = guest.getId();
-        final CoachingBuddy coachee = AuthHelper.getCoachee();
+        CoachingBuddy coachee = null;
+        try {
+            coachee = AuthHelper.getCoachee();
+        } catch (CoachRevokedException e) {
+            return gson.toJson(new StatusModel(false, "Sorry, permission to access this data has been revoked."));
+        }
         if (coachee!=null) {
             guestId = coachee.guestId;
             guest = guestService.getGuestById(guestId);
@@ -311,7 +322,12 @@ public class CalendarDataStore {
         setTransactionName(null, "GET /calendar/all/year/{year}");
         Guest guest = AuthHelper.getGuest();
         long guestId = guest.getId();
-        final CoachingBuddy coachee = AuthHelper.getCoachee();
+        CoachingBuddy coachee = null;
+        try {
+            coachee = AuthHelper.getCoachee();
+        } catch (CoachRevokedException e) {
+            return gson.toJson(new StatusModel(false, "Sorry, permission to access this data has been revoked."));
+        }
         if (coachee!=null) {
             guestId = coachee.guestId;
             guest = guestService.getGuestById(guestId);
@@ -393,7 +409,12 @@ public class CalendarDataStore {
         setTransactionName(null, "GET /calendar/all/date/{date}");
         Guest guest = AuthHelper.getGuest();
         long guestId = guest.getId();
-        final CoachingBuddy coachee = AuthHelper.getCoachee();
+        CoachingBuddy coachee = null;
+        try {
+            coachee = AuthHelper.getCoachee();
+        } catch (CoachRevokedException e) {
+            return gson.toJson(new StatusModel(false, "Sorry, permission to access this data has been revoked. Please reload your browser window"));
+        }
         if (coachee!=null) {
             guestId = coachee.guestId;
             guest = guestService.getGuestById(guestId);

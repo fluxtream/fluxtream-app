@@ -9,7 +9,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.ApiUpdate;
-import com.fluxtream.mvc.controllers.AuthHelper;
+import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.google.gson.Gson;

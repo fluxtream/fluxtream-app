@@ -10,7 +10,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.domain.DashboardWidgetsRepository;
-import com.fluxtream.mvc.controllers.AuthHelper;
+import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.WidgetsService;
 import com.google.gson.Gson;

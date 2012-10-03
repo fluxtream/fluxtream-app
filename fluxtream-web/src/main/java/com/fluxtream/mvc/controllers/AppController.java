@@ -6,6 +6,7 @@ import java.security.NoSuchAlgorithmException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import com.fluxtream.Configuration;
+import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.Notification.Type;
