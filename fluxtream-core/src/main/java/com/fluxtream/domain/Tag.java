@@ -24,11 +24,11 @@ import org.hibernate.annotations.Index;
               query = "DELETE FROM Tags tag WHERE tag.guestId=?")
 })
 public class Tag extends AbstractEntity {
-    /** Regex for illegal characters (it's simply the negation of the legal characters), used for  */
-    private static final String REGEX_ILLEGAL_CHARACTERS = "[^a-zA-Z0-9-_ ]";
+    /** Regex for illegal characters (it's simply the negation of the legal characters) */
+    public static final String REGEX_ILLEGAL_CHARACTERS = "[^a-zA-Z0-9-_]";
 
     /** Character used to replace illegal characters */
-    private static final String ILLEGAL_CHARACTER_REPLACEMENT = "_";
+    public static final String ILLEGAL_CHARACTER_REPLACEMENT = "_";
 
     public Tag() {}
 
@@ -85,16 +85,30 @@ public class Tag extends AbstractEntity {
         final Set<Tag> tagSet = new HashSet<Tag>();
 
         if (tagsStr != null && tagsStr.length() > 0) {
-            for (final String tagStr : tagsStr.toLowerCase().replaceAll(REGEX_ILLEGAL_CHARACTERS, ILLEGAL_CHARACTER_REPLACEMENT).split(" ")) {
-                final String trimmedTagStr = tagStr.trim();
-                if (trimmedTagStr.length() > 0) {
+            for (final String tagStr : tagsStr.trim().toLowerCase().split(" ")) {
+                final String cleanTagStr = cleanse(tagStr);
+                if (cleanTagStr.length() > 0) {
                     final Tag tag = new Tag();
-                    tag.name = trimmedTagStr;
+                    tag.name = cleanTagStr;
                     tagSet.add(tag);
                 }
             }
         }
 
         return tagSet;
+    }
+
+    /**
+     * This method "cleanses" a given tag by trimming whitespace off the ends, forcing it to all-lowercase, and then
+     * replacing illegal characters with underscores.  Returns an empty {@link String} if the given <code>tag</code> is
+     * <code>null</code>.  Guaranteed to never return <code>null</code>.
+     *
+     * @see #REGEX_ILLEGAL_CHARACTERS
+     */
+    public static String cleanse(final String tag) {
+        if (tag != null) {
+            return tag.trim().toLowerCase().replaceAll(REGEX_ILLEGAL_CHARACTERS, ILLEGAL_CHARACTER_REPLACEMENT);
+        }
+        return "";
     }
 }
