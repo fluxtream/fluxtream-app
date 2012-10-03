@@ -285,7 +285,12 @@ public class PhotoServiceImpl implements PhotoService {
      * the {@link #DEFAULT_PHOTOS_CHANNEL_NAME} if the ObjectType is <code>null</code>.
      */
     private String constructChannelName(final Connector connector, final ObjectType objectType) {
-        return connector.prettyName() + "." + (objectType == null ? DEFAULT_PHOTOS_CHANNEL_NAME : objectType.getName());
+        // Always return the channel name of "photo".  Chris had initially used objectType.getName()
+        // if it is non-null, but that breaks down for connectors like Mymee where the photo is
+        // just one aspect of the data stored in the facet
+        return connector.prettyName() + "." + DEFAULT_PHOTOS_CHANNEL_NAME;
+        // Old version:
+        //return connector.prettyName() + "." + (objectType == null ? DEFAULT_PHOTOS_CHANNEL_NAME : objectType.getName());
     }
 
     private TimeInterval constructTimeIntervalFromOldestAndNewestFacets(final long guestId, final Connector connector, final ObjectType objectType) {
