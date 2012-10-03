@@ -295,7 +295,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 	private static Map<String, String> facetEntityNames = new ConcurrentHashMap<String,String>();
 
     @Transactional(readOnly = false)
-	private AbstractFacet persistFacet(AbstractFacet facet) {
+	public AbstractFacet persistFacet(AbstractFacet facet) {
 		String entityName = facetEntityNames.get(facet.getClass().getName());
 		if (entityName==null) {
 			Entity entityAnnotation = facet.getClass().getAnnotation(Entity.class);

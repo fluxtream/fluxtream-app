@@ -11,7 +11,6 @@ import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.Tag;
 import com.fluxtream.services.GuestService;
-import com.fluxtream.services.JPADaoService;
 import com.fluxtream.services.impl.BodyTrackHelper;
 import com.fluxtream.utils.HttpUtils;
 import com.fluxtream.utils.Utils;
@@ -36,9 +35,6 @@ public class MymeeUpdater extends AbstractUpdater {
 
     @Autowired
     GuestService guestService;
-
-    @Autowired
-    JPADaoService jpaDaoService;
 
     protected static DateTimeFormatter iso8601Formatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
     private static final DateTimeZone timeZone = DateTimeZone.forID("UTC");
@@ -168,7 +164,7 @@ public class MymeeUpdater extends AbstractUpdater {
                 }
             }
 
-            jpaDaoService.persist(facet);
+            apiDataService.persistFacet(facet);
         }
         return channelNames;
     }

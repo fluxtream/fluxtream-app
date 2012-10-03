@@ -62,6 +62,8 @@ public interface ApiDataService {
                                                      long timeInMillis,
                                                      int desiredCount);
 
+    public AbstractFacet persistFacet(AbstractFacet facet);
+
 	public void eraseApiData(long guestId, Connector api);
 
 	public void eraseApiData(long guestId, Connector api, int objectTypes);
