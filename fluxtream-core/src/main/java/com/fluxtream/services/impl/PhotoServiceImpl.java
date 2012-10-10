@@ -51,12 +51,10 @@ public class PhotoServiceImpl implements PhotoService {
         final Map<ObjectType, List<AbstractFacet>> find(final Connector connector) {
             final Map<ObjectType, List<AbstractFacet>> facets = new HashMap<ObjectType, List<AbstractFacet>>();
             if (connector != null) {
-                LOG.debug("PhotoServiceImpl$PhotoFinder.find(" + connector.prettyName() + ")");
                 final ObjectType[] objectTypes = connector.objectTypes();
                 if (objectTypes != null) {
                     for (final ObjectType objectType : objectTypes) {
                         if (objectType.isImageType()) {
-                            LOG.debug("PhotoServiceImpl$PhotoFinder.find(" + connector.prettyName() + "): adding all facets for object type [" + objectType.getName() + "]");
                             facets.put(objectType, find(connector, objectType));
                         }
                     }
@@ -223,7 +221,6 @@ public class PhotoServiceImpl implements PhotoService {
                 final ObjectType desiredObjectType = findObjectTypeByName(connector, objectTypeName);
 
                 if (desiredObjectType == null) {
-                    LOG.debug("PhotoServiceImpl.getPhotos(): finding photos in any image object type for connector [" + connectorPrettyName + "]");
                     final Map<ObjectType, List<AbstractFacet>> facetsByObjectType = facetFinderStrategy.find(connector);
                     if ((facetsByObjectType != null) && (!facetsByObjectType.isEmpty())) {
                         for (final ObjectType objectType : facetsByObjectType.keySet()) {
@@ -235,7 +232,6 @@ public class PhotoServiceImpl implements PhotoService {
                     }
                 }
                 else if (desiredObjectType.isImageType()) {
-                    LOG.debug("PhotoServiceImpl.getPhotos(): finding photos for connector [" + connectorPrettyName + "] and objectType [" + objectTypeName + "]");
                     final List<AbstractFacet> facets = facetFinderStrategy.find(connector, desiredObjectType);
                     if (facets != null) {
                         photos.addAll(convertFacetsToPhotos(guestId, timeInterval, facets, connector, desiredObjectType));
