@@ -23,7 +23,6 @@ import com.fluxtream.TimeUnit;
 import com.fluxtream.connectors.vos.AbstractPhotoFacetVO;
 import com.fluxtream.domain.CoachingBuddy;
 import com.fluxtream.domain.Guest;
-import com.fluxtream.domain.SharedConnector;
 import com.fluxtream.mvc.controllers.AuthHelper;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.BodyTrackStorageService;
@@ -47,7 +46,7 @@ import static com.newrelic.api.agent.NewRelic.setTransactionName;
 @Scope("request")
 public class BodyTrackController {
 
-    private static final Logger LOG = Logger.getLogger(BodyTrackController.class);
+    private static final Logger LOG = Logger.getLogger("Fluxtream");
 
     @Autowired
 	GuestService guestService;
@@ -275,14 +274,14 @@ public class BodyTrackController {
     }
 
     @GET
-    @Path("/photos/{UID}/{DeviceNickname}.{ChannelName}/{Level}.{Offset}.json")
+    @Path("/photos/{UID}/{ConnectorPrettyName}.{ObjectTypeName}/{Level}.{Offset}.json")
     @Produces({MediaType.APPLICATION_JSON})
     public String fetchPhotoTile(@PathParam("UID") Long uid,
-                                 @PathParam("DeviceNickname") String deviceNickname,
-                                 @PathParam("ChannelName") String channelName,
+                                 @PathParam("ConnectorPrettyName") String connectorPrettyName,
+                                 @PathParam("ObjectTypeName") String objectTypeName,
                                  @PathParam("Level") int level,
                                  @PathParam("Offset") long offset) {
-        setTransactionName(null, "GET /bodytrack/photos/{UID}/" + deviceNickname + "." + channelName + "/{Level}.{Offset}.json");
+        setTransactionName(null, "GET /bodytrack/photos/{UID}/" + connectorPrettyName + "." + objectTypeName + "/{Level}.{Offset}.json");
         long loggedInUserId = AuthHelper.getGuestId();
         boolean accessAllowed = checkForPermissionAccess(uid);
         CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
@@ -304,7 +303,7 @@ public class BodyTrackController {
             final TimeInterval timeInterval = new TimeInterval(startTimeMillis, endTimeMillis, TimeUnit.DAY, TimeZone.getTimeZone("UTC"));
 
             // fetch the photos for this time interval, and for the desired device/channel
-            final SortedSet<PhotoService.Photo> photos  = photoService.getPhotos(uid, timeInterval, deviceNickname, channelName);
+            final SortedSet<PhotoService.Photo> photos  = photoService.getPhotos(uid, timeInterval, connectorPrettyName, objectTypeName);
 
             // Define the min interval to be 1/20th of the span of the tile.  Value is in seconds
             final double minInterval = LevelOffsetHelper.levelToDuration(level) / 20.0;
@@ -350,18 +349,18 @@ public class BodyTrackController {
     }
 
     @GET
-    @Path("/photos/{UID}/{DeviceNickname}.{ChannelName}/{unixTime}/{count}")
+    @Path("/photos/{UID}/{ConnectorPrettyName}.{ObjectTypeName}/{unixTime}/{count}")
     @Produces({MediaType.APPLICATION_JSON})
     public String getPhotosBeforeOrAfterTime(@PathParam("UID") long uid,
-                                             @PathParam("DeviceNickname") String deviceNickname,
-                                             @PathParam("ChannelName") String channelName,
+                                             @PathParam("ConnectorPrettyName") String connectorPrettyName,
+                                             @PathParam("ObjectTypeName") String objectTypeName,
                                              @PathParam("unixTime") long unixTimeInSecs,
                                              @PathParam("count") int desiredCount,
                                              @QueryParam("isBefore") boolean isGetPhotosBeforeTime,
                                              @QueryParam("tags") List<String> tags,
                                              @QueryParam("isMatchAllTags") boolean isMatchAllTags
                                              ) {
-        setTransactionName(null, "GET /bodytrack/photos/{UID}/" + deviceNickname + "." + channelName + "/{unixTime}/{count}");
+        setTransactionName(null, "GET /bodytrack/photos/{UID}/" + connectorPrettyName + "." + objectTypeName + "/{unixTime}/{count}");
         long loggedInUserId = AuthHelper.getGuestId();
         boolean accessAllowed = checkForPermissionAccess(uid);
         CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
@@ -373,8 +372,8 @@ public class BodyTrackController {
 
             final SortedSet<PhotoService.Photo> photos = photoService.getPhotos(uid,
                                                                                 unixTimeInSecs * 1000,
-                                                                                deviceNickname,
-                                                                                channelName,
+                                                                                connectorPrettyName,
+                                                                                objectTypeName,
                                                                                 desiredCount,
                                                                                 isGetPhotosBeforeTime);
 
@@ -409,6 +408,7 @@ public class BodyTrackController {
         String end;
         String dev_id;
         String dev_nickname;
+        String object_type_name;
         String channel_name;
         String url;
         ArrayList<String> tags = new ArrayList<String>();
@@ -417,7 +417,6 @@ public class BodyTrackController {
 
         public PhotoItem(final PhotoService.Photo photo) {
             final AbstractPhotoFacetVO photoFacetVO = photo.getAbstractPhotoFacetVO();
-
 
             this.id = photoFacetVO.id;
             this.description = photoFacetVO.description == null ? "" : photoFacetVO.description;
@@ -428,7 +427,8 @@ public class BodyTrackController {
             this.end = this.begin;
             this.dev_id = photo.getConnector().getName();
             this.dev_nickname = photo.getConnector().prettyName();
-            this.channel_name = photo.getObjectType().getName();
+            this.object_type_name = photo.getObjectType().getName();
+            this.channel_name = PhotoService.DEFAULT_PHOTOS_CHANNEL_NAME;   // photo channels are always named the same
             final List<Dimension> thumbnailSizes = photoFacetVO.getThumbnailSizes();
             if ((thumbnailSizes != null) && (!thumbnailSizes.isEmpty())) {
                 int i = 0;

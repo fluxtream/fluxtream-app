@@ -35,7 +35,8 @@ import org.springframework.stereotype.Service;
 @Service
 @Component
 public class PhotoServiceImpl implements PhotoService {
-    private static final Logger LOG = Logger.getLogger(PhotoServiceImpl.class);
+
+    private static final Logger LOG = Logger.getLogger("Fluxtream");
 
     @Autowired
     SettingsService settingsService;
@@ -46,13 +47,27 @@ public class PhotoServiceImpl implements PhotoService {
     @Autowired
     BeanFactory beanFactory;
 
-    private static interface PhotoFinder {
-        List<AbstractFacet> find(final Connector connector, final ObjectType objectType);
+    private static abstract class PhotoFinder {
+        final Map<ObjectType, List<AbstractFacet>> find(final Connector connector) {
+            final Map<ObjectType, List<AbstractFacet>> facets = new HashMap<ObjectType, List<AbstractFacet>>();
+            if (connector != null) {
+                LOG.debug("PhotoServiceImpl$PhotoFinder.find(" + connector.prettyName() + ")");
+                final ObjectType[] objectTypes = connector.objectTypes();
+                if (objectTypes != null) {
+                    for (final ObjectType objectType : objectTypes) {
+                        if (objectType.isImageType()) {
+                            LOG.debug("PhotoServiceImpl$PhotoFinder.find(" + connector.prettyName() + "): adding all facets for object type [" + objectType.getName() + "]");
+                            facets.put(objectType, find(connector, objectType));
+                        }
+                    }
+                }
+            }
+            return facets;
+        }
+
+        protected abstract List<AbstractFacet> find(final Connector connector, final ObjectType objectType);
     }
 
-    /**
-     * Gets all photos from all connectors having image {@link ObjectType}s.
-     */
     @Override
     public SortedSet<Photo> getPhotos(long guestId, TimeInterval timeInterval) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
         return getPhotos(guestId, timeInterval, ALL_DEVICES_NAME, DEFAULT_PHOTOS_CHANNEL_NAME);
@@ -115,11 +130,6 @@ public class PhotoServiceImpl implements PhotoService {
         return photos;
     }
 
-    /**
-     * Returns a {@link Map} of photo channels (a {@link String} which is of the form {connector_pretty_name}.{object_name})
-     * mapped to a {@link TimeInterval} which specifies the time range for that channel.  May return an empty
-     * {@link Map}, but guaranteed to not return <code>null</code>.
-     */
     @Override
     public Map<String, TimeInterval> getPhotoChannelTimeRanges(long guestId, final CoachingBuddy coachee) {
         // TODO: This could really benefit from some caching.  The time ranges can only change upon updating a photo
@@ -177,8 +187,11 @@ public class PhotoServiceImpl implements PhotoService {
      * <code>connectorPrettyName</code> is equal to the {@link #ALL_DEVICES_NAME}, then this method checks every
      * Connector for whether it has an image ObjectType and, if so, adds the relevant photos from each image ObjectType
      * belonging to the Connector.  If the <code>connectorPrettyName</code> is not equal to the
-     * {@link #ALL_DEVICES_NAME}, then this method finds the specified Connector and ObjectType and adds the photos. May
-     * return an empty {@link SortedSet}, but guaranteeed to not return <code>null</code>.
+     * {@link #ALL_DEVICES_NAME}, then this method finds the specified Connector and ObjectType and adds the photos.
+     * Furthermore, if the objectTypeName does not specify an existing ObjectType for the Connector, then this method
+     * returns photos from from all ObjectTypes which are of {@link ObjectType#isImageType() image type}.
+     *
+     * May return an empty {@link SortedSet}, but guaranteeed to not return <code>null</code>.
      */
     private SortedSet<Photo> getPhotos(final long guestId, final TimeInterval timeInterval, final String connectorPrettyName, final String objectTypeName, final PhotoFinder facetFinderStrategy) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 
@@ -208,9 +221,25 @@ public class PhotoServiceImpl implements PhotoService {
             final Connector connector = findConnectorByPrettyName(guestId, connectorPrettyName);
             if (connector != null) {
                 final ObjectType desiredObjectType = findObjectTypeByName(connector, objectTypeName);
-                if (desiredObjectType != null && desiredObjectType.isImageType()) {
-                    List<AbstractFacet> facets = facetFinderStrategy.find(connector, desiredObjectType);
-                    photos.addAll(convertFacetsToPhotos(guestId, timeInterval, facets, connector, desiredObjectType));
+
+                if (desiredObjectType == null) {
+                    LOG.debug("PhotoServiceImpl.getPhotos(): finding photos in any image object type for connector [" + connectorPrettyName + "]");
+                    final Map<ObjectType, List<AbstractFacet>> facetsByObjectType = facetFinderStrategy.find(connector);
+                    if ((facetsByObjectType != null) && (!facetsByObjectType.isEmpty())) {
+                        for (final ObjectType objectType : facetsByObjectType.keySet()) {
+                            final List<AbstractFacet> facets = facetsByObjectType.get(objectType);
+                            if (facets != null) {
+                                photos.addAll(convertFacetsToPhotos(guestId, timeInterval, facets, connector, objectType));
+                            }
+                        }
+                    }
+                }
+                else if (desiredObjectType.isImageType()) {
+                    LOG.debug("PhotoServiceImpl.getPhotos(): finding photos for connector [" + connectorPrettyName + "] and objectType [" + objectTypeName + "]");
+                    final List<AbstractFacet> facets = facetFinderStrategy.find(connector, desiredObjectType);
+                    if (facets != null) {
+                        photos.addAll(convertFacetsToPhotos(guestId, timeInterval, facets, connector, desiredObjectType));
+                    }
                 }
             }
         }
@@ -285,12 +314,7 @@ public class PhotoServiceImpl implements PhotoService {
      * the {@link #DEFAULT_PHOTOS_CHANNEL_NAME} if the ObjectType is <code>null</code>.
      */
     private String constructChannelName(final Connector connector, final ObjectType objectType) {
-        // Always return the channel name of "photo".  Chris had initially used objectType.getName()
-        // if it is non-null, but that breaks down for connectors like Mymee where the photo is
-        // just one aspect of the data stored in the facet
-        return connector.prettyName() + "." + DEFAULT_PHOTOS_CHANNEL_NAME;
-        // Old version:
-        //return connector.prettyName() + "." + (objectType == null ? DEFAULT_PHOTOS_CHANNEL_NAME : objectType.getName());
+        return connector.prettyName() + "." + (objectType == null ? DEFAULT_PHOTOS_CHANNEL_NAME : objectType.getName());
     }
 
     private TimeInterval constructTimeIntervalFromOldestAndNewestFacets(final long guestId, final Connector connector, final ObjectType objectType) {

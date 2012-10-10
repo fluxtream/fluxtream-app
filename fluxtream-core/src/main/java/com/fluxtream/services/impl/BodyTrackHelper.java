@@ -165,7 +165,8 @@ public class BodyTrackHelper {
                 allPhotosSource.channels = new ArrayList<Channel>();
                 final Channel allPhotosChannel = new Channel();
                 allPhotosSource.channels.add(allPhotosChannel);
-                allPhotosChannel.name = PhotoService.DEFAULT_PHOTOS_CHANNEL_NAME;
+                allPhotosChannel.name = PhotoService.DEFAULT_PHOTOS_CHANNEL_NAME;   // photo channels are always named the same
+                allPhotosChannel.objectTypeName = PhotoService.DEFAULT_PHOTOS_CHANNEL_NAME;
                 allPhotosChannel.type = PhotoService.DEFAULT_PHOTOS_CHANNEL_NAME;
                 allPhotosChannel.builtin_default_style = new ChannelStyle();
                 allPhotosChannel.style = allPhotosChannel.builtin_default_style;
@@ -180,6 +181,10 @@ public class BodyTrackHelper {
 
                     // mark this channel as a photo channel so that the grapher can properly render it as a photo channel
                     channelSpecs.channelType = PhotoService.DEFAULT_PHOTOS_CHANNEL_NAME;
+                    final String[] connectorNameAndObjectTypeName = channelName.split("\\.");
+                    if (connectorNameAndObjectTypeName.length > 1) {
+                        channelSpecs.objectTypeName = connectorNameAndObjectTypeName[1];
+                    }
                     channelSpecs.channel_bounds = new ChannelBounds();
                     channelSpecs.channel_bounds.min_time = timeInterval.start / 1000;
                     channelSpecs.channel_bounds.max_time = timeInterval.end / 1000;
@@ -415,6 +420,7 @@ public class BodyTrackHelper {
 
     private static class ChannelSpecs{
         String channelType;
+        String objectTypeName;
         ChannelBounds channel_bounds;
     }
 
@@ -437,11 +443,11 @@ public class BodyTrackHelper {
                 String fullName = entry.getKey();
                 ChannelSpecs specs = entry.getValue();
                 String[] split = fullName.split("\\.");
-                // device.channelName._comment should not generate an entry
+                // device.objectTypeName._comment should not generate an entry
                 if (split.length>2)
                     continue;
                 String deviceName = split[0];
-                String channelName = split[1];
+                String objectTypeName = split[1];
                 Source source = null;
                 if (coachee==null || coachee.hasAccessToDevice(deviceName, env)) {
                     for (Source src : sources)
@@ -455,7 +461,7 @@ public class BodyTrackHelper {
                         source.channels = new ArrayList<Channel>();
                         sources.add(source);
                     }
-                    source.channels.add(new Channel(channelName,specs));
+                    source.channels.add(new Channel(objectTypeName,specs));
                 }
             }
 
@@ -478,14 +484,14 @@ public class BodyTrackHelper {
                 String fullName = entry.getKey();
                 ChannelSpecs specs = entry.getValue();
                 String[] split = fullName.split("\\.");
-                // device.channelName._comment should not generate an entry
+                // device.objectTypeName._comment should not generate an entry
                 if (split.length>2)
                     continue;
                 String devName = split[0];
-                String channelName = split[1];
+                String objectTypeName = split[1];
                 Source source = null;
                 if (devName.equals(deviceName)){
-                    Channel channel = new Channel(channelName,specs);
+                    Channel channel = new Channel(objectTypeName,specs);
                     info.channels.add(channel);
                     if (channel.min_time < info.min_time)
                         info.min_time = channel.min_time;
@@ -513,6 +519,7 @@ public class BodyTrackHelper {
         Double min_time;
         Double max_time;
         String name;
+        String objectTypeName;
 
         public Channel(){}
         public Channel(String name, ChannelSpecs specs){
@@ -522,7 +529,11 @@ public class BodyTrackHelper {
             min_time = specs.channel_bounds.min_time;
             max_time = specs.channel_bounds.max_time;
             if (specs.channelType != null) {
+                this.name = PhotoService.DEFAULT_PHOTOS_CHANNEL_NAME;   // photo channels are always named the same
                 type = specs.channelType;
+            }
+            if (specs.objectTypeName != null) {
+                objectTypeName = specs.objectTypeName;
             }
             style = builtin_default_style = ChannelStyle.getDefaultChannelStyle(name);
         }
