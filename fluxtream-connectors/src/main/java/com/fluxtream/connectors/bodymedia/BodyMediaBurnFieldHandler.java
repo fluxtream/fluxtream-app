@@ -45,7 +45,7 @@ public class BodyMediaBurnFieldHandler implements FieldHandler {
             record.add(intensity(activityType));
             data.add(record);
         }
-        final List<String> channelNames = Arrays.asList("onBody", "mets", "caloriesBurned", "actitityType");
+        final List<String> channelNames = Arrays.asList("onBody", "mets", "caloriesBurned", "activityType");
         bodyTrackHelper.uploadToBodyTrack(guestId, "BodyMedia", channelNames, data);
     }
 
