@@ -139,29 +139,42 @@ public class MymeeUpdater extends AbstractUpdater {
             if (valueObject.has("baseunit"))
                 facet.baseUnit = valueObject.getString("baseunit");
 
-            if (valueObject.has("amount"))
-                facet.amount = valueObject.getInt("amount");
-            if (valueObject.has("baseAmount"))
-                facet.baseAmount = valueObject.getInt("baseAmount");
-
-            if (valueObject.has("loc")) {
-                JSONArray locArray = valueObject.getJSONArray("loc");
-                facet.longitude = locArray.getDouble(0);
-                facet.latitude = locArray.getDouble(1);
+            try{
+                if (valueObject.has("amount"))
+                    facet.amount = valueObject.getInt("amount");
+            } catch (Throwable e){
             }
 
-            if (valueObject.has("_attachments")) {
-                // we assume that there's only one attachment and that it's an image
-                final JSONObject imageAttachment = valueObject.getJSONObject("_attachments");
-                final String imageName = (String) imageAttachment.names().get(0);
-                final String fetchURL = updateInfo.apiKey.getAttributeValue("fetchURL", env);
-                final String baseURL = getBaseURL(fetchURL);
-                final String mainDir = getMainDir(fetchURL);
-                if (baseURL!=null&&mainDir!=null) {
-                    facet.imageURL = new StringBuilder(baseURL).append("/")
-                            .append(mainDir).append("/").append(facet.mymeeId)
-                            .append("/").append(imageName).toString();
+            try{
+                if (valueObject.has("baseAmount"))
+                    facet.baseAmount = valueObject.getInt("baseAmount");
+            } catch (Throwable e){
+            }
+
+            try{
+                if (valueObject.has("loc")) {
+                    JSONArray locArray = valueObject.getJSONArray("loc");
+                    facet.longitude = locArray.getDouble(0);
+                    facet.latitude = locArray.getDouble(1);
                 }
+            } catch (Throwable e){
+            }
+
+            try {
+                if (valueObject.has("_attachments")) {
+                    // we assume that there's only one attachment and that it's an image
+                    final JSONObject imageAttachment = valueObject.getJSONObject("_attachments");
+                    final String imageName = (String) imageAttachment.names().get(0);
+                    final String fetchURL = updateInfo.apiKey.getAttributeValue("fetchURL", env);
+                    final String baseURL = getBaseURL(fetchURL);
+                    final String mainDir = getMainDir(fetchURL);
+                    if (baseURL!=null&&mainDir!=null) {
+                        facet.imageURL = new StringBuilder(baseURL).append("/")
+                                .append(mainDir).append("/").append(facet.mymeeId)
+                                .append("/").append(imageName).toString();
+                    }
+                }
+            } catch (Throwable e){
             }
 
             apiDataService.persistFacet(facet);
