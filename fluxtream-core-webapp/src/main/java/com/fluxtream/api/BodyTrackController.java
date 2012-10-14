@@ -24,7 +24,7 @@ import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.vos.AbstractPhotoFacetVO;
 import com.fluxtream.domain.CoachingBuddy;
 import com.fluxtream.domain.Guest;
-import com.fluxtream.mvc.controllers.AuthHelper;
+import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.BodyTrackStorageService;
 import com.fluxtream.services.CoachingService;
@@ -126,6 +126,23 @@ public class BodyTrackController {
             Type channelsType =  new TypeToken<Collection<String>>(){}.getType();
             Type dataType = new TypeToken<List<List<Long>>>(){}.getType();
             bodyTrackHelper.uploadToBodyTrack(uid, deviceNickanme, (Collection<String>)gson.fromJson(channels, channelsType), (List<List<Object>>)gson.fromJson(data, dataType));
+            status = new StatusModel(true,"Upload successful!");
+        }
+        catch (Exception e){
+            status = new StatusModel(false,"Upload failed!");
+        }
+        return gson.toJson(status);
+    }
+
+    @POST
+    @Path("/jupload")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String uploadJsonToBodytrack(@QueryParam("dev_nickname")  String deviceNickname, String body){
+        setTransactionName(null, "POST /bodytrack/jupload");
+        StatusModel status;
+        try{
+            long uid = AuthHelper.getGuestId();
+            bodyTrackHelper.uploadJsonToBodyTrack(uid,deviceNickname,body);
             status = new StatusModel(true,"Upload successful!");
         }
         catch (Exception e){

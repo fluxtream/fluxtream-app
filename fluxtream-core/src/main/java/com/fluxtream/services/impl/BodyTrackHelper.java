@@ -128,6 +128,27 @@ public class BodyTrackHelper {
         }
     }
 
+    public void uploadJsonToBodyTrack(final Long uid,
+                                      final String deviceName,
+                                      final String json) {
+         try{
+             if (uid == null)
+                 throw new IllegalArgumentException();
+             final File tempFile = File.createTempFile("input",".json");
+
+             FileOutputStream fos = new FileOutputStream(tempFile);
+             fos.write(json.getBytes());
+             fos.close();
+
+             executeDataStore("import",new Object[]{uid,deviceName,tempFile.getAbsolutePath()});
+             tempFile.delete();
+         } catch (Exception e) {
+             System.out.println("Could not persist to datastore");
+             System.out.println(Utils.stackTrace(e));
+             throw new RuntimeException("Could not persist to datastore");
+         }
+     }
+
     public String fetchTile(Long uid, String deviceNickname, String channelName, int level, long offset){
         try{
             if (uid == null)
