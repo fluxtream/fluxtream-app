@@ -2,22 +2,15 @@ package com.fluxtream.connectors.mymee;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import com.fluxtream.ApiData;
 import com.fluxtream.connectors.Connector;
-import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.annotations.Updater;
-import com.fluxtream.connectors.quantifiedmind.QuantifiedMindTestFacet;
-import com.fluxtream.connectors.quantifiedmind.QuantifiedMindTestFacetExtractor;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
-import com.fluxtream.domain.AbstractFacet;
-import com.fluxtream.domain.ApiUpdate;
+import com.fluxtream.domain.Tag;
 import com.fluxtream.services.GuestService;
-import com.fluxtream.services.JPADaoService;
 import com.fluxtream.services.impl.BodyTrackHelper;
 import com.fluxtream.utils.HttpUtils;
 import com.fluxtream.utils.Utils;
@@ -42,9 +35,6 @@ public class MymeeUpdater extends AbstractUpdater {
 
     @Autowired
     GuestService guestService;
-
-    @Autowired
-    JPADaoService jpaDaoService;
 
     protected static DateTimeFormatter iso8601Formatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
     private static final DateTimeZone timeZone = DateTimeZone.forID("UTC");
@@ -134,6 +124,9 @@ public class MymeeUpdater extends AbstractUpdater {
             facet.name = valueObject.getString("name");
             channelNames.add(facet.name);
 
+            // auto-populate the facet's tags field with the name of the observation (e.g. "Food", "Back Pain", etc.)
+            facet.addTags(Tag.cleanse(facet.name));
+
             if (valueObject.has("note")) {
                 facet.note = valueObject.getString("note");
                 facet.comment = facet.note; // also store the comment in the comment field (this is required for photos)
@@ -171,7 +164,7 @@ public class MymeeUpdater extends AbstractUpdater {
                 }
             }
 
-            jpaDaoService.persist(facet);
+            apiDataService.persistFacet(facet);
         }
         return channelNames;
     }

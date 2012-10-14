@@ -113,5 +113,48 @@ public class ObjectType {
 	public String prettyname() {
 		return prettyname;
 	}
-	
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        final ObjectType that = (ObjectType)o;
+
+        if (isDateBased != that.isDateBased) {
+            return false;
+        }
+        if (isImageType != that.isImageType) {
+            return false;
+        }
+        if (value != that.value) {
+            return false;
+        }
+        if (facetClass != null ? !facetClass.equals(that.facetClass) : that.facetClass != null) {
+            return false;
+        }
+        if (name != null ? !name.equals(that.name) : that.name != null) {
+            return false;
+        }
+        if (prettyname != null ? !prettyname.equals(that.prettyname) : that.prettyname != null) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name != null ? name.hashCode() : 0;
+        result = 31 * result + (prettyname != null ? prettyname.hashCode() : 0);
+        result = 31 * result + (isDateBased ? 1 : 0);
+        result = 31 * result + value;
+        result = 31 * result + (isImageType ? 1 : 0);
+        result = 31 * result + (facetClass != null ? facetClass.hashCode() : 0);
+        return result;
+    }
 }
