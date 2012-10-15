@@ -148,18 +148,14 @@ public class PhotoServiceImpl implements PhotoService {
                 if (objectTypes == null) {
                     final String channelName = constructChannelName(connector, null);
                     final TimeInterval timeInterval = constructTimeIntervalFromOldestAndNewestFacets(guestId, connector, null);
-                    if (timeInterval != null) {
-                        photoChannelTimeRanges.put(channelName, timeInterval);
-                    }
+                    photoChannelTimeRanges.put(channelName, timeInterval);
                 }
                 else {
                     for (ObjectType objectType : objectTypes) {
                         if (objectType.isImageType()) {
                             final String channelName = constructChannelName(connector, objectType);
                             final TimeInterval timeInterval = constructTimeIntervalFromOldestAndNewestFacets(guestId, connector, objectType);
-                            if (timeInterval != null) {
-                                photoChannelTimeRanges.put(channelName, timeInterval);
-                            }
+                            photoChannelTimeRanges.put(channelName, timeInterval);
                         }
                     }
                 }

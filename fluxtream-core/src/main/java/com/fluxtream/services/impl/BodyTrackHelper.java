@@ -111,7 +111,7 @@ public class BodyTrackHelper {
             final File tempFile = File.createTempFile("input",".json");
 
             Map<String,Object> tempFileMapping = new HashMap<String,Object>();
-            tempFileMapping.put("data",data);
+            tempFileMapping.put("data", data);
             tempFileMapping.put("channel_names",channelNames);
 
             FileOutputStream fos = new FileOutputStream(tempFile);
@@ -196,6 +196,8 @@ public class BodyTrackHelper {
                 allPhotosChannel.min_time = Double.MAX_VALUE;
                 allPhotosChannel.max_time = Double.MIN_VALUE;
 
+                final double defaultTimeForNullTimeIntervals = System.currentTimeMillis() / 1000;
+
                 for (final String channelName : photoChannelTimeRanges.keySet()) {
                     final ChannelSpecs channelSpecs = new ChannelSpecs();
                     final TimeInterval timeInterval = photoChannelTimeRanges.get(channelName);
@@ -206,18 +208,28 @@ public class BodyTrackHelper {
                     if (connectorNameAndObjectTypeName.length > 1) {
                         channelSpecs.objectTypeName = connectorNameAndObjectTypeName[1];
                     }
+
                     channelSpecs.channel_bounds = new ChannelBounds();
-                    channelSpecs.channel_bounds.min_time = timeInterval.start / 1000;
-                    channelSpecs.channel_bounds.max_time = timeInterval.end / 1000;
+                    if (timeInterval == null) {
+                        channelSpecs.channel_bounds.min_time = defaultTimeForNullTimeIntervals;
+                        channelSpecs.channel_bounds.max_time = defaultTimeForNullTimeIntervals;
+                    }
+                    else {
+                        channelSpecs.channel_bounds.min_time = timeInterval.start / 1000;
+                        channelSpecs.channel_bounds.max_time = timeInterval.end / 1000;
+                    }
                     channelSpecs.channel_bounds.min_value = .6;
                     channelSpecs.channel_bounds.max_value = 1;
+
                     infoResponse.channel_specs.put(channelName, channelSpecs);
 
-                    // update the min/max times in ChannelInfoResponse and in the All photos channel
-                    infoResponse.min_time = Math.min(infoResponse.min_time, channelSpecs.channel_bounds.min_time);
-                    infoResponse.max_time = Math.max(infoResponse.max_time, channelSpecs.channel_bounds.max_time);
-                    allPhotosChannel.min_time = Math.min(allPhotosChannel.min_time, channelSpecs.channel_bounds.min_time);
-                    allPhotosChannel.max_time = Math.max(allPhotosChannel.max_time, channelSpecs.channel_bounds.max_time);
+                    if (timeInterval != null) {
+                        // update the min/max times in ChannelInfoResponse and in the All photos channel
+                        infoResponse.min_time = Math.min(infoResponse.min_time, channelSpecs.channel_bounds.min_time);
+                        infoResponse.max_time = Math.max(infoResponse.max_time, channelSpecs.channel_bounds.max_time);
+                        allPhotosChannel.min_time = Math.min(allPhotosChannel.min_time, channelSpecs.channel_bounds.min_time);
+                        allPhotosChannel.max_time = Math.max(allPhotosChannel.max_time, channelSpecs.channel_bounds.max_time);
+                    }
                 }
             }
 
