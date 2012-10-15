@@ -24,7 +24,6 @@ import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.vos.AbstractPhotoFacetVO;
 import com.fluxtream.domain.CoachingBuddy;
 import com.fluxtream.domain.Guest;
-import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.BodyTrackStorageService;
 import com.fluxtream.services.CoachingService;
@@ -142,7 +141,7 @@ public class BodyTrackController {
         StatusModel status;
         try{
             long uid = AuthHelper.getGuestId();
-            bodyTrackHelper.uploadJsonToBodyTrack(uid,deviceNickname,body);
+            bodyTrackHelper.uploadJsonToBodyTrack(uid, deviceNickname, body);
             status = new StatusModel(true,"Upload successful!");
         }
         catch (Exception e){
