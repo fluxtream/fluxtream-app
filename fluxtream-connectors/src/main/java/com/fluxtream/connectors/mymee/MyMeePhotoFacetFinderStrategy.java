@@ -60,7 +60,11 @@ public class MyMeePhotoFacetFinderStrategy implements PhotoFacetFinderStrategy {
         final Entity entity = facetClass.getAnnotation(Entity.class);
         final Query query = em.createQuery("SELECT facet FROM " + entity.name() + " facet WHERE facet.imageURL IS NOT NULL AND facet.guestId = " + guestId + " ORDER BY facet.end " + sortOrder + " LIMIT 1");
         query.setMaxResults(1);
-        return (AbstractFacet)query.getResultList().get(0);
+        List<AbstractFacet> results = query.getResultList();
+        if(results.size()>0)
+            return (AbstractFacet)results.get(0);
+        else
+            return null;
     }
 
     private Class<? extends AbstractFacet> getFacetClass(final Connector connector, final ObjectType objectType) {

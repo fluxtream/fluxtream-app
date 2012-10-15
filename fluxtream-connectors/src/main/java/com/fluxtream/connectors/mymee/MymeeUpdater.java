@@ -122,7 +122,9 @@ public class MymeeUpdater extends AbstractUpdater {
                 continue;
 
             facet.name = valueObject.getString("name");
-            channelNames.add(facet.name);
+
+            // Channel names have all characters that aren't alphanumeric or underscores replaced with underscores
+            channelNames.add(facet.name.replaceAll("[^0-9a-zA-Z_]+", "_"));
 
             // auto-populate the facet's tags field with the name of the observation (e.g. "Food", "Back Pain", etc.)
             facet.addTags(Tag.cleanse(facet.name));

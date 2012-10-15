@@ -29,8 +29,8 @@ public class MymeeObservationFieldHandler implements FieldHandler {
         row.add(observationFacet.amount);
         row.add(observationFacet.note);
         data.add(row);
-        final String observationName = observationFacet.name;
-        observationName.replaceAll("[^0-9a-zA-Z_]+", "_");
+        String observationName = observationFacet.name;
+        observationName = observationName.replaceAll("[^0-9a-zA-Z_]+", "_");
         bodyTrackHelper.uploadToBodyTrack(guestId , "Mymee", Arrays.asList(observationName,
                                                                            observationName + "._comment"),
                                           data);
