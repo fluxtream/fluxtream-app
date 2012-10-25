@@ -125,7 +125,9 @@ public class ZeoRestUpdater extends AbstractUpdater {
                     int day = json.getInt("day");
                     String finalStatsUrl = statsUrl + year + "-" + month + "-" + day;
                     try{
+                        then = System.currentTimeMillis();
                         String bulkResult = callURL(finalStatsUrl, username, password);
+                        countSuccessfulApiCall(updateInfo.getGuestId(), -1, then, statsUrl);
                         apiDataService.cacheApiDataJSON(updateInfo, bulkResult, -1, -1);
                     }
                     catch (IOException e)

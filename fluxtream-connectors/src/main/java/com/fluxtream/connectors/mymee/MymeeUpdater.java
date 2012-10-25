@@ -16,6 +16,7 @@ import com.fluxtream.utils.HttpUtils;
 import com.fluxtream.utils.Utils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
@@ -32,6 +33,8 @@ import org.springframework.stereotype.Component;
 @Updater(prettyName = "Mymee", value = 110, updateStrategyType = Connector.UpdateStrategyType.INCREMENTAL,
          objectTypes = {MymeeObservationFacet.class}, extractor = MymeeObservationFacetExtractor.class)
 public class MymeeUpdater extends AbstractUpdater {
+
+    static Logger logger = Logger.getLogger(MymeeUpdater.class);
 
     @Autowired
     GuestService guestService;
@@ -58,15 +61,20 @@ public class MymeeUpdater extends AbstractUpdater {
     @Override
     protected void updateConnectorDataHistory(final UpdateInfo updateInfo) throws Exception {
         apiDataService.eraseApiData(updateInfo.getGuestId(), connector());
-        loadEverything(updateInfo);
+        loadEverything(updateInfo, false);
     }
 
     @Override
     public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
-        loadEverything(updateInfo);
+        loadEverything(updateInfo, true);
     }
 
-    private void loadEverything(final UpdateInfo updateInfo) throws Exception {
+    private void loadEverything(final UpdateInfo updateInfo, boolean incremental) throws Exception {
+        StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=loadEverythingFacet")
+                .append(" connector=")
+                .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
+                .append(updateInfo.apiKey.getGuestId());
+        logger.info(sb.toString());
         long then = System.currentTimeMillis();
         String queryUrl = guestService.getApiKeyAttribute(updateInfo.getGuestId(), connector(), "fetchURL");
         String json = null;
@@ -83,13 +91,18 @@ public class MymeeUpdater extends AbstractUpdater {
         countSuccessfulApiCall(updateInfo.apiKey.getGuestId(), updateInfo.objectTypes, then, queryUrl);
 
         if (json!=null) {
-            Set<String> channelNames = extractFacets(json, updateInfo);
+            Set<String> channelNames = extractFacets(json, updateInfo, incremental);
             for (String channelName : channelNames)
                 bodytrackHelper.setBuiltinDefaultStyle(updateInfo.getGuestId(), "Mymee", channelName, lollipopStyle);
         }
     }
 
-    public Set<String> extractFacets(final String json, final UpdateInfo updateInfo) throws Exception {
+    public Set<String> extractFacets(final String json, final UpdateInfo updateInfo, boolean incremental) throws Exception {
+        StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=extractFacet")
+                .append(" connector=")
+                .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
+                .append(updateInfo.apiKey.getGuestId());
+        logger.info(sb.toString());
         JSONObject mymeeData = JSONObject.fromObject(json);
         JSONArray array = mymeeData.getJSONArray("rows");
         Set<String> channelNames = new HashSet<String>();
@@ -117,9 +130,13 @@ public class MymeeUpdater extends AbstractUpdater {
             facet.mymeeId = observationObject.getString("id");
 
             // ignore facet if we already have it in the database
-            final List<MymeeObservationFacet> observationFacets = jpaDaoService.find("mymee.observation.byMymeeId", MymeeObservationFacet.class, updateInfo.getGuestId(), facet.mymeeId);
-            if (observationFacets!=null && observationFacets.size()>0)
-                continue;
+            // do that only if incrementally updating
+            if (incremental) {
+                final List<MymeeObservationFacet> observationFacets = jpaDaoService.find("mymee.observation.byMymeeId", MymeeObservationFacet.class, updateInfo.getGuestId(), facet.mymeeId);
+                if (observationFacets!=null && observationFacets.size()>0) {
+                    continue;
+                }
+            }
 
             facet.name = valueObject.getString("name");
 
