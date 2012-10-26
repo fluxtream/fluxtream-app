@@ -113,7 +113,14 @@ public class ZeoRestUpdater extends AbstractUpdater {
         JSONObject dateList = JSONObject.fromObject(days).getJSONObject("response").optJSONObject("dateList");
         if(dateList != null)
         {
-            JSONArray dates = dateList.optJSONArray("date");
+            JSONArray dates = null;
+            final JSONObject dateJsonObject = dateList.optJSONObject("date");
+            if (dateJsonObject!=null) {
+                dates = new JSONArray();
+                dates.add(dateJsonObject);
+            } else {
+                dates = dateList.optJSONArray("date");
+            }
             if(dates != null)
             {
                 String statsUrl = baseUrl + "getSleepRecordForDate?key=" + zeoApiKey + "&date=";
