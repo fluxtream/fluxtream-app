@@ -132,7 +132,7 @@ public class ZeoRestUpdater extends AbstractUpdater {
                     }
                     catch (IOException e)
                     {
-                        countFailedApiCall(updateInfo.getGuestId(), -1, then, datesUrl, Utils.stackTrace(e));
+                        countFailedApiCall(updateInfo.getGuestId(), -1, then, statsUrl, Utils.stackTrace(e));
                         throw e;
                     }
                 }
