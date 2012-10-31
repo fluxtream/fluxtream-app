@@ -15,7 +15,11 @@ public class PushEventListener implements EventListener<PushEvent> {
 
     static Logger logger = Logger.getLogger(PushEventListener.class);
 
-    public String url;
+    private String url;
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
 
     @Autowired
     final protected void setEventService(@Qualifier("eventListenerServiceImpl") EventListenerService evl) {
