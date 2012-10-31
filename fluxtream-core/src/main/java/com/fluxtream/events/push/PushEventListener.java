@@ -1,16 +1,11 @@
 package com.fluxtream.events.push;
 
-import java.io.IOException;
-import com.fluxtream.connectors.Connector;
 import com.fluxtream.events.EventListener;
-import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.EventListenerService;
 import com.fluxtream.utils.HttpUtils;
-import com.fluxtream.utils.Utils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
 
 /**
  * A Listener for Push Connector events
@@ -36,16 +31,7 @@ public class PushEventListener implements EventListener<PushEvent> {
         String invokeUrl = url.replaceAll("\\$guestId", String.valueOf(event.guestId))
                 .replaceAll("\\$connectorName", event.connectorName)
                 .replaceAll("\\$eventType", event.eventType);
-        try {
-            HttpUtils.fetch(invokeUrl);
-        }
-        catch (IOException e) {
-            sb = new StringBuilder("module=events component=PushEventListener action=handleEvent")
-                    .append(" connector=").append(event.connectorName)
-                    .append(" guestId=").append(event.guestId)
-                    .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
-            logger.warn(sb.toString());
-        }
+        HttpUtils.post(invokeUrl, event.json);
     }
 
 }
