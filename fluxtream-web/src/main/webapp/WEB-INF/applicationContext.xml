@@ -173,8 +173,4 @@
 		<entry key="hibernate.dialect" value="org.hibernate.dialect.MySQLDialect" />
 	</util:map>
 
-    <bean class="com.fluxtream.events.push.PushEventListener">
-        <property name="url" value="http://kaleapp.be/best/notifications/fluxtream/$connectorName/$eventType?flxGuestId=$guestId"/>
-    </bean>
-
 </beans>
