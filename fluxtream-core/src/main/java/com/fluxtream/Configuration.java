@@ -11,6 +11,7 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang.WordUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
 
@@ -18,6 +19,8 @@ import com.fluxtream.utils.DesEncrypter;
 import com.google.api.client.http.LowLevelHttpRequest;
 
 public class Configuration implements InitializingBean {
+
+    Logger logger = Logger.getLogger(Configuration.class);
 
 	private DesEncrypter encrypter;
 	
@@ -94,20 +97,31 @@ public class Configuration implements InitializingBean {
 	}
 	
 	public String get(String key) {
-		String property = (String)commonProperties.getProperty(key);
+		String property = getAsString(commonProperties, key);
         if (property==null)
-            property = (String) lastCommitProperties.getProperty(key);
+            property = getAsString(lastCommitProperties, key);
         if (property==null)
-			property = (String) targetEnvironmentProps.getProperty(key);
+            getAsString(targetEnvironmentProps, key);
 		if (property==null)
-			property = (String) oauth.getProperty(key);
+            getAsString(oauth, key);;
 		if (property==null)
-			property = (String) connectors.getProperty(key);
+            getAsString(connectors, key);;
 		if (property==null)
-			property = (String) bodytrackProperties.getProperty(key);
+            getAsString(bodytrackProperties, key);;
 		if (property!=null) return property.trim();
 		return property;
 	}
+
+    private String getAsString(PropertiesConfiguration properties, String key) {
+        final Object property = properties.getProperty(key);
+        if (!(property instanceof String)) {
+            final String message = "Property " + key + " was supposed to be a String, found " + property.getClass();
+            logger.error(message);
+            System.out.println(message);
+            return "";
+        }
+        return (String) property;
+    }
 
 	public long getInt(String key) {
 		return Integer.valueOf(get(key));
