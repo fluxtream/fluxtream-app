@@ -31,6 +31,20 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class BodyTrackHelper {
 
+    public interface BodyTrackUploadResult {
+        /**
+         * Status code for the upload operation.
+         * @see #isSuccess()
+         */
+        int getStatusCode();
+
+        /** Text output from the upload, usually (always?) JSON. */
+        String getResponse();
+
+        /** Returns <code>true</code> if the upload was successful, <code>false</code> otherwise. */
+        boolean isSuccess();
+    }
+
     @PersistenceContext
     EntityManager em;
 
@@ -44,7 +58,7 @@ public class BodyTrackHelper {
 
     Gson gson = new Gson();
 
-    private String executeDataStore(String commandName, Object[] parameters){
+    private DataStoreExecutionResult executeDataStore(String commandName, Object[] parameters){
         try{
             Runtime rt = Runtime.getRuntime();
             String launchCommand = env.targetEnvironmentProps.getString("btdatastore.exec.location") + "/" + commandName + " " +
@@ -93,7 +107,7 @@ public class BodyTrackHelper {
 
             int exitValue = pr.waitFor();
             System.out.println("BTDataStore: exited with code " + exitValue);
-            return result;
+            return new DataStoreExecutionResult(exitValue, result);
         }
         catch (Exception e){
             System.out.println("BTDataStore: datastore execution failed!");
@@ -101,7 +115,7 @@ public class BodyTrackHelper {
         }
     }
 
-    public void uploadToBodyTrack(final Long uid,
+    public BodyTrackUploadResult uploadToBodyTrack(final Long uid,
                                   final String deviceName,
                                   final Collection<String> channelNames,
                                   final List<List<Object>> data) {
@@ -119,8 +133,9 @@ public class BodyTrackHelper {
             fos.write(bodyTrackJSONData.getBytes());
             fos.close();
 
-            executeDataStore("import",new Object[]{uid,deviceName,tempFile.getAbsolutePath()});
+            final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("import",new Object[]{uid,deviceName,tempFile.getAbsolutePath()});
             tempFile.delete();
+            return dataStoreExecutionResult;
         } catch (Exception e) {
             System.out.println("Could not persist to datastore");
             System.out.println(Utils.stackTrace(e));
@@ -128,7 +143,7 @@ public class BodyTrackHelper {
         }
     }
 
-    public void uploadJsonToBodyTrack(final Long uid,
+    public BodyTrackUploadResult uploadJsonToBodyTrack(final Long uid,
                                       final String deviceName,
                                       final String json) {
          try{
@@ -140,8 +155,9 @@ public class BodyTrackHelper {
              fos.write(json.getBytes());
              fos.close();
 
-             executeDataStore("import",new Object[]{uid,deviceName,tempFile.getAbsolutePath()});
+             final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("import",new Object[]{uid,deviceName,tempFile.getAbsolutePath()});
              tempFile.delete();
+             return dataStoreExecutionResult;
          } catch (Exception e) {
              System.out.println("Could not persist to datastore");
              System.out.println(Utils.stackTrace(e));
@@ -153,8 +169,10 @@ public class BodyTrackHelper {
         try{
             if (uid == null)
                 throw new IllegalArgumentException();
-            String result = executeDataStore("gettile", new Object[]{uid, deviceNickname + "." + channelName, level, offset});
+            final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("gettile", new Object[]{uid, deviceNickname + "." + channelName, level, offset});
+            String result = dataStoreExecutionResult.getResponse();
 
+            // TODO: check statusCode in DataStoreExecutionResult
             GetTileResponse tileResponse = gson.fromJson(result,GetTileResponse.class);
 
             if (tileResponse.data == null){
@@ -172,8 +190,10 @@ public class BodyTrackHelper {
         try{
             if (uid == null)
                 throw new IllegalArgumentException();
-            String result = executeDataStore("info",new Object[]{"-r",uid});
+            final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("info",new Object[]{"-r",uid});
+            String result = dataStoreExecutionResult.getResponse();
 
+            // TODO: check statusCode in DataStoreExecutionResult
             ChannelInfoResponse infoResponse = gson.fromJson(result,ChannelInfoResponse.class);
 
             // Iterate over the various (photo) connectors (if any), manually inserting each into the ChannelSpecs
@@ -261,8 +281,10 @@ public class BodyTrackHelper {
         try{
             if (uid == null)
                 throw new IllegalArgumentException();
-            String result = executeDataStore("info",new Object[]{"-r",uid});
+            final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("info",new Object[]{"-r",uid});
+            String result = dataStoreExecutionResult.getResponse();
 
+            // TODO: check statusCode in DataStoreExecutionResult
             ChannelInfoResponse infoResponse = gson.fromJson(result,ChannelInfoResponse.class);
 
             SourceInfo response = new SourceInfo(infoResponse,deviceName);
@@ -629,4 +651,28 @@ public class BodyTrackHelper {
         Boolean show;
     }
 
+    private static final class DataStoreExecutionResult implements BodyTrackUploadResult {
+        private final int statusCode;
+        private final String response;
+
+        private DataStoreExecutionResult(final int statusCode, final String response) {
+            this.statusCode = statusCode;
+            this.response = response;
+        }
+
+        @Override
+        public int getStatusCode() {
+            return statusCode;
+        }
+
+        @Override
+        public String getResponse() {
+            return response;
+        }
+
+        @Override
+        public boolean isSuccess() {
+            return statusCode == 0;
+        }
+    }
 }
