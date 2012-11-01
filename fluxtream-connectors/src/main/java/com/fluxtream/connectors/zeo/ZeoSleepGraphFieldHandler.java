@@ -31,6 +31,8 @@ public class ZeoSleepGraphFieldHandler implements FieldHandler {
         for (int i=0; i<graphSize; i++) {
             addSleepGraphColumn(data, sleepStatsFacet.sleepGraph, facet.start/1000+i*timeIncrement, i);
         }
+
+        // TODO: check the status code in the BodyTrackUploadResult
         bodyTrackHelper.uploadToBodyTrack(guestId , "Zeo", Arrays.asList("Sleep_Graph"), data);
     }
 

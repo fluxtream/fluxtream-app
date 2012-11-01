@@ -31,6 +31,7 @@ import com.fluxtream.services.GuestService;
 import com.fluxtream.services.PhotoService;
 import com.fluxtream.services.impl.BodyTrackHelper;
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import org.apache.log4j.Logger;
 import org.joda.time.format.DateTimeFormatter;
@@ -50,7 +51,7 @@ public class BodyTrackController {
 
     @Autowired
 	GuestService guestService;
-	
+
 	@Autowired
 	BodyTrackStorageService bodytrackStorageService;
 
@@ -67,7 +68,7 @@ public class BodyTrackController {
 
 	@Autowired
 	Configuration env;
-	
+
 	@POST
 	@Path("/uploadHistory")
 	@Produces({ MediaType.APPLICATION_JSON })
@@ -124,8 +125,9 @@ public class BodyTrackController {
             long uid = AuthHelper.getGuestId();
             Type channelsType =  new TypeToken<Collection<String>>(){}.getType();
             Type dataType = new TypeToken<List<List<Long>>>(){}.getType();
-            bodyTrackHelper.uploadToBodyTrack(uid, deviceNickanme, (Collection<String>)gson.fromJson(channels, channelsType), (List<List<Object>>)gson.fromJson(data, dataType));
-            status = new StatusModel(true,"Upload successful!");
+
+            final BodyTrackHelper.BodyTrackUploadResult uploadResult = bodyTrackHelper.uploadToBodyTrack(uid, deviceNickanme, (Collection<String>)gson.fromJson(channels, channelsType), (List<List<Object>>)gson.fromJson(data, dataType));
+            status = createStatusModelFromBodyTrackUploadResult(uploadResult);
         }
         catch (Exception e){
             status = new StatusModel(false,"Upload failed!");
@@ -141,13 +143,39 @@ public class BodyTrackController {
         StatusModel status;
         try{
             long uid = AuthHelper.getGuestId();
-            bodyTrackHelper.uploadJsonToBodyTrack(uid, deviceNickname, body);
-            status = new StatusModel(true,"Upload successful!");
+            status = createStatusModelFromBodyTrackUploadResult(bodyTrackHelper.uploadJsonToBodyTrack(uid, deviceNickname, body));
         }
         catch (Exception e){
             status = new StatusModel(false,"Upload failed!");
         }
         return gson.toJson(status);
+    }
+
+    private StatusModel createStatusModelFromBodyTrackUploadResult(final BodyTrackHelper.BodyTrackUploadResult uploadResult) {
+
+        // check the uploadResult for success, and create a new StatusModel accordingly
+        final StatusModel status;
+        if (uploadResult.isSuccess()) {
+            status = new StatusModel(true, "Upload successful!");
+        }
+        else {
+            status = new StatusModel(false,"Upload failed!");
+        }
+
+        // Now try to parse the response in the uploadResult as JSON, inflating it into a BodyTrackUploadResponse
+        BodyTrackUploadResponse bodyTrackUploadResponse = null;
+        try {
+            bodyTrackUploadResponse = gson.fromJson(uploadResult.getResponse(),BodyTrackUploadResponse.class);
+        }
+        catch (JsonSyntaxException e) {
+            LOG.error("JsonSyntaxException while trying to convert the BodyTrackUploadResult response into a BodyTrackUploadResponse.  Response was [" + uploadResult.getResponse() + "]", e);
+        }
+
+        // add the response to the payload if non-null
+        if (bodyTrackUploadResponse != null) {
+            status.payload = bodyTrackUploadResponse;
+        }
+        return status;
     }
 
     @GET
@@ -501,5 +529,14 @@ public class BodyTrackController {
         private static double offsetAtLevelToUnixTime(final int level, final long offset) {
             return levelToDuration(level) * offset;
         }
+    }
+
+    private static final class BodyTrackUploadResponse {
+        // We only store the bare minimum here because it might be a security/privacy issue to include everything (Randy
+        // explained to Chris on 2012.10.31 that we probably don't want to make channel ranges and such visible by
+        // default.  Plus, if debugging is on in the datastore, file paths might also be included in the response JSON).
+        String successful_records;
+        String failed_records;
+        String failure;
     }
 }
