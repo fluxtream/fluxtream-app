@@ -95,25 +95,27 @@ public class Configuration implements InitializingBean {
 	public String decrypt(String s) {
 		return encrypter.decrypt(s);
 	}
-	
-	public String get(String key) {
-		String property = getAsString(commonProperties, key);
+
+    public String get(String key) {
+        String property = getAsString(commonProperties, key);
         if (property==null)
             property = getAsString(lastCommitProperties, key);
         if (property==null)
-            getAsString(targetEnvironmentProps, key);
-		if (property==null)
-            getAsString(oauth, key);;
-		if (property==null)
-            getAsString(connectors, key);;
-		if (property==null)
-            getAsString(bodytrackProperties, key);;
-		if (property!=null) return property.trim();
-		return property;
-	}
+            property = getAsString(targetEnvironmentProps, key);
+        if (property==null)
+            property = getAsString(oauth, key);;
+        if (property==null)
+            property = getAsString(connectors, key);;
+        if (property==null)
+            property = getAsString(bodytrackProperties, key);;
+        if (property!=null) return property.trim();
+        return property;
+    }
 
     private String getAsString(PropertiesConfiguration properties, String key) {
         final Object property = properties.getProperty(key);
+        if (property==null)
+            return null;
         if (!(property instanceof String)) {
             final String message = "Property " + key + " was supposed to be a String, found " + property.getClass();
             logger.error(message);
