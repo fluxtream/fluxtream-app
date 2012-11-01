@@ -30,6 +30,8 @@ public class PushEventListener implements EventListener<PushEvent> {
     public void handleEvent(final PushEvent event) {
         StringBuilder sb = new StringBuilder("module=events component=PushEventListener action=handleEvent")
                 .append(" connector=").append(event.connectorName)
+                .append(" eventType=").append(event.eventType)
+                .append(" json=").append(event.json)
                 .append(" guestId=").append(event.guestId);
         logger.info(sb.toString());
         String invokeUrl = url.replaceAll("\\$guestId", String.valueOf(event.guestId))

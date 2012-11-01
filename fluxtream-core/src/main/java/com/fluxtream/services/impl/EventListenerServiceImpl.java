@@ -7,11 +7,13 @@ import java.util.Vector;
 import com.fluxtream.domain.Event;
 import com.fluxtream.events.EventListener;
 import com.fluxtream.services.EventListenerService;
+import org.springframework.stereotype.Service;
 
 /**
  *
  * @author Candide Kemmler (candide@fluxtream.com)
  */
+@Service
 public class EventListenerServiceImpl implements EventListenerService {
 
     Map<String, List<EventListener>> listeners =

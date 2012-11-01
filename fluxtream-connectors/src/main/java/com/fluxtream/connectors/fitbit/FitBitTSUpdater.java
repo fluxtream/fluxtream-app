@@ -8,6 +8,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.fluxtream.domain.Notification;
+import com.fluxtream.events.push.PushEvent;
+import com.fluxtream.services.EventListenerService;
 import com.fluxtream.services.NotificationsService;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -68,6 +70,9 @@ public class FitBitTSUpdater extends AbstractUpdater {
 
     @Autowired
     NotificationsService notificationsService;
+
+    @Autowired
+    EventListenerService eventListenerService;
 
 	private static final DateTimeFormatter dateFormat = DateTimeFormat
 			.forPattern("yyyy-MM-dd");
@@ -528,15 +533,17 @@ public class FitBitTSUpdater extends AbstractUpdater {
                     objectTypes = 4;
 				}
 
-				connectorUpdateService.addApiNotification(connector(),
-						userProfile.guestId, updatesString);
+				connectorUpdateService.addApiNotification(connector(), userProfile.guestId, updatesString);
 
 				JSONObject jsonParams = new JSONObject();
 				jsonParams.accumulate("date", dateString)
 						.accumulate("ownerId", ownerId)
 						.accumulate("subscriptionId", subscriptionId);
 
-				logger.info("action=scheduleUpdate connector=fitbit collectionType="
+                PushEvent pushEvent = new PushEvent(guestId, "fitbit", collectionType, jsonParams.toString());
+                eventListenerService.fireEvent(pushEvent);
+
+                logger.info("action=scheduleUpdate connector=fitbit collectionType="
 						+ collectionType);
 
 				connectorUpdateService.scheduleUpdate(userProfile.guestId,
