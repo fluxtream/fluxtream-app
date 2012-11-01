@@ -107,6 +107,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
         List<String> dailyDataChannelNames = getDailyDataChannelNames(facetName);
         List<List<Object>> dailyDataChannelValues = getDailyDataChannelValues(deviceFacets, dailyDataChannelNames);
 
+        // TODO: check the status code in the BodyTrackUploadResult
         bodyTrackHelper.uploadToBodyTrack(guestId, deviceName, dailyDataChannelNames, dailyDataChannelValues);
     }
 

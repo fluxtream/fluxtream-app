@@ -51,6 +51,7 @@ public class BodyMediaSleepFieldHandler implements FieldHandler {
         if (lastMinuteIndex<1440)
             addStandingRecord(facet.start/1000+lastMinuteIndex*60, sleepingData, lyingData, 1440-lastMinuteIndex);
 
+        // TODO: check the status code in the BodyTrackUploadResult
         bodyTrackHelper.uploadToBodyTrack(guestId, "BodyMedia", Arrays.asList("sleeping"), sleepingData);
         bodyTrackHelper.uploadToBodyTrack(guestId, "BodyMedia", Arrays.asList("lying"), lyingData);
     }
