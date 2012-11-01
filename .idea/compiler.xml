@@ -24,6 +24,9 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="true" />
+        <module name="fluxtream-connectors" />
+        <module name="fluxtream-core" />
+        <module name="fluxtream-core-webapp" />
         <module name="fluxtream-web" />
       </profile>
     </annotationProcessing>
