@@ -21,10 +21,10 @@ public class EventListenerServiceImpl implements EventListenerService {
 
     @Override
     public <T extends Event> void addEventListener(final Class<T> eventClass, final EventListener<T> listener) {
-        final List<EventListener> eventListeners = listeners.get(eventClass.getName());
-        if (eventListeners==null)
+        if (listeners.get(eventClass.getName())==null) {
             listeners.put(eventClass.getName(), new Vector<EventListener>());
-        eventListeners.add(listener);
+        }
+        listeners.get(eventClass.getName()).add(listener);
     }
 
     @Override
