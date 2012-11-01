@@ -114,6 +114,8 @@ public class Configuration implements InitializingBean {
 
     private String getAsString(PropertiesConfiguration properties, String key) {
         final Object property = properties.getProperty(key);
+        if (property==null)
+            return null;
         if (!(property instanceof String)) {
             final String message = "Property " + key + " was supposed to be a String, found " + property.getClass();
             logger.error(message);
