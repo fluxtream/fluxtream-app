@@ -19,6 +19,10 @@
 		<param-name>quartz-config-file</param-name>
 		<param-value>/WEB-INF/classes/quartz.properties</param-value>
 	</context-param>
+    <context-param>
+        <param-name>webAppRootKey</param-name>
+        <param-value>webapp.root.fluxtream</param-value>
+    </context-param>
 	<error-page>
 		<exception-type>java.lang.Throwable</exception-type>
 		<location>/errors/500.html</location>
