@@ -37,6 +37,7 @@ public class PushEventListener implements EventListener<PushEvent> {
         String invokeUrl = url.replaceAll("\\$guestId", String.valueOf(event.guestId))
                 .replaceAll("\\$connectorName", event.connectorName)
                 .replaceAll("\\$eventType", event.eventType);
+        logger.info(invokeUrl);
         HttpUtils.post(invokeUrl, event.json);
     }
 
