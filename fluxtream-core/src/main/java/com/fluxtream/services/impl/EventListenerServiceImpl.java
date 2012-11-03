@@ -47,7 +47,7 @@ public class EventListenerServiceImpl implements EventListenerService {
         StringBuilder sb = new StringBuilder("module=events component=EventListenerServiceImpl action=fireEvent");
         if (event!=null) sb.append(" event=").append(event.toString());
         logger.info(sb.toString());
-        List<EventListener> eventListeners = listeners.get(event.getClass());
+        List<EventListener> eventListeners = listeners.get(event.getClass().getName());
         if (eventListeners!=null) {
             for (EventListener eventListener : eventListeners) {
                 eventListener.handleEvent(event);
