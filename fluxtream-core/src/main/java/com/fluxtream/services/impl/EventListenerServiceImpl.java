@@ -24,6 +24,12 @@ public class EventListenerServiceImpl implements EventListenerService {
 
     @Override
     public <T extends Event> void addEventListener(final Class<T> eventClass, final EventListener<T> listener) {
+        StringBuilder sb = new StringBuilder("module=events component=EventListenerServiceImpl action=addEventListener");
+        if (eventClass!=null)
+            sb.append(" eventClass=" + eventClass.toString());
+        if (listener!=null)
+            sb.append(" listener=" + listener.toString());
+        logger.info(sb.toString());
         if (listeners.get(eventClass.getName())==null) {
             listeners.put(eventClass.getName(), new Vector<EventListener>());
         }
@@ -36,8 +42,12 @@ public class EventListenerServiceImpl implements EventListenerService {
         if (event!=null) sb.append(" event=").append(event.toString());
         logger.info(sb.toString());
         List<EventListener> eventListeners = listeners.get(event.getClass());
-        for (EventListener eventListener : eventListeners) {
-            eventListener.handleEvent(event);
+        if (eventListeners!=null) {
+            for (EventListener eventListener : eventListeners) {
+                eventListener.handleEvent(event);
+            }
+        } else {
+            logger.warn("No Event Listeners were registered for events of type " + event.getClass());
         }
     }
 
