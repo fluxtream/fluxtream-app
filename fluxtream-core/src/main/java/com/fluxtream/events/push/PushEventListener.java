@@ -33,7 +33,9 @@ public class PushEventListener implements EventListener<PushEvent> {
 
     @Override
     public void handleEvent(final PushEvent event) {
-        StringBuilder sb = new StringBuilder("module=events component=PushEventListener action=handleEvent")
+        final StringBuilder msgAtts = new StringBuilder("module=events component=PushEventListener action=handleEvent")
+                .append(" url=").append(this.url);
+        StringBuilder sb = new StringBuilder(msgAtts)
                 .append(" connector=").append(event.connectorName)
                 .append(" eventType=").append(event.eventType)
                 .append(" json=").append(event.json)
