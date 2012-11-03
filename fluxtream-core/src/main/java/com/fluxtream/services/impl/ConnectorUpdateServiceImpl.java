@@ -219,7 +219,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 				UpdateWorkerTask.class, "updateWorkerTasks.byStatus",
 				Status.SCHEDULED, System.currentTimeMillis());
 		if (updateWorkerTasks.size() == 0) {
-			logger.info("module=updateQueue component=connectorUpdateService action=pollScheduledUpdates message=\"Nothing to do\"");
+			logger.debug("module=updateQueue component=connectorUpdateService action=pollScheduledUpdates message=\"Nothing to do\"");
 			return;
 		}
 		for (UpdateWorkerTask updateWorkerTask : updateWorkerTasks) {

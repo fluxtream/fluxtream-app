@@ -15,7 +15,7 @@ public class Consumer {
 	static Logger logger = Logger.getLogger(Consumer.class);
 
 	public void checkUpdatesQueue() throws Exception {
-        logger.info("module=updateQueue component=consumer action=checkUpdatesQueue");
+        logger.debug("module=updateQueue component=consumer action=checkUpdatesQueue");
 		connectorUpdateService.pollScheduledUpdates();
 	}
 	
