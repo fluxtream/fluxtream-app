@@ -25,6 +25,9 @@ public class PushEventListener implements EventListener<PushEvent> {
 
     @Autowired
     final protected void setEventService(@Qualifier("eventListenerServiceImpl") EventListenerService evl) {
+        StringBuilder sb = new StringBuilder("module=events component=PushEventListener action=setEventService")
+                .append(" message=\"registering event listener\"");
+        logger.info(sb.toString());
         evl.addEventListener(PushEvent.class, this);
     }
 

@@ -33,7 +33,13 @@ public class EventListenerServiceImpl implements EventListenerService {
         if (listeners.get(eventClass.getName())==null) {
             listeners.put(eventClass.getName(), new Vector<EventListener>());
         }
-        listeners.get(eventClass.getName()).add(listener);
+        sb = new StringBuilder("module=events component=EventListenerServiceImpl action=addEventListener");
+        if (!listeners.get(eventClass.getName()).contains(listener)) {
+            logger.info(sb.append(" message=\"adding listener " + listener.toString() + "\"").toString());
+            listeners.get(eventClass.getName()).add(listener);
+        } else {
+            logger.warn(sb.append(" message=\"preventing duplicate listener registration\"").toString());
+        }
     }
 
     @Override
