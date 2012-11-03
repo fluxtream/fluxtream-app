@@ -8,6 +8,7 @@ import com.fluxtream.domain.Event;
 import com.fluxtream.events.EventListener;
 import com.fluxtream.services.EventListenerService;
 import org.apache.log4j.Logger;
+import org.codehaus.plexus.util.ExceptionUtils;
 import org.springframework.stereotype.Service;
 
 /**
@@ -44,16 +45,27 @@ public class EventListenerServiceImpl implements EventListenerService {
 
     @Override
     public void fireEvent(final Event event) {
-        StringBuilder sb = new StringBuilder("module=events component=EventListenerServiceImpl action=fireEvent");
-        if (event!=null) sb.append(" event=").append(event.toString());
-        logger.info(sb.toString());
-        List<EventListener> eventListeners = listeners.get(event.getClass().getName());
-        if (eventListeners!=null) {
-            for (EventListener eventListener : eventListeners) {
-                eventListener.handleEvent(event);
+        StringBuilder msgAtts = new StringBuilder("module=events component=EventListenerServiceImpl action=fireEvent");
+        try {
+            StringBuilder sb = new StringBuilder(msgAtts);
+            if (event!=null) sb.append(" event=").append(event.toString());
+            logger.info(sb.toString());
+            List<EventListener> eventListeners = listeners.get(event.getClass().getName());
+            if (eventListeners!=null) {
+                for (EventListener eventListener : eventListeners) {
+                    eventListener.handleEvent(event);
+                }
+            } else {
+                logger.info(new StringBuffer(msgAtts)
+                                    .append(" message=\"No Event Listeners were registered for events of type ")
+                                    .append(event.getClass())
+                                    .append("\"").toString());
             }
-        } else {
-            logger.warn("No Event Listeners were registered for events of type " + event.getClass());
+        } catch (Throwable t) {
+            logger.warn(new StringBuffer(msgAtts)
+                                .append(" message=\"Error firing event\"")
+                                .append(" stackTrace=<![CDATA[" + ExceptionUtils.getStackTrace(t))
+                                .append("]]>").toString());
         }
     }
 
