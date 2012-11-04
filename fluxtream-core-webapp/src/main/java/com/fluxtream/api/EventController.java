@@ -12,15 +12,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
- *
+ * This controller serves no real purpose but to test the Event Framework
  * @author Candide Kemmler (candide@fluxtream.com)
  */
 @Path("/events")
 @Component("RESTEventController")
 @Scope("request")
-/**
- * This controller serves no real purpose but to test the Event Framework
- */
 public class EventController {
 
     @Autowired
