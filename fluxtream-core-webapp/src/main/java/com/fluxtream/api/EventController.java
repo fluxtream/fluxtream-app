@@ -2,8 +2,11 @@ package com.fluxtream.api;
 
 import java.io.IOException;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 import com.fluxtream.events.push.PushEvent;
 import com.fluxtream.services.EventListenerService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,15 +18,17 @@ import org.springframework.web.bind.annotation.RequestParam;
  * This controller serves no real purpose but to test the Event Framework
  * @author Candide Kemmler (candide@fluxtream.com)
  */
-@Path("/events")
-@Component("RESTEventController")
+//@Path("/test") ADDING THIS LINE HERE VERY STRANGELY CAUSES JERSEY TO CRASH - NO IDEA WHY...
+@Component("RESTTestEventController")
 @Scope("request")
 public class EventController {
 
     @Autowired
     EventListenerService eventListenerService;
 
-    @Path("/push/{connectorName}/{eventType}")
+    @GET
+    @Produces({ MediaType.APPLICATION_JSON })
+    @Path("/events/push/{connectorName}/{eventType}")
     public void testPushEvent(HttpServletResponse response,
                               @PathParam("connectorName") String connectorName,
                               @PathParam("eventType") String eventType,
