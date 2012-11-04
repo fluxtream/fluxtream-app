@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component;
  * A Listener for Push Connector events
  * @author Candide Kemmler (candide@fluxtream.com)
  */
-@Component
 public class PushEventListener implements EventListener<PushEvent> {
 
     static Logger logger = Logger.getLogger(PushEventListener.class);
