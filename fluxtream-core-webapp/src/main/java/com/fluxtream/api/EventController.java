@@ -1,10 +1,12 @@
 package com.fluxtream.api;
 
 import java.io.IOException;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.events.push.PushEvent;
 import com.fluxtream.services.EventListenerService;
@@ -30,7 +32,7 @@ public class EventController {
     @Path("/push/{connectorName}/{eventType}")
     public String testPushEvent(@PathParam("connectorName") String connectorName,
                                 @PathParam("eventType") String eventType,
-                                @RequestParam("flxGuestId") long flxGuestId) throws IOException {
+                                @QueryParam("flxGuestId") long flxGuestId) throws IOException {
         PushEvent pushEvent = new PushEvent(flxGuestId, connectorName, eventType, null);
         eventListenerService.fireEvent(pushEvent);
         return "event fired";
