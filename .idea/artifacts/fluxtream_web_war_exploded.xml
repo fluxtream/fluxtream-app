@@ -179,9 +179,6 @@
           <element id="library" level="project" name="Maven: com.sun.jersey:jersey-servlet:1.11" />
           <element id="library" level="project" name="Maven: com.sun.jersey:jersey-server:1.11" />
           <element id="library" level="project" name="Maven: org.aspectj:aspectjrt:1.5.4" />
-          <element id="archive" name="fluxtream-core-webapp-1.0.jar">
-            <element id="module-output" name="fluxtream-core-webapp" />
-          </element>
           <element id="archive" name="fluxtream-connectors-1.0.jar">
             <element id="module-output" name="fluxtream-connectors" />
           </element>
