@@ -27,7 +27,7 @@ public class Producer {
     private GuestService guestService;
 
     public void scheduleIncrementalUpdates() {
-        logger.info("module=updateQueue component=producer action=scheduleIncrementalUpdates");
+        logger.debug("module=updateQueue component=producer action=scheduleIncrementalUpdates");
         //List<String> roles = new ArrayList<String>();
         //roles.add("ROLE_ADMIN");
         //roles.add("ROLE_ROOT");
