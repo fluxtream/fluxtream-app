@@ -8,6 +8,7 @@
           <element id="module-output" name="fluxtream-web" />
         </element>
         <element id="directory" name="lib">
+          <element id="library" level="project" name="Maven: com.newrelic:newrelic-api:2.7.0" />
           <element id="archive" name="fluxtream-core-1.0.jar">
             <element id="module-output" name="fluxtream-core" />
           </element>
@@ -181,7 +182,6 @@
           <element id="archive" name="fluxtream-core-webapp-1.0.jar">
             <element id="module-output" name="fluxtream-core-webapp" />
           </element>
-          <element id="library" level="project" name="Maven: com.newrelic:newrelic-api:2.7.0" />
           <element id="archive" name="fluxtream-connectors-1.0.jar">
             <element id="module-output" name="fluxtream-connectors" />
           </element>

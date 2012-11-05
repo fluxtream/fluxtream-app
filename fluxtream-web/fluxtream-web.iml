@@ -38,6 +38,7 @@
       <excludeFolder url="file://$MODULE_DIR$/target/ROOT" />
       <excludeFolder url="file://$MODULE_DIR$/target/classes" />
       <excludeFolder url="file://$MODULE_DIR$/target/maven-archiver" />
+      <excludeFolder url="file://$MODULE_DIR$/target/test-classes" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="inheritedJdk" />
@@ -50,6 +51,7 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="Maven: com.newrelic:newrelic-api:2.7.0" level="project" />
     <orderEntry type="module" module-name="fluxtream-core" />
     <orderEntry type="library" name="Maven: commons-configuration:commons-configuration:1.8" level="project" />
     <orderEntry type="library" name="Maven: commons-lang:commons-lang:2.4" level="project" />
@@ -219,8 +221,6 @@
     <orderEntry type="library" name="Maven: com.sun.jersey:jersey-servlet:1.11" level="project" />
     <orderEntry type="library" name="Maven: com.sun.jersey:jersey-server:1.11" level="project" />
     <orderEntry type="library" name="Maven: org.aspectj:aspectjrt:1.5.4" level="project" />
-    <orderEntry type="module" module-name="fluxtream-core-webapp" />
-    <orderEntry type="library" name="Maven: com.newrelic:newrelic-api:2.7.0" level="project" />
     <orderEntry type="module" module-name="fluxtream-connectors" />
     <orderEntry type="library" scope="TEST" name="Maven: org.easymock:easymock:2.5.2" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: javax.servlet:servlet-api:2.5" level="project" />
