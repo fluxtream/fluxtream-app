@@ -7,7 +7,6 @@
 	<packaging>pom</packaging>
 	<modules>
 		<module>fluxtream-core</module>
-		<module>fluxtream-core-webapp</module>
 		<module>fluxtream-connectors</module>
 		<module>fluxtream-web</module>
 	</modules>
