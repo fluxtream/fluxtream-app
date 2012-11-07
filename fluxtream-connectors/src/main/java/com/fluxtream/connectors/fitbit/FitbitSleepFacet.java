@@ -48,12 +48,4 @@ public class FitbitSleepFacet extends AbstractFloatingTimeZoneFacet {
 	@Override
 	protected void makeFullTextIndexable() {}
 
-    @Override
-    public void updateTimeInfo(TimeZone timeZone) throws ParseException {
-        super.updateTimeInfo(timeZone);
-        DateTime startDate = new DateTime(this.start);
-        DateTime endDate = startDate.withDurationAdded(this.duration*60000,1);
-        this.end = endDate.getMillis();
-    }
-
 }

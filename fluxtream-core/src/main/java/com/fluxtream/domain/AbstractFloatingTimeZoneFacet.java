@@ -30,12 +30,12 @@ public abstract class AbstractFloatingTimeZoneFacet extends AbstractFacet {
 
     public static void main (String[] args) {
         TimeZone timeZone = TimeZone.getTimeZone("Europe/Brussels");
-        String startTimeStorage = "2012-8-29T23:34:4.000";
-        String endTimeStorage = "2012-8-30T9:23:52.000";
+        String startTimeStorage = "2012-11-07T03:13:00.000";
+        String endTimeStorage = "2012-11-07T10:40:00.000";
         Date startDate = new Date(timeStorageFormat.withZone(DateTimeZone.forTimeZone(timeZone)).parseMillis(startTimeStorage));
         Date endDate = new Date(timeStorageFormat.withZone(DateTimeZone.forTimeZone(timeZone)).parseMillis(endTimeStorage));
-        System.out.println(startDate);
-        System.out.println(endDate);
+        System.out.println(startDate.getTime());
+        System.out.println(endDate.getTime());
     }
 
 }

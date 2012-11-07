@@ -72,4 +72,13 @@ public class FitbitSleepFacetExtractor extends AbstractFacetExtractor {
         int i = timeStr.indexOf("T");
         return timeStr.substring(0, i);
     }
+
+    public static void main(final String[] args) {
+        String s = "2012-11-07T03:13:00.000";
+        final long startTimeMillis = AbstractFloatingTimeZoneFacet.timeStorageFormat.parseMillis(s);
+        long endTimeMillis = startTimeMillis + 26820000;
+        final String endTimeStorage = AbstractFloatingTimeZoneFacet.timeStorageFormat.print(endTimeMillis);
+        System.out.println(startTimeMillis);
+        System.out.println(endTimeStorage);
+    }
 }
