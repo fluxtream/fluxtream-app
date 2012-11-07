@@ -7,7 +7,7 @@ import java.util.TimeZone;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.fluxtream.domain.Notification;
+import com.fluxtream.domain.ApiUpdate;
 import com.fluxtream.services.NotificationsService;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -26,7 +26,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.fluxtream.TimeInterval;
 import com.fluxtream.TimeUnit;
-import com.fluxtream.connectors.Connector.UpdateStrategyType;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.SignpostOAuthHelper;
 import com.fluxtream.connectors.annotations.JsonFacetCollection;
@@ -48,9 +47,9 @@ import com.fluxtream.utils.Utils;
  */
 @Component
 @Controller
-@Updater(prettyName = "Fitbit", value = 7, updateStrategyType = UpdateStrategyType.PUSH, objectTypes = {
+@Updater(prettyName = "Fitbit", value = 7, objectTypes = {
 		FitbitActivityFacet.class, FitbitLoggedActivityFacet.class,
-		FitbitSleepFacet.class, FitbitBodyMeasurementFacet.class },
+		FitbitSleepFacet.class, FitbitWeightFacet.class },
            defaultChannels = {"Fitbit.steps","Fitbit.caloriesOut"})
 @JsonFacetCollection(FitbitFacetVOCollection.class)
 public class FitBitTSUpdater extends AbstractUpdater {
@@ -79,8 +78,8 @@ public class FitBitTSUpdater extends AbstractUpdater {
 
     final ObjectType sleepOT = ObjectType.getObjectType(connector(),
                                                           "sleep");
-    final ObjectType bodyOT = ObjectType.getObjectType(connector(),
-                                                        "body");
+    final ObjectType weightOT = ObjectType.getObjectType(connector(),
+                                                        "weight");
     final ObjectType activityOT = ObjectType.getObjectType(connector(),
                                                              "activity_summary");
     final ObjectType loggedActivityOT = ObjectType.getObjectType(
@@ -138,12 +137,12 @@ public class FitBitTSUpdater extends AbstractUpdater {
 			loadTimeSeries("activities/log/activityCalories",
 					updateInfo.apiKey, activityOT, "activityCalories");
 		}
-        if (updateInfo.objectTypes().contains(bodyOT)) {
-            loadTimeSeries("body/weight", updateInfo.apiKey, bodyOT,
+        if (updateInfo.objectTypes().contains(weightOT)) {
+            loadTimeSeries("body/weight", updateInfo.apiKey, weightOT,
                            "weight");
-            loadTimeSeries("body/weight", updateInfo.apiKey, bodyOT,
-                           "weight");
-            loadTimeSeries("body/fat", updateInfo.apiKey, bodyOT,
+            loadTimeSeries("body/bmi", updateInfo.apiKey, weightOT,
+                           "bmi");
+            loadTimeSeries("body/fat", updateInfo.apiKey, weightOT,
                            "fat");
         }
 		
@@ -163,7 +162,7 @@ public class FitBitTSUpdater extends AbstractUpdater {
 			}
 		} else {
 			logger.warn("guestId=" + apiKey.getGuestId() +
-					" connector=fitbit action=updateCaloriesIntraday message=facet date is null");
+                        " connector=fitbit action=updateCaloriesIntraday message=facet date is null");
 		}
 	}
 
@@ -233,10 +232,10 @@ public class FitBitTSUpdater extends AbstractUpdater {
 						facetDao.persist(facet);
 					}
 					addToActivityFacet(facet, entry, fieldName);
-				} else if (objectType == bodyOT) {
-                    FitbitBodyMeasurementFacet facet = getBodyMeasurementFacet(apiKey.getGuestId(), timeInterval);
+				} else if (objectType == weightOT) {
+                    FitbitWeightFacet facet = getWeightFacet(apiKey.getGuestId(), timeInterval);
                     if (facet == null) {
-                        facet = new FitbitBodyMeasurementFacet();
+                        facet = new FitbitWeightFacet();
                         facet.date = date;
                         facet.api = connector().value();
                         facet.guestId = apiKey.getGuestId();
@@ -244,7 +243,7 @@ public class FitBitTSUpdater extends AbstractUpdater {
                         facet.end = dayMetadata.end;
                         facetDao.persist(facet);
                     }
-                    addToBodyMeasurementFacet(facet, entry, fieldName);
+                    addToWeightFacet(facet, entry, fieldName);
                 }
 
 			} catch (Throwable t) {
@@ -255,15 +254,14 @@ public class FitBitTSUpdater extends AbstractUpdater {
 	}
 
     @Transactional(readOnly = false)
-    private void addToBodyMeasurementFacet(FitbitBodyMeasurementFacet facet,
-                                    JSONObject entry, String fieldName) {
+    private void addToWeightFacet(FitbitWeightFacet facet, JSONObject entry, String fieldName) {
         setFieldValue(facet, fieldName, entry.getString("value"));
         facetDao.merge(facet);
     }
 
-    private FitbitBodyMeasurementFacet getBodyMeasurementFacet(final long guestId, final TimeInterval timeInterval) {
-        return jpaDaoService.findOne("fitbit.body.byStartEnd",
-                                     FitbitBodyMeasurementFacet.class, guestId, timeInterval.start,
+    private FitbitWeightFacet getWeightFacet(final long guestId, final TimeInterval timeInterval) {
+        return jpaDaoService.findOne("fitbit.weight.byStartEnd",
+                                     FitbitWeightFacet.class, guestId, timeInterval.start,
                                      timeInterval.end);
     }
 
@@ -341,67 +339,82 @@ public class FitBitTSUpdater extends AbstractUpdater {
 	}
 
 	public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
-		JSONObject jsonParams = JSONObject.fromObject(updateInfo.jsonParams);
-		FitbitUserProfile userProfile = guestService.getUserProfile(
-				updateInfo.apiKey.getGuestId(), FitbitUserProfile.class);
-		TimeZone userTimeZone = userProfile.getTimeZone();
-		String dateString = jsonParams.getString("date");
-		Date date = new Date(dateFormat.withZone(
-				DateTimeZone.forTimeZone(userTimeZone)).parseMillis(dateString));
-
-		long from = TimeUtils.fromMidnight(date.getTime(), userTimeZone);
-		long to = TimeUtils.toMidnight(date.getTime(), userTimeZone);
-		TimeInterval timeInterval = new TimeInterval(from, to, TimeUnit.DAY,
-				userTimeZone);
-
-		if (updateInfo.objectTypes().contains(sleepOT)) {
-			apiDataService.eraseApiData(updateInfo.getGuestId(),
-					updateInfo.apiKey.getConnector(), sleepOT,
-					timeInterval);
-			try {
-				loadSleepDataForOneDay(updateInfo, date, userTimeZone);
-			} catch (RuntimeException e) {
-				logger.warn("guestId=" + updateInfo.getGuestId() +
-						" connector=fitbit objectType=activity action=historyUpdate exception="
-								+ Utils.mediumStackTrace(e));
-			}
-		}
-		if (updateInfo.objectTypes().contains(activityOT)) {
-			apiDataService.eraseApiData(updateInfo.getGuestId(),
-					updateInfo.apiKey.getConnector(), activityOT,
-					timeInterval);
-			apiDataService.eraseApiData(updateInfo.getGuestId(),
-					updateInfo.apiKey.getConnector(), loggedActivityOT,
-					timeInterval);
-			try {
-				loadActivityDataForOneDay(updateInfo, date, userTimeZone);
-			} catch (RuntimeException e) {
-				logger.warn("guestId=" + updateInfo.getGuestId() +
-						" connector=fitbit objectType=activity action=historyUpdate exception="
-								+ Utils.shortStackTrace(e));
-			}
-		}
-        if (updateInfo.objectTypes().contains(bodyOT)) {
-            apiDataService.eraseApiData(updateInfo.getGuestId(),
-                                        updateInfo.apiKey.getConnector(), bodyOT,
-                                        timeInterval);
-            try {
-                loadBodyMeasurementDataForOneDay(updateInfo, date, userTimeZone);
-            } catch (RuntimeException e) {
-                logger.warn("guestId=" + updateInfo.getGuestId() +
-                            " connector=fitbit objectType=bodyMeasurement action=historyUpdate exception="
-                            + Utils.shortStackTrace(e));
+        if (updateInfo.jsonParams!=null) {
+            JSONObject jsonParams = JSONObject.fromObject(updateInfo.jsonParams);
+            String dateString = jsonParams.getString("date");
+            final TimeZone timeZone = metadataService.getTimeZone(updateInfo.getGuestId(), dateString);
+            Date date = new Date(dateFormat.withZone(
+                    DateTimeZone.forTimeZone(timeZone)).parseMillis(dateString));
+            updateOneDayOfData(updateInfo, timeZone, date);
+        } else {
+            long time = System.currentTimeMillis();
+            final ApiUpdate lastSuccessfulUpdate = connectorUpdateService.getLastSuccessfulUpdate(updateInfo.getGuestId(), connector());
+            TimeZone timeZone = metadataService.getTimeZone(updateInfo.getGuestId(), time);
+            String today = dateFormat.withZone(DateTimeZone.forTimeZone(timeZone)).print(time);
+            TimeZone previousTimeZone = metadataService.getTimeZone(updateInfo.getGuestId(), lastSuccessfulUpdate.ts);
+            String dayOfLastUpdate = dateFormat.withZone(DateTimeZone.forTimeZone(previousTimeZone)).print(lastSuccessfulUpdate.ts);
+            if (!(today.equals(dayOfLastUpdate))) {
+                updateInfo.setContext("date", dayOfLastUpdate);
+                updateOneDayOfData(updateInfo, previousTimeZone, new Date(lastSuccessfulUpdate.ts));
             }
+            updateInfo.setContext("date", today);
+            updateOneDayOfData(updateInfo, timeZone, new Date(time));
         }
 	}
 
-    private void loadBodyMeasurementDataForOneDay(UpdateInfo updateInfo, Date date,
-                                           TimeZone timeZone) throws RateLimitReachedException, Exception {
-        String json = getBodyMeasurementData(updateInfo, date, timeZone);
+    private void updateOneDayOfData(final UpdateInfo updateInfo, final TimeZone userTimeZone, final Date date) throws Exception {
+        long from = TimeUtils.fromMidnight(date.getTime(), userTimeZone);
+        long to = TimeUtils.toMidnight(date.getTime(), userTimeZone);
+        TimeInterval timeInterval = new TimeInterval(from, to, TimeUnit.DAY,
+                userTimeZone);
+
+        if (updateInfo.objectTypes().contains(sleepOT)) {
+            apiDataService.eraseApiData(updateInfo.getGuestId(),
+                    updateInfo.apiKey.getConnector(), sleepOT,
+                    timeInterval);
+            try {
+                loadSleepDataForOneDay(updateInfo, date, userTimeZone);
+            } catch (RuntimeException e) {
+                logger.warn("guestId=" + updateInfo.getGuestId() +
+                        " connector=fitbit objectType=activity action=historyUpdate exception="
+                                + Utils.mediumStackTrace(e));
+            }
+        }
+        if (updateInfo.objectTypes().contains(activityOT)) {
+            apiDataService.eraseApiData(updateInfo.getGuestId(),
+                    updateInfo.apiKey.getConnector(), activityOT,
+                    timeInterval);
+            apiDataService.eraseApiData(updateInfo.getGuestId(),
+                    updateInfo.apiKey.getConnector(), loggedActivityOT,
+                    timeInterval);
+            try {
+                loadActivityDataForOneDay(updateInfo, date, userTimeZone);
+            } catch (RuntimeException e) {
+                logger.warn("guestId=" + updateInfo.getGuestId() +
+                        " connector=fitbit objectType=activity action=historyUpdate exception="
+                                + Utils.shortStackTrace(e));
+            }
+        }
+        if (updateInfo.objectTypes().contains(weightOT)) {
+            apiDataService.eraseApiData(updateInfo.getGuestId(),
+                                        updateInfo.apiKey.getConnector(), weightOT,
+                                        timeInterval);
+            try {
+                loadWeightDataForOneDay(updateInfo, date, userTimeZone);
+            } catch (RuntimeException e) {
+                logger.warn("guestId=" + updateInfo.getGuestId() +
+                            " connector=fitbit objectType=weightMeasurement action=historyUpdate exception="
+                            + Utils.shortStackTrace(e));
+            }
+        }
+    }
+
+    private void loadWeightDataForOneDay(UpdateInfo updateInfo, Date date, TimeZone timeZone) throws RateLimitReachedException, Exception {
+        String json = getWeightData(updateInfo, date, timeZone);
         long fromMidnight = TimeUtils.fromMidnight(date.getTime(), timeZone);
         long toMidnight = TimeUtils.toMidnight(date.getTime(), timeZone);
         logger.info("guestId=" + updateInfo.getGuestId() +
-                    " connector=fitbit action=loadBodyMeasurementDataForOneDay json="
+                    " connector=fitbit action=loadWeightDataForOneDay json="
                     + json);
         if (json != null) {
             apiDataService.cacheApiDataJSON(updateInfo, json, fromMidnight,
@@ -419,8 +432,7 @@ public class FitBitTSUpdater extends AbstractUpdater {
 				" connector=fitbit action=loadActivityDataForOneDay json="
 						+ json);
 		if (json != null) {
-			apiDataService.cacheApiDataJSON(updateInfo, json, fromMidnight,
-					toMidnight);
+			apiDataService.cacheApiDataJSON(updateInfo, json, fromMidnight, toMidnight);
 		} else
 			apiDataService.cacheEmptyData(updateInfo, fromMidnight, toMidnight);
 	}
@@ -452,13 +464,12 @@ public class FitBitTSUpdater extends AbstractUpdater {
 		return json;
 	}
 
-    private String getBodyMeasurementData(UpdateInfo updateInfo, Date date,
-                                   TimeZone timeZone) throws RateLimitReachedException {
+    private String getWeightData(UpdateInfo updateInfo, Date date, TimeZone timeZone) throws RateLimitReachedException {
         // we want the date formatted as where the user was that day
         String formattedDate = dateFormat.withZone(
                 DateTimeZone.forTimeZone(timeZone)).print(date.getTime());
 
-        String urlString = "http://api.fitbit.com/1/user/-/body/date/"
+        String urlString = "http://api.fitbit.com/1/user/-/body/log/weight/date/"
                            + formattedDate + ".json";
 
         String json = signpostHelper.makeRestCall(connector(),

@@ -153,16 +153,9 @@ public abstract class AbstractUpdater extends ApiClientSupport {
                 StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=updateData")
                         .append(" message=\"Unexpected exception\" connector=")
                         .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
+                        .append(" stackTrace=<![CDATA[").append(stackTrace).append("]]>")
                         .append(updateInfo.apiKey.getGuestId());
                 logger.warn(sb.toString());
-                //String message = (new StringBuilder("We were unable to sync your "))
-                //        .append(updateInfo.apiKey.getConnector().prettyName())
-                //        .append(" connector (")
-                //        .append("error message: \"")
-                //        .append(e.getMessage()).append("\")").toString();
-                //notificationsService.addNotification(updateInfo.apiKey.getGuestId(),
-                //                                     Notification.Type.WARNING,
-                //                                     message, stackTrace);
                 updateResult = new UpdateResult(
                         UpdateResult.ResultType.UPDATE_FAILED);
                 updateResult.stackTrace = stackTrace;

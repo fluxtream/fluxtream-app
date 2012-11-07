@@ -5,12 +5,17 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import com.fluxtream.TimeInterval;
+import com.fluxtream.TimeUnit;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.ScheduleResult;
+import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.connectors.updaters.UpdateInfo.UpdateType;
+import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ApiNotification;
 import com.fluxtream.domain.ApiUpdate;
 import com.fluxtream.domain.ConnectorInfo;
@@ -19,7 +24,10 @@ import com.fluxtream.domain.UpdateWorkerTask.Status;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
+import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.SystemService;
+import com.fluxtream.updaters.strategies.UpdateStrategy;
+import com.fluxtream.updaters.strategies.UpdateStrategyFactory;
 import com.fluxtream.utils.JPAUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.BeanFactory;
@@ -58,6 +66,11 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 	@PersistenceContext
 	EntityManager em;
 
+    UpdateStrategyFactory updateStategyFactory = new UpdateStrategyFactory();
+
+    @Autowired
+    MetadataService metadataService;
+
     @Override
     public List<ScheduleResult> updateConnector(final long guestId, Connector connector, boolean force){
         List<ScheduleResult> scheduleResults = new ArrayList<ScheduleResult>();
@@ -70,7 +83,10 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
         }
         int[] objectTypeValues = connector.objectTypeValues();
         for (int objectTypes : objectTypeValues) {
-            scheduleObjectTypeUpdate(guestId, connector, objectTypes, scheduleResults, force);
+            ApiUpdate lastUpdate = getLastUpdate(guestId, connector);
+            // only update if the last update was more than 5 minutes ago
+            if (System.currentTimeMillis()-lastUpdate.ts>5*60000)
+                scheduleObjectTypeUpdate(guestId, connector, objectTypes, scheduleResults, force);
         }
         return scheduleResults;
     }
@@ -113,9 +129,6 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
             UpdateType updateType = isHistoryUpdateCompleted(guestId, connector.getName(), objectTypes)
                                                ? UpdateType.INCREMENTAL_UPDATE
                                                : UpdateType.INITIAL_HISTORY_UPDATE;
-            // PUSH-type connectors don't need to be updated incrementally
-            if (connector.updateStrategyType()== Connector.UpdateStrategyType.PUSH && updateType==UpdateType.INCREMENTAL_UPDATE)
-                return;
             final ScheduleResult scheduleResult = scheduleUpdate(guestId, connector.getName(), objectTypes, updateType, System.currentTimeMillis());
             scheduleResults.add(scheduleResult);
         }
@@ -138,8 +151,6 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
             }
             else {
                 Connector connector = connectors.get(i).getApi();
-                if (connector.updateStrategyType()== Connector.UpdateStrategyType.PUSH)
-                    continue;
                 List<ScheduleResult> updateRes = updateConnector(guestId, connector, false);
                 scheduleResults.addAll(updateRes);
             }

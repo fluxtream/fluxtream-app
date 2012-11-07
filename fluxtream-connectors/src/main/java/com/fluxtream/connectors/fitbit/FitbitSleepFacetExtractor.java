@@ -7,6 +7,7 @@ import java.util.List;
 import com.fluxtream.ApiData;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.domain.AbstractFacet;
+import com.fluxtream.domain.AbstractFloatingTimeZoneFacet;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -50,9 +51,11 @@ public class FitbitSleepFacetExtractor extends AbstractFacetExtractor {
 				facet.minutesToFallAsleep = record
 						.getInt("minutesToFallAsleep");
 			Date startDate;
-            facet.date = getDate(startTime);
+            facet.date = (String) apiData.updateInfo.getContext("date");
             facet.startTimeStorage = startTime;
-            facet.endTimeStorage = startTime;
+            final long startTimeMillis = AbstractFloatingTimeZoneFacet.timeStorageFormat.parseMillis(startTime);
+            final long endTimeMillis = startTimeMillis + duration;
+            facet.endTimeStorage = AbstractFloatingTimeZoneFacet.timeStorageFormat.print(endTimeMillis);
 
 			if (record.containsKey("awakeningsCount"))
 				facet.awakeningsCount = record.getInt("awakeningsCount");

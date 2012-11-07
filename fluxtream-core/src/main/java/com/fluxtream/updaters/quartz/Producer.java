@@ -28,20 +28,20 @@ public class Producer {
 
     public void scheduleIncrementalUpdates() {
         logger.debug("module=updateQueue component=producer action=scheduleIncrementalUpdates");
-        //List<String> roles = new ArrayList<String>();
-        //roles.add("ROLE_ADMIN");
-        //roles.add("ROLE_ROOT");
-        //as(roles);
-        //try {
-        //    List<Guest> guests = guestService.getAllGuests();
-        //    for (Guest g : guests) {
-        //        connectorUpdateService.updateAllConnectors(g.getId());
-        //    }
-        //}
-        //catch (Exception e) {
-        //    String stackTrace = Utils.stackTrace(e);
-        //    logger.error("module=updateQueue component=producer message=Could not update all connectors stackTrace=" + stackTrace);
-        //}
+        List<String> roles = new ArrayList<String>();
+        roles.add("ROLE_ADMIN");
+        roles.add("ROLE_ROOT");
+        as(roles);
+        try {
+            List<Guest> guests = guestService.getAllGuests();
+            for (Guest g : guests) {
+                connectorUpdateService.updateAllConnectors(g.getId());
+            }
+        }
+        catch (Exception e) {
+            String stackTrace = Utils.stackTrace(e);
+            logger.error("module=updateQueue component=producer message=Could not update all connectors stackTrace=" + stackTrace);
+        }
     }
 
     private static void as(final List<String> roles) {

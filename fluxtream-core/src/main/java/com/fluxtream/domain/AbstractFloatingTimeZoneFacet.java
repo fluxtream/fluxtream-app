@@ -17,7 +17,7 @@ public abstract class AbstractFloatingTimeZoneFacet extends AbstractFacet {
 	public String startTimeStorage;
 	public String endTimeStorage;
 	
-	protected static DateTimeFormatter timeStorageFormat = DateTimeFormat.forPattern(
+	public static DateTimeFormatter timeStorageFormat = DateTimeFormat.forPattern(
 			"yyyy-MM-dd'T'HH:mm:ss.SSS");
 
 	public void updateTimeInfo(TimeZone timeZone) throws ParseException {

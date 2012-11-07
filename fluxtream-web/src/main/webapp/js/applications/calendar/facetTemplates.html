@@ -158,9 +158,9 @@
         </div>
     </div>
 </template>
-<template id="fitbit-body">
+<template id="fitbit-weight">
     <div class="flx-box" style="border-left-color:{{color}}">
-        <span class="flx-deviceIcon fitbit-body"></span>
+        <span class="flx-deviceIcon fitbit-weight"></span>
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
@@ -168,10 +168,10 @@
                 <div class="flx-data">
                     <span class="flx-dataLabel">Weight</span>
                     <span class="flx-text">{{weight}} {{weightUnitLabel}}</span>
-                    <span class="flx-dataLabel">Fat</span>
-                    <span class="flx-text">{{fat}} {{weightUnitLabel}}</span>
-                    <span class="flx-dataLabel">Fat Percentage</span>
-                    <span class="flx-text">{{fatPercentage}} %</span>
+                </div>
+                <div class="flx-data">
+                    <span class="flx-dataLabel">BMI</span>
+                    <span class="flx-text">{{bmi}}</span>
                 </div>
             </div>
             {{/facets}}

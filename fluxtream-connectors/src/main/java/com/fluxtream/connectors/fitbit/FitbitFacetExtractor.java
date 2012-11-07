@@ -1,20 +1,15 @@
 package com.fluxtream.connectors.fitbit;
 
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import java.util.TimeZone;
 import com.fluxtream.ApiData;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
-import com.fluxtream.services.MetadataService;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -35,8 +30,8 @@ public class FitbitFacetExtractor extends AbstractFacetExtractor {
 			extractSummaryActivityInfo(apiData, fitbitResponse, facets);
 		else if (objectType.getName().equals("logged_activity"))
 			extractLoggedActivities(apiData, fitbitResponse, facets);
-        else if (objectType.getName().equals("body"))
-            extractBodyMeasurementsInfo(apiData, fitbitResponse, facets);
+        else if (objectType.getName().equals("weight"))
+            extractWeightInfo(apiData, fitbitResponse, facets);
         else
 			logger.info("guestId=" + apiData.updateInfo.getGuestId() +
 					" connector=fitbit action=extractFacets error=no such objectType");
@@ -44,47 +39,45 @@ public class FitbitFacetExtractor extends AbstractFacetExtractor {
 		return facets;
 	}
 
-    private void extractBodyMeasurementsInfo(final ApiData apiData, final JSONObject fitbitResponse, final List<AbstractFacet> facets) {
+    private void extractWeightInfo(final ApiData apiData, final JSONObject fitbitResponse, final List<AbstractFacet> facets) {
         long guestId = apiData.updateInfo.getGuestId();
         logger.info("guestId=" + guestId +
                     " connector=fitbit action=extractSummaryActivityInfo");
 
-        FitbitBodyMeasurementFacet facet = new FitbitBodyMeasurementFacet();
-
-        JSONObject fitbitBodyMeasurements = fitbitResponse.getJSONObject("body");
-
-        super.extractCommonFacetData(facet, apiData);
+        JSONArray fitbitWeightMeasurements = fitbitResponse.getJSONArray("weight");
 
         logger.info(
                 "guestId=" + guestId +
-                " connector=fitbit action=extractBodyMeasurementsInfo");
-        facet.date = apiData.getDate(TimeZone.getTimeZone("UTC"));
-        facet.startTimeStorage = facet.endTimeStorage = noon(facet.date);
+                " connector=fitbit action=extractWeightInfo");
 
-        if (fitbitBodyMeasurements.containsKey("bicep"))
-            facet.bicep = fitbitBodyMeasurements.getDouble("bicep");
-        if (fitbitBodyMeasurements.containsKey("bmi"))
-            facet.bmi = fitbitBodyMeasurements.getDouble("bmi");
-        if (fitbitBodyMeasurements.containsKey("calf"))
-            facet.calf = fitbitBodyMeasurements.getDouble("calf");
-        if (fitbitBodyMeasurements.containsKey("chest"))
-            facet.chest = fitbitBodyMeasurements.getDouble("chest");
-        if (fitbitBodyMeasurements.containsKey("fat"))
-            facet.fat = fitbitBodyMeasurements.getDouble("fat");
-        if (fitbitBodyMeasurements.containsKey("forearm"))
-            facet.forearm = fitbitBodyMeasurements.getDouble("forearm");
-        if (fitbitBodyMeasurements.containsKey("hips"))
-            facet.hips = fitbitBodyMeasurements.getDouble("hips");
-        if (fitbitBodyMeasurements.containsKey("neck"))
-            facet.neck = fitbitBodyMeasurements.getDouble("neck");
-        if (fitbitBodyMeasurements.containsKey("thigh"))
-            facet.thigh = fitbitBodyMeasurements.getDouble("thigh");
-        if (fitbitBodyMeasurements.containsKey("waist"))
-            facet.waist = fitbitBodyMeasurements.getDouble("waist");
-        if (fitbitBodyMeasurements.containsKey("weight"))
-            facet.weight = fitbitBodyMeasurements.getDouble("weight");
+        for(int i=0; i<fitbitWeightMeasurements.size(); i++) {
+            FitbitWeightFacet facet = new FitbitWeightFacet();
+            super.extractCommonFacetData(facet, apiData);
 
-        facets.add(facet);
+            facet.date = (String) apiData.updateInfo.getContext("date");
+            facet.startTimeStorage = facet.endTimeStorage = noon(facet.date);
+    
+            if (fitbitWeightMeasurements.getJSONObject(i).containsKey("bmi"))
+                facet.bmi = fitbitWeightMeasurements.getJSONObject(i).getDouble("bmi");
+            //if (fitbitWeightMeasurements.getJSONObject(i).containsKey("fat"))
+            //    facet.fat = fitbitWeightMeasurements.getJSONObject(i).getDouble("fat");
+            if (fitbitWeightMeasurements.getJSONObject(i).containsKey("weight"))
+                facet.weight = fitbitWeightMeasurements.getJSONObject(i).getDouble("weight");
+            if (fitbitWeightMeasurements.getJSONObject(i).containsKey("time")) {
+                String time = fitbitWeightMeasurements.getJSONObject(i).getString("time");
+                String[] timeParts = time.split(":");
+                int hours = Integer.valueOf(timeParts[0]);
+                int minutes = Integer.valueOf(timeParts[1]);
+                int seconds = Integer.valueOf(timeParts[2]);
+                String[] dateParts = facet.date.split("-");
+                int year = Integer.valueOf(dateParts[0]);
+                int month = Integer.valueOf(dateParts[1]);
+                int day = Integer.valueOf(dateParts[2]);
+                facet.startTimeStorage = facet.endTimeStorage = toTimeStorage(year, month, day, hours, minutes, seconds);
+            }
+
+            facets.add(facet);
+        }
     }
 
     private void extractSummaryActivityInfo(ApiData apiData,
@@ -100,7 +93,7 @@ public class FitbitFacetExtractor extends AbstractFacetExtractor {
 		super.extractCommonFacetData(facet, apiData);
 		logger.info("guestId=" + guestId +
                     " connector=fitbit action=extractSummaryActivityInfo");
-		facet.date = apiData.getDate(TimeZone.getTimeZone("UTC"));
+		facet.date = (String) apiData.updateInfo.getContext("date");
         facet.startTimeStorage = facet.endTimeStorage = noon(facet.date);
 
 		if (fitbitSummary.containsKey("activeScore"))
@@ -141,7 +134,7 @@ public class FitbitFacetExtractor extends AbstractFacetExtractor {
 			FitbitLoggedActivityFacet facet = new FitbitLoggedActivityFacet();
 			super.extractCommonFacetData(facet, apiData);
 
-			facet.date = apiData.getDate(TimeZone.getTimeZone("UTC"));
+            facet.date = (String) apiData.updateInfo.getContext("date");
 
             final String startTime = loggedActivity.getString("startTime");
             facet.startTimeStorage = facet.endTimeStorage = facet.date+"T" + startTime+":00.000";

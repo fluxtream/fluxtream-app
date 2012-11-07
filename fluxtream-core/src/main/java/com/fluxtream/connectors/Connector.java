@@ -248,7 +248,7 @@ public class Connector {
     }
 
     public enum UpdateStrategyType {
-        ALWAYS_UPDATE, INCREMENTAL, PUSH
+        ALWAYS_UPDATE, INCREMENTAL
     }
 
     UpdateStrategyType updateStrategyType = UpdateStrategyType.INCREMENTAL;
