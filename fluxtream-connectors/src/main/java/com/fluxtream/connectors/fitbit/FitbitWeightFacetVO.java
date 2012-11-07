@@ -28,7 +28,7 @@ public class FitbitWeightFacetVO extends AbstractInstantFacetVO<FitbitWeightFace
             default:
                 this.weightUnitLabel = "lb";
         }
-        bmi = facet.bmi;
+        bmi = round(facet.bmi);
         fat = round(facet.fat);
         format(facet.weight, settings.weightMeasureUnit);
     }

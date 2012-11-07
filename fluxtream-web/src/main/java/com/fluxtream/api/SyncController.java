@@ -59,7 +59,7 @@ public class SyncController {
     @Produces({MediaType.APPLICATION_JSON})
     public String updateConnector(@PathParam("connector") String connectorName){
         setTransactionName(null, "POST /sync/" + connectorName);
-        return sync(connectorName, false);
+        return sync(connectorName, true);
     }
 
     private String sync(final String connectorName, final boolean force) {

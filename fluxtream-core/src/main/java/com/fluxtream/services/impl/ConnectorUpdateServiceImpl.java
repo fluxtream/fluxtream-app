@@ -77,7 +77,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
         if (isShuttingDown) {
             StringBuilder sb = new StringBuilder("module=updateQueue component=connectorUpdateService" +
                                                  " action=updateConnector")
-                    .append(" message=\"Service is shutting down... Refusing updates\"");
+                    .append(" message=\"Serv   ice is shutting down... Refusing updates\"");
             logger.warn(sb.toString());
             return scheduleResults;
         }
@@ -85,8 +85,9 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
         for (int objectTypes : objectTypeValues) {
             ApiUpdate lastUpdate = getLastUpdate(guestId, connector);
             // only update if the last update was more than 5 minutes ago
-            if (System.currentTimeMillis()-lastUpdate.ts>5*60000)
-                scheduleObjectTypeUpdate(guestId, connector, objectTypes, scheduleResults, force);
+            if (!force&&System.currentTimeMillis()-lastUpdate.ts<5*60000)
+                continue;
+            scheduleObjectTypeUpdate(guestId, connector, objectTypes, scheduleResults, force);
         }
         return scheduleResults;
     }
@@ -123,9 +124,6 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
             scheduleResults.add(new ScheduleResult(connector.getName(), objectTypes, ScheduleResult.ResultType.ALREADY_SCHEDULED, updateWorkerTask.timeScheduled));
         }
         else {
-            if (force)
-                stopUpdating(guestId, connector, false);
-
             UpdateType updateType = isHistoryUpdateCompleted(guestId, connector.getName(), objectTypes)
                                                ? UpdateType.INCREMENTAL_UPDATE
                                                : UpdateType.INITIAL_HISTORY_UPDATE;

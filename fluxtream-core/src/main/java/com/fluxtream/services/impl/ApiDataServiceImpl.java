@@ -181,7 +181,20 @@ public class ApiDataServiceImpl implements ApiDataService {
 			jpaDao.deleteAllFacets(connector, objectType, guestId);
 	}
 
-	@Override
+    @Override
+    public void eraseApiData(final long guestId, final Connector connector,
+                             final int objectTypes, final TimeInterval timeInterval) {
+        List<ObjectType> connectorTypes = ObjectType.getObjectTypes(connector,
+                                                                    objectTypes);
+        if (connectorTypes!=null) {
+            for (ObjectType objectType : connectorTypes) {
+                eraseApiData(guestId, connector, objectType, timeInterval);
+            }
+        } else
+            eraseApiData(guestId, connector, null, timeInterval);
+    }
+
+    @Override
 	@Transactional(readOnly = false)
 	// TODO: make a named query that works for all api objects
 	public void eraseApiData(long guestId, Connector api,
@@ -194,19 +207,16 @@ public class ApiDataServiceImpl implements ApiDataService {
 		}
 	}
 
-	@Override
-	@Transactional(readOnly = false)
-	public void eraseApiData(long guestId, Connector connector,
-			int objectTypes, TimeInterval timeInterval) {
-		List<ObjectType> connectorTypes = ObjectType.getObjectTypes(connector,
-				objectTypes);
-		if (connectorTypes!=null) {
-			for (ObjectType objectType : connectorTypes) {
-				eraseApiData(guestId, connector, objectType, timeInterval);
-			}
-		} else
-			eraseApiData(guestId, connector, null, timeInterval);
-	}
+    @Override
+    @Transactional(readOnly = false)
+    public void eraseApiData(long guestId, Connector connector,
+                             ObjectType objectType, List<String> dates) {
+        final List<AbstractFacet> facets = jpaDao.getFacetsByDates(connector, guestId, objectType, dates);
+        if (facets != null) {
+            for (AbstractFacet facet : facets)
+                em.remove(facet);
+        }
+    }
 
 	@Override
 	@Transactional(readOnly = false)

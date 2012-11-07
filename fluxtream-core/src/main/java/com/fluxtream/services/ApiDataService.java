@@ -76,6 +76,9 @@ public interface ApiDataService {
 	public void eraseApiData(long guestId, Connector api,
 			ObjectType objectType, TimeInterval timeInterval);
 
+    public void eraseApiData(long guestId, Connector api,
+                             ObjectType objectType, List<String> dates);
+
 	public void cacheEmptyData(UpdateInfo updateInfo, long fromMidnight,
 			long toMidnight);
 

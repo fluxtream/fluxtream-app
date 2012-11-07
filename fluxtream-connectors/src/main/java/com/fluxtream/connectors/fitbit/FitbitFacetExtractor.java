@@ -30,55 +30,12 @@ public class FitbitFacetExtractor extends AbstractFacetExtractor {
 			extractSummaryActivityInfo(apiData, fitbitResponse, facets);
 		else if (objectType.getName().equals("logged_activity"))
 			extractLoggedActivities(apiData, fitbitResponse, facets);
-        else if (objectType.getName().equals("weight"))
-            extractWeightInfo(apiData, fitbitResponse, facets);
         else
 			logger.info("guestId=" + apiData.updateInfo.getGuestId() +
 					" connector=fitbit action=extractFacets error=no such objectType");
 
 		return facets;
 	}
-
-    private void extractWeightInfo(final ApiData apiData, final JSONObject fitbitResponse, final List<AbstractFacet> facets) {
-        long guestId = apiData.updateInfo.getGuestId();
-        logger.info("guestId=" + guestId +
-                    " connector=fitbit action=extractSummaryActivityInfo");
-
-        JSONArray fitbitWeightMeasurements = fitbitResponse.getJSONArray("weight");
-
-        logger.info(
-                "guestId=" + guestId +
-                " connector=fitbit action=extractWeightInfo");
-
-        for(int i=0; i<fitbitWeightMeasurements.size(); i++) {
-            FitbitWeightFacet facet = new FitbitWeightFacet();
-            super.extractCommonFacetData(facet, apiData);
-
-            facet.date = (String) apiData.updateInfo.getContext("date");
-            facet.startTimeStorage = facet.endTimeStorage = noon(facet.date);
-    
-            if (fitbitWeightMeasurements.getJSONObject(i).containsKey("bmi"))
-                facet.bmi = fitbitWeightMeasurements.getJSONObject(i).getDouble("bmi");
-            //if (fitbitWeightMeasurements.getJSONObject(i).containsKey("fat"))
-            //    facet.fat = fitbitWeightMeasurements.getJSONObject(i).getDouble("fat");
-            if (fitbitWeightMeasurements.getJSONObject(i).containsKey("weight"))
-                facet.weight = fitbitWeightMeasurements.getJSONObject(i).getDouble("weight");
-            if (fitbitWeightMeasurements.getJSONObject(i).containsKey("time")) {
-                String time = fitbitWeightMeasurements.getJSONObject(i).getString("time");
-                String[] timeParts = time.split(":");
-                int hours = Integer.valueOf(timeParts[0]);
-                int minutes = Integer.valueOf(timeParts[1]);
-                int seconds = Integer.valueOf(timeParts[2]);
-                String[] dateParts = facet.date.split("-");
-                int year = Integer.valueOf(dateParts[0]);
-                int month = Integer.valueOf(dateParts[1]);
-                int day = Integer.valueOf(dateParts[2]);
-                facet.startTimeStorage = facet.endTimeStorage = toTimeStorage(year, month, day, hours, minutes, seconds);
-            }
-
-            facets.add(facet);
-        }
-    }
 
     private void extractSummaryActivityInfo(ApiData apiData,
 			JSONObject fitbitResponse, List<AbstractFacet> facets) {

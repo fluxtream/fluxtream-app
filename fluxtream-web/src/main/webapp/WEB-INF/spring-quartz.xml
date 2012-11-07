@@ -8,26 +8,26 @@
 	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
 		<property name="triggers">
 			<list>
-				<ref bean="producerTrigger" />
+				<!--<ref bean="producerTrigger" />-->
 				<ref bean="consumerTrigger" />
 			</list>
 		</property>
 	</bean>
 	
- 	<bean id="producerTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
-		<property name="jobDetail" ref="producerJobDetail" />
-		<property name="startDelay" value="0" />
-		<property name="repeatInterval" value="60000" />
-	</bean>
+ 	<!--<bean id="producerTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean">-->
+		<!--<property name="jobDetail" ref="producerJobDetail" />-->
+		<!--<property name="startDelay" value="0" />-->
+		<!--<property name="repeatInterval" value="60000" />-->
+	<!--</bean>-->
 
-	<bean id="producerJobDetail"
-		class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
-		<property name="targetObject" ref="producer" />
-		<property name="targetMethod" value="scheduleIncrementalUpdates" />
-		<property name="concurrent" value="false" />
-	</bean>
-	<bean id="producer" class="com.fluxtream.updaters.quartz.Producer"/>
-	
+    <!--<bean id="producer" class="com.fluxtream.updaters.quartz.Producer"/>-->
+    <!--<bean id="producerJobDetail"-->
+          <!--class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">-->
+        <!--<property name="targetObject" ref="producer" />-->
+        <!--<property name="targetMethod" value="scheduleIncrementalUpdates" />-->
+        <!--<property name="concurrent" value="false" />-->
+    <!--</bean>-->
+
  	<bean id="consumerTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
 		<property name="jobDetail" ref="consumerJobDetail" />
 		<property name="startDelay" value="0" />

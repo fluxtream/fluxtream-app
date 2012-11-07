@@ -1,6 +1,7 @@
 package com.fluxtream.connectors.fitbit;
 
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -345,7 +346,7 @@ public class FitBitTSUpdater extends AbstractUpdater {
             final TimeZone timeZone = metadataService.getTimeZone(updateInfo.getGuestId(), dateString);
             Date date = new Date(dateFormat.withZone(
                     DateTimeZone.forTimeZone(timeZone)).parseMillis(dateString));
-            updateOneDayOfData(updateInfo, timeZone, date);
+            updateOneDayOfData(updateInfo, timeZone, date, dateString);
         } else {
             long time = System.currentTimeMillis();
             final ApiUpdate lastSuccessfulUpdate = connectorUpdateService.getLastSuccessfulUpdate(updateInfo.getGuestId(), connector());
@@ -355,14 +356,15 @@ public class FitBitTSUpdater extends AbstractUpdater {
             String dayOfLastUpdate = dateFormat.withZone(DateTimeZone.forTimeZone(previousTimeZone)).print(lastSuccessfulUpdate.ts);
             if (!(today.equals(dayOfLastUpdate))) {
                 updateInfo.setContext("date", dayOfLastUpdate);
-                updateOneDayOfData(updateInfo, previousTimeZone, new Date(lastSuccessfulUpdate.ts));
+                updateOneDayOfData(updateInfo, previousTimeZone, new Date(lastSuccessfulUpdate.ts), dayOfLastUpdate);
             }
             updateInfo.setContext("date", today);
-            updateOneDayOfData(updateInfo, timeZone, new Date(time));
+            updateOneDayOfData(updateInfo, timeZone, new Date(time), today);
         }
 	}
 
-    private void updateOneDayOfData(final UpdateInfo updateInfo, final TimeZone userTimeZone, final Date date) throws Exception {
+    private void updateOneDayOfData(final UpdateInfo updateInfo, final TimeZone userTimeZone, final Date date,
+                                    final String dateString) throws Exception {
         long from = TimeUtils.fromMidnight(date.getTime(), userTimeZone);
         long to = TimeUtils.toMidnight(date.getTime(), userTimeZone);
         TimeInterval timeInterval = new TimeInterval(from, to, TimeUnit.DAY,
@@ -371,7 +373,7 @@ public class FitBitTSUpdater extends AbstractUpdater {
         if (updateInfo.objectTypes().contains(sleepOT)) {
             apiDataService.eraseApiData(updateInfo.getGuestId(),
                     updateInfo.apiKey.getConnector(), sleepOT,
-                    timeInterval);
+                    Arrays.asList(dateString));
             try {
                 loadSleepDataForOneDay(updateInfo, date, userTimeZone);
             } catch (RuntimeException e) {
@@ -382,11 +384,10 @@ public class FitBitTSUpdater extends AbstractUpdater {
         }
         if (updateInfo.objectTypes().contains(activityOT)) {
             apiDataService.eraseApiData(updateInfo.getGuestId(),
-                    updateInfo.apiKey.getConnector(), activityOT,
-                    timeInterval);
+                    updateInfo.apiKey.getConnector(), activityOT, Arrays.asList(dateString));
             apiDataService.eraseApiData(updateInfo.getGuestId(),
                     updateInfo.apiKey.getConnector(), loggedActivityOT,
-                    timeInterval);
+                    Arrays.asList(dateString));
             try {
                 loadActivityDataForOneDay(updateInfo, date, userTimeZone);
             } catch (RuntimeException e) {
@@ -398,7 +399,7 @@ public class FitBitTSUpdater extends AbstractUpdater {
         if (updateInfo.objectTypes().contains(weightOT)) {
             apiDataService.eraseApiData(updateInfo.getGuestId(),
                                         updateInfo.apiKey.getConnector(), weightOT,
-                                        timeInterval);
+                                        Arrays.asList(dateString));
             try {
                 loadWeightDataForOneDay(updateInfo, date, userTimeZone);
             } catch (RuntimeException e) {
