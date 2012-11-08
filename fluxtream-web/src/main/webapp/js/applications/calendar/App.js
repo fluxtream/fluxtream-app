@@ -161,6 +161,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 					Calendar.currentTab.saveState();
 				}
 				Calendar.tabState = response.state;
+                if (Calendar.timeUnit != response.timeUnit) {
+                    Calendar.timeUnit = response.timeUnit;
+                    Calendar.renderState(Calendar.currentTabName + "/" + Calendar.tabState + (Calendar.tabParam == null ? "" : "/" + Calendar.tabParam));
+                }
                 updateDisplays();
                 Calendar.start = response.start;
                 Calendar.end  = response.end;
