@@ -3,11 +3,12 @@ define(["core/TabInterface"], function(TabInterface) {
 	var Builder = {};
 
     var tabsPath = "applications/calendar/tabs/";
-    var tabPaths = [tabsPath + "clock/ClockTab", tabsPath + "dashboards/DashboardsTab", tabsPath + "diary/DiaryTab",
-                    tabsPath + "list/ListTab", tabsPath + "map/MapTab", tabsPath + "photos/PhotosTab", tabsPath + "timeline/TimelineTab"];
+    var tabPaths = [tabsPath + "clock/ClockTab", tabsPath + "dashboards/DashboardsTab",
+                    tabsPath + "diary/DiaryTab", tabsPath + "list/ListTab",
+                    tabsPath + "map/MapTab", tabsPath + "photos/PhotosTab",
+                    tabsPath + "timeline/TimelineTab"];
 
     var tabInterface = new TabInterface(tabPaths);
-
 	
 	var tabs = {
         "fullList":["clock","dashboards","map","photos","list","timeline"],

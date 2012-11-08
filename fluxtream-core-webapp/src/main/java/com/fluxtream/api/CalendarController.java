@@ -16,6 +16,7 @@ import com.fluxtream.mvc.models.CalendarModel;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
 import org.apache.log4j.Logger;
+import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,7 +56,7 @@ public class CalendarController {
                 .append(" guestId=").append(guestId);
         logger.info(sb.toString());
         CalendarModel calendarModel = CalendarModel.fromState(guestId, metadataService, state);
-        return calendarModel.toJSONString(guestId, metadataService, env);
+        return calendarModel.toJSONString(env);
     }
 
     @POST
@@ -70,7 +71,7 @@ public class CalendarController {
                 .append(" state=").append(state);
         logger.info(sb.toString());
         CalendarModel calendarModel = new CalendarModel(guestId, metadataService);
-        return calendarModel.toJSONString(guestId, metadataService, env);
+        return calendarModel.toJSONString(env);
     }
 
     @GET
@@ -87,8 +88,8 @@ public class CalendarController {
                 .append(" guestId=").append(guestId);
         logger.info(sb.toString());
         CalendarModel calendarModel = new CalendarModel(guestId, metadataService);
-        calendarModel.setWeek(guestId, metadataService, year, week);
-        return calendarModel.toJSONString(guestId, metadataService, env);
+        calendarModel.setWeek(year, week);
+        return calendarModel.toJSONString(env);
     }
 
     private static final DateTimeFormatter jsDateFormatter = DateTimeFormat
@@ -99,43 +100,27 @@ public class CalendarController {
     @Produces({ MediaType.APPLICATION_JSON })
     public String getDateRangeForWeek(@QueryParam("week") int week,
                                       @QueryParam("year") int year) {
-        final Calendar fromCalendar = Calendar.getInstance();
-        fromCalendar.setTimeZone(TimeZone.getTimeZone("UTC"));
-        fromCalendar.set(Calendar.YEAR, year);
-        fromCalendar.set(Calendar.WEEK_OF_YEAR, week);
-        fromCalendar.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
-        fromCalendar.set(Calendar.HOUR_OF_DAY, 0);
-        fromCalendar.set(Calendar.MINUTE, 0);
-        fromCalendar.set(Calendar.SECOND, 0);
-        fromCalendar.set(Calendar.MILLISECOND, 0);
-        String date = jsDateFormatter.print(fromCalendar.getTimeInMillis());
-        final TimeZone tz = metadataService.getTimeZone(AuthHelper.getGuestId(), date);
-        fromCalendar.setTimeZone(tz);
+        final LocalDate firstOfWeek = CalendarModel.getBeginningOfWeek(year, week);
+        final String startDate = jsDateFormatter.print(firstOfWeek);
+        final String endDate = jsDateFormatter.print(firstOfWeek.plusWeeks(1));
 
-        final Calendar toCalendar = Calendar.getInstance();
-        toCalendar.setTimeZone(tz);
-        toCalendar.set(Calendar.YEAR, year);
-        toCalendar.set(Calendar.WEEK_OF_YEAR, week);
-        toCalendar.set(Calendar.DAY_OF_WEEK, Calendar.SATURDAY);
-        toCalendar.set(Calendar.HOUR_OF_DAY, 23);
-        toCalendar.set(Calendar.MINUTE, 59);
-        toCalendar.set(Calendar.SECOND, 59);
-        toCalendar.set(Calendar.MILLISECOND, 999);
-        return "[" + fromCalendar.getTimeInMillis() + "," + toCalendar.getTimeInMillis() + "]";
+        return String.format("[\"%s\", \"%s\"]", startDate, endDate);
     }
 
     @GET
     @Path(value="/getMeTheJavaComputedWeekForThisDate")
     @Produces({ MediaType.APPLICATION_JSON })
     public String getDateWeek(@QueryParam("formattedDate") String formattedDate) {
-        final TimeZone tz = metadataService.getTimeZone(AuthHelper.getGuestId(), formattedDate);
         final String[] splits = formattedDate.split("-");
-        Calendar c = Calendar.getInstance(tz);
-        c.set(Calendar.YEAR, Integer.valueOf(splits[0]));
-        c.set(Calendar.MONTH,  Integer.valueOf(splits[1])-1);
-        c.set(Calendar.DATE, Integer.valueOf(splits[2]));
-        c.setTimeZone(tz);
-        return "[" + c.get(Calendar.YEAR) + "," + c.get(Calendar.WEEK_OF_YEAR) + "]";
+        final int year = Integer.valueOf(splits[0]);
+        final int month = Integer.valueOf(splits[1]);
+        final int date = Integer.valueOf(splits[2]);
+
+        final LocalDate firstOfWeek = CalendarModel.getBeginningOfWeek(year, month, date);
+
+        return String.format("[%d, %d]",
+                             firstOfWeek.getWeekyear(),
+                             firstOfWeek.getWeekOfWeekyear());
     }
 
     @GET
@@ -152,8 +137,8 @@ public class CalendarController {
                 .append(" state=").append(state)
                 .append(" guestId=").append(guestId);
         CalendarModel calendarModel = new CalendarModel(guestId, metadataService);
-        calendarModel.setMonth(guestId, metadataService, year, month);
-        return calendarModel.toJSONString(guestId, metadataService, env);
+        calendarModel.setMonth(year, month);
+        return calendarModel.toJSONString(env);
     }
 
     @GET
@@ -168,8 +153,8 @@ public class CalendarController {
                 .append(" state=").append(state)
                 .append(" guestId=").append(guestId);
         CalendarModel calendarModel = new CalendarModel(guestId, metadataService);
-        calendarModel.setYear(guestId, metadataService, year);
-        return calendarModel.toJSONString(guestId, metadataService, env);
+        calendarModel.setYear(year);
+        return calendarModel.toJSONString(env);
     }
 
     @GET
@@ -184,8 +169,8 @@ public class CalendarController {
                 .append(" date=").append(date);
         logger.info(sb.toString());
         CalendarModel calendarModel = new CalendarModel(guestId, metadataService);
-        calendarModel.setDate(guestId, metadataService, date);
-        return calendarModel.toJSONString(guestId, metadataService, env);
+        calendarModel.setDate(date);
+        return calendarModel.toJSONString(env);
     }
 
     @POST
@@ -199,10 +184,8 @@ public class CalendarController {
                 .append(" guestId=").append(guestId);
         logger.info(sb.toString());
         CalendarModel calendarModel = CalendarModel.fromState(guestId, metadataService, state);
-        final Date stateDate = calendarModel.getStartTime();
-        calendarModel.decrementTimespan(guestId, metadataService, state);
-        final Date nextDate = calendarModel.getStartTime();
-        return calendarModel.toJSONString(guestId, metadataService, env);
+        calendarModel.decrementTimespan();
+        return calendarModel.toJSONString(env);
     }
 
     @POST
@@ -216,8 +199,8 @@ public class CalendarController {
                 .append(" guestId=").append(guestId);
         logger.info(sb.toString());
         CalendarModel calendarModel = CalendarModel.fromState(guestId, metadataService, state);
-        calendarModel.incrementTimespan(guestId, metadataService, state);
-        return calendarModel.toJSONString(guestId, metadataService, env);
+        calendarModel.incrementTimespan();
+        return calendarModel.toJSONString(env);
     }
 
     @POST
@@ -232,7 +215,7 @@ public class CalendarController {
         logger.info(sb.toString());
         CalendarModel calendarModel = CalendarModel.fromState(guestId, metadataService, state);
         calendarModel.setDayTimeUnit();
-        return calendarModel.toJSONString(guestId, metadataService, env);
+        return calendarModel.toJSONString(env);
     }
 
     @POST
@@ -247,7 +230,7 @@ public class CalendarController {
         logger.info(sb.toString());
         CalendarModel calendarModel = CalendarModel.fromState(guestId, metadataService, state);
         calendarModel.setWeekTimeUnit();
-        return calendarModel.toJSONString(guestId, metadataService, env);
+        return calendarModel.toJSONString(env);
     }
 
     @POST
@@ -262,7 +245,7 @@ public class CalendarController {
         logger.info(sb.toString());
         CalendarModel calendarModel = CalendarModel.fromState(guestId, metadataService, state);
         calendarModel.setMonthTimeUnit();
-        return calendarModel.toJSONString(guestId, metadataService, env);
+        return calendarModel.toJSONString(env);
     }
 
     @POST
@@ -277,8 +260,6 @@ public class CalendarController {
         logger.info(sb.toString());
         CalendarModel calendarModel = CalendarModel.fromState(guestId, metadataService, state);
         calendarModel.setYearTimeUnit();
-        return calendarModel.toJSONString(guestId, metadataService, env);
+        return calendarModel.toJSONString(env);
     }
-
-
 }

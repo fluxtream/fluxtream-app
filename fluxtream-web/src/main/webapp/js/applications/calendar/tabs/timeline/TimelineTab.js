@@ -2,8 +2,6 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
         "applications/calendar/App"],
     function(Tab, FlxState, Grapher, Calendar) {
 
-
-
     var timelineTab = new Tab("calendar", "timeline", "Candide Kemmler", "icon-film", false);
     var digest;
     var grapher = null;
@@ -136,7 +134,7 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
                         break;
                     case "month":
                         var year = splits[2];
-                        var month = splits[3];
+                        var month = splits[3] - 1;
                         var start = new Date(year,month,1,0,0,0,0).getTime()/1000;
                         var end = new Date(year,month,App.getLastDayOfMonth(year,month),11,59,59,999).getTime()/1000;
                         grapher.setRange(start,end);

@@ -194,7 +194,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 break;
             case "MONTH":
                 var splits = Calendar.tabState.split("/");
-                var d = new Date(splits[1],splits[2],1,0,0,0,0);
+                var d = new Date(splits[1],splits[2]-1,1,0,0,0,0);
                 setDatepicker(App.formatDateAsDatePicker(d));
                 break;
             case "YEAR":
@@ -254,40 +254,40 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 var month;
                 switch ($(event.target).text()){
                     case "Jan":
-                        month = 0;
-                        break;
-                    case "Feb":
                         month = 1;
                         break;
-                    case "Mar":
+                    case "Feb":
                         month = 2;
                         break;
-                    case "Apr":
+                    case "Mar":
                         month = 3;
                         break;
-                    case "May":
+                    case "Apr":
                         month = 4;
                         break;
-                    case "Jun":
+                    case "May":
                         month = 5;
                         break;
-                    case "Jul":
+                    case "Jun":
                         month = 6;
                         break;
-                    case "Aug":
+                    case "Jul":
                         month = 7;
                         break;
-                    case "Sep":
+                    case "Aug":
                         month = 8;
                         break;
-                    case "Oct":
+                    case "Sep":
                         month = 9;
                         break;
-                    case "Nov":
+                    case "Oct":
                         month = 10;
                         break;
-                    case "Dec":
+                    case "Nov":
                         month = 11;
+                        break;
+                    case "Dec":
+                        month = 12;
                         break;
                 }
                 if (Calendar.currentTab.timeNavigation("set/month/" + $(".datepicker-months .switch").text() + "/" + month)){
@@ -717,7 +717,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
        return result;
    }
 
-   function getDateRangeForWeek(year,week){
+   function getDateRangeForWeek(year,week) {
        if (week==null) return null;
        var result = null, range = null;
        $.ajax({
@@ -727,8 +727,25 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                result = data;
            }
        });
-       range = [new Date(result[0]+86400000), new Date(result[1]+86400000)];
-       return range;
+       if (result == null) {
+           return null;
+       }
+       var startParts = result[0].split("-");
+       var endParts = result[1].split("-");
+       if (startParts == null || endParts == null) {
+           return null;
+       }
+
+       var startYear = startParts[0];
+       var startMonth = startParts[1];
+       var startDate = startParts[2];
+
+       var endYear = endParts[0];
+       var endMonth = endParts[1];
+       var endDate = endParts[2];
+
+       return [new Date(startYear, startMonth, startDate),
+               new Date(endYear, endMonth, endDate)];
    }
 
    var w2date = function(year, wn, dayNb){
@@ -749,7 +766,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 dateString = weekInfo[0] + "/" + weekInfo[1];
                 break;
             case 'MONTH':
-                dateString = date.getFullYear() + "/" + (date.getMonth() < 10 ? 0 : "") + date.getMonth();
+                dateString = date.getFullYear() + "/" + (date.getMonth() < 9 ? 0 : "") + (date.getMonth() + 1);
                 break;
             case 'YEAR':
                 dateString =  date.getFullYear();
@@ -781,6 +798,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                                 ", " + (d.getFullYear());
                 break;
             case "WEEK":
+                // TODO: Use the server's view of weeks, rather than determining weeks on the client
                 state = "timeline/week/" + date;
                 Calendar.tabState = "week/" + date;
                 var dateSplits = date.split("/");
@@ -792,7 +810,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 state = "timeline/month/" + date;
                 Calendar.tabState = "month/" + date;
                 var dateSplits = date.split("/");
-                dateLabel = monthsOfYearFull[parseInt(dateSplits[1])] + " " + dateSplits[0];
+                dateLabel = monthsOfYearFull[parseInt(dateSplits[1])-1] + " " + dateSplits[0];
                 break;
             case "YEAR":
                 state = "timeline/year/" + date;
@@ -841,6 +859,4 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     }
 
 	return Calendar;
-
-
 });

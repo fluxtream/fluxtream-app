@@ -241,7 +241,7 @@ define(
 
         App.removeConnector = function(api) {
             var c = confirm("If you wrote comments on events related to this connector, "
-                                + "you will loose them forever.\n"
+                                + "you will lose them forever.\n"
                                 + "Are your sure you want to continue?");
             if (c) {
                 $.ajax({
@@ -439,11 +439,11 @@ define(
             value += ", " + year;
             if (includeTime){
                 value += " " + hour;
-                value += ":"
+                value += ":";
                 if (minute < 10)
                     value += "0";
                 value += minute;
-                value += ":"
+                value += ":";
                 if (second < 10)
                     value += "0";
                 value += second;
