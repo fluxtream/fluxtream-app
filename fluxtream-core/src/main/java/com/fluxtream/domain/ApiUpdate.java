@@ -29,6 +29,8 @@ import org.hibernate.annotations.Type;
 		query = "DELETE FROM ApiUpdates updt WHERE updt.guestId=? AND updt.api=?"),
     @NamedQuery( name="apiUpdates.last.paged",
                  query="SELECT updt FROM ApiUpdates updt WHERE updt.guestId=? and updt.api=? ORDER BY updt.ts DESC"),
+    @NamedQuery( name="apiUpdates.last.byObjectTypes",
+                 query="SELECT updt FROM ApiUpdates updt WHERE updt.guestId=? and updt.api=? and updt.objectType=? ORDER BY updt.ts DESC LIMIT 10"),
     @NamedQuery( name="apiUpdates.last",
 		query="SELECT updt FROM ApiUpdates updt WHERE updt.guestId=? and updt.api=? ORDER BY updt.ts DESC LIMIT 10"),
 	@NamedQuery( name="apiUpdates.last.successful.byApi",

@@ -11,6 +11,8 @@ import javax.persistence.PersistenceContext;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.TimeUnit;
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.connectors.ObjectType;
+import com.fluxtream.connectors.SyncNeededAware;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.ScheduleResult;
 import com.fluxtream.connectors.updaters.UpdateInfo;
@@ -77,17 +79,33 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
         if (isShuttingDown) {
             StringBuilder sb = new StringBuilder("module=updateQueue component=connectorUpdateService" +
                                                  " action=updateConnector")
-                    .append(" message=\"Serv   ice is shutting down... Refusing updates\"");
+                    .append(" message=\"Service is shutting down... Refusing updates\"");
             logger.warn(sb.toString());
             return scheduleResults;
         }
-        int[] objectTypeValues = connector.objectTypeValues();
-        for (int objectTypes : objectTypeValues) {
-            ApiUpdate lastUpdate = getLastUpdate(guestId, connector);
-            // only update if the last update was more than 5 minutes ago
-            if (!force&&System.currentTimeMillis()-lastUpdate.ts<5*60000)
-                continue;
-            scheduleObjectTypeUpdate(guestId, connector, objectTypes, scheduleResults, force);
+        ApiUpdate lastUpdate = getLastUpdate(guestId, connector);
+        // only update if the last update was more than 5 minutes ago
+        if (!force&&System.currentTimeMillis()-lastUpdate.ts<5*60000)
+            return scheduleResults;
+        if (connector instanceof SyncNeededAware) {
+            ApiKey apiKey = guestService.getApiKey(guestId, connector);
+            try {
+                final List<Integer> objectTypeValues = ((SyncNeededAware)connector).getSyncNeededObjectTypeValues(apiKey);
+                for (Integer objectTypes : objectTypeValues) {
+                    scheduleObjectTypeUpdate(guestId, connector, objectTypes, scheduleResults, force);
+                }
+            }
+            catch (Exception e) {
+                StringBuilder sb = new StringBuilder("module=updateQueue component=connectorUpdateService" +
+                                                     " action=updateConnector");
+                sb.append(" message=\"Could not figure out if connector needs synching. This will result in a stale connector\"");
+                logger.error(sb);
+            }
+        } else {
+            int[] objectTypeValues = connector.objectTypeValues();
+            for (int objectTypes : objectTypeValues) {
+                scheduleObjectTypeUpdate(guestId, connector, objectTypes, scheduleResults, force);
+            }
         }
         return scheduleResults;
     }
