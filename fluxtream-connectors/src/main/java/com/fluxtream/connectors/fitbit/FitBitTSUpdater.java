@@ -6,19 +6,36 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
+import com.fluxtream.TimeInterval;
+import com.fluxtream.TimeUnit;
+import com.fluxtream.connectors.ObjectType;
+import com.fluxtream.connectors.SignpostOAuthHelper;
 import com.fluxtream.connectors.SyncNeededAware;
+import com.fluxtream.connectors.annotations.JsonFacetCollection;
+import com.fluxtream.connectors.annotations.Updater;
+import com.fluxtream.connectors.updaters.AbstractUpdater;
+import com.fluxtream.connectors.updaters.RateLimitReachedException;
+import com.fluxtream.connectors.updaters.UpdateInfo;
+import com.fluxtream.connectors.updaters.UpdateInfo.UpdateType;
 import com.fluxtream.domain.AbstractFloatingTimeZoneFacet;
+import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ApiUpdate;
+import com.fluxtream.domain.metadata.DayMetadataFacet;
+import com.fluxtream.services.ApiDataService;
+import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.NotificationsService;
+import com.fluxtream.utils.TimeUtils;
+import com.fluxtream.utils.Utils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-
 import org.apache.log4j.Logger;
 import org.joda.time.DateTimeZone;
+import org.joda.time.Days;
+import org.joda.time.DurationFieldType;
+import org.joda.time.Instant;
+import org.joda.time.LocalDate;
 import org.joda.time.MutableDateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -28,23 +45,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-
-import com.fluxtream.TimeInterval;
-import com.fluxtream.TimeUnit;
-import com.fluxtream.connectors.ObjectType;
-import com.fluxtream.connectors.SignpostOAuthHelper;
-import com.fluxtream.connectors.annotations.JsonFacetCollection;
-import com.fluxtream.connectors.annotations.Updater;
-import com.fluxtream.connectors.updaters.AbstractUpdater;
-import com.fluxtream.connectors.updaters.RateLimitReachedException;
-import com.fluxtream.connectors.updaters.UpdateInfo;
-import com.fluxtream.connectors.updaters.UpdateInfo.UpdateType;
-import com.fluxtream.domain.ApiKey;
-import com.fluxtream.domain.metadata.DayMetadataFacet;
-import com.fluxtream.services.ApiDataService;
-import com.fluxtream.services.MetadataService;
-import com.fluxtream.utils.TimeUtils;
-import com.fluxtream.utils.Utils;
 
 /**
  * @author candide
@@ -381,6 +381,33 @@ public class FitBitTSUpdater extends AbstractUpdater implements SyncNeededAware 
         return syncNeededObjectTypeValues;
     }
 
+    public List<String> getDaysSinceLastSync(final ApiKey apiKey, final String deviceType) throws RateLimitReachedException {
+        final JSONArray devices = getDeviceStatusesArray(apiKey);
+        for (int i=0; i<devices.size(); i++) {
+            JSONObject deviceStatus = devices.getJSONObject(i);
+            String type = deviceStatus.getString("type");
+            String dateTime = deviceStatus.getString("lastSyncTime");
+            final long ts = AbstractFloatingTimeZoneFacet.timeStorageFormat.parseMillis(dateTime);
+            if (type.equalsIgnoreCase(deviceType)) {
+                return getListOfDatesSince(ts);
+            }
+        }
+        return new ArrayList<String>();
+    }
+
+    private List<String> getListOfDatesSince(final long ts) {
+        List<String> dates = new ArrayList<String>();
+        final DateTimeZone utc = DateTimeZone.forTimeZone(TimeZone.getTimeZone("UTC"));
+        final LocalDate startDate = new LocalDate(ts, utc);
+        int days = Days.daysBetween(startDate, new LocalDate(System.currentTimeMillis())).getDays();
+        for (int i = 0; i < days; i++) {
+            LocalDate d = startDate.withFieldAdded(DurationFieldType.days(), i);
+            String dateString = dateFormat.print(d.toDateTimeAtStartOfDay().getMillis());
+            dates.add(dateString);
+        }
+        return dates;
+    }
+
     private JSONArray getDeviceStatusesArray(final ApiKey apiKey) throws RateLimitReachedException {
         String urlString = "http://api.fitbit.com/1/user/-/devices.json";
 
@@ -400,19 +427,27 @@ public class FitBitTSUpdater extends AbstractUpdater implements SyncNeededAware 
                     DateTimeZone.forTimeZone(timeZone)).parseMillis(dateString));
             updateOneDayOfData(updateInfo, timeZone, date, dateString);
         } else {
-            long time = System.currentTimeMillis();
-            // TODO: REPLACE THIS
-            final ApiUpdate lastSuccessfulUpdate = connectorUpdateService.getLastSuccessfulUpdate(updateInfo.getGuestId(), connector());
-            TimeZone timeZone = metadataService.getTimeZone(updateInfo.getGuestId(), time);
-            String today = dateFormat.withZone(DateTimeZone.forTimeZone(timeZone)).print(time);
-            TimeZone previousTimeZone = metadataService.getTimeZone(updateInfo.getGuestId(), lastSuccessfulUpdate.ts);
-            String dayOfLastUpdate = dateFormat.withZone(DateTimeZone.forTimeZone(previousTimeZone)).print(lastSuccessfulUpdate.ts);
-            if (!(today.equals(dayOfLastUpdate))) {
-                updateOneDayOfData(updateInfo, previousTimeZone, new Date(lastSuccessfulUpdate.ts), dayOfLastUpdate);
+            if (updateInfo.objectTypes().contains(sleepOT)) {
+                final List<String> trackerDaysToSync = getDaysSinceLastSync(updateInfo.apiKey, "TRACKER");
+                updateListOfDays(updateInfo, trackerDaysToSync);
+            } else if (updateInfo.objectTypes().contains(activityOT)) {
+                final List<String> trackerDaysToSync = getDaysSinceLastSync(updateInfo.apiKey, "TRACKER");
+                updateListOfDays(updateInfo, trackerDaysToSync);
+            } else if (updateInfo.objectTypes().contains(weightOT)) {
+                final List<String> scaleDaysToSync = getDaysSinceLastSync(updateInfo.apiKey, "SCALE");
+                updateListOfDays(updateInfo, scaleDaysToSync);
             }
-            updateOneDayOfData(updateInfo, timeZone, new Date(time), today);
         }
 	}
+
+    private void updateListOfDays(final UpdateInfo updateInfo, final List<String> trackerDaysToSync) throws Exception {
+        for (String dateString : trackerDaysToSync) {
+            final TimeZone timeZone = metadataService.getTimeZone(updateInfo.getGuestId(), dateString);
+            Date date = new Date(dateFormat.withZone(
+                    DateTimeZone.forTimeZone(timeZone)).parseMillis(dateString));
+            updateOneDayOfData(updateInfo, timeZone, date, dateString);
+        }
+    }
 
     private void updateOneDayOfData(final UpdateInfo updateInfo, final TimeZone userTimeZone, final Date date,
                                     final String dateString) throws Exception {
@@ -423,40 +458,44 @@ public class FitBitTSUpdater extends AbstractUpdater implements SyncNeededAware 
                 userTimeZone);
 
         if (updateInfo.objectTypes().contains(sleepOT)) {
-            apiDataService.eraseApiData(updateInfo.getGuestId(),
-                    updateInfo.apiKey.getConnector(), sleepOT,
-                    Arrays.asList(dateString));
-            try {
-                loadSleepDataForOneDay(updateInfo, date, userTimeZone);
-            } catch (RuntimeException e) {
-                logger.warn("guestId=" + updateInfo.getGuestId() +
-                        " connector=fitbit objectType=activity action=historyUpdate exception="
-                                + Utils.mediumStackTrace(e));
-            }
-        }
-        if (updateInfo.objectTypes().contains(activityOT)) {
-            apiDataService.eraseApiData(updateInfo.getGuestId(),
-                    updateInfo.apiKey.getConnector(), activityOT, Arrays.asList(dateString));
-            apiDataService.eraseApiData(updateInfo.getGuestId(),
-                    updateInfo.apiKey.getConnector(), loggedActivityOT,
-                    Arrays.asList(dateString));
-            try {
-                loadActivityDataForOneDay(updateInfo, date, userTimeZone);
-            } catch (RuntimeException e) {
-                logger.warn("guestId=" + updateInfo.getGuestId() +
-                        " connector=fitbit objectType=activity action=historyUpdate exception="
-                                + Utils.shortStackTrace(e));
-            }
-        }
-        if (updateInfo.objectTypes().contains(weightOT)) {
-            apiDataService.eraseApiData(updateInfo.getGuestId(), updateInfo.apiKey.getConnector(), weightOT, Arrays.asList(dateString));
-            try {
-                loadWeightDataForOneDay(updateInfo, date, userTimeZone);
-            } catch (RuntimeException e) {
-                logger.warn("guestId=" + updateInfo.getGuestId() +
-                            " connector=fitbit objectType=weightMeasurement action=historyUpdate exception="
-                            + Utils.shortStackTrace(e));
-            }
+            logger.info("guestId=" + updateInfo.getGuestId() + " objectType=sleep" +
+                        " connector=fitbit objectType=weightMeasurement action=updateOneDayOfData exception=");
+            //apiDataService.eraseApiData(updateInfo.getGuestId(),
+            //        updateInfo.apiKey.getConnector(), sleepOT,
+            //        Arrays.asList(dateString));
+            //try {
+            //    loadSleepDataForOneDay(updateInfo, date, userTimeZone);
+            //} catch (RuntimeException e) {
+            //    logger.warn("guestId=" + updateInfo.getGuestId() +
+            //            " connector=fitbit objectType=activity action=updateOneDayOfData exception="
+            //                    + Utils.mediumStackTrace(e));
+            //}
+        } else if (updateInfo.objectTypes().contains(activityOT)) {
+            logger.info("guestId=" + updateInfo.getGuestId() + " objectType=activity" +
+                        " connector=fitbit objectType=weightMeasurement action=updateOneDayOfData exception=");
+            //apiDataService.eraseApiData(updateInfo.getGuestId(),
+            //        updateInfo.apiKey.getConnector(), activityOT, Arrays.asList(dateString));
+            //apiDataService.eraseApiData(updateInfo.getGuestId(),
+            //        updateInfo.apiKey.getConnector(), loggedActivityOT,
+            //        Arrays.asList(dateString));
+            //try {
+            //    loadActivityDataForOneDay(updateInfo, date, userTimeZone);
+            //} catch (RuntimeException e) {
+            //    logger.warn("guestId=" + updateInfo.getGuestId() +
+            //            " connector=fitbit objectType=activity action=updateOneDayOfData exception="
+            //                    + Utils.shortStackTrace(e));
+            //}
+        } else if (updateInfo.objectTypes().contains(weightOT)) {
+            logger.info("guestId=" + updateInfo.getGuestId() + " objectType=weight" +
+                        " connector=fitbit objectType=weightMeasurement action=updateOneDayOfData exception=");
+            //apiDataService.eraseApiData(updateInfo.getGuestId(), updateInfo.apiKey.getConnector(), weightOT, Arrays.asList(dateString));
+            //try {
+            //    loadWeightDataForOneDay(updateInfo, date, userTimeZone);
+            //} catch (RuntimeException e) {
+            //    logger.warn("guestId=" + updateInfo.getGuestId() +
+            //                " connector=fitbit objectType=weightMeasurement action=updateOneDayOfData exception="
+            //                + Utils.shortStackTrace(e));
+            //}
         }
     }
 
