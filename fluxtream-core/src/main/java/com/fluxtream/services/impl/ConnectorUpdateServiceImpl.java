@@ -72,7 +72,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
      * Update all the facet types for a given user and connector.
      * @param guestId the user for whom the connector is to be updated
      * @param connector the connector to be updated
-     * @param force force an update (sync now)
+     * @param force force an update (sync now); if false, it means it was called by the background "cron" task
      * @return
      */
     @Override
@@ -86,7 +86,8 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
             return scheduleResults;
         }
 
-        // only update if the last update was more than 5 minutes ago
+        // when called by the cron/quartz process (force==false), only update if the last update
+        // happened more than 5 minutes ago
         ApiUpdate lastUpdate = getLastUpdate(guestId, connector);
         if (!force&&System.currentTimeMillis()-lastUpdate.ts<5*60000)
             return scheduleResults;
@@ -98,17 +99,17 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 
         // some connectors (e.g. the fitbit) provide a way to know wether we need to update
         // the data or not. In the case of the fitbit for example, if the device was not synched
-        // with fitbit.com since last time we checked, there is no point in synching with them
-        if (connector.isSyncNeededAware()) {
+        // with fitbit.com since last time we checked, there is no point in synching with them.
+        // This however only makes sense when the initial history import has completed
+        final boolean historyUpdateCompleted = isHistoryUpdateCompleted(guestId, connector);
+        if (connector.isSyncNeededAware() && historyUpdateCompleted) {
+
             ApiKey apiKey = guestService.getApiKey(guestId, connector);
             try {
-                connector.objectTypeValues();
                 SyncNeededAware updater = (SyncNeededAware)getUpdater(connector);
                 final List<Integer> objectTypeValues = updater.getSyncNeededObjectTypeValues(apiKey);
-                for (Integer objectTypes : objectTypeValues) {
-                    if (isHistoryUpdateCompleted(guestId, connector.getName(), objectTypes))
-                        scheduleObjectTypeUpdate(guestId, connector, objectTypes, scheduleResults, force);
-                }
+                for (Integer objectTypes : objectTypeValues)
+                    scheduleObjectTypeUpdate(guestId, connector, objectTypes, scheduleResults);
             }
             catch (Exception e) {
                 StringBuilder sb = new StringBuilder("module=updateQueue component=connectorUpdateService" +
@@ -119,10 +120,19 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
         } else {
             int[] objectTypeValues = connector.objectTypeValues();
             for (int objectTypes : objectTypeValues) {
-                scheduleObjectTypeUpdate(guestId, connector, objectTypes, scheduleResults, force);
+                scheduleObjectTypeUpdate(guestId, connector, objectTypes, scheduleResults);
             }
         }
         return scheduleResults;
+    }
+
+    private boolean isHistoryUpdateCompleted(final long guestId, final Connector connector) {
+        final int[] connectorObjectTypeValues = connector.objectTypeValues();
+        final List<ScheduleResult> scheduleResults;
+        for (int connectorObjectTypeValue : connectorObjectTypeValues)
+            if (!isHistoryUpdateCompleted(guestId, connector.getName(), connectorObjectTypeValue))
+                return false;
+        return true;
     }
 
     @Override
@@ -136,7 +146,11 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
             return scheduleResults;
         }
         getScheduledUpdateTask(guestId, connector.getName(), objectTypes);
-        scheduleObjectTypeUpdate(guestId, connector, objectTypes, scheduleResults, force);
+        // if forcing an update (sync now), we actually want to flush the update requests
+        // that have stacked up in the queue
+        if (force)
+            flushUpdateWorkerTasks(guestId, connector, objectTypes, false);
+        scheduleObjectTypeUpdate(guestId, connector, objectTypes, scheduleResults);
         return scheduleResults;
     }
 
@@ -148,14 +162,12 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
      * @param scheduleResults The result of adding the update will be added to the list. \result.type will be of type
      *                        ScheduleResult.ResultType. If there was a previously existing \result.type will be
      *                        ALREADY_SCHEDULED
-     * @param force force an update (sync now)
      */
     private void scheduleObjectTypeUpdate(long guestId, Connector connector, int objectTypes,
-                                          List<ScheduleResult> scheduleResults, boolean force) {
+                                          List<ScheduleResult> scheduleResults) {
         UpdateWorkerTask updateWorkerTask = getScheduledUpdateTask(guestId, connector.getName(), objectTypes);
-        if (!force && updateWorkerTask != null) {
+        if (updateWorkerTask != null)
             scheduleResults.add(new ScheduleResult(connector.getName(), objectTypes, ScheduleResult.ResultType.ALREADY_SCHEDULED, updateWorkerTask.timeScheduled));
-        }
         else {
             UpdateType updateType = isHistoryUpdateCompleted(guestId, connector.getName(), objectTypes)
                                                ? UpdateType.INCREMENTAL_UPDATE
@@ -165,6 +177,12 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
         }
     }
 
+    /**
+     * Calls updateConnector(...) for all of a guest's connector
+     * @param guestId
+     * @return a list of objects that describe worker tasks that have been either modified or added
+     * to the update queue
+     */
     @Override
     public List<ScheduleResult> updateAllConnectors(final long guestId) {
         List<ConnectorInfo> connectors =  systemService.getConnectors();
@@ -391,8 +409,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 
     @Override
     public List<ApiUpdate> getUpdates(long guestId, final Connector connector, final int pageSize, final int page) {
-        return JPAUtils.findPaged(em, ApiUpdate.class, "apiUpdates.last.paged", pageSize, page,
-                                                     guestId, connector.value());
+        return JPAUtils.findPaged(em, ApiUpdate.class, "apiUpdates.last.paged", pageSize, page, guestId, connector.value());
     }
 
     @Override
@@ -423,9 +440,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
     @Override
     @Transactional(readOnly = false)
     public List<UpdateWorkerTask> getScheduledOrInProgressUpdateTasks(long guestId, Connector connector) {
-		List<UpdateWorkerTask> updateWorkerTask = JPAUtils.find(em,
-				UpdateWorkerTask.class, "updateWorkerTasks.isScheduledOrInProgress",
-				guestId, connector.getName());
+		List<UpdateWorkerTask> updateWorkerTask = JPAUtils.find(em, UpdateWorkerTask.class, "updateWorkerTasks.isScheduledOrInProgress", guestId, connector.getName());
         for (UpdateWorkerTask workerTask : updateWorkerTask) {
             if (hasStalled(workerTask)) {
                 workerTask.status = Status.STALLED;
@@ -485,6 +500,29 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
         else
             JPAUtils.execute(em, "updateWorkerTasks.deleteAll.byApi", guestId,
                              connector.getName());
+    }
+
+    /**
+     * delete pending tasks for a guest's connector
+     * @param guestId
+     * @param connector
+     * @param wipeOutHistory wether to delete everything including the initial history update that
+     *                       we use to track wether we need to everything from scratch or just do so
+     *                       incrementally
+     */
+    @Transactional(readOnly = false)
+    @Override
+    public void flushUpdateWorkerTasks(long guestId, Connector connector, int objectTypes, boolean wipeOutHistory) {
+        List<AbstractUpdater> toStop = new ArrayList<AbstractUpdater>();
+        if (!wipeOutHistory)
+            JPAUtils.execute(em, "updateWorkerTasks.delete.byApiAndObjectType", guestId,
+                             connector.getName(),
+                             objectTypes,
+                             UpdateType.INITIAL_HISTORY_UPDATE);
+        else
+            JPAUtils.execute(em, "updateWorkerTasks.deleteAll.byApiAndObjectType", guestId,
+                             connector.getName(),
+                             objectTypes);
     }
 
     public void shutdown() {

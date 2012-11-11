@@ -89,6 +89,8 @@ public interface ConnectorUpdateService {
 
 	public void flushUpdateWorkerTasks(long guestId, Connector connector, boolean wipeOutHistory);
 
+    public void flushUpdateWorkerTasks(long guestId, Connector connector, int objectTypes, boolean wipeOutHistory);
+
     public void shutdown();
 
 	public long getTotalNumberOfGuestsUsingConnector(Connector connector);

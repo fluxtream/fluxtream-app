@@ -21,6 +21,11 @@ import com.fluxtream.connectors.updaters.UpdateInfo;
                  query = "DELETE FROM ScheduledUpdate updt " +
                          "WHERE updt.guestId=? " +
                          "AND updt.connectorName=?"),
+    @NamedQuery( name = "updateWorkerTasks.deleteAll.byApiAndObjectType",
+                 query = "DELETE FROM ScheduledUpdate updt " +
+                         "WHERE updt.guestId=? " +
+                         "AND updt.connectorName=? " +
+                         "AND updt.objectTypes=?"),
     @NamedQuery( name = "updateWorkerTasks.delete.byApiAndObjectType",
 		query = "DELETE FROM ScheduledUpdate updt " +
                 "WHERE updt.guestId=? " +
