@@ -150,7 +150,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements SyncNeededAware 
             loadTimeSeries("body/fat", updateInfo.apiKey, weightOT,
                            "fat");
         }
-		
+		jpaDaoService.execute("DELETE FROM Facet_FitbitSleep sleep WHERE sleep.startTimeStorage=null and sleep.endTimeStorage=null");
 	}
 
 	public void updateCaloriesIntraday(FitbitTrackerActivityFacet facet, ApiKey apiKey)
@@ -234,6 +234,8 @@ public class FitBitTSUpdater extends AbstractUpdater implements SyncNeededAware 
 						facet.guestId = apiKey.getGuestId();
 						facet.start = dayMetadata.start;
 						facet.end = dayMetadata.end;
+                        facet.startTimeStorage = date + "T" + "00:00:00.000";
+                        facet.endTimeStorage = date+"T"+"23:59:59.000";
 						facetDao.persist(facet);
 					}
 					addToActivityFacet(facet, entry, fieldName);
@@ -246,6 +248,8 @@ public class FitBitTSUpdater extends AbstractUpdater implements SyncNeededAware 
                         facet.guestId = apiKey.getGuestId();
                         facet.start = dayMetadata.start;
                         facet.end = dayMetadata.end;
+                        facet.startTimeStorage = date+"T"+"23:59:59.000";
+                        facet.endTimeStorage = date+"T"+"23:59:59.000";
                         facetDao.persist(facet);
                     }
                     addToWeightFacet(facet, entry, fieldName);
