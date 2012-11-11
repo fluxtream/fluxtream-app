@@ -77,20 +77,14 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
      */
     @Override
     public List<ScheduleResult> updateConnector(final long guestId, Connector connector, boolean force){
+        System.out.println("updateConnector");
         List<ScheduleResult> scheduleResults = new ArrayList<ScheduleResult>();
+        StringBuilder messageRoot = new StringBuilder("module=updateQueue component=connectorUpdateService" +
+                                             " action=updateConnector");
         if (isShuttingDown) {
-            StringBuilder sb = new StringBuilder("module=updateQueue component=connectorUpdateService" +
-                                                 " action=updateConnector")
-                    .append(" message=\"Service is shutting down... Refusing updates\"");
-            logger.warn(sb.toString());
+            logger.warn(messageRoot.append(" message=\"Service is shutting down... Refusing updates\""));
             return scheduleResults;
         }
-
-        // when called by the cron/quartz process (force==false), only update if the last update
-        // happened more than 5 minutes ago
-        ApiUpdate lastUpdate = getLastUpdate(guestId, connector);
-        if (!force&&System.currentTimeMillis()-lastUpdate.ts<5*60000)
-            return scheduleResults;
 
         // if forcing an update (sync now), we actually want to flush the update requests
         // that have stacked up in the queue
@@ -103,11 +97,13 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
         // This however only makes sense when the initial history import has completed
         final boolean historyUpdateCompleted = isHistoryUpdateCompleted(guestId, connector);
         if (connector.isSyncNeededAware() && historyUpdateCompleted) {
+            logger.debug(messageRoot.append(" message=\"update (sync aware) connector (").append(connector.getName()).append(")\""));
 
             ApiKey apiKey = guestService.getApiKey(guestId, connector);
             try {
                 SyncNeededAware updater = (SyncNeededAware)getUpdater(connector);
                 final List<Integer> objectTypeValues = updater.getSyncNeededObjectTypeValues(apiKey);
+                logger.debug(messageRoot.append(" message=\"sync is needed for the following objectTypes: ").append(objectTypeValues).append("\""));
                 for (Integer objectTypes : objectTypeValues)
                     scheduleObjectTypeUpdate(guestId, connector, objectTypes, scheduleResults);
             }
