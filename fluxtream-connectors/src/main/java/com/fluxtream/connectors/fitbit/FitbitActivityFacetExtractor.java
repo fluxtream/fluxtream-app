@@ -13,9 +13,9 @@ import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
 
 @Component
-public class FitbitFacetExtractor extends AbstractFacetExtractor {
+public class FitbitActivityFacetExtractor extends AbstractFacetExtractor {
 
-	Logger logger = Logger.getLogger(FitbitFacetExtractor.class);
+	Logger logger = Logger.getLogger(FitbitActivityFacetExtractor.class);
 
 	public List<AbstractFacet> extractFacets(ApiData apiData,
 			ObjectType objectType) {
@@ -43,7 +43,7 @@ public class FitbitFacetExtractor extends AbstractFacetExtractor {
 		logger.info("guestId=" + guestId +
 				" connector=fitbit action=extractSummaryActivityInfo");
 
-		FitbitActivityFacet facet = new FitbitActivityFacet();
+		FitbitTrackerActivityFacet facet = new FitbitTrackerActivityFacet();
 
 		JSONObject fitbitSummary = fitbitResponse.getJSONObject("summary");
 

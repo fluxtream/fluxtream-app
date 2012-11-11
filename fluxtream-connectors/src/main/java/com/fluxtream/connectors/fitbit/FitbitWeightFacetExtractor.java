@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class FitbitWeightFacetExtractor extends AbstractFacetExtractor {
 
-    Logger logger = Logger.getLogger(FitbitFacetExtractor.class);
+    Logger logger = Logger.getLogger(FitbitActivityFacetExtractor.class);
 
     @Override
     public List<AbstractFacet> extractFacets(final ApiData apiData, final ObjectType objectType) throws Exception {

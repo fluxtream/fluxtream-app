@@ -10,12 +10,10 @@ import com.fluxtream.domain.AbstractFloatingTimeZoneFacet;
 import org.hibernate.search.annotations.Indexed;
 
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
-import com.fluxtream.domain.AbstractFacet;
 import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormatter;
 
 @Entity(name="Facet_FitbitLoggedActivity")
-@ObjectTypeSpec(name = "logged_activity", value = 2, extractor=FitbitFacetExtractor.class, prettyname = "Logged Activities", isDateBased = true)
+@ObjectTypeSpec(name = "logged_activity", value = 2, extractor= FitbitActivityFacetExtractor.class, prettyname = "Logged Activities", isDateBased = true)
 @NamedQueries({
 		@NamedQuery(name = "fitbit.logged_activity.deleteAll", query = "DELETE FROM Facet_FitbitLoggedActivity facet WHERE facet.guestId=?"),
 		@NamedQuery(name = "fitbit.logged_activity.between", query = "SELECT facet FROM Facet_FitbitLoggedActivity facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=?"),

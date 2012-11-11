@@ -25,14 +25,10 @@ import org.springframework.context.annotation.ClassPathScanningCandidateComponen
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.stereotype.Component;
 
-@Component
 public class Connector {
 
     private static Map<String, Connector> connectors = new ConcurrentHashMap<String, Connector>();
     private static Map<Integer, Connector> connectorsByValue = new ConcurrentHashMap<Integer, Connector>();
-
-    @Autowired
-    BeanFactory beanFactory;
 
     static {
         Connector flxConnector = new Connector();
@@ -252,6 +248,10 @@ public class Connector {
         return splits[splits.length-2];
     }
 
+    public Class<? extends AbstractUpdater> getUpdaterClass() {
+        return updaterClass;
+    }
+
     public enum UpdateStrategyType {
         ALWAYS_UPDATE, INCREMENTAL
     }
@@ -274,10 +274,13 @@ public class Connector {
     private Class<? extends AbstractUpdater> updaterClass;
     private AbstractUpdater updater;
 
-    public AbstractUpdater getUpdater() {
-        if (this.updater==null)
-            this.updater = beanFactory.getBean(updaterClass);
-        return this.updater;
+    public boolean isSyncNeededAware() {
+        final Class<?>[] interfaces = this.updaterClass.getInterfaces();
+        for (Class<?> anInterface : interfaces) {
+            if (anInterface==SyncNeededAware.class)
+                return true;
+        }
+        return false;
     }
 
     public boolean isManageable(){

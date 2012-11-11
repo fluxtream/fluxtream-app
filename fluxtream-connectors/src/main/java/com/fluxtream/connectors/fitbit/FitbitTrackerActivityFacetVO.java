@@ -4,15 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fluxtream.connectors.vos.AbstractInstantFacetVO;
-import com.fluxtream.connectors.vos.AbstractTimedFacetVO;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 import com.fluxtream.TimeInterval;
-import com.fluxtream.connectors.vos.AbstractFacetVO;
 import com.fluxtream.domain.GuestSettings;
 
-public class FitbitActivityFacetVO extends AbstractInstantFacetVO<FitbitActivityFacet> {
+public class FitbitTrackerActivityFacetVO extends AbstractInstantFacetVO<FitbitTrackerActivityFacet> {
 
 	int steps;
 	int caloriesOut;
@@ -21,7 +19,7 @@ public class FitbitActivityFacetVO extends AbstractInstantFacetVO<FitbitActivity
 	int activeScore;
 	float MET;
 	@Override
-	public void fromFacet(FitbitActivityFacet facet, TimeInterval timeInterval, GuestSettings settings) {
+	public void fromFacet(FitbitTrackerActivityFacet facet, TimeInterval timeInterval, GuestSettings settings) {
 		steps = facet.steps;
 		caloriesOut = facet.caloriesOut;
 		activeScore = facet.activeScore;

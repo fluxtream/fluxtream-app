@@ -318,6 +318,12 @@ public class ApiDataServiceImpl implements ApiDataService {
             try {
                 aftzFacet.updateTimeInfo(localTimeZone);
             } catch (Throwable e) {
+                final String message = new StringBuilder("Could not parse floating " +
+                                                         "timezone facet's time storage: (startTimeStorage=")
+                        .append(aftzFacet.startTimeStorage)
+                        .append(", endTimeStorage=")
+                        .append(aftzFacet.endTimeStorage)
+                        .append(")").toString();
                 StringBuilder sb = new StringBuilder("module=updateQueue component=apiDataServiceImpl action=persistFacet")
                         .append(" connector=").append(Connector.fromValue(facet.api).getName())
                         .append(" objectType=").append(facet.objectType)
@@ -325,7 +331,7 @@ public class ApiDataServiceImpl implements ApiDataService {
                         .append(" message=\"Couldn't update updateTimeInfo\"")
                         .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
                 logger.warn(sb.toString());
-                throw new RuntimeException("Could not parse floating timezone facet's time storage");
+                throw new RuntimeException(message);
             }
         }
 		Query query = em.createQuery("SELECT e FROM " + entityName + " e WHERE e.guestId=? AND e.start=? AND e.end=?");

@@ -13,11 +13,9 @@ import com.fluxtream.connectors.updaters.RateLimitReachedException;
 import com.fluxtream.domain.AbstractFloatingTimeZoneFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Updatable;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 
 @Entity(name="Facet_FitbitActivity")
-@ObjectTypeSpec(name = "activity_summary", value = 1, extractor=FitbitFacetExtractor.class, prettyname = "Activity Summary", isDateBased = true)
+@ObjectTypeSpec(name = "activity_summary", value = 1, extractor= FitbitActivityFacetExtractor.class, prettyname = "Activity Summary", isDateBased = true)
 @NamedQueries({
 		@NamedQuery(name = "fitbit.activity_summary.byStartEnd",
 				query = "SELECT facet FROM Facet_FitbitActivity facet WHERE facet.guestId=? AND facet.start=? and facet.end=?"),
@@ -32,7 +30,7 @@ import org.joda.time.format.DateTimeFormatter;
         @NamedQuery(name = "fitbit.activity_summary.byDates", query = "SELECT facet FROM Facet_FitbitActivity facet WHERE facet.guestId=? AND facet.date IN ?")
 })
 @Indexed
-public class FitbitActivityFacet extends AbstractFloatingTimeZoneFacet implements Updatable {
+public class FitbitTrackerActivityFacet extends AbstractFloatingTimeZoneFacet implements Updatable {
 	
 	public int activeScore;
 	public int caloriesOut;

@@ -3,19 +3,15 @@ package com.fluxtream.services.impl;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-import java.util.TimeZone;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import com.fluxtream.TimeInterval;
-import com.fluxtream.TimeUnit;
 import com.fluxtream.connectors.Connector;
-import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.SyncNeededAware;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.ScheduleResult;
-import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.connectors.updaters.UpdateInfo.UpdateType;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ApiNotification;
@@ -28,7 +24,6 @@ import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.SystemService;
-import com.fluxtream.updaters.strategies.UpdateStrategy;
 import com.fluxtream.updaters.strategies.UpdateStrategyFactory;
 import com.fluxtream.utils.JPAUtils;
 import org.apache.log4j.Logger;
@@ -46,7 +41,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 
 	static Logger logger = Logger.getLogger(ConnectorUpdateServiceImpl.class);
 
-	private Map<Connector, AbstractUpdater> updaters = new HashMap<Connector, AbstractUpdater>();
+	private Map<Connector, AbstractUpdater> updaters = new Hashtable<Connector, AbstractUpdater>();
 
     private boolean isShuttingDown;
 
@@ -73,6 +68,13 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
     @Autowired
     MetadataService metadataService;
 
+    /**
+     * Update all the facet types for a given user and connector.
+     * @param guestId the user for whom the connector is to be updated
+     * @param connector the connector to be updated
+     * @param force force an update (sync now)
+     * @return
+     */
     @Override
     public List<ScheduleResult> updateConnector(final long guestId, Connector connector, boolean force){
         List<ScheduleResult> scheduleResults = new ArrayList<ScheduleResult>();
@@ -83,16 +85,29 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
             logger.warn(sb.toString());
             return scheduleResults;
         }
-        ApiUpdate lastUpdate = getLastUpdate(guestId, connector);
+
         // only update if the last update was more than 5 minutes ago
+        ApiUpdate lastUpdate = getLastUpdate(guestId, connector);
         if (!force&&System.currentTimeMillis()-lastUpdate.ts<5*60000)
             return scheduleResults;
-        if (connector instanceof SyncNeededAware) {
+
+        // if forcing an update (sync now), we actually want to flush the update requests
+        // that have stacked up in the queue
+        if (force)
+            flushUpdateWorkerTasks(guestId, connector, false);
+
+        // some connectors (e.g. the fitbit) provide a way to know wether we need to update
+        // the data or not. In the case of the fitbit for example, if the device was not synched
+        // with fitbit.com since last time we checked, there is no point in synching with them
+        if (connector.isSyncNeededAware()) {
             ApiKey apiKey = guestService.getApiKey(guestId, connector);
             try {
-                final List<Integer> objectTypeValues = ((SyncNeededAware)connector).getSyncNeededObjectTypeValues(apiKey);
+                connector.objectTypeValues();
+                SyncNeededAware updater = (SyncNeededAware)getUpdater(connector);
+                final List<Integer> objectTypeValues = updater.getSyncNeededObjectTypeValues(apiKey);
                 for (Integer objectTypes : objectTypeValues) {
-                    scheduleObjectTypeUpdate(guestId, connector, objectTypes, scheduleResults, force);
+                    if (isHistoryUpdateCompleted(guestId, connector.getName(), objectTypes))
+                        scheduleObjectTypeUpdate(guestId, connector, objectTypes, scheduleResults, force);
                 }
             }
             catch (Exception e) {
@@ -274,7 +289,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 
 	@Override
 	public AbstractUpdater getUpdater(Connector connector) {
-		return updaters.get(connector);
+        return beanFactory.getBean(connector.getUpdaterClass());
 	}
 
 	@Override
@@ -461,7 +476,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
      */
 	@Transactional(readOnly = false)
 	@Override
-	public void stopUpdating(long guestId, Connector connector, boolean wipeOutHistory) {
+	public void flushUpdateWorkerTasks(long guestId, Connector connector, boolean wipeOutHistory) {
         List<AbstractUpdater> toStop = new ArrayList<AbstractUpdater>();
         if (!wipeOutHistory)
             JPAUtils.execute(em, "updateWorkerTasks.delete.byApi", guestId,
