@@ -415,7 +415,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements SyncNeededAware 
 
             if (lastActivityUpdate==null) {
 
-                final FitbitTrackerActivityFacet newestActivityRecord = jpaDaoService.findOne("fitbit.activity_summary.newest", FitbitTrackerActivityFacet.class, null);
+                final FitbitTrackerActivityFacet newestActivityRecord = jpaDaoService.findOne("fitbit.activity_summary.newest", FitbitTrackerActivityFacet.class, apiKey.getGuestId());
                 lastDayWithData = newestActivityRecord.start;
 
             } else {
@@ -430,7 +430,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements SyncNeededAware 
             final ApiUpdate lastWeightUpdate = connectorUpdateService.getLastSuccessfulUpdate(apiKey.getGuestId(), apiKey.getConnector(), weightOT.value());
 
             if (lastWeightUpdate==null) {
-                final FitbitWeightFacet newestWeightRecord = jpaDaoService.findOne("fitbit.weight.newest", FitbitWeightFacet.class, null);
+                final FitbitWeightFacet newestWeightRecord = jpaDaoService.findOne("fitbit.weight.newest", FitbitWeightFacet.class, apiKey.getGuestId());
                 lastDayWithData = newestWeightRecord.start;
             } else {
                 lastDayWithData = lastWeightUpdate.ts;
