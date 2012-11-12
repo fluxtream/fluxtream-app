@@ -13,7 +13,7 @@ public class DataReceivedEvent extends Event {
 
     public long guestId;
     public Connector connector;
-    List<ObjectType> objectTypes;
+    public List<ObjectType> objectTypes;
     public String date;
 
     public long start, end;
