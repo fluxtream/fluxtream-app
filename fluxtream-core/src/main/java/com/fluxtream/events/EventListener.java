@@ -1,7 +1,6 @@
 package com.fluxtream.events;
 
 import com.fluxtream.domain.Event;
-import com.fluxtream.events.push.PushEvent;
 
 /**
  *
