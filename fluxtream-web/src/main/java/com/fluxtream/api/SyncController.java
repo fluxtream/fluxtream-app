@@ -59,7 +59,7 @@ public class SyncController {
     @Produces({MediaType.APPLICATION_JSON})
     public String updateConnector(@PathParam("connector") String connectorName){
         setTransactionName(null, "POST /sync/" + connectorName);
-        return sync(connectorName, false);
+        return sync(connectorName, true);
     }
 
     private String sync(final String connectorName, final boolean force) {
@@ -171,7 +171,7 @@ public class SyncController {
         Connector connector = Connector.getConnector(connectorName);
         Guest guest = AuthHelper.getGuest();
         final ApiUpdate lastSuccessfulUpdate = connectorUpdateService.getLastSuccessfulUpdate(guest.getId(), connector);
-        connectorUpdateService.stopUpdating(guest.getId(), connector, true);
+        connectorUpdateService.flushUpdateWorkerTasks(guest.getId(), connector, true);
         return new StatusModel(true, "reset controller " + connectorName);
     }
 

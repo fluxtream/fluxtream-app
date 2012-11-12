@@ -27,9 +27,11 @@ import com.fluxtream.domain.Tag;
 import com.fluxtream.domain.metadata.City;
 import com.fluxtream.domain.metadata.DayMetadataFacet;
 import com.fluxtream.domain.metadata.WeatherInfo;
+import com.fluxtream.events.DataReceivedEvent;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.BodyTrackStorageService;
+import com.fluxtream.services.EventListenerService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.thirdparty.helpers.WWOHelper;
@@ -83,6 +85,9 @@ public class ApiDataServiceImpl implements ApiDataService {
     MetadataService metadataService;
 
     @Autowired
+    EventListenerService eventListenerService;
+
+    @Autowired
     WWOHelper wwoHelper;
 
     @Autowired
@@ -101,6 +106,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 		payload.timeUpdated = System.currentTimeMillis();
 
         persistFacet(payload);
+        fireDataReceivedEvent(updateInfo, start, end);
 	}
 
 	/**
@@ -114,6 +120,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 		ApiData apiData = new ApiData(updateInfo, start, end);
 		apiData.jsonObject = jsonObject;
 		extractFacets(apiData, updateInfo.objectTypes, updateInfo);
+        fireDataReceivedEvent(updateInfo, start, end);
 	}
 
 	/**
@@ -127,9 +134,21 @@ public class ApiDataServiceImpl implements ApiDataService {
 		ApiData apiData = new ApiData(updateInfo, start, end);
 		apiData.json = json;
 		extractFacets(apiData, updateInfo.objectTypes, updateInfo);
+        fireDataReceivedEvent(updateInfo, start, end);
 	}
 
-	/**
+    private void fireDataReceivedEvent(final UpdateInfo updateInfo, final long start, final long end) {
+        DataReceivedEvent dataReceivedEvent = new DataReceivedEvent(updateInfo.getGuestId(),
+                                                                    updateInfo.apiKey.getConnector(),
+                                                                    updateInfo.objectTypes(),
+                                                                    start, end);
+        // date-based connectors may attach a "date" String (yyyy-MM-dd) to the updateInfo object
+        if (updateInfo.getContext("date")!=null)
+            dataReceivedEvent.date = (String) updateInfo.getContext("date");
+        eventListenerService.fireEvent(dataReceivedEvent);
+    }
+
+    /**
 	 * start and end parameters allow to specify time boundaries that are not
 	 * contained in the connector data itself
 	 */
@@ -140,6 +159,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 		ApiData apiData = new ApiData(updateInfo, start, end);
 		apiData.xmlDocument = xmlDocument;
 		extractFacets(apiData, updateInfo.objectTypes, null);
+        fireDataReceivedEvent(updateInfo, start, end);
 	}
 
 	/**
@@ -181,7 +201,20 @@ public class ApiDataServiceImpl implements ApiDataService {
 			jpaDao.deleteAllFacets(connector, objectType, guestId);
 	}
 
-	@Override
+    @Override
+    public void eraseApiData(final long guestId, final Connector connector,
+                             final int objectTypes, final TimeInterval timeInterval) {
+        List<ObjectType> connectorTypes = ObjectType.getObjectTypes(connector,
+                                                                    objectTypes);
+        if (connectorTypes!=null) {
+            for (ObjectType objectType : connectorTypes) {
+                eraseApiData(guestId, connector, objectType, timeInterval);
+            }
+        } else
+            eraseApiData(guestId, connector, null, timeInterval);
+    }
+
+    @Override
 	@Transactional(readOnly = false)
 	// TODO: make a named query that works for all api objects
 	public void eraseApiData(long guestId, Connector api,
@@ -194,19 +227,16 @@ public class ApiDataServiceImpl implements ApiDataService {
 		}
 	}
 
-	@Override
-	@Transactional(readOnly = false)
-	public void eraseApiData(long guestId, Connector connector,
-			int objectTypes, TimeInterval timeInterval) {
-		List<ObjectType> connectorTypes = ObjectType.getObjectTypes(connector,
-				objectTypes);
-		if (connectorTypes!=null) {
-			for (ObjectType objectType : connectorTypes) {
-				eraseApiData(guestId, connector, objectType, timeInterval);
-			}
-		} else
-			eraseApiData(guestId, connector, null, timeInterval);
-	}
+    @Override
+    @Transactional(readOnly = false)
+    public void eraseApiData(long guestId, Connector connector,
+                             ObjectType objectType, List<String> dates) {
+        final List<AbstractFacet> facets = jpaDao.getFacetsByDates(connector, guestId, objectType, dates);
+        if (facets != null) {
+            for (AbstractFacet facet : facets)
+                em.remove(facet);
+        }
+    }
 
 	@Override
 	@Transactional(readOnly = false)
@@ -308,6 +338,12 @@ public class ApiDataServiceImpl implements ApiDataService {
             try {
                 aftzFacet.updateTimeInfo(localTimeZone);
             } catch (Throwable e) {
+                final String message = new StringBuilder("Could not parse floating " +
+                                                         "timezone facet's time storage: (startTimeStorage=")
+                        .append(aftzFacet.startTimeStorage)
+                        .append(", endTimeStorage=")
+                        .append(aftzFacet.endTimeStorage)
+                        .append(")").toString();
                 StringBuilder sb = new StringBuilder("module=updateQueue component=apiDataServiceImpl action=persistFacet")
                         .append(" connector=").append(Connector.fromValue(facet.api).getName())
                         .append(" objectType=").append(facet.objectType)
@@ -315,7 +351,7 @@ public class ApiDataServiceImpl implements ApiDataService {
                         .append(" message=\"Couldn't update updateTimeInfo\"")
                         .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
                 logger.warn(sb.toString());
-                throw new RuntimeException("Could not parse floating timezone facet's time storage");
+                throw new RuntimeException(message);
             }
         }
 		Query query = em.createQuery("SELECT e FROM " + entityName + " e WHERE e.guestId=? AND e.start=? AND e.end=?");

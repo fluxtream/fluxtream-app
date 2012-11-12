@@ -69,7 +69,6 @@ public class AdminController {
     public String executeUpdate(@FormParam("jpql") String jpql)
             throws InstantiationException, IllegalAccessException,
                    ClassNotFoundException {
-
         try {
             int results = jpaDaoService.execute(jpql);
             StatusModel result = new StatusModel(true, results + " rows affected");

@@ -17,7 +17,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 @Entity(name="Facet_FitbitSleep")
-@ObjectTypeSpec(name = "sleep", value = 4, extractor=FitbitSleepFacetExtractor.class, prettyname = "Sleep")
+@ObjectTypeSpec(name = "sleep", value = 4, extractor=FitbitSleepFacetExtractor.class, prettyname = "Sleep", isDateBased = true)
 @NamedQueries({
 		@NamedQuery(name = "fitbit.sleep.byDate",
 				query = "SELECT facet FROM Facet_FitbitSleep facet WHERE facet.guestId=? AND facet.date=?"),
@@ -28,7 +28,8 @@ import org.joda.time.format.DateTimeFormatter;
 		@NamedQuery(name = "fitbit.sleep.oldest",
 				query = "SELECT facet FROM Facet_FitbitSleep facet WHERE facet.guestId=? and facet.isEmpty=false ORDER BY facet.start ASC LIMIT 1"),
 		@NamedQuery(name = "fitbit.sleep.deleteAll", query = "DELETE FROM Facet_FitbitSleep facet WHERE facet.guestId=?"),
-		@NamedQuery(name = "fitbit.sleep.between", query = "SELECT facet FROM Facet_FitbitSleep facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=? and facet.isEmpty=false")
+		@NamedQuery(name = "fitbit.sleep.between", query = "SELECT facet FROM Facet_FitbitSleep facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=? and facet.isEmpty=false"),
+        @NamedQuery(name = "fitbit.sleep.byDates", query = "SELECT facet FROM Facet_FitbitSleep facet WHERE facet.guestId=? AND facet.date IN ? AND facet.start!=facet.end")
 })
 
 //SELECT * FROM Facet_FitbitSleep facet WHERE facet.guestId=1 ORDER BY facet.start ASC LIMIT 1
@@ -47,13 +48,5 @@ public class FitbitSleepFacet extends AbstractFloatingTimeZoneFacet {
 	
 	@Override
 	protected void makeFullTextIndexable() {}
-
-    @Override
-    public void updateTimeInfo(TimeZone timeZone) throws ParseException {
-        super.updateTimeInfo(timeZone);
-        DateTime startDate = new DateTime(this.start);
-        DateTime endDate = startDate.withDurationAdded(this.duration*60000,1);
-        this.end = endDate.getMillis();
-    }
 
 }

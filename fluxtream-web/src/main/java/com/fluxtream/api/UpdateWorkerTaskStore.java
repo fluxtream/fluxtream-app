@@ -132,7 +132,7 @@ public class UpdateWorkerTaskStore {
         try{
             long guestId = AuthHelper.getGuestId();
             final Connector connector = Connector.getConnector(connectorName);
-            connectorUpdateService.stopUpdating(guestId, connector, false);
+            connectorUpdateService.flushUpdateWorkerTasks(guestId, connector, false);
             StatusModel statusModel = new StatusModel(true, "successfully deleted pending update tasks for " + connectorName);
             return gson.toJson(statusModel);
         }

@@ -18,17 +18,17 @@ import com.fluxtream.domain.AbstractUserProfile;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 import org.apache.velocity.util.StringUtils;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.stereotype.Component;
 
-@Component
 public class Connector {
 
     private static Map<String, Connector> connectors = new ConcurrentHashMap<String, Connector>();
     private static Map<Integer, Connector> connectorsByValue = new ConcurrentHashMap<Integer, Connector>();
-
 
     static {
         Connector flxConnector = new Connector();
@@ -128,8 +128,8 @@ public class Connector {
         String beanClassName = bd.getBeanClassName();
         String connectorName = getConnectorName(beanClassName);
         Connector connector = new Connector();
-        Class<? extends AbstractUpdater> updaterClass = getUpdaterClass(beanClassName);
-        Updater updaterAnnotation = updaterClass
+        connector.updaterClass = getUpdaterClass(beanClassName);
+        Updater updaterAnnotation = connector.updaterClass
                 .getAnnotation(Updater.class);
         // set connectors' pretty name
         connector.manageable = updaterAnnotation.isManageable();
@@ -183,7 +183,7 @@ public class Connector {
         if (connectorObjectTypes.size()>0)
             connector.objectTypes = connectorObjectTypes.toArray(new ObjectType[0]);
 
-        JsonFacetCollection jsonFacetAnnotation = updaterClass
+        JsonFacetCollection jsonFacetAnnotation = connector.updaterClass
                 .getAnnotation(JsonFacetCollection.class);
         if (jsonFacetAnnotation != null)
             connector.jsonFacetCollectionClasses.put(
@@ -193,6 +193,7 @@ public class Connector {
         connector.name = connectorName;
         connectors.put(connectorName, connector);
         connectorsByValue.put(connector.value(), connector);
+
     }
 
     public boolean hasImageObjectType() {
@@ -247,8 +248,12 @@ public class Connector {
         return splits[splits.length-2];
     }
 
+    public Class<? extends AbstractUpdater> getUpdaterClass() {
+        return updaterClass;
+    }
+
     public enum UpdateStrategyType {
-        ALWAYS_UPDATE, INCREMENTAL, PUSH
+        ALWAYS_UPDATE, INCREMENTAL
     }
 
     UpdateStrategyType updateStrategyType = UpdateStrategyType.INCREMENTAL;
@@ -266,6 +271,17 @@ public class Connector {
     private String[] defaultChannels;
     private String[] additionalParameters;
     private boolean manageable;
+    private Class<? extends AbstractUpdater> updaterClass;
+    private AbstractUpdater updater;
+
+    public boolean isSyncNeededAware() {
+        final Class<?>[] interfaces = this.updaterClass.getInterfaces();
+        for (Class<?> anInterface : interfaces) {
+            if (anInterface==SyncNeededAware.class)
+                return true;
+        }
+        return false;
+    }
 
     public boolean isManageable(){
         return manageable;

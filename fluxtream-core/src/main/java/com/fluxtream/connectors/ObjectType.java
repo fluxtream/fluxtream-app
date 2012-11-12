@@ -25,7 +25,6 @@ public class ObjectType {
 	 * @param name
 	 */
 	public static void registerCustomObjectType(String name) {
-		name = name.toLowerCase();
 		ObjectType customObjectType = new ObjectType();
 		customObjectType.name = name;
 		customObjectType.value = name.hashCode();
