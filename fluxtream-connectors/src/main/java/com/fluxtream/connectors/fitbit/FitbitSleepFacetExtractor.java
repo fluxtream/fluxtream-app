@@ -38,9 +38,12 @@ public class FitbitSleepFacetExtractor extends AbstractFacetExtractor {
 
 			FitbitSleepFacet facet = new FitbitSleepFacet();
 
+            int duration = record.getInt("duration");
+            if (duration==0)
+                continue;
+
 			super.extractCommonFacetData(facet, apiData);
 			String startTime = record.getString("startTime");
-			int duration = record.getInt("duration");
             facet.duration = duration;
 
 			if (record.containsKey("minutesAwake"))
