@@ -9,14 +9,12 @@ import java.util.Map;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import com.fluxtream.connectors.Connector;
-import com.fluxtream.connectors.SyncNeededAware;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.ScheduleResult;
 import com.fluxtream.connectors.updaters.UpdateInfo.UpdateType;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ApiNotification;
 import com.fluxtream.domain.ApiUpdate;
-import com.fluxtream.domain.ConnectorInfo;
 import com.fluxtream.domain.UpdateWorkerTask;
 import com.fluxtream.domain.UpdateWorkerTask.Status;
 import com.fluxtream.services.ApiDataService;
@@ -91,28 +89,12 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
         if (force)
             flushUpdateWorkerTasks(guestId, connector, false);
 
-        // some connectors (e.g. the fitbit) provide a way to know wether we need to update
-        // the data or not. In the case of the fitbit for example, if the device was not synched
-        // with fitbit.com since last time we checked, there is no point in synching with them.
-        // This however only makes sense when the initial history import has completed
+        // some connectors (e.g. the fitbit) need to decide what objectTypes to update by themselves;
+        // for those, we pass -1 for the objectType parameter, which will be overridden by the connector's updater
         final boolean historyUpdateCompleted = isHistoryUpdateCompleted(guestId, connector);
-        if (connector.isSyncNeededAware() && historyUpdateCompleted) {
+        if (connector.isAutonomous() && historyUpdateCompleted) {
             logger.debug(messageRoot.append(" message=\"update (sync aware) connector (").append(connector.getName()).append(")\""));
-
-            ApiKey apiKey = guestService.getApiKey(guestId, connector);
-            try {
-                SyncNeededAware updater = (SyncNeededAware)getUpdater(connector);
-                final List<Integer> objectTypeValues = updater.getSyncNeededObjectTypeValues(apiKey);
-                logger.debug(messageRoot.append(" message=\"sync is needed for the following objectTypes: ").append(objectTypeValues).append("\""));
-                for (Integer objectTypes : objectTypeValues)
-                    scheduleObjectTypeUpdate(guestId, connector, objectTypes, scheduleResults);
-            }
-            catch (Exception e) {
-                StringBuilder sb = new StringBuilder("module=updateQueue component=connectorUpdateService" +
-                                                     " action=updateConnector");
-                sb.append(" message=\"Could not figure out if connector needs synching. This will result in a stale connector\"");
-                logger.error(sb);
-            }
+            scheduleObjectTypeUpdate(guestId, connector, -1, scheduleResults);
         } else {
             int[] objectTypeValues = connector.objectTypeValues();
             for (int objectTypes : objectTypeValues) {
@@ -181,7 +163,6 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
      */
     @Override
     public List<ScheduleResult> updateAllConnectors(final long guestId) {
-        List<ConnectorInfo> connectors =  systemService.getConnectors();
         List<ScheduleResult> scheduleResults = new ArrayList<ScheduleResult>();
         if (isShuttingDown) {
             StringBuilder sb = new StringBuilder("module=updateQueue component=updateAllConnectors" +
@@ -190,15 +171,10 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
             logger.warn(sb.toString());
             return scheduleResults;
         }
-        for (int i = 0; i < connectors.size(); i++){
-            if (!guestService.hasApiKey(guestId, connectors.get(i).getApi())) {
-                connectors.remove(i--);
-            }
-            else {
-                Connector connector = connectors.get(i).getApi();
-                List<ScheduleResult> updateRes = updateConnector(guestId, connector, false);
-                scheduleResults.addAll(updateRes);
-            }
+        final List<ApiKey> connectors = guestService.getApiKeys(guestId);
+        for (ApiKey key : connectors) {
+            List<ScheduleResult> updateRes = updateConnector(guestId, key.getConnector(), false);
+            scheduleResults.addAll(updateRes);
         }
         return scheduleResults;
     }

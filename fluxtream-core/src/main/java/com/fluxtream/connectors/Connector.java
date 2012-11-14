@@ -18,12 +18,9 @@ import com.fluxtream.domain.AbstractUserProfile;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 import org.apache.velocity.util.StringUtils;
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
-import org.springframework.stereotype.Component;
 
 public class Connector {
 
@@ -274,10 +271,10 @@ public class Connector {
     private Class<? extends AbstractUpdater> updaterClass;
     private AbstractUpdater updater;
 
-    public boolean isSyncNeededAware() {
+    public boolean isAutonomous() {
         final Class<?>[] interfaces = this.updaterClass.getInterfaces();
         for (Class<?> anInterface : interfaces) {
-            if (anInterface==SyncNeededAware.class)
+            if (anInterface==Autonomous.class)
                 return true;
         }
         return false;
