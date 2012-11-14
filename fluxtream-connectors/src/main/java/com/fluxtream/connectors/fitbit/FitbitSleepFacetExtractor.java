@@ -23,14 +23,6 @@ public class FitbitSleepFacetExtractor extends AbstractFacetExtractor {
 		JSONObject fitbitResponse = JSONObject.fromObject(apiData.json);
 		JSONArray sleepRecords = fitbitResponse.getJSONArray("sleep");
 
-		if (sleepRecords == null || sleepRecords.size() == 0) {
-			FitbitSleepFacet facet = new FitbitSleepFacet();
-			super.extractCommonFacetData(facet, apiData);
-			facet.isEmpty = true;
-			facets.add(facet);
-			return facets;
-		}
-
 		@SuppressWarnings("rawtypes")
 		Iterator iterator = sleepRecords.iterator();
 		while (iterator.hasNext()) {

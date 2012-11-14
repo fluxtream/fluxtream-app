@@ -9,6 +9,7 @@ import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
 import net.sf.json.JSONObject;
 import org.dom4j.Document;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface ApiDataService {
 
@@ -17,6 +18,9 @@ public interface ApiDataService {
 
 	public void cacheApiDataJSON(UpdateInfo updateInfo, JSONObject jsonObject,
 			long start, long end) throws Exception;
+
+    public void cacheApiDataJSON(UpdateInfo updateInfo, String json,
+                                 long start, long end, int objectTypes) throws Exception;
 
 	public void cacheApiDataJSON(UpdateInfo updateInfo, String json,
 			long start, long end) throws Exception;
@@ -86,4 +90,5 @@ public interface ApiDataService {
 
     void addGuestLocation(long guestId, LocationFacet locationResource,
                           LocationFacet.Source source);
+
 }
