@@ -414,7 +414,8 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             final String trackerLastSyncDate = guestService.getApiKeyAttribute(apiKey.getGuestId(), connector(), "TRACKER.lastSyncDate");
             if (trackerLastSyncDate==null) {
                 final FitbitTrackerActivityFacet newestActivityRecord = jpaDaoService.findOne("fitbit.activity_summary.newest", FitbitTrackerActivityFacet.class, apiKey.getGuestId());
-                lastSyncDate = newestActivityRecord.start;
+                final FitbitSleepFacet newestSleepRecord = jpaDaoService.findOne("fitbit.sleep.newest", FitbitSleepFacet.class, apiKey.getGuestId());
+                lastSyncDate = Math.max(newestActivityRecord.start, newestSleepRecord.end);
             } else {
                 lastSyncDate = Long.valueOf(trackerLastSyncDate);
             }
@@ -498,7 +499,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                     DateTimeZone.forTimeZone(timeZone)).parseMillis(dateString));
             updateOneDayOfData(updateInfo, updateInfo.objectTypes(), timeZone, date, dateString);
         } else {
-            JSONArray deviceStatusesArray = getDeviceStatusesArray(updateInfo.apiKey);
+            final JSONArray deviceStatusesArray = getDeviceStatusesArray(updateInfo.apiKey);
             final long trackerLastSyncDate = getTrackerLastSyncDate(deviceStatusesArray);
             final long scaleLastSyncDate = getScaleLastSyncDate(deviceStatusesArray);
 

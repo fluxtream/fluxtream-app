@@ -90,7 +90,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
             flushUpdateWorkerTasks(guestId, connector, false);
 
         // some connectors (e.g. the fitbit) need to decide what objectTypes to update by themselves;
-        // for those, we pass -1 for the objectType parameter, which will be overridden by the connector's updater
+        // for those, we pass 0 for the objectType parameter, which will be overridden by the connector's updater
         final boolean historyUpdateCompleted = isHistoryUpdateCompleted(guestId, connector);
         if (connector.isAutonomous()) {
             scheduleObjectTypeUpdate(guestId, connector, 0, scheduleResults, historyUpdateCompleted
