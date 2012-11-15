@@ -153,14 +153,6 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                        "fat");
 
         jpaDaoService.execute("DELETE FROM Facet_FitbitSleep sleep WHERE sleep.startTimeStorage=null and sleep.endTimeStorage=null");
-
-        // also download today's latest data
-        long now = System.currentTimeMillis();
-        final TimeZone currentTimezone = metadataService.getTimeZone(updateInfo.getGuestId(), now);
-        final String todaysDate = dateFormat.withZone(DateTimeZone.forTimeZone(currentTimezone)).print(now);
-        loadWeightDataForOneDay(updateInfo, new Date(now), currentTimezone, todaysDate);
-        loadActivityDataForOneDay(updateInfo, new Date(now), currentTimezone, todaysDate);
-        loadSleepDataForOneDay(updateInfo, new Date(now), currentTimezone, todaysDate);
 	}
 
 	public void updateCaloriesIntraday(FitbitTrackerActivityFacet facet, ApiKey apiKey)
@@ -406,7 +398,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
     }
 
     public List<String> getDaysSinceLastSync(ApiKey apiKey, final String deviceType,
-                                             long currentTrackerLastSyncDate, long currentScaleLastSyncDate)
+                                             long latestTrackerSyncDate, long latestScaleSyncDate)
             throws RateLimitReachedException
     {
         long lastSyncDate = System.currentTimeMillis();
@@ -429,35 +421,22 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             }
         }
         if (deviceType.equals("TRACKER")) {
-            long ts = Math.min(currentTrackerLastSyncDate, lastSyncDate);
+            long ts = Math.min(latestTrackerSyncDate, lastSyncDate);
             return getListOfDatesSince(ts);
         } else if (deviceType.equals("SCALE")) {
-            long ts = Math.min(currentScaleLastSyncDate, lastSyncDate);
+            long ts = Math.min(latestScaleSyncDate, lastSyncDate);
             return getListOfDatesSince(ts);
         }
         return new ArrayList<String>();
     }
 
-    private long getTrackerLastSyncDate(JSONArray devices) {
+    private long getLastSyncDate(JSONArray devices, String device) {
         for (int i=0; i<devices.size(); i++) {
             JSONObject deviceStatus = devices.getJSONObject(i);
             String type = deviceStatus.getString("type");
             String dateTime = deviceStatus.getString("lastSyncTime");
             long ts = AbstractFloatingTimeZoneFacet.timeStorageFormat.parseMillis(dateTime);
-            if (type.equalsIgnoreCase("TRACKER")) {
-                return ts;
-            }
-        }
-        return -1;
-    }
-
-    private long getScaleLastSyncDate(JSONArray devices) {
-        for (int i=0; i<devices.size(); i++) {
-            JSONObject deviceStatus = devices.getJSONObject(i);
-            String type = deviceStatus.getString("type");
-            String dateTime = deviceStatus.getString("lastSyncTime");
-            long ts = AbstractFloatingTimeZoneFacet.timeStorageFormat.parseMillis(dateTime);
-            if (type.equalsIgnoreCase("SCALE")) {
+            if (type.equalsIgnoreCase(device)) {
                 return ts;
             }
         }
@@ -500,8 +479,8 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             updateOneDayOfData(updateInfo, updateInfo.objectTypes(), timeZone, date, dateString);
         } else {
             final JSONArray deviceStatusesArray = getDeviceStatusesArray(updateInfo.apiKey);
-            final long trackerLastSyncDate = getTrackerLastSyncDate(deviceStatusesArray);
-            final long scaleLastSyncDate = getScaleLastSyncDate(deviceStatusesArray);
+            final long trackerLastSyncDate = getLastSyncDate(deviceStatusesArray, "TRACKER");
+            final long scaleLastSyncDate = getLastSyncDate(deviceStatusesArray, "SCALE");
 
             final List<ObjectType> syncNeededObjectTypes = getSyncNeededObjectTypes(updateInfo.apiKey, trackerLastSyncDate, scaleLastSyncDate);
             if (syncNeededObjectTypes.contains(sleepOT)||
