@@ -427,14 +427,8 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                 lastSyncDate = Long.valueOf(scaleLastSyncDate);
             }
         }
-        if (deviceType.equals("TRACKER")) {
-            long ts = Math.min(latestTrackerSyncDate, lastSyncDate);
-            return getListOfDatesSince(ts);
-        } else if (deviceType.equals("SCALE")) {
-            long ts = Math.min(latestScaleSyncDate, lastSyncDate);
-            return getListOfDatesSince(ts);
-        }
-        return new ArrayList<String>();
+        long ts = Math.min(latestTrackerSyncDate, lastSyncDate);
+        return getListOfDatesSince(ts);
     }
 
     private long getLastSyncDate(JSONArray devices, String device) {
@@ -495,13 +489,13 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                 final List<String> trackerDaysToSync = getDaysSinceLastSync(updateInfo.apiKey, "TRACKER", trackerLastSyncDate, scaleLastSyncDate);
                 updateListOfDays(updateInfo, syncNeededObjectTypes, trackerDaysToSync);
                 guestService.setApiKeyAttribute(updateInfo.getGuestId(), connector(), "TRACKER.lastSyncDate",
-                                                String.valueOf(System.currentTimeMillis()));
+                                                String.valueOf(trackerLastSyncDate));
             }
             if (updateInfo.objectTypes().contains(weightOT)) {
                 final List<String> scaleDaysToSync = getDaysSinceLastSync(updateInfo.apiKey, "SCALE", trackerLastSyncDate, scaleLastSyncDate);
                 updateListOfDays(updateInfo, syncNeededObjectTypes, scaleDaysToSync);
                 guestService.setApiKeyAttribute(updateInfo.getGuestId(), connector(), "SCALE.lastSyncDate",
-                                                String.valueOf(System.currentTimeMillis()));
+                                                String.valueOf(scaleLastSyncDate));
             }
         }
 	}
