@@ -1481,6 +1481,9 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 $("#" + channelElementId + "-photo-tags-isAndJoin").change();
             }
 
+            // Force initial resize
+            resizePlot(grapher, id, 0);
+
             // Update scroll area
             TOOLS.resizeHandler();
 
@@ -2586,65 +2589,67 @@ define(["core/grapher/BTCore"], function(BTCore) {
         }
     }
 
-    function dragAreaOnMouseDown(grapher, plotId) {
+    function resizePlot(grapher, plotId, dy) {
         var channelElementId = grapher.grapherId + "_timeline_channel_" + plotId;
         var plotElementId = grapher.grapherId + "_timeline_plot_" + plotId;
         var yAxisElementId = grapher.grapherId + "_timeline_yAxis_" + plotId;
 
+        var container = grapher.plotContainersMap[channelElementId];
+        var cPlaceholder = $("#" + container.getPlaceholder());
+        var containerW = cPlaceholder.width();
+        var containerH = cPlaceholder.height();
+
+        var plot = grapher.plotsMap[channelElementId];
+        var yAxis = plot.getVerticalAxis();
+        var yAixsW = $("#" + yAxis.getPlaceholder()).width();
+
+        var dragAreaH = $("._timeline_dragArea").height() - CHANNEL_PADDING;
+
+        if ((dy > 0) || (Math.abs(dy) < containerH)) {
+            // There is a min height of 67, which is taken from the
+            // min height of the channel label
+            if (containerH + dy + dragAreaH < 67) {
+                dy = 67 - containerH - dragAreaH;
+            }
+
+            // Set the size of the plot container itself
+            $("#" + plotElementId).height(containerH + dy);
+            container.setSize(containerW, containerH + dy,
+                SequenceNumber.getNext());
+
+            // Set the size of the Y-axis
+            $("#" + yAxisElementId).height(containerH + dy);
+            yAxis.setSize(yAixsW, containerH + dy,
+                SequenceNumber.getNext());
+
+            // Set the size of the channel label
+            $("#_timeline_channelTab_" + plotId).height(
+                containerH + dy + CHANNEL_PADDING);
+
+            // Update the view data to match the new channel height
+            if ((!!VIEWS.data) && (!!VIEWS.data["v2"])
+                    && (!!VIEWS.data["v2"]["y_axes"])
+                && (VIEWS.data["v2"]["y_axes"].length > plotId)) {
+                VIEWS.data["v2"]["y_axes"][plotId]["channel_height"] =
+                containerH + dy;
+            }
+        }
+
+        return false;
+    };
+
+    function dragAreaOnMouseDown(grapher, plotId) {
         var mostRecentY = null;
         var resizeTimer = null;
         var dylist = [];
 
-        var resizePlot = function(dy) {
-            var container = grapher.plotContainersMap[channelElementId];
-            var cPlaceholder = $("#" + container.getPlaceholder());
-            var containerW = cPlaceholder.width();
-            var containerH = cPlaceholder.height();
-
-            var plot = grapher.plotsMap[channelElementId];
-            var yAxis = plot.getVerticalAxis();
-            var yAixsW = $("#" + yAxis.getPlaceholder()).width();
-
-            var dragAreaH = $("._timeline_dragArea").height() - CHANNEL_PADDING;
-
-            if ((dy > 0) || (Math.abs(dy) < containerH)) {
-                // There is a min height of 67, which is taken from the
-                // min height of the channel label
-                if (containerH + dy + dragAreaH < 67) {
-                    dy = 67 - containerH - dragAreaH;
-                }
-
-                // Set the size of the plot container itself
-                $("#" + plotElementId).height(containerH + dy);
-                container.setSize(containerW, containerH + dy,
-                    SequenceNumber.getNext());
-
-                // Set the size of the Y-axis
-                $("#" + yAxisElementId).height(containerH + dy);
-                yAxis.setSize(yAixsW, containerH + dy,
-                    SequenceNumber.getNext());
-
-                // Set the size of the channel label
-                $("#_timeline_channelTab_" + plotId).height(
-                    containerH + dy + CHANNEL_PADDING);
-
-                // Update the view data to match the new channel height
-                if ((!!VIEWS.data) && (!!VIEWS.data["v2"])
-                        && (!!VIEWS.data["v2"]["y_axes"])
-                    && (VIEWS.data["v2"]["y_axes"].length > plotId)) {
-                    VIEWS.data["v2"]["y_axes"][plotId]["channel_height"] =
-                    containerH + dy;
-                }
-            }
-
-            mostRecentY = mostRecentY + dy;
-            return false;
-        };
         var mouseup = null;
         var mousemove = null;
         var updatePlotSize = function() {
             if (dylist.length > 0) {
-                resizePlot(dylist[dylist.length - 1]);
+                var dy = dylist[dylist.length - 1];
+                resizePlot(grapher, plotId, dy);
+                mostRecentY = mostRecentY + dy;
                 dylist = [];
             }
         };
