@@ -175,8 +175,10 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
         }
         final List<ApiKey> connectors = guestService.getApiKeys(guestId);
         for (ApiKey key : connectors) {
-            List<ScheduleResult> updateRes = updateConnector(guestId, key.getConnector(), false);
-            scheduleResults.addAll(updateRes);
+            if (key!=null && key.getConnector()!=null) {
+                List<ScheduleResult> updateRes = updateConnector(guestId, key.getConnector(), false);
+                scheduleResults.addAll(updateRes);
+            }
         }
         return scheduleResults;
     }
