@@ -1,7 +1,3 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="SqlDialectMappings">
-    <file url="file://$PROJECT_DIR$/fluxtream-web/db/0.9.0004/FitbitWeight.sql" dialect="MySQL" />
-  </component>
-</project>
+<project version="4" />
 

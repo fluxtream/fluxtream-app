@@ -349,59 +349,11 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 		}
 	}
 
-    /**
-     * Possible values in the resulting list are: 3 (tracker activity+logged activities), 4 (sleep) or 8 (weight)
-     * @param apiKey
-     * @return
-     * @throws Exception
-     */
-    public List<ObjectType> getSyncNeededObjectTypes(ApiKey apiKey, long trackerLastSyncDate, long scaleLastSyncDate) throws Exception {
-
-        final ObjectType sleepObjectType = ObjectType.getObjectType(connector(), "sleep");
-        final ObjectType weightObjectType = ObjectType.getObjectType(connector(), "weight");
-        final ObjectType activityObjectType = ObjectType.getObjectType(connector(), "activity_summary");
-        final ObjectType loggedActivityObjectType = ObjectType.getObjectType(connector(), "logged_activity");
-
-        final List<ObjectType> syncNeededObjectTypes = new ArrayList<ObjectType>();
-
-        if (trackerLastSyncDate>-1) {
-            // When we query Fitbit's API, we query sleep, activity (tracker activity AND logged activities) or weight
-            final ApiUpdate lastSleepUpdate = connectorUpdateService
-                    .getLastSuccessfulUpdate(apiKey.getGuestId(), apiKey.getConnector(), sleepObjectType.value());
-
-            final ApiUpdate lastActivityUpdate =
-                    connectorUpdateService.getLastSuccessfulUpdate(apiKey.getGuestId(),
-                                                                   apiKey.getConnector(),
-                                                                   activityObjectType.value()
-                                                                   + loggedActivityObjectType.value());
-
-            if (lastActivityUpdate==null||lastActivityUpdate.ts<trackerLastSyncDate) {
-                syncNeededObjectTypes.add(activityObjectType);
-                syncNeededObjectTypes.add(loggedActivityObjectType);
-            }
-            if (lastSleepUpdate==null||lastSleepUpdate.ts<trackerLastSyncDate)
-                syncNeededObjectTypes.add(sleepObjectType);
-        }
-
-        if (scaleLastSyncDate>-1) {
-            final ApiUpdate lastWeightUpdate = connectorUpdateService.getLastSuccessfulUpdate(
-                    apiKey.getGuestId(), apiKey.getConnector(), weightObjectType.value());
-
-            if (lastWeightUpdate==null||lastWeightUpdate.ts<scaleLastSyncDate)
-                syncNeededObjectTypes.add(weightObjectType);
-        }
-
-        StringBuilder messageRoot = new StringBuilder("module=updateQueue component=updater connetor=fitbit" +
-                                                      " action=getSyncNeededObjectTypes");
-        logger.debug(messageRoot.append(" message=\"sync is needed for the following objectTypes: ").append(syncNeededObjectTypes).append("\""));
-        return syncNeededObjectTypes;
-    }
-
     public List<String> getDaysSinceLastSync(ApiKey apiKey, final String deviceType,
                                              long latestTrackerSyncDate, long latestScaleSyncDate)
             throws RateLimitReachedException
     {
-        long lastSyncDate = System.currentTimeMillis();
+        long lastSyncDate = 0;
         if (deviceType.equals("TRACKER")) {
             final String trackerLastSyncDate = guestService.getApiKeyAttribute(apiKey.getGuestId(), connector(), "TRACKER.lastSyncDate");
             if (trackerLastSyncDate==null) {
@@ -427,8 +379,11 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                 lastSyncDate = Long.valueOf(scaleLastSyncDate);
             }
         }
-        long ts = Math.min(latestTrackerSyncDate, lastSyncDate);
-        return getListOfDatesSince(ts);
+        if (deviceType.equals("TRACKER")&&lastSyncDate>latestTrackerSyncDate)
+            return getListOfDatesSince(lastSyncDate);
+        else if (deviceType.equals("SCALE")&&lastSyncDate>latestScaleSyncDate)
+            return getListOfDatesSince(lastSyncDate);
+        return new ArrayList<String>();
     }
 
     private long getLastSyncDate(JSONArray devices, String device) {
@@ -483,19 +438,21 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             final long trackerLastSyncDate = getLastSyncDate(deviceStatusesArray, "TRACKER");
             final long scaleLastSyncDate = getLastSyncDate(deviceStatusesArray, "SCALE");
 
-            final List<ObjectType> syncNeededObjectTypes = getSyncNeededObjectTypes(updateInfo.apiKey, trackerLastSyncDate, scaleLastSyncDate);
-            if (syncNeededObjectTypes.contains(sleepOT)||
-                updateInfo.objectTypes().contains(activityOT)) {
+            if (trackerLastSyncDate>-1) {
                 final List<String> trackerDaysToSync = getDaysSinceLastSync(updateInfo.apiKey, "TRACKER", trackerLastSyncDate, scaleLastSyncDate);
-                updateListOfDays(updateInfo, syncNeededObjectTypes, trackerDaysToSync);
-                guestService.setApiKeyAttribute(updateInfo.getGuestId(), connector(), "TRACKER.lastSyncDate",
-                                                String.valueOf(trackerLastSyncDate));
+                if(trackerDaysToSync.size()>0) {
+                    updateListOfDays(updateInfo, Arrays.asList(sleepOT, activityOT), trackerDaysToSync);
+                    guestService.setApiKeyAttribute(updateInfo.getGuestId(), connector(), "TRACKER.lastSyncDate",
+                                                    String.valueOf(trackerLastSyncDate));
+                }
             }
-            if (updateInfo.objectTypes().contains(weightOT)) {
+            if (scaleLastSyncDate>-1) {
                 final List<String> scaleDaysToSync = getDaysSinceLastSync(updateInfo.apiKey, "SCALE", trackerLastSyncDate, scaleLastSyncDate);
-                updateListOfDays(updateInfo, syncNeededObjectTypes, scaleDaysToSync);
-                guestService.setApiKeyAttribute(updateInfo.getGuestId(), connector(), "SCALE.lastSyncDate",
-                                                String.valueOf(scaleLastSyncDate));
+                if (scaleDaysToSync.size()>0) {
+                    updateListOfDays(updateInfo, Arrays.asList(weightOT), scaleDaysToSync);
+                    guestService.setApiKeyAttribute(updateInfo.getGuestId(), connector(), "SCALE.lastSyncDate",
+                                                    String.valueOf(scaleLastSyncDate));
+                }
             }
         }
 	}
