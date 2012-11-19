@@ -407,7 +407,12 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             if (trackerLastSyncDate==null) {
                 final FitbitTrackerActivityFacet newestActivityRecord = jpaDaoService.findOne("fitbit.activity_summary.newest", FitbitTrackerActivityFacet.class, apiKey.getGuestId());
                 final FitbitSleepFacet newestSleepRecord = jpaDaoService.findOne("fitbit.sleep.newest", FitbitSleepFacet.class, apiKey.getGuestId());
-                lastSyncDate = Math.max(newestActivityRecord.start, newestSleepRecord.end);
+                if (newestSleepRecord!=null)
+                    lastSyncDate = Math.max(newestActivityRecord.start, newestSleepRecord.end);
+                else
+                    lastSyncDate = newestActivityRecord.start;
+                // since we are not sure of the timezone, let's subtract 24 hours for good measure
+                lastSyncDate -= 24*3600000;
             } else {
                 lastSyncDate = Long.valueOf(trackerLastSyncDate);
             }
@@ -416,18 +421,14 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             if (scaleLastSyncDate==null) {
                 final FitbitWeightFacet newestWeightRecord = jpaDaoService.findOne("fitbit.weight.newest", FitbitWeightFacet.class, apiKey.getGuestId());
                 lastSyncDate = newestWeightRecord.start;
+                // since we are not sure of the timezone, let's subtract 24 hours for good measure
+                lastSyncDate -= 24*3600000;
             } else {
                 lastSyncDate = Long.valueOf(scaleLastSyncDate);
             }
         }
-        if (deviceType.equals("TRACKER")) {
-            long ts = Math.min(latestTrackerSyncDate, lastSyncDate);
-            return getListOfDatesSince(ts);
-        } else if (deviceType.equals("SCALE")) {
-            long ts = Math.min(latestScaleSyncDate, lastSyncDate);
-            return getListOfDatesSince(ts);
-        }
-        return new ArrayList<String>();
+        long ts = Math.min(latestTrackerSyncDate, lastSyncDate);
+        return getListOfDatesSince(ts);
     }
 
     private long getLastSyncDate(JSONArray devices, String device) {
@@ -488,13 +489,13 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                 final List<String> trackerDaysToSync = getDaysSinceLastSync(updateInfo.apiKey, "TRACKER", trackerLastSyncDate, scaleLastSyncDate);
                 updateListOfDays(updateInfo, syncNeededObjectTypes, trackerDaysToSync);
                 guestService.setApiKeyAttribute(updateInfo.getGuestId(), connector(), "TRACKER.lastSyncDate",
-                                                String.valueOf(System.currentTimeMillis()));
+                                                String.valueOf(trackerLastSyncDate));
             }
             if (updateInfo.objectTypes().contains(weightOT)) {
                 final List<String> scaleDaysToSync = getDaysSinceLastSync(updateInfo.apiKey, "SCALE", trackerLastSyncDate, scaleLastSyncDate);
                 updateListOfDays(updateInfo, syncNeededObjectTypes, scaleDaysToSync);
                 guestService.setApiKeyAttribute(updateInfo.getGuestId(), connector(), "SCALE.lastSyncDate",
-                                                String.valueOf(System.currentTimeMillis()));
+                                                String.valueOf(scaleLastSyncDate));
             }
         }
 	}
