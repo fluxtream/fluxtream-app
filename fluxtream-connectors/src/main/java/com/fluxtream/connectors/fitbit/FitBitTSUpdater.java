@@ -407,7 +407,12 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             if (trackerLastSyncDate==null) {
                 final FitbitTrackerActivityFacet newestActivityRecord = jpaDaoService.findOne("fitbit.activity_summary.newest", FitbitTrackerActivityFacet.class, apiKey.getGuestId());
                 final FitbitSleepFacet newestSleepRecord = jpaDaoService.findOne("fitbit.sleep.newest", FitbitSleepFacet.class, apiKey.getGuestId());
-                lastSyncDate = Math.max(newestActivityRecord.start, newestSleepRecord.end);
+                if (newestSleepRecord!=null)
+                    lastSyncDate = Math.max(newestActivityRecord.start, newestSleepRecord.end);
+                else
+                    lastSyncDate = newestActivityRecord.start;
+                // since we are not sure of the timezone, let's subtract 24 hours for good measure
+                lastSyncDate -= 24*3600000;
             } else {
                 lastSyncDate = Long.valueOf(trackerLastSyncDate);
             }
@@ -416,6 +421,8 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             if (scaleLastSyncDate==null) {
                 final FitbitWeightFacet newestWeightRecord = jpaDaoService.findOne("fitbit.weight.newest", FitbitWeightFacet.class, apiKey.getGuestId());
                 lastSyncDate = newestWeightRecord.start;
+                // since we are not sure of the timezone, let's subtract 24 hours for good measure
+                lastSyncDate -= 24*3600000;
             } else {
                 lastSyncDate = Long.valueOf(scaleLastSyncDate);
             }
