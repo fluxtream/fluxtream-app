@@ -3,6 +3,11 @@
   <component name="Encoding" useUTFGuessing="true" native2AsciiForPropertiesFiles="false">
     <file url="file://$PROJECT_DIR$/fluxtream-connectors" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/fluxtream-core" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/fluxtream-core-webapp" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/fluxtream-rest/src/main/resources/application-doc.xml" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/fluxtream-rest/src/main/resources/application-grammars.xml" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/fluxtream-rest/src/main/resources/log4j.xml" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/fluxtream-rest/src/main/webapp/WEB-INF/applicationContext.xml" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/fluxtream-web" charset="UTF-8" />
   </component>
 </project>

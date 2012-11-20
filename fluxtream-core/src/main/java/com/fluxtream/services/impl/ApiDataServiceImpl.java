@@ -123,6 +123,19 @@ public class ApiDataServiceImpl implements ApiDataService {
         fireDataReceivedEvent(updateInfo, start, end);
 	}
 
+    /**
+     * start and end parameters allow to specify time boundaries that are not
+     * contained in the connector data itself
+     */
+    @Override
+    @Transactional(readOnly = false)
+    public void cacheApiDataJSON(UpdateInfo updateInfo, String json,
+                                 long start, long end, int objectTypes) throws Exception {
+        ApiData apiData = new ApiData(updateInfo, start, end);
+        apiData.json = json;
+        extractFacets(apiData, objectTypes, updateInfo);
+    }
+
 	/**
 	 * start and end parameters allow to specify time boundaries that are not
 	 * contained in the connector data itself
@@ -133,6 +146,10 @@ public class ApiDataServiceImpl implements ApiDataService {
 			long start, long end) throws Exception {
 		ApiData apiData = new ApiData(updateInfo, start, end);
 		apiData.json = json;
+        if (updateInfo.objectTypes==0)
+            throw new RuntimeException("ObjectType=0! cacheApiDataJSON is called from an 'Autonomous' " +
+                                       "Updater -> you need to call the cacheApiDataJSON method with the " +
+                                       "extra 'objectTypes' parameter!");
 		extractFacets(apiData, updateInfo.objectTypes, updateInfo);
         fireDataReceivedEvent(updateInfo, start, end);
 	}

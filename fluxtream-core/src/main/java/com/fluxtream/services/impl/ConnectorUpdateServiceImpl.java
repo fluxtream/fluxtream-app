@@ -9,14 +9,12 @@ import java.util.Map;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import com.fluxtream.connectors.Connector;
-import com.fluxtream.connectors.SyncNeededAware;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.ScheduleResult;
 import com.fluxtream.connectors.updaters.UpdateInfo.UpdateType;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ApiNotification;
 import com.fluxtream.domain.ApiUpdate;
-import com.fluxtream.domain.ConnectorInfo;
 import com.fluxtream.domain.UpdateWorkerTask;
 import com.fluxtream.domain.UpdateWorkerTask.Status;
 import com.fluxtream.services.ApiDataService;
@@ -39,20 +37,20 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly=true)
 public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 
-	static Logger logger = Logger.getLogger(ConnectorUpdateServiceImpl.class);
+    static Logger logger = Logger.getLogger(ConnectorUpdateServiceImpl.class);
 
-	private Map<Connector, AbstractUpdater> updaters = new Hashtable<Connector, AbstractUpdater>();
+    private Map<Connector, AbstractUpdater> updaters = new Hashtable<Connector, AbstractUpdater>();
 
     private boolean isShuttingDown;
 
-	@Autowired
-	BeanFactory beanFactory;
+    @Autowired
+    BeanFactory beanFactory;
 
     @Autowired
-	ApiDataService apiDataService;
+    ApiDataService apiDataService;
 
-	@Autowired
-	ThreadPoolTaskExecutor executor;
+    @Autowired
+    ThreadPoolTaskExecutor executor;
 
     @Autowired
     GuestService guestService;
@@ -60,8 +58,8 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
     @Autowired
     SystemService systemService;
 
-	@PersistenceContext
-	EntityManager em;
+    @PersistenceContext
+    EntityManager em;
 
     UpdateStrategyFactory updateStategyFactory = new UpdateStrategyFactory();
 
@@ -80,7 +78,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
         System.out.println("updateConnector");
         List<ScheduleResult> scheduleResults = new ArrayList<ScheduleResult>();
         StringBuilder messageRoot = new StringBuilder("module=updateQueue component=connectorUpdateService" +
-                                             " action=updateConnector");
+                                                      " action=updateConnector");
         if (isShuttingDown) {
             logger.warn(messageRoot.append(" message=\"Service is shutting down... Refusing updates\""));
             return scheduleResults;
@@ -91,40 +89,28 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
         if (force)
             flushUpdateWorkerTasks(guestId, connector, false);
 
-        // some connectors (e.g. the fitbit) provide a way to know wether we need to update
-        // the data or not. In the case of the fitbit for example, if the device was not synched
-        // with fitbit.com since last time we checked, there is no point in synching with them.
-        // This however only makes sense when the initial history import has completed
+        // some connectors (e.g. the fitbit) need to decide what objectTypes to update by themselves;
+        // for those, we pass 0 for the objectType parameter, which will be overridden by the connector's updater
         final boolean historyUpdateCompleted = isHistoryUpdateCompleted(guestId, connector);
-        if (connector.isSyncNeededAware() && historyUpdateCompleted) {
-            logger.debug(messageRoot.append(" message=\"update (sync aware) connector (").append(connector.getName()).append(")\""));
-
-            ApiKey apiKey = guestService.getApiKey(guestId, connector);
-            try {
-                SyncNeededAware updater = (SyncNeededAware)getUpdater(connector);
-                final List<Integer> objectTypeValues = updater.getSyncNeededObjectTypeValues(apiKey);
-                logger.debug(messageRoot.append(" message=\"sync is needed for the following objectTypes: ").append(objectTypeValues).append("\""));
-                for (Integer objectTypes : objectTypeValues)
-                    scheduleObjectTypeUpdate(guestId, connector, objectTypes, scheduleResults);
-            }
-            catch (Exception e) {
-                StringBuilder sb = new StringBuilder("module=updateQueue component=connectorUpdateService" +
-                                                     " action=updateConnector");
-                sb.append(" message=\"Could not figure out if connector needs synching. This will result in a stale connector\"");
-                logger.error(sb);
-            }
+        if (connector.isAutonomous()) {
+            scheduleObjectTypeUpdate(guestId, connector, 0, scheduleResults, historyUpdateCompleted
+                                                                             ? UpdateType.INCREMENTAL_UPDATE
+                                                                             : UpdateType.INITIAL_HISTORY_UPDATE);
         } else {
             int[] objectTypeValues = connector.objectTypeValues();
             for (int objectTypes : objectTypeValues) {
-                scheduleObjectTypeUpdate(guestId, connector, objectTypes, scheduleResults);
+                scheduleObjectTypeUpdate(guestId, connector, objectTypes, scheduleResults, historyUpdateCompleted
+                                                                                           ? UpdateType.INCREMENTAL_UPDATE
+                                                                                           : UpdateType.INITIAL_HISTORY_UPDATE);
             }
         }
         return scheduleResults;
     }
 
     private boolean isHistoryUpdateCompleted(final long guestId, final Connector connector) {
+        if (connector.isAutonomous())
+            return isHistoryUpdateCompleted(guestId, connector.getName(), 0);
         final int[] connectorObjectTypeValues = connector.objectTypeValues();
-        final List<ScheduleResult> scheduleResults;
         for (int connectorObjectTypeValue : connectorObjectTypeValues)
             if (!isHistoryUpdateCompleted(guestId, connector.getName(), connectorObjectTypeValue))
                 return false;
@@ -135,8 +121,8 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
     public List<ScheduleResult> updateConnectorObjectType(final long guestId, final Connector connector, int objectTypes, boolean force) {
         List<ScheduleResult> scheduleResults = new ArrayList<ScheduleResult>();
         if (isShuttingDown) {
-            StringBuilder sb = new StringBuilder("module=updateQueue component=updateConnectorObjectType" +
-                                                 " action=updateConnector")
+            StringBuilder sb = new StringBuilder("module=updateQueue component=connectorUpdateService" +
+                                                 " action=updateConnectorObjectType")
                     .append(" message=\"Service is shutting down... Refusing updates\"");
             logger.warn(sb.toString());
             return scheduleResults;
@@ -146,7 +132,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
         // that have stacked up in the queue
         if (force)
             flushUpdateWorkerTasks(guestId, connector, objectTypes, false);
-        scheduleObjectTypeUpdate(guestId, connector, objectTypes, scheduleResults);
+        scheduleObjectTypeUpdate(guestId, connector, objectTypes, scheduleResults, UpdateType.INCREMENTAL_UPDATE);
         return scheduleResults;
     }
 
@@ -160,14 +146,12 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
      *                        ALREADY_SCHEDULED
      */
     private void scheduleObjectTypeUpdate(long guestId, Connector connector, int objectTypes,
-                                          List<ScheduleResult> scheduleResults) {
+                                          List<ScheduleResult> scheduleResults,
+                                          UpdateType updateType) {
         UpdateWorkerTask updateWorkerTask = getScheduledUpdateTask(guestId, connector.getName(), objectTypes);
         if (updateWorkerTask != null)
             scheduleResults.add(new ScheduleResult(connector.getName(), objectTypes, ScheduleResult.ResultType.ALREADY_SCHEDULED, updateWorkerTask.timeScheduled));
         else {
-            UpdateType updateType = isHistoryUpdateCompleted(guestId, connector.getName(), objectTypes)
-                                               ? UpdateType.INCREMENTAL_UPDATE
-                                               : UpdateType.INITIAL_HISTORY_UPDATE;
             final ScheduleResult scheduleResult = scheduleUpdate(guestId, connector.getName(), objectTypes, updateType, System.currentTimeMillis());
             scheduleResults.add(scheduleResult);
         }
@@ -181,7 +165,6 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
      */
     @Override
     public List<ScheduleResult> updateAllConnectors(final long guestId) {
-        List<ConnectorInfo> connectors =  systemService.getConnectors();
         List<ScheduleResult> scheduleResults = new ArrayList<ScheduleResult>();
         if (isShuttingDown) {
             StringBuilder sb = new StringBuilder("module=updateQueue component=updateAllConnectors" +
@@ -190,13 +173,10 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
             logger.warn(sb.toString());
             return scheduleResults;
         }
-        for (int i = 0; i < connectors.size(); i++){
-            if (!guestService.hasApiKey(guestId, connectors.get(i).getApi())) {
-                connectors.remove(i--);
-            }
-            else {
-                Connector connector = connectors.get(i).getApi();
-                List<ScheduleResult> updateRes = updateConnector(guestId, connector, false);
+        final List<ApiKey> connectors = guestService.getApiKeys(guestId);
+        for (ApiKey key : connectors) {
+            if (key!=null && key.getConnector()!=null) {
+                List<ScheduleResult> updateRes = updateConnector(guestId, key.getConnector(), false);
                 scheduleResults.addAll(updateRes);
             }
         }
@@ -204,8 +184,8 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
     }
 
     @Transactional(readOnly = false)
-	@Override
-	public ScheduleResult reScheduleUpdateTask(UpdateWorkerTask updt, long time, boolean incrementRetries,
+    @Override
+    public ScheduleResult reScheduleUpdateTask(UpdateWorkerTask updt, long time, boolean incrementRetries,
                                                UpdateWorkerTask.AuditTrailEntry auditTrailEntry) {
         if (isShuttingDown) {
             StringBuilder sb = new StringBuilder("module=updateQueue component=updateAllConnectors" +
@@ -218,47 +198,47 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
                     ScheduleResult.ResultType.SYSTEM_IS_SHUTTING_DOWN,
                     time);
         }
-		if (!incrementRetries) {
-			UpdateWorkerTask failed = new UpdateWorkerTask(updt);
-			failed.retries = updt.retries;
-			failed.connectorName = updt.connectorName;
-			failed.status = Status.FAILED;
-			failed.guestId = updt.guestId;
-			failed.timeScheduled = updt.timeScheduled;
-			em.persist(failed);
-			updt.retries = 0;
-		} else
-			updt.retries += 1;
+        if (!incrementRetries) {
+            UpdateWorkerTask failed = new UpdateWorkerTask(updt);
+            failed.retries = updt.retries;
+            failed.connectorName = updt.connectorName;
+            failed.status = Status.FAILED;
+            failed.guestId = updt.guestId;
+            failed.timeScheduled = updt.timeScheduled;
+            em.persist(failed);
+            updt.retries = 0;
+        } else
+            updt.retries += 1;
         updt.addAuditTrailEntry(auditTrailEntry);
-		updt.status = Status.SCHEDULED;
-		updt.timeScheduled = time;
-		em.merge(updt);
-		return new ScheduleResult(
+        updt.status = Status.SCHEDULED;
+        updt.timeScheduled = time;
+        em.merge(updt);
+        return new ScheduleResult(
                 updt.connectorName,
                 updt.getObjectTypes(),
-				ScheduleResult.ResultType.SCHEDULED_UPDATE_DEFERRED,
+                ScheduleResult.ResultType.SCHEDULED_UPDATE_DEFERRED,
                 time);
-	}
+    }
 
-	@Override
-	@Transactional(readOnly = false)
-	public void setUpdateWorkerTaskStatus(long updateWorkerTaskId, Status status)
-			throws RuntimeException {
-		UpdateWorkerTask updt = em
-				.find(UpdateWorkerTask.class, updateWorkerTaskId);
-		if (updt == null) {
-			RuntimeException exception = new RuntimeException(
-					"null UpdateWorkerTask trying to set its status: "
-							+ updateWorkerTaskId);
-			logger.error("module=updateQueue component=connectorUpdateService action=setUpdateWorkerTaskStatus");
-			throw exception;
-		}
-		updt.status = status;
-	}
+    @Override
+    @Transactional(readOnly = false)
+    public void setUpdateWorkerTaskStatus(long updateWorkerTaskId, Status status)
+            throws RuntimeException {
+        UpdateWorkerTask updt = em
+                .find(UpdateWorkerTask.class, updateWorkerTaskId);
+        if (updt == null) {
+            RuntimeException exception = new RuntimeException(
+                    "null UpdateWorkerTask trying to set its status: "
+                    + updateWorkerTaskId);
+            logger.error("module=updateQueue component=connectorUpdateService action=setUpdateWorkerTaskStatus");
+            throw exception;
+        }
+        updt.status = status;
+    }
 
-	@Override
-	@Transactional(readOnly = false)
-	public void pollScheduledUpdates() {
+    @Override
+    @Transactional(readOnly = false)
+    public void pollScheduledUpdates() {
         if (isShuttingDown) {
             StringBuilder sb = new StringBuilder("module=updateQueue component=pollScheduledUpdates" +
                                                  " action=updateConnector")
@@ -266,18 +246,18 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
             logger.warn(sb.toString());
             return;
         }
-		List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em,
-				UpdateWorkerTask.class, "updateWorkerTasks.byStatus",
-				Status.SCHEDULED, System.currentTimeMillis());
-		if (updateWorkerTasks.size() == 0) {
-			logger.debug("module=updateQueue component=connectorUpdateService action=pollScheduledUpdates message=\"Nothing to do\"");
-			return;
-		}
-		for (UpdateWorkerTask updateWorkerTask : updateWorkerTasks) {
+        List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em,
+                                                                 UpdateWorkerTask.class, "updateWorkerTasks.byStatus",
+                                                                 Status.SCHEDULED, System.currentTimeMillis());
+        if (updateWorkerTasks.size() == 0) {
+            logger.debug("module=updateQueue component=connectorUpdateService action=pollScheduledUpdates message=\"Nothing to do\"");
+            return;
+        }
+        for (UpdateWorkerTask updateWorkerTask : updateWorkerTasks) {
             logger.info("module=updateQueue component=connectorUpdateService action=pollScheduledUpdates" +
                         " message=\"Executing update: " +
                         " \"" + updateWorkerTask);
-			setUpdateWorkerTaskStatus(updateWorkerTask.getId(), Status.IN_PROGRESS);
+            setUpdateWorkerTaskStatus(updateWorkerTask.getId(), Status.IN_PROGRESS);
 
             // TODO: re-think this through
             // retrieve updater for the worker
@@ -286,31 +266,31 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
             // let the updater know about the worker
             // execute the worker
 
-			UpdateWorker updateWorker = beanFactory.getBean(UpdateWorker.class);
-			updateWorker.task = updateWorkerTask;
-			try {
-				executor.execute(updateWorker);
-			} catch (Throwable t) {
-				t.printStackTrace();
-			}
-		}
-	}
+            UpdateWorker updateWorker = beanFactory.getBean(UpdateWorker.class);
+            updateWorker.task = updateWorkerTask;
+            try {
+                executor.execute(updateWorker);
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
+        }
+    }
 
-	@Override
-	public void addUpdater(Connector connector, AbstractUpdater updater) {
-		updaters.put(connector, updater);
-	}
+    @Override
+    public void addUpdater(Connector connector, AbstractUpdater updater) {
+        updaters.put(connector, updater);
+    }
 
-	@Override
-	public AbstractUpdater getUpdater(Connector connector) {
+    @Override
+    public AbstractUpdater getUpdater(Connector connector) {
         return beanFactory.getBean(connector.getUpdaterClass());
-	}
+    }
 
-	@Override
+    @Override
     @Transactional(readOnly = false)
-	public ScheduleResult scheduleUpdate(long guestId, String connectorName,
-			int objectTypes, UpdateType updateType, long timeScheduled,
-			String... jsonParams) {
+    public ScheduleResult scheduleUpdate(long guestId, String connectorName,
+                                         int objectTypes, UpdateType updateType, long timeScheduled,
+                                         String... jsonParams) {
         if (isShuttingDown) {
             StringBuilder sb = new StringBuilder("module=updateQueue component=updateAllConnectors" +
                                                  " action=scheduleUpdate")
@@ -322,30 +302,30 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
                     ScheduleResult.ResultType.SYSTEM_IS_SHUTTING_DOWN,
                     System.currentTimeMillis());
         }
-		UpdateWorkerTask updateScheduled = getScheduledUpdateTask(guestId, connectorName, objectTypes);
+        UpdateWorkerTask updateScheduled = getScheduledUpdateTask(guestId, connectorName, objectTypes);
         ScheduleResult scheduleResult = null;
-		if (updateScheduled==null) {
-			UpdateWorkerTask updateWorkerTask = new UpdateWorkerTask();
-			updateWorkerTask.guestId = guestId;
-			updateWorkerTask.connectorName = connectorName;
-			updateWorkerTask.objectTypes = objectTypes;
-			updateWorkerTask.updateType = updateType;
-			updateWorkerTask.status = Status.SCHEDULED;
-			updateWorkerTask.timeScheduled = timeScheduled;
-			if (jsonParams!=null&&jsonParams.length>0)
-				updateWorkerTask.jsonParams = jsonParams[0];
-			em.persist(updateWorkerTask);
-			long now = System.currentTimeMillis();
+        if (updateScheduled==null) {
+            UpdateWorkerTask updateWorkerTask = new UpdateWorkerTask();
+            updateWorkerTask.guestId = guestId;
+            updateWorkerTask.connectorName = connectorName;
+            updateWorkerTask.objectTypes = objectTypes;
+            updateWorkerTask.updateType = updateType;
+            updateWorkerTask.status = Status.SCHEDULED;
+            updateWorkerTask.timeScheduled = timeScheduled;
+            if (jsonParams!=null&&jsonParams.length>0)
+                updateWorkerTask.jsonParams = jsonParams[0];
+            em.persist(updateWorkerTask);
+            long now = System.currentTimeMillis();
             scheduleResult = new ScheduleResult(connectorName, objectTypes,
-                   timeScheduled <= now
-                       ? ScheduleResult.ResultType.SCHEDULED_UPDATE_IMMEDIATE
-                       : ScheduleResult.ResultType.SCHEDULED_UPDATE_DEFERRED,
-                   timeScheduled);
-		} else {
+                                                timeScheduled <= now
+                                                ? ScheduleResult.ResultType.SCHEDULED_UPDATE_IMMEDIATE
+                                                : ScheduleResult.ResultType.SCHEDULED_UPDATE_DEFERRED,
+                                                timeScheduled);
+        } else {
             scheduleResult = new ScheduleResult(connectorName, objectTypes,
                                                 ScheduleResult.ResultType.ALREADY_SCHEDULED,
                                                 updateScheduled.timeScheduled);
-		}
+        }
         StringBuilder sb = new StringBuilder("module=updateQueue component=connectorUpdateService action=scheduleUpdate")
                 .append(" guestId=").append(guestId)
                 .append(" connectorName=").append(connectorName)
@@ -353,55 +333,55 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
                 .append(" resultType=").append(scheduleResult.type.toString());
         logger.info(sb.toString());
         return scheduleResult;
-	}
+    }
 
-	@Override
-	public boolean isHistoryUpdateCompleted(long guestId, String connectorName,
-			int objectTypes) {
-		List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em,
-				UpdateWorkerTask.class, "updateWorkerTasks.completed",
-				Status.DONE, guestId,
-				UpdateType.INITIAL_HISTORY_UPDATE, objectTypes,
-				connectorName);
-		return updateWorkerTasks.size() > 0;
-	}
+    @Override
+    public boolean isHistoryUpdateCompleted(long guestId, String connectorName,
+                                            int objectTypes) {
+        List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em,
+                                                                 UpdateWorkerTask.class, "updateWorkerTasks.completed",
+                                                                 Status.DONE, guestId,
+                                                                 UpdateType.INITIAL_HISTORY_UPDATE, objectTypes,
+                                                                 connectorName);
+        return updateWorkerTasks.size() > 0;
+    }
 
-	@Override
-	@Transactional(readOnly = false)
-	public void addApiNotification(Connector connector, long guestId, String content) {
-		ApiNotification notification = new ApiNotification();
-		notification.api = connector.value();
-		notification.guestId = guestId;
-		notification.ts = System.currentTimeMillis();
-		notification.content = content;
-		em.persist(notification);
-	}
+    @Override
+    @Transactional(readOnly = false)
+    public void addApiNotification(Connector connector, long guestId, String content) {
+        ApiNotification notification = new ApiNotification();
+        notification.api = connector.value();
+        notification.guestId = guestId;
+        notification.ts = System.currentTimeMillis();
+        notification.content = content;
+        em.persist(notification);
+    }
 
-	@Override
-	@Transactional(readOnly = false)
-	public void addApiUpdate(long guestId, Connector api, int objectTypes,
-			long ts, long elapsed, String query, boolean success) {
-		ApiUpdate updt = new ApiUpdate();
-		updt.guestId = guestId;
-		updt.api = api.value();
-		updt.ts = System.currentTimeMillis();
-		updt.query = query;
-		updt.objectTypes = objectTypes;
-		updt.elapsed = elapsed;
-		updt.success = success;
-		em.persist(updt);
-	}
+    @Override
+    @Transactional(readOnly = false)
+    public void addApiUpdate(long guestId, Connector api, int objectTypes,
+                             long ts, long elapsed, String query, boolean success) {
+        ApiUpdate updt = new ApiUpdate();
+        updt.guestId = guestId;
+        updt.api = api.value();
+        updt.ts = System.currentTimeMillis();
+        updt.query = query;
+        updt.objectTypes = objectTypes;
+        updt.elapsed = elapsed;
+        updt.success = success;
+        em.persist(updt);
+    }
 
-	@Override
-	public ApiUpdate getLastUpdate(long guestId, Connector api) {
+    @Override
+    public ApiUpdate getLastUpdate(long guestId, Connector api) {
         return JPAUtils.findUnique(em, ApiUpdate.class,
-                "apiUpdates.last", guestId, api.value());
-	}
+                                   "apiUpdates.last", guestId, api.value());
+    }
 
-	@Override
-	public ApiUpdate getLastSuccessfulUpdate(long guestId, Connector api) {
+    @Override
+    public ApiUpdate getLastSuccessfulUpdate(long guestId, Connector api) {
         return JPAUtils.findUnique(em, ApiUpdate.class, "apiUpdates.last.successful.byApi", guestId, api.value());
-	}
+    }
 
     @Override
     public List<ApiUpdate> getUpdates(long guestId, final Connector connector, final int pageSize, final int page) {
@@ -409,14 +389,14 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
     }
 
     @Override
-	public ApiUpdate getLastSuccessfulUpdate(long guestId, Connector api,
-			int objectTypes) {
-		if (objectTypes == -1)
-			return getLastSuccessfulUpdate(guestId, api);
+    public ApiUpdate getLastSuccessfulUpdate(long guestId, Connector api,
+                                             int objectTypes) {
+        if (objectTypes == -1)
+            return getLastSuccessfulUpdate(guestId, api);
         return JPAUtils.findUnique(em, ApiUpdate.class,
-                "apiUpdates.last.successful.byApiAndObjectTypes", guestId,
-                api.value(), objectTypes);
-	}
+                                   "apiUpdates.last.successful.byApiAndObjectTypes", guestId,
+                                   api.value(), objectTypes);
+    }
 
     @Override
     @Transactional(readOnly = false)
@@ -436,15 +416,15 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
     @Override
     @Transactional(readOnly = false)
     public List<UpdateWorkerTask> getScheduledOrInProgressUpdateTasks(long guestId, Connector connector) {
-		List<UpdateWorkerTask> updateWorkerTask = JPAUtils.find(em, UpdateWorkerTask.class, "updateWorkerTasks.isScheduledOrInProgress", guestId, connector.getName());
+        List<UpdateWorkerTask> updateWorkerTask = JPAUtils.find(em, UpdateWorkerTask.class, "updateWorkerTasks.isScheduledOrInProgress", guestId, connector.getName());
         for (UpdateWorkerTask workerTask : updateWorkerTask) {
             if (hasStalled(workerTask)) {
                 workerTask.status = Status.STALLED;
                 em.merge(workerTask);
             }
         }
-		return updateWorkerTask;
-	}
+        return updateWorkerTask;
+    }
 
     @Override
     public Collection<UpdateWorkerTask> getUpdatingUpdateTasks(final long guestId, final Connector connector) {
@@ -485,14 +465,14 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
      *                       we use to track wether we need to everything from scratch or just do so
      *                       incrementally
      */
-	@Transactional(readOnly = false)
-	@Override
-	public void flushUpdateWorkerTasks(long guestId, Connector connector, boolean wipeOutHistory) {
+    @Transactional(readOnly = false)
+    @Override
+    public void flushUpdateWorkerTasks(long guestId, Connector connector, boolean wipeOutHistory) {
         List<AbstractUpdater> toStop = new ArrayList<AbstractUpdater>();
         if (!wipeOutHistory)
             JPAUtils.execute(em, "updateWorkerTasks.delete.byApi", guestId,
-                    connector.getName(),
-                    UpdateType.INITIAL_HISTORY_UPDATE);
+                             connector.getName(),
+                             UpdateType.INITIAL_HISTORY_UPDATE);
         else
             JPAUtils.execute(em, "updateWorkerTasks.deleteAll.byApi", guestId,
                              connector.getName());
@@ -525,37 +505,37 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
         isShuttingDown = true;
     }
 
-	@Override
-	public long getTotalNumberOfGuestsUsingConnector(Connector connector) {
+    @Override
+    public long getTotalNumberOfGuestsUsingConnector(Connector connector) {
         return JPAUtils.count(em, "apiKey.count.byApi",
-                connector.value());
-	}
+                              connector.value());
+    }
 
-	@Override
-	public long getTotalNumberOfUpdates(Connector connector) {
+    @Override
+    public long getTotalNumberOfUpdates(Connector connector) {
         return JPAUtils.count(em, "apiUpdates.count.all",
-                connector.value());
-	}
+                              connector.value());
+    }
 
-	@Override
-	public long getNumberOfUpdates(long guestId, Connector connector) {
+    @Override
+    public long getNumberOfUpdates(long guestId, Connector connector) {
         return JPAUtils.count(em,
-                "apiUpdates.count.byGuest", guestId, connector.value());
-	}
+                              "apiUpdates.count.byGuest", guestId, connector.value());
+    }
 
-	@Override
-	public long getTotalNumberOfUpdatesSince(Connector connector, long then) {
+    @Override
+    public long getTotalNumberOfUpdatesSince(Connector connector, long then) {
         return JPAUtils.count(em,
-                "apiUpdates.count.all.since", connector.value(), then);
-	}
+                              "apiUpdates.count.all.since", connector.value(), then);
+    }
 
-	@Override
-	public long getNumberOfUpdatesSince(long guestId, Connector connector,
-			long then) {
+    @Override
+    public long getNumberOfUpdatesSince(long guestId, Connector connector,
+                                        long then) {
         return JPAUtils.count(em,
-                "apiUpdates.count.byGuest.since", guestId, connector.value(),
-                then);
-	}
+                              "apiUpdates.count.byGuest.since", guestId, connector.value(),
+                              then);
+    }
 
     @Override
     public Collection<UpdateWorkerTask> getLastFinishedUpdateTasks(final long guestId, final Connector connector) {
