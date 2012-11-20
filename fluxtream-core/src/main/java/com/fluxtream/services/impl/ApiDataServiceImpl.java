@@ -106,7 +106,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 		payload.timeUpdated = System.currentTimeMillis();
 
         persistFacet(payload);
-        fireDataReceivedEvent(updateInfo, start, end);
+        fireDataReceivedEvent(updateInfo, updateInfo.objectTypes(), start, end);
 	}
 
 	/**
@@ -120,7 +120,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 		ApiData apiData = new ApiData(updateInfo, start, end);
 		apiData.jsonObject = jsonObject;
 		extractFacets(apiData, updateInfo.objectTypes, updateInfo);
-        fireDataReceivedEvent(updateInfo, start, end);
+        fireDataReceivedEvent(updateInfo, updateInfo.objectTypes(), start, end);
 	}
 
     /**
@@ -134,7 +134,8 @@ public class ApiDataServiceImpl implements ApiDataService {
         ApiData apiData = new ApiData(updateInfo, start, end);
         apiData.json = json;
         extractFacets(apiData, objectTypes, updateInfo);
-        fireDataReceivedEvent(updateInfo, start, end);
+        final List<ObjectType> types = ObjectType.getObjectTypes(updateInfo.apiKey.getConnector(), objectTypes);
+        fireDataReceivedEvent(updateInfo, types, start, end);
     }
 
 	/**
@@ -152,13 +153,14 @@ public class ApiDataServiceImpl implements ApiDataService {
                                        "Updater -> you need to call the cacheApiDataJSON method with the " +
                                        "extra 'objectTypes' parameter!");
 		extractFacets(apiData, updateInfo.objectTypes, updateInfo);
-        fireDataReceivedEvent(updateInfo, start, end);
+        fireDataReceivedEvent(updateInfo, updateInfo.objectTypes(), start, end);
 	}
 
-    private void fireDataReceivedEvent(final UpdateInfo updateInfo, final long start, final long end) {
+    private void fireDataReceivedEvent(final UpdateInfo updateInfo, List<ObjectType> objectTypes,
+                                       final long start, final long end) {
         DataReceivedEvent dataReceivedEvent = new DataReceivedEvent(updateInfo.getGuestId(),
                                                                     updateInfo.apiKey.getConnector(),
-                                                                    updateInfo.objectTypes(),
+                                                                    objectTypes,
                                                                     start, end);
         // date-based connectors may attach a "date" String (yyyy-MM-dd) to the updateInfo object
         if (updateInfo.getContext("date")!=null)
@@ -177,7 +179,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 		ApiData apiData = new ApiData(updateInfo, start, end);
 		apiData.xmlDocument = xmlDocument;
 		extractFacets(apiData, updateInfo.objectTypes, null);
-        fireDataReceivedEvent(updateInfo, start, end);
+        fireDataReceivedEvent(updateInfo, updateInfo.objectTypes(), start, end);
 	}
 
 	/**
