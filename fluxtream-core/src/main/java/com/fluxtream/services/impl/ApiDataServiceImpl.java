@@ -134,6 +134,7 @@ public class ApiDataServiceImpl implements ApiDataService {
         ApiData apiData = new ApiData(updateInfo, start, end);
         apiData.json = json;
         extractFacets(apiData, objectTypes, updateInfo);
+        fireDataReceivedEvent(updateInfo, start, end);
     }
 
 	/**
