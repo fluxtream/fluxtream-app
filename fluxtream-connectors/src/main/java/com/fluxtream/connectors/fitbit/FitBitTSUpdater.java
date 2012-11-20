@@ -379,9 +379,9 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                 lastSyncDate = Long.valueOf(scaleLastSyncDate);
             }
         }
-        if (deviceType.equals("TRACKER")&&lastSyncDate>latestTrackerSyncDate)
+        if (deviceType.equals("TRACKER")&&lastSyncDate<latestTrackerSyncDate)
             return getListOfDatesSince(lastSyncDate);
-        else if (deviceType.equals("SCALE")&&lastSyncDate>latestScaleSyncDate)
+        else if (deviceType.equals("SCALE")&&lastSyncDate<latestScaleSyncDate)
             return getListOfDatesSince(lastSyncDate);
         return new ArrayList<String>();
     }
