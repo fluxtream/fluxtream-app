@@ -44,51 +44,69 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 	Calendar.initialize = function () {
 		_.bindAll(this);
 
-        FlxState.router.route(/^app\/calendar(\/?)(.*?)$/, "", function() {
-            var parse_url = /^(?:([A-Za-z]+):)?(\/{0,3})([0-9.\-A-Za-z]+)(?::(\d+))?(?:\/([^?#]*))?(?:\?([^#]*))?(?:#(.*))?$/;
-            var result = parse_url.exec(window.location.href);
-            var names = [ 'url', 'scheme', 'slash', 'host', 'port', 'path' ];
-            var i;
-            var parts = {};
-            for (i = 0; i < names.length; i += 1)
-                parts[names[i]] = result[i];
-            var pathElements = parts.path.split("/");
-            if (pathElements.length<3)
+        FlxState.router.route(/^app\/calendar\/?(.*?)$/, "", function(path) {
+            var pathElements = path.split("/");
+            if (pathElements[pathElements.length - 1] === '') {
+                pathElements.pop();
+            }
+            if (_.isEmpty(pathElements)) {
                 App.invalidPath();
-            var splits = {};
-            var splitNames = ["app", "appName", "tabName", "timeUnit"];
-            for (i = 0; i < pathElements.length; i += 1)
-                splits[splitNames[i]] = pathElements[i];
-            var validTab = _.include(["clock","map","diary","photos","list","timeline","dashboards"], splits.tabName),
-                validTimeUnit = _.include(["date","week","month","year"], splits.timeUnit);
-            if (validTab && validTimeUnit) {
-                var tab = Builder.tabExistsForTimeUnit(splits.tabName, Calendar.timeUnit)?splits.tabName:Builder.tabs[Calendar.timeUnit][0];
-                switch (splits.timeUnit) {
-                    case "date":
-                        var date = pathElements[4];
-                        var tabParam = pathElements[5];
-                        Calendar.render(tab + "/date/" + date + (tabParam == null ? "" : "/" + tabParam));
-                        break;
-                    case "week":
-                        var year = pathElements[4],
-                            week = pathElements[5];
-                        var tabParam = pathElements[6];
-                        Calendar.render(tab + "/week/" + year + "/" + week + (tabParam == null ? "" : "/" + tabParam));
-                        break;
-                    case "month":
-                        var year = pathElements[4],
-                            month = pathElements[5];
-                        var tabParam = pathElements[6];
-                        Calendar.render(tab + "/month/" + year + "/" + month + (tabParam == null ? "" : "/" + tabParam));
-                        break;
-                    case "year":
-                        var year = pathElements[4];
-                        var tabParam = pathElements[5];
-                        Calendar.render(tab + "/year/" + year + (tabParam == null ? "" : "/" + tabParam));
-                        break;
-                }
-            } else
+            }
+            var tabName = pathElements.shift(),
+                timeUnit = pathElements.shift(),
+                validTabName = _.include(["clock","map","diary","photos","list","timeline","dashboards"], tabName),
+                validTimeUnit = _.include(["date","week","month","year"], timeUnit);
+            if (!validTabName || !validTimeUnit) {
                 App.invalidPath();
+                return;
+            }
+            if (!Builder.tabExistsForTimeUnit(tabName, Calendar.timeUnit)) {
+                tabName = Builder.tabs[Calendar.timeUnit][0];
+            }
+            var renderPathElements = [tabName, timeUnit];
+            switch (timeUnit) {
+                case "date":
+                    var date = pathElements.shift();
+                    if (_.isUndefined(date)) {
+                        App.invalidPath();
+                        return;
+                    }
+                    renderPathElements.push(date);
+                    break;
+                case "week":
+                    var year = pathElements.shift(),
+                        week = pathElements.shift();
+                    if (_.isUndefined(year) || _.isUndefined(week)) {
+                        App.invalidPath();
+                        return;
+                    }
+                    renderPathElements.push(year);
+                    renderPathElements.push(week);
+                    break;
+                case "month":
+                    var year = pathElements.shift(),
+                        month = pathElements.shift();
+                    if (_.isUndefined(year) || _.isUndefined(month)) {
+                        App.invalidPath();
+                        return;
+                    }
+                    renderPathElements.push(year);
+                    renderPathElements.push(month);
+                    break;
+                case "year":
+                    var year = pathElements.shift();
+                    if (_.isUndefined(year)) {
+                        App.invalidPath();
+                        return;
+                    }
+                    renderPathElements.push(year);
+                    break;
+            }
+            var tabParam = pathElements.shift();
+            if (!_.isUndefined(tabParam)) {
+                renderPathElements.push(tabParam);
+            }
+            Calendar.render(renderPathElements.join('/'));
         });
     };
 
