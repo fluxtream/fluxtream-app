@@ -461,12 +461,16 @@ define(
                 return [(hour > 12 ? hour - 12 : 12) + ":" + minutes, "pm"];
         }
 
-        App.formatDateAsDatePicker = function(date){
+        App.formatDateAsDatePicker = function(date) {
             if (typeof(date) == "number")
                 date = new Date(date);
-            if (isNaN(date.getFullYear()))
+            return App._formatDateAsDatePicker(date.getFullYear(), date.getMonth(), date.getDate());
+        }
+
+        App._formatDateAsDatePicker = function(year, month, date) {
+            if (isNaN(year))
                 return "Present";
-            return date.getFullYear() + "-" + (date.getMonth() < 9 ? "0" : "") + (date.getMonth() + 1) + "-" + (date.getDate() < 9 ? "0" : "") + date.getDate();
+            return year + "-" + (month < 9 ? "0" : "") + (month + 1) + "-" + (date < 9 ? "0" : "") + date;
         }
 
         App.addHideTooltipListener = function(hideFunction) {

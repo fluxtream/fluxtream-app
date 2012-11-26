@@ -102,7 +102,7 @@ public class CalendarController {
                                       @QueryParam("year") int year) {
         final LocalDate firstOfWeek = CalendarModel.getBeginningOfWeek(year, week);
         final String startDate = jsDateFormatter.print(firstOfWeek);
-        final String endDate = jsDateFormatter.print(firstOfWeek.plusWeeks(1));
+        final String endDate = jsDateFormatter.print(firstOfWeek.plusWeeks(1).minusDays(1));
 
         return String.format("[\"%s\", \"%s\"]", startDate, endDate);
     }
@@ -116,7 +116,7 @@ public class CalendarController {
         final int month = Integer.valueOf(splits[1]);
         final int date = Integer.valueOf(splits[2]);
 
-        final LocalDate firstOfWeek = CalendarModel.getBeginningOfWeek(year, month, date);
+        final LocalDate firstOfWeek = new LocalDate(year, month, date);
 
         return String.format("[%d, %d]",
                              firstOfWeek.getWeekyear(),

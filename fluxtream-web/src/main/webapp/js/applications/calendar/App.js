@@ -210,9 +210,11 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         $("#datepicker").attr("data-date", currentDate);
 		$("#datepicker").unbind("changeDate");
 		$("#datepicker").datepicker().on(
-			"changeDate", function(event) {;
+			"changeDate", function(event) {
                 if (Calendar.timeUnit == "DAY"){
-                    var formatted = App.formatDateAsDatePicker(event.date);
+                    var formatted = App._formatDateAsDatePicker(event.date.getUTCFullYear(),
+                        event.date.getUTCMonth(),
+                        event.date.getUTCDate());
                     if (Calendar.currentTab.timeNavigation("set/date/" + formatted)){
                         $(".datepicker").hide();
                         return;
@@ -220,7 +222,9 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     fetchState("GET", "/api/calendar/nav/getDate?date=" + formatted + "&state=" + Calendar.tabState);
                 }
                 else if (Calendar.timeUnit == "WEEK"){
-                    var weekNumber = getWeekNumber(event.date);
+                    var weekNumber = getWeekNumber(event.date.getUTCFullYear(),
+                        event.date.getUTCMonth(),
+                        event.date.getUTCDate());
                     var range = getDateRangeForWeek(weekNumber[0],weekNumber[1]);
                     if (Calendar.currentTab.timeNavigation("set/week/" + App.formatDateAsDatePicker(range[0]) + "/" + App.formatDateAsDatePicker(range[1]))){
                         $(".datepicker").hide();
@@ -703,9 +707,9 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 		return urlTimeUnit.toUpperCase();
 	}
 
-   function getWeekNumber(date) {
+   function getWeekNumber(year, month, date) {
        //OK let's have java compute that for us and avoid the discrepancy bug that way for now
-       var dateString = date.getFullYear() + "-" + (date.getMonth() < 9 ? 0 : "") + (date.getMonth() + 1) + "-" + (date.getDate() < 10 ? 0 : "") + date.getDate(),
+       var dateString = year + "-" + (month < 9 ? 0 : "") + (month + 1) + "-" + (date < 10 ? 0 : "") + date,
            result = null;
        $.ajax({
            url: "/api/calendar/nav/getMeTheJavaComputedWeekForThisDate?formattedDate=" + dateString,
@@ -717,7 +721,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
        return result;
    }
 
-   function getDateRangeForWeek(year,week) {
+   function getDateRangeForWeek(year, week) {
        if (week==null) return null;
        var result = null, range = null;
        $.ajax({
@@ -762,7 +766,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 dateString = date.getFullYear() + "-" + (date.getMonth() < 9 ? 0 : "") + (date.getMonth() + 1) + "-" + (date.getDate() < 10 ? 0 : "") + date.getDate();
                 break;
             case 'WEEK':
-                var weekInfo = getWeekNumber(date);
+                var weekInfo = getWeekNumber(date.getFullYear(), date.getMonth(), date.getDate());
                 dateString = weekInfo[0] + "/" + weekInfo[1];
                 break;
             case 'MONTH':

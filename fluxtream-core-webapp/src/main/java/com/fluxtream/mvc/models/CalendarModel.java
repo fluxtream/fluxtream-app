@@ -31,7 +31,7 @@ public class CalendarModel {
     private static final DateTimeFormatter currentYearFormatter = DateTimeFormat
             .forPattern("yyyy");
 
-    private static final int FIRST_DAY_OF_WEEK = DateTimeConstants.SUNDAY;
+    public static final int FIRST_DAY_OF_WEEK = DateTimeConstants.SUNDAY;
 
     private final long guestId;
     private final MetadataService metadataService;
@@ -70,23 +70,32 @@ public class CalendarModel {
         fromDate = getBeginningOfWeek(year, week);
     }
 
-    public static LocalDate getBeginningOfWeek(final int year, final int month, final int date) {
-        return (new LocalDate(year, month, date))
-                .withDayOfWeek(FIRST_DAY_OF_WEEK)
-                .minusWeeks(1);
-    }
-
     public static LocalDate getBeginningOfWeek(final int year, final int week) {
 
         // January 4 of a year is always in that year under ISO 8601, which JodaTime uses
-        return (new LocalDate(year, 1, 4))
+        return (new LocalDate())
+                .withWeekyear(year)
                 .withWeekOfWeekyear(week)
-                .withDayOfWeek(FIRST_DAY_OF_WEEK)
-                .minusWeeks(1);
+                .minusWeeks(1)
+                .withDayOfWeek(FIRST_DAY_OF_WEEK);
         // Need to subtract 1 week because Sunday is the last day of the week, which
         // would logically move all the week start dates forward by 6 days.  Better
         // one day earlier than JodaTime's standard than 6 days later than
         // users' expectations.
+    }
+
+    public int getWeekYear() {
+        if (timeUnit != TimeUnit.WEEK)
+            throw new IllegalStateException("Unexpected check for week year when not using week time unit");
+        return fromDate.getWeekyear();
+    }
+
+    public int getWeek() {
+        if (timeUnit != TimeUnit.WEEK)
+            throw new IllegalStateException("Unexpected check for week when not using week time unit");
+        // Off by 1 because getBeginningOfWeek(year, week), and by extension
+        // setWeek(year, week) goes back by 1 week
+        return fromDate.getWeekOfWeekyear() + 1;
     }
 
     public void setMonth(final int year, final int month) {
@@ -174,9 +183,7 @@ public class CalendarModel {
             case DAY:
                 return "date/" + jsDateFormatter.print(fromDate);
             case WEEK:
-                return String.format("week/%d/%d",
-                                     fromDate.getWeekyear(),
-                                     fromDate.getWeekOfWeekyear());
+                return String.format("week/%d/%d", getWeekYear(), getWeek());
             case MONTH:
                 return String.format("month/%d/%d", fromDate.getYear(), fromDate.getMonthOfYear());
             case YEAR:
