@@ -6,10 +6,9 @@
 <head>
     <meta charset="utf-8">
     <title>Fluxtream</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=1000, initial-scale=1.0">
     <meta name="description" content="Landing page,Subscribe">
     <meta name="author" content="">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Styles -->
     <link href="/static/css/bootstrap-2.0.3.min.css" rel="stylesheet">
     <link href="/static/css/bootstrap-responsive-2.0.3.min.css" rel="stylesheet">
@@ -61,7 +60,7 @@
 
 
 
-<a href="https://github.com/fluxtream/fluxtream-app"><img style="position: absolute; top: 0; right: 0; border: 0; z-index:105;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"></a>
+<!-- <a href="https://github.com/fluxtream/fluxtream-app"><img style="position: absolute; top: 0; right: 0; border: 0; z-index:105;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"></a> -->
 
 
 
@@ -153,7 +152,7 @@
 
         <div class="span6" >
             <div style="padding:0 10px;">
-                <h2>Upcoming events</h2>
+                <h2>Recent events</h2>
 
                 <div class="media ">
                     <div class="img">
@@ -161,7 +160,7 @@
                     </div>
                     <div class="bd">
                         <h3>OScon 2012</h3>
-                        <p>We will be presenting the new combined Fluxtream/BodyTrack tool set at OSCon in Portland, Oregon on July 18, 2012. Please join us there!</p>
+                        <p>We presented the new combined Fluxtream/BodyTrack tool set at OSCon in Portland, Oregon on July 18, 2012.</p>
                     </div>
                 </div>
 
@@ -171,7 +170,7 @@
                     </div>
                     <div class="bd">
                         <h3>Quantified Self 2012</h3>
-                        <p>We will be presenting an Ignite Plus talk at the Quantified Self Conference in Stanford : "Data aggregation and exploration with Fluxtream/BodyTrack"</p>
+                        <p>We presented an Ignite Plus talk at the Quantified Self Conference in Stanford : "Data aggregation and exploration with Fluxtream/BodyTrack"</p>
                     </div>
                 </div>
             </div>
