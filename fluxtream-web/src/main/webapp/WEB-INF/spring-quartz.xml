@@ -17,7 +17,7 @@
  	<bean id="producerTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
 		<property name="jobDetail" ref="producerJobDetail" />
 		<property name="startDelay" value="0" />
-		<property name="repeatInterval" value="300000" />
+		<property name="repeatInterval" value="86400000" />
 	</bean>
 
     <bean id="producer" class="com.fluxtream.updaters.quartz.Producer"/>
