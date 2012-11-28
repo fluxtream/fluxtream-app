@@ -153,7 +153,15 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                        "fat");
 
         jpaDaoService.execute("DELETE FROM Facet_FitbitSleep sleep WHERE sleep.startTimeStorage=null and sleep.endTimeStorage=null");
-	}
+        final JSONArray deviceStatusesArray = getDeviceStatusesArray(updateInfo.apiKey);
+        final long trackerLastSyncDate = getLastSyncDate(deviceStatusesArray, "TRACKER");
+        final long scaleLastSyncDate = getLastSyncDate(deviceStatusesArray, "SCALE");
+
+        guestService.setApiKeyAttribute(updateInfo.getGuestId(), connector(), "TRACKER.lastSyncDate",
+                                        String.valueOf(trackerLastSyncDate));
+        guestService.setApiKeyAttribute(updateInfo.getGuestId(), connector(), "SCALE.lastSyncDate",
+                                        String.valueOf(scaleLastSyncDate));
+    }
 
 	public void updateCaloriesIntraday(FitbitTrackerActivityFacet facet, ApiKey apiKey)
 			throws RateLimitReachedException {
@@ -356,28 +364,10 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         long lastSyncDate = 0;
         if (deviceType.equals("TRACKER")) {
             final String trackerLastSyncDate = guestService.getApiKeyAttribute(apiKey.getGuestId(), connector(), "TRACKER.lastSyncDate");
-            if (trackerLastSyncDate==null) {
-                final FitbitTrackerActivityFacet newestActivityRecord = jpaDaoService.findOne("fitbit.activity_summary.newest", FitbitTrackerActivityFacet.class, apiKey.getGuestId());
-                final FitbitSleepFacet newestSleepRecord = jpaDaoService.findOne("fitbit.sleep.newest", FitbitSleepFacet.class, apiKey.getGuestId());
-                if (newestSleepRecord!=null)
-                    lastSyncDate = Math.max(newestActivityRecord.start, newestSleepRecord.end);
-                else
-                    lastSyncDate = newestActivityRecord.start;
-                // since we are not sure of the timezone, let's subtract 24 hours for good measure
-                lastSyncDate -= 24*3600000;
-            } else {
-                lastSyncDate = Long.valueOf(trackerLastSyncDate);
-            }
+            lastSyncDate = Long.valueOf(trackerLastSyncDate);
         } else {
             final String scaleLastSyncDate = guestService.getApiKeyAttribute(apiKey.getGuestId(), connector(), "SCALE.lastSyncDate");
-            if (scaleLastSyncDate==null) {
-                final FitbitWeightFacet newestWeightRecord = jpaDaoService.findOne("fitbit.weight.newest", FitbitWeightFacet.class, apiKey.getGuestId());
-                lastSyncDate = newestWeightRecord.start;
-                // since we are not sure of the timezone, let's subtract 24 hours for good measure
-                lastSyncDate -= 24*3600000;
-            } else {
-                lastSyncDate = Long.valueOf(scaleLastSyncDate);
-            }
+            lastSyncDate = Long.valueOf(scaleLastSyncDate);
         }
         if (deviceType.equals("TRACKER")&&lastSyncDate<latestTrackerSyncDate)
             return getListOfDatesSince(lastSyncDate);
