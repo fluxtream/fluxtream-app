@@ -714,7 +714,7 @@
                                                 <input type="text" title="insert view name" style="display:inline"/>
                                                 <a href="#" class="btn btn-mini">save</a>
                                             </form>
-                                            <h5>Or save as one of the views bellow</h5>
+                                            <h5>Or save as one of the views below</h5>
                                         </li>
                                         <li class="divider"></li>
                                         <li>
