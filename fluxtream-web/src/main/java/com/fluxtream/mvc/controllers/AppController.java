@@ -174,7 +174,7 @@ public class AppController {
 				+ ". Your data is now being retrieved. "
 				+ "It may take a little while until it becomes visible.";
 		notificationsService.addNotification(guestId, Type.INFO, message);
-        connectorUpdateService.updateConnector(guestId, connector, false);
+        connectorUpdateService.updateConnector(guestId, connector, true);
 		return "redirect:/app";
 	}
 

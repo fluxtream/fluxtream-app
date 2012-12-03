@@ -62,7 +62,7 @@ define(["core/TabInterface"], function(TabInterface) {
                        var t = tabExistsForTimeUnit(Calendar.currentTabName, timeUnit)?Calendar.currentTabName:tabs[timeUnit][0];
                        Calendar.currentTabName = t;
                        Calendar.updateButtonStates();
-                       Calendar.renderState(Calendar.currentTabName + "/" + response.state + (Calendar.tabParam == null ? "" : "/" + Calendar.tabParam));
+                       Calendar.render(Calendar.currentTabName + "/" + response.state + (Calendar.tabParam == null ? "" : "/" + Calendar.tabParam));
                    },
                    error : function() {
                        alert("error");
@@ -107,7 +107,7 @@ define(["core/TabInterface"], function(TabInterface) {
 				url = "/api/calendar/nav/set" + capitalizeFirstLetter(targetTimeUnit.toLowerCase()) + "TimeUnit";
 				$.ajax({ url:url + "&state=" + Calendar.tabState,
 					success : function(response) {
-						Calendar.renderState(Calendar.currentTabName + "/" + response.state);
+						Calendar.render(Calendar.currentTabName + "/" + response.state);
 					},
 					error : function() {
 						alert("error");

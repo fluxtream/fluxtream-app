@@ -116,6 +116,19 @@ public class ApiDataServiceImpl implements ApiDataService {
 		extractFacets(apiData, updateInfo.objectTypes, updateInfo);
 	}
 
+    /**
+     * start and end parameters allow to specify time boundaries that are not
+     * contained in the connector data itself
+     */
+    @Override
+    @Transactional(readOnly = false)
+    public void cacheApiDataJSON(UpdateInfo updateInfo, String json,
+                                 long start, long end, int objectTypes) throws Exception {
+        ApiData apiData = new ApiData(updateInfo, start, end);
+        apiData.json = json;
+        extractFacets(apiData, objectTypes, updateInfo);
+    }
+
 	/**
 	 * start and end parameters allow to specify time boundaries that are not
 	 * contained in the connector data itself
@@ -126,6 +139,10 @@ public class ApiDataServiceImpl implements ApiDataService {
 			long start, long end) throws Exception {
 		ApiData apiData = new ApiData(updateInfo, start, end);
 		apiData.json = json;
+        if (updateInfo.objectTypes==0)
+            throw new RuntimeException("ObjectType=0! cacheApiDataJSON is called from an 'Autonomous' " +
+                                       "Updater -> you need to call the cacheApiDataJSON method with the " +
+                                       "extra 'objectTypes' parameter!");
 		extractFacets(apiData, updateInfo.objectTypes, updateInfo);
 	}
 
@@ -181,7 +198,20 @@ public class ApiDataServiceImpl implements ApiDataService {
 			jpaDao.deleteAllFacets(connector, objectType, guestId);
 	}
 
-	@Override
+    @Override
+    public void eraseApiData(final long guestId, final Connector connector,
+                             final int objectTypes, final TimeInterval timeInterval) {
+        List<ObjectType> connectorTypes = ObjectType.getObjectTypes(connector,
+                                                                    objectTypes);
+        if (connectorTypes!=null) {
+            for (ObjectType objectType : connectorTypes) {
+                eraseApiData(guestId, connector, objectType, timeInterval);
+            }
+        } else
+            eraseApiData(guestId, connector, null, timeInterval);
+    }
+
+    @Override
 	@Transactional(readOnly = false)
 	// TODO: make a named query that works for all api objects
 	public void eraseApiData(long guestId, Connector api,
@@ -194,19 +224,16 @@ public class ApiDataServiceImpl implements ApiDataService {
 		}
 	}
 
-	@Override
-	@Transactional(readOnly = false)
-	public void eraseApiData(long guestId, Connector connector,
-			int objectTypes, TimeInterval timeInterval) {
-		List<ObjectType> connectorTypes = ObjectType.getObjectTypes(connector,
-				objectTypes);
-		if (connectorTypes!=null) {
-			for (ObjectType objectType : connectorTypes) {
-				eraseApiData(guestId, connector, objectType, timeInterval);
-			}
-		} else
-			eraseApiData(guestId, connector, null, timeInterval);
-	}
+    @Override
+    @Transactional(readOnly = false)
+    public void eraseApiData(long guestId, Connector connector,
+                             ObjectType objectType, List<String> dates) {
+        final List<AbstractFacet> facets = jpaDao.getFacetsByDates(connector, guestId, objectType, dates);
+        if (facets != null) {
+            for (AbstractFacet facet : facets)
+                em.remove(facet);
+        }
+    }
 
 	@Override
 	@Transactional(readOnly = false)
@@ -308,6 +335,12 @@ public class ApiDataServiceImpl implements ApiDataService {
             try {
                 aftzFacet.updateTimeInfo(localTimeZone);
             } catch (Throwable e) {
+                final String message = new StringBuilder("Could not parse floating " +
+                                                         "timezone facet's time storage: (startTimeStorage=")
+                        .append(aftzFacet.startTimeStorage)
+                        .append(", endTimeStorage=")
+                        .append(aftzFacet.endTimeStorage)
+                        .append(")").toString();
                 StringBuilder sb = new StringBuilder("module=updateQueue component=apiDataServiceImpl action=persistFacet")
                         .append(" connector=").append(Connector.fromValue(facet.api).getName())
                         .append(" objectType=").append(facet.objectType)
@@ -315,7 +348,7 @@ public class ApiDataServiceImpl implements ApiDataService {
                         .append(" message=\"Couldn't update updateTimeInfo\"")
                         .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
                 logger.warn(sb.toString());
-                throw new RuntimeException("Could not parse floating timezone facet's time storage");
+                throw new RuntimeException(message);
             }
         }
 		Query query = em.createQuery("SELECT e FROM " + entityName + " e WHERE e.guestId=? AND e.start=? AND e.end=?");

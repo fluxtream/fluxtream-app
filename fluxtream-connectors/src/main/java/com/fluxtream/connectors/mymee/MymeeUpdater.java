@@ -2,6 +2,7 @@ package com.fluxtream.connectors.mymee;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -9,6 +10,7 @@ import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
+import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.Tag;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.impl.BodyTrackHelper;
@@ -106,6 +108,8 @@ public class MymeeUpdater extends AbstractUpdater {
         JSONObject mymeeData = JSONObject.fromObject(json);
         JSONArray array = mymeeData.getJSONArray("rows");
         Set<String> channelNames = new HashSet<String>();
+        List<AbstractFacet> newFacets = new ArrayList<AbstractFacet>();
+
         for(int i=0; i<array.size(); i++) {
             MymeeObservationFacet facet = new MymeeObservationFacet();
 
@@ -197,6 +201,10 @@ public class MymeeUpdater extends AbstractUpdater {
             }
 
             apiDataService.persistFacet(facet);
+            newFacets.add(facet);
+        }
+        if(incremental) {
+            bodyTrackStorageService.storeApiData(updateInfo.apiKey.getGuestId(), newFacets);
         }
         return channelNames;
     }

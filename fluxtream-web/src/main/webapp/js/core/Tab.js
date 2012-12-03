@@ -13,14 +13,14 @@ define([ "core/FlxState" ], function(FlxState) {
 	 * or tab
 	 */
     Tab.prototype.saveState = function() {
-		FlxState.saveTabState(this.getCurrentState());
+		FlxState.saveTabState(this.appname, this.name, this.getCurrentState());
 	};
 
 	/**
 	 * This lets the tab retrieve its last saved state
 	 */
     Tab.prototype.getSavedState = function() {
-		return FlxState.getTabState(this.name);
+		return FlxState.getTabState(this.appname, this.name);
 	};
 
     Tab.prototype.getUrl = function(url, id, domReady, forceLoad, tabData) {
