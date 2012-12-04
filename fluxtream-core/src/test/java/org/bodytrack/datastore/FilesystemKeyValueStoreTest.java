@@ -25,11 +25,11 @@ public class FilesystemKeyValueStoreTest {
     private static final String VALUE_1_KEY = "feynman.quote";
     private static final String VALUE_2_KEY = "feynman.photo";
 
-
     private static File keystoreRootDirectory;
 
     private static final byte[] VALUE_1 = "What I cannot create, I do not understand.\n".getBytes();
     private static final byte[] VALUE_2;
+    private static final byte[] VALUE_3 = "For a successful technology, reality must take precedence over public relations, for nature cannot be fooled.\n".getBytes();
 
     static {
         byte[] value2;
@@ -122,11 +122,10 @@ public class FilesystemKeyValueStoreTest {
 
         final File valueFile1 = FilesystemKeyValueStore.keyToFile(keystoreRootDirectory, VALUE_1_KEY);
         Assert.assertNotNull(valueFile1);
-        Assert.assertEquals(valueFile1.getAbsolutePath(), new File(keystoreRootDirectory,"feynman/quote.val").getAbsolutePath());
+        Assert.assertEquals(valueFile1.getAbsolutePath(), new File(keystoreRootDirectory, "feynman/quote.val").getAbsolutePath());
         final File valueFile2 = FilesystemKeyValueStore.keyToFile(keystoreRootDirectory, VALUE_2_KEY);
         Assert.assertNotNull(valueFile2);
-        Assert.assertEquals(valueFile2.getAbsolutePath(), new File(keystoreRootDirectory,"feynman/photo.val").getAbsolutePath());
-
+        Assert.assertEquals(valueFile2.getAbsolutePath(), new File(keystoreRootDirectory, "feynman/photo.val").getAbsolutePath());
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -207,6 +206,13 @@ public class FilesystemKeyValueStoreTest {
         final byte[] value2 = store.get(VALUE_2_KEY);
         Assert.assertNotNull(value2);
         Assert.assertTrue(Arrays.equals(VALUE_2, value2));
+
+        // now test overwrite
+        Assert.assertTrue(store.set(VALUE_1_KEY, VALUE_3));
+        Assert.assertTrue(store.hasKey(VALUE_1_KEY));
+        final byte[] value3 = store.get(VALUE_1_KEY);
+        Assert.assertNotNull(value3);
+        Assert.assertTrue(Arrays.equals(VALUE_3, value3));
 
         // now test delete
         Assert.assertFalse(store.delete(null));
