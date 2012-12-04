@@ -29,33 +29,32 @@ import org.jetbrains.annotations.Nullable;
  * @author Randy Sargent (rsargent@cmu.edu)
  * @author Chris Bartley (bartley@cmu.edu)
  */
-public interface KeyValueStore<ValueType>
-   {
-   /**
-    * Checks whether a key exists.  Returns <code>true</code> if found, <code>false</code> otherwise. Always returns
-    * <code>false</code> if the <code>key</code> is <code>null</code>.
-    */
-   boolean hasKey(@Nullable final String key);
+public interface KeyValueStore<ValueType> {
+    /**
+     * Checks whether a key exists.  Returns <code>true</code> if found, <code>false</code> otherwise. Always returns
+     * <code>false</code> if the <code>key</code> is <code>null</code>.
+     */
+    boolean hasKey(@Nullable final String key);
 
-   /**
-    * Sets the given <code>key</code> to the given <code>value</code>.  The value cannot be <code>null</code>.  Returns
-    * <code>true</code> if the value was successfully written, <code>false</code> otherwise.  If the key is invalid
-    * and/or the value is empty, this method does nothing other than return <code>false</code>.
-    *
-    * @throws IllegalArgumentException If <code>key</code> and/or <code>value</code> is null
-    */
-   boolean set(@NotNull final String key, @NotNull final ValueType value)throws IllegalArgumentException;
+    /**
+     * Sets the given <code>key</code> to the given <code>value</code>.  The value cannot be <code>null</code>.  Returns
+     * <code>true</code> if the value was successfully written, <code>false</code> otherwise.  If the key is invalid
+     * and/or the value is empty, this method does nothing other than return <code>false</code>.
+     *
+     * @throws IllegalArgumentException If <code>key</code> and/or <code>value</code> is null
+     */
+    boolean set(@NotNull final String key, @NotNull final ValueType value) throws IllegalArgumentException;
 
-   /**
-    * Returns the value associated with the given <code>key</code>.  Returns <code>null</code> if the key is not found
-    * or if the key is <code>null</code>.
-    */
-   @Nullable
-   ValueType get(@Nullable final String key);
+    /**
+     * Returns the value associated with the given <code>key</code>.  Returns <code>null</code> if the key is not found
+     * or if the key is <code>null</code>.
+     */
+    @Nullable
+    ValueType get(@Nullable final String key);
 
-   /**
-    * Deletes the given <code>key</code> if present.  Returns <code>true</code> if deleted, <code>false</code> if not
-    * present or if deletion fails. Always returns <code>false</code> if the <code>key</code> is <code>null</code>.
-    */
-   boolean delete(@Nullable final String key);
-   }
+    /**
+     * Deletes the given <code>key</code> if present.  Returns <code>true</code> if deleted, <code>false</code> if not
+     * present or if deletion fails. Always returns <code>false</code> if the <code>key</code> is <code>null</code>.
+     */
+    boolean delete(@Nullable final String key);
+}
