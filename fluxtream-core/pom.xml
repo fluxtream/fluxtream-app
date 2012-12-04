@@ -7,11 +7,23 @@
 		<version>1.0</version>
 	</parent>
 	<artifactId>fluxtream-core</artifactId>
-	<dependencies>
+    <repositories>
+        <repository>
+            <id>thirdparty-releases</id>
+            <name>JBoss Thirdparty Releases</name>
+            <url>https://repository.jboss.org/nexus/content/repositories/thirdparty-releases</url>
+        </repository>
+    </repositories>
+    <dependencies>
 		<dependency>
 			<groupId>commons-configuration</groupId>
 			<artifactId>commons-configuration</artifactId>
 			<version>1.8</version>
 		</dependency>
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>7.0.2</version>
+        </dependency>
     </dependencies>
 </project>
