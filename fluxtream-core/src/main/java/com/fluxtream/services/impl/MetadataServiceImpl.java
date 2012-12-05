@@ -156,7 +156,7 @@ public class MetadataServiceImpl implements MetadataService {
 
 	private DayMetadataFacet getNextExistingDayMetadata(long guestId,
 			String todaysDate) {
-		// TODO: not totally acurate, since we are ignoring the timezone
+		// TODO: not totally accurate, since we are ignoring the timezone
 		// of todaysDate, but should work in most cases
 		long start = formatter.parseMillis(todaysDate);
 		DayMetadataFacet next = JPAUtils.findUnique(em, DayMetadataFacet.class,
@@ -171,7 +171,7 @@ public class MetadataServiceImpl implements MetadataService {
 	public City getMainCity(long guestId, DayMetadataFacet context) {
 		NavigableSet<VisitedCity> cities = context.getOrderedCities();
 		if (cities.size() == 0) {
-			logger.warn("guestId=" + guestId + " message=no_main_city date=" + context.date);
+			logger.debug("guestId=" + guestId + " message=no_main_city date=" + context.date);
 			return null;
 		}
 		VisitedCity mostVisited = cities.last();

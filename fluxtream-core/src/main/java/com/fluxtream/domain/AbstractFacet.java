@@ -193,7 +193,11 @@ public abstract class AbstractFacet extends AbstractEntity {
         Entity entity = (Entity)facetClass.getAnnotation(Entity.class);
         Query query = em.createQuery("select facet from " + entity.name() + " facet where facet.guestId = " + guestId + " order by facet.end " + sortOrder + " limit 1");
         query.setMaxResults(1);
-        return (AbstractFacet)query.getResultList().get(0);
+        final List resultList = query.getResultList();
+        if (resultList != null && resultList.size() > 0) {
+            return (AbstractFacet)resultList.get(0);
+        }
+        return null;
     }
 
     public static List<AbstractFacet> getFacetsBefore(EntityManager em,

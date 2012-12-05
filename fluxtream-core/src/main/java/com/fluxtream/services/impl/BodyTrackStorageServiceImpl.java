@@ -107,6 +107,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
         List<String> dailyDataChannelNames = getDailyDataChannelNames(facetName);
         List<List<Object>> dailyDataChannelValues = getDailyDataChannelValues(deviceFacets, dailyDataChannelNames);
 
+        // TODO: check the status code in the BodyTrackUploadResult
         bodyTrackHelper.uploadToBodyTrack(guestId, deviceName, dailyDataChannelNames, dailyDataChannelValues);
     }
 
@@ -189,8 +190,10 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 			Connector connector = Connector.fromValue(facet.api);
 			String connectorAndObjectType = connector.getName();
 			if (connector.objectTypes()!=null&&connector.objectTypes().length>0) {
-				connectorAndObjectType += "." + ObjectType.getObjectType(connector,
-					facet.objectType).getName();
+                ObjectType objectType = ObjectType.getObjectType(connector, facet.objectType);
+				if(objectType !=null) {
+                    connectorAndObjectType += "." + objectType.getName();
+                }
 			}
 			String deviceNickname = getDeviceNickname(connectorAndObjectType);
 			if (deviceNickname==null) {

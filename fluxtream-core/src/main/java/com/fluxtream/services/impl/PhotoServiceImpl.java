@@ -313,19 +313,20 @@ public class PhotoServiceImpl implements PhotoService {
         return connector.prettyName() + "." + (objectType == null ? DEFAULT_PHOTOS_CHANNEL_NAME : objectType.getName());
     }
 
+    /**
+     * Returns the {@link TimeInterval} for the oldest and newest facets.  Returns <code>null</code> if no facets exist.
+     */
     private TimeInterval constructTimeIntervalFromOldestAndNewestFacets(final long guestId, final Connector connector, final ObjectType objectType) {
         final PhotoFacetFinderStrategy photoFacetFinderStrategy = getPhotoFacetFinderStrategyFromObjectType(objectType);
         final AbstractFacet oldestFacet = photoFacetFinderStrategy.findOldest(guestId, connector, objectType);
         final AbstractFacet newestFacet = photoFacetFinderStrategy.findLatest(guestId, connector, objectType);
 
-        if(oldestFacet!=null && newestFacet!=null) {
+        if (oldestFacet != null && newestFacet != null) {
             // TODO: Not sure if this is correct for time zones...
             return new TimeInterval(oldestFacet.start, newestFacet.start, TimeUnit.DAY, TimeZone.getTimeZone("UTC"));
         }
-        else {
-            // TODO: How do we return an empty TimeInterval?  This is not right.
-            return new TimeInterval(0, 0, TimeUnit.DAY, TimeZone.getTimeZone("UTC"));
-        }
+
+        return null;
     }
 
     private static final class PhotoImpl implements Photo, Comparable<Photo> {

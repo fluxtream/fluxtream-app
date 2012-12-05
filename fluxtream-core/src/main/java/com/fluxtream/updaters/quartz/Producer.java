@@ -16,6 +16,10 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+/**
+ * This class' scheduleIncrementalUpdates is meant to be call at regular intervals by
+ * a quartz trigger (see spring-quartz.xml)
+ */
 public class Producer {
 
     Logger logger = Logger.getLogger(Producer.class);
@@ -26,22 +30,25 @@ public class Producer {
     @Autowired
     private GuestService guestService;
 
+    /**
+     * bluntly go through the list of all guests and attempt to update all of their connectors
+     */
     public void scheduleIncrementalUpdates() {
-        logger.info("module=updateQueue component=producer action=scheduleIncrementalUpdates");
-        //List<String> roles = new ArrayList<String>();
-        //roles.add("ROLE_ADMIN");
-        //roles.add("ROLE_ROOT");
-        //as(roles);
-        //try {
-        //    List<Guest> guests = guestService.getAllGuests();
-        //    for (Guest g : guests) {
-        //        connectorUpdateService.updateAllConnectors(g.getId());
-        //    }
-        //}
-        //catch (Exception e) {
-        //    String stackTrace = Utils.stackTrace(e);
-        //    logger.error("module=updateQueue component=producer message=Could not update all connectors stackTrace=" + stackTrace);
-        //}
+        logger.debug("module=updateQueue component=producer action=scheduleIncrementalUpdates");
+        List<String> roles = new ArrayList<String>();
+        roles.add("ROLE_ADMIN");
+        roles.add("ROLE_ROOT");
+        as(roles);
+        try {
+            List<Guest> guests = guestService.getAllGuests();
+            for (Guest g : guests) {
+                connectorUpdateService.updateAllConnectors(g.getId());
+            }
+        }
+        catch (Exception e) {
+            String stackTrace = Utils.stackTrace(e);
+            logger.error("module=updateQueue component=producer message=Could not update all connectors stackTrace=" + stackTrace);
+        }
     }
 
     private static void as(final List<String> roles) {

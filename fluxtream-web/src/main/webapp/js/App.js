@@ -89,30 +89,23 @@ define(
          * contents
          */
         function renderMainApp() {
-            var parse_url = /^(?:([A-Za-z]+):)?(\/{0,3})([0-9.\-A-Za-z]+)(?::(\d+))?(?:\/([^?#]*))?(?:\?([^#]*))?(?:#(.*))?$/;
-            var result = parse_url.exec(window.location.href);
-            var names = [ 'url', 'scheme', 'slash', 'host', 'port', 'path',
-                          'query', 'hash' ];
-            var blanks = ' ';
-            var i;
-            var parts = {};
-            for (i = 0; i < names.length; i += 1)
-                parts[names[i]] = result[i];
-            var splits = parts.path.split("/");
-            if (splits[0] === "app" && typeof (splits[1]) != "undefined") {
-                var appState = parts.path.substring("app/".length
-                                                        + splits[1].length + 1);
-                var appName = splits[1];
-                FlxState.saveState(appName, appState);
-                if (typeof(apps[appName])=="undefined") {
-                    if (console && console.log) console.log("invalid app: " + appName);
-                    App.invalidPath();
-                }
-                App.activeApp = apps[appName];
-            } else {
+            var path = Backbone.history.getFragment(),
+                splits = path.split("/"),
+                appString = splits.shift(),
+                appName = splits.shift();
+            if (appString !== 'app' || _.isUndefined(appName)) {
                 App.activeApp = apps[FlxState.defaultApp];
                 apps[FlxState.defaultApp].render("");
+                return;
             }
+            var app = apps[appName],
+                appState = splits.join('/');
+            FlxState.saveState(appName, appState);
+            if (_.isUndefined(app)) {
+                if (console && console.log) console.log("invalid app: " + appName);
+                App.invalidPath();
+            }
+            App.activeApp = app;
         }
 
         function fullHeight() {

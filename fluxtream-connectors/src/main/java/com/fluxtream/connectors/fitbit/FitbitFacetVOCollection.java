@@ -10,7 +10,7 @@ import com.fluxtream.domain.GuestSettings;
 @SuppressWarnings("rawtypes")
 public class FitbitFacetVOCollection extends AbstractFacetVOCollection {
 
-	FitbitActivityFacetVO activity_summary;
+	FitbitTrackerActivityFacetVO activity_summary;
 	List<FitbitSleepFacetVO> sleep;
 	List<FitbitLoggedActivityFacetVO> logged_activity;
 	
@@ -21,13 +21,13 @@ public class FitbitFacetVOCollection extends AbstractFacetVOCollection {
 				addLoggedActivity((FitbitLoggedActivityFacet)facet, timeInterval, settings);
 			else if (facet instanceof FitbitSleepFacet)
 				addSleepMeasure((FitbitSleepFacet)facet, timeInterval, settings);
-			else if (facet instanceof FitbitActivityFacet)
-				addActivityData((FitbitActivityFacet)facet, timeInterval, settings);
+			else if (facet instanceof FitbitTrackerActivityFacet)
+				addActivityData((FitbitTrackerActivityFacet)facet, timeInterval, settings);
 		}
 	}
 
-	private void addActivityData(FitbitActivityFacet facet, TimeInterval timeInterval, GuestSettings settings) {
-		this.activity_summary = new FitbitActivityFacetVO();
+	private void addActivityData(FitbitTrackerActivityFacet facet, TimeInterval timeInterval, GuestSettings settings) {
+		this.activity_summary = new FitbitTrackerActivityFacetVO();
 		this.activity_summary.fromFacet(facet, timeInterval, settings);
 	}
 

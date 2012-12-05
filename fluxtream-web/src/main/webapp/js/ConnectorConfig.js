@@ -29,7 +29,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                     gps: false,
                     clock: null
                 },
-                body:{
+                weight:{
                     list: true,
                     photos: false,
                     map: false,

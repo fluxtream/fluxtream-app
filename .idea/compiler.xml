@@ -2,6 +2,14 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <option name="DEFAULT_COMPILER" value="Javac" />
+    <excludeFromCompile>
+      <directory url="file://$PROJECT_DIR$/fluxtream-connectors/target/generated-sources/annotations" includeSubdirectories="true" />
+      <directory url="file://$PROJECT_DIR$/fluxtream-connectors/target/generated-test-sources/test-annotations" includeSubdirectories="true" />
+      <directory url="file://$PROJECT_DIR$/fluxtream-core/target/generated-sources/annotations" includeSubdirectories="true" />
+      <directory url="file://$PROJECT_DIR$/fluxtream-core/target/generated-test-sources/test-annotations" includeSubdirectories="true" />
+      <directory url="file://$PROJECT_DIR$/fluxtream-web/target/generated-sources/annotations" includeSubdirectories="true" />
+      <directory url="file://$PROJECT_DIR$/fluxtream-web/target/generated-test-sources/test-annotations" includeSubdirectories="true" />
+    </excludeFromCompile>
     <resourceExtensions />
     <wildcardResourcePatterns>
       <entry name="?*.properties" />
@@ -19,7 +27,22 @@
       <profile default="true" name="Default" enabled="false">
         <processorPath useClasspath="true" />
       </profile>
+      <profile default="false" name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="true" />
+        <module name="fluxtream-connectors" />
+        <module name="fluxtream-core" />
+        <module name="fluxtream-web" />
+      </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="fluxtream-connectors" target="1.6" />
+      <module name="fluxtream-core" target="1.6" />
+      <module name="fluxtream-core-webapp" target="1.6" />
+      <module name="fluxtream-web" target="1.6" />
+    </bytecodeTargetLevel>
   </component>
 </project>
 

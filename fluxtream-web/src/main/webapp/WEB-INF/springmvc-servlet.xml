@@ -27,6 +27,7 @@
     <mvc:resources mapping="/static/css/**" location="/static/css/" cache-period="31556926" />
     <mvc:resources mapping="/static/font/**" location="/static/font/" cache-period="31556926" />
     <mvc:resources mapping="/static/grapher4/**" location="/static/grapher4/" cache-period="31556926" />
+    <mvc:resources mapping="/static/jasmine/**" location="/static/jasmine/" cache-period="31556926" />
     <mvc:resources mapping="/static/js/**" location="/static/js/" cache-period="31556926" />
     <mvc:resources mapping="/static/tiny_mce-3.5b1/**" location="/static/tiny_mce-3.5b1/" cache-period="31556926" />
 

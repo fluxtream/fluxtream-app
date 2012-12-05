@@ -2,6 +2,7 @@ package com.fluxtream.services.impl;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
@@ -36,6 +37,7 @@ import com.fluxtream.thirdparty.helpers.WWOHelper;
 import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.Utils;
 import net.sf.json.JSONObject;
+import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.dom4j.Document;
 import org.joda.time.DateTimeZone;
@@ -50,7 +52,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Component
-@Transactional(readOnly=true)
 public class ApiDataServiceImpl implements ApiDataService {
 
 	static Logger logger = Logger.getLogger(ApiDataServiceImpl.class);
@@ -116,6 +117,19 @@ public class ApiDataServiceImpl implements ApiDataService {
 		extractFacets(apiData, updateInfo.objectTypes, updateInfo);
 	}
 
+    /**
+     * start and end parameters allow to specify time boundaries that are not
+     * contained in the connector data itself
+     */
+    @Override
+    @Transactional(readOnly = false)
+    public void cacheApiDataJSON(UpdateInfo updateInfo, String json,
+                                 long start, long end, int objectTypes) throws Exception {
+        ApiData apiData = new ApiData(updateInfo, start, end);
+        apiData.json = json;
+        extractFacets(apiData, objectTypes, updateInfo);
+    }
+
 	/**
 	 * start and end parameters allow to specify time boundaries that are not
 	 * contained in the connector data itself
@@ -126,6 +140,10 @@ public class ApiDataServiceImpl implements ApiDataService {
 			long start, long end) throws Exception {
 		ApiData apiData = new ApiData(updateInfo, start, end);
 		apiData.json = json;
+        if (updateInfo.objectTypes==0)
+            throw new RuntimeException("ObjectType=0! cacheApiDataJSON is called from an 'Autonomous' " +
+                                       "Updater -> you need to call the cacheApiDataJSON method with the " +
+                                       "extra 'objectTypes' parameter!");
 		extractFacets(apiData, updateInfo.objectTypes, updateInfo);
 	}
 
@@ -181,7 +199,20 @@ public class ApiDataServiceImpl implements ApiDataService {
 			jpaDao.deleteAllFacets(connector, objectType, guestId);
 	}
 
-	@Override
+    @Override
+    public void eraseApiData(final long guestId, final Connector connector,
+                             final int objectTypes, final TimeInterval timeInterval) {
+        List<ObjectType> connectorTypes = ObjectType.getObjectTypes(connector,
+                                                                    objectTypes);
+        if (connectorTypes!=null) {
+            for (ObjectType objectType : connectorTypes) {
+                eraseApiData(guestId, connector, objectType, timeInterval);
+            }
+        } else
+            eraseApiData(guestId, connector, null, timeInterval);
+    }
+
+    @Override
 	@Transactional(readOnly = false)
 	// TODO: make a named query that works for all api objects
 	public void eraseApiData(long guestId, Connector api,
@@ -194,19 +225,16 @@ public class ApiDataServiceImpl implements ApiDataService {
 		}
 	}
 
-	@Override
-	@Transactional(readOnly = false)
-	public void eraseApiData(long guestId, Connector connector,
-			int objectTypes, TimeInterval timeInterval) {
-		List<ObjectType> connectorTypes = ObjectType.getObjectTypes(connector,
-				objectTypes);
-		if (connectorTypes!=null) {
-			for (ObjectType objectType : connectorTypes) {
-				eraseApiData(guestId, connector, objectType, timeInterval);
-			}
-		} else
-			eraseApiData(guestId, connector, null, timeInterval);
-	}
+    @Override
+    @Transactional(readOnly = false)
+    public void eraseApiData(long guestId, Connector connector,
+                             ObjectType objectType, List<String> dates) {
+        final List<AbstractFacet> facets = jpaDao.getFacetsByDates(connector, guestId, objectType, dates);
+        if (facets != null) {
+            for (AbstractFacet facet : facets)
+                em.remove(facet);
+        }
+    }
 
 	@Override
 	@Transactional(readOnly = false)
@@ -308,6 +336,12 @@ public class ApiDataServiceImpl implements ApiDataService {
             try {
                 aftzFacet.updateTimeInfo(localTimeZone);
             } catch (Throwable e) {
+                final String message = new StringBuilder("Could not parse floating " +
+                                                         "timezone facet's time storage: (startTimeStorage=")
+                        .append(aftzFacet.startTimeStorage)
+                        .append(", endTimeStorage=")
+                        .append(aftzFacet.endTimeStorage)
+                        .append(")").toString();
                 StringBuilder sb = new StringBuilder("module=updateQueue component=apiDataServiceImpl action=persistFacet")
                         .append(" connector=").append(Connector.fromValue(facet.api).getName())
                         .append(" objectType=").append(facet.objectType)
@@ -315,10 +349,10 @@ public class ApiDataServiceImpl implements ApiDataService {
                         .append(" message=\"Couldn't update updateTimeInfo\"")
                         .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
                 logger.warn(sb.toString());
-                throw new RuntimeException("Could not parse floating timezone facet's time storage");
+                throw new RuntimeException(message);
             }
         }
-		Query query = em.createQuery("SELECT e FROM " + entityName + " e WHERE e.guestId=? AND e.start=? AND e.end=?");
+        Query query = em.createQuery("SELECT e FROM " + entityName + " e WHERE e.guestId=? AND e.start=? AND e.end=?");
 		query.setParameter(1, facet.guestId);
 		query.setParameter(2, facet.start);
 		query.setParameter(3, facet.end);
@@ -341,6 +375,71 @@ public class ApiDataServiceImpl implements ApiDataService {
 		}
 	}
 
+    String getTableName(Class<? extends AbstractFacet> cls) {
+        String entityName = facetEntityNames.get(cls.getName());
+        if (entityName==null) {
+            Entity entityAnnotation = cls.getAnnotation(Entity.class);
+            entityName = entityAnnotation.name();
+            facetEntityNames.put(cls.getName(), entityName);
+        }
+        return entityName;
+    }
+
+    // Takes existing or new facet and updates or inserts into database, respectively.
+    //
+    // Also adjusts time of facet to match inferred timezone, if the facet only knows local time (floating time zone)
+    // Also saves tags
+    //
+    // Workflow for using mergeFacet:
+    // Check for existing facet using getEntityManager().query()
+    // If facet already exists, modify
+    // If no facet already exists, create a new one and fill its fields
+    // Call mergeFacet with the updated or new facet
+    //
+
+    @Override
+    @Transactional(readOnly = false)
+    public <T extends AbstractFacet> T createOrReadModifyWrite(
+            Class<? extends AbstractFacet> facetClass, FacetQuery query, FacetModifier<T> modifier) {
+        //System.out.println("========================================");
+        // TODO(rsargent): do we need @Transactional again on class?
+
+        String tableName=getTableName(facetClass);
+        Query q = em.createQuery("SELECT e FROM " + tableName + " e WHERE " + query.query);
+        for (int i = 0; i < query.args.length; i++) {
+            q.setParameter(i+1, query.args[i]);
+        }
+        T orig;
+        try {
+            @SuppressWarnings("unchecked")
+            T x = orig = (T) q.getSingleResult();
+            //System.out.println("====== Facet found, id=" + orig.getId());
+            // orig is managed by the session and any changes will be written at the end of the transaction
+            // (which is the end of this member function)
+            assert(em.contains(orig));
+        } catch (javax.persistence.NoResultException ignored) {
+            orig = null;
+            //System.out.println("====== Didn't find facet;  need to create new one");
+        }
+
+        T modified = modifier.createOrModify(orig);
+        // createOrModify must return passed argument if it is not null
+        assert(orig == null || orig == modified);
+        assert(false);
+        assert (modified != null);
+        //System.out.println("====== after modify, contained?: " + em.contains(modified));
+        if (orig == null) {
+            // Persist the newly-created facet
+            em.persist(modified);
+            //System.out.println("====== after persist, contained?: " + em.contains(modified));
+        }
+        assert(em.contains(modified));
+        //System.out.println("========================================");
+        return modified;
+    }
+
+    // Each user has a set of all tags.  persistTags makes sure this set of all tags includes the tags
+    // from this facet
     @Transactional(readOnly=false)
     private void persistTags(final AbstractFacet facet) {
         for (Tag tag : facet.getTags()) {

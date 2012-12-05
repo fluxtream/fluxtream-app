@@ -7,7 +7,6 @@
 	<packaging>pom</packaging>
 	<modules>
 		<module>fluxtream-core</module>
-		<module>fluxtream-core-webapp</module>
 		<module>fluxtream-connectors</module>
 		<module>fluxtream-web</module>
 	</modules>
@@ -278,7 +277,18 @@
 			<groupId>jaxen</groupId>
 			<artifactId>jaxen</artifactId>
 			<version>1.1.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.ibm.icu</groupId>
+                    <artifactId>icu4j</artifactId>
+                </exclusion>
+            </exclusions>
 		</dependency>
+        <dependency>
+            <groupId>com.ibm.icu</groupId>
+            <artifactId>icu4j</artifactId>
+            <version>4.8</version>
+        </dependency>
 		<dependency>
 			<groupId>google</groupId>
 			<artifactId>collect</artifactId>

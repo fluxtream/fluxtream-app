@@ -13,18 +13,13 @@ public class UpdateStrategyFactory {
 	
 	@Autowired
 	private IncrementalUpdateStrategy incrementalUpdateStrategy;
-	
-	@Autowired
-	private NeverUpdateStrategy neverUpdateStrategy;
-	
+
 	public UpdateStrategy getUpdateStrategy(Connector api) {
 		switch (api.updateStrategyType()) {
 		case ALWAYS_UPDATE:
 			return alwaysUpdateStrategy;
 		case INCREMENTAL:
 			return incrementalUpdateStrategy;
-		case PUSH:
-			return neverUpdateStrategy;
 		}
 		return null;
 	}

@@ -113,7 +113,14 @@ public class ZeoRestUpdater extends AbstractUpdater {
         JSONObject dateList = JSONObject.fromObject(days).getJSONObject("response").optJSONObject("dateList");
         if(dateList != null)
         {
-            JSONArray dates = dateList.optJSONArray("date");
+            JSONArray dates = null;
+            final JSONObject dateJsonObject = dateList.optJSONObject("date");
+            if (dateJsonObject!=null) {
+                dates = new JSONArray();
+                dates.add(dateJsonObject);
+            } else {
+                dates = dateList.optJSONArray("date");
+            }
             if(dates != null)
             {
                 String statsUrl = baseUrl + "getSleepRecordForDate?key=" + zeoApiKey + "&date=";
@@ -125,12 +132,14 @@ public class ZeoRestUpdater extends AbstractUpdater {
                     int day = json.getInt("day");
                     String finalStatsUrl = statsUrl + year + "-" + month + "-" + day;
                     try{
+                        then = System.currentTimeMillis();
                         String bulkResult = callURL(finalStatsUrl, username, password);
+                        countSuccessfulApiCall(updateInfo.getGuestId(), -1, then, statsUrl);
                         apiDataService.cacheApiDataJSON(updateInfo, bulkResult, -1, -1);
                     }
                     catch (IOException e)
                     {
-                        countFailedApiCall(updateInfo.getGuestId(), -1, then, datesUrl, Utils.stackTrace(e));
+                        countFailedApiCall(updateInfo.getGuestId(), -1, then, statsUrl, Utils.stackTrace(e));
                         throw e;
                     }
                 }

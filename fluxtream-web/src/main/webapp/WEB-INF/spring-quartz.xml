@@ -17,17 +17,17 @@
  	<bean id="producerTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
 		<property name="jobDetail" ref="producerJobDetail" />
 		<property name="startDelay" value="0" />
-		<property name="repeatInterval" value="60000" />
+		<property name="repeatInterval" value="86400000" />
 	</bean>
 
-	<bean id="producerJobDetail"
-		class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
-		<property name="targetObject" ref="producer" />
-		<property name="targetMethod" value="scheduleIncrementalUpdates" />
-		<property name="concurrent" value="false" />
-	</bean>
-	<bean id="producer" class="com.fluxtream.updaters.quartz.Producer"/>
-	
+    <bean id="producer" class="com.fluxtream.updaters.quartz.Producer"/>
+    <bean id="producerJobDetail"
+          class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject" ref="producer" />
+        <property name="targetMethod" value="scheduleIncrementalUpdates" />
+        <property name="concurrent" value="false" />
+    </bean>
+
  	<bean id="consumerTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
 		<property name="jobDetail" ref="consumerJobDetail" />
 		<property name="startDelay" value="0" />
