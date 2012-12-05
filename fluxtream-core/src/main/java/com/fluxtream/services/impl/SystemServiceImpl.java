@@ -125,6 +125,11 @@ public class SystemServiceImpl implements SystemService {
                                      res.getString("github"),
                                      singlyAuthorizeUrl("github"),
                                      Connector.getConnector("github"), order++, true));
+        em.persist(new ConnectorInfo("Fluxtream Capture",
+                                     "/images/connectors/connector-fluxtream_capture.png",
+                                     res.getString("fluxtream_capture"),
+                                     "ajax:/fluxtream_capture/about",
+                                     Connector.getConnector("fluxtream_capture"), order++, true));
 	}
 
     private String singlyAuthorizeUrl(final String service) {
