@@ -388,7 +388,6 @@ public class MymeeUpdater extends AbstractUpdater {
                     }
                 }
             } catch (Throwable e){
-                e.printStackTrace();
             }
 
             apiDataService.persistFacet(facet);
