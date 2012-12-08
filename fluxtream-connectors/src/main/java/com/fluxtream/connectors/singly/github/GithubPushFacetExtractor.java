@@ -40,7 +40,7 @@ public class GithubPushFacetExtractor extends AbstractFacetExtractor {
             JSONObject eventJson = eventsArray.getJSONObject(i);
             JSONObject eventData = eventJson.getJSONObject("data");
             if (eventData==null) continue;
-            if (eventData.getString("type").equals("PushEvent")) {
+            if (eventData.getString("type").equals("DataReceivedEvent")) {
                 GithubPushFacet facet = new GithubPushFacet();
 
                 JSONObject payload = eventData.getJSONObject("payload");

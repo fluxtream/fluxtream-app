@@ -28,9 +28,11 @@ import com.fluxtream.domain.Tag;
 import com.fluxtream.domain.metadata.City;
 import com.fluxtream.domain.metadata.DayMetadataFacet;
 import com.fluxtream.domain.metadata.WeatherInfo;
+import com.fluxtream.events.DataReceivedEvent;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.BodyTrackStorageService;
+import com.fluxtream.services.EventListenerService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.thirdparty.helpers.WWOHelper;
@@ -84,6 +86,9 @@ public class ApiDataServiceImpl implements ApiDataService {
     MetadataService metadataService;
 
     @Autowired
+    EventListenerService eventListenerService;
+
+    @Autowired
     WWOHelper wwoHelper;
 
     @Autowired
@@ -102,6 +107,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 		payload.timeUpdated = System.currentTimeMillis();
 
         persistFacet(payload);
+        fireDataReceivedEvent(updateInfo, updateInfo.objectTypes(), start, end);
 	}
 
 	/**
@@ -115,6 +121,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 		ApiData apiData = new ApiData(updateInfo, start, end);
 		apiData.jsonObject = jsonObject;
 		extractFacets(apiData, updateInfo.objectTypes, updateInfo);
+        fireDataReceivedEvent(updateInfo, updateInfo.objectTypes(), start, end);
 	}
 
     /**
@@ -128,6 +135,8 @@ public class ApiDataServiceImpl implements ApiDataService {
         ApiData apiData = new ApiData(updateInfo, start, end);
         apiData.json = json;
         extractFacets(apiData, objectTypes, updateInfo);
+        final List<ObjectType> types = ObjectType.getObjectTypes(updateInfo.apiKey.getConnector(), objectTypes);
+        fireDataReceivedEvent(updateInfo, types, start, end);
     }
 
 	/**
@@ -145,9 +154,22 @@ public class ApiDataServiceImpl implements ApiDataService {
                                        "Updater -> you need to call the cacheApiDataJSON method with the " +
                                        "extra 'objectTypes' parameter!");
 		extractFacets(apiData, updateInfo.objectTypes, updateInfo);
+        fireDataReceivedEvent(updateInfo, updateInfo.objectTypes(), start, end);
 	}
 
-	/**
+    private void fireDataReceivedEvent(final UpdateInfo updateInfo, List<ObjectType> objectTypes,
+                                       final long start, final long end) {
+        DataReceivedEvent dataReceivedEvent = new DataReceivedEvent(updateInfo.getGuestId(),
+                                                                    updateInfo.apiKey.getConnector(),
+                                                                    objectTypes,
+                                                                    start, end);
+        // date-based connectors may attach a "date" String (yyyy-MM-dd) to the updateInfo object
+        if (updateInfo.getContext("date")!=null)
+            dataReceivedEvent.date = (String) updateInfo.getContext("date");
+        eventListenerService.fireEvent(dataReceivedEvent);
+    }
+
+    /**
 	 * start and end parameters allow to specify time boundaries that are not
 	 * contained in the connector data itself
 	 */
@@ -158,6 +180,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 		ApiData apiData = new ApiData(updateInfo, start, end);
 		apiData.xmlDocument = xmlDocument;
 		extractFacets(apiData, updateInfo.objectTypes, null);
+        fireDataReceivedEvent(updateInfo, updateInfo.objectTypes(), start, end);
 	}
 
 	/**

@@ -108,7 +108,8 @@ public class HttpUtils {
                 DefaultHttpClient client = new DefaultHttpClient();
                 try {
                     HttpPost post = new HttpPost(url);
-                    post.setEntity(new StringEntity(body));
+                    if (body!=null)
+                        post.setEntity(new StringEntity(body));
                     client.execute(post);
                 }
                 catch (Exception e) {
