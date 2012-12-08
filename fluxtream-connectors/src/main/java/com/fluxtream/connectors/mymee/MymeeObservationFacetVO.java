@@ -17,14 +17,14 @@ public class MymeeObservationFacetVO extends AbstractPhotoFacetVO<MymeeObservati
     public String name;
     public String note = "";
     public String user = "";
-    public int timezoneOffset;
-    public int amount;
-    public int baseAmount;
+    public Integer timezoneOffset;
+    public Double amount;
+    public Integer baseAmount;
     public String unit;
     public String baseUnit;
     public String imageURL;
-    public double longitude;
-    public double latitude;
+    public Double longitude;
+    public Double latitude;
 
     @Override
     protected void fromFacet(final MymeeObservationFacet facet, final TimeInterval timeInterval, final GuestSettings settings) {

@@ -18,23 +18,40 @@ import com.fluxtream.domain.AbstractFacet;
       @NamedQuery(name = "mymee.observation.between", query = "SELECT facet FROM Facet_MymeeObservation facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=?"),
       @NamedQuery(name = "mymee.photo.between", query = "SELECT facet FROM Facet_MymeeObservation facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=? AND facet.imageURL IS NOT NULL")
 })
-public class MymeeObservationFacet extends AbstractFacet {
 
+// Most of the fields are optional;  non-optional fields are labeled as NotNull
+
+public class MymeeObservationFacet extends AbstractFacet {
+    // NotNull
     public String mymeeId;
+
+    // User-friendly name of Mymee "topic" -- the name of the Mymee button used to make the observation.
+    // See getChannelName for the datastore/URL version of this (datastore puts each topic in a different channel)
+    // NotNull
     public String name;
+
     public String note;
     public String user;
-    public int timezoneOffset;
-    public int amount;
-    public int baseAmount;
+
+    public Integer timezoneOffset;
+
+    public Double amount;
+    public Integer baseAmount;
     public String unit;
     public String baseUnit;
+
     public String imageURL;
 
-    public double latitude;
-    public double longitude;
+    public Double latitude;
+    public Double longitude;
 
     @Override
     protected void makeFullTextIndexable() {
+    }
+
+    // Returns the channel name used by datastore and in datastore-related URLs
+    public String getChannelName() {
+        // Datastore channel names have all characters that aren't alphanumeric or underscores replaced with underscores
+        return name.replaceAll("[^0-9a-zA-Z_]+", "_");
     }
 }
