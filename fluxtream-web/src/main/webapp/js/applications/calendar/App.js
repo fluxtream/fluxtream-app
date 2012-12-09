@@ -53,10 +53,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 App.invalidPath();
             }
             var tabName = pathElements.shift(),
-                timeUnit = pathElements.shift(),
-                validTabName = _.include(["clock","map","diary","photos","list","timeline","dashboards"], tabName),
-                validTimeUnit = _.include(["date","week","month","year"], timeUnit);
-            if (!validTabName || !validTimeUnit) {
+                timeUnit = pathElements.shift();
+            if (!Builder.isValidTabName(tabName) || !Builder.isValidTimeUnit(timeUnit)) {
                 App.invalidPath();
                 return;
             }
@@ -121,23 +119,22 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 			fetchState("POST", "/api/calendar/nav/setToToday?timeUnit=DAY");
             return;
 		}
-		var splits = state.split("/");
-		Calendar.currentTabName = splits[0];
-        if (!Builder.isValidTabName(splits[0])) {
+		var stateElements = state.split("/"),
+            tabName = stateElements.shift(),
+            timeUnit = stateElements.shift();
+        if (!Builder.isValidTabName(tabName) || !Builder.isValidTimeUnit(timeUnit)) {
             App.invalidPath();
             return;
         }
-        if (!Builder.isValidTimeUnit(splits[1])) {
-            App.invalidPath();
-            return;
+        if (!Builder.tabExistsForTimeUnit(tabName, Calendar.timeUnit)) {
+            tabName = Builder.tabs[Calendar.timeUnit][0];
         }
-        Calendar.timeUnit = toTimeUnit(splits[1]);
-		var nextTabState = state.substring(splits[0].length+1);
-        var w = Builder.tabExistsForTimeUnit(Calendar.currentTabName, Calendar.timeUnit)?Calendar.currentTabName:Builder.tabs[Calendar.timeUnit][0];
-        Calendar.currentTabName = w;
+        Calendar.currentTabName = tabName;
+        Calendar.timeUnit = toTimeUnit(timeUnit);
+		var nextTabState = state.substring(tabName.length+1);
         Calendar.updateButtonStates();
         Builder.createTabs(Calendar);
-        if (!forceReload&&Calendar.tabState==nextTabState) {
+        if (!forceReload && Calendar.tabState==nextTabState) {
 			// time didn't change
             document.title = "Fluxtream Calendar | " + $("#currentTimespanLabel").text().trim() + " (" + Calendar.currentTabName + ")";
 			Builder.updateTab(Calendar.digest, Calendar);
@@ -146,20 +143,30 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 			return;
 		} else {
             Builder.bindTimeUnitsMenu(Calendar);
-            if ("DAY"===Calendar.timeUnit) {
-                Calendar.tabParam = splits[3];
-				fetchState("GET", "/api/calendar/nav/getDate?date=" + splits[2]);
-			} else if ("WEEK"===Calendar.timeUnit) {
-                Calendar.tabParam = splits[4];
-				fetchState("GET", "/api/calendar/nav/getWeek?year=" + splits[2] + "&week=" + splits[3]);
-			} else if ("MONTH"===Calendar.timeUnit) {
-                Calendar.tabParam = splits[4];
-				fetchState("GET", "/api/calendar/nav/getMonth?year=" + splits[2] + "&month=" + splits[3]);
-			} else if ("YEAR"===Calendar.timeUnit) {
-                Calendar.tabParam = splits[3];
-				fetchState("GET", "/api/calendar/nav/getYear?year=" + splits[2]);
-			}
+            switch (Calendar.timeUnit) {
+                case "DAY":
+                    var date = stateElements.shift(),
+                        url = "/api/calendar/nav/getDate?date=" + date;
+                    break;
+                case "WEEK":
+                    var year = stateElements.shift(),
+                        week = stateElements.shift(),
+                        url = "/api/calendar/nav/getWeek?year=" + year + "&week=" + week;
+                    break;
+                case "MONTH":
+                    var year = stateElements.shift(),
+                        month = stateElements.shift(),
+                        url = "/api/calendar/nav/getMonth?year=" + year + "&month=" + month;
+                    break;
+                case "YEAR":
+                    var year = stateElements.shift(),
+                        url = "/api/calendar/nav/getYear?year=" + year;
+                    break;
+            }
+            Calendar.tabParam = stateElements.shift();
+            fetchState("GET", url);
 		}
+
 	};
 
     Calendar.setTabParam = function(tabParam){

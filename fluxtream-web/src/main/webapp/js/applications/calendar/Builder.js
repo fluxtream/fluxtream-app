@@ -19,6 +19,8 @@ define(["core/TabInterface"], function(TabInterface) {
 	};
     tabInterface.setTabVisibility(tabs.fullList,true);
 
+    var timeUnits = ['date', 'week', 'month', 'year'];
+
     Builder.init = function(Calendar){
         $("#calendarTabs").replaceWith(tabInterface.getNav());
         tabInterface.getNav().addClickListener(function(tabName){
@@ -81,6 +83,7 @@ define(["core/TabInterface"], function(TabInterface) {
 		case "WEEK":
 			nextPrevEnable();
 			break;
+        // TODO: why is this disabled?
 //		case "MONTH":
 //			nextPrevEnable();
 //			break;
@@ -171,26 +174,16 @@ define(["core/TabInterface"], function(TabInterface) {
 
     }
 	
-	function tabExistsForTimeUnit(tab, unit) {
-		var tabExistsForTimeUnit = false;
-		for (var i=0; i<tabs[unit].length; i++) {
-			if (tabs[unit][i]===tab)
-				tabExistsForTimeUnit = true;
-		}
-		return tabExistsForTimeUnit;
+	function tabExistsForTimeUnit(tabName, timeUnit) {
+        return _.include(tabs[timeUnit], tabName);
 	}
 
     function isValidTabName(tabName) {
-        for (var i = 0; i < tabs.fullList.length; i++) {
-            if (tabs.fullList[i]===tabName)
-                return true;
-        }
-        return false;
+        return _.include(tabs.fullList, tabName);
     }
 
     function isValidTimeUnit(timeUnit) {
-        return timeUnit==="date"||timeUnit==="week"||
-               timeUnit==="month"||timeUnit==="year";
+        return _.include(timeUnits, timeUnit);
     }
 	
 	Builder.tabExistsForTimeUnit = tabExistsForTimeUnit;
