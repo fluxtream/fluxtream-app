@@ -138,8 +138,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 			// time didn't change
             document.title = "Fluxtream Calendar | " + $("#currentTimespanLabel").text().trim() + " (" + Calendar.currentTabName + ")";
 			Builder.updateTab(Calendar.digest, Calendar);
-			FlxState.router.navigate("app/calendar/" + state + (Calendar.tabParam == null ? "" : "/" + Calendar.tabParam));
-			FlxState.saveState("calendar", state);
+            Calendar.navigateState();
 			return;
 		} else {
             Builder.bindTimeUnitsMenu(Calendar);
@@ -171,8 +170,11 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
     Calendar.setTabParam = function(tabParam){
         Calendar.tabParam = tabParam;
-        FlxState.router.navigate("app/calendar/" + Calendar.currentTabName + "/" + Calendar.tabState + (Calendar.tabParam == null ? "" : "/" + Calendar.tabParam));
-        FlxState.saveState("calendar", Calendar.currentTabName + "/" + Calendar.tabState + (Calendar.tabParam == null ? "" : "/" + Calendar.tabParam));
+        Calendar.navigateState();
+    }
+
+    Calendar.getState = function() {
+        return Calendar.currentTabName + "/" + Calendar.tabState + (Calendar.tabParam == null ? "" : "/" + Calendar.tabParam);
     }
 
 	function fetchState(verb, url) {
@@ -189,9 +191,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 updateDisplays();
                 Calendar.start = response.start;
                 Calendar.end  = response.end;
-				FlxState.router.navigate("app/calendar/" + Calendar.currentTabName + "/" + response.state + (Calendar.tabParam == null ? "" : "/" + Calendar.tabParam));
-				FlxState.saveState("calendar", Calendar.currentTabName + "/" + response.state + (Calendar.tabParam == null ? "" : "/" + Calendar.tabParam));
-                document.title = "Fluxtream Calendar | " + response.currentTimespanLabel + " (" + Calendar.currentTabName + ")";
+                Calendar.navigateState();
+				document.title = "Fluxtream Calendar | " + response.currentTimespanLabel + " (" + Calendar.currentTabName + ")";
 				$("#currentTimespanLabel span").html(response.currentTimespanLabel);
                 updateDatepicker();
                 fetchCalendar("/api/calendar/all/" + response.state,response.state);
