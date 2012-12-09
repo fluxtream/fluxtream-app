@@ -1,6 +1,6 @@
 define(["core/Application", "core/FlxState", "applications/calendar/Builder", "libs/bootstrap-datepicker",
-        "ConnectorConfig"],
-       function(Application, FlxState, Builder, ConnectorConfig) {
+        "ConnectorConfig", "core/DateUtils"],
+       function(Application, FlxState, Builder, ConnectorConfig, DateUtils) {
 
 	var Calendar = new Application("calendar", "Candide Kemmler", "icon-calendar");
 
@@ -281,45 +281,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         });
         $(".datepicker-months td").click(function(event){
             if (Calendar.timeUnit == "MONTH" && $(event.target).hasClass("month")){
-                var month;
-                switch ($(event.target).text()){
-                    case "Jan":
-                        month = 1;
-                        break;
-                    case "Feb":
-                        month = 2;
-                        break;
-                    case "Mar":
-                        month = 3;
-                        break;
-                    case "Apr":
-                        month = 4;
-                        break;
-                    case "May":
-                        month = 5;
-                        break;
-                    case "Jun":
-                        month = 6;
-                        break;
-                    case "Jul":
-                        month = 7;
-                        break;
-                    case "Aug":
-                        month = 8;
-                        break;
-                    case "Sep":
-                        month = 9;
-                        break;
-                    case "Oct":
-                        month = 10;
-                        break;
-                    case "Nov":
-                        month = 11;
-                        break;
-                    case "Dec":
-                        month = 12;
-                        break;
-                }
+                var month = DateUtils.getMonthFromName($(event.target).text()) + 1;
                 if (Calendar.currentTab.timeNavigation("set/month/" + $(".datepicker-months .switch").text() + "/" + month)){
                     $(".datepicker").hide();
                     return;
@@ -811,20 +773,14 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         Calendar.timeUnit = rangeType;
 
         var dateLabel, state;
-        var daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-        var monthsOfYear = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
-                            "Oct", "Nov", "Dec"];
-
-        var monthsOfYearFull = ["January","February","March","April","May","June","July",
-                                "August","September","October","November","December"];
         switch (Calendar.timeUnit){
             case "DAY":
                 state = "timeline/date/" + date;
                 Calendar.tabState = "date/" + date;
                 var dateSplits = date.split("-"),
                     d = new Date(Number(dateSplits[0]),Number(dateSplits[1])-1,Number(dateSplits[2]));
-                dateLabel = daysOfWeek[d.getDay()] +
-                                ", " + monthsOfYear[d.getMonth()] + " " + d.getDate() +
+                dateLabel = d.getDayName() +
+                                ", " + d.getMonthName() + " " + d.getDate() +
                                 ", " + (d.getFullYear());
                 break;
             case "WEEK":
@@ -833,14 +789,14 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 Calendar.tabState = "week/" + date;
                 var dateSplits = date.split("/");
                 var range = getDateRangeForWeek(parseInt(dateSplits[0],10),parseInt(dateSplits[1],10));
-                dateLabel = monthsOfYear[range[0].getMonth()] + " " + range[0].getDate() + " - " +
-                            monthsOfYear[range[1].getMonth()] + " " + range[1].getDate() + " " + range[1].getFullYear();
+                dateLabel = range[0].getMonthName() + " " + range[0].getDate() + " - " +
+                            range[1].getMonthName() + " " + range[1].getDate() + " " + range[1].getFullYear();
                 break;
             case "MONTH":
                 state = "timeline/month/" + date;
                 Calendar.tabState = "month/" + date;
                 var dateSplits = date.split("/");
-                dateLabel = monthsOfYearFull[parseInt(dateSplits[1])-1] + " " + dateSplits[0];
+                dateLabel = DateUtils.getMonthFullName(parseInt(dateSplits[1])-1) + " " + dateSplits[0];
                 break;
             case "YEAR":
                 state = "timeline/year/" + date;
