@@ -145,25 +145,29 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             switch (Calendar.timeUnit) {
                 case "DAY":
                     var date = stateElements.shift(),
-                        url = "/api/calendar/nav/getDate?date=" + date;
+                        url = "/api/calendar/nav/getDate",
+                        params = {date: date};
                     break;
                 case "WEEK":
                     var year = stateElements.shift(),
                         week = stateElements.shift(),
-                        url = "/api/calendar/nav/getWeek?year=" + year + "&week=" + week;
+                        url = "/api/calendar/nav/getWeek",
+                        params = {year: year, week: week};
                     break;
                 case "MONTH":
                     var year = stateElements.shift(),
                         month = stateElements.shift(),
-                        url = "/api/calendar/nav/getMonth?year=" + year + "&month=" + month;
+                        url = "/api/calendar/nav/getMonth",
+                        params = {year: year, month: month};
                     break;
                 case "YEAR":
                     var year = stateElements.shift(),
-                        url = "/api/calendar/nav/getYear?year=" + year;
+                        url = "/api/calendar/nav/getYear",
+                        params = {year: year};
                     break;
             }
             Calendar.tabParam = stateElements.shift();
-            fetchState("GET", url);
+            fetchState("GET", url, params);
 		}
 
 	};
@@ -177,12 +181,14 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         return Calendar.currentTabName + "/" + Calendar.tabState + (Calendar.tabParam == null ? "" : "/" + Calendar.tabParam);
     }
 
-	function fetchState(verb, url) {
+	function fetchState(verb, url, params) {
         $(".calendar-navigation-button").addClass("disabled");
 		$(".loading").show();
 		$("#tabs").css("opacity", ".3");
-		$.ajax({ url:url,
+		$.ajax({
+            url: url,
             type: verb,
+            data: params,
 			success : function(response) {
 				if (Calendar.currentTab) {
 					Calendar.currentTab.saveState();
