@@ -255,9 +255,9 @@ public class CalendarDataStore {
 
             isLeapYear(year);
 
-            DayMetadataFacet dayMetaStart = metadataService.getDayMetadata(guest.getId(), year + "-" + (month + 1) + "-01", true);
+            DayMetadataFacet dayMetaStart = metadataService.getDayMetadata(guest.getId(), year + "-" + month + "-01", true);
 
-            DayMetadataFacet dayMetaEnd = metadataService.getDayMetadata(guest.getId(), year + "-" + (month + 1) + "-" + endDayNum, true);
+            DayMetadataFacet dayMetaEnd = metadataService.getDayMetadata(guest.getId(), year + "-" + month + "-" + endDayNum, true);
 
             DayMetadataFacet dayMetadata = new DayMetadataFacet();
             dayMetadata.timeZone = dayMetaStart.timeZone;
