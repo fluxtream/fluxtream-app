@@ -27,6 +27,7 @@ import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.DateTimeComparator;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -59,6 +60,8 @@ public class BodymediaUpdater extends AbstractUpdater {
     private final DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyyMMdd");
     private final DateTimeFormatter formatter2 = DateTimeFormat.forPattern("yyyy-MM-dd");
 
+    protected static DateTimeFormatter tzmapFormatter = DateTimeFormat.forPattern("yyyyMMdd'T'HHmmssZ");
+
     public BodymediaUpdater() {
         super();
         ObjectType burn = ObjectType.getObjectType(connector(), "burn");
@@ -75,6 +78,10 @@ public class BodymediaUpdater extends AbstractUpdater {
     public void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception {
         // Get timezone map for this user
         List<TimezoneMapElt> tzMap = getTimezoneMap(updateInfo);
+
+        // Prasanth removed this and said it doesn't work in checkin
+        // https://github.com/fluxtream/fluxtream-app/commit/eb10e1a3bb38170657f81621d26e1775644aa18f
+        // TODO: figure out how to handle exchanging the token in a way that does work
 
         //checkAndReplaceOauthToken(updateInfo);
         for(ObjectType ot : updateInfo.objectTypes())
@@ -243,15 +250,22 @@ public class BodymediaUpdater extends AbstractUpdater {
                     JSONObject jsonRecord = timezoneMapJson.getJSONObject(i);
                     final String tzName = jsonRecord.getString("value");
                     final String startDateStr = jsonRecord.getString("startDate");
-                    final String endDateStr = jsonRecord.getString("endDate");
+                    final String endDateStr = jsonRecord.optString("endDate");
                     DateTime startDate;
                     DateTime endDate;
-                    TimeZone tz;
+                    DateTimeZone tz;
                     TimezoneMapElt tzElt;
 
-                    startDate = formatter.parseDateTime(startDateStr);
-                    endDate = formatter.parseDateTime(endDateStr);
-                    tz = TimeZone.getTimeZone(tzName);
+                    tz = DateTimeZone.forID(tzName);
+                    startDate = tzmapFormatter.parseDateTime(startDateStr);
+                    if(endDateStr.equals("")) {
+                        // Last entry in table has no endDate, set it to be now in the target timezone
+                        // TODO: this should perhaps be in the future instead
+                        endDate=new DateTime(tz);
+                    }
+                    else {
+                        endDate = tzmapFormatter.parseDateTime(endDateStr);
+                    }
                     tzElt = new TimezoneMapElt(startDate,endDate,tz);
 
                     ret.add(tzElt);
