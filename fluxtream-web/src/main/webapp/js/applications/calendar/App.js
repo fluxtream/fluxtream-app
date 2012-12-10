@@ -1,6 +1,6 @@
 define(["core/Application", "core/FlxState", "applications/calendar/Builder", "libs/bootstrap-datepicker",
         "ConnectorConfig", "core/DateUtils", "core/StringUtils"],
-       function(Application, FlxState, Builder, ConnectorConfig, DateUtils, StringUtils) {
+       function(Application, FlxState, Builder, Datepicker, ConnectorConfig, DateUtils, StringUtils) {
 
 	var Calendar = new Application("calendar", "Candide Kemmler", "icon-calendar");
 
@@ -193,10 +193,12 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 				if (Calendar.currentTab) {
 					Calendar.currentTab.saveState();
 				}
+                Calendar.timeUnit = response.state.split("/")[0];
 				Calendar.tabState = response.state;
                 updateDisplays();
                 Calendar.start = response.start;
                 Calendar.end  = response.end;
+                Builder.createTabs(Calendar);
                 Calendar.navigateState();
 				document.title = "Fluxtream Calendar | " + response.currentTimespanLabel + " (" + Calendar.currentTabName + ")";
 				$("#currentTimespanLabel span").html(response.currentTimespanLabel);
