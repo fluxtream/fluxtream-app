@@ -10,10 +10,12 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Updater(prettyName = "FluxtreamCapture",
-         value = 42,
+         value = 42,                                                // hat tip to Douglas Adams :-)
          objectTypes = {FluxtreamCapturePhotoFacet.class},
          defaultChannels = {"FluxtreamCapture.photo"})
 public class FluxtreamCaptureUpdater extends AbstractUpdater {
+    public static final String CONNECTOR_NAME = "fluxtream_capture";
+
     @Override
     protected void updateConnectorDataHistory(final UpdateInfo updateInfo) throws Exception {
         // nothing to do!

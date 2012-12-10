@@ -183,6 +183,8 @@
           <element id="archive" name="fluxtream-connectors-1.0.jar">
             <element id="module-output" name="fluxtream-connectors" />
           </element>
+          <element id="library" level="project" name="Maven: com.sun.jersey.contribs:jersey-multipart:1.11" />
+          <element id="library" level="project" name="Maven: org.jvnet:mimepull:1.6" />
         </element>
       </element>
     </root>

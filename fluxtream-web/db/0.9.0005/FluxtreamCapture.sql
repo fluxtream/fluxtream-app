@@ -1,22 +1,20 @@
 CREATE TABLE `Facet_FluxtreamCapturePhoto` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `api` int(11) NOT NULL,
-  `comment` longtext,
-  `end` bigint(20) NOT NULL,
-  `fullTextDescription` longtext,
-  `guestId` bigint(20) NOT NULL,
-  `isEmpty` char(1) NOT NULL,
-  `objectType` int(11) NOT NULL,
-  `start` bigint(20) NOT NULL,
-  `timeUpdated` bigint(20) NOT NULL,
-
-  `hash` char(64) NOT NULL,
-  `captureYYYYDD` char(6) NOT NULL,
-  `title` varchar(255) DEFAULT NULL,
-  `latitude` varchar(255) DEFAULT NULL,
-  `longitude` varchar(255) DEFAULT NULL,
-
-  `tags` longtext,
+  `id`                  BIGINT(20) NOT NULL AUTO_INCREMENT,
+  `guestId`             BIGINT(20) NOT NULL,
+  `api`                 INT(11)    NOT NULL,
+  `objectType`          INT(11)    NOT NULL,
+  `hash`                CHAR(64)   NOT NULL,
+  `title`               VARCHAR(255) DEFAULT NULL,
+  `comment`             LONGTEXT,
+  `fullTextDescription` LONGTEXT,
+  `start`               BIGINT(20) NOT NULL,
+  `end`                 BIGINT(20) NOT NULL,
+  `timeUpdated`         BIGINT(20) NOT NULL,
+  `captureYYYYDDD`      CHAR(7)    NOT NULL,
+  `isEmpty`             CHAR(1)    NOT NULL,
+  `latitude`            VARCHAR(255) DEFAULT NULL,
+  `longitude`           VARCHAR(255) DEFAULT NULL,
+  `tags`                LONGTEXT,
 
   PRIMARY KEY (`id`),
   KEY `api_index` (`api`),
@@ -27,4 +25,7 @@ CREATE TABLE `Facet_FluxtreamCapturePhoto` (
   KEY `start_index` (`start`),
   KEY `timeUpdated_index` (`timeUpdated`),
   KEY `hash_index` (`hash`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
+)
+  ENGINE = MyISAM
+  AUTO_INCREMENT = 1
+  DEFAULT CHARSET = latin1;
