@@ -117,7 +117,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 			return;
 		}
 		if (state==null||state==="") {
-			Builder.bindTimeUnitsMenu(Calendar);
 			Builder.createTabs(Calendar);
 			fetchState("POST", "/api/calendar/nav/setToToday?timeUnit=DAY");
             return;
@@ -144,7 +143,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             Calendar.navigateState();
 			return;
 		} else {
-            Builder.bindTimeUnitsMenu(Calendar);
             var url = "/api/calendar/nav/get" + Calendar.timeUnit.upperCaseFirst();
             switch (Calendar.timeUnit) {
                 case "date":
@@ -175,11 +173,11 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     Calendar.setTabParam = function(tabParam){
         Calendar.tabParam = tabParam;
         Calendar.navigateState();
-    }
+    };
 
     Calendar.getState = function() {
         return Calendar.currentTabName + "/" + Calendar.tabState + (Calendar.tabParam == null ? "" : "/" + Calendar.tabParam);
-    }
+    };
 
 	function fetchState(verb, url, params) {
         $(".calendar-navigation-button").addClass("disabled");

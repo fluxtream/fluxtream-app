@@ -32,6 +32,8 @@ define(["core/TabInterface"], function(TabInterface) {
             }
             Calendar.render(tabName+state);
         });
+        bindTimeUnitsMenu(Calendar);
+        bindTimeNavButtons(Calendar);
     }
 	
 	function timeUnitToURL(timeUnit) {
@@ -51,35 +53,35 @@ define(["core/TabInterface"], function(TabInterface) {
 		var timeUnitIds = {"#dayViewBtn":1, "#weekViewBtn":2, "#monthViewBtn":3, "#yearViewBtn":4};
         for (var timeUnitId in timeUnitIds){
             var btn = $(timeUnitId);
-            if (btn.attr("unit") == Calendar.timeUnit)
+            if (btn.attr("unit") == Calendar.timeUnit) {
                 btn.addClass("active");
-            else
+            } else {
                 btn.removeClass("active");
+            }
             btn.unbind("click");
             btn.click(function(event){
-
-                var timeUnit = $(event.target).attr("unit"),
-                    url = timeUnitToURL(timeUnit);
+                var timeUnit = $(event.target).attr("unit");
                 if (Calendar.currentTab.timeNavigation(timeUnit)) {
                     return;
                 }
+                var url = timeUnitToURL(timeUnit);
                 $.ajax({
                    url: url,
                    data: {state: Calendar.tabState},
                    type: "GET",
                    success : function(response) {
-                       var t = tabExistsForTimeUnit(Calendar.currentTabName, timeUnit)?Calendar.currentTabName:tabs[timeUnit][0];
-                       Calendar.currentTabName = t;
+                       if (!Builder.tabExistsForTimeUnit(Calendar.currentTabName, Calendar.timeUnit)) {
+                           Calendar.currentTabName = Builder.tabs[Calendar.timeUnit][0];
+                       }
                        Calendar.updateButtonStates();
-                       Calendar.render(Calendar.currentTabName + "/" + response.state + (Calendar.tabParam == null ? "" : "/" + Calendar.tabParam));
+                       Calendar.render(Calendar.getState());
                    },
-                   error : function() {
-                       alert("error");
+                   error : function(err) {
+                       alert("error: " + err);
                    }
                });
             })
         }
-		bindTimeNavButtons(Calendar);
 	}
 	
 	function bindTimeNavButtons(Calendar) {
@@ -195,7 +197,6 @@ define(["core/TabInterface"], function(TabInterface) {
 	
 	Builder.tabExistsForTimeUnit = tabExistsForTimeUnit;
 	Builder.tabs = tabs;
-	Builder.bindTimeUnitsMenu = bindTimeUnitsMenu;
 	Builder.createTabs = createTabs;
 	Builder.updateTab = updateTab;
     Builder.isValidTabName = isValidTabName;
