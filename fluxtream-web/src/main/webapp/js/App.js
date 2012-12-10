@@ -5,8 +5,9 @@ define(
         SharingDialog ) {
 
         var App = {};
-        var toLoad = 0, loaded = 0;
-        var apps = {};
+
+        App.apps = {};
+
         var compiledTemplates = {};
 
         function initialize() {
@@ -35,15 +36,24 @@ define(
          * future) to let every application know of the existence of others
          */
         function loadApps() {
-            toLoad = FlxState.apps.length;
-            for ( var i = 0; i < FlxState.apps.length; i++) {
-                require([ "applications/" + FlxState.apps[i] + "/App" ],
-                        function(app) {
-                            apps[app.name] = app;
-                            app.initialize();
-                            appLoaded(app.name);
-                        });
-            }
+            var appModules = FlxState.apps.map(function(appName) {
+                return "applications/" + appName + "/App";
+            });
+            require(appModules, function(/* apps */) {
+                for (var i = 0; i < arguments.length; i++) {
+                    var app = arguments[i];
+                    App.apps[app.name] = app;
+                    app.initialize();
+                }
+                // we create the top apps menu
+                createAppsMenu();
+                // we start the history
+                Backbone.history.start({
+                    pushState : true
+                });
+                // finally we render the default - or url-specified - app
+                renderMainApp();
+            });
         }
 
         /**
@@ -51,7 +61,7 @@ define(
          */
         function createAppsMenu(appName, appIcon) {
             for ( var i = 0; i < FlxState.apps.length; i++) {
-                var app = apps[FlxState.apps[i]];
+                var app = App.apps[FlxState.apps[i]];
                 $("#apps-menu")
                     .append(
                     "<button id=\""
@@ -65,26 +75,6 @@ define(
         }
 
         /**
-         * Application-is-loaded callback
-         */
-        function appLoaded(appName) {
-            // we keep track of how many apps have been loaded
-            loaded++;
-            // when all apps are loaded...
-            if (loaded === toLoad) {
-                App.apps = apps;
-                // we create the top apps menu
-                createAppsMenu();
-                // we start the history
-                Backbone.history.start({
-                                           pushState : true
-                                       });
-                // finally we render the default - or url-specified - app
-                renderMainApp();
-            }
-        }
-
-        /**
          * Render main app or the one that's specified in the location bar's
          * contents
          */
@@ -94,11 +84,11 @@ define(
                 appString = splits.shift(),
                 appName = splits.shift();
             if (appString !== 'app' || _.isUndefined(appName)) {
-                App.activeApp = apps[FlxState.defaultApp];
-                apps[FlxState.defaultApp].render("");
+                App.activeApp = App.apps[FlxState.defaultApp];
+                App.apps[FlxState.defaultApp].render("");
                 return;
             }
-            var app = apps[appName],
+            var app = App.apps[appName],
                 appState = splits.join('/');
             FlxState.saveState(appName, appState);
             if (_.isUndefined(app)) {
