@@ -69,6 +69,8 @@ define(["core/TabInterface"], function(TabInterface) {
                    data: {state: Calendar.tabState},
                    type: "GET",
                    success : function(response) {
+                       Calendar.timeUnit = timeUnit;
+                       Calendar.tabState = response.state;
                        if (!Builder.tabExistsForTimeUnit(Calendar.currentTabName, Calendar.timeUnit)) {
                            Calendar.currentTabName = Builder.tabs[Calendar.timeUnit][0];
                        }

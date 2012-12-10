@@ -30,11 +30,13 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 return;
 			fetchState("/api/calendar/nav/incrementTimespan",
                        {state: Calendar.tabState});
+        });
 		$(".menuPrevButton").click(function(e) {
             if (Calendar.currentTab.timeNavigation("prev"))
                 return;
 			fetchState("/api/calendar/nav/decrementTimespan",
                        {state: Calendar.tabState});
+        });
 		$(".menuTodayButton").click(function(e) {
             if (Calendar.currentTab.timeNavigation("today"))
                 return;
@@ -207,28 +209,33 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 		});
 	}
 
-    function updateDatepicker(){
-        switch (Calendar.timeUnit){
+    function updateDatepicker() {
+        var stateElements = Calendar.tabState.split("/"),
+            timeUnit = stateElements.shift();
+        switch (timeUnit) {
             case "date":
-                setDatepicker(Calendar.tabState.split("/")[1]);
+                var date = stateElements.shift();
+                setDatepicker(date);
                 break;
             case "week":
-                var splits = Calendar.tabState.split("/");
-                if (typeof splits[2]=="undefined") {
-                    setDatepicker(splits[1]);
+                var year = stateElements.shift(),
+                    week = stateElements.shift();
+                if (_.isUndefined(week)) {
+                    setDatepicker(year);
                 } else {
-                    var d = getDateRangeForWeek(splits[1],splits[2])[0],
-                        datePickerDate = App.formatDateAsDatePicker(d);
-                    setDatepicker(datePickerDate);
+                    var d = getDateRangeForWeek(year, week)[0];
+                    setDatepicker(App.formatDateAsDatePicker(d));
                 }
                 break;
             case "month":
-                var splits = Calendar.tabState.split("/");
-                var d = new Date(splits[1],splits[2]-1,1,0,0,0,0);
+                var year = stateElements.shift(),
+                    month = stateElements.shift(),
+                    d = new Date(year,month-1,1,0,0,0,0);
                 setDatepicker(App.formatDateAsDatePicker(d));
                 break;
             case "year":
-                var d = new Date(Calendar.tabState.split("/")[1],0,1,0,0,0,0);
+                var year = stateElements.shift(),
+                    d = new Date(year,0,1,0,0,0,0);
                 setDatepicker(App.formatDateAsDatePicker(d));
                 break;
         }
@@ -563,7 +570,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             for (var member in params.facets[i]) {
                 if (params.facets[i].hasOwnProperty(member)) {
                     if (typeof(params.facets[i][member])==="number") {
-                        var formatted = addCommas(params.facets[i][member]);
+                        var formatted = StringUtils.addCommas(params.facets[i][member]);
                         params.facets[i]["_"+member] = formatted;
                     }
                 }
@@ -571,19 +578,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         }
         return digest.detailsTemplates[data.type].render(params);
     }
-
-
-    function addCommas(nStr) {
-       nStr += '';
-       x = nStr.split('.');
-       x1 = x[0];
-       x2 = x.length > 1 ? '.' + x[1] : '';
-       var rgx = /(\d+)(\d{3})/;
-       while (rgx.test(x1)) {
-           x1 = x1.replace(rgx, '$1' + ',' + '$2');
-       }
-       return x1 + x2;
-    };
 
 
            var topLevelDomains = ["aero","asia","biz","cat","com","coop","info", "int", "jobs", "mobi",
