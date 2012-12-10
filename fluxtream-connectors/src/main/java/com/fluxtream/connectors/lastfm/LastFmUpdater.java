@@ -115,9 +115,13 @@ public class LastFmUpdater extends AbstractUpdater {
 		int retrievedItems = ITEMS_PER_PAGE;
 		LastFmRecentTrackFacet lastRetrievedTrack = jpaDaoService.findOne("lastfm.recent_track.newest",
 				LastFmRecentTrackFacet.class, updateInfo.getGuestId());
+        long fromTime = 0;
+        if(lastRetrievedTrack!=null) {
+            fromTime=lastRetrievedTrack.time;
+        }
 		for (int page = 0; retrievedItems >= ITEMS_PER_PAGE; page++) {
 			JSONObject mostRecentTracks = getRecentTracks(updateInfo,
-					lastRetrievedTrack.time, System.currentTimeMillis(), page);
+					fromTime, System.currentTimeMillis(), page);
 			JSONObject recentTracks = mostRecentTracks
 					.getJSONObject("recenttracks");
 			if (recentTracks.containsKey("track")
@@ -135,9 +139,13 @@ public class LastFmUpdater extends AbstractUpdater {
 		int retrievedItems = ITEMS_PER_PAGE;
 		LastFmLovedTrackFacet lastRetrievedTrack = jpaDaoService.findOne("lastfm.loved_track.newest",
 				LastFmLovedTrackFacet.class, updateInfo.getGuestId());
+        long fromTime = 0;
+        if(lastRetrievedTrack!=null) {
+            fromTime=lastRetrievedTrack.time;
+        }
 		for (int page = 0; retrievedItems >= ITEMS_PER_PAGE; page++) {
 			JSONObject mostRecentTracks = getLovedTracks(updateInfo,
-					lastRetrievedTrack.time, System.currentTimeMillis(), page);
+					fromTime, System.currentTimeMillis(), page);
 			JSONObject lovedTracks = mostRecentTracks
 					.getJSONObject("lovedtracks");
 			if (lovedTracks.containsKey("track")
