@@ -1,6 +1,7 @@
 define([], function() {
     String.prototype.upperCaseFirst = function() {
-        return this.charAt(0).toUpperCase() + this.slice(1);
+        var lowerCase = this.toLowerCase();
+        return lowerCase.charAt(0).toUpperCase() + lowerCase.slice(1);
     };
 
     var StringUtils = {};

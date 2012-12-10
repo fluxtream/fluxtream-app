@@ -28,15 +28,18 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 		$(".menuNextButton").click(function(e) {
             if (Calendar.currentTab.timeNavigation("next"))
                 return;
-			fetchState("POST", "/api/calendar/nav/incrementTimespan?state=" + Calendar.tabState); });
+			fetchState("GET", "/api/calendar/nav/incrementTimespan",
+                       {state: Calendar.tabState});
 		$(".menuPrevButton").click(function(e) {
             if (Calendar.currentTab.timeNavigation("prev"))
                 return;
-			fetchState("POST", "/api/calendar/nav/decrementTimespan?state=" + Calendar.tabState); });
+			fetchState("GET", "/api/calendar/nav/decrementTimespan",
+                       {state: Calendar.tabState});
 		$(".menuTodayButton").click(function(e) {
             if (Calendar.currentTab.timeNavigation("today"))
                 return;
-			fetchState("POST", "/api/calendar/nav/setToToday?timeUnit=DAY");
+			fetchState("GET", "/api/calendar/nav/setToToday",
+                       {timeUnit: "DAY"});
 		});
         Builder.init(this);
 	};

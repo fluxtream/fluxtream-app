@@ -34,7 +34,11 @@ define(["core/TabInterface"], function(TabInterface) {
         });
     }
 	
-	function capitalizeFirstLetter(string) {
+	function timeUnitToURL(timeUnit) {
+        if (timeUnit.toLowerCase() === 'date') {
+            timeUnit = 'day';
+        }
+        return "/api/calendar/nav/set" + timeUnit.upperCaseFirst() + "TimeUnit";
 	    return string.charAt(0).toUpperCase() + string.slice(1);
 	}
 	
@@ -55,11 +59,14 @@ define(["core/TabInterface"], function(TabInterface) {
             btn.click(function(event){
 
                 var timeUnit = $(event.target).attr("unit"),
-                    url = "/api/calendar/nav/set" + capitalizeFirstLetter(timeUnit.toLowerCase()) + "TimeUnit" + "?state=" + Calendar.tabState;
-                if (Calendar.currentTab.timeNavigation(timeUnit))
+                    url = timeUnitToURL(timeUnit);
+                if (Calendar.currentTab.timeNavigation(timeUnit)) {
                     return;
-                $.ajax({ url:url,
-                   type: "POST",
+                }
+                $.ajax({
+                   url: url,
+                   data: {state: Calendar.tabState},
+                   type: "GET",
                    success : function(response) {
                        var t = tabExistsForTimeUnit(Calendar.currentTabName, timeUnit)?Calendar.currentTabName:tabs[timeUnit][0];
                        Calendar.currentTabName = t;
