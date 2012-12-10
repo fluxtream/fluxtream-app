@@ -41,7 +41,6 @@ define(["core/TabInterface"], function(TabInterface) {
             timeUnit = 'day';
         }
         return "/api/calendar/nav/set" + timeUnit.upperCaseFirst() + "TimeUnit";
-	    return string.charAt(0).toUpperCase() + string.slice(1);
 	}
 	
 	function createTabs(Calendar) {
@@ -106,28 +105,6 @@ define(["core/TabInterface"], function(TabInterface) {
         $(".menuNextButton").removeClass("disabled");
         $(".menuPrevButton").removeClass("disabled");
     };
-	
-	function timeNavBtn(Calendar, downOrUp, enabled, targetTimeUnit) {
-		var button = $(".menu"+capitalizeFirstLetter(downOrUp)+"Button");
-		button.unbind();
-		if (!enabled)
-			button.addClass("disabled");
-		else {
-			button.removeClass("disabled");
-			button.click(function(event) {
-				var timeUnit = $(event.target).attr("class"),
-				url = "/api/calendar/nav/set" + capitalizeFirstLetter(targetTimeUnit.toLowerCase()) + "TimeUnit";
-				$.ajax({ url:url + "&state=" + Calendar.tabState,
-					success : function(response) {
-						Calendar.render(Calendar.currentTabName + "/" + response.state);
-					},
-					error : function() {
-						alert("error");
-					}
-				});
-			});
-		}
-	}
 
 	function handleNotifications(digestInfo) {
 		$(".alert").remove();

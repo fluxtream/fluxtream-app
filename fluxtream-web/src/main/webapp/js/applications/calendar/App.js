@@ -28,17 +28,17 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 		$(".menuNextButton").click(function(e) {
             if (Calendar.currentTab.timeNavigation("next"))
                 return;
-			fetchState("GET", "/api/calendar/nav/incrementTimespan",
+			fetchState("/api/calendar/nav/incrementTimespan",
                        {state: Calendar.tabState});
 		$(".menuPrevButton").click(function(e) {
             if (Calendar.currentTab.timeNavigation("prev"))
                 return;
-			fetchState("GET", "/api/calendar/nav/decrementTimespan",
+			fetchState("/api/calendar/nav/decrementTimespan",
                        {state: Calendar.tabState});
 		$(".menuTodayButton").click(function(e) {
             if (Calendar.currentTab.timeNavigation("today"))
                 return;
-			fetchState("GET", "/api/calendar/nav/setToToday",
+			fetchState("/api/calendar/nav/setToToday",
                        {timeUnit: "DAY"});
 		});
         Builder.init(this);
@@ -118,7 +118,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 		}
 		if (state==null||state==="") {
 			Builder.createTabs(Calendar);
-			fetchState("POST", "/api/calendar/nav/setToToday?timeUnit=DAY");
+			fetchState("/api/calendar/nav/setToToday", {timeUnit: "DAY"});
             return;
 		}
 		var stateElements = state.split("/"),
@@ -165,7 +165,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     break;
             }
             Calendar.tabParam = stateElements.shift();
-            fetchState("GET", url, params);
+            fetchState(url, params);
 		}
 
 	};
@@ -179,13 +179,13 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         return Calendar.currentTabName + "/" + Calendar.tabState + (Calendar.tabParam == null ? "" : "/" + Calendar.tabParam);
     };
 
-	function fetchState(verb, url, params) {
+	function fetchState(url, params) {
         $(".calendar-navigation-button").addClass("disabled");
 		$(".loading").show();
 		$("#tabs").css("opacity", ".3");
 		$.ajax({
             url: url,
-            type: verb,
+            type: "GET",
             data: params,
 			success : function(response) {
 				if (Calendar.currentTab) {
@@ -249,7 +249,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                         $(".datepicker").hide();
                         return;
                     }
-                    fetchState("GET", "/api/calendar/nav/getDate?date=" + formatted + "&state=" + Calendar.tabState);
+                    fetchState("/api/calendar/nav/getDate?date=" + formatted + "&state=" + Calendar.tabState);
                 }
                 else if (Calendar.timeUnit == "week"){
                     var weekNumber = getWeekNumber(event.date.getUTCFullYear(),
@@ -260,7 +260,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                         $(".datepicker").hide();
                         return;
                     }
-                    fetchState("GET", "/api/calendar/nav/getWeek?week=" + weekNumber[1] + "&year=" + weekNumber[0] + "&state=" + Calendar.tabState);
+                    fetchState("/api/calendar/nav/getWeek?week=" + weekNumber[1] + "&year=" + weekNumber[0] + "&state=" + Calendar.tabState);
                 }
 				$(".datepicker").hide();
 			}
@@ -279,7 +279,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     $(".datepicker").hide();
                     return;
                 }
-                fetchState("GET", "/api/calendar/nav/getYear?year=" + $(event.target).text() + "&state=" + Calendar.tabState);
+                fetchState("/api/calendar/nav/getYear?year=" + $(event.target).text() + "&state=" + Calendar.tabState);
                 $(".datepicker").hide();
             }
         });
@@ -290,7 +290,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     $(".datepicker").hide();
                     return;
                 }
-                fetchState("GET", "/api/calendar/nav/getMonth?year=" + $(".datepicker-months .switch").text() + "&month=" + month + "&state=" + Calendar.tabState);
+                fetchState("/api/calendar/nav/getMonth?year=" + $(".datepicker-months .switch").text() + "&month=" + month + "&state=" + Calendar.tabState);
                 $(".datepicker").hide();
             }
         });
