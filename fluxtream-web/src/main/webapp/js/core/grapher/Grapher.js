@@ -1649,14 +1649,14 @@ define(["core/grapher/BTCore"], function(BTCore) {
     }
 
     Grapher.prototype.getCurrentTimeUnit = function(){
-        var timeUnit = "DAY";
+        var timeUnit = "date";
         var range = this.dateAxis.getMax() - this.dateAxis.getMin();
         if (range > 364 * 24 * 3600)
-            timeUnit = "YEAR";
+            timeUnit = "year";
         else if (range > 27 * 24 * 3600)
-            timeUnit = "MONTH";
+            timeUnit = "month";
         else if (range > 6 * 24 * 3600)
-            timeUnit = "WEEK";
+            timeUnit = "week";
         return timeUnit;
     }
 

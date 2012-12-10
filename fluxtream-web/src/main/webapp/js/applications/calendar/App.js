@@ -1,14 +1,14 @@
 define(["core/Application", "core/FlxState", "applications/calendar/Builder", "libs/bootstrap-datepicker",
-        "ConnectorConfig", "core/DateUtils"],
-       function(Application, FlxState, Builder, ConnectorConfig, DateUtils) {
+        "ConnectorConfig", "core/DateUtils", "core/StringUtils"],
+       function(Application, FlxState, Builder, ConnectorConfig, DateUtils, StringUtils) {
 
 	var Calendar = new Application("calendar", "Candide Kemmler", "icon-calendar");
 
-    Calendar.currentTabName = Builder.tabs["DAY"][0];
+    Calendar.currentTabName = Builder.tabs["date"][0];
     Calendar.currentTab = null;
     Calendar.tabState = null;
     Calendar.digest = null;
-    Calendar.timeUnit = "DAY";
+    Calendar.timeUnit = "date";
     Calendar.digestTabState = false;
     Calendar.tabParam = null;
 
@@ -130,7 +130,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             tabName = Builder.tabs[Calendar.timeUnit][0];
         }
         Calendar.currentTabName = tabName;
-        Calendar.timeUnit = toTimeUnit(timeUnit);
+        Calendar.timeUnit = timeUnit;
 		var nextTabState = state.substring(tabName.length+1);
         Calendar.updateButtonStates();
         Builder.createTabs(Calendar);
@@ -142,27 +142,24 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 			return;
 		} else {
             Builder.bindTimeUnitsMenu(Calendar);
+            var url = "/api/calendar/nav/get" + Calendar.timeUnit.upperCaseFirst();
             switch (Calendar.timeUnit) {
-                case "DAY":
+                case "date":
                     var date = stateElements.shift(),
-                        url = "/api/calendar/nav/getDate",
                         params = {date: date};
                     break;
-                case "WEEK":
+                case "week":
                     var year = stateElements.shift(),
                         week = stateElements.shift(),
-                        url = "/api/calendar/nav/getWeek",
                         params = {year: year, week: week};
                     break;
-                case "MONTH":
+                case "month":
                     var year = stateElements.shift(),
                         month = stateElements.shift(),
-                        url = "/api/calendar/nav/getMonth",
                         params = {year: year, month: month};
                     break;
-                case "YEAR":
+                case "year":
                     var year = stateElements.shift(),
-                        url = "/api/calendar/nav/getYear",
                         params = {year: year};
                     break;
             }
@@ -211,10 +208,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
     function updateDatepicker(){
         switch (Calendar.timeUnit){
-            case "DAY":
+            case "date":
                 setDatepicker(Calendar.tabState.split("/")[1]);
                 break;
-            case "WEEK":
+            case "week":
                 var splits = Calendar.tabState.split("/");
                 if (typeof splits[2]=="undefined") {
                     setDatepicker(splits[1]);
@@ -224,12 +221,12 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     setDatepicker(datePickerDate);
                 }
                 break;
-            case "MONTH":
+            case "month":
                 var splits = Calendar.tabState.split("/");
                 var d = new Date(splits[1],splits[2]-1,1,0,0,0,0);
                 setDatepicker(App.formatDateAsDatePicker(d));
                 break;
-            case "YEAR":
+            case "year":
                 var d = new Date(Calendar.tabState.split("/")[1],0,1,0,0,0,0);
                 setDatepicker(App.formatDateAsDatePicker(d));
                 break;
@@ -243,7 +240,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 		$("#datepicker").unbind("changeDate");
 		$("#datepicker").datepicker().on(
 			"changeDate", function(event) {
-                if (Calendar.timeUnit == "DAY"){
+                if (Calendar.timeUnit == "date"){
                     var formatted = App._formatDateAsDatePicker(event.date.getUTCFullYear(),
                         event.date.getUTCMonth(),
                         event.date.getUTCDate());
@@ -253,7 +250,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     }
                     fetchState("GET", "/api/calendar/nav/getDate?date=" + formatted + "&state=" + Calendar.tabState);
                 }
-                else if (Calendar.timeUnit == "WEEK"){
+                else if (Calendar.timeUnit == "week"){
                     var weekNumber = getWeekNumber(event.date.getUTCFullYear(),
                         event.date.getUTCMonth(),
                         event.date.getUTCDate());
@@ -268,15 +265,15 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 			}
 		);
         $("#datepicker").click(function(){
-            if (Calendar.timeUnit == "MONTH" || Calendar.timeUnit == "YEAR"){
+            if (Calendar.timeUnit == "month" || Calendar.timeUnit == "year"){
                 $(".datepicker-days .switch").click();
             }
-            if (Calendar.timeUnit == "YEAR"){
+            if (Calendar.timeUnit == "year"){
                 $(".datepicker-months .switch").click();
             }
         });
         $(".datepicker-years td").click(function(event){
-            if (Calendar.timeUnit == "YEAR" && $(event.target).hasClass("year")){
+            if (Calendar.timeUnit == "year" && $(event.target).hasClass("year")){
                 if (Calendar.currentTab.timeNavigation("set/year/" + $(event.target).text())){
                     $(".datepicker").hide();
                     return;
@@ -286,7 +283,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             }
         });
         $(".datepicker-months td").click(function(event){
-            if (Calendar.timeUnit == "MONTH" && $(event.target).hasClass("month")){
+            if (Calendar.timeUnit == "month" && $(event.target).hasClass("month")){
                 var month = DateUtils.getMonthFromName($(event.target).text()) + 1;
                 if (Calendar.currentTab.timeNavigation("set/month/" + $(".datepicker-months .switch").text() + "/" + month)){
                     $(".datepicker").hide();
@@ -296,7 +293,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 $(".datepicker").hide();
             }
         });
-        if (Calendar.timeUnit == "WEEK"){
+        if (Calendar.timeUnit == "week"){
             var dayStart = parseInt(currentDate.split("-")[2],10);
             var rowElements = $(".datepicker-days tr");
             for (var j=0; j<rowElements.length; j++) {
@@ -319,7 +316,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     alert(response.message);
                     return;
                 }
-                if (Calendar.timeUnit==="DAY")
+                if (Calendar.timeUnit==="date")
                     handleCityInfo(response);
                 else
                     $("#mainCity").empty();
@@ -696,11 +693,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         return s;
     }
 
-    function toTimeUnit(urlTimeUnit) {
-		if (urlTimeUnit==="date") return "DAY";
-		return urlTimeUnit.toUpperCase();
-	}
-
    function getWeekNumber(year, month, date) {
        //OK let's have java compute that for us and avoid the discrepancy bug that way for now
        var dateString = year + "-" + (month < 9 ? 0 : "") + (month + 1) + "-" + (date < 10 ? 0 : "") + date,
@@ -756,17 +748,17 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     Calendar.toDateString = function(date,rangeType){
         var dateString = "";
         switch (rangeType){
-            case 'DAY':
+            case 'date':
                 dateString = date.getFullYear() + "-" + (date.getMonth() < 9 ? 0 : "") + (date.getMonth() + 1) + "-" + (date.getDate() < 10 ? 0 : "") + date.getDate();
                 break;
-            case 'WEEK':
+            case 'week':
                 var weekInfo = getWeekNumber(date.getFullYear(), date.getMonth(), date.getDate());
                 dateString = weekInfo[0] + "/" + weekInfo[1];
                 break;
-            case 'MONTH':
+            case 'month':
                 dateString = date.getFullYear() + "/" + (date.getMonth() < 9 ? 0 : "") + (date.getMonth() + 1);
                 break;
-            case 'YEAR':
+            case 'year':
                 dateString =  date.getFullYear();
                 break;
         }
@@ -778,35 +770,29 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
         Calendar.timeUnit = rangeType;
 
-        var dateLabel, state;
+        var dateLabel,
+            state = "timeline/" + Calendar.timeUnit + "/" + date;
+        Calendar.tabState = Calendar.timeUnit + "/" + date;
         switch (Calendar.timeUnit){
-            case "DAY":
-                state = "timeline/date/" + date;
-                Calendar.tabState = "date/" + date;
+            case "date":
                 var dateSplits = date.split("-"),
                     d = new Date(Number(dateSplits[0]),Number(dateSplits[1])-1,Number(dateSplits[2]));
                 dateLabel = d.getDayName() +
                                 ", " + d.getMonthName() + " " + d.getDate() +
                                 ", " + (d.getFullYear());
                 break;
-            case "WEEK":
+            case "week":
                 // TODO: Use the server's view of weeks, rather than determining weeks on the client
-                state = "timeline/week/" + date;
-                Calendar.tabState = "week/" + date;
                 var dateSplits = date.split("/");
                 var range = getDateRangeForWeek(parseInt(dateSplits[0],10),parseInt(dateSplits[1],10));
                 dateLabel = range[0].getMonthName() + " " + range[0].getDate() + " - " +
                             range[1].getMonthName() + " " + range[1].getDate() + " " + range[1].getFullYear();
                 break;
-            case "MONTH":
-                state = "timeline/month/" + date;
-                Calendar.tabState = "month/" + date;
+            case "month":
                 var dateSplits = date.split("/");
                 dateLabel = DateUtils.getMonthFullName(parseInt(dateSplits[1])-1) + " " + dateSplits[0];
                 break;
-            case "YEAR":
-                state = "timeline/year/" + date;
-                Calendar.tabState = "year/" + date;
+            case "year":
                 dateLabel = date;
                 break;
         }
@@ -822,32 +808,14 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         updateDatepicker();
     };
 
-    var viewBtnIds = {DAY:"#dayViewBtn",WEEK:"#weekViewBtn",MONTH:"#monthViewBtn",YEAR:"#yearViewBtn"};
+    var viewBtnIds = {date:"#dayViewBtn",week:"#weekViewBtn",month:"#monthViewBtn",year:"#yearViewBtn"};
 
     function updateDisplays(){
-        var rangeType;
-        switch (Calendar.tabState.substring(0,Calendar.tabState.indexOf("/"))){
-            case "date":
-                rangeType = "DAY";
-                break;
-            case "week":
-                rangeType = "WEEK";
-                break;
-            case "month":
-                rangeType = "MONTH";
-                break;
-            case "year":
-                rangeType = "YEAR";
-                break;
-        }
+        var rangeType = Calendar.tabState.substring(0,Calendar.tabState.indexOf("/"));
         for (var type in viewBtnIds){
-            if (type == rangeType){
-                $(viewBtnIds[type]).addClass("active");
-            }
-            else{
-                $(viewBtnIds[type]).removeClass("active");
-            }
+            $(viewBtnIds[type]).removeClass("active");
         }
+        $(viewBtnIds[rangeType]).addClass("active");
     }
 
 	return Calendar;

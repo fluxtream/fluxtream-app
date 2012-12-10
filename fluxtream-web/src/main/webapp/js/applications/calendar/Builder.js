@@ -12,10 +12,10 @@ define(["core/TabInterface"], function(TabInterface) {
 	
 	var tabs = {
         "fullList":["clock","dashboards","map","photos","list","timeline"],
-        "DAY":["clock", "dashboards", "map", "photos", "list", "timeline"],
-        "WEEK":["dashboards", "map", "photos", "list", "timeline"],
-        "MONTH":["dashboards", "map", "photos", "list", "timeline"],
-        "YEAR":["dashboards", "photos", "list", "timeline"]
+        "date":["clock", "dashboards", "map", "photos", "list", "timeline"],
+        "week":["dashboards", "map", "photos", "list", "timeline"],
+        "month":["dashboards", "map", "photos", "list", "timeline"],
+        "year":["dashboards", "photos", "list", "timeline"]
 	};
     tabInterface.setTabVisibility(tabs.fullList,true);
 
@@ -77,17 +77,17 @@ define(["core/TabInterface"], function(TabInterface) {
 	
 	function bindTimeNavButtons(Calendar) {
 		switch(Calendar.timeUnit) {
-		case "DAY":
+		case "date":
 			nextPrevEnable();
 			break;
-		case "WEEK":
+		case "week":
 			nextPrevEnable();
 			break;
         // TODO: why is this disabled?
-//		case "MONTH":
+//		case "month":
 //			nextPrevEnable();
 //			break;
-		case "YEAR":
+		case "year":
 			nextPrevEnable();
 			break;
 		}

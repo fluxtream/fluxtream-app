@@ -24,8 +24,6 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
         });
     }
 
-
-
     function setup(digest, timeUnit) {
         if (grapher == null) {
             grapher = new Grapher($("#timelineTabContainer"),{onLoad:function(){
@@ -83,23 +81,23 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
             case "next":
                 grapher.gotoTime("forward");
                 break;
-            case "DAY":
-                if (grapher.getCurrentTimeUnit() != "DAY"){
+            case "date":
+                if (grapher.getCurrentTimeUnit() != "date"){
                     grapher.setZoom(24*3600);
                 }
                 break;
-            case "WEEK":
-                if (grapher.getCurrentTimeUnit() != "WEEK"){
+            case "week":
+                if (grapher.getCurrentTimeUnit() != "week"){
                     grapher.setZoom(7*24*3600);
                 }
                 break;
-            case "MONTH":
-                if (grapher.getCurrentTimeUnit() != "MONTH"){
+            case "month":
+                if (grapher.getCurrentTimeUnit() != "month"){
                     grapher.setZoom(30*24*3600);
                 }
                 break;
-            case "YEAR":
-                if (grapher.getCurrentTimeUnit() != "YEAR"){
+            case "year":
+                if (grapher.getCurrentTimeUnit() != "year"){
                     grapher.setZoom(365*24*3600);
                 }
                 break;
