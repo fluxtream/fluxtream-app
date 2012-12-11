@@ -48,69 +48,54 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
 	Calendar.initialize = function () {
 		_.bindAll(this);
+    };
 
-        FlxState.router.route(/^app\/calendar\/?(.*?)$/, "", function(path) {
-            var pathElements = path.split("/");
-            if (pathElements[pathElements.length - 1] === '') {
-                pathElements.pop();
-            }
-            if (_.isEmpty(pathElements)) {
-                App.invalidPath();
-            }
-            var tabName = pathElements.shift(),
-                timeUnit = pathElements.shift();
-            if (!Builder.isValidTabName(tabName) || !Builder.isValidTimeUnit(timeUnit)) {
-                App.invalidPath();
-                return;
-            }
-            if (!Builder.tabExistsForTimeUnit(tabName, Calendar.timeUnit)) {
-                tabName = Builder.tabs[Calendar.timeUnit][0];
-            }
-            var renderPathElements = [tabName, timeUnit];
-            switch (timeUnit) {
-                case "date":
-                    var date = pathElements.shift();
-                    if (_.isUndefined(date)) {
-                        App.invalidPath();
-                        return;
-                    }
-                    renderPathElements.push(date);
-                    break;
-                case "week":
-                    var year = pathElements.shift(),
-                        week = pathElements.shift();
-                    if (_.isUndefined(year) || _.isUndefined(week)) {
-                        App.invalidPath();
-                        return;
-                    }
-                    renderPathElements.push(year);
-                    renderPathElements.push(week);
-                    break;
-                case "month":
-                    var year = pathElements.shift(),
-                        month = pathElements.shift();
-                    if (_.isUndefined(year) || _.isUndefined(month)) {
-                        App.invalidPath();
-                        return;
-                    }
-                    renderPathElements.push(year);
-                    renderPathElements.push(month);
-                    break;
-                case "year":
-                    var year = pathElements.shift();
-                    if (_.isUndefined(year)) {
-                        App.invalidPath();
-                        return;
-                    }
-                    renderPathElements.push(year);
-                    break;
-            }
-            var tabParam = pathElements.shift();
-            if (!_.isUndefined(tabParam)) {
-                renderPathElements.push(tabParam);
-            }
-            Calendar.render(renderPathElements.join('/'));
-        });
+    Calendar.parseState = function(state) {
+        var pathElements = path.split("/");
+        if (_.isEmpty(pathElements)) {
+            return null;
+        }
+        var obj = {};
+        obj.tabName = pathElements.shift();
+        obj.timeUnit = pathElements.shift();
+        if (!Builder.isValidTabName(obj.tabName) || !Builder.isValidTimeUnit(obj.timeUnit)) {
+            return null;
+        }
+        if (!Builder.tabExistsForTimeUnit(obj.tabName, obj.timeUnit)) {
+            obj.tabName = Builder.tabs[obj.timeUnit][0];
+        }
+        switch (obj.timeUnit) {
+            case "date":
+                obj.date = pathElements.shift();
+                if (_.isUndefined(obj.date)) {
+                    return null;
+                }
+                break;
+            case "week":
+                obj.year = pathElements.shift();
+                obj.week = pathElements.shift();
+                if (_.isUndefined(obj.year) || _.isUndefined(obj.week)) {
+                    return null;
+                }
+                break;
+            case "month":
+                obj.year = pathElements.shift();
+                obj.month = pathElements.shift();
+                if (_.isUndefined(obj.year) || _.isUndefined(obj.month)) {
+                    return null;
+                }
+                break;
+            case "year":
+                obj.year = pathElements.shift();
+                if (_.isUndefined(obj.year)) {
+                    return null;
+                }
+                break;
+        }
+        obj.tabParam = pathElements.shift();
+        // TODO: actually return this state object!
+        //return obj;
+        return state;
     };
 
 	Calendar.renderState = function(state, forceReload) {

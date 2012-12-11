@@ -18,7 +18,7 @@ define(
         }
 
         function checkScreenDensity() {
-            var retina = window.devicePixelRatio > 1 ? true : false;
+            var retina = window.devicePixelRatio > 1;
             setCookie("retina", retina?"1":"0", 30);
         }
 
@@ -45,14 +45,80 @@ define(
                     App.apps[app.name] = app;
                     app.initialize();
                 }
+                setupURLRouting();
                 // we create the top apps menu
                 createAppsMenu();
                 // we start the history
-                Backbone.history.start({
-                    pushState : true
+                if (!Backbone.history.start({pushState : true})) {
+                    console.log("error loading routes!");
+                }
+            });
+        }
+
+        function render(app, state, params) {
+            $(".appMenuBtn.active").removeClass("active");
+            $("#"+app.name+"MenuButton").addClass('active');
+            var nextAppId = app.name + "-app",
+                noApp = $(".application").length==0;
+            var appChanged =
+                $(".application").length>0 &&
+                $(".application.active").length>0 &&
+                $(".application.active").attr("id")!=nextAppId;
+            if (!noApp && !appChanged) {
+                app.renderState(state, true, params);
+                return;
+            }
+
+            if (!_.isUndefined(App.activeApp)) {
+                App.activeApp.destroy();
+            }
+            if (appChanged) {
+                // TODO: store current app state
+                var currentAppDiv = $(".application.active");
+                currentAppDiv.removeClass("active");
+                currentAppDiv.addClass("dormant");
+            }
+            App.activeApp = app;
+            var nextAppDiv = $("#"+nextAppId);
+            if (nextAppDiv.length==0) {
+                require([ "text!applications/"+ app.name + "/template.html"], function(html) {
+                    html = "<div class=\"application active\" id=\"" + nextAppId + "\">"
+                               + html + "</div>";
+                    $("#applications").append(html);
+                    App.activeApp.setup();
                 });
-                // finally we render the default - or url-specified - app
-                renderMainApp();
+            } else {
+                nextAppDiv.removeClass("dormant");
+                nextAppDiv.addClass("active");
+            }
+            App.activeApp.renderState(state, true, params);
+        }
+
+        function setupURLRouting() {
+            FlxState.router.route("app/:name/*state", "app", function(appName, state) {
+                console.log("app route: name=" + appName + ", state=" + state);
+                var app = App.apps[appName];
+                if (_.isUndefined(app)) {
+                    console.log("invalid app: " + appName);
+                    App.invalidPath();
+                }
+                // strip trailing slash from state, if any
+                if (state.endsWith("/")) {
+                    state = state.slice(0, -1);
+                }
+                FlxState.saveState(appName, state);
+                state = app.parseState(state);
+                if (state === null) {
+                    console.log("invalid state: " + state);
+                    App.invalidPath();
+                }
+                render(app, state);
+            });
+            FlxState.router.route("*path", "default", function(path) {
+                console.log("loading default route for path: " + path);
+                var appName = FlxState.defaultApp,
+                    app = App.apps[appName];
+                render(app);
             });
         }
 
@@ -74,30 +140,6 @@ define(
             }
         }
 
-        /**
-         * Render main app or the one that's specified in the location bar's
-         * contents
-         */
-        function renderMainApp() {
-            var path = Backbone.history.getFragment(),
-                splits = path.split("/"),
-                appString = splits.shift(),
-                appName = splits.shift();
-            if (appString !== 'app' || _.isUndefined(appName)) {
-                App.activeApp = App.apps[FlxState.defaultApp];
-                App.apps[FlxState.defaultApp].render("");
-                return;
-            }
-            var app = App.apps[appName],
-                appState = splits.join('/');
-            FlxState.saveState(appName, appState);
-            if (_.isUndefined(app)) {
-                if (console && console.log) console.log("invalid app: " + appName);
-                App.invalidPath();
-            }
-            App.activeApp = app;
-        }
-
         function fullHeight() {
             if ($(".fullHeight").length>0) {
                 tabsY = $("#tabs").position().top;
@@ -116,7 +158,7 @@ define(
                 params = {};
             App.activeApp.saveState();
             App.activeApp=App.apps[appName];
-            App.apps[appName].render(state,params);
+            render(App.activeApp, state, params);
         }
 
         App.settings = function() {

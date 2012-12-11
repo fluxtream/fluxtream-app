@@ -15,46 +15,7 @@ define(["core/FlxState"], function(FlxState) {
 	 * previous app and call renderState() on the new one
 	 */
 	Application.prototype.render = function(state,params) {
-        if (params == null)
-            params = {};
-        $(".appMenuBtn.active").removeClass("active");
-		$("#"+this.name+"MenuButton").addClass('active');
-		if (state==="last")
-			state = FlxState.getState(this.name);
-		that = this;
-		var nextAppId = this.name + "-app",
-			nextAppDiv = $("#"+nextAppId);
-		var noApp = $(".application").length==0;
-		var appChanged = $(".application").length>0
-			&& $(".application.active").length>0
-			&& $(".application.active").attr("id")!=nextAppId;
-		if ( noApp || appChanged) {
-			if (typeof(App.activeApp)!="undefined")
-				App.activeApp.destroy();
-			if (appChanged) {
-				var currentAppDiv = $(".application.active");
-				currentAppDiv.removeClass("active");
-				currentAppDiv.addClass("dormant");
-			}
-			if (nextAppDiv.length==0) {
-				require([ "text!applications/"+ this.name + "/template.html"], function(html) {
-					html = "<div class=\"application active\" id=\"" + nextAppId + "\">"
-						 + html + "</div>";
-					
-					$("#applications").append(html);
-					
-					App.activeApp = App.apps[that.name];
-                    App.activeApp.setup();
-					App.activeApp.renderState(state, true,params);
-				});
-			} else {
-				nextAppDiv.removeClass("dormant");
-				nextAppDiv.addClass("active");
-                this.renderState(state, true,params);
-			}
-		} else {
-			this.renderState(state, true,params);
-		}
+        this.renderState(state, true, params);
 	};
 	
 	Application.prototype.saveState = function() {
@@ -67,7 +28,18 @@ define(["core/FlxState"], function(FlxState) {
 	 */
 	Application.prototype.setup = function() {
 	};
-	
+
+    /**
+     * Parses the URL state fragment and returns a "state object" that
+     * packages all state represented in that fragment. This object is passed to
+     * renderState(). If parsing fails, returns null.
+     *
+     * @param state  URL fragment to be parsed into a state object
+     */
+    Application.prototype.parseState = function(state) {
+        return state;
+    };
+
 	Application.prototype.renderState = function(state) {
 	};
 

@@ -4,6 +4,14 @@ define([], function() {
         return lowerCase.charAt(0).toUpperCase() + lowerCase.slice(1);
     };
 
+    String.prototype.startsWith = function(s) {
+        return this.indexOf(s) === 0;
+    };
+
+    String.prototype.endsWith = function(s) {
+        return this.lastIndexOf(s) === this.length - s.length;
+    };
+
     var StringUtils = {};
 
     StringUtils.addCommas = function(nStr) {
