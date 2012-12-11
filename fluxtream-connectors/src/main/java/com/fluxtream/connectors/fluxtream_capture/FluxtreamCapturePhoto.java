@@ -10,7 +10,7 @@ import org.joda.time.DateTimeZone;
 /**
  * @author Chris Bartley (bartley@cmu.edu)
  */
-public final class FluxtreamCapturePhoto {
+final class FluxtreamCapturePhoto {
     private static final String KEY_VALUE_STORE_KEY_PART_DELIMITER = ".";
     private static final String KEY_VALUE_STORE_FILENAME_PART_DELIMITER = "_";
     private static final String CONNECTOR_PRETTY_NAME = Connector.getConnector(FluxtreamCaptureUpdater.CONNECTOR_NAME).prettyName();
@@ -27,7 +27,7 @@ public final class FluxtreamCapturePhoto {
     @NotNull
     private final String photoStoreKey;
 
-    public FluxtreamCapturePhoto(final long guestId, @NotNull final byte[] photoBytes, final long captureTimeMillisUtc) throws NoSuchAlgorithmException {
+    FluxtreamCapturePhoto(final long guestId, @NotNull final byte[] photoBytes, final long captureTimeMillisUtc) throws NoSuchAlgorithmException {
         this.guestId = guestId;
         this.photoBytes = photoBytes;
         this.captureTimeMillisUtc = captureTimeMillisUtc;
@@ -44,7 +44,10 @@ public final class FluxtreamCapturePhoto {
                         photoHash + KEY_VALUE_STORE_FILENAME_PART_DELIMITER +
                         String.valueOf(captureTimeMillisUtc);
 
-        // TODO: validate that it's actually a photo and generate the thumbnails
+        // TODO:
+        // 1) validate that it's actually a photo
+        // 2) generate the thumbnails
+        // 3) extract lat/long
     }
 
     public long getGuestId() {
