@@ -56,27 +56,22 @@ define(["core/TabInterface"], function(TabInterface) {
                 .unbind("click")
                 .click(function(event){
                     var timeUnit = $(event.target).attr("unit");
+                    // TODO: do something reasonable with this
                     if (Calendar.currentTab.timeNavigation(timeUnit)) {
                         return;
                     }
-                    var url = timeUnitToURL(timeUnit);
-                    $.ajax({
-                       url: url,
-                       data: {state: Calendar.tabState},
-                       type: "GET",
-                       success : function(response) {
-                           Calendar.timeUnit = timeUnit;
-                           Calendar.tabState = response.state;
-                           if (!Builder.tabExistsForTimeUnit(Calendar.currentTabName, Calendar.timeUnit)) {
-                               Calendar.currentTabName = Builder.tabs[Calendar.timeUnit][0];
-                           }
-                           Calendar.updateButtonStates();
-                           Calendar.render(Calendar.getState());
-                       },
-                       error : function(err) {
-                           alert("error: " + err);
-                       }
-                   });
+                    var url = timeUnitToURL(timeUnit),
+                        params = {state: Calendar.tabState};
+                    Calendar.fetchState(url, params, function(response) {
+                        console.log("fetch from bindTimeUnitsMenu callback!")
+                        Calendar.timeUnit = timeUnit;
+                        Calendar.tabState = response.state;
+                        if (!Builder.tabExistsForTimeUnit(Calendar.currentTabName, Calendar.timeUnit)) {
+                            Calendar.currentTabName = Builder.tabs[Calendar.timeUnit][0];
+                        }
+                        Calendar.updateButtonStates();
+                        Calendar.render(Calendar.getState());
+                    });
                 });
         });
 	}

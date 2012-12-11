@@ -51,13 +51,13 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     };
 
     Calendar.parseState = function(state) {
-        var pathElements = path.split("/");
-        if (_.isEmpty(pathElements)) {
+        var splits = state.split("/");
+        if (_.isEmpty(splits)) {
             return null;
         }
         var obj = {};
-        obj.tabName = pathElements.shift();
-        obj.timeUnit = pathElements.shift();
+        obj.tabName = splits.shift();
+        obj.timeUnit = splits.shift();
         if (!Builder.isValidTabName(obj.tabName) || !Builder.isValidTimeUnit(obj.timeUnit)) {
             return null;
         }
@@ -66,33 +66,33 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         }
         switch (obj.timeUnit) {
             case "date":
-                obj.date = pathElements.shift();
+                obj.date = splits.shift();
                 if (_.isUndefined(obj.date)) {
                     return null;
                 }
                 break;
             case "week":
-                obj.year = pathElements.shift();
-                obj.week = pathElements.shift();
+                obj.year = splits.shift();
+                obj.week = splits.shift();
                 if (_.isUndefined(obj.year) || _.isUndefined(obj.week)) {
                     return null;
                 }
                 break;
             case "month":
-                obj.year = pathElements.shift();
-                obj.month = pathElements.shift();
+                obj.year = splits.shift();
+                obj.month = splits.shift();
                 if (_.isUndefined(obj.year) || _.isUndefined(obj.month)) {
                     return null;
                 }
                 break;
             case "year":
-                obj.year = pathElements.shift();
+                obj.year = splits.shift();
                 if (_.isUndefined(obj.year)) {
                     return null;
                 }
                 break;
         }
-        obj.tabParam = pathElements.shift();
+        obj.tabParam = splits.shift();
         // TODO: actually return this state object!
         //return obj;
         return state;
@@ -166,35 +166,39 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         return Calendar.currentTabName + "/" + Calendar.tabState + (Calendar.tabParam == null ? "" : "/" + Calendar.tabParam);
     };
 
-	function fetchState(url, params) {
+	function fetchState(url, params, callback) {
         $(".calendar-navigation-button").addClass("disabled");
 		$(".loading").show();
 		$("#tabs").css("opacity", ".3");
-		$.ajax({
-            url: url,
-            type: "GET",
-            data: params,
-			success : function(response) {
-				if (Calendar.currentTab) {
-					Calendar.currentTab.saveState();
-				}
+        if (_.isUndefined(callback)) {
+            callback = function(response) {
+                if (Calendar.currentTab) {
+                    Calendar.currentTab.saveState();
+                }
                 Calendar.timeUnit = response.state.split("/")[0];
-				Calendar.tabState = response.state;
+                Calendar.tabState = response.state;
                 updateDisplays();
                 Calendar.start = response.start;
                 Calendar.end  = response.end;
                 Builder.createTabs(Calendar);
                 Calendar.navigateState();
-				document.title = "Fluxtream Calendar | " + response.currentTimespanLabel + " (" + Calendar.currentTabName + ")";
-				$("#currentTimespanLabel span").html(response.currentTimespanLabel);
+                document.title = "Fluxtream Calendar | " + response.currentTimespanLabel + " (" + Calendar.currentTabName + ")";
+                $("#currentTimespanLabel span").html(response.currentTimespanLabel);
                 updateDatepicker();
                 fetchCalendar("/api/calendar/all/" + response.state,response.state);
-			},
-			error : function() {
-				alert("error");
+            };
+        }
+		$.ajax({
+            url: url,
+            type: "GET",
+            data: params,
+			success: callback,
+			error: function() {
+				console.log(arguments);
 			}
 		});
 	}
+    Calendar.fetchState = fetchState;
 
     function updateDatepicker() {
         var stateElements = Calendar.tabState.split("/"),

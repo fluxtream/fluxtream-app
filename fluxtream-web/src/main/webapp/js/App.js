@@ -95,6 +95,12 @@ define(
         }
 
         function setupURLRouting() {
+            FlxState.router.route("*path", "default", function(path) {
+                console.log("default route: path=" + path);
+                var appName = FlxState.defaultApp,
+                    app = App.apps[appName];
+                render(app);
+            });
             FlxState.router.route("app/:name/*state", "app", function(appName, state) {
                 console.log("app route: name=" + appName + ", state=" + state);
                 var app = App.apps[appName];
@@ -113,12 +119,6 @@ define(
                     App.invalidPath();
                 }
                 render(app, state);
-            });
-            FlxState.router.route("*path", "default", function(path) {
-                console.log("loading default route for path: " + path);
-                var appName = FlxState.defaultApp,
-                    app = App.apps[appName];
-                render(app);
             });
         }
 
