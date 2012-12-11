@@ -258,10 +258,10 @@ public class BodyTrackController {
             status = new StatusModel(true, "photo " + (wasNewInstanceCreated ? "saved" : "updated") + " sucessfully!");
         }
         catch (FluxtreamCapturePhotoStore.InvalidDataException e) {
-            status = constructFailedStatusModel("FluxtreamCapturePhotoStore.InvalidDataException while trying to save the photo: " + e);
+            status = constructFailedStatusModel("InvalidDataException while trying to save the photo: " + e);
         }
-        catch (FluxtreamCapturePhotoStore.FluxtreamCapturePhotoStoreException e) {
-            status = constructFailedStatusModel("FluxtreamCapturePhotoStoreException while trying to save the photo: " + e);
+        catch (FluxtreamCapturePhotoStore.StorageException e) {
+            status = constructFailedStatusModel("StorageException while trying to save the photo: " + e);
         }
 
         return status;
