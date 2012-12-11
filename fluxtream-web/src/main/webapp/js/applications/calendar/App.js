@@ -243,7 +243,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                         $(".datepicker").hide();
                         return;
                     }
-                    fetchState("/api/calendar/nav/getDate?date=" + formatted + "&state=" + Calendar.tabState);
+                    fetchState("/api/calendar/nav/getDate",
+                               {date: formatted, state: Calendar.tabState});
                 }
                 else if (Calendar.timeUnit == "week"){
                     var weekNumber = getWeekNumber(event.date.getUTCFullYear(),
@@ -254,7 +255,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                         $(".datepicker").hide();
                         return;
                     }
-                    fetchState("/api/calendar/nav/getWeek?week=" + weekNumber[1] + "&year=" + weekNumber[0] + "&state=" + Calendar.tabState);
+                    fetchState("/api/calendar/nav/getWeek",
+                               {week: weekNumber[1], year: weekNumber[0], state: Calendar.tabState});
                 }
 				$(".datepicker").hide();
 			}
@@ -273,7 +275,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     $(".datepicker").hide();
                     return;
                 }
-                fetchState("/api/calendar/nav/getYear?year=" + $(event.target).text() + "&state=" + Calendar.tabState);
+                fetchState("/api/calendar/nav/getYear",
+                           {year: $(event.target).text(), state: Calendar.tabState});
                 $(".datepicker").hide();
             }
         });
@@ -284,7 +287,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     $(".datepicker").hide();
                     return;
                 }
-                fetchState("/api/calendar/nav/getMonth?year=" + $(".datepicker-months .switch").text() + "&month=" + month + "&state=" + Calendar.tabState);
+                fetchState("/api/calendar/nav/getMonth",
+                           {year: $(".datepicker-months .switch").text(),
+                            month: month,
+                            state: Calendar.tabState});
                 $(".datepicker").hide();
             }
         });
