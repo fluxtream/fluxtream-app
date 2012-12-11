@@ -66,16 +66,7 @@ define(["core/TabInterface"], function(TabInterface) {
                     }
                     var url = timeUnitToURL(timeUnit),
                         params = {state: Calendar.tabState};
-                    Calendar.fetchState(url, params, function(response) {
-                        console.log("fetch from bindTimeUnitsMenu callback!")
-                        Calendar.timeUnit = timeUnit;
-                        Calendar.tabState = response.state;
-                        if (!Builder.tabExistsForTimeUnit(Calendar.currentTabName, Calendar.timeUnit)) {
-                            Calendar.currentTabName = Builder.tabs[Calendar.timeUnit][0];
-                        }
-                        Calendar.updateButtonStates();
-                        Calendar.render(Calendar.getState());
-                    });
+                    Calendar.fetchState(url, params);
                 });
         });
 	}

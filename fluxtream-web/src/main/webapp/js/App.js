@@ -65,7 +65,7 @@ define(
                 $(".application.active").length>0 &&
                 $(".application.active").attr("id")!=nextAppId;
             if (!noApp && !appChanged) {
-                app.renderState(state, true, params);
+                app.renderState(state);
                 return;
             }
 
@@ -91,7 +91,7 @@ define(
                 nextAppDiv.removeClass("dormant");
                 nextAppDiv.addClass("active");
             }
-            App.activeApp.renderState(state, true, params);
+            App.activeApp.renderState(state);
         }
 
         function setupURLRouting() {

@@ -98,12 +98,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         return state;
     };
 
-	Calendar.renderState = function(state, forceReload) {
-        forceReload = typeof(forceReload)!="undefined"&&forceReload;
-        if (!forceReload&&FlxState.getState("calendar")===state) {
-			return;
-		}
-		if (state==null||state==="") {
+	Calendar.renderState = function(state) {
+		if (_.isUndefined(state)) {
 			Builder.createTabs(Calendar);
 			fetchState("/api/calendar/nav/setToToday", {timeUnit: "DAY"});
             return;
@@ -123,38 +119,17 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 		var nextTabState = state.substring(tabName.length+1);
         Calendar.updateButtonStates();
         Builder.createTabs(Calendar);
-        if (!forceReload && Calendar.tabState==nextTabState) {
-			// time didn't change
+        if (Calendar.tabState==nextTabState) {
+			// tab didn't change
             document.title = "Fluxtream Calendar | " + $("#currentTimespanLabel").text().trim() + " (" + Calendar.currentTabName + ")";
 			Builder.updateTab(Calendar.digest, Calendar);
             Calendar.navigateState();
 			return;
 		} else {
-            var url = "/api/calendar/nav/get" + Calendar.timeUnit.upperCaseFirst();
-            switch (Calendar.timeUnit) {
-                case "date":
-                    var date = stateElements.shift(),
-                        params = {date: date};
-                    break;
-                case "week":
-                    var year = stateElements.shift(),
-                        week = stateElements.shift(),
-                        params = {year: year, week: week};
-                    break;
-                case "month":
-                    var year = stateElements.shift(),
-                        month = stateElements.shift(),
-                        params = {year: year, month: month};
-                    break;
-                case "year":
-                    var year = stateElements.shift(),
-                        params = {year: year};
-                    break;
-            }
-            Calendar.tabParam = stateElements.shift();
-            fetchState(url, params);
-		}
-
+            // TODO: we need to update this somewhere...
+            //updateDatepicker();
+            fetchCalendar("/api/calendar/all/" + state, state);
+        }
 	};
 
     Calendar.setTabParam = function(tabParam){
@@ -166,17 +141,23 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         return Calendar.currentTabName + "/" + Calendar.tabState + (Calendar.tabParam == null ? "" : "/" + Calendar.tabParam);
     };
 
-	function fetchState(url, params, callback) {
+	function fetchState(url, params) {
         $(".calendar-navigation-button").addClass("disabled");
 		$(".loading").show();
 		$("#tabs").css("opacity", ".3");
-        if (_.isUndefined(callback)) {
-            callback = function(response) {
+		$.ajax({
+            url: url,
+            type: "GET",
+            data: params,
+			success: function(response) {
                 if (Calendar.currentTab) {
                     Calendar.currentTab.saveState();
                 }
                 Calendar.timeUnit = response.state.split("/")[0];
                 Calendar.tabState = response.state;
+                if (!Builder.tabExistsForTimeUnit(Calendar.currentTabName, Calendar.timeUnit)) {
+                    Calendar.currentTabName = Builder.tabs[Calendar.timeUnit][0];
+                }
                 updateDisplays();
                 Calendar.start = response.start;
                 Calendar.end  = response.end;
@@ -184,15 +165,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 Calendar.navigateState();
                 document.title = "Fluxtream Calendar | " + response.currentTimespanLabel + " (" + Calendar.currentTabName + ")";
                 $("#currentTimespanLabel span").html(response.currentTimespanLabel);
-                updateDatepicker();
-                fetchCalendar("/api/calendar/all/" + response.state,response.state);
-            };
-        }
-		$.ajax({
-            url: url,
-            type: "GET",
-            data: params,
-			success: callback,
+                Calendar.updateButtonStates();
+            },
 			error: function() {
 				console.log(arguments);
 			}
