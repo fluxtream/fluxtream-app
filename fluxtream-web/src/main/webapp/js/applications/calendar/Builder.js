@@ -22,6 +22,12 @@ define(["core/TabInterface"], function(TabInterface) {
     var timeUnits = ['date', 'week', 'month', 'year'];
 
     Builder.init = function(Calendar){
+        bindTabInterface(Calendar);
+        bindTimeUnitsMenu(Calendar);
+        bindTimeNavButtons(Calendar);
+    }
+
+    function bindTabInterface(Calendar) {
         $("#calendarTabs").replaceWith(tabInterface.getNav());
         tabInterface.getNav().addClickListener(function(tabName){
             var state = App.state.getState("calendar");
@@ -30,10 +36,8 @@ define(["core/TabInterface"], function(TabInterface) {
                 Calendar.tabParam = null;
                 state = state.substring(0,state.lastIndexOf("/"));
             }
-            Calendar.render(tabName+state);
+            Calendar.navigateState(tabName+state, {trigger: true});
         });
-        bindTimeUnitsMenu(Calendar);
-        bindTimeNavButtons(Calendar);
     }
 	
 	function timeUnitToURL(timeUnit) {
