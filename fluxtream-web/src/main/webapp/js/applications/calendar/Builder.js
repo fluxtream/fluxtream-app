@@ -49,40 +49,36 @@ define(["core/TabInterface"], function(TabInterface) {
 	}
 	
 	function bindTimeUnitsMenu(Calendar) {
-		var timeUnitIds = {"#dayViewBtn":1, "#weekViewBtn":2, "#monthViewBtn":3, "#yearViewBtn":4};
-        for (var timeUnitId in timeUnitIds){
-            var btn = $(timeUnitId);
-            if (btn.attr("unit") == Calendar.timeUnit) {
-                btn.addClass("active");
-            } else {
-                btn.removeClass("active");
-            }
-            btn.unbind("click");
-            btn.click(function(event){
-                var timeUnit = $(event.target).attr("unit");
-                if (Calendar.currentTab.timeNavigation(timeUnit)) {
-                    return;
-                }
-                var url = timeUnitToURL(timeUnit);
-                $.ajax({
-                   url: url,
-                   data: {state: Calendar.tabState},
-                   type: "GET",
-                   success : function(response) {
-                       Calendar.timeUnit = timeUnit;
-                       Calendar.tabState = response.state;
-                       if (!Builder.tabExistsForTimeUnit(Calendar.currentTabName, Calendar.timeUnit)) {
-                           Calendar.currentTabName = Builder.tabs[Calendar.timeUnit][0];
+		var timeUnitIDs = ["#dayViewBtn", "#weekViewBtn", "#monthViewBtn", "#yearViewBtn"];
+        $.each(timeUnitIDs, function(i, timeUnitID) {
+            var btn = $(timeUnitID);
+            btn.toggleClass("active", btn.attr("unit") == Calendar.timeUnit)
+                .unbind("click")
+                .click(function(event){
+                    var timeUnit = $(event.target).attr("unit");
+                    if (Calendar.currentTab.timeNavigation(timeUnit)) {
+                        return;
+                    }
+                    var url = timeUnitToURL(timeUnit);
+                    $.ajax({
+                       url: url,
+                       data: {state: Calendar.tabState},
+                       type: "GET",
+                       success : function(response) {
+                           Calendar.timeUnit = timeUnit;
+                           Calendar.tabState = response.state;
+                           if (!Builder.tabExistsForTimeUnit(Calendar.currentTabName, Calendar.timeUnit)) {
+                               Calendar.currentTabName = Builder.tabs[Calendar.timeUnit][0];
+                           }
+                           Calendar.updateButtonStates();
+                           Calendar.render(Calendar.getState());
+                       },
+                       error : function(err) {
+                           alert("error: " + err);
                        }
-                       Calendar.updateButtonStates();
-                       Calendar.render(Calendar.getState());
-                   },
-                   error : function(err) {
-                       alert("error: " + err);
-                   }
-               });
-            })
-        }
+                   });
+                });
+        });
 	}
 	
 	function bindTimeNavButtons(Calendar) {
