@@ -97,13 +97,7 @@ define(["core/TabInterface"], function(TabInterface) {
     function bindTabInterface(Calendar) {
         $("#calendarTabs").replaceWith(tabInterface.getNav());
         tabInterface.getNav().addClickListener(function(tabName){
-            var state = App.state.getState("calendar");
-            state = state.substring(state.indexOf("/"));
-            if (Calendar.tabParam != null){
-                Calendar.tabParam = null;
-                state = state.substring(0,state.lastIndexOf("/"));
-            }
-            Calendar.navigateState(tabName + "/" + state);
+            Calendar.navigateState(tabName + "/" + Calendar.tabState);
         });
     }
 	

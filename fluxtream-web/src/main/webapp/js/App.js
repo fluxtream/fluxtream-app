@@ -126,6 +126,7 @@ define(
                 if (state === null) {
                     console.log("invalid state: " + state);
                     App.invalidPath();
+                    return;
                 }
                 render(app, state);
             });

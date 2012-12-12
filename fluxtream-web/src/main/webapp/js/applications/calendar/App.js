@@ -57,9 +57,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
            data: params,
            success: function(response) {
                updateTimespan(response.currentTimespanLabel);
-               // HACK: set tabName so we can worry about how to get this later
-               var tabName = "list";
-               Calendar.navigateState(tabName + "/" + response.state);
+               Calendar.navigateState(Calendar.currentTabName + "/" + response.state);
            },
            error: function() {
                console.log(arguments);
