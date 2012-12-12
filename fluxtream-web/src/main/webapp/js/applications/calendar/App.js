@@ -120,7 +120,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 			Builder.updateTab(Calendar.digest, Calendar);
 		} else {
             updateDatepicker(state);
-            fetchCalendar(state.tabState);
+            fetchCalendar(state);
         }
 	};
 
@@ -149,7 +149,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
 	function fetchCalendar(state) {
 		$.ajax({
-            url: "/api/calendar/all/" + state,
+            url: "/api/calendar/all/" + state.tabState,
 			success : function(response) {
                 console.log(response);
                 if (typeof response.result!="undefined" && response.result==="KO") {
@@ -161,7 +161,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 else
                     $("#mainCity").empty();
                 Calendar.digest = response;
-                Calendar.digestTabState = state;
+                Calendar.digestTabState = state.tabState;
                 enhanceDigest(Calendar.digest);
                 processDigest(Calendar.digest);
 				Builder.updateTab(Calendar.digest, Calendar);
@@ -176,46 +176,42 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 		});
 	}
 
-    function getTemplate(digest,i,j){
-        App.loadMustacheTemplate("applications/calendar/facetTemplates.html",digest.selectedConnectors[i].facetTypes[j],function(template){
-            if (template == null)
-                console.log("WARNING: no template found for " + digest.selectedConnectors[i].facetTypes[j] + ".");
-            digest.detailsTemplates[digest.selectedConnectors[i].facetTypes[j]] = template;
-        });
-    }
-
     function enhanceDigest(digest){
         digest.detailsTemplates = {};
-        for (var i = 0; i < digest.selectedConnectors.length; i++){
-            for (var j = 0; j < digest.selectedConnectors[i].facetTypes.length; j++){
-                getTemplate(digest,i,j);
-            }
+        var templatePath = "applications/calendar/facetTemplates.html";
+        function loadTemplate(name) {
+            App.loadMustacheTemplate(templatePath, name, function(template){
+                if (template == null) {
+                    console.log("WARNING: no template found for " + name + ".");
+                }
+                digest.detailsTemplates[name] = template;
+            });
         }
-        App.loadMustacheTemplate("applications/calendar/facetTemplates.html","fluxtream-address",function(template){
-            if (template == null)
-                console.log("WANRING: no template found for fluxtream-address.");
-            digest.detailsTemplates["fluxtream-address"] = template;
+        $.each(digest.selectedConnectors, function(i, connector) {
+            $.each(connector.facetTypes, function(j, facetType) {
+                loadTemplate(facetType);
+            });
         });
+        loadTemplate("fluxtream-address");
         for (var connectorId in digest.cachedData){
-            for (var i = 0; i < digest.cachedData[connectorId].length; i++){
-                digest.cachedData[connectorId][i].getDetails = function(array){
+            $.each(digest.cachedData[connectorId], function(i, connector) {
+                connector.getDetails = function(array){
                     if (array == null)
                         array = [this];
                     return buildDetails(digest,array);
-                }
-                digest.cachedData[connectorId][i].shouldGroup = function(facet){
+                };
+                connector.shouldGroup = function(facet){
                     return shouldFacetsGroup(this,facet);
-                }
-            }
+                };
+            });
         }
 
         for (var addressType in digest.addresses){
-            for (var i = 0; i < digest.addresses[addressType].length; i++){
-                digest.addresses[addressType][i].getDetails = function(){
+            $.each(digest.addresses[addressType], function(i, address) {
+                address.getDetails = function(){
                     return buildAddressDetails(digest,this);
-                }
-
-            }
+                };
+            });
         }
     }
 
@@ -233,23 +229,23 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     function processDigest(digest){
         var selectedConnectors = $("#selectedConnectors");
         selectedConnectors.empty();
-        for (var i = 0; i < digest.selectedConnectors.length; i++){
+        $.each(digest.selectedConnectors, function(i, connector) {
             var enabled = false;
-            for (var j = 0; j < digest.selectedConnectors[i].facetTypes.length && !enabled; j++){
-                enabled =  digest.cachedData[digest.selectedConnectors[i].facetTypes[j]] != null;
-            }
+            $.each(connector.facetTypes, function(j, facetType) {
+                enabled =  digest.cachedData[facetType] != null;
+            });
             enabled = enabled ? "" : "flx-disconnected";
-            var filterLabel = digest.selectedConnectors[i].prettyName;
-            if (typeof (App.getConnectorConfig(digest.selectedConnectors[i].connectorName).filterLabel)!="undefined")
-                filterLabel = App.getConnectorConfig(digest.selectedConnectors[i].connectorName).filterLabel;
-            var button = $('<li><a href="#" id="flx-connector-btn-' + digest.selectedConnectors[i].connectorName + '" class="flx-active '
+            var filterLabel = connector.prettyName;
+            if (typeof (App.getConnectorConfig(connector.connectorName).filterLabel)!="undefined")
+                filterLabel = App.getConnectorConfig(connector.connectorName).filterLabel;
+            var button = $('<li><a href="#" id="flx-connector-btn-' + connector.connectorName + '" class="flx-active '
                                + enabled + '">' + filterLabel + '</button></li>');
             if (enabled == "")
-                button.children().css("border-bottom-color",App.getConnectorConfig(digest.selectedConnectors[i].connectorName).color);
+                button.children().css("border-bottom-color",App.getConnectorConfig(connector.connectorName).color);
             selectedConnectors.append(button);
             button = $(button.children()[0]);
-            buttons[digest.selectedConnectors[i].connectorName] = button;
-            button.click({button:button,objectTypeNames:digest.selectedConnectors[i].facetTypes,connectorName:digest.selectedConnectors[i].connectorName}, function(event){
+            buttons[connector.connectorName] = button;
+            button.click({button:button,objectTypeNames:connector.facetTypes,connectorName:connector.connectorName}, function(event){
                 event.preventDefault();
                 $(document).click(); //needed for click away to work on tooltips in clock tab
                 connectorClicked(event.data.button,event.data.objectTypeNames,event.data.connectorName);
@@ -267,10 +263,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 }
 
             });
-            if (Calendar.connectorEnabled["default"][digest.selectedConnectors[i].connectorName] == null)
-                Calendar.connectorEnabled["default"][digest.selectedConnectors[i].connectorName] = true;
+            if (Calendar.connectorEnabled["default"][connector.connectorName] == null)
+                Calendar.connectorEnabled["default"][connector.connectorName] = true;
             Calendar.updateButtonStates();
-        }
+        });
     }
 
     Calendar.updateButtonStates = function(){
