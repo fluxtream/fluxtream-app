@@ -127,6 +127,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             document.title = "Fluxtream Calendar | " + $("#currentTimespanLabel").text().trim() + " (" + Calendar.currentTabName + ")";
 			Builder.updateTab(Calendar.digest, Calendar);
 		} else {
+            updateDisplays(state);
             updateDatepicker(state);
             fetchCalendar(state);
         }
@@ -629,12 +630,11 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
     var viewBtnIds = {date:"#dayViewBtn",week:"#weekViewBtn",month:"#monthViewBtn",year:"#yearViewBtn"};
 
-    function updateDisplays(){
-        var rangeType = Calendar.tabState.substring(0,Calendar.tabState.indexOf("/"));
+    function updateDisplays(state){
         for (var type in viewBtnIds){
             $(viewBtnIds[type]).removeClass("active");
         }
-        $(viewBtnIds[rangeType]).addClass("active");
+        $(viewBtnIds[state.timeUnit]).addClass("active");
     }
 
 	return Calendar;
