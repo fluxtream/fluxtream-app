@@ -1,6 +1,8 @@
 package com.fluxtream.connectors.bodymedia;
 
 import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.TimeZone;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.SignpostOAuthHelper;
@@ -10,7 +12,9 @@ import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.utils.TimeUtils;
+import com.fluxtream.utils.Utils;
 import net.sf.json.JSONObject;
+import net.sf.json.JSONArray;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.commonshttp.CommonsHttpOAuthConsumer;
 import oauth.signpost.exception.OAuthCommunicationException;
@@ -23,12 +27,14 @@ import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.DateTimeComparator;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+
 
 @Component
 @Updater(prettyName = "BodyMedia", value = 88,
@@ -54,6 +60,8 @@ public class BodymediaUpdater extends AbstractUpdater {
     private final DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyyMMdd");
     private final DateTimeFormatter formatter2 = DateTimeFormat.forPattern("yyyy-MM-dd");
 
+    protected static DateTimeFormatter tzmapFormatter = DateTimeFormat.forPattern("yyyyMMdd'T'HHmmssZ");
+
     public BodymediaUpdater() {
         super();
         ObjectType burn = ObjectType.getObjectType(connector(), "burn");
@@ -68,6 +76,13 @@ public class BodymediaUpdater extends AbstractUpdater {
     }
 
     public void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception {
+        // Get timezone map for this user
+        List<TimezoneMapElt> tzMap = getTimezoneMap(updateInfo);
+
+        // Prasanth removed this and said it doesn't work in checkin
+        // https://github.com/fluxtream/fluxtream-app/commit/eb10e1a3bb38170657f81621d26e1775644aa18f
+        // TODO: figure out how to handle exchanging the token in a way that does work
+
         //checkAndReplaceOauthToken(updateInfo);
         for(ObjectType ot : updateInfo.objectTypes())
         {
@@ -116,6 +131,7 @@ public class BodymediaUpdater extends AbstractUpdater {
     private void retrieveHistory(UpdateInfo updateInfo, ObjectType ot, String urlExtension, int increment, DateTime start, DateTime end) throws Exception {
         DateTimeComparator comparator = DateTimeComparator.getDateOnlyInstance();
         DateTime current = end;
+        try {
             while (comparator.compare(current, start) > 0)
             //@ loop_invariant date.compareTo(userRegistrationDate) >= 0;
             {
@@ -135,7 +151,14 @@ public class BodymediaUpdater extends AbstractUpdater {
             //The following call may fail due to bodymedia's api. That is expected behavior
             String jsonResponse = signpostHelper.makeRestCall(connector(), updateInfo.apiKey, ot.value(), minutesUrl);
             apiDataService.cacheApiDataJSON(updateInfo, jsonResponse, -1, -1);
-     }
+        }
+        catch (Exception e) {
+            JSONObject json = new JSONObject();
+            json.put("Failed", "");
+            json.put("Date", current.toString(formatter));
+            apiDataService.cacheApiDataJSON(updateInfo, json, -1, -1);
+        }
+    }
 
     OAuthConsumer setupConsumer(ApiKey apiKey) {
         String api_key = env.get("bodymediaConsumerKey");
@@ -151,6 +174,9 @@ public class BodymediaUpdater extends AbstractUpdater {
     }
 
     public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
+        // Get timezone map for this user
+        List<TimezoneMapElt> tzMap = getTimezoneMap(updateInfo);
+
         //checkAndReplaceOauthToken(updateInfo);
         for (ObjectType ot : updateInfo.objectTypes()) {
             BodymediaAbstractFacet endDate = jpaDaoService.findOne("bodymedia." + ot.getName() + ".getFailedUpdate", BodymediaAbstractFacet.class, updateInfo.getGuestId());
@@ -212,4 +238,65 @@ public class BodymediaUpdater extends AbstractUpdater {
             throw new Exception("Error: " + statusCode + " Unexpected error trying to get statuses");
         }
     }
+
+    public List<TimezoneMapElt> getTimezoneMap(UpdateInfo updateInfo) throws Exception {
+            OAuthConsumer consumer = setupConsumer(updateInfo.apiKey);
+            String api_key = env.get("bodymediaConsumerKey");
+            JSONArray timezoneMapJson = getUserTimezoneHistory(updateInfo, api_key, consumer);
+            List<TimezoneMapElt> ret= new ArrayList<TimezoneMapElt>();
+
+            try{
+                for(int i=0; i<timezoneMapJson.size(); i++) {
+                    JSONObject jsonRecord = timezoneMapJson.getJSONObject(i);
+                    final String tzName = jsonRecord.getString("value");
+                    final String startDateStr = jsonRecord.getString("startDate");
+                    final String endDateStr = jsonRecord.optString("endDate");
+                    DateTime startDate;
+                    DateTime endDate;
+                    DateTimeZone tz;
+                    TimezoneMapElt tzElt;
+
+                    tz = DateTimeZone.forID(tzName);
+                    startDate = tzmapFormatter.parseDateTime(startDateStr);
+                    if(endDateStr.equals("")) {
+                        // Last entry in table has no endDate, set it to be now in the target timezone
+                        // TODO: this should perhaps be in the future instead
+                        endDate=new DateTime(tz);
+                    }
+                    else {
+                        endDate = tzmapFormatter.parseDateTime(endDateStr);
+                    }
+                    tzElt = new TimezoneMapElt(startDate,endDate,tz);
+
+                    ret.add(tzElt);
+                }
+
+            } catch (Throwable e){
+
+            }
+            return ret;
+        }
+
+    public JSONArray getUserTimezoneHistory(UpdateInfo updateInfo, String api_key, OAuthConsumer consumer) throws Exception {
+        long then = System.currentTimeMillis();
+        String requestUrl = "http://api.bodymedia.com/v2/json/timezone?api_key=" + api_key;
+
+        HttpGet request = new HttpGet(requestUrl);
+        consumer.sign(request);
+        HttpClient client = env.getHttpClient();
+        HttpResponse response = client.execute(request);
+        int statusCode = response.getStatusLine().getStatusCode();
+        if (statusCode == 200) {
+            countSuccessfulApiCall(updateInfo.apiKey.getGuestId(), updateInfo.objectTypes, then, requestUrl);
+            ResponseHandler<String> responseHandler = new BasicResponseHandler();
+            String json = responseHandler.handleResponse(response);
+            JSONObject userInfo = JSONObject.fromObject(json);
+            return userInfo.getJSONArray("timezones");
+        }
+        else {
+            countFailedApiCall(updateInfo.apiKey.getGuestId(), updateInfo.objectTypes, then, requestUrl, "");
+            throw new Exception("Error: " + statusCode + " Unexpected error trying to bodymedia timezone for user " + updateInfo.apiKey.getGuestId());
+        }
+    }
 }
+
