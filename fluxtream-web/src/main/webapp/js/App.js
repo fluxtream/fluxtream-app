@@ -55,42 +55,51 @@ define(
             });
         }
 
-        function render(app, state, params) {
-            $(".appMenuBtn.active").removeClass("active");
-            $("#"+app.name+"MenuButton").addClass('active');
-            var nextAppId = app.name + "-app",
-                noApp = $(".application").length==0;
-            var appChanged =
-                $(".application").length>0 &&
-                $(".application.active").length>0 &&
-                $(".application.active").attr("id")!=nextAppId;
-            if (!noApp && !appChanged) {
-                app.renderState(state);
-                return;
-            }
-
-            if (!_.isUndefined(App.activeApp)) {
-                App.activeApp.destroy();
-            }
-            if (appChanged) {
-                // TODO: store current app state
-                var currentAppDiv = $(".application.active");
-                currentAppDiv.removeClass("active");
-                currentAppDiv.addClass("dormant");
-            }
-            App.activeApp = app;
+        function maybeSetupAppDiv(app) {
+            var nextAppId = app.name + "-app";
             var nextAppDiv = $("#"+nextAppId);
             if (nextAppDiv.length==0) {
                 require([ "text!applications/"+ app.name + "/template.html"], function(html) {
                     html = "<div class=\"application active\" id=\"" + nextAppId + "\">"
                                + html + "</div>";
                     $("#applications").append(html);
-                    App.activeApp.setup();
+                    app.setup();
                 });
             } else {
                 nextAppDiv.removeClass("dormant");
                 nextAppDiv.addClass("active");
             }
+        }
+
+        function renderDefault(app) {
+            $(".appMenuBtn.active").removeClass("active");
+            $("#"+app.name+"MenuButton").addClass('active');
+            maybeSetupAppDiv(app);
+            App.activeApp = app;
+            App.activeApp.renderDefaultState();
+        }
+
+        function render(app, state) {
+            $(".appMenuBtn.active").removeClass("active");
+            $("#"+app.name+"MenuButton").addClass('active');
+            var nextAppId = app.name + "-app",
+                noApp = $(".application").length== 0,
+                currentAppDiv = $(".application.active");
+            var appChanged = currentAppDiv.attr("id") != nextAppId;
+            if (!noApp && !appChanged) {
+                app.renderState(state);
+                return;
+            }
+            if (!_.isUndefined(App.activeApp)) {
+                App.activeApp.destroy();
+            }
+            if (appChanged) {
+                // TODO: store current app state
+                currentAppDiv.removeClass("active");
+                currentAppDiv.addClass("dormant");
+            }
+            maybeSetupAppDiv(app);
+            App.activeApp = app;
             App.activeApp.renderState(state);
         }
 
@@ -99,7 +108,7 @@ define(
                 console.log("default route: path=" + path);
                 var appName = FlxState.defaultApp,
                     app = App.apps[appName];
-                render(app);
+                renderDefault(app);
             });
             FlxState.router.route("app/:name/*state", "app", function(appName, state) {
                 console.log("app route: name=" + appName + ", state=" + state);

@@ -40,6 +40,10 @@ define(["core/FlxState"], function(FlxState) {
         return state;
     };
 
+    Application.prototype.renderDefaultState = function() {
+        return this.renderState();
+    };
+
 	Application.prototype.renderState = function(state) {
 	};
 

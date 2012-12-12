@@ -32,6 +32,11 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 		_.bindAll(this);
     };
 
+    function updateTimespan(currentTimespan) {
+        document.title = "Fluxtream Calendar | " + currentTimespan + " (" + Calendar.currentTabName + ")";
+        $("#currentTimespanLabel span").html(currentTimespan);
+    }
+
     Calendar.fetchState = function(url, params) {
         $(".calendar-navigation-button").addClass("disabled");
         $(".loading").show();
@@ -41,22 +46,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
            type: "GET",
            data: params,
            success: function(response) {
-               if (Calendar.currentTab) {
-                   Calendar.currentTab.saveState();
-               }
-               Calendar.timeUnit = response.state.split("/")[0];
-               Calendar.tabState = response.state;
-               if (!Builder.tabExistsForTimeUnit(Calendar.currentTabName, Calendar.timeUnit)) {
-                   Calendar.currentTabName = Builder.tabs[Calendar.timeUnit][0];
-               }
-               updateDisplays();
-               Calendar.start = response.start;
-               Calendar.end  = response.end;
-               Builder.createTabs(Calendar);
-               Calendar.navigateState();
-               document.title = "Fluxtream Calendar | " + response.currentTimespanLabel + " (" + Calendar.currentTabName + ")";
-               $("#currentTimespanLabel span").html(response.currentTimespanLabel);
-               Calendar.updateButtonStates();
+               updateTimespan(response.currentTimespanLabel);
+               // HACK: set tabName so we can worry about how to get this later
+               var tabName = "list";
+               Calendar.navigateState(tabName + "/" + response.state);
            },
            error: function() {
                console.log(arguments);
@@ -71,6 +64,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         }
         var obj = {};
         obj.tabName = splits.shift();
+        obj.tabState = splits.join("/");
         obj.timeUnit = splits.shift();
         if (!Builder.isValidTabName(obj.tabName) || !Builder.isValidTimeUnit(obj.timeUnit)) {
             return null;
@@ -107,20 +101,17 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 break;
         }
         obj.tabParam = splits.shift();
-        // TODO: actually return this state object!
-        //return obj;
-        return state;
+        return obj;
+    };
+
+    Calendar.renderDefaultState = function() {
+        Calendar.fetchState("/api/calendar/nav/setToToday", {timeUnit: "DAY"});
     };
 
 	Calendar.renderState = function(state) {
-		if (_.isUndefined(state)) {
-			Builder.createTabs(Calendar);
-			Calendar.fetchState("/api/calendar/nav/setToToday", {timeUnit: "DAY"});
-            return;
-		}
-		var stateElements = state.split("/"),
-            tabName = stateElements.shift(),
-            timeUnit = stateElements.shift();
+        Builder.createTabs(Calendar);
+		var tabName = state.tabName,
+            timeUnit = state.timeUnit;
         if (!Builder.isValidTabName(tabName) || !Builder.isValidTimeUnit(timeUnit)) {
             App.invalidPath();
             return;
@@ -130,7 +121,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         }
         Calendar.currentTabName = tabName;
         Calendar.timeUnit = timeUnit;
-		var nextTabState = state.substring(tabName.length+1);
+		var nextTabState = state.tabState;
         Calendar.updateButtonStates();
         Builder.createTabs(Calendar);
         if (Calendar.tabState==nextTabState) {
@@ -142,7 +133,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 		} else {
             // TODO: we need to update this somewhere...
             //updateDatepicker();
-            fetchCalendar("/api/calendar/all/" + state, state);
+            fetchCalendar("/api/calendar/all/" + state.tabState, state.tabState);
         }
 	};
 
