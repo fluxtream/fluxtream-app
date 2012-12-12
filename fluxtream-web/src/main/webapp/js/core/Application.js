@@ -47,9 +47,6 @@ define(["core/FlxState"], function(FlxState) {
 	Application.prototype.renderState = function(state) {
 	};
 
-    Application.prototype.getState = function() {
-    };
-
     Application.prototype.navigateState = function(state) {
         FlxState.router.navigate("app/" + this.name + "/" + state, {trigger: true});
         FlxState.saveState(this.name, state);

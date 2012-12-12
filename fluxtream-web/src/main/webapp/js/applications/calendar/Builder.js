@@ -21,10 +21,77 @@ define(["core/TabInterface"], function(TabInterface) {
 
     var timeUnits = ['date', 'week', 'month', 'year'];
 
-    Builder.init = function(Calendar){
+    Builder.init = function(App, Calendar){
+        bindDatepicker(App, Calendar);
         bindTabInterface(Calendar);
         bindTimeUnitsMenu(Calendar);
         bindTimeNavButtons(Calendar);
+    }
+
+    function bindDatepicker(App, Calendar) {
+        $("#datepicker").datepicker().on("changeDate", function(event) {
+            if (Calendar.timeUnit == "date"){
+                var formatted = App._formatDateAsDatePicker(event.date.getUTCFullYear(),
+                    event.date.getUTCMonth(),
+                    event.date.getUTCDate());
+                if (Calendar.currentTab.timeNavigation("set/date/" + formatted)){
+                    $(".datepicker").hide();
+                    return;
+                }
+                Calendar.fetchState("/api/calendar/nav/getDate",
+                    {date: formatted, state: Calendar.tabState});
+            }
+            else if (Calendar.timeUnit == "week"){
+                var weekNumber = getWeekNumber(event.date.getUTCFullYear(),
+                    event.date.getUTCMonth(),
+                    event.date.getUTCDate());
+                var range = getDateRangeForWeek(weekNumber[0],weekNumber[1]);
+                if (Calendar.currentTab.timeNavigation("set/week/" + App.formatDateAsDatePicker(range[0]) + "/" + App.formatDateAsDatePicker(range[1]))){
+                    $(".datepicker").hide();
+                    return;
+                }
+                Calendar.fetchState("/api/calendar/nav/getWeek",
+                    {week: weekNumber[1], year: weekNumber[0], state: Calendar.tabState});
+            }
+            $(".datepicker").hide();
+        });
+        $("#datepicker").click(function(){
+            if (Calendar.timeUnit == "month" || Calendar.timeUnit == "year"){
+                $(".datepicker-days .switch").click();
+            }
+            if (Calendar.timeUnit == "year"){
+                $(".datepicker-months .switch").click();
+            }
+        });
+        $(".datepicker-years td").click(function(event){
+            if (Calendar.timeUnit == "year" && $(event.target).hasClass("year")){
+                if (Calendar.currentTab.timeNavigation("set/year/" + $(event.target).text())){
+                    $(".datepicker").hide();
+                    return;
+                }
+                Calendar.fetchState("/api/calendar/nav/getYear",
+                    {year: $(event.target).text(), state: Calendar.tabState});
+                $(".datepicker").hide();
+            }
+        });
+        $(".datepicker-months td").click(function(event){
+            if (Calendar.timeUnit == "month" && $(event.target).hasClass("month")){
+                var month = DateUtils.getMonthFromName($(event.target).text()) + 1;
+                if (Calendar.currentTab.timeNavigation("set/month/" + $(".datepicker-months .switch").text() + "/" + month)){
+                    $(".datepicker").hide();
+                    return;
+                }
+                Calendar.fetchState(
+                    "/api/calendar/nav/getMonth",
+                    {
+                        year: $(".datepicker-months .switch").text(),
+                        month: month,
+                        state: Calendar.tabState
+                    }
+                );
+                $(".datepicker").hide();
+            }
+        });
     }
 
     function bindTabInterface(Calendar) {

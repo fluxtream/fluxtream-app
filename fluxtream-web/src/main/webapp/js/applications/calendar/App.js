@@ -25,7 +25,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 }
             }
         });
-        Builder.init(this);
+        Builder.init(App, this);
 	};
 
 	Calendar.initialize = function () {
@@ -119,7 +119,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             document.title = "Fluxtream Calendar | " + $("#currentTimespanLabel").text().trim() + " (" + Calendar.currentTabName + ")";
 			Builder.updateTab(Calendar.digest, Calendar);
 		} else {
-            updateDatepicker();
+            updateDatepicker(state);
             fetchCalendar(state.tabState);
         }
 	};
@@ -128,126 +128,24 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         Calendar.tabParam = tabParam;
     };
 
-    Calendar.getState = function() {
-        return Calendar.currentTabName + "/" + Calendar.tabState + (Calendar.tabParam == null ? "" : "/" + Calendar.tabParam);
-    };
-
-    function updateDatepicker() {
-        var stateElements = Calendar.tabState.split("/"),
-            timeUnit = stateElements.shift();
-        switch (timeUnit) {
+    function getDatepickerDate(state) {
+        switch (state.timeUnit) {
             case "date":
-                var date = stateElements.shift();
-                setDatepicker(date);
-                break;
+                return new Date(state.date);
             case "week":
-                var year = stateElements.shift(),
-                    week = stateElements.shift();
-                if (_.isUndefined(week)) {
-                    setDatepicker(year);
-                } else {
-                    var d = getDateRangeForWeek(year, week)[0];
-                    setDatepicker(App.formatDateAsDatePicker(d));
-                }
-                break;
+                return getDateRangeForWeek(state.year, state.week)[0];
             case "month":
-                var year = stateElements.shift(),
-                    month = stateElements.shift(),
-                    d = new Date(year,month-1,1,0,0,0,0);
-                setDatepicker(App.formatDateAsDatePicker(d));
-                break;
+                return new Date(state.year,state.month-1,1,0,0,0,0);
             case "year":
-                var year = stateElements.shift(),
-                    d = new Date(year,0,1,0,0,0,0);
-                setDatepicker(App.formatDateAsDatePicker(d));
-                break;
+                return new Date(state.year,0,1,0,0,0,0);
         }
+        return null;
     }
 
-	function setDatepicker(currentDate) {
-        $(".datepicker.dropdown-menu").remove();
-        $("#datepicker").replaceWith("<a data-date-format=\"yyyy-mm-dd\" id=\"datepicker\"><i class=\"icon-calendar icon-large\"></i></a>");
-        $("#datepicker").attr("data-date", currentDate);
-		$("#datepicker").unbind("changeDate");
-		$("#datepicker").datepicker().on(
-			"changeDate", function(event) {
-                if (Calendar.timeUnit == "date"){
-                    var formatted = App._formatDateAsDatePicker(event.date.getUTCFullYear(),
-                        event.date.getUTCMonth(),
-                        event.date.getUTCDate());
-                    if (Calendar.currentTab.timeNavigation("set/date/" + formatted)){
-                        $(".datepicker").hide();
-                        return;
-                    }
-                    Calendar.fetchState("/api/calendar/nav/getDate",
-                                        {date: formatted, state: Calendar.tabState});
-                }
-                else if (Calendar.timeUnit == "week"){
-                    var weekNumber = getWeekNumber(event.date.getUTCFullYear(),
-                        event.date.getUTCMonth(),
-                        event.date.getUTCDate());
-                    var range = getDateRangeForWeek(weekNumber[0],weekNumber[1]);
-                    if (Calendar.currentTab.timeNavigation("set/week/" + App.formatDateAsDatePicker(range[0]) + "/" + App.formatDateAsDatePicker(range[1]))){
-                        $(".datepicker").hide();
-                        return;
-                    }
-                    Calendar.fetchState("/api/calendar/nav/getWeek",
-                                        {week: weekNumber[1], year: weekNumber[0], state: Calendar.tabState});
-                }
-				$(".datepicker").hide();
-			}
-		);
-        $("#datepicker").click(function(){
-            if (Calendar.timeUnit == "month" || Calendar.timeUnit == "year"){
-                $(".datepicker-days .switch").click();
-            }
-            if (Calendar.timeUnit == "year"){
-                $(".datepicker-months .switch").click();
-            }
-        });
-        $(".datepicker-years td").click(function(event){
-            if (Calendar.timeUnit == "year" && $(event.target).hasClass("year")){
-                if (Calendar.currentTab.timeNavigation("set/year/" + $(event.target).text())){
-                    $(".datepicker").hide();
-                    return;
-                }
-                Calendar.fetchState("/api/calendar/nav/getYear",
-                                    {year: $(event.target).text(), state: Calendar.tabState});
-                $(".datepicker").hide();
-            }
-        });
-        $(".datepicker-months td").click(function(event){
-            if (Calendar.timeUnit == "month" && $(event.target).hasClass("month")){
-                var month = DateUtils.getMonthFromName($(event.target).text()) + 1;
-                if (Calendar.currentTab.timeNavigation("set/month/" + $(".datepicker-months .switch").text() + "/" + month)){
-                    $(".datepicker").hide();
-                    return;
-                }
-                Calendar.fetchState(
-                    "/api/calendar/nav/getMonth",
-                    {
-                        year: $(".datepicker-months .switch").text(),
-                        month: month,
-                        state: Calendar.tabState
-                    }
-                );
-                $(".datepicker").hide();
-            }
-        });
-        if (Calendar.timeUnit == "week"){
-            var dayStart = parseInt(currentDate.split("-")[2],10);
-            var rowElements = $(".datepicker-days tr");
-            for (var j=0; j<rowElements.length; j++) {
-                var row = $(rowElements[j]);
-                var element = $(row.children()[0]);
-                var isDayStart = (element.text() == dayStart);
-                if (isDayStart) {
-                    for (var i=0; i<rowElements.length;i++)
-                        $(row.children()[i]).addClass("active");
-                }
-            }
-        }
-	}
+    function updateDatepicker(state) {
+        var currentDate = getDatepickerDate(state);
+        $("#datepicker").datepicker("setUTCDate", currentDate);
+    }
 
 	function fetchCalendar(state) {
 		$.ajax({
