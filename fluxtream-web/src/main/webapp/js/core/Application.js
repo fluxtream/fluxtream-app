@@ -50,14 +50,8 @@ define(["core/FlxState"], function(FlxState) {
     Application.prototype.getState = function() {
     };
 
-    Application.prototype.navigateState = function(state, navigateParams) {
-        if (_.isUndefined(state)) {
-            state = this.getState();
-        }
-        if (_.isUndefined(navigateParams)) {
-            navigateParams = {};
-        }
-        FlxState.router.navigate("app/" + this.name + "/" + state, navigateParams);
+    Application.prototype.navigateState = function(state) {
+        FlxState.router.navigate("app/" + this.name + "/" + state, {trigger: true});
         FlxState.saveState(this.name, state);
     }
 

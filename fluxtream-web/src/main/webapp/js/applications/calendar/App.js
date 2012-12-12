@@ -109,14 +109,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     };
 
 	Calendar.renderState = function(state) {
-        Builder.createTabs(Calendar);
-        if (!Builder.isValidTabName(state.tabName) || !Builder.isValidTimeUnit(state.timeUnit)) {
-            App.invalidPath();
-            return;
-        }
-        if (!Builder.tabExistsForTimeUnit(state.tabName, Calendar.timeUnit)) {
-            state.tabName = Builder.tabs[Calendar.timeUnit][0];
-        }
         var tabChanged = Calendar.tabState === state.tabState;
         Calendar.tabState = state.tabState;
         Calendar.currentTabName = state.tabName;
@@ -127,15 +119,13 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             document.title = "Fluxtream Calendar | " + $("#currentTimespanLabel").text().trim() + " (" + Calendar.currentTabName + ")";
 			Builder.updateTab(Calendar.digest, Calendar);
 		} else {
-            // TODO: we need to update this somewhere...
-            //updateDatepicker();
+            updateDatepicker();
             fetchCalendar(state.tabState);
         }
 	};
 
     Calendar.setTabParam = function(tabParam){
         Calendar.tabParam = tabParam;
-        Calendar.navigateState();
     };
 
     Calendar.getState = function() {
