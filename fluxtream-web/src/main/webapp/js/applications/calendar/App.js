@@ -32,6 +32,39 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 		_.bindAll(this);
     };
 
+    function fetchState(url, params) {
+        $(".calendar-navigation-button").addClass("disabled");
+        $(".loading").show();
+        $("#tabs").css("opacity", ".3");
+        $.ajax({
+           url: url,
+           type: "GET",
+           data: params,
+           success: function(response) {
+               if (Calendar.currentTab) {
+                   Calendar.currentTab.saveState();
+               }
+               Calendar.timeUnit = response.state.split("/")[0];
+               Calendar.tabState = response.state;
+               if (!Builder.tabExistsForTimeUnit(Calendar.currentTabName, Calendar.timeUnit)) {
+                   Calendar.currentTabName = Builder.tabs[Calendar.timeUnit][0];
+               }
+               updateDisplays();
+               Calendar.start = response.start;
+               Calendar.end  = response.end;
+               Builder.createTabs(Calendar);
+               Calendar.navigateState();
+               document.title = "Fluxtream Calendar | " + response.currentTimespanLabel + " (" + Calendar.currentTabName + ")";
+               $("#currentTimespanLabel span").html(response.currentTimespanLabel);
+               Calendar.updateButtonStates();
+           },
+           error: function() {
+               console.log(arguments);
+           }
+        });
+    }
+    Calendar.fetchState = fetchState;
+
     Calendar.parseState = function(state) {
         var splits = state.split("/");
         if (_.isEmpty(splits)) {
@@ -122,39 +155,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     Calendar.getState = function() {
         return Calendar.currentTabName + "/" + Calendar.tabState + (Calendar.tabParam == null ? "" : "/" + Calendar.tabParam);
     };
-
-	function fetchState(url, params) {
-        $(".calendar-navigation-button").addClass("disabled");
-		$(".loading").show();
-		$("#tabs").css("opacity", ".3");
-		$.ajax({
-            url: url,
-            type: "GET",
-            data: params,
-			success: function(response) {
-                if (Calendar.currentTab) {
-                    Calendar.currentTab.saveState();
-                }
-                Calendar.timeUnit = response.state.split("/")[0];
-                Calendar.tabState = response.state;
-                if (!Builder.tabExistsForTimeUnit(Calendar.currentTabName, Calendar.timeUnit)) {
-                    Calendar.currentTabName = Builder.tabs[Calendar.timeUnit][0];
-                }
-                updateDisplays();
-                Calendar.start = response.start;
-                Calendar.end  = response.end;
-                Builder.createTabs(Calendar);
-                Calendar.navigateState();
-                document.title = "Fluxtream Calendar | " + response.currentTimespanLabel + " (" + Calendar.currentTabName + ")";
-                $("#currentTimespanLabel span").html(response.currentTimespanLabel);
-                Calendar.updateButtonStates();
-            },
-			error: function() {
-				console.log(arguments);
-			}
-		});
-	}
-    Calendar.fetchState = fetchState;
 
     function updateDatepicker() {
         var stateElements = Calendar.tabState.split("/"),
