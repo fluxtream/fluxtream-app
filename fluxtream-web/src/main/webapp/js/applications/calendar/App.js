@@ -17,32 +17,14 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     var buttons = {};
 
 	Calendar.setup = function() {
-        $.ajax("/api/connectors/filters",{
-            success:function(data){
+        $.ajax("/api/connectors/filters", {
+            async: false,
+            success: function(data){
                 for (var member in data){
                     Calendar.connectorEnabled[member] = data[member];
                 }
             }
-
         });
-		$(".menuNextButton").click(function(e) {
-            if (Calendar.currentTab.timeNavigation("next"))
-                return;
-			fetchState("/api/calendar/nav/incrementTimespan",
-                       {state: Calendar.tabState});
-        });
-		$(".menuPrevButton").click(function(e) {
-            if (Calendar.currentTab.timeNavigation("prev"))
-                return;
-			fetchState("/api/calendar/nav/decrementTimespan",
-                       {state: Calendar.tabState});
-        });
-		$(".menuTodayButton").click(function(e) {
-            if (Calendar.currentTab.timeNavigation("today"))
-                return;
-			fetchState("/api/calendar/nav/setToToday",
-                       {timeUnit: "DAY"});
-		});
         Builder.init(this);
 	};
 

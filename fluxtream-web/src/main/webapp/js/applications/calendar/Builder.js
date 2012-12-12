@@ -72,6 +72,24 @@ define(["core/TabInterface"], function(TabInterface) {
 	}
 	
 	function bindTimeNavButtons(Calendar) {
+        $(".menuNextButton").click(function() {
+            if (Calendar.currentTab.timeNavigation("next"))
+                return;
+            Calendar.fetchState("/api/calendar/nav/incrementTimespan",
+                {state: Calendar.tabState});
+        });
+        $(".menuPrevButton").click(function() {
+            if (Calendar.currentTab.timeNavigation("prev"))
+                return;
+            Calendar.fetchState("/api/calendar/nav/decrementTimespan",
+                {state: Calendar.tabState});
+        });
+        $(".menuTodayButton").click(function() {
+            if (Calendar.currentTab.timeNavigation("today"))
+                return;
+            Calendar.fetchState("/api/calendar/nav/setToToday",
+                {timeUnit: "DAY"});
+        });
 		switch(Calendar.timeUnit) {
 		case "date":
 			nextPrevEnable();
