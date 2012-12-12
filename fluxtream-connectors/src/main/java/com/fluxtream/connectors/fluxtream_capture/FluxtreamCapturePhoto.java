@@ -1,8 +1,10 @@
 package com.fluxtream.connectors.fluxtream_capture;
 
+import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.utils.HashUtils;
+import com.fluxtream.utils.ImageUtils;
 import org.jetbrains.annotations.NotNull;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -11,23 +13,45 @@ import org.joda.time.DateTimeZone;
  * @author Chris Bartley (bartley@cmu.edu)
  */
 final class FluxtreamCapturePhoto {
+    private static final int THUMBNAIL_SMALL_MAX_SIDE_LENGTH_IN_PIXELS = 150;
+    private static final int THUMBNAIL_LARGE_MAX_SIDE_LENGTH_IN_PIXELS = 300;
     private static final String KEY_VALUE_STORE_KEY_PART_DELIMITER = ".";
     private static final String KEY_VALUE_STORE_FILENAME_PART_DELIMITER = "_";
     private static final String CONNECTOR_PRETTY_NAME = Connector.getConnector(FluxtreamCaptureUpdater.CONNECTOR_NAME).prettyName();
     private static final String OBJECT_TYPE_NAME = "photo";
 
     private final long guestId;
+
     @NotNull
     private final byte[] photoBytes;
+
     private final long captureTimeMillisUtc;
+
     @NotNull
     private final String captureYYYYDDD;
+
     @NotNull
     private final String photoHash;
+
     @NotNull
     private final String photoStoreKey;
 
-    FluxtreamCapturePhoto(final long guestId, @NotNull final byte[] photoBytes, final long captureTimeMillisUtc) throws NoSuchAlgorithmException {
+    @NotNull
+    private final byte[] thumbnailSmall;
+
+    @NotNull
+    private final byte[] thumbnailLarge;
+
+    FluxtreamCapturePhoto(final long guestId, @NotNull final byte[] photoBytes, final long captureTimeMillisUtc) throws IllegalArgumentException, NoSuchAlgorithmException, IOException {
+
+        if (!ImageUtils.isImage(photoBytes)) {
+            throw new IllegalArgumentException("The photoBytes do not contain a supported image type");
+        }
+
+        if (captureTimeMillisUtc < 0) {
+            throw new IllegalArgumentException("The captureTimeMillisUtc must be non-negative");
+        }
+
         this.guestId = guestId;
         this.photoBytes = photoBytes;
         this.captureTimeMillisUtc = captureTimeMillisUtc;
@@ -44,10 +68,17 @@ final class FluxtreamCapturePhoto {
                         photoHash + KEY_VALUE_STORE_FILENAME_PART_DELIMITER +
                         String.valueOf(captureTimeMillisUtc);
 
-        // TODO:
-        // 1) validate that it's actually a photo
-        // 2) generate the thumbnails
-        // 3) extract lat/long
+        final byte[] thumbnailSmallTemp = ImageUtils.createThumbnail(photoBytes, THUMBNAIL_SMALL_MAX_SIDE_LENGTH_IN_PIXELS);
+        final byte[] thumbnailLargeTemp = ImageUtils.createThumbnail(photoBytes, THUMBNAIL_LARGE_MAX_SIDE_LENGTH_IN_PIXELS);
+
+        if (thumbnailSmallTemp == null || thumbnailLargeTemp == null) {
+            throw new IOException("Failed to create thumbnails");
+        }
+
+        thumbnailSmall = thumbnailSmallTemp;
+        thumbnailLarge = thumbnailLargeTemp;
+
+        // TODO: extract Lat/Long
     }
 
     public long getGuestId() {
@@ -76,5 +107,15 @@ final class FluxtreamCapturePhoto {
     @NotNull
     public String getPhotoStoreKey() {
         return photoStoreKey;
+    }
+
+    @NotNull
+    public byte[] getThumbnailSmall() {
+        return thumbnailSmall;
+    }
+
+    @NotNull
+    public byte[] getThumbnailLarge() {
+        return thumbnailLarge;
     }
 }

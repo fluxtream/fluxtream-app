@@ -2,6 +2,7 @@ package com.fluxtream.connectors.fluxtream_capture;
 
 import java.io.Serializable;
 import javax.persistence.Entity;
+import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import com.fluxtream.connectors.Connector;
@@ -25,11 +26,17 @@ import org.jetbrains.annotations.NotNull;
 @Indexed
 public class FluxtreamCapturePhotoFacet extends AbstractFacet implements Serializable {
 
-    public String hash;
-    public String title;
-    public String captureYYYYDDD;
-    public String latitude;
-    public String longitude;
+    private String hash;
+    private String title;
+    private String captureYYYYDDD;
+    private String latitude;
+    private String longitude;
+
+    @Lob
+    private byte[] thumbnailSmall;
+
+    @Lob
+    private byte[] thumbnailLarge;
 
     @SuppressWarnings("UnusedDeclaration")
     public FluxtreamCapturePhotoFacet() {
@@ -49,11 +56,42 @@ public class FluxtreamCapturePhotoFacet extends AbstractFacet implements Seriali
 
         captureYYYYDDD = photo.getCaptureYYYYDDD();
 
-        // TODO: copy the thumbnails
+        thumbnailSmall = photo.getThumbnailSmall();
+        thumbnailLarge = photo.getThumbnailLarge();
+
+        // TODO: copy geolocation data
     }
 
     @Override
     protected void makeFullTextIndexable() {
         this.fullTextDescription = title;
+    }
+
+    public String getHash() {
+        return hash;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getCaptureYYYYDDD() {
+        return captureYYYYDDD;
+    }
+
+    public String getLatitude() {
+        return latitude;
+    }
+
+    public String getLongitude() {
+        return longitude;
+    }
+
+    public byte[] getThumbnailSmall() {
+        return thumbnailSmall;
+    }
+
+    public byte[] getThumbnailLarge() {
+        return thumbnailLarge;
     }
 }

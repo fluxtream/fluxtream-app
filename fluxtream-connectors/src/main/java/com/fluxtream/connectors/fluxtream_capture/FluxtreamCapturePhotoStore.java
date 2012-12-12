@@ -136,7 +136,7 @@ public final class FluxtreamCapturePhotoStore {
         // If we got this far, then we know everything succeeded, so simply return the boolean to indicate whether
         // the photo was created or updated
         if (LOG.isDebugEnabled()) {
-            LOG.debug("FluxtreamCapturePhotoStore.saveOrUpdatePhoto(): photo [" + photoFacet.hash + "] " + (photoCreatorOrModifier.wasCreated() ? "saved" : "updated") + " sucessfully for user [" + guestId + "]");
+            LOG.debug("FluxtreamCapturePhotoStore.saveOrUpdatePhoto(): photo [" + photoFacet.getHash() + "] " + (photoCreatorOrModifier.wasCreated() ? "saved" : "updated") + " sucessfully for user [" + guestId + "]");
         }
         return photoCreatorOrModifier.wasCreated();
     }
@@ -157,7 +157,6 @@ public final class FluxtreamCapturePhotoStore {
         private boolean wasCreated;
 
         public PhotoCreatorOrModifier(@NotNull final FluxtreamCapturePhoto photo) {
-
             this.photo = photo;
             facetFinderQuery = new ApiDataService.FacetQuery("e.guestId = ? AND e.hash = ? AND e.start = ?", photo.getGuestId(), photo.getPhotoHash(), photo.getCaptureTimeMillisUtc());
         }
