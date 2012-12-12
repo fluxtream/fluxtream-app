@@ -110,30 +110,26 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
 	Calendar.renderState = function(state) {
         Builder.createTabs(Calendar);
-		var tabName = state.tabName,
-            timeUnit = state.timeUnit;
-        if (!Builder.isValidTabName(tabName) || !Builder.isValidTimeUnit(timeUnit)) {
+        if (!Builder.isValidTabName(state.tabName) || !Builder.isValidTimeUnit(state.timeUnit)) {
             App.invalidPath();
             return;
         }
-        if (!Builder.tabExistsForTimeUnit(tabName, Calendar.timeUnit)) {
-            tabName = Builder.tabs[Calendar.timeUnit][0];
+        if (!Builder.tabExistsForTimeUnit(state.tabName, Calendar.timeUnit)) {
+            state.tabName = Builder.tabs[Calendar.timeUnit][0];
         }
-        Calendar.currentTabName = tabName;
-        Calendar.timeUnit = timeUnit;
-		var nextTabState = state.tabState;
+        var tabChanged = Calendar.tabState === state.tabState;
+        Calendar.tabState = state.tabState;
+        Calendar.currentTabName = state.tabName;
+        Calendar.timeUnit = state.timeUnit;
         Calendar.updateButtonStates();
         Builder.createTabs(Calendar);
-        if (Calendar.tabState==nextTabState) {
-			// tab didn't change
+        if (tabChanged) {
             document.title = "Fluxtream Calendar | " + $("#currentTimespanLabel").text().trim() + " (" + Calendar.currentTabName + ")";
 			Builder.updateTab(Calendar.digest, Calendar);
-            Calendar.navigateState();
-			return;
 		} else {
             // TODO: we need to update this somewhere...
             //updateDatepicker();
-            fetchCalendar("/api/calendar/all/" + state.tabState, state.tabState);
+            fetchCalendar(state.tabState);
         }
 	};
 
@@ -263,8 +259,9 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         }
 	}
 
-	function fetchCalendar(url,state) {
-		$.ajax({ calendarState:state, url: url,
+	function fetchCalendar(state) {
+		$.ajax({
+            url: "/api/calendar/all/" + state,
 			success : function(response) {
                 console.log(response);
                 if (typeof response.result!="undefined" && response.result==="KO") {
@@ -276,7 +273,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 else
                     $("#mainCity").empty();
                 Calendar.digest = response;
-                Calendar.digestTabState = this.calendarState;
+                Calendar.digestTabState = state;
                 enhanceDigest(Calendar.digest);
                 processDigest(Calendar.digest);
 				Builder.updateTab(Calendar.digest, Calendar);
