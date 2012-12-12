@@ -21,9 +21,12 @@ define(["core/TabInterface"], function(TabInterface) {
 
     var timeUnits = ['date', 'week', 'month', 'year'];
 
+    var connectorNames = [];
+
     Builder.init = function(App, Calendar){
         bindDatepicker(App, Calendar);
         bindTabInterface(Calendar);
+        bindConnectorButtons(App, Calendar);
         bindTimeUnitsMenu(Calendar);
         bindTimeNavButtons(Calendar);
     }
@@ -98,6 +101,69 @@ define(["core/TabInterface"], function(TabInterface) {
         $("#calendarTabs").replaceWith(tabInterface.getNav());
         tabInterface.getNav().addClickListener(function(tabName){
             Calendar.navigateState(tabName + "/" + Calendar.tabState);
+        });
+    }
+
+    Builder.getConnectorButton = function(connectorName) {
+        return $("#flx-connector-btn-" + connectorName);
+    };
+
+    Builder.getConnectorNames = function() {
+        return connectorNames;
+    };
+
+    function connectorClicked(Calendar, connector) {
+        var connectorName = connector.connectorName,
+            button = Builder.getConnectorButton(connectorName);
+        if (button.is(".flx-disconnected")) {
+            return;
+        }
+        var enabled = !Calendar.connectorEnabled[Calendar.currentTabName][connectorName];
+        Calendar.connectorEnabled[Calendar.currentTabName][connectorName] = enabled;
+        button.toggleClass("flx-active", enabled);
+        button.toggleClass("flx-inactive", !enabled);
+        Calendar.currentTab.connectorToggled(connectorName, connector.facetTypes, enabled);
+    }
+
+    function createConnectorButton(App, Calendar, connector) {
+        var configFilterLabel = App.getConnectorConfig(connector.connectorName).filterLabel,
+            filterLabel = configFilterLabel || connector.name;
+        var button = $('<li/>');
+        var buttonLink = $('<a/>', {
+            href: "#",
+            id: "flx-connector-btn-" + connector.connectorName,
+            class: "flx-active"
+        }).click(function(event){
+            event.preventDefault();
+            $(document).click(); //needed for click away to work on tooltips in clock tab
+            connectorClicked(Calendar, connector);
+            var uploadData = {};
+            for (var member in Calendar.connectorEnabled){
+                if (member != "default")
+                    uploadData[member] = Calendar.connectorEnabled[member];
+            }
+            $.ajax("/api/connectors/filters",{
+                type:"POST",
+                data:{filterState:JSON.stringify(uploadData)}
+            });
+            for (var member in uploadData){
+                Calendar.connectorEnabled[member] = uploadData[member];
+            }
+        }).appendTo(button);
+        button.hide();
+        $("#selectedConnectors").append(button);
+    }
+
+    function bindConnectorButtons(App, Calendar) {
+        $.ajax({
+            url: "/api/connectors/installed",
+            async: false,
+            success: function(response) {
+                $.each(response, function(i, connector) {
+                    createConnectorButton(App, Calendar, connector);
+                    connectorNames.push(connector.connectorName);
+                });
+            }
         });
     }
 	
