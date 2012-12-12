@@ -37,10 +37,20 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         $("#currentTimespanLabel span").html(currentTimespan);
     }
 
-    Calendar.fetchState = function(url, params) {
+    function startLoading() {
         $(".calendar-navigation-button").addClass("disabled");
         $(".loading").show();
         $("#tabs").css("opacity", ".3");
+    }
+
+    function stopLoading() {
+        $("#tabs").css("opacity", "1");
+        $(".calendar-navigation-button").removeClass("disabled");
+        $(".loading").hide();
+    }
+
+    Calendar.fetchState = function(url, params) {
+        startLoading();
         $.ajax({
            url: url,
            type: "GET",
@@ -156,18 +166,17 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     alert(response.message);
                     return;
                 }
-                if (Calendar.timeUnit==="date")
+                if (Calendar.timeUnit==="date") {
                     handleCityInfo(response);
-                else
+                } else {
                     $("#mainCity").empty();
+                }
                 Calendar.digest = response;
                 Calendar.digestTabState = state.tabState;
                 enhanceDigest(Calendar.digest);
                 processDigest(Calendar.digest);
 				Builder.updateTab(Calendar.digest, Calendar);
-				$("#tabs").css("opacity", "1");
-				$(".calendar-navigation-button").removeClass("disabled");
-				$(".loading").hide();
+                stopLoading();
                 Builder.handleNotifications(response);
 			},
 			error: function() {
@@ -509,10 +518,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         s += cityInfo.name;
         if (cityInfo.state) s += ", " + cityInfo.state;
         s += ", " + cityInfo.country;
-        //if (traveling)
-        //    s += " <i>- on holiday</i>";
-        //if (FlxState.cities.length>20)
-        //    s += " <i>- in transit</i>";
         return s;
     }
 
@@ -560,13 +565,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
        return [new Date(startYear, startMonth, startDate),
                new Date(endYear, endMonth, endDate)];
    }
-
-   var w2date = function(year, wn, dayNb){
-       var j10 = new Date( year,0,10,12,0,0),
-           j4 = new Date( year,0,4,12,0,0),
-           mon1 = j4.getTime() - j10.getDay() * 86400000;
-       return new Date(mon1 + ((wn - 1)  * 7  + dayNb) * 86400000);
-   };
 
     Calendar.toDateString = function(date,rangeType){
         var dateString = "";
