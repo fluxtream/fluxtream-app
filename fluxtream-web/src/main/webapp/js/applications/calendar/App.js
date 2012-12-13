@@ -11,9 +11,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     Calendar.timeUnit = "date";
     Calendar.digestTabState = false;
     Calendar.tabParam = null;
-
-	var start, end;
     Calendar.connectorEnabled = {"default":{}};
+    Calendar.timespanInited = false;
 
 	Calendar.setup = function() {
         $.ajax("/api/connectors/filters", {
@@ -32,6 +31,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     };
 
     function updateTimespan(currentTimespan) {
+        Calendar.timespanInited = true;
         document.title = "Fluxtream Calendar | " + currentTimespan + " (" + Calendar.currentTabName + ")";
         $("#currentTimespanLabel span").html(currentTimespan);
     }
@@ -115,7 +115,26 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         Calendar.fetchState("/api/calendar/nav/setToToday", {timeUnit: "DAY"});
     };
 
+    function fetchTimespan(state) {
+        $.ajax({
+            url: "/api/calendar/nav/model",
+            async: false,
+            type: "GET",
+            data: {state: state.tabState},
+            success: function(response) {
+                updateTimespan(response.currentTimespanLabel);
+            }
+        });
+    }
+
 	Calendar.renderState = function(state) {
+        if (!Calendar.timespanInited) {
+            // NOTE: when loading a URL like /app/calendar/date/2012-12-25 directly,
+            // the FlxState routes invoke renderState() directly instead of going
+            // through fetchState. That bypasses the timespan label fetching, so we
+            // need to do that here.
+            fetchTimespan(state);
+        }
         var tabChanged = Calendar.tabState === state.tabState;
         Calendar.tabState = state.tabState;
         Calendar.currentTabName = state.tabName;

@@ -45,61 +45,60 @@ define(
                     App.apps[app.name] = app;
                     app.initialize();
                 }
-                setupURLRouting();
-                // we create the top apps menu
+
                 createAppsMenu();
-                // we start the history
-                if (!Backbone.history.start({pushState : true})) {
-                    console.log("error loading routes!");
-                }
+                loadAppTemplates();
             });
         }
 
-        function maybeSetupAppDiv(app) {
-            var nextAppId = app.name + "-app";
-            var nextAppDiv = $("#"+nextAppId);
-            if (nextAppDiv.length==0) {
-                require([ "text!applications/"+ app.name + "/template.html"], function(html) {
-                    html = "<div class=\"application active\" id=\"" + nextAppId + "\">"
-                               + html + "</div>";
-                    $("#applications").append(html);
-                    app.setup();
+        function renderAppTemplate(app, html) {
+            var appDiv = $("<div/>", {
+                class: "application",
+                id: app.name + "-app"
+            }).addClass("dormant").html(html);
+            $("#applications").append(appDiv);
+        }
+
+        function loadAppTemplates() {
+            var apps = _.values(App.apps),
+                appTemplates = apps.map(function(app) {
+                    return "text!applications/" + app.name + "/template.html";
                 });
-            } else {
-                nextAppDiv.removeClass("dormant");
-                nextAppDiv.addClass("active");
-            }
+            require(appTemplates, function(/* templates */) {
+                for (var i = 0; i < arguments.length; i++)  {
+                    renderAppTemplate(apps[i], arguments[i]);
+                    apps[i].setup();
+                }
+                setupURLRouting();
+            });
+        }
+
+        function setAppDivEnabled(app, enabled) {
+            var appDiv = $("#" + app.name + "-app");
+            appDiv.toggleClass("active", enabled);
+            appDiv.toggleClass("dormant", !enabled);
         }
 
         function renderDefault(app) {
             $(".appMenuBtn.active").removeClass("active");
             $("#"+app.name+"MenuButton").addClass('active');
-            maybeSetupAppDiv(app);
+            setAppDivEnabled(app, true);
             App.activeApp = app;
             App.activeApp.renderDefaultState();
         }
 
         function render(app, state) {
+            // TODO: add destroy()/setup() calls again...
             $(".appMenuBtn.active").removeClass("active");
             $("#"+app.name+"MenuButton").addClass('active');
-            var nextAppId = app.name + "-app",
-                noApp = $(".application").length== 0,
-                currentAppDiv = $(".application.active");
-            var appChanged = currentAppDiv.attr("id") != nextAppId;
-            if (!noApp && !appChanged) {
-                app.renderState(state);
-                return;
-            }
-            if (!_.isUndefined(App.activeApp)) {
-                App.activeApp.destroy();
-            }
+            var appChanged = app !== App.activeApp;
             if (appChanged) {
-                // TODO: store current app state
-                currentAppDiv.removeClass("active");
-                currentAppDiv.addClass("dormant");
+                if (!_.isUndefined(App.activeApp)) {
+                    setAppDivEnabled(App.activeApp, false);
+                }
+                App.activeApp = app;
             }
-            maybeSetupAppDiv(app);
-            App.activeApp = app;
+            setAppDivEnabled(app, true);
             App.activeApp.renderState(state);
         }
 
@@ -130,6 +129,9 @@ define(
                 }
                 render(app, state);
             });
+            if (!Backbone.history.start({pushState : true})) {
+                console.log("error loading routes!");
+            }
         }
 
         /**
