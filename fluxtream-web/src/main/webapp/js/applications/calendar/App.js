@@ -558,9 +558,9 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                new Date(endYear, endMonth, endDate)];
    }
 
-    Calendar.toDateString = function(date,rangeType){
+    Calendar.toState = function(tabName, timeUnit, date){
         var dateString = "";
-        switch (rangeType){
+        switch (timeUnit){
             case 'date':
                 dateString = date.getFullYear() + "-" + (date.getMonth() < 9 ? 0 : "") + (date.getMonth() + 1) + "-" + (date.getDate() < 10 ? 0 : "") + date.getDate();
                 break;
@@ -575,50 +575,44 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 dateString =  date.getFullYear();
                 break;
         }
-        return dateString;
-    }
+        return Calendar.parseState([tabName, timeUnit, dateString].join("/"));
+    };
 
-    Calendar.dateChanged = function(date, rangeType) {
-        var oldTimeUnit = Calendar.timeUnit;
+    Calendar.toURL = function(state) {
+        return ["app/calendar", state.tabName, state.tabState].join("/");
+    };
 
-        Calendar.timeUnit = rangeType;
-
-        var dateLabel,
-            state = "timeline/" + Calendar.timeUnit + "/" + date;
-        Calendar.tabState = Calendar.timeUnit + "/" + date;
-        switch (Calendar.timeUnit){
-            case "date":
-                var dateSplits = date.split("-"),
-                    d = new Date(Number(dateSplits[0]),Number(dateSplits[1])-1,Number(dateSplits[2]));
-                dateLabel = d.getDayName() +
-                                ", " + d.getMonthName() + " " + d.getDate() +
-                                ", " + (d.getFullYear());
-                break;
-            case "week":
-                // TODO: Use the server's view of weeks, rather than determining weeks on the client
-                var dateSplits = date.split("/");
-                var range = getDateRangeForWeek(parseInt(dateSplits[0],10),parseInt(dateSplits[1],10));
-                dateLabel = range[0].getMonthName() + " " + range[0].getDate() + " - " +
-                            range[1].getMonthName() + " " + range[1].getDate() + " " + range[1].getFullYear();
-                break;
-            case "month":
-                var dateSplits = date.split("/");
-                dateLabel = DateUtils.getMonthFullName(parseInt(dateSplits[1])-1) + " " + dateSplits[0];
-                break;
-            case "year":
-                dateLabel = date;
-                break;
+    /**
+     * Updates the state of the current tab using the given state object. The
+     * tab is not re-rendered, but Calendar interface elements may be updated as
+     * necessary (e.g. time units buttons, datepicker, etc.)
+     *
+     * @param state  new state to be loaded
+     */
+    Calendar.changeTabState = function(state) {
+        if (state.tabName !== Calendar.currentTabName) {
+            var msg = "invalid state: cannot use changeTabState() to switch tabs!";
+            console.log(msg);
+            alert(msg);
+            return;
         }
-        FlxState.router.navigate("app/calendar/" + state, {trigger: false, replace: true});
-        FlxState.saveState("calendar", state);
-
-        if (oldTimeUnit != Calendar.timeUnit)
+        var updated = false;
+        if (state.timeUnit !== Calendar.timeUnit) {
+            Calendar.timeUnit = state.timeUnit;
             Builder.createTabs(Calendar);
-
-        updateDisplays();
-
-        $("#currentTimespanLabel span").html(dateLabel);
-        updateDatepicker();
+            updateDisplays(state);
+            updated = true;
+        }
+        if (state.tabState !== Calendar.tabState) {
+            Calendar.tabState = state.tabState;
+            fetchTimespan(state);
+            updated = true;
+        }
+        if (updated) {
+            updateDatepicker(state);
+            FlxState.router.navigate(Calendar.toURL(state), {trigger: false, replace: true});
+            FlxState.saveState("calendar", state);
+        }
     };
 
     var viewBtnIds = {date:"#dayViewBtn",week:"#weekViewBtn",month:"#monthViewBtn",year:"#yearViewBtn"};

@@ -25,56 +25,55 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
         });
     }
 
+    /**
+     * Updates Calendar state in response to a change in grapher.dateAxis. This
+     * fires for both URL changes and user dateAxis dragging. onAxisChanged() is
+     * idempotent in the former case - the URL change already went through
+     * renderState(), which also updates Calendar state.
+     */
+    function onAxisChanged() {
+        var timeUnit = grapher.getCurrentTimeUnit(),
+            date = new Date(grapher.dateAxis.getMin() * 1000),
+            obj = Calendar.toState("timeline", timeUnit, date);
+        Calendar.changeTabState(obj);
+    }
+
     function setup(digest, timeUnit) {
-        if (grapher == null) {
-            grapher = new Grapher($("#timelineTabContainer"),{onLoad:function(){
-                grapher.setRange(digest.tbounds.start/1000, digest.tbounds.end/1000);
-                for (var connectorName in connectorEnabled){
-                    connectorToggled(connectorName,null,connectorEnabled[connectorName]);
-                }
-                var prevDateString = null;
-                grapher.dateAxis.addAxisChangeListener(function() {
-                    // TODO: re-enable this once it's properly integrated with
-                    // Calendar.dateChanged()
-                    /*
-                    var timeUnit = grapher.getCurrentTimeUnit();
-                    var center = (grapher.dateAxis.getMin() +grapher. dateAxis.getMax()) / 2.0;
-                    var date = new Date(center * 1000);
-                    var dateChangeBuffer = 24 * 3600 * 1000 / 12;
-                    var dateEarly = new Date(center * 1000 - dateChangeBuffer);
-                    var dateLater = new Date(center * 1000 + dateChangeBuffer);
-                    var dateString = Calendar.toDateString(date,timeUnit);
-                    var dateStringEarly = Calendar.toDateString(dateEarly,timeUnit);
-                    var dateStringLater = Calendar.toDateString(dateLater,timeUnit);
-                    if (dateString != prevDateString && dateStringEarly != prevDateString && dateStringLater != prevDateString) {
-                        Calendar.dateChanged(dateString, timeUnit);
-                        prevDateString = dateString;
-                    }
-                    */
-                });
-            }});
-        }
-        else{
+        if (grapher !== null) {
             $(window).resize();
+            return;
         }
+        grapher = new Grapher($("#timelineTabContainer"),{onLoad:function(){
+            for (var connectorName in connectorEnabled){
+                connectorToggled(connectorName,null,connectorEnabled[connectorName]);
+            }
+            var prevDateString = null;
+            grapher.dateAxis.addAxisChangeListener(function() {
+                // NOTE: we use $.doTimeout() here to avoid spamming onAxisChanged().
+                // This will fire 100ms after the user stops dragging, since
+                // $.doTimeout() cancels earlier timeouts with the same name.
+                $.doTimeout('TimelineTabAxisChange', 100, function() {
+                    onAxisChanged();
+                });
+            });
+        }});
     }
 
     function connectorToggled(connectorName,objectTypeNames,enabled){
-        for (var i = 0; i < digest.selectedConnectors.length; i++){
-            if (connectorName == digest.selectedConnectors[i].connectorName){
-                var channels = digest.selectedConnectors[i].channelNames;
-                for (var i = 0; i < channels.length; i++){
-                    if (enabled){
-                        grapher.addChannel(channels[i]);
-                    }
-                    else{
-                        grapher.removeChannel(channels[i]);
-                    }
-
-                }
-                return;
+        $.each(digest.selectedConnectors, function(i, connector) {
+            if (connectorName !== connector.connectorName) {
+                return true;
             }
-        }
+            var channels = connector.channelNames;
+            $.each(connector.channelNames, function(j, channelName) {
+                if (enabled) {
+                    grapher.addChannel(channelName);
+                } else {
+                    grapher.removeChannel(channelName);
+                }
+            });
+            return false;
+        });
     }
 
     timelineTab.initialized = false;

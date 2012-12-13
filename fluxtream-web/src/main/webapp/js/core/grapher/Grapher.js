@@ -1649,15 +1649,14 @@ define(["core/grapher/BTCore"], function(BTCore) {
     }
 
     Grapher.prototype.getCurrentTimeUnit = function(){
-        var timeUnit = "date";
         var range = this.dateAxis.getMax() - this.dateAxis.getMin();
         if (range > 364 * 24 * 3600)
-            timeUnit = "year";
-        else if (range > 27 * 24 * 3600)
-            timeUnit = "month";
-        else if (range > 6 * 24 * 3600)
-            timeUnit = "week";
-        return timeUnit;
+            return "year";
+        if (range > 27 * 24 * 3600)
+            return "month";
+        if (range > 6 * 24 * 3600)
+            return "week";
+        return "date";
     }
 
     // Helper function which converts the given channels object to an array
