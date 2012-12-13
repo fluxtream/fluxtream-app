@@ -109,6 +109,11 @@ define(
                     app = App.apps[appName];
                 renderDefault(app);
             });
+            FlxState.router.route("app/:name", "app-default", function(appName) {
+                console.log("app-default route: name=" + appName);
+                var app = App.apps[appName];
+                renderDefault(app);
+            });
             FlxState.router.route("app/:name/*state", "app", function(appName, state) {
                 console.log("app route: name=" + appName + ", state=" + state);
                 var app = App.apps[appName];
