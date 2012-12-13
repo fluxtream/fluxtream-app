@@ -79,15 +79,7 @@ define(
             appDiv.toggleClass("dormant", !enabled);
         }
 
-        function renderDefault(app) {
-            $(".appMenuBtn.active").removeClass("active");
-            $("#"+app.name+"MenuButton").addClass('active');
-            setAppDivEnabled(app, true);
-            App.activeApp = app;
-            App.activeApp.renderDefaultState();
-        }
-
-        function render(app, state) {
+        function maybeSwapApps(app) {
             // TODO: add destroy()/setup() calls again...
             $(".appMenuBtn.active").removeClass("active");
             $("#"+app.name+"MenuButton").addClass('active');
@@ -99,6 +91,15 @@ define(
                 App.activeApp = app;
             }
             setAppDivEnabled(app, true);
+        }
+
+        function renderDefault(app) {
+            maybeSwapApps(app);
+            App.activeApp.renderDefaultState();
+        }
+
+        function render(app, state) {
+            maybeSwapApps(app);
             App.activeApp.renderState(state);
         }
 
@@ -142,19 +143,20 @@ define(
         /**
          * Add the buttons to the top apps menu
          */
-        function createAppsMenu(appName, appIcon) {
-            for ( var i = 0; i < FlxState.apps.length; i++) {
-                var app = App.apps[FlxState.apps[i]];
-                $("#apps-menu")
-                    .append(
-                    "<button id=\""
-                        + app.name
-                        + "MenuButton\" class=\"btn appMenuBtn\" "
-                        + "onclick=\"javascript:App.renderApp('"
-                        + app.name + "','last')\">"
-                        + "<i class=\"" + app.icon
-                        + "  icon-large\"></i></button>");
-            }
+        function createAppsMenu() {
+            $.each(FlxState.apps, function(i, appName) {
+                var app = App.apps[appName],
+                    button = $("<button/>", {
+                        id: app.name + "MenuButton",
+                        class: "btn appMenuBtn"
+                    }).click(function(event) {
+                        App.renderApp(app.name);
+                    }),
+                    buttonLink = $("<i/>", {
+                        class: app.icon + " icon-large"
+                    }).appendTo(button);
+                $("#apps-menu").append(button);
+            });
         }
 
         function fullHeight() {
@@ -170,12 +172,12 @@ define(
             });
         }
 
-        function renderApp(appName,state,params) {
-            if (params == null)
-                params = {};
-            App.activeApp.saveState();
-            App.activeApp=App.apps[appName];
-            render(App.activeApp, state, params);
+        function renderApp(appName,state) {
+            var app = App.apps[appName];
+            if (_.isUndefined(state)) {
+                state = FlxState.getState(appName);
+            }
+            app.navigateState(state);
         }
 
         App.settings = function() {
