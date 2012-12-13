@@ -37,10 +37,6 @@ define(["core/TabInterface"], function(TabInterface) {
                 var formatted = App._formatDateAsDatePicker(event.date.getUTCFullYear(),
                     event.date.getUTCMonth(),
                     event.date.getUTCDate());
-                if (Calendar.currentTab.timeNavigation("set/date/" + formatted)){
-                    $(".datepicker").hide();
-                    return;
-                }
                 Calendar.fetchState("/api/calendar/nav/getDate",
                     {date: formatted, state: Calendar.tabState});
             }
@@ -49,10 +45,6 @@ define(["core/TabInterface"], function(TabInterface) {
                     event.date.getUTCMonth(),
                     event.date.getUTCDate());
                 var range = getDateRangeForWeek(weekNumber[0],weekNumber[1]);
-                if (Calendar.currentTab.timeNavigation("set/week/" + App.formatDateAsDatePicker(range[0]) + "/" + App.formatDateAsDatePicker(range[1]))){
-                    $(".datepicker").hide();
-                    return;
-                }
                 Calendar.fetchState("/api/calendar/nav/getWeek",
                     {week: weekNumber[1], year: weekNumber[0], state: Calendar.tabState});
             }
@@ -68,10 +60,6 @@ define(["core/TabInterface"], function(TabInterface) {
         });
         $(".datepicker-years td").click(function(event){
             if (Calendar.timeUnit == "year" && $(event.target).hasClass("year")){
-                if (Calendar.currentTab.timeNavigation("set/year/" + $(event.target).text())){
-                    $(".datepicker").hide();
-                    return;
-                }
                 Calendar.fetchState("/api/calendar/nav/getYear",
                     {year: $(event.target).text(), state: Calendar.tabState});
                 $(".datepicker").hide();
@@ -80,10 +68,6 @@ define(["core/TabInterface"], function(TabInterface) {
         $(".datepicker-months td").click(function(event){
             if (Calendar.timeUnit == "month" && $(event.target).hasClass("month")){
                 var month = DateUtils.getMonthFromName($(event.target).text()) + 1;
-                if (Calendar.currentTab.timeNavigation("set/month/" + $(".datepicker-months .switch").text() + "/" + month)){
-                    $(".datepicker").hide();
-                    return;
-                }
                 Calendar.fetchState(
                     "/api/calendar/nav/getMonth",
                     {
@@ -187,10 +171,6 @@ define(["core/TabInterface"], function(TabInterface) {
                 .unbind("click")
                 .click(function(event){
                     var timeUnit = $(event.target).attr("unit");
-                    // TODO: do something reasonable with this
-                    if (Calendar.currentTab.timeNavigation(timeUnit)) {
-                        return;
-                    }
                     var url = timeUnitToURL(timeUnit),
                         params = {state: Calendar.tabState};
                     Calendar.fetchState(url, params);
@@ -200,20 +180,14 @@ define(["core/TabInterface"], function(TabInterface) {
 	
 	function bindTimeNavButtons(Calendar) {
         $(".menuNextButton").click(function() {
-            if (Calendar.currentTab.timeNavigation("next"))
-                return;
             Calendar.fetchState("/api/calendar/nav/incrementTimespan",
                                 {state: Calendar.tabState});
         });
         $(".menuPrevButton").click(function() {
-            if (Calendar.currentTab.timeNavigation("prev"))
-                return;
             Calendar.fetchState("/api/calendar/nav/decrementTimespan",
                                 {state: Calendar.tabState});
         });
         $(".menuTodayButton").click(function() {
-            if (Calendar.currentTab.timeNavigation("today"))
-                return;
             Calendar.fetchState("/api/calendar/nav/setToToday",
                                 {timeUnit: "DAY"});
         });

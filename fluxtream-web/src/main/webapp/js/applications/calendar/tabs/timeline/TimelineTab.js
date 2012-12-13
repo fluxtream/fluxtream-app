@@ -21,6 +21,7 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
         connectorEnabled = params.connectorEnabled;
         this.getTemplate("text!applications/calendar/tabs/timeline/template.html", "timeline", function() {
             setup(digest, params.timeUnit);
+            grapher.setRange(Calendar.start / 1000, Calendar.end / 1000);
         });
     }
 
@@ -33,6 +34,9 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
                 }
                 var prevDateString = null;
                 grapher.dateAxis.addAxisChangeListener(function() {
+                    // TODO: re-enable this once it's properly integrated with
+                    // Calendar.dateChanged()
+                    /*
                     var timeUnit = grapher.getCurrentTimeUnit();
                     var center = (grapher.dateAxis.getMin() +grapher. dateAxis.getMax()) / 2.0;
                     var date = new Date(center * 1000);
@@ -46,6 +50,7 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
                         Calendar.dateChanged(dateString, timeUnit);
                         prevDateString = dateString;
                     }
+                    */
                 });
             }});
         }
@@ -72,92 +77,10 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
         }
     }
 
-    function timeNavigation(nav){
-        var splits = nav.split("/");
-        switch (splits[0]){
-            case "prev":
-                grapher.gotoTime("back");
-                break;
-            case "next":
-                grapher.gotoTime("forward");
-                break;
-            case "date":
-                if (grapher.getCurrentTimeUnit() != "date"){
-                    grapher.setZoom(24*3600);
-                }
-                break;
-            case "week":
-                if (grapher.getCurrentTimeUnit() != "week"){
-                    grapher.setZoom(7*24*3600);
-                }
-                break;
-            case "month":
-                if (grapher.getCurrentTimeUnit() != "month"){
-                    grapher.setZoom(30*24*3600);
-                }
-                break;
-            case "year":
-                if (grapher.getCurrentTimeUnit() != "year"){
-                    grapher.setZoom(365*24*3600);
-                }
-                break;
-            case "today":
-                var end = new Date().getTime() / 1000;
-                var diff = end - grapher.dateAxis.getMax();
-                grapher.setRange(grapher.dateAxis.getMin() + diff, grapher.dateAxis.getMax() + diff);
-                break;
-            case "set":
-                switch (splits[1]){
-                    case "date":
-                        var dateParts = splits[2].split("-");
-                        var year = dateParts[0];
-                        var month = parseInt(dateParts[1]) - 1;
-                        var day = dateParts[2];
-                        var start = new Date(year,month,day,0,0,0,0).getTime()/1000;
-                        var end = new Date(year,month,day,11,59,59,999).getTime()/1000;
-                        grapher.setRange(start,end);
-                        break;
-                    case "week":
-                        var datePartsStart = splits[2].split("-");
-                        var datePartsEnd = splits[3].split("-");
-                        var yearStart = datePartsStart[0];
-                        var monthStart = parseInt(datePartsStart[1]) - 1;
-                        var dayStart = datePartsStart[2];
-                        var yearEnd = datePartsEnd[0];
-                        var monthEnd = parseInt(datePartsEnd[1]) - 1;
-                        var dayEnd = datePartsEnd[2];
-                        var start = new Date(yearStart,monthStart,dayStart,0,0,0,0).getTime()/1000;
-                        var end = new Date(yearEnd,monthEnd,dayEnd,11,59,59,999).getTime()/1000;
-                        grapher.setRange(start,end);
-                        break;
-                    case "month":
-                        var year = splits[2];
-                        var month = splits[3] - 1;
-                        var start = new Date(year,month,1,0,0,0,0).getTime()/1000;
-                        var end = new Date(year,month,App.getLastDayOfMonth(year,month),11,59,59,999).getTime()/1000;
-                        grapher.setRange(start,end);
-                        break;
-                    case "year":
-                        var year = splits[2];
-                        var start = new Date(year,0,1,0,0,0,0).getTime() /1000;
-                        var end = new Date(year,11,31,11,59,59,999).getTime() /1000;
-                        grapher.setRange(start,end);
-                        break;
-                    default:
-                        return false;
-                }
-                break;
-            default:
-                return false;
-        }
-        return true;
-    }
-
     timelineTab.initialized = false;
     timelineTab.render = render;
     timelineTab.connectorToggled = connectorToggled;
     timelineTab.connectorDisplayable = connectorDisplayable;
     timelineTab.connectorsAlwaysEnabled = connectorsAlwaysEnabled;
-    timelineTab.timeNavigation = timeNavigation;
     return timelineTab;
 });
