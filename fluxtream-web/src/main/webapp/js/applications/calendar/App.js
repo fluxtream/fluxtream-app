@@ -192,7 +192,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 		$.ajax({
             url: "/api/calendar/all/" + state.tabState,
 			success : function(response) {
-                console.log(response);
+                console.log(state.tabState, response);
                 if (response.result === "KO") {
                     handleError(response.message)();
                     return;
