@@ -48,6 +48,14 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         $(".loading").hide();
     }
 
+    function handleError(msg) {
+        return function(xhr, status, error) {
+            stopLoading();
+            console.log(xhr, status, error);
+            alert(msg);
+        }
+    }
+
     Calendar.fetchState = function(url, params) {
         startLoading();
         $.ajax({
@@ -58,9 +66,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                updateTimespan(response.currentTimespanLabel);
                Calendar.navigateState(Calendar.currentTabName + "/" + response.state);
            },
-           error: function() {
-               console.log(arguments);
-           }
+           error: handleError("failed to fetch next calendar state!")
         });
     }
 
@@ -123,12 +129,14 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             data: {state: state.tabState},
             success: function(response) {
                 updateTimespan(response.currentTimespanLabel);
-            }
+            },
+            error: handleError("failed to fetch timespan label!")
         });
     }
 
 	Calendar.renderState = function(state) {
         if (!Calendar.timespanInited) {
+            startLoading();
             // NOTE: when loading a URL like /app/calendar/date/2012-12-25 directly,
             // the FlxState routes invoke renderState() directly instead of going
             // through fetchState. That bypasses the timespan label fetching, so we
@@ -196,9 +204,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 stopLoading();
                 Builder.handleNotifications(response);
 			},
-			error: function() {
-				alert("error fetching calendar");
-			}
+			error: handleError("failed to fetch calendar data!")
 		});
 	}
 
