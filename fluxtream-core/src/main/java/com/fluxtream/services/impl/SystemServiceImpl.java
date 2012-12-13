@@ -79,7 +79,7 @@ public class SystemServiceImpl implements SystemService {
         em.persist(new ConnectorInfo("Withings",
                                      "/images/connectors/connector-withings.jpg",
                                      res.getString("withings"),
-                                     "ajax:/withings/enterCredentials",
+                                     "/withings/token",
                                      Connector.getConnector("WITHINGS"), order++, true));
         em.persist(new ConnectorInfo("Zeo",
                                      "/images/connectors/connector-zeo.jpg",
