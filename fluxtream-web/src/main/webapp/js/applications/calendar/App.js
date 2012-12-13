@@ -193,8 +193,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             url: "/api/calendar/all/" + state.tabState,
 			success : function(response) {
                 console.log(response);
-                if (typeof response.result!="undefined" && response.result==="KO") {
-                    alert(response.message);
+                if (response.result === "KO") {
+                    handleError(response.message)();
                     return;
                 }
                 if (Calendar.timeUnit==="date") {
