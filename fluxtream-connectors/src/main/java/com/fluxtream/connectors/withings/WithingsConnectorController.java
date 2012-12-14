@@ -57,8 +57,7 @@ public class WithingsConnectorController {
 		Guest guest = guestService.getGuestById(Long.valueOf(guestId));
 		if (guest == null) {
 			ModelAndView mav = new ModelAndView("general-error");
-			mav.addObject("errorMessage",
-					"There is no user with specified id: " + guestId);
+			mav.addObject("errorMessage", "There is no user with specified id: " + guestId);
 			return mav;
 		} else {
 			connectorUpdateService.scheduleUpdate(guestId, "withings", 3,
