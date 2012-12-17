@@ -71,8 +71,6 @@ public class CalendarModel {
     }
 
     public static LocalDate getBeginningOfWeek(final int year, final int week) {
-
-        // January 4 of a year is always in that year under ISO 8601, which JodaTime uses
         return (new LocalDate())
                 .withWeekyear(year)
                 .withWeekOfWeekyear(week)
@@ -87,7 +85,9 @@ public class CalendarModel {
     public int getWeekYear() {
         if (timeUnit != TimeUnit.WEEK)
             throw new IllegalStateException("Unexpected check for week year when not using week time unit");
-        return fromDate.getWeekyear();
+        // Off by 1 because getBeginningOfWeek(year, week), and by extension
+        // setWeek(year, week) goes back by 1 week
+        return fromDate.plusWeeks(1).getWeekyear();
     }
 
     public int getWeek() {
@@ -95,7 +95,7 @@ public class CalendarModel {
             throw new IllegalStateException("Unexpected check for week when not using week time unit");
         // Off by 1 because getBeginningOfWeek(year, week), and by extension
         // setWeek(year, week) goes back by 1 week
-        return fromDate.getWeekOfWeekyear() + 1;
+        return fromDate.plusWeeks(1).getWeekOfWeekyear();
     }
 
     public void setMonth(final int year, final int month) {
@@ -156,8 +156,6 @@ public class CalendarModel {
     public String toJSONString(final Configuration env) {
         // TODO: Include information in JSON that tells which calendar cells should
         // be lit up - don't want to use UTC timestamps to determine that info
-        // TODO: Fix bug in which the calendar cells are two weeks off from the label
-        // in January 2000
 
         final JSONObject json = new JSONObject();
         json.put("timeUnit", timeUnit.toString());
