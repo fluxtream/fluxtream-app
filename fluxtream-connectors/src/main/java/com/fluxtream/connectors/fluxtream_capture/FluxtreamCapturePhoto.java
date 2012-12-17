@@ -1,5 +1,7 @@
 package com.fluxtream.connectors.fluxtream_capture;
 
+import java.awt.Dimension;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import com.drew.imaging.ImageProcessingException;
@@ -49,6 +51,12 @@ final class FluxtreamCapturePhoto {
     private final byte[] thumbnailLarge;
 
     @NotNull
+    private final Dimension thumbnailSmallSize;
+
+    @NotNull
+    private final Dimension thumbnailLargeSize;
+
+    @NotNull
     private final ImageUtils.Orientation orientation;
 
     @Nullable
@@ -80,8 +88,14 @@ final class FluxtreamCapturePhoto {
                         photoHash + KEY_VALUE_STORE_FILENAME_PART_DELIMITER +
                         String.valueOf(captureTimeMillisUtc);
 
-        final byte[] thumbnailSmallTemp = ImageUtils.convertToByteArray(ImageUtils.createThumbnail(photoBytes, THUMBNAIL_SMALL_MAX_SIDE_LENGTH_IN_PIXELS));
-        final byte[] thumbnailLargeTemp = ImageUtils.convertToByteArray(ImageUtils.createThumbnail(photoBytes, THUMBNAIL_LARGE_MAX_SIDE_LENGTH_IN_PIXELS));
+        final BufferedImage thumbnailSmallImage = ImageUtils.createThumbnail(photoBytes, THUMBNAIL_SMALL_MAX_SIDE_LENGTH_IN_PIXELS);
+        final BufferedImage thumbnailLargeImage = ImageUtils.createThumbnail(photoBytes, THUMBNAIL_LARGE_MAX_SIDE_LENGTH_IN_PIXELS);
+        if (thumbnailSmallImage == null || thumbnailLargeImage == null) {
+            throw new IOException("Failed to create thumbnails");
+        }
+
+        final byte[] thumbnailSmallTemp = ImageUtils.convertToByteArray(thumbnailSmallImage);
+        final byte[] thumbnailLargeTemp = ImageUtils.convertToByteArray(thumbnailLargeImage);
 
         if (thumbnailSmallTemp == null || thumbnailLargeTemp == null) {
             throw new IOException("Failed to create thumbnails");
@@ -89,6 +103,9 @@ final class FluxtreamCapturePhoto {
 
         thumbnailSmall = thumbnailSmallTemp;
         thumbnailLarge = thumbnailLargeTemp;
+
+        thumbnailSmallSize = new Dimension(thumbnailSmallImage.getWidth(), thumbnailSmallImage.getHeight());
+        thumbnailLargeSize = new Dimension(thumbnailLargeImage.getWidth(), thumbnailLargeImage.getHeight());
 
         // get the image orientation, and default to ORIENTATION_1 if unspecified
         ImageUtils.Orientation orientationTemp;
@@ -148,6 +165,16 @@ final class FluxtreamCapturePhoto {
     @NotNull
     public byte[] getThumbnailLarge() {
         return thumbnailLarge;
+    }
+
+    @NotNull
+    public Dimension getThumbnailSmallSize() {
+        return thumbnailSmallSize;
+    }
+
+    @NotNull
+    public Dimension getThumbnailLargeSize() {
+        return thumbnailLargeSize;
     }
 
     @NotNull

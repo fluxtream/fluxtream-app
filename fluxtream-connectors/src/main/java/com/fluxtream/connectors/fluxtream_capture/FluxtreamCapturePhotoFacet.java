@@ -1,5 +1,6 @@
 package com.fluxtream.connectors.fluxtream_capture;
 
+import java.awt.Dimension;
 import java.io.Serializable;
 import javax.persistence.Entity;
 import javax.persistence.Lob;
@@ -10,8 +11,10 @@ import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.Geolocation;
+import com.fluxtream.utils.ImageUtils;
 import org.hibernate.search.annotations.Indexed;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Chris Bartley (bartley@cmu.edu)
@@ -36,6 +39,11 @@ public class FluxtreamCapturePhotoFacet extends AbstractFacet implements Seriali
 
     @Lob
     private byte[] thumbnailLarge;
+
+    private int thumbnailSmallWidth;
+    private int thumbnailSmallHeight;
+    private int thumbnailLargeWidth;
+    private int thumbnailLargeHeight;
 
     private int orientation;
 
@@ -69,6 +77,14 @@ public class FluxtreamCapturePhotoFacet extends AbstractFacet implements Seriali
 
         thumbnailSmall = photo.getThumbnailSmall();
         thumbnailLarge = photo.getThumbnailLarge();
+
+        final Dimension thumbnailSmallSize = photo.getThumbnailSmallSize();
+        final Dimension thumbnailLargeSize = photo.getThumbnailLargeSize();
+
+        thumbnailSmallWidth = thumbnailSmallSize.width;
+        thumbnailSmallHeight = thumbnailSmallSize.height;
+        thumbnailLargeWidth =  thumbnailLargeSize.width;
+        thumbnailLargeHeight = thumbnailLargeSize.height;
 
         orientation = photo.getOrientation().getId();
 
@@ -109,6 +125,21 @@ public class FluxtreamCapturePhotoFacet extends AbstractFacet implements Seriali
 
     public byte[] getThumbnailLarge() {
         return thumbnailLarge;
+    }
+
+    @NotNull
+    public Dimension getThumbnailSmallSize() {
+        return new Dimension(thumbnailSmallWidth, thumbnailSmallHeight);
+    }
+
+    @NotNull
+    public Dimension getThumbnailLargeSize() {
+        return new Dimension(thumbnailLargeWidth, thumbnailLargeHeight);
+    }
+
+    @Nullable
+    public ImageUtils.Orientation getOrientation() {
+        return ImageUtils.Orientation.findById(orientation);
     }
 
     public Double getLatitude() {
