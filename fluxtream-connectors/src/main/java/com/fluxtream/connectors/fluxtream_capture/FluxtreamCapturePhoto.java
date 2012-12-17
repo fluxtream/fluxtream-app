@@ -2,10 +2,14 @@ package com.fluxtream.connectors.fluxtream_capture;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import com.drew.imaging.ImageProcessingException;
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.domain.Geolocation;
 import com.fluxtream.utils.HashUtils;
 import com.fluxtream.utils.ImageUtils;
+import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
@@ -13,6 +17,8 @@ import org.joda.time.DateTimeZone;
  * @author Chris Bartley (bartley@cmu.edu)
  */
 final class FluxtreamCapturePhoto {
+    private static final Logger LOG = Logger.getLogger(FluxtreamCapturePhoto.class);
+
     private static final int THUMBNAIL_SMALL_MAX_SIDE_LENGTH_IN_PIXELS = 150;
     private static final int THUMBNAIL_LARGE_MAX_SIDE_LENGTH_IN_PIXELS = 300;
     private static final String KEY_VALUE_STORE_KEY_PART_DELIMITER = ".";
@@ -42,6 +48,9 @@ final class FluxtreamCapturePhoto {
     @NotNull
     private final byte[] thumbnailLarge;
 
+    @Nullable
+    private final Geolocation geolocation;
+
     FluxtreamCapturePhoto(final long guestId, @NotNull final byte[] photoBytes, final long captureTimeMillisUtc) throws IllegalArgumentException, NoSuchAlgorithmException, IOException {
 
         if (!ImageUtils.isImage(photoBytes)) {
@@ -68,8 +77,8 @@ final class FluxtreamCapturePhoto {
                         photoHash + KEY_VALUE_STORE_FILENAME_PART_DELIMITER +
                         String.valueOf(captureTimeMillisUtc);
 
-        final byte[] thumbnailSmallTemp = ImageUtils.createThumbnail(photoBytes, THUMBNAIL_SMALL_MAX_SIDE_LENGTH_IN_PIXELS);
-        final byte[] thumbnailLargeTemp = ImageUtils.createThumbnail(photoBytes, THUMBNAIL_LARGE_MAX_SIDE_LENGTH_IN_PIXELS);
+        final byte[] thumbnailSmallTemp = ImageUtils.convertToByteArray(ImageUtils.createThumbnail(photoBytes, THUMBNAIL_SMALL_MAX_SIDE_LENGTH_IN_PIXELS));
+        final byte[] thumbnailLargeTemp = ImageUtils.convertToByteArray(ImageUtils.createThumbnail(photoBytes, THUMBNAIL_LARGE_MAX_SIDE_LENGTH_IN_PIXELS));
 
         if (thumbnailSmallTemp == null || thumbnailLargeTemp == null) {
             throw new IOException("Failed to create thumbnails");
@@ -78,7 +87,15 @@ final class FluxtreamCapturePhoto {
         thumbnailSmall = thumbnailSmallTemp;
         thumbnailLarge = thumbnailLargeTemp;
 
-        // TODO: extract Lat/Long
+        Geolocation geolocationTemp;
+        try {
+            geolocationTemp = ImageUtils.getGeolocation(photoBytes);
+        }
+        catch (ImageProcessingException e) {
+            LOG.error("ImageProcessingException while trying to read the geolocation data for user [" + guestId + "] photo [" + photoStoreKey + "]");
+            geolocationTemp = null;
+        }
+        geolocation = geolocationTemp;
     }
 
     public long getGuestId() {
@@ -117,5 +134,10 @@ final class FluxtreamCapturePhoto {
     @NotNull
     public byte[] getThumbnailLarge() {
         return thumbnailLarge;
+    }
+
+    @Nullable
+    public Geolocation getGeolocation() {
+        return geolocation;
     }
 }

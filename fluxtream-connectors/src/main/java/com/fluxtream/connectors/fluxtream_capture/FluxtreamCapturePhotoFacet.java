@@ -9,6 +9,7 @@ import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.domain.AbstractFacet;
+import com.fluxtream.domain.Geolocation;
 import org.hibernate.search.annotations.Indexed;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,19 +25,27 @@ import org.jetbrains.annotations.NotNull;
     @NamedQuery(name = "fluxtream_capture.photo.newest", query = "SELECT facet FROM Facet_FluxtreamCapturePhoto facet WHERE facet.guestId=? ORDER BY facet.start DESC LIMIT 1")
 })
 @Indexed
-public class FluxtreamCapturePhotoFacet extends AbstractFacet implements Serializable {
+public class FluxtreamCapturePhotoFacet extends AbstractFacet implements Serializable, Geolocation {
 
     private String hash;
     private String title;
     private String captureYYYYDDD;
-    private String latitude;
-    private String longitude;
 
     @Lob
     private byte[] thumbnailSmall;
 
     @Lob
     private byte[] thumbnailLarge;
+
+    private Double latitude;
+    private Double longitude;
+    private Float heading;
+    private String headingRef;
+    private Float altitude;
+    private Integer altitudeRef;
+    private Float gpsPrecision;
+    private String gpsDatestamp;
+    private String gpsTimestamp;
 
     @SuppressWarnings("UnusedDeclaration")
     public FluxtreamCapturePhotoFacet() {
@@ -59,7 +68,18 @@ public class FluxtreamCapturePhotoFacet extends AbstractFacet implements Seriali
         thumbnailSmall = photo.getThumbnailSmall();
         thumbnailLarge = photo.getThumbnailLarge();
 
-        // TODO: copy geolocation data
+        final Geolocation geolocation = photo.getGeolocation();
+        if (geolocation != null) {
+            latitude = geolocation.getLatitude();
+            longitude = geolocation.getLongitude();
+            heading = geolocation.getHeading();
+            headingRef = geolocation.getHeadingRef();
+            altitude = geolocation.getAltitude();
+            altitudeRef = geolocation.getAltitudeRef();
+            gpsPrecision = geolocation.getGpsPrecision();
+            gpsDatestamp = geolocation.getGpsDatestamp();
+            gpsTimestamp = geolocation.getGpsTimestamp();
+        }
     }
 
     @Override
@@ -79,19 +99,47 @@ public class FluxtreamCapturePhotoFacet extends AbstractFacet implements Seriali
         return captureYYYYDDD;
     }
 
-    public String getLatitude() {
-        return latitude;
-    }
-
-    public String getLongitude() {
-        return longitude;
-    }
-
     public byte[] getThumbnailSmall() {
         return thumbnailSmall;
     }
 
     public byte[] getThumbnailLarge() {
         return thumbnailLarge;
+    }
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public Float getHeading() {
+        return heading;
+    }
+
+    public String getHeadingRef() {
+        return headingRef;
+    }
+
+    public Float getAltitude() {
+        return altitude;
+    }
+
+    public Integer getAltitudeRef() {
+        return altitudeRef;
+    }
+
+    public Float getGpsPrecision() {
+        return gpsPrecision;
+    }
+
+    public String getGpsDatestamp() {
+        return gpsDatestamp;
+    }
+
+    public String getGpsTimestamp() {
+        return gpsTimestamp;
     }
 }

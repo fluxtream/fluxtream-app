@@ -23,7 +23,7 @@ public class HashUtilsTest {
     static {
         byte[] photoBytes;
         try {
-            photoBytes = IOUtils.toByteArray(HashUtilsTest.class.getResourceAsStream("/test_image1.jpg"));
+            photoBytes = IOUtils.toByteArray(HashUtilsTest.class.getResourceAsStream("/images/test_image1.jpg"));
         }
         catch (IOException e) {
             photoBytes = "Failed to read the image file".getBytes();

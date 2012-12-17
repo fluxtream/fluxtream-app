@@ -34,7 +34,7 @@ public class FilesystemKeyValueStoreTest {
     static {
         byte[] value2;
         try {
-            value2 = IOUtils.toByteArray(FilesystemKeyValueStoreTest.class.getResourceAsStream("/test_image1.jpg"));
+            value2 = IOUtils.toByteArray(FilesystemKeyValueStoreTest.class.getResourceAsStream("/images/test_image1.jpg"));
         }
         catch (IOException e) {
             value2 = "Failed to read the image file".getBytes();
