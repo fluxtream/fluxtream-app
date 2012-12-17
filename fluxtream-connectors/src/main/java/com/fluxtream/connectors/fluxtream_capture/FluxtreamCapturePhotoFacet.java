@@ -37,6 +37,8 @@ public class FluxtreamCapturePhotoFacet extends AbstractFacet implements Seriali
     @Lob
     private byte[] thumbnailLarge;
 
+    private int orientation;
+
     private Double latitude;
     private Double longitude;
     private Float heading;
@@ -67,6 +69,8 @@ public class FluxtreamCapturePhotoFacet extends AbstractFacet implements Seriali
 
         thumbnailSmall = photo.getThumbnailSmall();
         thumbnailLarge = photo.getThumbnailLarge();
+
+        orientation = photo.getOrientation().getId();
 
         final Geolocation geolocation = photo.getGeolocation();
         if (geolocation != null) {

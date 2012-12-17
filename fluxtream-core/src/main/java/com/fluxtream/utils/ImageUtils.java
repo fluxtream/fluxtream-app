@@ -329,6 +329,14 @@ public final class ImageUtils {
     }
 
     @Nullable
+    public static Orientation getOrientation(@Nullable final byte[] imageBytes) {
+        if (imageBytes != null && imageBytes.length > 0) {
+            return Orientation.getOrientation(new ByteArrayInputStream(imageBytes));
+        }
+        return null;
+    }
+
+    @Nullable
     public static BufferedImage convertToBufferedImage(@Nullable final byte[] imageBytes) throws IOException {
         if (imageBytes != null && imageBytes.length > 0) {
             return ImageIO.read(new ByteArrayInputStream(imageBytes));

@@ -15,6 +15,7 @@ CREATE TABLE `Facet_FluxtreamCapturePhoto` (
   `tags`                LONGTEXT,
   `thumbnailSmall`      BLOB       NOT NULL,
   `thumbnailLarge`      BLOB       NOT NULL,
+  `orientation`         INT(11)    NOT NULL,
 
   `latitude`            DOUBLE DEFAULT NULL,
   `longitude`           DOUBLE DEFAULT NULL,

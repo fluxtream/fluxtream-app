@@ -48,6 +48,9 @@ final class FluxtreamCapturePhoto {
     @NotNull
     private final byte[] thumbnailLarge;
 
+    @NotNull
+    private final ImageUtils.Orientation orientation;
+
     @Nullable
     private final Geolocation geolocation;
 
@@ -86,6 +89,17 @@ final class FluxtreamCapturePhoto {
 
         thumbnailSmall = thumbnailSmallTemp;
         thumbnailLarge = thumbnailLargeTemp;
+
+        // get the image orientation, and default to ORIENTATION_1 if unspecified
+        ImageUtils.Orientation orientationTemp;
+        try {
+            orientationTemp = ImageUtils.getOrientation(photoBytes);
+        }
+        catch (Exception e) {
+            LOG.error("Exception while trying to read the orientation data for user [" + guestId + "] photo [" + photoStoreKey + "]");
+            orientationTemp = null;
+        }
+        orientation = (orientationTemp == null) ? ImageUtils.Orientation.ORIENTATION_1 : orientationTemp;
 
         Geolocation geolocationTemp;
         try {
@@ -134,6 +148,11 @@ final class FluxtreamCapturePhoto {
     @NotNull
     public byte[] getThumbnailLarge() {
         return thumbnailLarge;
+    }
+
+    @NotNull
+    public ImageUtils.Orientation getOrientation() {
+        return orientation;
     }
 
     @Nullable
