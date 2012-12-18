@@ -513,10 +513,13 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         return s;
     }
 
-   function getWeekNumber(year, month, date) {
-       //OK let's have java compute that for us and avoid the discrepancy bug that way for now
-       var dateString = year + "-" + (month < 9 ? 0 : "") + (month + 1) + "-" + (date < 10 ? 0 : "") + date,
-           result = null;
+   function getWeekNumber(date) {
+       var year = date.getFullYear();
+       var month = date.getMonth();
+       var day = date.getDate();
+       // Let's have java compute that for us and avoid the discrepancy bug that way for now
+       var dateString = year + "-" + (month < 9 ? 0 : "") + (month + 1) + "-" + (day < 10 ? 0 : "") + day;
+       var result = null;
        $.ajax({
            url: "/api/calendar/nav/getMeTheJavaComputedWeekForThisDate?formattedDate=" + dateString,
            async: false,
@@ -554,18 +557,19 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
        var endMonth = endParts[1];
        var endDate = endParts[2];
 
-       return [new Date(startYear, startMonth, startDate),
-               new Date(endYear, endMonth, endDate)];
+       // JavaScript Date objects are 0-based, but our date strings are 1-based
+       return [new Date(startYear, startMonth - 1, startDate),
+               new Date(endYear, endMonth - 1, endDate)];
    }
 
-    Calendar.toState = function(tabName, timeUnit, date){
+    Calendar.toState = function(tabName, timeUnit, date) {
         var dateString = "";
         switch (timeUnit){
             case 'date':
                 dateString = date.getFullYear() + "-" + (date.getMonth() < 9 ? 0 : "") + (date.getMonth() + 1) + "-" + (date.getDate() < 10 ? 0 : "") + date.getDate();
                 break;
             case 'week':
-                var weekInfo = getWeekNumber(date.getFullYear(), date.getMonth(), date.getDate());
+                var weekInfo = getWeekNumber(date);
                 dateString = weekInfo[0] + "/" + weekInfo[1];
                 break;
             case 'month':
