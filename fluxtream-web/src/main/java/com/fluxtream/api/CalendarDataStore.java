@@ -250,14 +250,14 @@ public class CalendarDataStore {
 
             Calendar c = Calendar.getInstance();
             c.set(Calendar.YEAR,year);
-            c.set(Calendar.MONTH,month);
+            c.set(Calendar.MONTH,month - 1);
             int endDayNum = c.getActualMaximum(Calendar.DAY_OF_MONTH);
 
             isLeapYear(year);
 
-            DayMetadataFacet dayMetaStart = metadataService.getDayMetadata(guest.getId(), year + "-" + (month + 1) + "-01", true);
+            DayMetadataFacet dayMetaStart = metadataService.getDayMetadata(guest.getId(), year + "-" + month + "-01", true);
 
-            DayMetadataFacet dayMetaEnd = metadataService.getDayMetadata(guest.getId(), year + "-" + (month + 1) + "-" + endDayNum, true);
+            DayMetadataFacet dayMetaEnd = metadataService.getDayMetadata(guest.getId(), year + "-" + month + "-" + endDayNum, true);
 
             DayMetadataFacet dayMetadata = new DayMetadataFacet();
             dayMetadata.timeZone = dayMetaStart.timeZone;

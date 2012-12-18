@@ -1,3 +1,7 @@
+require.config({
+    waitSeconds: 0
+});
+
 require(['App', 'Connectors'], function(App, Connectors) {
 	document.body.onselectstart = function() { return false; };
 	document.body.style.MozUserSelect = "none";

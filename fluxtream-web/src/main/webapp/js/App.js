@@ -5,8 +5,9 @@ define(
         SharingDialog ) {
 
         var App = {};
-        var toLoad = 0, loaded = 0;
-        var apps = {};
+
+        App.apps = {};
+
         var compiledTemplates = {};
 
         function initialize() {
@@ -17,7 +18,7 @@ define(
         }
 
         function checkScreenDensity() {
-            var retina = window.devicePixelRatio > 1 ? true : false;
+            var retina = window.devicePixelRatio > 1;
             setCookie("retina", retina?"1":"0", 30);
         }
 
@@ -35,77 +36,127 @@ define(
          * future) to let every application know of the existence of others
          */
         function loadApps() {
-            toLoad = FlxState.apps.length;
-            for ( var i = 0; i < FlxState.apps.length; i++) {
-                require([ "applications/" + FlxState.apps[i] + "/App" ],
-                        function(app) {
-                            apps[app.name] = app;
-                            app.initialize();
-                            appLoaded(app.name);
-                        });
+            var appModules = FlxState.apps.map(function(appName) {
+                return "applications/" + appName + "/App";
+            });
+            require(appModules, function(/* apps */) {
+                for (var i = 0; i < arguments.length; i++) {
+                    var app = arguments[i];
+                    App.apps[app.name] = app;
+                    app.initialize();
+                }
+
+                createAppsMenu();
+                loadAppTemplates();
+            });
+        }
+
+        function renderAppTemplate(app, html) {
+            var appDiv = $("<div/>", {
+                class: "application",
+                id: app.name + "-app"
+            }).addClass("dormant").html(html);
+            $("#applications").append(appDiv);
+        }
+
+        function loadAppTemplates() {
+            var apps = _.values(App.apps),
+                appTemplates = apps.map(function(app) {
+                    return "text!applications/" + app.name + "/template.html";
+                });
+            require(appTemplates, function(/* templates */) {
+                for (var i = 0; i < arguments.length; i++)  {
+                    renderAppTemplate(apps[i], arguments[i]);
+                    apps[i].setup();
+                }
+                setupURLRouting();
+            });
+        }
+
+        function setAppDivEnabled(app, enabled) {
+            var appDiv = $("#" + app.name + "-app");
+            appDiv.toggleClass("active", enabled);
+            appDiv.toggleClass("dormant", !enabled);
+        }
+
+        function maybeSwapApps(app) {
+            // TODO: add destroy()/setup() calls again...
+            $(".appMenuBtn.active").removeClass("active");
+            $("#"+app.name+"MenuButton").addClass('active');
+            var appChanged = app !== App.activeApp;
+            if (appChanged) {
+                if (!_.isUndefined(App.activeApp)) {
+                    setAppDivEnabled(App.activeApp, false);
+                }
+                App.activeApp = app;
+            }
+            setAppDivEnabled(app, true);
+        }
+
+        function renderDefault(app) {
+            maybeSwapApps(app);
+            App.activeApp.renderDefaultState();
+        }
+
+        function render(app, state) {
+            maybeSwapApps(app);
+            App.activeApp.renderState(state);
+        }
+
+        function setupURLRouting() {
+            FlxState.router.route("*path", "default", function(path) {
+                console.log("default route: path=" + path);
+                var appName = FlxState.defaultApp,
+                    app = App.apps[appName];
+                renderDefault(app);
+            });
+            FlxState.router.route("app/:name", "app-default", function(appName) {
+                console.log("app-default route: name=" + appName);
+                var app = App.apps[appName];
+                renderDefault(app);
+            });
+            FlxState.router.route("app/:name/*state", "app", function(appName, state) {
+                console.log("app route: name=" + appName + ", state=" + state);
+                var app = App.apps[appName];
+                if (_.isUndefined(app)) {
+                    console.log("invalid app: " + appName);
+                    App.invalidPath();
+                }
+                // strip trailing slash from state, if any
+                if (state.endsWith("/")) {
+                    state = state.slice(0, -1);
+                }
+                FlxState.saveState(appName, state);
+                state = app.parseState(state);
+                if (state === null) {
+                    console.log("invalid state: " + state);
+                    App.invalidPath();
+                    return;
+                }
+                render(app, state);
+            });
+            if (!Backbone.history.start({pushState : true})) {
+                console.log("error loading routes!");
             }
         }
 
         /**
          * Add the buttons to the top apps menu
          */
-        function createAppsMenu(appName, appIcon) {
-            for ( var i = 0; i < FlxState.apps.length; i++) {
-                var app = apps[FlxState.apps[i]];
-                $("#apps-menu")
-                    .append(
-                    "<button id=\""
-                        + app.name
-                        + "MenuButton\" class=\"btn appMenuBtn\" "
-                        + "onclick=\"javascript:App.renderApp('"
-                        + app.name + "','last')\">"
-                        + "<i class=\"" + app.icon
-                        + "  icon-large\"></i></button>");
-            }
-        }
-
-        /**
-         * Application-is-loaded callback
-         */
-        function appLoaded(appName) {
-            // we keep track of how many apps have been loaded
-            loaded++;
-            // when all apps are loaded...
-            if (loaded === toLoad) {
-                App.apps = apps;
-                // we create the top apps menu
-                createAppsMenu();
-                // we start the history
-                Backbone.history.start({
-                                           pushState : true
-                                       });
-                // finally we render the default - or url-specified - app
-                renderMainApp();
-            }
-        }
-
-        /**
-         * Render main app or the one that's specified in the location bar's
-         * contents
-         */
-        function renderMainApp() {
-            var path = Backbone.history.getFragment(),
-                splits = path.split("/"),
-                appString = splits.shift(),
-                appName = splits.shift();
-            if (appString !== 'app' || _.isUndefined(appName)) {
-                App.activeApp = apps[FlxState.defaultApp];
-                apps[FlxState.defaultApp].render("");
-                return;
-            }
-            var app = apps[appName],
-                appState = splits.join('/');
-            FlxState.saveState(appName, appState);
-            if (_.isUndefined(app)) {
-                if (console && console.log) console.log("invalid app: " + appName);
-                App.invalidPath();
-            }
-            App.activeApp = app;
+        function createAppsMenu() {
+            $.each(FlxState.apps, function(i, appName) {
+                var app = App.apps[appName],
+                    button = $("<button/>", {
+                        id: app.name + "MenuButton",
+                        class: "btn appMenuBtn"
+                    }).click(function(event) {
+                        App.renderApp(app.name);
+                    }),
+                    buttonLink = $("<i/>", {
+                        class: app.icon + " icon-large"
+                    }).appendTo(button);
+                $("#apps-menu").append(button);
+            });
         }
 
         function fullHeight() {
@@ -121,12 +172,12 @@ define(
             });
         }
 
-        function renderApp(appName,state,params) {
-            if (params == null)
-                params = {};
-            App.activeApp.saveState();
-            App.activeApp=App.apps[appName];
-            App.apps[appName].render(state,params);
+        function renderApp(appName,state) {
+            var app = App.apps[appName];
+            if (_.isUndefined(state)) {
+                state = FlxState.getState(appName);
+            }
+            app.navigateState(state);
         }
 
         App.settings = function() {
@@ -234,7 +285,7 @@ define(
 
         App.removeConnector = function(api) {
             var c = confirm("If you wrote comments on events related to this connector, "
-                                + "you will loose them forever.\n"
+                                + "you will lose them forever.\n"
                                 + "Are your sure you want to continue?");
             if (c) {
                 $.ajax({
@@ -432,11 +483,11 @@ define(
             value += ", " + year;
             if (includeTime){
                 value += " " + hour;
-                value += ":"
+                value += ":";
                 if (minute < 10)
                     value += "0";
                 value += minute;
-                value += ":"
+                value += ":";
                 if (second < 10)
                     value += "0";
                 value += second;
@@ -454,12 +505,16 @@ define(
                 return [(hour > 12 ? hour - 12 : 12) + ":" + minutes, "pm"];
         }
 
-        App.formatDateAsDatePicker = function(date){
+        App.formatDateAsDatePicker = function(date) {
             if (typeof(date) == "number")
                 date = new Date(date);
-            if (isNaN(date.getFullYear()))
+            return App._formatDateAsDatePicker(date.getFullYear(), date.getMonth(), date.getDate());
+        }
+
+        App._formatDateAsDatePicker = function(year, month, date) {
+            if (isNaN(year))
                 return "Present";
-            return date.getFullYear() + "-" + (date.getMonth() < 9 ? "0" : "") + (date.getMonth() + 1) + "-" + (date.getDate() < 9 ? "0" : "") + date.getDate();
+            return year + "-" + (month < 9 ? "0" : "") + (month + 1) + "-" + (date < 9 ? "0" : "") + date;
         }
 
         App.addHideTooltipListener = function(hideFunction) {
