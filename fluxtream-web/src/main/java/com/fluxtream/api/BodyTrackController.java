@@ -18,11 +18,13 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import com.fluxtream.Configuration;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.TimeUnit;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.connectors.fluxtream_capture.FluxtreamCapturePhoto;
 import com.fluxtream.connectors.fluxtream_capture.FluxtreamCapturePhotoStore;
 import com.fluxtream.connectors.fluxtream_capture.FluxtreamCaptureUpdater;
 import com.fluxtream.connectors.vos.AbstractPhotoFacetVO;
@@ -37,6 +39,7 @@ import com.fluxtream.services.PhotoService;
 import com.fluxtream.services.impl.BodyTrackHelper;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import com.google.gson.annotations.Expose;
 import com.google.gson.reflect.TypeToken;
 import com.sun.jersey.core.header.ContentDisposition;
 import com.sun.jersey.multipart.BodyPart;
@@ -58,7 +61,8 @@ import static com.newrelic.api.agent.NewRelic.setTransactionName;
 @Scope("request")
 public class BodyTrackController {
 
-    private static final Logger LOG = Logger.getLogger("Fluxtream");
+    private static final Logger LOG = Logger.getLogger(BodyTrackController.class);
+    private static final Logger LOG_DEBUG = Logger.getLogger("Fluxtream");
 
     @Autowired
 	GuestService guestService;
@@ -85,6 +89,8 @@ public class BodyTrackController {
 
     @Autowired
 	protected ApiDataService apiDataService;
+
+    @Autowired JsonResponseHelper jsonResponseHelper;
 
 	@POST
 	@Path("/uploadHistory")
@@ -168,14 +174,41 @@ public class BodyTrackController {
         return gson.toJson(status);
     }
 
-    // Based on code from http://aruld.info/handling-multiparts-in-restful-applications-using-jersey/
+    private StatusModel createStatusModelFromBodyTrackUploadResult(final BodyTrackHelper.BodyTrackUploadResult uploadResult) {
+
+        // check the uploadResult for success, and create a new StatusModel accordingly
+        final StatusModel status;
+        if (uploadResult.isSuccess()) {
+            status = new StatusModel(true, "Upload successful!");
+        }
+        else {
+            status = new StatusModel(false, "Upload failed!");
+        }
+
+        // Now try to parse the response in the uploadResult as JSON, inflating it into a BodyTrackUploadResponse
+        BodyTrackUploadResponse bodyTrackUploadResponse = null;
+        try {
+            bodyTrackUploadResponse = gson.fromJson(uploadResult.getResponse(), BodyTrackUploadResponse.class);
+        }
+        catch (JsonSyntaxException e) {
+            LOG.error("JsonSyntaxException while trying to convert the BodyTrackUploadResult response into a BodyTrackUploadResponse.  Response was [" + uploadResult.getResponse() + "]", e);
+        }
+
+        // add the response to the payload if non-null
+        if (bodyTrackUploadResponse != null) {
+            status.payload = bodyTrackUploadResponse;
+        }
+        return status;
+    }
+
+    // Based on code from http://aruld.info/handling-multiparts-in-restful-applications-using-jersey/ and http://stackoverflow.com/a/4687942
     @POST
     @Path("/photoUpload")
     @Consumes({MediaType.MULTIPART_FORM_DATA})
     @Produces({MediaType.APPLICATION_JSON})
-    public String handlePhotoUpload(@QueryParam("connector_name") final String connectorName, final MultiPart multiPart) {
+    public Response handlePhotoUpload(@QueryParam("connector_name") final String connectorName, final MultiPart multiPart) {
         setTransactionName(null, "POST /bodytrack/photoUpload");
-        StatusModel status;
+        Response response;
 
         final Connector connector = Connector.getConnector(connectorName);
         if (connector != null) {
@@ -218,87 +251,61 @@ public class BodyTrackController {
                             // nothing about whether that request was actually successful
                             guestService.setApiKeyAttribute(guestId, connector, "last_upload_request_time", String.valueOf(System.currentTimeMillis()));
 
-                            // We have a photo and the metadata, so pass control to the PhotoService to save the photo
-                            status = savePhoto(guestId, photoBytes, jsonMetadata);
+                            // We have a photo and the metadata, so pass control to the FluxtreamCapturePhotoStore to save the photo
+                            LOG_DEBUG.debug("BodyTrackController.savePhoto(" + guestId + ", " + photoBytes.length + ", " + jsonMetadata + ")");
+                            try {
+                                final FluxtreamCapturePhotoStore.OperationResult<FluxtreamCapturePhoto> result = fluxtreamCapturePhotoStore.saveOrUpdatePhoto(guestId, photoBytes, jsonMetadata);
+                                final String photoStoreKey = result.getData().getPhotoStoreKey();
+                                LOG.info("BodyTrackController.handlePhotoUpload(): photo [" + photoStoreKey + "] " + result.getOperation() + " sucessfully!");
+                                response = jsonResponseHelper.ok("photo " + result.getOperation() + " sucessfully!", new PhotoUploadPayload(result.getOperation(), photoStoreKey));
+                            }
+                            catch (FluxtreamCapturePhotoStore.UnsupportedImageFormatException e) {
+                                final String message = "UnsupportedImageFormatException while trying to save the photo";
+                                LOG.error("BodyTrackController.handlePhotoUpload(): " + message);
+                                response = jsonResponseHelper.unsupportedMediaType(message);
+                            }
+                            catch (FluxtreamCapturePhotoStore.InvalidDataException e) {
+                                final String message = "InvalidDataException while trying to save the photo";
+                                LOG.error("BodyTrackController.handlePhotoUpload(): " + message, e);
+                                response = jsonResponseHelper.badRequest(message);
+                            }
+                            catch (FluxtreamCapturePhotoStore.StorageException e) {
+                                final String message = "StorageException while trying to save the photo";
+                                LOG.error("BodyTrackController.handlePhotoUpload(): " + message, e);
+                                response = jsonResponseHelper.internalServerError(message);
+                            }
                         }
                         else {
-                            status = constructFailedStatusModel("Upload failed because both the 'photo' and 'metadata' parts are required and must be non-null");
+                            final String message = "Upload failed because both the 'photo' and 'metadata' parts are required and must be non-null";
+                            LOG.error("BodyTrackController.handlePhotoUpload(): " + message);
+                            response = jsonResponseHelper.badRequest(message);
                         }
                     }
                     else {
-                        status = constructFailedStatusModel("Upload failed because the Multipart was null");
+                        final String message = "Upload failed because the Multipart was null";
+                        LOG.error("BodyTrackController.handlePhotoUpload(): " + message);
+                        response = jsonResponseHelper.badRequest(message);
                     }
                 }
                 catch (Exception e) {
-                    status = constructFailedStatusModel("Upload failed due to exception: " + e);
+                    final String message = "Upload failed due to an unexpected exception";
+                    LOG.error("BodyTrackController.handlePhotoUpload(): " + message, e);
+                    response = jsonResponseHelper.internalServerError(message);
                 }
             }
             else {
-                status = constructFailedStatusModel("Upload failed because photo uploads are currently only allowed for the Fluxtream Capture connector");
+                final String message = "Upload failed because photo uploads are currently only allowed for the Fluxtream Capture connector";
+                LOG.error("BodyTrackController.handlePhotoUpload(): " + message);
+                response = jsonResponseHelper.badRequest(message);
             }
         }
         else {
-            status = constructFailedStatusModel("Upload failed because the connector [" + connectorName + "] is unknown");
+            final String message = "Upload failed because the connector [" + connectorName + "] is unknown";
+            LOG.error("BodyTrackController.handlePhotoUpload(): " + message);
+            response = jsonResponseHelper.badRequest(message);
         }
 
-        return gson.toJson(status);
-    }
-
-    /**
-     * TODO
-     */
-    @NotNull
-    private StatusModel savePhoto(final long guestId, @NotNull final byte[] photoBytes, @NotNull final String jsonMetadata) {
-        LOG.debug("BodyTrackController.savePhoto(" + guestId + ", " + photoBytes.length + ", " + jsonMetadata + ")");
-
-        StatusModel status;
-
-        try {
-            final boolean wasNewInstanceCreated = fluxtreamCapturePhotoStore.saveOrUpdatePhoto(guestId, photoBytes, jsonMetadata);
-            status = new StatusModel(true, "photo " + (wasNewInstanceCreated ? "saved" : "updated") + " sucessfully!");
-        }
-        catch (FluxtreamCapturePhotoStore.InvalidDataException e) {
-            status = constructFailedStatusModel("InvalidDataException while trying to save the photo: " + e);
-        }
-        catch (FluxtreamCapturePhotoStore.StorageException e) {
-            status = constructFailedStatusModel("StorageException while trying to save the photo: " + e);
-        }
-
-        return status;
-    }
-
-    private StatusModel constructFailedStatusModel(final String message) {
-        final StatusModel status = new StatusModel(false, "Upload failed!");
-        status.payload = message;
-        LOG.error("BodyTrackController: " + message);
-        return status;
-    }
-
-    private StatusModel createStatusModelFromBodyTrackUploadResult(final BodyTrackHelper.BodyTrackUploadResult uploadResult) {
-
-        // check the uploadResult for success, and create a new StatusModel accordingly
-        final StatusModel status;
-        if (uploadResult.isSuccess()) {
-            status = new StatusModel(true, "Upload successful!");
-        }
-        else {
-            status = new StatusModel(false,"Upload failed!");
-        }
-
-        // Now try to parse the response in the uploadResult as JSON, inflating it into a BodyTrackUploadResponse
-        BodyTrackUploadResponse bodyTrackUploadResponse = null;
-        try {
-            bodyTrackUploadResponse = gson.fromJson(uploadResult.getResponse(),BodyTrackUploadResponse.class);
-        }
-        catch (JsonSyntaxException e) {
-            LOG.error("JsonSyntaxException while trying to convert the BodyTrackUploadResult response into a BodyTrackUploadResponse.  Response was [" + uploadResult.getResponse() + "]", e);
-        }
-
-        // add the response to the payload if non-null
-        if (bodyTrackUploadResponse != null) {
-            status.payload = bodyTrackUploadResponse;
-        }
-        return status;
+        return response;
     }
 
     @GET
@@ -504,8 +511,8 @@ public class BodyTrackController {
                 }
             }
 
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("BodyTrackController.fetchPhotoTile(): num photos filtered from " + photos.size() + " to " + filteredPhotos.size());
+            if (LOG_DEBUG.isDebugEnabled()) {
+                LOG_DEBUG.debug("BodyTrackController.fetchPhotoTile(): num photos filtered from " + photos.size() + " to " + filteredPhotos.size());
             }
 
             return gson.toJson(filteredPhotos);
@@ -663,6 +670,21 @@ public class BodyTrackController {
 
         public boolean isValid() {
             return capture_time >= 0;
+        }
+    }
+
+    private class PhotoUploadPayload {
+        @NotNull
+        @Expose
+        private final String operation;
+
+        @NotNull
+        @Expose
+        private final String key;
+
+        public PhotoUploadPayload(@NotNull final FluxtreamCapturePhotoStore.Operation operation, @NotNull final String photoStoreKey) {
+            this.operation = operation.getName();
+            this.key = photoStoreKey;
         }
     }
 }

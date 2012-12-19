@@ -304,9 +304,16 @@ public final class ImageUtils {
                 orientation = Orientation.ORIENTATION_1;
             }
 
-            final BufferedImage image = convertToBufferedImage(imageBytes);
-            if (image != null) {
-                return orientation.transform(Scalr.resize(image, Scalr.Method.AUTOMATIC, Scalr.Mode.AUTOMATIC, lengthOfLongestSideInPixels));
+            try {
+                final BufferedImage image = convertToBufferedImage(imageBytes);
+                if (image != null) {
+                    return orientation.transform(Scalr.resize(image, Scalr.Method.AUTOMATIC, Scalr.Mode.AUTOMATIC, lengthOfLongestSideInPixels));
+                }
+            }
+            catch (Exception e) {
+                final String message = "Exception while trying to create a thumbnail";
+                LOG.error(message, e);
+                throw new IOException(e);
             }
         }
 

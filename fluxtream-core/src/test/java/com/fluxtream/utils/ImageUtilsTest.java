@@ -98,6 +98,7 @@ public class ImageUtilsTest {
         Assert.assertNull(ImageUtils.createThumbnail(new byte[]{}, 100));
         Assert.assertNull(ImageUtils.createThumbnail(IMAGE_1, -1));
         Assert.assertNull(ImageUtils.createThumbnail(IMAGE_1, 0));
+        Assert.assertNull(ImageUtils.createThumbnail(NOT_AN_IMAGE, 100));
 
         testCreateThumbnailHelper(IMAGE_1, 50, new Dimension(47, 50));
         testCreateThumbnailHelper(IMAGE_1, 100, new Dimension(93, 100));

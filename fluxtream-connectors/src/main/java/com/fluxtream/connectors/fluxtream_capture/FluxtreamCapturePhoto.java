@@ -18,7 +18,7 @@ import org.joda.time.DateTimeZone;
 /**
  * @author Chris Bartley (bartley@cmu.edu)
  */
-final class FluxtreamCapturePhoto {
+public final class FluxtreamCapturePhoto {
     private static final Logger LOG = Logger.getLogger(FluxtreamCapturePhoto.class);
 
     private static final int THUMBNAIL_SMALL_MAX_SIDE_LENGTH_IN_PIXELS = 150;
@@ -62,10 +62,10 @@ final class FluxtreamCapturePhoto {
     @Nullable
     private final Geolocation geolocation;
 
-    FluxtreamCapturePhoto(final long guestId, @NotNull final byte[] photoBytes, final long captureTimeMillisUtc) throws IllegalArgumentException, NoSuchAlgorithmException, IOException {
+    FluxtreamCapturePhoto(final long guestId, @NotNull final byte[] photoBytes, final long captureTimeMillisUtc) throws IllegalArgumentException, NoSuchAlgorithmException, IOException, UnsupportedOperationException {
 
         if (!ImageUtils.isImage(photoBytes)) {
-            throw new IllegalArgumentException("The photoBytes do not contain a supported image type");
+            throw new UnsupportedOperationException("The photoBytes do not contain a supported image type");
         }
 
         if (captureTimeMillisUtc < 0) {
@@ -85,11 +85,13 @@ final class FluxtreamCapturePhoto {
                         CONNECTOR_PRETTY_NAME + KEY_VALUE_STORE_KEY_PART_DELIMITER +
                         OBJECT_TYPE_NAME + KEY_VALUE_STORE_KEY_PART_DELIMITER +
                         captureYYYYDDD + KEY_VALUE_STORE_KEY_PART_DELIMITER +
-                        photoHash + KEY_VALUE_STORE_FILENAME_PART_DELIMITER +
-                        String.valueOf(captureTimeMillisUtc);
+                        String.valueOf(captureTimeMillisUtc) + KEY_VALUE_STORE_FILENAME_PART_DELIMITER +
+                        photoHash;
 
-        final BufferedImage thumbnailSmallImage = ImageUtils.createThumbnail(photoBytes, THUMBNAIL_SMALL_MAX_SIDE_LENGTH_IN_PIXELS);
+        // Create the thumbnails: do so by creating the large one first, and then creating the smaller
+        // on from the larger--this should be faster than creating each from the original image
         final BufferedImage thumbnailLargeImage = ImageUtils.createThumbnail(photoBytes, THUMBNAIL_LARGE_MAX_SIDE_LENGTH_IN_PIXELS);
+        final BufferedImage thumbnailSmallImage = ImageUtils.createThumbnail(ImageUtils.convertToByteArray(thumbnailLargeImage), THUMBNAIL_SMALL_MAX_SIDE_LENGTH_IN_PIXELS);
         if (thumbnailSmallImage == null || thumbnailLargeImage == null) {
             throw new IOException("Failed to create thumbnails");
         }

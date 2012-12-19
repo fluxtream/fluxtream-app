@@ -22,6 +22,32 @@ public final class FluxtreamCapturePhotoStore {
 
     private static final Logger LOG = Logger.getLogger("Fluxtream");
 
+    public enum Operation {
+        CREATED("created"), UPDATED("updated");
+        private final String name;
+
+        Operation(final String name) {
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public String toString() {
+            return name;
+        }
+    }
+
+    public interface OperationResult<T> {
+        @NotNull
+        Operation getOperation();
+
+        @NotNull
+        T getData();
+    }
+
     @Autowired
     private ApiDataService apiDataService;
 
@@ -36,14 +62,16 @@ public final class FluxtreamCapturePhotoStore {
 
     /**
      * Saves the given photo for the given user to both the database and the Fluxtream Capture key-value photo store.
-     * Returns <code>true</code> if the photo was created, <code>false</code> if it was updated, or throws a
+     * Returns an {@link OperationResult} if the photo was created or updated (see the
+     * {@link OperationResult#getOperation()} method to determine which occurred), or throws a
      * {@link FluxtreamCapturePhotoStoreException} exception if the save/update failed.
      *
      * @throws InvalidDataException if the photo or its metadata is <code>null</code>, empty, or in some way invalid
      * @throws StorageException if the save/update fails to either the photo key-value store or the database
+     * @throws UnsupportedImageFormatException if the save/update fails because the given image is not of a supported format
      */
     @SuppressWarnings("ConstantConditions")
-    public boolean saveOrUpdatePhoto(final long guestId, @NotNull final byte[] photoBytes, @NotNull final String jsonMetadata) throws StorageException, InvalidDataException {
+    public OperationResult<FluxtreamCapturePhoto> saveOrUpdatePhoto(final long guestId, @NotNull final byte[] photoBytes, @NotNull final String jsonMetadata) throws StorageException, InvalidDataException, UnsupportedImageFormatException {
         if (LOG.isDebugEnabled()) {
             LOG.debug("FluxtreamCapturePhotoStore.savePhoto(" + guestId + ", " + photoBytes.length + ", " + jsonMetadata + ")");
         }
@@ -95,6 +123,11 @@ public final class FluxtreamCapturePhotoStore {
         try {
             photo = new FluxtreamCapturePhoto(guestId, photoBytes, captureTimeMillisUtc);
         }
+        catch (UnsupportedOperationException e) {
+            final String message = "Photo upload failed because an UnsupportedOperationException occurred while trying to create the FluxtreamCapturePhoto";
+            LOG.error("FluxtreamCapturePhotoStore.saveOrUpdatePhoto(): " + message, e);
+            throw new UnsupportedImageFormatException(message);
+        }
         catch (Exception e) {
             final String message = "Photo upload failed because an Exception occurred while trying to create the FluxtreamCapturePhoto";
             LOG.error("FluxtreamCapturePhotoStore.saveOrUpdatePhoto(): " + message, e);
@@ -138,7 +171,20 @@ public final class FluxtreamCapturePhotoStore {
         if (LOG.isDebugEnabled()) {
             LOG.debug("FluxtreamCapturePhotoStore.saveOrUpdatePhoto(): photo [" + photoFacet.getHash() + "] " + (photoCreatorOrModifier.wasCreated() ? "saved" : "updated") + " sucessfully for user [" + guestId + "]");
         }
-        return photoCreatorOrModifier.wasCreated();
+
+        return new OperationResult<FluxtreamCapturePhoto>() {
+            @NotNull
+            @Override
+            public Operation getOperation() {
+                return photoCreatorOrModifier.wasCreated() ? Operation.CREATED : Operation.UPDATED;
+            }
+
+            @NotNull
+            @Override
+            public FluxtreamCapturePhoto getData() {
+                return photo;
+            }
+        };
     }
 
     private static class PhotoUploadMetadata {
@@ -215,6 +261,16 @@ public final class FluxtreamCapturePhotoStore {
         }
 
         protected InvalidDataException(final String s, final Throwable throwable) {
+            super(s, throwable);
+        }
+    }
+
+    public static final class UnsupportedImageFormatException extends FluxtreamCapturePhotoStoreException {
+        protected UnsupportedImageFormatException(final String s) {
+            super(s);
+        }
+
+        protected UnsupportedImageFormatException(final String s, final Throwable throwable) {
             super(s, throwable);
         }
     }
