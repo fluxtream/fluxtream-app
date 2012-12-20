@@ -19,6 +19,7 @@
     <script data-main="/${release}/js/test.js" src="${pageContext.request.contextPath}/static/js/require-1.0.3.js"></script>
     <!-- spec files -->
     <script src="/${release}/js/test/FlxStateSpec.js"></script>
+    <script src="/${release}/js/test/DateUtilsSpec.js"></script>
     <script>
         (function() {
             var jasmineEnv = jasmine.getEnv();

@@ -1,4 +1,4 @@
-define(["core/FlxState"], function(FlxState) {
+require(["core/FlxState"], function(FlxState) {
     describe("FlxState", function() {
         it("can save app state successfully", function() {
             expect(function() {

@@ -16,6 +16,11 @@
           <element id="library" level="project" name="Maven: commons-lang:commons-lang:2.4" />
           <element id="library" level="project" name="Maven: commons-logging:commons-logging:1.1.1" />
           <element id="library" level="project" name="Maven: org.jetbrains:annotations:7.0.2" />
+          <element id="library" level="project" name="Maven: org.imgscalr:imgscalr-lib:4.2" />
+          <element id="library" level="project" name="Maven: com.drewnoakes:metadata-extractor:2.6.2" />
+          <element id="library" level="project" name="Maven: com.adobe.xmp:xmpcore:5.1.2" />
+          <element id="library" level="project" name="Maven: xerces:xercesImpl:2.10.0" />
+          <element id="library" level="project" name="Maven: xml-apis:xml-apis:1.4.01" />
           <element id="library" level="project" name="Maven: com.ocpsoft:ocpsoft-pretty-time:1.0.7" />
           <element id="library" level="project" name="Maven: com.postmark:postmark-client:0.3.1" />
           <element id="library" level="project" name="Maven: com.google.code.gson:gson:1.7.1" />
@@ -63,10 +68,8 @@
           <element id="library" level="project" name="Maven: com.google.api.client:google-api-client:1.1.1-alpha" />
           <element id="library" level="project" name="Maven: org.codehaus.jackson:jackson-core-asl:1.9.2" />
           <element id="library" level="project" name="Maven: xpp3:xpp3:1.1.4c" />
-          <element id="library" level="project" name="Maven: xml-apis:xml-apis:1.0.b2" />
           <element id="library" level="project" name="Maven: jaxen:jaxen:1.1.1" />
           <element id="library" level="project" name="Maven: jdom:jdom:1.0" />
-          <element id="library" level="project" name="Maven: xerces:xercesImpl:2.6.2" />
           <element id="library" level="project" name="Maven: xom:xom:1.0" />
           <element id="library" level="project" name="Maven: xerces:xmlParserAPIs:2.6.2" />
           <element id="library" level="project" name="Maven: xalan:xalan:2.6.0" />
@@ -183,6 +186,8 @@
           <element id="archive" name="fluxtream-connectors-1.0.jar">
             <element id="module-output" name="fluxtream-connectors" />
           </element>
+          <element id="library" level="project" name="Maven: com.sun.jersey.contribs:jersey-multipart:1.11" />
+          <element id="library" level="project" name="Maven: org.jvnet:mimepull:1.6" />
         </element>
       </element>
     </root>

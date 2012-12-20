@@ -1,28 +1,33 @@
 define([], function() {
-	
+
+    var FlxState = {};
+    FlxState.router = new Backbone.Router();
+    FlxState.apps = ["calendar","bodytrack"];
+    FlxState.defaultApp = "calendar";
+
 	var storage = {};
 	var tabStateStorage = {};
-	
-	function store(appName, urlState) {
+
+	FlxState.saveState = function(appName, urlState) {
 		if (typeof(storage[appName])=="undefined")
 			storage[appName] = {};
 		storage[appName] = urlState;
-	}
+	};
 
-	function restore(appName) {
+	FlxState.getState = function(appName) {
 		if (typeof(storage[appName])=="undefined")
 			return null;
 		return storage[appName];
-	}
+	};
 	
-	function storeTab(appName, tabName, tabState) {
+	FlxState.saveTabState = function(appName, tabName, tabState) {
 		if (_.isUndefined(tabStateStorage[appName])) {
 			tabStateStorage[appName] = {};
         }
 		tabStateStorage[appName][tabName] = tabState;
-	}
+	};
 
-	function restoreTab(appName, tabName) {
+	FlxState.getTabState = function(appName, tabName) {
         var appTabStateStorage = tabStateStorage[appName];
         if (_.isUndefined(appTabStateStorage)) {
             return null;
@@ -31,16 +36,7 @@ define([], function() {
 			return null;
         }
 		return appTabStateStorage[tabName];
-	}
-	
-	var state = {};
-	state.saveState = store;
-	state.getState = restore;
-	state.saveTabState = storeTab;
-	state.getTabState = restoreTab;
-	state.router = new Backbone.Router();
-	state.apps = ["calendar","bodytrack"];
-	state.defaultApp = "calendar";
-	
-	return state;
+	};
+
+    return FlxState;
 });

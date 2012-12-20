@@ -83,7 +83,12 @@
 			<artifactId>fluxtream-connectors</artifactId>
 			<version>1.0</version>
 		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>com.sun.jersey.contribs</groupId>
+            <artifactId>jersey-multipart</artifactId>
+            <version>1.11</version>
+        </dependency>
+    </dependencies>
     <properties>
         <release>0.9.0004</release>
     </properties>

@@ -14,6 +14,7 @@ import javax.ws.rs.core.MediaType;
 import com.fluxtream.api.gson.UpdateInfoSerializer;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
@@ -95,6 +96,15 @@ public class ConnectorStore {
                     ConnectorInfo connector = connectors.get(i);
                     JSONObject connectorJson = new JSONObject();
                     Connector conn = Connector.fromValue(connector.api);
+                    connectorJson.accumulate("prettyName", conn.prettyName());
+                    List<String> facetTypes = new ArrayList<String>();
+                    ObjectType[] objTypes = conn.objectTypes();
+                    if (objTypes != null) {
+                        for (ObjectType obj : objTypes) {
+                            facetTypes.add(connector.connectorName + "-" + obj.getName());
+                        }
+                    }
+                    connectorJson.accumulate("facetTypes", facetTypes);
                     connectorJson.accumulate("name", connector.name);
                     connectorJson.accumulate("connectUrl", connector.connectUrl);
                     connectorJson.accumulate("image", connector.image);
@@ -296,5 +306,4 @@ public class ConnectorStore {
         }
         return gson.toJson(result);
     }
-
 }

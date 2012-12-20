@@ -117,15 +117,16 @@ define(function() {
     DashboardWidget.prototype.getPrettyTimeUnit = function() {
         var unit = this.getTimeUnit();
         switch (unit) {
-            case "DAY":
+            case "date":
                 return "Today";
-            case "WEEK":
+            case "week":
                 return "This Week";
-            case "MONTH":
+            case "month":
                 return "This Month";
-            default:
+            case "year":
                 return "This Year";
         }
+        return null;
     }
 
     DashboardWidget.prototype.getTimeUnit=function() {

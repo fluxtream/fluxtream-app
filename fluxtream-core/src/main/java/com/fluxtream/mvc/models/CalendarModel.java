@@ -1,15 +1,15 @@
 package com.fluxtream.mvc.models;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
 import com.fluxtream.services.MetadataService;
 import net.sf.json.JSONObject;
 
+import org.joda.time.DateTimeConstants;
 import org.joda.time.DateTimeZone;
+import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
@@ -31,343 +31,277 @@ public class CalendarModel {
     private static final DateTimeFormatter currentYearFormatter = DateTimeFormat
             .forPattern("yyyy");
 
+    public static final int FIRST_DAY_OF_WEEK = DateTimeConstants.SUNDAY;
+
+    private final long guestId;
+    private final MetadataService metadataService;
+
     private TimeUnit timeUnit = TimeUnit.DAY;
-    private Calendar fromCalendar;
-    private Calendar toCalendar;
+    private LocalDate fromDate;
 
-    private String title;
-
-    public CalendarModel(long guestId, MetadataService metadataService) {
-        final TimeZone currentTimeZone = metadataService.getTimeZone(guestId, System.currentTimeMillis());
-        setToToday(TimeUnit.DAY, currentTimeZone);
+    public CalendarModel(final long guestId, final MetadataService metadataService) {
+        this.guestId = guestId;
+        this.metadataService = metadataService;
+        setToToday();
     }
 
-    public static CalendarModel fromState(long guestId, MetadataService metadataService, final String state) {
+    public static CalendarModel fromState(final long guestId,
+                                          final MetadataService metadataService,
+                                          final String state) {
         CalendarModel calendarModel = new CalendarModel(guestId, metadataService);
-        calendarModel.parseState(guestId, metadataService, state);
+        calendarModel.replaceState(state);
         return calendarModel;
     }
 
-    public void setYear(final long guestId, final MetadataService metadataService, int year) {
-        this.timeUnit = TimeUnit.YEAR;
-
-        set(fromCalendar, Calendar.YEAR, year);
-        set(fromCalendar, Calendar.MONTH, Calendar.JANUARY);
-        set(fromCalendar, Calendar.DATE, 1);
-        fromCalendar = TimeUtils.setFromMidnight(fromCalendar);
-
-        set(toCalendar, Calendar.YEAR, year);
-        set(toCalendar, Calendar.MONTH, Calendar.DECEMBER);
-        set(toCalendar, Calendar.DATE, toCalendar.getActualMaximum(Calendar.DATE));
-        toCalendar = TimeUtils.setToMidnight(fromCalendar);
+    public void setYear(final int year) {
+        timeUnit = TimeUnit.YEAR;
+        fromDate = new LocalDate(year, 1, 1);
     }
 
-    public void setDate(final long guestId, final MetadataService metadataService, String formattedDate) {
+    public void setDate(final String formattedDate) {
         this.timeUnit = TimeUnit.DAY;
-        final TimeZone tz = metadataService.getTimeZone(guestId, formattedDate);
-        Date date = new Date(jsDateFormatter.withZone(
-                DateTimeZone.forTimeZone(tz)).parseMillis(formattedDate));
-        fromCalendar.clear();
-        fromCalendar.setTime(date);
-        fromCalendar = TimeUtils.setFromMidnight(fromCalendar);
-        toCalendar.clear();
-        toCalendar.setTime(date);
-        toCalendar = TimeUtils.setToMidnight(fromCalendar);
+        // TODO: If we were using JodaTime 2.0 or later, we could simply write
+        // fromDate = LocalDate.parse(formattedDate, jsDateFormatter)
+        fromDate = jsDateFormatter.parseDateTime(formattedDate).toLocalDate();
     }
 
-    public void setWeek(final long guestId, final MetadataService metadataService, int year, int week) {
+    public void setWeek(final int year, final int week) {
         this.timeUnit = TimeUnit.WEEK;
-
-        set(fromCalendar, Calendar.YEAR, year);
-        set(fromCalendar, Calendar.WEEK_OF_YEAR, week);
-        set(fromCalendar, Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
-        set(fromCalendar, Calendar.HOUR_OF_DAY, 0);
-        set(fromCalendar, Calendar.MINUTE, 0);
-        set(fromCalendar, Calendar.SECOND, 0);
-        set(fromCalendar, Calendar.MILLISECOND, 0);
-
-        set(toCalendar, Calendar.YEAR, year);
-        set(toCalendar, Calendar.WEEK_OF_YEAR, week);
-        set(toCalendar, Calendar.DAY_OF_WEEK, Calendar.SATURDAY);
-        set(toCalendar, Calendar.HOUR_OF_DAY, 23);
-        set(toCalendar, Calendar.MINUTE, 59);
-        set(toCalendar, Calendar.SECOND, 59);
-        set(toCalendar, Calendar.MILLISECOND, 999);
+        fromDate = getBeginningOfWeek(year, week);
     }
 
-    public void setMonth(final long guestId, final MetadataService metadataService, int year, int month) {
-        this.timeUnit = timeUnit.MONTH;
-
-        set(fromCalendar, Calendar.YEAR, year);
-        set(fromCalendar, Calendar.MONTH, month);
-        set(fromCalendar, Calendar.DATE, 1);
-        set(fromCalendar, Calendar.HOUR_OF_DAY, 0);
-        set(fromCalendar, Calendar.MINUTE, 0);
-        set(fromCalendar, Calendar.SECOND, 0);
-        set(fromCalendar, Calendar.MILLISECOND, 0);
-
-        set(toCalendar, Calendar.YEAR, year);
-        set(toCalendar, Calendar.MONTH, month);
-        set(toCalendar, Calendar.DATE, toCalendar.getActualMaximum(Calendar.DATE));
-        set(toCalendar, Calendar.HOUR_OF_DAY, 23);
-        set(toCalendar, Calendar.MINUTE, 59);
-        set(toCalendar, Calendar.SECOND, 59);
-        set(toCalendar, Calendar.MILLISECOND, 999);
+    public static LocalDate getBeginningOfWeek(final int year, final int week) {
+        return (new LocalDate())
+                .withWeekyear(year)
+                .withWeekOfWeekyear(week)
+                .minusWeeks(1)
+                .withDayOfWeek(FIRST_DAY_OF_WEEK);
+        // Need to subtract 1 week because Sunday is the last day of the week, which
+        // would logically move all the week start dates forward by 6 days.  Better
+        // one day earlier than JodaTime's standard than 6 days later than
+        // users' expectations.
     }
 
-    private static void set(Calendar calendar, int field, int value) {
-        calendar.clear(field);
-        calendar.set(field, value);
+    public int getWeekYear() {
+        if (timeUnit != TimeUnit.WEEK)
+            throw new IllegalStateException("Unexpected check for week year when not using week time unit");
+        // Off by 1 because getBeginningOfWeek(year, week), and by extension
+        // setWeek(year, week) goes back by 1 week
+        return fromDate.plusWeeks(1).getWeekyear();
     }
 
-    public String getTitle() {
-        return title;
+    public int getWeek() {
+        if (timeUnit != TimeUnit.WEEK)
+            throw new IllegalStateException("Unexpected check for week when not using week time unit");
+        // Off by 1 because getBeginningOfWeek(year, week), and by extension
+        // setWeek(year, week) goes back by 1 week
+        return fromDate.plusWeeks(1).getWeekOfWeekyear();
     }
 
-    public void setTitle(String title) {
-        try {
-            this.title = new String(title.getBytes(), "utf-8");
-        } catch (UnsupportedEncodingException e) {
+    public void setMonth(final int year, final int month) {
+        timeUnit = timeUnit.MONTH;
+        fromDate = new LocalDate(year, 1, 1).withMonthOfYear(month);
+    }
+
+    /**
+     * Returns one past the end date.
+     *
+     * This is similar to the behavior of Python's range function or Java's String.substring method,
+     * and it has the desirable property that the number of milliseconds between midnight on
+     * getToDate() and midnight on fromDate is equal to the number of milliseconds in a day times
+     * the number of days in the range described by TimeUnit (assuming there is no time zone change,
+     * leap second, or daylight savings time start/end in the middle).
+     */
+    private LocalDate getToDate() {
+        switch (timeUnit) {
+            case DAY:
+                return fromDate.plusDays(1);
+            case WEEK:
+                return fromDate.plusWeeks(1);
+            case MONTH:
+                return fromDate.plusMonths(1);
+            case YEAR:
+                return fromDate.plusYears(1);
         }
+
+        throw new UnsupportedOperationException("Unexpected TimeUnit value");
+    }
+
+    private TimeZone getTimeZone(final LocalDate date) {
+        // The format used for dateString is the same format used in
+        // MetadataServiceImpl's formatter
+        final String dateString = date.toString("yyyy-MM-dd");
+        return metadataService.getTimeZone(guestId, dateString);
+    }
+
+    private DateTimeZone getBrowserDateTimeZone() {
+        // TODO: This doesn't match the implementation, even though it should be right
+        final TimeZone tz = metadataService.getCurrentTimeZone(guestId);
+        return DateTimeZone.forTimeZone(tz);
+    }
+
+    private long getMillis(final LocalDate date) {
+        return date.toDateTimeAtStartOfDay(DateTimeZone.forTimeZone(getTimeZone(date)))
+                .getMillis();
     }
 
     public long getStart() {
-        return fromCalendar.getTimeInMillis();
+        return getMillis(fromDate);
     }
 
     public long getEnd() {
-        return toCalendar.getTimeInMillis();
+        return getMillis(getToDate());
     }
 
-    public Date getStartTime() {
-        return fromCalendar.getTime();
-    }
+    public String toJSONString(final Configuration env) {
+        // TODO: Include information in JSON that tells which calendar cells should
+        // be lit up - don't want to use UTC timestamps to determine that info
 
-    public Date getEndTime() {
-        return toCalendar.getTime();
-    }
-
-    public String toJSONString(long guestId, MetadataService metadataService, Configuration env) {
-        JSONObject json = new JSONObject();
+        final JSONObject json = new JSONObject();
         json.put("timeUnit", timeUnit.toString());
         json.put("currentTimespanLabel", timespanLabel());
-        json.put("isToday", isToday(guestId, metadataService));
+        json.put("isToday", isToday());
         json.put("state", getState());
         json.put("start", getStart());
         json.put("end", getEnd());
-        if (this.title != null) {
-            json.put("title", title);
-        }
         return json.toString();
     }
 
     /**
-     * return a hash that serves as a client-side caching key; it is
+     * Returns a hash that serves as a client-side caching key; it is
      * release-based
-     *
-     * @param env
-     * @return
      */
-    private String getTimeHash(Configuration env, String configKey) {
-        String toHash = env.get("release") + getStart() + getEnd()
-                        + configKey;
+    private String getTimeHash(final Configuration env, final String configKey) {
+        final String toHash = env.get("release") + getStart() + getEnd() + configKey;
         return Utils.hash(toHash);
     }
 
     private String getState() {
-        if (timeUnit == TimeUnit.DAY)
-            return "date/"
-                   + jsDateFormatter.withZone(DateTimeZone.forTimeZone(fromCalendar.getTimeZone()))
-                    .print(fromCalendar.getTimeInMillis());
-        else if (timeUnit == TimeUnit.WEEK)
-            return "week/" + fromCalendar.get(Calendar.YEAR) + "/"
-                   + fromCalendar.get(Calendar.WEEK_OF_YEAR);
-        else if (timeUnit == TimeUnit.MONTH)
-            return "month/" + fromCalendar.get(Calendar.YEAR) + "/"
-                   + fromCalendar.get(Calendar.MONTH);
-        else if (timeUnit == TimeUnit.YEAR)
-            return "year/" + fromCalendar.get(Calendar.YEAR);
-        return "UNKNOWN_DATE";
-    }
-
-    public void setToToday(TimeUnit timeUnit, TimeZone tz) {
-        this.timeUnit = timeUnit;
-        fromCalendar = TimeUtils.setFromMidnight(new GregorianCalendar(tz));
-        toCalendar = TimeUtils.setToMidnight(new GregorianCalendar(tz));
-        switch (timeUnit){
+        switch (timeUnit) {
+            case DAY:
+                return "date/" + jsDateFormatter.print(fromDate);
             case WEEK:
-                this.timeUnit = TimeUnit.WEEK;
-                break;
+                return String.format("week/%d/%d", getWeekYear(), getWeek());
             case MONTH:
-                this.timeUnit = TimeUnit.MONTH;
-                break;
+                return String.format("month/%d/%d", fromDate.getYear(), fromDate.getMonthOfYear());
             case YEAR:
-                this.timeUnit = TimeUnit.YEAR;
-                break;
+                return String.format("year/%d", fromDate.getYear());
         }
+
+        throw new UnsupportedOperationException("Unexpected TimeUnit value");
     }
 
-    private boolean isToday(long guestId, MetadataService metadataService) {
-        if (timeUnit != TimeUnit.DAY)
-            return false;
-        final TimeZone currentUserTimeZone = metadataService.getTimeZone(guestId, System.currentTimeMillis());
-        Calendar today = Calendar.getInstance(currentUserTimeZone);
-        return fromCalendar.get(Calendar.YEAR) == today.get(Calendar.YEAR)
-               && fromCalendar.get(Calendar.MONTH) == today.get(Calendar.MONTH)
-               && fromCalendar.get(Calendar.DAY_OF_MONTH) == today.get(Calendar.DAY_OF_MONTH);
+    public void setToToday() {
+        timeUnit = TimeUnit.DAY;
+        fromDate = new LocalDate(getBrowserDateTimeZone());
+    }
+
+    private boolean isToday() {
+        final LocalDate today = new LocalDate(getBrowserDateTimeZone());
+        return (timeUnit == TimeUnit.DAY)
+               && (fromDate.getYear() == today.getYear())
+               && (fromDate.getMonthOfYear() == today.getMonthOfYear())
+               && (fromDate.getDayOfMonth() == today.getDayOfMonth());
     }
 
     private String timespanLabel() {
-        String currentTimespanLabel = "";
-        switch (this.timeUnit) {
+        switch (timeUnit) {
             case DAY:
-                currentTimespanLabel = currentDateFormatter.withZone(
-                        DateTimeZone.forTimeZone(fromCalendar.getTimeZone())).print(
-                        fromCalendar.getTimeInMillis());
-                break;
+                return currentDateFormatter.print(fromDate);
             case WEEK:
-                String from = shortDayFormatter.withZone(
-                        DateTimeZone.forTimeZone(fromCalendar.getTimeZone())).print(
-                        fromCalendar.getTimeInMillis());
-                String to = shortDayFormatter
-                        .withZone(DateTimeZone.forTimeZone(toCalendar.getTimeZone())).print(
-                                toCalendar.getTimeInMillis());
-                String year = currentYearFormatter.print(fromCalendar
-                                                                 .getTimeInMillis());
-                currentTimespanLabel = from + " - " + to + " " + year;
-                break;
+                final String from = shortDayFormatter.print(fromDate);
+                final String to = shortDayFormatter.print(getToDate().minusDays(1));
+                // TODO: Way to handle from and to in different years?
+                final String year = currentYearFormatter.print(fromDate);
+                return from + " - " + to + " " + year;
             case MONTH:
-                currentTimespanLabel = currentMonthFormatter.withZone(
-                        DateTimeZone.forTimeZone(fromCalendar.getTimeZone())).print(
-                        fromCalendar.getTimeInMillis());
-                break;
+                return currentMonthFormatter.print(fromDate);
             case YEAR:
-                currentTimespanLabel = currentYearFormatter.withZone(
-                        DateTimeZone.forTimeZone(fromCalendar.getTimeZone())).print(
-                        fromCalendar.getTimeInMillis());
-                break;
+                return currentYearFormatter.print(fromDate);
         }
 
-        return currentTimespanLabel;
+        throw new UnsupportedOperationException("Unexpected TimeUnit value");
     }
 
-    public void incrementTimespan(final long guestId, final MetadataService metadataService, final String state) {
-        parseState(guestId, metadataService, state);
-        switch (this.timeUnit) {
+    public void incrementTimespan() {
+        switch (timeUnit) {
             case DAY:
-                fromCalendar.add(Calendar.DATE, 1);
-                toCalendar.add(Calendar.DATE, 1);
+                fromDate = fromDate.plusDays(1);
                 break;
             case WEEK:
-                fromCalendar.add(Calendar.WEEK_OF_YEAR, 1);
-                toCalendar.add(Calendar.WEEK_OF_YEAR, 1);
+                fromDate = fromDate.plusWeeks(1);
                 break;
             case MONTH:
-                fromCalendar.add(Calendar.MONTH, 1);
-                toCalendar.add(Calendar.MONTH, 1);
+                fromDate = fromDate.plusMonths(1);
                 break;
             case YEAR:
-                fromCalendar.add(Calendar.YEAR, 1);
-                toCalendar.add(Calendar.YEAR, 1);
+                fromDate = fromDate.plusYears(1);
                 break;
         }
     }
 
-    public void decrementTimespan(final long guestId, final MetadataService metadataService, final String state) {
-        parseState(guestId, metadataService, state);
-        switch (this.timeUnit) {
+    public void decrementTimespan() {
+        switch (timeUnit) {
             case DAY:
-                fromCalendar.add(Calendar.DATE, -1);
-                toCalendar.add(Calendar.DATE, -1);
+                fromDate = fromDate.minusDays(1);
                 break;
             case WEEK:
-                fromCalendar.add(Calendar.WEEK_OF_YEAR, -1);
-                toCalendar.add(Calendar.WEEK_OF_YEAR, -1);
+                fromDate = fromDate.minusWeeks(1);
                 break;
             case MONTH:
-                fromCalendar.add(Calendar.MONTH, -1);
-                toCalendar.add(Calendar.MONTH, -1);
+                fromDate = fromDate.minusMonths(1);
                 break;
             case YEAR:
-                fromCalendar.add(Calendar.YEAR, -1);
-                toCalendar.add(Calendar.YEAR, -1);
+                fromDate = fromDate.minusYears(1);
                 break;
         }
     }
 
-    private void parseState(final long guestId, final MetadataService metadataService, final String state) {
-        String[] stateParts = state.split("/");
-        TimeUnit timeUnit = TimeUnit.fromValue(stateParts[0].equals("date")?"day":stateParts[0]);
+    public void replaceState(final String state) {
+        final String[] stateParts = state.split("/");
+        final TimeUnit timeUnit = TimeUnit.fromValue(stateParts[0].equals("date") ? "day" : stateParts[0]);
 
-        switch(timeUnit) {
+        final int year, month, week;
+
+        switch (timeUnit) {
             case DAY:
-                setDate(guestId, metadataService, stateParts[1]);
+                setDate(stateParts[1]);
                 break;
             case WEEK:
-                int year = Integer.valueOf(stateParts[1]);
-                int week = Integer.valueOf(stateParts[2]);
-                setWeek(guestId, metadataService, year, week);
+                year = Integer.valueOf(stateParts[1]);
+                week = Integer.valueOf(stateParts[2]);
+                setWeek(year, week);
                 break;
             case MONTH:
                 year = Integer.valueOf(stateParts[1]);
-                int month = Integer.valueOf(stateParts[2]);
-                setMonth(guestId, metadataService, year, month);
+                month = Integer.valueOf(stateParts[2]);
+                setMonth(year, month);
                 break;
             case YEAR:
                 year = Integer.valueOf(stateParts[1]);
-                setYear(guestId, metadataService, year);
+                setYear(year);
                 break;
         }
     }
 
     public void setYearTimeUnit() {
-        this.timeUnit = TimeUnit.YEAR;
-
-        //fromCalendar.set(Calendar.YEAR, fromCalendar.get(Calendar.YEAR));
-        set(fromCalendar, Calendar.MONTH, Calendar.JANUARY);
-        set(fromCalendar, Calendar.DATE, 1);
-        fromCalendar = TimeUtils.setFromMidnight(fromCalendar);
-
-        set(toCalendar, Calendar.YEAR, fromCalendar.get(Calendar.YEAR));
-        set(toCalendar, Calendar.MONTH, Calendar.DECEMBER);
-        set(toCalendar, Calendar.DAY_OF_MONTH, toCalendar.getActualMaximum(Calendar.DAY_OF_MONTH));
-        toCalendar = TimeUtils.setToMidnight(toCalendar);
+        timeUnit = TimeUnit.YEAR;
+        fromDate = new LocalDate(fromDate.getYear(), 1, 1);
     }
 
     public void setMonthTimeUnit() {
-        this.timeUnit = TimeUnit.MONTH;
-
-        set(fromCalendar, Calendar.DAY_OF_MONTH, 1);
-        fromCalendar = TimeUtils.setFromMidnight(fromCalendar);
-
-        set(toCalendar, Calendar.YEAR, fromCalendar.get(Calendar.YEAR));
-        set(toCalendar, Calendar.MONTH, fromCalendar.get(Calendar.MONTH));
-        set(toCalendar, Calendar.DAY_OF_MONTH,
-            toCalendar.getActualMaximum(Calendar.DAY_OF_MONTH));
-        toCalendar = TimeUtils.setToMidnight(toCalendar);
+        timeUnit = TimeUnit.MONTH;
+        fromDate = new LocalDate(fromDate.getYear(), fromDate.getMonthOfYear(), 1);
     }
 
     public void setDayTimeUnit() {
         timeUnit = TimeUnit.DAY;
-
-        //fromCalendar.set(Calendar.DATE, 1);
-        fromCalendar = TimeUtils.setFromMidnight(fromCalendar);
-
-        set(toCalendar, Calendar.DATE, fromCalendar.get(Calendar.DATE));
-        toCalendar = TimeUtils.setToMidnight(toCalendar);
+        fromDate = new LocalDate(fromDate.getYear(), fromDate.getMonthOfYear(), fromDate.getDayOfMonth());
     }
 
     public void setWeekTimeUnit() {
-        this.timeUnit = TimeUnit.WEEK;
-
-        set(fromCalendar, Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
-        fromCalendar = TimeUtils.setFromMidnight(fromCalendar);
-
-        set(toCalendar, Calendar.YEAR, fromCalendar.get(Calendar.YEAR));
-        set(toCalendar, Calendar.MONTH, fromCalendar.get(Calendar.MONTH));
-        set(toCalendar, Calendar.WEEK_OF_YEAR, fromCalendar.get(Calendar.WEEK_OF_YEAR));
-        set(toCalendar, Calendar.DAY_OF_WEEK, Calendar.SATURDAY);
-        toCalendar = TimeUtils.setToMidnight(toCalendar);
+        timeUnit = TimeUnit.WEEK;
+        fromDate = new LocalDate(fromDate.getYear(), fromDate.getMonthOfYear(), fromDate.getDayOfMonth())
+                .withDayOfWeek(FIRST_DAY_OF_WEEK);
     }
-
 }

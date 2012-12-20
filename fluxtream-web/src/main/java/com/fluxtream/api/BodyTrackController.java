@@ -5,6 +5,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedSet;
 import java.util.TimeZone;
 import javax.ws.rs.Consumes;
@@ -17,14 +18,20 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import com.fluxtream.Configuration;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.TimeUnit;
 import com.fluxtream.auth.AuthHelper;
+import com.fluxtream.connectors.Connector;
+import com.fluxtream.connectors.fluxtream_capture.FluxtreamCapturePhoto;
+import com.fluxtream.connectors.fluxtream_capture.FluxtreamCapturePhotoStore;
+import com.fluxtream.connectors.fluxtream_capture.FluxtreamCaptureUpdater;
 import com.fluxtream.connectors.vos.AbstractPhotoFacetVO;
 import com.fluxtream.domain.CoachingBuddy;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.mvc.models.StatusModel;
+import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.BodyTrackStorageService;
 import com.fluxtream.services.CoachingService;
 import com.fluxtream.services.GuestService;
@@ -32,8 +39,15 @@ import com.fluxtream.services.PhotoService;
 import com.fluxtream.services.impl.BodyTrackHelper;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import com.google.gson.annotations.Expose;
 import com.google.gson.reflect.TypeToken;
+import com.sun.jersey.core.header.ContentDisposition;
+import com.sun.jersey.multipart.BodyPart;
+import com.sun.jersey.multipart.BodyPartEntity;
+import com.sun.jersey.multipart.MultiPart;
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +61,8 @@ import static com.newrelic.api.agent.NewRelic.setTransactionName;
 @Scope("request")
 public class BodyTrackController {
 
-    private static final Logger LOG = Logger.getLogger("Fluxtream");
+    private static final Logger LOG = Logger.getLogger(BodyTrackController.class);
+    private static final Logger LOG_DEBUG = Logger.getLogger("Fluxtream");
 
     @Autowired
 	GuestService guestService;
@@ -62,12 +77,20 @@ public class BodyTrackController {
     CoachingService coachingService;
 
     @Autowired
+    private FluxtreamCapturePhotoStore fluxtreamCapturePhotoStore;
+
+    @Autowired
     PhotoService photoService;
 
 	Gson gson = new Gson();
 
 	@Autowired
 	Configuration env;
+
+    @Autowired
+	protected ApiDataService apiDataService;
+
+    @Autowired JsonResponseHelper jsonResponseHelper;
 
 	@POST
 	@Path("/uploadHistory")
@@ -159,13 +182,13 @@ public class BodyTrackController {
             status = new StatusModel(true, "Upload successful!");
         }
         else {
-            status = new StatusModel(false,"Upload failed!");
+            status = new StatusModel(false, "Upload failed!");
         }
 
         // Now try to parse the response in the uploadResult as JSON, inflating it into a BodyTrackUploadResponse
         BodyTrackUploadResponse bodyTrackUploadResponse = null;
         try {
-            bodyTrackUploadResponse = gson.fromJson(uploadResult.getResponse(),BodyTrackUploadResponse.class);
+            bodyTrackUploadResponse = gson.fromJson(uploadResult.getResponse(), BodyTrackUploadResponse.class);
         }
         catch (JsonSyntaxException e) {
             LOG.error("JsonSyntaxException while trying to convert the BodyTrackUploadResult response into a BodyTrackUploadResponse.  Response was [" + uploadResult.getResponse() + "]", e);
@@ -176,6 +199,113 @@ public class BodyTrackController {
             status.payload = bodyTrackUploadResponse;
         }
         return status;
+    }
+
+    // Based on code from http://aruld.info/handling-multiparts-in-restful-applications-using-jersey/ and http://stackoverflow.com/a/4687942
+    @POST
+    @Path("/photoUpload")
+    @Consumes({MediaType.MULTIPART_FORM_DATA})
+    @Produces({MediaType.APPLICATION_JSON})
+    public Response handlePhotoUpload(@QueryParam("connector_name") final String connectorName, final MultiPart multiPart) {
+        setTransactionName(null, "POST /bodytrack/photoUpload");
+        Response response;
+
+        final Connector connector = Connector.getConnector(connectorName);
+        if (connector != null) {
+            // We currently only support photo uploads for the Fluxtream Capture connector
+            if (FluxtreamCaptureUpdater.CONNECTOR_NAME.equals(connector.getName())) {
+                try {
+                    if (multiPart != null) {
+                        byte[] photoBytes = null;
+                        String jsonMetadata = null;
+
+                        // iterate over the body parts and pick out the "photo" and "metadata" parts
+                        for (final BodyPart bodyPart : multiPart.getBodyParts()) {
+
+                            final ContentDisposition contentDisposition = bodyPart.getContentDisposition();
+                            if (contentDisposition != null) {
+                                final Map<String, String> parameters = contentDisposition.getParameters();
+                                if (parameters != null) {
+                                    final String name = parameters.get("name");
+                                    if ("photo".equals(name)) {
+                                        // found the photo part
+                                        final BodyPartEntity bodyPartEntity = (BodyPartEntity)bodyPart.getEntity();
+                                        photoBytes = IOUtils.toByteArray(bodyPartEntity.getInputStream());
+                                    }
+                                    else if ("metadata".equals(name)) {
+                                        // found the metadata part
+                                        jsonMetadata = bodyPart.getEntityAs(String.class);
+                                    }
+                                }
+                            }
+                        }
+
+                        // if we found both "photo" and "metadata"
+                        if (photoBytes != null && jsonMetadata != null) {
+                            final long guestId = AuthHelper.getGuestId();
+
+                            // Record the upload request time.  In reality we don't really care about the upload
+                            // time, but rather we want to ensure that the Fluxtream Capture connector is
+                            // auto-added to the user's set of connectors, and this is the way to do it.  Note that the
+                            // the field recorded here is merely the time of the last upload request *request* and says
+                            // nothing about whether that request was actually successful
+                            guestService.setApiKeyAttribute(guestId, connector, "last_upload_request_time", String.valueOf(System.currentTimeMillis()));
+
+                            // We have a photo and the metadata, so pass control to the FluxtreamCapturePhotoStore to save the photo
+                            LOG_DEBUG.debug("BodyTrackController.savePhoto(" + guestId + ", " + photoBytes.length + ", " + jsonMetadata + ")");
+                            try {
+                                final FluxtreamCapturePhotoStore.OperationResult<FluxtreamCapturePhoto> result = fluxtreamCapturePhotoStore.saveOrUpdatePhoto(guestId, photoBytes, jsonMetadata);
+                                final String photoStoreKey = result.getData().getPhotoStoreKey();
+                                LOG.info("BodyTrackController.handlePhotoUpload(): photo [" + photoStoreKey + "] " + result.getOperation() + " sucessfully!");
+                                response = jsonResponseHelper.ok("photo " + result.getOperation() + " sucessfully!", new PhotoUploadPayload(result.getOperation(), photoStoreKey));
+                            }
+                            catch (FluxtreamCapturePhotoStore.UnsupportedImageFormatException e) {
+                                final String message = "UnsupportedImageFormatException while trying to save the photo";
+                                LOG.error("BodyTrackController.handlePhotoUpload(): " + message);
+                                response = jsonResponseHelper.unsupportedMediaType(message);
+                            }
+                            catch (FluxtreamCapturePhotoStore.InvalidDataException e) {
+                                final String message = "InvalidDataException while trying to save the photo";
+                                LOG.error("BodyTrackController.handlePhotoUpload(): " + message, e);
+                                response = jsonResponseHelper.badRequest(message);
+                            }
+                            catch (FluxtreamCapturePhotoStore.StorageException e) {
+                                final String message = "StorageException while trying to save the photo";
+                                LOG.error("BodyTrackController.handlePhotoUpload(): " + message, e);
+                                response = jsonResponseHelper.internalServerError(message);
+                            }
+                        }
+                        else {
+                            final String message = "Upload failed because both the 'photo' and 'metadata' parts are required and must be non-null";
+                            LOG.error("BodyTrackController.handlePhotoUpload(): " + message);
+                            response = jsonResponseHelper.badRequest(message);
+                        }
+                    }
+                    else {
+                        final String message = "Upload failed because the Multipart was null";
+                        LOG.error("BodyTrackController.handlePhotoUpload(): " + message);
+                        response = jsonResponseHelper.badRequest(message);
+                    }
+                }
+                catch (Exception e) {
+                    final String message = "Upload failed due to an unexpected exception";
+                    LOG.error("BodyTrackController.handlePhotoUpload(): " + message, e);
+                    response = jsonResponseHelper.internalServerError(message);
+                }
+            }
+            else {
+                final String message = "Upload failed because photo uploads are currently only allowed for the Fluxtream Capture connector";
+                LOG.error("BodyTrackController.handlePhotoUpload(): " + message);
+                response = jsonResponseHelper.badRequest(message);
+            }
+        }
+        else {
+            final String message = "Upload failed because the connector [" + connectorName + "] is unknown";
+            LOG.error("BodyTrackController.handlePhotoUpload(): " + message);
+            response = jsonResponseHelper.badRequest(message);
+        }
+
+        return response;
     }
 
     @GET
@@ -381,8 +511,8 @@ public class BodyTrackController {
                 }
             }
 
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("BodyTrackController.fetchPhotoTile(): num photos filtered from " + photos.size() + " to " + filteredPhotos.size());
+            if (LOG_DEBUG.isDebugEnabled()) {
+                LOG_DEBUG.debug("BodyTrackController.fetchPhotoTile(): num photos filtered from " + photos.size() + " to " + filteredPhotos.size());
             }
 
             return gson.toJson(filteredPhotos);
@@ -415,12 +545,7 @@ public class BodyTrackController {
                 return gson.toJson(new StatusModel(false, "Invalid User ID (null)"));
              }
 
-            final SortedSet<PhotoService.Photo> photos = photoService.getPhotos(uid,
-                                                                                unixTimeInSecs * 1000,
-                                                                                connectorPrettyName,
-                                                                                objectTypeName,
-                                                                                desiredCount,
-                                                                                isGetPhotosBeforeTime);
+            final SortedSet<PhotoService.Photo> photos = photoService.getPhotos(uid, unixTimeInSecs * 1000, connectorPrettyName, objectTypeName, desiredCount, isGetPhotosBeforeTime);
 
             // create the JSON response
             final List<PhotoItem> photoItems = new ArrayList<PhotoItem>();
@@ -538,5 +663,28 @@ public class BodyTrackController {
         String successful_records;
         String failed_records;
         String failure;
+    }
+
+    private static class PhotoUploadMetadata {
+        private long capture_time = -1;
+
+        public boolean isValid() {
+            return capture_time >= 0;
+        }
+    }
+
+    private class PhotoUploadPayload {
+        @NotNull
+        @Expose
+        private final String operation;
+
+        @NotNull
+        @Expose
+        private final String key;
+
+        public PhotoUploadPayload(@NotNull final FluxtreamCapturePhotoStore.Operation operation, @NotNull final String photoStoreKey) {
+            this.operation = operation.getName();
+            this.key = photoStoreKey;
+        }
     }
 }

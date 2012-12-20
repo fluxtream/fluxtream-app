@@ -3,36 +3,161 @@ define(["core/TabInterface"], function(TabInterface) {
 	var Builder = {};
 
     var tabsPath = "applications/calendar/tabs/";
-    var tabPaths = [tabsPath + "clock/ClockTab", tabsPath + "dashboards/DashboardsTab", tabsPath + "diary/DiaryTab",
-                    tabsPath + "list/ListTab", tabsPath + "map/MapTab", tabsPath + "photos/PhotosTab", tabsPath + "timeline/TimelineTab"];
+    var tabPaths = [tabsPath + "clock/ClockTab", tabsPath + "dashboards/DashboardsTab",
+                    tabsPath + "diary/DiaryTab", tabsPath + "list/ListTab",
+                    tabsPath + "map/MapTab", tabsPath + "photos/PhotosTab",
+                    tabsPath + "timeline/TimelineTab"];
 
     var tabInterface = new TabInterface(tabPaths);
-
 	
 	var tabs = {
         "fullList":["clock","dashboards","map","photos","list","timeline"],
-        "DAY":["clock", "dashboards", "map", "photos", "list", "timeline"],
-        "WEEK":["dashboards", "map", "photos", "list", "timeline"],
-        "MONTH":["dashboards", "map", "photos", "list", "timeline"],
-        "YEAR":["dashboards", "photos", "list", "timeline"]
+        "date":["clock", "dashboards", "map", "photos", "list", "timeline"],
+        "week":["dashboards", "map", "photos", "list", "timeline"],
+        "month":["dashboards", "map", "photos", "list", "timeline"],
+        "year":["dashboards", "photos", "list", "timeline"]
 	};
     tabInterface.setTabVisibility(tabs.fullList,true);
 
-    Builder.init = function(Calendar){
+    var timeUnits = ['date', 'week', 'month', 'year'];
+
+    var connectorNames = [];
+
+    Builder.init = function(App, Calendar){
+        bindDatepicker(App, Calendar);
+        bindTabInterface(Calendar);
+        bindConnectorButtons(App, Calendar);
+        bindTimeUnitsMenu(Calendar);
+        bindTimeNavButtons(Calendar);
+    }
+
+    function bindDatepicker(App, Calendar) {
+        $("#datepicker").datepicker().on("changeDate", function(event) {
+            if (Calendar.timeUnit == "date"){
+                var formatted = App._formatDateAsDatePicker(event.date.getUTCFullYear(),
+                    event.date.getUTCMonth(),
+                    event.date.getUTCDate());
+                Calendar.fetchState("/api/calendar/nav/getDate",
+                    {date: formatted, state: Calendar.tabState});
+            }
+            else if (Calendar.timeUnit == "week"){
+                // TODO: How do we hook this up to App.js?  Neither the App nor
+                // the Calendar object has a getWeekNumber or getDateRangeForWeek method
+                var weekNumber = getWeekNumber(event.date.getUTCFullYear(),
+                    event.date.getUTCMonth(),
+                    event.date.getUTCDate());
+                var range = getDateRangeForWeek(weekNumber[0],weekNumber[1]);
+                Calendar.fetchState("/api/calendar/nav/getWeek",
+                    {week: weekNumber[1], year: weekNumber[0], state: Calendar.tabState});
+            }
+            $(".datepicker").hide();
+        });
+        $("#datepicker").click(function(){
+            if (Calendar.timeUnit == "month" || Calendar.timeUnit == "year"){
+                $(".datepicker-days .switch").click();
+            }
+            if (Calendar.timeUnit == "year"){
+                $(".datepicker-months .switch").click();
+            }
+        });
+        $(".datepicker-years td").click(function(event){
+            if (Calendar.timeUnit == "year" && $(event.target).hasClass("year")){
+                Calendar.fetchState("/api/calendar/nav/getYear",
+                    {year: $(event.target).text(), state: Calendar.tabState});
+                $(".datepicker").hide();
+            }
+        });
+        $(".datepicker-months td").click(function(event){
+            if (Calendar.timeUnit == "month" && $(event.target).hasClass("month")){
+                var month = DateUtils.getMonthFromName($(event.target).text()) + 1;
+                Calendar.fetchState(
+                    "/api/calendar/nav/getMonth",
+                    {
+                        year: $(".datepicker-months .switch").text(),
+                        month: month,
+                        state: Calendar.tabState
+                    }
+                );
+                $(".datepicker").hide();
+            }
+        });
+    }
+
+    function bindTabInterface(Calendar) {
         $("#calendarTabs").replaceWith(tabInterface.getNav());
         tabInterface.getNav().addClickListener(function(tabName){
-            var state = App.state.getState("calendar");
-            state = state.substring(state.indexOf("/"));
-            if (Calendar.tabParam != null){
-                Calendar.tabParam = null;
-                state = state.substring(0,state.lastIndexOf("/"));
+            Calendar.navigateState(tabName + "/" + Calendar.tabState);
+        });
+    }
+
+    Builder.getConnectorButton = function(connectorName) {
+        return $("#flx-connector-btn-" + connectorName);
+    };
+
+    Builder.getConnectorNames = function() {
+        return connectorNames;
+    };
+
+    function connectorClicked(Calendar, connector) {
+        var connectorName = connector.connectorName,
+            button = Builder.getConnectorButton(connectorName);
+        if (button.is(".flx-disconnected")) {
+            return;
+        }
+        var enabled = !Calendar.connectorEnabled[Calendar.currentTabName][connectorName];
+        Calendar.connectorEnabled[Calendar.currentTabName][connectorName] = enabled;
+        button.toggleClass("flx-active", enabled);
+        button.toggleClass("flx-inactive", !enabled);
+        Calendar.currentTab.connectorToggled(connectorName, connector.facetTypes, enabled);
+    }
+
+    function createConnectorButton(App, Calendar, connector) {
+        var configFilterLabel = App.getConnectorConfig(connector.connectorName).filterLabel,
+            filterLabel = configFilterLabel || connector.name;
+        var button = $('<li/>');
+        var buttonLink = $('<a/>', {
+            href: "#",
+            id: "flx-connector-btn-" + connector.connectorName,
+            class: "flx-active"
+        }).click(function(event){
+            event.preventDefault();
+            $(document).click(); //needed for click away to work on tooltips in clock tab
+            connectorClicked(Calendar, connector);
+            var uploadData = {};
+            for (var member in Calendar.connectorEnabled){
+                if (member != "default")
+                    uploadData[member] = Calendar.connectorEnabled[member];
             }
-            Calendar.render(tabName+state);
+            $.ajax("/api/connectors/filters",{
+                type:"POST",
+                data:{filterState:JSON.stringify(uploadData)}
+            });
+            for (var member in uploadData){
+                Calendar.connectorEnabled[member] = uploadData[member];
+            }
+        }).appendTo(button);
+        button.hide();
+        $("#selectedConnectors").append(button);
+    }
+
+    function bindConnectorButtons(App, Calendar) {
+        $.ajax({
+            url: "/api/connectors/installed",
+            async: false,
+            success: function(response) {
+                $.each(response, function(i, connector) {
+                    createConnectorButton(App, Calendar, connector);
+                    connectorNames.push(connector.connectorName);
+                });
+            }
         });
     }
 	
-	function capitalizeFirstLetter(string) {
-	    return string.charAt(0).toUpperCase() + string.slice(1);
+	function timeUnitToURL(timeUnit) {
+        if (timeUnit.toLowerCase() === 'date') {
+            timeUnit = 'day';
+        }
+        return "/api/calendar/nav/set" + timeUnit.upperCaseFirst() + "TimeUnit";
 	}
 	
 	function createTabs(Calendar) {
@@ -41,49 +166,45 @@ define(["core/TabInterface"], function(TabInterface) {
 	}
 	
 	function bindTimeUnitsMenu(Calendar) {
-		var timeUnitIds = {"#dayViewBtn":1, "#weekViewBtn":2, "#monthViewBtn":3, "#yearViewBtn":4};
-        for (var timeUnitId in timeUnitIds){
-            var btn = $(timeUnitId);
-            if (btn.attr("unit") == Calendar.timeUnit)
-                btn.addClass("active");
-            else
-                btn.removeClass("active");
-            btn.unbind("click");
-            btn.click(function(event){
-
-                var timeUnit = $(event.target).attr("unit"),
-                    url = "/api/calendar/nav/set" + capitalizeFirstLetter(timeUnit.toLowerCase()) + "TimeUnit" + "?state=" + Calendar.tabState;
-                if (Calendar.currentTab.timeNavigation(timeUnit))
-                    return;
-                $.ajax({ url:url,
-                   type: "POST",
-                   success : function(response) {
-                       var t = tabExistsForTimeUnit(Calendar.currentTabName, timeUnit)?Calendar.currentTabName:tabs[timeUnit][0];
-                       Calendar.currentTabName = t;
-                       Calendar.updateButtonStates();
-                       Calendar.render(Calendar.currentTabName + "/" + response.state + (Calendar.tabParam == null ? "" : "/" + Calendar.tabParam));
-                   },
-                   error : function() {
-                       alert("error");
-                   }
-               });
-            })
-        }
-		bindTimeNavButtons(Calendar);
+		var timeUnitIDs = ["#dayViewBtn", "#weekViewBtn", "#monthViewBtn", "#yearViewBtn"];
+        $.each(timeUnitIDs, function(i, timeUnitID) {
+            var btn = $(timeUnitID);
+            btn.toggleClass("active", btn.attr("unit") == Calendar.timeUnit)
+                .unbind("click")
+                .click(function(event){
+                    var timeUnit = $(event.target).attr("unit");
+                    var url = timeUnitToURL(timeUnit),
+                        params = {state: Calendar.tabState};
+                    Calendar.fetchState(url, params);
+                });
+        });
 	}
 	
 	function bindTimeNavButtons(Calendar) {
+        $(".menuNextButton").click(function() {
+            Calendar.fetchState("/api/calendar/nav/incrementTimespan",
+                                {state: Calendar.tabState});
+        });
+        $(".menuPrevButton").click(function() {
+            Calendar.fetchState("/api/calendar/nav/decrementTimespan",
+                                {state: Calendar.tabState});
+        });
+        $(".menuTodayButton").click(function() {
+            Calendar.fetchState("/api/calendar/nav/setToToday",
+                                {timeUnit: "DAY"});
+        });
 		switch(Calendar.timeUnit) {
-		case "DAY":
+		case "date":
 			nextPrevEnable();
 			break;
-		case "WEEK":
+		case "week":
 			nextPrevEnable();
 			break;
-//		case "MONTH":
+        // TODO: why is this disabled?
+//		case "month":
 //			nextPrevEnable();
 //			break;
-		case "YEAR":
+		case "year":
 			nextPrevEnable();
 			break;
 		}
@@ -93,28 +214,6 @@ define(["core/TabInterface"], function(TabInterface) {
         $(".menuNextButton").removeClass("disabled");
         $(".menuPrevButton").removeClass("disabled");
     };
-	
-	function timeNavBtn(Calendar, downOrUp, enabled, targetTimeUnit) {
-		var button = $(".menu"+capitalizeFirstLetter(downOrUp)+"Button");
-		button.unbind();
-		if (!enabled)
-			button.addClass("disabled");
-		else {
-			button.removeClass("disabled");
-			button.click(function(event) {
-				var timeUnit = $(event.target).attr("class"),
-				url = "/api/calendar/nav/set" + capitalizeFirstLetter(targetTimeUnit.toLowerCase()) + "TimeUnit";
-				$.ajax({ url:url + "&state=" + Calendar.tabState,
-					success : function(response) {
-						Calendar.render(Calendar.currentTabName + "/" + response.state);
-					},
-					error : function() {
-						alert("error");
-					}
-				});
-			});
-		}
-	}
 
 	function handleNotifications(digestInfo) {
 		$(".alert").remove();
@@ -170,31 +269,20 @@ define(["core/TabInterface"], function(TabInterface) {
 
     }
 	
-	function tabExistsForTimeUnit(tab, unit) {
-		var tabExistsForTimeUnit = false;
-		for (var i=0; i<tabs[unit].length; i++) {
-			if (tabs[unit][i]===tab)
-				tabExistsForTimeUnit = true;
-		}
-		return tabExistsForTimeUnit;
+	function tabExistsForTimeUnit(tabName, timeUnit) {
+        return _.include(tabs[timeUnit], tabName);
 	}
 
     function isValidTabName(tabName) {
-        for (var i = 0; i < tabs.fullList.length; i++) {
-            if (tabs.fullList[i]===tabName)
-                return true;
-        }
-        return false;
+        return _.include(tabs.fullList, tabName);
     }
 
     function isValidTimeUnit(timeUnit) {
-        return timeUnit==="date"||timeUnit==="week"||
-               timeUnit==="month"||timeUnit==="year";
+        return _.include(timeUnits, timeUnit);
     }
 	
 	Builder.tabExistsForTimeUnit = tabExistsForTimeUnit;
 	Builder.tabs = tabs;
-	Builder.bindTimeUnitsMenu = bindTimeUnitsMenu;
 	Builder.createTabs = createTabs;
 	Builder.updateTab = updateTab;
     Builder.isValidTabName = isValidTabName;
