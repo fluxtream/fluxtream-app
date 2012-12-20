@@ -1,4 +1,4 @@
-define(["core/TabInterface"], function(TabInterface) {
+define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils) {
 	
 	var Builder = {};
 
@@ -43,10 +43,10 @@ define(["core/TabInterface"], function(TabInterface) {
             else if (Calendar.timeUnit == "week"){
                 // TODO: How do we hook this up to App.js?  Neither the App nor
                 // the Calendar object has a getWeekNumber or getDateRangeForWeek method
-                var weekNumber = getWeekNumber(event.date.getUTCFullYear(),
+                var weekNumber = DateUtils.getWeekNumber(event.date.getUTCFullYear(),
                     event.date.getUTCMonth(),
                     event.date.getUTCDate());
-                var range = getDateRangeForWeek(weekNumber[0],weekNumber[1]);
+                var range = DateUtils.getDateRangeForWeek(weekNumber[0],weekNumber[1]);
                 Calendar.fetchState("/api/calendar/nav/getWeek",
                     {week: weekNumber[1], year: weekNumber[0], state: Calendar.tabState});
             }
