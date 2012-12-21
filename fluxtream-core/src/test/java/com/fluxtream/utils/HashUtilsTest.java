@@ -17,8 +17,10 @@ public class HashUtilsTest {
 
     private static final byte[] PHOTO_BYTES;
     private static final byte[] TEXT_BYTES = "What I cannot create, I do not understand.\n".getBytes();
-    private static final String EXPECTED_PHOTO_HASH = "1ac240d22be5b76400d1ee8b75b2441566782017002665044f3af781143b7c61";
-    private static final String EXPECTED_TEXT_HASH = "045c998e67248615c14ca05b5947a47d218f982341e8b676e2ae17fed4a4615c";
+    private static final String EXPECTED_PHOTO_HASH_SHA256 = "1ac240d22be5b76400d1ee8b75b2441566782017002665044f3af781143b7c61";
+    private static final String EXPECTED_TEXT_HASH_SHA256 = "045c998e67248615c14ca05b5947a47d218f982341e8b676e2ae17fed4a4615c";
+    private static final String EXPECTED_PHOTO_HASH_MD5 = "29230eb48ad70564f556d784a32fb934";
+    private static final String EXPECTED_TEXT_HASH_MD5 = "613eb874e96c77053a270a4e5530d5b9";
 
     static {
         byte[] photoBytes;
@@ -33,13 +35,24 @@ public class HashUtilsTest {
     }
 
     @Test
-    public void testComputeHash() {
+    public void testComputeSha256Hash() {
         try {
-            Assert.assertEquals(EXPECTED_PHOTO_HASH, HashUtils.computeSha256Hash(PHOTO_BYTES));
-            Assert.assertEquals(EXPECTED_TEXT_HASH, HashUtils.computeSha256Hash(TEXT_BYTES));
+            Assert.assertEquals(EXPECTED_PHOTO_HASH_SHA256, HashUtils.computeSha256Hash(PHOTO_BYTES));
+            Assert.assertEquals(EXPECTED_TEXT_HASH_SHA256, HashUtils.computeSha256Hash(TEXT_BYTES));
         }
         catch (NoSuchAlgorithmException e) {
-            Assert.fail("Call to FluxtreamCapturePhotoFacet.computeHash() threw a NoSuchAlgorithmException: " + e);
+            Assert.fail("Call to FluxtreamCapturePhotoFacet.testComputeSha256Hash() threw a NoSuchAlgorithmException: " + e);
+        }
+    }
+
+    @Test
+    public void testComputeMd5Hash() {
+        try {
+            Assert.assertEquals(EXPECTED_PHOTO_HASH_MD5, HashUtils.computeMd5Hash(PHOTO_BYTES));
+            Assert.assertEquals(EXPECTED_TEXT_HASH_MD5, HashUtils.computeMd5Hash(TEXT_BYTES));
+        }
+        catch (NoSuchAlgorithmException e) {
+            Assert.fail("Call to FluxtreamCapturePhotoFacet.testComputeMd5Hash() threw a NoSuchAlgorithmException: " + e);
         }
     }
 }
