@@ -41,8 +41,6 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
                     {date: formatted, state: Calendar.tabState});
             }
             else if (Calendar.timeUnit == "week"){
-                // TODO: How do we hook this up to App.js?  Neither the App nor
-                // the Calendar object has a getWeekNumber or getDateRangeForWeek method
                 var weekNumber = DateUtils.getWeekNumber(event.date.getUTCFullYear(),
                     event.date.getUTCMonth(),
                     event.date.getUTCDate());

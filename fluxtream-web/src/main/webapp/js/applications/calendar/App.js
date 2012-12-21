@@ -69,6 +69,9 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                Calendar.end = response.end;
                updateTimespan(response.currentTimespanLabel);
                Calendar.navigateState(Calendar.currentTabName + "/" + response.state);
+               // TODO: Change visible date in the datepicker to Sunday
+               // TODO: Would be nice to use updateDatepicker, but what's the state argument?
+               stopLoading();
            },
            error: handleError("failed to fetch next calendar state!")
         });
@@ -148,6 +151,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             // through fetchState. That bypasses the timespan label fetching, so we
             // need to do that here.
             fetchTimespan(state);
+            stopLoading();
         }
         var tabChanged = Calendar.tabState === state.tabState;
         Calendar.tabState = state.tabState;

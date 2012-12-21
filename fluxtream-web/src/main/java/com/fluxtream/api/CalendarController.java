@@ -115,7 +115,16 @@ public class CalendarController {
         final int month = Integer.valueOf(splits[1]);
         final int date = Integer.valueOf(splits[2]);
 
-        final LocalDate firstOfWeek = new LocalDate(year, month, date);
+        final LocalDate curr = new LocalDate(year, month, date);
+
+        // Need to adjust forward one week if the day of the week is a Sunday - this is
+        // the first day of the next week in CalendarModel, but is the last day of the
+        // current week in LocalDate
+        final LocalDate firstOfWeek;
+        if (curr.getDayOfWeek() < CalendarModel.FIRST_DAY_OF_WEEK)
+            firstOfWeek = curr.withDayOfWeek(CalendarModel.FIRST_DAY_OF_WEEK);
+        else
+            firstOfWeek = curr.plusWeeks(1).withDayOfWeek(CalendarModel.FIRST_DAY_OF_WEEK);
 
         return String.format("[%d, %d]",
                              firstOfWeek.getWeekyear(),
@@ -135,7 +144,7 @@ public class CalendarController {
         StringBuilder sb = new StringBuilder("module=API component=calendarController action=getMonth")
                 .append(" state=").append(state)
                 .append(" guestId=").append(guestId);
-        CalendarModel calendarModel = new CalendarModel(guestId, metadataService);
+        final CalendarModel calendarModel = new CalendarModel(guestId, metadataService);
         calendarModel.setMonth(year, month);
         return calendarModel.toJSONString(env);
     }
