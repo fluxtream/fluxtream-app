@@ -1827,7 +1827,8 @@ define(["core/grapher/BTCore"], function(BTCore) {
                                             "tags"            : photo['tags'],
                                             "timestamp"       : photo['end_d'],
                                             "timestampString" : photo['end'],
-                                            "url"             : photo['url']
+                                            "url"             : photo['url'],
+                                            "thumbnails"      : photo['thumbnails']
                                         };
                                     });
 
@@ -2100,7 +2101,9 @@ define(["core/grapher/BTCore"], function(BTCore) {
 
                 var createPhotoDialog = function(photoId, timestamp, completionCallback) {
 
-                    var mediumResImageUrl = photoCache.getPhotoMetadata(photoId)['url'];    // TODO: use medium-res version
+                    var thumbnails = photoCache.getPhotoMetadata(photoId)['thumbnails'];
+                    // This assumes the thumbnails are ordered from smallest to largest.  Might be better to eventually search for the largest.
+                    var mediumResImageUrl = (thumbnails != null && thumbnails.length > 0) ? thumbnails[thumbnails.length - 1]['url'] : photoCache.getPhotoMetadata(photoId)['url'];
                     var highResImageUrl = photoCache.getPhotoMetadata(photoId)['url'];
                     var photoDialogTemplate = App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_template");
                     var photoDialogHtml = photoDialogTemplate.render({"photoUrl" : mediumResImageUrl});
