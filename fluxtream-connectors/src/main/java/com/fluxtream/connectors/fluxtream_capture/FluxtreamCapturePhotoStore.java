@@ -3,6 +3,7 @@ package com.fluxtream.connectors.fluxtream_capture;
 import java.io.File;
 import com.fluxtream.Configuration;
 import com.fluxtream.services.ApiDataService;
+import com.fluxtream.services.JPADaoService;
 import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 import org.bodytrack.datastore.FilesystemKeyValueStore;
@@ -51,8 +52,27 @@ public final class FluxtreamCapturePhotoStore {
         T getData();
     }
 
+    public interface Photo {
+        byte[] getPhotoBytes();
+
+        /**
+         * Returns the timestamp, in millis, that the photo was last updated.  Returns <code>null</code> if unknown.
+         */
+        @Nullable
+        Long getLastUpdatedTimestamp();
+
+        /**
+         * A {@link String} representation of the unique identifier for this photo.  Useful for logging and messages.
+         */
+        @NotNull
+        String getIdentifier();
+    }
+
     @Autowired
     private ApiDataService apiDataService;
+
+    @Autowired
+    protected JPADaoService jpaDaoService;
 
     @Autowired
     private Configuration env;
@@ -68,8 +88,63 @@ public final class FluxtreamCapturePhotoStore {
      * This method assumes that the caller has already performed authentication and authorization.
      */
     @Nullable
-    public byte[] getPhoto(@Nullable final String photoStoreKey) throws StorageException {
-        return getFilesystemKeyValueStore().get(photoStoreKey);
+    public Photo getPhoto(@Nullable final String photoStoreKey) throws StorageException {
+        if (photoStoreKey != null) {
+            final byte[] bytes = getFilesystemKeyValueStore().get(photoStoreKey);
+
+            if (bytes != null) {
+                return new Photo() {
+                    @Override
+                    public byte[] getPhotoBytes() {
+                        return bytes;
+                    }
+
+                    @Override
+                    public Long getLastUpdatedTimestamp() {
+                        return null;
+                    }
+
+                    @NotNull
+                    @Override
+                    public String getIdentifier() {
+                        return photoStoreKey;
+                    }
+                };
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns the photo thumbnail specified by the given <code>photoId</code> or <code>null</code> if no such photo
+     * exists. This method assumes that the caller has already performed authentication and authorization.
+     */
+    @Nullable
+    public Photo getPhotoThumbnail(final long photoId, final int thumbnailIndex) {
+        final FluxtreamCapturePhotoFacet photoFacet = jpaDaoService.findOne("fluxtream_capture.photo.byId", FluxtreamCapturePhotoFacet.class, photoId);
+
+        if (photoFacet != null) {
+            return new Photo() {
+                @Override
+                public byte[] getPhotoBytes() {
+                    return (thumbnailIndex == 1) ? photoFacet.getThumbnailLarge() : photoFacet.getThumbnailSmall();
+                }
+
+                @Override
+                public Long getLastUpdatedTimestamp() {
+                    return photoFacet.timeUpdated;
+                }
+
+                @NotNull
+                @Override
+                public String getIdentifier() {
+                    return photoId + "/" + thumbnailIndex;
+                }
+            };
+        }
+
+        return null;
     }
 
     /**
