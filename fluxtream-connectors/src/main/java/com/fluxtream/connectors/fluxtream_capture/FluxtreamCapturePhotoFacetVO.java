@@ -27,9 +27,11 @@ public class FluxtreamCapturePhotoFacetVO extends AbstractPhotoFacetVO<Fluxtream
         start = facet.start;
         startMinute = toMinuteOfDay(new Date(facet.start), timeInterval.timeZone);
 
-        // TODO: build the Map of thumbnail URLs
-        thumbnailUrls.put(0, "");
-        thumbnailUrls.put(1, "");
+        final String photoStoreKey = facet.getPhotoStoreKey();
+        photoUrl = "/api/bodytrack/photo/" + photoStoreKey;
+
+        thumbnailUrls.put(0, "/api/bodytrack/photoThumbnail/0/" + photoStoreKey);
+        thumbnailUrls.put(1, "/api/bodytrack/photoThumbnail/1/" + photoStoreKey);
 
         // build the SortedMap of thumbnail sizes
         thumbnailSizes.put(0, facet.getThumbnailSmallSize());
@@ -38,13 +40,11 @@ public class FluxtreamCapturePhotoFacetVO extends AbstractPhotoFacetVO<Fluxtream
 
     @Override
     public String getPhotoUrl() {
-        // TODO: implement me once we have an API method for fetching Fluxtream Capture photos
-        return null;
+        return photoUrl;
     }
 
     @Override
     public String getThumbnail(final int index) {
-        // TODO: implement me once we have an API method for fetching Fluxtream Capture thumbnails
         return thumbnailUrls.get(index);
     }
 

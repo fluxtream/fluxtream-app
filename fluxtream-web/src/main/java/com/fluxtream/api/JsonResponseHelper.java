@@ -55,8 +55,30 @@ public final class JsonResponseHelper {
     }
 
     /**
-     * Creates a {@link Response} with an HTTP 415 Unsupported Media Type status code and a JSON body consisting of a failure
+     * Creates a {@link Response} with an HTTP 404 Not Found status code and a JSON body consisting of a failure
      * {@link StatusModel} containing the given <code>message</code>.
+     *
+     * @see StatusModel#failure(String)
+     */
+    @NotNull
+    public Response notFound(@Nullable final String message) {
+        return buildResponse(Response.Status.NOT_FOUND, StatusModel.failure(message));
+    }
+
+    /**
+     * Creates a {@link Response} with an HTTP 403 Forbidden status code and a JSON body consisting of a failure
+     * {@link StatusModel} containing the given <code>message</code>.
+     *
+     * @see StatusModel#failure(String)
+     */
+    @NotNull
+    public Response forbidden(@Nullable final String message) {
+        return buildResponse(Response.Status.FORBIDDEN, StatusModel.failure(message));
+    }
+
+    /**
+     * Creates a {@link Response} with an HTTP 415 Unsupported Media Type status code and a JSON body consisting of a
+     * failure {@link StatusModel} containing the given <code>message</code>.
      *
      * @see StatusModel#failure(String)
      */
@@ -66,8 +88,8 @@ public final class JsonResponseHelper {
     }
 
     /**
-     * Creates a {@link Response} with an HTTP 500 Internal Server Error status code and a JSON body consisting of a failure
-     * {@link StatusModel} containing the given <code>message</code>.
+     * Creates a {@link Response} with an HTTP 500 Internal Server Error status code and a JSON body consisting of a
+     * failure {@link StatusModel} containing the given <code>message</code>.
      *
      * @see StatusModel#failure(String)
      */

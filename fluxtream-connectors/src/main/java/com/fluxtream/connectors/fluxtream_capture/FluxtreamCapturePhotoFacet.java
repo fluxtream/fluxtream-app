@@ -107,6 +107,10 @@ public class FluxtreamCapturePhotoFacet extends AbstractFacet implements Seriali
         this.fullTextDescription = title;
     }
 
+    public long getGuestId() {
+        return guestId;
+    }
+
     public String getHash() {
         return hash;
     }
@@ -176,5 +180,13 @@ public class FluxtreamCapturePhotoFacet extends AbstractFacet implements Seriali
 
     public String getGpsTimestamp() {
         return gpsTimestamp;
+    }
+
+    @Nullable
+    public String getPhotoStoreKey() {
+        if (guestId != 0 && captureYYYYDDD != null && start != 0 && hash != null) {
+            return FluxtreamCapturePhoto.createPhotoStoreKey(guestId, captureYYYYDDD, start, hash);
+        }
+        return null;
     }
 }

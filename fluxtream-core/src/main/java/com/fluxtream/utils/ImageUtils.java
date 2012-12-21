@@ -7,9 +7,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
 import com.drew.lang.GeoLocation;
@@ -36,6 +38,53 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class ImageUtils {
     private static final Logger LOG = Logger.getLogger(ImageUtils.class);
+
+    public static enum ImageType {
+        JPEG("image/jpeg", "jpg", "JPEG"), PNG("image/png", "png", "png"), GIF("image/gif", "gif", "gif");
+
+        @NotNull
+        private final String mediaType;
+        @NotNull
+        private final String fileExtension;
+        @NotNull
+        private final String imageReaderFormatName;
+
+        private static final Map<String, ImageType> IMAGE_TYPE_BY_FORMAT_NAME;
+
+        static {
+            final Map<String, ImageType> imageTypeByFormatName = new HashMap<String, ImageType>(ImageType.values().length);
+            for (final ImageType imageType : ImageType.values()) {
+                imageTypeByFormatName.put(imageType.getImageReaderFormatName(), imageType);
+            }
+            IMAGE_TYPE_BY_FORMAT_NAME = Collections.unmodifiableMap(imageTypeByFormatName);
+        }
+
+        @Nullable
+        public static final ImageType findByFormatName(@Nullable final String formatName) {
+            return IMAGE_TYPE_BY_FORMAT_NAME.get(formatName);
+        }
+
+        ImageType(@NotNull final String mediaType, @NotNull final String fileExtension, @NotNull final String imageReaderFormatName) {
+            this.mediaType = mediaType;
+            this.fileExtension = fileExtension;
+            this.imageReaderFormatName = imageReaderFormatName;
+        }
+
+        @NotNull
+        public String getMediaType() {
+            return mediaType;
+        }
+
+        @NotNull
+        public String getFileExtension() {
+            return fileExtension;
+        }
+
+        @NotNull
+        public String getImageReaderFormatName() {
+            return imageReaderFormatName;
+        }
+    }
 
     /**
      * An enum for recording image orientation and what operation(s) needs to applied in order to transform it.
@@ -264,27 +313,8 @@ public final class ImageUtils {
      * returns <code>false</code> otherwise.  Returns <code>false</code> if the given byte array is <code>null</code> or
      * empty.
      */
-    public static boolean isImage(@Nullable final byte[] imageBytes) {
-        return createImageIcon(imageBytes) != null;
-    }
-
-    /**
-     * Tries to read the given <code>imageBytes</code> and interpret as an {@link ImageIcon}.  Returns <code>null</code>
-     * if the given byte array is <code>null</code> or empty or if the bytes cannot be read as an image.  Currently only
-     * supports GIF, JPEG, and PNG.
-     */
-    @Nullable
-    public static ImageIcon createImageIcon(@Nullable final byte[] imageBytes) {
-        if (imageBytes != null && imageBytes.length > 0) {
-            final ImageIcon imageIcon = new ImageIcon(imageBytes);
-
-            // width and height will be -1 if it's not actually an image
-            if (imageIcon.getIconWidth() >= 0 && imageIcon.getIconHeight() >= 0) {
-                return imageIcon;
-            }
-        }
-
-        return null;
+    public static boolean isSupportedImage(@Nullable final byte[] imageBytes) {
+        return getImageType(imageBytes) != null;
     }
 
     /**
@@ -359,6 +389,52 @@ public final class ImageUtils {
                 return byteArrayOutputStream.toByteArray();
             }
         }
+        return null;
+    }
+
+    /**
+     * Returns the {@link ImageType} of the given image, or <code>null</code> if the type is unknown, not supported, or
+     * if an error occurs while trying to read the image. Returns <code>null</code> if the given image is <code>null</code>.
+     */
+    @Nullable
+    public static ImageType getImageType(@Nullable final BufferedImage image) {
+        if (image != null) {
+            try {
+                return getImageType(convertToByteArray(image));
+            }
+            catch (IOException e) {
+                LOG.error("IOException while trying to read the image type, returning null");
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Returns the {@link ImageType} of the given image, or <code>null</code> if the type is unknown, not supported, or
+     * if an error occurs while trying to read the image. Returns <code>null</code> if the given image byte array is
+     * <code>null</code> or empty.
+     */
+    @Nullable
+    public static ImageType getImageType(@Nullable final byte[] imageBytes) {
+        if ((imageBytes != null) && (imageBytes.length > 0)) {
+            try {
+                final ImageInputStream iis = ImageIO.createImageInputStream(new ByteArrayInputStream(imageBytes));
+                final Iterator<ImageReader> imageReaders = ImageIO.getImageReaders(iis);
+                if (imageReaders != null) {
+                    while (imageReaders.hasNext()) {
+                        final ImageReader reader = imageReaders.next();
+                        final ImageUtils.ImageType imageType = ImageType.findByFormatName(reader.getFormatName());
+                        if (imageType != null) {
+                            return imageType;
+                        }
+                    }
+                }
+            }
+            catch (IOException e) {
+                LOG.error("IOException while trying to read the image type, returning null");
+            }
+        }
+
         return null;
     }
 

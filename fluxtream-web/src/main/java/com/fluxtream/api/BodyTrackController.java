@@ -2,7 +2,9 @@ package com.fluxtream.api;
 
 import java.awt.Dimension;
 import java.lang.reflect.Type;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +19,11 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.CacheControl;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import com.fluxtream.Configuration;
 import com.fluxtream.TimeInterval;
@@ -37,6 +43,8 @@ import com.fluxtream.services.CoachingService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.PhotoService;
 import com.fluxtream.services.impl.BodyTrackHelper;
+import com.fluxtream.utils.HashUtils;
+import com.fluxtream.utils.ImageUtils;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.Expose;
@@ -46,8 +54,11 @@ import com.sun.jersey.multipart.BodyPart;
 import com.sun.jersey.multipart.BodyPartEntity;
 import com.sun.jersey.multipart.MultiPart;
 import org.apache.commons.io.IOUtils;
+import org.apache.http.impl.cookie.DateUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,6 +74,7 @@ public class BodyTrackController {
 
     private static final Logger LOG = Logger.getLogger(BodyTrackController.class);
     private static final Logger LOG_DEBUG = Logger.getLogger("Fluxtream");
+    private static final int ONE_WEEK_IN_SECONDS = 604800;
 
     @Autowired
 	GuestService guestService;
@@ -306,6 +318,94 @@ public class BodyTrackController {
         }
 
         return response;
+    }
+
+    // Based on code from http://stackoverflow.com/questions/3496209/input-and-output-binary-streams-using-jersey/12573173#12573173
+    @GET
+    @Path("/photo/{UID}.{PhotoStoreKeySuffix}")
+    public Response getFluxtreamCapturePhoto(@PathParam("UID") final Long uid,
+                                             @PathParam("PhotoStoreKeySuffix") final String photoStoreKeySuffix,
+                                             @Context final Request request) {
+
+        setTransactionName(null, "GET /bodytrack/photo/{UID}." + photoStoreKeySuffix);
+
+        // Check authorization: is the logged-in user the same as the UID in the key?  If not, does the logged-in user
+        // have coaching access AND access to the FluxtreamCapture connector?
+        boolean accessAllowed = false;
+        try {
+            final long loggedInUserId = AuthHelper.getGuestId();
+            accessAllowed = checkForPermissionAccess(uid);
+            if (!accessAllowed) {
+                final CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
+                if (coachee != null) {
+                    accessAllowed = coachee.hasAccessToConnector(FluxtreamCaptureUpdater.CONNECTOR_NAME);
+                }
+            }
+        }
+        catch (Exception e) {
+            LOG.error("BodyTrackController.getFluxtreamCapturePhoto(): Exception while trying to check authorization.");
+        }
+
+        final String photoStoreKey = uid + "." + photoStoreKeySuffix;
+        if (accessAllowed) {
+
+            @Nullable
+            final byte[] photoBytes;
+            try {
+                photoBytes = fluxtreamCapturePhotoStore.getPhoto(photoStoreKey);
+            }
+            catch (FluxtreamCapturePhotoStore.StorageException e) {
+                final String message = "StorageException while trying to get the photo";
+                LOG.error("BodyTrackController.getFluxtreamCapturePhoto(): " + message, e);
+                return jsonResponseHelper.internalServerError(message);
+            }
+
+            if (photoBytes == null) {
+                return jsonResponseHelper.notFound("Photo not found");
+            }
+
+            final CacheControl cc = new CacheControl();
+            cc.setNoTransform(true);
+            cc.setMustRevalidate(false);
+            cc.setNoCache(false);
+            cc.setMaxAge(ONE_WEEK_IN_SECONDS);
+
+            EntityTag etag;
+            try {
+                etag = new EntityTag(HashUtils.computeMd5Hash(photoBytes));
+
+                final Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(etag);
+                if (responseBuilder != null) {
+                    // Preconditions are not met, returning HTTP 304 'not-modified'
+                    return responseBuilder.cacheControl(cc).build();
+                }
+            }
+            catch (NoSuchAlgorithmException e) {
+                LOG.warn("NoSuchAlgorithmException caught while trying to create an MD5 hash for photo [" + photoStoreKey + "].  No Etag will be specified in the response.");
+                etag = null;
+            }
+
+            // Start building the response
+            Response.ResponseBuilder responseBuilder = Response.ok().cacheControl(cc);
+            if (etag != null) {
+                responseBuilder = responseBuilder.tag(etag);
+            }
+
+            // Try to read the image type.  If we can't for some reason, then just lie and say it's a JPEG.  This really
+            // should never happen, but it's good to check for it anyway and log a warning if it happens.
+            ImageUtils.ImageType imageType = ImageUtils.getImageType(photoBytes);
+            if (imageType == null) {
+                imageType = ImageUtils.ImageType.JPEG;
+                LOG.warn("BodyTrackController.getFluxtreamCapturePhoto(): Could not determine the media type for image [" + photoStoreKey + "]!  Defaulting to [" + imageType.getMediaType() + "]");
+            }
+
+            return responseBuilder
+                    .type(imageType.getMediaType())
+                    .expires(new DateTime().plusMonths(1).toDate())
+                    .entity(photoBytes).build();
+        }
+
+        return jsonResponseHelper.forbidden("User [" + uid + "] is not authorized to view photo [" + photoStoreKey + "]");
     }
 
     @GET

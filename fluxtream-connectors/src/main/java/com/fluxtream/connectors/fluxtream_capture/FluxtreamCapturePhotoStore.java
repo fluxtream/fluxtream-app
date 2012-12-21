@@ -7,6 +7,7 @@ import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 import org.bodytrack.datastore.FilesystemKeyValueStore;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -20,10 +21,12 @@ import org.springframework.stereotype.Component;
 @Component
 public final class FluxtreamCapturePhotoStore {
 
-    private static final Logger LOG = Logger.getLogger("Fluxtream");
+    private static final Logger LOG = Logger.getLogger(FluxtreamCapturePhotoStore.class);
+    private static final Logger LOG_DEBUG = Logger.getLogger("Fluxtream");
 
     public enum Operation {
         CREATED("created"), UPDATED("updated");
+
         private final String name;
 
         Operation(final String name) {
@@ -61,6 +64,15 @@ public final class FluxtreamCapturePhotoStore {
     }
 
     /**
+     * Returns the photo specified by the given <code>photoStoreKey</code> or <code>null</code> if no such photo exists.
+     * This method assumes that the caller has already performed authentication and authorization.
+     */
+    @Nullable
+    public byte[] getPhoto(@Nullable final String photoStoreKey) throws StorageException {
+        return getFilesystemKeyValueStore().get(photoStoreKey);
+    }
+
+    /**
      * Saves the given photo for the given user to both the database and the Fluxtream Capture key-value photo store.
      * Returns an {@link OperationResult} if the photo was created or updated (see the
      * {@link OperationResult#getOperation()} method to determine which occurred), or throws a
@@ -72,8 +84,8 @@ public final class FluxtreamCapturePhotoStore {
      */
     @SuppressWarnings("ConstantConditions")
     public OperationResult<FluxtreamCapturePhoto> saveOrUpdatePhoto(final long guestId, @NotNull final byte[] photoBytes, @NotNull final String jsonMetadata) throws StorageException, InvalidDataException, UnsupportedImageFormatException {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("FluxtreamCapturePhotoStore.savePhoto(" + guestId + ", " + photoBytes.length + ", " + jsonMetadata + ")");
+        if (LOG_DEBUG.isDebugEnabled()) {
+            LOG_DEBUG.debug("FluxtreamCapturePhotoStore.savePhoto(" + guestId + ", " + photoBytes.length + ", " + jsonMetadata + ")");
         }
 
         // do simple null and empty validation
@@ -86,16 +98,7 @@ public final class FluxtreamCapturePhotoStore {
         // Go ahead and try to create the FilesystemKeyValueStore.  This is a simple operation, so, if it's going
         // to fail, then it's better to fail now rather than after spending a lot of effort creating the photo hash
         // and thumbnails.
-        final FilesystemKeyValueStore keyValueStore;
-        try {
-            final File keyValueStoreLocation = new File(env.targetEnvironmentProps.getString("btdatastore.db.location"));
-            keyValueStore = new FilesystemKeyValueStore(keyValueStoreLocation);
-        }
-        catch (IllegalArgumentException e) {
-            final String message = "Photo upload failed because the photo key-value store could not be created";
-            LOG.error("FluxtreamCapturePhotoStore.saveOrUpdatePhoto(): " + message, e);
-            throw new StorageException(message, e);
-        }
+        final FilesystemKeyValueStore keyValueStore = getFilesystemKeyValueStore();
 
         // Attempt to parse the JSON metadata
         final PhotoUploadMetadata metadata;
@@ -123,10 +126,9 @@ public final class FluxtreamCapturePhotoStore {
         try {
             photo = new FluxtreamCapturePhoto(guestId, photoBytes, captureTimeMillisUtc);
         }
-        catch (UnsupportedOperationException e) {
-            final String message = "Photo upload failed because an UnsupportedOperationException occurred while trying to create the FluxtreamCapturePhoto";
-            LOG.error("FluxtreamCapturePhotoStore.saveOrUpdatePhoto(): " + message, e);
-            throw new UnsupportedImageFormatException(message);
+        catch (UnsupportedImageFormatException e) {
+            LOG.error("FluxtreamCapturePhotoStore.saveOrUpdatePhoto(): Photo upload failed because an UnsupportedOperationException occurred while trying to create the FluxtreamCapturePhoto");
+            throw e;
         }
         catch (Exception e) {
             final String message = "Photo upload failed because an Exception occurred while trying to create the FluxtreamCapturePhoto";
@@ -168,8 +170,10 @@ public final class FluxtreamCapturePhotoStore {
 
         // If we got this far, then we know everything succeeded, so simply return the boolean to indicate whether
         // the photo was created or updated
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("FluxtreamCapturePhotoStore.saveOrUpdatePhoto(): photo [" + photoFacet.getHash() + "] " + (photoCreatorOrModifier.wasCreated() ? "saved" : "updated") + " sucessfully for user [" + guestId + "]");
+        if (LOG_DEBUG.isInfoEnabled() || LOG.isInfoEnabled()) {
+            final String message = "FluxtreamCapturePhotoStore.saveOrUpdatePhoto(): photo [" + photoFacet.getHash() + "] " + (photoCreatorOrModifier.wasCreated() ? "saved" : "updated") + " sucessfully for user [" + guestId + "]";
+            LOG.info(message);
+            LOG_DEBUG.info(message);
         }
 
         return new OperationResult<FluxtreamCapturePhoto>() {
@@ -185,6 +189,19 @@ public final class FluxtreamCapturePhotoStore {
                 return photo;
             }
         };
+    }
+
+    @NotNull
+    private FilesystemKeyValueStore getFilesystemKeyValueStore() throws StorageException {
+        try {
+            final File keyValueStoreLocation = new File(env.targetEnvironmentProps.getString("btdatastore.db.location"));
+            return new FilesystemKeyValueStore(keyValueStoreLocation);
+        }
+        catch (IllegalArgumentException e) {
+            final String message = "The photo key-value store could not be created";
+            LOG.error("FluxtreamCapturePhotoStore.getFilesystemKeyValueStore(): " + message, e);
+            throw new StorageException(message, e);
+        }
     }
 
     private static class PhotoUploadMetadata {
