@@ -357,7 +357,7 @@ public class BodyTrackController {
             @Nullable
             @Override
             public FluxtreamCapturePhotoStore.Photo getPhoto() {
-                return fluxtreamCapturePhotoStore.getPhotoThumbnail(photoId, thumbnailIndex);
+                return fluxtreamCapturePhotoStore.getPhotoThumbnail(uid, photoId, thumbnailIndex);
             }
 
             @NotNull

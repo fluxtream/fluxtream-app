@@ -121,8 +121,8 @@ public final class FluxtreamCapturePhotoStore {
      * exists. This method assumes that the caller has already performed authentication and authorization.
      */
     @Nullable
-    public Photo getPhotoThumbnail(final long photoId, final int thumbnailIndex) {
-        final FluxtreamCapturePhotoFacet photoFacet = jpaDaoService.findOne("fluxtream_capture.photo.byId", FluxtreamCapturePhotoFacet.class, photoId);
+    public Photo getPhotoThumbnail(final long uid, final long photoId, final int thumbnailIndex) {
+        final FluxtreamCapturePhotoFacet photoFacet = jpaDaoService.findOne("fluxtream_capture.photo.byId", FluxtreamCapturePhotoFacet.class, uid, photoId);
 
         if (photoFacet != null) {
             return new Photo() {

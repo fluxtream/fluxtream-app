@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
     @NamedQuery(name = "fluxtream_capture.photo.deleteAll", query = "DELETE FROM Facet_FluxtreamCapturePhoto facet WHERE facet.guestId=?"),
     @NamedQuery(name = "fluxtream_capture.photo.between", query = "SELECT facet FROM Facet_FluxtreamCapturePhoto facet WHERE facet.guestId=? AND facet.start>=? AND facet.start<=? ORDER BY facet.start ASC"),
     @NamedQuery(name = "fluxtream_capture.photo.newest", query = "SELECT facet FROM Facet_FluxtreamCapturePhoto facet WHERE facet.guestId=? ORDER BY facet.start DESC LIMIT 1"),
-    @NamedQuery(name = "fluxtream_capture.photo.byId", query = "SELECT facet FROM Facet_FluxtreamCapturePhoto facet WHERE facet.id=?")
+    @NamedQuery(name = "fluxtream_capture.photo.byId", query = "SELECT facet FROM Facet_FluxtreamCapturePhoto facet WHERE facet.guestId=? AND facet.id=?")
 })
 @Indexed
 public class FluxtreamCapturePhotoFacet extends AbstractFacet implements Serializable, Geolocation {
