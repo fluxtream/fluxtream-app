@@ -3,10 +3,12 @@ package com.fluxtream.connectors.fluxtream_capture;
 import java.io.File;
 import com.fluxtream.Configuration;
 import com.fluxtream.services.ApiDataService;
+import com.fluxtream.services.JPADaoService;
 import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 import org.bodytrack.datastore.FilesystemKeyValueStore;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -20,10 +22,12 @@ import org.springframework.stereotype.Component;
 @Component
 public final class FluxtreamCapturePhotoStore {
 
-    private static final Logger LOG = Logger.getLogger("Fluxtream");
+    private static final Logger LOG = Logger.getLogger(FluxtreamCapturePhotoStore.class);
+    private static final Logger LOG_DEBUG = Logger.getLogger("Fluxtream");
 
     public enum Operation {
         CREATED("created"), UPDATED("updated");
+
         private final String name;
 
         Operation(final String name) {
@@ -48,8 +52,27 @@ public final class FluxtreamCapturePhotoStore {
         T getData();
     }
 
+    public interface Photo {
+        byte[] getPhotoBytes();
+
+        /**
+         * Returns the timestamp, in millis, that the photo was last updated.  Returns <code>null</code> if unknown.
+         */
+        @Nullable
+        Long getLastUpdatedTimestamp();
+
+        /**
+         * A {@link String} representation of the unique identifier for this photo.  Useful for logging and messages.
+         */
+        @NotNull
+        String getIdentifier();
+    }
+
     @Autowired
     private ApiDataService apiDataService;
+
+    @Autowired
+    protected JPADaoService jpaDaoService;
 
     @Autowired
     private Configuration env;
@@ -58,6 +81,70 @@ public final class FluxtreamCapturePhotoStore {
 
     private FluxtreamCapturePhotoStore() {
         // private to prevent instantiation
+    }
+
+    /**
+     * Returns the photo specified by the given <code>photoStoreKey</code> or <code>null</code> if no such photo exists.
+     * This method assumes that the caller has already performed authentication and authorization.
+     */
+    @Nullable
+    public Photo getPhoto(@Nullable final String photoStoreKey) throws StorageException {
+        if (photoStoreKey != null) {
+            final byte[] bytes = getFilesystemKeyValueStore().get(photoStoreKey);
+
+            if (bytes != null) {
+                return new Photo() {
+                    @Override
+                    public byte[] getPhotoBytes() {
+                        return bytes;
+                    }
+
+                    @Override
+                    public Long getLastUpdatedTimestamp() {
+                        return null;
+                    }
+
+                    @NotNull
+                    @Override
+                    public String getIdentifier() {
+                        return photoStoreKey;
+                    }
+                };
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns the photo thumbnail specified by the given <code>photoId</code> or <code>null</code> if no such photo
+     * exists. This method assumes that the caller has already performed authentication and authorization.
+     */
+    @Nullable
+    public Photo getPhotoThumbnail(final long uid, final long photoId, final int thumbnailIndex) {
+        final FluxtreamCapturePhotoFacet photoFacet = jpaDaoService.findOne("fluxtream_capture.photo.byId", FluxtreamCapturePhotoFacet.class, uid, photoId);
+
+        if (photoFacet != null) {
+            return new Photo() {
+                @Override
+                public byte[] getPhotoBytes() {
+                    return (thumbnailIndex == 1) ? photoFacet.getThumbnailLarge() : photoFacet.getThumbnailSmall();
+                }
+
+                @Override
+                public Long getLastUpdatedTimestamp() {
+                    return photoFacet.timeUpdated;
+                }
+
+                @NotNull
+                @Override
+                public String getIdentifier() {
+                    return photoId + "/" + thumbnailIndex;
+                }
+            };
+        }
+
+        return null;
     }
 
     /**
@@ -72,8 +159,8 @@ public final class FluxtreamCapturePhotoStore {
      */
     @SuppressWarnings("ConstantConditions")
     public OperationResult<FluxtreamCapturePhoto> saveOrUpdatePhoto(final long guestId, @NotNull final byte[] photoBytes, @NotNull final String jsonMetadata) throws StorageException, InvalidDataException, UnsupportedImageFormatException {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("FluxtreamCapturePhotoStore.savePhoto(" + guestId + ", " + photoBytes.length + ", " + jsonMetadata + ")");
+        if (LOG_DEBUG.isDebugEnabled()) {
+            LOG_DEBUG.debug("FluxtreamCapturePhotoStore.savePhoto(" + guestId + ", " + photoBytes.length + ", " + jsonMetadata + ")");
         }
 
         // do simple null and empty validation
@@ -86,16 +173,7 @@ public final class FluxtreamCapturePhotoStore {
         // Go ahead and try to create the FilesystemKeyValueStore.  This is a simple operation, so, if it's going
         // to fail, then it's better to fail now rather than after spending a lot of effort creating the photo hash
         // and thumbnails.
-        final FilesystemKeyValueStore keyValueStore;
-        try {
-            final File keyValueStoreLocation = new File(env.targetEnvironmentProps.getString("btdatastore.db.location"));
-            keyValueStore = new FilesystemKeyValueStore(keyValueStoreLocation);
-        }
-        catch (IllegalArgumentException e) {
-            final String message = "Photo upload failed because the photo key-value store could not be created";
-            LOG.error("FluxtreamCapturePhotoStore.saveOrUpdatePhoto(): " + message, e);
-            throw new StorageException(message, e);
-        }
+        final FilesystemKeyValueStore keyValueStore = getFilesystemKeyValueStore();
 
         // Attempt to parse the JSON metadata
         final PhotoUploadMetadata metadata;
@@ -123,10 +201,9 @@ public final class FluxtreamCapturePhotoStore {
         try {
             photo = new FluxtreamCapturePhoto(guestId, photoBytes, captureTimeMillisUtc);
         }
-        catch (UnsupportedOperationException e) {
-            final String message = "Photo upload failed because an UnsupportedOperationException occurred while trying to create the FluxtreamCapturePhoto";
-            LOG.error("FluxtreamCapturePhotoStore.saveOrUpdatePhoto(): " + message, e);
-            throw new UnsupportedImageFormatException(message);
+        catch (UnsupportedImageFormatException e) {
+            LOG.error("FluxtreamCapturePhotoStore.saveOrUpdatePhoto(): Photo upload failed because an UnsupportedOperationException occurred while trying to create the FluxtreamCapturePhoto");
+            throw e;
         }
         catch (Exception e) {
             final String message = "Photo upload failed because an Exception occurred while trying to create the FluxtreamCapturePhoto";
@@ -168,8 +245,10 @@ public final class FluxtreamCapturePhotoStore {
 
         // If we got this far, then we know everything succeeded, so simply return the boolean to indicate whether
         // the photo was created or updated
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("FluxtreamCapturePhotoStore.saveOrUpdatePhoto(): photo [" + photoFacet.getHash() + "] " + (photoCreatorOrModifier.wasCreated() ? "saved" : "updated") + " sucessfully for user [" + guestId + "]");
+        if (LOG_DEBUG.isInfoEnabled() || LOG.isInfoEnabled()) {
+            final String message = "FluxtreamCapturePhotoStore.saveOrUpdatePhoto(): photo [" + photoFacet.getHash() + "] " + (photoCreatorOrModifier.wasCreated() ? "saved" : "updated") + " sucessfully for user [" + guestId + "]";
+            LOG.info(message);
+            LOG_DEBUG.info(message);
         }
 
         return new OperationResult<FluxtreamCapturePhoto>() {
@@ -185,6 +264,19 @@ public final class FluxtreamCapturePhotoStore {
                 return photo;
             }
         };
+    }
+
+    @NotNull
+    private FilesystemKeyValueStore getFilesystemKeyValueStore() throws StorageException {
+        try {
+            final File keyValueStoreLocation = new File(env.targetEnvironmentProps.getString("btdatastore.db.location"));
+            return new FilesystemKeyValueStore(keyValueStoreLocation);
+        }
+        catch (IllegalArgumentException e) {
+            final String message = "The photo key-value store could not be created";
+            LOG.error("FluxtreamCapturePhotoStore.getFilesystemKeyValueStore(): " + message, e);
+            throw new StorageException(message, e);
+        }
     }
 
     private static class PhotoUploadMetadata {

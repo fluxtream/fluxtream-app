@@ -25,7 +25,8 @@ import org.jetbrains.annotations.Nullable;
     @NamedQuery(name = "fluxtream_capture.photo.all", query = "SELECT facet FROM Facet_FluxtreamCapturePhoto facet WHERE facet.guestId=? ORDER BY facet.start ASC"),
     @NamedQuery(name = "fluxtream_capture.photo.deleteAll", query = "DELETE FROM Facet_FluxtreamCapturePhoto facet WHERE facet.guestId=?"),
     @NamedQuery(name = "fluxtream_capture.photo.between", query = "SELECT facet FROM Facet_FluxtreamCapturePhoto facet WHERE facet.guestId=? AND facet.start>=? AND facet.start<=? ORDER BY facet.start ASC"),
-    @NamedQuery(name = "fluxtream_capture.photo.newest", query = "SELECT facet FROM Facet_FluxtreamCapturePhoto facet WHERE facet.guestId=? ORDER BY facet.start DESC LIMIT 1")
+    @NamedQuery(name = "fluxtream_capture.photo.newest", query = "SELECT facet FROM Facet_FluxtreamCapturePhoto facet WHERE facet.guestId=? ORDER BY facet.start DESC LIMIT 1"),
+    @NamedQuery(name = "fluxtream_capture.photo.byId", query = "SELECT facet FROM Facet_FluxtreamCapturePhoto facet WHERE facet.guestId=? AND facet.id=?")
 })
 @Indexed
 public class FluxtreamCapturePhotoFacet extends AbstractFacet implements Serializable, Geolocation {
@@ -107,6 +108,10 @@ public class FluxtreamCapturePhotoFacet extends AbstractFacet implements Seriali
         this.fullTextDescription = title;
     }
 
+    public long getGuestId() {
+        return guestId;
+    }
+
     public String getHash() {
         return hash;
     }
@@ -176,5 +181,13 @@ public class FluxtreamCapturePhotoFacet extends AbstractFacet implements Seriali
 
     public String getGpsTimestamp() {
         return gpsTimestamp;
+    }
+
+    @Nullable
+    public String getPhotoStoreKey() {
+        if (guestId != 0 && captureYYYYDDD != null && start != 0 && hash != null) {
+            return FluxtreamCapturePhoto.createPhotoStoreKey(guestId, captureYYYYDDD, start, hash);
+        }
+        return null;
     }
 }

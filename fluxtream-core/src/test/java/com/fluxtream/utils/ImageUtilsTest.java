@@ -5,7 +5,6 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import javax.swing.ImageIcon;
 import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Metadata;
 import com.fluxtream.domain.Geolocation;
@@ -50,42 +49,14 @@ public class ImageUtilsTest {
     }
 
     @Test
-    public void testIsImage() {
-        Assert.assertTrue(ImageUtils.isImage(IMAGE_1));
-        Assert.assertTrue(ImageUtils.isImage(IMAGE_2));
-        Assert.assertTrue(ImageUtils.isImage(IMAGE_3));
-        Assert.assertTrue(ImageUtils.isImage(IMAGE_4));
-        Assert.assertFalse(ImageUtils.isImage(IMAGE_5));        // TIFFs are not supported
-        Assert.assertTrue(ImageUtils.isImage(IMAGE_6));
-        Assert.assertFalse(ImageUtils.isImage(NOT_AN_IMAGE));   // not actually an image
-    }
-
-    @Test
-    public void testCreateImageIcon() {
-
-        final ImageIcon imageIcon1 = ImageUtils.createImageIcon(IMAGE_1);
-        final ImageIcon imageIcon2 = ImageUtils.createImageIcon(IMAGE_2);
-        final ImageIcon imageIcon3 = ImageUtils.createImageIcon(IMAGE_3);
-        final ImageIcon imageIcon4 = ImageUtils.createImageIcon(IMAGE_4);
-        final ImageIcon imageIcon5 = ImageUtils.createImageIcon(IMAGE_5);
-        final ImageIcon imageIcon6 = ImageUtils.createImageIcon(IMAGE_6);
-        final ImageIcon imageIcon7 = ImageUtils.createImageIcon(NOT_AN_IMAGE);
-
-        Assert.assertNotNull(imageIcon1);
-        Assert.assertNotNull(imageIcon2);
-        Assert.assertNotNull(imageIcon3);
-        Assert.assertNotNull(imageIcon4);
-        Assert.assertNull(imageIcon5);      // TIFFs are not supported
-        Assert.assertNotNull(imageIcon6);
-        Assert.assertNull(imageIcon7);      // not actually an image
-        Assert.assertNull(ImageUtils.createImageIcon(null));
-        Assert.assertNull(ImageUtils.createImageIcon(new byte[]{}));
-
-        Assert.assertEquals(IMAGE_1_EXPECTED_SIZE, new Dimension(imageIcon1.getIconWidth(), imageIcon1.getIconHeight()));
-        Assert.assertEquals(IMAGE_2_EXPECTED_SIZE, new Dimension(imageIcon2.getIconWidth(), imageIcon2.getIconHeight()));
-        Assert.assertEquals(IMAGE_3_EXPECTED_SIZE, new Dimension(imageIcon3.getIconWidth(), imageIcon3.getIconHeight()));
-        Assert.assertEquals(IMAGE_4_EXPECTED_SIZE, new Dimension(imageIcon4.getIconWidth(), imageIcon4.getIconHeight()));
-        Assert.assertEquals(IMAGE_6_EXPECTED_SIZE, new Dimension(imageIcon6.getIconWidth(), imageIcon6.getIconHeight()));
+    public void testIsSupportedImage() {
+        Assert.assertTrue(ImageUtils.isSupportedImage(IMAGE_1));
+        Assert.assertTrue(ImageUtils.isSupportedImage(IMAGE_2));
+        Assert.assertTrue(ImageUtils.isSupportedImage(IMAGE_3));
+        Assert.assertTrue(ImageUtils.isSupportedImage(IMAGE_4));
+        Assert.assertFalse(ImageUtils.isSupportedImage(IMAGE_5));        // TIFFs are not supported
+        Assert.assertTrue(ImageUtils.isSupportedImage(IMAGE_6));
+        Assert.assertFalse(ImageUtils.isSupportedImage(NOT_AN_IMAGE));   // not actually an image
     }
 
     @Test
@@ -118,11 +89,10 @@ public class ImageUtilsTest {
     }
 
     private void testCreateThumbnailHelper(@NotNull final byte[] imageBytes, final int lengthOfLongestSideInPixels, @NotNull final Dimension expectedDimension) throws IOException {
-        final byte[] thumbnail1 = ImageUtils.convertToByteArray(ImageUtils.createThumbnail(imageBytes, lengthOfLongestSideInPixels));
-        Assert.assertNotNull(thumbnail1);
-        final ImageIcon thumbnailIcon1 = ImageUtils.createImageIcon(thumbnail1);
-        Assert.assertNotNull(thumbnailIcon1);
-        Assert.assertEquals(expectedDimension, new Dimension(thumbnailIcon1.getIconWidth(), thumbnailIcon1.getIconHeight()));
+        final BufferedImage thumbnailBufferedImage = ImageUtils.createThumbnail(imageBytes, lengthOfLongestSideInPixels);
+        Assert.assertNotNull(thumbnailBufferedImage);
+        Assert.assertNotNull(ImageUtils.isSupportedImage(ImageUtils.convertToByteArray(thumbnailBufferedImage)));
+        Assert.assertEquals(expectedDimension, new Dimension(thumbnailBufferedImage.getWidth(), thumbnailBufferedImage.getHeight()));
     }
 
     @Test
@@ -269,5 +239,18 @@ public class ImageUtilsTest {
 
         Assert.assertNull(ImageUtils.getGeolocation(null));
         Assert.assertNull(ImageUtils.getGeolocation(new byte[]{}));
+    }
+
+    @Test
+    public void testGetImageType() throws IOException {
+        Assert.assertEquals(ImageUtils.ImageType.JPEG, ImageUtils.getImageType(IMAGE_1));
+        Assert.assertEquals(ImageUtils.ImageType.JPEG, ImageUtils.getImageType(IMAGE_2));
+        Assert.assertEquals(ImageUtils.ImageType.PNG, ImageUtils.getImageType(IMAGE_3));
+        Assert.assertEquals(ImageUtils.ImageType.GIF, ImageUtils.getImageType(IMAGE_4));
+        Assert.assertNull(ImageUtils.getImageType(IMAGE_5));
+        Assert.assertEquals(ImageUtils.ImageType.JPEG, ImageUtils.getImageType(IMAGE_6));
+        Assert.assertNull(ImageUtils.getImageType(NOT_AN_IMAGE));
+        Assert.assertNull(ImageUtils.getImageType((byte[])null));
+        Assert.assertNull(ImageUtils.getImageType(new byte[]{}));
     }
 }

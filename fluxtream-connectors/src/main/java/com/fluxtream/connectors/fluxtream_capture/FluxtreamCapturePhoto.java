@@ -28,6 +28,19 @@ public final class FluxtreamCapturePhoto {
     private static final String CONNECTOR_PRETTY_NAME = Connector.getConnector(FluxtreamCaptureUpdater.CONNECTOR_NAME).prettyName();
     private static final String OBJECT_TYPE_NAME = "photo";
 
+    @NotNull
+    public static String createPhotoStoreKey(final long guestId,
+                                             @NotNull final String captureYYYYDDD,
+                                             final long captureTimeMillisUtc,
+                                             @NotNull final String photoHash) {
+        return guestId + KEY_VALUE_STORE_KEY_PART_DELIMITER +
+               CONNECTOR_PRETTY_NAME + KEY_VALUE_STORE_KEY_PART_DELIMITER +
+               OBJECT_TYPE_NAME + KEY_VALUE_STORE_KEY_PART_DELIMITER +
+               captureYYYYDDD + KEY_VALUE_STORE_KEY_PART_DELIMITER +
+               captureTimeMillisUtc + KEY_VALUE_STORE_FILENAME_PART_DELIMITER +
+               photoHash;
+    }
+
     private final long guestId;
 
     @NotNull
@@ -62,10 +75,10 @@ public final class FluxtreamCapturePhoto {
     @Nullable
     private final Geolocation geolocation;
 
-    FluxtreamCapturePhoto(final long guestId, @NotNull final byte[] photoBytes, final long captureTimeMillisUtc) throws IllegalArgumentException, NoSuchAlgorithmException, IOException, UnsupportedOperationException {
+    FluxtreamCapturePhoto(final long guestId, @NotNull final byte[] photoBytes, final long captureTimeMillisUtc) throws IllegalArgumentException, NoSuchAlgorithmException, IOException, FluxtreamCapturePhotoStore.UnsupportedImageFormatException {
 
-        if (!ImageUtils.isImage(photoBytes)) {
-            throw new UnsupportedOperationException("The photoBytes do not contain a supported image type");
+        if (!ImageUtils.isSupportedImage(photoBytes)) {
+            throw new FluxtreamCapturePhotoStore.UnsupportedImageFormatException("The photoBytes do not contain a supported image format");
         }
 
         if (captureTimeMillisUtc < 0) {
@@ -81,12 +94,7 @@ public final class FluxtreamCapturePhoto {
         final String dayOfYear = String.format("%03d", captureTime.getDayOfYear()); // pad with zeros so that it's always 3 characters
         captureYYYYDDD = year + dayOfYear;
         this.photoHash = HashUtils.computeSha256Hash(photoBytes);
-        photoStoreKey = guestId + KEY_VALUE_STORE_KEY_PART_DELIMITER +
-                        CONNECTOR_PRETTY_NAME + KEY_VALUE_STORE_KEY_PART_DELIMITER +
-                        OBJECT_TYPE_NAME + KEY_VALUE_STORE_KEY_PART_DELIMITER +
-                        captureYYYYDDD + KEY_VALUE_STORE_KEY_PART_DELIMITER +
-                        String.valueOf(captureTimeMillisUtc) + KEY_VALUE_STORE_FILENAME_PART_DELIMITER +
-                        photoHash;
+        photoStoreKey = createPhotoStoreKey(guestId, captureYYYYDDD, captureTimeMillisUtc, photoHash);
 
         // Create the thumbnails: do so by creating the large one first, and then creating the smaller
         // on from the larger--this should be faster than creating each from the original image
