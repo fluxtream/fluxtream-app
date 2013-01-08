@@ -97,22 +97,19 @@ public final class FluxtreamCapturePhoto {
         photoStoreKey = createPhotoStoreKey(guestId, captureYYYYDDD, captureTimeMillisUtc, photoHash);
 
         // Create the thumbnails: do so by creating the large one first, and then creating the smaller
-        // on from the larger--this should be faster than creating each from the original image
-        final BufferedImage thumbnailLargeImage = ImageUtils.createThumbnail(photoBytes, THUMBNAIL_LARGE_MAX_SIDE_LENGTH_IN_PIXELS);
-        final BufferedImage thumbnailSmallImage = ImageUtils.createThumbnail(ImageUtils.convertToByteArray(thumbnailLargeImage), THUMBNAIL_SMALL_MAX_SIDE_LENGTH_IN_PIXELS);
-        if (thumbnailSmallImage == null || thumbnailLargeImage == null) {
+        // one from the larger--this should be faster than creating each from the original image
+        final ImageUtils.Thumbnail thumbnailLargeImage = ImageUtils.createJpegThumbnail(photoBytes, THUMBNAIL_LARGE_MAX_SIDE_LENGTH_IN_PIXELS);
+        if (thumbnailLargeImage == null) {
             throw new IOException("Failed to create thumbnails");
         }
 
-        final byte[] thumbnailSmallTemp = ImageUtils.convertToByteArray(thumbnailSmallImage);
-        final byte[] thumbnailLargeTemp = ImageUtils.convertToByteArray(thumbnailLargeImage);
-
-        if (thumbnailSmallTemp == null || thumbnailLargeTemp == null) {
+        final ImageUtils.Thumbnail thumbnailSmallImage = ImageUtils.createJpegThumbnail(thumbnailLargeImage.getBytes(), THUMBNAIL_SMALL_MAX_SIDE_LENGTH_IN_PIXELS);
+        if (thumbnailSmallImage == null) {
             throw new IOException("Failed to create thumbnails");
         }
 
-        thumbnailSmall = thumbnailSmallTemp;
-        thumbnailLarge = thumbnailLargeTemp;
+        thumbnailSmall = thumbnailSmallImage.getBytes();
+        thumbnailLarge = thumbnailLargeImage.getBytes();
 
         thumbnailSmallSize = new Dimension(thumbnailSmallImage.getWidth(), thumbnailSmallImage.getHeight());
         thumbnailLargeSize = new Dimension(thumbnailLargeImage.getWidth(), thumbnailLargeImage.getHeight());

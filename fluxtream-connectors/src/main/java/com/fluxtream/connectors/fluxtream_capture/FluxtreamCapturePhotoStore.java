@@ -4,6 +4,7 @@ import java.io.File;
 import com.fluxtream.Configuration;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.JPADaoService;
+import com.fluxtream.utils.ImageUtils;
 import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 import org.bodytrack.datastore.FilesystemKeyValueStore;
@@ -66,6 +67,12 @@ public final class FluxtreamCapturePhotoStore {
          */
         @NotNull
         String getIdentifier();
+
+        /**
+         * Returns the {@link ImageUtils.ImageType} for this photo.
+         */
+        @NotNull
+        ImageUtils.ImageType getImageType();
     }
 
     @Autowired
@@ -109,6 +116,21 @@ public final class FluxtreamCapturePhotoStore {
                     public String getIdentifier() {
                         return photoStoreKey;
                     }
+
+                    @NotNull
+                    @Override
+                    public ImageUtils.ImageType getImageType() {
+                        // Try to read the image type.  If we can't for some reason, then just lie and say it's a JPEG.
+                        // This really should never happen, but it's good to check for it anyway and log a warning if it
+                        // happens.
+                        ImageUtils.ImageType imageType = ImageUtils.getImageType(bytes);
+                        if (imageType == null) {
+                            imageType = ImageUtils.ImageType.JPEG;
+                            LOG.warn("FluxtreamCapturePhotoStore.getImageType(): Could not determine the media type for photo [" + getIdentifier() + "]!  Defaulting to [" + imageType.getMediaType() + "]");
+                        }
+
+                        return imageType;
+                    }
                 };
             }
         }
@@ -140,6 +162,12 @@ public final class FluxtreamCapturePhotoStore {
                 @Override
                 public String getIdentifier() {
                     return photoId + "/" + thumbnailIndex;
+                }
+
+                @NotNull
+                @Override
+                public ImageUtils.ImageType getImageType() {
+                    return ImageUtils.ImageType.JPEG;   // thumbnails are always JPEGs
                 }
             };
         }

@@ -31,7 +31,7 @@ public class ImageUtilsTest {
     private static final byte[] NOT_AN_IMAGE = "This is not an image".getBytes();
 
     private static final Dimension IMAGE_1_EXPECTED_SIZE = new Dimension(265, 284);
-    private static final Dimension IMAGE_2_EXPECTED_SIZE = new Dimension(3264, 2448);
+    private static final Dimension IMAGE_2_EXPECTED_SIZE = new Dimension(2448, 3264);
     private static final Dimension IMAGE_3_EXPECTED_SIZE = new Dimension(1024, 1365);
     private static final Dimension IMAGE_4_EXPECTED_SIZE = new Dimension(265, 284);
     private static final Dimension IMAGE_6_EXPECTED_SIZE = new Dimension(776, 909);
@@ -61,15 +61,15 @@ public class ImageUtilsTest {
 
     @Test
     public void testCreateThumbnail() throws Exception {
-        Assert.assertNull(ImageUtils.createThumbnail(null, -1));
-        Assert.assertNull(ImageUtils.createThumbnail(null, 0));
-        Assert.assertNull(ImageUtils.createThumbnail(null, 100));
-        Assert.assertNull(ImageUtils.createThumbnail(new byte[]{}, -1));
-        Assert.assertNull(ImageUtils.createThumbnail(new byte[]{}, 0));
-        Assert.assertNull(ImageUtils.createThumbnail(new byte[]{}, 100));
-        Assert.assertNull(ImageUtils.createThumbnail(IMAGE_1, -1));
-        Assert.assertNull(ImageUtils.createThumbnail(IMAGE_1, 0));
-        Assert.assertNull(ImageUtils.createThumbnail(NOT_AN_IMAGE, 100));
+        Assert.assertNull(ImageUtils.createJpegThumbnail(null, -1));
+        Assert.assertNull(ImageUtils.createJpegThumbnail(null, 0));
+        Assert.assertNull(ImageUtils.createJpegThumbnail(null, 100));
+        Assert.assertNull(ImageUtils.createJpegThumbnail(new byte[]{}, -1));
+        Assert.assertNull(ImageUtils.createJpegThumbnail(new byte[]{}, 0));
+        Assert.assertNull(ImageUtils.createJpegThumbnail(new byte[]{}, 100));
+        Assert.assertNull(ImageUtils.createJpegThumbnail(IMAGE_1, -1));
+        Assert.assertNull(ImageUtils.createJpegThumbnail(IMAGE_1, 0));
+        Assert.assertNull(ImageUtils.createJpegThumbnail(NOT_AN_IMAGE, 100));
 
         testCreateThumbnailHelper(IMAGE_1, 50, new Dimension(47, 50));
         testCreateThumbnailHelper(IMAGE_1, 100, new Dimension(93, 100));
@@ -77,22 +77,25 @@ public class ImageUtilsTest {
 
         testCreateThumbnailHelper(IMAGE_2, 50, new Dimension(38, 50));
         testCreateThumbnailHelper(IMAGE_2, 100, new Dimension(75, 100));
+        testCreateThumbnailHelper(IMAGE_2, (int)Math.max(IMAGE_2_EXPECTED_SIZE.getHeight(), IMAGE_2_EXPECTED_SIZE.getWidth()), IMAGE_2_EXPECTED_SIZE);
 
         testCreateThumbnailHelper(IMAGE_3, 50, new Dimension(38, 50));
         testCreateThumbnailHelper(IMAGE_3, 100, new Dimension(75, 100));
+        testCreateThumbnailHelper(IMAGE_3, (int)Math.max(IMAGE_3_EXPECTED_SIZE.getHeight(), IMAGE_3_EXPECTED_SIZE.getWidth()), IMAGE_3_EXPECTED_SIZE);
 
         testCreateThumbnailHelper(IMAGE_4, 50, new Dimension(47, 50));
         testCreateThumbnailHelper(IMAGE_4, 100, new Dimension(93, 100));
+        testCreateThumbnailHelper(IMAGE_4, (int)Math.max(IMAGE_4_EXPECTED_SIZE.getHeight(), IMAGE_4_EXPECTED_SIZE.getWidth()), IMAGE_4_EXPECTED_SIZE);
 
         testCreateThumbnailHelper(IMAGE_6, 50, new Dimension(43, 50));
         testCreateThumbnailHelper(IMAGE_6, 100, new Dimension(85, 100));
+        testCreateThumbnailHelper(IMAGE_6, (int)Math.max(IMAGE_6_EXPECTED_SIZE.getHeight(), IMAGE_6_EXPECTED_SIZE.getWidth()), IMAGE_6_EXPECTED_SIZE);
     }
 
     private void testCreateThumbnailHelper(@NotNull final byte[] imageBytes, final int lengthOfLongestSideInPixels, @NotNull final Dimension expectedDimension) throws IOException {
-        final BufferedImage thumbnailBufferedImage = ImageUtils.createThumbnail(imageBytes, lengthOfLongestSideInPixels);
-        Assert.assertNotNull(thumbnailBufferedImage);
-        Assert.assertNotNull(ImageUtils.isSupportedImage(ImageUtils.convertToByteArray(thumbnailBufferedImage)));
-        Assert.assertEquals(expectedDimension, new Dimension(thumbnailBufferedImage.getWidth(), thumbnailBufferedImage.getHeight()));
+        final ImageUtils.Thumbnail thumbnail = ImageUtils.createJpegThumbnail(imageBytes, lengthOfLongestSideInPixels);
+        Assert.assertNotNull(thumbnail);
+        Assert.assertEquals(expectedDimension, new Dimension(thumbnail.getWidth(), thumbnail.getHeight()));
     }
 
     @Test
@@ -115,14 +118,14 @@ public class ImageUtilsTest {
         Assert.assertNotNull(image6);
         Assert.assertNull(image7);
 
-        Assert.assertNull(ImageUtils.convertToByteArray(null));
-        Assert.assertNotNull(ImageUtils.convertToByteArray(image1));
-        Assert.assertNotNull(ImageUtils.convertToByteArray(image2));
-        Assert.assertNotNull(ImageUtils.convertToByteArray(image3));
-        Assert.assertNotNull(ImageUtils.convertToByteArray(image4));
-        Assert.assertNotNull(ImageUtils.convertToByteArray(image6));
+        Assert.assertNull(ImageUtils.convertToJpegByteArray(null));
+        Assert.assertNotNull(ImageUtils.convertToJpegByteArray(image1));
+        Assert.assertNotNull(ImageUtils.convertToJpegByteArray(image2));
+        Assert.assertNotNull(ImageUtils.convertToJpegByteArray(image3));
+        Assert.assertNotNull(ImageUtils.convertToJpegByteArray(image4));
+        Assert.assertNotNull(ImageUtils.convertToJpegByteArray(image6));
         if (image5 != null) {
-            Assert.assertNotNull(ImageUtils.convertToByteArray(image5));
+            Assert.assertNotNull(ImageUtils.convertToJpegByteArray(image5));
         }
     }
 

@@ -434,14 +434,6 @@ public class BodyTrackController {
                 responseBuilder = responseBuilder.tag(etag);
             }
 
-            // Try to read the image type.  If we can't for some reason, then just lie and say it's a JPEG.  This really
-            // should never happen, but it's good to check for it anyway and log a warning if it happens.
-            ImageUtils.ImageType imageType = ImageUtils.getImageType(photo.getPhotoBytes());
-            if (imageType == null) {
-                imageType = ImageUtils.ImageType.JPEG;
-                LOG.warn("BodyTrackController.getFluxtreamCapturePhoto(): Could not determine the media type for photo [" + photo.getIdentifier() + "]!  Defaulting to [" + imageType.getMediaType() + "]");
-            }
-
             // Add the Last Modified header to the response, if we know it
             final Long lastUpdatedTimestamp = photo.getLastUpdatedTimestamp();
             if (lastUpdatedTimestamp != null) {
@@ -449,7 +441,7 @@ public class BodyTrackController {
             }
 
             return responseBuilder
-                    .type(imageType.getMediaType())
+                    .type(photo.getImageType().getMediaType())
                     .expires(new DateTime().plusMonths(1).toDate())
                     .entity(photo.getPhotoBytes()).build();
         }
