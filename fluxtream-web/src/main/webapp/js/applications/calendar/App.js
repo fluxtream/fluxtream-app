@@ -524,7 +524,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 dateString = date.getFullYear() + "-" + (date.getMonth() < 9 ? 0 : "") + (date.getMonth() + 1) + "-" + (date.getDate() < 10 ? 0 : "") + date.getDate();
                 break;
             case 'week':
-                var weekInfo = getWeekNumber(date);
+                var weekInfo = DateUtils.getWeekNumber(date.getFullYear(), date.getMonth(), date.getDate());
                 dateString = weekInfo[0] + "/" + weekInfo[1];
                 break;
             case 'month':
