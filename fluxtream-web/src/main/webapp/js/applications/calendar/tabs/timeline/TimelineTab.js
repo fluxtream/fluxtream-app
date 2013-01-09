@@ -67,7 +67,7 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
             $(window).resize();
             return;
         }
-        grapher = new Grapher($("#timelineTabContainer"),{onLoad:function(){
+        grapher = new Grapher($("#timelineTabContainer"), {onLoadActions: [function() {
             for (var connectorName in connectorEnabled){
                 connectorToggled(connectorName,null,connectorEnabled[connectorName]);
             }
@@ -80,7 +80,7 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
                     state = onAxisChanged(state);
                 });
             });
-        }});
+        }]});
     }
 
     function connectorToggled(connectorName,objectTypeNames,enabled){

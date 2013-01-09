@@ -21,10 +21,10 @@ define(["core/Tab","core/grapher/Grapher"], function(Tab,Grapher) {
     function setup(sourceToLoad){
         srcLoad = sourceToLoad;
         if (grapher == null)
-            grapher = new Grapher($("#grapherContainer"),{showFullControls:true,showDeleteBtn:true,onLoad:onGrapherLoad});
-        else{
+            grapher = new Grapher($("#grapherContainer"),
+                {showFullControls: true, showDeleteBtn: true, onLoadActions: [onGrapherLoad]});
+        else
             onGrapherLoad();
-        }
     }
 
     function onGrapherLoad(){

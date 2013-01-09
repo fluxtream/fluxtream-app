@@ -1,19 +1,29 @@
 define(["core/grapher/BTCore"], function(BTCore) {
 
-    var Grapher = function(parentElement,options){
+    var Grapher = function(parentElement, options) {
         if (options == null) options = {};
         parentElement = $(parentElement);
-        this.plotContainersMap = {};    // maps DOM element ID to plot container
-        this.sourcesMap   		 = {};    // maps DOM element ID to available source
-        this.channelsMap  		 = {};    // maps DOM element ID to view's y_axes
-        this.plotsMap     		 = {};    // maps DOM element ID to grapher widget
+        this.plotContainersMap = {}; // maps DOM element ID to plot container
+        this.sourcesMap = {}; // maps DOM element ID to available source
+        this.channelsMap = {}; // maps DOM element ID to view's y_axes
+        this.plotsMap = {}; // maps DOM element ID to grapher widget
         this.grapherId = new Date().getTime() + "-" + Math.round(Math.random()*10000000);
         var grapher = this;
         for (var param in options)
             grapher[param] = options[param];
-        if (grapher.onLoad == null)
-            grapher.onLoad = function(){};
-        App.loadMustacheTemplate("core/grapher/timelineTemplates.html","mainGrapherApp",function(template){
+        if (grapher.onLoadActions == null)
+            grapher.onLoadActions = [];
+        if (grapher.loaded != null || grapher.onLoad != null)
+            console.log("grapher.loaded and grapher.onLoad should not be set with options to constructor");
+        grapher.loaded = false;
+        grapher.onLoad = function() {
+            var l = grapher.onLoadActions.length;
+            for (var i = 0; i < l; i++) {
+                grapher.onLoadActions[i]();
+            }
+            grapher.loaded = true;
+        };
+        App.loadMustacheTemplate("core/grapher/timelineTemplates.html", "mainGrapherApp", function(template) {
             parentElement.append(template.render(grapher));
             setup(grapher);
         });
@@ -37,6 +47,14 @@ define(["core/grapher/BTCore"], function(BTCore) {
     var CHANNEL_PADDING      = 3;     // Pixels between plot and drag area
 
     var connectorEnabled;
+
+    function _performAfterLoad(grapher, callback) {
+        if (grapher.loaded) {
+            callback();
+        } else {
+            grapher.onLoadActions.push(callback);
+        }
+    }
 
     function init(grapher, callback) {
         // Unsaved changes dialog handler
@@ -103,12 +121,12 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 }
             }
             SOURCES.initialized = true
-            if (grapher.onLoad != null){
+            if (grapher.onLoad != null) {
                 var onload = grapher.onLoad;
                 grapher.onLoad = null;
                 onload();
-                $.doTimeout(1000,function(){
-                    $.ajax("/api/timezones/mapping",{success:function(mapping){
+                $.doTimeout(1000, function() {
+                    $.ajax("/api/timezones/mapping", {success: function(mapping) {
                         grapher.dateAxis.setTimeZoneMapping(mapping);
                     }});
                 });
@@ -2765,12 +2783,11 @@ define(["core/grapher/BTCore"], function(BTCore) {
     }
 
     Grapher.prototype.setRange = function(start, end) {
-        if (this.dateAxis) {
-            this.dateAxis.setRange(start, end);
-        } else {
-            console.log("we don't have a dateAxis yet");
-        }
-        repaintAllPlots(this);
+        var grapher = this;
+        _performAfterLoad(grapher, function() {
+            grapher.dateAxis.setRange(start, end);
+            repaintAllPlots(grapher);
+        });
     }
 
     function repaintAllPlots(grapher) {
