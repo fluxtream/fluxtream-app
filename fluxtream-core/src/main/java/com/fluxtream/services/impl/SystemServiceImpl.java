@@ -96,11 +96,13 @@ public class SystemServiceImpl implements SystemService {
                                      res.getString("quantifiedmind"),
                                      "ajax:/quantifiedmind/getTokenDialog",
                                      Connector.getConnector("quantifiedmind"), order++, true));
-        em.persist(new ConnectorInfo("Picasa",
-                                     "/images/connectors/connector-picasa.jpg",
-                                     res.getString("picasa"),
-                                     "/picasa/token",
-                                     Connector.getConnector("picasa"), order++, true));
+        // Interfacing with Picasa has been so problematic we've decided to just disable it.  Do so by simply commenting
+        // it out.  We'll keep the supporting classes around in case we change our minds.
+        //em.persist(new ConnectorInfo("Picasa",
+        //                             "/images/connectors/connector-picasa.jpg",
+        //                             res.getString("picasa"),
+        //                             "/picasa/token",
+        //                             Connector.getConnector("picasa"), order++, true));
         em.persist(new ConnectorInfo("Flickr",
                                      "/images/connectors/connector-flickr.jpg",
                                      res.getString("flickr"),

@@ -308,6 +308,62 @@ public final class ImageUtils {
         }
     }
 
+    public static interface Thumbnail {
+        @NotNull
+        byte[] getBytes();
+
+        int getWidth();
+
+        int getHeight();
+    }
+
+    private static final class JpegThumbnail implements Thumbnail {
+
+        @NotNull
+        private final byte[] imageBytes;
+        private final int width;
+        private final int height;
+
+        @Nullable
+        private static Thumbnail create(@Nullable final BufferedImage image) {
+            if (image != null) {
+                try {
+                    return new JpegThumbnail(image);
+                }
+                catch (IOException e) {
+                    LOG.error("IOException while trying to create", e);
+                }
+            }
+            return null;
+        }
+
+        private JpegThumbnail(@NotNull final BufferedImage image) throws IOException {
+            width = image.getWidth();
+            height = image.getHeight();
+            final byte[] tempImageBytes = convertToJpegByteArray(image);
+            if (tempImageBytes == null) {
+                throw new IOException("Failed to convert the thumbnail to a JPEG");
+            }
+            this.imageBytes = tempImageBytes;
+        }
+
+        @Override
+        @NotNull
+        public byte[] getBytes() {
+            return imageBytes;
+        }
+
+        @Override
+        public int getWidth() {
+            return width;
+        }
+
+        @Override
+        public int getHeight() {
+            return height;
+        }
+    }
+
     /**
      * Tries to read the given <code>imageBytes</code> and returns <code>true</code> if it's a GIF, JPEG, or PNG image;
      * returns <code>false</code> otherwise.  Returns <code>false</code> if the given byte array is <code>null</code> or
@@ -318,15 +374,16 @@ public final class ImageUtils {
     }
 
     /**
-     * Tries to create a thumbnail of the given image with the given desired dimensions.  Returns <code>null</code> if
-     * the given byte array is <code>null</code> or empty, if the desired <code>lengthOfLongestSideInPixels</code> is
+     * Tries to create a JPEG thumbnail of the given image with the given desired dimensions.  Returns <code>null</code>
+     * if the given byte array is <code>null</code> or empty, if the desired <code>lengthOfLongestSideInPixels</code> is
      * zero or negative, or if the bytes cannot be read as an image.  This method will attempt to read orientation info
-     * from the EXIF and, if necessary, rotate/flip the thumbnail appropriately.
+     * from the EXIF and, if necessary, rotate/flip the thumbnail appropriately.  Note that if the image has an alpha
+     * channel, it will be discarded before generating the thumbnail.
      *
      * @throws IOException if a problem occurs while reading the image or generating the thumbnail
      */
     @Nullable
-    public static BufferedImage createThumbnail(@Nullable final byte[] imageBytes, final int lengthOfLongestSideInPixels) throws IOException {
+    public static Thumbnail createJpegThumbnail(@Nullable final byte[] imageBytes, final int lengthOfLongestSideInPixels) throws IOException {
         if (imageBytes != null && imageBytes.length > 0 && lengthOfLongestSideInPixels > 0) {
 
             Orientation orientation = Orientation.getOrientation(new ByteArrayInputStream(imageBytes));
@@ -335,9 +392,13 @@ public final class ImageUtils {
             }
 
             try {
-                final BufferedImage image = convertToBufferedImage(imageBytes);
+                BufferedImage image = convertToBufferedImage(imageBytes);
                 if (image != null) {
-                    return orientation.transform(Scalr.resize(image, Scalr.Method.AUTOMATIC, Scalr.Mode.AUTOMATIC, lengthOfLongestSideInPixels));
+                    // drop the alpha channel, if one exists
+                    if (image.getColorModel().hasAlpha()) {
+                        image = dropAlphaChannel(image);
+                    }
+                    return JpegThumbnail.create(orientation.transform(Scalr.resize(image, Scalr.Method.AUTOMATIC, Scalr.Mode.AUTOMATIC, lengthOfLongestSideInPixels)));
                 }
             }
             catch (Exception e) {
@@ -348,6 +409,15 @@ public final class ImageUtils {
         }
 
         return null;
+    }
+
+    // I stole this from: https://github.com/thebuzzmedia/imgscalr/issues/82#issuecomment-11776976
+    @NotNull
+    private static BufferedImage dropAlphaChannel(@NotNull final BufferedImage srcImage) {
+        final BufferedImage convertedImg = new BufferedImage(srcImage.getWidth(), srcImage.getHeight(), BufferedImage.TYPE_INT_RGB);
+        convertedImg.getGraphics().drawImage(srcImage, 0, 0, null);
+
+        return convertedImg;
     }
 
     @Nullable
@@ -382,28 +452,11 @@ public final class ImageUtils {
     }
 
     @Nullable
-    public static byte[] convertToByteArray(@Nullable final BufferedImage image) throws IOException {
+    public static byte[] convertToJpegByteArray(@Nullable final BufferedImage image) throws IOException {
         if (image != null) {
             final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             if (ImageIO.write(image, "JPG", byteArrayOutputStream)) {
                 return byteArrayOutputStream.toByteArray();
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Returns the {@link ImageType} of the given image, or <code>null</code> if the type is unknown, not supported, or
-     * if an error occurs while trying to read the image. Returns <code>null</code> if the given image is <code>null</code>.
-     */
-    @Nullable
-    public static ImageType getImageType(@Nullable final BufferedImage image) {
-        if (image != null) {
-            try {
-                return getImageType(convertToByteArray(image));
-            }
-            catch (IOException e) {
-                LOG.error("IOException while trying to read the image type, returning null");
             }
         }
         return null;
