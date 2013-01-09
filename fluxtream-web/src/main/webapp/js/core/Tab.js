@@ -33,7 +33,7 @@ define([ "core/FlxState" ], function(FlxState) {
 
     Tab.prototype.getTabContents = function(uri, id, domReady, isResource, forceLoad, tabData) {
         var that = this;
-        var onContenetsRetrieved = function(html){
+        var onContentsRetrieved = function(html){
             var nextTabId = that.appname + "-" + id + "-tab",
                 nextTabDiv = $("#"+nextTabId);
             var noTab = $(".tab").length==0;
@@ -62,11 +62,11 @@ define([ "core/FlxState" ], function(FlxState) {
 
         }
         if (isResource)
-            require([uri], onContenetsRetrieved);
+            require([uri], onContentsRetrieved);
         else
             $.ajax({
                 url : uri,
-                success: onContenetsRetrieved
+                success: onContentsRetrieved
             });
 		
 	};
