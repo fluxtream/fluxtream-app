@@ -44,7 +44,6 @@ import com.fluxtream.services.GuestService;
 import com.fluxtream.services.PhotoService;
 import com.fluxtream.services.impl.BodyTrackHelper;
 import com.fluxtream.utils.HashUtils;
-import com.fluxtream.utils.ImageUtils;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.Expose;
