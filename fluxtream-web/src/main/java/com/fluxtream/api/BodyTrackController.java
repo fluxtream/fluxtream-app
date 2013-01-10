@@ -388,7 +388,7 @@ public class BodyTrackController {
             }
         }
         catch (Exception e) {
-            LOG.error("BodyTrackController.getFluxtreamCapturePhoto(): Exception while trying to check authorization.");
+            LOG.error("BodyTrackController.getFluxtreamCapturePhoto(): Exception while trying to check authorization.", e);
         }
 
         if (accessAllowed) {
@@ -404,7 +404,9 @@ public class BodyTrackController {
             }
 
             if (photo == null) {
-                return jsonResponseHelper.notFound("Photo not found");
+                final String message = "Photo [" + photoFetchStrategy.getPhotoIdentifier() + "] requested by user [" + loggedInUserId + "] not found";
+                LOG.error("BodyTrackController.getFluxtreamCapturePhoto(): " + message);
+                return jsonResponseHelper.notFound(message);
             }
 
             final CacheControl cc = new CacheControl();
