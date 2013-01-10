@@ -1,7 +1,6 @@
 package com.fluxtream.connectors.fluxtream_capture;
 
 import java.awt.Dimension;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import com.drew.imaging.ImageProcessingException;

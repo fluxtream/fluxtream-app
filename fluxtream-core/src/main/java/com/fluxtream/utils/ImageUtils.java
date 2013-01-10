@@ -60,7 +60,7 @@ public final class ImageUtils {
         }
 
         @Nullable
-        public static final ImageType findByFormatName(@Nullable final String formatName) {
+        public static ImageType findByFormatName(@Nullable final String formatName) {
             return IMAGE_TYPE_BY_FORMAT_NAME.get(formatName);
         }
 
