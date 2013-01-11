@@ -2694,7 +2694,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 return stopListening();
             }
             stopListening();
-            resizePlot(event.pageY - mostRecentY);
+            resizePlot(grapher, plotId, event.pageY - mostRecentY);
             return false; // Stops the event from propagating
         };
 
