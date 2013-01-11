@@ -130,6 +130,16 @@ public class SystemServiceImpl implements SystemService {
                                      res.getString("fluxtream_capture"),
                                      "ajax:/fluxtream_capture/about",
                                      Connector.getConnector("fluxtream_capture"), order++, true));
+        em.persist(new ConnectorInfo("RunKeeper",
+                                     "/images/connectors/connector-runkeeper.jpg",
+                                     res.getString("runkeeper"),
+                                     "/runkeeper/token",
+                                     Connector.getConnector("runkeeper"), order++, true));
+        em.persist(new ConnectorInfo("Evernote",
+                                     "/images/connectors/connector-evernote.jpg",
+                                     res.getString("evernote"),
+                                     "/evernote/token",
+                                     Connector.getConnector("evernote"), order, true));
 	}
 
     private String singlyAuthorizeUrl(final String service) {
