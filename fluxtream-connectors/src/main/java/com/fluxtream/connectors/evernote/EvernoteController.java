@@ -38,7 +38,7 @@ public class EvernoteController {
     @RequestMapping(value = "/token")
     public String getEvernoteToken(HttpServletRequest request) throws IOException, ServletException {
         OAuthService service = new ServiceBuilder()
-                .provider(EvernoteApi.class)
+                .provider(EvernoteApi.Sandbox.class)
                 .apiKey(getConsumerKey())
                 .apiSecret(getConsumerSecret())
                 .callback(env.get("homeBaseUrl") + "evernote/upgradeToken")

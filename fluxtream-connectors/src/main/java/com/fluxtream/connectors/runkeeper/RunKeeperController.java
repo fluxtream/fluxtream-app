@@ -8,8 +8,8 @@ import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.services.GuestService;
-import net.sf.json.JSONObject;
 import org.scribe.builder.ServiceBuilder;
+import org.scribe.builder.api.RunKeeperApi;
 import org.scribe.model.Token;
 import org.scribe.model.Verifier;
 import org.scribe.oauth.OAuthService;
@@ -38,18 +38,22 @@ public class RunKeeperController {
     @RequestMapping(value = "/token")
     public String getRunkeeperToken(HttpServletRequest request) throws IOException, ServletException {
 
-        OAuthService service = new ServiceBuilder()
-                .provider(RunKeeperApi.class)
-                .apiKey(getConsumerKey())
-                .apiSecret(getConsumerSecret())
-                .callback(env.get("homeBaseUrl") + "runkeeper/upgradeToken")
-                .build();
+        OAuthService service = getOAuthService();
         request.getSession().setAttribute(RUNKEEPER_SERVICE, service);
 
         // Obtain the Authorization URL
         String authorizationUrl = service.getAuthorizationUrl(EMPTY_TOKEN);
 
         return "redirect:" + authorizationUrl;
+    }
+
+    public OAuthService getOAuthService() {
+        return new ServiceBuilder()
+                    .provider(RunKeeperApi.class)
+                    .apiKey(getConsumerKey())
+                    .apiSecret(getConsumerSecret())
+                    .callback(env.get("homeBaseUrl") + "runkeeper/upgradeToken")
+                    .build();
     }
 
     @RequestMapping(value = "/upgradeToken")
@@ -60,15 +64,10 @@ public class RunKeeperController {
 
         Token accessToken = service.getAccessToken(EMPTY_TOKEN, verifier);
         final String token = accessToken.getToken();
-        JSONObject json = JSONObject.fromObject(token);
-
-        String access_token = json.getString("access_token");
-        boolean delete_health = json.getBoolean("delete_health");
 
         Guest guest = AuthHelper.getGuest();
 
-        guestService.setApiKeyAttribute(guest.getId(), Connector.getConnector("runkeeper"), "accessToken", access_token);
-        guestService.setApiKeyAttribute(guest.getId(), Connector.getConnector("runkeeper"), "deleteHealth", String.valueOf(delete_health));
+        guestService.setApiKeyAttribute(guest.getId(), Connector.getConnector("runkeeper"), "accessToken", token);
 
         request.getSession().removeAttribute(RUNKEEPER_SERVICE);
         return "redirect:/app/from/runkeeper";
