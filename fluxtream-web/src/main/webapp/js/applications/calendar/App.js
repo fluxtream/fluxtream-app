@@ -14,7 +14,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     Calendar.connectorEnabled = {"default":{}};
     Calendar.timespanInited = false;
     Calendar.timeRange = {
-        updated: false,
+        updated: true,
         start: null,
         end: null
     };
