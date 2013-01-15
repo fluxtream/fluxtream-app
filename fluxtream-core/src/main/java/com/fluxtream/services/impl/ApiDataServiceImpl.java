@@ -552,23 +552,9 @@ public class ApiDataServiceImpl implements ApiDataService {
 
     @Override
     @Transactional(readOnly = false)
-    public void addGuestLocation(final long guestId, LocationFacet locationResource,
-                                 final LocationFacet.Source source) {
-        LocationFacet payload = new LocationFacet();
-        payload.source = source;
-        payload.latitude = locationResource.latitude;
-        payload.longitude = locationResource.longitude;
-        payload.start = locationResource.timestampMs;
-        payload.end = locationResource.timestampMs;
-        payload.api = Connector.getConnector("google_latitude").value();
-        payload.guestId = guestId;
-        payload.timestampMs = locationResource.timestampMs;
-        payload.accuracy = locationResource.accuracy;
-        payload.timeUpdated = System.currentTimeMillis();
-
+    public void addGuestLocation(final long guestId, LocationFacet locationResource) {
         updateDayMetadata(guestId, locationResource.timestampMs, locationResource.latitude, locationResource.longitude);
-
-        em.persist(payload);
+        em.persist(locationResource);
     }
 
     @Transactional(readOnly = false)

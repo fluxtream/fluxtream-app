@@ -69,10 +69,10 @@ public class GoogleLatitudeUpdater extends AbstractGoogleOAuthUpdater {
 					continue;
 				locationResource.start = locationResource.timestampMs;
 				locationResource.end = locationResource.timestampMs;
+                locationResource.source = LocationFacet.Source.GOOGLE_LATITUDE;
 
                 apiDataService.addGuestLocation(updateInfo.getGuestId(),
-						locationResource,
-                        LocationFacet.Source.GOOGLE_LATITUDE);
+						locationResource);
 				
 				storedLocations.add(locationResource);
 			}
