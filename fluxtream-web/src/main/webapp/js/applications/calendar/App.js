@@ -13,8 +13,11 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     Calendar.tabParam = null;
     Calendar.connectorEnabled = {"default":{}};
     Calendar.timespanInited = false;
-    Calendar.start = null;
-    Calendar.end = null;
+    Calendar.timeRange = {
+        updated: false,
+        start: null,
+        end: null
+    };
 
 	Calendar.setup = function() {
         $.ajax("/api/connectors/filters", {
@@ -65,9 +68,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
            type: "GET",
            data: params,
            success: function(response) {
-               Calendar.start = response.start;
-               Calendar.end = response.end;
+               Calendar.timeRange.start = response.start;
+               Calendar.timeRange.end = response.end;
                updateTimespan(response.currentTimespanLabel);
+               Calendar.timeRange.updated = true;
                Calendar.navigateState(Calendar.currentTabName + "/" + response.state);
                // TODO: Change visible date in the datepicker to Sunday
                // TODO: Would be nice to use updateDatepicker, but what's the state argument?
@@ -135,8 +139,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             type: "GET",
             data: {state: state.tabState},
             success: function(response) {
-                Calendar.start = response.start;
-                Calendar.end = response.end;
+                Calendar.timeRange.start = response.start;
+                Calendar.timeRange.end = response.end;
                 updateTimespan(response.currentTimespanLabel);
             },
             error: handleError("failed to fetch timespan label!")

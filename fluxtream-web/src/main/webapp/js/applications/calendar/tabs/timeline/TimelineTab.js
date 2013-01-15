@@ -21,7 +21,10 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
         connectorEnabled = params.connectorEnabled;
         this.getTemplate("text!applications/calendar/tabs/timeline/template.html", "timeline", function() {
             setup(digest, params.timeUnit);
-            grapher.setRange(Calendar.start / 1000, Calendar.end / 1000);
+            if (Calendar.timeRange.updated) {
+                grapher.setRange(Calendar.timeRange.start / 1000, Calendar.timeRange.end / 1000);
+                Calendar.timeRange.updated = false;
+            }
         });
     }
 
