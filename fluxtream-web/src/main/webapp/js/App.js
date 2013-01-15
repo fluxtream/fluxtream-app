@@ -246,7 +246,7 @@ define(
 
         App.closeModal = function(){
             $("#modal").modal("hide");
-        }
+        };
 
         App.eraseEverything = function() {
             var confirmed = confirm("Are you sure?");
@@ -277,11 +277,11 @@ define(
 
         App.addresses = function() {
             Addresses.show();
-        }
+        };
 
         App.manageConnectors = function(){
             ManageConnectors.show();
-        }
+        };
 
         App.removeConnector = function(api) {
             var c = confirm("If you wrote comments on events related to this connector, "
