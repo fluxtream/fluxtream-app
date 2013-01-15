@@ -242,7 +242,7 @@ define(
                 compiledTemplates[templatePath] = templateData;
                 onLoad(compiledTemplates[templatePath]);
             });
-        }
+        };
 
         App.closeModal = function(){
             $("#modal").modal("hide");
@@ -264,7 +264,7 @@ define(
                         alert(status.message);
                 }
             })
-        }
+        };
 
         function glow(element) {
             element.css("text-shadow", "0 0 10px white")
@@ -313,7 +313,7 @@ define(
             config = $.extend({}, config);
             config.facets = false;
             return config;
-        }
+        };
 
         App.getFacetConfig = function(facetName){
             var config = ConnectorConfig[App.getFacetConnector(facetName)];

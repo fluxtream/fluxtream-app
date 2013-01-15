@@ -4,7 +4,7 @@
        <div class="facetDetails">
            {{#facets}}
            <div class="facetDetails{{manyFacets}}">
-               <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
+               <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
                <div class="flx-data">
                    <span style="background:url('{{profileImageUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
                    <span class="flx-description"><span><a href="https://twitter.com/{{userName}}">@{{userName}}</a></span> {{{description}}}</span>
@@ -20,7 +20,7 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails{{manyFacets}}">
-                <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
+                <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
                 <div class="flx-data">
                     <span style="background:url('{{profileImageUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
                     <span class="flx-description"><span><a href="https://twitter.com/{{userName}}">@{{userName}}</a></span> {{{description}}}</span>
@@ -36,7 +36,7 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails{{manyFacets}}">
-                <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
+                <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
                 <div class="flx-data">
                     <span style="background:url('{{profileImageUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
                     <span class="flx-description"><span><a href="https://twitter.com/{{userName}}">@{{userName}}</a></span> {{{description}}}</span>
@@ -52,7 +52,7 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
-                <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
+                <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
                 <div class="flx-data">
                     <span class="flx-description">{{description}}</span>
                 </div>
@@ -67,7 +67,7 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails{{manyFacets}}">
-                <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
+                <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
                 <div class="flx-data">
                     <span style="background:url('{{imgUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
                     <span class="flx-description">{{description}}</span>
@@ -83,7 +83,7 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails{{manyFacets}}">
-                <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
+                <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
                 <div class="flx-data">
                     <span style="background:url('{{imgUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
                     <span class="flx-description">{{description}}</span>
@@ -118,13 +118,39 @@
         </div>
 </div>
 </template>
+<template id="runkeeper-fitnessActivity">
+    <div class="flx-box" style="border-left-color:{{color}}">
+        <span class="flx-deviceIcon runkeeper-fitnessActivity"></span>
+        <div class="facetDetails">
+            {{#facets}}
+            <div class="facetDetails">
+                <div class="flx-tTime">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</div>
+                <div class="flx-data">
+                    <div>
+                        <span class="flx-dataLabel">{{activityType}}</span>
+                        <span class="flx-text">{{duration.hours}} <span class="flx-dataLabel">h</span> {{duration.minutes}} <span class="flx-dataLabel">min</span> {{duration.seconds}} <span class="flx-dataLabel">sec</span></span>
+                    </div>
+                    <div>
+                        <span class="flx-dataLabel">Avg. Heart Rate</span>
+                        <span class="flx-text">{{averageHeartRate}} <span class="flx-dataLabel">bpm</span></span>
+                    </div>
+                    <div>
+                        <span class="flx-dataLabel">Total Climb</span>
+                        <span class="flx-text">{{total_climb}} <span class="flx-dataLabel">m</span></span>
+                    </div>
+                </div>
+            </div>
+            {{/facets}}
+        </div>
+    </div>
+</template>
 <template id="fitbit-logged_activity">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon fitbit"></span>
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
-                <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
+                <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
                 <div class="flx-data">
                     <span class="flx-description">{{description}}</span>
                 </div>
@@ -141,7 +167,7 @@
             <div class="facetDetails">
                 <div class="flx-data">
                     <div>
-                        <span class="flx-text">{{#endTime}}{{hours}}:{{minutes}}{{/endTime}}</span>
+                        <span class="flx-text">{{#endTime}}{{hours}}:{{minutes}}{{/endTime}} <span class="flx-dataLabel">{{ampm}}</span></span>
                         <span class="flx-dataLabel">You slept</span>
                         <span class="flx-text bold">{{minutesAsleep.hours}}</span>
                         <span class="flx-text">hours</span>
@@ -149,7 +175,7 @@
                         <span class="flx-text">min</span>
                     </div>
                     <span class="flx-dataLabel">Bed time</span>
-                    <span class="flx-text">{{#startTime}}{{hours}}:{{minutes}}{{/startTime}}</span>
+                    <span class="flx-text">{{#startTime}}{{hours}}:{{minutes}}{{/startTime}} <span class="flx-dataLabel">{{ampm}}</span></span>
                     <span class="flx-dataLabel">Awake</span>
                     <span class="flx-text">{{minutesAwake.hours}} hours {{minutesAwake.minutes}} minutes</span>
                 </div>
@@ -164,7 +190,7 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
-                <!--<div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>-->
+                <div class="flx-tTime">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}}</div>
                 <div class="flx-data">
                     <span class="flx-dataLabel">Weight</span>
                     <span class="flx-text">{{weight}} {{weightUnitLabel}}</span>
@@ -184,7 +210,7 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails{{manyFacets}}">
-                <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
+                <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
                 <div class="flx-data">
                     <!--<span class="flx-photo" style="background:url('{{photoUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>-->
                     <img src="{{photoUrl}}" style="max-height:42px">
@@ -234,7 +260,7 @@
             <div class="facetDetails">
                 <div class="flx-data">
                     <div>
-                        <span class="flx-text">{{#endTime}}{{hours}}:{{minutes}}{{/endTime}}</span>
+                        <span class="flx-text">{{#endTime}}{{hours}}:{{minutes}}{{/endTime}} <span class="flx-dataLabel">{{ampm}}</span></span>
                         <span class="flx-dataLabel">You slept</span>
                         <span class="flx-text bold">{{minutesAsleep.hours}}</span>
                         <span class="flx-text">hours</span>
@@ -242,7 +268,7 @@
                         <span class="flx-text">min</span>
                     </div>
                     <span class="flx-dataLabel">Bed time</span>
-                    <span class="flx-text">{{#startTime}}{{hours}}:{{minutes}}{{/startTime}}</span>
+                    <span class="flx-text">{{#startTime}}{{hours}}:{{minutes}}{{/startTime}} <span class="flx-dataLabel">{{ampm}}</span></span>
                     <span class="flx-dataLabel">Rise time</span>
                     <span class="flx-text">{{#endTime}}{{hours}}:{{minutes}}{{/endTime}}</span>
                     <span class="flx-dataLabel">Awake</span>
@@ -319,7 +345,7 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
-                <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
+                <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
                 <div class="flx-data">
                     <span class="flx-description">{{description}}</span>
                 </div>
@@ -334,7 +360,7 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
-                <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
+                <div class="flx-tTime">{{time}}  <span class="flx-dataLabel">{{ampm}}</span></div>
                 <div class="flx-data">
                     <span class="flx-dataLabel">Systolic:</span>
                     <span class="flx-text">{{systolic}} mmHg</span>
@@ -356,7 +382,7 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
-                <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
+                <div class="flx-tTime">{{time}}  <span class="flx-dataLabel">{{ampm}}</span></div>
                 <div class="flx-data">
                     <span class="flx-dataLabel">You weigh</span>
                     <span class="flx-text">{{description}}</span>
@@ -441,7 +467,7 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
-                <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
+                <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
                 <div class="flx-data">
                     <span class="flx-dataLabel">Test</span>
                     <span class="flx-text">{{test_name}}</span>
@@ -474,7 +500,7 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
-                <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
+                <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
                 <div class="flx-data">
                     <span class="flx-description">{{name}} {{amount}}</span>
                     <span class="flx-description">{{note}}</span>

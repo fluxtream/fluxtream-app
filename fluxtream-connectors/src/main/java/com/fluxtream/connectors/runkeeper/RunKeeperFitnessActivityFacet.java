@@ -33,13 +33,7 @@ import com.fluxtream.domain.AbstractFacet;
     public double total_distance;
     public int duration;
 
-    @ElementCollection
-    @CollectionTable(
-            name = "FitnessActivityDistance",
-            joinColumns = @JoinColumn(name="FitnessActivityID")
-    )
-    public List<DistanceMeasure> distance;
-    @ElementCollection
+    @ElementCollection(fetch=FetchType.EAGER)
     @CollectionTable(
             name = "FitnessActivityHeartRate",
             joinColumns = @JoinColumn(name="FitnessActivityID")
@@ -50,6 +44,7 @@ import com.fluxtream.domain.AbstractFacet;
     public String source;
     public boolean is_live;
     public String comments;
+    public String timeZone;
 
     @Override
     protected void makeFullTextIndexable() {

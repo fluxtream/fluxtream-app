@@ -61,8 +61,10 @@ public class RunKeeperFitnessActivityExtractor extends AbstractFacetExtractor {
                     final String start_time = jsonObject.getString("start_time");
                     final TimeZone timeZone = metadataService.getTimeZone(locationFacet.latitude, locationFacet.longitude);
                     facet.start = timeFormatter.withZone(DateTimeZone.forTimeZone(timeZone)).parseMillis(start_time);
+                    facet.timeZone = timeZone.getID();
                     final int duration = jsonObject.getInt("duration");
                     facet.end = facet.start + duration*1000;
+                    facet.duration = duration;
                     startTimeSet = true;
                 }
                 locationFacet.altitude = (int) pathElement.getDouble("altitude");
@@ -89,17 +91,6 @@ public class RunKeeperFitnessActivityExtractor extends AbstractFacetExtractor {
             facet.total_climb = jsonObject.getDouble("total_climb");
 
 
-        if (jsonObject.has("distance")) {
-            final JSONArray distanceArray = jsonObject.getJSONArray("distance");
-            DistanceMeasure distanceMeasure = new DistanceMeasure();
-            facet.distance = new ArrayList<DistanceMeasure>(distanceArray.size());
-            for (int i=0; i<distanceArray.size(); i++) {
-                final JSONObject distanceTuple = distanceArray.getJSONObject(i);
-                distanceMeasure.distance = distanceTuple.getDouble("distance");
-                distanceMeasure.timestamp = distanceTuple.getDouble("timestamp");
-                facet.distance.add(distanceMeasure);
-            }
-        }
         if (jsonObject.has("heart_rate")) {
             final JSONArray heart_rateArray = jsonObject.getJSONArray("heart_rate");
             HeartRateMeasure heartRateMeasure = new HeartRateMeasure();
