@@ -382,7 +382,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
             });
 
             // Drag event handler for channels
-            App.loadMustacheTemplate("core/grapher/timelineTemplates.html","channelTemplate",function(template){
+            /*App.loadMustacheTemplate("core/grapher/timelineTemplates.html","channelTemplate",function(template){
                 $("#" + grapher.grapherId + "_timeline_addChannelsArea ul ._timeline_sources_channel").draggable({
                     connectToSortable : "#" + grapher.grapherId + "_timeline_channels",
                     revert: "invalid",
@@ -411,7 +411,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                         $(this).height("16px");
                     }
                 });
-            });
+            });*/
             $("#" + grapher.grapherId + "_timeline_addChannelsArea ul ._timeline_sources_channel").disableSelection();
 
             // Create new grapher widget if source receives a click
