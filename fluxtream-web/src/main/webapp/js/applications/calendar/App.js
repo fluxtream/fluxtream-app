@@ -147,6 +147,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         });
     }
 
+    function setDocumentTitle() {
+        document.title = "Fluxtream Calendar | " + $("#currentTimespanLabel").text().trim() + " (" + Calendar.currentTabName + ")";
+    }
+
 	Calendar.renderState = function(state) {
         if (!Calendar.timespanInited) {
             startLoading();
@@ -164,7 +168,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         Calendar.updateButtonStates();
         Builder.createTabs(Calendar);
         if (tabChanged) {
-            document.title = "Fluxtream Calendar | " + $("#currentTimespanLabel").text().trim() + " (" + Calendar.currentTabName + ")";
+            setDocumentTitle();
 			Builder.updateTab(Calendar.digest, Calendar);
 		} else {
             updateDisplays(state);
@@ -572,7 +576,9 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             updated = true;
         }
         if (updated) {
+            setDocumentTitle();
             updateDatepicker(state);
+            fetchCalendar(state);
             FlxState.router.navigate(Calendar.toURL(state), {trigger: false, replace: true});
             FlxState.saveState("calendar", state);
         }
