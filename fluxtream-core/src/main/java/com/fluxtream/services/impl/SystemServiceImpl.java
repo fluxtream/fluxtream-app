@@ -139,7 +139,7 @@ public class SystemServiceImpl implements SystemService {
                                      "/images/connectors/connector-evernote.jpg",
                                      res.getString("evernote"),
                                      "/evernote/token",
-                                     Connector.getConnector("evernote"), order, true));
+                                     Connector.getConnector("evernote"), order, false));
 	}
 
     private String singlyAuthorizeUrl(final String service) {
