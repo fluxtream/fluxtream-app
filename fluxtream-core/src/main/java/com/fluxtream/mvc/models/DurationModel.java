@@ -22,7 +22,6 @@ public class DurationModel {
 
         int divisor_for_seconds = divisor_for_minutes % 60;
         seconds = (int)Math.ceil(divisor_for_seconds);
-
     }
 
 }

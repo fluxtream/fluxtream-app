@@ -90,7 +90,6 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
     final ObjectType loggedActivityOT = ObjectType.getObjectType(
             connector(), "logged_activity");
 
-
     static {
 		ObjectType.registerCustomObjectType(GET_STEPS_CALL);
 		ObjectType.registerCustomObjectType(GET_USER_PROFILE_CALL);

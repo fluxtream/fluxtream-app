@@ -4,7 +4,7 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
 
     function show(){
         $.ajax("/api/connectors/installed",{
-            success: function(data, textStatus, jqXHR){
+            success: function(data){
                 dataLoaded(data,false);
             }
         });
@@ -12,14 +12,13 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
 
     function updateContents(){
         $.ajax("/api/connectors/installed",{
-            success: function(data, textStatus, jqXHR){
+            success: function(data){
                 if (hidden)
                     return;
                 dataLoaded(data,true);
             }
         })
     }
-
 
     function dataLoaded(data,update){
         connectors = data;
@@ -122,7 +121,7 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
                 }
             }
             var channelNames = [];
-            for (var i = 0; source != null && i < source.channels.length; i++){
+            for (i = 0; source != null && i < source.channels.length; i++){
                 channelNames[channelNames.length] = {name: source.name + source.channels[i].name,
                     displayName: source.name + "." + source.channels[i].name
                 };

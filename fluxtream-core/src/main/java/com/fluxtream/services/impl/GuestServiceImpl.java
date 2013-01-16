@@ -377,16 +377,17 @@ public class GuestServiceImpl implements GuestService {
             locationFacet.accuracy = 7000;
             locationFacet.latitude = ipLocation.latitude;
             locationFacet.longitude = ipLocation.longitude;
+            locationFacet.source = LocationFacet.Source.GEO_IP_DB;
             apiDataService.addGuestLocation(guestId,
-					locationFacet, LocationFacet.Source.GEO_IP_DB);
+					locationFacet);
 		} else if (env.get("environment").equals("local")) {
             try{
                 locationFacet.accuracy = 7000;
                 locationFacet.latitude = env.getFloat("defaultLocation.latitude");
                 locationFacet.longitude = env.getFloat("defaultLocation.longitude");
+                locationFacet.source = LocationFacet.Source.OTHER;
                 apiDataService.addGuestLocation(guestId,
-                        locationFacet,
-                        LocationFacet.Source.OTHER);
+                        locationFacet);
             }
             catch (Exception ignored){
             }
@@ -406,9 +407,9 @@ public class GuestServiceImpl implements GuestService {
                 locationFacet.accuracy = 7000;
                 locationFacet.latitude = lat;
                 locationFacet.longitude = lon;
+                locationFacet.source = LocationFacet.Source.IP_TO_LOCATION;
                 apiDataService.addGuestLocation(guestId,
-						locationFacet,
-                        LocationFacet.Source.IP_TO_LOCATION);
+						locationFacet);
 			}
 		}
 	}

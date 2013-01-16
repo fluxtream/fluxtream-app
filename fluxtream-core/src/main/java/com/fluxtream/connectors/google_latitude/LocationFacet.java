@@ -41,7 +41,7 @@ public class LocationFacet extends AbstractFacet implements Comparable<LocationF
 	private static final long serialVersionUID = 2882496521084143121L;
 
 	public static enum Source {
-		OTHER, USER, GOOGLE_LATITUDE, GEO_IP_DB, IP_TO_LOCATION, OPEN_PATH
+		OTHER, USER, GOOGLE_LATITUDE, GEO_IP_DB, IP_TO_LOCATION, OPEN_PATH, RUNKEEPER
 	}
 	
 	public Source source = Source.GOOGLE_LATITUDE;
@@ -81,7 +81,14 @@ public class LocationFacet extends AbstractFacet implements Comparable<LocationF
 	public String version;
 
 	public String os;
-	
+
+    /**
+     * serves as a backreference to the resource that originated in this coordinate,
+     * e.g. a runkeeper run or bike ride
+     */
+    @Index(name = "uri")
+    public String uri;
+
 	public boolean equals(Object o) {
 		if (!(o instanceof LocationFacet))
 			return false;

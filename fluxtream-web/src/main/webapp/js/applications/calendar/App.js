@@ -206,7 +206,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 		$.ajax({
             url: "/api/calendar/all/" + state.tabState,
 			success : function(response) {
-                console.log(state.tabState, response);
                 if (response.result === "KO") {
                     handleError(response.message)();
                     return;
@@ -241,6 +240,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         }
         $.each(digest.selectedConnectors, function(i, connector) {
             $.each(connector.facetTypes, function(j, facetType) {
+                console.log("loading facetType: " + facetType);
                 loadTemplate(facetType);
             });
         });

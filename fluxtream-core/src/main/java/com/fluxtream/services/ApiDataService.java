@@ -114,7 +114,6 @@ public interface ApiDataService {
 
 	public long getNumberOfDays(long guestId);
 
-    void addGuestLocation(long guestId, LocationFacet locationResource,
-                          LocationFacet.Source source);
+    void addGuestLocation(long guestId, LocationFacet locationResource);
 
 }

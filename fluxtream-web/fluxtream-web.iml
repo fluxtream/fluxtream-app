@@ -225,6 +225,7 @@
     <orderEntry type="library" name="Maven: com.sun.jersey:jersey-servlet:1.11" level="project" />
     <orderEntry type="library" name="Maven: com.sun.jersey:jersey-server:1.11" level="project" />
     <orderEntry type="library" name="Maven: org.aspectj:aspectjrt:1.5.4" level="project" />
+    <orderEntry type="library" name="Maven: org.scribe:scribe:1.3.3" level="project" />
     <orderEntry type="module" module-name="fluxtream-connectors" />
     <orderEntry type="library" name="Maven: com.sun.jersey.contribs:jersey-multipart:1.11" level="project" />
     <orderEntry type="library" name="Maven: org.jvnet:mimepull:1.6" level="project" />
