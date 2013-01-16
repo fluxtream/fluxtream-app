@@ -152,6 +152,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     }
 
 	Calendar.renderState = function(state) {
+        if (typeof state == "string")
+            state = Calendar.parseState(state);
         if (!Calendar.timespanInited) {
             startLoading();
             // NOTE: when loading a URL like /app/calendar/date/2012-12-25 directly,
