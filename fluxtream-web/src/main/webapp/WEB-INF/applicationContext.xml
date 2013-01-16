@@ -169,7 +169,7 @@
         <entry key="hibernate.c3p0.timeout" value="100" />
 		<entry key="hibernate.archive.autodetection" value="class, hbm" />
 		<entry key="hibernate.default_schema " value="flx" />
-		<entry key="hibernate.hbm2ddl.auto" value="update" />
+		<entry key="hibernate.hbm2ddl.auto" value="none" />
 		<entry key="hibernate.dialect" value="org.hibernate.dialect.MySQLDialect" />
 	</util:map>
 
