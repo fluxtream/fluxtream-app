@@ -122,27 +122,29 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 
         // activities
 
-        loadTimeSeries("activities/log/calories", updateInfo.apiKey,
+        loadTimeSeries("activities/tracker/calories", updateInfo.apiKey,
                 activityOT, "caloriesOut");
-        loadTimeSeries("activities/log/steps", updateInfo.apiKey,
+        loadTimeSeries("activities/tracker/steps", updateInfo.apiKey,
                 activityOT, "steps");
-        loadTimeSeries("activities/log/distance", updateInfo.apiKey,
+        loadTimeSeries("activities/tracker/distance", updateInfo.apiKey,
                 activityOT, "totalDistance");
-        // loadTimeSeries("activities/log/elevation", updateInfo.apiKey,
-        // activityOT,
-        // "elevation");
-        loadTimeSeries("activities/log/minutesSedentary",
+        loadTimeSeries("activities/tracker/floors", updateInfo.apiKey,
+                activityOT, "floors");
+        loadTimeSeries("activities/tracker/elevation", updateInfo.apiKey,
+                activityOT, "elevation");
+        loadTimeSeries("activities/tracker/minutesSedentary",
                 updateInfo.apiKey, activityOT, "sedentaryMinutes");
-        loadTimeSeries("activities/log/minutesLightlyActive",
+        loadTimeSeries("activities/tracker/minutesLightlyActive",
                 updateInfo.apiKey, activityOT, "lightlyActiveMinutes");
-        loadTimeSeries("activities/log/minutesFairlyActive",
+        loadTimeSeries("activities/tracker/minutesFairlyActive",
                 updateInfo.apiKey, activityOT, "fairlyActiveMinutes");
-        loadTimeSeries("activities/log/minutesVeryActive",
+        loadTimeSeries("activities/tracker/minutesVeryActive",
                 updateInfo.apiKey, activityOT, "veryActiveMinutes");
-        loadTimeSeries("activities/log/activeScore", updateInfo.apiKey,
+        loadTimeSeries("activities/tracker/activeScore", updateInfo.apiKey,
                 activityOT, "activeScore");
-        loadTimeSeries("activities/log/activityCalories",
+        loadTimeSeries("activities/tracker/activityCalories",
                 updateInfo.apiKey, activityOT, "activityCalories");
+
         // weight
 
         loadTimeSeries("body/weight", updateInfo.apiKey, weightOT,
