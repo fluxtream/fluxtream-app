@@ -163,7 +163,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 },*/
                 receive     : function(event, ui) {	// received new channel to add
                     var i, l, c;
-                    var src = sourcesMap[dragSourceId];
+                    var src = grapher.sourcesMap[dragSourceId];
 
                     // Iterate through channels and call addChannel on
                     // entries with no id

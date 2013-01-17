@@ -68,7 +68,7 @@
     border-top: 3px solid #D1D2D3;
 }
 
-._timeline_addChannelsArea ul li {
+._timeline_addChannelsArea > ul > li {
     width: 100%;
 }
 
