@@ -2,6 +2,7 @@ package com.fluxtream.connectors.fluxtream_capture;
 
 import java.io.File;
 import com.fluxtream.Configuration;
+import com.fluxtream.images.ImageType;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.JPADaoService;
 import com.fluxtream.utils.ImageUtils;
@@ -69,10 +70,10 @@ public final class FluxtreamCapturePhotoStore {
         String getIdentifier();
 
         /**
-         * Returns the {@link ImageUtils.ImageType} for this photo.
+         * Returns the {@link ImageType} for this photo.
          */
         @NotNull
-        ImageUtils.ImageType getImageType();
+        ImageType getImageType();
     }
 
     @Autowired
@@ -119,13 +120,13 @@ public final class FluxtreamCapturePhotoStore {
 
                     @NotNull
                     @Override
-                    public ImageUtils.ImageType getImageType() {
+                    public ImageType getImageType() {
                         // Try to read the image type.  If we can't for some reason, then just lie and say it's a JPEG.
                         // This really should never happen, but it's good to check for it anyway and log a warning if it
                         // happens.
-                        ImageUtils.ImageType imageType = ImageUtils.getImageType(bytes);
+                        ImageType imageType = ImageUtils.getImageType(bytes);
                         if (imageType == null) {
-                            imageType = ImageUtils.ImageType.JPEG;
+                            imageType = ImageType.JPEG;
                             LOG.warn("FluxtreamCapturePhotoStore.getImageType(): Could not determine the media type for photo [" + getIdentifier() + "]!  Defaulting to [" + imageType.getMediaType() + "]");
                         }
 
@@ -166,8 +167,8 @@ public final class FluxtreamCapturePhotoStore {
 
                 @NotNull
                 @Override
-                public ImageUtils.ImageType getImageType() {
-                    return ImageUtils.ImageType.JPEG;   // thumbnails are always JPEGs
+                public ImageType getImageType() {
+                    return ImageType.JPEG;   // thumbnails are always JPEGs
                 }
             };
         }

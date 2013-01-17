@@ -6,6 +6,8 @@ import java.security.NoSuchAlgorithmException;
 import com.drew.imaging.ImageProcessingException;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.Geolocation;
+import com.fluxtream.images.Image;
+import com.fluxtream.images.ImageOrientation;
 import com.fluxtream.utils.HashUtils;
 import com.fluxtream.utils.ImageUtils;
 import org.apache.log4j.Logger;
@@ -69,7 +71,7 @@ public final class FluxtreamCapturePhoto {
     private final Dimension thumbnailLargeSize;
 
     @NotNull
-    private final ImageUtils.Orientation orientation;
+    private final ImageOrientation orientation;
 
     @Nullable
     private final Geolocation geolocation;
@@ -97,12 +99,12 @@ public final class FluxtreamCapturePhoto {
 
         // Create the thumbnails: do so by creating the large one first, and then creating the smaller
         // one from the larger--this should be faster than creating each from the original image
-        final ImageUtils.Thumbnail thumbnailLargeImage = ImageUtils.createJpegThumbnail(photoBytes, THUMBNAIL_LARGE_MAX_SIDE_LENGTH_IN_PIXELS);
+        final Image thumbnailLargeImage = ImageUtils.createJpegThumbnail(photoBytes, THUMBNAIL_LARGE_MAX_SIDE_LENGTH_IN_PIXELS);
         if (thumbnailLargeImage == null) {
             throw new IOException("Failed to create thumbnails");
         }
 
-        final ImageUtils.Thumbnail thumbnailSmallImage = ImageUtils.createJpegThumbnail(thumbnailLargeImage.getBytes(), THUMBNAIL_SMALL_MAX_SIDE_LENGTH_IN_PIXELS);
+        final Image thumbnailSmallImage = ImageUtils.createJpegThumbnail(thumbnailLargeImage.getBytes(), THUMBNAIL_SMALL_MAX_SIDE_LENGTH_IN_PIXELS);
         if (thumbnailSmallImage == null) {
             throw new IOException("Failed to create thumbnails");
         }
@@ -114,7 +116,7 @@ public final class FluxtreamCapturePhoto {
         thumbnailLargeSize = new Dimension(thumbnailLargeImage.getWidth(), thumbnailLargeImage.getHeight());
 
         // get the image orientation, and default to ORIENTATION_1 if unspecified
-        ImageUtils.Orientation orientationTemp;
+        ImageOrientation orientationTemp;
         try {
             orientationTemp = ImageUtils.getOrientation(photoBytes);
         }
@@ -122,7 +124,7 @@ public final class FluxtreamCapturePhoto {
             LOG.error("Exception while trying to read the orientation data for user [" + guestId + "] photo [" + photoStoreKey + "]");
             orientationTemp = null;
         }
-        orientation = (orientationTemp == null) ? ImageUtils.Orientation.ORIENTATION_1 : orientationTemp;
+        orientation = (orientationTemp == null) ? ImageOrientation.ORIENTATION_1 : orientationTemp;
 
         Geolocation geolocationTemp;
         try {
@@ -184,7 +186,7 @@ public final class FluxtreamCapturePhoto {
     }
 
     @NotNull
-    public ImageUtils.Orientation getOrientation() {
+    public ImageOrientation getOrientation() {
         return orientation;
     }
 

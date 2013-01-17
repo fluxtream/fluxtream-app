@@ -11,7 +11,7 @@ import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.Geolocation;
-import com.fluxtream.utils.ImageUtils;
+import com.fluxtream.images.ImageOrientation;
 import org.hibernate.search.annotations.Indexed;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -143,8 +143,8 @@ public class FluxtreamCapturePhotoFacet extends AbstractFacet implements Seriali
     }
 
     @Nullable
-    public ImageUtils.Orientation getOrientation() {
-        return ImageUtils.Orientation.findById(orientation);
+    public ImageOrientation getOrientation() {
+        return ImageOrientation.findById(orientation);
     }
 
     public Double getLatitude() {
