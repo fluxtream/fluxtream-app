@@ -25,8 +25,6 @@ public class ZeoSleepStatsFacetVO extends AbstractTimedFacetVO<ZeoSleepStatsFace
 
     @Override
 	public void fromFacet(ZeoSleepStatsFacet facet, TimeInterval timeInterval, GuestSettings settings) {
-        startMinute = minuteOfDayFromTimeStorage(facet.startTimeStorage);
-        endMinute = minuteOfDayFromTimeStorage(facet.endTimeStorage);
 		minutesAsleep = new DurationModel(facet.totalZ*60);
 		minutesAwake = new DurationModel((int) ((double)facet.totalZ*60d/100d*(double)facet.timeInWakePercentage));
 		minutesToFallAsleep = new DurationModel(facet.timeToZ*60);

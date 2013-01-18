@@ -16,3 +16,4 @@ mvn install:install-file  -Dfile=client-1.0.jar -DgroupId=gdata -DartifactId=cli
 mvn install:install-file  -Dfile=activation-1.0.2.jar -DgroupId=javax.activation -DartifactId=activation -Dversion=1.0.2 -Dpackaging=jar
 mvn install:install-file  -Dfile=jstl-1.2.jar -DgroupId=javax.servlet.jstl -DartifactId=jstl -Dversion=1.2 -Dpackaging=jar
 mvn install:install-file  -Dfile=SunriseSunsetCalculator-1.0-SNAPSHOT.jar -DgroupId=com.luckycatlabs.sotoo -DartifactId=SunriseSunsetCalculator -Dversion=1.0-SNAPSHOT -Dpackaging=jar
+mvn install:install-file  -Dfile=scribe-1.3.3.jar -DgroupId=org.scribe -DartifactId=scribe -Dversion=1.3.3 -Dpackaging=jar

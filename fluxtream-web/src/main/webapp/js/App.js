@@ -242,11 +242,11 @@ define(
                 compiledTemplates[templatePath] = templateData;
                 onLoad(compiledTemplates[templatePath]);
             });
-        }
+        };
 
         App.closeModal = function(){
             $("#modal").modal("hide");
-        }
+        };
 
         App.eraseEverything = function() {
             var confirmed = confirm("Are you sure?");
@@ -264,7 +264,7 @@ define(
                         alert(status.message);
                 }
             })
-        }
+        };
 
         function glow(element) {
             element.css("text-shadow", "0 0 10px white")
@@ -277,11 +277,11 @@ define(
 
         App.addresses = function() {
             Addresses.show();
-        }
+        };
 
         App.manageConnectors = function(){
             ManageConnectors.show();
-        }
+        };
 
         App.removeConnector = function(api) {
             var c = confirm("If you wrote comments on events related to this connector, "
@@ -313,7 +313,7 @@ define(
             config = $.extend({}, config);
             config.facets = false;
             return config;
-        }
+        };
 
         App.getFacetConfig = function(facetName){
             var config = ConnectorConfig[App.getFacetConnector(facetName)];

@@ -108,6 +108,18 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                 }
             }
         },
+        runkeeper:{
+            color: "#8c2ebb",
+            mapicon: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/cup.png",
+            mapshadow: null,
+            facets:{
+                "fitnessActivity":{
+                    list:true,
+                    map: true,
+                    clock: ClockConfig.BODY_CATEGORY
+                }
+            }
+        },
         twitter:{
             color: "rgb(146, 51, 239)",
             mapicon: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/tweet.png",

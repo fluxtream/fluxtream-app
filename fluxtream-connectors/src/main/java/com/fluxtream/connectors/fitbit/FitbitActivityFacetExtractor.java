@@ -55,6 +55,10 @@ public class FitbitActivityFacetExtractor extends AbstractFacetExtractor {
 
 		if (fitbitSummary.containsKey("activeScore"))
 			facet.activeScore = fitbitSummary.getInt("activeScore");
+        if (fitbitSummary.containsKey("floors"))
+            facet.floors = fitbitSummary.getInt("floors");
+        if (fitbitSummary.containsKey("elevation"))
+            facet.elevation = fitbitSummary.getInt("elevation");
 		if (fitbitSummary.containsKey("caloriesOut"))
 			facet.caloriesOut = fitbitSummary.getInt("caloriesOut");
 		if (fitbitSummary.containsKey("fairlyActiveMinutes"))
@@ -69,6 +73,29 @@ public class FitbitActivityFacetExtractor extends AbstractFacetExtractor {
 			facet.veryActiveMinutes = fitbitSummary.getInt("veryActiveMinutes");
 		if (fitbitSummary.containsKey("steps"))
 			facet.steps = fitbitSummary.getInt("steps");
+
+        if (fitbitSummary.has("distances")) {
+            JSONArray distancesArray = fitbitSummary.getJSONArray("distances");
+            for (int i=0; i<distancesArray.size(); i++) {
+                JSONObject distanceObject = distancesArray.getJSONObject(i);
+                final String activityType = distanceObject.getString("activity");
+                final double distance = distanceObject.getDouble("distance");
+                if (activityType.equals("tracker"))
+                    facet.trackerDistance = distance;
+                else if (activityType.equals("loggedActivities"))
+                    facet.loggedActivitiesDistance = distance;
+                else if (activityType.equals("veryActive"))
+                    facet.veryActiveDistance = distance;
+                else if (activityType.equals("total"))
+                    facet.totalDistance = distance;
+                else if (activityType.equals("moderatelyActive"))
+                    facet.moderatelyActiveDistance = distance;
+                else if (activityType.equals("lightlyActive"))
+                    facet.lightlyActiveDistance = distance;
+                else if (activityType.equals("sedentary"))
+                    facet.sedentaryActiveDistance = distance;
+            }
+        }
 
 		facets.add(facet);
 	}

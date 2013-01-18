@@ -14,7 +14,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     Calendar.connectorEnabled = {"default":{}};
     Calendar.timespanInited = false;
     Calendar.timeRange = {
-        updated: false,
+        updated: true,
         start: null,
         end: null
     };
@@ -147,7 +147,13 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         });
     }
 
+    function setDocumentTitle() {
+        document.title = "Fluxtream Calendar | " + $("#currentTimespanLabel").text().trim() + " (" + Calendar.currentTabName + ")";
+    }
+
 	Calendar.renderState = function(state) {
+        if (typeof state == "string")
+            state = Calendar.parseState(state);
         if (!Calendar.timespanInited) {
             startLoading();
             // NOTE: when loading a URL like /app/calendar/date/2012-12-25 directly,
@@ -164,7 +170,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         Calendar.updateButtonStates();
         Builder.createTabs(Calendar);
         if (tabChanged) {
-            document.title = "Fluxtream Calendar | " + $("#currentTimespanLabel").text().trim() + " (" + Calendar.currentTabName + ")";
+            setDocumentTitle();
 			Builder.updateTab(Calendar.digest, Calendar);
 		} else {
             updateDisplays(state);
@@ -200,7 +206,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 		$.ajax({
             url: "/api/calendar/all/" + state.tabState,
 			success : function(response) {
-                console.log(state.tabState, response);
                 if (response.result === "KO") {
                     handleError(response.message)();
                     return;
@@ -235,6 +240,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         }
         $.each(digest.selectedConnectors, function(i, connector) {
             $.each(connector.facetTypes, function(j, facetType) {
+                console.log("loading facetType: " + facetType);
                 loadTemplate(facetType);
             });
         });
@@ -572,7 +578,9 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             updated = true;
         }
         if (updated) {
+            setDocumentTitle();
             updateDatepicker(state);
+            fetchCalendar(state);
             FlxState.router.navigate(Calendar.toURL(state), {trigger: false, replace: true});
             FlxState.saveState("calendar", state);
         }

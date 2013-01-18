@@ -23,38 +23,40 @@ define([],function(){
 
     TabInterface.prototype.getRenderParams = function(){
         return {};
-    }
+    };
 
     TabInterface.prototype.setRenderParamsFunction = function(fn){
         this.getRenderParams = fn;
-    }
+    };
 
     TabInterface.prototype.setTabVisibility = function(tabnames,visible){
         if (typeof tabnames == "string")
             tabnames = [tabnames];
+        if (typeof tabnames=="undefined")
+            return;
         for (var i = 0; i < tabnames.length; i++)
             setFieldValue(this,tabnames[i],"visible",visible);
-    }
+    };
 
     TabInterface.prototype.setActiveTab = function(tabname){
         setFieldValue(this,tabname,"active",true);
-    }
+    };
 
     function getActiveTab(ti){
         for (var tabname in ti.tabs)
             if (ti.tabs[tabname].active)
                 return ti.tabs[tabname];
         return null
-    }
+    };
 
     TabInterface.prototype.getActiveTab = function(){
         var tab = getActiveTab(this);
         return tab == null ? null : tab.tab;
-    }
+    };
 
     TabInterface.prototype.getNav = function(){
         return this.nav;
-    }
+    };
 
     function loadTabs(ti,tabPaths){ //loads all tabs in order they are listed consistently
         require(tabPaths, function(/* tabs */) {
