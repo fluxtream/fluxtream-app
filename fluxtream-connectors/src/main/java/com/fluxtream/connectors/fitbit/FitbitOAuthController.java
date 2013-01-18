@@ -94,7 +94,7 @@ public class FitbitOAuthController {
 		logger.info("guestId=" + apiKey.getGuestId() + " action=fitbit.fetchUserProfile "
 				+ "helper=" + signpostHelper + " connector=" + connector()
 				+ " guestId=" + apiKey.getGuestId());
-		String json = signpostHelper.makeRestCall(connector(), apiKey,
+		String json = signpostHelper.makeRestCall(apiKey,
 				GET_USER_PROFILE_CALL.hashCode(),
 				"http://api.fitbit.com/1/user/-/profile.json");
 
@@ -149,12 +149,12 @@ public class FitbitOAuthController {
 		provider.retrieveAccessToken(consumer, verifier);
 		Guest guest = AuthHelper.getGuest();
 
-		guestService.setApiKeyAttribute(guest.getId(), connector(),
-				"accessToken", consumer.getToken());
-		guestService.setApiKeyAttribute(guest.getId(), connector(),
-				"tokenSecret", consumer.getTokenSecret());
+        final ApiKey apiKey = guestService.createApiKey(guest.getId(), connector());
 
-		ApiKey apiKey = guestService.getApiKey(guest.getId(), connector());
+		guestService.setApiKeyAttribute(apiKey,
+				"accessToken", consumer.getToken());
+		guestService.setApiKeyAttribute(apiKey,
+				"tokenSecret", consumer.getTokenSecret());
 
 		FitbitUserProfile userProfile = new FitbitUserProfile();
 		fetchUserProfile(apiKey, userProfile);

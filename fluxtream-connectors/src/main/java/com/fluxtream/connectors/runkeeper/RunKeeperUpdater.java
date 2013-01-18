@@ -43,7 +43,7 @@ public class RunKeeperUpdater  extends AbstractUpdater {
     protected void updateConnectorDataHistory(final UpdateInfo updateInfo) throws Exception {
         long beginningOfTime = new Date(0).getTime();
         updateData(updateInfo, beginningOfTime);
-        guestService.setApiKeyAttribute(updateInfo.getGuestId(), updateInfo.apiKey.getConnector(),
+        guestService.setApiKeyAttribute(updateInfo.apiKey,
                                         "lastUpdated", String.valueOf(System.currentTimeMillis()));
     }
 
@@ -109,8 +109,7 @@ public class RunKeeperUpdater  extends AbstractUpdater {
 
     @Override
     protected void updateConnectorData(final UpdateInfo updateInfo) throws Exception {
-        final String lastUpdatedString = guestService.getApiKeyAttribute(updateInfo.getGuestId(),
-                                                                   updateInfo.apiKey.getConnector(), "lastUpdated");
+        final String lastUpdatedString = guestService.getApiKeyAttribute(updateInfo.apiKey, "lastUpdated");
         final long lastUpdated = Long.valueOf(lastUpdatedString);
         updateData(updateInfo, lastUpdated);
     }

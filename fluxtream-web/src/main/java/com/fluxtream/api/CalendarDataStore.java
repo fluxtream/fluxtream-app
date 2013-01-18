@@ -83,9 +83,6 @@ public class CalendarDataStore {
 	SettingsService settingsService;
 
 	@Autowired
-	ApiDataService apiDataService;
-
-	@Autowired
 	NotificationsService notificationsService;
 
 	@Autowired

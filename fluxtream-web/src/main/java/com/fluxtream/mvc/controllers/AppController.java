@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import com.fluxtream.Configuration;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.Notification.Type;
 import com.fluxtream.services.ApiDataService;
@@ -165,8 +166,7 @@ public class AppController {
 	}
 
 	@RequestMapping(value = "/app/from/{connectorName}")
-	public String home(HttpServletRequest request,
-			@PathVariable("connectorName") String connectorName) {
+	public String home(@PathVariable("connectorName") String connectorName) {
 		long guestId = AuthHelper.getGuestId();
         final Connector connector = Connector.getConnector(connectorName);
         String message = "You have successfully added a new connector: "
@@ -174,7 +174,8 @@ public class AppController {
 				+ ". Your data is now being retrieved. "
 				+ "It may take a little while until it becomes visible.";
 		notificationsService.addNotification(guestId, Type.INFO, message);
-        connectorUpdateService.updateConnector(guestId, connector, true);
+        ApiKey apiKey = guestService.getApiKey(guestId, connector);
+        connectorUpdateService.updateConnector(apiKey, true);
 		return "redirect:/app";
 	}
 

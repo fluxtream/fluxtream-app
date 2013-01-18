@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.fluxtream.Configuration;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.impl.BodyTrackHelper;
@@ -47,7 +48,9 @@ public class BodyTrackController {
         if (!checkForPermissionAccess(uid)){
             uid = null;
         }
-        String user_id = guestService.getApiKeyAttribute(uid,Connector.getConnector("bodytrack"), "user_id");
+        // TODO: this is really going to be problematic...
+        ApiKey apiKey = guestService.getApiKey(uid, Connector.getConnector("bodytrack"));
+        String user_id = guestService.getApiKeyAttribute(apiKey, "user_id");
         String bodyTrackUrl = "http://localhost:3000/users/" + user_id + "/log_items/get";
         String pstr = request.getQueryString();
         if (pstr != null) {
@@ -65,7 +68,9 @@ public class BodyTrackController {
         if (!checkForPermissionAccess(uid)){
             uid = null;
         }
-        String user_id = guestService.getApiKeyAttribute(uid,Connector.getConnector("bodytrack"), "user_id");
+        //TODO: WARNING!
+        ApiKey apiKey = guestService.getApiKey(uid, Connector.getConnector("bodytrack"));
+        String user_id = guestService.getApiKeyAttribute(apiKey, "user_id");
 		String bodyTrackUrl = "http://localhost:3000/photos/" + user_id + "/"
 				+ level + "." + offset + ".json";
 		String pstr = request.getQueryString();
@@ -86,7 +91,9 @@ public class BodyTrackController {
         if (!checkForPermissionAccess(uid)){
             uid = null;
         }
-        String user_id = guestService.getApiKeyAttribute(uid,Connector.getConnector("bodytrack"), "user_id");
+        //TODO: WARNING!
+        ApiKey apiKey = guestService.getApiKey(uid, Connector.getConnector("bodytrack"));
+        String user_id = guestService.getApiKeyAttribute(apiKey, "user_id");
         String bodyTrackUrl = "http://localhost:3000/users/" + user_id + "/logphotos/" + photoSpec + ".jpg";
         String pstr = request.getQueryString();
         if (pstr != null) {
@@ -109,7 +116,8 @@ public class BodyTrackController {
         if (!checkForPermissionAccess(uid)){
             uid = null;
         }
-        String user_id = guestService.getApiKeyAttribute(uid,Connector.getConnector("bodytrack"), "user_id");
+        ApiKey apiKey = guestService.getApiKey(uid, Connector.getConnector("bodytrack"));
+        String user_id = guestService.getApiKeyAttribute(apiKey, "user_id");
 		String tunnelUrl = "http://localhost:3000/users/" + user_id + "/sources";
 		writeTunnelResponse(tunnelUrl, response);
 	}
@@ -121,7 +129,8 @@ public class BodyTrackController {
         if (!checkForPermissionAccess(uid)){
             uid = null;
         }
-        String user_id = guestService.getApiKeyAttribute(uid,Connector.getConnector("bodytrack"), "user_id");
+        ApiKey apiKey = guestService.getApiKey(uid, Connector.getConnector("bodytrack"));
+        String user_id = guestService.getApiKeyAttribute(apiKey, "user_id");
     	String bodyTrackUrl = "http://localhost:3000/users/" + user_id + "/logrecs/" + LOGREC_ID + "/get";
     	String pstr = request.getQueryString();
     	if (pstr != null) {
@@ -144,7 +153,8 @@ public class BodyTrackController {
         //   comment=<string> Set the comment field to the provided string
         //   tags=<list of tags separated by commas> Set the tags for the logrec.  Behaves the same as /users/UID/tags/LOGREC_ID/set?tags=<value> other than having a different return value.
         //    nsfw=<value> If specified, alters the value of the NSFW flag on the logrec and modifies tag list appropriately to either include an "nsfw" tag if value is true, or remove any existing "nsfw" tags if value is false.
-        String user_id = guestService.getApiKeyAttribute(uid,Connector.getConnector("bodytrack"), "user_id");
+        ApiKey apiKey = guestService.getApiKey(uid, Connector.getConnector("bodytrack"));
+        String user_id = guestService.getApiKeyAttribute(apiKey, "user_id");
         String bodyTrackUrl = "http://localhost:3000/users/" + user_id + "/logrecs/" + LOGREC_ID + "/set";
         Map parameterMap = request.getParameterMap();
         Enumeration parameterNames = request.getParameterNames();
@@ -178,7 +188,8 @@ public class BodyTrackController {
         if (!checkForPermissionAccess(uid)){
             uid = null;
         }
-        String user_id = guestService.getApiKeyAttribute(uid,Connector.getConnector("bodytrack"), "user_id");
+        ApiKey apiKey = guestService.getApiKey(uid, Connector.getConnector("bodytrack"));
+        String user_id = guestService.getApiKeyAttribute(apiKey, "user_id");
 		String tunnelUrl = "http://localhost:3000/users/" + user_id + "/tags/"
 				+ LOGREC_ID + "/get";
 		writeTunnelResponse(tunnelUrl, response);
@@ -193,7 +204,8 @@ public class BodyTrackController {
         if (!checkForPermissionAccess(uid)){
             uid = null;
         }
-        String user_id = guestService.getApiKeyAttribute(uid,Connector.getConnector("bodytrack"), "user_id");
+        ApiKey apiKey = guestService.getApiKey(uid, Connector.getConnector("bodytrack"));
+        String user_id = guestService.getApiKeyAttribute(apiKey, "user_id");
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("tags", tags);
 		String tunnelUrl = "http://localhost:3000/users/" + user_id + "/tags/"

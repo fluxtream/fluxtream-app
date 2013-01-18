@@ -35,7 +35,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 		super();
 	}
 
-	public void getScreenName(long guestId, OAuthConsumer consumer) throws Exception {
+	public void getScreenName(ApiKey apiKey, OAuthConsumer consumer) throws Exception {
 		HttpGet request = new HttpGet("http://api.twitter.com/1/account/verify_credentials.json");
 		consumer.sign(request);
 		HttpClient client = env.getHttpClient();
@@ -45,7 +45,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 			String json = responseHandler.handleResponse(response);
 			JSONObject profile = JSONObject.fromObject(json);
 			String screen_name = profile.getString("screen_name");
-			guestService.setApiKeyAttribute(guestId, connector(), "screen_name", screen_name);
+			guestService.setApiKeyAttribute(apiKey,  "screen_name", screen_name);
 		}
 	}
 
@@ -70,10 +70,10 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 	public void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception {
         final OAuthConsumer consumer = setupConsumer(updateInfo.apiKey);
 
-        if (guestService.getApiKeyAttribute(updateInfo.apiKey.getGuestId(),connector(),"screen_name")==null)
-			getScreenName(updateInfo.apiKey.getGuestId(), consumer);
+        if (guestService.getApiKeyAttribute(updateInfo.apiKey, "screen_name")==null)
+			getScreenName(updateInfo.apiKey, consumer);
 		
-		String screen_name = guestService.getApiKeyAttribute(updateInfo.apiKey.getGuestId(),connector(),"screen_name");
+		String screen_name = guestService.getApiKeyAttribute(updateInfo.apiKey, "screen_name");
 		
 		List<ObjectType> objectTypes = updateInfo.objectTypes();
 		if (objectTypes.contains(ObjectType.getObjectType(connector(), "tweet"))) {
@@ -89,7 +89,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 	@Override
 	public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
         final OAuthConsumer consumer = setupConsumer(updateInfo.apiKey);
-        String screen_name = guestService.getApiKeyAttribute(updateInfo.apiKey.getGuestId(),connector(),"screen_name");
+        String screen_name = guestService.getApiKeyAttribute(updateInfo.apiKey, "screen_name");
 		
 		List<ObjectType> objectTypes = updateInfo.objectTypes();
 		if (objectTypes.contains(ObjectType.getObjectType(connector(), "tweet"))) {
@@ -240,7 +240,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 		HttpClient client = env.getHttpClient();
 		HttpResponse response = client.execute(request);
 		if (response.getStatusLine().getStatusCode() == 200) {
-			countSuccessfulApiCall(updateInfo.apiKey.getGuestId(),
+			countSuccessfulApiCall(updateInfo.apiKey,
 					updateInfo.objectTypes, then, requestUrl);
 			ResponseHandler<String> responseHandler = new BasicResponseHandler();
 			String json = responseHandler.handleResponse(response);
@@ -251,7 +251,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 			return statuses.size();
 		} else {
             final String reasonPhrase = response.getStatusLine().getReasonPhrase();
-            countFailedApiCall(updateInfo.apiKey.getGuestId(), updateInfo.objectTypes, then, requestUrl, reasonPhrase);
+            countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, requestUrl, reasonPhrase);
 			throw new Exception("Unexpected error trying to get statuses");
 		}
 	}
@@ -269,7 +269,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 		HttpClient client = env.getHttpClient();
 		HttpResponse response = client.execute(request);
 		if (response.getStatusLine().getStatusCode() == 200) {
-			countSuccessfulApiCall(updateInfo.apiKey.getGuestId(),
+			countSuccessfulApiCall(updateInfo.apiKey,
 					updateInfo.objectTypes, then, requestUrl);
 			ResponseHandler<String> responseHandler = new BasicResponseHandler();
 			String json = responseHandler.handleResponse(response);
@@ -281,7 +281,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 			return directMessages.size();
 		} else {
             final String reasonPhrase = response.getStatusLine().getReasonPhrase();
-			countFailedApiCall(updateInfo.apiKey.getGuestId(),
+			countFailedApiCall(updateInfo.apiKey,
 					updateInfo.objectTypes, then, requestUrl, reasonPhrase);
 			throw new Exception("Unexpected error trying to get received messages");
 		}
@@ -300,7 +300,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 		HttpClient client = env.getHttpClient();
 		HttpResponse response = client.execute(request);
 		if (response.getStatusLine().getStatusCode() == 200) {
-			countSuccessfulApiCall(updateInfo.apiKey.getGuestId(),
+			countSuccessfulApiCall(updateInfo.apiKey,
 					updateInfo.objectTypes, then, requestUrl);
 			ResponseHandler<String> responseHandler = new BasicResponseHandler();
 			String json = responseHandler.handleResponse(response);
@@ -312,7 +312,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 			return directMessages.size();
 		} else {
             final String reasonPhrase = response.getStatusLine().getReasonPhrase();
-            countFailedApiCall(updateInfo.apiKey.getGuestId(), updateInfo.objectTypes, then, requestUrl, reasonPhrase);
+            countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, requestUrl, reasonPhrase);
 			throw new Exception("Unexpected error trying to get sent messages");
 		}
 	}
@@ -330,7 +330,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 		HttpClient client = env.getHttpClient();
 		HttpResponse response = client.execute(request);
 		if (response.getStatusLine().getStatusCode() == 200) {
-			countSuccessfulApiCall(updateInfo.apiKey.getGuestId(),
+			countSuccessfulApiCall(updateInfo.apiKey,
 					updateInfo.objectTypes, then, requestUrl);
 			ResponseHandler<String> responseHandler = new BasicResponseHandler();
 			String json = responseHandler.handleResponse(response);
@@ -341,7 +341,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 			return mentions.size();
 		} else {
             final String reasonPhrase = response.getStatusLine().getReasonPhrase();
-            countFailedApiCall(updateInfo.apiKey.getGuestId(),
+            countFailedApiCall(updateInfo.apiKey,
                                updateInfo.objectTypes, then, requestUrl, reasonPhrase);
             Exception exception = new Exception("Unexpected error trying to get mentions: " + reasonPhrase);
 			throw exception;

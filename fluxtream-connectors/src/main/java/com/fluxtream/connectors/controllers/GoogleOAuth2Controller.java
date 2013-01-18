@@ -9,6 +9,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Notification;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.services.NotificationsService;
@@ -98,15 +99,16 @@ public class GoogleOAuth2Controller {
             return "redirect:/app";
         }
         final String refresh_token = token.getString("refresh_token");
+        final ApiKey apiKey = guestService.createApiKey(guest.getId(), scopedApi);
 
-        guestService.setApiKeyAttribute(guest.getId(), scopedApi,
+        guestService.setApiKeyAttribute(apiKey,
 				"accessToken", token.getString("access_token"));
-		guestService.setApiKeyAttribute(guest.getId(), scopedApi,
+		guestService.setApiKeyAttribute(apiKey,
 				"tokenExpires", String.valueOf(System.currentTimeMillis() + (token.getLong("expires_in")*1000)));
-        guestService.setApiKeyAttribute(guest.getId(), scopedApi,
+        guestService.setApiKeyAttribute(apiKey,
 				"refreshToken", refresh_token);
         final String encodedRefreshToken = URLEncoder.encode(refresh_token, "UTF-8");
-        guestService.setApiKeyAttribute(guest.getId(), scopedApi,
+        guestService.setApiKeyAttribute(apiKey,
                                         "refreshTokenRemoveURL",
                                         "https://accounts.google.com/o/oauth2/revoke?token="
                                         + encodedRefreshToken);

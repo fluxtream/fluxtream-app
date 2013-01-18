@@ -1,19 +1,12 @@
 package com.fluxtream.connectors.flickr;
 
 import javax.persistence.Entity;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.domain.AbstractFloatingTimeZoneFacet;
 import org.hibernate.search.annotations.Indexed;
 
 @Entity(name="Facet_FlickrPhoto")
 @ObjectTypeSpec(name = "photo", value = 1, isImageType=true, prettyname = "Photos", isDateBased = true)
-@NamedQueries({
-		@NamedQuery(name = "flickr.photo.deleteAll", query = "DELETE FROM Facet_FlickrPhoto facet WHERE facet.guestId=?"),
-        @NamedQuery(name = "flickr.photo.byDates", query = "SELECT facet FROM Facet_FlickrPhoto facet WHERE facet.guestId=? AND facet.date IN ?"),
-		@NamedQuery(name = "flickr.photo.between", query = "SELECT facet FROM Facet_FlickrPhoto facet WHERE facet.guestId=? AND facet.datetaken>=? AND facet.datetaken<=?")
-})
 @Indexed
 public class FlickrPhotoFacet extends AbstractFloatingTimeZoneFacet {
 

@@ -26,7 +26,7 @@ public class IncrementalUpdateStrategy extends AbstractUpdateStrategy {
 	@Override
 	public UpdateInfo computeUpdateInfo(ApiKey apiKey,
 			int objectTypes, TimeInterval timeInterval) {
-		ApiUpdate lastUpdate = connectorUpdateService.getLastUpdate(apiKey.getGuestId(), apiKey.getConnector());
+		ApiUpdate lastUpdate = connectorUpdateService.getLastUpdate(apiKey);
 		long now = System.currentTimeMillis();
 		if (timeInterval.isMostRecent()) {
 			if (lastUpdate!=null && (now-lastUpdate.ts<refreshDelay()))

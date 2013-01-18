@@ -28,10 +28,10 @@
     <orderEntry type="library" name="Maven: com.adobe.xmp:xmpcore:5.1.2" level="project" />
     <orderEntry type="library" name="Maven: xerces:xercesImpl:2.10.0" level="project" />
     <orderEntry type="library" name="Maven: xml-apis:xml-apis:1.4.01" level="project" />
+    <orderEntry type="library" name="Maven: junit:junit:4.8.2" level="project" />
     <orderEntry type="library" name="Maven: com.ocpsoft:ocpsoft-pretty-time:1.0.7" level="project" />
     <orderEntry type="library" name="Maven: com.postmark:postmark-client:0.3.1" level="project" />
     <orderEntry type="library" name="Maven: com.google.code.gson:gson:1.7.1" level="project" />
-    <orderEntry type="library" name="Maven: junit:junit:4.8.2" level="project" />
     <orderEntry type="library" name="Maven: joda-time:joda-time:1.6" level="project" />
     <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpclient:4.0.3" level="project" />
     <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpcore:4.0.1" level="project" />

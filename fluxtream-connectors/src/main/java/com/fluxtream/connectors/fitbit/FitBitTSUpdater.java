@@ -158,9 +158,9 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         final long trackerLastSyncDate = getLastSyncDate(deviceStatusesArray, "TRACKER");
         final long scaleLastSyncDate = getLastSyncDate(deviceStatusesArray, "SCALE");
 
-        guestService.setApiKeyAttribute(updateInfo.getGuestId(), connector(), "TRACKER.lastSyncDate",
+        guestService.setApiKeyAttribute(updateInfo.apiKey, "TRACKER.lastSyncDate",
                                         String.valueOf(trackerLastSyncDate));
-        guestService.setApiKeyAttribute(updateInfo.getGuestId(), connector(), "SCALE.lastSyncDate",
+        guestService.setApiKeyAttribute(updateInfo.apiKey, "SCALE.lastSyncDate",
                                         String.valueOf(scaleLastSyncDate));
     }
 
@@ -169,7 +169,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 		if (facet.date != null) {
 			if (facet.caloriesJson == null
 					|| isToday(facet.date, apiKey.getGuestId())) {
-				String json = signpostHelper.makeRestCall(connector(), apiKey,
+				String json = signpostHelper.makeRestCall(apiKey,
 						"activities/log/calories/date".hashCode(),
 						"http://api.fitbit.com/1/user/-/activities/log/calories/date/"
 								+ facet.date + "/1d.json");
@@ -192,7 +192,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 	public void updateStepsIntraday(FitbitTrackerActivityFacet facet, ApiKey apiKey)
 			throws RateLimitReachedException {
 		if (facet.date != null) {
-			String json = signpostHelper.makeRestCall(connector(), apiKey,
+			String json = signpostHelper.makeRestCall(apiKey,
 					"activities/log/steps/date".hashCode(),
 					"http://api.fitbit.com/1/user/-/activities/log/steps/date/"
 							+ facet.date + "/1d.json");
@@ -208,7 +208,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 			ObjectType objectType, String fieldName)
 			throws RateLimitReachedException {
         
-		String json = signpostHelper.makeRestCall(connector(), apiKey,
+		String json = signpostHelper.makeRestCall(apiKey,
 				uri.hashCode(), "http://api.fitbit.com/1/user/-/" + uri
 						+ "/date/today/max.json");
 
@@ -364,10 +364,10 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
     {
         long lastSyncDate = 0;
         if (deviceType.equals("TRACKER")) {
-            final String trackerLastSyncDate = guestService.getApiKeyAttribute(apiKey.getGuestId(), connector(), "TRACKER.lastSyncDate");
+            final String trackerLastSyncDate = guestService.getApiKeyAttribute(apiKey, "TRACKER.lastSyncDate");
             lastSyncDate = Long.valueOf(trackerLastSyncDate);
         } else {
-            final String scaleLastSyncDate = guestService.getApiKeyAttribute(apiKey.getGuestId(), connector(), "SCALE.lastSyncDate");
+            final String scaleLastSyncDate = guestService.getApiKeyAttribute(apiKey, "SCALE.lastSyncDate");
             lastSyncDate = Long.valueOf(scaleLastSyncDate);
         }
         if (deviceType.equals("TRACKER")&&lastSyncDate<latestTrackerSyncDate)
@@ -410,8 +410,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 
         final ObjectType customObjectType = ObjectType.getCustomObjectType(GET_USER_DEVICES_CALL);
         final int getUserDevicesObjectTypeID = customObjectType.value();
-        String json = signpostHelper.makeRestCall(connector(),
-                                                  apiKey, getUserDevicesObjectTypeID,
+        String json = signpostHelper.makeRestCall(apiKey, getUserDevicesObjectTypeID,
                                                   urlString);
         return JSONArray.fromObject(json);
     }
@@ -433,7 +432,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                 final List<String> trackerDaysToSync = getDaysSinceLastSync(updateInfo.apiKey, "TRACKER", trackerLastSyncDate, scaleLastSyncDate);
                 if(trackerDaysToSync.size()>0) {
                     updateListOfDays(updateInfo, Arrays.asList(sleepOT, activityOT), trackerDaysToSync);
-                    guestService.setApiKeyAttribute(updateInfo.getGuestId(), connector(), "TRACKER.lastSyncDate",
+                    guestService.setApiKeyAttribute(updateInfo.apiKey, "TRACKER.lastSyncDate",
                                                     String.valueOf(trackerLastSyncDate));
                 }
             }
@@ -441,7 +440,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                 final List<String> scaleDaysToSync = getDaysSinceLastSync(updateInfo.apiKey, "SCALE", trackerLastSyncDate, scaleLastSyncDate);
                 if (scaleDaysToSync.size()>0) {
                     updateListOfDays(updateInfo, Arrays.asList(weightOT), scaleDaysToSync);
-                    guestService.setApiKeyAttribute(updateInfo.getGuestId(), connector(), "SCALE.lastSyncDate",
+                    guestService.setApiKeyAttribute(updateInfo.apiKey, "SCALE.lastSyncDate",
                                                     String.valueOf(scaleLastSyncDate));
                 }
             }
@@ -471,8 +470,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         if (objectTypes.contains(sleepOT)) {
             logger.info("guestId=" + updateInfo.getGuestId() + " objectType=sleep" +
                         " connector=fitbit objectType=weightMeasurement action=updateOneDayOfData date=" + dateString);
-            apiDataService.eraseApiData(updateInfo.getGuestId(),
-                    updateInfo.apiKey.getConnector(), sleepOT,
+            apiDataService.eraseApiData(updateInfo.apiKey, sleepOT,
                     Arrays.asList(dateString));
             try {
                 loadSleepDataForOneDay(updateInfo, date, userTimeZone, dateString);
@@ -485,10 +483,8 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         if (objectTypes.contains(activityOT)) {
             logger.info("guestId=" + updateInfo.getGuestId() + " objectType=activity" +
                         " connector=fitbit objectType=weightMeasurement action=updateOneDayOfData date=" + dateString);
-            apiDataService.eraseApiData(updateInfo.getGuestId(),
-                    updateInfo.apiKey.getConnector(), activityOT, Arrays.asList(dateString));
-            apiDataService.eraseApiData(updateInfo.getGuestId(),
-                    updateInfo.apiKey.getConnector(), loggedActivityOT,
+            apiDataService.eraseApiData(updateInfo.apiKey, activityOT, Arrays.asList(dateString));
+            apiDataService.eraseApiData(updateInfo.apiKey, loggedActivityOT,
                     Arrays.asList(dateString));
             try {
                 loadActivityDataForOneDay(updateInfo, date, userTimeZone, dateString);
@@ -501,7 +497,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         if (objectTypes.contains(weightOT)) {
             logger.info("guestId=" + updateInfo.getGuestId() + " objectType=weight" +
                         " connector=fitbit objectType=weightMeasurement action=updateOneDayOfData date=" + dateString);
-            apiDataService.eraseApiData(updateInfo.getGuestId(), updateInfo.apiKey.getConnector(), weightOT, Arrays.asList(dateString));
+            apiDataService.eraseApiData(updateInfo.apiKey, weightOT, Arrays.asList(dateString));
             try {
                 loadWeightDataForOneDay(updateInfo, date, userTimeZone, dateString);
             } catch (RuntimeException e) {
@@ -555,8 +551,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 		String urlString = "http://api.fitbit.com/1/user/-/sleep/date/"
 				+ formattedDate + ".json";
 
-		String json = signpostHelper.makeRestCall(connector(),
-				updateInfo.apiKey, sleepOT.value(), urlString);
+		String json = signpostHelper.makeRestCall(updateInfo.apiKey, sleepOT.value(), urlString);
 
 		return json;
 	}
@@ -565,8 +560,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         String urlString = "http://api.fitbit.com/1/user/-/body/log/weight/date/"
                            + formattedDate + ".json";
 
-        String json = signpostHelper.makeRestCall(connector(),
-                                                  updateInfo.apiKey, weightOT.value(), urlString);
+        String json = signpostHelper.makeRestCall(updateInfo.apiKey, weightOT.value(), urlString);
 
         return json;
     }
@@ -576,81 +570,80 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 		String urlString = "http://api.fitbit.com/1/user/-/activities/date/"
 				+ formattedDate + ".json";
 
-		String json = signpostHelper.makeRestCall(connector(),
-				updateInfo.apiKey, activityOT.value()+loggedActivityOT.value(), urlString);
+		String json = signpostHelper.makeRestCall(updateInfo.apiKey, activityOT.value()+loggedActivityOT.value(), urlString);
 
 		return json;
 	}
-
-	@RequestMapping("/fitbit/notify")
-	public void notifyMeasurement(@RequestBody String updatesString,
-			HttpServletRequest request, HttpServletResponse response)
-			throws Exception {
-
-		String lines[] = updatesString.split("\\r?\\n");
-
-		for (String line : lines) {
-			if (line.startsWith("[{\"collectionType")) {
-				updatesString = line;
-				break;
-			}
-		}
-
-		logger.info("action=apiNotification connector=fitbit message="
-				+ updatesString);
-
-		try {
-			JSONArray updatesArray = JSONArray.fromObject(updatesString);
-			for (int i = 0; i < updatesArray.size(); i++) {
-				JSONObject jsonUpdate = updatesArray.getJSONObject(i);
-				String collectionType = jsonUpdate.getString("collectionType");
-				// warning: 'body' doesn't have a date!!!
-				if (collectionType.equals("body"))
-					continue;
-				String dateString = jsonUpdate.getString("date");
-				String ownerId = jsonUpdate.getString("ownerId");
-				String subscriptionId = jsonUpdate.getString("subscriptionId");
-
-                FitbitUserProfile userProfile = jpaDaoService.findOne("fitbitUser.byEncodedId", FitbitUserProfile.class, ownerId);
-
-                long guestId = userProfile.guestId;
-
-                int objectTypes = 0;
-				if (collectionType.equals("foods")
-						|| collectionType.equals("body")) {
-                    //notificationsService.addNotification(guestId, Notification.Type.INFO, "Received new body info from Fitbit");
-					continue;
-				} else if (collectionType.equals("activities")) {
-                    //notificationsService.addNotification(guestId, Notification.Type.INFO, "Received new activity info from Fitbit");
-                    objectTypes = 3;
-				} else if (collectionType.equals("sleep")) {
-                    //notificationsService.addNotification(guestId, Notification.Type.INFO, "Received new sleep info from Fitbit");
-                    objectTypes = 4;
-				}
-
-				connectorUpdateService.addApiNotification(connector(),
-						userProfile.guestId, updatesString);
-
-				JSONObject jsonParams = new JSONObject();
-				jsonParams.accumulate("date", dateString)
-						.accumulate("ownerId", ownerId)
-						.accumulate("subscriptionId", subscriptionId);
-
-				logger.info("action=scheduleUpdate connector=fitbit collectionType="
-						+ collectionType);
-
-				connectorUpdateService.scheduleUpdate(userProfile.guestId,
-						connector().getName(), objectTypes,
-						UpdateType.PUSH_TRIGGERED_UPDATE,
-						System.currentTimeMillis() + 5000,
-						jsonParams.toString());
-			}
-		} catch (Exception e) {
-			System.out.println("error processing fitbit notification " + updatesString);
-			e.printStackTrace();
-			logger.warn("Could not parse fitbit notification: "
-					+ Utils.stackTrace(e));
-		}
-	}
+    //
+	//@RequestMapping("/fitbit/notify")
+	//public void notifyMeasurement(@RequestBody String updatesString,
+	//		HttpServletRequest request, HttpServletResponse response)
+	//		throws Exception {
+    //
+	//	String lines[] = updatesString.split("\\r?\\n");
+    //
+	//	for (String line : lines) {
+	//		if (line.startsWith("[{\"collectionType")) {
+	//			updatesString = line;
+	//			break;
+	//		}
+	//	}
+    //
+	//	logger.info("action=apiNotification connector=fitbit message="
+	//			+ updatesString);
+    //
+	//	try {
+	//		JSONArray updatesArray = JSONArray.fromObject(updatesString);
+	//		for (int i = 0; i < updatesArray.size(); i++) {
+	//			JSONObject jsonUpdate = updatesArray.getJSONObject(i);
+	//			String collectionType = jsonUpdate.getString("collectionType");
+	//			// warning: 'body' doesn't have a date!!!
+	//			if (collectionType.equals("body"))
+	//				continue;
+	//			String dateString = jsonUpdate.getString("date");
+	//			String ownerId = jsonUpdate.getString("ownerId");
+	//			String subscriptionId = jsonUpdate.getString("subscriptionId");
+    //
+     //           FitbitUserProfile userProfile = jpaDaoService.findOne("fitbitUser.byEncodedId", FitbitUserProfile.class, ownerId);
+    //
+     //           long guestId = userProfile.guestId;
+    //
+     //           int objectTypes = 0;
+	//			if (collectionType.equals("foods")
+	//					|| collectionType.equals("body")) {
+     //               //notificationsService.addNotification(guestId, Notification.Type.INFO, "Received new body info from Fitbit");
+	//				continue;
+	//			} else if (collectionType.equals("activities")) {
+     //               //notificationsService.addNotification(guestId, Notification.Type.INFO, "Received new activity info from Fitbit");
+     //               objectTypes = 3;
+	//			} else if (collectionType.equals("sleep")) {
+     //               //notificationsService.addNotification(guestId, Notification.Type.INFO, "Received new sleep info from Fitbit");
+     //               objectTypes = 4;
+	//			}
+    //
+	//			connectorUpdateService.addApiNotification(connector(),
+	//					userProfile.guestId, updatesString);
+    //
+	//			JSONObject jsonParams = new JSONObject();
+	//			jsonParams.accumulate("date", dateString)
+	//					.accumulate("ownerId", ownerId)
+	//					.accumulate("subscriptionId", subscriptionId);
+    //
+	//			logger.info("action=scheduleUpdate connector=fitbit collectionType="
+	//					+ collectionType);
+    //
+	//			connectorUpdateService.scheduleUpdate(userProfile.guestId,
+	//					connector().getName(), objectTypes,
+	//					UpdateType.PUSH_TRIGGERED_UPDATE,
+	//					System.currentTimeMillis() + 5000,
+	//					jsonParams.toString());
+	//		}
+	//	} catch (Exception e) {
+	//		System.out.println("error processing fitbit notification " + updatesString);
+	//		e.printStackTrace();
+	//		logger.warn("Could not parse fitbit notification: "
+	//				+ Utils.stackTrace(e));
+	//	}
+	//}
 
 }

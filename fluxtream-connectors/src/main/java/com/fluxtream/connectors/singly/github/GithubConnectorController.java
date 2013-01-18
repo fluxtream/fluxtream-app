@@ -6,6 +6,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.services.GuestService;
@@ -48,10 +49,13 @@ public class GithubConnectorController {
             String accessToken = jsonToken.getString("access_token");
             String account = jsonToken.getString("account");
 
-            guestService.setApiKeyAttribute(guest.getId(), Connector.getConnector("github"), "accessToken", accessToken);
-            guestService.setApiKeyAttribute(guest.getId(), Connector.getConnector("github"), "account", account);
+            final Connector connector = Connector.getConnector("github");
+            final ApiKey apiKey = guestService.createApiKey(guest.getId(), connector);
 
-            getUserLogin(guest.getId(), accessToken);
+            guestService.setApiKeyAttribute(apiKey, "accessToken", accessToken);
+            guestService.setApiKeyAttribute(apiKey, "account", account);
+
+            getUserLogin(apiKey, accessToken);
 
             return "redirect:/app/from/github";
         }
@@ -59,13 +63,13 @@ public class GithubConnectorController {
         return "redirect:/app/from/github?error=" + error;
     }
 
-    private void getUserLogin(final long guestId, final String accessToken) throws IOException {
+    private void getUserLogin(final ApiKey apiKey, final String accessToken) throws IOException {
         final String profileJson = HttpUtils.fetch("https://api.singly.com/services/github/self?access_token=" + accessToken);
         JSONArray jsonProfileArray = JSONArray.fromObject(profileJson);
         JSONObject jsonProfile = jsonProfileArray.getJSONObject(0);
         final JSONObject profileData = jsonProfile.getJSONObject("data");
         final String login = profileData.getString("login");
 
-        guestService.setApiKeyAttribute(guestId, Connector.getConnector("github"), "login", login);
+        guestService.setApiKeyAttribute(apiKey, "login", login);
     }
 }

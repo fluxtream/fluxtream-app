@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.updaters.UpdateInfo;
+import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.services.GuestService;
@@ -87,14 +88,15 @@ public class BodymediaController {
 		String verifier = request.getParameter("oauth_verifier");
 		provider.retrieveAccessToken(consumer, verifier);
 		Guest guest = AuthHelper.getGuest();
-		
-		guestService.setApiKeyAttribute(guest.getId(), connector(),
-				"api_key", env.get("bodymediaConsumerKey"));
-		guestService.setApiKeyAttribute(guest.getId(), connector(),
+
+        final ApiKey apiKey = guestService.createApiKey(guest.getId(), connector());
+
+        guestService.setApiKeyAttribute(apiKey, "api_key", env.get("bodymediaConsumerKey"));
+		guestService.setApiKeyAttribute(apiKey,
 				"accessToken", consumer.getToken());
-		guestService.setApiKeyAttribute(guest.getId(), connector(),
+		guestService.setApiKeyAttribute(apiKey,
 				"tokenSecret", consumer.getTokenSecret());
-        guestService.setApiKeyAttribute(guest.getId(), connector(),
+        guestService.setApiKeyAttribute(apiKey,
                 "tokenExpiration", provider.getResponseParameters().get("xoauth_token_expiration_time").first());
 
 		return "redirect:/app/from/" + connector().getName();
@@ -106,13 +108,13 @@ public class BodymediaController {
 
     public void replaceToken(UpdateInfo updateInfo) throws OAuthExpectationFailedException, OAuthMessageSignerException,
                                                            OAuthCommunicationException, OAuthNotAuthorizedException {
-        String apiKey = guestService.getApiKeyAttribute(updateInfo.getGuestId(), connector(), "api_key");
+        String apiKey = guestService.getApiKeyAttribute(updateInfo.apiKey, "api_key");
         OAuthConsumer consumer = new DefaultOAuthConsumer(
                 apiKey,
                 env.get("bodymediaConsumerSecret"));
-        String accessToken = guestService.getApiKeyAttribute(updateInfo.getGuestId(), connector(), "accessToken");
+        String accessToken = guestService.getApiKeyAttribute(updateInfo.apiKey, "accessToken");
         consumer.setTokenWithSecret(accessToken,
-                guestService.getApiKeyAttribute(updateInfo.getGuestId(), connector(), "tokenSecret"));
+                guestService.getApiKeyAttribute(updateInfo.apiKey, "tokenSecret"));
         HttpParameters additionalParameter = new HttpParameters();
         additionalParameter.put("api_key", apiKey);
         additionalParameter.put("oauth_token",
@@ -128,13 +130,13 @@ public class BodymediaController {
 
         provider.retrieveAccessToken(consumer, null);
 
-        guestService.setApiKeyAttribute(updateInfo.getGuestId(), connector(),
+        guestService.setApiKeyAttribute(updateInfo.apiKey,
                                         "api_key", env.get("bodymediaConsumerKey"));
-        guestService.setApiKeyAttribute(updateInfo.getGuestId(), connector(),
+        guestService.setApiKeyAttribute(updateInfo.apiKey,
                                         "accessToken", consumer.getToken());
-        guestService.setApiKeyAttribute(updateInfo.getGuestId(), connector(),
+        guestService.setApiKeyAttribute(updateInfo.apiKey,
                                         "tokenSecret", consumer.getTokenSecret());
-        guestService.setApiKeyAttribute(updateInfo.getGuestId(), connector(),
+        guestService.setApiKeyAttribute(updateInfo.apiKey,
                                         "tokenExpiration", provider.getResponseParameters().get("xoauth_token_expiration_time").first());
     }
 }

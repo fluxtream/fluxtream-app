@@ -19,6 +19,7 @@ import com.fluxtream.mvc.models.ConnectorResponseModel;
 import com.fluxtream.mvc.models.TimeBoundariesModel;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.ConnectorUpdateService;
+import com.fluxtream.services.GuestService;
 import com.fluxtream.updaters.strategies.UpdateStrategy;
 import com.fluxtream.updaters.strategies.UpdateStrategyFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,9 @@ public class CalendarDataHelper {
 
 	@Autowired
 	private UpdateStrategyFactory updateStrategyFactory;
+
+    @Autowired
+    private GuestService guestService;
 
 	/**
 	 * This is to let the client discard responses that are coming "too late"
@@ -63,7 +67,7 @@ public class CalendarDataHelper {
         try {
             if (AuthHelper.isViewingGranted(connector.getName()))
                 facets = apiDataService.getApiDataFacets(
-                        AuthHelper.getVieweeId(), connector, objectType,
+                        guestService.getApiKey(AuthHelper.getVieweeId(), connector), objectType,
                         dates);
         } catch (Throwable t) {
             t.printStackTrace();
@@ -78,7 +82,7 @@ public class CalendarDataHelper {
 		try {
             if (AuthHelper.isViewingGranted(connector.getName()))
                 facets = apiDataService.getApiDataFacets(
-                        AuthHelper.getVieweeId(), connector, objectType,
+                        guestService.getApiKey(AuthHelper.getVieweeId(), connector), objectType,
                         dayMetadata.getTimeInterval());
 		} catch (Throwable t) {
 			t.printStackTrace();
@@ -112,21 +116,20 @@ public class CalendarDataHelper {
 		// either we need to initiate a history update
 		if (updateInfo.getUpdateType() == UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE) {
 			ScheduleResult scheduleResult = connectorUpdateService
-					.scheduleUpdate(apiKey.getGuestId(), apiKey.getConnector()
-							.getName(), objectTypes,
+					.scheduleUpdate(apiKey, objectTypes,
 							UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE,
 							System.currentTimeMillis());
 			crm.addScheduleResult(scheduleResult);
 		}
 		// or, unless we were told not to (NOOP), we update the api data
 		else if (updateInfo.getUpdateType() != UpdateInfo.UpdateType.NOOP_UPDATE) {
-			UpdateResult updateResult = doUpdateApiData(apiKey, objectTypes,
+			UpdateResult updateResult = doUpdateApiData(apiKey,
 					updateInfo);
 			crm.addUpdateResult(updateResult);
 		}
 	}
 
-	UpdateResult doUpdateApiData(ApiKey apiKey, int objectTypes,
+	UpdateResult doUpdateApiData(ApiKey apiKey,
 			UpdateInfo updateInfo) {
 		AbstractUpdater updater = connectorUpdateService.getUpdater(apiKey
 				.getConnector());
@@ -134,9 +137,4 @@ public class CalendarDataHelper {
 		return updateResult;
 	}
 
-	CalendarModel getHomeModel(HttpServletRequest request) {
-		CalendarModel calendarModel = (CalendarModel) request.getSession().getAttribute(
-				"calendarModel");
-		return calendarModel;
-	}
 }

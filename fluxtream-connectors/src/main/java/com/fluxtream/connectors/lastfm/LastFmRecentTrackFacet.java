@@ -15,8 +15,6 @@ import com.fluxtream.domain.AbstractFacet;
 @NamedQueries({
 		@NamedQuery(name = "lastfm.recent_track.byStartEnd", query = "SELECT facet FROM Facet_LastFmRecentTrack facet WHERE facet.guestId=? AND facet.start=? AND facet.end=?"),
 		@NamedQuery(name = "lastfm.recent_track.newest", query = "SELECT facet FROM Facet_LastFmRecentTrack facet WHERE facet.guestId=? ORDER BY time DESC LIMIT 1"),
-		@NamedQuery(name = "lastfm.recent_track.deleteAll", query = "DELETE FROM Facet_LastFmRecentTrack facet WHERE facet.guestId=?"),
-		@NamedQuery(name = "lastfm.recent_track.between", query = "SELECT facet FROM Facet_LastFmRecentTrack facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=?")
 })
 @Indexed
 public class LastFmRecentTrackFacet extends AbstractFacet {

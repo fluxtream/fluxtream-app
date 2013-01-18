@@ -17,27 +17,27 @@ public class DefaultPhotoFacetFinderStrategy implements PhotoFacetFinderStrategy
     private ApiDataService apiDataService;
 
     @Override
-    public List<AbstractFacet> findAll(final long guestId, final Connector connector, final ObjectType objectType, TimeInterval timeInterval) {
-        return apiDataService.getApiDataFacets(guestId, connector, objectType, timeInterval);
+    public List<AbstractFacet> findAll(final ApiKey apiKey, final ObjectType objectType, TimeInterval timeInterval) {
+        return apiDataService.getApiDataFacets(apiKey, objectType, timeInterval);
     }
 
     @Override
-    public List<AbstractFacet> findBefore(final long guestId, final Connector connector, final ObjectType objectType, final long timeInMillis, final int desiredCount) {
-        return apiDataService.getApiDataFacetsBefore(guestId, connector, objectType, timeInMillis, desiredCount);
+    public List<AbstractFacet> findBefore(final ApiKey apiKey, final ObjectType objectType, final long timeInMillis, final int desiredCount) {
+        return apiDataService.getApiDataFacetsBefore(apiKey, objectType, timeInMillis, desiredCount);
     }
 
     @Override
-    public List<AbstractFacet> findAfter(final long guestId, final Connector connector, final ObjectType objectType, final long timeInMillis, final int desiredCount) {
-        return apiDataService.getApiDataFacetsAfter(guestId, connector, objectType, timeInMillis, desiredCount);
+    public List<AbstractFacet> findAfter(final ApiKey apiKey, final ObjectType objectType, final long timeInMillis, final int desiredCount) {
+        return apiDataService.getApiDataFacetsAfter(apiKey, objectType, timeInMillis, desiredCount);
     }
 
     @Override
-    public AbstractFacet findOldest(final long guestId, final Connector connector, final ObjectType objectType) {
-        return apiDataService.getOldestApiDataFacet(guestId, connector, objectType);
+    public AbstractFacet findOldest(final ApiKey apiKey, final ObjectType objectType) {
+        return apiDataService.getOldestApiDataFacet(apiKey, objectType);
     }
 
     @Override
-    public AbstractFacet findLatest(final long guestId, final Connector connector, final ObjectType objectType) {
-        return apiDataService.getLatestApiDataFacet(guestId, connector, objectType);
+    public AbstractFacet findLatest(final ApiKey apiKey, final ObjectType objectType) {
+        return apiDataService.getLatestApiDataFacet(apiKey, objectType);
     }
 }

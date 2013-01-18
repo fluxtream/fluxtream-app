@@ -24,6 +24,7 @@ import com.fluxtream.connectors.vos.AbstractFacetVO;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.AbstractFloatingTimeZoneFacet;
 import com.fluxtream.domain.AbstractUserProfile;
+import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Tag;
 import com.fluxtream.domain.metadata.City;
 import com.fluxtream.domain.metadata.DayMetadataFacet;
@@ -169,20 +170,6 @@ public class ApiDataServiceImpl implements ApiDataService {
         eventListenerService.fireEvent(dataReceivedEvent);
     }
 
-    /**
-	 * start and end parameters allow to specify time boundaries that are not
-	 * contained in the connector data itself
-	 */
-	@Override
-	@Transactional(readOnly = false)
-	public void cacheApiDataXML(UpdateInfo updateInfo, Document xmlDocument,
-			long start, long end) throws Exception {
-		ApiData apiData = new ApiData(updateInfo, start, end);
-		apiData.xmlDocument = xmlDocument;
-		extractFacets(apiData, updateInfo.objectTypes, null);
-        fireDataReceivedEvent(updateInfo, updateInfo.objectTypes(), start, end);
-	}
-
 	/**
 	 * start and end parameters allow to specify time boundaries that are not
 	 * contained in the connector data itself
@@ -198,49 +185,49 @@ public class ApiDataServiceImpl implements ApiDataService {
 
 	@Override
 	@Transactional(readOnly = false)
-	public void eraseApiData(long guestId, Connector connector, int objectTypes) {
-		if (!connector.hasFacets())
+	public void eraseApiData(ApiKey apiKey, int objectTypes) {
+		if (!apiKey.getConnector().hasFacets())
 			return;
 		if (objectTypes == -1)
-			eraseApiData(guestId, connector);
+			eraseApiData(apiKey);
 		else {
 			List<ObjectType> connectorTypes = ObjectType.getObjectTypes(
-					connector, objectTypes);
+					apiKey.getConnector(), objectTypes);
 			for (ObjectType connectorType : connectorTypes) {
-				jpaDao.deleteAllFacets(connector, connectorType, guestId);
+				jpaDao.deleteAllFacets(apiKey, connectorType);
 			}
 		}
 	}
 
 	@Override
 	@Transactional(readOnly = false)
-	public void eraseApiData(long guestId, Connector connector,
+	public void eraseApiData(ApiKey apiKey,
 			ObjectType objectType) {
 		if (objectType == null)
-			eraseApiData(guestId, connector);
+			eraseApiData(apiKey);
 		else
-			jpaDao.deleteAllFacets(connector, objectType, guestId);
+			jpaDao.deleteAllFacets(apiKey, objectType);
 	}
 
     @Override
-    public void eraseApiData(final long guestId, final Connector connector,
+    public void eraseApiData(ApiKey apiKey,
                              final int objectTypes, final TimeInterval timeInterval) {
-        List<ObjectType> connectorTypes = ObjectType.getObjectTypes(connector,
+        List<ObjectType> connectorTypes = ObjectType.getObjectTypes(apiKey.getConnector(),
                                                                     objectTypes);
         if (connectorTypes!=null) {
             for (ObjectType objectType : connectorTypes) {
-                eraseApiData(guestId, connector, objectType, timeInterval);
+                eraseApiData(apiKey, objectType, timeInterval);
             }
         } else
-            eraseApiData(guestId, connector, null, timeInterval);
+            eraseApiData(apiKey, null, timeInterval);
     }
 
     @Override
 	@Transactional(readOnly = false)
 	// TODO: make a named query that works for all api objects
-	public void eraseApiData(long guestId, Connector api,
+	public void eraseApiData(ApiKey apiKey,
 			ObjectType objectType, TimeInterval timeInterval) {
-		List<AbstractFacet> facets = getApiDataFacets(guestId, api, objectType,
+		List<AbstractFacet> facets = getApiDataFacets(apiKey, objectType,
 				timeInterval);
 		if (facets != null) {
 			for (AbstractFacet facet : facets)
@@ -250,9 +237,9 @@ public class ApiDataServiceImpl implements ApiDataService {
 
     @Override
     @Transactional(readOnly = false)
-    public void eraseApiData(long guestId, Connector connector,
+    public void eraseApiData(ApiKey apiKey,
                              ObjectType objectType, List<String> dates) {
-        final List<AbstractFacet> facets = jpaDao.getFacetsByDates(connector, guestId, objectType, dates);
+        final List<AbstractFacet> facets = jpaDao.getFacetsByDates(apiKey, objectType, dates);
         if (facets != null) {
             for (AbstractFacet facet : facets)
                 em.remove(facet);
@@ -261,11 +248,11 @@ public class ApiDataServiceImpl implements ApiDataService {
 
 	@Override
 	@Transactional(readOnly = false)
-	public void eraseApiData(long guestId, Connector connector) {
-		if (!connector.hasFacets())
+	public void eraseApiData(ApiKey apiKey) {
+		if (!apiKey.getConnector().hasFacets())
 			return;
-		jpaDao.deleteAllFacets(connector, guestId);
-		Class<? extends AbstractUserProfile> userProfileClass = connector
+		jpaDao.deleteAllFacets(apiKey);
+		Class<? extends AbstractUserProfile> userProfileClass = apiKey.getConnector()
 				.userProfileClass();
 		if (userProfileClass != null
 				&& userProfileClass != AbstractUserProfile.class) {
@@ -276,39 +263,35 @@ public class ApiDataServiceImpl implements ApiDataService {
 	}
 
     @Override
-    public List<AbstractFacet> getApiDataFacets(long guestId,
-                                                Connector connector, ObjectType objectType,
+    public List<AbstractFacet> getApiDataFacets(ApiKey apiKey, ObjectType objectType,
                                                 List<String> dates) {
-        return jpaDao.getFacetsByDates(connector,
-                                       guestId, objectType, dates);
+        return jpaDao.getFacetsByDates(apiKey, objectType, dates);
     }
 
 	@Override
-	public List<AbstractFacet> getApiDataFacets(long guestId,
-			Connector connector, ObjectType objectType,
+	public List<AbstractFacet> getApiDataFacets(ApiKey apiKey, ObjectType objectType,
 			TimeInterval timeInterval) {
-        return jpaDao.getFacetsBetween(connector,
-                guestId, objectType, timeInterval);
+        return jpaDao.getFacetsBetween(apiKey, objectType, timeInterval);
 	}
 
     @Override
-    public AbstractFacet getOldestApiDataFacet(long guestId, Connector connector, ObjectType objectType){
-        return jpaDao.getOldestFacet(connector,guestId,objectType);
+    public AbstractFacet getOldestApiDataFacet(ApiKey apiKey, ObjectType objectType){
+        return jpaDao.getOldestFacet(apiKey,objectType);
     }
 
     @Override
-    public AbstractFacet getLatestApiDataFacet(long guestId, Connector connector, ObjectType objectType){
-        return jpaDao.getLatestFacet(connector,guestId,objectType);
+    public AbstractFacet getLatestApiDataFacet(ApiKey apiKey, ObjectType objectType){
+        return jpaDao.getLatestFacet(apiKey,objectType);
     }
 
     @Override
-    public List<AbstractFacet> getApiDataFacetsBefore(final long guestId, final Connector connector, final ObjectType objectType, final long timeInMillis, final int desiredCount) {
-        return jpaDao.getFacetsBefore(guestId, connector, objectType, timeInMillis, desiredCount);
+    public List<AbstractFacet> getApiDataFacetsBefore(ApiKey apiKey, final ObjectType objectType, final long timeInMillis, final int desiredCount) {
+        return jpaDao.getFacetsBefore(apiKey, objectType, timeInMillis, desiredCount);
     }
 
     @Override
-    public List<AbstractFacet> getApiDataFacetsAfter(final long guestId, final Connector connector, final ObjectType objectType, final long timeInMillis, final int desiredCount) {
-        return jpaDao.getFacetsAfter(guestId, connector, objectType, timeInMillis, desiredCount);
+    public List<AbstractFacet> getApiDataFacetsAfter(ApiKey apiKey, final ObjectType objectType, final long timeInMillis, final int desiredCount) {
+        return jpaDao.getFacetsAfter(apiKey, objectType, timeInMillis, desiredCount);
     }
 
 
@@ -531,25 +514,6 @@ public class ApiDataServiceImpl implements ApiDataService {
 		}
 	}
 
-	@Override
-    @Transactional(readOnly = false)
-	public void setFacetComment(long guestId, ObjectType objectType,
-			long facetId, String text) {
-		AbstractFacet facet = em.find(objectType.facetClass(), facetId);
-		facet.comment = text;
-		em.merge(facet);
-	}
-
-	@Override
-    @Transactional(readOnly = false)
-	public void setFacetComment(long guestId, Connector connector,
-			long facetId, String text) {
-		Class<? extends AbstractFacet> facetClass = connector.facetClass();
-		AbstractFacet facet = em.find(facetClass, facetId);
-		facet.comment = text;
-		em.merge(facet);
-	}
-
     @Override
     @Transactional(readOnly = false)
     public void addGuestLocation(final long guestId, LocationFacet locationResource) {
@@ -565,13 +529,7 @@ public class ApiDataServiceImpl implements ApiDataService {
                 .print(time);
 
         DayMetadataFacet info = metadataService.getDayMetadata(guestId, date, true);
-        TimeZone origTz = info.getTimeInterval().timeZone;
         servicesHelper.addCity(info, city);
-        boolean timeZoneWasSet = servicesHelper.setTimeZone(info, city.geo_timezone);
-        if (timeZoneWasSet) {
-            TimeZone newTz = info.getTimeInterval().timeZone;
-            updateFloatingTimeZoneFacets(guestId, time, origTz, newTz);
-        }
 
         TimeZone tz = TimeZone.getTimeZone(info.timeZone);
         List<WeatherInfo> weatherInfo = metadataService.getWeatherInfo(city.geo_latitude,
@@ -582,26 +540,5 @@ public class ApiDataServiceImpl implements ApiDataService {
 
         em.merge(info);
     }
-
-    private void updateFloatingTimeZoneFacets(long guestId, long time, TimeZone origTz, TimeZone newTz) {
-        // TODO Auto-generated method stub
-        // Find the connectors that use floating time zone
-        //   For each find the call that we should make to update the timezone
-        //   Pass time, origTz, and newTz to that
-
-        // The calls to update the timzeon for a given connector should in general:
-        //    Compute the unixtime corresponding to 'time' as computed in origTz for finding affected facets
-        //    Most likely way to do this is compute delta in millis of origTz-newTz
-        //    and either add or subtract that from time (would need to think for a while about which)
-        //    and do whatever's appropriate to update them
-    }
-
-
-    @Override
-	public long getNumberOfDays(long guestId) {
-		Query query = em.createQuery("select count(md) from ContextualInfo md WHERE md.guestId=" + guestId);
-		Object singleResult = query.getSingleResult();
-        return (Long) singleResult;
-	}
 
 }

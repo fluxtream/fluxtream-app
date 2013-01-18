@@ -86,8 +86,7 @@ public class ApiCallController {
         final ApiKey apiKey = guestService.getApiKey(guest.getId(), fitbitConnector);
 
         try {
-            String json = signpostHelper.makeRestCall(fitbitConnector,
-                                                      apiKey, 8, "http://api.fitbit.com/1/user/-/body/weight/date/" + formattedDate + "/max.json");
+            String json = signpostHelper.makeRestCall(apiKey, 8, "http://api.fitbit.com/1/user/-/body/weight/date/" + formattedDate + "/max.json");
             return json;
         }
         catch (RateLimitReachedException e) {
@@ -108,8 +107,7 @@ public class ApiCallController {
         final ApiKey apiKey = guestService.getApiKey(guest.getId(), fitbitConnector);
 
         try {
-            String json = signpostHelper.makeRestCall(fitbitConnector,
-                                                      apiKey, 8, "http://api.fitbit.com/1/user/-/body/log/weight/date/" + formattedDate + "/1m.json");
+            String json = signpostHelper.makeRestCall(apiKey, 8, "http://api.fitbit.com/1/user/-/body/log/weight/date/" + formattedDate + "/1m.json");
             return json;
         }
         catch (RateLimitReachedException e) {

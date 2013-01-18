@@ -10,10 +10,12 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
+import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.UpdateWorkerTask;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.ConnectorUpdateService;
+import com.fluxtream.services.GuestService;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.sf.json.JSONArray;
@@ -45,6 +47,9 @@ public class UpdateWorkerTaskStore {
 
     private static final DateTimeFormatter fmt = ISODateTimeFormat.dateTime().withZone(DateTimeZone.forID("UTC"));
 
+    @Autowired
+    private GuestService guestService;
+
     @GET
     @Path("/{connector}")
     @Produces({MediaType.APPLICATION_JSON})
@@ -52,8 +57,10 @@ public class UpdateWorkerTaskStore {
         setTransactionName(null, "GET /updateTasks/" + connectorName);
         try{
             long guestId = AuthHelper.getGuestId();
+
+            ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector(connectorName));
             final List<UpdateWorkerTask> scheduledUpdates =
-                    connectorUpdateService.getScheduledOrInProgressUpdateTasks(guestId, Connector.getConnector(connectorName));
+                    connectorUpdateService.getScheduledOrInProgressUpdateTasks(apiKey);
             JSONArray array = new JSONArray();
             for (UpdateWorkerTask scheduledUpdate : scheduledUpdates) {
                 array.add(toJSON(scheduledUpdate));
@@ -76,8 +83,9 @@ public class UpdateWorkerTaskStore {
             JSONArray res = new JSONArray();
             for(Connector c : connectors)
             {
+                ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector(c.getName()));
                 final List<UpdateWorkerTask> scheduledUpdates =
-                        connectorUpdateService.getScheduledOrInProgressUpdateTasks(guestId, Connector.getConnector(c.getName()));
+                        connectorUpdateService.getScheduledOrInProgressUpdateTasks(apiKey);
                 JSONArray array = new JSONArray();
                 for (UpdateWorkerTask scheduledUpdate : scheduledUpdates) {
                     array.add(toJSON(scheduledUpdate));
@@ -115,8 +123,9 @@ public class UpdateWorkerTaskStore {
             long guestId = AuthHelper.getGuestId();
             final Connector connector = Connector.getConnector(connectorName);
             final ObjectType objectType = ObjectType.getObjectType(connector, objectTypeName);
+            ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector(connectorName));
             final UpdateWorkerTask scheduledUpdate =
-                    connectorUpdateService.getScheduledUpdateTask(guestId, connector.getName(), objectType.value());
+                    connectorUpdateService.getScheduledUpdateTask(apiKey, objectType.value());
             return scheduledUpdate!=null?toJSON(scheduledUpdate).toString():"{}";
         }
         catch (Exception e){
@@ -132,7 +141,8 @@ public class UpdateWorkerTaskStore {
         try{
             long guestId = AuthHelper.getGuestId();
             final Connector connector = Connector.getConnector(connectorName);
-            connectorUpdateService.flushUpdateWorkerTasks(guestId, connector, false);
+            ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector(connectorName));
+            connectorUpdateService.flushUpdateWorkerTasks(apiKey, false);
             StatusModel statusModel = new StatusModel(true, "successfully deleted pending update tasks for " + connectorName);
             return gson.toJson(statusModel);
         }

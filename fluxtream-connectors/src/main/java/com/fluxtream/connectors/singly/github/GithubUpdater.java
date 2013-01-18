@@ -30,15 +30,15 @@ public class GithubUpdater extends AbstractUpdater {
 
     @Override
     protected void updateConnectorDataHistory(final UpdateInfo updateInfo) throws Exception {
-        if (!connectorUpdateService.isHistoryUpdateCompleted(updateInfo.getGuestId(), connector().getName(), updateInfo.objectTypes)) {
-            apiDataService.eraseApiData(updateInfo.getGuestId(), connector());
+        if (!connectorUpdateService.isHistoryUpdateCompleted(updateInfo.apiKey, updateInfo.objectTypes)) {
+            apiDataService.eraseApiData(updateInfo.apiKey);
         }
         loadHistory(updateInfo, 0, System.currentTimeMillis());
     }
 
     @Override
     public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
-        ApiUpdate lastUpdate = connectorUpdateService.getLastSuccessfulUpdate(updateInfo.apiKey.getGuestId(), connector());
+        ApiUpdate lastUpdate = connectorUpdateService.getLastSuccessfulUpdate(updateInfo.apiKey);
         loadHistory(updateInfo, lastUpdate.ts, System.currentTimeMillis());
     }
 
@@ -46,7 +46,7 @@ public class GithubUpdater extends AbstractUpdater {
         String queryUrl = "request url not set yet";
         long then = System.currentTimeMillis();
 
-        String accessToken = guestService.getApiKeyAttribute(updateInfo.getGuestId(), Connector.getConnector("github"), "accessToken");
+        String accessToken = guestService.getApiKeyAttribute(updateInfo.apiKey, "accessToken");
 
         try {
             queryUrl = "https://api.singly.com/services/github/events?limit=10000&access_token=" + accessToken + "&since=" + from + "&until=" + to;
@@ -54,13 +54,13 @@ public class GithubUpdater extends AbstractUpdater {
             apiDataService.cacheApiDataJSON(updateInfo, json, -1, -1);
         }
         catch (Exception e) {
-            countFailedApiCall(updateInfo.apiKey.getGuestId(), updateInfo.objectTypes, then,
+            countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then,
                                queryUrl, Utils.stackTrace(e));
             throw new Exception("Could not get GitHub Commits (from Singly): "
                                 + e.getMessage() + "\n" + Utils.stackTrace(e));
         }
 
-        countSuccessfulApiCall(updateInfo.apiKey.getGuestId(), updateInfo.objectTypes, then, queryUrl);
+        countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, queryUrl);
     }
 
 }

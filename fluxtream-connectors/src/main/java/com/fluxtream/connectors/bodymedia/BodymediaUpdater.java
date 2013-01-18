@@ -112,7 +112,7 @@ public class BodymediaUpdater extends AbstractUpdater {
                                                                          OAuthMessageSignerException,
                                                                          OAuthNotAuthorizedException,
                                                                          OAuthCommunicationException {
-        String time = guestService.getApiKeyAttribute(updateInfo.getGuestId(), connector(), "tokenExpiration");
+        String time = guestService.getApiKeyAttribute(updateInfo.apiKey, "tokenExpiration");
         if(Long.parseLong(time) < System.currentTimeMillis()/1000)
             bodymediaController.replaceToken(updateInfo);
     }
@@ -140,7 +140,7 @@ public class BodymediaUpdater extends AbstractUpdater {
                 String minutesUrl = "http://api.bodymedia.com/v2/json/" + urlExtension + startPeriod + "/" + endPeriod +
                                     "?api_key=" + updateInfo.apiKey.getAttributeValue("api_key", env);
                 //The following call may fail due to bodymedia's api. That is expected behavior
-                String jsonResponse = signpostHelper.makeRestCall(connector(), updateInfo.apiKey, ot.value(), minutesUrl);
+                String jsonResponse = signpostHelper.makeRestCall(updateInfo.apiKey, ot.value(), minutesUrl);
                 apiDataService.cacheApiDataJSON(updateInfo, jsonResponse, -1, -1);
                 current = current.minusDays(increment);
             }
@@ -149,7 +149,7 @@ public class BodymediaUpdater extends AbstractUpdater {
             String minutesUrl = "http://api.bodymedia.com/v2/json/" + urlExtension + startPeriod + "/" + endPeriod +
                                 "?api_key=" + updateInfo.apiKey.getAttributeValue("api_key", env);
             //The following call may fail due to bodymedia's api. That is expected behavior
-            String jsonResponse = signpostHelper.makeRestCall(connector(), updateInfo.apiKey, ot.value(), minutesUrl);
+            String jsonResponse = signpostHelper.makeRestCall(updateInfo.apiKey, ot.value(), minutesUrl);
             apiDataService.cacheApiDataJSON(updateInfo, jsonResponse, -1, -1);
         }
         catch (Exception e) {
@@ -226,7 +226,7 @@ public class BodymediaUpdater extends AbstractUpdater {
         HttpResponse response = client.execute(request);
         int statusCode = response.getStatusLine().getStatusCode();
         if (statusCode == 200) {
-            countSuccessfulApiCall(updateInfo.apiKey.getGuestId(), updateInfo.objectTypes, then, requestUrl);
+            countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, requestUrl);
             ResponseHandler<String> responseHandler = new BasicResponseHandler();
             String json = responseHandler.handleResponse(response);
             JSONObject userInfo = JSONObject.fromObject(json);
@@ -234,7 +234,7 @@ public class BodymediaUpdater extends AbstractUpdater {
         }
         else {
             final String reasonPhrase = response.getStatusLine().getReasonPhrase();
-            countFailedApiCall(updateInfo.apiKey.getGuestId(), updateInfo.objectTypes, then, requestUrl, reasonPhrase);
+            countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, requestUrl, reasonPhrase);
             throw new Exception("Error: " + statusCode + " Unexpected error trying to get statuses");
         }
     }
@@ -287,14 +287,14 @@ public class BodymediaUpdater extends AbstractUpdater {
         HttpResponse response = client.execute(request);
         int statusCode = response.getStatusLine().getStatusCode();
         if (statusCode == 200) {
-            countSuccessfulApiCall(updateInfo.apiKey.getGuestId(), updateInfo.objectTypes, then, requestUrl);
+            countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, requestUrl);
             ResponseHandler<String> responseHandler = new BasicResponseHandler();
             String json = responseHandler.handleResponse(response);
             JSONObject userInfo = JSONObject.fromObject(json);
             return userInfo.getJSONArray("timezones");
         }
         else {
-            countFailedApiCall(updateInfo.apiKey.getGuestId(), updateInfo.objectTypes, then, requestUrl, "");
+            countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, requestUrl, "");
             throw new Exception("Error: " + statusCode + " Unexpected error trying to bodymedia timezone for user " + updateInfo.apiKey.getGuestId());
         }
     }

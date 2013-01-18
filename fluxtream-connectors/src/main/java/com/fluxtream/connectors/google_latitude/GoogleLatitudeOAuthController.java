@@ -7,6 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.fluxtream.auth.AuthHelper;
+import com.fluxtream.domain.ApiKey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -91,11 +92,13 @@ public class GoogleLatitudeOAuthController {
 		createOAuthParameters(credentials).signRequestsUsingAuthorizationHeader(transport);
 		
 		Guest guest = AuthHelper.getGuest();
+        final Connector connector = Connector.getConnector("google_latitude");
+        final ApiKey apiKey = guestService.createApiKey(guest.getId(), connector);
 
-		guestService().setApiKeyAttribute(guest.getId(), Connector.getConnector("GOOGLE_LATITUDE"), "accessToken", credentials.token);
-		guestService().setApiKeyAttribute(guest.getId(), Connector.getConnector("GOOGLE_LATITUDE"), "tokenSecret", credentials.tokenSecret);
+		guestService().setApiKeyAttribute(apiKey, "accessToken", credentials.token);
+		guestService().setApiKeyAttribute(apiKey, "tokenSecret", credentials.tokenSecret);
 		
-		return "redirect:/app/from/"+Connector.getConnector("GOOGLE_LATITUDE").getName();
+		return "redirect:/app/from/"+connector.getName();
 	}
 
 	private OAuthParameters createOAuthParameters(OAuthCredentialsResponse credentials) {

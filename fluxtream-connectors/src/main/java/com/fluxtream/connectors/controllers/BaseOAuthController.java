@@ -9,6 +9,7 @@ import java.util.Map.Entry;
 import javax.servlet.http.HttpServletRequest;
 
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.services.GuestService;
@@ -82,8 +83,10 @@ public abstract class BaseOAuthController {
 
 		Guest guest = AuthHelper.getGuest();
 
-		guestService().setApiKeyAttribute(guest.getId(), api, "accessToken", accessToken);
-		guestService().setApiKeyAttribute(guest.getId(), api, "tokenSecret", accessTokenSecret);
+        final ApiKey apiKey = guestService().createApiKey(guest.getId(), api);
+
+		guestService().setApiKeyAttribute(apiKey, "accessToken", accessToken);
+		guestService().setApiKeyAttribute(apiKey, "tokenSecret", accessTokenSecret);
 
 		return "redirect:/home/from/"+api.getName();
 	}

@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 import com.fluxtream.Configuration;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.services.GuestService;
 import org.scribe.builder.ServiceBuilder;
@@ -66,8 +67,10 @@ public class RunKeeperController {
         final String token = accessToken.getToken();
 
         Guest guest = AuthHelper.getGuest();
+        final Connector connector = Connector.getConnector("lastfm");
+        final ApiKey apiKey = guestService.createApiKey(guest.getId(), connector);
 
-        guestService.setApiKeyAttribute(guest.getId(), Connector.getConnector("runkeeper"), "accessToken", token);
+        guestService.setApiKeyAttribute(apiKey, "accessToken", token);
 
         request.getSession().removeAttribute(RUNKEEPER_SERVICE);
         return "redirect:/app/from/runkeeper";

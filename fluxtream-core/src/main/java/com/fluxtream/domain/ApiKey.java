@@ -102,10 +102,6 @@ public class ApiKey extends AbstractEntity {
 		attributes.remove(attribute);
 	}
 
-	public void setConnector(Connector api) {
-		this.api = api.value();
-	}
-	
 	public boolean equals(Object o) {
 		if (! (o instanceof ApiKey))
 			return false;
@@ -121,4 +117,9 @@ public class ApiKey extends AbstractEntity {
 	public Connector getConnector() {
 		return Connector.fromValue(api);
 	}
+
+    public void setConnector(final Connector connector) {
+        this.api = connector.value();
+    }
+
 }

@@ -32,26 +32,24 @@ public class QuantifiedMindUpdater extends AbstractUpdater {
 
     @Override
     protected void updateConnectorDataHistory(final UpdateInfo updateInfo) throws Exception {
-        if (!connectorUpdateService.isHistoryUpdateCompleted(updateInfo.getGuestId(), connector().getName(), updateInfo.objectTypes)) {
-            apiDataService.eraseApiData(updateInfo.getGuestId(), connector());
+        if (!connectorUpdateService.isHistoryUpdateCompleted(updateInfo.apiKey, updateInfo.objectTypes)) {
+            apiDataService.eraseApiData(updateInfo.apiKey);
         }
         loadHistory(updateInfo, 0, System.currentTimeMillis());
     }
 
     @Override
     public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
-        ApiUpdate lastUpdate = connectorUpdateService.getLastSuccessfulUpdate(updateInfo.apiKey.getGuestId(), connector());
+        ApiUpdate lastUpdate = connectorUpdateService.getLastSuccessfulUpdate(updateInfo.apiKey);
         loadHistory(updateInfo, lastUpdate.ts, System.currentTimeMillis());
     }
 
     private void loadHistory(UpdateInfo updateInfo, long from, long to) throws Exception {
         String queryUrl = "request url not set yet";
         long then = System.currentTimeMillis();
-        String username = guestService.getApiKeyAttribute(updateInfo.getGuestId(),
-                                                          Connector.getConnector("quantifiedmind"),
+        String username = guestService.getApiKeyAttribute(updateInfo.apiKey,
                                                           "username");
-        String token = guestService.getApiKeyAttribute(updateInfo.getGuestId(),
-                                                       Connector.getConnector("quantifiedmind"),
+        String token = guestService.getApiKeyAttribute(updateInfo.apiKey,
                                                        "token");
         try {
             boolean partialResult = false;
@@ -72,13 +70,13 @@ public class QuantifiedMindUpdater extends AbstractUpdater {
             } while (partialResult);
         }
         catch (Exception e) {
-            countFailedApiCall(updateInfo.apiKey.getGuestId(), updateInfo.objectTypes, then,
+            countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then,
                                queryUrl, Utils.stackTrace(e));
             throw new Exception("Could not get QuantifiedMind tests: "
                                 + e.getMessage() + "\n" + Utils.stackTrace(e));
         }
 
-        countSuccessfulApiCall(updateInfo.apiKey.getGuestId(), updateInfo.objectTypes, then, queryUrl);
+        countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, queryUrl);
     }
 
 }

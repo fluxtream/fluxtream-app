@@ -5,6 +5,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Map;
 
+import com.fluxtream.domain.ApiKey;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.basic.DefaultOAuthConsumer;
 import oauth.signpost.signature.HmacSha1MessageSigner;
@@ -17,10 +18,10 @@ import com.fluxtream.connectors.updaters.RateLimitReachedException;
 @Component
 public class TwoLeggedOAuthHelper extends ApiClientSupport {
 
-    public final String makeRestCall(Connector connector, long guestId,
+    public final String makeRestCall(ApiKey apiKey,
                                      String accessToken, String tokenSecret, Map<String, String> additionalParameters,
                                      int objectTypes, String urlString) throws RateLimitReachedException {
-		if (hasReachedRateLimit(connector, guestId))
+		if (hasReachedRateLimit(apiKey.getConnector(), apiKey.getGuestId()))
 			throw new RateLimitReachedException();
 		try {
 			long then = System.currentTimeMillis();
@@ -43,14 +44,14 @@ public class TwoLeggedOAuthHelper extends ApiClientSupport {
 			request.connect();
 			if (request.getResponseCode() == 200) {
 				String response = IOUtils.toString(request.getInputStream());
-				connectorUpdateService.addApiUpdate(guestId, connector,
+				connectorUpdateService.addApiUpdate(apiKey.getGuestId(), apiKey.getConnector(),
 						objectTypes, then, System.currentTimeMillis() - then,
 						urlString, true);
 				// logger.info(apiKey.getGuestId(), "REST call success: " +
 				// urlString);
 				return response;
 			} else {
-				connectorUpdateService.addApiUpdate(guestId, connector,
+				connectorUpdateService.addApiUpdate(apiKey.getGuestId(), apiKey.getConnector(),
 						objectTypes, then, System.currentTimeMillis() - then,
 						urlString, false);
 				throw new RuntimeException(

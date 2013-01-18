@@ -65,9 +65,9 @@ public class LastFmUpdater extends AbstractUpdater {
 			ObjectType lovedTrackObjectType) throws Exception {
 		// taking care of resetting the data if things went wrong before
 		if (!connectorUpdateService.isHistoryUpdateCompleted(
-				updateInfo.getGuestId(), connector().getName(),
+				updateInfo.apiKey,
 				lovedTrackObjectType.value()))
-			apiDataService.eraseApiData(updateInfo.getGuestId(), connector(),
+			apiDataService.eraseApiData(updateInfo.apiKey,
 					lovedTrackObjectType.value());
 		int retrievedItems = ITEMS_PER_PAGE;
 		for (int page = 0; retrievedItems >= ITEMS_PER_PAGE; page++) {
@@ -90,9 +90,8 @@ public class LastFmUpdater extends AbstractUpdater {
 			ObjectType recentTrackObjectType) throws Exception {
 		// taking care of resetting the data if things went wrong before
 		if (!connectorUpdateService.isHistoryUpdateCompleted(
-				updateInfo.getGuestId(), connector().getName(),
-				recentTrackObjectType.value()))
-			apiDataService.eraseApiData(updateInfo.getGuestId(), connector(),
+				updateInfo.apiKey, recentTrackObjectType.value()))
+			apiDataService.eraseApiData(updateInfo.apiKey,
 					recentTrackObjectType.value());
 		int retrievedItems = ITEMS_PER_PAGE;
 		for (int page = 0; retrievedItems >= ITEMS_PER_PAGE; page++) {
@@ -181,12 +180,12 @@ public class LastFmUpdater extends AbstractUpdater {
 				+ "&format=json" + "&page=" + page;
 		try {
 			lovedTracksJson = fetch(query);
-			countSuccessfulApiCall(updateInfo.getGuestId(),
+			countSuccessfulApiCall(updateInfo.apiKey,
 					updateInfo.objectTypes, then, query);
 			JSONObject result = JSONObject.fromObject(lovedTracksJson);
 			return result;
 		} catch (Exception e) {
-			countFailedApiCall(updateInfo.getGuestId(), updateInfo.objectTypes,
+			countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes,
 					then, query, Utils.stackTrace(e));
 			throw e;
 		}
@@ -214,12 +213,12 @@ public class LastFmUpdater extends AbstractUpdater {
 				+ "&format=json" + "&page=" + page;
 		try {
 			recentTracksJson = fetch(query);
-			countSuccessfulApiCall(updateInfo.getGuestId(),
+			countSuccessfulApiCall(updateInfo.apiKey,
 					updateInfo.objectTypes, then, query);
 			JSONObject result = JSONObject.fromObject(recentTracksJson);
 			return result;
 		} catch (Exception e) {
-			countFailedApiCall(updateInfo.getGuestId(), updateInfo.objectTypes,
+			countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes,
 					then, query, Utils.stackTrace(e));
 			throw e;
 		}

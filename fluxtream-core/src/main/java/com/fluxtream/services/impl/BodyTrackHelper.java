@@ -13,6 +13,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import com.fluxtream.Configuration;
 import com.fluxtream.TimeInterval;
+import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.CoachingBuddy;
 import com.fluxtream.domain.GrapherView;
 import com.fluxtream.services.PhotoService;
@@ -186,18 +187,18 @@ public class BodyTrackHelper {
         }
     }
 
-    public String listSources(Long uid, CoachingBuddy coachee){
+    public String listSources(ApiKey apiKey, CoachingBuddy coachee){
         try{
-            if (uid == null)
+            if (apiKey == null)
                 throw new IllegalArgumentException();
-            final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("info",new Object[]{"-r",uid});
+            final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("info",new Object[]{"-r",apiKey.getGuestId()});
             String result = dataStoreExecutionResult.getResponse();
 
             // TODO: check statusCode in DataStoreExecutionResult
             ChannelInfoResponse infoResponse = gson.fromJson(result,ChannelInfoResponse.class);
 
             // Iterate over the various (photo) connectors (if any), manually inserting each into the ChannelSpecs
-            final Map<String, TimeInterval> photoChannelTimeRanges = photoService.getPhotoChannelTimeRanges(uid, coachee);
+            final Map<String, TimeInterval> photoChannelTimeRanges = photoService.getPhotoChannelTimeRanges(apiKey, coachee);
 
             // create the 'All' photos block
             final Source allPhotosSource = new Source();
@@ -264,7 +265,7 @@ public class BodyTrackHelper {
             // set default styles if necessary
             for (Source source : response.sources){
                 for (Channel channel : source.channels){
-                    ChannelStyle userStyle = getDefaultStyle(uid,source.name,channel.name);
+                    ChannelStyle userStyle = getDefaultStyle(apiKey.getGuestId(),source.name,channel.name);
                     if (userStyle != null)
                         channel.style = userStyle;
                 }

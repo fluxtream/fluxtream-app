@@ -53,10 +53,8 @@ public class FlickrUpdater extends AbstractUpdater {
 	protected void updateConnectorDataHistory(UpdateInfo updateInfo)
 			throws RateLimitReachedException, Exception {
 		// taking care of resetting the data if things went wrong before
-		if (!connectorUpdateService.isHistoryUpdateCompleted(
-				updateInfo.getGuestId(), connector().getName(), -1))
-			apiDataService.eraseApiData(updateInfo.getGuestId(), connector(),
-					-1);
+		if (!connectorUpdateService.isHistoryUpdateCompleted( updateInfo.apiKey, -1))
+			apiDataService.eraseApiData(updateInfo.apiKey, -1);
 		int retrievedItems = ITEMS_PER_PAGE;
 		for (int page = 0; retrievedItems == ITEMS_PER_PAGE; page++) {
 			JSONObject feed = retrievePhotoHistory(updateInfo, 0,
@@ -83,8 +81,7 @@ public class FlickrUpdater extends AbstractUpdater {
 	public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
 		int retrievedItems = ITEMS_PER_PAGE;
 		ApiUpdate lastSuccessfulUpdate = connectorUpdateService
-				.getLastSuccessfulUpdate(updateInfo.apiKey.getGuestId(),
-						connector());
+				.getLastSuccessfulUpdate(updateInfo.apiKey);
 		for (int page = 0; retrievedItems == ITEMS_PER_PAGE; page++) {
 			JSONObject feed = retrievePhotoHistory(updateInfo,
 					lastSuccessfulUpdate.ts, System.currentTimeMillis(), page);
@@ -105,9 +102,9 @@ public class FlickrUpdater extends AbstractUpdater {
 
 		String api_key = env.get("flickrConsumerKey");
 		String nsid = guestService.getApiKeyAttribute(
-				updateInfo.apiKey.getGuestId(), connector(), "nsid");
+				updateInfo.apiKey, "nsid");
 		String token = guestService.getApiKeyAttribute(
-				updateInfo.apiKey.getGuestId(), connector(), "token");
+				updateInfo.apiKey, "token");
 
         // The start/end upload dates should be in the form of a unix timestamp (see http://www.flickr.com/services/api/flickr.people.getPhotos.htm)
 		String startDate = String.valueOf(from / 1000);
@@ -143,10 +140,10 @@ public class FlickrUpdater extends AbstractUpdater {
 		String photosJson = null;
 		try {
 			photosJson = fetch(searchPhotosUrl);
-			countSuccessfulApiCall(updateInfo.getGuestId(),
+			countSuccessfulApiCall(updateInfo.apiKey,
 					updateInfo.objectTypes, then, searchPhotosUrl);
 		} catch (Exception e) {
-			countFailedApiCall(updateInfo.getGuestId(), updateInfo.objectTypes,
+			countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes,
 					then, searchPhotosUrl, Utils.stackTrace(e));
 			throw e;
 		}

@@ -17,6 +17,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.fluxtream.auth.AuthHelper;
+import com.fluxtream.domain.ApiKey;
 import org.apache.commons.io.IOUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -95,11 +96,13 @@ public class FlickrController {
 		String token = document.selectSingleNode("rsp/auth/token/text()").getStringValue();
 		
 		Connector flickrConnector = Connector.getConnector("flickr");
-		
-		guestService.setApiKeyAttribute(guestId, flickrConnector, "username", username);
-		guestService.setApiKeyAttribute(guestId, flickrConnector, "token", token);
-		guestService.setApiKeyAttribute(guestId, flickrConnector, "nsid", nsid);
-		guestService.setApiKeyAttribute(guestId, flickrConnector, "fullname", fullname);
+
+        final ApiKey apiKey = guestService.createApiKey(guest.getId(), flickrConnector);
+
+		guestService.setApiKeyAttribute(apiKey,  "username", username);
+		guestService.setApiKeyAttribute(apiKey,  "token", token);
+		guestService.setApiKeyAttribute(apiKey,  "nsid", nsid);
+		guestService.setApiKeyAttribute(apiKey,  "fullname", fullname);
 		
 		return "redirect:/app/from/"+flickrConnector.getName();
 	}

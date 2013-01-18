@@ -4,11 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 import java.lang.reflect.Method;
+import com.fluxtream.domain.ApiKey;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import com.fluxtream.TimeInterval;
@@ -39,70 +43,70 @@ public class JPAFacetDao implements FacetDao {
 	public JPAFacetDao() {}
 
     @Override
-    public List<AbstractFacet> getFacetsByDates(Connector connector, long guestId, ObjectType objectType, List<String> dates) {
+    public List<AbstractFacet> getFacetsByDates(final ApiKey apiKey, ObjectType objectType, List<String> dates) {
         ArrayList<AbstractFacet> facets = new ArrayList<AbstractFacet>();
-        if (!connector.hasFacets()) return facets;
-
-        String queryName = connector.getName().toLowerCase()
-                           + "." + objectType.getName().toLowerCase()
-                           + ".byDates";
-        List<? extends AbstractFacet> found = JPAUtils.find(em, objectType.facetClass(), queryName, guestId, StringUtils.join(dates,","));
+        if (!apiKey.getConnector().hasFacets()) return facets;
+        final String facetName = getFacetClass(apiKey.getConnector(), objectType);
+        String queryString = "SELECT facet FROM " + facetName + " facet WHERE facet.guestId=? AND (facet.apiKeyId=? OR facet.apiKeyId IS NULL) AND facet.date IN ?";
+        final TypedQuery<? extends AbstractFacet> query = em.createQuery(queryString, AbstractFacet.class);
+        query.setParameter(1, apiKey.getGuestId());
+        query.setParameter(2, apiKey.getId());
+        query.setParameter(3, dates);
+        List<? extends AbstractFacet> found = query.getResultList();
         if (found!=null)
             facets.addAll(found);
         return facets;
     }
 
+    @Cacheable("facetClasses")
+    private String getFacetClass(Connector connector, ObjectType objectType) {
+        try {
+            return objectType!=null
+                    ? objectType.facetClass().getSimpleName()
+                    : connector.facetClass().getSimpleName();
+        } catch (Throwable t) {
+            final String message = "Could not get Facet class for connector " + connector + " / " + objectType;
+            LOG.error(message);
+            throw new RuntimeException(message);
+        }
+    }
+
 	@Override
-	public List<AbstractFacet> getFacetsBetween(Connector connector, long guestId, ObjectType objectType, TimeInterval timeInterval) {
-		ArrayList<AbstractFacet> facets = new ArrayList<AbstractFacet>();
-		if (!connector.hasFacets()) return facets;
-		
-		if (objectType!=null) {
-			String queryName = connector.getName().toLowerCase()
-					+ "." + objectType.getName().toLowerCase()
-					+ ".between";
-			List<? extends AbstractFacet> found = JPAUtils.find(em, objectType.facetClass(), queryName, guestId, timeInterval.start, timeInterval.end);
-			facets.addAll(found);
-		} else {
-			if (connector.objectTypes()!=null) {
-				for (ObjectType type : connector.objectTypes()) {
-					String queryName = connector.getName().toLowerCase()
-							+ "." + type.getName().toLowerCase()
-							+ ".between";
-					facets.addAll(JPAUtils.find(em, type.facetClass(), queryName, guestId, timeInterval.start, timeInterval.end));
-				}
-			} else {
-				String queryName = connector.getName().toLowerCase()
-						+ ".between";
-				facets.addAll(JPAUtils.find(em, connector.facetClass(), queryName, guestId, timeInterval.start, timeInterval.end));
-			}
-		}
+	public List<AbstractFacet> getFacetsBetween(final ApiKey apiKey, ObjectType objectType, TimeInterval timeInterval) {
+        if (!apiKey.getConnector().hasFacets()) return new ArrayList<AbstractFacet>();
+        final String facetName = getFacetClass(apiKey.getConnector(), objectType);
+        String queryString = "SELECT facet FROM " + facetName  + " facet WHERE facet.guestId=? AND (facet.apiKeyId=? OR facet.apiKeyId IS NULL) AND facet.start>=? AND facet.end<=?";
+        final TypedQuery<AbstractFacet> query = em.createQuery(queryString, AbstractFacet.class);
+        query.setParameter(1, apiKey.getGuestId());
+        query.setParameter(2, apiKey.getId());
+        query.setParameter(3, timeInterval.start);
+        query.setParameter(4, timeInterval.end);
+        List<AbstractFacet> facets = query.getResultList();
 		return facets;
 	}
 
-
     @Override
-    public AbstractFacet getOldestFacet(final Connector connector, final long guestId, final ObjectType objectType) {
-        return getFacet(guestId, connector, objectType, "getOldestFacet");
+    public AbstractFacet getOldestFacet(final ApiKey apiKey, final ObjectType objectType) {
+        return getFacet(apiKey, objectType, "getOldestFacet");
     }
 
     @Override
-    public AbstractFacet getLatestFacet(final Connector connector, final long guestId, final ObjectType objectType) {
-        return getFacet(guestId, connector, objectType, "getLatestFacet");
+    public AbstractFacet getLatestFacet(final ApiKey apiKey, final ObjectType objectType) {
+        return getFacet(apiKey, objectType, "getLatestFacet");
     }
 
     @Override
-    public List<AbstractFacet> getFacetsBefore(final long guestId, final Connector connector, final ObjectType objectType, final long timeInMillis, final int desiredCount) {
-        return getFacets(guestId, connector, objectType, timeInMillis, desiredCount, "getFacetsBefore");
+    public List<AbstractFacet> getFacetsBefore(final ApiKey apiKey, final ObjectType objectType, final long timeInMillis, final int desiredCount) {
+        return getFacets(apiKey, objectType, timeInMillis, desiredCount, "getFacetsBefore");
     }
 
     @Override
-    public List<AbstractFacet> getFacetsAfter(final long guestId, final Connector connector, final ObjectType objectType, final long timeInMillis, final int desiredCount) {
-        return getFacets(guestId, connector, objectType, timeInMillis, desiredCount, "getFacetsAfter");
+    public List<AbstractFacet> getFacetsAfter(final ApiKey apiKey, final ObjectType objectType, final long timeInMillis, final int desiredCount) {
+        return getFacets(apiKey, objectType, timeInMillis, desiredCount, "getFacetsAfter");
     }
 
-    private AbstractFacet getFacet(final long guestId, final Connector connector, final ObjectType objectType, final String methodName) {
-        if (!connector.hasFacets()) {
+    private AbstractFacet getFacet(final ApiKey apiKey, final ObjectType objectType, final String methodName) {
+        if (!apiKey.getConnector().hasFacets()) {
             return null;
         }
 
@@ -110,8 +114,8 @@ public class JPAFacetDao implements FacetDao {
         if (objectType != null) {
             try {
                 Class c = objectType.facetClass();
-                Method m = c.getMethod(methodName, EntityManager.class, Long.class, Connector.class, ObjectType.class);
-                facet = (AbstractFacet)m.invoke(null, em, guestId, connector, objectType);
+                Method m = c.getMethod(methodName, EntityManager.class, ApiKey.class, ObjectType.class);
+                facet = (AbstractFacet)m.invoke(null, em, apiKey, objectType);
             }
             catch (Exception ignored) {
                 if (LOG.isInfoEnabled()) {
@@ -120,13 +124,13 @@ public class JPAFacetDao implements FacetDao {
             }
         }
         else {
-            if (connector.objectTypes() != null) {
-                for (ObjectType type : connector.objectTypes()) {
+            if (apiKey.getConnector().objectTypes() != null) {
+                for (ObjectType type : apiKey.getConnector().objectTypes()) {
                     AbstractFacet fac = null;
                     try {
                         Class c = type.facetClass();
-                        Method m = c.getMethod(methodName, EntityManager.class, Long.class, Connector.class, ObjectType.class);
-                        fac = (AbstractFacet)m.invoke(null, em, guestId, connector, type);
+                        Method m = c.getMethod(methodName, EntityManager.class, ApiKey.class, ObjectType.class);
+                        fac = (AbstractFacet)m.invoke(null, em, apiKey, type);
                     }
                     catch (Exception ignored) {
                         if (LOG.isInfoEnabled()) {
@@ -140,9 +144,9 @@ public class JPAFacetDao implements FacetDao {
             }
             else {
                 try {
-                    Class c = connector.facetClass();
-                    Method m = c.getMethod(methodName, EntityManager.class, Long.class, Connector.class, ObjectType.class);
-                    facet = (AbstractFacet)m.invoke(null, em, guestId, connector, null);
+                    Class c = apiKey.getConnector().facetClass();
+                    Method m = c.getMethod(methodName, EntityManager.class, ApiKey.class, ObjectType.class);
+                    facet = (AbstractFacet)m.invoke(null, em, apiKey, null);
                 }
                 catch (Exception ignored) {
                     if (LOG.isInfoEnabled()) {
@@ -154,8 +158,8 @@ public class JPAFacetDao implements FacetDao {
         return facet;
     }
 
-    private List<AbstractFacet> getFacets(final long guestId, final Connector connector, final ObjectType objectType, final long timeInMillis, final int desiredCount, final String methodName) {
-        if (!connector.hasFacets()) {
+    private List<AbstractFacet> getFacets(final ApiKey apiKey, final ObjectType objectType, final long timeInMillis, final int desiredCount, final String methodName) {
+        if (!apiKey.getConnector().hasFacets()) {
             return null;
         }
 
@@ -163,8 +167,8 @@ public class JPAFacetDao implements FacetDao {
         if (objectType != null) {
             try {
                 Class c = objectType.facetClass();
-                Method m = c.getMethod(methodName, EntityManager.class, Long.class, Connector.class, ObjectType.class, Long.class, Integer.class );
-                facets = (List<AbstractFacet>)m.invoke(null, em, guestId, connector, objectType, timeInMillis, desiredCount);
+                Method m = c.getMethod(methodName, EntityManager.class, ApiKey.class, ObjectType.class, Long.class, Integer.class );
+                facets = (List<AbstractFacet>)m.invoke(null, em, apiKey, objectType, timeInMillis, desiredCount);
             }
             catch (Exception ignored) {
                 if (LOG.isInfoEnabled()) {
@@ -173,12 +177,12 @@ public class JPAFacetDao implements FacetDao {
             }
         }
         else {
-            if (connector.objectTypes() != null) {
-                for (ObjectType type : connector.objectTypes()) {
+            if (apiKey.getConnector().objectTypes() != null) {
+                for (ObjectType type : apiKey.getConnector().objectTypes()) {
                     try {
                         Class c = type.facetClass();
-                        Method m = c.getMethod(methodName, EntityManager.class, Long.class, Connector.class, ObjectType.class, Long.class, Integer.class);
-                        facets = (List<AbstractFacet>)m.invoke(null, em, guestId, connector, type, timeInMillis, desiredCount);
+                        Method m = c.getMethod(methodName, EntityManager.class, ApiKey.class, ObjectType.class, Long.class, Integer.class);
+                        facets = (List<AbstractFacet>)m.invoke(null, em, apiKey, type, timeInMillis, desiredCount);
                     }
                     catch (Exception ignored) {
                         if (LOG.isInfoEnabled()) {
@@ -189,9 +193,9 @@ public class JPAFacetDao implements FacetDao {
             }
             else {
                 try {
-                    Class c = connector.facetClass();
-                    Method m = c.getMethod(methodName, EntityManager.class, Long.class, Connector.class, ObjectType.class, Long.class, Integer.class);
-                    facets = (List<AbstractFacet>)m.invoke(null, em, guestId, connector, null, timeInMillis, desiredCount);
+                    Class c = apiKey.getConnector().facetClass();
+                    Method m = c.getMethod(methodName, EntityManager.class, ApiKey.class, ObjectType.class, Long.class, Integer.class);
+                    facets = (List<AbstractFacet>)m.invoke(null, em, apiKey, null, timeInMillis, desiredCount);
                 }
                 catch (Exception ignored) {
                     if (LOG.isInfoEnabled()) {
@@ -204,32 +208,18 @@ public class JPAFacetDao implements FacetDao {
     }
 
     @Override
-	public void deleteAllFacets(Connector connector, long guestId) {
-		if (connector.objectTypes()==null) {
-			String queryName = connector.getName().toLowerCase() + ".deleteAll";
-			JPAUtils.execute(em, queryName, guestId);
-		} else {
-			for (ObjectType objectType : connector.objectTypes()) {
-				String queryName = connector.getName().toLowerCase()
-						+ "." + objectType.getName().toLowerCase()
-						+ ".deleteAll";
-				JPAUtils.execute(em, queryName, guestId);
-			}
-		}
+	public void deleteAllFacets(ApiKey apiKey) {
+        deleteAllFacets(apiKey, null);
 	}
 
 	@Override
-	public void deleteAllFacets(Connector connector, ObjectType objectType,
-			long guestId) {
-		if (objectType==null) {
-//			logger.warn(guestId, "trying to delete all facets with connector and objectType, but objectType is null \n" + stackTrace(new RuntimeException()));
-			deleteAllFacets(connector, guestId);
-		} else {
-			String queryName = connector.getName().toLowerCase()
-					+ "." + objectType.getName().toLowerCase()
-					+ ".deleteAll";
-			JPAUtils.execute(em, queryName, guestId);
-		}
+	public void deleteAllFacets(ApiKey apiKey, ObjectType objectType) {
+        final String facetName = getFacetClass(apiKey.getConnector(), objectType);
+        String stmtString = "DELETE FROM " + facetName + " facet WHERE facet.guestId=? AND (facet.apiKeyId=? OR facet.apiKeyId IS NULL)";
+        final Query query = em.createQuery(stmtString);
+        query.setParameter(1, apiKey.getGuestId());
+        query.setParameter(2, apiKey.getId());
+        query.executeUpdate();
 	}
 
 	@Override

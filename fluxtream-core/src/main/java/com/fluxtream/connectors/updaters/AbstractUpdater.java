@@ -5,6 +5,7 @@ import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.dao.FacetDao;
 import com.fluxtream.connectors.updaters.UpdateInfo.UpdateType;
 import com.fluxtream.domain.AbstractUserProfile;
+import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Notification;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.BodyTrackStorageService;
@@ -70,9 +71,7 @@ public abstract class AbstractUpdater extends ApiClientSupport {
                 " guestId=" + updateInfo.getGuestId() + " connector=" + updateInfo.apiKey.getConnector().getName());
 
             updateConnectorDataHistory(updateInfo);
-            bodyTrackStorageService.storeInitialHistory(
-                    updateInfo.getGuestId(), updateInfo.apiKey.getConnector()
-                            .getName());
+            bodyTrackStorageService.storeInitialHistory(updateInfo.apiKey);
 
             return UpdateResult.successResult();
         // TODO: in case of a problem here, we really should reset the connector's data
@@ -142,8 +141,7 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 		UpdateResult updateResult = new UpdateResult();
 		try {
 			if (updateInfo.getUpdateType() == UpdateType.TIME_INTERVAL_UPDATE)
-				apiDataService.eraseApiData(updateInfo.apiKey.getGuestId(),
-						connector(), updateInfo.objectTypes,
+				apiDataService.eraseApiData(updateInfo.apiKey, updateInfo.objectTypes,
 						updateInfo.getTimeInterval());
             try {
                 updateConnectorData(updateInfo);
@@ -172,29 +170,29 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 		return updateResult;
 	}
 
-	final protected void countSuccessfulApiCall(long guestId, int objectTypes,
+	final protected void countSuccessfulApiCall(ApiKey apiKey, int objectTypes,
 			long then, String query) {
         StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=countSuccessfulApiCall")
                 .append(" connector=" + connector().getName())
                 .append(" objectTypes=" + objectTypes)
-                .append(" guestId=").append(guestId)
+                .append(" apiKeyId=").append(apiKey.getId())
+                .append(" guestId=").append(apiKey.getGuestId())
                 .append(" query=").append(query);
         logger.info(sb.toString());
-		connectorUpdateService.addApiUpdate(guestId, connector(), objectTypes,
-				then, System.currentTimeMillis() - then, query, true);
+		connectorUpdateService.addApiUpdate(apiKey.getGuestId(), apiKey.getConnector(), objectTypes, then, System.currentTimeMillis() - then, query, true);
 	}
 
-	final protected void countFailedApiCall(long guestId, int objectTypes,
+	final protected void countFailedApiCall(ApiKey apiKey, int objectTypes,
 			long then, String query, String stackTrace) {
         StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=countFailedApiCall")
                 .append(" connector=" + connector().getName())
                 .append(" objectTypes=" + objectTypes)
-                .append(" guestId=").append(guestId)
+                .append(" apiKeyId=").append(apiKey.getId())
+                .append(" guestId=").append(apiKey.getGuestId())
                 .append(" query=").append(query)
                 .append(" stackTrace=<![CDATA[").append(stackTrace).append("]]>");
         logger.info(sb.toString());
-		connectorUpdateService.addApiUpdate(guestId, connector(), objectTypes,
-				then, System.currentTimeMillis() - then, query, false);
+		connectorUpdateService.addApiUpdate(apiKey.getGuestId(), apiKey.getConnector(), objectTypes, then, System.currentTimeMillis() - then, query, false);
 	}
 
     /**

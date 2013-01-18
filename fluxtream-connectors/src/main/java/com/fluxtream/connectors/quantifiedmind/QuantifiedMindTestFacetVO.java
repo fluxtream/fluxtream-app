@@ -2,10 +2,7 @@ package com.fluxtream.connectors.quantifiedmind;
 
 import java.util.Date;
 import com.fluxtream.TimeInterval;
-import com.fluxtream.connectors.picasa.PicasaPhotoFacet;
-import com.fluxtream.connectors.vos.AbstractFacetVO;
 import com.fluxtream.connectors.vos.AbstractInstantFacetVO;
-import com.fluxtream.connectors.vos.AbstractPhotoFacetVO;
 import com.fluxtream.domain.GuestSettings;
 
 /**

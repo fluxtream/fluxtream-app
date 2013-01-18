@@ -66,14 +66,14 @@ public class GoogleCalendarUpdater extends AbstractGoogleOAuthUpdater {
             entries = resultFeed.getEntries();
         }
         catch (Exception e) {
-            countFailedApiCall(updateInfo.apiKey.getGuestId(),
+            countFailedApiCall(updateInfo.apiKey,
                                updateInfo.objectTypes,
                                then,
                                requestUrl, Utils.stackTrace(e));
             throw e;
         }
 
-        countSuccessfulApiCall(updateInfo.apiKey.getGuestId(),
+        countSuccessfulApiCall(updateInfo.apiKey,
                                updateInfo.objectTypes,
                                then,
                                requestUrl);

@@ -27,9 +27,6 @@ import org.joda.time.format.DateTimeFormatter;
 				query = "SELECT facet FROM Facet_FitbitSleep facet WHERE facet.guestId=? and facet.isEmpty=false ORDER BY facet.end DESC LIMIT 1"),
 		@NamedQuery(name = "fitbit.sleep.oldest",
 				query = "SELECT facet FROM Facet_FitbitSleep facet WHERE facet.guestId=? and facet.isEmpty=false ORDER BY facet.start ASC LIMIT 1"),
-		@NamedQuery(name = "fitbit.sleep.deleteAll", query = "DELETE FROM Facet_FitbitSleep facet WHERE facet.guestId=?"),
-		@NamedQuery(name = "fitbit.sleep.between", query = "SELECT facet FROM Facet_FitbitSleep facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=? and facet.isEmpty=false"),
-        @NamedQuery(name = "fitbit.sleep.byDates", query = "SELECT facet FROM Facet_FitbitSleep facet WHERE facet.guestId=? AND facet.date IN ? AND facet.start!=facet.end")
 })
 
 //SELECT * FROM Facet_FitbitSleep facet WHERE facet.guestId=1 ORDER BY facet.start ASC LIMIT 1

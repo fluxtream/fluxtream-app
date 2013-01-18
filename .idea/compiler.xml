@@ -40,7 +40,6 @@
     <bytecodeTargetLevel>
       <module name="fluxtream-connectors" target="1.6" />
       <module name="fluxtream-core" target="1.6" />
-      <module name="fluxtream-core-webapp" target="1.6" />
       <module name="fluxtream-web" target="1.6" />
     </bytecodeTargetLevel>
   </component>

@@ -14,6 +14,7 @@ import com.fluxtream.TimeUnit;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.domain.AbstractFacet;
+import com.fluxtream.domain.ApiKey;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.BodyTrackStorageService;
 import com.fluxtream.services.GuestService;
@@ -220,14 +221,13 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 	}
 
 	@Override
-	public void storeInitialHistory(long guestId, String connectorName) {
+	public void storeInitialHistory(ApiKey apiKey) {
         logger.info("module=updateQueue component=bodytrackStorageService action=storeInitialHistory" +
-                    " guestId=" + guestId + " connector=" + connectorName);
+                    " guestId=" + apiKey.getGuestId() + " connector=" + apiKey.getConnector().getName());
 		TimeInterval timeInterval = new TimeInterval(0,
 				System.currentTimeMillis(), TimeUnit.DAY, TimeZone.getDefault());
-		List<AbstractFacet> facets = apiDataService.getApiDataFacets(guestId,
-				Connector.getConnector(connectorName), null, timeInterval);
-		storeApiData(guestId, facets);
+		List<AbstractFacet> facets = apiDataService.getApiDataFacets(apiKey, null, timeInterval);
+		storeApiData(apiKey.getGuestId(), facets);
 	}
 
 }

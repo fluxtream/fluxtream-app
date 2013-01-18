@@ -4,6 +4,7 @@ import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.services.GuestService;
@@ -24,8 +25,7 @@ public class QuantifiedMindConnectorController {
     Configuration env;
 
 	@RequestMapping(value = "/getTokenDialog")
-	public ModelAndView enterUsername(
-			HttpServletRequest request) {
+	public ModelAndView enterUsername() {
 		ModelAndView mav = new ModelAndView("connectors/quantifiedmind/getToken");
         mav.addObject("redirect_url", env.get("homeBaseUrl") + "quantifiedmind/setToken");
         return mav;
@@ -35,9 +35,11 @@ public class QuantifiedMindConnectorController {
     public String getToken(@RequestParam("token") String token,
                                  @RequestParam("username") String username) throws IOException {
         Guest guest = AuthHelper.getGuest();
-        guestService.setApiKeyAttribute(guest.getId(), Connector.getConnector("quantifiedmind"),
+        final Connector connector = Connector.getConnector("quantifiedmind");
+        final ApiKey apiKey = guestService.createApiKey(guest.getId(), connector);
+        guestService.setApiKeyAttribute(apiKey,
                                         "token", token);
-        guestService.setApiKeyAttribute(guest.getId(), Connector.getConnector("quantifiedmind"),
+        guestService.setApiKeyAttribute(apiKey,
                                         "username", username);
 
         return "redirect:/app/from/quantifiedmind";

@@ -15,10 +15,7 @@ import org.joda.time.DateTime;
 @Entity(name="Facet_FitbitLoggedActivity")
 @ObjectTypeSpec(name = "logged_activity", value = 2, extractor= FitbitActivityFacetExtractor.class, prettyname = "Logged Activities", isDateBased = true)
 @NamedQueries({
-		@NamedQuery(name = "fitbit.logged_activity.deleteAll", query = "DELETE FROM Facet_FitbitLoggedActivity facet WHERE facet.guestId=?"),
-		@NamedQuery(name = "fitbit.logged_activity.between", query = "SELECT facet FROM Facet_FitbitLoggedActivity facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=?"),
         @NamedQuery(name = "fitbit.logged_activity.newest", query = "SELECT facet FROM Facet_FitbitLoggedActivity facet WHERE facet.guestId=? ORDER BY facet.end DESC LIMIT 1"),
-        @NamedQuery(name = "fitbit.logged_activity.byDates", query = "SELECT facet FROM Facet_FitbitLoggedActivity facet WHERE facet.guestId=? AND facet.date IN ?")
 })
 @Indexed
 public class FitbitLoggedActivityFacet extends AbstractFloatingTimeZoneFacet {

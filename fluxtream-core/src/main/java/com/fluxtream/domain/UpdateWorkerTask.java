@@ -15,21 +15,21 @@ import com.fluxtream.connectors.updaters.UpdateInfo;
 	@NamedQuery( name = "updateWorkerTasks.delete.byApi",
 		query = "DELETE FROM ScheduledUpdate updt " +
                 "WHERE updt.guestId=? " +
-                "AND updt.connectorName=? " +
+                "AND ((updt.connectorName=? AND updt.apiKeyId iS NULL) OR updt.apiKeyId=?)" +
                 "AND updt.updateType!=?"),
     @NamedQuery( name = "updateWorkerTasks.deleteAll.byApi",
                  query = "DELETE FROM ScheduledUpdate updt " +
                          "WHERE updt.guestId=? " +
-                         "AND updt.connectorName=?"),
+                         "AND ((updt.connectorName=? AND updt.apiKeyId iS NULL) OR updt.apiKeyId=?)"),
     @NamedQuery( name = "updateWorkerTasks.deleteAll.byApiAndObjectType",
                  query = "DELETE FROM ScheduledUpdate updt " +
                          "WHERE updt.guestId=? " +
-                         "AND updt.connectorName=? " +
+                         "AND ((updt.connectorName=? AND updt.apiKeyId iS NULL) OR updt.apiKeyId=?) " +
                          "AND updt.objectTypes=?"),
     @NamedQuery( name = "updateWorkerTasks.delete.byApiAndObjectType",
 		query = "DELETE FROM ScheduledUpdate updt " +
                 "WHERE updt.guestId=? " +
-                "AND updt.connectorName=? " +
+                "AND ((updt.connectorName=? AND updt.apiKeyId iS NULL) OR updt.apiKeyId=?) " +
                 "AND updt.objectTypes=?" +
                 "AND updt.updateType!=?"),
 	@NamedQuery( name = "updateWorkerTasks.delete.byStatus",
@@ -44,12 +44,12 @@ import com.fluxtream.connectors.updaters.UpdateInfo;
                 "WHERE (updt.status=0 " +
                     "OR updt.status=1) " +
                 "AND updt.guestId=? " +
-                "AND updt.connectorName=?"),
+                "AND ((updt.connectorName=? AND updt.apiKeyId iS NULL) OR updt.apiKeyId=?)"),
     @NamedQuery( name = "updateWorkerTasks.withObjectTypes.isScheduled",
 		query = "SELECT updt FROM ScheduledUpdate updt " +
                 "WHERE (updt.status=? OR updt.status=?) " +
                 "AND updt.guestId=? " +
-			    "AND updt.objectTypes=? AND updt.connectorName=? " +
+			    "AND updt.objectTypes=? AND ((updt.connectorName=? AND updt.apiKeyId iS NULL) OR updt.apiKeyId=?) " +
                 "ORDER BY updt.timeScheduled DESC"),
 	@NamedQuery( name = "updateWorkerTasks.completed",
 		query = "SELECT updt FROM ScheduledUpdate updt " +
@@ -57,14 +57,14 @@ import com.fluxtream.connectors.updaters.UpdateInfo;
 				"AND updt.guestId=? " +
 				"AND updt.updateType=? " +
                 "AND updt.objectTypes=? " +
-				"AND updt.connectorName=?"),
+				"AND ((updt.connectorName=? AND updt.apiKeyId iS NULL) OR updt.apiKeyId=?)"),
     @NamedQuery( name = "updateWorkerTasks.isInProgressOrScheduledBefore",
         query = "SELECT updt FROM ScheduledUpdate updt " +
                 "WHERE (updt.status=1 " +
                     "OR (updt.status=0 " +
                         "AND updt.timeScheduled<?))" +
                 "AND updt.guestId=? " +
-                "AND updt.connectorName=? "),
+                "AND ((updt.connectorName=? AND updt.apiKeyId iS NULL) OR updt.apiKeyId=?) "),
     @NamedQuery( name = "updateWorkerTasks.getLastFinishedTask",
         query = "SELECT updt FROM ScheduledUpdate updt " +
                 "WHERE updt.timeScheduled<? " +
@@ -72,7 +72,7 @@ import com.fluxtream.connectors.updaters.UpdateInfo;
                     "OR updt.status=3 " +
                     "OR updt.status=4) " +
                 "AND updt.guestId=? " +
-                "AND updt.connectorName=? " +
+                "AND ((updt.connectorName=? AND updt.apiKeyId iS NULL) OR updt.apiKeyId=?) " +
                 "ORDER BY updt.timeScheduled DESC")
 })
 public class UpdateWorkerTask extends AbstractEntity {
@@ -96,6 +96,7 @@ public class UpdateWorkerTask extends AbstractEntity {
         public String nextAction;
     }
 
+    public long apiKeyId;
 	public String connectorName;
 	public Status status = Status.SCHEDULED;
 

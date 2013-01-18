@@ -34,20 +34,32 @@ public interface GuestService {
 	
 	public void setPassword(long guestId, String password);
 
-	public ApiKey setApiKeyAttribute(long guestId, Connector api, String key,
+    public ApiKey createApiKey(long guestId, Connector connector);
+
+	public ApiKey setApiKeyAttribute(ApiKey apiKey, String key,
 			String value);
 
-	public String getApiKeyAttribute(long guestId, Connector api, String key);
-
-    public Map<String,String> getApiKeyAttributes(long guestId, Connector api, String key);
+	public String getApiKeyAttribute(ApiKey apiKey, String key);
 
     public List<ApiKey> getApiKeys(long guestId);
 
-	public boolean hasApiKey(long guestId, Connector api);
+	public boolean hasApiKey(long guestId, Connector connector);
 
-	public ApiKey getApiKey(long guestId, Connector api);
+	public List<ApiKey> getApiKeys(long guestId, Connector connector);
 
-	public void removeApiKey(long guestId, Connector api);
+    /**
+     * Multiple apiKeys per connector per user are now allowed. This call is maintained for
+     * backward compatibility, and we will hopefully soon be able to completely get rid of it
+     * @param guestId guest id
+     * @param connector connector
+     * @return the first api key matching passed arguments
+     */
+    @Deprecated
+    public ApiKey getApiKey(long guestId, Connector connector);
+
+    public void removeApiKeys(long guestId, Connector connector);
+
+	public void removeApiKey(long apiKeyId);
 
 	public void saveUserProfile(long guestId, AbstractUserProfile userProfile);
 

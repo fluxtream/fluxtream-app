@@ -49,15 +49,14 @@ public class GoogleLatitudeUpdater extends AbstractGoogleOAuthUpdater {
 
 	public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
 		ApiUpdate lastSuccessfulUpdate = connectorUpdateService
-				.getLastSuccessfulUpdate(updateInfo.apiKey.getGuestId(),
-						connector());
+				.getLastSuccessfulUpdate(updateInfo.apiKey);
 		loadHistory(updateInfo, lastSuccessfulUpdate.ts,
 				System.currentTimeMillis());
 	}
 
 	private void loadHistory(UpdateInfo updateInfo, long from, long to)
 			throws Exception {
-        String accessToken = oAuth2Helper.getAccessToken(updateInfo.getGuestId(), updateInfo.apiKey.getConnector());
+        String accessToken = oAuth2Helper.getAccessToken(updateInfo.apiKey);
 		HttpTransport transport = this.getTransport(updateInfo.apiKey);
 		String key = env.get("google_latitudeApiKey");
 		List<LocationFacet> locationList = executeList(updateInfo, transport,
@@ -102,11 +101,11 @@ public class GoogleLatitudeUpdater extends AbstractGoogleOAuthUpdater {
 			requestUrl = latitudeUrl.build();
 			HttpResponse response = request.execute();
 			List<LocationFacet> result = response.parseAs(LocationList.class).items;
-			countSuccessfulApiCall(updateInfo.apiKey.getGuestId(),
+			countSuccessfulApiCall(updateInfo.apiKey,
 					updateInfo.objectTypes, then, requestUrl);
 			return result;
 		} catch (Exception e) {
-			countFailedApiCall(updateInfo.apiKey.getGuestId(),
+			countFailedApiCall(updateInfo.apiKey,
 					updateInfo.objectTypes, then, requestUrl, Utils.stackTrace(e));
 			throw e;
 		}

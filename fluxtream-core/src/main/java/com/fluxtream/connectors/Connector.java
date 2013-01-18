@@ -147,38 +147,8 @@ public class Connector {
                         .userProfile();
         }
         connector.defaultChannels = updaterAnnotation.defaultChannels();
-        List<ObjectType> connectorObjectTypes = new ArrayList<ObjectType>();
-        connector.objectTypeExtractorClasses = new ConcurrentHashMap<Integer, Class<? extends AbstractFacetExtractor>>();
-        for (Class<? extends AbstractFacet> facetType : facetTypes) {
-            ObjectTypeSpec ots = facetType
-                    .getAnnotation(ObjectTypeSpec.class);
-            // objectTypes are mandatory only if there are more than 1
-            if (ots == null) {
-                if (facetTypes.length>1)
-                    throw new RuntimeException(
-                            "No ObjectTypeSpec Annotation for Facet ["
-                            + facetType.getName() + "]");
-                else
-                    continue;
-            }
-            ObjectType objectType = new ObjectType();
-            objectType.facetClass = facetType;
-            objectType.value = ots.value();
-            objectType.name = ots.name();
-            objectType.prettyname = ots.prettyname();
-            objectType.isImageType = ots.isImageType();
-            objectType.isDateBased = ots.isDateBased();
-            if (ots.extractor() != null) {
-                connector.addObjectTypeExtractorClass(
-                        objectType.value, ots.extractor(),
-                        ots.parallel());
-            }
-            connectorObjectTypes.add(objectType);
-            ObjectType.addObjectType(ots.name(), connector,
-                                     objectType);
-        }
-        if (connectorObjectTypes.size()>0)
-            connector.objectTypes = connectorObjectTypes.toArray(new ObjectType[0]);
+        for (Class<? extends AbstractFacet> facetType : facetTypes)
+            getFacetTypeMetadata(connector, facetTypes, facetType);
 
         JsonFacetCollection jsonFacetAnnotation = connector.updaterClass
                 .getAnnotation(JsonFacetCollection.class);
@@ -191,6 +161,42 @@ public class Connector {
         connectors.put(connectorName, connector);
         connectorsByValue.put(connector.value(), connector);
 
+    }
+
+    private static void getFacetTypeMetadata(final Connector connector,
+                                             final Class<? extends AbstractFacet>[] facetTypes,
+                                             final Class<? extends AbstractFacet> facetType) {
+        List<ObjectType> connectorObjectTypes = new ArrayList<ObjectType>();
+        connector.objectTypeExtractorClasses = new ConcurrentHashMap<Integer, Class<? extends AbstractFacetExtractor>>();
+        ObjectTypeSpec ots = facetType
+                .getAnnotation(ObjectTypeSpec.class);
+        // objectTypes are mandatory only if there are more than 1
+        if (ots == null) {
+            if (facetTypes.length>1)
+                throw new RuntimeException(
+                        "No ObjectTypeSpec Annotation for Facet ["
+                        + facetType.getName() + "]");
+            else
+                return;
+        }
+        ObjectType objectType = new ObjectType();
+        objectType.facetClass = facetType;
+        objectType.value = ots.value();
+        objectType.name = ots.name();
+        objectType.prettyname = ots.prettyname();
+        objectType.isImageType = ots.isImageType();
+        objectType.isDateBased = ots.isDateBased();
+        if (ots.extractor() != null) {
+            connector.addObjectTypeExtractorClass(
+                    objectType.value, ots.extractor(),
+                    ots.parallel());
+        }
+        connectorObjectTypes.add(objectType);
+        ObjectType.addObjectType(ots.name(), connector,
+                                 objectType);
+
+        if (connectorObjectTypes.size()>0)
+            connector.objectTypes = connectorObjectTypes.toArray(new ObjectType[0]);
     }
 
     public boolean hasImageObjectType() {

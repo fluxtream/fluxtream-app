@@ -3,7 +3,6 @@ package com.fluxtream.services.impl;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
@@ -121,7 +120,16 @@ public class GuestServiceImpl implements GuestService {
 		em.persist(guest);
 	}
 
-	@Override
+    @Override
+    public ApiKey createApiKey(final long guestId, final Connector connector) {
+        ApiKey apiKey = new ApiKey();
+        apiKey.setGuestId(guestId);
+        apiKey.setConnector(connector);
+        em.persist(apiKey);
+        return apiKey;
+    }
+
+    @Override
 	public Guest getGuest(String username) {
         return JPAUtils.findUnique(em, Guest.class,
                 "guest.byUsername", username);
@@ -141,17 +149,9 @@ public class GuestServiceImpl implements GuestService {
 
 	@Override
 	@Transactional(readOnly = false)
-	public ApiKey setApiKeyAttribute(long guestId, Connector api, String key,
+	public ApiKey setApiKeyAttribute(ApiKey apiKey, String key,
 			String value) {
-		ApiKey apiKey = JPAUtils.findUnique(em, ApiKey.class, "apiKey.byApi",
-				guestId, api.value());
-		if (apiKey == null) {
-			apiKey = new ApiKey();
-			apiKey.setGuestId(guestId);
-			apiKey.setConnector(api);
-			em.persist(apiKey);
-		}
-        removeApiKeyAttribute(guestId, apiKey, key);
+        apiKey.removeAttribute(key);
 		ApiKeyAttribute attr = new ApiKeyAttribute();
 		attr.attributeKey = key;
 		attr.setAttributeValue(value, env);
@@ -161,53 +161,32 @@ public class GuestServiceImpl implements GuestService {
 		return apiKey;
 	}
 
-    @Transactional(readOnly = false)
-    private void removeApiKeyAttribute(long guestId, ApiKey apiKey, String key) {
-        List<ApiKeyAttribute> atts = JPAUtils.find(em, ApiKeyAttribute.class, "apiKeyAttribute.byKeyAndConnector", apiKey, key);
-        for (ApiKeyAttribute att : atts)
-            em.remove(att);
-    }
-
 	@Transactional(readOnly = false)
 	@Override
-	public void removeApiKey(long guestId, Connector connector) {
-		ApiKey apiKey = JPAUtils.findUnique(em, ApiKey.class, "apiKey.byApi",
-				guestId, connector.value());
+	public void removeApiKey(long apiKeyId) {
+		ApiKey apiKey = em.find(ApiKey.class, apiKeyId);
         final String refreshTokenRemoveURL = apiKey.getAttributeValue("refreshTokenRemoveURL", env);
         // Revoke refresh token might throw.  If it does we still want to remove the apiKeys from
         // the DB which is why we put it in a try/finally block
         try {
              if (refreshTokenRemoveURL !=null)
-                oAuth2Helper.revokeRefreshToken(guestId, connector, refreshTokenRemoveURL);
+                oAuth2Helper.revokeRefreshToken(apiKey.getGuestId(), apiKey.getConnector(), refreshTokenRemoveURL);
         }
         finally {
             em.remove(apiKey);
-            if (connector == Connector.getConnector("google_latitude"))
-                JPAUtils.execute(em, "context.delete.all", guestId);
-            JPAUtils.execute(em, "apiUpdates.delete.byApi", guestId, connector.value());
-            connectorUpdateService.flushUpdateWorkerTasks(guestId, connector, true);
-            apiDataService.eraseApiData(guestId, connector);
+            if (apiKey.getConnector() == Connector.getConnector("google_latitude"))
+                JPAUtils.execute(em, "context.delete.all", apiKey.getGuestId());
+            JPAUtils.execute(em, "apiUpdates.delete.byApiKey", apiKey.getGuestId(), apiKey.getConnector().value(), apiKeyId);
+            connectorUpdateService.flushUpdateWorkerTasks(apiKey, true);
+            apiDataService.eraseApiData(apiKey);
         }
 	}
 
 	@Override
-	public String getApiKeyAttribute(long guestId, Connector api, String key) {
-		ApiKey apiKey = JPAUtils.findUnique(em, ApiKey.class, "apiKey.byApi",
-				guestId, api.value());
-		if (apiKey == null)
-			return null;
+    @Deprecated
+	public String getApiKeyAttribute(ApiKey apiKey, String key) {
 		return apiKey.getAttributeValue(key, env);
 	}
-
-    @Override
-    public Map<String, String> getApiKeyAttributes(final long guestId, final Connector api, final String key) {
-        ApiKey apiKey = JPAUtils.findUnique(em, ApiKey.class, "apiKey.byApi",
-                                            guestId, api.value());
-        if (apiKey == null)
-            return null;
-
-        return apiKey.getAttributes(env);
-    }
 
     @Override
 	public List<ApiKey> getApiKeys(long guestId) {
@@ -217,18 +196,34 @@ public class GuestServiceImpl implements GuestService {
 
 	@Override
 	public boolean hasApiKey(long guestId, Connector api) {
+        assert api!=null : "api must not be null";
 		ApiKey apiKey = JPAUtils.findUnique(em, ApiKey.class, "apiKey.byApi",
 				guestId, api.value());
 		return (apiKey != null);
 	}
 
 	@Override
-	public ApiKey getApiKey(long guestId, Connector api) {
-        return JPAUtils.findUnique(em, ApiKey.class, "apiKey.byApi",
-                guestId, api.value());
+	public List<ApiKey> getApiKeys(long guestId, Connector api) {
+        return JPAUtils.find(em, ApiKey.class, "apiKey.byApi", guestId, api.value());
 	}
 
-	@Override
+    @Override
+    public ApiKey getApiKey(long guestId, Connector api) {
+        final List<ApiKey> apiKeys = getApiKeys(guestId, api);
+        return apiKeys.size()>0
+                ? apiKeys.get(0)
+                : null;
+    }
+
+    @Override
+    @Transactional(readOnly=false)
+    public void removeApiKeys(final long guestId, final Connector connector) {
+        final List<ApiKey> apiKeys = getApiKeys(guestId, connector);
+        for (ApiKey apiKey : apiKeys)
+            removeApiKey(apiKey.getId());
+    }
+
+    @Override
 	@Transactional(readOnly = false)
     @Secured("ROLE_ADMIN")
 	public void eraseGuestInfo(String username) throws Exception {
@@ -238,7 +233,7 @@ public class GuestServiceImpl implements GuestService {
 		List<ApiKey> apiKeys = getApiKeys(guest.getId());
 		for (ApiKey key : apiKeys) {
             if(key!=null && key.getConnector()!=null) {
-			    apiDataService.eraseApiData(guest.getId(), key.getConnector());
+			    apiDataService.eraseApiData(key);
             }
 		}
 		for (ApiKey apiKey : apiKeys) {

@@ -2,11 +2,11 @@
 	prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%><%@ page
 	isELIgnored="false"%><%@ page import="com.fluxtream.domain.*"%>
 <%@ page import="com.fluxtream.connectors.vos.*"
-%><%@ page import="com.fluxtream.connectors.picasa.*"
+%><%@ page import="glacier.picasa.*"
 %><%@ page import="com.fluxtream.connectors.flickr.*"
 %><%@ page import="com.fluxtream.*"
 %><%@ page import="java.util.*"
-%><%@ page import="com.fluxtream.connectors.vos.*"%>
+%>
 <%
 List<AbstractPhotoFacetVO> facets = (List<AbstractPhotoFacetVO>)request.getAttribute("facets");
 if (facets.size()>0) {

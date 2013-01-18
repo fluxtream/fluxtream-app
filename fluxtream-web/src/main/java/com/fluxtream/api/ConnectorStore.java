@@ -88,12 +88,14 @@ public class ConnectorStore {
         try {
             List<ConnectorInfo> connectors =  sysService.getConnectors();
             JSONArray connectorsArray = new JSONArray();
-            for (int i = 0; i < connectors.size(); i++){
-                if (!guestService.hasApiKey(guest.getId(), connectors.get(i).getApi())) {
+            for (int i = 0; i < connectors.size(); i++) {
+                final ConnectorInfo connectorInfo = connectors.get(i);
+                final Connector api = connectorInfo.getApi();
+                if (!guestService.hasApiKey(guest.getId(), api)) {
                     connectors.remove(i--);
                 }
                 else {
-                    ConnectorInfo connector = connectors.get(i);
+                    ConnectorInfo connector = connectorInfo;
                     JSONObject connectorJson = new JSONObject();
                     Connector conn = Connector.fromValue(connector.api);
                     connectorJson.accumulate("prettyName", conn.prettyName());
@@ -170,7 +172,8 @@ public class ConnectorStore {
     }
 
     private boolean checkIfSyncInProgress(long guestId, Connector connector){
-        final Collection<UpdateWorkerTask> scheduledUpdates = connectorUpdateService.getUpdatingUpdateTasks(guestId, connector);
+        final ApiKey apiKey = guestService.getApiKey(guestId, connector);
+        final Collection<UpdateWorkerTask> scheduledUpdates = connectorUpdateService.getUpdatingUpdateTasks(apiKey);
         return (scheduledUpdates.size()!=0);
     }
 
@@ -181,7 +184,8 @@ public class ConnectorStore {
      * @return true if there was and error false otherwise
      */
     private boolean checkForErrors(long guestId, Connector connector){
-        Collection<UpdateWorkerTask> update = connectorUpdateService.getLastFinishedUpdateTasks(guestId, connector);
+        final ApiKey apiKey = guestService.getApiKey(guestId, connector);
+        Collection<UpdateWorkerTask> update = connectorUpdateService.getLastFinishedUpdateTasks(apiKey);
         if(update.size() < 1) return false;
         for(UpdateWorkerTask workerTask : update)
         {
@@ -191,13 +195,15 @@ public class ConnectorStore {
     }
 
     private long getLastSync(long guestId, Connector connector){
-        ApiUpdate update = connectorUpdateService.getLastSuccessfulUpdate(guestId, connector);
+        final ApiKey apiKey = guestService.getApiKey(guestId, connector);
+        ApiUpdate update = connectorUpdateService.getLastSuccessfulUpdate(apiKey);
         return update != null ? update.ts : Long.MAX_VALUE;
 
     }
 
     private long getLatestData(long guestId, Connector connector){
-        AbstractFacet facet = apiDataService.getLatestApiDataFacet(guestId, connector, null);
+        final ApiKey apiKey = guestService.getApiKey(guestId, connector);
+        AbstractFacet facet = apiDataService.getLatestApiDataFacet(apiKey, null);
         return facet == null ? Long.MAX_VALUE : facet.end;
     }
 
@@ -212,7 +218,7 @@ public class ConnectorStore {
             return "{}";
         try{
             Connector apiToRemove = Connector.fromString(connector);
-            guestService.removeApiKey(guest.getId(), apiToRemove);
+            guestService.removeApiKeys(guest.getId(), apiToRemove);
             result = new StatusModel(true,"Successfully removed " + connector + ".");
             StringBuilder sb = new StringBuilder("module=API component=connectorStore action=deleteConnector")
                     .append(" connector=").append(connector)

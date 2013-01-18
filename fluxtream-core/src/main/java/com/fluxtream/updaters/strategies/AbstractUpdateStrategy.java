@@ -26,12 +26,11 @@ abstract class AbstractUpdateStrategy implements UpdateStrategy {
 	 * We must also check that a scheduled update is not ongoing
 	 */
 	final private boolean needsHistoryUpdate(ApiKey apiKey, int objectTypes) {
-		boolean historyComplete = connectorUpdateService.isHistoryUpdateCompleted(apiKey.getGuestId(),
-                                                                                  apiKey.getConnector().getName(),
+		boolean historyComplete = connectorUpdateService.isHistoryUpdateCompleted(apiKey,
                                                                                   objectTypes);
 		if (!historyComplete) {
 			boolean isAlreadyScheduled = connectorUpdateService
-                 .getScheduledOrInProgressUpdateTasks(apiKey.getGuestId(), apiKey.getConnector()).size()>0;
+                 .getScheduledOrInProgressUpdateTasks(apiKey).size()>0;
 			return !isAlreadyScheduled;
 		}
 		return false;

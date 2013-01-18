@@ -32,8 +32,7 @@ public class GithubPushFacetExtractor extends AbstractFacetExtractor {
     public List<AbstractFacet> extractFacets(final ApiData apiData, final ObjectType objectType) throws Exception {
         List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
 
-        String login = guestService.getApiKeyAttribute(apiData.updateInfo.getGuestId(),
-                                                       Connector.getConnector("github"), "login");
+        String login = guestService.getApiKeyAttribute(apiData.updateInfo.apiKey, "login");
 
         JSONArray eventsArray = JSONArray.fromObject(apiData.json);
         for(int i=0; i<eventsArray.size(); i++) {

@@ -8,10 +8,12 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ApiUpdate;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.ConnectorUpdateService;
+import com.fluxtream.services.GuestService;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +36,9 @@ public class UpdateStore {
     @Autowired
     ConnectorUpdateService connectorUpdateService;
 
+    @Autowired
+    GuestService guestService;
+
     @GET
     @Path("/{connector}")
     @Produces({MediaType.APPLICATION_JSON})
@@ -43,7 +48,8 @@ public class UpdateStore {
         setTransactionName(null, "GET /updates/" + connectorName);
         try{
             long guestId = AuthHelper.getGuestId();
-            final List<ApiUpdate> updates = connectorUpdateService.getUpdates(guestId, Connector.getConnector(connectorName), pageSize, page);
+            final ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector(connectorName));
+            final List<ApiUpdate> updates = connectorUpdateService.getUpdates(apiKey, pageSize, page);
             return gson.toJson(updates);
         }
         catch (Exception e){

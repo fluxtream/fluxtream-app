@@ -1,5 +1,6 @@
 package com.fluxtream.connectors;
 
+import com.fluxtream.domain.ApiKey;
 import org.springframework.stereotype.Component;
 
 import com.fluxtream.connectors.updaters.RateLimitReachedException;
@@ -8,7 +9,7 @@ import com.fluxtream.utils.HttpUtils;
 @Component
 public class RESTHelper extends ApiClientSupport {
 	
-	public final String makeRestCall(Connector connector, long guestId,
+	public final String makeRestCall(long guestId, Connector connector,
 			int objectTypes, String urlString) throws Exception {
 		
 		if (hasReachedRateLimit(connector, guestId))

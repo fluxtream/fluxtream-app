@@ -105,8 +105,8 @@ public class GuestController {
             ApiKey apiKey = guestService.getApiKey(guestId,
                                                    Connector.getConnector(connectorName));
             if (apiKey != null) {
-                guestService.setApiKeyAttribute(guestId, apiKey.getConnector(), "accessToken", accessToken);
-                guestService.setApiKeyAttribute(guestId, apiKey.getConnector(), "tokenSecret", tokenSecret);
+                guestService.setApiKeyAttribute(apiKey, "accessToken", accessToken);
+                guestService.setApiKeyAttribute(apiKey, "tokenSecret", tokenSecret);
 
                 StatusModel result = new StatusModel(true,
                                                      "Successfully updated oauth tokens: " + connectorName);
@@ -138,10 +138,11 @@ public class GuestController {
             ApiKey apiKey = guestService.getApiKey(guestId,
                                                    Connector.getConnector(connectorName));
             if (apiKey != null) {
-                guestService.setApiKeyAttribute(guestId, apiKey.getConnector(), "accessToken", accessToken);
-                guestService.setApiKeyAttribute(guestId, apiKey.getConnector(), "tokenExpires", tokenExpires);
-                guestService.setApiKeyAttribute(guestId, apiKey.getConnector(), "refreshTokenRemoveURL", refreshTokenRemoveURL);
-                guestService.setApiKeyAttribute(guestId, apiKey.getConnector(), "refreshToken", refreshToken);
+
+                guestService.setApiKeyAttribute(apiKey, "accessToken", accessToken);
+                guestService.setApiKeyAttribute(apiKey, "tokenExpires", tokenExpires);
+                guestService.setApiKeyAttribute(apiKey, "refreshTokenRemoveURL", refreshTokenRemoveURL);
+                guestService.setApiKeyAttribute(apiKey, "refreshToken", refreshToken);
 
                 StatusModel result = new StatusModel(true,
                                                      "Successfully updated oauth2 tokens: " + connectorName);

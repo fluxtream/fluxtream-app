@@ -5,14 +5,11 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
-import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.Connector.UpdateStrategyType;
 import com.fluxtream.connectors.annotations.JsonFacetCollection;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
-import com.fluxtream.connectors.updaters.UpdateInfo.UpdateType;
-import com.fluxtream.domain.ApiUpdate;
 import com.fluxtream.services.JPADaoService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.utils.Utils;
@@ -26,8 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
 import sun.misc.BASE64Encoder;
 
 @Component
@@ -70,27 +65,6 @@ public class ZeoRestUpdater extends AbstractUpdater {
 		getBulkSleepRecordsSinceDate(updateInfo, date);
 	}
 
-    @Deprecated
-	@RequestMapping(value = "/zeo/{guestId}/notify")
-	public void notifyMeasurement(@PathVariable final Long guestId) {
-
-		connectorUpdateService.addApiNotification(
-				Connector.getConnector("zeo"), guestId, "sleep data uploaded");
-
-		logger.info("action=apiNotification connector=zeo message=sleepDataUploaded");
-		
-		long now = System.currentTimeMillis();
-		
-		ApiUpdate lastSuccessfulUpdate = connectorUpdateService
-				.getLastSuccessfulUpdate(guestId, Connector.getConnector("zeo"));
-
-		UpdateType updateType = lastSuccessfulUpdate != null ? UpdateType.PUSH_TRIGGERED_UPDATE
-				: UpdateType.INITIAL_HISTORY_UPDATE;
-
-		connectorUpdateService.scheduleUpdate(guestId, "zeo", -1, updateType,
-				now);
-	}
-
 	private void getBulkSleepRecordsSinceDate(UpdateInfo updateInfo, DateTime d) throws Exception {
 		String zeoApiKey = env.get("zeoApiKey");
 		long then = System.currentTimeMillis();
@@ -99,15 +73,15 @@ public class ZeoRestUpdater extends AbstractUpdater {
         String date = (d==null)?"":("&dateFrom=" + d.toString(formatter));
         String datesUrl = baseUrl + "getDatesWithSleepDataInRange?key=" + zeoApiKey + date;
 
-        String username = guestService.getApiKeyAttribute(updateInfo.getGuestId(), connector(), "username");
-        String password = guestService.getApiKeyAttribute(updateInfo.getGuestId(), connector(), "password");
+        String username = guestService.getApiKeyAttribute(updateInfo.apiKey, "username");
+        String password = guestService.getApiKeyAttribute(updateInfo.apiKey, "password");
 
         String days;
 		try {
 			days = callURL(datesUrl, username, password);
-            countSuccessfulApiCall(updateInfo.getGuestId(), -1, then, datesUrl);
+            countSuccessfulApiCall(updateInfo.apiKey, -1, then, datesUrl);
         } catch (IOException e) {
-            countFailedApiCall(updateInfo.getGuestId(), -1, then, datesUrl, Utils.stackTrace(e));
+            countFailedApiCall(updateInfo.apiKey, -1, then, datesUrl, Utils.stackTrace(e));
             throw e;
         }
         JSONObject dateList = JSONObject.fromObject(days).getJSONObject("response").optJSONObject("dateList");
@@ -134,12 +108,12 @@ public class ZeoRestUpdater extends AbstractUpdater {
                     try{
                         then = System.currentTimeMillis();
                         String bulkResult = callURL(finalStatsUrl, username, password);
-                        countSuccessfulApiCall(updateInfo.getGuestId(), -1, then, statsUrl);
+                        countSuccessfulApiCall(updateInfo.apiKey, -1, then, statsUrl);
                         apiDataService.cacheApiDataJSON(updateInfo, bulkResult, -1, -1);
                     }
                     catch (IOException e)
                     {
-                        countFailedApiCall(updateInfo.getGuestId(), -1, then, statsUrl, Utils.stackTrace(e));
+                        countFailedApiCall(updateInfo.apiKey, -1, then, statsUrl, Utils.stackTrace(e));
                         throw e;
                     }
                 }

@@ -10,13 +10,13 @@ import com.fluxtream.connectors.ObjectType;
  */
 public interface PhotoFacetFinderStrategy {
 
-    List<AbstractFacet> findAll(long guestId, Connector connector, ObjectType objectType, TimeInterval timeInterval);
+    List<AbstractFacet> findAll(ApiKey apiKey, ObjectType objectType, TimeInterval timeInterval);
 
-    List<AbstractFacet> findBefore(long guestId, Connector connector, ObjectType objectType, long timeInMillis, int desiredCount);
+    List<AbstractFacet> findBefore(ApiKey apiKey, ObjectType objectType, long timeInMillis, int desiredCount);
 
-    List<AbstractFacet> findAfter(long guestId, Connector connector, ObjectType objectType, long timeInMillis, int desiredCount);
+    List<AbstractFacet> findAfter(ApiKey apiKey, ObjectType objectType, long timeInMillis, int desiredCount);
 
-    AbstractFacet findOldest(long guestId, Connector connector, ObjectType objectType);
+    AbstractFacet findOldest(ApiKey apiKey, ObjectType objectType);
 
-    AbstractFacet findLatest(long guestId, Connector connector, ObjectType objectType);
+    AbstractFacet findLatest(ApiKey apiKey, ObjectType objectType);
 }

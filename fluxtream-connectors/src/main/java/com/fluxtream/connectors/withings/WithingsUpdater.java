@@ -38,10 +38,10 @@ public class WithingsUpdater extends AbstractUpdater {
 
 		try {
 			json = fetch(url);
-			countSuccessfulApiCall(updateInfo.apiKey.getGuestId(),
+			countSuccessfulApiCall(updateInfo.apiKey,
 					updateInfo.objectTypes, then, url);
 		} catch (Exception e) {
-			countFailedApiCall(updateInfo.apiKey.getGuestId(),
+			countFailedApiCall(updateInfo.apiKey,
 					updateInfo.objectTypes, then, url, Utils.stackTrace(e));
 			throw e;
 		}
@@ -54,8 +54,7 @@ public class WithingsUpdater extends AbstractUpdater {
 		String json;
 		
 		ApiUpdate lastSuccessfulUpdate = connectorUpdateService
-				.getLastSuccessfulUpdate(updateInfo.apiKey.getGuestId(),
-						connector());
+				.getLastSuccessfulUpdate(updateInfo.apiKey);
 
 		String url = "http://wbsapi.withings.net/measure?action=getmeas";
 		url += "&userid=" + updateInfo.apiKey.getAttributeValue("userid", env);
@@ -66,10 +65,10 @@ public class WithingsUpdater extends AbstractUpdater {
 		
 		try {
 			json = fetch(url);
-			countSuccessfulApiCall(updateInfo.apiKey.getGuestId(),
+			countSuccessfulApiCall(updateInfo.apiKey,
 					updateInfo.objectTypes, then, url);
 		} catch (Exception e) {
-			countFailedApiCall(updateInfo.apiKey.getGuestId(),
+			countFailedApiCall(updateInfo.apiKey,
 					updateInfo.objectTypes, then, url, Utils.stackTrace(e));
 			throw e;
 		}

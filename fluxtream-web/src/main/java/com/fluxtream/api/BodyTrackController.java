@@ -34,6 +34,7 @@ import com.fluxtream.connectors.fluxtream_capture.FluxtreamCapturePhoto;
 import com.fluxtream.connectors.fluxtream_capture.FluxtreamCapturePhotoStore;
 import com.fluxtream.connectors.fluxtream_capture.FluxtreamCaptureUpdater;
 import com.fluxtream.connectors.vos.AbstractPhotoFacetVO;
+import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.CoachingBuddy;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.mvc.models.StatusModel;
@@ -116,8 +117,9 @@ public class BodyTrackController {
             if (!checkForPermissionAccess(guest.getId())){
                 status = new StatusModel(false, "Failure!");
             }
-            else{
-                bodytrackStorageService.storeInitialHistory(guest.getId(), connectorName);
+            else {
+                final ApiKey apiKey = guestService.getApiKey(guest.getId(), Connector.getConnector(connectorName));
+                bodytrackStorageService.storeInitialHistory(apiKey);
                 status = new StatusModel(true, "Success!");
             }
         }
@@ -259,7 +261,8 @@ public class BodyTrackController {
                             // auto-added to the user's set of connectors, and this is the way to do it.  Note that the
                             // the field recorded here is merely the time of the last upload request *request* and says
                             // nothing about whether that request was actually successful
-                            guestService.setApiKeyAttribute(guestId, connector, "last_upload_request_time", String.valueOf(System.currentTimeMillis()));
+                            ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector("bodytrack"));
+                            guestService.setApiKeyAttribute(apiKey, "last_upload_request_time", String.valueOf(System.currentTimeMillis()));
 
                             // We have a photo and the metadata, so pass control to the FluxtreamCapturePhotoStore to save the photo
                             LOG_DEBUG.debug("BodyTrackController.savePhoto(" + guestId + ", " + photoBytes.length + ", " + jsonMetadata + ")");
@@ -545,7 +548,8 @@ public class BodyTrackController {
             if (!accessAllowed){
                 uid = null;
             }
-            return bodyTrackHelper.listSources(uid, coachee);
+            final ApiKey apiKey = guestService.getApiKey(uid, Connector.getConnector("fluxtream_capture"));
+            return bodyTrackHelper.listSources(apiKey, coachee);
         }
         catch (Exception e){
             return gson.toJson(new StatusModel(false,"Access Denied"));
@@ -620,7 +624,8 @@ public class BodyTrackController {
             final TimeInterval timeInterval = new TimeInterval(startTimeMillis, endTimeMillis, TimeUnit.DAY, TimeZone.getTimeZone("UTC"));
 
             // fetch the photos for this time interval, and for the desired device/channel
-            final SortedSet<PhotoService.Photo> photos  = photoService.getPhotos(uid, timeInterval, connectorPrettyName, objectTypeName);
+            final ApiKey apiKey = guestService.getApiKey(uid, Connector.getConnector("fluxtream_capture"));
+            final SortedSet<PhotoService.Photo> photos  = photoService.getPhotos(apiKey, timeInterval, connectorPrettyName, objectTypeName);
 
             // Define the min interval to be 1/20th of the span of the tile.  Value is in seconds
             final double minInterval = LevelOffsetHelper.levelToDuration(level) / 20.0;
@@ -687,7 +692,8 @@ public class BodyTrackController {
                 return gson.toJson(new StatusModel(false, "Invalid User ID (null)"));
              }
 
-            final SortedSet<PhotoService.Photo> photos = photoService.getPhotos(uid, unixTimeInSecs * 1000, connectorPrettyName, objectTypeName, desiredCount, isGetPhotosBeforeTime);
+            final ApiKey apiKey = guestService.getApiKey(uid, Connector.getConnector("fluxtream_capture"));
+            final SortedSet<PhotoService.Photo> photos = photoService.getPhotos(apiKey, unixTimeInSecs * 1000, connectorPrettyName, objectTypeName, desiredCount, isGetPhotosBeforeTime);
 
             // create the JSON response
             final List<PhotoItem> photoItems = new ArrayList<PhotoItem>();

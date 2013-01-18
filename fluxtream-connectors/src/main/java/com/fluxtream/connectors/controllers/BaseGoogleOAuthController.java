@@ -7,6 +7,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.services.GuestService;
@@ -72,8 +73,10 @@ public abstract class BaseGoogleOAuthController {
 		
 		Guest guest = AuthHelper.getGuest();
 
-		guestService().setApiKeyAttribute(guest.getId(), api, "accessToken", credentials.token);
-		guestService().setApiKeyAttribute(guest.getId(), api, "tokenSecret", credentials.tokenSecret);
+        final ApiKey apiKey = guestService().createApiKey(guest.getId(), api);
+
+		guestService().setApiKeyAttribute(apiKey, "accessToken", credentials.token);
+		guestService().setApiKeyAttribute(apiKey, "tokenSecret", credentials.tokenSecret);
 				
 		return "redirect:/app/from/"+api.getName();
 	}

@@ -7,6 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.fluxtream.auth.AuthHelper;
+import com.fluxtream.domain.ApiKey;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.OAuthProvider;
 import oauth.signpost.basic.DefaultOAuthConsumer;
@@ -77,11 +78,14 @@ public class TwitterOAuthController {
 		String verifier = request.getParameter("oauth_verifier");
 		provider.retrieveAccessToken(consumer, verifier);
 		Guest guest = AuthHelper.getGuest();
+
+        final Connector connector = Connector.getConnector("twitter");
+        final ApiKey apiKey = guestService.createApiKey(guest.getId(), connector);
+
+		guestService.setApiKeyAttribute(apiKey,  "accessToken", consumer.getToken());
+		guestService.setApiKeyAttribute(apiKey,  "tokenSecret", consumer.getTokenSecret());
 		
-		guestService.setApiKeyAttribute(guest.getId(), Connector.getConnector("TWITTER"), "accessToken", consumer.getToken());
-		guestService.setApiKeyAttribute(guest.getId(), Connector.getConnector("TWITTER"), "tokenSecret", consumer.getTokenSecret());
-		
-		return "redirect:/app/from/"+Connector.getConnector("TWITTER").getName();
+		return "redirect:/app/from/"+connector.getName();
 	}
 
 	String getConsumerKey() {

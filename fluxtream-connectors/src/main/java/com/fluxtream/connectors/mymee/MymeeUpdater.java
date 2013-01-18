@@ -70,7 +70,7 @@ public class MymeeUpdater extends AbstractUpdater {
     @Override
     protected void updateConnectorDataHistory(final UpdateInfo updateInfo) throws Exception {
         // Reset last_seq so that incremental update will pull everything
-        guestService.setApiKeyAttribute(updateInfo.getGuestId(), connector(), "last_seq","0");
+        guestService.setApiKeyAttribute(updateInfo.apiKey, "last_seq","0");
         updateConnectorData(updateInfo);
     }
 
@@ -79,7 +79,7 @@ public class MymeeUpdater extends AbstractUpdater {
         String rootURL = getRootURL(updateInfo);
         long lastSeq = 0;
         try {
-            lastSeq = Long.valueOf(guestService.getApiKeyAttribute(updateInfo.apiKey.getGuestId(), connector(), "last_seq"));
+            lastSeq = Long.valueOf(guestService.getApiKeyAttribute(updateInfo.apiKey, "last_seq"));
         } catch (Exception e) {}
 
         // Fetch and load changes, starting with lastSeq, fetching at most maxToFetch each pass
@@ -98,13 +98,13 @@ public class MymeeUpdater extends AbstractUpdater {
                 changes = json.getJSONArray("results");
             }
             catch (Exception e) {
-                countFailedApiCall(updateInfo.apiKey.getGuestId(), updateInfo.objectTypes,
+                countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes,
                                    System.currentTimeMillis(),
                                    URL, Utils.stackTrace(e));
                 throw new Exception("Could not get Mymee observations: "
                                     + e.getMessage() + "\n" + Utils.stackTrace(e));
             }
-            countSuccessfulApiCall(updateInfo.apiKey.getGuestId(), updateInfo.objectTypes,
+            countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes,
                                    System.currentTimeMillis(), URL);
 
             // If last_seq is the same as we passed, there are no more observations
@@ -142,7 +142,7 @@ public class MymeeUpdater extends AbstractUpdater {
             lastSeq = newLastSeq;
 
             // Write lastSeq back to apiKeyAttributes
-            guestService.setApiKeyAttribute(updateInfo.getGuestId(), connector(), "last_seq", String.valueOf(lastSeq));
+            guestService.setApiKeyAttribute(updateInfo.apiKey, "last_seq", String.valueOf(lastSeq));
         }
 
         // For each Mymee channel, setup the default display style to be lollipops
@@ -263,19 +263,19 @@ public class MymeeUpdater extends AbstractUpdater {
                 .append(updateInfo.apiKey.getGuestId());
         logger.info(sb.toString());
         long then = System.currentTimeMillis();
-        String queryUrl = guestService.getApiKeyAttribute(updateInfo.getGuestId(), connector(), "fetchURL");
+        String queryUrl = guestService.getApiKeyAttribute(updateInfo.apiKey, "fetchURL");
         String json = null;
         try {
             json = HttpUtils.fetch(queryUrl);
         }
         catch (Exception e) {
-            countFailedApiCall(updateInfo.apiKey.getGuestId(), updateInfo.objectTypes, then,
+            countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then,
                                queryUrl, Utils.stackTrace(e));
             throw new Exception("Could not get Mymee observations: "
                                 + e.getMessage() + "\n" + Utils.stackTrace(e));
         }
 
-        countSuccessfulApiCall(updateInfo.apiKey.getGuestId(), updateInfo.objectTypes, then, queryUrl);
+        countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, queryUrl);
 
         if (json!=null) {
             Set<String> channelNames = extractFacets(json, updateInfo, incremental);

@@ -27,8 +27,7 @@ public class AlwaysUpdateStrategy extends AbstractUpdateStrategy {
 	public UpdateInfo computeUpdateInfo(ApiKey apiKey, int objectTypes,
 			TimeInterval timeInterval) {
 
-		ApiUpdate lastUpdate = connectorUpdateService.getLastSuccessfulUpdate(
-				apiKey.getGuestId(), apiKey.getConnector());
+		ApiUpdate lastUpdate = connectorUpdateService.getLastSuccessfulUpdate(apiKey);
 		long now = System.currentTimeMillis();
 
 		if (lastUpdate != null

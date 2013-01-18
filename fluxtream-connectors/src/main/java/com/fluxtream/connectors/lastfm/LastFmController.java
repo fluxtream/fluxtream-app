@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.fluxtream.auth.AuthHelper;
+import com.fluxtream.domain.ApiKey;
 import org.apache.commons.httpclient.HttpException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -70,10 +71,13 @@ public class LastFmController {
 		String username = LastfmHelper.getUsername(jsonResponse);
 		Guest guest = AuthHelper.getGuest();
 
-		guestService.setApiKeyAttribute(guest.getId(), Connector.getConnector("lastfm"), "sessionKey", sessionKey);
-		guestService.setApiKeyAttribute(guest.getId(), Connector.getConnector("lastfm"), "username", username);
+        final Connector connector = Connector.getConnector("lastfm");
+        final ApiKey apiKey = guestService.createApiKey(guest.getId(), connector);
+
+		guestService.setApiKeyAttribute(apiKey, "sessionKey", sessionKey);
+		guestService.setApiKeyAttribute(apiKey,  "username", username);
 		
-		return "redirect:/app/from/"+Connector.getConnector("LASTFM").getName();
+		return "redirect:/app/from/"+connector.getName();
 	}
 
 	Map<String, String> toMap(String... params) {

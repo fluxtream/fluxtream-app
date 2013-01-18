@@ -13,6 +13,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.TimeUnit;
+import com.fluxtream.connectors.Connector;
+import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.metadata.DayMetadataFacet;
 import com.fluxtream.mvc.models.PhotoModel;
@@ -120,7 +122,9 @@ public class PhotoStore {
     }
 
     private List<PhotoModel> getPhotos(Guest guest, TimeInterval timeInterval) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
-        final SortedSet<PhotoService.Photo> photos = photoService.getPhotos(guest.getId(), timeInterval);
+        final List<ApiKey> fcKeys = guestService.getApiKeys(guest.getId(), Connector.getConnector("fluxtream_capture"));
+        if (fcKeys.size()==0) throw new RuntimeException("No Fluxtream Capture ApiKey for user " + guest.username);
+        final SortedSet<PhotoService.Photo> photos = photoService.getPhotos(fcKeys.get(0), timeInterval);
 
         List<PhotoModel> photoModels = new ArrayList<PhotoModel>();
         for (final PhotoService.Photo photo : photos) {

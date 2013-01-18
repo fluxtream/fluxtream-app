@@ -8,12 +8,13 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.updaters.ScheduleResult;
+import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ApiUpdate;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.UpdateWorkerTask;
-import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
@@ -64,9 +65,9 @@ public class SyncController {
 
     private String sync(final String connectorName, final boolean force) {
         try{
-            final List<ScheduleResult> scheduleResults = connectorUpdateService.updateConnector(AuthHelper.getGuestId(),
-                                                                                                Connector.getConnector(connectorName),
-                                                                                                force);
+            final long guestId = AuthHelper.getGuestId();
+            final ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector(connectorName));
+            final List<ScheduleResult> scheduleResults = connectorUpdateService.updateConnector(apiKey, force);
             StatusModel statusModel = new StatusModel(true, "successfully added update worker tasks to the queue (see details)");
             statusModel.payload = scheduleResults;
             return gson.toJson(scheduleResults);
@@ -87,9 +88,9 @@ public class SyncController {
 
     private String syncConnectorObjectType(final String connectorName, final int objectTypes, final boolean force) {
         try {
-            final List<ScheduleResult> scheduleResults = connectorUpdateService.updateConnectorObjectType(AuthHelper.getGuestId(),
-                                                                                                Connector.getConnector(connectorName),
-                                                                                                objectTypes,
+            final long guestId = AuthHelper.getGuestId();
+            final ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector(connectorName));
+            final List<ScheduleResult> scheduleResults = connectorUpdateService.updateConnectorObjectType(apiKey, objectTypes,
                                                                                                 force);
             StatusModel statusModel = new StatusModel(true, "successfully added update worker tasks to the queue (see details)");
             statusModel.payload = scheduleResults;
@@ -131,8 +132,9 @@ public class SyncController {
     public String isHistoryComplete(@PathParam("connector") String connectorName,
                                     @FormParam("objectTypes") int objectTypes) {
         setTransactionName(null, "POST /sync/" + connectorName + "/historyComplete");
-        Guest user = AuthHelper.getGuest();
-        final boolean historyUpdateCompleted = connectorUpdateService.isHistoryUpdateCompleted(user.getId(), connectorName, objectTypes);
+        final long guestId = AuthHelper.getGuestId();
+        final ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector(connectorName));
+        final boolean historyUpdateCompleted = connectorUpdateService.isHistoryUpdateCompleted(apiKey, objectTypes);
         JSONObject response = new JSONObject();
         response.accumulate("historyUpdateCompleted", historyUpdateCompleted);
         return response.toString();
@@ -144,7 +146,9 @@ public class SyncController {
         setTransactionName(null, "POST /sync/" + connectorName + "/isSynching");
         Connector connector = Connector.getConnector(connectorName);
         Guest guest = AuthHelper.getGuest();
-        final Collection<UpdateWorkerTask> scheduledUpdates = connectorUpdateService.getUpdatingUpdateTasks(guest.getId(), connector);
+        final long guestId = AuthHelper.getGuestId();
+        final ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector(connectorName));
+        final Collection<UpdateWorkerTask> scheduledUpdates = connectorUpdateService.getUpdatingUpdateTasks(apiKey);
         JSONObject response = new JSONObject();
         response.accumulate("synching", scheduledUpdates.size()>0);
         return response.toString();
@@ -156,7 +160,8 @@ public class SyncController {
         setTransactionName(null, "POST /sync/" + connectorName + "/lastSuccessfullUpdate");
         Connector connector = Connector.getConnector(connectorName);
         Guest guest = AuthHelper.getGuest();
-        final ApiUpdate lastSuccessfulUpdate = connectorUpdateService.getLastSuccessfulUpdate(guest.getId(), connector);
+        final ApiKey apiKey = guestService.getApiKey(guest.getId(), connector);
+        final ApiUpdate lastSuccessfulUpdate = connectorUpdateService.getLastSuccessfulUpdate(apiKey);
         JSONObject response = new JSONObject();
         response.accumulate("lastSuccessfulUpdate", lastSuccessfulUpdate!=null
             ? fmt.print(lastSuccessfulUpdate.ts) : "never");
@@ -169,19 +174,20 @@ public class SyncController {
     public StatusModel resetConnector(@PathParam("connector") String connectorName) {
         setTransactionName(null, "POST /sync/" + connectorName + "/reset");
         Connector connector = Connector.getConnector(connectorName);
-        Guest guest = AuthHelper.getGuest();
-        final ApiUpdate lastSuccessfulUpdate = connectorUpdateService.getLastSuccessfulUpdate(guest.getId(), connector);
-        connectorUpdateService.flushUpdateWorkerTasks(guest.getId(), connector, true);
+        final long guestId = AuthHelper.getGuestId();
+        final ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector(connectorName));
+        connectorUpdateService.flushUpdateWorkerTasks(apiKey, true);
         return new StatusModel(true, "reset controller " + connectorName);
     }
 
     @POST
     @Path("/{connector}/lastUpdate")
-    public String lastFailedUpdate(@PathParam("connector") String connectorName) {
+    public String lastUpdate(@PathParam("connector") String connectorName) {
         setTransactionName(null, "POST /sync/" + connectorName + "/lastUpdate");
         Connector connector = Connector.getConnector(connectorName);
         Guest guest = AuthHelper.getGuest();
-        final ApiUpdate lastUpdate = connectorUpdateService.getLastUpdate(guest.getId(), connector);
+        final ApiKey apiKey = guestService.getApiKey(guest.getId(), connector);
+        final ApiUpdate lastUpdate = connectorUpdateService.getLastUpdate(apiKey);
         JSONObject response = new JSONObject();
         response.accumulate("lastUpdate", lastUpdate!=null
                                                     ? fmt.print(lastUpdate.ts) : "never");

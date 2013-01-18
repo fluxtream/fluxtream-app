@@ -80,7 +80,7 @@ public class SystemServiceImpl implements SystemService {
                                      "/images/connectors/connector-withings.jpg",
                                      res.getString("withings"),
                                      "ajax:/withings/enterCredentials",
-                                     Connector.getConnector("WITHINGS"), order++, true));
+                                     Connector.getConnector("withings"), order++, true));
         em.persist(new ConnectorInfo("Zeo",
                                      "/images/connectors/connector-zeo.jpg",
                                      res.getString("zeo"),
@@ -136,12 +136,7 @@ public class SystemServiceImpl implements SystemService {
                                      "/images/connectors/connector-runkeeper.jpg",
                                      res.getString("runkeeper"),
                                      "/runkeeper/token",
-                                     Connector.getConnector("runkeeper"), order++, true));
-        em.persist(new ConnectorInfo("Evernote",
-                                     "/images/connectors/connector-evernote.jpg",
-                                     res.getString("evernote"),
-                                     "/evernote/token",
-                                     Connector.getConnector("evernote"), order, false));
+                                     Connector.getConnector("runkeeper"), order, true));
 	}
 
     private String singlyAuthorizeUrl(final String service) {

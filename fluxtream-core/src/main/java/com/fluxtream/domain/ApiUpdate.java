@@ -13,30 +13,33 @@ import org.hibernate.annotations.Type;
 @NamedQueries ( {
 	@NamedQuery(name = "apiUpdates.count.all.since",
 		query = "SELECT COUNT(updt) FROM ApiUpdates updt " +
-                "WHERE updt.api=? " +
+                "WHERE updt.api=? AND (updt.apiKeyId=? OR updt.apiKeyId IS NULL) " +
                 "AND updt.ts>?"),
 	@NamedQuery(name = "apiUpdates.count.byGuest.since",
-		query = "SELECT COUNT(updt) FROM ApiUpdates updt WHERE updt.guestId=? AND updt.api=? AND updt.ts>?"),
+		query = "SELECT COUNT(updt) FROM ApiUpdates updt WHERE updt.guestId=? AND updt.api=? AND (updt.apiKeyId=? OR updt.apiKeyId IS NULL) AND updt.ts>?"),
 	@NamedQuery(name = "apiUpdates.count.all",
-		query = "SELECT COUNT(updt) FROM ApiUpdates updt WHERE updt.api=?"),
+		query = "SELECT COUNT(updt) FROM ApiUpdates updt WHERE updt.api=? AND (updt.apiKeyId=? OR updt.apiKeyId IS NULL)"),
 	@NamedQuery(name = "apiUpdates.count.byGuest",
-		query = "SELECT COUNT(updt) FROM ApiUpdates updt WHERE updt.guestId=? AND updt.api=?"),
+		query = "SELECT COUNT(updt) FROM ApiUpdates updt WHERE updt.guestId=? AND updt.api=? AND (updt.apiKeyId=? OR updt.apiKeyId IS NULL)"),
 	@NamedQuery(name = "apiUpdates.delete.all",
 		query = "DELETE FROM ApiUpdates updt WHERE updt.guestId=?"),
 	@NamedQuery(name = "apiUpdates.delete.byApiAndObjectTypes",
-		query = "DELETE FROM ApiUpdates updt WHERE updt.guestId=? AND updt.api=? AND updt.objectTypes=?"),
+		query = "DELETE FROM ApiUpdates updt WHERE updt.guestId=? AND updt.api=? AND (updt.apiKeyId=? OR updt.apiKeyId IS NULL) AND updt.objectTypes=?"),
 	@NamedQuery(name = "apiUpdates.delete.byApi",
-		query = "DELETE FROM ApiUpdates updt WHERE updt.guestId=? AND updt.api=?"),
+		query = "DELETE FROM ApiUpdates updt WHERE updt.guestId=? AND updt.api=? AND (updt.apiKeyId=? OR updt.apiKeyId IS NULL)"),
     @NamedQuery( name="apiUpdates.last.paged",
-                 query="SELECT updt FROM ApiUpdates updt WHERE updt.guestId=? and updt.api=? ORDER BY updt.ts DESC"),
+                 query="SELECT updt FROM ApiUpdates updt WHERE updt.guestId=? and updt.api=? AND (updt.apiKeyId=? OR updt.apiKeyId IS NULL) ORDER BY updt.ts DESC"),
     @NamedQuery( name="apiUpdates.last",
-		query="SELECT updt FROM ApiUpdates updt WHERE updt.guestId=? and updt.api=? ORDER BY updt.ts DESC LIMIT 10"),
+		query="SELECT updt FROM ApiUpdates updt WHERE updt.guestId=? and updt.api=? AND (updt.apiKeyId=? OR updt.apiKeyId IS NULL) ORDER BY updt.ts DESC LIMIT 10"),
 	@NamedQuery( name="apiUpdates.last.successful.byApi",
-		query="SELECT updt FROM ApiUpdates updt WHERE updt.guestId=? and updt.api=? and updt.success=true ORDER BY updt.ts DESC"),
+		query="SELECT updt FROM ApiUpdates updt WHERE updt.guestId=? and updt.api=? AND (updt.apiKeyId=? OR updt.apiKeyId IS NULL) and updt.success=true ORDER BY updt.ts DESC"),
 	@NamedQuery( name="apiUpdates.last.successful.byApiAndObjectTypes",
-		query="SELECT updt FROM ApiUpdates updt WHERE updt.guestId=? and updt.api=? and updt.objectTypes=? and updt.success=true ORDER BY updt.ts DESC")})
+		query="SELECT updt FROM ApiUpdates updt WHERE updt.guestId=? and updt.api=? AND (updt.apiKeyId=? OR updt.apiKeyId IS NULL) and updt.objectTypes=? and updt.success=true ORDER BY updt.ts DESC")})
 public class ApiUpdate extends AbstractEntity {
 
+    /**
+     * Legacy (we need it for the existing user data)
+     */
 	@Index(name="guestId")
 	public long guestId;
 
@@ -48,6 +51,12 @@ public class ApiUpdate extends AbstractEntity {
     @Index(name="elapsed")
 	public long elapsed;
 
+    @Index(name="apiKeyId")
+    public int apiKeyId;
+
+    /**
+     * Legacy (we need it for the existing user data)
+     */
 	@Index(name="api")
 	public int api;
 

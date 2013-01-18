@@ -33,8 +33,6 @@ import com.google.gdata.data.extensions.Where;
 @Entity(name="Facet_CalendarEventEntry")
 @ObjectTypeSpec(name = "entry", value = 1, parallel=true, prettyname = "Entry")
 @NamedQueries({
-		@NamedQuery(name = "google_calendar.entry.deleteAll", query = "DELETE FROM Facet_CalendarEventEntry facet WHERE facet.guestId=?"),
-		@NamedQuery(name = "google_calendar.entry.between", query = "SELECT facet FROM Facet_CalendarEventEntry facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=?"),
         @NamedQuery(name = "google_calendar.entry.newest", query = "SELECT facet FROM Facet_CalendarEventEntry facet WHERE facet.guestId=? ORDER BY facet.end DESC LIMIT 1")
 })
 @Indexed

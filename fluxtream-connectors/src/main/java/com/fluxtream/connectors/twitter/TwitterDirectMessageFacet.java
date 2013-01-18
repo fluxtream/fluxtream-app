@@ -13,8 +13,6 @@ import com.fluxtream.domain.AbstractFacet;
 @Entity(name="Facet_TwitterDirectMessage")
 @ObjectTypeSpec(name = "dm", value = 2, extractor=TwitterFacetExtractor.class, parallel=true, prettyname = "Direct Messages")
 @NamedQueries({
-		@NamedQuery(name = "twitter.dm.deleteAll", query = "DELETE FROM Facet_TwitterDirectMessage facet WHERE facet.guestId=?"),
-		@NamedQuery(name = "twitter.dm.between", query = "SELECT facet FROM Facet_TwitterDirectMessage facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=?"),
 		@NamedQuery(name = "twitter.received.dm.oldest", query = "SELECT facet FROM Facet_TwitterDirectMessage facet WHERE facet.sent=0 AND facet.guestId=? ORDER BY facet.start ASC"),
 		@NamedQuery(name = "twitter.received.dm.newest", query = "SELECT facet FROM Facet_TwitterDirectMessage facet WHERE facet.sent=0 AND facet.guestId=? ORDER BY facet.start DESC"),
 		@NamedQuery(name = "twitter.sent.dm.oldest", query = "SELECT facet FROM Facet_TwitterDirectMessage facet WHERE facet.sent=1 AND facet.guestId=? ORDER BY facet.start ASC"),

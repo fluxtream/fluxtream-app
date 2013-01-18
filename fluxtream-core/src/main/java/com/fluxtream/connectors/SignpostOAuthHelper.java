@@ -3,24 +3,21 @@ package com.fluxtream.connectors;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-
+import com.fluxtream.connectors.updaters.RateLimitReachedException;
+import com.fluxtream.domain.ApiKey;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.basic.DefaultOAuthConsumer;
 import oauth.signpost.http.HttpParameters;
-
 import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Component;
-
-import com.fluxtream.connectors.updaters.RateLimitReachedException;
-import com.fluxtream.domain.ApiKey;
 
 @Component
 public class SignpostOAuthHelper extends ApiClientSupport {
 	
-	public final String makeRestCall(Connector connector, ApiKey apiKey,
+	public final String makeRestCall(ApiKey apiKey,
 			int objectTypes, String urlString) throws RateLimitReachedException {
 
-		if (hasReachedRateLimit(connector, apiKey.getGuestId()))
+		if (hasReachedRateLimit(apiKey.getConnector(), apiKey.getGuestId()))
 			throw new RateLimitReachedException();
 
 		try {
@@ -29,13 +26,13 @@ public class SignpostOAuthHelper extends ApiClientSupport {
 			HttpURLConnection request = (HttpURLConnection) url.openConnection();
 			
 			OAuthConsumer consumer = new DefaultOAuthConsumer(
-					getConsumerKey(connector), getConsumerSecret(connector));
+					getConsumerKey(apiKey.getConnector()), getConsumerSecret(apiKey.getConnector()));
 	
 			consumer.setTokenWithSecret(
 					apiKey.getAttributeValue("accessToken", env),
 					apiKey.getAttributeValue("tokenSecret", env));
-			if (connector.hasAdditionalParameters()) {
-				addAdditionalParameters(consumer, apiKey, connector.getAdditionalParameters());
+			if (apiKey.getConnector().hasAdditionalParameters()) {
+				addAdditionalParameters(consumer, apiKey, apiKey.getConnector().getAdditionalParameters());
 			}
 			
 			// sign the request (consumer is a Signpost DefaultOAuthConsumer)
@@ -47,14 +44,14 @@ public class SignpostOAuthHelper extends ApiClientSupport {
 			request.connect();
 			if (request.getResponseCode() == 200) {
 				String json = IOUtils.toString(request.getInputStream());
-				connectorUpdateService.addApiUpdate(apiKey.getGuestId(), connector,
+				connectorUpdateService.addApiUpdate(apiKey.getGuestId(), apiKey.getConnector(),
 						objectTypes, then, System.currentTimeMillis() - then,
 						urlString, true);
 				// logger.info(apiKey.getGuestId(), "REST call success: " +
 				// urlString);
 				return json;
 			} else {
-				connectorUpdateService.addApiUpdate(apiKey.getGuestId(), connector,
+				connectorUpdateService.addApiUpdate(apiKey.getGuestId(), apiKey.getConnector(),
 						objectTypes, then, System.currentTimeMillis() - then,
 						urlString, false);
 				throw new RuntimeException(

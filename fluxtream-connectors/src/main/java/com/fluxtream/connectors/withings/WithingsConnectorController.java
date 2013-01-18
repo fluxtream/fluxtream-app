@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.fluxtream.auth.AuthHelper;
+import com.fluxtream.domain.ApiKey;
 import org.apache.commons.httpclient.HttpException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -60,14 +61,15 @@ public class WithingsConnectorController {
 			mav.addObject("errorMessage", "There is no user with specified id: " + guestId);
 			return mav;
 		} else {
-			connectorUpdateService.scheduleUpdate(guestId, "withings", 3,
-					UpdateType.INITIAL_HISTORY_UPDATE,
-					System.currentTimeMillis());
-			
-			guestService.setApiKeyAttribute(guestId, Connector.getConnector("WITHINGS"),
-					"publickey", publickey);
-			guestService.setApiKeyAttribute(guestId, Connector.getConnector("WITHINGS"),
-					"userid", String.valueOf(userid));
+            final Connector connector = Connector.getConnector("withings");
+            final ApiKey apiKey = guestService.createApiKey(guest.getId(), connector);
+
+			guestService.setApiKeyAttribute(apiKey, "publickey", publickey);
+			guestService.setApiKeyAttribute(apiKey, "userid", String.valueOf(userid));
+
+            connectorUpdateService.scheduleUpdate(apiKey, 3,
+                                                  UpdateType.INITIAL_HISTORY_UPDATE,
+                                                  System.currentTimeMillis());
 		}
 		ModelAndView mav = new ModelAndView("connectors/withings/success");
 		mav.addObject("guestId", guestId);

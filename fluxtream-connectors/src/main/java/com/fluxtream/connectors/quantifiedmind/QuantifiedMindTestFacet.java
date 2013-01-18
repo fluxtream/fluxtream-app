@@ -1,10 +1,7 @@
 package com.fluxtream.connectors.quantifiedmind;
 
 import javax.persistence.Entity;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
-import com.fluxtream.connectors.lastfm.LastFmFacetExtractor;
 import com.fluxtream.domain.AbstractFacet;
 
 /**
@@ -13,10 +10,6 @@ import com.fluxtream.domain.AbstractFacet;
  */
 @Entity(name="Facet_QuantifiedMindTest")
 @ObjectTypeSpec(name = "test", value = 1, extractor=QuantifiedMindTestFacetExtractor.class, parallel=false, prettyname = "Test")
-@NamedQueries({
-    @NamedQuery(name = "quantifiedmind.test.deleteAll", query = "DELETE FROM Facet_QuantifiedMindTest facet WHERE facet.guestId=?"),
-    @NamedQuery(name = "quantifiedmind.test.between", query = "SELECT facet FROM Facet_QuantifiedMindTest facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=?")
-})
 public class QuantifiedMindTestFacet extends AbstractFacet {
 
     public String test_name;

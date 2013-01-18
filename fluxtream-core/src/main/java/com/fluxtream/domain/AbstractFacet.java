@@ -36,6 +36,8 @@ public abstract class AbstractFacet extends AbstractEntity {
 			this.objectType = -1;
 	}
 
+    @Index(name = "apiKey")
+    public long apiKeyId;
 
     @Index(name="guestId_index")
 	@Field
@@ -174,24 +176,27 @@ public abstract class AbstractFacet extends AbstractEntity {
         return tagSet != null && tagSet.size() > 0;
     }
 
-    public static AbstractFacet getOldestFacet(EntityManager em, Long guestId, Connector connector, ObjectType objType) {
-        return getOldestOrLatestFacet(em, guestId, connector, objType, "asc");
+    public static AbstractFacet getOldestFacet(EntityManager em, ApiKey apiKey, ObjectType objType) {
+        return getOldestOrLatestFacet(em, apiKey, objType, "asc");
     }
 
-    public static AbstractFacet getLatestFacet(EntityManager em, Long guestId, Connector connector, ObjectType objType){
-        return getOldestOrLatestFacet(em, guestId, connector, objType, "desc");
+    public static AbstractFacet getLatestFacet(EntityManager em, ApiKey apiKey, ObjectType objType){
+        return getOldestOrLatestFacet(em, apiKey, objType, "desc");
     }
 
-    private static AbstractFacet getOldestOrLatestFacet(EntityManager em, Long guestId, Connector connector, ObjectType objType, String sortOrder) {
+    private static AbstractFacet getOldestOrLatestFacet(EntityManager em, ApiKey apiKey, ObjectType objType, String sortOrder) {
         Class facetClass;
         if (objType != null) {
             facetClass = objType.facetClass();
         }
         else {
-            facetClass = connector.facetClass();
+            facetClass = apiKey.getConnector().facetClass();
         }
         Entity entity = (Entity)facetClass.getAnnotation(Entity.class);
-        Query query = em.createQuery("select facet from " + entity.name() + " facet where facet.guestId = " + guestId + " order by facet.end " + sortOrder + " limit 1");
+        Query query = em.createQuery("select facet from " + entity.name()
+                                     + " facet where facet.guestId = "
+                                     + apiKey.getGuestId() + " order by facet.end "
+                                     + sortOrder + " limit 1");
         query.setMaxResults(1);
         final List resultList = query.getResultList();
         if (resultList != null && resultList.size() > 0) {
@@ -201,41 +206,44 @@ public abstract class AbstractFacet extends AbstractEntity {
     }
 
     public static List<AbstractFacet> getFacetsBefore(EntityManager em,
-                                                      Long guestId,
-                                                      Connector connector,
+                                                      ApiKey apiKey,
                                                       ObjectType objType,
                                                       Long timeInMillis,
                                                       Integer desiredCount) {
-        final Class facetClass;
-        if (objType != null) {
-            facetClass = objType.facetClass();
-        }
-        else {
-            facetClass = connector.facetClass();
-        }
+        final Class facetClass = getFacetClass(apiKey, objType);
         final Entity entity = (Entity)facetClass.getAnnotation(Entity.class);
-        final Query query = em.createQuery("select facet from " + entity.name() + " facet where facet.guestId = " + guestId + " and facet.start <= " + timeInMillis + " order by facet.start desc limit " + desiredCount);
+        final Query query = em.createQuery("select facet from " + entity.name()
+                                           + " facet where facet.guestId = "
+                                           + apiKey.getGuestId() + " and facet.start <= "
+                                           + timeInMillis + " order by facet.start desc limit " + desiredCount);
         query.setMaxResults(desiredCount);
         return (List<AbstractFacet>)query.getResultList();
     }
 
     public static List<AbstractFacet> getFacetsAfter(EntityManager em,
-                                                     Long guestId,
-                                                     Connector connector,
+                                                     ApiKey apiKey,
                                                      ObjectType objType,
                                                      Long timeInMillis,
                                                      Integer desiredCount){
+        final Class facetClass = getFacetClass(apiKey, objType);
+        final Entity entity = (Entity)facetClass.getAnnotation(Entity.class);
+        final Query query = em.createQuery("select facet from " + entity.name()
+                                           + " facet where facet.guestId = " + apiKey.getGuestId()
+                                           + " and facet.start >= " + timeInMillis
+                                           + " order by facet.start asc limit " + desiredCount);
+        query.setMaxResults(desiredCount);
+        return (List<AbstractFacet>)query.getResultList();
+    }
+
+    private static Class getFacetClass(final ApiKey apiKey, final ObjectType objType) {
         final Class facetClass;
         if (objType != null) {
             facetClass = objType.facetClass();
         }
         else {
-            facetClass = connector.facetClass();
+            facetClass = apiKey.getConnector().facetClass();
         }
-        final Entity entity = (Entity)facetClass.getAnnotation(Entity.class);
-        final Query query = em.createQuery("select facet from " + entity.name() + " facet where facet.guestId = " + guestId + " and facet.start >= " + timeInMillis + " order by facet.start asc limit " + desiredCount);
-        query.setMaxResults(desiredCount);
-        return (List<AbstractFacet>)query.getResultList();
+        return facetClass;
     }
 
     protected abstract void makeFullTextIndexable();

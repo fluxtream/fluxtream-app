@@ -26,6 +26,7 @@ public abstract class AbstractFacetExtractor {
 	}
 
 	protected void extractCommonFacetData(AbstractFacet facet, ApiData apiData) {
+        facet.apiKeyId = apiData.updateInfo.apiKey.getId();
 		facet.guestId = apiData.updateInfo.apiKey.getGuestId();
 		facet.api = apiData.updateInfo.apiKey.getConnector().value();
 		facet.timeUpdated = System.currentTimeMillis();
