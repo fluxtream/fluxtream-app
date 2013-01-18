@@ -16,10 +16,9 @@ import com.fluxtream.domain.GuestSettings;
  * @author Chris Bartley (bartley@cmu.edu)
  */
 public class FluxtreamCapturePhotoFacetVO extends AbstractPhotoFacetVO<FluxtreamCapturePhotoFacet> {
-    private static final int NUM_THUMBNAILS = 2;
 
     public String photoUrl;
-    public Map<Integer, String> thumbnailUrls = new HashMap<Integer, String>(NUM_THUMBNAILS);
+    public Map<Integer, String> thumbnailUrls = new HashMap<Integer, String>(FluxtreamCapturePhotoFacet.NUM_THUMBNAILS);
     public SortedMap<Integer, Dimension> thumbnailSizes = new TreeMap<Integer, Dimension>();
 
     @Override
@@ -30,12 +29,11 @@ public class FluxtreamCapturePhotoFacetVO extends AbstractPhotoFacetVO<Fluxtream
         final String photoStoreKey = facet.getPhotoStoreKey();
         photoUrl = "/api/bodytrack/photo/" + photoStoreKey;
 
-        thumbnailUrls.put(0, "/api/bodytrack/photoThumbnail/" + facet.getGuestId() + "/" + facet.getId() + "/0");
-        thumbnailUrls.put(1, "/api/bodytrack/photoThumbnail/" + facet.getGuestId() + "/" + facet.getId() + "/1");
-
-        // build the SortedMap of thumbnail sizes
-        thumbnailSizes.put(0, facet.getThumbnailSmallSize());
-        thumbnailSizes.put(1, facet.getThumbnailLargeSize());
+        // build the Map of thumbnail URLS and the SortedMap of thumbnail sizes
+        for (int i = 0; i < FluxtreamCapturePhotoFacet.NUM_THUMBNAILS; i++) {
+            thumbnailUrls.put(i, "/api/bodytrack/photoThumbnail/" + facet.getGuestId() + "/" + facet.getId() + "/" + i);
+            thumbnailSizes.put(i, facet.getThumbnailSize(i));
+        }
     }
 
     @Override

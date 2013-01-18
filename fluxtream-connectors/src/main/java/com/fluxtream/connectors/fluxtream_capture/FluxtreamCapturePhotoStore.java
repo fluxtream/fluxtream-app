@@ -151,7 +151,7 @@ public final class FluxtreamCapturePhotoStore {
             return new Photo() {
                 @Override
                 public byte[] getPhotoBytes() {
-                    return (thumbnailIndex == 1) ? photoFacet.getThumbnailLarge() : photoFacet.getThumbnailSmall();
+                    return photoFacet.getThumbnail(thumbnailIndex);
                 }
 
                 @Override

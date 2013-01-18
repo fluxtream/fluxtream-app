@@ -31,20 +31,28 @@ import org.jetbrains.annotations.Nullable;
 @Indexed
 public class FluxtreamCapturePhotoFacet extends AbstractFacet implements Serializable, Geolocation {
 
+    public static final int NUM_THUMBNAILS = 3;
+
     private String hash;
     private String title;
     private String captureYYYYDDD;
+    private String imageType;
 
     @Lob
-    private byte[] thumbnailSmall;
+    private byte[] thumbnail0;
 
     @Lob
-    private byte[] thumbnailLarge;
+    private byte[] thumbnail1;
 
-    private int thumbnailSmallWidth;
-    private int thumbnailSmallHeight;
-    private int thumbnailLargeWidth;
-    private int thumbnailLargeHeight;
+    @Lob
+    private byte[] thumbnail2;
+
+    private int thumbnail0Width;
+    private int thumbnail0Height;
+    private int thumbnail1Width;
+    private int thumbnail1Height;
+    private int thumbnail2Width;
+    private int thumbnail2Height;
 
     private int orientation;
 
@@ -76,16 +84,22 @@ public class FluxtreamCapturePhotoFacet extends AbstractFacet implements Seriali
 
         captureYYYYDDD = photo.getCaptureYYYYDDD();
 
-        thumbnailSmall = photo.getThumbnailSmall();
-        thumbnailLarge = photo.getThumbnailLarge();
+        imageType = photo.getImageType().getFileExtension();
 
-        final Dimension thumbnailSmallSize = photo.getThumbnailSmallSize();
-        final Dimension thumbnailLargeSize = photo.getThumbnailLargeSize();
+        thumbnail0 = photo.getThumbnail0();
+        thumbnail1 = photo.getThumbnail1();
+        thumbnail2 = photo.getThumbnail2();
 
-        thumbnailSmallWidth = thumbnailSmallSize.width;
-        thumbnailSmallHeight = thumbnailSmallSize.height;
-        thumbnailLargeWidth =  thumbnailLargeSize.width;
-        thumbnailLargeHeight = thumbnailLargeSize.height;
+        final Dimension thumbnail0Size = photo.getThumbnail0Size();
+        final Dimension thumbnail1Size = photo.getThumbnail1Size();
+        final Dimension thumbnail2Size = photo.getThumbnail2Size();
+
+        thumbnail0Width = thumbnail0Size.width;
+        thumbnail0Height = thumbnail0Size.height;
+        thumbnail1Width =  thumbnail1Size.width;
+        thumbnail1Height = thumbnail1Size.height;
+        thumbnail2Width =  thumbnail2Size.width;
+        thumbnail2Height = thumbnail2Size.height;
 
         orientation = photo.getOrientation().getId();
 
@@ -124,22 +138,32 @@ public class FluxtreamCapturePhotoFacet extends AbstractFacet implements Seriali
         return captureYYYYDDD;
     }
 
-    public byte[] getThumbnailSmall() {
-        return thumbnailSmall;
+    public String getImageType() {
+        return imageType;
     }
 
-    public byte[] getThumbnailLarge() {
-        return thumbnailLarge;
+    /** Returns the thumbnail associated with the given <code>thumbnailIndex</code>, or thumbnail0 if no such index exists. */
+    public byte[] getThumbnail(final int thumbnailIndex) {
+        if (thumbnailIndex == 1) {
+            return thumbnail1;
+        } else if (thumbnailIndex == 2) {
+            return thumbnail2;
+        }
+
+        return thumbnail0;
     }
 
-    @NotNull
-    public Dimension getThumbnailSmallSize() {
-        return new Dimension(thumbnailSmallWidth, thumbnailSmallHeight);
-    }
-
-    @NotNull
-    public Dimension getThumbnailLargeSize() {
-        return new Dimension(thumbnailLargeWidth, thumbnailLargeHeight);
+    @Nullable
+    public Dimension getThumbnailSize(final int thumbnailIndex) {
+        switch (thumbnailIndex) {
+            case 0:
+                return new Dimension(thumbnail0Width, thumbnail0Height);
+            case 1:
+                return new Dimension(thumbnail1Width, thumbnail1Height);
+            case 2:
+                return new Dimension(thumbnail2Width, thumbnail2Height);
+        }
+        return null;
     }
 
     @Nullable

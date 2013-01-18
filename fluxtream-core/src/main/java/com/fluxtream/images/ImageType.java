@@ -23,14 +23,32 @@ public enum ImageType {
     @NotNull
     private final String imageReaderFormatName;
 
+    private static final Map<String, ImageType> IMAGE_TYPE_BY_MEDIA_TYPE;
+    private static final Map<String, ImageType> IMAGE_TYPE_BY_FILE_EXTENSION;
     private static final Map<String, ImageType> IMAGE_TYPE_BY_FORMAT_NAME;
 
     static {
+        final Map<String, ImageType> imageTypeByMediaType = new HashMap<String, ImageType>(ImageType.values().length);
+        final Map<String, ImageType> imageTypeByFileExtension = new HashMap<String, ImageType>(ImageType.values().length);
         final Map<String, ImageType> imageTypeByFormatName = new HashMap<String, ImageType>(ImageType.values().length);
         for (final ImageType imageType : ImageType.values()) {
+            imageTypeByMediaType.put(imageType.getMediaType(), imageType);
+            imageTypeByFileExtension.put(imageType.getFileExtension(), imageType);
             imageTypeByFormatName.put(imageType.getImageReaderFormatName(), imageType);
         }
+        IMAGE_TYPE_BY_MEDIA_TYPE = Collections.unmodifiableMap(imageTypeByMediaType);
+        IMAGE_TYPE_BY_FILE_EXTENSION = Collections.unmodifiableMap(imageTypeByFileExtension);
         IMAGE_TYPE_BY_FORMAT_NAME = Collections.unmodifiableMap(imageTypeByFormatName);
+    }
+
+    @Nullable
+    public static ImageType findByMediaType(@Nullable final String mediaType) {
+        return IMAGE_TYPE_BY_MEDIA_TYPE.get(mediaType);
+    }
+
+    @Nullable
+    public static ImageType findByFileExtension(@Nullable final String fileExtension) {
+        return IMAGE_TYPE_BY_FILE_EXTENSION.get(fileExtension);
     }
 
     @Nullable

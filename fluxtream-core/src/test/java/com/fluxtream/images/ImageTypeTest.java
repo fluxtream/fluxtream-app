@@ -33,6 +33,20 @@ public final class ImageTypeTest {
     }
 
     @Test
+    public void testFindByMediaType() {
+        Assert.assertEquals(ImageType.JPEG, ImageType.findByMediaType("image/jpeg"));
+        Assert.assertEquals(ImageType.PNG, ImageType.findByMediaType("image/png"));
+        Assert.assertEquals(ImageType.GIF, ImageType.findByMediaType("image/gif"));
+    }
+
+    @Test
+    public void testFindByFileExtension() {
+        Assert.assertEquals(ImageType.JPEG, ImageType.findByFileExtension("jpg"));
+        Assert.assertEquals(ImageType.PNG, ImageType.findByFileExtension("png"));
+        Assert.assertEquals(ImageType.GIF, ImageType.findByFileExtension("gif"));
+    }
+
+    @Test
     public void testFindByFormatName() {
         Assert.assertEquals(ImageType.JPEG, ImageType.findByFormatName("JPEG"));
         Assert.assertEquals(ImageType.PNG, ImageType.findByFormatName("png"));
