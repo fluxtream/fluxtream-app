@@ -425,7 +425,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
             $("#" + grapher.grapherId + "_timeline_addChannelsArea #_timeline_sources_find_btn").click(function() {
                 $("#" + grapher.grapherId + "_timeline_addChannelsArea input[type=text]").val("");
 
-                addPaneRestoreState();
+                addPaneRestoreState(grapher);
                 return false;
             });
 
@@ -435,7 +435,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 var regexp = new RegExp(search_str, 'i');
 
                 if (search_str.length === 0) {
-                    addPaneRestoreState();
+                    addPaneRestoreState(grapher);
                     return;
                 }
 
@@ -482,11 +482,11 @@ define(["core/grapher/BTCore"], function(BTCore) {
         });
     } // getSources
 
-    function addPaneRestoreState() {
+    function addPaneRestoreState(grapher) {
         var i = 0;
         var l = addPaneChannelsState.length;
 
-        $("#_timeline_addChannelsArea #_timeline_sources_list ._timeline_sources_channel").each(function() {
+        $("#" + grapher.grapherId + "_timeline_addChannelsArea #_timeline_sources_list ._timeline_sources_channel").each(function() {
             $(this).show();
         });
 
