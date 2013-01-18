@@ -9,17 +9,20 @@ define(["core/Tab","core/grapher/Grapher"], function(Tab,Grapher) {
         this.getTemplate("text!applications/bodytrack/tabs/grapher/grapher.html", "grapher", function() {
             var sourceName = null;
             if (params.stateParts != null && params.stateParts.length == 4 && params.stateParts[2] == "source") {
-                sourceName = params.stateParts[3];
+                srcLoad = params.stateParts[3];
             }
-            setup(sourceName);
+            if (params.stateParts != null && params.stateParts.length == 2 && params.stateParts[0] == "view"){
+                viewLoad = params.stateParts[1];
+            }
+            setup();
         });
     }
 
     var srcLoad = null;
+    var viewLoad = null;
     var tbounds;
 
-    function setup(sourceToLoad){
-        srcLoad = sourceToLoad;
+    function setup(){
         if (grapher == null)
             grapher = new Grapher($("#grapherContainer"),
                 {showFullControls: true, showDeleteBtn: true, onLoadActions: [onGrapherLoad]});
@@ -41,6 +44,11 @@ define(["core/Tab","core/grapher/Grapher"], function(Tab,Grapher) {
     }
 
     function onSourceLoad(){
+        if (viewLoad != null){
+            var view = viewLoad;
+            viewLoad = null;
+            grapher.loadView(view);
+        }
         if (tbounds != null){
             grapher.setRange(tbounds.start/1000,tbounds.end/1000);
             tbounds = null;
