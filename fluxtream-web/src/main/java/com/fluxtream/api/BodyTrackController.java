@@ -36,6 +36,7 @@ import com.fluxtream.connectors.fluxtream_capture.FluxtreamCaptureUpdater;
 import com.fluxtream.connectors.vos.AbstractPhotoFacetVO;
 import com.fluxtream.domain.CoachingBuddy;
 import com.fluxtream.domain.Guest;
+import com.fluxtream.images.ImageOrientation;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.BodyTrackStorageService;
@@ -726,6 +727,7 @@ public class BodyTrackController {
         ArrayList<String> tags = new ArrayList<String>();
         ArrayList<PhotoItemThumbnail> thumbnails = new ArrayList<PhotoItemThumbnail>();
         int count = 1;
+        int orientation;
 
         public PhotoItem(final PhotoService.Photo photo) {
             final AbstractPhotoFacetVO photoFacetVO = photo.getAbstractPhotoFacetVO();
@@ -752,6 +754,10 @@ public class BodyTrackController {
             }
 
             this.url = photoFacetVO.getPhotoUrl();
+
+            // get the image orientation, defaulting to upright portrait
+            final ImageOrientation tempOrientation = photoFacetVO.getOrientation();
+            this.orientation = (tempOrientation == null ? ImageOrientation.ORIENTATION_1 : tempOrientation).getId();
         }
 
         public void incrementCount() {

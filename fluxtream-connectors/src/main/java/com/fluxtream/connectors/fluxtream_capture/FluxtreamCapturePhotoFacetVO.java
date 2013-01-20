@@ -11,6 +11,7 @@ import java.util.TreeMap;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.vos.AbstractPhotoFacetVO;
 import com.fluxtream.domain.GuestSettings;
+import com.fluxtream.images.ImageOrientation;
 
 /**
  * @author Chris Bartley (bartley@cmu.edu)
@@ -20,6 +21,7 @@ public class FluxtreamCapturePhotoFacetVO extends AbstractPhotoFacetVO<Fluxtream
     public String photoUrl;
     public Map<Integer, String> thumbnailUrls = new HashMap<Integer, String>(FluxtreamCapturePhotoFacet.NUM_THUMBNAILS);
     public SortedMap<Integer, Dimension> thumbnailSizes = new TreeMap<Integer, Dimension>();
+    public ImageOrientation imageOrientation;
 
     @Override
     protected void fromFacet(final FluxtreamCapturePhotoFacet facet, final TimeInterval timeInterval, final GuestSettings settings) {
@@ -34,6 +36,7 @@ public class FluxtreamCapturePhotoFacetVO extends AbstractPhotoFacetVO<Fluxtream
             thumbnailUrls.put(i, "/api/bodytrack/photoThumbnail/" + facet.getGuestId() + "/" + facet.getId() + "/" + i);
             thumbnailSizes.put(i, facet.getThumbnailSize(i));
         }
+        imageOrientation = facet.getOrientation();
     }
 
     @Override
@@ -53,5 +56,10 @@ public class FluxtreamCapturePhotoFacetVO extends AbstractPhotoFacetVO<Fluxtream
             sizes.add(new Dimension(dimension)); // create a copy so the caller can't modify this instance
         }
         return sizes;
+    }
+
+    @Override
+    public ImageOrientation getOrientation() {
+        return imageOrientation;
     }
 }
