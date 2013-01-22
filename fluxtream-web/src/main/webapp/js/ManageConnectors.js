@@ -75,6 +75,7 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
             updateContents();
             return true;
         });
+        $("#modal").unbind("hide");
         $("#modal").on("hide",function(){
             hidden = true;
             $.doTimeout("manageConnectorsUpdater");
