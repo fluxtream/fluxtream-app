@@ -24,7 +24,7 @@
                             <th class="remove">Remove</th>
                         </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="connectorInfoTable">
                         {{#connectors}}
                         <tr id="connector-{{connectorName}}" {{#syncing}}class="nowSynchro"{{/syncing}}>
                             <td class="syncStatus" style="background:inherit">
@@ -68,6 +68,73 @@
             <button class="btn" onclick="App.closeModal()">Close</button>
         </div>
     </div>
+</template>
+<template id="connectorSingleRow">
+                        <tr id="connector-{{connectorName}}" {{#syncing}}class="nowSynchro"{{/syncing}}>
+                            <td class="syncStatus" style="background:inherit">
+                                <span id="syncLED-{{connectorName}}" class="syncLED-{{^errors}}yes{{/errors}}{{#errors}}no{{/errors}}" {{#syncing}}style="display:none;"{{/syncing}}></span>
+                                {{#syncing}}
+                                                        <span class="syncLED-waiting">
+                                                            <img src="{{release}}/images/syncing.gif" width="35" height="35" alt="load">
+                                                        </span>
+                                {{/syncing}}
+                                <br/><a id="syncNow-{{connectorName}}" title="sync now" href="#" {{#syncing}}style="display:none;"{{/syncing}}><i class="icon-refresh"></i></a>
+                            </td>
+                            <td class="connectors" style="background:inherit; vertical-align: middle; width: 158px">
+                                <img src="{{image}}" width=158 height=89 alt="{{connectorName}}">
+                            </td>
+                            <td class="desc" style="background:inherit">
+                                <p style=""><b>{{name}}</b></p><br/>
+                                <a href="#" id="settings-{{connectorName}}">Settings <i class="icon-cog"></i></a>
+                            </td>
+                            <td class="lastSync" style="background:inherit">
+                                <p id="lastSync-{{connectorName}}" {{#syncing}}style="display:none;"{{/syncing}}>{{lastSync}}</p>
+                                {{#syncing}}
+                                <p>Now synchronizing</p>
+                                {{/syncing}}
+                                <a href="#" id="viewUpdates-{{connectorName}}">View Updates <i class="icon-table"></i></a><br/>
+                            </td>
+                            <td class="latestData" style="background:inherit">
+                                <p>{{latestData}}</p>
+                                <!-- <a href="javascript:App.renderApp('bodytrack','/grapher/source/{{name}}'); App.closeModal();" id="viewData-{{connectorName}}">View graph <i class="icon-bar-chart"></i></a><br/> -->
+                            </td>
+                            <td class="remove" style="background:inherit">
+                                <a id="remove-{{connectorName}}" href="#"><i class="icon-trash"></i></a>
+                            </td>
+                        </tr>
+</template>
+<template id="connectorSingleRowNoImage">
+    <tr id="connector-{{connectorName}}" {{#syncing}}class="nowSynchro"{{/syncing}}>
+    <td class="syncStatus" style="background:inherit">
+        <span id="syncLED-{{connectorName}}" class="syncLED-{{^errors}}yes{{/errors}}{{#errors}}no{{/errors}}" {{#syncing}}style="display:none;"{{/syncing}}></span>
+        {{#syncing}}
+                                                        <span class="syncLED-waiting">
+                                                            <img src="{{release}}/images/syncing.gif" width="35" height="35" alt="load">
+                                                        </span>
+        {{/syncing}}
+        <br/><a id="syncNow-{{connectorName}}" title="sync now" href="#" {{#syncing}}style="display:none;"{{/syncing}}><i class="icon-refresh"></i></a>
+    </td>
+    <td class="connectors" style="background:inherit; vertical-align: middle; width: 158px" nocompare="true">
+    </td>
+    <td class="desc" style="background:inherit">
+        <p style=""><b>{{name}}</b></p><br/>
+        <a href="#" id="settings-{{connectorName}}">Settings <i class="icon-cog"></i></a>
+    </td>
+    <td class="lastSync" style="background:inherit">
+        <p id="lastSync-{{connectorName}}" {{#syncing}}style="display:none;"{{/syncing}}>{{lastSync}}</p>
+        {{#syncing}}
+        <p>Now synchronizing</p>
+        {{/syncing}}
+        <a href="#" id="viewUpdates-{{connectorName}}">View Updates <i class="icon-table"></i></a><br/>
+    </td>
+    <td class="latestData" style="background:inherit">
+        <p>{{latestData}}</p>
+        <!-- <a href="javascript:App.renderApp('bodytrack','/grapher/source/{{name}}'); App.closeModal();" id="viewData-{{connectorName}}">View graph <i class="icon-bar-chart"></i></a><br/> -->
+    </td>
+    <td class="remove" style="background:inherit">
+        <a id="remove-{{connectorName}}" href="#"><i class="icon-trash"></i></a>
+    </td>
+    </tr>
 </template>
 <template id="deleteConnectorConfirm">
     <div class="modal fade" id="deleteConnectorConfirm">
