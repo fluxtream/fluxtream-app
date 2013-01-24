@@ -1575,10 +1575,10 @@ define(["core/grapher/BTCore"], function(BTCore) {
             }
             $("#" + grapher.grapherId + "_timeline_save_view_btn").removeClass("disabled");
             $("#" + grapher.grapherId + "_timeline_add_channels_btn").unbind('click')
-                .click(function(){grapher.toggleAddChannelsPane()})
+                .click(function(){grapher.toggleAddChannelsPane(); return false;})
                 .removeClass("disabled");
             $("#" + grapher.grapherId + "_timeline_show_details_btn").unbind('click')
-                .click(function(){grapher.toggleDetailsPane()})
+                .click(function(){grapher.toggleDetailsPane(); return false;})
                 .removeClass("disabled");
 
             grapher.dateAxis.setRange(view["v2"]["x_axis"]["min"],
@@ -1606,10 +1606,10 @@ define(["core/grapher/BTCore"], function(BTCore) {
             // TODO: only enable this when the view has changed
             $("#" + grapher.grapherId + "_timeline_save_view_btn").removeClass("disabled");
             $("#" + grapher.grapherId + "_timeline_add_channels_btn").unbind('click')
-                .click(function(){grapher.toggleAddChannelsPane()})
+                .click(function(){grapher.toggleAddChannelsPane(); return false;})
                 .removeClass("disabled");
             $("#" + grapher.grapherId + "_timeline_show_details_btn").unbind('click')
-                .click(function(){grapher.toggleDetailsPane()})
+                .click(function(){grapher.toggleDetailsPane(); return false;})
                 .removeClass("disabled");
 
             // Show/hide add channels pane
