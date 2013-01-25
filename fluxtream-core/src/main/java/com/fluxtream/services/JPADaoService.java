@@ -21,4 +21,6 @@ public interface JPADaoService {
     public void persist(Object o);
 
 	public void remove(Class<?> clazz, long id);
+
+    <T> List<T> executeQuery(String queryString, Class<T> clazz, Object... params);
 }
