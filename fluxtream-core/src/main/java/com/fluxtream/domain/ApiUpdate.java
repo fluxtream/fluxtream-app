@@ -13,14 +13,13 @@ import org.hibernate.annotations.Type;
 @NamedQueries ( {
 	@NamedQuery(name = "apiUpdates.count.all.since",
 		query = "SELECT COUNT(updt) FROM ApiUpdates updt " +
-                "WHERE updt.api=? AND (updt.apiKeyId=? OR updt.apiKeyId IS NULL) " +
-                "AND updt.ts>?"),
+                "WHERE updt.api=? AND updt.ts>?"),
 	@NamedQuery(name = "apiUpdates.count.byGuest.since",
-		query = "SELECT COUNT(updt) FROM ApiUpdates updt WHERE updt.guestId=? AND updt.api=? AND (updt.apiKeyId=? OR updt.apiKeyId IS NULL) AND updt.ts>?"),
+		query = "SELECT COUNT(updt) FROM ApiUpdates updt WHERE updt.guestId=? AND updt.api=? AND updt.ts>?"),
 	@NamedQuery(name = "apiUpdates.count.all",
-		query = "SELECT COUNT(updt) FROM ApiUpdates updt WHERE updt.api=? AND (updt.apiKeyId=? OR updt.apiKeyId IS NULL)"),
+		query = "SELECT COUNT(updt) FROM ApiUpdates updt WHERE updt.api=?"),
 	@NamedQuery(name = "apiUpdates.count.byGuest",
-		query = "SELECT COUNT(updt) FROM ApiUpdates updt WHERE updt.guestId=? AND updt.api=? AND (updt.apiKeyId=? OR updt.apiKeyId IS NULL)"),
+		query = "SELECT COUNT(updt) FROM ApiUpdates updt WHERE updt.guestId=? AND updt.api=?"),
 	@NamedQuery(name = "apiUpdates.delete.all",
 		query = "DELETE FROM ApiUpdates updt WHERE updt.guestId=?"),
 	@NamedQuery(name = "apiUpdates.delete.byApiAndObjectTypes",

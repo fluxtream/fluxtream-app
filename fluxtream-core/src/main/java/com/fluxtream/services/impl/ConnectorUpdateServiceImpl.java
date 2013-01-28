@@ -374,17 +374,17 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 
     @Override
     public ApiUpdate getLastUpdate(ApiKey apiKey) {
-        return JPAUtils.findUnique(em, ApiUpdate.class, "apiUpdates.last", apiKey.getGuestId(), apiKey.getConnector().value());
+        return JPAUtils.findUnique(em, ApiUpdate.class, "apiUpdates.last", apiKey.getGuestId(), apiKey.getConnector().value(), apiKey.getId());
     }
 
     @Override
     public ApiUpdate getLastSuccessfulUpdate(ApiKey apiKey) {
-        return JPAUtils.findUnique(em, ApiUpdate.class, "apiUpdates.last.successful.byApi", apiKey.getGuestId(), apiKey.getConnector().value());
+        return JPAUtils.findUnique(em, ApiUpdate.class, "apiUpdates.last.successful.byApi", apiKey.getGuestId(), apiKey.getConnector().value(), apiKey.getId());
     }
 
     @Override
     public List<ApiUpdate> getUpdates(ApiKey apiKey, final int pageSize, final int page) {
-        return JPAUtils.findPaged(em, ApiUpdate.class, "apiUpdates.last.paged", pageSize, page, apiKey.getGuestId(), apiKey.getConnector().value());
+        return JPAUtils.findPaged(em, ApiUpdate.class, "apiUpdates.last.paged", pageSize, page, apiKey.getGuestId(), apiKey.getConnector().value(), apiKey.getId());
     }
 
     @Override
@@ -392,7 +392,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
                                              int objectTypes) {
         if (objectTypes == -1)
             return getLastSuccessfulUpdate(apiKey);
-        return JPAUtils.findUnique(em, ApiUpdate.class, "apiUpdates.last.successful.byApiAndObjectTypes", apiKey.getGuestId(), apiKey.getConnector().value(), objectTypes);
+        return JPAUtils.findUnique(em, ApiUpdate.class, "apiUpdates.last.successful.byApiAndObjectTypes", apiKey.getGuestId(), apiKey.getConnector().value(), objectTypes, apiKey.getId());
     }
 
     @Override
@@ -416,7 +416,8 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
     public List<UpdateWorkerTask> getScheduledOrInProgressUpdateTasks(final ApiKey apiKey) {
         List<UpdateWorkerTask> updateWorkerTask = JPAUtils.find(em, UpdateWorkerTask.class,
                                                                 "updateWorkerTasks.isScheduledOrInProgress",
-                                                                apiKey.getGuestId(), apiKey.getConnector().getName());
+                                                                apiKey.getGuestId(), apiKey.getConnector().getName(),
+                                                                apiKey.getId());
         for (UpdateWorkerTask workerTask : updateWorkerTask) {
             if (hasStalled(workerTask)) {
                 workerTask.status = Status.STALLED;
@@ -494,8 +495,8 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
         if (!wipeOutHistory)
             JPAUtils.execute(em, "updateWorkerTasks.delete.byApiAndObjectType", apiKey.getGuestId(),
                              apiKey.getConnector().getName(),
-                             objectTypes,
                              apiKey.getId(),
+                             objectTypes,
                              UpdateType.INITIAL_HISTORY_UPDATE);
         else
             JPAUtils.execute(em, "updateWorkerTasks.deleteAll.byApiAndObjectType", apiKey.getGuestId(),
