@@ -31,7 +31,7 @@ class InstagramFacetExtractor extends AbstractFacetExtractor {
 			while(iterator.hasNext()) {
 				JSONObject it = (JSONObject) iterator.next();
 				if (it.getString("type").equals("image")) {
-					InstagramPhotoFacet facet = new InstagramPhotoFacet();
+					InstagramPhotoFacet facet = new InstagramPhotoFacet(apiData.updateInfo.apiKey.getId());
 					super.extractCommonFacetData(facet, apiData);
 					
 					JSONObject images = it.getJSONObject("images");

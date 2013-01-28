@@ -45,7 +45,7 @@ public class WithingsFacetExtractor extends AbstractFacetExtractor {
 			long date = measuregrp.getLong("date")*1000;
 			JSONArray measures = measuregrp.getJSONArray ("measures");
 
-			WithingsBodyScaleMeasureFacet facet = new WithingsBodyScaleMeasureFacet();
+			WithingsBodyScaleMeasureFacet facet = new WithingsBodyScaleMeasureFacet(apiData.updateInfo.apiKey.getId());
 			facet.measureTime = date;
 			facet.start = date;
 			facet.end = date;
@@ -93,7 +93,7 @@ public class WithingsFacetExtractor extends AbstractFacetExtractor {
 			}
 			if (isBPM) {
 				if (objectType==ObjectType.getObjectType(connector(), "blood_pressure")) {
-					WithingsBPMMeasureFacet bpmFacet = new WithingsBPMMeasureFacet();
+					WithingsBPMMeasureFacet bpmFacet = new WithingsBPMMeasureFacet(apiData.updateInfo.apiKey.getId());
 					super.extractCommonFacetData(bpmFacet, apiData);
 					bpmFacet.objectType = ObjectType.getObjectType(connector(), "blood_pressure").value();
 					bpmFacet.measureTime = date;

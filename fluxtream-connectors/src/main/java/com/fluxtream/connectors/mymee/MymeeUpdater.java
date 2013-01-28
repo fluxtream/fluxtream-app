@@ -3,7 +3,6 @@ package com.fluxtream.connectors.mymee;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -21,7 +20,6 @@ import com.fluxtream.utils.HttpUtils;
 import com.fluxtream.utils.Utils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -29,7 +27,6 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author candide
@@ -173,9 +170,9 @@ public class MymeeUpdater extends AbstractUpdater {
                         // Throw exception if it turns out we can't make sense of the observation's JSON
                         // This will abort the transaction
                         @Override
-                        public MymeeObservationFacet createOrModify(MymeeObservationFacet facet) {
+                        public MymeeObservationFacet createOrModify(MymeeObservationFacet facet, long apiKeyId) {
                             if (facet == null) {
-                                facet = new MymeeObservationFacet();
+                                facet = new MymeeObservationFacet(updateInfo.apiKey.getId());
                                 facet.mymeeId = mymeeId;
                                 // auto-populate the facet's tags field with the name of the observation (e.g. "Food", "Back Pain", etc.)
                                 facet.addTags(Tag.cleanse(facet.name));
@@ -240,7 +237,7 @@ public class MymeeUpdater extends AbstractUpdater {
                             //System.out.println("====== mymeeId=" + facet.mymeeId + ", timeUpdated=" + facet.timeUpdated);
                             return facet;
                         }
-                    });
+                    }, updateInfo.apiKey.getId());
             return ret;
 
         } catch (Throwable e) {
@@ -297,7 +294,7 @@ public class MymeeUpdater extends AbstractUpdater {
         List<AbstractFacet> newFacets = new ArrayList<AbstractFacet>();
 
         for(int i=0; i<array.size(); i++) {
-            MymeeObservationFacet facet = new MymeeObservationFacet();
+            MymeeObservationFacet facet = new MymeeObservationFacet(updateInfo.apiKey.getId());
 
             JSONObject observationObject = array.getJSONObject(i);
 

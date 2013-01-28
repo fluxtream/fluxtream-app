@@ -19,4 +19,11 @@ public class BodymediaStepsFacet extends BodymediaAbstractFacet {
     //The total number of steps taken that day
     public int totalSteps;
 
+    public BodymediaStepsFacet() {
+        super();
+    }
+
+    public BodymediaStepsFacet(final long apiKeyId) {
+        super(apiKeyId);
+    }
 }

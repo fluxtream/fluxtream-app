@@ -28,7 +28,7 @@ public class FitbitSleepFacetExtractor extends AbstractFacetExtractor {
 		while (iterator.hasNext()) {
 			JSONObject record = (JSONObject) iterator.next();
 
-			FitbitSleepFacet facet = new FitbitSleepFacet();
+			FitbitSleepFacet facet = new FitbitSleepFacet(apiData.updateInfo.apiKey.getId());
 
             int duration = record.getInt("duration");
             if (duration==0)

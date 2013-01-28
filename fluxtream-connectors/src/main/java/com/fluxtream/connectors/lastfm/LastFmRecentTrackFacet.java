@@ -27,8 +27,16 @@ public class LastFmRecentTrackFacet extends AbstractFacet {
     @Lob
     String imgUrls;
     long time;
-    
-	@Override
+
+    public LastFmRecentTrackFacet() {
+        super();
+    }
+
+    public LastFmRecentTrackFacet(final long apiKeyId) {
+        super(apiKeyId);
+    }
+
+    @Override
 	protected void makeFullTextIndexable() {
 		this.fullTextDescription = artist + " " + name;
 	}

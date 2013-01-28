@@ -43,6 +43,14 @@ public class MymeeObservationFacet extends AbstractFacet {
     public Double latitude;
     public Double longitude;
 
+    public MymeeObservationFacet() {
+        super();
+    }
+
+    public MymeeObservationFacet(final long apiKeyId) {
+        super(apiKeyId);
+    }
+
     @Override
     protected void makeFullTextIndexable() {
     }

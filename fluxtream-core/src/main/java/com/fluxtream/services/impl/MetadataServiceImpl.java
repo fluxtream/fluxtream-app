@@ -114,7 +114,7 @@ public class MetadataServiceImpl implements MetadataService {
 		if (info != null)
 			return info;
 		else {
-			info = new DayMetadataFacet();
+			info = new DayMetadataFacet(-1);
 			info.date = date;
 			info.guestId = guestId;
 			return info;
@@ -130,7 +130,7 @@ public class MetadataServiceImpl implements MetadataService {
 	public DayMetadataFacet copyNextDailyContextualInfo(long guestId,
 			String date) {
 		DayMetadataFacet next = getNextExistingDayMetadata(guestId, date);
-		DayMetadataFacet info = new DayMetadataFacet();
+		DayMetadataFacet info = new DayMetadataFacet(-1);
 		info.guestId = guestId;
 		info.date = date;
 

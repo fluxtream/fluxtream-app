@@ -1,10 +1,10 @@
 package com.fluxtream.domain;
 
-import java.util.List;
-import java.util.StringTokenizer;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.StringTokenizer;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.Lob;
@@ -13,7 +13,6 @@ import javax.persistence.PostLoad;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Query;
-import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import org.hibernate.annotations.Index;
@@ -28,7 +27,10 @@ public abstract class AbstractFacet extends AbstractEntity {
 
     private static final String TAG_DELIMITER = ",";
 
-    public AbstractFacet() {
+    public AbstractFacet() {}
+
+    public AbstractFacet(long apiKeyId) {
+        this.apiKeyId = apiKeyId;
 		ObjectTypeSpec objectType = this.getClass().getAnnotation(ObjectTypeSpec.class);
 		if (objectType!=null)
 			this.objectType = objectType.value();
@@ -37,7 +39,7 @@ public abstract class AbstractFacet extends AbstractEntity {
 	}
 
     @Index(name = "apiKey")
-    public long apiKeyId;
+    public Long apiKeyId;
 
     @Index(name="guestId_index")
 	@Field

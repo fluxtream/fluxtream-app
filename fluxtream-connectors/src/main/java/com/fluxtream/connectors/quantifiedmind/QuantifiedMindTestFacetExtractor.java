@@ -23,7 +23,7 @@ public class QuantifiedMindTestFacetExtractor extends AbstractFacetExtractor {
 
         JSONArray array = JSONArray.fromObject(apiData.json);
         for(int i=0; i<array.size(); i++) {
-            QuantifiedMindTestFacet facet = new QuantifiedMindTestFacet();
+            QuantifiedMindTestFacet facet = new QuantifiedMindTestFacet(apiData.updateInfo.apiKey.getId());
 
             JSONObject testData = array.getJSONObject(i);
             extractCommonFacetData(facet, apiData);

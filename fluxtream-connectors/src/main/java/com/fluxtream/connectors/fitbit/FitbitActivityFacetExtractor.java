@@ -43,7 +43,7 @@ public class FitbitActivityFacetExtractor extends AbstractFacetExtractor {
 		logger.info("guestId=" + guestId +
 				" connector=fitbit action=extractSummaryActivityInfo");
 
-		FitbitTrackerActivityFacet facet = new FitbitTrackerActivityFacet();
+		FitbitTrackerActivityFacet facet = new FitbitTrackerActivityFacet(apiData.updateInfo.apiKey.getId());
 
 		JSONObject fitbitSummary = fitbitResponse.getJSONObject("summary");
 
@@ -115,7 +115,7 @@ public class FitbitActivityFacetExtractor extends AbstractFacetExtractor {
 		while (iterator.hasNext()) {
 			JSONObject loggedActivity = (JSONObject) iterator.next();
 
-			FitbitLoggedActivityFacet facet = new FitbitLoggedActivityFacet();
+			FitbitLoggedActivityFacet facet = new FitbitLoggedActivityFacet(apiData.updateInfo.apiKey.getId());
 			super.extractCommonFacetData(facet, apiData);
 
             facet.date = (String) apiData.updateInfo.getContext("date");

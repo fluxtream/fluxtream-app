@@ -33,7 +33,7 @@ public class PicasaPhotoFacet extends AbstractFacet implements Serializable {
     @Lob
 	public String thumbnailsJson;
 	
-	public PicasaPhotoFacet() {}
+	public PicasaPhotoFacet(long apiKeyId) { super(apiKeyId); }
 
 	@Override
 	protected void makeFullTextIndexable() {

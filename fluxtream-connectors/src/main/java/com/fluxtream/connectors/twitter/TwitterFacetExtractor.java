@@ -35,7 +35,7 @@ public class TwitterFacetExtractor extends AbstractFacetExtractor {
 			switch (objectType.value()) {
 				case 1:
                 {
-					TweetFacet tweetFacet = new TweetFacet();
+					TweetFacet tweetFacet = new TweetFacet(apiData.updateInfo.apiKey.getId());
 					super.extractCommonFacetData(tweetFacet, apiData);
 		
 					long createdAtTime = parseDate(twitterItem.getString("created_at"));
@@ -52,7 +52,7 @@ public class TwitterFacetExtractor extends AbstractFacetExtractor {
                 }
 				case 4:
                 {
-					TwitterMentionFacet twitterMentionFacet = new TwitterMentionFacet();
+					TwitterMentionFacet twitterMentionFacet = new TwitterMentionFacet(apiData.updateInfo.apiKey.getId());
 					super.extractCommonFacetData(twitterMentionFacet, apiData);
 
                     long createdAtTime = parseDate(twitterItem.getString("created_at"));
@@ -70,7 +70,7 @@ public class TwitterFacetExtractor extends AbstractFacetExtractor {
                 }
 				case 2:
                 {
-					TwitterDirectMessageFacet twitterDirectMessageFacet = new TwitterDirectMessageFacet();
+					TwitterDirectMessageFacet twitterDirectMessageFacet = new TwitterDirectMessageFacet(apiData.updateInfo.apiKey.getId());
 					super.extractCommonFacetData(twitterDirectMessageFacet, apiData);
 					
 					long createdAtTime = parseDate(twitterItem.getString("created_at"));

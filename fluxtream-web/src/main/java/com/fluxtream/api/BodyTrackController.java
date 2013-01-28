@@ -267,7 +267,8 @@ public class BodyTrackController {
                             // We have a photo and the metadata, so pass control to the FluxtreamCapturePhotoStore to save the photo
                             LOG_DEBUG.debug("BodyTrackController.savePhoto(" + guestId + ", " + photoBytes.length + ", " + jsonMetadata + ")");
                             try {
-                                final FluxtreamCapturePhotoStore.OperationResult<FluxtreamCapturePhoto> result = fluxtreamCapturePhotoStore.saveOrUpdatePhoto(guestId, photoBytes, jsonMetadata);
+                                //HACK: setting apiKeyId to -1 because there will always only be one apiKey for fluxtream capture
+                                final FluxtreamCapturePhotoStore.OperationResult<FluxtreamCapturePhoto> result = fluxtreamCapturePhotoStore.saveOrUpdatePhoto(guestId, photoBytes, jsonMetadata, -1);
                                 final String photoStoreKey = result.getData().getPhotoStoreKey();
                                 LOG.info("BodyTrackController.handlePhotoUpload(): photo [" + photoStoreKey + "] " + result.getOperation() + " sucessfully!");
                                 response = jsonResponseHelper.ok("photo " + result.getOperation() + " sucessfully!", new PhotoUploadPayload(result.getOperation(), photoStoreKey));

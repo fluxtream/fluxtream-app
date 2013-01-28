@@ -1,14 +1,10 @@
 package com.fluxtream.connectors.zeo;
 
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
-import java.util.TimeZone;
 import com.fluxtream.ApiData;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.domain.AbstractFacet;
-import com.fluxtream.domain.metadata.DayMetadataFacet;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 import com.fluxtream.services.MetadataService;
 import net.sf.json.JSONArray;
@@ -42,7 +38,7 @@ public class ZeoSleepStatsFacetExtractor extends AbstractFacetExtractor {
 
 	private void extractStatsData(List<AbstractFacet> facets, ApiData apiData,
 			JSONObject sleepStats) {
-		ZeoSleepStatsFacet facet = new ZeoSleepStatsFacet();
+		ZeoSleepStatsFacet facet = new ZeoSleepStatsFacet(apiData.updateInfo.apiKey.getId());
 		super.extractCommonFacetData(facet, apiData);
 		facet.zq = sleepStats.getInt("zq");
         parseZeoTime(sleepStats, "bedTime", apiData, facet);

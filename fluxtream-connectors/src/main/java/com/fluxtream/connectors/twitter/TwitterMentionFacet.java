@@ -28,8 +28,16 @@ public class TwitterMentionFacet extends AbstractFacet {
 
 	public String userName;
     public String name;
-	
-	@Override
+
+    public TwitterMentionFacet() {
+        super();
+    }
+
+    public TwitterMentionFacet(final long apiKeyId) {
+        super(apiKeyId);
+    }
+
+    @Override
 	protected void makeFullTextIndexable() {
 		this.fullTextDescription = text;
 	}

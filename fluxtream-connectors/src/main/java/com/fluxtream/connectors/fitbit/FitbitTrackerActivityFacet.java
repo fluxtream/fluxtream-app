@@ -57,7 +57,15 @@ public class FitbitTrackerActivityFacet extends AbstractFloatingTimeZoneFacet im
 	@Lob
 	public String caloriesJson;
 
-	@Override
+    public FitbitTrackerActivityFacet() {
+        super();
+    }
+
+    public FitbitTrackerActivityFacet(final long apiKeyId) {
+        super(apiKeyId);
+    }
+
+    @Override
 	protected void makeFullTextIndexable() {}
 
 	@Override

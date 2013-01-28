@@ -30,7 +30,15 @@ public class FitbitLoggedActivityFacet extends AbstractFloatingTimeZoneFacet {
 	public String name;
 	public int steps;
 
-	@Override
+    public FitbitLoggedActivityFacet() {
+        super();
+    }
+
+    public FitbitLoggedActivityFacet(final long apiKeyId) {
+        super(apiKeyId);
+    }
+
+    @Override
 	protected void makeFullTextIndexable() {}
 
     @Override

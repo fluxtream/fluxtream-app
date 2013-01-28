@@ -36,12 +36,13 @@ import com.ibm.icu.util.StringTokenizer;
 @Indexed
 public class CallLogEntryFacet extends AbstractFacet implements Serializable {
 
-	public CallLogEntryFacet() {}
+	public CallLogEntryFacet(long apiKeyId) { super(apiKeyId); }
 	
-	public CallLogEntryFacet(Message message)
+	public CallLogEntryFacet(Message message, long apiKeyId)
 		throws IOException, MessagingException
 	{
-		List<String> lines = IOUtils.readLines(new StringReader((String) message.getContent()));
+        super(apiKeyId);
+        List<String> lines = IOUtils.readLines(new StringReader((String) message.getContent()));
 		if (lines.size()==2) {
 			String timeLine = lines.get(0);
 			String callLine = lines.get(1);

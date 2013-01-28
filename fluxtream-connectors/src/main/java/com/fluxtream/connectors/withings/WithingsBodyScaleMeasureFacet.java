@@ -21,8 +21,16 @@ public class WithingsBodyScaleMeasureFacet extends AbstractFacet {
 	public transient float systolic;
 	public transient float diastolic;
 	public transient float heartPulse;
-	
-	@Override
+
+    public WithingsBodyScaleMeasureFacet() {
+        super();
+    }
+
+    public WithingsBodyScaleMeasureFacet(final long apiKeyId) {
+        super(apiKeyId);
+    }
+
+    @Override
 	protected void makeFullTextIndexable() {}
 	
 }

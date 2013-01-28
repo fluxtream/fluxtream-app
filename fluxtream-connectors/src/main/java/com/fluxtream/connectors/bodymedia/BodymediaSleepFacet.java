@@ -23,6 +23,14 @@ public class BodymediaSleepFacet extends BodymediaAbstractFacet {
     //The total number of minutes spent sleeping
     public int totalSleeping;
 
+    public BodymediaSleepFacet() {
+        super();
+    }
+
+    public BodymediaSleepFacet(final long apiKeyId) {
+        super(apiKeyId);
+    }
+
     @Override
 	protected void makeFullTextIndexable() {}
 

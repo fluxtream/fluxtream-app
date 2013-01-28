@@ -89,8 +89,9 @@ public class DayMetadataFacet extends AbstractFacet {
 	
 	@Index(name="travelType_index")
 	public TravelType travelType = TravelType.UNKNOWN;
-	
-	public DayMetadataFacet() {}
+
+    public DayMetadataFacet() {}
+	public DayMetadataFacet(long apiKeyId) {super(apiKeyId);}
 	
 	public TimeInterval getTimeInterval() {
 		return new TimeInterval(start, end, TimeUnit.DAY, TimeZone.getTimeZone(timeZone));

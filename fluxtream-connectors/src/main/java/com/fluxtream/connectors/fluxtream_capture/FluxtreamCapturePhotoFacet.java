@@ -56,12 +56,17 @@ public class FluxtreamCapturePhotoFacet extends AbstractFacet implements Seriali
     private String gpsDatestamp;
     private String gpsTimestamp;
 
-    @SuppressWarnings("UnusedDeclaration")
     public FluxtreamCapturePhotoFacet() {
-        // need this for Hibernate
+        super();
     }
 
-    public FluxtreamCapturePhotoFacet(@NotNull final FluxtreamCapturePhoto photo) {
+    @SuppressWarnings("UnusedDeclaration")
+    public FluxtreamCapturePhotoFacet(long apiKeyId) {
+        super(apiKeyId);
+    }
+
+    public FluxtreamCapturePhotoFacet(@NotNull final FluxtreamCapturePhoto photo, long apiKeyId) {
+        super(apiKeyId);
         guestId = photo.getGuestId();
         timeUpdated = System.currentTimeMillis();
         start = photo.getCaptureTimeMillisUtc();

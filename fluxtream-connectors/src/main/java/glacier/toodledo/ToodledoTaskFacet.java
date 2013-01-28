@@ -53,8 +53,12 @@ public class ToodledoTaskFacet extends AbstractFacet {
 	@Lob
 	public String note;
 	public String meta;
-	
-	@Override
+
+    public ToodledoTaskFacet(final long apiKeyId) {
+        super(apiKeyId);
+    }
+
+    @Override
 	protected void makeFullTextIndexable() {
 		StringBuilder sb = new StringBuilder(title);
 		if (note!=null) sb.append(" ").append(note);

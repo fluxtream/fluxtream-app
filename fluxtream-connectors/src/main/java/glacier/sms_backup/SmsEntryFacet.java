@@ -34,12 +34,11 @@ public class SmsEntryFacet extends AbstractFacet implements Serializable {
 
 	private static final String UNKNOWN = "Unknown";
 
-	public SmsEntryFacet() {}
-	
-	public SmsEntryFacet(Message message, String username)
+	public SmsEntryFacet(Message message, String username, long apiKeyId)
 		throws MessagingException, IOException
 	{
-		InternetAddress from = (InternetAddress) message.getFrom()[0];
+        super(apiKeyId);
+        InternetAddress from = (InternetAddress) message.getFrom()[0];
 		String fromAddress = from.getAddress();
 		if (fromAddress.startsWith(username)) {
 			type = SmsType.OUTGOING;

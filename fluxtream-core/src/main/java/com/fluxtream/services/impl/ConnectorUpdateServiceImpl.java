@@ -511,9 +511,9 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
     }
 
     @Override
-    public long getNumberOfUpdatesSince(final long guestId, String connectorName, long then) {
+    public long getNumberOfUpdatesSince(final long guestId, int connectorValue, long then) {
         return JPAUtils.count(em,
-                              "apiUpdates.count.byGuest.since", guestId, connectorName,
+                              "apiUpdates.count.byGuest.since", guestId, connectorValue,
                               then);
     }
 

@@ -186,7 +186,7 @@ public final class FluxtreamCapturePhotoStore {
      * @throws UnsupportedImageFormatException if the save/update fails because the given image is not of a supported format
      */
     @SuppressWarnings("ConstantConditions")
-    public OperationResult<FluxtreamCapturePhoto> saveOrUpdatePhoto(final long guestId, @NotNull final byte[] photoBytes, @NotNull final String jsonMetadata) throws StorageException, InvalidDataException, UnsupportedImageFormatException {
+    public OperationResult<FluxtreamCapturePhoto> saveOrUpdatePhoto(final long guestId, @NotNull final byte[] photoBytes, @NotNull final String jsonMetadata, final long apiKeyId) throws StorageException, InvalidDataException, UnsupportedImageFormatException {
         if (LOG_DEBUG.isDebugEnabled()) {
             LOG_DEBUG.debug("FluxtreamCapturePhotoStore.savePhoto(" + guestId + ", " + photoBytes.length + ", " + jsonMetadata + ")");
         }
@@ -254,7 +254,7 @@ public final class FluxtreamCapturePhotoStore {
         final PhotoCreatorOrModifier photoCreatorOrModifier = new PhotoCreatorOrModifier(photo);
         final FluxtreamCapturePhotoFacet photoFacet;
         try {
-            photoFacet = apiDataService.createOrReadModifyWrite(FluxtreamCapturePhotoFacet.class, photoCreatorOrModifier.getFacetFinderQuery(), photoCreatorOrModifier);
+            photoFacet = apiDataService.createOrReadModifyWrite(FluxtreamCapturePhotoFacet.class, photoCreatorOrModifier.getFacetFinderQuery(), photoCreatorOrModifier, apiKeyId);
         }
         catch (Exception e) {
             final String message = "Photo upload failed because an Exception occurred while writing the photo to the database";
@@ -328,11 +328,11 @@ public final class FluxtreamCapturePhotoStore {
         }
 
         @Override
-        public FluxtreamCapturePhotoFacet createOrModify(final FluxtreamCapturePhotoFacet existingFacet) {
+        public FluxtreamCapturePhotoFacet createOrModify(final FluxtreamCapturePhotoFacet existingFacet, long apiKeyId) {
 
             if (existingFacet == null) {
                 wasCreated = true;
-                return new FluxtreamCapturePhotoFacet(photo);
+                return new FluxtreamCapturePhotoFacet(photo, apiKeyId);
             }
             else {
                 wasCreated = false;

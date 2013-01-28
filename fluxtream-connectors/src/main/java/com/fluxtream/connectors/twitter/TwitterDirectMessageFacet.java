@@ -39,8 +39,16 @@ public class TwitterDirectMessageFacet extends AbstractFacet {
 
 	public String senderProfileImageUrl;
 	public String recipientProfileImageUrl;
-	
-	@Override
+
+    public TwitterDirectMessageFacet() {
+        super();
+    }
+
+    public TwitterDirectMessageFacet(final long apiKeyId) {
+        super(apiKeyId);
+    }
+
+    @Override
 	protected void makeFullTextIndexable() {
 		this.fullTextDescription = senderName + " " + senderScreenName + " " + text;
 	}

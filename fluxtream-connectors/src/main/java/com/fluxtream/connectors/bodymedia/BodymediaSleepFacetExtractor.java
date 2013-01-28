@@ -76,7 +76,7 @@ public class BodymediaSleepFacetExtractor extends AbstractFacetExtractor
         JSONObject bodymediaResponse = JSONObject.fromObject(apiData.json);
         if(bodymediaResponse.has("Failed"))
         {
-            BodymediaSleepFacet sleep = new BodymediaSleepFacet();
+            BodymediaSleepFacet sleep = new BodymediaSleepFacet(apiData.updateInfo.apiKey.getId());
             sleep.date = bodymediaResponse.getString("Date");
         }
         else
@@ -90,7 +90,7 @@ public class BodymediaSleepFacetExtractor extends AbstractFacetExtractor
                     if(o instanceof JSONObject)
                     {
                         JSONObject day = (JSONObject) o;
-                        BodymediaSleepFacet sleep = new BodymediaSleepFacet();
+                        BodymediaSleepFacet sleep = new BodymediaSleepFacet(apiData.updateInfo.apiKey.getId());
                         super.extractCommonFacetData(sleep, apiData);
                         sleep.date = day.getString("date");
                         sleep.efficiency = day.getDouble("efficiency");

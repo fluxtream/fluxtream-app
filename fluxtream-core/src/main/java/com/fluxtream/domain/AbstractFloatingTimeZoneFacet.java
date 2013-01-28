@@ -20,7 +20,15 @@ public abstract class AbstractFloatingTimeZoneFacet extends AbstractFacet {
 	public static DateTimeFormatter timeStorageFormat = DateTimeFormat.forPattern(
 			"yyyy-MM-dd'T'HH:mm:ss.SSS");
 
-	public void updateTimeInfo(TimeZone timeZone) throws ParseException {
+    public AbstractFloatingTimeZoneFacet(final long apiKeyId) {
+        super(apiKeyId);
+    }
+
+    public AbstractFloatingTimeZoneFacet() {
+        super();
+    }
+
+    public void updateTimeInfo(TimeZone timeZone) throws ParseException {
 		Date startDate = new Date(timeStorageFormat.withZone(DateTimeZone.forTimeZone(timeZone)).parseMillis(startTimeStorage));
 		Date endDate = new Date(timeStorageFormat.withZone(DateTimeZone.forTimeZone(timeZone)).parseMillis(endTimeStorage));
 		

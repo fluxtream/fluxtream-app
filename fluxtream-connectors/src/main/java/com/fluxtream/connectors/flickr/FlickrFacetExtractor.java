@@ -37,7 +37,7 @@ public class FlickrFacetExtractor extends AbstractFacetExtractor {
 			Iterator eachPhoto = photos.iterator();
 			while (eachPhoto.hasNext()) {
 				JSONObject it = (JSONObject) eachPhoto.next();
-				FlickrPhotoFacet facet = new FlickrPhotoFacet();
+				FlickrPhotoFacet facet = new FlickrPhotoFacet(apiData.updateInfo.apiKey.getId());
 				super.extractCommonFacetData(facet, apiData);
 				facet.flickrId = it.getString("id");
 				facet.owner = it.getString("owner");

@@ -1,6 +1,5 @@
 package com.fluxtream.connectors.zeo;
 
-import java.util.Date;
 import javax.persistence.Entity;
 import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
@@ -8,8 +7,6 @@ import javax.persistence.NamedQuery;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.domain.AbstractFloatingTimeZoneFacet;
 import org.hibernate.search.annotations.Indexed;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 
 @Entity(name="Facet_ZeoSleepStats")
 @NamedQueries({
@@ -34,6 +31,14 @@ public class ZeoSleepStatsFacet extends AbstractFloatingTimeZoneFacet {
 
     @Lob
     public String sleepGraph;
+
+    public ZeoSleepStatsFacet() {
+        super();
+    }
+
+    public ZeoSleepStatsFacet(final long apiKeyId) {
+        super(apiKeyId);
+    }
 
     @Override
     protected void makeFullTextIndexable() {}

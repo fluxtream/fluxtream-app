@@ -25,8 +25,16 @@ public class TweetFacet extends AbstractFacet {
     public String profileImageUrl;
     public String userName;
 	long time;
-	
-	@Override
+
+    public TweetFacet() {
+        super();
+    }
+
+    public TweetFacet(final long apiKeyId) {
+        super(apiKeyId);
+    }
+
+    @Override
 	protected void makeFullTextIndexable() {
 		this.fullTextDescription = text;
 	}

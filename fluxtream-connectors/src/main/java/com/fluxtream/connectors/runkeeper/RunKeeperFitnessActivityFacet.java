@@ -37,6 +37,14 @@ import com.fluxtream.domain.AbstractFacet;
     public String comments;
     public String timeZone;
 
+    public RunKeeperFitnessActivityFacet() {
+        super();
+    }
+
+    public RunKeeperFitnessActivityFacet(final long apiKeyId) {
+        super(apiKeyId);
+    }
+
     @Override
     protected void makeFullTextIndexable() {
 

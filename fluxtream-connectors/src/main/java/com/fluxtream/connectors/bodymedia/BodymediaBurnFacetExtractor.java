@@ -89,7 +89,7 @@ public class BodymediaBurnFacetExtractor extends AbstractFacetExtractor
                 if(o instanceof JSONObject)
                 {
                     JSONObject day = (JSONObject) o;
-                    BodymediaBurnFacet burn = new BodymediaBurnFacet();
+                    BodymediaBurnFacet burn = new BodymediaBurnFacet(apiData.updateInfo.apiKey.getId());
                     //The following call must be made to load data about he facets
                     super.extractCommonFacetData(burn, apiData);
                     burn.setTotalCalories(day.getInt("totalCalories"));

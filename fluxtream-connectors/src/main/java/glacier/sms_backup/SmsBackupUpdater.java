@@ -181,7 +181,7 @@ public class SmsBackupUpdater extends AbstractUpdater {
 			Message[] msgs = getMessagesInFolder(folder);
 			List<SmsEntryFacet> smsLog = new ArrayList<SmsEntryFacet>();
 			for (Message message : msgs) {
-				SmsEntryFacet entry = new SmsEntryFacet(message, email);
+				SmsEntryFacet entry = new SmsEntryFacet(message, email, updateInfo.apiKey.getId());
 				smsLog.add(entry);
 				if (smsLog.size() == 20)
 					flushEntries(updateInfo, smsLog);
@@ -214,7 +214,7 @@ public class SmsBackupUpdater extends AbstractUpdater {
 			Message[] msgs = getMessagesInFolderSinceDate(folder, date);
 			List<SmsEntryFacet> smsLog = new ArrayList<SmsEntryFacet>();
 			for (Message message : msgs) {
-				SmsEntryFacet entry = new SmsEntryFacet(message, email);
+				SmsEntryFacet entry = new SmsEntryFacet(message, email, updateInfo.apiKey.getId());
 				smsLog.add(entry);
 				if (smsLog.size() == 20)
 					flushEntries(updateInfo, smsLog);
@@ -248,7 +248,7 @@ public class SmsBackupUpdater extends AbstractUpdater {
 			Message[] msgs = getMessagesInFolderSinceDate(folder, date);
 			List<CallLogEntryFacet> callLog = new ArrayList<CallLogEntryFacet>();
 			for (Message message : msgs) {
-				CallLogEntryFacet entry = new CallLogEntryFacet(message);
+				CallLogEntryFacet entry = new CallLogEntryFacet(message, updateInfo.apiKey.getId());
 				callLog.add(entry);
 				if (callLog.size() == 20)
 					flushEntries(updateInfo, callLog);
@@ -312,7 +312,7 @@ public class SmsBackupUpdater extends AbstractUpdater {
 			Message[] msgs = getMessagesInFolder(folder);
 			List<CallLogEntryFacet> callLog = new ArrayList<CallLogEntryFacet>();
 			for (Message message : msgs) {
-				CallLogEntryFacet entry = new CallLogEntryFacet(message);
+				CallLogEntryFacet entry = new CallLogEntryFacet(message, updateInfo.apiKey.getId());
 				callLog.add(entry);
 				if (callLog.size() == 20)
 					flushEntries(updateInfo, callLog);

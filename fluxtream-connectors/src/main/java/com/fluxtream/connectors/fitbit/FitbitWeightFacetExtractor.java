@@ -46,7 +46,7 @@ public class FitbitWeightFacetExtractor extends AbstractFacetExtractor {
                 " connector=fitbit action=extractWeightInfo");
 
         for(int i=0; i<fitbitWeightMeasurements.size(); i++) {
-            FitbitWeightFacet facet = new FitbitWeightFacet();
+            FitbitWeightFacet facet = new FitbitWeightFacet(apiData.updateInfo.apiKey.getId());
             super.extractCommonFacetData(facet, apiData);
 
             facet.date = (String) apiData.updateInfo.getContext("date");

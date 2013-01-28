@@ -6,8 +6,6 @@ import javax.persistence.NamedQuery;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.domain.AbstractFloatingTimeZoneFacet;
 import org.hibernate.search.annotations.Indexed;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 
 /**
  *
@@ -32,6 +30,14 @@ public class FitbitWeightFacet extends AbstractFloatingTimeZoneFacet {
     public double bmi;
     public double fat;
     public double weight;
+
+    public FitbitWeightFacet() {
+        super();
+    }
+
+    public FitbitWeightFacet(final long apiKeyId) {
+        super(apiKeyId);
+    }
 
     @Override
     protected void makeFullTextIndexable() {}

@@ -24,8 +24,10 @@ public class FlickrPhotoFacet extends AbstractFloatingTimeZoneFacet {
 	public String latitude;
 	public String longitude;
 	public int accuracy;
-	
-	public FlickrPhotoFacet() {}
+
+    public FlickrPhotoFacet() {super();}
+
+	public FlickrPhotoFacet(long apiKeyId) {super(apiKeyId);}
 
 	@Override
 	protected void makeFullTextIndexable() {

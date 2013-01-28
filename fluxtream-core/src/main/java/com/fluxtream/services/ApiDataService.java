@@ -1,18 +1,13 @@
 package com.fluxtream.services;
 
 import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
 import com.fluxtream.TimeInterval;
-import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.google_latitude.LocationFacet;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
 import net.sf.json.JSONObject;
-import org.dom4j.Document;
-import org.springframework.transaction.annotation.Transactional;
 
 public interface ApiDataService {
 
@@ -68,7 +63,7 @@ public interface ApiDataService {
         // a facet.  If you are passed facet != null, modify that
         // facet and return it.  If you are passed facet == null,
         // create a new facet, fill it in, and return it
-        public T createOrModify(T facet);
+        public T createOrModify(T facet, long apiKeyId);
     }
 
     public class FacetQuery {
@@ -82,7 +77,7 @@ public interface ApiDataService {
         }
     }
 
-    public <T extends AbstractFacet> T createOrReadModifyWrite(Class<? extends AbstractFacet> facetClass, FacetQuery query, FacetModifier<T> modifier);
+    public <T extends AbstractFacet> T createOrReadModifyWrite(Class<? extends AbstractFacet> facetClass, FacetQuery query, FacetModifier<T> modifier, long apiKeyId);
 
 	public void eraseApiData(ApiKey apiKey);
 

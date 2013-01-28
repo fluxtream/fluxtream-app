@@ -406,7 +406,7 @@ public class ApiDataServiceImpl implements ApiDataService {
     @Override
     @Transactional(readOnly = false)
     public <T extends AbstractFacet> T createOrReadModifyWrite(
-            Class<? extends AbstractFacet> facetClass, FacetQuery query, FacetModifier<T> modifier) {
+            Class<? extends AbstractFacet> facetClass, FacetQuery query, FacetModifier<T> modifier, long apiKeyId) {
         //System.out.println("========================================");
         // TODO(rsargent): do we need @Transactional again on class?
 
@@ -428,7 +428,7 @@ public class ApiDataServiceImpl implements ApiDataService {
             //System.out.println("====== Didn't find facet;  need to create new one");
         }
 
-        T modified = modifier.createOrModify(orig);
+        T modified = modifier.createOrModify(orig, apiKeyId);
         // createOrModify must return passed argument if it is not null
         assert(orig == null || orig == modified);
         assert(false);

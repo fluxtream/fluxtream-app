@@ -19,6 +19,14 @@ public class GithubPushFacet extends AbstractFacet {
     public String repoName;
     public String repoURL;
 
+    public GithubPushFacet() {
+        super();
+    }
+
+    public GithubPushFacet(final long apiKeyId) {
+        super(apiKeyId);
+    }
+
     @Override
     protected void makeFullTextIndexable() {
     }

@@ -91,6 +91,11 @@ public class ConnectorStore {
             for (int i = 0; i < connectors.size(); i++) {
                 final ConnectorInfo connectorInfo = connectors.get(i);
                 final Connector api = connectorInfo.getApi();
+                if (api==null) {
+                    StringBuilder sb = new StringBuilder("module=API component=connectorStore action=getInstalledConnectors ");
+                    logger.warn("message=\"null connector for " + connectorInfo.getName() + "\"");
+                    continue;
+                }
                 if (!guestService.hasApiKey(guest.getId(), api)) {
                     connectors.remove(i--);
                 }

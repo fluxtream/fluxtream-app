@@ -22,9 +22,9 @@ import org.hibernate.annotations.Type;
 		query = "SELECT COUNT(updt) FROM ApiUpdates updt WHERE updt.guestId=? AND updt.api=?"),
 	@NamedQuery(name = "apiUpdates.delete.all",
 		query = "DELETE FROM ApiUpdates updt WHERE updt.guestId=?"),
-	@NamedQuery(name = "apiUpdates.delete.byApiAndObjectTypes",
+	@NamedQuery(name = "apiUpdates.delete.byApiKeyAndObjectTypes",
 		query = "DELETE FROM ApiUpdates updt WHERE updt.guestId=? AND updt.api=? AND (updt.apiKeyId=? OR updt.apiKeyId IS NULL) AND updt.objectTypes=?"),
-	@NamedQuery(name = "apiUpdates.delete.byApi",
+	@NamedQuery(name = "apiUpdates.delete.byApiKey",
 		query = "DELETE FROM ApiUpdates updt WHERE updt.guestId=? AND updt.api=? AND (updt.apiKeyId=? OR updt.apiKeyId IS NULL)"),
     @NamedQuery( name="apiUpdates.last.paged",
                  query="SELECT updt FROM ApiUpdates updt WHERE updt.guestId=? and updt.api=? AND (updt.apiKeyId=? OR updt.apiKeyId IS NULL) ORDER BY updt.ts DESC"),
@@ -51,7 +51,7 @@ public class ApiUpdate extends AbstractEntity {
 	public long elapsed;
 
     @Index(name="apiKeyId")
-    public int apiKeyId;
+    public long apiKeyId;
 
     /**
      * Legacy (we need it for the existing user data)

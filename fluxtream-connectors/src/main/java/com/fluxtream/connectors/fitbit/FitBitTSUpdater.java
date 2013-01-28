@@ -6,8 +6,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.TimeUnit;
 import com.fluxtream.connectors.Autonomous;
@@ -18,10 +16,8 @@ import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.RateLimitReachedException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
-import com.fluxtream.connectors.updaters.UpdateInfo.UpdateType;
 import com.fluxtream.domain.AbstractFloatingTimeZoneFacet;
 import com.fluxtream.domain.ApiKey;
-import com.fluxtream.domain.ApiUpdate;
 import com.fluxtream.domain.metadata.DayMetadataFacet;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.MetadataService;
@@ -42,8 +38,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
  * @author candide
@@ -228,7 +222,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 					FitbitSleepFacet facet = getSleepFacet(apiKey.getGuestId(),
 							date);
 					if (facet == null) {
-						facet = new FitbitSleepFacet();
+						facet = new FitbitSleepFacet(apiKey.getId());
 						facet.date = date;
 						facet.api = connector().value();
 						facet.guestId = apiKey.getGuestId();
@@ -239,7 +233,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 					FitbitTrackerActivityFacet facet = getActivityFacet(
 							apiKey.getGuestId(), timeInterval);
 					if (facet == null) {
-						facet = new FitbitTrackerActivityFacet();
+						facet = new FitbitTrackerActivityFacet(apiKey.getId());
 						facet.date = date;
 						facet.api = connector().value();
 						facet.guestId = apiKey.getGuestId();
@@ -253,7 +247,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 				} else if (objectType == weightOT) {
                     FitbitWeightFacet facet = getWeightFacet(apiKey.getGuestId(), timeInterval);
                     if (facet == null) {
-                        facet = new FitbitWeightFacet();
+                        facet = new FitbitWeightFacet(apiKey.getId());
                         facet.date = date;
                         facet.api = connector().value();
                         facet.guestId = apiKey.getGuestId();

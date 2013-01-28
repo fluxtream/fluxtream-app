@@ -1,13 +1,9 @@
 package com.fluxtream.connectors.bodymedia;
 
-import java.util.ArrayList;
-import java.util.TimeZone;
 import javax.persistence.Entity;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import com.fluxtream.ApiData;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
-import com.fluxtream.connectors.mymee.MymeeObservationFacet;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.utils.TimeUtils;
@@ -36,6 +32,14 @@ public class BodymediaBurnFacet extends BodymediaAbstractFacet {
     public int estimatedCalories = 0;
     public int predictedCalories = 0;
 
+    public BodymediaBurnFacet() {
+        super();
+    }
+
+    public BodymediaBurnFacet(final long apiKeyId) {
+        super(apiKeyId);
+    }
+
     public void setTotalCalories(final int totalCalories) {
         this.totalCalories = totalCalories;
     }
@@ -57,7 +61,7 @@ public class BodymediaBurnFacet extends BodymediaAbstractFacet {
         BodymediaBurnFacet facet=null;
 
         if (existing == null) {
-            facet = new BodymediaBurnFacet();
+            facet = new BodymediaBurnFacet(updateInfo.apiKey.getId());
             facet.guestId = updateInfo.apiKey.getGuestId();
             facet.api = updateInfo.apiKey.getConnector().value();
         }

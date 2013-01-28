@@ -26,10 +26,6 @@ public class GoogleCalendarUpdater extends AbstractGoogleOAuthUpdater {
 
     private static final Logger LOG = Logger.getLogger(GoogleCalendarUpdater.class);
 
-    public GoogleCalendarUpdater() {
-        super();
-    }
-
     @Override
     protected void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception {
         loadHistory(updateInfo, 0, System.currentTimeMillis());
@@ -83,7 +79,7 @@ public class GoogleCalendarUpdater extends AbstractGoogleOAuthUpdater {
                 final List<When> times = calendarEventEntry.getTimes();
                 if (times != null) {
                     if (!times.isEmpty()) {
-                        GoogleCalendarEntryFacet payload = new GoogleCalendarEntryFacet(calendarEventEntry);
+                        GoogleCalendarEntryFacet payload = new GoogleCalendarEntryFacet(calendarEventEntry, updateInfo.apiKey.getId());
                         payload.start = times.get(0).getStartTime().getValue();
                         payload.end = times.get(0).getEndTime().getValue();
                         apiDataService.cacheApiDataObject(updateInfo, -1, -1, payload);

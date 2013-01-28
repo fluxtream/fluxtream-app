@@ -1,15 +1,6 @@
 package glacier.toodledo;
 
-import static com.fluxtream.utils.Utils.hash;
-
 import java.security.NoSuchAlgorithmException;
-
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.Connector.UpdateStrategyType;
@@ -21,6 +12,12 @@ import com.fluxtream.connectors.updaters.RateLimitReachedException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.services.GuestService;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import static com.fluxtream.utils.Utils.hash;
 
 /**
  * @author candide
@@ -106,7 +103,7 @@ public class ToodledoUpdater extends AbstractUpdater {
 		JSONArray goalsArray = JSONArray.fromObject(goalsJson);
 		for (int i = 0; i < goalsArray.size(); i++) {
 			JSONObject goal = goalsArray.getJSONObject(i);
-			ToodledoGoalFacet goalFacet = new ToodledoGoalFacet();
+			ToodledoGoalFacet goalFacet = new ToodledoGoalFacet(updateInfo.apiKey.getId());
 			goalFacet.archived = (byte) goal.getInt("archived");
 			goalFacet.contributes = goal.getLong("contributes");
 			goalFacet.level = goal.getInt("level");
@@ -141,7 +138,7 @@ public class ToodledoUpdater extends AbstractUpdater {
 				if (oldTask != null)
 					jpaDaoService.remove(oldTask.getClass(), oldTask.getId());
 			}
-			ToodledoTaskFacet taskFacet = new ToodledoTaskFacet();
+			ToodledoTaskFacet taskFacet = new ToodledoTaskFacet(updateInfo.apiKey.getId());
 			taskFacet.guestId = updateInfo.getGuestId();
 			taskFacet.toodledo_id = toodledo_id;
 			if (task.has("goal"))

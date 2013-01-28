@@ -1,20 +1,11 @@
 package com.fluxtream.connectors.fitbit;
 
-import java.text.ParseException;
-import java.util.Date;
-import java.util.TimeZone;
 import javax.persistence.Entity;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-
-import org.hibernate.search.annotations.Indexed;
-
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.domain.AbstractFloatingTimeZoneFacet;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
+import org.hibernate.search.annotations.Indexed;
 
 @Entity(name="Facet_FitbitSleep")
 @ObjectTypeSpec(name = "sleep", value = 4, extractor=FitbitSleepFacetExtractor.class, prettyname = "Sleep", isDateBased = true)
@@ -42,8 +33,16 @@ public class FitbitSleepFacet extends AbstractFloatingTimeZoneFacet {
 	public int awakeningsCount;
 	public int timeInBed;
     public int duration;
-	
-	@Override
+
+    public FitbitSleepFacet() {
+        super();
+    }
+
+    public FitbitSleepFacet(final long apiKeyId) {
+        super(apiKeyId);
+    }
+
+    @Override
 	protected void makeFullTextIndexable() {}
 
 }

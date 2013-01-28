@@ -71,8 +71,10 @@ public class GoogleCalendarEntryFacet extends AbstractFacet implements Serializa
 	byte[] participantsStorage;
 	@Lob
 	byte[] locationsStorage;
-	
-	public GoogleCalendarEntryFacet() {}
+
+    public GoogleCalendarEntryFacet() {super();}
+
+	public GoogleCalendarEntryFacet(long apiKeyId) {super(apiKeyId);}
 	
 	@SuppressWarnings("unchecked")
 	@PostLoad
@@ -124,8 +126,9 @@ public class GoogleCalendarEntryFacet extends AbstractFacet implements Serializa
 		}
 	}
 	
-	public GoogleCalendarEntryFacet(CalendarEventEntry entry) {
-//		entry.getAuthors();
+	public GoogleCalendarEntryFacet(CalendarEventEntry entry, long apiKeyId) {
+        super(apiKeyId);
+        //		entry.getAuthors();
 //		entry.getCategories();
 //		entry.getContent();
 //		entry.getContributors();

@@ -15,8 +15,16 @@ public class WithingsBPMMeasureFacet extends AbstractFacet {
 	public float systolic;
 	public float diastolic;
 	public float heartPulse;
-	
-	@Override
+
+    public WithingsBPMMeasureFacet() {
+        super();
+    }
+
+    public WithingsBPMMeasureFacet(final long apiKeyId) {
+        super(apiKeyId);
+    }
+
+    @Override
 	protected void makeFullTextIndexable() {}
 	
 }

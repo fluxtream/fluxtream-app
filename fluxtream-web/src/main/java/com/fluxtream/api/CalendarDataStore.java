@@ -153,7 +153,7 @@ public class CalendarDataStore {
             DayMetadataFacet dayMetaEnd = metadataService.getDayMetadata(guest.getId(), year + "-" + datePartFormat.format(c.get(Calendar.MONTH) + 1) +
                                                                                         "-" + datePartFormat.format(c.get(Calendar.DAY_OF_MONTH)), true);
 
-            DayMetadataFacet dayMetadata = new DayMetadataFacet();
+            DayMetadataFacet dayMetadata = new DayMetadataFacet(-1);
             dayMetadata.timeZone = dayMetaStart.timeZone;
             dayMetadata.start = dayMetaStart.start;
             dayMetadata.end = dayMetaEnd.end;
@@ -255,7 +255,7 @@ public class CalendarDataStore {
 
             DayMetadataFacet dayMetaEnd = metadataService.getDayMetadata(guest.getId(), year + "-" + month + "-" + endDayNum, true);
 
-            DayMetadataFacet dayMetadata = new DayMetadataFacet();
+            DayMetadataFacet dayMetadata = new DayMetadataFacet(-1);
             dayMetadata.timeZone = dayMetaStart.timeZone;
             dayMetadata.start = dayMetaStart.start;
             dayMetadata.end = dayMetaEnd.end;
@@ -341,7 +341,7 @@ public class CalendarDataStore {
 
             DayMetadataFacet dayMetaEnd = metadataService.getDayMetadata(guest.getId(), year + "-12-31", true);
 
-            DayMetadataFacet dayMetadata = new DayMetadataFacet();
+            DayMetadataFacet dayMetadata = new DayMetadataFacet(-1);
             dayMetadata.timeZone = dayMetaStart.timeZone;
             dayMetadata.start = dayMetaStart.start;
             dayMetadata.end = dayMetaEnd.end;
@@ -463,7 +463,7 @@ public class CalendarDataStore {
             return gson.toJson(digest);
         }
         catch (Exception e){
-            StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getAllConnectorsYearData")
+            StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getAllConnectorsDayData")
                     .append(" date=").append(date)
                     .append(" guestId=").append(guestId);
             logger.warn(sb.toString());

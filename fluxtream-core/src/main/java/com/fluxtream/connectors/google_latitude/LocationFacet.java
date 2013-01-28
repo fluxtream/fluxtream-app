@@ -40,7 +40,13 @@ public class LocationFacet extends AbstractFacet implements Comparable<LocationF
 
 	private static final long serialVersionUID = 2882496521084143121L;
 
-	public static enum Source {
+    public LocationFacet() {}
+
+    public LocationFacet(final long apiKeyId) {
+        super(apiKeyId);
+    }
+
+    public static enum Source {
 		OTHER, USER, GOOGLE_LATITUDE, GEO_IP_DB, IP_TO_LOCATION, OPEN_PATH, RUNKEEPER
 	}
 	

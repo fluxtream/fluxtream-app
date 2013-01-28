@@ -78,7 +78,7 @@ public class BodymediaStepFacetExtractor extends AbstractFacetExtractor
                 if(o instanceof JSONObject)
                 {
                     JSONObject day = (JSONObject) o;
-                    BodymediaStepsFacet steps = new BodymediaStepsFacet();
+                    BodymediaStepsFacet steps = new BodymediaStepsFacet(apiData.updateInfo.apiKey.getId());
                     super.extractCommonFacetData(steps, apiData);
                     steps.totalSteps = day.getInt("totalSteps");
                     steps.date = day.getString("date");

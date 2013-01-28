@@ -94,7 +94,7 @@ public class PicasaUpdater extends AbstractGoogleOAuthUpdater {
 
 		if (entries != null) {
 			for (PhotoEntry photoEntry : entries) {
-				PicasaPhotoFacet sentry = new PicasaPhotoFacet();
+				PicasaPhotoFacet sentry = new PicasaPhotoFacet(updateInfo.apiKey.getId());
 				sentry.comment = photoEntry.getDescription().getPlainText();
 				sentry.photoId = photoEntry.getId();
 				List<MediaThumbnail> mediaThumbnails = photoEntry

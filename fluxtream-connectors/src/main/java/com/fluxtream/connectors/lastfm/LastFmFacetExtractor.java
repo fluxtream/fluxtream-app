@@ -55,7 +55,7 @@ public class LastFmFacetExtractor extends AbstractFacetExtractor {
 		int ntracks = tracks.size();
 
 		for (int i = 0; i < ntracks; i++) {
-			LastFmRecentTrackFacet facet = new LastFmRecentTrackFacet();
+			LastFmRecentTrackFacet facet = new LastFmRecentTrackFacet(apiData.updateInfo.apiKey.getId());
 
 			super.extractCommonFacetData(facet, apiData);
 
@@ -124,7 +124,7 @@ public class LastFmFacetExtractor extends AbstractFacetExtractor {
 		int ntracks = tracks.size();
 
 		for (int i = 0; i < ntracks; i++) {
-			LastFmLovedTrackFacet facet = new LastFmLovedTrackFacet();
+			LastFmLovedTrackFacet facet = new LastFmLovedTrackFacet(apiData.updateInfo.apiKey.getId());
 
 			super.extractCommonFacetData(facet, apiData);
 

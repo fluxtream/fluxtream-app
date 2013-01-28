@@ -17,6 +17,14 @@ public class QuantifiedMindTestFacet extends AbstractFacet {
     public long session_timestamp;
     public double result_value;
 
+    public QuantifiedMindTestFacet() {
+        super();
+    }
+
+    public QuantifiedMindTestFacet(final long apiKeyId) {
+        super(apiKeyId);
+    }
+
     @Override
     protected void makeFullTextIndexable() {
         this.fullTextDescription = (new StringBuilder(test_name).append(" ").append(result_name)).toString();

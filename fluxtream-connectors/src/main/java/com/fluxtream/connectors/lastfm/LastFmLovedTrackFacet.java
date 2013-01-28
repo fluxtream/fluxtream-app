@@ -27,8 +27,10 @@ public class LastFmLovedTrackFacet extends AbstractFacet {
     @Lob
     String imgUrls;
     long time;
-    
-	public LastFmLovedTrackFacet() {}
+
+    public LastFmLovedTrackFacet() { super(); }
+
+	public LastFmLovedTrackFacet(long apiKeyId) { super(apiKeyId); }
 	
 	@Override
 	protected void makeFullTextIndexable() {

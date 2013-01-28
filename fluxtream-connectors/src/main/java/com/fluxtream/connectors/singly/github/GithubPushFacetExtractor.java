@@ -3,7 +3,6 @@ package com.fluxtream.connectors.singly.github;
 import java.util.ArrayList;
 import java.util.List;
 import com.fluxtream.ApiData;
-import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
@@ -40,7 +39,7 @@ public class GithubPushFacetExtractor extends AbstractFacetExtractor {
             JSONObject eventData = eventJson.getJSONObject("data");
             if (eventData==null) continue;
             if (eventData.getString("type").equals("DataReceivedEvent")) {
-                GithubPushFacet facet = new GithubPushFacet();
+                GithubPushFacet facet = new GithubPushFacet(apiData.updateInfo.apiKey.getId());
 
                 JSONObject payload = eventData.getJSONObject("payload");
 
