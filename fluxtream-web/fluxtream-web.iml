@@ -18,6 +18,11 @@
         <webroots>
           <root url="file://$MODULE_DIR$/src/main/webapp" relative="/" />
         </webroots>
+        <sourceRoots>
+          <root url="file://$MODULE_DIR$/target/generated-sources/annotations" />
+          <root url="file://$MODULE_DIR$/src/main/java" />
+          <root url="file://$MODULE_DIR$/src/main/resources" />
+        </sourceRoots>
       </configuration>
     </facet>
     <facet type="javaeeApplication" name="javaEEApplication">
@@ -36,9 +41,7 @@
       <sourceFolder url="file://$MODULE_DIR$/target/generated-test-sources/test-annotations" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/java" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/resources" isTestSource="false" />
-      <excludeFolder url="file://$MODULE_DIR$/target/ROOT" />
       <excludeFolder url="file://$MODULE_DIR$/target/classes" />
-      <excludeFolder url="file://$MODULE_DIR$/target/maven-archiver" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="inheritedJdk" />
@@ -51,6 +54,8 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="Maven: javax.activation:activation:1.0.2" level="project" />
+    <orderEntry type="library" name="Maven: com.luckycatlabs.sotoo:SunriseSunsetCalculator:1.0-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: javax.activation:activation:1.0.2" level="project" />
     <orderEntry type="library" name="Maven: com.luckycatlabs.sotoo:SunriseSunsetCalculator:1.0-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: com.newrelic:newrelic-api:2.7.0" level="project" />

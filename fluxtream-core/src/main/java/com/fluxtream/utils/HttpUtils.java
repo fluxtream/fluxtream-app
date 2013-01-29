@@ -10,6 +10,7 @@ import java.util.Map.Entry;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
@@ -18,6 +19,7 @@ import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -122,6 +124,55 @@ public class HttpUtils {
         }.start();
     }
 
+    public static String fetch(final String url, final String body) throws IOException {
+        return fetch(url, body, null, -1);
+    }
+
+    public static String fetch(final String url, String body, String proxyHost, int proxyPort) throws IOException {
+        DefaultHttpClient client = new DefaultHttpClient();
+        if (proxyHost!=null)
+            setProxy(client, proxyHost, proxyPort);
+        String content = null;
+        try {
+            HttpPost post = new HttpPost(url);
+            if (body!=null)
+                post.setEntity(new StringEntity(body));
+            HttpResponse response = client.execute(post);
+
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                ResponseHandler<String> responseHandler = new BasicResponseHandler();
+                content = responseHandler.handleResponse(response);
+            }
+            else {
+                throw new RuntimeException(response.getStatusLine().toString());
+            }
+        }
+        finally {
+            client.getConnectionManager().shutdown();
+        }
+        return content;
+    }
+
+    public static void postAsync(final String url, final String body) {
+        new Thread() {
+            public void run() {
+                DefaultHttpClient client = new DefaultHttpClient();
+                try {
+                    HttpPost post = new HttpPost(url);
+                    if (body!=null)
+                        post.setEntity(new StringEntity(body));
+                    client.execute(post);
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
+                finally {
+                    client.getConnectionManager().shutdown();
+                }
+            }
+        }.start();
+    }
+
     private static <T> T fetch(final String url, final ResponseHandler<T> responseHandler) throws IOException {
         HttpClient client = new DefaultHttpClient();
 
@@ -142,6 +193,11 @@ public class HttpUtils {
             client.getConnectionManager().shutdown();
         }
         return content;
+    }
+
+    public static void setProxy(final DefaultHttpClient client, String proxyHost, int proxyPort) {
+        HttpHost proxy = new HttpHost(proxyHost, proxyPort);
+        client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
     }
 
 }
