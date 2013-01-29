@@ -8,7 +8,7 @@
                 <div class="carousel-inner">
                     {{#photos}}
                     <div id="photo-{{id}}" style="text-align:center;" class="item{{#active}} active{{/active}}" style="overflow:none">
-                        <img style="display:inline-block" src="{{photoUrl}}">
+                        <img style="display:inline-block" src="{{photoUrl}}{{imageURL}}">
                     </div>
                     {{/photos}}
                 </div>
@@ -30,7 +30,7 @@
     </div>
     <div class='thumbnailGroup'>
         {{#photos}}
-        <img id="photo-{{id}}" src="{{photoUrl}}" class="photoThumbnail">
+        <img id="photo-{{id}}" src="{{photoUrl}}{{imageURL}}" class="photoThumbnail">
         {{/photos}}
     </div>
 </template>

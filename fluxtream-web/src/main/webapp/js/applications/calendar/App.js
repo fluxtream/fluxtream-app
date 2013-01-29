@@ -256,6 +256,31 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     return shouldFacetsGroup(this,facet);
                 };
             });
+            digest.cachedData[connectorId].hasImages = false;
+            switch (connectorId){
+                case "picasa-photo":
+                case "flickr-photo":
+                    digest.cachedData[connectorId].hasImages = true;
+                    break;
+                case "mymee-observation":
+                    for (var i = 0; i < digest.cachedData[connectorId].length && !digest.cachedData[connectorId].hasImages; i++){
+                        digest.cachedData[connectorId].hasImages = digest.cachedData[connectorId][i].imageURL != null;
+                    }
+                    break;
+            }
+            if (digest.cachedData[connectorId].hasImages){
+                for (var i = 0; i < digest.cachedData[connectorId].length; i++){
+                    switch (connectorId){
+                        case "picasa-photo":
+                        case "flickr-photo":
+                            digest.cachedData[connectorId][i].hasImage = true;
+                            break;
+                        case "mymee-observation":
+                            digest.cachedData[connectorId][i].hasImage = digest.cachedData[connectorId][i].imageURL != null;
+                            break;
+                    }
+                }
+            }
         }
 
         for (var addressType in digest.addresses){
