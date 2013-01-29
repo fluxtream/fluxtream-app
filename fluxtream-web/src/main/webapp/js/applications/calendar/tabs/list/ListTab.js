@@ -68,7 +68,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
                 }
             }
 
-            photoCarouselHTML = PhotoUtils.getCarouselHTML(digest);
+            photoCarouselHTML = PhotoUtils.getCarouselHTML(digest,["picasa-photo","flickr-photo","mymee-observation"]);
 
 
             rebuildPagination();
@@ -204,7 +204,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
         }
         if (list.children().length == 0)
             list.append("Sorry, no data to show.");
-        var photos = $(".flx-box.picasa-photo img");
+        var photos = $(".flx-box.picasa-photo img, .flx-box.mymee-observation img");
         for (var i = 0; i < photos.length; i++){
             $(photos[i]).click({i:i}, function(event){
                 App.makeModal(photoCarouselHTML);

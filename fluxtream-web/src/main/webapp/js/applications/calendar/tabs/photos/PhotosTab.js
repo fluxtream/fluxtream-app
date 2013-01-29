@@ -30,15 +30,16 @@ define(["core/Tab",
 
     function setup(digest, cEn){
         $("#photoTab").empty();
-        if (digest.cachedData["picasa-photo"] == null &&
-            digest.cachedData["flickr-photo"] == null){
-            showNoPhotos();
-            return;
+        var noPhotos = true;
+        for (var connectorName in digest.cachedData){
+            if (digest.cachedData[connectorName].hasImages){
+                noPhotos = false;
+                onDataReceived(digest.cachedData[connectorName]);
+            }
         }
-        if (digest.cachedData["picasa-photo"]!=null)
-            onDataReceived(digest.cachedData["picasa-photo"]);
-        else if (digest.cachedData["flickr-photo"]!=null)
-            onDataReceived(digest.cachedData["flickr-photo"]);
+        if (noPhotos){
+            showNoPhotos();
+        }
     }
 
     function showNoPhotos(){
@@ -50,6 +51,8 @@ define(["core/Tab",
         var data = [];
         $("#photoTab").empty();
         for (var i = 0; i < photos.length; i++){
+            if (!photos[i].hasImage)
+                continue;
             for (var j = 0; j < digest.selectedConnectors.length; j++){
                 var found = false;
                 for (var k = 0; !found &&  k < digest.selectedConnectors[j].facetTypes.length; k++){
