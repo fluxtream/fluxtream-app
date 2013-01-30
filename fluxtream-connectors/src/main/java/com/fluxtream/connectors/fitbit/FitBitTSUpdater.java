@@ -127,10 +127,16 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                 activityOT, "steps");
         loadTimeSeries("activities/tracker/distance", updateInfo.apiKey,
                 activityOT, "totalDistance");
-        loadTimeSeries("activities/tracker/floors", updateInfo.apiKey,
-                activityOT, "floors");
-        loadTimeSeries("activities/tracker/elevation", updateInfo.apiKey,
-                activityOT, "elevation");
+
+        // The floors and elevation APIs report 400 errors if called on
+        // an account which has never been bound to a Fitbit device which
+        // has an altimeter, such as the Fitbit Ultra.  For now, disable
+        // reading these APIs.  In the future, perhaps check the device
+        // type and conditionally call these APIs.
+        //loadTimeSeries("activities/tracker/floors", updateInfo.apiKey,
+        //        activityOT, "floors");
+        //loadTimeSeries("activities/tracker/elevation", updateInfo.apiKey,
+        //        activityOT, "elevation");
         loadTimeSeries("activities/tracker/minutesSedentary",
                 updateInfo.apiKey, activityOT, "sedentaryMinutes");
         loadTimeSeries("activities/tracker/minutesLightlyActive",

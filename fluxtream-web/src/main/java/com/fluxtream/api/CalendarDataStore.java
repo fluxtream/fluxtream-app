@@ -251,6 +251,7 @@ public class CalendarDataStore {
             Calendar c = Calendar.getInstance();
             c.set(Calendar.YEAR,year);
             c.set(Calendar.MONTH,month - 1);
+            c.set(Calendar.DAY_OF_MONTH,1);
             int endDayNum = c.getActualMaximum(Calendar.DAY_OF_MONTH);
 
             isLeapYear(year);
