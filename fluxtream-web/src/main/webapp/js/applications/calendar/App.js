@@ -151,7 +151,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         document.title = "Fluxtream Calendar | " + $("#currentTimespanLabel").text().trim() + " (" + Calendar.currentTabName + ")";
     }
 
-	Calendar.renderState = function(state) {
+	Calendar.renderState = function(state, forceUpdate) {
         if (typeof state == "string")
             state = Calendar.parseState(state);
         if (!Calendar.timespanInited) {
@@ -172,6 +172,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         if (tabChanged) {
             setDocumentTitle();
 			Builder.updateTab(Calendar.digest, Calendar);
+            if (forceUpdate)
+                fetchCalendar(state)
 		} else {
             updateDisplays(state);
             updateDatepicker(state);
