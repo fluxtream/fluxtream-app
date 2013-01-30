@@ -44,6 +44,16 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
                                 }
                             }
                         }
+                        var rows = $("#connectorInfoTable tr");
+                        for (var i = 0; i < rows.length; i++){
+                            var found = false;
+                            for (var j = 0; !found && j < data.length; j++){
+                                found = rows[i].id == "connector-" + data[j].connectorName;
+                            }
+                            if (!found){
+                                $(rows[i]).remove();
+                            }
+                        }
                         bindDialog();
                     });
                 });
