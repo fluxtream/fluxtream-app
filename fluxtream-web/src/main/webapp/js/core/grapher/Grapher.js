@@ -1649,7 +1649,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
             // Create y-axes
             yAxes = view["v2"]["y_axes"];
             l = yAxes.length;
-            for (i = 0; i < l; i++) {
+            for (i = l - 1; i >= 0; i--) {
 
                 // Update min_time, max_time for each channel with latest from
                 // SOURCES if available
