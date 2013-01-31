@@ -87,7 +87,7 @@ public class LocationFacet extends AbstractFacet implements Comparable<LocationF
      * e.g. a runkeeper run or bike ride
      */
     @Index(name = "uri")
-    public String uri;
+    //public String uri;
 
 	public boolean equals(Object o) {
 		if (!(o instanceof LocationFacet))
