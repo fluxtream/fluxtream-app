@@ -11,6 +11,7 @@ define(["core/Tab",
     function render(params) {
         params.setTabParam(null);
         this.getTemplate("text!applications/calendar/tabs/photos/photos.html", "photos", function() {
+            $(window).resize(); //masonry reorganizes pictures when the window is resized and some tabs can braek the layout, this fixes it
             if (params.calendarState == oldState)
                 return;
             else
@@ -18,6 +19,7 @@ define(["core/Tab",
             digest = params.digest;
             connectorEnabled = params.connectorEnabled;
             setup(digest,connectorEnabled);
+
         });
     }
 
