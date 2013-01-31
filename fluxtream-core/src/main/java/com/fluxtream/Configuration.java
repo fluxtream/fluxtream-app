@@ -5,7 +5,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
-
+import com.fluxtream.utils.DesEncrypter;
+import com.google.api.client.http.LowLevelHttpRequest;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang.WordUtils;
@@ -13,10 +14,6 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.stereotype.Component;
-
-import com.fluxtream.utils.DesEncrypter;
-import com.google.api.client.http.LowLevelHttpRequest;
 
 public class Configuration implements InitializingBean {
 
@@ -103,16 +100,17 @@ public class Configuration implements InitializingBean {
         if (property==null)
             property = getAsString(targetEnvironmentProps, key);
         if (property==null)
-            property = getAsString(oauth, key);;
+            property = getAsString(oauth, key);
         if (property==null)
-            property = getAsString(connectors, key);;
+            property = getAsString(connectors, key);
         if (property==null)
-            property = getAsString(bodytrackProperties, key);;
+            property = getAsString(bodytrackProperties, key);
         if (property!=null) return property.trim();
         return property;
     }
 
     private String getAsString(PropertiesConfiguration properties, String key) {
+        if (properties==null) return null;
         final Object property = properties.getProperty(key);
         if (property==null)
             return null;

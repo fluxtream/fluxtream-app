@@ -1,21 +1,19 @@
 package com.fluxtream.services.impl;
 
 import java.util.List;
-
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
-
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
+import javax.persistence.TypedQuery;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.services.JPADaoService;
 import com.fluxtream.utils.JPAUtils;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Transactional(readOnly = true)
 @Service
@@ -40,6 +38,18 @@ public class JPADaoServiceImpl implements JPADaoService {
 		return JPAUtils.find(em, clazz, queryName, firstResult, maxResults,
 				params);
 	}
+
+    @Override
+    public <T> List<T> executeQuery(String queryString, Class<T> clazz, Object... params) {
+        TypedQuery<T> query = em.createQuery(queryString, clazz);
+        int i=1;
+        if (params!=null) {
+            for (Object param : params) {
+                query.setParameter(i++, param);
+            }
+        }
+        return query.getResultList();
+    }
 
 	@Override
 	public long countFacets(Connector connector, long guestId) {

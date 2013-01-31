@@ -68,7 +68,7 @@
     border-top: 3px solid #D1D2D3;
 }
 
-._timeline_addChannelsArea ul li {
+._timeline_addChannelsArea > ul > li {
     width: 100%;
 }
 
@@ -451,6 +451,66 @@
 
 ._timeline_photo_dialog_next_button {
     margin:140px 0 0 10px;
+}
+
+._timeline_photo_dialog_image_orientation_1 {
+    /* No transform required */
+}
+
+._timeline_photo_dialog_image_orientation_2 {
+    transform: scale(-1, 1);
+    -ms-transform: scale(-1, 1); /* IE 9 */
+    -webkit-transform: scale(-1, 1); /* Safari and Chrome */
+    -o-transform: scale(-1, 1); /* Opera */
+    -moz-transform: scale(-1, 1); /* Firefox */
+}
+
+._timeline_photo_dialog_image_orientation_3 {
+    transform: scale(-1, -1);
+    -ms-transform: scale(-1, -1); /* IE 9 */
+    -webkit-transform: scale(-1, -1); /* Safari and Chrome */
+    -o-transform: scale(-1, -1); /* Opera */
+    -moz-transform: scale(-1, -1); /* Firefox */
+}
+
+._timeline_photo_dialog_image_orientation_4 {
+    transform: rotate(180deg) scale(-1, 1);
+    -ms-transform: rotate(180deg) scale(-1, 1); /* IE 9 */
+    -webkit-transform: rotate(180deg) scale(-1, 1); /* Safari and Chrome */
+    -o-transform: rotate(180deg) scale(-1, 1); /* Opera */
+    -moz-transform: rotate(180deg) scale(-1, 1); /* Firefox */
+}
+
+._timeline_photo_dialog_image_orientation_5 {
+    transform: rotate(-90deg) scale(-1, 1);
+    -ms-transform: rotate(-90deg) scale(-1, 1); /* IE 9 */
+    -webkit-transform: rotate(-90deg) scale(-1, 1); /* Safari and Chrome */
+    -o-transform: rotate(-90deg) scale(-1, 1); /* Opera */
+    -moz-transform: rotate(-90deg) scale(-1, 1); /* Firefox */
+}
+
+._timeline_photo_dialog_image_orientation_6 {
+    transform: rotate(90deg);
+    -ms-transform: rotate(90deg); /* IE 9 */
+    -webkit-transform: rotate(90deg); /* Safari and Chrome */
+    -o-transform: rotate(90deg); /* Opera */
+    -moz-transform: rotate(90deg); /* Firefox */
+}
+
+._timeline_photo_dialog_image_orientation_7 {
+    transform: scale(-1, 1) rotate(-90deg);
+    -ms-transform: scale(-1, 1) rotate(-90deg); /* IE 9 */
+    -webkit-transform: scale(-1, 1) rotate(-90deg); /* Safari and Chrome */
+    -o-transform: scale(-1, 1) rotate(-90deg); /* Opera */
+    -moz-transform: scale(-1, 1) rotate(-90deg); /* Firefox */
+}
+
+._timeline_photo_dialog_image_orientation_8 {
+    transform: rotate(-90deg);
+    -ms-transform: rotate(-90deg); /* IE 9 */
+    -webkit-transform: rotate(-90deg); /* Safari and Chrome */
+    -o-transform: rotate(-90deg); /* Opera */
+    -moz-transform: rotate(-90deg); /* Firefox */
 }
 
 ._timeline_left_arrow{

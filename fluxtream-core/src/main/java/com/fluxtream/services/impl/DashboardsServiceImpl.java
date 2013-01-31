@@ -1,7 +1,6 @@
 package com.fluxtream.services.impl;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import javax.persistence.EntityManager;
@@ -40,7 +39,7 @@ public class DashboardsServiceImpl implements DashboardsService {
     @Autowired
     Configuration env;
 
-    @Autowired
+    @Autowired(required=false)
     @Qualifier("widgets")
     PropertiesConfiguration widgetProperties;
 

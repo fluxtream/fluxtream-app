@@ -6,6 +6,9 @@ import java.security.NoSuchAlgorithmException;
 import com.drew.imaging.ImageProcessingException;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.Geolocation;
+import com.fluxtream.images.Image;
+import com.fluxtream.images.ImageOrientation;
+import com.fluxtream.images.ImageType;
 import com.fluxtream.utils.HashUtils;
 import com.fluxtream.utils.ImageUtils;
 import org.apache.log4j.Logger;
@@ -20,18 +23,16 @@ import org.joda.time.DateTimeZone;
 public final class FluxtreamCapturePhoto {
     private static final Logger LOG = Logger.getLogger(FluxtreamCapturePhoto.class);
 
-    private static final int THUMBNAIL_SMALL_MAX_SIDE_LENGTH_IN_PIXELS = 150;
-    private static final int THUMBNAIL_LARGE_MAX_SIDE_LENGTH_IN_PIXELS = 300;
+    private static final int THUMBNAIL_0_MAX_SIDE_LENGTH_IN_PIXELS = 150;
+    private static final int THUMBNAIL_1_MAX_SIDE_LENGTH_IN_PIXELS = 300;
+    private static final int THUMBNAIL_2_MAX_SIDE_LENGTH_IN_PIXELS = 500;
     private static final String KEY_VALUE_STORE_KEY_PART_DELIMITER = ".";
     private static final String KEY_VALUE_STORE_FILENAME_PART_DELIMITER = "_";
     private static final String CONNECTOR_PRETTY_NAME = Connector.getConnector(FluxtreamCaptureUpdater.CONNECTOR_NAME).prettyName();
     private static final String OBJECT_TYPE_NAME = "photo";
 
     @NotNull
-    public static String createPhotoStoreKey(final long guestId,
-                                             @NotNull final String captureYYYYDDD,
-                                             final long captureTimeMillisUtc,
-                                             @NotNull final String photoHash) {
+    public static String createPhotoStoreKey(final long guestId, @NotNull final String captureYYYYDDD, final long captureTimeMillisUtc, @NotNull final String photoHash) {
         return guestId + KEY_VALUE_STORE_KEY_PART_DELIMITER +
                CONNECTOR_PRETTY_NAME + KEY_VALUE_STORE_KEY_PART_DELIMITER +
                OBJECT_TYPE_NAME + KEY_VALUE_STORE_KEY_PART_DELIMITER +
@@ -57,28 +58,40 @@ public final class FluxtreamCapturePhoto {
     private final String photoStoreKey;
 
     @NotNull
-    private final byte[] thumbnailSmall;
+    private final byte[] thumbnail0;
 
     @NotNull
-    private final byte[] thumbnailLarge;
+    private final byte[] thumbnail1;
 
     @NotNull
-    private final Dimension thumbnailSmallSize;
+    private final byte[] thumbnail2;
 
     @NotNull
-    private final Dimension thumbnailLargeSize;
+    private final Dimension thumbnail0Size;
 
     @NotNull
-    private final ImageUtils.Orientation orientation;
+    private final Dimension thumbnail1Size;
+
+    @NotNull
+    private final Dimension thumbnail2Size;
+
+    @NotNull
+    private final ImageOrientation orientation;
+
+    @NotNull
+    private final ImageType imageType;
 
     @Nullable
     private final Geolocation geolocation;
 
     FluxtreamCapturePhoto(final long guestId, @NotNull final byte[] photoBytes, final long captureTimeMillisUtc) throws IllegalArgumentException, NoSuchAlgorithmException, IOException, FluxtreamCapturePhotoStore.UnsupportedImageFormatException {
 
-        if (!ImageUtils.isSupportedImage(photoBytes)) {
+        // Get the image type.  If this is null, then it's not a supported type.
+        final ImageType tempImageType = ImageUtils.getImageType(photoBytes);
+        if (tempImageType == null) {
             throw new FluxtreamCapturePhotoStore.UnsupportedImageFormatException("The photoBytes do not contain a supported image format");
         }
+        imageType = tempImageType;
 
         if (captureTimeMillisUtc < 0) {
             throw new IllegalArgumentException("The captureTimeMillisUtc must be non-negative");
@@ -95,26 +108,33 @@ public final class FluxtreamCapturePhoto {
         this.photoHash = HashUtils.computeSha256Hash(photoBytes);
         photoStoreKey = createPhotoStoreKey(guestId, captureYYYYDDD, captureTimeMillisUtc, photoHash);
 
-        // Create the thumbnails: do so by creating the large one first, and then creating the smaller
-        // one from the larger--this should be faster than creating each from the original image
-        final ImageUtils.Thumbnail thumbnailLargeImage = ImageUtils.createJpegThumbnail(photoBytes, THUMBNAIL_LARGE_MAX_SIDE_LENGTH_IN_PIXELS);
-        if (thumbnailLargeImage == null) {
+        // Create the thumbnails: do so by creating the largest one first, and then creating the smaller
+        // ones from the larger--this should be faster than creating each from the original image
+        final Image thumbnail2Image = ImageUtils.createJpegThumbnail(photoBytes, THUMBNAIL_2_MAX_SIDE_LENGTH_IN_PIXELS);
+        if (thumbnail2Image == null) {
             throw new IOException("Failed to create thumbnails");
         }
 
-        final ImageUtils.Thumbnail thumbnailSmallImage = ImageUtils.createJpegThumbnail(thumbnailLargeImage.getBytes(), THUMBNAIL_SMALL_MAX_SIDE_LENGTH_IN_PIXELS);
-        if (thumbnailSmallImage == null) {
+        final Image thumbnail1Image = ImageUtils.createJpegThumbnail(thumbnail2Image.getBytes(), THUMBNAIL_1_MAX_SIDE_LENGTH_IN_PIXELS);
+        if (thumbnail1Image == null) {
             throw new IOException("Failed to create thumbnails");
         }
 
-        thumbnailSmall = thumbnailSmallImage.getBytes();
-        thumbnailLarge = thumbnailLargeImage.getBytes();
+        final Image thumbnail0Image = ImageUtils.createJpegThumbnail(thumbnail1Image.getBytes(), THUMBNAIL_0_MAX_SIDE_LENGTH_IN_PIXELS);
+        if (thumbnail0Image == null) {
+            throw new IOException("Failed to create thumbnails");
+        }
 
-        thumbnailSmallSize = new Dimension(thumbnailSmallImage.getWidth(), thumbnailSmallImage.getHeight());
-        thumbnailLargeSize = new Dimension(thumbnailLargeImage.getWidth(), thumbnailLargeImage.getHeight());
+        thumbnail0 = thumbnail0Image.getBytes();
+        thumbnail1 = thumbnail1Image.getBytes();
+        thumbnail2 = thumbnail2Image.getBytes();
+
+        thumbnail0Size = new Dimension(thumbnail0Image.getWidth(), thumbnail0Image.getHeight());
+        thumbnail1Size = new Dimension(thumbnail1Image.getWidth(), thumbnail1Image.getHeight());
+        thumbnail2Size = new Dimension(thumbnail2Image.getWidth(), thumbnail2Image.getHeight());
 
         // get the image orientation, and default to ORIENTATION_1 if unspecified
-        ImageUtils.Orientation orientationTemp;
+        ImageOrientation orientationTemp;
         try {
             orientationTemp = ImageUtils.getOrientation(photoBytes);
         }
@@ -122,7 +142,7 @@ public final class FluxtreamCapturePhoto {
             LOG.error("Exception while trying to read the orientation data for user [" + guestId + "] photo [" + photoStoreKey + "]");
             orientationTemp = null;
         }
-        orientation = (orientationTemp == null) ? ImageUtils.Orientation.ORIENTATION_1 : orientationTemp;
+        orientation = (orientationTemp == null) ? ImageOrientation.ORIENTATION_1 : orientationTemp;
 
         Geolocation geolocationTemp;
         try {
@@ -164,28 +184,43 @@ public final class FluxtreamCapturePhoto {
     }
 
     @NotNull
-    public byte[] getThumbnailSmall() {
-        return thumbnailSmall;
+    public byte[] getThumbnail0() {
+        return thumbnail0;
     }
 
     @NotNull
-    public byte[] getThumbnailLarge() {
-        return thumbnailLarge;
+    public byte[] getThumbnail1() {
+        return thumbnail1;
     }
 
     @NotNull
-    public Dimension getThumbnailSmallSize() {
-        return thumbnailSmallSize;
+    public byte[] getThumbnail2() {
+        return thumbnail2;
     }
 
     @NotNull
-    public Dimension getThumbnailLargeSize() {
-        return thumbnailLargeSize;
+    public Dimension getThumbnail0Size() {
+        return thumbnail0Size;
     }
 
     @NotNull
-    public ImageUtils.Orientation getOrientation() {
+    public Dimension getThumbnail1Size() {
+        return thumbnail1Size;
+    }
+
+    @NotNull
+    public Dimension getThumbnail2Size() {
+        return thumbnail2Size;
+    }
+
+    @NotNull
+    public ImageOrientation getOrientation() {
         return orientation;
+    }
+
+    @NotNull
+    public ImageType getImageType() {
+        return imageType;
     }
 
     @Nullable

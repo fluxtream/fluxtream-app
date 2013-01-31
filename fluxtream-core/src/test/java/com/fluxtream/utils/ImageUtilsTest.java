@@ -2,12 +2,11 @@ package com.fluxtream.utils;
 
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import com.drew.imaging.ImageProcessingException;
-import com.drew.metadata.Metadata;
 import com.fluxtream.domain.Geolocation;
+import com.fluxtream.images.Image;
+import com.fluxtream.images.ImageType;
 import junit.framework.Assert;
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
@@ -93,7 +92,7 @@ public class ImageUtilsTest {
     }
 
     private void testCreateThumbnailHelper(@NotNull final byte[] imageBytes, final int lengthOfLongestSideInPixels, @NotNull final Dimension expectedDimension) throws IOException {
-        final ImageUtils.Thumbnail thumbnail = ImageUtils.createJpegThumbnail(imageBytes, lengthOfLongestSideInPixels);
+        final Image thumbnail = ImageUtils.createJpegThumbnail(imageBytes, lengthOfLongestSideInPixels);
         Assert.assertNotNull(thumbnail);
         Assert.assertEquals(expectedDimension, new Dimension(thumbnail.getWidth(), thumbnail.getHeight()));
     }
@@ -127,41 +126,6 @@ public class ImageUtilsTest {
         if (image5 != null) {
             Assert.assertNotNull(ImageUtils.convertToJpegByteArray(image5));
         }
-    }
-
-    @Test
-    public void testFindOrientationById() throws Exception {
-        Assert.assertNull(ImageUtils.Orientation.findById(0));
-        Assert.assertNull(ImageUtils.Orientation.findById(-1));
-        Assert.assertNull(ImageUtils.Orientation.findById(9));
-        Assert.assertEquals(ImageUtils.Orientation.ORIENTATION_1, ImageUtils.Orientation.findById(1));
-        Assert.assertEquals(ImageUtils.Orientation.ORIENTATION_2, ImageUtils.Orientation.findById(2));
-        Assert.assertEquals(ImageUtils.Orientation.ORIENTATION_3, ImageUtils.Orientation.findById(3));
-        Assert.assertEquals(ImageUtils.Orientation.ORIENTATION_4, ImageUtils.Orientation.findById(4));
-        Assert.assertEquals(ImageUtils.Orientation.ORIENTATION_5, ImageUtils.Orientation.findById(5));
-        Assert.assertEquals(ImageUtils.Orientation.ORIENTATION_6, ImageUtils.Orientation.findById(6));
-        Assert.assertEquals(ImageUtils.Orientation.ORIENTATION_7, ImageUtils.Orientation.findById(7));
-        Assert.assertEquals(ImageUtils.Orientation.ORIENTATION_8, ImageUtils.Orientation.findById(8));
-    }
-
-    @Test
-    public void testGetOrientation() {
-        Assert.assertNull(ImageUtils.Orientation.getOrientation((Metadata)null));
-        Assert.assertNull(ImageUtils.Orientation.getOrientation((InputStream)null));
-        Assert.assertNull(ImageUtils.Orientation.getOrientation(new ByteArrayInputStream(NOT_AN_IMAGE)));
-        Assert.assertNull(ImageUtils.Orientation.getOrientation(HashUtilsTest.class.getResourceAsStream("/images/test_image1.jpg")));
-        Assert.assertEquals(ImageUtils.Orientation.ORIENTATION_6, ImageUtils.Orientation.getOrientation(HashUtilsTest.class.getResourceAsStream("/images/test_image2.jpg")));
-        Assert.assertNull(ImageUtils.Orientation.getOrientation(HashUtilsTest.class.getResourceAsStream("/images/test_image3.png")));
-        Assert.assertNull(ImageUtils.Orientation.getOrientation(HashUtilsTest.class.getResourceAsStream("/images/test_image4.gif")));
-        Assert.assertEquals(ImageUtils.Orientation.ORIENTATION_1, ImageUtils.Orientation.getOrientation(HashUtilsTest.class.getResourceAsStream("/images/test_image5.tiff")));
-        Assert.assertEquals(ImageUtils.Orientation.ORIENTATION_1, ImageUtils.Orientation.getOrientation(HashUtilsTest.class.getResourceAsStream("/images/orientation/orientation_1.jpg")));
-        Assert.assertEquals(ImageUtils.Orientation.ORIENTATION_2, ImageUtils.Orientation.getOrientation(HashUtilsTest.class.getResourceAsStream("/images/orientation/orientation_2.jpg")));
-        Assert.assertEquals(ImageUtils.Orientation.ORIENTATION_3, ImageUtils.Orientation.getOrientation(HashUtilsTest.class.getResourceAsStream("/images/orientation/orientation_3.jpg")));
-        Assert.assertEquals(ImageUtils.Orientation.ORIENTATION_4, ImageUtils.Orientation.getOrientation(HashUtilsTest.class.getResourceAsStream("/images/orientation/orientation_4.jpg")));
-        Assert.assertEquals(ImageUtils.Orientation.ORIENTATION_5, ImageUtils.Orientation.getOrientation(HashUtilsTest.class.getResourceAsStream("/images/orientation/orientation_5.jpg")));
-        Assert.assertEquals(ImageUtils.Orientation.ORIENTATION_6, ImageUtils.Orientation.getOrientation(HashUtilsTest.class.getResourceAsStream("/images/orientation/orientation_6.jpg")));
-        Assert.assertEquals(ImageUtils.Orientation.ORIENTATION_7, ImageUtils.Orientation.getOrientation(HashUtilsTest.class.getResourceAsStream("/images/orientation/orientation_7.jpg")));
-        Assert.assertEquals(ImageUtils.Orientation.ORIENTATION_8, ImageUtils.Orientation.getOrientation(HashUtilsTest.class.getResourceAsStream("/images/orientation/orientation_8.jpg")));
     }
 
     @Test
@@ -246,12 +210,12 @@ public class ImageUtilsTest {
 
     @Test
     public void testGetImageType() throws IOException {
-        Assert.assertEquals(ImageUtils.ImageType.JPEG, ImageUtils.getImageType(IMAGE_1));
-        Assert.assertEquals(ImageUtils.ImageType.JPEG, ImageUtils.getImageType(IMAGE_2));
-        Assert.assertEquals(ImageUtils.ImageType.PNG, ImageUtils.getImageType(IMAGE_3));
-        Assert.assertEquals(ImageUtils.ImageType.GIF, ImageUtils.getImageType(IMAGE_4));
+        Assert.assertEquals(ImageType.JPEG, ImageUtils.getImageType(IMAGE_1));
+        Assert.assertEquals(ImageType.JPEG, ImageUtils.getImageType(IMAGE_2));
+        Assert.assertEquals(ImageType.PNG, ImageUtils.getImageType(IMAGE_3));
+        Assert.assertEquals(ImageType.GIF, ImageUtils.getImageType(IMAGE_4));
         Assert.assertNull(ImageUtils.getImageType(IMAGE_5));
-        Assert.assertEquals(ImageUtils.ImageType.JPEG, ImageUtils.getImageType(IMAGE_6));
+        Assert.assertEquals(ImageType.JPEG, ImageUtils.getImageType(IMAGE_6));
         Assert.assertNull(ImageUtils.getImageType(NOT_AN_IMAGE));
         Assert.assertNull(ImageUtils.getImageType((byte[])null));
         Assert.assertNull(ImageUtils.getImageType(new byte[]{}));

@@ -163,7 +163,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 },*/
                 receive     : function(event, ui) {	// received new channel to add
                     var i, l, c;
-                    var src = sourcesMap[dragSourceId];
+                    var src = grapher.sourcesMap[dragSourceId];
 
                     // Iterate through channels and call addChannel on
                     // entries with no id
@@ -382,7 +382,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
             });
 
             // Drag event handler for channels
-            App.loadMustacheTemplate("core/grapher/timelineTemplates.html","channelTemplate",function(template){
+            /*App.loadMustacheTemplate("core/grapher/timelineTemplates.html","channelTemplate",function(template){
                 $("#" + grapher.grapherId + "_timeline_addChannelsArea ul ._timeline_sources_channel").draggable({
                     connectToSortable : "#" + grapher.grapherId + "_timeline_channels",
                     revert: "invalid",
@@ -411,7 +411,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                         $(this).height("16px");
                     }
                 });
-            });
+            });*/
             $("#" + grapher.grapherId + "_timeline_addChannelsArea ul ._timeline_sources_channel").disableSelection();
 
             // Create new grapher widget if source receives a click
@@ -425,7 +425,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
             $("#" + grapher.grapherId + "_timeline_addChannelsArea #_timeline_sources_find_btn").click(function() {
                 $("#" + grapher.grapherId + "_timeline_addChannelsArea input[type=text]").val("");
 
-                addPaneRestoreState();
+                addPaneRestoreState(grapher);
                 return false;
             });
 
@@ -435,7 +435,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 var regexp = new RegExp(search_str, 'i');
 
                 if (search_str.length === 0) {
-                    addPaneRestoreState();
+                    addPaneRestoreState(grapher);
                     return;
                 }
 
@@ -482,11 +482,11 @@ define(["core/grapher/BTCore"], function(BTCore) {
         });
     } // getSources
 
-    function addPaneRestoreState() {
+    function addPaneRestoreState(grapher) {
         var i = 0;
         var l = addPaneChannelsState.length;
 
-        $("#_timeline_addChannelsArea #_timeline_sources_list ._timeline_sources_channel").each(function() {
+        $("#" + grapher.grapherId + "_timeline_addChannelsArea #_timeline_sources_list ._timeline_sources_channel").each(function() {
             $(this).show();
         });
 
@@ -1575,10 +1575,10 @@ define(["core/grapher/BTCore"], function(BTCore) {
             }
             $("#" + grapher.grapherId + "_timeline_save_view_btn").removeClass("disabled");
             $("#" + grapher.grapherId + "_timeline_add_channels_btn").unbind('click')
-                .click(function(){grapher.toggleAddChannelsPane()})
+                .click(function(){grapher.toggleAddChannelsPane(); return false;})
                 .removeClass("disabled");
             $("#" + grapher.grapherId + "_timeline_show_details_btn").unbind('click')
-                .click(function(){grapher.toggleDetailsPane()})
+                .click(function(){grapher.toggleDetailsPane(); return false;})
                 .removeClass("disabled");
 
             grapher.dateAxis.setRange(view["v2"]["x_axis"]["min"],
@@ -1606,10 +1606,10 @@ define(["core/grapher/BTCore"], function(BTCore) {
             // TODO: only enable this when the view has changed
             $("#" + grapher.grapherId + "_timeline_save_view_btn").removeClass("disabled");
             $("#" + grapher.grapherId + "_timeline_add_channels_btn").unbind('click')
-                .click(function(){grapher.toggleAddChannelsPane()})
+                .click(function(){grapher.toggleAddChannelsPane(); return false;})
                 .removeClass("disabled");
             $("#" + grapher.grapherId + "_timeline_show_details_btn").unbind('click')
-                .click(function(){grapher.toggleDetailsPane()})
+                .click(function(){grapher.toggleDetailsPane(); return false;})
                 .removeClass("disabled");
 
             // Show/hide add channels pane
@@ -1846,7 +1846,8 @@ define(["core/grapher/BTCore"], function(BTCore) {
                                             "timestamp"       : photo['end_d'],
                                             "timestampString" : photo['end'],
                                             "url"             : photo['url'],
-                                            "thumbnails"      : photo['thumbnails']
+                                            "thumbnails"      : photo['thumbnails'],
+                                            "orientation"     : photo['orientation']
                                         };
                                     });
 
@@ -2123,6 +2124,11 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     // This assumes the thumbnails are ordered from smallest to largest.  Might be better to eventually search for the largest.
                     var mediumResImageUrl = (thumbnails != null && thumbnails.length > 0) ? thumbnails[thumbnails.length - 1]['url'] : photoCache.getPhotoMetadata(photoId)['url'];
                     var highResImageUrl = photoCache.getPhotoMetadata(photoId)['url'];
+                    var photoOrientation = photoCache.getPhotoMetadata(photoId)['orientation'];
+                    if (typeof photoOrientation === 'undefined' || photoOrientation == null) {
+                        photoOrientation = 1;
+                    }
+                    var highResOrientationCssClass = "_timeline_photo_dialog_image_orientation_" + photoOrientation;
                     var photoDialogTemplate = App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_template");
                     var photoDialogHtml = photoDialogTemplate.render({"photoUrl" : mediumResImageUrl});
                     $("#" + grapher.grapherId + "_timeline_photo_dialog").html(photoDialogHtml);
@@ -2205,11 +2211,11 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     // add click handler for photo to allow viewing of high-res version
                     $("#_timeline_photo_dialog_image").click(function() {
                         var theImage = $(this);
-                        var imageAspectRatio = $(this).width() / $(this).height();
                         var formContainer = $("#_timeline_photo_dialog_form_container");
                         if ($("#_timeline_photo_dialog_form_container").is(":visible")) {
                             // fade out the form and show the hi-res version of the image
                             formContainer.fadeOut(100, function() {
+                                var imageAspectRatio = theImage.width() / theImage.height();
                                 var imageHeight = $("body").height() - 60;
                                 var imageWidth = imageAspectRatio * imageHeight;
 
@@ -2219,26 +2225,37 @@ define(["core/grapher/BTCore"], function(BTCore) {
                                     imageHeight = imageWidth / imageAspectRatio;
                                 }
 
-                                theImage.attr("src",highResImageUrl).height(imageHeight).width(imageWidth);
-                                $("._timeline_photo_dialog_photo_table").height(imageHeight).width(imageWidth);
+                                theImage.attr("src",highResImageUrl);
+                                if (photoOrientation <= 4) {
+                                    theImage.width(imageWidth).height(imageHeight);
+                                } else {
+                                    theImage.width(imageHeight).height(imageWidth);
+                                }
+                                theImage.removeClass("_timeline_photo_dialog_image_orientation_1");
+                                theImage.addClass(highResOrientationCssClass);
+                                $("._timeline_photo_dialog_photo_table").width(Math.max(imageHeight,imageWidth)).height(imageHeight);
                                 centerPhotoDialog(grapher);
                             });
                         } else {
                             // fade the form back in and show the medium-res version of the image
                             formContainer.fadeIn(100, function() {
+
+                                theImage.attr("src", mediumResImageUrl);
+
                                 var imageHeight = 300;
                                 var imageWidth = 300;
-
+                                var imageAspectRatio = (photoOrientation <= 4 ) ? theImage.width() / theImage.height() : theImage.height() / theImage.width();
                                 if (imageAspectRatio > 1) {
                                     imageHeight = Math.round(imageWidth / imageAspectRatio);
                                 } else {
                                     imageWidth = imageAspectRatio * imageHeight;
                                 }
 
-                                theImage.height(imageHeight).width(imageWidth);
-                                $("._timeline_photo_dialog_photo_table").height(300).width(300);
+                                theImage.width(imageWidth).height(imageHeight);
+                                $("._timeline_photo_dialog_photo_table").width(300).height(300);
                                 centerPhotoDialog(grapher);
-                                theImage.attr("src", mediumResImageUrl);
+                                theImage.removeClass(highResOrientationCssClass);
+                                theImage.addClass("_timeline_photo_dialog_image_orientation_1");
                             });
                         }
                     });
