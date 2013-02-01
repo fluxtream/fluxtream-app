@@ -331,7 +331,22 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                     clock : ClockConfig.BODY_CATEGORY
                 }
             }
-        }
+        },
+        fluxtream_capture:{
+                    filterLabel: "FluxtreamCap",
+                    color: "rgb(204, 204, 204)",
+                    mapicon: "http://maps.google.com/mapfiles/marker.png",
+                    mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
+                    facets: {
+                        photo:{
+                            list:true,
+                            photos: true,
+                            map: true,
+                            gps: false,
+                            clock: ClockConfig.SOCIAL_CATEGORY
+                        }
+                    }
+                }
     }
 
 });

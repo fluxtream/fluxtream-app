@@ -1649,7 +1649,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
             // Create y-axes
             yAxes = view["v2"]["y_axes"];
             l = yAxes.length;
-            for (i = 0; i < l; i++) {
+            for (i = l - 1; i >= 0; i--) {
 
                 // Update min_time, max_time for each channel with latest from
                 // SOURCES if available
@@ -1854,7 +1854,9 @@ define(["core/grapher/BTCore"], function(BTCore) {
                                     // mark the last photo as the end if we got fewer photos than we wanted
                                     if (photos.length < cache.NUM_PHOTOS_TO_FETCH) {
                                         console.log("PhotoDialogCache.__loadNeighboringPhotoMetadata(): Requested ["+cache.NUM_PHOTOS_TO_FETCH+"] photos, but only got ["+photos.length+"].  Marking the last photo as the end to prevent spurious fetches.");
-                                        photosMetadata[photosMetadata.length-1]['isEndingPhoto'] = true;
+                                        if (photosMetadata.length >= 1) {
+                                            photosMetadata[photosMetadata.length-1]['isEndingPhoto'] = true;
+                                        }
                                     }
 
                                     successCallback(photosMetadata);
@@ -1914,16 +1916,21 @@ define(["core/grapher/BTCore"], function(BTCore) {
                             timestamp,
                             function(followingPhotosMetadata) {
 
-                                // Create the initial cache.  We do this by first slicing off the first element
-                                // of the array containing the following photos (since it's a dupe
-                                // of the last element in the reverse precedingPhotosMetadata
-                                // array) and then concatenating with the preceding photos.
-                                cache.photos = precedingPhotosMetadata.concat(followingPhotosMetadata.slice(1));
-
-                                // now create the map which maps photo ID to photo array element index
-                                $.each(cache.photos, function(index, photo) {
-                                    cache.photosById[photo['photoId']] = index;
-                                });
+                                // Iterate over the photos in the precedingPhotosMetadata and followingPhotosMetadata
+                                // arrays, and build up the cache.photos array and the cache.photosById map.  Note that,
+                                // under some conditions, one (or more?) photos might appear in both of the source
+                                // arrays.  To filter them out, we check the cache.photosById map for existence before
+                                // insertion.
+                                cache.photos = [];
+                                var insertPhoto = function(i, photo) {
+                                    if (typeof cache.photosById[photo['photoId']] === 'undefined') {
+                                        var index = cache.photos.length;
+                                        cache.photosById[photo['photoId']] = index;
+                                        cache.photos[index] = photo;
+                                    }
+                                };
+                                $.each(precedingPhotosMetadata, insertPhoto);
+                                $.each(followingPhotosMetadata, insertPhoto);
 
                                 // now that the cache is created, we can call the callback
                                 if (typeof callback === 'function') {
@@ -1973,12 +1980,6 @@ define(["core/grapher/BTCore"], function(BTCore) {
                                             newPhotosById[photo['photoId']] = index;
                                         });
 
-                                        //var s = "";
-                                        //$.each(newPhotos, function(index, photo) {
-                                        //  s += photo['photoId'] + ","
-                                        //});
-                                        //console.log("length=[" + newPhotos.length + "," + cache.photos.length + "]: " + s);
-
                                         // update the cache's array and map
                                         cache.photos = newPhotos;
                                         cache.photosById = newPhotosById;
@@ -2021,12 +2022,6 @@ define(["core/grapher/BTCore"], function(BTCore) {
                                         $.each(newPhotos, function(index, photo) {
                                             newPhotosById[photo['photoId']] = index;
                                         });
-
-                                        //var s = "";
-                                        //$.each(newPhotos, function(index, photo) {
-                                        //  s += photo['photoId'] + ","
-                                        //});
-                                        //console.log("length=[" + newPhotos.length + "," + cache.photos.length + "]: " + s);
 
                                         // update the cache's array and map
                                         cache.photos = newPhotos;

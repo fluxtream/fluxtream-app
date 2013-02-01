@@ -50,8 +50,5 @@ CREATE TABLE `Facet_RunKeeperFitnessActivity` (
 ) ENGINE=InnoDB AUTO_INCREMENT=43 DEFAULT CHARSET=latin1;
 
 
-ALTER TABLE `Facet_GoogleLatitudeLocation` ADD COLUMN `date` varchar(10) DEFAULT NULL;
-ALTER TABLE `Facet_GoogleLatitudeLocation` ADD COLUMN  `timezone` varchar(256) DEFAULT NULL;
-ALTER TABLE `Facet_GoogleLatitudeLocation` ADD COLUMN  `timezoneMinutesOffset` int(11) DEFAULT NULL;
 ALTER TABLE `Facet_GoogleLatitudeLocation` ADD COLUMN  `uri` varchar(255) DEFAULT NULL;
 ALTER TABLE `Facet_GoogleLatitudeLocation` ADD INDEX `uri` (`uri`);

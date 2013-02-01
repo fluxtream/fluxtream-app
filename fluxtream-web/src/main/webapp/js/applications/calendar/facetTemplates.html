@@ -495,15 +495,32 @@
     </div>
 </template>
 <template id="mymee-observation">
-    <div class="flx-box" style="border-left-color:{{color}}">
+    <div class="flx-box mymee-observation" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon mymee-observation"></span>
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
                 <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
                 <div class="flx-data">
+                    {{#imageURL}}<img src="{{imageURL}}" style="max-height:42px; float:left;  margin:0 10px 0 0; cursor:pointer">{{/imageURL}}
                     <span class="flx-description">{{name}} {{amount}}</span>
                     <span class="flx-description">{{note}}</span>
+                </div>
+            </div>
+            {{/facets}}
+        </div>
+    </div>
+</template>
+<template id="fluxtream_capture-photo">
+    <div class="flx-box" style="border-left-color:{{color}}">
+        <span class="flx-deviceIcon picasa"></span>
+        <div class="facetDetails">
+            {{#facets}}
+            <div class="facetDetails{{manyFacets}}">
+                <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
+                <div class="flx-data">
+                    <span class="flx-photo" style="background:url('{{photoUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
+                    <span class="flx-description">{{description}}</span>
                 </div>
             </div>
             {{/facets}}

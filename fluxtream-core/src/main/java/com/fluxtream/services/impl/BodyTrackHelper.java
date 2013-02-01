@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -20,6 +21,13 @@ import com.fluxtream.services.PhotoService;
 import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.Utils;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,7 +65,9 @@ public class BodyTrackHelper {
     @Autowired
     PhotoService photoService;
 
-    Gson gson = new Gson();
+    // Create a Gson parser which handles ChannelBounds specially to avoid problems with +/- infinity
+    Gson gson = new GsonBuilder().registerTypeAdapter(ChannelBounds.class, new ChannelBoundsDeserializer()).create();
+    static Logger logger = Logger.getLogger(BodyTrackHelper.class);
 
     private DataStoreExecutionResult executeDataStore(String commandName, Object[] parameters){
         try{
@@ -134,7 +144,7 @@ public class BodyTrackHelper {
             fos.write(bodyTrackJSONData.getBytes());
             fos.close();
 
-            final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("import",new Object[]{uid,deviceName,tempFile.getAbsolutePath()});
+            final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("import", new Object[]{uid, deviceName, tempFile.getAbsolutePath()});
             tempFile.delete();
             return dataStoreExecutionResult;
         } catch (Exception e) {
@@ -188,6 +198,7 @@ public class BodyTrackHelper {
     }
 
     public String listSources(ApiKey apiKey, CoachingBuddy coachee){
+        SourcesResponse response = null;
         try{
             if (apiKey == null)
                 throw new IllegalArgumentException();
@@ -255,7 +266,7 @@ public class BodyTrackHelper {
             }
 
             // create the respone
-            SourcesResponse response = new SourcesResponse(infoResponse, coachee);
+            response = new SourcesResponse(infoResponse, coachee);
 
             // add the All photos block to the response
             if (!photoChannelTimeRanges.isEmpty()) {
@@ -274,6 +285,21 @@ public class BodyTrackHelper {
             return gson.toJson(response);
         }
         catch(Exception e){
+            StringBuilder sb = new StringBuilder("module=bodytrackHelper component=listSources action=listSources")
+                    .append(" guestId=")
+                    .append(apiKey.getGuestId())
+                    .append(" message=").append(e.getMessage());
+
+            if(response!=null) {
+                // In case the exception was caused by speical floating point values such as
+                // Infinity, create a gson builder that will potentially let us debug even though
+                // the javascript would choke on the result if we returned it
+                Gson errorGson = new GsonBuilder().serializeSpecialFloatingPointValues().create();
+                sb.append(" response=").append(errorGson.toJson(response));
+            }
+
+            logger.error(sb.toString());
+
             return gson.toJson(new SourcesResponse(null, coachee));
         }
     }
@@ -331,9 +357,7 @@ public class BodyTrackHelper {
         try{
             if (uid == null)
                 throw new IllegalArgumentException();
-            com.fluxtream.domain.ChannelStyle savedStyle = JPAUtils.findUnique(em, com.fluxtream.domain.ChannelStyle.class,
-                                                                               "channelStyle.byDeviceNameAndChannelName",
-                                                                               uid, deviceName, channelName);
+            com.fluxtream.domain.ChannelStyle savedStyle = JPAUtils.findUnique(em, com.fluxtream.domain.ChannelStyle.class, "channelStyle.byDeviceNameAndChannelName", uid, deviceName, channelName);
             if (savedStyle==null) {
                 savedStyle = new com.fluxtream.domain.ChannelStyle();
                 savedStyle.guestId = uid;
@@ -485,6 +509,31 @@ public class BodyTrackHelper {
         double max_value;
         double min_time;
         double min_value;
+    }
+
+    class ChannelBoundsDeserializer implements JsonDeserializer<ChannelBounds>{
+        // Create a custom deserializer for ChannelBounds to deal with the possibility
+        // of the values being interpreted as +/- Infinity and causing json creation errors
+        // later on.  The min/max time fields are required.  The min/max value fields are
+        // optional and default to 0.
+        @Override
+        public ChannelBounds deserialize(JsonElement json, Type typeOfT,
+                                         JsonDeserializationContext context) throws JsonParseException {
+            ChannelBounds cb=new ChannelBounds();
+
+            JsonObject jo = (JsonObject)json;
+            cb.max_time=Math.max(Math.min(jo.get("max_time").getAsDouble(), Double.MAX_VALUE),-Double.MAX_VALUE);
+            cb.min_time=Math.max(Math.min(jo.get("min_time").getAsDouble(), Double.MAX_VALUE), -Double.MAX_VALUE);
+
+            try {
+                cb.max_value=Math.max(Math.min(jo.get("max_value").getAsDouble(), Double.MAX_VALUE),-Double.MAX_VALUE);
+                cb.min_value=Math.max(Math.min(jo.get("min_value").getAsDouble(), Double.MAX_VALUE), -Double.MAX_VALUE);
+            } catch(Throwable e) {
+                cb.min_value=cb.max_value=0;
+            }
+
+            return cb;
+        }
     }
 
     private class SourcesResponse {

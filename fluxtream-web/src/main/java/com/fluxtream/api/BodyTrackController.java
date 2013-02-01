@@ -262,14 +262,12 @@ public class BodyTrackController {
                             // auto-added to the user's set of connectors, and this is the way to do it.  Note that the
                             // the field recorded here is merely the time of the last upload request *request* and says
                             // nothing about whether that request was actually successful
-                            ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector("bodytrack"));
-                            guestService.setApiKeyAttribute(apiKey, "last_upload_request_time", String.valueOf(System.currentTimeMillis()));
+                            guestService.setApiKeyAttribute(guestId, connector, "last_upload_request_time", String.valueOf(System.currentTimeMillis()));
 
                             // We have a photo and the metadata, so pass control to the FluxtreamCapturePhotoStore to save the photo
                             LOG_DEBUG.debug("BodyTrackController.savePhoto(" + guestId + ", " + photoBytes.length + ", " + jsonMetadata + ")");
                             try {
-                                //HACK: setting apiKeyId to -1 because there will always only be one apiKey for fluxtream capture
-                                final FluxtreamCapturePhotoStore.OperationResult<FluxtreamCapturePhoto> result = fluxtreamCapturePhotoStore.saveOrUpdatePhoto(guestId, photoBytes, jsonMetadata, -1);
+                                final FluxtreamCapturePhotoStore.OperationResult<FluxtreamCapturePhoto> result = fluxtreamCapturePhotoStore.saveOrUpdatePhoto(guestId, photoBytes, jsonMetadata);
                                 final String photoStoreKey = result.getData().getPhotoStoreKey();
                                 LOG.info("BodyTrackController.handlePhotoUpload(): photo [" + photoStoreKey + "] " + result.getOperation() + " sucessfully!");
                                 response = jsonResponseHelper.ok("photo " + result.getOperation() + " sucessfully!", new PhotoUploadPayload(result.getOperation(), photoStoreKey));
@@ -722,9 +720,9 @@ public class BodyTrackController {
         long id;
         String description;
         String comment;
-        long begin_d;
+        double begin_d;
         String begin;
-        long end_d;
+        double end_d;
         String end;
         String dev_id;
         String dev_nickname;
@@ -742,7 +740,7 @@ public class BodyTrackController {
             this.id = photoFacetVO.id;
             this.description = photoFacetVO.description == null ? "" : photoFacetVO.description;
             this.comment = photoFacetVO.comment == null ? "" : photoFacetVO.comment;
-            this.begin_d = photoFacetVO.start / 1000; // convert millis to seconds
+            this.begin_d = photoFacetVO.start / 1000.0; // convert millis to seconds
             this.begin = DATE_TIME_FORMATTER.print(photoFacetVO.start);
             this.end_d = this.begin_d;
             this.end = this.begin;
