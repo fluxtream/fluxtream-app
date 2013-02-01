@@ -142,6 +142,7 @@ public class Connector {
         connector.updateStrategyType = updaterAnnotation
                 .updateStrategyType();
         connector.hasFacets = updaterAnnotation.hasFacets();
+        connector.name = connectorName;
         // set connectors' object types
         Class<? extends AbstractFacet>[] facetTypes = updaterAnnotation
                 .objectTypes();
@@ -171,7 +172,6 @@ public class Connector {
                     jsonFacetAnnotation.name(),
                     jsonFacetAnnotation.value());
 
-        connector.name = connectorName;
         connectors.put(connectorName, connector);
         connectorsByValue.put(connector.value(), connector);
 
@@ -180,7 +180,6 @@ public class Connector {
     private static ObjectType getFacetTypeMetadata(final Connector connector,
                                              final Class<? extends AbstractFacet>[] facetTypes,
                                              final Class<? extends AbstractFacet> facetType) {
-        connector.objectTypeExtractorClasses = new ConcurrentHashMap<Integer, Class<? extends AbstractFacetExtractor>>();
         ObjectTypeSpec ots = facetType
                 .getAnnotation(ObjectTypeSpec.class);
         // objectTypes are mandatory only if there are more than 1

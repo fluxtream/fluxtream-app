@@ -262,12 +262,13 @@ public class BodyTrackController {
                             // auto-added to the user's set of connectors, and this is the way to do it.  Note that the
                             // the field recorded here is merely the time of the last upload request *request* and says
                             // nothing about whether that request was actually successful
-                            guestService.setApiKeyAttribute(guestId, connector, "last_upload_request_time", String.valueOf(System.currentTimeMillis()));
+                            ApiKey apiKey = guestService.getApiKey(guestId, connector);
+                            guestService.setApiKeyAttribute(apiKey, "last_upload_request_time", String.valueOf(System.currentTimeMillis()));
 
                             // We have a photo and the metadata, so pass control to the FluxtreamCapturePhotoStore to save the photo
                             LOG_DEBUG.debug("BodyTrackController.savePhoto(" + guestId + ", " + photoBytes.length + ", " + jsonMetadata + ")");
                             try {
-                                final FluxtreamCapturePhotoStore.OperationResult<FluxtreamCapturePhoto> result = fluxtreamCapturePhotoStore.saveOrUpdatePhoto(guestId, photoBytes, jsonMetadata);
+                                final FluxtreamCapturePhotoStore.OperationResult<FluxtreamCapturePhoto> result = fluxtreamCapturePhotoStore.saveOrUpdatePhoto(guestId, photoBytes, jsonMetadata, apiKey.getId());
                                 final String photoStoreKey = result.getData().getPhotoStoreKey();
                                 LOG.info("BodyTrackController.handlePhotoUpload(): photo [" + photoStoreKey + "] " + result.getOperation() + " sucessfully!");
                                 response = jsonResponseHelper.ok("photo " + result.getOperation() + " sucessfully!", new PhotoUploadPayload(result.getOperation(), photoStoreKey));

@@ -1,15 +1,6 @@
 package com.fluxtream.services.impl;
 
 import java.util.Date;
-
-import static com.fluxtream.utils.Utils.stackTrace;
-
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-
 import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
@@ -21,6 +12,13 @@ import com.fluxtream.domain.UpdateWorkerTask.Status;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+
+import static com.fluxtream.utils.Utils.stackTrace;
 
 @Component
 @Scope("prototype")
@@ -43,9 +41,6 @@ class UpdateWorker implements Runnable {
 	Configuration env;
 
 	UpdateWorkerTask task;
-
-    private volatile boolean busy;
-    protected volatile boolean interruptionRequested;
 
 	public UpdateWorker() {
 	}

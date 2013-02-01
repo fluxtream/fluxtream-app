@@ -92,7 +92,8 @@ public class WithingsFacetExtractor extends AbstractFacetExtractor {
 				}
 			}
 			if (isBPM) {
-				if (objectType==ObjectType.getObjectType(connector(), "blood_pressure")) {
+                System.out.println("isBPM");
+                if (objectType==ObjectType.getObjectType(connector(), "blood_pressure")) {
 					WithingsBPMMeasureFacet bpmFacet = new WithingsBPMMeasureFacet(apiData.updateInfo.apiKey.getId());
 					super.extractCommonFacetData(bpmFacet, apiData);
 					bpmFacet.objectType = ObjectType.getObjectType(connector(), "blood_pressure").value();
@@ -105,7 +106,8 @@ public class WithingsFacetExtractor extends AbstractFacetExtractor {
 					facets.add(bpmFacet);
 				}
 			} else {
-				if (objectType==ObjectType.getObjectType(connector(), "weight"))
+                System.out.println("weight");
+                if (objectType==ObjectType.getObjectType(connector(), "weight"))
 					facets.add(facet);
 			}
 		}

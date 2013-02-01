@@ -257,13 +257,6 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
                         " \"" + updateWorkerTask);
             setUpdateWorkerTaskStatus(updateWorkerTask.getId(), Status.IN_PROGRESS);
 
-            // TODO: re-think this through
-            // retrieve updater for the worker
-            // find out wether such an update task is already running
-            // if not create the worker
-            // let the updater know about the worker
-            // execute the worker
-
             UpdateWorker updateWorker = beanFactory.getBean(UpdateWorker.class);
             updateWorker.task = updateWorkerTask;
             try {
