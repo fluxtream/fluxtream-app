@@ -59,8 +59,7 @@ public class FitbitOAuthController {
 	}
 
 	@RequestMapping(value = "/token")
-	public String getToken(HttpServletRequest request,
-			HttpServletResponse response) throws IOException, ServletException,
+	public String getToken(HttpServletRequest request) throws IOException, ServletException,
 			OAuthMessageSignerException, OAuthNotAuthorizedException,
 			OAuthExpectationFailedException, OAuthCommunicationException {
 
@@ -81,7 +80,6 @@ public class FitbitOAuthController {
 
 		request.getSession().setAttribute(FITBIT_OAUTH_CONSUMER, consumer);
 		request.getSession().setAttribute(FITBIT_OAUTH_PROVIDER, provider);
-		System.out.println("the token secret is: " + consumer.getTokenSecret());
 
 		String approvalPageUrl = provider.retrieveRequestToken(consumer,
 				oauthCallback);

@@ -4,15 +4,13 @@ import javax.persistence.Entity;
 import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-
-import org.hibernate.search.annotations.Indexed;
-
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.RateLimitReachedException;
 import com.fluxtream.domain.AbstractFloatingTimeZoneFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Updatable;
+import org.hibernate.search.annotations.Indexed;
 
 @Entity(name="Facet_FitbitActivity")
 @ObjectTypeSpec(name = "activity_summary", value = 1, extractor= FitbitActivityFacetExtractor.class, prettyname = "Activity Summary", isDateBased = true)
@@ -40,7 +38,7 @@ public class FitbitTrackerActivityFacet extends AbstractFloatingTimeZoneFacet im
 	public int sedentaryMinutes;
 	public int steps;
 	public int floors;
-	public int elevation;
+	public double elevation;
 	public int veryActiveMinutes;
 
 	public double trackerDistance;

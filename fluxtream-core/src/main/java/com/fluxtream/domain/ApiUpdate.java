@@ -51,7 +51,7 @@ public class ApiUpdate extends AbstractEntity {
 	public long elapsed;
 
     @Index(name="apiKeyId")
-    public long apiKeyId;
+    public Long apiKeyId;
 
     /**
      * Legacy (we need it for the existing user data)

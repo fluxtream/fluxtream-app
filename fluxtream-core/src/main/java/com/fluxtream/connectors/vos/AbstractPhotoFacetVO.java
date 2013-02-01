@@ -2,7 +2,6 @@ package com.fluxtream.connectors.vos;
 
 import java.awt.Dimension;
 import java.util.List;
-
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.images.ImageOrientation;
 

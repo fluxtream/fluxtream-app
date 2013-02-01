@@ -1,8 +1,8 @@
 package com.fluxtream.connectors.bodymedia;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.TimeZone;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.SignpostOAuthHelper;
@@ -12,9 +12,8 @@ import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.utils.TimeUtils;
-import com.fluxtream.utils.Utils;
-import net.sf.json.JSONObject;
 import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.commonshttp.CommonsHttpOAuthConsumer;
 import oauth.signpost.exception.OAuthCommunicationException;
@@ -27,8 +26,8 @@ import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.joda.time.DateTimeComparator;
+import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +39,6 @@ import org.springframework.stereotype.Component;
 @Updater(prettyName = "BodyMedia", value = 88,
          objectTypes = {BodymediaBurnFacet.class, BodymediaSleepFacet.class, BodymediaStepsFacet.class},
          hasFacets = true,
-         additionalParameters = {"api_key"},
          defaultChannels = {"BodyMedia.mets", "BodyMedia.lying"})
 public class BodymediaUpdater extends AbstractUpdater {
 

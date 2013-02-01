@@ -10,12 +10,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.fluxtream.connectors.annotations.JsonFacetCollection;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.connectors.annotations.Updater;
-import com.fluxtream.connectors.dao.FacetDao;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.vos.AbstractFacetVOCollection;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.AbstractUserProfile;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
+import org.apache.log4j.Logger;
 import org.apache.velocity.util.StringUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -24,8 +24,25 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
 
 public class Connector {
 
+    static Logger logger = Logger.getLogger(Connector.class);
+
+    UpdateStrategyType updateStrategyType = UpdateStrategyType.INCREMENTAL;
+
     private static Map<String, Connector> connectors = new ConcurrentHashMap<String, Connector>();
     private static Map<Integer, Connector> connectorsByValue = new ConcurrentHashMap<Integer, Connector>();
+
+    private Class<? extends AbstractFacetExtractor> extractorClass;
+    private Map<Integer, Class<? extends AbstractFacetExtractor>> objectTypeExtractorClasses;
+    private Class<? extends AbstractUserProfile> userProfileClass;
+    private ObjectType[] objectTypes;
+    private Class<? extends AbstractFacet> facetClass;
+    private int value;
+    private String name;
+    private String prettyName;
+    private int[] objectTypeValues;
+    private boolean hasFacets;
+    private String[] defaultChannels;
+    private Class<? extends AbstractUpdater> updaterClass;
 
     static {
         Connector flxConnector = new Connector();
@@ -70,21 +87,12 @@ public class Connector {
         return s;
     }
 
-    public FacetDao getCustomDao() {
-        return null;
-    }
-
     public static Collection<Connector> getAllConnectors() {
         return connectors.values();
     }
 
     public static Connector fromString(String s) {
         return connectors.get(s);
-    }
-
-    @SuppressWarnings("rawtypes")
-    public AbstractFacetVOCollection getJsonFacetCollection() {
-        return getJsonFacetCollection(null);
     }
 
     @SuppressWarnings("rawtypes")
@@ -129,7 +137,6 @@ public class Connector {
         Updater updaterAnnotation = connector.updaterClass
                 .getAnnotation(Updater.class);
         // set connectors' pretty name
-        connector.manageable = updaterAnnotation.isManageable();
         connector.prettyName = updaterAnnotation.prettyName();
         connector.value = updaterAnnotation.value();
         connector.updateStrategyType = updaterAnnotation
@@ -147,8 +154,15 @@ public class Connector {
                         .userProfile();
         }
         connector.defaultChannels = updaterAnnotation.defaultChannels();
-        for (Class<? extends AbstractFacet> facetType : facetTypes)
-            getFacetTypeMetadata(connector, facetTypes, facetType);
+        List<ObjectType> connectorObjectTypes = new ArrayList<ObjectType>();
+        for (Class<? extends AbstractFacet> facetType : facetTypes) {
+            final ObjectType objectType = getFacetTypeMetadata(connector, facetTypes, facetType);
+            connectorObjectTypes.add(objectType);
+            ObjectType.addObjectType(objectType.name(), connector, objectType);
+        }
+
+        if (connectorObjectTypes.size()>0)
+            connector.objectTypes = connectorObjectTypes.toArray(new ObjectType[0]);
 
         JsonFacetCollection jsonFacetAnnotation = connector.updaterClass
                 .getAnnotation(JsonFacetCollection.class);
@@ -163,10 +177,9 @@ public class Connector {
 
     }
 
-    private static void getFacetTypeMetadata(final Connector connector,
+    private static ObjectType getFacetTypeMetadata(final Connector connector,
                                              final Class<? extends AbstractFacet>[] facetTypes,
                                              final Class<? extends AbstractFacet> facetType) {
-        List<ObjectType> connectorObjectTypes = new ArrayList<ObjectType>();
         connector.objectTypeExtractorClasses = new ConcurrentHashMap<Integer, Class<? extends AbstractFacetExtractor>>();
         ObjectTypeSpec ots = facetType
                 .getAnnotation(ObjectTypeSpec.class);
@@ -177,7 +190,7 @@ public class Connector {
                         "No ObjectTypeSpec Annotation for Facet ["
                         + facetType.getName() + "]");
             else
-                return;
+                return null;
         }
         ObjectType objectType = new ObjectType();
         objectType.facetClass = facetType;
@@ -191,12 +204,7 @@ public class Connector {
                     objectType.value, ots.extractor(),
                     ots.parallel());
         }
-        connectorObjectTypes.add(objectType);
-        ObjectType.addObjectType(ots.name(), connector,
-                                 objectType);
-
-        if (connectorObjectTypes.size()>0)
-            connector.objectTypes = connectorObjectTypes.toArray(new ObjectType[0]);
+        return objectType;
     }
 
     public boolean hasImageObjectType() {
@@ -259,24 +267,6 @@ public class Connector {
         ALWAYS_UPDATE, INCREMENTAL
     }
 
-    UpdateStrategyType updateStrategyType = UpdateStrategyType.INCREMENTAL;
-
-    private Class<? extends AbstractFacetExtractor> extractorClass;
-    private Map<Integer, Class<? extends AbstractFacetExtractor>> objectTypeExtractorClasses;
-    private Class<? extends AbstractUserProfile> userProfileClass;
-    private ObjectType[] objectTypes;
-    private Class<? extends AbstractFacet> facetClass;
-    private int value;
-    private String name;
-    private String prettyName;
-    private int[] objectTypeValues;
-    private boolean hasFacets;
-    private String[] defaultChannels;
-    private String[] additionalParameters;
-    private boolean manageable;
-    private Class<? extends AbstractUpdater> updaterClass;
-    private AbstractUpdater updater;
-
     public boolean isAutonomous() {
         final Class<?>[] interfaces = this.updaterClass.getInterfaces();
         for (Class<?> anInterface : interfaces) {
@@ -284,10 +274,6 @@ public class Connector {
                 return true;
         }
         return false;
-    }
-
-    public boolean isManageable(){
-        return manageable;
     }
 
     private Connector() {
@@ -352,7 +338,11 @@ public class Connector {
                 }
             }
             try {
-                return beanFactory.getBean(extractorClass);
+                if (extractorClass!=null)
+                    return beanFactory.getBean(extractorClass);
+                else {
+                    logger.error("COULD NOT FIND EXTRACTOR CLASS FOR " + objectTypes);
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -388,14 +378,6 @@ public class Connector {
 
     public static Connector fromValue(int api) {
         return connectorsByValue.get(api);
-    }
-
-    public boolean hasAdditionalParameters() {
-        return additionalParameters != null && additionalParameters.length > 0;
-    }
-
-    public String[] getAdditionalParameters() {
-        return additionalParameters;
     }
 
 }

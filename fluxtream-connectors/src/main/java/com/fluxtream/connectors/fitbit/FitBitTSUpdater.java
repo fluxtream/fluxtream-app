@@ -201,10 +201,20 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 	public void loadTimeSeries(String uri, ApiKey apiKey,
 			ObjectType objectType, String fieldName)
 			throws RateLimitReachedException {
-        
-		String json = signpostHelper.makeRestCall(apiKey,
-				uri.hashCode(), "http://api.fitbit.com/1/user/-/" + uri
-						+ "/date/today/max.json");
+
+        String json = "";
+        try {
+            json = signpostHelper.makeRestCall(apiKey,
+                    uri.hashCode(), "http://api.fitbit.com/1/user/-/" + uri
+                            + "/date/today/max.json");
+        } catch (Throwable t) {
+            // elevation and floors are not available for earlier trackers, so we can safely ignore them
+            if (fieldName.equals("elevation")||fieldName.equals("floors")) {
+                logger.warn("guestId=" + apiKey.getGuestId() +
+                            " connector=fitbit action=loadTimeSeries message=\"Could not load timeseries for \" + fieldName");
+                return;
+            }
+        }
 
 		JSONObject timeSeriesJson = JSONObject.fromObject(json);
 		String resourceName = uri.replace('/', '-');

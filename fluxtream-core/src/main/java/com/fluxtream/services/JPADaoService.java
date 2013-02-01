@@ -1,7 +1,6 @@
 package com.fluxtream.services;
 
 import java.util.List;
-
 import com.fluxtream.connectors.Connector;
 
 public interface JPADaoService {

@@ -96,7 +96,7 @@ public class UpdateWorkerTask extends AbstractEntity {
         public String nextAction;
     }
 
-    public long apiKeyId;
+    public Long apiKeyId;
 	public String connectorName;
 	public Status status = Status.SCHEDULED;
 

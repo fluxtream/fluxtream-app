@@ -7,6 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 import com.fluxtream.Configuration;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.services.GuestService;
 import org.scribe.builder.ServiceBuilder;
@@ -36,7 +37,7 @@ public class WithingsOAuthController {
     GuestService guestService;
 
     @RequestMapping(value = "/token")
-    public String getRunkeeperToken(HttpServletRequest request) throws IOException, ServletException {
+    public String getWithingsToken(HttpServletRequest request) throws IOException, ServletException {
 
         OAuthService service = getOAuthService();
         request.getSession().setAttribute(WITHINGS_SERVICE, service);
@@ -73,10 +74,11 @@ public class WithingsOAuthController {
         final String secret = accessToken.getSecret();
 
         Guest guest = AuthHelper.getGuest();
+        final ApiKey apiKey = guestService.createApiKey(guest.getId(), Connector.getConnector("withings"));
 
-        guestService.setApiKeyAttribute(guest.getId(), Connector.getConnector("withings"), "accessToken", token);
-        guestService.setApiKeyAttribute(guest.getId(), Connector.getConnector("withings"), "tokenSecret", secret);
-        guestService.setApiKeyAttribute(guest.getId(), Connector.getConnector("withings"), "userid", userid);
+        guestService.setApiKeyAttribute(apiKey, "accessToken", token);
+        guestService.setApiKeyAttribute(apiKey, "tokenSecret", secret);
+        guestService.setApiKeyAttribute(apiKey, "userid", userid);
 
         request.getSession().removeAttribute(WITHINGS_SERVICE);
         request.getSession().removeAttribute(WITHINGS_REQUEST_TOKEN_KEY);
