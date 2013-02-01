@@ -4,6 +4,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.TimeZone;
 
 import com.fluxtream.TimeInterval;
@@ -58,8 +59,8 @@ public abstract class AbstractFacetVO<T extends AbstractFacet> {
 		Connector connector = Connector.fromValue(facet.api);
 		this.type = connector.getName();
 		if (facet.objectType != -1) {
-			ObjectType objectType = ObjectType.getObjectTypes(connector,
-					facet.objectType).get(0);
+            final List<ObjectType> objectTypes = ObjectType.getObjectTypes(connector, facet.objectType);
+            ObjectType objectType = objectTypes.get(0);
 			this.type += "-" + objectType.getName();
 		}
 		this.subType = getSubtype(facet);

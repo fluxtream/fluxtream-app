@@ -56,6 +56,7 @@ import com.google.gson.Gson;
 import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
 import com.luckycatlabs.sunrisesunset.dto.Location;
 import org.apache.log4j.Logger;
+import org.codehaus.plexus.util.ExceptionUtils;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -468,7 +469,9 @@ public class CalendarDataStore {
                     .append(" date=").append(date)
                     .append(" guestId=").append(guestId);
             logger.warn(sb.toString());
-            return gson.toJson(new StatusModel(false,"Failed to get digest: " + e.getMessage()));
+            final StatusModel src = new StatusModel(false, "Failed to get digest: " + e.getMessage());
+            src.payload = ExceptionUtils.getStackTrace(e);
+            return gson.toJson(src);
         }
 	}
 

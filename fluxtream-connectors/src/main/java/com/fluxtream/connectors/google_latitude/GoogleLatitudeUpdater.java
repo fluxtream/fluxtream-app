@@ -3,25 +3,22 @@ package com.fluxtream.connectors.google_latitude;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import com.fluxtream.connectors.controllers.GoogleOAuth2Helper;
-import com.fluxtream.utils.Utils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import com.fluxtream.connectors.Connector.UpdateStrategyType;
 import com.fluxtream.connectors.annotations.JsonFacetCollection;
 import com.fluxtream.connectors.annotations.Updater;
+import com.fluxtream.connectors.controllers.GoogleOAuth2Helper;
 import com.fluxtream.connectors.updaters.AbstractGoogleOAuthUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiUpdate;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.GuestService;
-import com.fluxtream.services.MetadataService;
+import com.fluxtream.utils.Utils;
 import com.google.api.client.googleapis.json.JsonCParser;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpResponse;
 import com.google.api.client.http.HttpTransport;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 @Updater(prettyName = "Latitude", value = 2, objectTypes = { LocationFacet.class }, updateStrategyType = UpdateStrategyType.INCREMENTAL)
@@ -66,6 +63,8 @@ public class GoogleLatitudeUpdater extends AbstractGoogleOAuthUpdater {
 			for (LocationFacet locationResource : locationList) {
 				if (locationResource.timestampMs==0)
 					continue;
+                locationResource.guestId = updateInfo.getGuestId();
+                locationResource.apiKeyId = updateInfo.apiKey.getId();
 				locationResource.start = locationResource.timestampMs;
 				locationResource.end = locationResource.timestampMs;
                 locationResource.source = LocationFacet.Source.GOOGLE_LATITUDE;

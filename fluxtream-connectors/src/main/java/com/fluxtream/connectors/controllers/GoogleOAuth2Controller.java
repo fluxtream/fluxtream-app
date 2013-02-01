@@ -1,4 +1,4 @@
-package com.fluxtream.connectors.controllers;
+    package com.fluxtream.connectors.controllers;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -62,8 +62,7 @@ public class GoogleOAuth2Controller {
 	}
 	
 	@RequestMapping(value = "/swapToken")
-	public String upgradeToken(HttpServletRequest request,
-			HttpServletResponse response) throws IOException {
+	public String upgradeToken(HttpServletRequest request) throws IOException {
 		
 		String swapTokenUrl = "https://accounts.google.com/o/oauth2/token";
 		String code = request.getParameter("code");
@@ -91,7 +90,7 @@ public class GoogleOAuth2Controller {
                     .append("<p>You'll have to surf to your ")
                     .append("<a target='_new'  href='https://accounts.google.com/b/0/IssuedAuthSubTokens'>token mgmt page at Google's</a> ")
                     .append("and hit \"Revoke Access\" next to \"fluxtream — Google Latitude\"</p>")
-                    .append("<p>Then please, add the Google Latitude connector again./p>")
+                    .append("<p>Then please, add the Google Latitude connector again.</p>")
                     .append("<p>We apologize for the inconvenience</p>").toString();
             notificationsService.addNotification(guest.getId(),
                                                  Notification.Type.ERROR,

@@ -27,15 +27,21 @@ public abstract class AbstractFacet extends AbstractEntity {
 
     private static final String TAG_DELIMITER = ",";
 
-    public AbstractFacet() {}
+    public AbstractFacet() {
+        figureOutObjectType();
+    }
+
+    private void figureOutObjectType() {
+        ObjectTypeSpec objectType = this.getClass().getAnnotation(ObjectTypeSpec.class);
+        if (objectType!=null)
+            this.objectType = objectType.value();
+        else
+            this.objectType = -1;
+    }
 
     public AbstractFacet(long apiKeyId) {
         this.apiKeyId = apiKeyId;
-		ObjectTypeSpec objectType = this.getClass().getAnnotation(ObjectTypeSpec.class);
-		if (objectType!=null)
-			this.objectType = objectType.value();
-		else
-			this.objectType = -1;
+        figureOutObjectType();
 	}
 
     @Index(name = "apiKey")
