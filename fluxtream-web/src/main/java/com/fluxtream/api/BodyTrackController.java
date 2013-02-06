@@ -262,7 +262,14 @@ public class BodyTrackController {
                             // auto-added to the user's set of connectors, and this is the way to do it.  Note that the
                             // the field recorded here is merely the time of the last upload request *request* and says
                             // nothing about whether that request was actually successful
-                            ApiKey apiKey = guestService.getApiKey(guestId, connector);
+                            final ApiKey apiKey;
+                            List<ApiKey> apiKeys = guestService.getApiKeys(guestId, connector);
+                            if (apiKeys != null && apiKeys.size() > 0) {
+                                apiKey = apiKeys.get(0);
+                            }
+                            else {
+                                apiKey = guestService.createApiKey(guestId, connector);
+                            }
                             guestService.setApiKeyAttribute(apiKey, "last_upload_request_time", String.valueOf(System.currentTimeMillis()));
 
                             // We have a photo and the metadata, so pass control to the FluxtreamCapturePhotoStore to save the photo
