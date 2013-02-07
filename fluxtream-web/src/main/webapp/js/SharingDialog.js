@@ -34,6 +34,10 @@ define(function() {
                     $(".loading-animation").css("display", "inline");
                 }
             });
+            $("#findUserButton").click(function(event){
+                findUser($("#findUserField").val());
+                $(".loading-animation").css("display", "inline");
+            });
         });
     }
 
