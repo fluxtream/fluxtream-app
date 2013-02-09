@@ -22,8 +22,10 @@ import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.NotificationsService;
 import com.fluxtream.thirdparty.helpers.WWOHelper;
 import com.fluxtream.utils.JPAUtils;
+import com.fluxtream.utils.TimeUtils;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.log4j.Logger;
+import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -118,6 +120,12 @@ public class MetadataServiceImpl implements MetadataService {
 			info.date = date;
             // let's assume UTC by default
             info.timeZone = TimeZone.getTimeZone("UTC").getID();
+            final DateTimeFormatter utcDateFormatter = formatter.withZone(DateTimeZone.forID(info.timeZone));
+            final long l = utcDateFormatter.parseMillis(date);
+            final long fromMidnight = TimeUtils.fromMidnight(l, TimeZone.getTimeZone("UTC"));
+            final long toMidnight = TimeUtils.toMidnight(l, TimeZone.getTimeZone("UTC"));
+            info.start = fromMidnight;
+            info.end = toMidnight;
 			info.guestId = guestId;
 			return info;
 		}
