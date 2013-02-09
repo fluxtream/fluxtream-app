@@ -7,18 +7,15 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 import java.util.TreeSet;
-
 import javax.persistence.Entity;
 import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-
-import org.hibernate.annotations.Index;
-import org.hibernate.search.annotations.Indexed;
-
 import com.fluxtream.TimeInterval;
 import com.fluxtream.TimeUnit;
 import com.fluxtream.domain.AbstractFacet;
+import org.hibernate.annotations.Index;
+import org.hibernate.search.annotations.Indexed;
 
 @Entity(name="ContextualInfo")
 @NamedQueries ( {
@@ -94,7 +91,11 @@ public class DayMetadataFacet extends AbstractFacet {
 	public DayMetadataFacet(long apiKeyId) {super(apiKeyId);}
 	
 	public TimeInterval getTimeInterval() {
-		return new TimeInterval(start, end, TimeUnit.DAY, TimeZone.getTimeZone(timeZone));
+        // default to UTC
+        TimeZone zone = TimeZone.getTimeZone("UTC");
+        if (timeZone!=null)
+            zone = TimeZone.getTimeZone(timeZone);
+        return new TimeInterval(start, end, TimeUnit.DAY, zone);
 	}
 	
 	public Calendar getStartCalendar() {
@@ -102,13 +103,13 @@ public class DayMetadataFacet extends AbstractFacet {
 		c.setTimeInMillis(start);
 		return c;
 	}
-	
+
 	public Calendar getEndCalendar() {
 		Calendar c = Calendar.getInstance(TimeZone.getTimeZone(this.timeZone));
 		c.setTimeInMillis(end);
 		return c;
 	}
-	
+
 	@Override
 	protected void makeFullTextIndexable() {
 		StringBuffer sb = new StringBuffer();

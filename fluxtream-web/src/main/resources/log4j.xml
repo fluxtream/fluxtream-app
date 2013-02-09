@@ -6,7 +6,7 @@
 		<param name="MaxFileSize" value="10000KB" />
 		<!-- Keep one backup file -->
 		<param name="MaxBackupIndex" value="5" />
-        <param name="Threshold" value="INFO" />
+        <param name="Threshold" value="DEBUG" />
 		<layout class="org.apache.log4j.PatternLayout">
             <param name="ConversionPattern" value="%d{HH:mm:ss,SSS} [%t] %c{3}: %-5p: %m%n"/>
 		</layout>

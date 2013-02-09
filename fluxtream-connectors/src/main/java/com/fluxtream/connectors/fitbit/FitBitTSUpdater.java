@@ -231,8 +231,10 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 				String date = entry.getString("dateTime");
 				DayMetadataFacet dayMetadata = metadataService.getDayMetadata(
 						apiKey.getGuestId(), date, true);
-
+                logger.debug("dayMetadata: " + dayMetadata);
+                logger.debug("dayMetadataFacet's timezone: " + dayMetadata.timeZone);
 				TimeInterval timeInterval = dayMetadata.getTimeInterval();
+                logger.debug("dayMetadataFacet's timeInterval: " + timeInterval);
 
 				if (objectType == sleepOT) {
 					FitbitSleepFacet facet = getSleepFacet(apiKey.getGuestId(),
