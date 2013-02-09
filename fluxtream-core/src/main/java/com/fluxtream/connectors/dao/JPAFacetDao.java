@@ -15,7 +15,6 @@ import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
-import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -47,11 +46,11 @@ public class JPAFacetDao implements FacetDao {
         ArrayList<AbstractFacet> facets = new ArrayList<AbstractFacet>();
         if (!apiKey.getConnector().hasFacets()) return facets;
         final String facetName = getEntityName(apiKey.getConnector(), objectType);
-        String queryString = "SELECT facet FROM " + facetName + " facet WHERE facet.guestId=? AND (facet.apiKeyId=? OR facet.apiKeyId IS NULL) AND facet.date IN ?";
+        String queryString = "SELECT facet FROM " + facetName + " facet WHERE facet.guestId=? AND (facet.apiKeyId=? OR facet.apiKeyId IS NULL) AND facet.date IN (?)";
         final TypedQuery<? extends AbstractFacet> query = em.createQuery(queryString, AbstractFacet.class);
         query.setParameter(1, apiKey.getGuestId());
         query.setParameter(2, apiKey.getId());
-        query.setParameter(3, StringUtils.join(dates, ","));
+        query.setParameter(3, dates);
         List<? extends AbstractFacet> found = query.getResultList();
         if (found!=null)
             facets.addAll(found);
