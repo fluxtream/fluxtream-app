@@ -116,6 +116,8 @@ public class MetadataServiceImpl implements MetadataService {
 		else {
 			info = new DayMetadataFacet(-1);
 			info.date = date;
+            // let's assume UTC by default
+            info.timeZone = TimeZone.getTimeZone("UTC").getID();
 			info.guestId = guestId;
 			return info;
 		}
