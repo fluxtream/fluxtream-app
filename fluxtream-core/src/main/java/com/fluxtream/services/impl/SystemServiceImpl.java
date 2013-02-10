@@ -4,22 +4,18 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
-
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-
-import com.fluxtream.services.ConnectorUpdateService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.security.access.annotation.Secured;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.ConnectorInfo;
+import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.SystemService;
 import com.fluxtream.utils.JPAUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Scope("singleton")
@@ -79,7 +75,7 @@ public class SystemServiceImpl implements SystemService {
         em.persist(new ConnectorInfo("Withings",
                                      "/images/connectors/connector-withings.jpg",
                                      res.getString("withings"),
-                                     "ajax:/withings/enterCredentials",
+                                     "/withings/token",
                                      Connector.getConnector("withings"), order++, true));
         em.persist(new ConnectorInfo("Zeo",
                                      "/images/connectors/connector-zeo.jpg",
