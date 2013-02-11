@@ -2,7 +2,6 @@ package com.fluxtream.connectors.dao;
 
 import java.util.List;
 import com.fluxtream.TimeInterval;
-import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;

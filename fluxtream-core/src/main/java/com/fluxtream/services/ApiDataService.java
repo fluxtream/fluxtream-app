@@ -31,8 +31,12 @@ public interface ApiDataService {
     public List<AbstractFacet> getApiDataFacets(ApiKey apiKey,
                                                 ObjectType objectType, List<String> dates);
 
+    public <T> List<T> getApiDataFacets(ApiKey apiKey, ObjectType objectType, List<String> dates, Class<T> clazz);
+
 	public List<AbstractFacet> getApiDataFacets(ApiKey apiKey,
 			ObjectType objectType, TimeInterval timeInterval);
+
+    public <T> List<T> getApiDataFacets(ApiKey apiKey, ObjectType objectType, TimeInterval timeInterval, Class<T> clazz);
 
     public AbstractFacet getOldestApiDataFacet(ApiKey apiKey, ObjectType objectType);
     public AbstractFacet getLatestApiDataFacet(ApiKey apiKey, ObjectType objectType);

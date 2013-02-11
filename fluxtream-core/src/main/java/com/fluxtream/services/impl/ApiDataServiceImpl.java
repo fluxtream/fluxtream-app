@@ -2,7 +2,6 @@ package com.fluxtream.services.impl;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
@@ -40,9 +39,7 @@ import com.fluxtream.thirdparty.helpers.WWOHelper;
 import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.Utils;
 import net.sf.json.JSONObject;
-import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
-import org.dom4j.Document;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -268,11 +265,22 @@ public class ApiDataServiceImpl implements ApiDataService {
         return jpaDao.getFacetsByDates(apiKey, objectType, dates);
     }
 
-	@Override
+    @Override
+    public <T> List<T> getApiDataFacets(final ApiKey apiKey, final ObjectType objectType, final List<String> dates, final Class<T> clazz) {
+        return (List<T>) jpaDao.getFacetsByDates(apiKey, objectType, dates);
+    }
+
+    @Override
 	public List<AbstractFacet> getApiDataFacets(ApiKey apiKey, ObjectType objectType,
 			TimeInterval timeInterval) {
         return jpaDao.getFacetsBetween(apiKey, objectType, timeInterval);
 	}
+
+    @Override
+    public <T> List<T> getApiDataFacets(ApiKey apiKey, ObjectType objectType,
+                                                TimeInterval timeInterval, Class<T> clazz) {
+        return (List<T>) jpaDao.getFacetsBetween(apiKey, objectType, timeInterval);
+    }
 
     @Override
     public AbstractFacet getOldestApiDataFacet(ApiKey apiKey, ObjectType objectType){
