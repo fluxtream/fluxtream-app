@@ -4,7 +4,7 @@ import javax.persistence.Entity;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
-import com.fluxtream.domain.AbstractFloatingTimeZoneFacet;
+import com.fluxtream.domain.AbstractLocalTimeFacet;
 import org.hibernate.search.annotations.Indexed;
 
 @Entity(name="Facet_FitbitSleep")
@@ -22,7 +22,7 @@ import org.hibernate.search.annotations.Indexed;
 
 //SELECT * FROM Facet_FitbitSleep facet WHERE facet.guestId=1 ORDER BY facet.start ASC LIMIT 1
 @Indexed
-public class FitbitSleepFacet extends AbstractFloatingTimeZoneFacet {
+public class FitbitSleepFacet extends AbstractLocalTimeFacet {
 
 	public boolean isMainSleep;
 	public long logId;

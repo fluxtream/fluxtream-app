@@ -4,7 +4,7 @@ import javax.persistence.Entity;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
-import com.fluxtream.domain.AbstractFloatingTimeZoneFacet;
+import com.fluxtream.domain.AbstractLocalTimeFacet;
 import org.hibernate.search.annotations.Indexed;
 
 /**
@@ -25,7 +25,7 @@ import org.hibernate.search.annotations.Indexed;
 })
 
 @Indexed
-public class FitbitWeightFacet extends AbstractFloatingTimeZoneFacet {
+public class FitbitWeightFacet extends AbstractLocalTimeFacet {
 
     public double bmi;
     public double fat;

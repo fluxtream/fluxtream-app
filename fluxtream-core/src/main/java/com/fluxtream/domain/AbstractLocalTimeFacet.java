@@ -3,15 +3,13 @@ package com.fluxtream.domain;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.TimeZone;
-
 import javax.persistence.MappedSuperclass;
-
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 @MappedSuperclass
-public abstract class AbstractFloatingTimeZoneFacet extends AbstractFacet {
+public abstract class AbstractLocalTimeFacet extends AbstractFacet {
 
     public String date;
 	public String startTimeStorage;
@@ -20,11 +18,11 @@ public abstract class AbstractFloatingTimeZoneFacet extends AbstractFacet {
 	public static DateTimeFormatter timeStorageFormat = DateTimeFormat.forPattern(
 			"yyyy-MM-dd'T'HH:mm:ss.SSS");
 
-    public AbstractFloatingTimeZoneFacet(final long apiKeyId) {
+    public AbstractLocalTimeFacet(final long apiKeyId) {
         super(apiKeyId);
     }
 
-    public AbstractFloatingTimeZoneFacet() {
+    public AbstractLocalTimeFacet() {
         super();
     }
 

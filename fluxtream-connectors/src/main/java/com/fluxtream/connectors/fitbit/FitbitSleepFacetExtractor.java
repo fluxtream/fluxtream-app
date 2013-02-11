@@ -7,7 +7,7 @@ import java.util.List;
 import com.fluxtream.ApiData;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.domain.AbstractFacet;
-import com.fluxtream.domain.AbstractFloatingTimeZoneFacet;
+import com.fluxtream.domain.AbstractLocalTimeFacet;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -48,9 +48,9 @@ public class FitbitSleepFacetExtractor extends AbstractFacetExtractor {
 			Date startDate;
             facet.date = (String) apiData.updateInfo.getContext("date");
             facet.startTimeStorage = startTime;
-            final long startTimeMillis = AbstractFloatingTimeZoneFacet.timeStorageFormat.parseMillis(startTime);
+            final long startTimeMillis = AbstractLocalTimeFacet.timeStorageFormat.parseMillis(startTime);
             final long endTimeMillis = startTimeMillis + duration;
-            facet.endTimeStorage = AbstractFloatingTimeZoneFacet.timeStorageFormat.print(endTimeMillis);
+            facet.endTimeStorage = AbstractLocalTimeFacet.timeStorageFormat.print(endTimeMillis);
 
 			if (record.containsKey("awakeningsCount"))
 				facet.awakeningsCount = record.getInt("awakeningsCount");
@@ -70,9 +70,9 @@ public class FitbitSleepFacetExtractor extends AbstractFacetExtractor {
 
     public static void main(final String[] args) {
         String s = "2012-11-07T03:13:00.000";
-        final long startTimeMillis = AbstractFloatingTimeZoneFacet.timeStorageFormat.parseMillis(s);
+        final long startTimeMillis = AbstractLocalTimeFacet.timeStorageFormat.parseMillis(s);
         long endTimeMillis = startTimeMillis + 26820000;
-        final String endTimeStorage = AbstractFloatingTimeZoneFacet.timeStorageFormat.print(endTimeMillis);
+        final String endTimeStorage = AbstractLocalTimeFacet.timeStorageFormat.print(endTimeMillis);
         System.out.println(startTimeMillis);
         System.out.println(endTimeStorage);
     }

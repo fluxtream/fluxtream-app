@@ -2,13 +2,13 @@ package com.fluxtream.connectors.flickr;
 
 import javax.persistence.Entity;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
-import com.fluxtream.domain.AbstractFloatingTimeZoneFacet;
+import com.fluxtream.domain.AbstractLocalTimeFacet;
 import org.hibernate.search.annotations.Indexed;
 
 @Entity(name="Facet_FlickrPhoto")
 @ObjectTypeSpec(name = "photo", value = 1, isImageType=true, prettyname = "Photos", isDateBased = true)
 @Indexed
-public class FlickrPhotoFacet extends AbstractFloatingTimeZoneFacet {
+public class FlickrPhotoFacet extends AbstractLocalTimeFacet {
 
 	public String flickrId;
 	public String owner;

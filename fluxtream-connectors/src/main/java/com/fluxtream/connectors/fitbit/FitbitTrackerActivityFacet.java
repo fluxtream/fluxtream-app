@@ -7,7 +7,7 @@ import javax.persistence.NamedQuery;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.RateLimitReachedException;
-import com.fluxtream.domain.AbstractFloatingTimeZoneFacet;
+import com.fluxtream.domain.AbstractLocalTimeFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Updatable;
 import org.hibernate.search.annotations.Indexed;
@@ -28,7 +28,7 @@ import org.hibernate.search.annotations.Indexed;
         @NamedQuery(name = "fitbit.activity_summary.byDates", query = "SELECT facet FROM Facet_FitbitActivity facet WHERE facet.guestId=? AND facet.date IN ?")
 })
 @Indexed
-public class FitbitTrackerActivityFacet extends AbstractFloatingTimeZoneFacet implements Updatable {
+public class FitbitTrackerActivityFacet extends AbstractLocalTimeFacet implements Updatable {
 	
 	public int activeScore;
 	public int caloriesOut;

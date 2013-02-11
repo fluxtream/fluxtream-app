@@ -5,7 +5,7 @@ import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
-import com.fluxtream.domain.AbstractFloatingTimeZoneFacet;
+import com.fluxtream.domain.AbstractLocalTimeFacet;
 import org.hibernate.search.annotations.Indexed;
 
 @Entity(name="Facet_ZeoSleepStats")
@@ -17,7 +17,7 @@ import org.hibernate.search.annotations.Indexed;
 })
 @ObjectTypeSpec(name = "sleep", value = 1, parallel=true, prettyname = "Sleep", isDateBased = true)
 @Indexed
-public class ZeoSleepStatsFacet extends AbstractFloatingTimeZoneFacet {
+public class ZeoSleepStatsFacet extends AbstractLocalTimeFacet {
 
     public int zq;
     public int awakenings;

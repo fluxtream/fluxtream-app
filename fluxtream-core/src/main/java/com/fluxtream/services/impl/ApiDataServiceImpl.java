@@ -21,7 +21,7 @@ import com.fluxtream.connectors.google_latitude.LocationFacet;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.connectors.vos.AbstractFacetVO;
 import com.fluxtream.domain.AbstractFacet;
-import com.fluxtream.domain.AbstractFloatingTimeZoneFacet;
+import com.fluxtream.domain.AbstractLocalTimeFacet;
 import com.fluxtream.domain.AbstractUserProfile;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Tag;
@@ -344,8 +344,8 @@ public class ApiDataServiceImpl implements ApiDataService {
 			entityName = entityAnnotation.name();
 			facetEntityNames.put(facet.getClass().getName(), entityName);
 		}
-        if (facet instanceof AbstractFloatingTimeZoneFacet) {
-            final AbstractFloatingTimeZoneFacet aftzFacet = (AbstractFloatingTimeZoneFacet)facet;
+        if (facet instanceof AbstractLocalTimeFacet) {
+            final AbstractLocalTimeFacet aftzFacet = (AbstractLocalTimeFacet)facet;
             final TimeZone localTimeZone = metadataService.getTimeZone(facet.guestId, aftzFacet.date);
             try {
                 aftzFacet.updateTimeInfo(localTimeZone);

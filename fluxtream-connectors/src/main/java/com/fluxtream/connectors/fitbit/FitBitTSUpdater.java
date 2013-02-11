@@ -16,7 +16,7 @@ import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.RateLimitReachedException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
-import com.fluxtream.domain.AbstractFloatingTimeZoneFacet;
+import com.fluxtream.domain.AbstractLocalTimeFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.metadata.DayMetadataFacet;
 import com.fluxtream.services.ApiDataService;
@@ -394,7 +394,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             JSONObject deviceStatus = devices.getJSONObject(i);
             String type = deviceStatus.getString("type");
             String dateTime = deviceStatus.getString("lastSyncTime");
-            long ts = AbstractFloatingTimeZoneFacet.timeStorageFormat.parseMillis(dateTime);
+            long ts = AbstractLocalTimeFacet.timeStorageFormat.parseMillis(dateTime);
             if (type.equalsIgnoreCase(device)) {
                 return ts;
             }
