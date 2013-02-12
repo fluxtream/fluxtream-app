@@ -21,10 +21,10 @@
           <element id="library" level="project" name="Maven: com.adobe.xmp:xmpcore:5.1.2" />
           <element id="library" level="project" name="Maven: xerces:xercesImpl:2.10.0" />
           <element id="library" level="project" name="Maven: xml-apis:xml-apis:1.4.01" />
+          <element id="library" level="project" name="Maven: joda-time:joda-time:2.1" />
           <element id="library" level="project" name="Maven: com.ocpsoft:ocpsoft-pretty-time:1.0.7" />
           <element id="library" level="project" name="Maven: com.postmark:postmark-client:0.3.1" />
           <element id="library" level="project" name="Maven: com.google.code.gson:gson:1.7.1" />
-          <element id="library" level="project" name="Maven: joda-time:joda-time:1.6" />
           <element id="library" level="project" name="Maven: org.apache.httpcomponents:httpclient:4.0.3" />
           <element id="library" level="project" name="Maven: org.apache.httpcomponents:httpcore:4.0.1" />
           <element id="library" level="project" name="Maven: commons-codec:commons-codec:1.2" />
