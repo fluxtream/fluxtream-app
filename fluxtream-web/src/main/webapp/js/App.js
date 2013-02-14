@@ -40,6 +40,7 @@ define(
                 return "applications/" + appName + "/App";
             });
             require(appModules, function(/* apps */) {
+
                 for (var i = 0; i < arguments.length; i++) {
                     var app = arguments[i];
                     App.apps[app.name] = app;
@@ -135,7 +136,8 @@ define(
                 }
                 render(app, state);
             });
-            if (!Backbone.history.start({pushState : true})) {
+
+            if (!Backbone.history.start({pushState : window.history && window.history.pushState})) {
                 console.log("error loading routes!");
             }
         }
