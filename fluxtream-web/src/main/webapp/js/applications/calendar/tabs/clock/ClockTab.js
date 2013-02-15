@@ -237,7 +237,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		var facet = span.item;
 		if (facet.type=="google_latitude-location")
 			return;
-        var target = $(event.target).parent().position();
+        //var target = $(event.target).parent().position();
+        var target = {top:0, left: 0}; //hacky fix since the SVG positioning seems to be unreliable on different browsers
         var tip_y = target.top + event.offsetY;
         var tip_x = target.left + event.offsetX;
         var offsetX = config.CLOCK_CENTER[0] - event.offsetX;
@@ -264,7 +265,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
     function showToolTip(x,y, offX, offY,contents,minute,color,parent,gpsPos,sourceName){
         var weatherInfo = getWeatherData(minute);
         var weatherIcon;
-        if (minute < solarInfo.sunrise || minute > solarInfo.sunset){//night
+        if (solarInfo != null && (minute < solarInfo.sunrise || minute > solarInfo.sunset)){//night
             weatherIcon =  weatherInfo == null ? "" : weatherInfo.weatherIconUrlNight;
         }
         else{//day
@@ -397,7 +398,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
     function showLocationBreakdownInfo(event) {
         hideEventInfo();
         var span = event.target;
-        var target = $(event.target).parent().position();
+        //var target = $(event.target).parent().position();
+        var target = {top:0, left:0};
         var tip_y = target.top + event.offsetY;
         var tip_x = target.left + event.offsetX;
         var offsetX = config.CLOCK_CENTER[0] - event.offsetX;
