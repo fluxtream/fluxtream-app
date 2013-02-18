@@ -6,6 +6,8 @@ import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiUpdate;
 import com.fluxtream.utils.Utils;
+import net.sf.json.JSONObject;
+import org.apache.log4j.Logger;
 import org.scribe.model.OAuthRequest;
 import org.scribe.model.Response;
 import org.scribe.model.Token;
@@ -20,6 +22,8 @@ import org.springframework.stereotype.Component;
          defaultChannels = {"Withings.weight","Withings.systolic", "Withings.diastolic", "Withings.heartPulse"})
 @JsonFacetCollection(WithingsFacetVOCollection.class)
 public class WithingsUpdater extends AbstractUpdater {
+
+    Logger logger = Logger.getLogger(WithingsUpdater.class);
 
     @Autowired
     WithingsOAuthController withingsOAuthController;
@@ -54,6 +58,11 @@ public class WithingsUpdater extends AbstractUpdater {
             if (response.getCode() == 200) {
                 countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, url);
                 json = response.getBody();
+                JSONObject jsonObject = JSONObject.fromObject(json);
+                final int status = jsonObject.getInt("status");
+                if (status !=0) {
+                    throw new Exception("bad status");
+                }
             }
             else {
                 throw new Exception();

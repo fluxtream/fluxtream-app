@@ -27,7 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 public class JPAFacetDao implements FacetDao {
 
-    private static final Logger LOG = Logger.getLogger(JPAFacetDao.class);
+    private static final Logger logger = Logger.getLogger(JPAFacetDao.class);
 
     @Autowired
 	GuestService guestService;
@@ -70,7 +70,7 @@ public class JPAFacetDao implements FacetDao {
             return facetClass.getAnnotation(Entity.class).name();
         } catch (Throwable t) {
             final String message = "Could not get Facet class for connector " + connector + " / " + objectType;
-            LOG.error(message);
+            logger.error(message);
             throw new RuntimeException(message);
         }
     }
@@ -135,8 +135,8 @@ public class JPAFacetDao implements FacetDao {
                 facet = (AbstractFacet)m.invoke(null, em, apiKey, objectType);
             }
             catch (Exception ignored) {
-                if (LOG.isInfoEnabled()) {
-                    LOG.info("JPAFacetDao.getFacet(): ignoring exception '" + ignored.getClass() + "' while trying to invoke method '" + methodName + "'");
+                if (logger.isInfoEnabled()) {
+                    logger.info("JPAFacetDao.getFacet(): ignoring exception '" + ignored.getClass() + "' while trying to invoke method '" + methodName + "'");
                 }
             }
         }
@@ -150,8 +150,8 @@ public class JPAFacetDao implements FacetDao {
                         fac = (AbstractFacet)m.invoke(null, em, apiKey, type);
                     }
                     catch (Exception ignored) {
-                        if (LOG.isInfoEnabled()) {
-                            LOG.info("JPAFacetDao.getFacet(): ignoring exception '" + ignored.getClass() + "' while trying to invoke method '" + methodName + "'");
+                        if (logger.isInfoEnabled()) {
+                            logger.info("JPAFacetDao.getFacet(): ignoring exception '" + ignored.getClass() + "' while trying to invoke method '" + methodName + "'");
                         }
                     }
                     if (facet == null || (fac != null && fac.end > facet.end)) {
@@ -166,8 +166,8 @@ public class JPAFacetDao implements FacetDao {
                     facet = (AbstractFacet)m.invoke(null, em, apiKey, null);
                 }
                 catch (Exception ignored) {
-                    if (LOG.isInfoEnabled()) {
-                        LOG.info("JPAFacetDao.getFacet(): ignoring exception '" + ignored.getClass() + "' while trying to invoke method '" + methodName + "'");
+                    if (logger.isInfoEnabled()) {
+                        logger.info("JPAFacetDao.getFacet(): ignoring exception '" + ignored.getClass() + "' while trying to invoke method '" + methodName + "'");
                     }
                 }
             }
@@ -188,8 +188,8 @@ public class JPAFacetDao implements FacetDao {
                 facets = (List<AbstractFacet>)m.invoke(null, em, apiKey, objectType, timeInMillis, desiredCount);
             }
             catch (Exception ignored) {
-                if (LOG.isInfoEnabled()) {
-                    LOG.info("JPAFacetDao.getFacets(): ignoring exception '" + ignored.getClass() + "' while trying to invoke method '" + methodName + "'");
+                if (logger.isInfoEnabled()) {
+                    logger.info("JPAFacetDao.getFacets(): ignoring exception '" + ignored.getClass() + "' while trying to invoke method '" + methodName + "'");
                 }
             }
         }
@@ -202,8 +202,8 @@ public class JPAFacetDao implements FacetDao {
                         facets = (List<AbstractFacet>)m.invoke(null, em, apiKey, type, timeInMillis, desiredCount);
                     }
                     catch (Exception ignored) {
-                        if (LOG.isInfoEnabled()) {
-                            LOG.info("JPAFacetDao.getFacets(): ignoring exception '" + ignored.getClass() + "' while trying to invoke method '" + methodName + "'");
+                        if (logger.isInfoEnabled()) {
+                            logger.info("JPAFacetDao.getFacets(): ignoring exception '" + ignored.getClass() + "' while trying to invoke method '" + methodName + "'");
                         }
                     }
                 }
@@ -215,8 +215,8 @@ public class JPAFacetDao implements FacetDao {
                     facets = (List<AbstractFacet>)m.invoke(null, em, apiKey, null, timeInMillis, desiredCount);
                 }
                 catch (Exception ignored) {
-                    if (LOG.isInfoEnabled()) {
-                        LOG.info("JPAFacetDao.getFacets(): ignoring exception '" + ignored.getClass() + "' while trying to invoke method '" + methodName + "'");
+                    if (logger.isInfoEnabled()) {
+                        logger.info("JPAFacetDao.getFacets(): ignoring exception '" + ignored.getClass() + "' while trying to invoke method '" + methodName + "'");
                     }
                 }
             }
