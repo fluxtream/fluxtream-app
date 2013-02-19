@@ -570,6 +570,9 @@ public class ApiDataServiceImpl implements ApiDataService {
             if(locationResource.source==LocationFacet.Source.GOOGLE_LATITUDE) {
                 locationResource.api=Connector.getConnector("google_latitude").value();
             }
+            else if(locationResource.source==LocationFacet.Source.RUNKEEPER) {
+                locationResource.api=Connector.getConnector("runkeeper").value();
+            }
             else {
                 locationResource.api=0;// This happens when GuestServiceImpl CheckIn function uses ip lookup
             }
