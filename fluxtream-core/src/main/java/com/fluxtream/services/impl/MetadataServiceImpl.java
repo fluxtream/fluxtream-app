@@ -334,7 +334,7 @@ public class MetadataServiceImpl implements MetadataService {
                 fetchWeatherInfo(latitude, longitude, closestCity.geo_name,
                                  date);
             } catch (Exception e) {
-                logger.warn("action=fetchWeather error");
+                logger.warn("action=fetchWeather error date="+ date+", lat=" + latitude + ", lon=" +longitude+", city="+closestCity.geo_name);
             }
             weather = JPAUtils.find(em, WeatherInfo.class,
                                     "weather.byDateAndCity.between", closestCity.geo_name,
