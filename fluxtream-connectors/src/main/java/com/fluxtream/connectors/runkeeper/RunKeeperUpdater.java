@@ -61,7 +61,7 @@ public class RunKeeperUpdater  extends AbstractUpdater {
         JSONObject jsonObject = JSONObject.fromObject(body);
         String fitnessActivities = jsonObject.getString("fitness_activities");
         List<String> activities = new ArrayList<String>();
-        String activityFeedURL = DEFAULT_ENDPOINT+"/" + fitnessActivities;
+        String activityFeedURL = DEFAULT_ENDPOINT + fitnessActivities;
         getFitnessActivityFeed(service, token, activityFeedURL, 25, activities, since);
         getFitnessActivities(updateInfo, service, token, activities);
     }
