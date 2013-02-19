@@ -198,6 +198,10 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                         $(span.node).attr("notthide",true);
 						$(span.node).css("cursor", "pointer");
 						$(span.node).click({instantaneous:instantaneous}, function(event) {
+                            if (typeof(event.offsetX) == "undefined"){
+                                event.offsetX = event.originalEvent.layerX;
+                                event.offsetY = event.originalEvent.layerY;
+                            }
                             if (!event.data.instantaneous)
                                 event.timeTarget = getTimestampForPoint(event.offsetX,event.offsetY);
                             else
