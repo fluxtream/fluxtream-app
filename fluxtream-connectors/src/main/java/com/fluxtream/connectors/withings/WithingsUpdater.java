@@ -5,6 +5,7 @@ import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiUpdate;
+import com.fluxtream.domain.Notification;
 import com.fluxtream.utils.Utils;
 import net.sf.json.JSONObject;
 import org.apache.log4j.Logger;
@@ -49,7 +50,19 @@ public class WithingsUpdater extends AbstractUpdater {
         request.addQuerystringParameter("publickey", env.get("withings.publickey"));
         request.addQuerystringParameter("enddate", String.valueOf(System.currentTimeMillis() / 1000));
 
-        Token accessToken = new Token(updateInfo.apiKey.getAttributeValue("accessToken", env), updateInfo.apiKey.getAttributeValue("tokenSecret", env));
+        final String accessTokenStr = updateInfo.apiKey.getAttributeValue("accessToken", env);
+        final String tokenSecretStr = updateInfo.apiKey.getAttributeValue("tokenSecret", env);
+        if(accessTokenStr == null || tokenSecretStr==null) {
+            // This connector does not have the accessToken and/or tokenSecret attributes, which means that
+            // the connector needs to be removed and re-added.
+            String message = (new StringBuilder("<p>Your Withings connector needs to be reauthorized.  "))
+                                .append("Please remove in Manage Connectors, then add the connector again.</p>")
+                                .append("<p>We apologize for the inconvenience</p>").toString();
+            notificationsService.addNotification(updateInfo.getGuestId(), Notification.Type.ERROR, message);
+            return;
+        }
+
+        Token accessToken = new Token(accessTokenStr, tokenSecretStr);
 
         try {
             withingsOAuthController.getOAuthService().signRequest(accessToken, request);
