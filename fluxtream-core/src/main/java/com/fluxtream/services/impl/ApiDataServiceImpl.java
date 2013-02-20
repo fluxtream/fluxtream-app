@@ -525,8 +525,46 @@ public class ApiDataServiceImpl implements ApiDataService {
     @Override
     @Transactional(readOnly = false)
     public void addGuestLocation(final long guestId, LocationFacet locationResource) {
-        updateDayMetadata(guestId, locationResource.timestampMs, locationResource.latitude, locationResource.longitude);
-        em.persist(locationResource);
+        // Create query to check for duplicate
+        Query query = em.createQuery("SELECT e FROM Facet_GoogleLatitudeLocation e WHERE e.guestId=? AND e.start=?");
+		query.setParameter(1, guestId);
+		query.setParameter(2, locationResource.timestampMs);
+		@SuppressWarnings("rawtypes")
+		List existing = query.getResultList();
+        // Only update Day metadata and persist if this location datapoint is not yet present in the DB table
+		if (existing.size()==0) {
+            // Fill in guestId, timeUpdated, and source.  These were removed in commit
+            // 2c8539c76acbbcd2576458c9ea0144d910a5d836 and location data tables using versions between
+            // there and here will have all location data assigned to guestId=0.  Connectors updated with
+            // those versions need to be removed and re-added or they will have data gaps
+            locationResource.guestId=guestId;
+            locationResource.timeUpdated=System.currentTimeMillis();
+            if(locationResource.source==LocationFacet.Source.GOOGLE_LATITUDE) {
+                locationResource.api=Connector.getConnector("google_latitude").value();
+            }
+            else if(locationResource.source==LocationFacet.Source.RUNKEEPER) {
+                locationResource.api=Connector.getConnector("runkeeper").value();
+            }
+            else {
+                locationResource.api=0;// This happens when GuestServiceImpl CheckIn function uses ip lookup
+            }
+
+            // Put updateDayMetadata in a try/catch block because we don't want to fail update or
+            // fail to persist this datapoint due to some problem in the timezone detection, etc.
+            try {
+                updateDayMetadata(guestId, locationResource.timestampMs, locationResource.latitude, locationResource.longitude);
+            } catch(Throwable e) {
+                StringBuilder sb = new StringBuilder("module=updateQueue component=apiDataServiceImpl action=addGuestLocation")
+                                    .append(" latitude=").append(locationResource.latitude)
+                                    .append(" longitude=").append(locationResource.longitude)
+                                    .append(" guestId=").append(guestId)
+                                    .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
+                logger.warn(sb.toString());
+            }
+
+            // Persist the location
+            em.persist(locationResource);
+        }
     }
 
     @Transactional(readOnly = false)

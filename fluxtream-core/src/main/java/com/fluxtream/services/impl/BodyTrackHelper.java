@@ -100,7 +100,7 @@ public class BodyTrackHelper {
                             }
                         }
                         else
-                            while (error.readLine() != null);
+                            while (error.readLine() != null) {}
                     } catch(Exception ignored){}
                 }
 
@@ -279,6 +279,12 @@ public class BodyTrackHelper {
                     ChannelStyle userStyle = getDefaultStyle(apiKey.getGuestId(),source.name,channel.name);
                     if (userStyle != null)
                         channel.style = userStyle;
+                    // Temporary hack: Until generic support is available for time_type, special case
+                    // device named 'Zeo' to use time_type="local"
+                    if(source.name.equals("Zeo")) {
+                        
+                        channel.time_type="local";
+                    }
                 }
             }
 
@@ -501,7 +507,13 @@ public class BodyTrackHelper {
     private static class ChannelSpecs{
         String channelType;
         String objectTypeName;
+        String time_type;
         ChannelBounds channel_bounds;
+
+        public ChannelSpecs(){
+            // time_type defaults to gmt.  It can be overridden to "local" for channels that only know local time
+            time_type = "gmt";
+        }
     }
 
     private static class ChannelBounds{
@@ -625,8 +637,12 @@ public class BodyTrackHelper {
         Double max_time;
         String name;
         String objectTypeName;
+        String time_type;
 
-        public Channel(){}
+        public Channel(){
+            // time_type defaults to gmt.  It can be overridden to "local" for channels that only know local time
+            time_type = "gmt";
+        }
         public Channel(String name, ChannelSpecs specs){
             this.name = name;
             max = specs.channel_bounds.max_value;
@@ -641,6 +657,8 @@ public class BodyTrackHelper {
                 objectTypeName = specs.objectTypeName;
             }
             style = builtin_default_style = ChannelStyle.getDefaultChannelStyle(name);
+            // time_type defaults to gmt.  It can be overridden to "local" for channels that only know local time
+            time_type = specs.time_type;
         }
     }
 

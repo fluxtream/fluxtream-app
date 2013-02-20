@@ -239,6 +239,8 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
     }
 	
 	function updateTab(digest, Calendar) {
+        if (App.activeApp.name != "calendar")
+            return;
         tabInterface.setRenderParamsFunction(function(){
             return {digest:digest,timeUnit:Calendar.timeUnit,calendarState:Calendar.tabState,connectorEnabled:Calendar.connectorEnabled[Calendar.currentTabName],tabParam:Calendar.tabParam,setTabParam:Calendar.setTabParam};
         });
