@@ -6,19 +6,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
-
-import com.google.gson.annotations.Expose;
-import org.hibernate.annotations.Index;
-
 import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
+import com.google.gson.annotations.Expose;
+import org.hibernate.annotations.Index;
 
 @Entity(name="ApiKey")
 @NamedQueries ( {
@@ -45,7 +42,7 @@ public class ApiKey extends AbstractEntity {
 	@Index(name="api_index")
 	private int api;
 	
-	@OneToMany(mappedBy="apiKey", fetch=FetchType.EAGER, cascade=CascadeType.ALL)
+	@OneToMany(mappedBy="apiKey",orphanRemoval = true, fetch=FetchType.EAGER, cascade=CascadeType.ALL)
 	Set<ApiKeyAttribute> attributes = new HashSet<ApiKeyAttribute>();
 
 	public void setGuestId(long guestId) {
@@ -63,8 +60,10 @@ public class ApiKey extends AbstractEntity {
             if (attribute.attributeKey.equals(attr.attributeKey))
                 toRemove.add(attribute);
         }
-        for (ApiKeyAttribute attribute : toRemove)
+        for (ApiKeyAttribute attribute : toRemove) {
+            attribute.apiKey = null;
             attributes.remove(attribute);
+        }
         attributes.add(attr);
 	}
 	

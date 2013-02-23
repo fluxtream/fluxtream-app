@@ -2,6 +2,7 @@ package com.fluxtream.mvc.controllers;
 
 import javax.servlet.http.HttpServletRequest;
 import com.fluxtream.Configuration;
+import com.fluxtream.services.GuestService;
 import com.fluxtream.utils.RequestUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,9 @@ public class TestController {
 
     @Autowired
     Configuration env;
+
+    @Autowired
+    GuestService guestService;
 
     @RequestMapping(value = "/test/unit")
     public ModelAndView unit(HttpServletRequest request) {

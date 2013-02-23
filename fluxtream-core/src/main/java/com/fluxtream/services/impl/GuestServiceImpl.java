@@ -152,12 +152,12 @@ public class GuestServiceImpl implements GuestService {
 	public ApiKey setApiKeyAttribute(ApiKey apiKey, String key,
 			String value) {
         apiKey.removeAttribute(key);
-		ApiKeyAttribute attr = new ApiKeyAttribute();
+        ApiKeyAttribute attr = new ApiKeyAttribute();
 		attr.attributeKey = key;
 		attr.setAttributeValue(value, env);
 		em.persist(attr);
 		apiKey.setAttribute(attr);
-		em.merge(apiKey);
+        em.merge(apiKey);
 		return apiKey;
 	}
 
