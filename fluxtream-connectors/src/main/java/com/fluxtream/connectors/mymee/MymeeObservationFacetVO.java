@@ -22,7 +22,6 @@ public class MymeeObservationFacetVO extends AbstractPhotoFacetVO<MymeeObservati
     public Integer baseAmount;
     public String unit;
     public String baseUnit;
-    public String imageURL;
     public Double longitude;
     public Double latitude;
 
@@ -39,7 +38,7 @@ public class MymeeObservationFacetVO extends AbstractPhotoFacetVO<MymeeObservati
         this.baseAmount = facet.baseAmount;
         this.unit = facet.unit;
         this.baseUnit = facet.baseUnit;
-        this.imageURL = facet.imageURL;
+        this.photoUrl = facet.imageURL;
         this.longitude = facet.longitude;
         this.latitude = facet.latitude;
     }
@@ -50,13 +49,13 @@ public class MymeeObservationFacetVO extends AbstractPhotoFacetVO<MymeeObservati
 
     @Override
     public String getPhotoUrl() {
-        return this.imageURL;
+        return this.photoUrl;
     }
 
     @Override
     public String getThumbnail(final int index) {
         // TODO: is a thumbnail version available?
-        return this.imageURL;
+        return this.photoUrl;
     }
 
     @Override

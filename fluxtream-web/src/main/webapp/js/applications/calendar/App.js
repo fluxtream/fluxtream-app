@@ -266,7 +266,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     break;
                 case "mymee-observation":
                     for (var i = 0; i < digest.cachedData[connectorId].length && !digest.cachedData[connectorId].hasImages; i++){
-                        digest.cachedData[connectorId].hasImages = digest.cachedData[connectorId][i].imageURL != null;
+                        digest.cachedData[connectorId].hasImages = digest.cachedData[connectorId][i].photoUrl != null;
                     }
                     break;
             }
@@ -278,7 +278,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                             digest.cachedData[connectorId][i].hasImage = true;
                             break;
                         case "mymee-observation":
-                            digest.cachedData[connectorId][i].hasImage = digest.cachedData[connectorId][i].imageURL != null;
+                            digest.cachedData[connectorId][i].hasImage = digest.cachedData[connectorId][i].photoUrl != null;
                             break;
                     }
                 }
