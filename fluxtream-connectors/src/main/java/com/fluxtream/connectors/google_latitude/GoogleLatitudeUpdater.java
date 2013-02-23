@@ -76,7 +76,12 @@ public class GoogleLatitudeUpdater extends AbstractGoogleOAuthUpdater {
 			}
 			Collections.sort(storedLocations);
 			LocationFacet oldest = storedLocations.get(0);
-            loadHistory(updateInfo, from, oldest.timestampMs-1000);
+            // Check if there is potentially a second or more of data left to get.  If so,
+            // recurse with a new to time of a second before the oldest location we currently have.
+            // Otherwise, end now
+            if(oldest.timestampMs-1000 >= from) {
+                loadHistory(updateInfo, from, oldest.timestampMs-1000);
+            }
 		}
 	}
 
