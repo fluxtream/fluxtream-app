@@ -67,7 +67,7 @@ public class RunKeeperController {
         final String token = accessToken.getToken();
 
         Guest guest = AuthHelper.getGuest();
-        final Connector connector = Connector.getConnector("lastfm");
+        final Connector connector = Connector.getConnector("runkeeper");
         final ApiKey apiKey = guestService.createApiKey(guest.getId(), connector);
 
         guestService.setApiKeyAttribute(apiKey, "accessToken", token);

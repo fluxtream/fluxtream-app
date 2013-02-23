@@ -1,7 +1,6 @@
 package com.fluxtream.connectors.runkeeper;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.annotations.Updater;
@@ -10,9 +9,7 @@ import com.fluxtream.connectors.updaters.UpdateInfo;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.log4j.Logger;
-import org.hibernate.search.sandbox.standalone.InstanceTransactionContext;
 import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.scribe.model.OAuthRequest;
@@ -41,8 +38,7 @@ public class RunKeeperUpdater  extends AbstractUpdater {
 
     @Override
     protected void updateConnectorDataHistory(final UpdateInfo updateInfo) throws Exception {
-        long beginningOfTime = new Date(0).getTime();
-        updateData(updateInfo, beginningOfTime);
+        updateData(updateInfo, 0);
         guestService.setApiKeyAttribute(updateInfo.apiKey,
                                         "lastUpdated", String.valueOf(System.currentTimeMillis()));
     }
@@ -62,7 +58,7 @@ public class RunKeeperUpdater  extends AbstractUpdater {
         String fitnessActivities = jsonObject.getString("fitness_activities");
         List<String> activities = new ArrayList<String>();
         String activityFeedURL = DEFAULT_ENDPOINT + fitnessActivities;
-        getFitnessActivityFeed(service, token, activityFeedURL, 25, activities, since);
+        getFitnessActivityFeed(updateInfo, service, token, activityFeedURL, 25, activities, since);
         getFitnessActivities(updateInfo, service, token, activities);
     }
 
@@ -74,23 +70,33 @@ public class RunKeeperUpdater  extends AbstractUpdater {
             request.addQuerystringParameter("oauth_token", token.getToken());
             request.addHeader("Accept", "application/vnd.com.runkeeper.FitnessActivity+json");
             service.signRequest(token, request);
+            long then = System.currentTimeMillis();
             Response response = request.send();
-            String body = response.getBody();
-            apiDataService.cacheApiDataJSON(updateInfo, body, -1, -1);
+            if (response.getCode()==200) {
+                countSuccessfulApiCall(updateInfo.apiKey,
+                                       updateInfo.objectTypes, then, activityURL);
+                String body = response.getBody();
+                apiDataService.cacheApiDataJSON(updateInfo, body, -1, -1);
+            } else {
+                throw new RuntimeException("Unexpected code: " + response.getCode());
+            }
         }
     }
 
     final DateTimeFormatter dateFormatter = DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss Z").withZone(DateTimeZone.forID("GMT"));
 
-    private void getFitnessActivityFeed(final OAuthService service, final Token token,
+    private void getFitnessActivityFeed(final UpdateInfo updateInfo,
+                                        final OAuthService service, final Token token,
                                         String activityFeedURL, final int pageSize,
                                         List<String> activities, long since) {
         OAuthRequest request = new OAuthRequest(Verb.GET, activityFeedURL);
         request.addQuerystringParameter("pageSize", String.valueOf(pageSize));
-        request.addQuerystringParameter("oauth_token", token.getToken());
+        //request.addQuerystringParameter("oauth_token", token.getToken());
         request.addHeader("Accept", "application/vnd.com.runkeeper.FitnessActivityFeed+json");
-        request.addHeader("If-Modified-Since", dateFormatter.print(since));
+        if (since>0)
+            request.addHeader("If-Modified-Since", dateFormatter.print(since));
         service.signRequest(token, request);
+        long then = System.currentTimeMillis();
         Response response = request.send();
         if (response.getCode()==200) {
             String body = response.getBody();
@@ -100,10 +106,14 @@ public class RunKeeperUpdater  extends AbstractUpdater {
                 JSONObject item = items.getJSONObject(i);
                 activities.add(item.getString("uri"));
             }
+            countSuccessfulApiCall(updateInfo.apiKey,
+                                   updateInfo.objectTypes, then, activityFeedURL);
             if (jsonObject.has("next")) {
                 activityFeedURL = DEFAULT_ENDPOINT + jsonObject.getString("next");
-                getFitnessActivityFeed(service, token, activityFeedURL, pageSize, activities, since);
+                getFitnessActivityFeed(updateInfo, service, token, activityFeedURL, pageSize, activities, since);
             }
+        } else {
+            throw new RuntimeException("Unexpected code: " + response.getCode());
         }
     }
 
