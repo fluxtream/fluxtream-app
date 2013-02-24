@@ -63,7 +63,10 @@ public class AppController {
 				.getAuthentication();
 		if (auth != null && auth.isAuthenticated())
 			return new ModelAndView("redirect:/app");
-		ModelAndView mav = new ModelAndView("index");
+        String indexPageName = "default";
+        if (env.get("homepage.name")!=null)
+            indexPageName = env.get("homepage.name");
+		ModelAndView mav = new ModelAndView(indexPageName);
 		String release = env.get("release");
 		if (release != null)
 			mav.addObject("release", release);
