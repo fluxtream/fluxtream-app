@@ -8,10 +8,9 @@ import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.domain.CoachingBuddy;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.SharedConnector;
-import com.fluxtream.services.GuestService;
 import com.fluxtream.services.CoachingService;
+import com.fluxtream.services.GuestService;
 import com.fluxtream.utils.JPAUtils;
-import com.google.api.client.googleapis.auth.authsub.AuthSubHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -97,6 +96,13 @@ public class CoachingServiceImpl implements CoachingService {
             em.remove(toRemove);
             em.merge(coachingBuddy);
         }
+    }
+
+    @Override
+    public boolean isViewingGranted(final long guestId, final long coacheeId, final String connectorName) {
+        final CoachingBuddy coachingBuddy = JPAUtils.findUnique(em, CoachingBuddy.class, "coachingBuddies.byGuestAndBuddyId", coacheeId, guestId);
+        boolean granted = coachingBuddy.hasAccessToConnector(connectorName);
+        return granted;
     }
 
     @Override

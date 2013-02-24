@@ -2,7 +2,6 @@ package com.fluxtream.api;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
@@ -14,10 +13,10 @@ import com.fluxtream.connectors.updaters.UpdateResult;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.metadata.DayMetadataFacet;
-import com.fluxtream.mvc.models.CalendarModel;
 import com.fluxtream.mvc.models.ConnectorResponseModel;
 import com.fluxtream.mvc.models.TimeBoundariesModel;
 import com.fluxtream.services.ApiDataService;
+import com.fluxtream.services.CoachingService;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.updaters.strategies.UpdateStrategy;
@@ -39,6 +38,9 @@ public class CalendarDataHelper {
 
     @Autowired
     private GuestService guestService;
+
+    @Autowired
+    private CoachingService coachingService;
 
 	/**
 	 * This is to let the client discard responses that are coming "too late"
@@ -65,7 +67,7 @@ public class CalendarDataHelper {
                                          List<String> dates) {
         List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
         try {
-            if (AuthHelper.isViewingGranted(connector.getName()))
+            if (AuthHelper.isViewingGranted(connector.getName(), coachingService))
                 facets = apiDataService.getApiDataFacets(
                         guestService.getApiKey(AuthHelper.getVieweeId(), connector), objectType,
                         dates);
@@ -80,7 +82,7 @@ public class CalendarDataHelper {
 			int lookbackDays) {
 		List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
 		try {
-            if (AuthHelper.isViewingGranted(connector.getName()))
+            if (AuthHelper.isViewingGranted(connector.getName(), coachingService))
                 facets = apiDataService.getApiDataFacets(
                         guestService.getApiKey(AuthHelper.getVieweeId(), connector), objectType,
                         dayMetadata.getTimeInterval());

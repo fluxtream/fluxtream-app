@@ -18,6 +18,8 @@ public interface CoachingService {
 
     public void removeSharedConnector(long guestId, String username, String connectorName);
 
+    public boolean isViewingGranted(long guestId, long coacheeId, String connectorName);
+
     public List<Guest> getCoaches(long guestId);
 
     public List<Guest> getCoachees(long guestId);

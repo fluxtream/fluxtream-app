@@ -2,13 +2,11 @@ package com.fluxtream.auth;
 
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Vector;
 import com.fluxtream.domain.CoachingBuddy;
 import com.fluxtream.domain.Guest;
-import com.fluxtream.domain.SharedConnector;
+import com.fluxtream.services.CoachingService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -22,17 +20,13 @@ public class AuthHelper {
 		return guestId;
 	}
 
-    public static boolean isViewingGranted(String connectorName) {
+    public static boolean isViewingGranted(String connectorName, CoachingService coachingService) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         final FlxUserDetails principal = (FlxUserDetails) auth.getPrincipal();
         if (principal.coachee==null)
             return true;
         else {
-            for (SharedConnector sharedConnector : principal.coachee.sharedConnectors) {
-                if (sharedConnector.connectorName.equals(connectorName))
-                    return true;
-            }
-            return false;
+            return coachingService.isViewingGranted(principal.getGuest().getId(), principal.coachee.guestId, connectorName);
         }
     }
 
