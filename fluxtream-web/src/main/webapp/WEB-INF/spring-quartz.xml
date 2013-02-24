@@ -10,6 +10,7 @@
 			<list>
 				<ref bean="producerTrigger" />
 				<ref bean="consumerTrigger" />
+                <ref bean="cleanupTrigger" />
 			</list>
 		</property>
 	</bean>
@@ -41,4 +42,18 @@
 		<property name="concurrent" value="false" />
 	</bean>
 	<bean id="consumer" class="com.fluxtream.updaters.quartz.Consumer"/>
+
+    <bean id="cleanupTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
+        <property name="jobDetail" ref="consumerJobDetail" />
+        <property name="startDelay" value="0" />
+        <property name="repeatInterval" value="3600000" />
+    </bean>
+
+    <bean id="cleanupJobDetail"
+          class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject" ref="cleanup" />
+        <property name="targetMethod" value="resumeInterruptedUpdates" />
+        <property name="concurrent" value="false" />
+    </bean>
+    <bean id="cleanup" class="com.fluxtream.updaters.quartz.Cleanup"/>
 </beans>

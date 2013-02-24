@@ -3,6 +3,11 @@
     <output-path>$PROJECT_DIR$/fluxtream-web/target</output-path>
     <root id="archive" name="ROOT.war">
       <element id="artifact" artifact-name="fluxtream-web:war exploded" />
+      <element id="directory" name="WEB-INF">
+        <element id="directory" name="lib">
+          <element id="library" level="module" name="granule1.0.9.jar" module-name="fluxtream-web" />
+        </element>
+      </element>
     </root>
   </artifact>
 </component>

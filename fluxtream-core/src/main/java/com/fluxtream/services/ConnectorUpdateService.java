@@ -91,4 +91,6 @@ public interface ConnectorUpdateService {
 	public long getNumberOfUpdatesSince(long guestId, int connectorValue, long then);
 
     public Collection<UpdateWorkerTask> getLastFinishedUpdateTasks(ApiKey apiKey);
+
+    public void resumeInterruptedUpdates();
 }

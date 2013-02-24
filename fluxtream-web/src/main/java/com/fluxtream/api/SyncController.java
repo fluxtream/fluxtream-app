@@ -173,7 +173,6 @@ public class SyncController {
     @Produces({MediaType.APPLICATION_JSON})
     public StatusModel resetConnector(@PathParam("connector") String connectorName) {
         setTransactionName(null, "POST /sync/" + connectorName + "/reset");
-        Connector connector = Connector.getConnector(connectorName);
         final long guestId = AuthHelper.getGuestId();
         final ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector(connectorName));
         connectorUpdateService.flushUpdateWorkerTasks(apiKey, true);

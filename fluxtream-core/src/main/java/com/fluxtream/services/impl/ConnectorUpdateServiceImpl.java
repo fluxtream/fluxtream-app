@@ -534,5 +534,20 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
         return seen.values();
     }
 
+    @Override
+    public void resumeInterruptedUpdates() {
+        // find all UpdateWorkerTasks (/scheduledUpdates) whose status is IN_PROGRESS
+        // for more than an hour
+        List<UpdateWorkerTask> interruptedUpdates = getInterruptedUpdates();
+        for (UpdateWorkerTask interruptedUpdate : interruptedUpdates) {
+            final ApiKey apiKey = em.find(ApiKey.class, interruptedUpdate.apiKeyId);
+            flushUpdateWorkerTasks(apiKey, true);
+            // delete all facets with that apiKeyId
+            updateConnector(apiKey, true);
+        }
+    }
 
+    public List<UpdateWorkerTask> getInterruptedUpdates() {
+        return new ArrayList<UpdateWorkerTask>();
+    }
 }

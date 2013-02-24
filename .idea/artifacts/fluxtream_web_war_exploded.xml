@@ -189,6 +189,7 @@
           </element>
           <element id="library" level="project" name="Maven: com.sun.jersey.contribs:jersey-multipart:1.11" />
           <element id="library" level="project" name="Maven: org.jvnet:mimepull:1.6" />
+          <element id="library" level="module" name="granule1.0.9.jar" module-name="fluxtream-web" />
         </element>
       </element>
     </root>
