@@ -345,6 +345,10 @@ public class ApiDataServiceImpl implements ApiDataService {
 			facetEntityNames.put(facet.getClass().getName(), entityName);
 		}
         if (facet instanceof AbstractLocalTimeFacet) {
+            // GET RID OF THIS!!!
+            // GET RID OF THIS!!!
+            // GET RID OF THIS!!!
+            // GET RID OF THIS!!!
             final AbstractLocalTimeFacet aftzFacet = (AbstractLocalTimeFacet)facet;
             final TimeZone localTimeZone = metadataService.getTimeZone(facet.guestId, aftzFacet.date);
             try {
@@ -365,6 +369,10 @@ public class ApiDataServiceImpl implements ApiDataService {
                 logger.warn(sb.toString());
                 throw new RuntimeException(message);
             }
+            // GET RID OF THIS!!!
+            // GET RID OF THIS!!!
+            // GET RID OF THIS!!!
+            // GET RID OF THIS!!!
         }
         Query query = em.createQuery("SELECT e FROM " + entityName + " e WHERE e.guestId=? AND e.start=? AND e.end=?");
 		query.setParameter(1, facet.guestId);
