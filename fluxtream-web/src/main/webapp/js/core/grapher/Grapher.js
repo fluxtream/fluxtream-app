@@ -359,6 +359,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                         "min"          : src.channels[j]["min"],
                         "max"          : src.channels[j]["max"],
                         "style"        : src.channels[j]["style"],
+                        "time_type"    : src.channels[j]["time_type"],
                         "type"        : src.channels[j]["type"]
                     };
 
@@ -812,7 +813,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     grapher.dateAxis,
                     yAxis,
                     App.getUID(),
-                    channel["style"]);
+                    {"style": channel["style"], "localDisplay": channel["time_type"] == "local"});
                 plot.addDataPointListener(photoDataPointListener(grapher, channel, channelElementId));
             } else if ("comments" == channel["channel_name"]) {
                 var commentStyle = channel['style'];
@@ -841,7 +842,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 plot = new DataSeriesPlot(channelDatasource(App.getUID(), channel["device_name"], channel["channel_name"]),
                     grapher.dateAxis,
                     yAxis,
-                    channel["style"]);
+                    {"style": channel["style"], "localDisplay": channel["time_type"] == "local"});
                 plot.addDataPointListener(function(pointObj, sourceInfo){dataPointListener(grapher,pointObj, sourceInfo)});
             }
 
