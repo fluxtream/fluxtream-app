@@ -31,8 +31,6 @@ public class CalendarModel {
     private static final DateTimeFormatter currentYearFormatter = DateTimeFormat
             .forPattern("yyyy");
 
-    public static final int FIRST_DAY_OF_WEEK = DateTimeConstants.SUNDAY;
-
     private final long guestId;
     private final MetadataService metadataService;
 
@@ -67,19 +65,7 @@ public class CalendarModel {
 
     public void setWeek(final int year, final int week) {
         this.timeUnit = TimeUnit.WEEK;
-        fromDate = getBeginningOfWeek(year, week);
-    }
-
-    public static LocalDate getBeginningOfWeek(final int year, final int week) {
-        return (new LocalDate())
-                .withWeekyear(year)
-                .withWeekOfWeekyear(week)
-                .minusWeeks(1)
-                .withDayOfWeek(FIRST_DAY_OF_WEEK);
-        // Need to subtract 1 week because Sunday is the last day of the week, which
-        // would logically move all the week start dates forward by 6 days.  Better
-        // one day earlier than JodaTime's standard than 6 days later than
-        // users' expectations.
+        fromDate = TimeUtils.getBeginningOfWeek(year, week);
     }
 
     public int getWeekYear() {
@@ -302,6 +288,6 @@ public class CalendarModel {
     public void setWeekTimeUnit() {
         timeUnit = TimeUnit.WEEK;
         fromDate = new LocalDate(fromDate.getYear(), fromDate.getMonthOfYear(), fromDate.getDayOfMonth())
-                .withDayOfWeek(FIRST_DAY_OF_WEEK);
+                .withDayOfWeek(TimeUtils.FIRST_DAY_OF_WEEK);
     }
 }

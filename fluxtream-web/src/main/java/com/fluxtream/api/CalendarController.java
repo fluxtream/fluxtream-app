@@ -14,6 +14,7 @@ import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.mvc.models.CalendarModel;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
+import com.fluxtream.utils.TimeUtils;
 import org.apache.log4j.Logger;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
@@ -99,7 +100,7 @@ public class CalendarController {
     @Produces({ MediaType.APPLICATION_JSON })
     public String getDateRangeForWeek(@QueryParam("week") int week,
                                       @QueryParam("year") int year) {
-        final LocalDate firstOfWeek = CalendarModel.getBeginningOfWeek(year, week);
+        final LocalDate firstOfWeek = TimeUtils.getBeginningOfWeek(year, week);
         final String startDate = jsDateFormatter.print(firstOfWeek);
         final String endDate = jsDateFormatter.print(firstOfWeek.plusWeeks(1).minusDays(1));
 
@@ -121,10 +122,10 @@ public class CalendarController {
         // the first day of the next week in CalendarModel, but is the last day of the
         // current week in LocalDate
         final LocalDate firstOfWeek;
-        if (curr.getDayOfWeek() < CalendarModel.FIRST_DAY_OF_WEEK)
-            firstOfWeek = curr.withDayOfWeek(CalendarModel.FIRST_DAY_OF_WEEK);
+        if (curr.getDayOfWeek() < TimeUtils.FIRST_DAY_OF_WEEK)
+            firstOfWeek = curr.withDayOfWeek(TimeUtils.FIRST_DAY_OF_WEEK);
         else
-            firstOfWeek = curr.plusWeeks(1).withDayOfWeek(CalendarModel.FIRST_DAY_OF_WEEK);
+            firstOfWeek = curr.plusWeeks(1).withDayOfWeek(TimeUtils.FIRST_DAY_OF_WEEK);
 
         return String.format("[%d, %d]",
                              firstOfWeek.getWeekyear(),
