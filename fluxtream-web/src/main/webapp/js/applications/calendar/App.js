@@ -578,6 +578,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         return ["app/calendar", state.tabName, state.tabState].join("/");
     };
 
+    Calendar.toStateURL = function(state){
+        return [state.tabName, state.tabState].join("/");
+    }
+
     /**
      * Updates the state of the current tab using the given state object. The
      * tab is not re-rendered, but Calendar interface elements may be updated as
@@ -609,7 +613,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             updateDatepicker(state);
             fetchCalendar(state);
             FlxState.router.navigate(Calendar.toURL(state), {trigger: false, replace: true});
-            FlxState.saveState("calendar", state);
+            FlxState.saveState("calendar", Calendar.toStateURL(state));
         }
     };
 
