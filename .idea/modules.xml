@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/fluxtream-connectors/fluxtream-connectors.iml" filepath="$PROJECT_DIR$/fluxtream-connectors/fluxtream-connectors.iml" />
       <module fileurl="file://$PROJECT_DIR$/fluxtream-core/fluxtream-core.iml" filepath="$PROJECT_DIR$/fluxtream-core/fluxtream-core.iml" />
+      <module fileurl="file://$PROJECT_DIR$/fluxtream-utils/fluxtream-utils.iml" filepath="$PROJECT_DIR$/fluxtream-utils/fluxtream-utils.iml" />
       <module fileurl="file://$PROJECT_DIR$/fluxtream-web/fluxtream-web.iml" filepath="$PROJECT_DIR$/fluxtream-web/fluxtream-web.iml" />
     </modules>
   </component>

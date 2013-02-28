@@ -1,7 +1,6 @@
 package com.fluxtream.api;
 
 import com.fluxtream.utils.HttpUtils;
-import org.junit.Test;
 
 /**
  *
@@ -9,8 +8,7 @@ import org.junit.Test;
  */
 public class TestControllerTest {
 
-    @Test
-    public void testSetAttribute() throws Exception {
+    public static void main(final String[] args) throws Exception {
         String username = "yourusername";
         for(int i=0; i<10; i++)
             HttpUtils.fetch("http://localhost:8082/api/test/setAttribute?att=çamarcheenfin", username, "yourpassword");

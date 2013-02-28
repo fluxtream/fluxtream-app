@@ -34,12 +34,14 @@
         <processorPath useClasspath="true" />
         <module name="fluxtream-connectors" />
         <module name="fluxtream-core" />
+        <module name="fluxtream-utils" />
         <module name="fluxtream-web" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="fluxtream-connectors" target="1.6" />
       <module name="fluxtream-core" target="1.6" />
+      <module name="fluxtream-utils" target="1.6" />
       <module name="fluxtream-web" target="1.6" />
     </bytecodeTargetLevel>
   </component>
