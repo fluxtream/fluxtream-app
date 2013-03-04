@@ -1,6 +1,4 @@
-package com.fluxtream.api;
-
-import com.fluxtream.utils.HttpUtils;
+package com.fluxtream.utils;
 
 /**
  *

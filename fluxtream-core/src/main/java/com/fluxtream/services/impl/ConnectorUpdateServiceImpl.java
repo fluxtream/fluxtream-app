@@ -534,20 +534,29 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
         return seen.values();
     }
 
+    /**
+     * This gets executed when a server is restarted and we need to clean up the
+     * worker tasks that were in_progress when the server got shut down
+     */
     @Override
     public void resumeInterruptedUpdates() {
         // find all UpdateWorkerTasks (/scheduledUpdates) whose status is IN_PROGRESS
-        // for more than an hour
+        //
         List<UpdateWorkerTask> interruptedUpdates = getInterruptedUpdates();
         for (UpdateWorkerTask interruptedUpdate : interruptedUpdates) {
             final ApiKey apiKey = em.find(ApiKey.class, interruptedUpdate.apiKeyId);
+            // delete pending worker tasks
             flushUpdateWorkerTasks(apiKey, true);
-            // delete all facets with that apiKeyId
+            // delete the incomplete data that was retrieved thus far
+            apiDataService.eraseApiData(apiKey);
+            // re-launch connector update
             updateConnector(apiKey, true);
         }
     }
 
     public List<UpdateWorkerTask> getInterruptedUpdates() {
-        return new ArrayList<UpdateWorkerTask>();
+        List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em, UpdateWorkerTask.class,
+                                                                "updateWorkerTasks.all.inProgress");
+        return updateWorkerTasks;
     }
 }

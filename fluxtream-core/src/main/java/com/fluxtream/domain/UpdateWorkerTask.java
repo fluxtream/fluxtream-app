@@ -39,6 +39,9 @@ import com.fluxtream.connectors.updaters.UpdateInfo;
 		query = "SELECT updt FROM ScheduledUpdate updt " +
                 "WHERE updt.status=? " +
                 "AND updt.timeScheduled<?"),
+    @NamedQuery( name = "updateWorkerTasks.all.inProgress",
+                 query = "SELECT updt FROM ScheduledUpdate updt " +
+                         "WHERE updt.status=1"),
     @NamedQuery( name = "updateWorkerTasks.isScheduledOrInProgress",
         query = "SELECT updt FROM ScheduledUpdate updt " +
                 "WHERE (updt.status=0 " +

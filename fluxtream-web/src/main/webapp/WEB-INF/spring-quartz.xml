@@ -30,7 +30,7 @@
 
  	<bean id="consumerTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
 		<property name="jobDetail" ref="consumerJobDetail" />
-		<property name="startDelay" value="60000" />
+		<property name="startDelay" value="30000" />
 		<property name="repeatInterval" value="5000" />
 	</bean>
 
