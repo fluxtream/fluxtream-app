@@ -546,8 +546,6 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
             final ApiKey apiKey = em.find(ApiKey.class, interruptedUpdate.apiKeyId);
             // delete pending worker tasks
             flushUpdateWorkerTasks(apiKey, true);
-            // delete the incomplete data that was retrieved thus far
-            apiDataService.eraseApiData(apiKey);
             // re-launch connector update
             updateConnector(apiKey, true);
         }

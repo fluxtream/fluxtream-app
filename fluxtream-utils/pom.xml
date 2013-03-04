@@ -11,5 +11,12 @@
 
     <artifactId>fluxtream-utils</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>com.fluxtream</groupId>
+            <artifactId>fluxtream-core</artifactId>
+            <version>1.0</version>
+        </dependency>
+    </dependencies>
 
 </project>
