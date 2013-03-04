@@ -484,7 +484,6 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
     @Transactional(readOnly = false)
     @Override
     public void flushUpdateWorkerTasks(final ApiKey apiKey, int objectTypes, boolean wipeOutHistory) {
-        List<AbstractUpdater> toStop = new ArrayList<AbstractUpdater>();
         if (!wipeOutHistory)
             JPAUtils.execute(em, "updateWorkerTasks.delete.byApiAndObjectType", apiKey.getGuestId(),
                              apiKey.getConnector().getName(),

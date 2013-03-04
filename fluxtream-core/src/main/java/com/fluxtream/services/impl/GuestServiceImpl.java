@@ -208,6 +208,7 @@ public class GuestServiceImpl implements GuestService {
 	}
 
     @Override
+    @Deprecated
     public ApiKey getApiKey(long guestId, Connector api) {
         final List<ApiKey> apiKeys = getApiKeys(guestId, api);
         return apiKeys.size()>0
