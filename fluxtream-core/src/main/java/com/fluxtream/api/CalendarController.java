@@ -1,9 +1,6 @@
 package com.fluxtream.api;
 
 import java.io.IOException;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.TimeZone;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;

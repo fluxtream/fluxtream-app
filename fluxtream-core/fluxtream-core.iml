@@ -17,11 +17,10 @@
       <sourceFolder url="file://$MODULE_DIR$/src/test/java" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/test/resources" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/target/classes" />
-      <excludeFolder url="file://$MODULE_DIR$/target/maven-archiver" />
-      <excludeFolder url="file://$MODULE_DIR$/target/test-classes" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="inheritedJdk" />
+    <orderEntry type="library" name="Maven: com.newrelic:newrelic-api:2.7.0" level="project" />
     <orderEntry type="library" name="Maven: commons-configuration:commons-configuration:1.8" level="project" />
     <orderEntry type="library" name="Maven: commons-lang:commons-lang:2.6" level="project" />
     <orderEntry type="library" name="Maven: commons-logging:commons-logging:1.1.1" level="project" />
@@ -32,6 +31,9 @@
     <orderEntry type="library" name="Maven: xerces:xercesImpl:2.10.0" level="project" />
     <orderEntry type="library" name="Maven: xml-apis:xml-apis:1.4.01" level="project" />
     <orderEntry type="library" name="Maven: junit:junit:4.8.2" level="project" />
+    <orderEntry type="library" name="Maven: com.sun.jersey.contribs:jersey-multipart:1.11" level="project" />
+    <orderEntry type="library" name="Maven: org.jvnet:mimepull:1.6" level="project" />
+    <orderEntry type="library" name="Maven: com.sun.jersey:jersey-core:1.11" level="project" />
     <orderEntry type="library" name="Maven: joda-time:joda-time:2.1" level="project" />
     <orderEntry type="library" name="Maven: com.ocpsoft:ocpsoft-pretty-time:1.0.7" level="project" />
     <orderEntry type="library" name="Maven: com.postmark:postmark-client:0.3.1" level="project" />
@@ -192,7 +194,6 @@
     <orderEntry type="library" name="Maven: org.codehaus.jackson:jackson-mapper-asl:1.9.2" level="project" />
     <orderEntry type="library" name="Maven: org.codehaus.jackson:jackson-jaxrs:1.9.2" level="project" />
     <orderEntry type="library" name="Maven: org.codehaus.jackson:jackson-xc:1.9.2" level="project" />
-    <orderEntry type="library" name="Maven: com.sun.jersey:jersey-core:1.11" level="project" />
     <orderEntry type="library" name="Maven: com.sun.jersey.contribs:jersey-spring:1.11" level="project" />
     <orderEntry type="library" name="Maven: com.sun.jersey:jersey-servlet:1.11" level="project" />
     <orderEntry type="library" name="Maven: com.sun.jersey:jersey-server:1.11" level="project" />

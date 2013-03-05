@@ -32,7 +32,6 @@ import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.fluxtream_capture.FluxtreamCapturePhoto;
 import com.fluxtream.connectors.fluxtream_capture.FluxtreamCapturePhotoStore;
-import com.fluxtream.connectors.fluxtream_capture.FluxtreamCaptureUpdater;
 import com.fluxtream.connectors.vos.AbstractPhotoFacetVO;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.CoachingBuddy;
@@ -226,7 +225,7 @@ public class BodyTrackController {
         final Connector connector = Connector.getConnector(connectorName);
         if (connector != null) {
             // We currently only support photo uploads for the Fluxtream Capture connector
-            if (FluxtreamCaptureUpdater.CONNECTOR_NAME.equals(connector.getName())) {
+            if ("fluxtream_capture".equals(connector.getName())) {
                 try {
                     if (multiPart != null) {
                         byte[] photoBytes = null;
@@ -393,7 +392,7 @@ public class BodyTrackController {
             if (!accessAllowed) {
                 final CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
                 if (coachee != null) {
-                    accessAllowed = coachee.hasAccessToConnector(FluxtreamCaptureUpdater.CONNECTOR_NAME);
+                    accessAllowed = coachee.hasAccessToConnector("fluxtream_capture");
                 }
             }
         }

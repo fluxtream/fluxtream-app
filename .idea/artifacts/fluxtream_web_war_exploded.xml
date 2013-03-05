@@ -8,10 +8,10 @@
           <element id="module-output" name="fluxtream-web" />
         </element>
         <element id="directory" name="lib">
-          <element id="library" level="project" name="Maven: com.newrelic:newrelic-api:2.7.0" />
           <element id="archive" name="fluxtream-core-1.0.jar">
             <element id="module-output" name="fluxtream-core" />
           </element>
+          <element id="library" level="project" name="Maven: com.newrelic:newrelic-api:2.7.0" />
           <element id="library" level="project" name="Maven: commons-configuration:commons-configuration:1.8" />
           <element id="library" level="project" name="Maven: commons-lang:commons-lang:2.4" />
           <element id="library" level="project" name="Maven: commons-logging:commons-logging:1.1.1" />
@@ -21,6 +21,9 @@
           <element id="library" level="project" name="Maven: com.adobe.xmp:xmpcore:5.1.2" />
           <element id="library" level="project" name="Maven: xerces:xercesImpl:2.10.0" />
           <element id="library" level="project" name="Maven: xml-apis:xml-apis:1.4.01" />
+          <element id="library" level="project" name="Maven: com.sun.jersey.contribs:jersey-multipart:1.11" />
+          <element id="library" level="project" name="Maven: org.jvnet:mimepull:1.6" />
+          <element id="library" level="project" name="Maven: com.sun.jersey:jersey-core:1.11" />
           <element id="library" level="project" name="Maven: joda-time:joda-time:2.1" />
           <element id="library" level="project" name="Maven: com.ocpsoft:ocpsoft-pretty-time:1.0.7" />
           <element id="library" level="project" name="Maven: com.postmark:postmark-client:0.3.1" />
@@ -178,7 +181,6 @@
           <element id="library" level="project" name="Maven: org.codehaus.jackson:jackson-mapper-asl:1.9.2" />
           <element id="library" level="project" name="Maven: org.codehaus.jackson:jackson-jaxrs:1.9.2" />
           <element id="library" level="project" name="Maven: org.codehaus.jackson:jackson-xc:1.9.2" />
-          <element id="library" level="project" name="Maven: com.sun.jersey:jersey-core:1.11" />
           <element id="library" level="project" name="Maven: com.sun.jersey.contribs:jersey-spring:1.11" />
           <element id="library" level="project" name="Maven: com.sun.jersey:jersey-servlet:1.11" />
           <element id="library" level="project" name="Maven: com.sun.jersey:jersey-server:1.11" />
@@ -187,9 +189,6 @@
           <element id="archive" name="fluxtream-connectors-1.0.jar">
             <element id="module-output" name="fluxtream-connectors" />
           </element>
-          <element id="library" level="project" name="Maven: com.sun.jersey.contribs:jersey-multipart:1.11" />
-          <element id="library" level="project" name="Maven: org.jvnet:mimepull:1.6" />
-          <element id="library" level="module" name="granule1.0.9.jar" module-name="fluxtream-web" />
         </element>
       </element>
     </root>

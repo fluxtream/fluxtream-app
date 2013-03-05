@@ -28,7 +28,7 @@ public final class FluxtreamCapturePhoto {
     private static final int THUMBNAIL_2_MAX_SIDE_LENGTH_IN_PIXELS = 500;
     private static final String KEY_VALUE_STORE_KEY_PART_DELIMITER = ".";
     private static final String KEY_VALUE_STORE_FILENAME_PART_DELIMITER = "_";
-    private static final String CONNECTOR_PRETTY_NAME = Connector.getConnector(FluxtreamCaptureUpdater.CONNECTOR_NAME).prettyName();
+    private static final String CONNECTOR_PRETTY_NAME = Connector.getConnector("fluxtream_capture").prettyName();
     private static final String OBJECT_TYPE_NAME = "photo";
 
     @NotNull

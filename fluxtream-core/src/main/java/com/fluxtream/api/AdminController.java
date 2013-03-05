@@ -1,5 +1,8 @@
 package com.fluxtream.api;
 
+import java.io.IOException;
+import java.util.List;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -7,27 +10,25 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-
-import com.fluxtream.services.DashboardsService;
+import com.fluxtream.Configuration;
+import com.fluxtream.auth.AuthHelper;
+import com.fluxtream.connectors.Connector;
+import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.Guest;
+import com.fluxtream.mvc.models.StatusModel;
+import com.fluxtream.services.GuestService;
 import com.fluxtream.services.JPADaoService;
 import com.fluxtream.services.WidgetsService;
+import com.google.gson.Gson;
 import net.sf.json.JSONObject;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Component;
 
-import com.fluxtream.Configuration;
-import com.fluxtream.mvc.models.StatusModel;
-import com.fluxtream.services.BodyTrackStorageService;
-import com.fluxtream.services.GuestService;
-import com.google.gson.Gson;
-
 @Path("/admin")
 @Component("RESTAdminController")
 @Scope("request")
-@Secured({ "ROLE_ADMIN", "ROLE_ROOT" })
 public class AdminController {
 
 	@Autowired
@@ -45,6 +46,7 @@ public class AdminController {
     WidgetsService widgetsService;
 
     @GET
+    @Secured({ "ROLE_ADMIN" })
 	@Path("/properties/{propertyName}")
 	@Produces({ MediaType.APPLICATION_JSON })
 	public String getProperty(@PathParam("propertyName") String propertyName)
@@ -64,6 +66,7 @@ public class AdminController {
 	}
 
     @POST
+    @Secured({ "ROLE_ADMIN" })
     @Path("/executeUpdate")
     @Produces({ MediaType.APPLICATION_JSON })
     public String executeUpdate(@FormParam("jpql") String jpql)
@@ -81,11 +84,50 @@ public class AdminController {
     }
 
     @POST
+    @Secured({ "ROLE_ADMIN" })
     @Path("/widgets/refresh")
     @Produces({ MediaType.APPLICATION_JSON })
     public String refreshWidgets() {
         widgetsService.refreshWidgets();
         return gson.toJson(new StatusModel(true, "widgets refreshed"));
+    }
+
+    @GET
+    @Secured({ "ROLE_ADMIN" })
+    @Path("/privileges")
+    @Produces({MediaType.APPLICATION_JSON})
+    public List<String> listRoles() throws IOException {
+        final Guest guest = AuthHelper.getGuest();
+        final List<String> userRoles = guest.getUserRoles();
+        return userRoles;
+    }
+
+    @GET
+    @Path("/{connectorName}/apiKeys")
+    @Secured({ "ROLE_ADMIN" })
+    @Produces({MediaType.APPLICATION_JSON})
+    public List<ApiKey> listApiKeys(@PathParam("connectorName") String connectorName) throws IOException {
+        final Guest guest = AuthHelper.getGuest();
+        final List<ApiKey> apiKeys = guestService.getApiKeys(guest.getId(), Connector.getConnector(connectorName));
+        return apiKeys;
+    }
+
+    @DELETE
+    @Path("/apiKeys/{apiKeyId}")
+    @Secured({ "ROLE_ADMIN" })
+    @Produces({MediaType.TEXT_PLAIN})
+    public String deleteApiKey(@PathParam("apiKeyId") long apiKeyId) throws IOException {
+        guestService.removeApiKey(apiKeyId);
+        return "OK";
+    }
+
+    @GET
+    @Path("/ping")
+    @Secured({ "ROLE_ADMIN" })
+    @Produces({MediaType.TEXT_PLAIN})
+    public String ping() throws IOException {
+        final Guest guest = AuthHelper.getGuest();
+        return "pong, " + guest.username;
     }
 
 }

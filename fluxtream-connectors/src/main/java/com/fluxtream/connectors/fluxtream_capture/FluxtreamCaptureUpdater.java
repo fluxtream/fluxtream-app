@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
          objectTypes = {FluxtreamCapturePhotoFacet.class},
          defaultChannels = {"FluxtreamCapture.photo"})
 public class FluxtreamCaptureUpdater extends AbstractUpdater {
+
     public static final String CONNECTOR_NAME = "fluxtream_capture";
 
     @Override

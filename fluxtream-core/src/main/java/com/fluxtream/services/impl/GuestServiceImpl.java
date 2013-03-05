@@ -2,6 +2,8 @@ package com.fluxtream.services.impl;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -204,13 +206,20 @@ public class GuestServiceImpl implements GuestService {
 
 	@Override
 	public List<ApiKey> getApiKeys(long guestId, Connector api) {
-        return JPAUtils.find(em, ApiKey.class, "apiKey.byApi", guestId, api.value());
+        List<ApiKey> apiKeys = JPAUtils.find(em, ApiKey.class, "apiKey.byApi", guestId, api.value());
+        Collections.sort(apiKeys, new Comparator<ApiKey>() {
+            @Override
+            public int compare(ApiKey o1, ApiKey o2) {
+                return (int)(o2.getId()-o1.getId());
+            }
+        });
+        return apiKeys;
 	}
 
     @Override
     @Deprecated
     public ApiKey getApiKey(long guestId, Connector api) {
-        final List<ApiKey> apiKeys = getApiKeys(guestId, api);
+        List<ApiKey> apiKeys = getApiKeys(guestId, api);
         return apiKeys.size()>0
                 ? apiKeys.get(0)
                 : null;
@@ -295,7 +304,7 @@ public class GuestServiceImpl implements GuestService {
 				roles.append(",");
 			roles.append(userRoles.get(i));
 		}
-		guest.roles = roles.toString();
+		guest.setRoles(roles.toString());
 		em.persist(guest);
 	}
 

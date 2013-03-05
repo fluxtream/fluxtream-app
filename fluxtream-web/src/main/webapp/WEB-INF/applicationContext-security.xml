@@ -26,7 +26,8 @@
     <http pattern="/createAccountForm*" security="none" />
     <http pattern="/widgets.json" security="none" />
     <http pattern="/widgets/**" security="none" />
-    <http pattern="/test/**" security="none" />
+    <http pattern="/api/test/**" security="none" />
+    <http pattern="/api/ping" security="none" />
 
 
     <http access-denied-page="/accessDenied" entry-point-ref="loginUrlAuthenticationEntryPoint"

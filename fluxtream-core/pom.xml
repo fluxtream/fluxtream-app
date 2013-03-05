@@ -15,6 +15,11 @@
         </repository>
     </repositories>
     <dependencies>
+        <dependency>
+            <groupId>com.newrelic</groupId>
+            <artifactId>newrelic-api</artifactId>
+            <version>2.7.0</version>
+        </dependency>
 		<dependency>
 			<groupId>commons-configuration</groupId>
 			<artifactId>commons-configuration</artifactId>
@@ -41,6 +46,11 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.8.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.jersey.contribs</groupId>
+            <artifactId>jersey-multipart</artifactId>
+            <version>1.11</version>
         </dependency>
     </dependencies>
 </project>

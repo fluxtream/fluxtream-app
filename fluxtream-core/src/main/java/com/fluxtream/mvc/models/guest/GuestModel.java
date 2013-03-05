@@ -14,7 +14,7 @@ public class GuestModel {
 		this.firstname = guest.firstname;
 		this.lastname = guest.lastname;
         this.email = guest.email;
-        this.roles = guest.roles;
+        this.roles = guest.getUserRoles().toString();
     }
 	
 }

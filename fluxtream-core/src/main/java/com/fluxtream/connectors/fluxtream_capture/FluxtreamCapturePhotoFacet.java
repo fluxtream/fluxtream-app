@@ -81,7 +81,7 @@ public class FluxtreamCapturePhotoFacet extends AbstractFacet implements Seriali
         end = start;
         hash = photo.getPhotoHash();
 
-        final Connector connector = Connector.getConnector(FluxtreamCaptureUpdater.CONNECTOR_NAME);
+        final Connector connector = Connector.getConnector("fluxtream_capture");
         this.api = connector.value();
         this.objectType = ObjectType.getObjectType(connector, "photo").value();
 
