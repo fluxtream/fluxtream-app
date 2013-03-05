@@ -8,6 +8,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
         this.channelsMap = {}; // maps DOM element ID to view's y_axes
         this.plotsMap = {}; // maps DOM element ID to grapher widget
         this.grapherId = new Date().getTime() + "-" + Math.round(Math.random()*10000000);
+        this.plotContainers = [];    // array of plot containers
         var grapher = this;
         for (var param in options)
             grapher[param] = options[param];
@@ -40,7 +41,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
     var channelIdx   		 = 0;     // counter used to uniquely identify channels
     var dragSourceId 		 = null;  // DOM id of source is stored here during drag
 
-    var plotContainers       = [];    // array of plot containers
+
     var hasUnsavedChanges    = false; // used by unsaved changes dialog handler
     var loadedViewStr        = "";    // JSON string of loaded view
     var addPaneChannelsState = [];    // add channels pane channel visibility
@@ -84,7 +85,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
 
             // Could also use ._timeline_channeltd, but $("._timeline_gotozoom").width() returns 0
             // whenever there are no channels
-            var widthOfAreaLeftOfPlotContainer = $("._timeline_gotozoom").width() + borderOffset;
+            var widthOfAreaLeftOfPlotContainer = $("#" + grapher.grapherId + "_timeline_gotozoom").width() + borderOffset;
             // TODO: Find a good way to get the ._timeline_yaxistd width even when with no channels
             var widthOfAreaRightOfPlotContainer = $("._timeline_yaxistd").width() + borderOffset;
 
@@ -98,9 +99,9 @@ define(["core/grapher/BTCore"], function(BTCore) {
 
             // resize plot containers
             var plotContainerEventId = SequenceNumber.getNext();
-            for (var i = 0; i < plotContainers.length; i++) {
-                var plotContainerHeight = $("#" + plotContainers[i].getPlaceholder()).height();
-                plotContainers[i].setSize(plotContainerWidth, plotContainerHeight, plotContainerEventId);
+            for (var i = 0; i < grapher.plotContainers.length; i++) {
+                var plotContainerHeight = $("#" + grapher.plotContainers[i].getPlaceholder()).height();
+                grapher.plotContainers[i].setSize(plotContainerWidth, plotContainerHeight, plotContainerEventId);
             }
 
             // resize date axis
@@ -851,7 +852,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
             grapher.channelsMap[channelElementId] = channel;
             grapher.plotsMap[channelElementId] = plot;
             grapher.plotContainersMap[channelElementId] = plotContainer;
-            plotContainers.push(plotContainer);
+            grapher.plotContainers.push(plotContainer);
 
             // Gear button
             $("#" + channelElementId + "_btnGear").unbind("click").click(function(event) {
@@ -1591,7 +1592,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
             grapher.channelsMap = {};
             grapher.plotsMap = {};
             grapher.plotContainersMap = {};
-            plotContainers = [];
+            grapher.plotContainers = [];
 
             // Reset colorpicker color cycling
             jQuery.fn.colorPicker.resetGetNextColor();
