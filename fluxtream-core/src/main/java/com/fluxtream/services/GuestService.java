@@ -2,8 +2,6 @@ package com.fluxtream.services;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
-
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.AbstractUserProfile;
 import com.fluxtream.domain.ApiKey;
@@ -21,6 +19,8 @@ public interface GuestService {
 			String lastname, String password, String email) throws Exception;
 
 	public void eraseGuestInfo(String username) throws Exception;
+
+    public void eraseGuestInfo(long id) throws Exception;
 
 	public boolean isUsernameAvailable(String username);
 
@@ -71,5 +71,4 @@ public interface GuestService {
 
 	public <T extends AbstractUserProfile> T getUserProfile(long guestId,
 			Class<T> clazz);
-
 }

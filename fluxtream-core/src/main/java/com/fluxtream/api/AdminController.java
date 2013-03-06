@@ -13,13 +13,16 @@ import javax.ws.rs.core.MediaType;
 import com.fluxtream.Configuration;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.connectors.updaters.ScheduleResult;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.mvc.models.StatusModel;
+import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.JPADaoService;
 import com.fluxtream.services.WidgetsService;
 import com.google.gson.Gson;
+import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -44,6 +47,9 @@ public class AdminController {
 
     @Autowired
     WidgetsService widgetsService;
+
+    @Autowired
+    ConnectorUpdateService connectorUpdateService;
 
     @GET
     @Secured({ "ROLE_ADMIN" })
@@ -103,11 +109,28 @@ public class AdminController {
     }
 
     @GET
-    @Path("/{connectorName}/apiKeys")
+    @Path("/guests")
     @Secured({ "ROLE_ADMIN" })
     @Produces({MediaType.APPLICATION_JSON})
-    public List<ApiKey> listApiKeys(@PathParam("connectorName") String connectorName) throws IOException {
-        final Guest guest = AuthHelper.getGuest();
+    public String getGuestIds() throws IOException {
+        final List<Guest> allGuests = guestService.getAllGuests();
+        JSONArray jsonArray = new JSONArray();
+        for (Guest guest : allGuests) {
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("username", guest.username);
+            jsonObject.put("id", guest.getId());
+            jsonArray.add(jsonObject);
+        }
+        return jsonArray.toString();
+    }
+
+    @GET
+    @Path("/{username}/{connectorName}/apiKeys")
+    @Secured({ "ROLE_ADMIN" })
+    @Produces({MediaType.APPLICATION_JSON})
+    public List<ApiKey> listApiKeys(@PathParam("username") String username,
+                                    @PathParam("connectorName") String connectorName) throws IOException {
+        final Guest guest = guestService.getGuest(username);
         final List<ApiKey> apiKeys = guestService.getApiKeys(guest.getId(), Connector.getConnector(connectorName));
         return apiKeys;
     }
@@ -119,6 +142,51 @@ public class AdminController {
     public String deleteApiKey(@PathParam("apiKeyId") long apiKeyId) throws IOException {
         guestService.removeApiKey(apiKeyId);
         return "OK";
+    }
+
+    @DELETE
+    @Path("/guests/{guestId}")
+    @Secured({ "ROLE_ADMIN" })
+    @Produces({MediaType.TEXT_PLAIN})
+    public String deleteUser(@PathParam("guestId") long guestId) throws Exception {
+        final Guest guest = guestService.getGuestById(guestId);
+        guestService.eraseGuestInfo(guestId);
+        return "Deleted guest: " + guest.username;
+    }
+
+    @POST
+    @Path("/reset/{username}/{connector}")
+    @Secured({ "ROLE_ADMIN" })
+    @Produces({MediaType.APPLICATION_JSON})
+    public StatusModel resetConnector(@PathParam("username") String username,
+                                      @PathParam("connector") String connectorName) {
+        final long guestId = guestService.getGuest(username).getId();
+        final ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector(connectorName));
+        connectorUpdateService.flushUpdateWorkerTasks(apiKey, true);
+        return new StatusModel(true, "reset controller " + connectorName);
+    }
+
+    @POST
+    @Path("/sync/{username}/{connector}")
+    @Secured({ "ROLE_ADMIN" })
+    @Produces({MediaType.APPLICATION_JSON})
+    public String updateConnector(@PathParam("username") String username,
+                                  @PathParam("connector") String connectorName){
+        final long guestId = guestService.getGuest(username).getId();
+        return sync(guestId, connectorName, true);
+    }
+
+    private String sync(final long guestId, final String connectorName, final boolean force) {
+        try{
+            final ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector(connectorName));
+            final List<ScheduleResult> scheduleResults = connectorUpdateService.updateConnector(apiKey, force);
+            StatusModel statusModel = new StatusModel(true, "successfully added update worker tasks to the queue (see details)");
+            statusModel.payload = scheduleResults;
+            return gson.toJson(scheduleResults);
+        }
+        catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Failed to schedule update: " + e.getMessage()));
+        }
     }
 
     @GET

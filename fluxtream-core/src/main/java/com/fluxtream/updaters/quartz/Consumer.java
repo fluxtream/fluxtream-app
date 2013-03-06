@@ -1,14 +1,12 @@
 package com.fluxtream.updaters.quartz;
 
+import com.fluxtream.services.ConnectorUpdateService;
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.fluxtream.services.ConnectorUpdateService;
-
 @Component
-public class Consumer implements InitializingBean {
+public class Consumer {
 	
 	@Autowired
 	ConnectorUpdateService connectorUpdateService;
@@ -20,10 +18,5 @@ public class Consumer implements InitializingBean {
 		connectorUpdateService.pollScheduledUpdates();
 	}
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        System.out.println("THIS METHOD IS EXECUTING FIRST");
-        connectorUpdateService.resumeInterruptedUpdates();
-    }
 
 }

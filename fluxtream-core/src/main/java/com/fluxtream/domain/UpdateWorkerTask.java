@@ -32,16 +32,11 @@ import com.fluxtream.connectors.updaters.UpdateInfo;
                 "AND ((updt.connectorName=? AND updt.apiKeyId iS NULL) OR updt.apiKeyId=?) " +
                 "AND updt.objectTypes=?" +
                 "AND updt.updateType!=?"),
-	@NamedQuery( name = "updateWorkerTasks.delete.byStatus",
-		query = "DELETE FROM ScheduledUpdate updt " +
-                "WHERE updt.status=?"),
 	@NamedQuery( name = "updateWorkerTasks.byStatus",
 		query = "SELECT updt FROM ScheduledUpdate updt " +
                 "WHERE updt.status=? " +
+                "AND updt.serverUUID=? " +
                 "AND updt.timeScheduled<?"),
-    @NamedQuery( name = "updateWorkerTasks.all.inProgress",
-                 query = "SELECT updt FROM ScheduledUpdate updt " +
-                         "WHERE updt.status=1"),
     @NamedQuery( name = "updateWorkerTasks.isScheduledOrInProgress",
         query = "SELECT updt FROM ScheduledUpdate updt " +
                 "WHERE (updt.status=0 " +
@@ -99,6 +94,7 @@ public class UpdateWorkerTask extends AbstractEntity {
         public String nextAction;
     }
 
+    public String serverUUID;
     public Long apiKeyId;
 	public String connectorName;
 	public Status status = Status.SCHEDULED;

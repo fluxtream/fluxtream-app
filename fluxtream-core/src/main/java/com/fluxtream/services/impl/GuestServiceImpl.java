@@ -234,32 +234,40 @@ public class GuestServiceImpl implements GuestService {
     }
 
     @Override
-	@Transactional(readOnly = false)
+    @Transactional(readOnly = false)
     @Secured("ROLE_ADMIN")
-	public void eraseGuestInfo(String username) throws Exception {
-		Guest guest = getGuest(username);
-		if (guest == null)
-			return;
-		List<ApiKey> apiKeys = getApiKeys(guest.getId());
-		for (ApiKey key : apiKeys) {
+    public void eraseGuestInfo(long id) throws Exception {
+        Guest guest = getGuestById(id);
+        if (guest == null)
+            return;
+        List<ApiKey> apiKeys = getApiKeys(guest.getId());
+        for (ApiKey key : apiKeys) {
             if(key!=null && key.getConnector()!=null) {
-			    apiDataService.eraseApiData(key);
+                apiDataService.eraseApiData(key);
             }
-		}
-		for (ApiKey apiKey : apiKeys) {
+        }
+        for (ApiKey apiKey : apiKeys) {
             if(apiKey!=null){
-			    em.remove(apiKey);
+                em.remove(apiKey);
             }
-		}
-		JPAUtils.execute(em, "addresses.delete.all", guest.getId());
-		JPAUtils.execute(em, "notifications.delete.all", guest.getId());
-		JPAUtils.execute(em, "settings.delete.all", guest.getId());
-		JPAUtils.execute(em, "context.delete.all", guest.getId());
-		JPAUtils.execute(em, "updateWorkerTasks.delete.all", guest.getId());
+        }
+        JPAUtils.execute(em, "addresses.delete.all", guest.getId());
+        JPAUtils.execute(em, "notifications.delete.all", guest.getId());
+        JPAUtils.execute(em, "settings.delete.all", guest.getId());
+        JPAUtils.execute(em, "context.delete.all", guest.getId());
+        JPAUtils.execute(em, "updateWorkerTasks.delete.all", guest.getId());
         JPAUtils.execute(em, "tags.delete.all", guest.getId());
         JPAUtils.execute(em, "notifications.delete.all", guest.getId());
         JPAUtils.execute(em, "coachingBuddies.delete.all", guest.getId());
-		em.remove(guest);
+        em.remove(guest);
+    }
+
+    @Override
+	@Transactional(readOnly = false)
+    @Secured("ROLE_ADMIN")
+	public void eraseGuestInfo(String username) throws Exception {
+        Guest guest = getGuest(username);
+        eraseGuestInfo(guest.getId());
 	}
 
 	@Override

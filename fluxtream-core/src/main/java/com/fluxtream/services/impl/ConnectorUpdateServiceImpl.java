@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import com.fluxtream.connectors.Connector;
@@ -62,6 +63,12 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 
     @Autowired
     MetadataService metadataService;
+
+    /**
+     * This makes sure that we are only executing Update Jobs that were
+     * created while this server was alive
+     */
+    private static final String SERVER_UUID = UUID.randomUUID().toString();
 
     /**
      * Update all the facet types for a given user and connector.
@@ -246,7 +253,9 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
         }
         List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em,
                                                                  UpdateWorkerTask.class, "updateWorkerTasks.byStatus",
-                                                                 Status.SCHEDULED, System.currentTimeMillis());
+                                                                 Status.SCHEDULED,
+                                                                 SERVER_UUID,
+                                                                 System.currentTimeMillis());
         if (updateWorkerTasks.size() == 0) {
             logger.debug("module=updateQueue component=connectorUpdateService action=pollScheduledUpdates message=\"Nothing to do\"");
             return;
@@ -305,6 +314,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
             updateWorkerTask.updateType = updateType;
             updateWorkerTask.status = Status.SCHEDULED;
             updateWorkerTask.timeScheduled = timeScheduled;
+            updateWorkerTask.serverUUID = this.SERVER_UUID;
             if (jsonParams!=null&&jsonParams.length>0)
                 updateWorkerTask.jsonParams = jsonParams[0];
             em.persist(updateWorkerTask);
@@ -533,27 +543,4 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
         return seen.values();
     }
 
-    /**
-     * This gets executed when a server is restarted and we need to clean up the
-     * worker tasks that were in_progress when the server got shut down
-     */
-    @Override
-    public void resumeInterruptedUpdates() {
-        // find all UpdateWorkerTasks (/scheduledUpdates) whose status is IN_PROGRESS
-        //
-        List<UpdateWorkerTask> interruptedUpdates = getInterruptedUpdates();
-        for (UpdateWorkerTask interruptedUpdate : interruptedUpdates) {
-            final ApiKey apiKey = em.find(ApiKey.class, interruptedUpdate.apiKeyId);
-            // delete pending worker tasks
-            flushUpdateWorkerTasks(apiKey, true);
-            // re-launch connector update
-            updateConnector(apiKey, true);
-        }
-    }
-
-    public List<UpdateWorkerTask> getInterruptedUpdates() {
-        List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em, UpdateWorkerTask.class,
-                                                                "updateWorkerTasks.all.inProgress");
-        return updateWorkerTasks;
-    }
 }
