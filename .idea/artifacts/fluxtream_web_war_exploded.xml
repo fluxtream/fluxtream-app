@@ -24,13 +24,13 @@
           <element id="library" level="project" name="Maven: com.sun.jersey.contribs:jersey-multipart:1.11" />
           <element id="library" level="project" name="Maven: org.jvnet:mimepull:1.6" />
           <element id="library" level="project" name="Maven: com.sun.jersey:jersey-core:1.11" />
+          <element id="library" level="project" name="Maven: commons-codec:commons-codec:1.7" />
           <element id="library" level="project" name="Maven: joda-time:joda-time:2.1" />
           <element id="library" level="project" name="Maven: com.ocpsoft:ocpsoft-pretty-time:1.0.7" />
           <element id="library" level="project" name="Maven: com.postmark:postmark-client:0.3.1" />
           <element id="library" level="project" name="Maven: com.google.code.gson:gson:1.7.1" />
           <element id="library" level="project" name="Maven: org.apache.httpcomponents:httpclient:4.0.3" />
           <element id="library" level="project" name="Maven: org.apache.httpcomponents:httpcore:4.0.1" />
-          <element id="library" level="project" name="Maven: commons-codec:commons-codec:1.2" />
           <element id="library" level="project" name="Maven: mysql:mysql-connector-java:5.1.13" />
           <element id="library" level="project" name="Maven: org.hibernate:hibernate-core:3.6.7.Final" />
           <element id="library" level="project" name="Maven: antlr:antlr:2.7.6" />

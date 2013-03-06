@@ -15,6 +15,7 @@ import com.fluxtream.services.MetadataService;
 import com.fluxtream.utils.Utils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -23,7 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
-import sun.misc.BASE64Encoder;
 
 @Component
 @Controller
@@ -133,13 +133,11 @@ public class ZeoRestUpdater extends AbstractUpdater {
      */
     public static String callURL(String url_address, String username, String password) throws IOException {
 
-        BASE64Encoder enc = new BASE64Encoder();
-
         URL url = new URL(url_address);
         URLConnection connection = url.openConnection();
 
         String usernameAndPassword = username + ":" + password;
-        String encodedAuth = enc.encode(usernameAndPassword.getBytes());
+        String encodedAuth = Base64.encodeBase64String(usernameAndPassword.getBytes());
 
         connection.setRequestProperty("Authorization", "Basic " + encodedAuth);
         connection.addRequestProperty("Referer", "fluxtream.com");
