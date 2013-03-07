@@ -32,7 +32,7 @@ public class Guest extends AbstractEntity {
 	public String salt;
 
 	transient List<String> userRoles;
-	String roles;
+	String roles = ROLE_USER;
 
 	public Guest() {}
 
