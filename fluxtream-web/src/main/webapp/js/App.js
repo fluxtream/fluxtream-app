@@ -166,7 +166,7 @@ define(
                 tabsY = $("#tabs").position().top;
                 windowHeight = $(window).height();
                 footerHeight = $("#footer").height();
-                fHeight = (windowHeight-tabsY-footerHeight-20);
+                fHeight = (windowHeight-tabsY-footerHeight+20);
                 $(".fullHeight").height(fHeight);
             }
             $(window).resize(function() {
@@ -387,7 +387,8 @@ define(
                     url: "/api/notifications/" + notificationId,
                     type: "DELETE",
                     success: function() {
-                        $("#notification-" + notificationId).remove()
+                        $("#notification-" + notificationId).remove();
+                        $(window).resize();
                     }
                 }
             );

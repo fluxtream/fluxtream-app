@@ -234,6 +234,7 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
                     $("#notifications").append(html);
                     if (notification.repeated>1) message += " (" + notification.repeated + "x)";
                     $("#notification-" + notification.id).append(message);
+                    $(window).resize();
                 }
             });
     }

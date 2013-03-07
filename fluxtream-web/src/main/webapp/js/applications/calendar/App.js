@@ -262,6 +262,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             switch (connectorId){
                 case "picasa-photo":
                 case "flickr-photo":
+                case "fluxtream_capture-photo":
                     digest.cachedData[connectorId].hasImages = true;
                     break;
                 case "mymee-observation":
@@ -275,6 +276,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     switch (connectorId){
                         case "picasa-photo":
                         case "flickr-photo":
+                        case "fluxtream_capture-photo":
                             digest.cachedData[connectorId][i].hasImage = true;
                             break;
                         case "mymee-observation":
