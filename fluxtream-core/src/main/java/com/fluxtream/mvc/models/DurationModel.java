@@ -24,4 +24,13 @@ public class DurationModel {
         seconds = (int)Math.ceil(divisor_for_seconds);
     }
 
+    public String toString() {
+        return hours + ":" + pad(minutes) + ":" + pad(seconds);
+    }
+
+    static String pad (int i) {
+        return i<10?"0"+i : String.valueOf(i);
+    }
+
+
 }

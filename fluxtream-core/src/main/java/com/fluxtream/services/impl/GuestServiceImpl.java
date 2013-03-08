@@ -271,7 +271,6 @@ public class GuestServiceImpl implements GuestService {
 	}
 
 	@Override
-    @Secured("ROLE_ADMIN")
 	public List<Guest> getAllGuests() {
 		List<Guest> all = JPAUtils.find(em, Guest.class, "guests.all",
 				(Object[]) null);
