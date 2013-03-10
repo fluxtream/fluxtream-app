@@ -250,6 +250,14 @@ define(
             $("#modal").modal("hide");
         };
 
+        App.htmlEscape = function(str){
+            return str.replace(/&/g, '&amp;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
+
         App.eraseEverything = function() {
             var confirmed = confirm("Are you sure?");
             //TODO: Woot?! Why is this empty?

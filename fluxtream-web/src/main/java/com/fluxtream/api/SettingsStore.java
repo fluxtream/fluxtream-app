@@ -43,7 +43,7 @@ public class SettingsStore {
     @Produces({ MediaType.APPLICATION_JSON })
     public String getSettings() {
         try{
-            Guest guest = AuthHelper.getGuest();
+            Guest guest = guestService.getGuestById(AuthHelper.getGuestId());
             GuestSettings settings = settingsService.getSettings(guest.getId());
             return gson.toJson(new SettingsModel(settings,guest));
         }
