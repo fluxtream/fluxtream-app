@@ -613,7 +613,6 @@ public class BodyTrackController {
             final long startTimeMillis = (long)(LevelOffsetHelper.offsetAtLevelToUnixTime(level, offset) * 1000);
             final long endTimeMillis = (long)(LevelOffsetHelper.offsetAtLevelToUnixTime(level, offset + 1) * 1000);
 
-            // TODO: Not sure if this is correct for time zones...
             final TimeInterval timeInterval = new TimeInterval(startTimeMillis, endTimeMillis, TimeUnit.DAY, TimeZone.getTimeZone("UTC"));
 
             // fetch the photos for this time interval, and for the desired device/channel
