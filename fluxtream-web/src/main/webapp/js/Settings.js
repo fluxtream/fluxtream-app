@@ -48,8 +48,13 @@ define(function() {
                             type:"POST",
                             data:submitdata,
                             success:function(status) {
-                                if (status.result=="OK")
+                                if (status.result=="OK"){
                                     App.closeModal();
+                                    var nameDisplay = $("#loggedInUser");
+                                    var newNameEncoded = App.htmlEscape($("#guest_firstname").val() + " " + $("#guest_lastname").val());
+                                    var oldNameEncoded = App.htmlEscape(settings.firstName + " " + settings.lastName);
+                                    nameDisplay.html(nameDisplay.html().replace(oldNameEncoded,newNameEncoded));
+                                }
                                 else {
                                     $("#setPasswordError").show();
                                     $("#setPasswordError").html(status.message);
