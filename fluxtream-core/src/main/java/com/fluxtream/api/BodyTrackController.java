@@ -751,6 +751,12 @@ public class BodyTrackController {
 
             this.url = photoFacetVO.getPhotoUrl();
 
+            // copy the tags
+            final SortedSet<String> facetTags = photoFacetVO.getTags();
+            if ((facetTags != null) && (!facetTags.isEmpty())) {
+                this.tags.addAll(facetTags);
+            }
+
             // get the image orientation, defaulting to upright portrait
             final ImageOrientation tempOrientation = photoFacetVO.getOrientation();
             this.orientation = (tempOrientation == null ? ImageOrientation.ORIENTATION_1 : tempOrientation).getId();

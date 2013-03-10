@@ -175,7 +175,7 @@ public class MymeeUpdater extends AbstractUpdater {
                                 facet = new MymeeObservationFacet(updateInfo.apiKey.getId());
                                 facet.mymeeId = mymeeId;
                                 // auto-populate the facet's tags field with the name of the observation (e.g. "Food", "Back Pain", etc.)
-                                facet.addTags(Tag.cleanse(facet.name));
+                                facet.addTags(Tag.cleanse(facet.name), Tag.SPACE_DELIMITER);
                                 facet.guestId = updateInfo.apiKey.getGuestId();
                                 facet.api = updateInfo.apiKey.getConnector().value();
                             }
@@ -332,7 +332,7 @@ public class MymeeUpdater extends AbstractUpdater {
             channelNames.add(facet.name.replaceAll("[^0-9a-zA-Z_]+", "_"));
 
             // auto-populate the facet's tags field with the name of the observation (e.g. "Food", "Back Pain", etc.)
-            facet.addTags(Tag.cleanse(facet.name));
+            facet.addTags(Tag.cleanse(facet.name), Tag.SPACE_DELIMITER);
 
             if (valueObject.has("note")) {
                 facet.note = valueObject.getString("note");

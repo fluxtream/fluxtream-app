@@ -11,6 +11,7 @@ import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.Geolocation;
+import com.fluxtream.domain.Tag;
 import com.fluxtream.images.ImageOrientation;
 import org.hibernate.search.annotations.Indexed;
 import org.jetbrains.annotations.NotNull;
@@ -105,6 +106,9 @@ public class FluxtreamCapturePhotoFacet extends AbstractFacet implements Seriali
         thumbnail2Height = thumbnail2Size.height;
 
         orientation = photo.getOrientation().getId();
+
+        this.addTags(photo.getTags(), Tag.COMMA_DELIMITER);
+        this.comment = photo.getComment();
 
         final Geolocation geolocation = photo.getGeolocation();
         if (geolocation != null) {

@@ -6,6 +6,7 @@ import java.util.List;
 import com.fluxtream.ApiData;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.domain.AbstractFacet;
+import com.fluxtream.domain.Tag;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -67,7 +68,7 @@ public class FlickrFacetExtractor extends AbstractFacetExtractor {
 				facet.latitude = it.getString("latitude");
 				facet.longitude = it.getString("longitude");
 				facet.accuracy = it.getInt("accuracy");
-                facet.addTags(it.getString("tags"));
+                facet.addTags(it.getString("tags"), Tag.SPACE_DELIMITER);
                 facets.add(facet);
 			}
 

@@ -95,7 +95,7 @@ public abstract class AbstractFacet extends AbstractEntity {
         if (tags == null || tags.equals("")) {
             return;
         }
-        StringTokenizer st = new StringTokenizer(tags);
+        StringTokenizer st = new StringTokenizer(tags,", \t\n\r\f");
         while (st.hasMoreTokens()) {
             String tag = st.nextToken().trim();
             if (tag.length() > 0) {
@@ -155,20 +155,20 @@ public abstract class AbstractFacet extends AbstractEntity {
     }
 
     /**
-     * Parses the given space-delimited tags {@link String}, replacing illegal characters with an underscore, and adds
-     * them to this instance's {@link #tags} and {@link #tagSet} fields.  One should ALWAYS use this method instead of
-     * directly setting the member fields.
+     * Parses the given tags {@link String} which is delimited by the given <code>delimiter</code>, replacing illegal
+     * characters with an underscore, and adds them to this instance's {@link #tags} and {@link #tagSet} fields.  One
+     * should ALWAYS use this method instead of directly setting the member fields.
      *
-     * @see Tag#parseTags(String)
+     * @see Tag#parseTags(String, char)
      */
-    public void addTags(final String tagsStr) {
+    public void addTags(final String tagsStr, final char delimiter) {
         if (tagsStr != null && tagsStr.length() > 0) {
             // create the Set if necessary
             if (tagSet == null) {
                 tagSet = new HashSet<Tag>();
             }
 
-            tagSet.addAll(Tag.parseTags(tagsStr));
+            tagSet.addAll(Tag.parseTags(tagsStr, delimiter));
 
             // build the String representation
             buildTagsStringFromTagsSet();

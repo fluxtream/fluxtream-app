@@ -205,9 +205,9 @@ public final class FluxtreamCapturePhotoStore {
         final FilesystemKeyValueStore keyValueStore = getFilesystemKeyValueStore();
 
         // Attempt to parse the JSON metadata
-        final PhotoUploadMetadata metadata;
+        final FluxtreamCapturePhoto.PhotoUploadMetadata metadata;
         try {
-            metadata = gson.fromJson(jsonMetadata, PhotoUploadMetadata.class);
+            metadata = gson.fromJson(jsonMetadata, FluxtreamCapturePhoto.PhotoUploadMetadata.class);
         }
         catch (Exception e) {
             final String message = "Photo upload failed because an Exception occurred while trying to parse the photo metadata";
@@ -222,13 +222,10 @@ public final class FluxtreamCapturePhotoStore {
             throw new InvalidDataException(message);
         }
 
-        // Now that we know the metadata is valid, we convert the capture time from seconds to milliseconds
-        final long captureTimeMillisUtc = (long)(metadata.capture_time_secs_utc * 1000);
-
         // Create the FluxtreamCapturePhoto (this validates the photo, generates the hash and thumbnails, etc.)
         final FluxtreamCapturePhoto photo;
         try {
-            photo = new FluxtreamCapturePhoto(guestId, photoBytes, captureTimeMillisUtc);
+            photo = new FluxtreamCapturePhoto(guestId, photoBytes, metadata);
         }
         catch (UnsupportedImageFormatException e) {
             LOG.error("FluxtreamCapturePhotoStore.saveOrUpdatePhoto(): Photo upload failed because an UnsupportedOperationException occurred while trying to create the FluxtreamCapturePhoto");
@@ -305,14 +302,6 @@ public final class FluxtreamCapturePhotoStore {
             final String message = "The photo key-value store could not be created";
             LOG.error("FluxtreamCapturePhotoStore.getFilesystemKeyValueStore(): " + message, e);
             throw new StorageException(message, e);
-        }
-    }
-
-    private static class PhotoUploadMetadata {
-        private double capture_time_secs_utc = -1;
-
-        public boolean isValid() {
-            return capture_time_secs_utc >= 0;
         }
     }
 

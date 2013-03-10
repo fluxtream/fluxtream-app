@@ -30,6 +30,9 @@ public class Tag extends AbstractEntity {
     /** Character used to replace illegal characters */
     public static final String ILLEGAL_CHARACTER_REPLACEMENT = "_";
 
+    public static final char SPACE_DELIMITER = ' ';
+    public static final char COMMA_DELIMITER = ',';
+
     public Tag() {}
 
     public long guestId;
@@ -76,16 +79,16 @@ public class Tag extends AbstractEntity {
     }
 
     /**
-     * Parses the given space-delimited {@link String} of tags, and returns them as a {@link Set} of {@link Tag}
-     * objects.  Characters which are considered "illegal" within our system are replaced with an underscore.
-     * Characters we consider legal are numbers, letters, space, dash, and underscore.  Note that the {@link Tag}
-     * objects will have a <code>null</code> {@link Tag#guestId}.
+     * Parses the given {@link String} of tags, delimited by the given <code>delimiter</code>, and returns them as a
+     * {@link Set} of {@link Tag} objects.  Characters which are considered "illegal" within our system are replaced
+     * with an underscore. Characters we consider legal are numbers, letters, space, dash, and underscore.  Note that
+     * the {@link Tag} objects in the returned {@link Set} will have a <code>null</code> {@link Tag#guestId}.
      */
-    public static Set<Tag> parseTags(final String tagsStr) {
+    public static Set<Tag> parseTags(final String tagsStr, final char delimiter) {
         final Set<Tag> tagSet = new HashSet<Tag>();
 
         if (tagsStr != null && tagsStr.length() > 0) {
-            for (final String tagStr : tagsStr.trim().toLowerCase().split(" ")) {
+            for (final String tagStr : tagsStr.trim().toLowerCase().split(String.valueOf(delimiter))) {
                 final String cleanTagStr = cleanse(tagStr);
                 if (cleanTagStr.length() > 0) {
                     final Tag tag = new Tag();

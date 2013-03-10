@@ -18,7 +18,6 @@ import com.fluxtream.images.ImageOrientation;
  */
 public class FluxtreamCapturePhotoFacetVO extends AbstractPhotoFacetVO<FluxtreamCapturePhotoFacet> {
 
-    public String photoUrl;
     public Map<Integer, String> thumbnailUrls = new HashMap<Integer, String>(FluxtreamCapturePhotoFacet.NUM_THUMBNAILS);
     public SortedMap<Integer, Dimension> thumbnailSizes = new TreeMap<Integer, Dimension>();
     public ImageOrientation imageOrientation;

@@ -5,13 +5,16 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.SortedSet;
 import java.util.TimeZone;
+import java.util.TreeSet;
 
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.GuestSettings;
+import com.fluxtream.domain.Tag;
 import com.fluxtream.utils.SecurityUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -23,6 +26,7 @@ public abstract class AbstractFacetVO<T extends AbstractFacet> {
 	public String description;
 	public long id;
 	public String comment;
+    public final SortedSet<String> tags = new TreeSet<String>();
 	public String subType;
     protected static DateTimeFormatter timeStorageFormat = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
 
@@ -52,10 +56,29 @@ public abstract class AbstractFacetVO<T extends AbstractFacet> {
 				} catch (UnsupportedEncodingException e) {}
 			}
 		}
-		fromFacet(facet, timeInterval, settings);
+        if (facet.hasTags()) {
+            if (!SecurityUtils.isDemoUser()) {
+                for (final Tag tag : facet.getTags()) {
+                    if (tag != null) {
+                        if (tag.name != null && tag.name.length() > 0) {
+                            tags.add(tag.name);
+                        }
+                    }
+                }
+            }
+        }
+        fromFacet(facet, timeInterval, settings);
 	}
 
-	protected void getType(T facet) {
+    /**
+     * Returns a copy of this VO's set of tags. Assumes {@link #extractValues} has already been called. Guaranteed to
+     * not return <code>null</code>, but may return an empty {@link SortedSet}.
+     */
+    public SortedSet<String> getTags() {
+        return new TreeSet<String>(tags);
+    }
+
+    protected void getType(T facet) {
 		Connector connector = Connector.fromValue(facet.api);
 		this.type = connector.getName();
 		if (facet.objectType != -1) {
