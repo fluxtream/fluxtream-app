@@ -2,6 +2,7 @@ package com.fluxtream.connectors.fluxtream_capture;
 
 import java.io.File;
 import com.fluxtream.Configuration;
+import com.fluxtream.domain.Tag;
 import com.fluxtream.images.ImageType;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.JPADaoService;
@@ -49,6 +50,9 @@ public final class FluxtreamCapturePhotoStore {
     public interface OperationResult<T> {
         @NotNull
         Operation getOperation();
+
+        @Nullable
+        Long getDatabaseRecordId();
 
         @NotNull
         T getData();
@@ -284,6 +288,12 @@ public final class FluxtreamCapturePhotoStore {
                 return photoCreatorOrModifier.wasCreated() ? Operation.CREATED : Operation.UPDATED;
             }
 
+            @Nullable
+            @Override
+            public Long getDatabaseRecordId() {
+                return photoFacet.getId();
+            }
+
             @NotNull
             @Override
             public FluxtreamCapturePhoto getData() {
@@ -328,8 +338,13 @@ public final class FluxtreamCapturePhotoStore {
                 wasCreated = false;
 
                 // We already have this photo, so we don't need to do anything other than update the timeUpdated field
-                // and return the existingFacet we found
+                // and the comment/tags
                 existingFacet.timeUpdated = System.currentTimeMillis();
+
+                // update the comment and photo
+                existingFacet.comment = photo.getComment();
+                existingFacet.clearTags();
+                existingFacet.addTags(photo.getTags(), Tag.COMMA_DELIMITER);
 
                 return existingFacet;
             }

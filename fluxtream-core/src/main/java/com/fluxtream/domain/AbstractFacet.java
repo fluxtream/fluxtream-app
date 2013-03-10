@@ -154,10 +154,19 @@ public abstract class AbstractFacet extends AbstractEntity {
         persistTags();
     }
 
+    /** Clears this instance's tags. */
+    public void clearTags() {
+        if (tagSet != null) {
+            tagSet.clear();
+        }
+        tags = "";
+    }
+
     /**
-     * Parses the given tags {@link String} which is delimited by the given <code>delimiter</code>, replacing illegal
-     * characters with an underscore, and adds them to this instance's {@link #tags} and {@link #tagSet} fields.  One
-     * should ALWAYS use this method instead of directly setting the member fields.
+     * Clears this instance's existing tags, parses the given tags {@link String} which is delimited by the given
+     * <code>delimiter</code>, replacing illegal characters with an underscore, and adds them to this instance's
+     * {@link #tags} and {@link #tagSet} fields.  One should ALWAYS use this method instead of directly setting the
+     * member fields.
      *
      * @see Tag#parseTags(String, char)
      */
