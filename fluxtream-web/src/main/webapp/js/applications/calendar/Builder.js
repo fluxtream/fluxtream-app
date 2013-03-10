@@ -191,21 +191,7 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
             Calendar.fetchState("/api/calendar/nav/setToToday",
                                 {timeUnit: "DAY"});
         });
-		switch(Calendar.timeUnit) {
-		case "date":
-			nextPrevEnable();
-			break;
-		case "week":
-			nextPrevEnable();
-			break;
-        // TODO: why is this disabled?
-//		case "month":
-//			nextPrevEnable();
-//			break;
-		case "year":
-			nextPrevEnable();
-			break;
-		}
+        nextPrevEnable();//removed a switch statement here that did the same thing for every possible timeunit
 	};
 	
 	function nextPrevEnable() {
