@@ -447,7 +447,7 @@ public class BodyTrackController {
                     .entity(photo.getPhotoBytes()).build();
         }
 
-        return jsonResponseHelper.forbidden("User [" + loggedInUserId +"] is not authorized to view photo [" + photoFetchStrategy.getPhotoIdentifier() + "]");
+        return jsonResponseHelper.forbidden("User [" + loggedInUserId + "] is not authorized to view photo [" + photoFetchStrategy.getPhotoIdentifier() + "]");
     }
 
     @GET
@@ -568,6 +568,25 @@ public class BodyTrackController {
         }
         catch (Exception e){
             return gson.toJson(new StatusModel(false,"Access Denied"));
+        }
+    }
+
+    @GET
+    @Path(value = "/users/{UID}/tags")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String getAllTagsForUser(@PathParam("UID") Long uid) {
+        setTransactionName(null, "GET /bodytrack/users/{UID}/tags");
+        long loggedInUserId = AuthHelper.getGuestId();
+        boolean accessAllowed = checkForPermissionAccess(uid);
+        CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
+        try {
+            if (!accessAllowed && coachee == null) {
+                uid = null;
+            }
+            return bodyTrackHelper.getAllTagsForUser(uid);
+        }
+        catch (Exception e) {
+            return gson.toJson(new StatusModel(false, "Access Denied"));
         }
     }
 

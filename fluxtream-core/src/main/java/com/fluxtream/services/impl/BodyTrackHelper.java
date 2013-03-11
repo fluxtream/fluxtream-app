@@ -10,13 +10,17 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import com.fluxtream.Configuration;
 import com.fluxtream.TimeInterval;
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.CoachingBuddy;
 import com.fluxtream.domain.GrapherView;
+import com.fluxtream.domain.Tag;
 import com.fluxtream.services.PhotoService;
 import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.Utils;
@@ -27,7 +31,6 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import com.fluxtream.aspects.FlxLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -430,6 +433,25 @@ public class BodyTrackHelper {
     public void deleteView(Long uid, long viewId){
         GrapherView view = JPAUtils.findUnique(em, GrapherView.class,"grapherView.byId",uid,viewId);
         em.remove(view);
+    }
+
+    public String getAllTagsForUser(final Long uid) {
+        final List<Tag> tagList = JPAUtils.find(em, Tag.class, "tags.all", uid);
+
+        final TagsJson tagsJson = new TagsJson();
+        if ((tagList != null) && (!tagList.isEmpty())) {
+            for (final Tag tag : tagList) {
+                if (tag != null && tag.name != null && tag.name.length() > 0) {
+                    tagsJson.tags.add(tag.name);
+                }
+            }
+        }
+
+        return gson.toJson(tagsJson);
+    }
+
+    private static class TagsJson {
+        private final SortedSet<String> tags = new TreeSet<String>();
     }
 
     private static class ViewsList{
