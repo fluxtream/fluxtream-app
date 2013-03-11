@@ -293,7 +293,6 @@ public class PhotoServiceImpl implements PhotoService {
 
             final TimeInterval actualTimeInterval;
             if (timeInterval == null) {
-                // TODO: Not sure if this is correct for time zones...
                 actualTimeInterval = new TimeInterval(facet.start, facet.start, TimeUnit.DAY, TimeZone.getTimeZone("UTC"));
             }
             else {
@@ -324,7 +323,6 @@ public class PhotoServiceImpl implements PhotoService {
         final AbstractFacet newestFacet = photoFacetFinderStrategy.findLatest(apiKey, objectType);
 
         if (oldestFacet != null && newestFacet != null) {
-            // TODO: Not sure if this is correct for time zones...
             return new TimeInterval(oldestFacet.start, newestFacet.start, TimeUnit.DAY, TimeZone.getTimeZone("UTC"));
         }
 
