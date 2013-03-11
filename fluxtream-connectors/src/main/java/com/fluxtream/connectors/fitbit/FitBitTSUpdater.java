@@ -7,7 +7,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 import com.fluxtream.TimeInterval;
-import com.fluxtream.TimeUnit;
 import com.fluxtream.connectors.Autonomous;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.SignpostOAuthHelper;
@@ -476,12 +475,10 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         updateInfo.setContext("date", dateString);
         long from = TimeUtils.fromMidnight(date.getTime(), userTimeZone);
         long to = TimeUtils.toMidnight(date.getTime(), userTimeZone);
-        TimeInterval timeInterval = new TimeInterval(from, to, TimeUnit.DAY,
-                userTimeZone);
 
         if (objectTypes.contains(sleepOT)) {
             logger.info("guestId=" + updateInfo.getGuestId() + " objectType=sleep" +
-                        " connector=fitbit objectType=weightMeasurement action=updateOneDayOfData date=" + dateString);
+                        " connector=fitbit action=updateOneDayOfData date=" + dateString);
             apiDataService.eraseApiData(updateInfo.apiKey, sleepOT,
                     Arrays.asList(dateString));
             try {
@@ -494,7 +491,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         }
         if (objectTypes.contains(activityOT)) {
             logger.info("guestId=" + updateInfo.getGuestId() + " objectType=activity" +
-                        " connector=fitbit objectType=weightMeasurement action=updateOneDayOfData date=" + dateString);
+                        " connector=fitbit action=updateOneDayOfData date=" + dateString);
             apiDataService.eraseApiData(updateInfo.apiKey, activityOT, Arrays.asList(dateString));
             apiDataService.eraseApiData(updateInfo.apiKey, loggedActivityOT,
                     Arrays.asList(dateString));
@@ -508,13 +505,13 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         }
         if (objectTypes.contains(weightOT)) {
             logger.info("guestId=" + updateInfo.getGuestId() + " objectType=weight" +
-                        " connector=fitbit objectType=weightMeasurement action=updateOneDayOfData date=" + dateString);
+                        " connector=fitbit action=updateOneDayOfData date=" + dateString);
             apiDataService.eraseApiData(updateInfo.apiKey, weightOT, Arrays.asList(dateString));
             try {
                 loadWeightDataForOneDay(updateInfo, date, userTimeZone, dateString);
             } catch (RuntimeException e) {
                 logger.warn("guestId=" + updateInfo.getGuestId() +
-                            " connector=fitbit objectType=weightMeasurement action=updateOneDayOfData exception="
+                            " connector=fitbit objectType=weight action=updateOneDayOfData exception="
                             + Utils.shortStackTrace(e));
             }
         }

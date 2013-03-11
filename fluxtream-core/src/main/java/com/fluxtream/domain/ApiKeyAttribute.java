@@ -26,7 +26,7 @@ public class ApiKeyAttribute extends AbstractEntity {
 	@Lob
 	String attributeValue;
 
-	public int hashcode() {
+	public int hashCode() {
 		return HashCodeBuilder.reflectionHashCode(this, false);
 	}
 	
