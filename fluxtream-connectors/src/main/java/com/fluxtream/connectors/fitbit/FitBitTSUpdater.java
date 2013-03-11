@@ -517,8 +517,12 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         }
     }
 
-    private void loadWeightDataForOneDay(UpdateInfo updateInfo, Date date, TimeZone timeZone, String formattedDate) throws RateLimitReachedException, Exception {
+    private void loadWeightDataForOneDay(UpdateInfo updateInfo, Date date, TimeZone timeZone, String formattedDate) throws Exception {
         String json = getWeightData(updateInfo, formattedDate);
+        String fatJson = getBodyFatData(updateInfo, formattedDate);
+        JSONObject jsonWeight = JSONObject.fromObject(json);
+        JSONObject jsonFat = JSONObject.fromObject(fatJson);
+        json = mergeWeightInfos(jsonWeight, jsonFat);
         long fromMidnight = TimeUtils.fromMidnight(date.getTime(), timeZone);
         long toMidnight = TimeUtils.toMidnight(date.getTime(), timeZone);
         logger.info("guestId=" + updateInfo.getGuestId() +
@@ -531,8 +535,26 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             apiDataService.cacheEmptyData(updateInfo, fromMidnight, toMidnight);
     }
 
+    private String mergeWeightInfos(final JSONObject jsonWeight, final JSONObject jsonFat) {
+        JSONArray weightArray = jsonWeight.getJSONArray("weight");
+        JSONArray fatArray = jsonFat.getJSONArray("fat");
+        for(int i=0; i<weightArray.size(); i++) {
+            JSONObject weightJSON = weightArray.getJSONObject(i);
+            long logId = weightJSON.getLong("logId");
+            for(int j=0; j<fatArray.size(); j++) {
+                JSONObject fatJSON = fatArray.getJSONObject(i);
+                long otherLogId = fatJSON.getLong("logId");
+                if (otherLogId==logId) {
+                    double fat = fatJSON.getDouble("fat");
+                    weightJSON.put("fat", fat);
+                }
+            }
+        }
+        return jsonWeight.toString();
+    }
+
     private void loadActivityDataForOneDay(UpdateInfo updateInfo, Date date,
-			TimeZone timeZone, String formattedDate) throws RateLimitReachedException, Exception {
+			TimeZone timeZone, String formattedDate) throws Exception {
 		String json = getActivityData(updateInfo, formattedDate);
 		long fromMidnight = TimeUtils.fromMidnight(date.getTime(), timeZone);
 		long toMidnight = TimeUtils.toMidnight(date.getTime(), timeZone);
@@ -546,7 +568,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 	}
 
 	private void loadSleepDataForOneDay(UpdateInfo updateInfo, Date date,
-			TimeZone timeZone, String formattedDate) throws RateLimitReachedException, Exception {
+			TimeZone timeZone, String formattedDate) throws Exception {
 		String json = getSleepData(updateInfo, formattedDate);
 		long fromMidnight = TimeUtils.fromMidnight(date.getTime(), timeZone);
 		long toMidnight = TimeUtils.toMidnight(date.getTime(), timeZone);
@@ -567,6 +589,15 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 
     private String getWeightData(UpdateInfo updateInfo, String formattedDate) throws RateLimitReachedException {
         String urlString = "http://api.fitbit.com/1/user/-/body/log/weight/date/"
+                           + formattedDate + ".json";
+
+        String json = signpostHelper.makeRestCall(updateInfo.apiKey, weightOT.value(), urlString);
+
+        return json;
+    }
+
+    private String getBodyFatData(UpdateInfo updateInfo, String formattedDate) throws RateLimitReachedException {
+        String urlString = "http://api.fitbit.com/1/user/-/body/log/fat/date/"
                            + formattedDate + ".json";
 
         String json = signpostHelper.makeRestCall(updateInfo.apiKey, weightOT.value(), urlString);

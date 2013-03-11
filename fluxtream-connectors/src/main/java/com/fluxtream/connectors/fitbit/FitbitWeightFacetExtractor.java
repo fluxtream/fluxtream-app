@@ -52,8 +52,8 @@ public class FitbitWeightFacetExtractor extends AbstractFacetExtractor {
 
             if (fitbitWeightMeasurements.getJSONObject(i).containsKey("bmi"))
                 facet.bmi = fitbitWeightMeasurements.getJSONObject(i).getDouble("bmi");
-            //if (fitbitWeightMeasurements.getJSONObject(i).containsKey("fat"))
-            //    facet.fat = fitbitWeightMeasurements.getJSONObject(i).getDouble("fat");
+            if (fitbitWeightMeasurements.getJSONObject(i).containsKey("fat"))
+                facet.fat = fitbitWeightMeasurements.getJSONObject(i).getDouble("fat");
             if (fitbitWeightMeasurements.getJSONObject(i).containsKey("weight"))
                 facet.weight = fitbitWeightMeasurements.getJSONObject(i).getDouble("weight");
             if (fitbitWeightMeasurements.getJSONObject(i).containsKey("time")) {
