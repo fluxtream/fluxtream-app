@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TimeZone;
+import java.util.TreeSet;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
@@ -30,12 +31,15 @@ import com.fluxtream.TimeInterval;
 import com.fluxtream.TimeUnit;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.fluxtream_capture.FluxtreamCapturePhoto;
 import com.fluxtream.connectors.fluxtream_capture.FluxtreamCapturePhotoStore;
 import com.fluxtream.connectors.vos.AbstractPhotoFacetVO;
 import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.CoachingBuddy;
 import com.fluxtream.domain.Guest;
+import com.fluxtream.domain.Tag;
 import com.fluxtream.images.ImageOrientation;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.ApiDataService;
@@ -44,6 +48,7 @@ import com.fluxtream.services.CoachingService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.PhotoService;
 import com.fluxtream.services.impl.BodyTrackHelper;
+import com.fluxtream.utils.ConnectorUtils;
 import com.fluxtream.utils.HashUtils;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -575,7 +580,6 @@ public class BodyTrackController {
     @Path(value = "/users/{UID}/tags")
     @Produces({MediaType.APPLICATION_JSON})
     public String getAllTagsForUser(@PathParam("UID") Long uid) {
-        setTransactionName(null, "GET /bodytrack/users/{UID}/tags");
         long loggedInUserId = AuthHelper.getGuestId();
         boolean accessAllowed = checkForPermissionAccess(uid);
         CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
@@ -715,6 +719,163 @@ public class BodyTrackController {
         catch (Exception e) {
             LOG.error("BodyTrackController.getPhotosBeforeOrAfterTime(): Exception while trying to fetch log items: ", e);
             return gson.toJson(new StatusModel(false, "Access Denied"));
+        }
+    }
+
+    @GET
+    @Path("/metadata/{UID}/{DeviceNickname}.{ChannelName}/{facetId}/get")
+    @Produces({MediaType.APPLICATION_JSON})
+    public Response getFacetMetadata(@PathParam("UID") Long uid,
+                                   final @PathParam("DeviceNickname") String deviceNickname,
+                                   final @PathParam("ChannelName") String channelName,
+                                   final @PathParam("facetId") long facetId) {
+
+        return executeFacetMetaDataOperation(uid, deviceNickname, channelName, facetId, new FacetMetaDataOperation() {
+            @Override
+            @NotNull
+            public Response executeOperation(@NotNull final AbstractFacet facet) {
+                return Response.status(Response.Status.OK).entity(gson.toJson(new FacetMetadata(facet))).type(MediaType.APPLICATION_JSON).build();
+            }
+        });
+    }
+
+    @POST
+    @Path("/metadata/{UID}/{DeviceNickname}.{ChannelName}/{facetId}/set")
+    @Produces({MediaType.APPLICATION_JSON})
+    public Response setFacetMetadata(final @PathParam("UID") long uid,
+                                     final @PathParam("DeviceNickname") String deviceNickname,
+                                     final @PathParam("ChannelName") String channelName,
+                                     final @PathParam("facetId") long facetId,
+                                     final @FormParam("comment") String comment,
+                                     final @FormParam("tags") String tags) {
+
+        // don't bother doing anything if comment and tags are both null
+        if (comment != null || tags != null) {
+            return executeFacetMetaDataOperation(uid, deviceNickname, channelName, facetId, new FacetMetaDataOperation() {
+                @Override
+                @NotNull
+                public Response executeOperation(@NotNull final AbstractFacet facet) {
+                    if (LOG.isInfoEnabled()) {
+                        LOG.info("BodyTrackController.setFacetMetadata(): Attempting to set metadata for facet [" + facetId + "] for connector [" + deviceNickname + "] and object type [" + channelName + "]");
+                    }
+
+                    final FacetMetadataModifier facetMetadataModifier = new FacetMetadataModifier(uid, facetId, comment, tags);
+                    final AbstractFacet modifiedFacet = apiDataService.createOrReadModifyWrite(facet.getClass(), facetMetadataModifier.getFacetFinderQuery(), facetMetadataModifier, facet.apiKeyId);
+
+                    if (modifiedFacet != null) {
+                        return jsonResponseHelper.ok("Metadata updated successfully!", new FacetMetadata(modifiedFacet));
+                    }
+
+                    return jsonResponseHelper.forbidden("User [" + uid + "] is not allowed to set metadata for facet [" + facetId + "] for connector [" + deviceNickname + "] and object type [" + channelName + "]");
+                }
+            });
+        }
+        return jsonResponseHelper.ok("Nothing changed since comment and tags were both null");
+    }
+
+    private static class FacetMetadata {
+        private String comment;
+        private SortedSet<String> tags = new TreeSet<String>();
+
+        private FacetMetadata(@NotNull AbstractFacet facet) {
+            this.comment = facet.comment;
+            this.tags.addAll(facet.getTagsAsStrings());
+        }
+    }
+
+    private static interface FacetMetaDataOperation {
+        @NotNull
+        Response executeOperation(@NotNull final AbstractFacet facet);
+    }
+
+    private Response executeFacetMetaDataOperation(final long uid,
+                                                   final String deviceNickname,
+                                                   final String channelName,
+                                                   final long facetId,
+                                                   final FacetMetaDataOperation operation) {
+            // Try to find the connector by pretty name, and then if that fails the find by actual name
+            Connector connector = ConnectorUtils.findConnectorByPrettyName(guestService, uid, deviceNickname);
+            if (connector == null) {
+                connector = Connector.getConnector(deviceNickname);
+            }
+
+            if (connector != null) {
+                // Check authorization: is the logged-in user the same as the UID in the key?  If not, does the logged-in user
+                // have coaching access AND access to the FluxtreamCapture connector?
+                boolean accessAllowed = false;
+                Long loggedInUserId = null;
+                try {
+                    loggedInUserId = AuthHelper.getGuestId();
+                    accessAllowed = checkForPermissionAccess(uid);
+                    if (!accessAllowed) {
+                        final CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
+                        if (coachee != null) {
+                            accessAllowed = coachee.hasAccessToConnector(connector.getName());
+                        }
+                    }
+                }
+                catch (Exception e) {
+                    LOG.error("BodyTrackController.setFacetMetadata(): Exception while trying to check authorization.", e);
+                }
+
+                if (accessAllowed) {
+
+                    final ObjectType objectType = ObjectType.getObjectType(connector, channelName);
+                    if (objectType != null) {
+                        ApiKey apiKey = guestService.getApiKey(uid, connector);
+                        final AbstractFacet facet = apiDataService.getFacetById(apiKey, objectType, facetId);
+                        if (facet != null) {
+                            try {
+                                return operation.executeOperation(facet);
+                            }
+                            catch (Exception e) {
+                                return jsonResponseHelper.internalServerError("Unexpected error while trying to operate on metadata for facet [" + facetId + "] for connector [" + deviceNickname + "] and object type [" + objectType + "]");
+                            }
+                        }
+                        return jsonResponseHelper.notFound("Unknown facet [" + facetId + "] for connector [" + deviceNickname + "] and object type [" + objectType + "] and guestId [" + uid + "]");
+                    }
+                    return jsonResponseHelper.notFound("Unknown object type [" + channelName + "] for connector [" + deviceNickname + "]");
+                }
+                return jsonResponseHelper.forbidden("User [" + loggedInUserId + "] is not authorized to access or modify metadata for facets owned by user [" + uid + "] in connector [" + deviceNickname + "]");
+            }
+            return jsonResponseHelper.notFound("Unknown connector [" + deviceNickname + "]");
+    }
+
+    private static final class FacetMetadataModifier implements ApiDataService.FacetModifier<AbstractFacet> {
+        @NotNull
+        private final ApiDataService.FacetQuery facetFinderQuery;
+        @Nullable
+        private final String comment;
+        @Nullable
+        private final String tagsStr;
+
+        public FacetMetadataModifier(final long guestId, final long facetId, @Nullable final String comment, @Nullable final String tagsStr) {
+            this.comment = comment;
+            this.tagsStr = tagsStr;
+            facetFinderQuery = new ApiDataService.FacetQuery("e.id = ? and e.guestId = ?", facetId, guestId);
+        }
+
+        @Override
+        public AbstractFacet createOrModify(final AbstractFacet existingFacet, long apiKeyId) {
+
+            // the case where the existing facet doesn't exist and is null should never happen here
+            if (existingFacet != null) {
+                if (comment != null) {
+                        existingFacet.comment = comment;
+                }
+
+                if (tagsStr != null) {
+                    existingFacet.clearTags();
+                    existingFacet.addTags(tagsStr, Tag.COMMA_DELIMITER);
+                }
+            }
+
+            return existingFacet;
+        }
+
+        @NotNull
+        public ApiDataService.FacetQuery getFacetFinderQuery() {
+            return facetFinderQuery;
         }
     }
 

@@ -133,6 +133,20 @@ public class JPAFacetDao implements FacetDao {
         return getFacets(apiKey, objectType, timeInMillis, desiredCount, "getFacetsAfter");
     }
 
+    @Override
+    public AbstractFacet getFacetById(ApiKey apiKey, final ObjectType objectType, final long facetId) {
+        final Class<? extends AbstractFacet> facetClass = objectType.facetClass();
+        final Entity entity = facetClass.getAnnotation(Entity.class);
+        final TypedQuery<? extends AbstractFacet> query = em.createQuery("SELECT facet FROM " + entity.name() + " facet WHERE facet.id = " + facetId + " AND facet.guestId = " + apiKey.getGuestId(), facetClass);
+        query.setMaxResults(1);
+
+        final List resultList = query.getResultList();
+        if (resultList != null && resultList.size() > 0) {
+            return (AbstractFacet)resultList.get(0);
+        }
+        return null;
+    }
+
     private AbstractFacet getFacet(final ApiKey apiKey, final ObjectType objectType, final String methodName) {
         if (!apiKey.getConnector().hasFacets()) {
             return null;

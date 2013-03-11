@@ -2,6 +2,7 @@ package com.fluxtream.connectors.dao;
 
 import java.util.List;
 import com.fluxtream.TimeInterval;
+import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
@@ -21,6 +22,8 @@ public interface FacetDao {
     List<AbstractFacet> getFacetsAfter(ApiKey apiKey, ObjectType objectType, long timeInMillis, int desiredCount);
 
     public void deleteAllFacets(ApiKey apiKey);
+
+    AbstractFacet getFacetById(ApiKey apiKey, final ObjectType objectType, final long facetId);
 
     public void deleteAllFacets(ApiKey apiKey, ObjectType objectType);
 

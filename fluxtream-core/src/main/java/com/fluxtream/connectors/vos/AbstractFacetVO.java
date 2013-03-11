@@ -58,13 +58,7 @@ public abstract class AbstractFacetVO<T extends AbstractFacet> {
 		}
         if (facet.hasTags()) {
             if (!SecurityUtils.isDemoUser()) {
-                for (final Tag tag : facet.getTags()) {
-                    if (tag != null) {
-                        if (tag.name != null && tag.name.length() > 0) {
-                            tags.add(tag.name);
-                        }
-                    }
-                }
+                tags.addAll(facet.getTagsAsStrings());
             }
         }
         fromFacet(facet, timeInterval, settings);

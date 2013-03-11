@@ -1,10 +1,14 @@
 package com.fluxtream.domain;
 
+import java.util.List;
+import java.util.SortedSet;
+import java.util.StringTokenizer;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.TreeSet;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.Lob;
@@ -187,6 +191,20 @@ public abstract class AbstractFacet extends AbstractEntity {
     /** Returns an {@link Collections#unmodifiableSet(Set) unmodifiable Set} of the tags for this facet. */
     public Set<Tag> getTags() {
         return Collections.unmodifiableSet(tagSet);
+    }
+
+    /** Returns an {@link SortedSet} of the tags for this facet. Modifying the returned set will have no effect on the facet's tags. */
+    public SortedSet<String> getTagsAsStrings() {
+        final SortedSet<String> tagStrings = new TreeSet<String>();
+        if ((tagSet != null) && (!tagSet.isEmpty())) {
+            for (final Tag tag : tagSet) {
+                if (tag != null && tag.name.length() > 0) {
+                    tagStrings.add(tag.name);
+                }
+            }
+        }
+
+        return tagStrings;
     }
 
     public boolean hasTags() {

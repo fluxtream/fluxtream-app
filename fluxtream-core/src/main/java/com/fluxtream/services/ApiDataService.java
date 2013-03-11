@@ -59,7 +59,11 @@ public interface ApiDataService {
                                                      long timeInMillis,
                                                      int desiredCount);
 
+    public AbstractFacet getFacetById(ApiKey apiKey, ObjectType objectType, long facetId);
+
     public AbstractFacet persistFacet(AbstractFacet facet);
+
+    public void persistExistingFacet(final AbstractFacet facet);
 
     // Pass this to createOrReadModifyWrite
     public interface FacetModifier<T extends AbstractFacet> {

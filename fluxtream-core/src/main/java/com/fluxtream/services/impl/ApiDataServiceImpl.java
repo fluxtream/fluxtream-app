@@ -39,6 +39,8 @@ import com.fluxtream.thirdparty.helpers.WWOHelper;
 import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.Utils;
 import net.sf.json.JSONObject;
+import org.apache.log4j.Logger;
+import org.dom4j.Document;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -302,6 +304,9 @@ public class ApiDataServiceImpl implements ApiDataService {
         return jpaDao.getFacetsAfter(apiKey, objectType, timeInMillis, desiredCount);
     }
 
+    public AbstractFacet getFacetById(ApiKey apiKey, final ObjectType objectType, final long facetId) {
+        return jpaDao.getFacetById(apiKey, objectType, facetId);
+    }
 
 	@Transactional(readOnly = false)
 	private List<AbstractFacet> extractFacets(ApiData apiData, int objectTypes,
@@ -373,9 +378,24 @@ public class ApiDataServiceImpl implements ApiDataService {
                         .append(" message=\"" + t.getMessage() + "\"");
                 logger.warn(sb.toString());
             }
+            persistExistingFacet(facet);
+            StringBuilder sb = new StringBuilder("module=updateQueue component=apiDataServiceImpl action=persistFacet")
+                    .append(" connector=").append(Connector.fromValue(facet.api).getName())
+                    .append(" objectType=").append(facet.objectType)
+                    .append(" guestId=").append(facet.guestId);
+            logger.info(sb.toString());
 			return facet;
 		}
 	}
+
+    public void persistExistingFacet(final AbstractFacet facet) {
+        if (facet != null) {
+            if (facet.hasTags()) {
+                persistTags(facet);
+            }
+			em.persist(facet);
+        }
+    }
 
     String getTableName(Class<? extends AbstractFacet> cls) {
         String entityName = facetEntityNames.get(cls.getName());
@@ -431,9 +451,13 @@ public class ApiDataServiceImpl implements ApiDataService {
         assert (modified != null);
         //System.out.println("====== after modify, contained?: " + em.contains(modified));
         if (orig == null) {
-            // Persist the newly-created facet
-            em.persist(modified);
+            // Persist the newly-created facet (and its tags, if any)
+            persistExistingFacet(modified);
             //System.out.println("====== after persist, contained?: " + em.contains(modified));
+        } else {
+            if (modified.hasTags()) {
+                persistTags(modified);
+            }
         }
         assert(em.contains(modified));
         //System.out.println("========================================");
