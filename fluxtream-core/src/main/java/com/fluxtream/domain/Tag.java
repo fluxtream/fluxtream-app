@@ -15,7 +15,7 @@ import org.hibernate.annotations.Index;
 @NamedQueries({
   @NamedQuery(name = "tags.all", query = "SELECT tag "
                                        + "FROM Tags tag "
-                                       + "WHERE tag.guestId=?"),
+                                       + "WHERE tag.guestId=? ORDER BY tag.name"),
   @NamedQuery(name = "tags.byName", query = "SELECT tag "
                                           + "FROM Tags tag "
                                           + "WHERE tag.guestId=? "
