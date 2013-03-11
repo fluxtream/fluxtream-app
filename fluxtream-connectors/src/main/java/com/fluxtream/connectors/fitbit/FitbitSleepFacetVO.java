@@ -16,8 +16,8 @@ public class FitbitSleepFacetVO extends AbstractLocalTimeTimedFacetVO<FitbitSlee
 
 	@Override
 	public void fromFacet(FitbitSleepFacet facet, TimeInterval timeInterval, GuestSettings settings) {
-		riseTime = timeStorageFormat.parseLocalDateTime(facet.startTimeStorage);
-		bedTime = timeStorageFormat.parseLocalDateTime(facet.endTimeStorage);
+		riseTime = timeStorageFormat.parseLocalDateTime(facet.endTimeStorage);
+		bedTime = timeStorageFormat.parseLocalDateTime(facet.startTimeStorage);
 		startMinute = riseTime.getHourOfDay()*60+riseTime.getMinuteOfHour();
 		endMinute = bedTime.getHourOfDay()*60+bedTime.getMinuteOfHour();
 		minutesAsleep = new DurationModel(facet.minutesAsleep*60);
