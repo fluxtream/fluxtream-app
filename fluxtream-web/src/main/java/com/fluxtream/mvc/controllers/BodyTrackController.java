@@ -167,7 +167,9 @@ public class BodyTrackController {
         postTunnelRequest(bodyTrackUrl, response, tunneledParameters);
      }
 
-    //TODO: implement tags
+    /**
+     * @deprecated Use {@link com.fluxtream.api.BodyTrackController#getAllTagsForUser} instead.
+     */
 	@RequestMapping(value = "/bodytrack/users/{UID}/tags")
 	public void bodyTrackTags(HttpServletResponse response,
 			@PathVariable("UID") Long uid) throws IOException {
