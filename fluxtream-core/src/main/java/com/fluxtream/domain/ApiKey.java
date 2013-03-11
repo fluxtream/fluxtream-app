@@ -35,7 +35,7 @@ import org.hibernate.annotations.Index;
 })
 public class ApiKey extends AbstractEntity {
 
-    Logger logger = Logger.getLogger(ApiKey.class);
+    transient Logger logger = Logger.getLogger(ApiKey.class);
 
     @Expose
 	@Index(name="guestId_index")
