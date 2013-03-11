@@ -77,7 +77,7 @@ public class ApiKey extends AbstractEntity {
 	
 	private ApiKeyAttribute getAttribute(String key) {
 		for (ApiKeyAttribute attr : attributes) {
-			if (attr.attributeKey.equals(key))
+			if (attr.attributeKey!=null&&attr.attributeKey.equals(key))
 				return attr;
 		}
 		return null;
