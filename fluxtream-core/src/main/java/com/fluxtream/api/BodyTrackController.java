@@ -770,7 +770,7 @@ public class BodyTrackController {
                 }
             });
         }
-        return jsonResponseHelper.ok("Nothing changed since comment and tags were both null");
+        return jsonResponseHelper.badRequest("Nothing changed since comment and tags were both null");
     }
 
     private static class FacetMetadata {
