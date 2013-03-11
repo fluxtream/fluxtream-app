@@ -337,14 +337,10 @@ public final class FluxtreamCapturePhotoStore {
             else {
                 wasCreated = false;
 
-                // We already have this photo, so we don't need to do anything other than update the timeUpdated field
-                // and the comment/tags
+                // We already have this photo, so we don't need to do anything other than update the timeUpdated field.
+                // We ignore the comments and tags fields here because the client should use the metadata set method
+                // instead.
                 existingFacet.timeUpdated = System.currentTimeMillis();
-
-                // update the comment and photo
-                existingFacet.comment = photo.getComment();
-                existingFacet.clearTags();
-                existingFacet.addTags(photo.getTags(), Tag.COMMA_DELIMITER);
 
                 return existingFacet;
             }
