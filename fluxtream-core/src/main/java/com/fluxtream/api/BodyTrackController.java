@@ -148,7 +148,7 @@ public class BodyTrackController {
     @Path("/upload")
     @Consumes({MediaType.MULTIPART_FORM_DATA,MediaType.APPLICATION_FORM_URLENCODED})
     @Produces({MediaType.APPLICATION_JSON})
-    public String uploadToBodytrack(@FormParam("dev_nickname") String deviceNickanme, @FormParam("channel_names") String channels,
+    public String uploadToBodytrack(@FormParam("dev_nickname") String deviceNickname, @FormParam("channel_names") String channels,
                                     @FormParam("data") String data){
         StatusModel status;
         try{
@@ -156,7 +156,7 @@ public class BodyTrackController {
             Type channelsType =  new TypeToken<Collection<String>>(){}.getType();
             Type dataType = new TypeToken<List<List<Long>>>(){}.getType();
 
-            final BodyTrackHelper.BodyTrackUploadResult uploadResult = bodyTrackHelper.uploadToBodyTrack(uid, deviceNickanme, (Collection<String>)gson.fromJson(channels, channelsType), (List<List<Object>>)gson.fromJson(data, dataType));
+            final BodyTrackHelper.BodyTrackUploadResult uploadResult = bodyTrackHelper.uploadToBodyTrack(uid, deviceNickname, (Collection<String>)gson.fromJson(channels, channelsType), (List<List<Object>>)gson.fromJson(data, dataType));
             status = createStatusModelFromBodyTrackUploadResult(uploadResult);
         }
         catch (Exception e){
