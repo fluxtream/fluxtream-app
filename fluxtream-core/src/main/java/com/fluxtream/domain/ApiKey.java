@@ -15,6 +15,7 @@ import javax.persistence.OneToMany;
 import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
 import com.google.gson.annotations.Expose;
+import org.apache.log4j.Logger;
 import org.hibernate.annotations.Index;
 
 @Entity(name="ApiKey")
@@ -33,6 +34,8 @@ import org.hibernate.annotations.Index;
 			query="SELECT apiKey FROM ApiKey apiKey JOIN apiKey.attributes attr WHERE attr.attributeKey=? AND attr.attributeValue=?")
 })
 public class ApiKey extends AbstractEntity {
+
+    Logger logger = Logger.getLogger(ApiKey.class);
 
     @Expose
 	@Index(name="guestId_index")
@@ -57,6 +60,11 @@ public class ApiKey extends AbstractEntity {
 		attr.apiKey = this;
         List<ApiKeyAttribute> toRemove = new ArrayList<ApiKeyAttribute>();
         for (ApiKeyAttribute attribute : attributes) {
+            if (attribute.attributeKey==null) {
+                logger.warn("null attributeKey for ApiKey: " + guestId + "/" + api);
+                toRemove.add(attribute);
+                continue;
+            }
             if (attribute.attributeKey.equals(attr.attributeKey))
                 toRemove.add(attribute);
         }

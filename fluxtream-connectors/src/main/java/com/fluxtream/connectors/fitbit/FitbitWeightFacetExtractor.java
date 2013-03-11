@@ -36,8 +36,6 @@ public class FitbitWeightFacetExtractor extends AbstractFacetExtractor {
 
     private void extractWeightInfo(final ApiData apiData, final JSONObject fitbitResponse, final List<AbstractFacet> facets) {
         long guestId = apiData.updateInfo.getGuestId();
-        logger.info("guestId=" + guestId +
-                    " connector=fitbit action=extractSummaryActivityInfo");
 
         JSONArray fitbitWeightMeasurements = fitbitResponse.getJSONArray("weight");
 
