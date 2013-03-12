@@ -9,6 +9,7 @@ public class FitbitWeightFacetVO extends AbstractInstantFacetVO<FitbitWeightFace
     public double bmi;
     public double fat;
     public double weight;
+    public double weightInKilos;
 
     public String weightUnitLabel;
 
@@ -30,6 +31,7 @@ public class FitbitWeightFacetVO extends AbstractInstantFacetVO<FitbitWeightFace
         }
         bmi = round(facet.bmi);
         fat = round(facet.fat);
+        this.weightInKilos = facet.weight;
         format(facet.weight, settings.weightMeasureUnit);
     }
 
