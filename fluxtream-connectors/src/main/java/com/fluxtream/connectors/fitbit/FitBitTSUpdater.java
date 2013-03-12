@@ -25,7 +25,7 @@ import com.fluxtream.utils.TimeUtils;
 import com.fluxtream.utils.Utils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Days;
 import org.joda.time.DurationFieldType;
@@ -51,7 +51,7 @@ import org.springframework.transaction.annotation.Transactional;
 @JsonFacetCollection(FitbitFacetVOCollection.class)
 public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 
-	Logger logger = Logger.getLogger(FitBitTSUpdater.class);
+	FlxLogger logger = FlxLogger.getLogger(FitBitTSUpdater.class);
 
 	@Autowired
 	SignpostOAuthHelper signpostHelper;

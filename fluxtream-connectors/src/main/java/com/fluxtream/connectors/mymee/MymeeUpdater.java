@@ -20,7 +20,7 @@ import com.fluxtream.utils.HttpUtils;
 import com.fluxtream.utils.Utils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
@@ -38,7 +38,7 @@ import org.springframework.stereotype.Component;
          objectTypes = {MymeeObservationFacet.class}, extractor = MymeeObservationFacetExtractor.class)
 public class MymeeUpdater extends AbstractUpdater {
 
-    static Logger logger = Logger.getLogger(MymeeUpdater.class);
+    static FlxLogger logger = FlxLogger.getLogger(MymeeUpdater.class);
 
     @Autowired
     GuestService guestService;

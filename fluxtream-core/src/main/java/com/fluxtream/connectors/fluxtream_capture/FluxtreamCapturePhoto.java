@@ -11,7 +11,7 @@ import com.fluxtream.images.ImageOrientation;
 import com.fluxtream.images.ImageType;
 import com.fluxtream.utils.HashUtils;
 import com.fluxtream.utils.ImageUtils;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joda.time.DateTime;
@@ -21,7 +21,7 @@ import org.joda.time.DateTimeZone;
  * @author Chris Bartley (bartley@cmu.edu)
  */
 public final class FluxtreamCapturePhoto {
-    private static final Logger LOG = Logger.getLogger(FluxtreamCapturePhoto.class);
+    private static final FlxLogger LOG = FlxLogger.getLogger(FluxtreamCapturePhoto.class);
 
     private static final int THUMBNAIL_0_MAX_SIDE_LENGTH_IN_PIXELS = 150;
     private static final int THUMBNAIL_1_MAX_SIDE_LENGTH_IN_PIXELS = 300;

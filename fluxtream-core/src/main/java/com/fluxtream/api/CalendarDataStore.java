@@ -55,7 +55,7 @@ import com.fluxtream.utils.Utils;
 import com.google.gson.Gson;
 import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
 import com.luckycatlabs.sunrisesunset.dto.Location;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.codehaus.plexus.util.ExceptionUtils;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
@@ -69,7 +69,7 @@ import org.springframework.stereotype.Component;
 @Scope("request")
 public class CalendarDataStore {
 
-    Logger logger = Logger.getLogger(CalendarDataStore.class);
+    FlxLogger logger = FlxLogger.getLogger(CalendarDataStore.class);
 
 	@Autowired
 	GuestService guestService;

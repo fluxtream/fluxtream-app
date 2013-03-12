@@ -16,7 +16,7 @@ import com.fluxtream.utils.Utils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -33,7 +33,7 @@ import org.springframework.stereotype.Controller;
 @JsonFacetCollection(ZeoFacetVOCollection.class)
 public class ZeoRestUpdater extends AbstractUpdater {
 
-	Logger logger = Logger.getLogger(ZeoRestUpdater.class);
+	FlxLogger logger = FlxLogger.getLogger(ZeoRestUpdater.class);
 
     @Qualifier("metadataServiceImpl")
     @Autowired

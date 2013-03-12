@@ -14,7 +14,7 @@ import com.fluxtream.services.GuestService;
 import com.fluxtream.services.JPADaoService;
 import com.fluxtream.services.NotificationsService;
 import com.fluxtream.utils.Utils;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -22,7 +22,7 @@ import static com.fluxtream.utils.Utils.stackTrace;
 
 public abstract class AbstractUpdater extends ApiClientSupport {
 
-	static Logger logger = Logger.getLogger(AbstractUpdater.class);
+	static FlxLogger logger = FlxLogger.getLogger(AbstractUpdater.class);
 
     @Autowired
 	protected ApiDataService apiDataService;

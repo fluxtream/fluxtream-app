@@ -15,7 +15,7 @@ import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.Cacheable;
@@ -27,7 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 public class JPAFacetDao implements FacetDao {
 
-    private static final Logger logger = Logger.getLogger(JPAFacetDao.class);
+    private static final FlxLogger logger = FlxLogger.getLogger(JPAFacetDao.class);
 
     @Autowired
 	GuestService guestService;

@@ -6,7 +6,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,7 +20,7 @@ import com.fluxtream.services.GuestService;
 @Controller
 public class RegisterController {
 	
-	Logger logger = Logger.getLogger(RegisterController.class);
+	FlxLogger logger = FlxLogger.getLogger(RegisterController.class);
 
 	@Qualifier("authenticationManager")
 	AuthenticationManager authenticationManager;

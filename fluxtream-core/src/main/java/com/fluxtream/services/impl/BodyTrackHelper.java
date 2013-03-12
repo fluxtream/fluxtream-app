@@ -27,7 +27,7 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,7 +67,7 @@ public class BodyTrackHelper {
 
     // Create a Gson parser which handles ChannelBounds specially to avoid problems with +/- infinity
     Gson gson = new GsonBuilder().registerTypeAdapter(ChannelBounds.class, new ChannelBoundsDeserializer()).create();
-    static Logger logger = Logger.getLogger(BodyTrackHelper.class);
+    static FlxLogger logger = FlxLogger.getLogger(BodyTrackHelper.class);
 
     private DataStoreExecutionResult executeDataStore(String commandName, Object[] parameters){
         try{

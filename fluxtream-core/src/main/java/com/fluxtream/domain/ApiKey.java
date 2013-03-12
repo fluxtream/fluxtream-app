@@ -15,7 +15,7 @@ import javax.persistence.OneToMany;
 import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
 import com.google.gson.annotations.Expose;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.hibernate.annotations.Index;
 
 @Entity(name="ApiKey")
@@ -35,7 +35,7 @@ import org.hibernate.annotations.Index;
 })
 public class ApiKey extends AbstractEntity {
 
-    transient Logger logger = Logger.getLogger(ApiKey.class);
+    transient FlxLogger logger = FlxLogger.getLogger(ApiKey.class);
 
     @Expose
 	@Index(name="guestId_index")

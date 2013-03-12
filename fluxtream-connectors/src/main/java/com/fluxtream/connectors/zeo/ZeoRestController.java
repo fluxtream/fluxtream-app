@@ -11,7 +11,7 @@ import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.GuestService;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
@@ -22,7 +22,7 @@ import org.springframework.web.servlet.ModelAndView;
 @RequestMapping(value = "/zeo")
 public class ZeoRestController {
 
-	Logger logger = Logger.getLogger(ZeoRestController.class);
+	FlxLogger logger = FlxLogger.getLogger(ZeoRestController.class);
 
 	@Autowired
 	GuestService guestService;

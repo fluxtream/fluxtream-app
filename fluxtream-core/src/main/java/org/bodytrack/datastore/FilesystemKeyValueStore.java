@@ -5,7 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class FilesystemKeyValueStore implements KeyValueStore<byte[]> {
 
-    private static final Logger LOG = Logger.getLogger(FilesystemKeyValueStore.class);
+    private static final FlxLogger LOG = FlxLogger.getLogger(FilesystemKeyValueStore.class);
 
     private static final String VALUE_FILE_EXTENSION = ".val";
 

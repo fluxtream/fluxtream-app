@@ -2,7 +2,7 @@ package com.fluxtream.auth;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -13,7 +13,7 @@ import com.fluxtream.services.GuestService;
 
 public class FlxAuthFilter extends UsernamePasswordAuthenticationFilter {
 
-	Logger logger = Logger
+	FlxLogger logger = FlxLogger
 			.getLogger(UsernamePasswordAuthenticationFilter.class);
 
 	@Autowired

@@ -20,7 +20,7 @@ import com.fluxtream.services.BodyTrackStorageService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -31,7 +31,7 @@ import org.springframework.stereotype.Service;
 @Component
 public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 
-    static Logger logger = Logger.getLogger(BodyTrackStorageServiceImpl.class);
+    static FlxLogger logger = FlxLogger.getLogger(BodyTrackStorageServiceImpl.class);
 
 	@Autowired
 	Configuration env;

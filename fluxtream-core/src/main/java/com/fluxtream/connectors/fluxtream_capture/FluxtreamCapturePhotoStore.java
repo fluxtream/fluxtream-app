@@ -7,7 +7,7 @@ import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.JPADaoService;
 import com.fluxtream.utils.ImageUtils;
 import com.google.gson.Gson;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.bodytrack.datastore.FilesystemKeyValueStore;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,8 +24,8 @@ import org.springframework.stereotype.Component;
 @Component
 public final class FluxtreamCapturePhotoStore {
 
-    private static final Logger LOG = Logger.getLogger(FluxtreamCapturePhotoStore.class);
-    private static final Logger LOG_DEBUG = Logger.getLogger("Fluxtream");
+    private static final FlxLogger LOG = FlxLogger.getLogger(FluxtreamCapturePhotoStore.class);
+    private static final FlxLogger LOG_DEBUG = FlxLogger.getLogger("Fluxtream");
 
     public enum Operation {
         CREATED("created"), UPDATED("updated");

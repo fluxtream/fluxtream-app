@@ -7,7 +7,7 @@ import java.util.Vector;
 import com.fluxtream.domain.Event;
 import com.fluxtream.events.EventListener;
 import com.fluxtream.services.EventListenerService;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.codehaus.plexus.util.ExceptionUtils;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class EventListenerServiceImpl implements EventListenerService {
 
-    private final Logger logger = Logger.getLogger(EventListenerServiceImpl.class);
+    private final FlxLogger logger = FlxLogger.getLogger(EventListenerServiceImpl.class);
 
     Map<String, List<EventListener>> listeners =
             new Hashtable<String,List<EventListener>>();

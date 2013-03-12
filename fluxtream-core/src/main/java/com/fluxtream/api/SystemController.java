@@ -7,7 +7,7 @@ import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.SystemService;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
 @Scope("request")
 public class SystemController {
 
-    Logger logger = Logger.getLogger(SystemController.class);
+    FlxLogger logger = FlxLogger.getLogger(SystemController.class);
 
     @Qualifier("connectorUpdateServiceImpl")
     @Autowired

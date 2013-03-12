@@ -13,7 +13,7 @@ import com.fluxtream.utils.TimeUtils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -29,7 +29,7 @@ public class BodymediaSleepFacetExtractor extends AbstractFacetExtractor
 {
 
     //Logs various transactions
-    Logger logger = Logger.getLogger(BodymediaSleepFacetExtractor.class);
+    FlxLogger logger = FlxLogger.getLogger(BodymediaSleepFacetExtractor.class);
 
     @Qualifier("connectorUpdateServiceImpl")
     @Autowired

@@ -18,7 +18,7 @@ import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.NotificationsService;
 import com.fluxtream.utils.SecurityUtils;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -31,7 +31,7 @@ import org.springframework.web.servlet.ModelAndView;
 @Controller
 public class AppController {
 
-	Logger logger = Logger.getLogger(AppController.class);
+	FlxLogger logger = FlxLogger.getLogger(AppController.class);
 
 	@Autowired
 	Configuration env;

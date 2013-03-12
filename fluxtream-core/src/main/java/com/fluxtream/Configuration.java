@@ -12,12 +12,12 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang.WordUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.springframework.beans.factory.InitializingBean;
 
 public class Configuration implements InitializingBean {
 
-    Logger logger = Logger.getLogger(Configuration.class);
+    FlxLogger logger = FlxLogger.getLogger(Configuration.class);
 
 	private DesEncrypter encrypter;
 	

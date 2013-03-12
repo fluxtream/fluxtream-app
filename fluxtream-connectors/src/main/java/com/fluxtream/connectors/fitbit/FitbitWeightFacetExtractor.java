@@ -8,7 +8,7 @@ import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.springframework.stereotype.Component;
 
 /**
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class FitbitWeightFacetExtractor extends AbstractFacetExtractor {
 
-    Logger logger = Logger.getLogger(FitbitActivityFacetExtractor.class);
+    FlxLogger logger = FlxLogger.getLogger(FitbitActivityFacetExtractor.class);
 
     @Override
     public List<AbstractFacet> extractFacets(final ApiData apiData, final ObjectType objectType) throws Exception {

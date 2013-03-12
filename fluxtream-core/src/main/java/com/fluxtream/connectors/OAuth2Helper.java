@@ -4,7 +4,7 @@ import java.io.IOException;
 import com.fluxtream.Configuration;
 import com.fluxtream.utils.HttpUtils;
 import com.fluxtream.utils.Utils;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -18,7 +18,7 @@ public class OAuth2Helper {
     @Autowired
     Configuration env;
 
-    Logger logger = Logger.getLogger(OAuth2Helper.class);
+    FlxLogger logger = FlxLogger.getLogger(OAuth2Helper.class);
 
     public boolean revokeRefreshToken(long guestId, Connector connector,
                                       String removeRefreshTokenURL) {

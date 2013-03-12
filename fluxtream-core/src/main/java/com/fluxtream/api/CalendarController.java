@@ -11,7 +11,7 @@ import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.mvc.models.CalendarModel;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -29,7 +29,7 @@ import org.springframework.stereotype.Component;
 @Scope("request")
 public class CalendarController {
 
-    Logger logger = Logger.getLogger(CalendarController.class);
+    FlxLogger logger = FlxLogger.getLogger(CalendarController.class);
 
     @Autowired
     GuestService guestService;

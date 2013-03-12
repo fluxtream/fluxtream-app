@@ -3,7 +3,7 @@ package com.fluxtream.images;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import com.fluxtream.utils.ImageUtils;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -14,7 +14,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class JpegImage implements Image {
 
-    private static final Logger LOG = Logger.getLogger(JpegImage.class);
+    private static final FlxLogger LOG = FlxLogger.getLogger(JpegImage.class);
 
     @NotNull
     private final byte[] imageBytes;

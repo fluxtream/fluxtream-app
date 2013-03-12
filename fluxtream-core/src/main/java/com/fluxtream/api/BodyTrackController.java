@@ -54,7 +54,7 @@ import com.sun.jersey.multipart.BodyPart;
 import com.sun.jersey.multipart.BodyPartEntity;
 import com.sun.jersey.multipart.MultiPart;
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joda.time.DateTime;
@@ -69,8 +69,8 @@ import org.springframework.stereotype.Component;
 @Scope("request")
 public class BodyTrackController {
 
-    private static final Logger LOG = Logger.getLogger(BodyTrackController.class);
-    private static final Logger LOG_DEBUG = Logger.getLogger("Fluxtream");
+    private static final FlxLogger LOG = FlxLogger.getLogger(BodyTrackController.class);
+    private static final FlxLogger LOG_DEBUG = FlxLogger.getLogger("Fluxtream");
     private static final int ONE_WEEK_IN_SECONDS = 604800;
 
     @Autowired

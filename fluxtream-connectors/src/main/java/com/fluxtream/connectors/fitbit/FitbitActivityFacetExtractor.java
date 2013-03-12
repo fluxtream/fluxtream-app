@@ -9,13 +9,13 @@ import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.springframework.stereotype.Component;
 
 @Component
 public class FitbitActivityFacetExtractor extends AbstractFacetExtractor {
 
-	Logger logger = Logger.getLogger(FitbitActivityFacetExtractor.class);
+	FlxLogger logger = FlxLogger.getLogger(FitbitActivityFacetExtractor.class);
 
 	public List<AbstractFacet> extractFacets(ApiData apiData,
 			ObjectType objectType) {

@@ -23,7 +23,7 @@ import com.fluxtream.domain.PhotoFacetFinderStrategy;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.PhotoService;
 import com.fluxtream.services.SettingsService;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -36,7 +36,7 @@ import org.springframework.stereotype.Service;
 @Component
 public class PhotoServiceImpl implements PhotoService {
 
-    private static final Logger LOG = Logger.getLogger("Fluxtream");
+    private static final FlxLogger LOG = FlxLogger.getLogger("Fluxtream");
 
     @Autowired
     SettingsService settingsService;

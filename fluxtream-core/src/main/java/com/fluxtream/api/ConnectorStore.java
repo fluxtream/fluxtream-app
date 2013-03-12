@@ -33,7 +33,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
@@ -47,7 +47,7 @@ import org.springframework.stereotype.Component;
 @Scope("request")
 public class ConnectorStore {
 
-    Logger logger = Logger.getLogger(ConnectorStore.class);
+    FlxLogger logger = FlxLogger.getLogger(ConnectorStore.class);
 
     @Autowired
     GuestService guestService;

@@ -8,7 +8,7 @@ import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -29,7 +29,7 @@ import org.springframework.stereotype.Component;
          objectTypes = {RunKeeperFitnessActivityFacet.class})
 public class RunKeeperUpdater  extends AbstractUpdater {
 
-    Logger logger = Logger.getLogger(RunKeeperUpdater.class);
+    FlxLogger logger = FlxLogger.getLogger(RunKeeperUpdater.class);
 
     final String DEFAULT_ENDPOINT= "https://api.runkeeper.com";
 

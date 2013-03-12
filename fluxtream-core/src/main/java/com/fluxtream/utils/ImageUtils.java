@@ -22,7 +22,7 @@ import com.fluxtream.images.ImageOrientation;
 import com.fluxtream.images.ImageType;
 import com.fluxtream.images.JpegImage;
 import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.imgscalr.Scalr;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,7 +35,7 @@ import org.jetbrains.annotations.Nullable;
  * @author Chris Bartley (bartley@cmu.edu)
  */
 public final class ImageUtils {
-    private static final Logger LOG = Logger.getLogger(ImageUtils.class);
+    private static final FlxLogger LOG = FlxLogger.getLogger(ImageUtils.class);
 
     private static final class GeolocationImpl implements Geolocation {
         @Nullable

@@ -4,7 +4,7 @@ import javax.servlet.http.HttpServletRequest;
 import com.fluxtream.Configuration;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.utils.RequestUtils;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,7 +12,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 @Controller
 public class TestController {
-    Logger logger = Logger.getLogger(TestController.class);
+    FlxLogger logger = FlxLogger.getLogger(TestController.class);
 
     @Autowired
     Configuration env;

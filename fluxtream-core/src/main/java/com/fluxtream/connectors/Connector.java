@@ -15,7 +15,7 @@ import com.fluxtream.connectors.vos.AbstractFacetVOCollection;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.AbstractUserProfile;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.apache.velocity.util.StringUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -24,7 +24,7 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
 
 public class Connector {
 
-    static Logger logger = Logger.getLogger(Connector.class);
+    static FlxLogger logger = FlxLogger.getLogger(Connector.class);
 
     UpdateStrategyType updateStrategyType = UpdateStrategyType.INCREMENTAL;
 

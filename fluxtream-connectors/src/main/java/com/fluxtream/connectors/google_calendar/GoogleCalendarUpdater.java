@@ -16,7 +16,7 @@ import com.google.gdata.data.calendar.CalendarEventEntry;
 import com.google.gdata.data.calendar.CalendarEventFeed;
 import com.google.gdata.data.extensions.When;
 import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -24,7 +24,7 @@ import org.springframework.stereotype.Component;
 @JsonFacetCollection(GoogleCalendarFacetVOCollection.class)
 public class GoogleCalendarUpdater extends AbstractGoogleOAuthUpdater {
 
-    private static final Logger LOG = Logger.getLogger(GoogleCalendarUpdater.class);
+    private static final FlxLogger LOG = FlxLogger.getLogger(GoogleCalendarUpdater.class);
 
     @Override
     protected void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception {

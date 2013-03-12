@@ -10,7 +10,7 @@ import com.drew.imaging.ImageMetadataReader;
 import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifIFD0Directory;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.imgscalr.Scalr;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,7 +38,7 @@ public enum ImageOrientation {
     ORIENTATION_7(7, Scalr.Rotation.CW_270, Scalr.Rotation.FLIP_HORZ),
     ORIENTATION_8(8, Scalr.Rotation.CW_270, null);
 
-    private static final Logger LOG = Logger.getLogger(ImageOrientation.class);
+    private static final FlxLogger LOG = FlxLogger.getLogger(ImageOrientation.class);
 
     private static final Map<Integer, ImageOrientation> ID_TO_BAUD_RATE_MAP;
 

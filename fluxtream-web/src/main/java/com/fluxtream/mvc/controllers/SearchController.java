@@ -9,7 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.fluxtream.auth.AuthHelper;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.joda.time.format.DateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -30,7 +30,7 @@ import com.fluxtream.services.MetadataService;
 @Controller
 public class SearchController {
 
-	Logger logger = Logger.getLogger(SearchController.class);
+	FlxLogger logger = FlxLogger.getLogger(SearchController.class);
 
 	@Autowired
 	FullTextSearchService searchService;

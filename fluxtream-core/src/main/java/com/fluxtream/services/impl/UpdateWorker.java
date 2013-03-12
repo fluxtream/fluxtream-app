@@ -14,7 +14,7 @@ import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
@@ -26,7 +26,7 @@ import static com.fluxtream.utils.Utils.stackTrace;
 @Scope("prototype")
 class UpdateWorker implements Runnable {
 
-	Logger logger = Logger.getLogger(UpdateWorker.class);
+	FlxLogger logger = FlxLogger.getLogger(UpdateWorker.class);
 
     @Qualifier("connectorUpdateServiceImpl")
     @Autowired

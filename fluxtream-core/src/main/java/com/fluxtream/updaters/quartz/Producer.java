@@ -8,7 +8,7 @@ import com.fluxtream.domain.Guest;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.utils.Utils;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.Authentication;
@@ -22,7 +22,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
  */
 public class Producer {
 
-    Logger logger = Logger.getLogger(Producer.class);
+    FlxLogger logger = FlxLogger.getLogger(Producer.class);
 
     @Autowired
     private ConnectorUpdateService connectorUpdateService;

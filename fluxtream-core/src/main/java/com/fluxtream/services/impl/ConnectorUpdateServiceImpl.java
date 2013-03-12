@@ -24,7 +24,7 @@ import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.SystemService;
 import com.fluxtream.utils.JPAUtils;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -37,7 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly=true)
 public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 
-    static Logger logger = Logger.getLogger(ConnectorUpdateServiceImpl.class);
+    static FlxLogger logger = FlxLogger.getLogger(ConnectorUpdateServiceImpl.class);
 
     private Map<Connector, AbstractUpdater> updaters = new Hashtable<Connector, AbstractUpdater>();
 

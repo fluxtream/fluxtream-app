@@ -27,7 +27,7 @@ import com.fluxtream.utils.Utils;
 import com.google.gson.Gson;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.apache.velocity.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -41,7 +41,7 @@ import org.springframework.stereotype.Component;
 @Scope("request")
     public class DashboardStore {
 
-    Logger logger = Logger.getLogger(DashboardStore.class);
+    FlxLogger logger = FlxLogger.getLogger(DashboardStore.class);
 
     @Autowired
     DashboardsService dashboardsService;

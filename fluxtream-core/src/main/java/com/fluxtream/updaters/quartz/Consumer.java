@@ -1,7 +1,7 @@
 package com.fluxtream.updaters.quartz;
 
 import com.fluxtream.services.ConnectorUpdateService;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -11,7 +11,7 @@ public class Consumer {
 	@Autowired
 	ConnectorUpdateService connectorUpdateService;
 	
-	static Logger logger = Logger.getLogger(Consumer.class);
+	static FlxLogger logger = FlxLogger.getLogger(Consumer.class);
 
 	public void checkUpdatesQueue() throws Exception {
         logger.debug("module=updateQueue component=consumer action=checkUpdatesQueue");

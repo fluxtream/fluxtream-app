@@ -24,7 +24,7 @@ import com.fluxtream.thirdparty.helpers.WWOHelper;
 import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.TimeUtils;
 import org.apache.commons.httpclient.HttpException;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -38,7 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly=true)
 public class MetadataServiceImpl implements MetadataService {
 
-	Logger logger = Logger.getLogger(MetadataServiceImpl.class);
+	FlxLogger logger = FlxLogger.getLogger(MetadataServiceImpl.class);
 
 	@Autowired
 	Configuration env;

@@ -3,7 +3,7 @@ package com.fluxtream.events;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.services.EventListenerService;
 import com.fluxtream.utils.HttpUtils;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -20,7 +20,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
  */
 public class DataReceivedEventListener implements EventListener<DataReceivedEvent> {
 
-    static Logger logger = Logger.getLogger(DataReceivedEventListener.class);
+    static FlxLogger logger = FlxLogger.getLogger(DataReceivedEventListener.class);
 
     private String url;
 

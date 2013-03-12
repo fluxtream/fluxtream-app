@@ -9,7 +9,7 @@ import com.fluxtream.domain.ApiKey;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.utils.HttpUtils;
 import net.sf.json.JSONObject;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -25,7 +25,7 @@ public class GoogleOAuth2Helper {
 
     @Autowired
     Configuration env;
-    Logger logger = Logger.getLogger(GoogleOAuth2Helper.class);
+    FlxLogger logger = FlxLogger.getLogger(GoogleOAuth2Helper.class);
 
     public String getAccessToken(final ApiKey apiKey) throws IOException {
         final String expiresString = guestService.getApiKeyAttribute(apiKey, "tokenExpires");

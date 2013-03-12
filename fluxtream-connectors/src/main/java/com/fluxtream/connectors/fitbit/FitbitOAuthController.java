@@ -19,7 +19,7 @@ import oauth.signpost.exception.OAuthExpectationFailedException;
 import oauth.signpost.exception.OAuthMessageSignerException;
 import oauth.signpost.exception.OAuthNotAuthorizedException;
 
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,7 +37,7 @@ import com.fluxtream.services.GuestService;
 @RequestMapping(value = "/fitbit")
 public class FitbitOAuthController {
 
-	Logger logger = Logger.getLogger(FitbitOAuthController.class);
+	FlxLogger logger = FlxLogger.getLogger(FitbitOAuthController.class);
 
 	@Autowired
 	GuestService guestService;

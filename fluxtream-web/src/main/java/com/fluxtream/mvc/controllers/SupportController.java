@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.FormParam;
 
 import org.apache.commons.httpclient.HttpException;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.apache.velocity.app.VelocityEngine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -35,7 +35,7 @@ import com.postmark.PostmarkMailSender;
 @RequestMapping("/support")
 public class SupportController {
 
-	static Logger logger = Logger.getLogger(SupportController.class);
+	static FlxLogger logger = FlxLogger.getLogger(SupportController.class);
 
 	@Qualifier("authenticationManager")
 	@Autowired

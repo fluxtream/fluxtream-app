@@ -14,7 +14,7 @@ import com.fluxtream.utils.TimeUtils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -30,7 +30,7 @@ public class BodymediaBurnFacetExtractor extends AbstractFacetExtractor
 {
 
     //Logs various transactions
-    Logger logger = Logger.getLogger(BodymediaBurnFacetExtractor.class);
+    FlxLogger logger = FlxLogger.getLogger(BodymediaBurnFacetExtractor.class);
 
     DateTimeFormatter form = DateTimeFormat.forPattern("yyyyMMdd'T'HHmmssZ");
     DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyyMMdd");

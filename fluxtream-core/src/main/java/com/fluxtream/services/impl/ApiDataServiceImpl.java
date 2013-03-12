@@ -39,7 +39,7 @@ import com.fluxtream.thirdparty.helpers.WWOHelper;
 import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.Utils;
 import net.sf.json.JSONObject;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -54,7 +54,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 public class ApiDataServiceImpl implements ApiDataService {
 
-	static Logger logger = Logger.getLogger(ApiDataServiceImpl.class);
+	static FlxLogger logger = FlxLogger.getLogger(ApiDataServiceImpl.class);
 
 	@Autowired
 	Configuration env;

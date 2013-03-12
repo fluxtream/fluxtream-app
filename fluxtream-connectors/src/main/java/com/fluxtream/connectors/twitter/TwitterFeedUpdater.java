@@ -17,7 +17,7 @@
     import org.apache.http.client.ResponseHandler;
     import org.apache.http.client.methods.HttpGet;
     import org.apache.http.impl.client.BasicResponseHandler;
-    import org.apache.log4j.Logger;
+    import com.fluxtream.aspects.FlxLogger;
     import org.springframework.stereotype.Component;
 
 
@@ -29,7 +29,7 @@ objectTypes={TweetFacet.class,
 @JsonFacetCollection(TwitterFacetVOCollection.class)
 public class TwitterFeedUpdater extends AbstractUpdater {
 
-	Logger logger = Logger.getLogger(TwitterFeedUpdater.class);
+	FlxLogger logger = FlxLogger.getLogger(TwitterFeedUpdater.class);
 	
 	public TwitterFeedUpdater() {
 		super();

@@ -6,7 +6,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import com.newrelic.api.agent.NewRelic;
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -20,7 +20,7 @@ import org.aspectj.lang.reflect.MethodSignature;
 @Aspect
 public class NewRelicTransactionAspect {
 
-    Logger logger = Logger.getLogger(NewRelicTransactionAspect.class);
+    FlxLogger logger = FlxLogger.getLogger(NewRelicTransactionAspect.class);
 
     @Around("@annotation(get)")
     public Object logGETRESTCall(ProceedingJoinPoint pjp, final GET get) throws Throwable {

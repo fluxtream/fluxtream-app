@@ -4,7 +4,7 @@ import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,7 +17,7 @@ import com.fluxtream.utils.Utils;
 @Controller
 public class ErrorController {
 
-	Logger logger = Logger.getLogger(ErrorController.class);
+	FlxLogger logger = FlxLogger.getLogger(ErrorController.class);
 
 	@Autowired
 	Configuration env;
