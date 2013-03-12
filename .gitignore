@@ -39,4 +39,6 @@ tasks.xml
 # Files to ignore
 GeoLiteCity.dat
 .idea/workspace.xml
+.idea/dataSources.ids
 node_modules
+	
