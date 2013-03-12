@@ -28,8 +28,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import static com.newrelic.api.agent.NewRelic.setTransactionName;
-
 /**
  *
  * @author Candide Kemmler (candide@fluxtream.com)
@@ -54,7 +52,6 @@ public class UpdateWorkerTaskStore {
     @Path("/{connector}")
     @Produces({MediaType.APPLICATION_JSON})
     public String getUpdateTasks(@PathParam("connector") String connectorName) {
-        setTransactionName(null, "GET /updateTasks/" + connectorName);
         try{
             long guestId = AuthHelper.getGuestId();
 
@@ -76,7 +73,6 @@ public class UpdateWorkerTaskStore {
     @Path("/all")
     @Produces({MediaType.APPLICATION_JSON})
     public String getUpdateTasksAll() {
-        setTransactionName(null, "GET /updateTasks/all");
         try{
             long guestId = AuthHelper.getGuestId();
             final Collection<Connector> connectors = Connector.getAllConnectors();
@@ -118,7 +114,6 @@ public class UpdateWorkerTaskStore {
     @Path("/{connector}/{objectType}")
     @Produces({MediaType.APPLICATION_JSON})
     public String getObjectTypeUpdateTasks(@PathParam("connector") String connectorName, @PathParam("objectType") String objectTypeName) {
-        setTransactionName(null, "GET /updateTasks/" + connectorName + "/" + objectTypeName);
         try{
             long guestId = AuthHelper.getGuestId();
             final Connector connector = Connector.getConnector(connectorName);
@@ -137,7 +132,6 @@ public class UpdateWorkerTaskStore {
     @Path("/{connector}")
     @Produces({MediaType.APPLICATION_JSON})
     public String deleteUpdateTasks(@PathParam("connector") String connectorName) {
-        setTransactionName(null, "DELETE /updateTasks/" + connectorName);
         try{
             long guestId = AuthHelper.getGuestId();
             final Connector connector = Connector.getConnector(connectorName);

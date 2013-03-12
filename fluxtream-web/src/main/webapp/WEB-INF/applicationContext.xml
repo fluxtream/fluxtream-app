@@ -37,7 +37,8 @@
         </property>
     </bean>
 
-	<import resource="spring-quartz.xml" />
+	<import resource="spring-aspects.xml" />
+    <import resource="spring-quartz.xml" />
 
     <bean id="velocityEngine" class="org.springframework.ui.velocity.VelocityEngineFactoryBean" 
           p:resourceLoaderPath="classpath:/com/fluxtream/mvc/controllers" 

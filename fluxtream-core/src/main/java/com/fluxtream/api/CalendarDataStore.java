@@ -64,8 +64,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import static com.newrelic.api.agent.NewRelic.setTransactionName;
-
 @Path("/calendar")
 @Component("RESTCalendarDataStore")
 @Scope("request")
@@ -112,7 +110,6 @@ public class CalendarDataStore {
 			@PathParam("week") int week, @QueryParam("filter") String filter)
 			throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException {
-        setTransactionName(null, "GET /calendar/all/week/{year}/{week}");
         Guest guest = AuthHelper.getGuest();
         long guestId = guest.getId();
         CoachingBuddy coachee = null;
@@ -223,7 +220,6 @@ public class CalendarDataStore {
 			@PathParam("month") int month,
 			@QueryParam("filter") String filter) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
-        setTransactionName(null, "GET /calendar/all/month/{year}/{month}");
         Guest guest = AuthHelper.getGuest();
         long guestId = guest.getId();
         CoachingBuddy coachee = null;
@@ -317,7 +313,6 @@ public class CalendarDataStore {
 	public String getAllConnectorsYearData(@PathParam("year") int year,
 			@QueryParam("filter") String filter) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
-        setTransactionName(null, "GET /calendar/all/year/{year}");
         Guest guest = AuthHelper.getGuest();
         long guestId = guest.getId();
         CoachingBuddy coachee = null;
@@ -404,7 +399,6 @@ public class CalendarDataStore {
 	public String getAllConnectorsDayData(@PathParam("date") String date,
 			@QueryParam("filter") String filter) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
-        setTransactionName(null, "GET /calendar/all/date/{date}");
         Guest guest = AuthHelper.getGuest();
         long guestId = guest.getId();
         CoachingBuddy coachee = null;
@@ -502,7 +496,6 @@ public class CalendarDataStore {
 			@PathParam("connectorName") String connectorName)
 			throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException {
-        setTransactionName(null, "GET /calendar/" + connectorName + "/date/{date}");
         try{
             long then = System.currentTimeMillis();
             Connector connector = Connector.getConnector(connectorName);

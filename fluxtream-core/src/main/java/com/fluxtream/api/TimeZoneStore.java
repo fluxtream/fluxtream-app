@@ -17,8 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import static com.newrelic.api.agent.NewRelic.setTransactionName;
-
 @Path("/timezones")
 @Component("RESTTimeZoneStore")
 @Scope("request")
@@ -33,7 +31,6 @@ public class TimeZoneStore {
     @Path("/mapping")
     @Produces({MediaType.APPLICATION_JSON})
     public String getTimeZoneMapping(){
-        setTransactionName(null, "GET /timezones/mapping");
         TimeZoneMappingModel timeZoneMapping = new TimeZoneMappingModel();
         timeZoneMapping.timeZones = new ArrayList<TimeZoneSegmentModel>();
         List<DayMetadataFacet> metaData = metadataService.getAllDayMetadata(AuthHelper.getGuestId());

@@ -39,8 +39,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import static com.newrelic.api.agent.NewRelic.setTransactionName;
-
 /**
  *
  */
@@ -80,7 +78,6 @@ public class ConnectorStore {
     @Path("/installed")
     @Produces({MediaType.APPLICATION_JSON})
     public String getInstalledConnectors(){
-        setTransactionName(null, "GET /connectors/installed");
         Guest guest = AuthHelper.getGuest();
         // If no guest is logged in, return empty array
         if(guest==null)
@@ -146,7 +143,6 @@ public class ConnectorStore {
     @Path("/uninstalled")
     @Produces({MediaType.APPLICATION_JSON})
     public String getUninstalledConnectors(){
-        setTransactionName(null, "GET /connectors/uninstalled");
         Guest guest = AuthHelper.getGuest();
         // If no guest is logged in, return empty array
         if(guest==null)

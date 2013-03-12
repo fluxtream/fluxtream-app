@@ -64,8 +64,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import static com.newrelic.api.agent.NewRelic.setTransactionName;
-
 @Path("/bodytrack")
 @Component("RESTBodytrackController")
 @Scope("request")
@@ -109,7 +107,6 @@ public class BodyTrackController {
 	public String loadHistory(@QueryParam("username") String username,
 			@QueryParam("connectorName") String connectorName) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
-        setTransactionName(null, "POST /bodytrack/uploadHistory");
         StatusModel status;
         try{
             Guest guest = guestService.getGuest(username);
@@ -133,7 +130,6 @@ public class BodyTrackController {
     @Path("/users/{UID}/views/{id}")
     @Produces({ MediaType.APPLICATION_JSON })
     public String deleteBodytrackView(@PathParam("UID") Long uid, @PathParam("id") long viewId){
-        setTransactionName(null, "DELETE /bodytrack/users/{UID}/views/{id}");
         StatusModel status;
         try{
             if (!checkForPermissionAccess(uid)){
@@ -154,7 +150,6 @@ public class BodyTrackController {
     @Produces({MediaType.APPLICATION_JSON})
     public String uploadToBodytrack(@FormParam("dev_nickname") String deviceNickanme, @FormParam("channel_names") String channels,
                                     @FormParam("data") String data){
-        setTransactionName(null, "POST /bodytrack/upload");
         StatusModel status;
         try{
             long uid = AuthHelper.getGuestId();
@@ -174,7 +169,6 @@ public class BodyTrackController {
     @Path("/jupload")
     @Produces({MediaType.APPLICATION_JSON})
     public String uploadJsonToBodytrack(@QueryParam("dev_nickname")  String deviceNickname, String body){
-        setTransactionName(null, "POST /bodytrack/jupload");
         StatusModel status;
         try{
             long uid = AuthHelper.getGuestId();
@@ -219,7 +213,6 @@ public class BodyTrackController {
     @Consumes({MediaType.MULTIPART_FORM_DATA})
     @Produces({MediaType.APPLICATION_JSON})
     public Response handlePhotoUpload(@QueryParam("connector_name") final String connectorName, final MultiPart multiPart) {
-        setTransactionName(null, "POST /bodytrack/photoUpload");
         Response response;
 
         final Connector connector = Connector.getConnector(connectorName);
@@ -334,8 +327,6 @@ public class BodyTrackController {
                                              @PathParam("PhotoStoreKeySuffix") final String photoStoreKeySuffix,
                                              @Context final Request request) {
 
-        setTransactionName(null, "GET /bodytrack/photo/{UID}." + photoStoreKeySuffix);
-
         return getFluxtreamCapturePhoto(uid, request, new FluxtreamCapturePhotoFetchStrategy() {
             private final String photoStoreKey = uid + "." + photoStoreKeySuffix;
 
@@ -359,8 +350,6 @@ public class BodyTrackController {
                                                       @PathParam("PhotoId") final long photoId,
                                                       @PathParam("ThumbnailIndex") final int thumbnailIndex,
                                                       @Context final Request request) {
-
-        setTransactionName(null, "GET /bodytrack/photoThumbnail/{UID}/" + photoId + "/" + thumbnailIndex);
 
         return getFluxtreamCapturePhoto(uid, request, new FluxtreamCapturePhotoFetchStrategy() {
             @Nullable
@@ -465,7 +454,6 @@ public class BodyTrackController {
     @Produces({MediaType.APPLICATION_JSON})
     public String fetchTile(@PathParam("UID") Long uid, @PathParam("DeviceNickname") String deviceNickname,
                                    @PathParam("ChannelName") String channelName, @PathParam("Level") int level, @PathParam("Offset") long offset){
-        setTransactionName(null, "GET /bodytrack/tiles/{UID}/" + deviceNickname + "." + channelName + "/{Level}.{Offset}.json");
         long loggedInUserId = AuthHelper.getGuestId();
         boolean accessAllowed = checkForPermissionAccess(uid);
         CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
@@ -483,7 +471,6 @@ public class BodyTrackController {
     @Path("/users/{UID}/views")
     @Produces({MediaType.APPLICATION_JSON})
     public String getViews(@PathParam("UID") Long uid) {
-        setTransactionName(null, "GET /bodytrack/users/{UID}/views");
         long loggedInUserId = AuthHelper.getGuestId();
         boolean accessAllowed = checkForPermissionAccess(uid);
         CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
@@ -502,7 +489,6 @@ public class BodyTrackController {
     @Path("/users/{UID}/views/{id}")
     @Produces({MediaType.APPLICATION_JSON})
     public String bodyTrackView(@PathParam("UID") Long uid, @PathParam("id") long id) {
-        setTransactionName(null, "GET /bodytrack/users/{UID}/views/{id}");
         long loggedInUserId = AuthHelper.getGuestId();
         boolean accessAllowed = checkForPermissionAccess(uid);
         CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
@@ -523,7 +509,6 @@ public class BodyTrackController {
     @Path("/users/{UID}/views")
     @Produces({MediaType.APPLICATION_JSON})
     public String setView(@PathParam("UID") Long uid, @FormParam("name") String name, @FormParam("data") String data) {
-        setTransactionName(null, "POST /bodytrack/users/{UID}/views");
         long loggedInUserId = AuthHelper.getGuestId();
         boolean accessAllowed = checkForPermissionAccess(uid);
         CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
@@ -543,7 +528,6 @@ public class BodyTrackController {
     @Path("/users/{UID}/sources/list")
     @Produces({MediaType.APPLICATION_JSON})
     public String getSourceList(@PathParam("UID") Long uid) {
-        setTransactionName(null, "GET /bodytrack/users/{UID}/sources/list");
         final long loggedInUserId = AuthHelper.getGuestId();
         boolean accessAllowed = checkForPermissionAccess(uid);
         CoachingBuddy coachee = null;
@@ -567,7 +551,6 @@ public class BodyTrackController {
     @Path(value = "/users/{UID}/sources/{source}/default_graph_specs")
     @Produces({MediaType.APPLICATION_JSON})
     public String bodyTrackGetDefaultGraphSpecs(@PathParam("UID") Long uid, @PathParam("source") String name) {
-        setTransactionName(null, "GET /bodytrack/users/{UID}/sources/{source}/default_graph_specs");
         long loggedInUserId = AuthHelper.getGuestId();
         boolean accessAllowed = checkForPermissionAccess(uid);
         CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
@@ -588,7 +571,6 @@ public class BodyTrackController {
     @Produces({MediaType.APPLICATION_JSON})
     public String setDefaultStyle(@PathParam("UID") Long uid, @PathParam("DeviceNickname") String deviceNickname,
                                 @PathParam("ChannelName") String channelName, @FormParam("user_default_style") String style) {
-        setTransactionName(null, "POST /users/{UID}/channels/" + deviceNickname + "." + channelName + "/set");
         try{
             if (!checkForPermissionAccess(uid)){
                 uid = null;
@@ -609,7 +591,6 @@ public class BodyTrackController {
                                  @PathParam("ObjectTypeName") String objectTypeName,
                                  @PathParam("Level") int level,
                                  @PathParam("Offset") long offset) {
-        setTransactionName(null, "GET /bodytrack/photos/{UID}/" + connectorPrettyName + "." + objectTypeName + "/{Level}.{Offset}.json");
         long loggedInUserId = AuthHelper.getGuestId();
         boolean accessAllowed = checkForPermissionAccess(uid);
         CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
@@ -689,7 +670,6 @@ public class BodyTrackController {
                                              @QueryParam("tags") List<String> tags,
                                              @QueryParam("isMatchAllTags") boolean isMatchAllTags
                                              ) {
-        setTransactionName(null, "GET /bodytrack/photos/{UID}/" + connectorPrettyName + "." + objectTypeName + "/{unixTime}/{count}");
         long loggedInUserId = AuthHelper.getGuestId();
         boolean accessAllowed = checkForPermissionAccess(uid);
         CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);

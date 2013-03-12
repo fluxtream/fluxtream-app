@@ -28,8 +28,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import static com.newrelic.api.agent.NewRelic.setTransactionName;
-
 @Path("/guest/{username}/photo")
 @Component("RESTPhotoStore")
 @Scope("request")
@@ -53,7 +51,6 @@ public class PhotoStore {
     @Path("/date/{date}")
     @Produces({MediaType.APPLICATION_JSON})
     public String getPhotosForDate(@PathParam("username") String username, @PathParam("date") String date){
-        setTransactionName(null, "GET /guest/{username}/photo/date/{date}");
         try{
             Guest guest = guestService.getGuest(username);
             DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(), date, true);
@@ -68,7 +65,6 @@ public class PhotoStore {
     @Path("/week/{year}/{week}")
     @Produces({MediaType.APPLICATION_JSON})
     public String getPhotosForWeek(@PathParam("username") String username, @PathParam("year") int year, @PathParam("week") int week){
-        setTransactionName(null, "GET /guest/{username}/photo/week/{year}/{week}");
         try{
             Calendar c = Calendar.getInstance();
             c.set(Calendar.YEAR,year);
@@ -98,7 +94,6 @@ public class PhotoStore {
     @Path("/year/{year}")
     @Produces({MediaType.APPLICATION_JSON})
     public String getPhotosForYear(@PathParam("username") String username, @PathParam("year") int year){
-        setTransactionName(null, "GET /guest/{username}/photo/year/{year}");
         try{
 
             Guest guest = guestService.getGuest(username);

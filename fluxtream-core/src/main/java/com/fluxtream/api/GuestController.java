@@ -52,7 +52,6 @@ public class GuestController {
             Guest guest = guestService.getGuestById(guestId);
             GuestModel guestModel = new GuestModel(guest);
 
-            // NewRelic.setTransactionName(null, "/api/log/all/date");
             return gson.toJson(guestModel);
         }
         catch (Exception e){

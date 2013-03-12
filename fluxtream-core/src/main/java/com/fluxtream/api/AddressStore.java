@@ -27,8 +27,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import static com.newrelic.api.agent.NewRelic.setTransactionName;
-
 @Path("/addresses")
 @Component("RESTAddressStore")
 @Scope("request")
@@ -52,7 +50,6 @@ public class AddressStore {
     @GET
     @Produces({MediaType.APPLICATION_JSON})
     public String getAddresses(){
-        setTransactionName(null, "GET /addresses");
         try{
             Guest guest = AuthHelper.getGuest();
             List<GuestAddress> addresses = settingsService.getAllAddresses(guest.getId());
@@ -72,7 +69,6 @@ public class AddressStore {
     @Path("/{index}")
     @Produces({MediaType.APPLICATION_JSON})
     public String getAddress(@PathParam("index") int index){
-        setTransactionName(null, "GET /addresses/{index}");
         try{
             Guest guest = AuthHelper.getGuest();
             List<GuestAddress> addresses = settingsService.getAllAddresses(guest.getId());
@@ -96,7 +92,6 @@ public class AddressStore {
     @Path("/{selector}/{index}")
     @Produces({MediaType.APPLICATION_JSON})
     public String getAddressBySingleSelector(@PathParam("selector") String selector, @PathParam("index") int index){
-        setTransactionName(null, "GET /addresses/{selector}/{index}");
         try{
             Guest guest = AuthHelper.getGuest();
             List<GuestAddress> addresses;
@@ -116,7 +111,6 @@ public class AddressStore {
     @Path("/{selector}/all")
     @Produces({MediaType.APPLICATION_JSON})
     public String getAddressBySingleSelector(@PathParam("selector") String selector){
-        setTransactionName(null, "GET /addresses/{selector}/all");
         try{
             Guest guest = AuthHelper.getGuest();
             List<GuestAddress> addresses;
@@ -137,7 +131,6 @@ public class AddressStore {
     @Path("/{type}/{date}/all")
     @Produces({MediaType.APPLICATION_JSON})
     public String getAddressesOfTypeAtDate(@PathParam("type") String type, @PathParam("date") String date){
-        setTransactionName(null, "GET /addresses/{type}/{date}/all");
         try{
             Guest guest = AuthHelper.getGuest();
             DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(),date,true);
@@ -153,7 +146,6 @@ public class AddressStore {
     @Path("/{type}/{date}/{index}")
     @Produces({MediaType.APPLICATION_JSON})
     public String getAddressesOfTypeAtDate(@PathParam("type") String type, @PathParam("date") String date, @PathParam("index") int index){
-        setTransactionName(null, "GET /addresses/{type}/{date}/{index}");
         try{
             Guest guest = AuthHelper.getGuest();
             DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(),date,true);
@@ -212,7 +204,6 @@ public class AddressStore {
     public String addUpdateAddress(@PathParam("input") String input, @FormParam("address") String address, @FormParam("latitude") @DefaultValue("91") double latitude,
                                    @FormParam("longitude") @DefaultValue("181") double longitude, @FormParam("since") String since, @FormParam("until") String until, @FormParam("type") String newType,
                                    @FormParam("radius") @DefaultValue("-1") double radius){
-        setTransactionName(null, "POST /addresses/{input}");
         try{
             Guest guest = AuthHelper.getGuest();
             int index = Integer.parseInt(input);
@@ -233,7 +224,6 @@ public class AddressStore {
     @Path("/all")
     @Produces({MediaType.APPLICATION_JSON})
     public String deleteAllAddresses(){
-        setTransactionName(null, "DELETE /addresses/all");
         StatusModel result;
         try{
             Guest guest = AuthHelper.getGuest();
@@ -249,7 +239,6 @@ public class AddressStore {
     @Path("/{index}")
     @Produces({MediaType.APPLICATION_JSON})
     public String deleteAddress(@PathParam("index") int index){
-        setTransactionName(null, "DELETE /addresses/{index}");
         StatusModel result;
         try{
             Guest guest = AuthHelper.getGuest();
@@ -265,7 +254,6 @@ public class AddressStore {
     @Path("/id/{index}")
     @Produces({MediaType.APPLICATION_JSON})
     public String deleteAddressById(@PathParam("index") int id){
-        setTransactionName(null, "DELETE /addresses/id/{index}");
         StatusModel result;
         try{
             Guest guest = AuthHelper.getGuest();
@@ -281,7 +269,6 @@ public class AddressStore {
     @Path("/{selector}/{index}")
     @Produces({MediaType.APPLICATION_JSON})
     public String deleteAddressBySingleSelector(@PathParam("selector") String selector, @PathParam("index") int index){
-        setTransactionName(null, "/addresses/{selector}/{index} (DELETE)");
         StatusModel result;
         try{
             Guest guest = AuthHelper.getGuest();
@@ -304,7 +291,6 @@ public class AddressStore {
     @Path("/{selector}/all")
     @Produces({MediaType.APPLICATION_JSON})
     public String deleteAddressBySingleSelector(@PathParam("selector") String selector){
-        setTransactionName(null, "DELETE /addresses/{selector}/all");
         StatusModel result;
         try{
             Guest guest = AuthHelper.getGuest();
@@ -326,7 +312,6 @@ public class AddressStore {
     @Path("/{type}/{date}/all")
     @Produces({MediaType.APPLICATION_JSON})
     public String deleteAllAddressesOfTypeAtDate(@PathParam("type") String type, @PathParam("date") String date){
-        setTransactionName(null, "DELETE /{type}/{date}/all");
         StatusModel result;
         try{
             Guest guest = AuthHelper.getGuest();
@@ -343,7 +328,6 @@ public class AddressStore {
     @Path("/{type}/{date}/{index}")
     @Produces({MediaType.APPLICATION_JSON})
     public String deleteAddressOfTypeAtDate(@PathParam("type") String type, @PathParam("date") String date, @PathParam("index") int index){
-        setTransactionName(null, "DELETE /addresses/{type}/{date}/{index}");
         StatusModel result;
         try{
             Guest guest = AuthHelper.getGuest();
@@ -405,7 +389,6 @@ public class AddressStore {
     @Path("/{selector}/{index}")
     @Produces({MediaType.APPLICATION_JSON})
     public String updateAddressBySingleSelector(@PathParam("selector") String selector, @PathParam("index") int index){
-        setTransactionName(null, "POST /addresses/selector/{index}");
         StatusModel result;
         try{
             Guest guest = AuthHelper.getGuest();
@@ -428,7 +411,6 @@ public class AddressStore {
     @Path("/{type}/{date}/{index}")
     @Produces({MediaType.APPLICATION_JSON})
     public String updateAddressOfTypeAtDate(@PathParam("type") String type, @PathParam("date") String date, @PathParam("index") int index){
-        setTransactionName(null, "POST /addresses/{type}/{date}/{index}");
         StatusModel result;
         try{
             Guest guest = AuthHelper.getGuest();

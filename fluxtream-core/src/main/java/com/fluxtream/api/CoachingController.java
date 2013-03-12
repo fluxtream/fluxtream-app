@@ -26,8 +26,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import static com.newrelic.api.agent.NewRelic.setTransactionName;
-
 /**
  *
  * @author Candide Kemmler (candide@fluxtream.com)
@@ -47,7 +45,6 @@ public class CoachingController {
     @Path("/coaches/find")
     @Produces({MediaType.APPLICATION_JSON})
     public StatusModel findCoach(@FormParam("username") String username) {
-        setTransactionName(null, "POST /coaching/findUser?" + username);
         final Guest guest = guestService.getGuest(username);
         final List<Guest> coaches = coachingService.getCoaches(AuthHelper.getGuestId());
         if (coaches.contains(guest))
@@ -64,7 +61,6 @@ public class CoachingController {
     @Path("/coachees/{username}")
     @Produces({MediaType.APPLICATION_JSON})
     public StatusModel getCoaches(@PathParam("username") String username){
-        setTransactionName(null, "POST /coaching/coachees/" + username);
         if (username.equals("self")) {
             AuthHelper.as(null);
             return new StatusModel(true, "Viewing own data");
@@ -84,7 +80,6 @@ public class CoachingController {
     @Path("/coaches/{username}")
     @Produces({MediaType.APPLICATION_JSON})
     public List<GuestModel> removeCoach(@PathParam("username") String username) {
-        setTransactionName(null, "DELETE /coaching/coaches/" + username);
         final long guestId = AuthHelper.getGuestId();
         coachingService.removeCoach(guestId, username);
         final List<Guest> coaches = coachingService.getCoaches(guestId);
@@ -96,7 +91,6 @@ public class CoachingController {
     @Path("/coaches/{username}")
     @Produces({MediaType.APPLICATION_JSON})
     public List<GuestModel> addCoach(@PathParam("username") String username) {
-        setTransactionName(null, "POST /coaching/coaches/" + username);
         final long guestId = AuthHelper.getGuestId();
         coachingService.addCoach(guestId, username);
         final List<Guest> coaches = coachingService.getCoaches(guestId);
@@ -116,7 +110,6 @@ public class CoachingController {
     @Path("/coaches/{username}")
     @Produces({MediaType.APPLICATION_JSON})
     public String getConnectorSharingInfo(@PathParam("username") String username) {
-        setTransactionName(null, "GET /coaching/" + username + "/connectors");
         final long guestId = AuthHelper.getGuestId();
         final CoachingBuddy coachingBuddy = coachingService.getCoach(guestId, username);
         final Set<SharedConnector> sharedConnectors = coachingBuddy.sharedConnectors;
@@ -153,7 +146,6 @@ public class CoachingController {
     @Path("/coaches")
     @Produces({MediaType.APPLICATION_JSON})
     public List<GuestModel> getCoaches(){
-        setTransactionName(null, "GET /coaching/coaches");
         final long guestId = AuthHelper.getGuestId();
         final List<Guest> coaches = coachingService.getCoaches(guestId);
         final List<GuestModel> guestModels = toGuestModels(coaches);
@@ -165,7 +157,6 @@ public class CoachingController {
     @Produces({MediaType.APPLICATION_JSON})
     public StatusModel addSharedConnector(@PathParam("username") String username,
                                           @PathParam("connector") String connectorName) {
-        setTransactionName(null, "POST /coaching/" + username + "/addSharedConnector");
         coachingService.addSharedConnector(AuthHelper.getGuestId(), username, connectorName, "{}");
         return new StatusModel(true, "Successfully added a connector (" + username + "/" + connectorName + ")");
     }
@@ -175,7 +166,6 @@ public class CoachingController {
     @Produces({MediaType.APPLICATION_JSON})
     public StatusModel removeSharedConnector(@PathParam("username") String username,
                                              @PathParam("connector") String connectorName) {
-        setTransactionName(null, "POST /coaching/" + username + "/removeSharedConnector");
         coachingService.removeSharedConnector(AuthHelper.getGuestId(), username, connectorName);
         return new StatusModel(true, "Successfully removed a connector (" + username + "/" + connectorName + ")");
     }
