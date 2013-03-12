@@ -12,6 +12,8 @@ import com.fluxtream.domain.UpdateWorkerTask.Status;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
+import com.newrelic.api.agent.NewRelic;
+import com.newrelic.api.agent.Trace;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -45,9 +47,13 @@ class UpdateWorker implements Runnable {
 	public UpdateWorker() {
 	}
 
+    @Trace(dispatcher=true)
 	@Override
 	public void run() {
-		StringBuilder sb = new StringBuilder("module=updateQueue component=worker action=start")
+        NewRelic.addCustomParameter("connector", task.connectorName);
+        NewRelic.addCustomParameter("objectType", task.objectTypes);
+        NewRelic.addCustomParameter("guestId", task.getGuestId());
+        StringBuilder sb = new StringBuilder("module=updateQueue component=worker action=start")
                 .append(" guestId=").append(task.getGuestId())
                 .append(" connector=").append(task.connectorName)
                 .append(" objectType=").append(task.objectTypes);
