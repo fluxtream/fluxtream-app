@@ -6,6 +6,7 @@ import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import com.fluxtream.connectors.updaters.UpdateInfo;
+import org.hibernate.annotations.Index;
 
 @Entity(name="ScheduledUpdate")
 @NamedQueries ( {
@@ -94,21 +95,30 @@ public class UpdateWorkerTask extends AbstractEntity {
         public String nextAction;
     }
 
+    @Index(name="serverUUID_index")
     public String serverUUID;
+    @Index(name="apiKeyId_index")
     public Long apiKeyId;
+    @Index(name="connectorName_index")
 	public String connectorName;
+
+    @Index(name="status_index")
 	public Status status = Status.SCHEDULED;
 
     @Lob
     public String auditTrail;
 
+    @Index(name="timeScheduled_index")
 	public long timeScheduled;
 
 	public static enum Status { SCHEDULED, IN_PROGRESS, DONE, FAILED, STALLED}
 
+    @Index(name="updateType_index")
     public UpdateInfo.UpdateType updateType;
-	
+
+    @Index(name="guestId_index")
 	public long guestId;
+    @Index(name="objectTypes_index")
 	public int objectTypes;
 	public int retries;
 	public String jsonParams;
