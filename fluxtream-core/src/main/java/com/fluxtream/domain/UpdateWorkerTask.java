@@ -120,6 +120,7 @@ public class UpdateWorkerTask extends AbstractEntity {
 	public long guestId;
     @Index(name="objectTypes_index")
 	public int objectTypes;
+    @Index(name="retries_index")
 	public int retries;
 	public String jsonParams;
 	
