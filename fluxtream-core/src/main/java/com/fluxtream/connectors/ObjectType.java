@@ -37,8 +37,11 @@ public class ObjectType {
 	
 	public static ObjectType getObjectType(Connector connector, int objectType) {
 		Map<Integer, ObjectType> connectorObjectTypes = connectorObjectTypeValues.get(connector);
-		ObjectType type = connectorObjectTypes.get(objectType);
-		return type;
+        if (connectorObjectTypes!=null) {
+    		ObjectType type = connectorObjectTypes.get(objectType);
+    		return type;
+        }
+        return null;
 	}
 	
 	static void addObjectType(String name, Connector connector, ObjectType value) {

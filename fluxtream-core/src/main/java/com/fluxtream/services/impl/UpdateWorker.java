@@ -3,6 +3,7 @@ package com.fluxtream.services.impl;
 import java.util.Date;
 import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.connectors.updaters.UpdateResult;
@@ -50,9 +51,7 @@ class UpdateWorker implements Runnable {
     @Trace(dispatcher=true)
 	@Override
 	public void run() {
-        NewRelic.addCustomParameter("connector", task.connectorName);
-        NewRelic.addCustomParameter("objectType", task.objectTypes);
-        NewRelic.addCustomParameter("guestId", task.getGuestId());
+        logNR();
         StringBuilder sb = new StringBuilder("module=updateQueue component=worker action=start")
                 .append(" guestId=").append(task.getGuestId())
                 .append(" connector=").append(task.connectorName)
@@ -78,6 +77,22 @@ class UpdateWorker implements Runnable {
             connectorUpdateService.setUpdateWorkerTaskStatus(task.getId(), Status.FAILED);
         }
 	}
+
+    private void logNR() {
+        try {
+            StringBuilder taskName = new StringBuilder("Background_Update_");
+            taskName.append(task.connectorName);
+            final ObjectType objectType = ObjectType.getObjectType(Connector.getConnector(task.connectorName), task.objectTypes);
+            if (objectType!=null)
+                taskName.append("_").append(objectType.getName());
+            NewRelic.setTransactionName(null, taskName.toString());
+            NewRelic.addCustomParameter("connector", task.connectorName);
+            NewRelic.addCustomParameter("objectType", task.objectTypes);
+            NewRelic.addCustomParameter("guestId", task.getGuestId());
+        } catch (Throwable t) {
+            logger.warn("Could not set NR info..." + task.connectorName);
+        }
+    }
 
     private void pushTriggeredUpdate(Connector connector, ApiKey apiKey,
 			AbstractUpdater updater) {
