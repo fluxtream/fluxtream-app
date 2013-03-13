@@ -2,10 +2,8 @@ package com.fluxtream.domain;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -13,9 +11,9 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import com.fluxtream.Configuration;
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.Connector;
 import com.google.gson.annotations.Expose;
-import com.fluxtream.aspects.FlxLogger;
 import org.hibernate.annotations.Index;
 
 @Entity(name="ApiKey")
@@ -45,8 +43,8 @@ public class ApiKey extends AbstractEntity {
 	@Index(name="api_index")
 	private int api;
 	
-	@OneToMany(mappedBy="apiKey",orphanRemoval = true, fetch=FetchType.EAGER, cascade=CascadeType.ALL)
-	Set<ApiKeyAttribute> attributes = new HashSet<ApiKeyAttribute>();
+	@OneToMany(mappedBy="apiKey", orphanRemoval = true, fetch=FetchType.EAGER, cascade=CascadeType.ALL)
+	List<ApiKeyAttribute> attributes = new ArrayList<ApiKeyAttribute>();
 
 	public void setGuestId(long guestId) {
 		this.guestId = guestId;

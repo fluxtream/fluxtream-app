@@ -10,7 +10,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
@@ -37,17 +36,20 @@ public class TestController {
     ConnectorUpdateService connectorUpdateService;
 
     @GET
-    @Path("/setAttribute")
+    @Path("/{username}/setAttribute")
     @Produces({MediaType.APPLICATION_JSON})
-    public String setAttribute(@Context HttpServletRequest request, @Context HttpServletResponse response, @QueryParam("att") String attValue) throws IOException {
+    public String setAttribute(@Context HttpServletRequest request,
+                               @Context HttpServletResponse response,
+                               @PathParam("username") String username,
+                               @QueryParam("att") String attValue) throws IOException {
         // check that we're running locally
         if (!RequestUtils.isDev(request)) {
             response.setStatus(403);
         }
-        final long guestId = AuthHelper.getGuestId();
-        ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector("fluxtream_capture"));
+        final Guest guest = guestService.getGuest(username);
+        ApiKey apiKey = guestService.getApiKey(guest.getId(), Connector.getConnector("fluxtream_capture"));
         if (apiKey == null) {
-            apiKey = guestService.createApiKey(guestId, Connector.getConnector("fluxtream_capture"));
+            apiKey = guestService.createApiKey(guest.getId(), Connector.getConnector("fluxtream_capture"));
         }
         guestService.setApiKeyAttribute(apiKey, "test", attValue);
         return "attribute was set";
