@@ -615,9 +615,9 @@
 			</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>aspectj</groupId>
+			<groupId>org.aspectj</groupId>
 			<artifactId>aspectjrt</artifactId>
-			<version>1.5.4</version>
+            <version>1.6.12</version>
 		</dependency>
         <dependency>
             <groupId>org.scribe</groupId>
