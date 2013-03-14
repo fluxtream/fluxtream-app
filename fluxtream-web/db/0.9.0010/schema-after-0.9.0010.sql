@@ -296,26 +296,6 @@ CREATE TABLE `DashboardWidgetsRepository` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `DatabaseHit`
---
-
-DROP TABLE IF EXISTS `DatabaseHit`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `DatabaseHit` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `barcode` varchar(255) NOT NULL,
-  `isGreggLondon` char(1) DEFAULT NULL,
-  `isSimpleUPC` char(1) DEFAULT NULL,
-  `ts` datetime NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `barcode` (`barcode`),
-  KEY `isGreggLondon` (`isGreggLondon`),
-  KEY `isSimpleUPC` (`isSimpleUPC`)
-) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
 -- Table structure for table `Facet_BodymediaBurn`
 --
 
@@ -1774,49 +1754,6 @@ CREATE TABLE `Tags` (
   `name` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `name` (`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `UPC`
---
-
-DROP TABLE IF EXISTS `UPC`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `UPC` (
-  `ID` varchar(255) NOT NULL,
-  `productName` varchar(255) DEFAULT NULL,
-  `productDescription` text,
-  `brand` varchar(255) DEFAULT NULL,
-  `manufacturer` varchar(255) DEFAULT NULL,
-  `productSize` float DEFAULT NULL,
-  `productSizeUOM` varchar(40) DEFAULT NULL,
-  `SIproductSize` float DEFAULT NULL,
-  `SIproductSizeUOM` varchar(10) DEFAULT NULL,
-  `servingSize` float DEFAULT NULL,
-  `servingSizeUOM` varchar(40) DEFAULT NULL,
-  `SIservingSize` float DEFAULT NULL,
-  `SIservingSizeUOM` varchar(10) DEFAULT NULL,
-  `ingredients` text,
-  `PLU` varchar(15) NOT NULL,
-  `UPC_E` varchar(15) NOT NULL,
-  `UPC_A` varchar(15) NOT NULL,
-  `calories` float DEFAULT NULL,
-  `gramsOfFat` float DEFAULT NULL,
-  `gramsOfSatFat` float DEFAULT NULL,
-  `gramsOfTransFat` float DEFAULT NULL,
-  `gramsOfCarbs` float DEFAULT NULL,
-  `milligramsOfSodium` float DEFAULT NULL,
-  `gramsOfFiber` float DEFAULT NULL,
-  `gramsOfProtein` float DEFAULT NULL,
-  `gramsOfSugar` float DEFAULT NULL,
-  `milligramsOfCholesterol` float DEFAULT NULL,
-  `fatCaloriesPerServing` float DEFAULT NULL,
-  `servingsPerContainer` float DEFAULT NULL,
-  `sugarPerServing` float DEFAULT NULL,
-  `healthScore` float DEFAULT NULL,
-  PRIMARY KEY (`ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
