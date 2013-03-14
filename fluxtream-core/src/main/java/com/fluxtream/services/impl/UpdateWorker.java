@@ -2,8 +2,8 @@ package com.fluxtream.services.impl;
 
 import java.util.Date;
 import com.fluxtream.Configuration;
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.Connector;
-import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.connectors.updaters.UpdateResult;
@@ -15,7 +15,6 @@ import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
-import com.fluxtream.aspects.FlxLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
@@ -82,9 +81,7 @@ class UpdateWorker implements Runnable {
         try {
             StringBuilder taskName = new StringBuilder("Background_Update_");
             taskName.append(task.connectorName);
-            final ObjectType objectType = ObjectType.getObjectType(Connector.getConnector(task.connectorName), task.objectTypes);
-            if (objectType!=null)
-                taskName.append("_").append(objectType.getName());
+            taskName.append("_").append(task.objectTypes);
             NewRelic.setTransactionName(null, taskName.toString());
             NewRelic.addCustomParameter("connector", task.connectorName);
             NewRelic.addCustomParameter("objectType", task.objectTypes);

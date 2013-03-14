@@ -430,7 +430,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         if (updateInfo.jsonParams!=null) {
             JSONObject jsonParams = JSONObject.fromObject(updateInfo.jsonParams);
             String dateString = jsonParams.getString("date");
-            final TimeZone timeZone = metadataService.getTimeZone(updateInfo.getGuestId(), dateString);
+            final TimeZone timeZone = TimeZone.getTimeZone("UTC");
             Date date = new Date(dateFormat.withZone(
                     DateTimeZone.forTimeZone(timeZone)).parseMillis(dateString));
             updateOneDayOfData(updateInfo, updateInfo.objectTypes(), timeZone, date, dateString);
@@ -461,7 +461,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
     private void updateListOfDays(final UpdateInfo updateInfo, final List<ObjectType> objectTypes,
                                   final List<String> trackerDaysToSync) throws Exception {
         for (String dateString : trackerDaysToSync) {
-            final TimeZone timeZone = metadataService.getTimeZone(updateInfo.getGuestId(), dateString);
+            final TimeZone timeZone = TimeZone.getTimeZone("UTC");
             Date date = new Date(dateFormat.withZone(
                     DateTimeZone.forTimeZone(timeZone)).parseMillis(dateString));
             updateOneDayOfData(updateInfo, objectTypes, timeZone, date, dateString);
