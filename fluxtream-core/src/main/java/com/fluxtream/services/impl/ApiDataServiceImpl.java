@@ -14,6 +14,7 @@ import javax.sql.DataSource;
 import com.fluxtream.ApiData;
 import com.fluxtream.Configuration;
 import com.fluxtream.TimeInterval;
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.dao.FacetDao;
@@ -21,7 +22,6 @@ import com.fluxtream.connectors.google_latitude.LocationFacet;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.connectors.vos.AbstractFacetVO;
 import com.fluxtream.domain.AbstractFacet;
-import com.fluxtream.domain.AbstractLocalTimeFacet;
 import com.fluxtream.domain.AbstractUserProfile;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Tag;
@@ -39,7 +39,6 @@ import com.fluxtream.thirdparty.helpers.WWOHelper;
 import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.Utils;
 import net.sf.json.JSONObject;
-import com.fluxtream.aspects.FlxLogger;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -344,36 +343,6 @@ public class ApiDataServiceImpl implements ApiDataService {
 			entityName = entityAnnotation.name();
 			facetEntityNames.put(facet.getClass().getName(), entityName);
 		}
-        if (facet instanceof AbstractLocalTimeFacet) {
-            // GET RID OF THIS!!!
-            // GET RID OF THIS!!!
-            // GET RID OF THIS!!!
-            // GET RID OF THIS!!!
-            final AbstractLocalTimeFacet aftzFacet = (AbstractLocalTimeFacet)facet;
-            final TimeZone localTimeZone = metadataService.getTimeZone(facet.guestId, aftzFacet.date);
-            try {
-                aftzFacet.updateTimeInfo(localTimeZone);
-            } catch (Throwable e) {
-                final String message = new StringBuilder("Could not parse floating " +
-                                                         "timezone facet's time storage: (startTimeStorage=")
-                        .append(aftzFacet.startTimeStorage)
-                        .append(", endTimeStorage=")
-                        .append(aftzFacet.endTimeStorage)
-                        .append(")").toString();
-                StringBuilder sb = new StringBuilder("module=updateQueue component=apiDataServiceImpl action=persistFacet")
-                        .append(" connector=").append(Connector.fromValue(facet.api).getName())
-                        .append(" objectType=").append(facet.objectType)
-                        .append(" guestId=").append(facet.guestId)
-                        .append(" message=\"Couldn't update updateTimeInfo\"")
-                        .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
-                logger.warn(sb.toString());
-                throw new RuntimeException(message);
-            }
-            // GET RID OF THIS!!!
-            // GET RID OF THIS!!!
-            // GET RID OF THIS!!!
-            // GET RID OF THIS!!!
-        }
         Query query = em.createQuery("SELECT e FROM " + entityName + " e WHERE e.guestId=? AND e.start=? AND e.end=?");
 		query.setParameter(1, facet.guestId);
 		query.setParameter(2, facet.start);
