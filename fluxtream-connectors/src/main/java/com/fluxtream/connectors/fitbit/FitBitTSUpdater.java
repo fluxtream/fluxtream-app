@@ -68,8 +68,6 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 	private static final DateTimeFormatter dateFormat = DateTimeFormat
 			.forPattern("yyyy-MM-dd");
 
-	public final static long TWENTYFOUR_HOURS = 24 * 3600000;
-
 	public static final String GET_STEPS_CALL = "FITBIT_GET_STEPS_TIMESERIES_CALL";
 	public static final String GET_USER_PROFILE_CALL = "FITBIT_GET_USER_PROFILE_CALL";
     public static final String GET_USER_DEVICES_CALL = "FITBIT_GET_USER_DEVICES_CALL";
@@ -126,10 +124,10 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         // has an altimeter, such as the Fitbit Ultra.  For now, disable
         // reading these APIs.  In the future, perhaps check the device
         // type and conditionally call these APIs.
-        //loadTimeSeries("activities/tracker/floors", updateInfo.apiKey,
-        //        activityOT, "floors");
-        //loadTimeSeries("activities/tracker/elevation", updateInfo.apiKey,
-        //        activityOT, "elevation");
+        loadTimeSeries("activities/tracker/floors", updateInfo.apiKey,
+                activityOT, "floors");
+        loadTimeSeries("activities/tracker/elevation", updateInfo.apiKey,
+                activityOT, "elevation");
         loadTimeSeries("activities/tracker/minutesSedentary",
                 updateInfo.apiKey, activityOT, "sedentaryMinutes");
         loadTimeSeries("activities/tracker/minutesLightlyActive",
@@ -215,7 +213,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         } catch (Throwable t) {
             // elevation and floors are not available for earlier trackers, so we can safely ignore them
             if (fieldName.equals("elevation")||fieldName.equals("floors")) {
-                logger.warn("guestId=" + apiKey.getGuestId() +
+                logger.info("guestId=" + apiKey.getGuestId() +
                             " connector=fitbit action=loadTimeSeries message=\"Could not load timeseries for \" + fieldName");
                 return;
             }
