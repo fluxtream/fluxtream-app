@@ -150,7 +150,7 @@ public abstract class AbstractUpdater extends ApiClientSupport {
                 final String stackTrace = Utils.stackTrace(e);
                 StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=updateData")
                         .append(" message=\"Unexpected exception\" connector=")
-                        .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
+                        .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=").append(updateInfo.apiKey.getGuestId())
                         .append(" stackTrace=<![CDATA[").append(stackTrace).append("]]>")
                         .append(updateInfo.apiKey.getGuestId());
                 logger.warn(sb.toString());
