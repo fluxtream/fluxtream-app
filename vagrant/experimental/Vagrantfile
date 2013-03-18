@@ -71,10 +71,22 @@ Vagrant::Config.run do |config|
   
     # # You may also specify custom JSON attributes:
     # chef.json = { :mysql_password => "foo" }
+    chef.json = {
+      :mysql => {
+        :server_root_password => "iloverandompasswordsbutthiswilldo",
+        :server_repl_password => "iloverandompasswordsbutthiswilldo",
+        :server_debian_password => "iloverandompasswordsbutthiswilldo"
+      }
+    };
     chef.log_level = :debug
     chef.add_recipe("git")
-    chef.add_recipe("fluxtream_main::maven")
     chef.add_recipe("java::oracle")
+    chef.add_recipe("maven")
+    chef.add_recipe("fluxtream_main::update")
+    chef.add_recipe("mysql::server")
+    chef.add_recipe("build-essential")
+    chef.add_recipe("chef-ruby-shadow")
+    chef.add_recipe("fluxtream_main")
   end
 
   # Enable provisioning with chef server, specifying the chef server URL,

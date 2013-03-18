@@ -60,6 +60,8 @@ public class RunKeeperUpdater  extends AbstractUpdater {
         String activityFeedURL = DEFAULT_ENDPOINT + fitnessActivities;
         getFitnessActivityFeed(updateInfo, service, token, activityFeedURL, 25, activities, since);
         getFitnessActivities(updateInfo, service, token, activities);
+        guestService.setApiKeyAttribute(updateInfo.apiKey,
+                                        "lastUpdated", String.valueOf(System.currentTimeMillis()));
     }
 
     private void getFitnessActivities(final UpdateInfo updateInfo, final OAuthService service,

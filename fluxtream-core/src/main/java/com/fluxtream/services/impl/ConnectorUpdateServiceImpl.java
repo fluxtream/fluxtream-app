@@ -473,7 +473,6 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
     @Transactional(readOnly = false)
     @Override
     public void flushUpdateWorkerTasks(final ApiKey apiKey, boolean wipeOutHistory) {
-        List<AbstractUpdater> toStop = new ArrayList<AbstractUpdater>();
         if (!wipeOutHistory)
             JPAUtils.execute(em, "updateWorkerTasks.delete.byApi", apiKey.getGuestId(),
                              apiKey.getConnector().getName(),
