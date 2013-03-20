@@ -64,6 +64,9 @@ public class SyncController {
         try{
             final long guestId = AuthHelper.getGuestId();
             final ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector(connectorName));
+            if (apiKey==null) {
+                return gson.toJson(new StatusModel(false, "we don't have an ApiKey for this connector"));
+            }
             final List<ScheduleResult> scheduleResults = connectorUpdateService.updateConnector(apiKey, force);
             StatusModel statusModel = new StatusModel(true, "successfully added update worker tasks to the queue (see details)");
             statusModel.payload = scheduleResults;

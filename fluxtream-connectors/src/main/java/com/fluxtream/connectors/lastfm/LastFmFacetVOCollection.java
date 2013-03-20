@@ -11,24 +11,13 @@ import com.fluxtream.domain.GuestSettings;
 public class LastFmFacetVOCollection extends AbstractFacetVOCollection {
 
 	List<LastFmRecentTrackFacetVO> recentTracks;
-	List<LastFmLovedTrackFacetVO> lovedTracks;
-	
+
 	@Override
 	public void extractFacets(List facets, TimeInterval timeInterval, GuestSettings settings) {
 		for (Object facet : facets) {
-			if (facet instanceof LastFmLovedTrackFacet)
-				addLovedTrack((LastFmLovedTrackFacet) facet, timeInterval, settings);
-			else if (facet instanceof LastFmRecentTrackFacet)
+            if (facet instanceof LastFmRecentTrackFacet)
 				addRecentTrack((LastFmRecentTrackFacet) facet, timeInterval, settings);
 		}
-	}
-
-	private void addLovedTrack(LastFmLovedTrackFacet facet, TimeInterval timeInterval,
-			GuestSettings settings) {
-		if (lovedTracks==null) lovedTracks = new ArrayList<LastFmLovedTrackFacetVO>();
-		LastFmLovedTrackFacetVO jsonFacet = new LastFmLovedTrackFacetVO();
-		jsonFacet.extractValues(facet, timeInterval, settings);
-		lovedTracks.add(jsonFacet);
 	}
 
 	private void addRecentTrack(LastFmRecentTrackFacet facet, TimeInterval timeInterval,

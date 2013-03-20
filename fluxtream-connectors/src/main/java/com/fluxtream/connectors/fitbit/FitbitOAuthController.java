@@ -1,14 +1,19 @@
 package com.fluxtream.connectors.fitbit;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
+import com.fluxtream.Configuration;
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.auth.AuthHelper;
+import com.fluxtream.connectors.Connector;
+import com.fluxtream.connectors.ObjectType;
+import com.fluxtream.connectors.SignpostOAuthHelper;
+import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.Guest;
+import com.fluxtream.services.ApiDataService;
+import com.fluxtream.services.GuestService;
 import net.sf.json.JSONObject;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.OAuthProvider;
@@ -18,20 +23,9 @@ import oauth.signpost.exception.OAuthCommunicationException;
 import oauth.signpost.exception.OAuthExpectationFailedException;
 import oauth.signpost.exception.OAuthMessageSignerException;
 import oauth.signpost.exception.OAuthNotAuthorizedException;
-
-import com.fluxtream.aspects.FlxLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-
-import com.fluxtream.Configuration;
-import com.fluxtream.connectors.Connector;
-import com.fluxtream.connectors.ObjectType;
-import com.fluxtream.connectors.SignpostOAuthHelper;
-import com.fluxtream.domain.ApiKey;
-import com.fluxtream.domain.Guest;
-import com.fluxtream.services.ApiDataService;
-import com.fluxtream.services.GuestService;
 
 @Controller
 @RequestMapping(value = "/fitbit")
@@ -158,54 +152,12 @@ public class FitbitOAuthController {
 		fetchUserProfile(apiKey, userProfile);
 		guestService.saveUserProfile(guest.getId(), userProfile);
 
-		subscribeToNotifications(consumer.getToken(),
-				consumer.getTokenSecret(), guest.getId());
-
 		return "redirect:/app/from/" + connector().getName();
 	}
 
 	private Connector connector() {
 		Connector fitbitConnector = Connector.getConnector("fitbit");
 		return fitbitConnector;
-	}
-
-	private void subscribeToNotifications(String accessToken,
-			String tokenSecret, long guestId) throws IOException,
-			OAuthMessageSignerException, OAuthExpectationFailedException,
-			OAuthCommunicationException {
-        String subscriberId = env.get("fitbitSubscriberId");
-		String urlString = "http://api.fitbit.com/1/user/-/apiSubscriptions/" + subscriberId + ".json";
-		URL url = new URL(urlString);
-		HttpURLConnection request = (HttpURLConnection) url.openConnection();
-		request.setRequestMethod("POST");
-
-		String fitbitConsumerKey = env.get("fitbitConsumerKey");
-		String fitbitConsumerSecret = env.get("fitbitConsumerSecret");
-		OAuthConsumer consumer = new DefaultOAuthConsumer(
-				fitbitConsumerKey, fitbitConsumerSecret);
-
-		consumer.setTokenWithSecret(accessToken, tokenSecret);
-		consumer.sign(request);
-		request.connect();
-
-		int responseCode = request.getResponseCode();
-		switch (responseCode) {
-		case 200:
-			System.out.println("user was already subscribed");
-			logger.warn("guestId=" + guestId +
-					" action=subscribeToFitbitNotifications status=alreadySubscribed");
-			break;
-		case 201:
-			System.out.println("subscription successfully created");
-			logger.warn("guestId=" + guestId +
-					" action=subscribeToFitbitNotifications status=success");
-			break;
-		case 409:
-			System.out.println("there was a conflict");
-			logger.warn("guestId=" + guestId +
-					" action=subscribeToFitbitNotifications status=conflict");
-			break;
-		}
 	}
 
 }

@@ -12,6 +12,8 @@ import com.fluxtream.domain.UpdateWorkerTask;
 
 public interface ConnectorUpdateService {
 
+    public static final String UNCLAIMED = "unassigned";
+
     /**
      * Schedules updates for the given connector for the user
      * @param apiKey The apiKey for which we want to update a specific facet/object type
@@ -91,4 +93,6 @@ public interface ConnectorUpdateService {
 	public long getNumberOfUpdatesSince(long guestId, int connectorValue, long then);
 
     public Collection<UpdateWorkerTask> getLastFinishedUpdateTasks(ApiKey apiKey);
+
+    public void claim(long taskId);
 }

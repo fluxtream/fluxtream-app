@@ -1,10 +1,8 @@
 package com.fluxtream.utils;
 
 import java.util.List;
-
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
-import com.fluxtream.domain.ApiUpdate;
 
 public class JPAUtils {
 
@@ -88,5 +86,14 @@ public class JPAUtils {
         List<T> results = doQuery(em, queryName, true, pageSize*page,
                                   pageSize, params);
         return results;
+    }
+
+    public static String asListOfString(final String...strings) {
+        StringBuilder sb = new StringBuilder();
+        for (int i=0; i<strings.length; i++) {
+            if (i>0) sb.append(",");
+            sb.append("'").append(strings[i]).append("'");
+        }
+        return sb.toString();
     }
 }

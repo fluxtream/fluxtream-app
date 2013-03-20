@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.UUID;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.ScheduleResult;
@@ -24,7 +25,6 @@ import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.SystemService;
 import com.fluxtream.utils.JPAUtils;
-import com.fluxtream.aspects.FlxLogger;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -40,8 +40,6 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
     static FlxLogger logger = FlxLogger.getLogger(ConnectorUpdateServiceImpl.class);
 
     private Map<Connector, AbstractUpdater> updaters = new Hashtable<Connector, AbstractUpdater>();
-
-    private boolean isShuttingDown;
 
     @Autowired
     BeanFactory beanFactory;
@@ -68,7 +66,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
      * This makes sure that we are only executing Update Jobs that were
      * created while this server was alive
      */
-    private static final String SERVER_UUID = UUID.randomUUID().toString();
+    private final String SERVER_UUID = UUID.randomUUID().toString();
 
     /**
      * Update all the facet types for a given user and connector.
@@ -80,13 +78,6 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
     public List<ScheduleResult> updateConnector(final ApiKey apiKey, boolean force){
         System.out.println("updateConnector");
         List<ScheduleResult> scheduleResults = new ArrayList<ScheduleResult>();
-        StringBuilder messageRoot = new StringBuilder("module=updateQueue component=connectorUpdateService" +
-                                                      " action=updateConnector");
-        if (isShuttingDown) {
-            logger.warn(messageRoot.append(" message=\"Service is shutting down... Refusing updates\""));
-            return scheduleResults;
-        }
-
         // if forcing an update (sync now), we actually want to flush the update requests
         // that have stacked up in the queue
         if (force)
@@ -123,13 +114,6 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
     @Override
     public List<ScheduleResult> updateConnectorObjectType(ApiKey apiKey, int objectTypes, boolean force) {
         List<ScheduleResult> scheduleResults = new ArrayList<ScheduleResult>();
-        if (isShuttingDown) {
-            StringBuilder sb = new StringBuilder("module=updateQueue component=connectorUpdateService" +
-                                                 " action=updateConnectorObjectType")
-                    .append(" message=\"Service is shutting down... Refusing updates\"");
-            logger.warn(sb.toString());
-            return scheduleResults;
-        }
         getScheduledUpdateTask(apiKey, objectTypes);
         // if forcing an update (sync now), we actually want to flush the update requests
         // that have stacked up in the queue
@@ -169,13 +153,6 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
     @Override
     public List<ScheduleResult> updateAllConnectors(final long guestId) {
         List<ScheduleResult> scheduleResults = new ArrayList<ScheduleResult>();
-        if (isShuttingDown) {
-            StringBuilder sb = new StringBuilder("module=updateQueue component=updateAllConnectors" +
-                                                 " action=updateConnector")
-                    .append(" message=\"Service is shutting down... Refusing updates\"");
-            logger.warn(sb.toString());
-            return scheduleResults;
-        }
         final List<ApiKey> connectors = guestService.getApiKeys(guestId);
         for (ApiKey key : connectors) {
             if (key!=null && key.getConnector()!=null) {
@@ -190,18 +167,6 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
     @Override
     public ScheduleResult reScheduleUpdateTask(UpdateWorkerTask updt, long time, boolean incrementRetries,
                                                UpdateWorkerTask.AuditTrailEntry auditTrailEntry) {
-        if (isShuttingDown) {
-            StringBuilder sb = new StringBuilder("module=updateQueue component=updateAllConnectors" +
-                                                 " action=updateConnector")
-                    .append(" message=\"Service is shutting down... Refusing updates\"");
-            logger.warn(sb.toString());
-            return new ScheduleResult(
-                    updt.apiKeyId,
-                    updt.connectorName,
-                    updt.getObjectTypes(),
-                    ScheduleResult.ResultType.SYSTEM_IS_SHUTTING_DOWN,
-                    time);
-        }
         if (!incrementRetries) {
             UpdateWorkerTask failed = new UpdateWorkerTask(updt);
             failed.retries = updt.retries;
@@ -244,27 +209,37 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
     @Override
     @Transactional(readOnly = false)
     public void pollScheduledUpdates() {
-        if (isShuttingDown) {
-            StringBuilder sb = new StringBuilder("module=updateQueue component=pollScheduledUpdates" +
-                                                 " action=updateConnector")
-                    .append(" message=\"Service is shutting down... Stopping Task Queue polling...\"");
-            logger.warn(sb.toString());
-            return;
-        }
         List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em,
                                                                  UpdateWorkerTask.class, "updateWorkerTasks.byStatus",
-                                                                 Status.SCHEDULED,
-                                                                 SERVER_UUID,
+                                                                 Status.SCHEDULED, getLiveOrUnclaimedServerUUIDs(),
                                                                  System.currentTimeMillis());
         if (updateWorkerTasks.size() == 0) {
             logger.debug("module=updateQueue component=connectorUpdateService action=pollScheduledUpdates message=\"Nothing to do\"");
             return;
         }
-        for (UpdateWorkerTask updateWorkerTask : updateWorkerTasks) {
+
+        int maxThreads = executor.getMaxPoolSize();
+        int activeThreads = executor.getActiveCount();
+        int availableThreads = maxThreads - activeThreads;
+
+        StringBuilder sb = new StringBuilder("module=updateQueue component=connectorUpdateService action=pollScheduleUpdates")
+            .append(" availableThreads="+availableThreads);
+
+        logger.info(sb);
+        if (availableThreads<updateWorkerTasks.size()) {
+            sb.append(" message=\"tasks overflow!\" nTasks=" + updateWorkerTasks.size());
+            logger.warn(sb);
+        }
+
+        int nWorkers = Math.min(updateWorkerTasks.size(), availableThreads);
+
+        for (int i=0; i<nWorkers; i++) {
+            UpdateWorkerTask updateWorkerTask = updateWorkerTasks.get(i);
             logger.info("module=updateQueue component=connectorUpdateService action=pollScheduledUpdates" +
                         " message=\"Executing update: " +
                         " \"" + updateWorkerTask);
-            setUpdateWorkerTaskStatus(updateWorkerTask.getId(), Status.IN_PROGRESS);
+
+            claim(updateWorkerTask.getId());
 
             UpdateWorker updateWorker = beanFactory.getBean(UpdateWorker.class);
             updateWorker.task = updateWorkerTask;
@@ -291,18 +266,6 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
     public ScheduleResult scheduleUpdate(final ApiKey apiKey,
                                          int objectTypes, UpdateType updateType, long timeScheduled,
                                          String... jsonParams) {
-        if (isShuttingDown) {
-            StringBuilder sb = new StringBuilder("module=updateQueue component=updateAllConnectors" +
-                                                 " action=scheduleUpdate")
-                    .append(" message=\"Service is shutting down... Refusing updates\"");
-            logger.warn(sb.toString());
-            return new ScheduleResult(
-                    apiKey.getId(),
-                    apiKey.getConnector().getName(),
-                    objectTypes,
-                    ScheduleResult.ResultType.SYSTEM_IS_SHUTTING_DOWN,
-                    System.currentTimeMillis());
-        }
         UpdateWorkerTask updateScheduled = getScheduledUpdateTask(apiKey, objectTypes);
         ScheduleResult scheduleResult = null;
         if (updateScheduled==null) {
@@ -314,7 +277,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
             updateWorkerTask.updateType = updateType;
             updateWorkerTask.status = Status.SCHEDULED;
             updateWorkerTask.timeScheduled = timeScheduled;
-            updateWorkerTask.serverUUID = this.SERVER_UUID;
+            updateWorkerTask.serverUUID = UNCLAIMED;
             if (jsonParams!=null&&jsonParams.length>0)
                 updateWorkerTask.jsonParams = jsonParams[0];
             em.persist(updateWorkerTask);
@@ -433,7 +396,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
     @Override
     public Collection<UpdateWorkerTask> getUpdatingUpdateTasks(final ApiKey apiKey) {
         List<UpdateWorkerTask> tasks = JPAUtils.find(em, UpdateWorkerTask.class, "updateWorkerTasks.isInProgressOrScheduledBefore",
-                                                     System.currentTimeMillis(), apiKey.getGuestId(),
+                                                     System.currentTimeMillis(), apiKey.getGuestId(), getLiveServerUUIDs(),
                                                      apiKey.getConnector().getName(), apiKey.getId());
         HashMap<Integer, UpdateWorkerTask> seen = new HashMap<Integer, UpdateWorkerTask>();
         for(UpdateWorkerTask task : tasks)
@@ -457,6 +420,19 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
             }
         }
         return seen.values();
+    }
+
+    private List<String> getLiveOrUnclaimedServerUUIDs() {
+        List<String> list = new ArrayList<String>();
+        list.add(SERVER_UUID);
+        list.add(UNCLAIMED);
+        return list;
+    }
+
+    private List<String> getLiveServerUUIDs() {
+        List<String> list = new ArrayList<String>();
+        list.add(SERVER_UUID);
+        return list;
     }
 
     private boolean hasStalled(UpdateWorkerTask updateWorkerTask) {
@@ -540,6 +516,16 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
             }
         }
         return seen.values();
+    }
+
+    @Override
+    @Transactional(readOnly=false)
+    public void claim(final long taskId) {
+        UpdateWorkerTask task = em.find(UpdateWorkerTask.class, taskId);
+        task.serverUUID = SERVER_UUID;
+        task.status = Status.IN_PROGRESS;
+        task.addAuditTrailEntry(new UpdateWorkerTask.AuditTrailEntry(new java.util.Date(), SERVER_UUID));
+        em.persist(task);
     }
 
 }

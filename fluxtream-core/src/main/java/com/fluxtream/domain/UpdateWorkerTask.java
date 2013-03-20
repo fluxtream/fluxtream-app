@@ -35,9 +35,9 @@ import org.hibernate.annotations.Index;
                 "AND updt.updateType!=?"),
 	@NamedQuery( name = "updateWorkerTasks.byStatus",
 		query = "SELECT updt FROM ScheduledUpdate updt " +
-                "WHERE updt.status=? " +
-                "AND updt.serverUUID=? " +
-                "AND updt.timeScheduled<?"),
+                "WHERE updt.status=?1 " +
+                "AND updt.serverUUID IN (?2) " +
+                "AND updt.timeScheduled<?3"),
     @NamedQuery( name = "updateWorkerTasks.isScheduledOrInProgress",
         query = "SELECT updt FROM ScheduledUpdate updt " +
                 "WHERE (updt.status=0 " +
@@ -61,9 +61,10 @@ import org.hibernate.annotations.Index;
         query = "SELECT updt FROM ScheduledUpdate updt " +
                 "WHERE (updt.status=1 " +
                     "OR (updt.status=0 " +
-                        "AND updt.timeScheduled<?))" +
-                "AND updt.guestId=? " +
-                "AND ((updt.connectorName=? AND updt.apiKeyId iS NULL) OR updt.apiKeyId=?) "),
+                        "AND updt.timeScheduled<?1))" +
+                "AND updt.guestId=?2 " +
+                "AND updt.serverUUID IN (?3) " +
+                "AND ((updt.connectorName=?4 AND updt.apiKeyId IS NULL) OR updt.apiKeyId=?5) "),
     @NamedQuery( name = "updateWorkerTasks.getLastFinishedTask",
         query = "SELECT updt FROM ScheduledUpdate updt " +
                 "WHERE updt.timeScheduled<? " +
@@ -78,6 +79,10 @@ public class UpdateWorkerTask extends AbstractEntity {
 
     public static class AuditTrailEntry {
 
+        public AuditTrailEntry(final Date date, final String serverUUID) {
+            this.date = date;
+            this.serverUUID = serverUUID;
+        }
         public AuditTrailEntry(final Date date, final String reason, final String nextAction, String stackTrace) {
             this.date = date;
             this.reason = reason;
@@ -93,6 +98,7 @@ public class UpdateWorkerTask extends AbstractEntity {
         public String reason;
         public String stackTrace;
         public String nextAction;
+        public String serverUUID;
     }
 
     @Index(name="serverUUID_index")
@@ -138,14 +144,18 @@ public class UpdateWorkerTask extends AbstractEntity {
     public void addAuditTrailEntry(AuditTrailEntry auditTrailEntry) {
         if (auditTrail==null) auditTrail = "";
         StringBuilder sb = new StringBuilder(auditTrail);
-        sb.append("\\n").append(auditTrailEntry.date.toString())
-                .append(" - reason: ")
+        sb.append("\\n").append(auditTrailEntry.date.toString());
+        if (auditTrailEntry.serverUUID!=null) {
+            sb.append(" - claimed by " + auditTrailEntry.serverUUID);
+        } else {
+            sb.append(" - reason: ")
                 .append(auditTrailEntry.reason)
                 .append(" - next action: ")
                 .append(auditTrailEntry.nextAction);
-        if (auditTrailEntry.stackTrace!=null)
+            if (auditTrailEntry.stackTrace!=null)
                 sb.append("stackTracke: \n")
                   .append(auditTrailEntry.stackTrace);
+        }
         this.auditTrail = sb.toString();
     }
 	
