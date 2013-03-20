@@ -1,32 +1,28 @@
 package com.fluxtream.events;
 
+import java.util.Map;
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.services.EventListenerService;
-import com.fluxtream.utils.HttpUtils;
-import com.fluxtream.aspects.FlxLogger;
+import com.fluxtream.services.GuestService;
+import com.fluxtream.utils.Parse;
+import com.fluxtream.utils.parse.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 
-/**
- * A Listener for Push Connector events whose handleEvent method calls an external URL
- * parameterized with the event's data
- * The URL will have to contain placeholders of the form <ul>
- *     <li>$guestId</li>
- *     <li>$connectorName</li>
- *     <li>$date</li>
- *     <li>$objectType</li>
- * </ul>
- * @author Candide Kemmler (candide@fluxtream.com)
- */
+@Component
 public class DataReceivedEventListener implements EventListener<DataReceivedEvent> {
 
     static FlxLogger logger = FlxLogger.getLogger(DataReceivedEventListener.class);
 
-    private String url;
+    private Map<Long,User> parseUsers = new java.util.Hashtable<Long,User>();
 
-    public void setUrl(String url) {
-        this.url = url;
-    }
+    @Autowired
+    GuestService guestService;
+
+    @Autowired
+    Parse parse;
 
     @Autowired
     final protected void setEventService(@Qualifier("eventListenerServiceImpl") EventListenerService evl) {
@@ -38,22 +34,30 @@ public class DataReceivedEventListener implements EventListener<DataReceivedEven
 
     @Override
     public void handleEvent(final DataReceivedEvent event) {
-        final StringBuilder msgAtts = new StringBuilder("module=events component=DataReceivedEventListener action=handleEvent")
-                .append(" url=").append(this.url);
+        // ignore if no parse config present
+        if (!parse.isParseConfigurationPresent())
+            return;
+        // ignore if guestId is not in parse list
+        if (getParseUser(event.guestId)==null)
+            return;
+        final StringBuilder msgAtts = new StringBuilder("module=events component=DataReceivedEventListener action=handleEvent");
         StringBuilder sb = new StringBuilder(msgAtts)
                 .append(" connector=").append(event.connector.getName())
                 .append(" eventType=").append(event.objectTypes)
                 .append(" date=").append(event.date)
                 .append(" guestId=").append(event.guestId);
-        logger.info(sb.toString());
         for (ObjectType objectType : event.objectTypes) {
-            String invokeUrl = url.replaceAll("\\$guestId", String.valueOf(event.guestId))
-                    .replaceAll("\\$connectorName", event.connector.getName())
-                    .replaceAll("\\$date", event.date)
-                    .replaceAll("\\$objectType", objectType.getName());
-            logger.info(invokeUrl);
-            HttpUtils.post(invokeUrl, null);
+
         }
     }
 
+    private User getParseUser(final long guestId) {
+        // if user is not in parseList return null
+        if (!parse.isInParseGuestList(guestId))
+            return null;
+        if (parseUsers.containsKey(guestId))
+            return parseUsers.get(guestId);
+        // hit https://api.parse.com/1/login with guest's secret
+        return null;
+    }
 }

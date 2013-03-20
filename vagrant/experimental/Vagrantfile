@@ -84,9 +84,9 @@ Vagrant::Config.run do |config|
     chef.add_recipe("maven")
     chef.add_recipe("fluxtream_main::update")
     chef.add_recipe("mysql::server")
-    chef.add_recipe("build-essential")
-    chef.add_recipe("chef-ruby-shadow")
-    chef.add_recipe("fluxtream_main")
+    # chef.add_recipe("build-essential")
+    # chef.add_recipe("chef-ruby-shadow")
+    # chef.add_recipe("fluxtream_main")
   end
 
   # Enable provisioning with chef server, specifying the chef server URL,
