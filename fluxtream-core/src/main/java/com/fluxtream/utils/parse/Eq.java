@@ -1,8 +1,8 @@
 package com.fluxtream.utils.parse;
 
 import java.util.Date;
+import com.fluxtream.utils.gson.DateSerializer;
 import com.google.gson.JsonObject;
-import com.via.services.parse.gson.DateSerializer;
 
 /**
  *

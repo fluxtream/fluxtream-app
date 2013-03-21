@@ -1,12 +1,21 @@
 package com.fluxtream.events;
 
-import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import com.fluxtream.aspects.FlxLogger;
+import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
+import com.fluxtream.connectors.updaters.UpdateInfo;
+import com.fluxtream.domain.AbstractFacet;
+import com.fluxtream.domain.AbstractLocalTimeFacet;
+import com.fluxtream.domain.Guest;
 import com.fluxtream.services.EventListenerService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.utils.Parse;
-import com.fluxtream.utils.parse.User;
+import com.fluxtream.utils.RestCallException;
+import com.fluxtream.utils.parse.FacetCreatedEvent;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -16,13 +25,13 @@ public class DataReceivedEventListener implements EventListener<DataReceivedEven
 
     static FlxLogger logger = FlxLogger.getLogger(DataReceivedEventListener.class);
 
-    private Map<Long,User> parseUsers = new java.util.Hashtable<Long,User>();
-
     @Autowired
     GuestService guestService;
 
     @Autowired
     Parse parse;
+
+    DateTimeFormatter utcTimeFormatter = DateTimeFormat.forPattern("yyyyMMdd'T'HHmmssZ");
 
     @Autowired
     final protected void setEventService(@Qualifier("eventListenerServiceImpl") EventListenerService evl) {
@@ -34,30 +43,56 @@ public class DataReceivedEventListener implements EventListener<DataReceivedEven
 
     @Override
     public void handleEvent(final DataReceivedEvent event) {
+        // ignore history updates
+        if (event.updateInfo.getUpdateType()== UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE)
+            return;
         // ignore if no parse config present
         if (!parse.isParseConfigurationPresent())
             return;
         // ignore if guestId is not in parse list
-        if (getParseUser(event.guestId)==null)
+        if (!parse.isInParseGuestList(event.updateInfo.getGuestId()))
             return;
         final StringBuilder msgAtts = new StringBuilder("module=events component=DataReceivedEventListener action=handleEvent");
-        StringBuilder sb = new StringBuilder(msgAtts)
-                .append(" connector=").append(event.connector.getName())
+        final Connector connector = event.updateInfo.apiKey.getConnector();
+        final String connectorName = connector.getName();
+        final Guest guest = guestService.getGuestById(event.updateInfo.getGuestId());
+        final StringBuilder sb = new StringBuilder(msgAtts)
+                .append(" connector=").append(connectorName)
                 .append(" eventType=").append(event.objectTypes)
                 .append(" date=").append(event.date)
-                .append(" guestId=").append(event.guestId);
-        for (ObjectType objectType : event.objectTypes) {
-
+                .append(" guestId=").append(event.updateInfo.getGuestId());
+        for (AbstractFacet facet : event.facets) {
+            final FacetCreatedEvent facetCreatedEvent = new FacetCreatedEvent();
+            facetCreatedEvent.username = guest.username;
+            facetCreatedEvent.serverName = parse.getServerName();
+            facetCreatedEvent.connectorName = connectorName;
+            facetCreatedEvent.objectType = ObjectType.getObjectType(connector, facet.objectType).getName();
+            facetCreatedEvent.isLocalTime = facet instanceof AbstractLocalTimeFacet;
+            if (facet instanceof AbstractLocalTimeFacet) {
+                AbstractLocalTimeFacet localTimeFacet = (AbstractLocalTimeFacet)facet;
+                facetCreatedEvent.date = localTimeFacet.date;
+                facetCreatedEvent.start = localTimeFacet.startTimeStorage;
+                facetCreatedEvent.end = localTimeFacet.endTimeStorage;
+            } else {
+                facetCreatedEvent.start = utcTimeFormatter.withZoneUTC().print(facet.start);
+                facetCreatedEvent.end = utcTimeFormatter.withZoneUTC().print(facet.end);
+            }
+            facetCreatedEvent.description = facet.fullTextDescription;
+            Runnable parseLog = new Runnable() {
+                public void run() {
+                    try {
+                        logger.info(sb.append(" message=\"logging to parse...\""));
+                        parse.create("FacetCreatedEvent", facetCreatedEvent);
+                    }
+                    catch (RestCallException e) {
+                        e.printStackTrace();
+                    }
+                }
+            };
+            ExecutorService executor = Executors.newSingleThreadExecutor();
+            executor.execute(parseLog);
+            executor.shutdown();
         }
     }
 
-    private User getParseUser(final long guestId) {
-        // if user is not in parseList return null
-        if (!parse.isInParseGuestList(guestId))
-            return null;
-        if (parseUsers.containsKey(guestId))
-            return parseUsers.get(guestId);
-        // hit https://api.parse.com/1/login with guest's secret
-        return null;
-    }
 }

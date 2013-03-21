@@ -103,8 +103,10 @@ public class ApiDataServiceImpl implements ApiDataService {
 		payload.guestId = updateInfo.apiKey.getGuestId();
 		payload.timeUpdated = System.currentTimeMillis();
 
-        persistFacet(payload);
-        fireDataReceivedEvent(updateInfo, updateInfo.objectTypes(), start, end);
+        final AbstractFacet facet = persistFacet(payload);
+        List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
+        facets.add(facet);
+        fireDataReceivedEvent(updateInfo, updateInfo.objectTypes(), start, end, facets);
 	}
 
 	/**
@@ -117,8 +119,8 @@ public class ApiDataServiceImpl implements ApiDataService {
 			long start, long end) throws Exception {
 		ApiData apiData = new ApiData(updateInfo, start, end);
 		apiData.jsonObject = jsonObject;
-		extractFacets(apiData, updateInfo.objectTypes, updateInfo);
-        fireDataReceivedEvent(updateInfo, updateInfo.objectTypes(), start, end);
+        final List<AbstractFacet> facets = extractFacets(apiData, updateInfo.objectTypes, updateInfo);
+        fireDataReceivedEvent(updateInfo, updateInfo.objectTypes(), start, end, facets);
 	}
 
     /**
@@ -131,9 +133,9 @@ public class ApiDataServiceImpl implements ApiDataService {
                                  long start, long end, int objectTypes) throws Exception {
         ApiData apiData = new ApiData(updateInfo, start, end);
         apiData.json = json;
-        extractFacets(apiData, objectTypes, updateInfo);
+        final List<AbstractFacet> facets = extractFacets(apiData, objectTypes, updateInfo);
         final List<ObjectType> types = ObjectType.getObjectTypes(updateInfo.apiKey.getConnector(), objectTypes);
-        fireDataReceivedEvent(updateInfo, types, start, end);
+        fireDataReceivedEvent(updateInfo, types, start, end, facets);
     }
 
 	/**
@@ -150,16 +152,15 @@ public class ApiDataServiceImpl implements ApiDataService {
             throw new RuntimeException("ObjectType=0! cacheApiDataJSON is called from an 'Autonomous' " +
                                        "Updater -> you need to call the cacheApiDataJSON method with the " +
                                        "extra 'objectTypes' parameter!");
-		extractFacets(apiData, updateInfo.objectTypes, updateInfo);
-        fireDataReceivedEvent(updateInfo, updateInfo.objectTypes(), start, end);
+        final List<AbstractFacet> facets = extractFacets(apiData, updateInfo.objectTypes, updateInfo);
+        fireDataReceivedEvent(updateInfo, updateInfo.objectTypes(), start, end, facets);
 	}
 
     private void fireDataReceivedEvent(final UpdateInfo updateInfo, List<ObjectType> objectTypes,
-                                       final long start, final long end) {
-        DataReceivedEvent dataReceivedEvent = new DataReceivedEvent(updateInfo.getGuestId(),
-                                                                    updateInfo.apiKey.getConnector(),
+                                       final long start, final long end, List<AbstractFacet> facets) {
+        DataReceivedEvent dataReceivedEvent = new DataReceivedEvent(updateInfo,
                                                                     objectTypes,
-                                                                    start, end);
+                                                                    start, end, facets);
         // date-based connectors may attach a "date" String (yyyy-MM-dd) to the updateInfo object
         if (updateInfo.getContext("date")!=null)
             dataReceivedEvent.date = (String) updateInfo.getContext("date");
@@ -303,7 +304,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 
 
 	@Transactional(readOnly = false)
-	private void extractFacets(ApiData apiData, int objectTypes,
+	private List<AbstractFacet> extractFacets(ApiData apiData, int objectTypes,
 			UpdateInfo updateInfo) throws Exception {
 		AbstractFacetExtractor facetExtractor = apiData.updateInfo.apiKey
 				.getConnector().extractor(objectTypes, beanFactory);
@@ -331,6 +332,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 			}
 		}
 		bodyTrackStorageService.storeApiData(updateInfo.getGuestId(), newFacets);
+        return newFacets;
 	}
 
 	private static Map<String, String> facetEntityNames = new ConcurrentHashMap<String,String>();
