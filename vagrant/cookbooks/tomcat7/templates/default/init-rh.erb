@@ -1,0 +1,43 @@
+#!/bin/bash  
+# description: Tomcat Start Stop Restart  
+# processname: tomcat  
+# chkconfig: 234 20 80  
+PATH=/bin:/usr/bin:/sbin:/usr/sbin::<%= node[:tomcat7][:home] %>/bin
+# The first existing directory is used for JAVA_HOME (if JAVA_HOME is not
+# defined in $DEFAULT)
+JDK_DIRS="/usr/lib/jvm/java-6-openjdk /usr/lib/jvm/java-6-sun /usr/lib/jvm/java-1.5.0-sun /usr/lib/j2sdk1.5-sun /usr/lib/j2sdk1.5-ibm"
+
+# Look for the right JVM to use
+for jdir in $JDK_DIRS; do
+if [ -r "$jdir/bin/java" -a -z "${JAVA_HOME}" ]; then
+JAVA_HOME="$jdir"
+    fi
+done
+export JAVA_HOME
+
+# Directory where the Tomcat 7 binary distribution resides
+CATALINA_HOME=<%= node[:tomcat7][:home] %>
+
+# Directory for per-instance configuration files and webapps
+CATALINA_BASE=<%= node[:tomcat7][:base] %>
+
+# Use the Java security manager? (yes/no)
+TOMCAT7_SECURITY=<%= node[:tomcat7][:use_security_manager] %>
+
+PATH=$JAVA_HOME/bin:$PATH  
+export PATH  
+      
+      
+case $1 in  
+    start)  
+        sh $CATALINA_HOME/bin/startup.sh  
+    ;;   
+    stop)     
+	sh $CATALINA_HOME/bin/shutdown.sh  
+    ;;   
+    restart)  
+	sh $CATALINA_HOME/bin/shutdown.sh  
+	sh $CATALINA_HOME/bin/startup.sh  
+    ;;   
+esac      
+exit 0  
