@@ -1518,9 +1518,6 @@ CREATE TABLE `FitbitUserProfile` (
 -- Table structure for table `Facet_RunKeeperFitnessActivity`
 --
 
-ALTER TABLE `FitnessActivityDistance` DROP FOREIGN KEY `FKBCE560C6B3E8E7`;
-ALTER TABLE `FitnessActivityHeartRate` DROP FOREIGN KEY `FK64EE970F6B3E8E7`;
-
 DROP TABLE IF EXISTS `Facet_RunKeeperFitnessActivity`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;

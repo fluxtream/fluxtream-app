@@ -73,10 +73,10 @@ public class Parse {
             HttpPost post = new HttpPost(url);
             post.addHeader("X-Parse-Application-Id", config.get("parse.applicationID"));
             post.addHeader("X-Parse-REST-API-Key", config.get("parse.RestAPIKey"));
-            post.addHeader("Content-Type", "application/json");
+            post.addHeader("Content-Type", "application/json; charset=utf-8");
 
             String objectJson = createGson.toJson(o);
-            post.setEntity(new StringEntity(objectJson));
+            post.setEntity(new StringEntity(objectJson, "utf-8"));
 
             HttpResponse httpResponse = client.execute(post);
 
@@ -109,7 +109,7 @@ public class Parse {
     public String create(String className, Object o)
             throws RestCallException
     {
-        final String url = "http://api.parse.com/1/classes/" + className;
+        final String url = "https://api.parse.com/1/classes/" + className;
         return post(url, o);
     }
 

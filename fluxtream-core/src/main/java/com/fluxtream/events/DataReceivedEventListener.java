@@ -71,12 +71,9 @@ public class DataReceivedEventListener implements EventListener<DataReceivedEven
             if (facet instanceof AbstractLocalTimeFacet) {
                 AbstractLocalTimeFacet localTimeFacet = (AbstractLocalTimeFacet)facet;
                 facetCreatedEvent.date = localTimeFacet.date;
-                facetCreatedEvent.start = localTimeFacet.startTimeStorage;
-                facetCreatedEvent.end = localTimeFacet.endTimeStorage;
-            } else {
-                facetCreatedEvent.start = utcTimeFormatter.withZoneUTC().print(facet.start);
-                facetCreatedEvent.end = utcTimeFormatter.withZoneUTC().print(facet.end);
             }
+            facetCreatedEvent.start = facet.start;
+            facetCreatedEvent.end = facet.end;
             facetCreatedEvent.description = facet.fullTextDescription;
             Runnable parseLog = new Runnable() {
                 public void run() {

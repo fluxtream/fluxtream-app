@@ -12,7 +12,7 @@ public class FacetCreatedEvent {
     public String objectType;
     public boolean isLocalTime;
     public String date;
-    public String start, end;
+    public long start, end;
     public String description;
     public String username;
 
