@@ -166,7 +166,7 @@ define(
                 tabsY = $("#tabs").position().top;
                 windowHeight = $(window).height();
                 footerHeight = $("#footer").height();
-                fHeight = (windowHeight-tabsY-footerHeight-20);
+                fHeight = (windowHeight-tabsY-footerHeight+20);
                 $(".fullHeight").height(fHeight);
             }
             $(window).resize(function() {
@@ -249,6 +249,14 @@ define(
         App.closeModal = function(){
             $("#modal").modal("hide");
         };
+
+        App.htmlEscape = function(str){
+            return str.replace(/&/g, '&amp;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
 
         App.eraseEverything = function() {
             var confirmed = confirm("Are you sure?");
@@ -387,7 +395,8 @@ define(
                     url: "/api/notifications/" + notificationId,
                     type: "DELETE",
                     success: function() {
-                        $("#notification-" + notificationId).remove()
+                        $("#notification-" + notificationId).remove();
+                        $(window).resize();
                     }
                 }
             );

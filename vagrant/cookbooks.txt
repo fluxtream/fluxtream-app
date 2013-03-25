@@ -1,4 +1,0 @@
-Here's a list of the cookbooks that the fluxtream_main recipe depends on:
-
-http://github.com/opscode-cookbooks/java
-https://github.com/opscode-cookbooks/mysql

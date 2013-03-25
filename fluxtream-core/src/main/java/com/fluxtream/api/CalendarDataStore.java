@@ -51,13 +51,20 @@ import com.fluxtream.services.NotificationsService;
 import com.fluxtream.services.SettingsService;
 import com.fluxtream.updaters.strategies.UpdateStrategy;
 import com.fluxtream.updaters.strategies.UpdateStrategyFactory;
+import com.fluxtream.utils.TimeUtils;
 import com.fluxtream.utils.Utils;
 import com.google.gson.Gson;
 import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
 import com.luckycatlabs.sunrisesunset.dto.Location;
+<<<<<<< HEAD:fluxtream-core/src/main/java/com/fluxtream/api/CalendarDataStore.java
 import com.fluxtream.aspects.FlxLogger;
 import org.codehaus.plexus.util.ExceptionUtils;
+=======
+import org.apache.log4j.Logger;
+import org.joda.time.DateTimeConstants;
+>>>>>>> dfde247aaea9431ad52cff0ada3d2cf00fe38bc7:fluxtream-web/src/main/java/com/fluxtream/api/CalendarDataStore.java
 import org.joda.time.DateTimeZone;
+import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -106,8 +113,8 @@ public class CalendarDataStore {
 	@GET
 	@Path("/all/week/{year}/{week}")
 	@Produces({ MediaType.APPLICATION_JSON })
-	public String getAllConnectorsWeekData(@PathParam("year") int year,
-			@PathParam("week") int week, @QueryParam("filter") String filter)
+	public String getAllConnectorsWeekData(@PathParam("year") final int year,
+			@PathParam("week") final int week, @QueryParam("filter") String filter)
 			throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException {
         Guest guest = AuthHelper.getGuest();
@@ -122,6 +129,7 @@ public class CalendarDataStore {
             guestId = coachee.guestId;
             guest = guestService.getGuestById(guestId);
         }
+
         try{
             long then = System.currentTimeMillis();
             //TODO:proper week data retrieval implementation
@@ -134,22 +142,19 @@ public class CalendarDataStore {
                 filter = "";
             }
 
-            Calendar c = Calendar.getInstance();
-            c.set(Calendar.YEAR,year);
-            c.set(Calendar.WEEK_OF_YEAR,week);
-            c.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+            final LocalDate weekStart = TimeUtils.getBeginningOfWeek(year, week);
+            final LocalDate weekEnd = weekStart.plusWeeks(1).minusDays(1);
+
             DecimalFormat datePartFormat = new DecimalFormat("00");
-            DayMetadataFacet dayMetaStart = metadataService.getDayMetadata(guest.getId(), year + "-" + datePartFormat.format(c.get(Calendar.MONTH) + 1) +
-                                                                                          "-" + datePartFormat.format(c.get(Calendar.DAY_OF_MONTH)), true);
-            int newDay = c.get(Calendar.DAY_OF_YEAR) + 6;
-            if (newDay > (isLeapYear(year) ? 366 : 365)){
-                newDay -= isLeapYear(year) ? 366 : 365;
-                year += 1;
-                c.set(Calendar.YEAR,year);
-            }
-            c.set(Calendar.DAY_OF_YEAR,newDay);
-            DayMetadataFacet dayMetaEnd = metadataService.getDayMetadata(guest.getId(), year + "-" + datePartFormat.format(c.get(Calendar.MONTH) + 1) +
-                                                                                        "-" + datePartFormat.format(c.get(Calendar.DAY_OF_MONTH)), true);
+            DayMetadataFacet dayMetaStart = metadataService.getDayMetadata(guest.getId(),
+                weekStart.getYear() + "-" + datePartFormat.format(weekStart.getMonthOfYear())
+                    + "-" + datePartFormat.format(weekStart.getDayOfMonth()),
+                true);
+
+            DayMetadataFacet dayMetaEnd = metadataService.getDayMetadata(guest.getId(),
+                weekEnd.getYear() + "-" + datePartFormat.format(weekEnd.getMonthOfYear())
+                    + "-" + datePartFormat.format(weekEnd.getDayOfMonth()),
+                true);
 
             DayMetadataFacet dayMetadata = new DayMetadataFacet(-1);
             dayMetadata.timeZone = dayMetaStart.timeZone;

@@ -22,7 +22,7 @@ define(function() {
         var plot = new DataSeriesPlot(channelDatasource(dashboardData.steps.user_id, "Fitbit", "steps"),
                                   dateAxis,
                                   yAxis,
-                                  style);
+                                  {"style": style});
         var plotContainer = new PlotContainer("stepsPlot", [plot]);
 
         var xMin = dateAxis.getMin();

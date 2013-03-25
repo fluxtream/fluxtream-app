@@ -4,13 +4,16 @@ import java.text.ParseException;
 import java.util.Calendar;
 import java.util.TimeZone;
 
+import org.joda.time.DateTimeConstants;
+import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 public class TimeUtils {
 
 	private static final long MILLIS_IN_DAY = 86400000l;
-	
+	public static final int FIRST_DAY_OF_WEEK = DateTimeConstants.SUNDAY;
+
 	public static String getStart(String date, TimeZone tz) {
 		return date + " 00:00:00 " + tz.getDisplayName(true, TimeZone.SHORT);
 	}
@@ -48,5 +51,16 @@ public class TimeUtils {
 		c.set(Calendar.MILLISECOND, 999);
 		return c.getTimeInMillis();
 	}
-	
+
+	public static LocalDate getBeginningOfWeek(final int year, final int week) {
+		return (new LocalDate())
+				.withWeekyear(year)
+				.withWeekOfWeekyear(week)
+				.minusWeeks(1)
+				.withDayOfWeek(FIRST_DAY_OF_WEEK);
+		// Need to subtract 1 week because Sunday is the last day of the week, which
+		// would logically move all the week start dates forward by 6 days.  Better
+		// one day earlier than JodaTime's standard than 6 days later than
+		// users' expectations.
+	}
 }

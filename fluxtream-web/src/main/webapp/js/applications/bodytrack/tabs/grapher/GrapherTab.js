@@ -40,7 +40,8 @@ define(["core/Tab","core/grapher/Grapher"], function(Tab,Grapher) {
         else{
             onSourceLoad();
         }
-
+        //trigger the resize handler for the grapher. This forces the grapher objects to resize to their proper sizes
+        $(window).resize();
     }
 
     function onSourceLoad(){
