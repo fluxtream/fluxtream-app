@@ -1,4 +1,4 @@
-
+#!/bin/bash
 mvn install:install-file  -Dfile=gdata-core-1.0.jar -DgroupId=gdata -DartifactId=core -Dversion=1.0 -Dpackaging=jar
 mvn install:install-file  -Dfile=linkedin-j-1.0.jar -DgroupId=com.linkedin -DartifactId=linkedin-j -Dversion=1.0 -Dpackaging=jar
 mvn install:install-file  -Dfile=newrelic-api-2.15.jar -DgroupId=com.newrelic -DartifactId=newrelic-api -Dversion=2.15 -Dpackaging=jar
