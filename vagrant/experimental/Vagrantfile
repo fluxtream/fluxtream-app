@@ -7,7 +7,7 @@ Vagrant::Config.run do |config|
   # please see the online documentation at vagrantup.com.
 
   # Every Vagrant virtual environment requires a box to build off of.
-  config.vm.box = "lucid64"
+  config.vm.box = "precise64"
 
   # The url from where the 'config.vm.box' box will be fetched if it
   # doesn't already exist on the user's system.
@@ -29,7 +29,7 @@ Vagrant::Config.run do |config|
 
   # Forward a port from the guest to the host, which allows for outside
   # computers to access the VM, whereas host only networking does not.
-  config.vm.forward_port 80, 8282
+  config.vm.forward_port 8080, 8282
 
   # Share an additional folder to the guest VM. The first argument is
   # an identifier, the second is the path on the guest to mount the
@@ -73,20 +73,25 @@ Vagrant::Config.run do |config|
     # chef.json = { :mysql_password => "foo" }
     chef.json = {
       :mysql => {
-        :server_root_password => "iloverandompasswordsbutthiswilldo",
-        :server_repl_password => "iloverandompasswordsbutthiswilldo",
-        :server_debian_password => "iloverandompasswordsbutthiswilldo"
+        :server_root_password => "fluxtream",
+        :server_repl_password => "fluxtream",
+        :server_debian_password => "fluxtream"
       }
     };
     chef.log_level = :debug
+    chef.add_recipe("apt")
     chef.add_recipe("git")
     chef.add_recipe("java::oracle")
     chef.add_recipe("maven")
-    chef.add_recipe("fluxtream_main::update")
     chef.add_recipe("mysql::server")
-    # chef.add_recipe("build-essential")
-    # chef.add_recipe("chef-ruby-shadow")
-    # chef.add_recipe("fluxtream_main")
+    chef.add_recipe("tomcat7")
+    chef.add_recipe("database::mysql")
+    chef.add_recipe("fluxtream_main::prepare-projects")
+    chef.add_recipe("fluxtream_main::clone-scribe-java")
+    chef.add_recipe("fluxtream_main::clone-fluxtream-app")
+    chef.add_recipe("fluxtream_main::datastore")
+    chef.add_recipe("fluxtream_main::init-mysql-flx")
+    chef.add_recipe("fluxtream_main::geocity")
   end
 
   # Enable provisioning with chef server, specifying the chef server URL,

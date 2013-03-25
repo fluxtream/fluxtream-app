@@ -11,7 +11,7 @@
           <element id="archive" name="fluxtream-core-1.0.jar">
             <element id="module-output" name="fluxtream-core" />
           </element>
-          <element id="library" level="project" name="Maven: com.newrelic:newrelic-api:2.7.0" />
+          <element id="library" level="project" name="Maven: com.newrelic:newrelic-api:2.15" />
           <element id="library" level="project" name="Maven: commons-configuration:commons-configuration:1.8" />
           <element id="library" level="project" name="Maven: commons-lang:commons-lang:2.4" />
           <element id="library" level="project" name="Maven: commons-logging:commons-logging:1.1.1" />

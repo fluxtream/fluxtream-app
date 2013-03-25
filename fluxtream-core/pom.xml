@@ -18,7 +18,7 @@
         <dependency>
             <groupId>com.newrelic</groupId>
             <artifactId>newrelic-api</artifactId>
-            <version>2.7.0</version>
+            <version>2.15</version>
         </dependency>
 		<dependency>
 			<groupId>commons-configuration</groupId>
