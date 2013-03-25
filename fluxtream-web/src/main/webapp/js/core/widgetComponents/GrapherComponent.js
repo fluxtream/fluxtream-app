@@ -113,7 +113,7 @@ define(["core/grapher/BTCore"],function(BTCore){
         var localDisplay = false;
 
         for (var i = 0; i < sources.length; i++) {
-            if (sources[idx]["name"] == deviceName) {
+            if (sources[i]["name"] == deviceName) {
                 var channels = sources[i]["channels"];
                 for (var j = 0; j < channels.length; j++) {
                     if (channels[j]["name"] == subChannelName) {
