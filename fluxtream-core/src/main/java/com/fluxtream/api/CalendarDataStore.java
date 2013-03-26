@@ -17,6 +17,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.TimeInterval;
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.auth.CoachRevokedException;
 import com.fluxtream.connectors.Connector;
@@ -56,13 +57,7 @@ import com.fluxtream.utils.Utils;
 import com.google.gson.Gson;
 import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
 import com.luckycatlabs.sunrisesunset.dto.Location;
-<<<<<<< HEAD:fluxtream-core/src/main/java/com/fluxtream/api/CalendarDataStore.java
-import com.fluxtream.aspects.FlxLogger;
 import org.codehaus.plexus.util.ExceptionUtils;
-=======
-import org.apache.log4j.Logger;
-import org.joda.time.DateTimeConstants;
->>>>>>> dfde247aaea9431ad52cff0ada3d2cf00fe38bc7:fluxtream-web/src/main/java/com/fluxtream/api/CalendarDataStore.java
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;

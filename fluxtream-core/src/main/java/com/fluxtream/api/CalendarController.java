@@ -7,16 +7,12 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.Configuration;
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.mvc.models.CalendarModel;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
-<<<<<<< HEAD:fluxtream-core/src/main/java/com/fluxtream/api/CalendarController.java
-import com.fluxtream.aspects.FlxLogger;
-=======
 import com.fluxtream.utils.TimeUtils;
-import org.apache.log4j.Logger;
->>>>>>> dfde247aaea9431ad52cff0ada3d2cf00fe38bc7:fluxtream-web/src/main/java/com/fluxtream/api/CalendarController.java
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;

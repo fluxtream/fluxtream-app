@@ -34,7 +34,6 @@
         <processorPath useClasspath="true" />
         <module name="fluxtream-connectors" />
         <module name="fluxtream-core" />
-        <module name="fluxtream-utils" />
         <module name="fluxtream-web" />
       </profile>
     </annotationProcessing>
