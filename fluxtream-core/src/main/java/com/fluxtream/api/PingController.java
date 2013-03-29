@@ -22,8 +22,7 @@ public class PingController {
     @GET
     @Produces({MediaType.TEXT_PLAIN})
     public String ping() throws IOException {
-        logger.warn("hahahahaha");
-        return "pung";
+        return "pong";
     }
 
 }
