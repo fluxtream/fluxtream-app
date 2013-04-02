@@ -1,21 +1,24 @@
 package com.fluxtream.connectors.dao;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
+import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import com.fluxtream.TimeInterval;
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
-import com.fluxtream.aspects.FlxLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.Cacheable;
@@ -45,7 +48,8 @@ public class JPAFacetDao implements FacetDao {
     public List<AbstractFacet> getFacetsByDates(final ApiKey apiKey, ObjectType objectType, List<String> dates) {
         ArrayList<AbstractFacet> facets = new ArrayList<AbstractFacet>();
         if (!apiKey.getConnector().hasFacets()) return facets;
-        final String facetName = getEntityName(apiKey.getConnector(), objectType);
+        Class<? extends AbstractFacet> facetClass = getFacetClass(apiKey.getConnector(), objectType);
+        final String facetName = getEntityName(facetClass);
         StringBuilder datesBuffer = new StringBuilder();
         for (int i=0; i<dates.size(); i++) {
             if (i>0) datesBuffer.append(",");
@@ -62,17 +66,20 @@ public class JPAFacetDao implements FacetDao {
     }
 
     @Cacheable("facetClasses")
-    private String getEntityName(Connector connector, ObjectType objectType) {
+    private String getEntityName(Class<? extends AbstractFacet> facetClass) {
         try {
-            Class<? extends AbstractFacet> facetClass = objectType!=null
-                    ? objectType.facetClass()
-                    : connector.facetClass();
             return facetClass.getAnnotation(Entity.class).name();
         } catch (Throwable t) {
-            final String message = "Could not get Facet class for connector " + connector + " / " + objectType;
+            final String message = "Could not get Facet class for connector for " + facetClass.getName();
             logger.error(message);
             throw new RuntimeException(message);
         }
+    }
+
+    private Class<? extends AbstractFacet> getFacetClass(final Connector connector, final ObjectType objectType) {
+        return objectType!=null
+                        ? objectType.facetClass()
+                        : connector.facetClass();
     }
 
     public List<AbstractFacet> getFacetsBetween(final ApiKey apiKey, TimeInterval timeInterval) {
@@ -90,7 +97,8 @@ public class JPAFacetDao implements FacetDao {
             return getFacetsBetween(apiKey, timeInterval);
         } else {
             if (!apiKey.getConnector().hasFacets()) return new ArrayList<AbstractFacet>();
-            final String facetName = getEntityName(apiKey.getConnector(), objectType);
+            Class<? extends AbstractFacet> facetClass = getFacetClass(apiKey.getConnector(), objectType);
+            final String facetName = getEntityName(facetClass);
             String queryString = "SELECT facet FROM " + facetName  + " facet WHERE facet.guestId=? AND (facet.apiKeyId=? OR facet.apiKeyId IS NULL) AND facet.start>=? AND facet.end<=?";
             final TypedQuery<AbstractFacet> query = em.createQuery(queryString, AbstractFacet.class);
             query.setParameter(1, apiKey.getGuestId());
@@ -237,16 +245,53 @@ public class JPAFacetDao implements FacetDao {
         if (objectType==null) {
             deleteAllFacets(apiKey);
         } else {
-            final String facetName = getEntityName(apiKey.getConnector(), objectType);
-            String stmtString = "DELETE FROM " + facetName + " facet WHERE facet.guestId=? AND (facet.apiKeyId=? OR facet.apiKeyId IS NULL)";
-            final Query query = em.createQuery(stmtString);
-            query.setParameter(1, apiKey.getGuestId());
-            query.setParameter(2, apiKey.getId());
-            query.executeUpdate();
+            // if facet has OneToMany annotation, delete each facet one-by-one
+            Class<? extends AbstractFacet> facetClass = getFacetClass(apiKey.getConnector(), objectType);
+            if (hasRelation(facetClass)) {
+               deleteFacetsOneByOne(apiKey, facetClass);
+            } else {
+                bulkDeleteFacets(apiKey, facetClass);
+            }
         }
 	}
 
-	@Override
+    private void deleteFacetsOneByOne(final ApiKey apiKey, final Class<? extends AbstractFacet> facetClass) {
+        List<? extends AbstractFacet> facets = getAllFacets(apiKey, facetClass);
+        for (AbstractFacet facet : facets) {
+            em.remove(facet);
+        }
+    }
+
+    private List<? extends AbstractFacet> getAllFacets(final ApiKey apiKey, final Class<? extends AbstractFacet> facetClass) {
+        final String facetName = getEntityName(facetClass);
+        String queryString = "SELECT facet FROM " + facetName + " facet WHERE facet.guestId=? AND (facet.apiKeyId=? OR facet.apiKeyId IS NULL)";
+        final TypedQuery<? extends AbstractFacet> query = em.createQuery(queryString, AbstractFacet.class);
+        query.setParameter(1, apiKey.getGuestId());
+        query.setParameter(2, apiKey.getId());
+        List<? extends AbstractFacet> found = query.getResultList();
+        return found;
+    }
+
+    private boolean hasRelation(final Class<? extends AbstractFacet> facetClass) {
+        final Field[] fields = facetClass.getFields();
+        for (Field field : fields) {
+            if (field.getAnnotation(OneToMany.class)!=null||
+                field.getAnnotation(ManyToMany.class)!=null)
+                return true;
+        }
+        return false;
+    }
+
+    private void bulkDeleteFacets(final ApiKey apiKey, final Class<? extends AbstractFacet> facetClass) {
+        final String facetName = getEntityName(facetClass);
+        String stmtString = "DELETE FROM " + facetName + " facet WHERE facet.guestId=? AND (facet.apiKeyId=? OR facet.apiKeyId IS NULL)";
+        final Query query = em.createQuery(stmtString);
+        query.setParameter(1, apiKey.getGuestId());
+        query.setParameter(2, apiKey.getId());
+        query.executeUpdate();
+    }
+
+    @Override
 	@Transactional(readOnly=false)
 	public void persist(Object o) {
 		em.persist(o);
