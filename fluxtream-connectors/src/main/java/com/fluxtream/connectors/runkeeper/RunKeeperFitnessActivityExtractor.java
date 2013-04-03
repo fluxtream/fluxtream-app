@@ -68,7 +68,7 @@ public class RunKeeperFitnessActivityExtractor extends AbstractFacetExtractor {
                 locationFacet.timestampMs = facet.start + pathElement.getLong("timestamp");
                 locationFacet.source = LocationFacet.Source.RUNKEEPER;
                 locationFacet.apiKeyId = apiData.updateInfo.apiKey.getId();
-//                locationFacet.uri = uri;
+                locationFacet.uri = uri;
 
                 apiDataService.addGuestLocation(updateInfo.getGuestId(), locationFacet);
             }

@@ -1575,7 +1575,6 @@ CREATE TABLE `FitnessActivityDistance` (
 
 --
 -- Table structure for table `FitnessActivityHeartRate`
---
 
 DROP TABLE IF EXISTS `FitnessActivityHeartRate`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;

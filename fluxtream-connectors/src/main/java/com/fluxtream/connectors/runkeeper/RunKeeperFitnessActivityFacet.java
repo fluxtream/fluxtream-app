@@ -7,6 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
+import com.fluxtream.connectors.google_latitude.LocationFacet;
 import com.fluxtream.domain.AbstractFacet;
 
 /**
@@ -14,7 +15,8 @@ import com.fluxtream.domain.AbstractFacet;
  * @author Candide Kemmler (candide@fluxtream.com)
  */
 @Entity(name="Facet_RunKeeperFitnessActivity")
-@ObjectTypeSpec(name = "fitnessActivity", value = 1, extractor=RunKeeperFitnessActivityExtractor.class, prettyname = "Fitness Activity", isDateBased = false)
+@ObjectTypeSpec(name = "fitnessActivity", value = 1, extractor=RunKeeperFitnessActivityExtractor.class,
+                prettyname = "Fitness Activity", isDateBased = false, locationFacetSource = LocationFacet.Source.RUNKEEPER)
     public class RunKeeperFitnessActivityFacet extends AbstractFacet {
 
     public String uri;

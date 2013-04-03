@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.ManyToMany;
@@ -15,6 +16,8 @@ import com.fluxtream.TimeInterval;
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
+import com.fluxtream.connectors.annotations.ObjectTypeSpec;
+import com.fluxtream.connectors.google_latitude.LocationFacet;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.services.ConnectorUpdateService;
@@ -245,15 +248,32 @@ public class JPAFacetDao implements FacetDao {
         if (objectType==null) {
             deleteAllFacets(apiKey);
         } else {
-            // if facet has OneToMany annotation, delete each facet one-by-one
+            // if facet has joins delete each facet one-by-one (this is a limitation of JPA)
             Class<? extends AbstractFacet> facetClass = getFacetClass(apiKey.getConnector(), objectType);
             if (hasRelation(facetClass)) {
                deleteFacetsOneByOne(apiKey, facetClass);
             } else {
                 bulkDeleteFacets(apiKey, facetClass);
             }
+            final LocationFacet.Source locationFacetSource = getLocationFacetSource(facetClass);
+            if (locationFacetSource != LocationFacet.Source.NONE)
+                deleteLocationData(apiKey);
         }
 	}
+
+    private void deleteLocationData(final ApiKey apiKey) {
+        final String facetName = getEntityName(LocationFacet.class);
+        String stmtString = "DELETE FROM " + facetName + " facet WHERE facet.apiKeyId=?";
+        final Query query = em.createQuery(stmtString);
+        query.setParameter(1, apiKey.getId());
+        query.executeUpdate();
+    }
+
+    private LocationFacet.Source getLocationFacetSource(final Class<? extends AbstractFacet> facetClass) {
+        final ObjectTypeSpec objectTypeSpec = facetClass.getAnnotation(ObjectTypeSpec.class);
+        final LocationFacet.Source locationFacetSource = objectTypeSpec.locationFacetSource();
+        return locationFacetSource;
+    }
 
     private void deleteFacetsOneByOne(final ApiKey apiKey, final Class<? extends AbstractFacet> facetClass) {
         List<? extends AbstractFacet> facets = getAllFacets(apiKey, facetClass);
@@ -276,7 +296,8 @@ public class JPAFacetDao implements FacetDao {
         final Field[] fields = facetClass.getFields();
         for (Field field : fields) {
             if (field.getAnnotation(OneToMany.class)!=null||
-                field.getAnnotation(ManyToMany.class)!=null)
+                field.getAnnotation(ManyToMany.class)!=null||
+                field.getAnnotation(ElementCollection.class)!=null)
                 return true;
         }
         return false;
