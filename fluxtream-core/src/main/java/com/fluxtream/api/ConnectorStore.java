@@ -119,7 +119,9 @@ public class ConnectorStore {
                     connectorJson.accumulate("api", connector.api);
                     connectorJson.accumulate("lastSync", getLastSync(guest.getId(), conn));
                     connectorJson.accumulate("latestData", getLatestData(guest.getId(), conn));
-                    connectorJson.accumulate("errors", checkForErrors(guest.getId(), conn));
+                    final String auditTrail = checkForErrors(guest.getId(), conn);
+                    connectorJson.accumulate("errors", auditTrail!=null);
+                    connectorJson.accumulate("auditTrail", auditTrail!=null?auditTrail:"");
                     connectorJson.accumulate("syncing", checkIfSyncInProgress(guest.getId(), conn));
                     connectorJson.accumulate("channels", settingsService.getChannelsForConnector(guest.getId(), conn));
                     connectorsArray.add(connectorJson);
@@ -182,21 +184,25 @@ public class ConnectorStore {
      * Returns whether there was an error in the last update of the connector
      * @param guestId The id of the guest whose connector is being checked
      * @param connector the connector being checked
-     * @return true if there was and error false otherwise
+     * @return a stackTrace if there were errors, null otherwise
      */
-    private boolean checkForErrors(long guestId, Connector connector){
+    private String checkForErrors(long guestId, Connector connector){
         final ApiKey apiKey = guestService.getApiKey(guestId, connector);
         Collection<UpdateWorkerTask> update = connectorUpdateService.getLastFinishedUpdateTasks(apiKey);
-        if(update.size() < 1) return false;
+        if(update.size() < 1) return null;
         for(UpdateWorkerTask workerTask : update)
         {
-            if(workerTask == null || workerTask.status!= UpdateWorkerTask.Status.DONE) return true;
+            if(workerTask == null || workerTask.status!= UpdateWorkerTask.Status.DONE) {
+                if (workerTask.auditTrail!=null)
+                    return workerTask.auditTrail;
+                else return "no audit trail";
+            }
         }
-        return false;
+        return null;
     }
 
     private long getLastSync(long guestId, Connector connector){
-        final ApiKey apiKey = guestService.getApiKey(guestId, connector);
+        final ApiKey apiKey = guestService. getApiKey(guestId, connector);
         ApiUpdate update = connectorUpdateService.getLastSuccessfulUpdate(apiKey);
         return update != null ? update.ts : Long.MAX_VALUE;
 

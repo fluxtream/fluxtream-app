@@ -162,7 +162,11 @@ class UpdateWorker implements Runnable {
 			success();
 			break;
 		case UPDATE_FAILED:
-			retry(connector, new UpdateWorkerTask.AuditTrailEntry(new Date(), updateResult.type.toString(), "retry"));
+            final UpdateWorkerTask.AuditTrailEntry failed = new UpdateWorkerTask.AuditTrailEntry(new Date(), updateResult.type.toString(), "failed");
+            failed.stackTrace = updateResult.stackTrace;
+            connectorUpdateService.addAuditTrail(task.getId(), failed);
+            final UpdateWorkerTask.AuditTrailEntry retry = new UpdateWorkerTask.AuditTrailEntry(new Date(), updateResult.type.toString(), "retry");
+            retry(connector, retry);
 			break;
 		case NO_RESULT:
 			abort();
@@ -226,7 +230,7 @@ class UpdateWorker implements Runnable {
                 .append(" objectType=").append(task.objectTypes);
 		logger.info(stringBuilder.toString());
 		// re-schedule when we are below rate limit again
-		connectorUpdateService.reScheduleUpdateTask(task, System.currentTimeMillis() + getLongRetryDelay(connector),
+		connectorUpdateService.reScheduleUpdateTask(task.getId(), System.currentTimeMillis() + getLongRetryDelay(connector),
                                                     false, auditTrailEntry);
 	}
 
@@ -238,7 +242,7 @@ class UpdateWorker implements Runnable {
                 .append(" retries=").append(String.valueOf(task.retries));
 		logger.info(sb.toString());
 		// schedule 1 minute later, typically
-		connectorUpdateService.reScheduleUpdateTask(task, System.currentTimeMillis() + getShortRetryDelay(connector),
+		connectorUpdateService.reScheduleUpdateTask(task.getId(), System.currentTimeMillis() + getShortRetryDelay(connector),
                                                     true, auditTrailEntry);
 	}
 

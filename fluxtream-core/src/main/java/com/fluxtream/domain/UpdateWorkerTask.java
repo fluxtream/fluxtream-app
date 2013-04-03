@@ -5,6 +5,7 @@ import javax.persistence.Entity;
 import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.PrePersist;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import org.hibernate.annotations.Index;
 
@@ -130,7 +131,9 @@ public class UpdateWorkerTask extends AbstractEntity {
 	public int retries;
 	public String jsonParams;
 	
-	public UpdateWorkerTask() {}
+	public UpdateWorkerTask() {
+    }
+
 	public UpdateWorkerTask(UpdateWorkerTask other) {
 		connectorName = other.connectorName;
 		status = other.status;
@@ -171,6 +174,10 @@ public class UpdateWorkerTask extends AbstractEntity {
 		sb.append(objectTypes);
 		return sb.toString();
 	}
-	
+
+    @PrePersist
+    public void logPersist() {
+        System.out.println("logging persistence of UpdateWorkerTask");
+    }
 	
 }

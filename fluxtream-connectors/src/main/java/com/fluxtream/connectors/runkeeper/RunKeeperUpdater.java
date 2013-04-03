@@ -80,6 +80,8 @@ public class RunKeeperUpdater  extends AbstractUpdater {
                 String body = response.getBody();
                 apiDataService.cacheApiDataJSON(updateInfo, body, -1, -1);
             } else {
+                countFailedApiCall(updateInfo.apiKey,
+                                   updateInfo.objectTypes, then, activityURL, "");
                 throw new RuntimeException("Unexpected code: " + response.getCode());
             }
         }
@@ -93,7 +95,7 @@ public class RunKeeperUpdater  extends AbstractUpdater {
                                         List<String> activities, long since) {
         OAuthRequest request = new OAuthRequest(Verb.GET, activityFeedURL);
         request.addQuerystringParameter("pageSize", String.valueOf(pageSize));
-        //request.addQuerystringParameter("oauth_token", token.getToken());
+        request.addQuerystringParameter("oauth_token", token.getToken());
         request.addHeader("Accept", "application/vnd.com.runkeeper.FitnessActivityFeed+json");
         if (since>0)
             request.addHeader("If-Modified-Since", dateFormatter.print(since));
@@ -115,6 +117,8 @@ public class RunKeeperUpdater  extends AbstractUpdater {
                 getFitnessActivityFeed(updateInfo, service, token, activityFeedURL, pageSize, activities, since);
             }
         } else {
+            countFailedApiCall(updateInfo.apiKey,
+                               updateInfo.objectTypes, then, activityFeedURL, "");
             throw new RuntimeException("Unexpected code: " + response.getCode());
         }
     }

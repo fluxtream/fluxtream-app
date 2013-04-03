@@ -28,7 +28,7 @@
                         {{#connectors}}
                         <tr id="connector-{{connectorName}}" {{#syncing}}class="nowSynchro"{{/syncing}}>
                             <td class="syncStatus" style="background:inherit">
-                                <span id="syncLED-{{connectorName}}" class="syncLED-{{^errors}}yes{{/errors}}{{#errors}}no{{/errors}}" {{#syncing}}style="display:none;"{{/syncing}}></span>
+                                <span id="syncLED-{{connectorName}}" title="{{auditTrail}}" class="syncLED-{{^errors}}yes{{/errors}}{{#errors}}no{{/errors}}" {{#syncing}}style="display:none;"{{/syncing}}></span>
                                 {{#syncing}}
                                 <span class="syncLED-waiting">
                                     <img src="{{release}}/images/syncing.gif" width="35" height="35" alt="load">
@@ -72,7 +72,7 @@
 <template id="connectorSingleRow">
                         <tr id="connector-{{connectorName}}" {{#syncing}}class="nowSynchro"{{/syncing}}>
                             <td class="syncStatus" style="background:inherit">
-                                <span id="syncLED-{{connectorName}}" class="syncLED-{{^errors}}yes{{/errors}}{{#errors}}no{{/errors}}" {{#syncing}}style="display:none;"{{/syncing}}></span>
+                                <span id="syncLED-{{connectorName}}" title="{{auditTrail}}" class="syncLED-{{^errors}}yes{{/errors}}{{#errors}}no{{/errors}}" {{#syncing}}style="display:none;"{{/syncing}}></span>
                                 {{#syncing}}
                                                         <span class="syncLED-waiting">
                                                             <img src="{{release}}/images/syncing.gif" width="35" height="35" alt="load">
@@ -106,7 +106,7 @@
 <template id="connectorSingleRowNoImage">
     <tr id="connector-{{connectorName}}" {{#syncing}}class="nowSynchro"{{/syncing}}>
     <td class="syncStatus" style="background:inherit">
-        <span id="syncLED-{{connectorName}}" class="syncLED-{{^errors}}yes{{/errors}}{{#errors}}no{{/errors}}" {{#syncing}}style="display:none;"{{/syncing}}></span>
+        <span id="syncLED-{{connectorName}}" title="{{auditTrail}}" class="syncLED-{{^errors}}yes{{/errors}}{{#errors}}no{{/errors}}" {{#syncing}}style="display:none;"{{/syncing}}></span>
         {{#syncing}}
                                                         <span class="syncLED-waiting">
                                                             <img src="{{release}}/images/syncing.gif" width="35" height="35" alt="load">

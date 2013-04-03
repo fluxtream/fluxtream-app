@@ -71,7 +71,7 @@ public interface ConnectorUpdateService {
      */
 	public void setUpdateWorkerTaskStatus(long updateWorkerTaskId, UpdateWorkerTask.Status status);
 
-	public ScheduleResult reScheduleUpdateTask(UpdateWorkerTask updateWorkerTask, long time,
+	public ScheduleResult reScheduleUpdateTask(long updateWorkerTaskId, long time,
                                                boolean incrementRetries, UpdateWorkerTask.AuditTrailEntry auditTrailEntry);
 
     /**
@@ -95,4 +95,6 @@ public interface ConnectorUpdateService {
     public Collection<UpdateWorkerTask> getLastFinishedUpdateTasks(ApiKey apiKey);
 
     public void claim(long taskId);
+
+    public void addAuditTrail(long updateWorkerTaskId, UpdateWorkerTask.AuditTrailEntry auditTrailEntry);
 }

@@ -165,23 +165,29 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 
     @Transactional(readOnly = false)
     @Override
-    public ScheduleResult reScheduleUpdateTask(UpdateWorkerTask updt, long time, boolean incrementRetries,
+    public ScheduleResult reScheduleUpdateTask(long updateWorkerTaskId, long time, boolean incrementRetries,
                                                UpdateWorkerTask.AuditTrailEntry auditTrailEntry) {
+        UpdateWorkerTask updt = em
+                .find(UpdateWorkerTask.class, updateWorkerTaskId);
+
         if (!incrementRetries) {
             UpdateWorkerTask failed = new UpdateWorkerTask(updt);
+            failed.auditTrail = updt.auditTrail;
             failed.retries = updt.retries;
             failed.connectorName = updt.connectorName;
             failed.status = Status.FAILED;
             failed.guestId = updt.guestId;
             failed.timeScheduled = updt.timeScheduled;
-            em.persist(failed);
             updt.retries = 0;
+            em.persist(failed);
         } else
             updt.retries += 1;
+
         updt.addAuditTrailEntry(auditTrailEntry);
         updt.status = Status.SCHEDULED;
         updt.timeScheduled = time;
-        em.merge(updt);
+        em.persist(updt);
+
         return new ScheduleResult(
                 updt.apiKeyId,
                 updt.connectorName,
@@ -525,6 +531,14 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
         task.serverUUID = SERVER_UUID;
         task.status = Status.IN_PROGRESS;
         task.addAuditTrailEntry(new UpdateWorkerTask.AuditTrailEntry(new java.util.Date(), SERVER_UUID));
+        em.persist(task);
+    }
+
+    @Override
+    @Transactional(readOnly=false)
+    public void addAuditTrail(final long updateWorkerTaskId, final UpdateWorkerTask.AuditTrailEntry auditTrailEntry) {
+        UpdateWorkerTask task = em.find(UpdateWorkerTask.class, updateWorkerTaskId);
+        task.addAuditTrailEntry(auditTrailEntry);
         em.persist(task);
     }
 
