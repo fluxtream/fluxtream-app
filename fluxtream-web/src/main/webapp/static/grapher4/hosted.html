@@ -160,8 +160,7 @@ function __gwt_disconnected_impl() {
   __gwt_displayGlassMessage('GWT Code Server Disconnected',
       'Most likely, you closed GWT Development Mode. Or, you might have lost '
       + 'network connectivity. To fix this, try restarting GWT Development Mode and '
-      + '<a style="color: #FFFFFF; font-weight: bold;" href="javascript:location.reload()">'
-      + 'REFRESH</a> this page.');
+      + 'refresh this page.');
 }
 
 // Keep track of z-index to allow layering of multiple glass messages
@@ -295,11 +294,22 @@ gwtOnLoad = function(errFn, modName, modBase){
       if (errFn) {
         errFn(modName);
       } else {
-        alert("Plugin failed to connect to Development Mode server at " + $hosted);
-        loadIframe("http://code.google.com/p/google-web-toolkit/wiki/TroubleshootingOOPHM");
+        __gwt_displayGlassMessage(
+            "Plugin failed to connect to Development Mode server at " + simpleEscape($hosted),
+            "Follow the troubleshooting instructions at "
+            + "<a href='http://code.google.com/p/google-web-toolkit/wiki/TroubleshootingOOPHM'>"
+            + "http://code.google.com/p/google-web-toolkit/wiki/TroubleshootingOOPHM</a>");
       }
     }
   }
+}
+
+function simpleEscape(originalString) {
+  return originalString.replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/\'/g, "&#39;")
+    .replace(/\"/g,"&quot;");
 }
 
 window.onunload = function() {

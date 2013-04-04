@@ -205,19 +205,11 @@ public class CalendarDataStore {
         }
 	}
 
-    private boolean isLeapYear(int year){
-        if (year % 400 == 0)
-            return true;
-        if (year % 100 == 0)
-            return false;
-        return year % 4 == 0;
-    }
-
 	@GET
 	@Path("/all/month/{year}/{month}")
 	@Produces({ MediaType.APPLICATION_JSON })
-	public String getAllConnectorsMonthData(@PathParam("year") int year,
-			@PathParam("month") int month,
+	public String getAllConnectorsMonthData(@PathParam("year") final int year,
+			@PathParam("month") final int month,
 			@QueryParam("filter") String filter) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
         Guest guest = AuthHelper.getGuest();
@@ -241,17 +233,16 @@ public class CalendarDataStore {
                 filter = "";
             }
 
-            Calendar c = Calendar.getInstance();
-            c.set(Calendar.YEAR,year);
-            c.set(Calendar.MONTH,month - 1);
-            c.set(Calendar.DAY_OF_MONTH,1);
-            int endDayNum = c.getActualMaximum(Calendar.DAY_OF_MONTH);
+            final LocalDate monthStart = new LocalDate(year, month, 1);
+            final LocalDate monthEnd = monthStart.plusMonths(1).minusDays(1);
 
-            isLeapYear(year);
+            DayMetadataFacet dayMetaStart = metadataService.getDayMetadata(guest.getId(),
+                monthStart.getYear() + "-" + monthStart.getMonthOfYear() + "-" + monthStart.getDayOfMonth(),
+                true);
 
-            DayMetadataFacet dayMetaStart = metadataService.getDayMetadata(guest.getId(), year + "-" + month + "-01", true);
-
-            DayMetadataFacet dayMetaEnd = metadataService.getDayMetadata(guest.getId(), year + "-" + month + "-" + endDayNum, true);
+            DayMetadataFacet dayMetaEnd = metadataService.getDayMetadata(guest.getId(),
+                monthEnd.getYear() + "-" + monthEnd.getMonthOfYear() + "-" + monthEnd.getDayOfMonth(),
+                true);
 
             DayMetadataFacet dayMetadata = new DayMetadataFacet(-1);
             dayMetadata.timeZone = dayMetaStart.timeZone;
