@@ -288,7 +288,8 @@ public class BodyTrackHelper {
                 }
             }
 
-            return gson.toJson(response);
+            final String gsonResponse = gson.toJson(response);
+            return gsonResponse;
         }
         catch(Exception e){
             StringBuilder sb = new StringBuilder("module=bodytrackHelper component=listSources action=listSources")

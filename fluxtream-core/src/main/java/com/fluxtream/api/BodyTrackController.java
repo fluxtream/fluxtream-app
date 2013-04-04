@@ -539,7 +539,11 @@ public class BodyTrackController {
             if (!accessAllowed){
                 uid = null;
             }
-            final ApiKey apiKey = guestService.getApiKey(uid, Connector.getConnector("fluxtream_capture"));
+            final Connector fluxtreamCaptureConnector = Connector.getConnector("fluxtream_capture");
+            ApiKey apiKey = guestService.getApiKey(uid, fluxtreamCaptureConnector);
+            if (apiKey==null) {
+                apiKey = guestService.createApiKey(uid, fluxtreamCaptureConnector);
+            }
             return bodyTrackHelper.listSources(apiKey, coachee);
         }
         catch (Exception e){

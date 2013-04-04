@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Updater(prettyName = "FluxtreamCapture",
          value = 42,                                                // hat tip to Douglas Adams :-)
+         hasFacets = false,
          objectTypes = {FluxtreamCapturePhotoFacet.class},
          defaultChannels = {"FluxtreamCapture.photo"})
 public class FluxtreamCaptureUpdater extends AbstractUpdater {
