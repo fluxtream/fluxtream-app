@@ -207,6 +207,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 	}
 
     @Override
+    @Transactional(readOnly = false)
     public void eraseApiData(ApiKey apiKey,
                              final int objectTypes, final TimeInterval timeInterval) {
         List<ObjectType> connectorTypes = ObjectType.getObjectTypes(apiKey.getConnector(),
@@ -221,7 +222,6 @@ public class ApiDataServiceImpl implements ApiDataService {
 
     @Override
 	@Transactional(readOnly = false)
-	// TODO: make a named query that works for all api objects
 	public void eraseApiData(ApiKey apiKey,
 			ObjectType objectType, TimeInterval timeInterval) {
 		List<AbstractFacet> facets = getApiDataFacets(apiKey, objectType,

@@ -278,7 +278,8 @@ public class JPAFacetDao implements FacetDao {
     private void deleteFacetsOneByOne(final ApiKey apiKey, final Class<? extends AbstractFacet> facetClass) {
         List<? extends AbstractFacet> facets = getAllFacets(apiKey, facetClass);
         for (AbstractFacet facet : facets) {
-            em.remove(facet);
+            final AbstractFacet merged = em.merge(facet);
+            em.remove(merged);
         }
     }
 

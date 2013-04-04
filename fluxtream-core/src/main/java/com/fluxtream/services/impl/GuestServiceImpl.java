@@ -176,6 +176,7 @@ public class GuestServiceImpl implements GuestService {
         }
         finally {
             em.remove(apiKey);
+            em.flush();
             if (apiKey.getConnector() == Connector.getConnector("google_latitude"))
                 JPAUtils.execute(em, "context.delete.all", apiKey.getGuestId());
             JPAUtils.execute(em, "apiUpdates.delete.byApiKey", apiKey.getGuestId(), apiKey.getConnector().value(), apiKeyId);

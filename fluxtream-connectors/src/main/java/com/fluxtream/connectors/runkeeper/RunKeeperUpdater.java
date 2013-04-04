@@ -87,8 +87,6 @@ public class RunKeeperUpdater  extends AbstractUpdater {
         }
     }
 
-    final DateTimeFormatter dateFormatter = DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss Z").withZone(DateTimeZone.forID("GMT"));
-
     private void getFitnessActivityFeed(final UpdateInfo updateInfo,
                                         final OAuthService service, final Token token,
                                         String activityFeedURL, final int pageSize,
@@ -97,8 +95,11 @@ public class RunKeeperUpdater  extends AbstractUpdater {
         request.addQuerystringParameter("pageSize", String.valueOf(pageSize));
         request.addQuerystringParameter("oauth_token", token.getToken());
         request.addHeader("Accept", "application/vnd.com.runkeeper.FitnessActivityFeed+json");
-        if (since>0)
-            request.addHeader("If-Modified-Since", dateFormatter.print(since));
+        final DateTimeFormatter dateFormatter = DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss 'GMT'").withZone(DateTimeZone.forID("GMT"));
+        if (since>0) {
+            final String sinceFormatted = dateFormatter.print(since);
+            request.addHeader("If-Modified-Since", sinceFormatted);
+        }
         service.signRequest(token, request);
         long then = System.currentTimeMillis();
         Response response = request.send();
@@ -116,6 +117,9 @@ public class RunKeeperUpdater  extends AbstractUpdater {
                 activityFeedURL = DEFAULT_ENDPOINT + jsonObject.getString("next");
                 getFitnessActivityFeed(updateInfo, service, token, activityFeedURL, pageSize, activities, since);
             }
+        } else if (response.getCode()==304) {
+            countSuccessfulApiCall(updateInfo.apiKey,
+                                   updateInfo.objectTypes, then, activityFeedURL);
         } else {
             countFailedApiCall(updateInfo.apiKey,
                                updateInfo.objectTypes, then, activityFeedURL, "");
