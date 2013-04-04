@@ -155,7 +155,7 @@ public class UpdateWorkerTask extends AbstractEntity {
                 .append(" - next action: ")
                 .append(auditTrailEntry.nextAction);
             if (auditTrailEntry.stackTrace!=null)
-                sb.append("stackTracke: \n")
+                sb.append("\nstackTrack: \n")
                   .append(auditTrailEntry.stackTrace);
         }
         this.auditTrail = sb.toString();
