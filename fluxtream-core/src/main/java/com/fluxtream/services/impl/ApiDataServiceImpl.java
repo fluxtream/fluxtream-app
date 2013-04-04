@@ -358,12 +358,21 @@ public class ApiDataServiceImpl implements ApiDataService {
             if (facet.hasTags()) {
                 persistTags(facet);
             }
-			em.persist(facet);
-            StringBuilder sb = new StringBuilder("module=updateQueue component=apiDataServiceImpl action=persistFacet")
-                    .append(" connector=").append(Connector.fromValue(facet.api).getName())
-                    .append(" objectType=").append(facet.objectType)
-                    .append(" guestId=").append(facet.guestId);
-            logger.info(sb.toString());
+            try {
+                em.persist(facet);
+                StringBuilder sb = new StringBuilder("module=updateQueue component=apiDataServiceImpl action=persistFacet")
+                        .append(" connector=").append(Connector.fromValue(facet.api).getName())
+                        .append(" objectType=").append(facet.objectType)
+                        .append(" guestId=").append(facet.guestId);
+                logger.debug(sb.toString());
+            } catch (Throwable t) {
+                StringBuilder sb = new StringBuilder("module=updateQueue component=apiDataServiceImpl action=persistFacet")
+                        .append(" connector=").append(Connector.fromValue(facet.api).getName())
+                        .append(" objectType=").append(facet.objectType)
+                        .append(" guestId=").append(facet.guestId)
+                        .append(" message=\"" + t.getMessage() + "\"");
+                logger.warn(sb.toString());
+            }
 			return facet;
 		}
 	}
