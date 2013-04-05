@@ -58,7 +58,6 @@ import com.google.gson.Gson;
 import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
 import com.luckycatlabs.sunrisesunset.dto.Location;
 import org.apache.log4j.Logger;
-import org.joda.time.DateTimeConstants;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
@@ -393,6 +392,28 @@ public class CalendarDataStore {
        }
 	}
 
+    @GET
+    @Path("/weather/date/{date}")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String getWeatherDataForADay(@PathParam("date") String date) {
+
+        Guest guest = AuthHelper.getGuest();
+        long guestId = guest.getId();
+
+        DigestModel digest = new DigestModel();
+        DayMetadataFacet dayMetadata = metadataService.getDayMetadata(guestId, date, true);
+        digest.tbounds = getStartEndResponseBoundaries(dayMetadata.start, dayMetadata.end);
+        digest.timeZoneOffset = TimeZone.getTimeZone(dayMetadata.timeZone).getOffset((digest.tbounds.start + digest.tbounds.end)/2);
+
+        City city = metadataService.getMainCity(guestId, dayMetadata);
+        if (city != null){
+            digest.hourlyWeatherData = metadataService.getWeatherInfo(city.geo_latitude,city.geo_longitude, date, 0, 24 * 60);
+            Collections.sort(digest.hourlyWeatherData);
+        }
+
+        return gson.toJson(digest);
+    }
+
 	@GET
 	@Path("/all/date/{date}")
 	@Produces({ MediaType.APPLICATION_JSON })
@@ -428,11 +449,6 @@ public class CalendarDataStore {
             digest.timeZoneOffset = TimeZone.getTimeZone(dayMetadata.timeZone).getOffset((digest.tbounds.start + digest.tbounds.end)/2);
 
             City city = metadataService.getMainCity(guestId, dayMetadata);
-
-            if (city != null){
-                digest.hourlyWeatherData = metadataService.getWeatherInfo(city.geo_latitude,city.geo_longitude, date, 0, 24 * 60);
-                Collections.sort(digest.hourlyWeatherData);
-            }
 
             setSolarInfo(digest, city, guestId, dayMetadata);
 

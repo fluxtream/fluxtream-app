@@ -1,5 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="DataSourceManagerImpl" compressed="false" hash="303346680" />
+  <component name="DataSourceManagerImpl" format="xml" hash="303346680">
+    <data-source source="LOCAL" name="Fluxtream database" product="MySQL" version="5.1.37" jdbc-version="3.0" driver-name="MySQL-AB JDBC Driver" driver-version="mysql-connector-java-5.1.13 ( Revision: ${bzr.revision-id} )" uuid="b1a5c84c-c17d-4131-8695-876e9737450a" case-sensitive="true">
+      <extra-name-characters>#@</extra-name-characters>
+      <identifier-quote-string>`</identifier-quote-string>
+      <jdbc-driver>com.mysql.jdbc.Driver</jdbc-driver>
+      <jdbc-url>jdbc:mysql://localhost:3306/flx</jdbc-url>
+      <user-name>root</user-name>
+      <user-password>dfdadfd8dfc5dfdfdfdedf9cdf93df80</user-password>
+      <schema-pattern>flx.*</schema-pattern>
+      <default-schemas>flx.*</default-schemas>
+      <default-dialect>MySQL</default-dialect>
+      <libraries>
+        <library>
+          <url>jar://$MAVEN_REPOSITORY$/mysql/mysql-connector-java/5.1.13/mysql-connector-java-5.1.13.jar!/</url>
+        </library>
+      </libraries>
+    </data-source>
+  </component>
 </project>
 

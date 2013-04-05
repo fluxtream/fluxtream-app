@@ -25,14 +25,24 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         hideEventInfo();
         this.getTemplate("text!applications/calendar/tabs/clock/clock.html", "clock", function() {
 			 setup(params.digest, params.timeUnit, params.connectorEnabled);
+            fetchWeatherData();
 		});
 	}
+
+    function fetchWeatherData() {
+        $.ajax({ url: "/api/calendar/weather/"+Log.tabState, dataType: "json",
+            success: function(digest) {
+                if (!outsideTimeBoundaries(digest)) {
+                    hourlyWeatherData = digest.hourlyWeatherData;
+                }
+            }
+        });
+    }
 	
 	function setup(digest, timeUnit, cEn) {
         dgst = digest;
         selectedConnectors = digest.selectedConnectors;
         connectorEnabled = cEn;
-        hourlyWeatherData = digest.hourlyWeatherData;
         solarInfo = digest.solarInfo;
         tempratureUnit = digest.settings.temperatureUnit;
         distanceUnit = digest.settings.distanceUnit;
