@@ -45,7 +45,7 @@ public class RetinaController {
     }
 
     private void setCacheTime(HttpServletResponse response, long cacheAge){
-        response.setHeader("Cache-Control", "public, max-age="+ cacheAge);
+        response.setHeader("Cache-Control", "public, max-age="+ cacheAge + ", must-revalidate");
     }
 
     private void setLastModified(HttpServletResponse response, long lastModified){
