@@ -1,12 +1,24 @@
 package com.fluxtream.utils;
 
 import java.util.List;
+import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
+import com.fluxtream.domain.AbstractFacet;
 
 public class JPAUtils {
 
-	public static long count(EntityManager em,
+    public static String getEntityName(Class<? extends AbstractFacet> facetClass) {
+        try {
+            return facetClass.getAnnotation(Entity.class).name();
+        } catch (Throwable t) {
+            final String message = "Could not get Facet class for connector for " + facetClass.getName();
+            throw new RuntimeException(message);
+        }
+    }
+
+
+    public static long count(EntityManager em,
 			String queryName, Object... params) {
 		Query query = em.createNamedQuery(queryName);
 		int i = 1;

@@ -22,4 +22,6 @@ public interface JPADaoService {
 	public void remove(Class<?> clazz, long id);
 
     <T> List<T> executeQuery(String queryString, Class<T> clazz, Object... params);
+
+    <T> List<T>  executeQueryWithLimit(String queryString, int i, Class<T> clazz, Object... params);
 }
