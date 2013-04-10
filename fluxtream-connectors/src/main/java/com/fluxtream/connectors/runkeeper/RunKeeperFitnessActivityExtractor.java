@@ -42,7 +42,7 @@ public class RunKeeperFitnessActivityExtractor extends AbstractFacetExtractor {
 
         super.extractCommonFacetData(facet, apiData);
 
-        String uri = jsonObject.getString("uri") + "|" + jsonObject.getString("userID");
+        String uri = jsonObject.getString("uri");
 
         boolean startTimeSet = false;
         if (jsonObject.has("path")) {
@@ -85,6 +85,7 @@ public class RunKeeperFitnessActivityExtractor extends AbstractFacetExtractor {
         facet.total_distance = jsonObject.getDouble("total_distance");
         facet.is_live = jsonObject.getBoolean("is_live");
         facet.comments = jsonObject.getString("comments");
+        facet.uri = uri;
         if (jsonObject.has("total_climb"))
             facet.total_climb = jsonObject.getDouble("total_climb");
 
