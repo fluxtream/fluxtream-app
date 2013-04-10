@@ -39,8 +39,6 @@ import com.fluxtream.thirdparty.helpers.WWOHelper;
 import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.Utils;
 import net.sf.json.JSONObject;
-import org.apache.log4j.Logger;
-import org.dom4j.Document;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -536,10 +534,33 @@ public class ApiDataServiceImpl implements ApiDataService {
 
     @Override
     @Transactional(readOnly = false)
+    public void addGuestLocations(final long guestId, List<LocationFacet> locationResources) {
+        for (LocationFacet locationResource : locationResources) {
+            locationResource.guestId = guestId;
+            // making the apiKeyId negative will turn the facet into a zombie
+            // and make it recognizable for a separate background task to pick it up and update daymetadata,
+            // which takes time
+            locationResource.apiKeyId = -locationResource.apiKeyId;
+            em.persist(locationResource);
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = false)
     public void addGuestLocation(final long guestId, LocationFacet locationResource) {
+        locationResource.guestId = guestId;
+        // making the apiKeyId negative will turn the facet into a zombie
+        // and make it recognizable for a separate background task to pick it up and update daymetadata,
+        // which takes time
+        locationResource.apiKeyId = -locationResource.apiKeyId;
+        em.persist(locationResource);
+    }
+
+    @Transactional(readOnly = false)
+    public void processLocation(LocationFacet locationResource) {
         // Create query to check for duplicate
-        Query query = em.createQuery("SELECT e FROM Facet_GoogleLatitudeLocation e WHERE e.guestId=? AND e.start=?");
-		query.setParameter(1, guestId);
+        Query query = em.createQuery("SELECT e FROM Facet_GoogleLatitudeLocation e WHERE e.guestId=? AND e.start=? AND e.apiKeyId>0");
+        query.setParameter(1, locationResource.guestId);
 		query.setParameter(2, locationResource.timestampMs);
 		@SuppressWarnings("rawtypes")
 		List existing = query.getResultList();
@@ -549,7 +570,6 @@ public class ApiDataServiceImpl implements ApiDataService {
             // 2c8539c76acbbcd2576458c9ea0144d910a5d836 and location data tables using versions between
             // there and here will have all location data assigned to guestId=0.  Connectors updated with
             // those versions need to be removed and re-added or they will have data gaps
-            locationResource.guestId=guestId;
             locationResource.timeUpdated=System.currentTimeMillis();
             if(locationResource.source==LocationFacet.Source.GOOGLE_LATITUDE) {
                 locationResource.api=Connector.getConnector("google_latitude").value();
@@ -564,18 +584,20 @@ public class ApiDataServiceImpl implements ApiDataService {
             // Put updateDayMetadata in a try/catch block because we don't want to fail update or
             // fail to persist this datapoint due to some problem in the timezone detection, etc.
             try {
-                updateDayMetadata(guestId, locationResource.timestampMs, locationResource.latitude, locationResource.longitude);
+                updateDayMetadata(locationResource.guestId, locationResource.timestampMs, locationResource.latitude, locationResource.longitude);
             } catch(Throwable e) {
                 StringBuilder sb = new StringBuilder("module=updateQueue component=apiDataServiceImpl action=addGuestLocation")
                                     .append(" latitude=").append(locationResource.latitude)
                                     .append(" longitude=").append(locationResource.longitude)
-                                    .append(" guestId=").append(guestId)
+                                    .append(" guestId=").append(locationResource.guestId)
                                     .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
                 logger.warn(sb.toString());
             }
 
+            // make apiKeyId "legit" again
+            locationResource.apiKeyId = -locationResource.apiKeyId;
             // Persist the location
-            em.persist(locationResource);
+            em.merge(locationResource);
         }
     }
 

@@ -8,6 +8,7 @@ import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
 import net.sf.json.JSONObject;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface ApiDataService {
 
@@ -65,6 +66,9 @@ public interface ApiDataService {
 
     public void persistExistingFacet(final AbstractFacet facet);
 
+    @Transactional(readOnly = false)
+    void addGuestLocations(long guestId, List<LocationFacet> locationResources);
+
     // Pass this to createOrReadModifyWrite
     public interface FacetModifier<T extends AbstractFacet> {
         // Override this with your code to either modify or create
@@ -106,5 +110,7 @@ public interface ApiDataService {
 			long toMidnight);
 
     void addGuestLocation(long guestId, LocationFacet locationResource);
+
+    void processLocation(LocationFacet locationResource);
 
 }

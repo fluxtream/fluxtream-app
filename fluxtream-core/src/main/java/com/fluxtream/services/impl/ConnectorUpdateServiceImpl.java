@@ -28,6 +28,7 @@ import com.fluxtream.utils.JPAUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
@@ -49,6 +50,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     ApiDataService apiDataService;
 
     @Autowired
+    @Qualifier("updateWorkersExecutor")
     ThreadPoolTaskExecutor executor;
 
     @Autowired

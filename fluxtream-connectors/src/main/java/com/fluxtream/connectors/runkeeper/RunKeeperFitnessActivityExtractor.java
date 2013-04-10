@@ -47,6 +47,7 @@ public class RunKeeperFitnessActivityExtractor extends AbstractFacetExtractor {
         boolean startTimeSet = false;
         if (jsonObject.has("path")) {
             final JSONArray path = jsonObject.getJSONArray("path");
+            List<LocationFacet> locationFacets = new ArrayList<LocationFacet>();
             for (int i=0; i<path.size(); i++) {
                 JSONObject pathElement = path.getJSONObject(i);
                 LocationFacet locationFacet = new LocationFacet(updateInfo.apiKey.getId());
@@ -70,8 +71,9 @@ public class RunKeeperFitnessActivityExtractor extends AbstractFacetExtractor {
                 locationFacet.apiKeyId = apiData.updateInfo.apiKey.getId();
                 locationFacet.uri = uri;
 
-                apiDataService.addGuestLocation(updateInfo.getGuestId(), locationFacet);
+                locationFacets.add(locationFacet);
             }
+            apiDataService.addGuestLocations(updateInfo.getGuestId(), locationFacets);
         } else {
             //TODO: abort elegantly if we don't have gps data as we are unable to figure out time
             //in this case

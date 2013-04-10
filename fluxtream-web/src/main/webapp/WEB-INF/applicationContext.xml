@@ -22,8 +22,11 @@
         http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
 
-	<task:executor id="executorWithPoolSizeRange" pool-size="5-25"
+	<task:executor id="updateWorkersExecutor" pool-size="5-25"
 		rejection-policy="CALLER_RUNS" queue-capacity="100" />
+
+    <task:executor id="locationDatapointHandlersExecutor" pool-size="5-5"
+                   rejection-policy="CALLER_RUNS" queue-capacity="1" />
 
     <cache:annotation-driven />
 
