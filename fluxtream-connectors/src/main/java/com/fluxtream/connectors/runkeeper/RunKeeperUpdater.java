@@ -6,9 +6,12 @@ import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
+import com.fluxtream.domain.ApiKey;
+import com.fluxtream.services.JPADaoService;
+import com.fluxtream.utils.JPAUtils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import com.fluxtream.aspects.FlxLogger;
+import org.joda.time.DateTimeConstants;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -29,12 +32,13 @@ import org.springframework.stereotype.Component;
          objectTypes = {RunKeeperFitnessActivityFacet.class})
 public class RunKeeperUpdater  extends AbstractUpdater {
 
-    FlxLogger logger = FlxLogger.getLogger(RunKeeperUpdater.class);
-
     final String DEFAULT_ENDPOINT= "https://api.runkeeper.com";
 
     @Autowired
     RunKeeperController runKeeperController;
+
+    @Autowired
+    JPADaoService jpaDaoService;
 
     @Override
     protected void updateConnectorDataHistory(final UpdateInfo updateInfo) throws Exception {
@@ -58,7 +62,9 @@ public class RunKeeperUpdater  extends AbstractUpdater {
         String fitnessActivities = jsonObject.getString("fitness_activities");
         List<String> activities = new ArrayList<String>();
         String activityFeedURL = DEFAULT_ENDPOINT + fitnessActivities;
-        getFitnessActivityFeed(updateInfo, service, token, activityFeedURL, 25, activities, since);
+
+        final List<String> uriList = getActivityUriList(updateInfo.apiKey);
+        getFitnessActivityFeed(updateInfo, service, token, activityFeedURL, 25, activities, since, uriList);
         getFitnessActivities(updateInfo, service, token, activities);
         guestService.setApiKeyAttribute(updateInfo.apiKey,
                                         "lastUpdated", String.valueOf(System.currentTimeMillis()));
@@ -87,18 +93,37 @@ public class RunKeeperUpdater  extends AbstractUpdater {
         }
     }
 
-    private void getFitnessActivityFeed(final UpdateInfo updateInfo,
-                                        final OAuthService service, final Token token,
-                                        String activityFeedURL, final int pageSize,
-                                        List<String> activities, long since) {
+    /**
+     * Get the feed of activities in a succint format. Activity info (with gps data etc) is fetched in a separate call
+     * (one per activity). We want to limit this feed to those activities that we haven't already stored of course but
+     * unfortunately the Runkeeper API call will by default retrieve the entire feed. Optional parameters
+     * (<code>noEarlierThan</code>, <code>noLaterThan</code>) are able to limit the dataset, but they will only accept dates specified in
+     * <code>yyyy-MM-DD</code> format, which obviously limits the boundary limits granularity to a day. Additionally, it is unclear
+     * what timezone is used to filter the dataset (is it GMT, that is then converted to the local time, or is the
+     * parameter given in local time?). Consequently, we use the <code>noEarlierThan</code> parameter with a one day padding and
+     * further filter the dataset using the list of activity that we already have data for (<code>uriList</code>).
+     * @param updateInfo
+     * @param service
+     * @param token
+     * @param activityFeedURL
+     * @param pageSize
+     * @param activities
+     * @param since
+     * @param uriList
+     */
+    private void getFitnessActivityFeed(final UpdateInfo updateInfo, final OAuthService service, final Token token, String activityFeedURL, final int pageSize, List<String> activities, long since, final List<String> uriList) {
         OAuthRequest request = new OAuthRequest(Verb.GET, activityFeedURL);
         request.addQuerystringParameter("pageSize", String.valueOf(pageSize));
         request.addQuerystringParameter("oauth_token", token.getToken());
         request.addHeader("Accept", "application/vnd.com.runkeeper.FitnessActivityFeed+json");
         final DateTimeFormatter dateFormatter = DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss 'GMT'").withZone(DateTimeZone.forID("GMT"));
+        final DateTimeFormatter simpleDateFormatter = DateTimeFormat.forPattern("yyyy-MM-DD").withZone(DateTimeZone.forID("GMT"));
         if (since>0) {
             final String sinceFormatted = dateFormatter.print(since);
+            // add one day of padding to account for unknown timezone
+            final String noEarlierFormatted = simpleDateFormatter.print(since-DateTimeConstants.MILLIS_PER_DAY);
             request.addHeader("If-Modified-Since", sinceFormatted);
+            request.addQuerystringParameter("noEarlierThan", noEarlierFormatted);
         }
         service.signRequest(token, request);
         long then = System.currentTimeMillis();
@@ -109,13 +134,16 @@ public class RunKeeperUpdater  extends AbstractUpdater {
             final JSONArray items = jsonObject.getJSONArray("items");
             for(int i=0; i<items.size(); i++) {
                 JSONObject item = items.getJSONObject(i);
-                activities.add(item.getString("uri"));
+                final String uri = item.getString("uri");
+                if (uriList.contains(uri))
+                    continue;
+                activities.add(uri);
             }
             countSuccessfulApiCall(updateInfo.apiKey,
                                    updateInfo.objectTypes, then, activityFeedURL);
             if (jsonObject.has("next")) {
                 activityFeedURL = DEFAULT_ENDPOINT + jsonObject.getString("next");
-                getFitnessActivityFeed(updateInfo, service, token, activityFeedURL, pageSize, activities, since);
+                getFitnessActivityFeed(updateInfo, service, token, activityFeedURL, pageSize, activities, since, uriList);
             }
         } else if (response.getCode()==304) {
             countSuccessfulApiCall(updateInfo.apiKey,
@@ -127,10 +155,28 @@ public class RunKeeperUpdater  extends AbstractUpdater {
         }
     }
 
+    /**
+     * retrieve the 10 last activity uris that we already have in store
+     * @param apiKey
+     * @return a list of activity uris
+     */
+    protected List<String> getActivityUriList(ApiKey apiKey) {
+        final String entityName = JPAUtils.getEntityName(RunKeeperFitnessActivityFacet.class);
+        final List<RunKeeperFitnessActivityFacet> facets = jpaDaoService.executeQueryWithLimit("SELECT facet from " + entityName + " facet WHERE facet.apiKeyId=? ORDER BY facet.start DESC", 10, RunKeeperFitnessActivityFacet.class, apiKey.getId());
+        List<String> uris = new ArrayList<String>();
+        for (RunKeeperFitnessActivityFacet facet : facets) {
+            uris.add(facet.uri);
+        }
+        return uris;
+    }
+
     @Override
     protected void updateConnectorData(final UpdateInfo updateInfo) throws Exception {
-        final String lastUpdatedString = guestService.getApiKeyAttribute(updateInfo.apiKey, "lastUpdated");
-        final long lastUpdated = Long.valueOf(lastUpdatedString);
+        final String entityName = JPAUtils.getEntityName(RunKeeperFitnessActivityFacet.class);
+        final List<RunKeeperFitnessActivityFacet> newest = jpaDaoService.executeQueryWithLimit("SELECT facet from " + entityName + " facet WHERE facet.apiKeyId=? ORDER BY facet.start DESC", 1, RunKeeperFitnessActivityFacet.class, updateInfo.apiKey.getId());
+        long lastUpdated = 0;
+        if (newest.size()>0)
+            lastUpdated = newest.get(0).end;
         updateData(updateInfo, lastUpdated);
     }
 
