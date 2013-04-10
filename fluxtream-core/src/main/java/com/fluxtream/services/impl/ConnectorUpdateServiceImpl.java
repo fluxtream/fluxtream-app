@@ -26,6 +26,7 @@ import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.SystemService;
 import com.fluxtream.utils.JPAUtils;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
@@ -35,7 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Component
 @Transactional(readOnly=true)
-public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
+public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, InitializingBean {
 
     static FlxLogger logger = FlxLogger.getLogger(ConnectorUpdateServiceImpl.class);
 
@@ -61,6 +62,12 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
 
     @Autowired
     MetadataService metadataService;
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        executor.setThreadGroupName("UpdateWorkers");
+        executor.setThreadNamePrefix("UpdateWorker-");
+    }
 
     /**
      * This makes sure that we are only executing Update Jobs that were
@@ -541,5 +548,4 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService {
         task.addAuditTrailEntry(auditTrailEntry);
         em.persist(task);
     }
-
 }
