@@ -277,9 +277,10 @@ public class JPAFacetDao implements FacetDao {
 
     private void deleteLocationData(final ApiKey apiKey) {
         final String facetName = getEntityName(LocationFacet.class);
-        String stmtString = "DELETE FROM " + facetName + " facet WHERE facet.apiKeyId=?";
+        String stmtString = "DELETE FROM " + facetName + " facet WHERE facet.apiKeyId=? OR facet.apiKeyId=?";
         final Query query = em.createQuery(stmtString);
         query.setParameter(1, apiKey.getId());
+        query.setParameter(2, -apiKey.getId());
         query.executeUpdate();
     }
 

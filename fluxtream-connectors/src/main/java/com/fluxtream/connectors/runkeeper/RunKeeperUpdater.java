@@ -43,8 +43,6 @@ public class RunKeeperUpdater  extends AbstractUpdater {
     @Override
     protected void updateConnectorDataHistory(final UpdateInfo updateInfo) throws Exception {
         updateData(updateInfo, 0);
-        guestService.setApiKeyAttribute(updateInfo.apiKey,
-                                        "lastUpdated", String.valueOf(System.currentTimeMillis()));
     }
 
     private void updateData(final UpdateInfo updateInfo, final long since) throws Exception {
@@ -66,8 +64,6 @@ public class RunKeeperUpdater  extends AbstractUpdater {
         final List<String> uriList = getActivityUriList(updateInfo.apiKey);
         getFitnessActivityFeed(updateInfo, service, token, activityFeedURL, 25, activities, since, uriList);
         getFitnessActivities(updateInfo, service, token, activities);
-        guestService.setApiKeyAttribute(updateInfo.apiKey,
-                                        "lastUpdated", String.valueOf(System.currentTimeMillis()));
     }
 
     private void getFitnessActivities(final UpdateInfo updateInfo, final OAuthService service,
@@ -117,7 +113,7 @@ public class RunKeeperUpdater  extends AbstractUpdater {
         request.addQuerystringParameter("oauth_token", token.getToken());
         request.addHeader("Accept", "application/vnd.com.runkeeper.FitnessActivityFeed+json");
         final DateTimeFormatter dateFormatter = DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss 'GMT'").withZone(DateTimeZone.forID("GMT"));
-        final DateTimeFormatter simpleDateFormatter = DateTimeFormat.forPattern("yyyy-MM-DD").withZone(DateTimeZone.forID("GMT"));
+        final DateTimeFormatter simpleDateFormatter = DateTimeFormat.forPattern("yyyy-MM-dd").withZone(DateTimeZone.forID("GMT"));
         if (since>0) {
             final String sinceFormatted = dateFormatter.print(since);
             // add one day of padding to account for unknown timezone
@@ -156,13 +152,13 @@ public class RunKeeperUpdater  extends AbstractUpdater {
     }
 
     /**
-     * retrieve the 10 last activity uris that we already have in store
+     * retrieve the 25 last activity uris that we already have in store
      * @param apiKey
      * @return a list of activity uris
      */
     protected List<String> getActivityUriList(ApiKey apiKey) {
         final String entityName = JPAUtils.getEntityName(RunKeeperFitnessActivityFacet.class);
-        final List<RunKeeperFitnessActivityFacet> facets = jpaDaoService.executeQueryWithLimit("SELECT facet from " + entityName + " facet WHERE facet.apiKeyId=? ORDER BY facet.start DESC", 10, RunKeeperFitnessActivityFacet.class, apiKey.getId());
+        final List<RunKeeperFitnessActivityFacet> facets = jpaDaoService.executeQueryWithLimit("SELECT facet from " + entityName + " facet WHERE facet.apiKeyId=? ORDER BY facet.start DESC", 25, RunKeeperFitnessActivityFacet.class, apiKey.getId());
         List<String> uris = new ArrayList<String>();
         for (RunKeeperFitnessActivityFacet facet : facets) {
             uris.add(facet.uri);
@@ -177,6 +173,8 @@ public class RunKeeperUpdater  extends AbstractUpdater {
         long lastUpdated = 0;
         if (newest.size()>0)
             lastUpdated = newest.get(0).end;
+        else
+            throw new Exception("Unexpected Error: no existing facets with an incremental update");
         updateData(updateInfo, lastUpdated);
     }
 
