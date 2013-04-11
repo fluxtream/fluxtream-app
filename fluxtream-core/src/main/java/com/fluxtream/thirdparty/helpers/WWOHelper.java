@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import com.fluxtream.Configuration;
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.domain.metadata.DayMetadataFacet;
 import com.fluxtream.domain.metadata.WeatherInfo;
 import net.sf.json.JSONArray;
@@ -17,6 +18,8 @@ import static com.fluxtream.utils.HttpUtils.fetch;
 
 @Component
 public class WWOHelper {
+
+    FlxLogger logger = FlxLogger.getLogger(WWOHelper.class);
 
 	@Autowired
 	private Configuration env;
@@ -50,7 +53,11 @@ public class WWOHelper {
 
 		String wwoUrl = "http://www.worldweatheronline.com/feed/premium-weather-v2.ashx?" +
 "key=" + env.get("wwo.key") + "&feedkey=" + env.get("wwo.feedkey") + "&format=json&q=" + latitude + "," + longitude + "&date=" + fdate;
+        long then = System.currentTimeMillis();
 		String wwoJson = fetch(wwoUrl);
+        long now = System.currentTimeMillis();
+        if (now-then>3000)
+            logger.warn("WorldWeatherOnline just got very slow (" + (now-then)+ " ms)");
 
 		JSONObject wwoInfo = JSONObject.fromObject(wwoJson);
 		if (wwoInfo!=null) {
