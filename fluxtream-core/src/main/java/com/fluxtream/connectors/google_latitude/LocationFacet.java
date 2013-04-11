@@ -12,6 +12,7 @@ import org.hibernate.annotations.Index;
 import com.fluxtream.domain.AbstractFacet;
 import com.google.api.client.googleapis.json.JsonCContent;
 import com.google.api.client.util.Key;
+import org.hibernate.annotations.Type;
 
 @Entity(name="Facet_GoogleLatitudeLocation")
 @ObjectTypeSpec(name = "location", value = 1, prettyname = "Location")
@@ -87,6 +88,10 @@ public class LocationFacet extends AbstractFacet implements Comparable<LocationF
 	public String version;
 
 	public String os;
+
+    @Type(type="yes_no")
+    @Index(name="processed_index")
+    public boolean processed;
 
     /**
      * serves as a backreference to the resource that originated in this coordinate,
