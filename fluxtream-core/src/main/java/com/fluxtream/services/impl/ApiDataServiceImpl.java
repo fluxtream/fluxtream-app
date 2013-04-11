@@ -44,7 +44,6 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,18 +66,15 @@ public class ApiDataServiceImpl implements ApiDataService {
 	@Autowired
 	GuestService guestService;
 
-    @Qualifier("JPAFacetDao")
     @Autowired
 	FacetDao jpaDao;
 
 	@Autowired
 	BeanFactory beanFactory;
 
-    @Qualifier("bodyTrackStorageServiceImpl")
     @Autowired
 	BodyTrackStorageService bodyTrackStorageService;
 
-    @Qualifier("metadataServiceImpl")
     @Autowired
     MetadataService metadataService;
 
@@ -553,6 +549,7 @@ public class ApiDataServiceImpl implements ApiDataService {
         // and make it recognizable for a separate background task to pick it up and update daymetadata,
         // which takes time
         locationResource.apiKeyId = -locationResource.apiKeyId;
+        locationResource.processed = false;
         em.persist(locationResource);
     }
 
@@ -596,6 +593,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 
             // make apiKeyId "legit" again
             locationResource.apiKeyId = -locationResource.apiKeyId;
+            locationResource.processed = true;
             // Persist the location
             em.merge(locationResource);
         }
