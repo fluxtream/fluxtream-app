@@ -15,7 +15,11 @@ import org.springframework.stereotype.Component;
 @Scope("prototype")
 public class LocationDatapointHandler implements Runnable {
 
-    LocationFacet locationFacet;
+    public void setLocationFacet(final LocationFacet locationFacet) {
+        this.locationFacet = locationFacet;
+    }
+
+    private LocationFacet locationFacet;
 
     @Autowired
     ApiDataService apiDataService;
