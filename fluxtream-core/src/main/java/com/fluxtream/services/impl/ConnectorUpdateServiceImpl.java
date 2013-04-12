@@ -341,10 +341,11 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
 
     @Override
     @Transactional(readOnly = false)
-    public void addApiUpdate(final long guestId, final Connector connector, int objectTypes, long ts, long elapsed, String query, boolean success) {
+    public void addApiUpdate(final ApiKey apiKey, int objectTypes, long ts, long elapsed, String query, boolean success) {
         ApiUpdate updt = new ApiUpdate();
-        updt.guestId = guestId;
-        updt.api = connector.value();
+        updt.guestId = apiKey.getGuestId();
+        updt.api = apiKey.getConnector().value();
+        updt.apiKeyId = apiKey.getId();
         updt.ts = System.currentTimeMillis();
         updt.query = query;
         updt.objectTypes = objectTypes;
