@@ -179,7 +179,7 @@ public abstract class AbstractUpdater extends ApiClientSupport {
                 .append(" guestId=").append(apiKey.getGuestId())
                 .append(" query=").append(query);
         logger.info(sb.toString());
-		connectorUpdateService.addApiUpdate(apiKey.getGuestId(), apiKey.getConnector(), objectTypes, then, System.currentTimeMillis() - then, query, true);
+		connectorUpdateService.addApiUpdate(apiKey, objectTypes, then, System.currentTimeMillis() - then, query, true);
 	}
 
 	final protected void countFailedApiCall(ApiKey apiKey, int objectTypes,
@@ -192,7 +192,7 @@ public abstract class AbstractUpdater extends ApiClientSupport {
                 .append(" query=").append(query)
                 .append(" stackTrace=<![CDATA[").append(stackTrace).append("]]>");
         logger.info(sb.toString());
-		connectorUpdateService.addApiUpdate(apiKey.getGuestId(), apiKey.getConnector(), objectTypes, then, System.currentTimeMillis() - then, query, false);
+		connectorUpdateService.addApiUpdate(apiKey, objectTypes, then, System.currentTimeMillis() - then, query, false);
 	}
 
     /**

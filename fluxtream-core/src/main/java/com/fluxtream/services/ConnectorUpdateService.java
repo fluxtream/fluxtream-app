@@ -49,7 +49,7 @@ public interface ConnectorUpdateService {
 	public ApiUpdate getLastSuccessfulUpdate(ApiKey apiKey,
 			int objectTypes);
 
-	public void addApiUpdate(final long guestId, final Connector connector, int objectTypes, long ts, long elapsed, String query, boolean success);
+	public void addApiUpdate(final ApiKey apiKey, int objectTypes, long ts, long elapsed, String query, boolean success);
 
 	public void addApiNotification(Connector connector, long guestId, String content);
 

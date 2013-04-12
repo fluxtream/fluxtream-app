@@ -41,14 +41,14 @@ public class SignpostOAuthHelper extends ApiClientSupport {
 			request.connect();
 			if (request.getResponseCode() == 200) {
 				String json = IOUtils.toString(request.getInputStream());
-				connectorUpdateService.addApiUpdate(apiKey.getGuestId(), apiKey.getConnector(),
+				connectorUpdateService.addApiUpdate(apiKey,
 						objectTypes, then, System.currentTimeMillis() - then,
 						urlString, true);
 				// logger.info(apiKey.getGuestId(), "REST call success: " +
 				// urlString);
 				return json;
 			} else {
-				connectorUpdateService.addApiUpdate(apiKey.getGuestId(), apiKey.getConnector(),
+				connectorUpdateService.addApiUpdate(apiKey,
 						objectTypes, then, System.currentTimeMillis() - then,
 						urlString, false);
 				throw new RuntimeException(

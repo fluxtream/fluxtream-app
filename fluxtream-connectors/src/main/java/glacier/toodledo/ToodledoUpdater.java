@@ -12,7 +12,6 @@ import com.fluxtream.connectors.updaters.RateLimitReachedException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.services.GuestService;
-import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -56,122 +55,122 @@ public class ToodledoUpdater extends AbstractUpdater {
 	}
 
 	private void sync(UpdateInfo updateInfo) throws Exception {
-		String userKey = getKey(updateInfo);
-		String url = TOODLEDO_ACCOUNT_INFO + "?key=" + userKey;
-		String mostRecentJsonString = restHelper.makeRestCall(updateInfo.apiKey.getGuestId(), updateInfo.apiKey.getConnector(), -1, url);
-		JSONObject mostRecentAccountInfo = JSONObject
-				.fromObject(mostRecentJsonString);
-		String lastAccountInfoJsonString = guestService.getApiKeyAttribute(
-				updateInfo.apiKey, "lastAccountInfo");
-		JSONObject lastSyncAccountInfo = JSONObject
-				.fromObject(lastAccountInfoJsonString);
-
-		if (mostRecentAccountInfo.has("errorCode"))
-			throw new Exception("Could not sync with toodledo: "
-					+ mostRecentAccountInfo.getString("errorDesc"));
-		if (lastAccountInfoJsonString != null) {
-			if (mostRecentAccountInfo.getLong("lastedit_goal") > lastSyncAccountInfo
-					.getLong("lastedit_goal")) {
-				retrieveGoals(updateInfo,
-						lastSyncAccountInfo.getLong("lastedit_goal"), true);
-			}
-		} else
-			retrieveGoals(updateInfo, 0, false);
-		if (lastAccountInfoJsonString != null) {
-			long lastTasksUpdateLocal = Math.max(
-					lastSyncAccountInfo.getLong("lastedit_task"),
-					lastSyncAccountInfo.getLong("lastdelete_task"));
-			long lastTasksUpdateRemote = Math.max(
-					mostRecentAccountInfo.getLong("lastedit_task"),
-					mostRecentAccountInfo.getLong("lastdelete_task"));
-			if (lastTasksUpdateRemote > lastTasksUpdateLocal) {
-				retrieveTasks(updateInfo, lastTasksUpdateLocal, true);
-			}
-		} else {
-			retrieveTasks(updateInfo, 0, false);
-		}
-		guestService.setApiKeyAttribute(updateInfo.apiKey,
-				"lastAccountInfo", mostRecentJsonString);
+		//String userKey = getKey(updateInfo);
+		//String url = TOODLEDO_ACCOUNT_INFO + "?key=" + userKey;
+		//String mostRecentJsonString = restHelper.makeRestCall(updateInfo.apiKey.getGuestId(), updateInfo.apiKey.getConnector(), -1, url);
+		//JSONObject mostRecentAccountInfo = JSONObject
+		//		.fromObject(mostRecentJsonString);
+		//String lastAccountInfoJsonString = guestService.getApiKeyAttribute(
+		//		updateInfo.apiKey, "lastAccountInfo");
+		//JSONObject lastSyncAccountInfo = JSONObject
+		//		.fromObject(lastAccountInfoJsonString);
+        //
+		//if (mostRecentAccountInfo.has("errorCode"))
+		//	throw new Exception("Could not sync with toodledo: "
+		//			+ mostRecentAccountInfo.getString("errorDesc"));
+		//if (lastAccountInfoJsonString != null) {
+		//	if (mostRecentAccountInfo.getLong("lastedit_goal") > lastSyncAccountInfo
+		//			.getLong("lastedit_goal")) {
+		//		retrieveGoals(updateInfo,
+		//				lastSyncAccountInfo.getLong("lastedit_goal"), true);
+		//	}
+		//} else
+		//	retrieveGoals(updateInfo, 0, false);
+		//if (lastAccountInfoJsonString != null) {
+		//	long lastTasksUpdateLocal = Math.max(
+		//			lastSyncAccountInfo.getLong("lastedit_task"),
+		//			lastSyncAccountInfo.getLong("lastdelete_task"));
+		//	long lastTasksUpdateRemote = Math.max(
+		//			mostRecentAccountInfo.getLong("lastedit_task"),
+		//			mostRecentAccountInfo.getLong("lastdelete_task"));
+		//	if (lastTasksUpdateRemote > lastTasksUpdateLocal) {
+		//		retrieveTasks(updateInfo, lastTasksUpdateLocal, true);
+		//	}
+		//} else {
+		//	retrieveTasks(updateInfo, 0, false);
+		//}
+		//guestService.setApiKeyAttribute(updateInfo.apiKey,
+		//		"lastAccountInfo", mostRecentJsonString);
 	}
 
 	private void retrieveGoals(UpdateInfo updateInfo, long since, boolean update)
 			throws RateLimitReachedException, Exception {
-		String key = getKey(updateInfo);
-		String urlString = TOODLEDO_GOALS_GET + "?key=" + key;
-		String goalsJson = restHelper.makeRestCall(updateInfo.apiKey.getGuestId(), updateInfo.apiKey.getConnector(), 2, urlString);
-		apiDataService.eraseApiData(updateInfo.apiKey, 2);
-		JSONArray goalsArray = JSONArray.fromObject(goalsJson);
-		for (int i = 0; i < goalsArray.size(); i++) {
-			JSONObject goal = goalsArray.getJSONObject(i);
-			ToodledoGoalFacet goalFacet = new ToodledoGoalFacet(updateInfo.apiKey.getId());
-			goalFacet.archived = (byte) goal.getInt("archived");
-			goalFacet.contributes = goal.getLong("contributes");
-			goalFacet.level = goal.getInt("level");
-			goalFacet.name = goal.getString("name");
-			goalFacet.note = goal.getString("note");
-			goalFacet.guestId = updateInfo.getGuestId();
-			goalFacet.api = connector().value();
-			goalFacet.objectType = 2;
-			long now = System.currentTimeMillis();
-			goalFacet.timeUpdated = now;
-			jpaDaoService.persist(goalFacet);
-		}
+		//String key = getKey(updateInfo);
+		//String urlString = TOODLEDO_GOALS_GET + "?key=" + key;
+		//String goalsJson = restHelper.makeRestCall(updateInfo.apiKey.getGuestId(), updateInfo.apiKey.getConnector(), 2, urlString);
+		//apiDataService.eraseApiData(updateInfo.apiKey, 2);
+		//JSONArray goalsArray = JSONArray.fromObject(goalsJson);
+		//for (int i = 0; i < goalsArray.size(); i++) {
+		//	JSONObject goal = goalsArray.getJSONObject(i);
+		//	ToodledoGoalFacet goalFacet = new ToodledoGoalFacet(updateInfo.apiKey.getId());
+		//	goalFacet.archived = (byte) goal.getInt("archived");
+		//	goalFacet.contributes = goal.getLong("contributes");
+		//	goalFacet.level = goal.getInt("level");
+		//	goalFacet.name = goal.getString("name");
+		//	goalFacet.note = goal.getString("note");
+		//	goalFacet.guestId = updateInfo.getGuestId();
+		//	goalFacet.api = connector().value();
+		//	goalFacet.objectType = 2;
+		//	long now = System.currentTimeMillis();
+		//	goalFacet.timeUpdated = now;
+		//	jpaDaoService.persist(goalFacet);
+		//}
 	}
 
 	private void retrieveTasks(UpdateInfo updateInfo, long since, boolean update)
 			throws RateLimitReachedException, Exception {
-		String key = getKey(updateInfo);
-		String urlString = TOODLEDO_TASKS_GET + "?key=" + key + "&after="
-				+ since;
-		String tasksJson = restHelper.makeRestCall(updateInfo.apiKey.getGuestId(), updateInfo.apiKey.getConnector(), 1, urlString);
-		JSONArray tasksArray = JSONArray.fromObject(tasksJson);
-		JSONObject arrayInfo = tasksArray.getJSONObject(0);
-		for (int i = 0; i < arrayInfo.getInt("total"); i++) {
-			JSONObject task = tasksArray.getJSONObject(i + 1);
-			if (task.has("total"))
-				continue;
-			long toodledo_id = task.getLong("id");
-			if (update) {
-				ToodledoTaskFacet oldTask = jpaDaoService.findOne(
-						"toodledo.task.byToodledoId", ToodledoTaskFacet.class,
-						updateInfo.getGuestId(), toodledo_id);
-				if (oldTask != null)
-					jpaDaoService.remove(oldTask.getClass(), oldTask.getId());
-			}
-			ToodledoTaskFacet taskFacet = new ToodledoTaskFacet(updateInfo.apiKey.getId());
-			taskFacet.guestId = updateInfo.getGuestId();
-			taskFacet.toodledo_id = toodledo_id;
-			if (task.has("goal"))
-				taskFacet.goal = task.getLong("goal");
-			taskFacet.modified = task.getLong("modified");
-			taskFacet.completed = task.getLong("completed");
-			if (taskFacet.completed != 0) {
-				taskFacet.start = taskFacet.modified * 1000;
-				taskFacet.end = taskFacet.modified * 1000;
-			}
-			taskFacet.title = task.getString("title");
-			taskFacet.api = connector().value();
-			taskFacet.objectType = 1;
-			jpaDaoService.persist(taskFacet);
-		}
-		if (update) {
-			urlString = TOODLEDO_TASKS_GET_DELETED + "?key=" + key + "&after="
-					+ since;
-			String tasksToDeleteJson = restHelper.makeRestCall(updateInfo.apiKey.getGuestId(), updateInfo.apiKey.getConnector(), 1, urlString);
-			JSONArray tasksToDeleteArray = JSONArray
-					.fromObject(tasksToDeleteJson);
-			arrayInfo = tasksToDeleteArray.getJSONObject(0);
-			for (int i = 0; i < arrayInfo.getInt("num"); i++) {
-				JSONObject task = tasksToDeleteArray.getJSONObject(i + 1);
-				long toodledo_id = task.getLong("id");
-				ToodledoTaskFacet taskToDelete = jpaDaoService.findOne(
-						"toodledo.task.byToodledoId", ToodledoTaskFacet.class,
-						updateInfo.getGuestId(), toodledo_id);
-				if (taskToDelete != null)
-					jpaDaoService.remove(taskToDelete.getClass(),
-							taskToDelete.getId());
-			}
-		}
+		//String key = getKey(updateInfo);
+		//String urlString = TOODLEDO_TASKS_GET + "?key=" + key + "&after="
+		//		+ since;
+		//String tasksJson = restHelper.makeRestCall(updateInfo.apiKey.getGuestId(), updateInfo.apiKey.getConnector(), 1, urlString);
+		//JSONArray tasksArray = JSONArray.fromObject(tasksJson);
+		//JSONObject arrayInfo = tasksArray.getJSONObject(0);
+		//for (int i = 0; i < arrayInfo.getInt("total"); i++) {
+		//	JSONObject task = tasksArray.getJSONObject(i + 1);
+		//	if (task.has("total"))
+		//		continue;
+		//	long toodledo_id = task.getLong("id");
+		//	if (update) {
+		//		ToodledoTaskFacet oldTask = jpaDaoService.findOne(
+		//				"toodledo.task.byToodledoId", ToodledoTaskFacet.class,
+		//				updateInfo.getGuestId(), toodledo_id);
+		//		if (oldTask != null)
+		//			jpaDaoService.remove(oldTask.getClass(), oldTask.getId());
+		//	}
+		//	ToodledoTaskFacet taskFacet = new ToodledoTaskFacet(updateInfo.apiKey.getId());
+		//	taskFacet.guestId = updateInfo.getGuestId();
+		//	taskFacet.toodledo_id = toodledo_id;
+		//	if (task.has("goal"))
+		//		taskFacet.goal = task.getLong("goal");
+		//	taskFacet.modified = task.getLong("modified");
+		//	taskFacet.completed = task.getLong("completed");
+		//	if (taskFacet.completed != 0) {
+		//		taskFacet.start = taskFacet.modified * 1000;
+		//		taskFacet.end = taskFacet.modified * 1000;
+		//	}
+		//	taskFacet.title = task.getString("title");
+		//	taskFacet.api = connector().value();
+		//	taskFacet.objectType = 1;
+		//	jpaDaoService.persist(taskFacet);
+		//}
+		//if (update) {
+		//	urlString = TOODLEDO_TASKS_GET_DELETED + "?key=" + key + "&after="
+		//			+ since;
+		//	String tasksToDeleteJson = restHelper.makeRestCall(updateInfo.apiKey.getGuestId(), updateInfo.apiKey.getConnector(), 1, urlString);
+		//	JSONArray tasksToDeleteArray = JSONArray
+		//			.fromObject(tasksToDeleteJson);
+		//	arrayInfo = tasksToDeleteArray.getJSONObject(0);
+		//	for (int i = 0; i < arrayInfo.getInt("num"); i++) {
+		//		JSONObject task = tasksToDeleteArray.getJSONObject(i + 1);
+		//		long toodledo_id = task.getLong("id");
+		//		ToodledoTaskFacet taskToDelete = jpaDaoService.findOne(
+		//				"toodledo.task.byToodledoId", ToodledoTaskFacet.class,
+		//				updateInfo.getGuestId(), toodledo_id);
+		//		if (taskToDelete != null)
+		//			jpaDaoService.remove(taskToDelete.getClass(),
+		//					taskToDelete.getId());
+		//	}
+		//}
 	}
 
 	private String getKey(UpdateInfo updateInfo) throws Exception {
@@ -214,7 +213,7 @@ public class ToodledoUpdater extends AbstractUpdater {
 		String url = TOODLEDO_ACCOUNT_TOKEN + "?userid=" + userid + ";appid="
 				+ appId + ";sig=" + signature;
 		try {
-			String json = restHelper.makeRestCall(updateInfo.apiKey.getGuestId(), updateInfo.apiKey.getConnector(), -1, url);
+			String json = restHelper.makeRestCall(updateInfo.apiKey, -1, url);
 			JSONObject accountTokenJson = JSONObject.fromObject(json);
 			if (accountTokenJson.has("errorCode")) {
 				String errorMessage = accountTokenJson.getString("errorDesc");
@@ -241,18 +240,19 @@ public class ToodledoUpdater extends AbstractUpdater {
 	public String getToodledoUserid(long guestId, Connector connector, String email, String password)
 			throws RateLimitReachedException, Exception {
 
-		String appId = env.get("toodledo.appId");
-		String appToken = env.get("toodledo.appToken");
-		String signature = hash(email + appToken);
-
-		String url = TOODLEDO_ACCOUNT_LOOKUP + "?appid=" + appId + ";sig="
-				+ signature + ";email=" + email + ";pass=" + password;
-		String json = restHelper.makeRestCall(guestId, connector, -1, url);
-		JSONObject accountLookupJson = JSONObject.fromObject(json);
-		String userid = accountLookupJson.getString("userid");
-		if (userid == null)
-			return null;
-		return userid;
+		//String appId = env.get("toodledo.appId");
+		//String appToken = env.get("toodledo.appToken");
+		//String signature = hash(email + appToken);
+        //
+		//String url = TOODLEDO_ACCOUNT_LOOKUP + "?appid=" + appId + ";sig="
+		//		+ signature + ";email=" + email + ";pass=" + password;
+		//String json = restHelper.makeRestCall(guestId, connector, -1, url);
+		//JSONObject accountLookupJson = JSONObject.fromObject(json);
+		//String userid = accountLookupJson.getString("userid");
+		//if (userid == null)
+		//	return null;
+		//return userid;
+        return null;
 	}
 
 }
