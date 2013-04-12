@@ -1,14 +1,10 @@
 package com.fluxtream.connectors.dao;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
-import javax.persistence.ManyToMany;
-import javax.persistence.OneToMany;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
@@ -22,6 +18,7 @@ import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
+import com.fluxtream.utils.JPAUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.Cacheable;
@@ -264,7 +261,7 @@ public class JPAFacetDao implements FacetDao {
         } else {
             // if facet has joins delete each facet one-by-one (this is a limitation of JPA)
             Class<? extends AbstractFacet> facetClass = getFacetClass(apiKey.getConnector(), objectType);
-            if (hasRelation(facetClass)) {
+            if (JPAUtils.hasRelation(facetClass)) {
                deleteFacetsOneByOne(apiKey, facetClass);
             } else {
                 bulkDeleteFacets(apiKey, facetClass);
@@ -306,17 +303,6 @@ public class JPAFacetDao implements FacetDao {
         query.setParameter(2, apiKey.getId());
         List<? extends AbstractFacet> found = query.getResultList();
         return found;
-    }
-
-    private boolean hasRelation(final Class<? extends AbstractFacet> facetClass) {
-        final Field[] fields = facetClass.getFields();
-        for (Field field : fields) {
-            if (field.getAnnotation(OneToMany.class)!=null||
-                field.getAnnotation(ManyToMany.class)!=null||
-                field.getAnnotation(ElementCollection.class)!=null)
-                return true;
-        }
-        return false;
     }
 
     private void bulkDeleteFacets(final ApiKey apiKey, final Class<? extends AbstractFacet> facetClass) {

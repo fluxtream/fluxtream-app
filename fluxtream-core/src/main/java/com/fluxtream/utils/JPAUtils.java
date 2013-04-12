@@ -1,8 +1,12 @@
 package com.fluxtream.utils;
 
+import java.lang.reflect.Field;
 import java.util.List;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
+import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
 import javax.persistence.Query;
 import com.fluxtream.domain.AbstractFacet;
 
@@ -17,6 +21,16 @@ public class JPAUtils {
         }
     }
 
+    public static boolean hasRelation(final Class<? extends AbstractFacet> facetClass) {
+        final Field[] fields = facetClass.getFields();
+        for (Field field : fields) {
+            if (field.getAnnotation(OneToMany.class)!=null||
+                field.getAnnotation(ManyToMany.class)!=null||
+                field.getAnnotation(ElementCollection.class)!=null)
+                return true;
+        }
+        return false;
+    }
 
     public static long count(EntityManager em,
 			String queryName, Object... params) {

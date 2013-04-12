@@ -69,6 +69,8 @@ public interface ApiDataService {
     @Transactional(readOnly = false)
     void addGuestLocations(long guestId, List<LocationFacet> locationResources);
 
+    void deleteStaleData() throws ClassNotFoundException;
+
     // Pass this to createOrReadModifyWrite
     public interface FacetModifier<T extends AbstractFacet> {
         // Override this with your code to either modify or create

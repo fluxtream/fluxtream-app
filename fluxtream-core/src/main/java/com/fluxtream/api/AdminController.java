@@ -17,6 +17,7 @@ import com.fluxtream.connectors.updaters.ScheduleResult;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.mvc.models.StatusModel;
+import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.JPADaoService;
@@ -24,6 +25,7 @@ import com.fluxtream.services.WidgetsService;
 import com.google.gson.Gson;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.codehaus.plexus.util.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.annotation.Secured;
@@ -51,6 +53,9 @@ public class AdminController {
     @Autowired
     ConnectorUpdateService connectorUpdateService;
 
+    @Autowired
+    ApiDataService apiDataService;
+
     @GET
     @Secured({ "ROLE_ADMIN" })
 	@Path("/properties/{propertyName}")
@@ -70,6 +75,24 @@ public class AdminController {
 				+ propertyName);
 		return gson.toJson(failure);
 	}
+
+    @POST
+    @Secured({ "ROLE_ADMIN" })
+    @Path("/cleanup")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String deleteStaleData()
+            throws InstantiationException, IllegalAccessException,
+                   ClassNotFoundException {
+
+        try {
+            apiDataService.deleteStaleData();
+            StatusModel success = new StatusModel(true, "done");
+            return gson.toJson(success);
+        } catch (Throwable t) {
+            StatusModel failure = new StatusModel(false, ExceptionUtils.getStackTrace(t));
+            return gson.toJson(failure);
+        }
+    }
 
     @POST
     @Secured({ "ROLE_ADMIN" })
