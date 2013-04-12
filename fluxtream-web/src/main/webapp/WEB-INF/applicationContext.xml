@@ -21,6 +21,9 @@
         http://www.springframework.org/schema/context 
         http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
+    <task:executor id="AsyncWorker" pool-size="5-25"
+                   rejection-policy="CALLER_RUNS" queue-capacity="100"/>
+
 	<task:executor id="updateWorkersExecutor" pool-size="5-25"
 		rejection-policy="CALLER_RUNS" queue-capacity="100" />
 

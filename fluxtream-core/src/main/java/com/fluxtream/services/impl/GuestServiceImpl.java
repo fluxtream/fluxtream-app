@@ -33,8 +33,10 @@ import com.fluxtream.utils.SecurityUtils;
 import com.maxmind.geoip.Location;
 import com.maxmind.geoip.LookupService;
 import net.sf.json.JSONObject;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.authentication.encoding.ShaPasswordEncoder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -66,6 +68,13 @@ public class GuestServiceImpl implements GuestService {
 
     @Autowired
     OAuth2Helper oAuth2Helper;
+
+    @Autowired
+    @Qualifier("AsyncWorker")
+    ThreadPoolTaskExecutor executor;
+
+    @Autowired
+    BeanFactory beanFactory;
 
 	LookupService geoIpLookupService;
 
@@ -177,15 +186,14 @@ public class GuestServiceImpl implements GuestService {
         finally {
             em.remove(apiKey);
             em.flush();
-            if (apiKey.getConnector() == Connector.getConnector("google_latitude"))
-                JPAUtils.execute(em, "context.delete.all", apiKey.getGuestId());
-            JPAUtils.execute(em, "apiUpdates.delete.byApiKey", apiKey.getGuestId(), apiKey.getConnector().value(), apiKeyId);
-            connectorUpdateService.flushUpdateWorkerTasks(apiKey, true);
-            apiDataService.eraseApiData(apiKey);
+            // cleanup the data asynchrously in order not to block the user's flow
+            ApiDataCleanupWorker worker = beanFactory.getBean(ApiDataCleanupWorker.class);
+            worker.setApiKey(apiKey);
+            executor.execute(worker);
         }
 	}
 
-	@Override
+    @Override
     @Deprecated
 	public String getApiKeyAttribute(ApiKey apiKey, String key) {
 		return apiKey.getAttributeValue(key, env);
