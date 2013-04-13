@@ -606,7 +606,9 @@ public class ApiDataServiceImpl implements ApiDataService {
             locationResource.apiKeyId = -locationResource.apiKeyId;
             locationResource.processed = true;
             // Persist the location
-            em.merge(locationResource);
+            // avoid persisting a facet that was just deleted (as a result of an interrupted update for example)
+            if (em.find(LocationFacet.class, locationResource.getId())!=null)
+                em.merge(locationResource);
         }
     }
 
@@ -671,6 +673,7 @@ public class ApiDataServiceImpl implements ApiDataService {
                             logger.info(sb.toString());
                         }
                     }
+                    em.flush();
                 }
             }
         }
