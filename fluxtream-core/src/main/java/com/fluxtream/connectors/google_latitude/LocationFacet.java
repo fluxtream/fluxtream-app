@@ -35,7 +35,7 @@ import org.hibernate.annotations.Type;
 				"Facet_GoogleLatitudeLocation facet WHERE " +
 				"facet.guestId=? AND facet.timestampMs>=? AND " +
 				"facet.timestampMs<=? ORDER BY facet.timestampMs"),
-        @NamedQuery(name = "google_latitude.location.newest", query = "SELECT facet FROM Facet_GoogleLatitudeLocation facet WHERE facet.guestId=? ORDER BY facet.timestampMs DESC LIMIT 1")
+        @NamedQuery(name = "google_latitude.location.newest", query = "SELECT facet FROM Facet_GoogleLatitudeLocation facet WHERE facet.guestId=? AND (facet.apiKeyId is null OR facet.apiKeyId=?) ORDER BY facet.timestampMs DESC")
 })
 public class LocationFacet extends AbstractFacet implements Comparable<LocationFacet>, Serializable {
 

@@ -12,6 +12,7 @@ import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiUpdate;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.GuestService;
+import com.fluxtream.services.JPADaoService;
 import com.fluxtream.utils.Utils;
 import com.google.api.client.googleapis.json.JsonCParser;
 import com.google.api.client.http.HttpRequest;
@@ -34,6 +35,9 @@ public class GoogleLatitudeUpdater extends AbstractGoogleOAuthUpdater {
     @Autowired
     GoogleOAuth2Helper oAuth2Helper;
 
+    @Autowired
+    JPADaoService jpaDaoService;
+
 	public GoogleLatitudeUpdater() {
 		super();
 	}
@@ -45,9 +49,10 @@ public class GoogleLatitudeUpdater extends AbstractGoogleOAuthUpdater {
 	}
 
 	public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
-		ApiUpdate lastSuccessfulUpdate = connectorUpdateService
+        final LocationFacet newest = jpaDaoService.findOne("google_latitude.location.newest", LocationFacet.class, updateInfo.getGuestId(), updateInfo.apiKey.getId());
+        ApiUpdate lastSuccessfulUpdate = connectorUpdateService
 				.getLastSuccessfulUpdate(updateInfo.apiKey);
-		loadHistory(updateInfo, lastSuccessfulUpdate.ts,
+		loadHistory(updateInfo, newest!=null?newest.start:lastSuccessfulUpdate.ts,
 				System.currentTimeMillis());
 	}
 
@@ -69,11 +74,9 @@ public class GoogleLatitudeUpdater extends AbstractGoogleOAuthUpdater {
 				locationResource.end = locationResource.timestampMs;
                 locationResource.source = LocationFacet.Source.GOOGLE_LATITUDE;
 
-                apiDataService.addGuestLocation(updateInfo.getGuestId(),
-						locationResource);
-				
 				storedLocations.add(locationResource);
 			}
+            apiDataService.addGuestLocations(updateInfo.getGuestId(), storedLocations);
 			Collections.sort(storedLocations);
 			LocationFacet oldest = storedLocations.get(0);
             // Check if there is potentially a second or more of data left to get.  If so,
