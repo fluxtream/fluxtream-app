@@ -71,6 +71,9 @@ public interface ApiDataService {
 
     void deleteStaleData() throws ClassNotFoundException;
 
+    @Transactional(readOnly = false)
+    void cleanupStaleData() throws ClassNotFoundException, Exception;
+
     // Pass this to createOrReadModifyWrite
     public interface FacetModifier<T extends AbstractFacet> {
         // Override this with your code to either modify or create

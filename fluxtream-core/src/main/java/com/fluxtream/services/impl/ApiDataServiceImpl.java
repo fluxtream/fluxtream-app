@@ -45,9 +45,11 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AssignableTypeFilter;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -90,6 +92,10 @@ public class ApiDataServiceImpl implements ApiDataService {
 
     @Autowired
     ServicesHelper servicesHelper;
+
+    @Autowired
+    @Qualifier("AsyncWorker")
+    ThreadPoolTaskExecutor executor;
 
     private static final DateTimeFormatter formatter = DateTimeFormat
             .forPattern("yyyy-MM-dd");
@@ -627,6 +633,13 @@ public class ApiDataServiceImpl implements ApiDataService {
     @Override
     @Transactional(readOnly = false)
     public void deleteStaleData() throws ClassNotFoundException {
+        StaleDataCleanupWorker worker = beanFactory.getBean(StaleDataCleanupWorker.class);
+        executor.execute(worker);
+    }
+
+    @Override
+    @Transactional(readOnly = false)
+    public void cleanupStaleData() throws Exception {
         ClassPathScanningCandidateComponentProvider provider = new ClassPathScanningCandidateComponentProvider(true);
         provider.addIncludeFilter(new AssignableTypeFilter(AbstractFacet.class));
         Set<BeanDefinition> components = provider.findCandidateComponents("com.fluxtream");
@@ -634,9 +647,8 @@ public class ApiDataServiceImpl implements ApiDataService {
         {
             Class cls = Class.forName(component.getBeanClassName());
             if (AbstractFacet.class.isAssignableFrom(cls)) {
-                System.out.print(cls.getName());
                 final String entityName = JPAUtils.getEntityName(cls);
-                System.out.println(" -> " + entityName);
+                System.out.println("cleaning up " + entityName + "...");
                 if (entityName.startsWith("Facet_")) {
                     if (!JPAUtils.hasRelation(cls)) {
                         Query query = em
