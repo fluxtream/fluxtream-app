@@ -3,6 +3,7 @@ package com.fluxtream.connectors.fitbit;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.vos.AbstractInstantFacetVO;
 import com.fluxtream.domain.GuestSettings;
+import org.joda.time.LocalDateTime;
 
 public class FitbitWeightFacetVO extends AbstractInstantFacetVO<FitbitWeightFacet> {
 
@@ -15,10 +16,8 @@ public class FitbitWeightFacetVO extends AbstractInstantFacetVO<FitbitWeightFace
 
     @Override
     protected void fromFacet(final FitbitWeightFacet facet, final TimeInterval timeInterval, final GuestSettings settings) {
-        if (facet.startTimeStorage!=null)
-            this.startMinute = minuteOfDayFromTimeStorage(facet.startTimeStorage);
-        else
-            this.startMinute = 0;
+        LocalDateTime t = new LocalDateTime(facet.start);
+        this.startMinute = t.getHourOfDay()*60+t.getMinuteOfHour();
         switch (settings.weightMeasureUnit) {
             case SI:
                 this.weightUnitLabel = "kg";

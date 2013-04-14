@@ -254,8 +254,6 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 						facet.guestId = apiKey.getGuestId();
 						facet.start = dayMetadata.start;
 						facet.end = dayMetadata.end;
-                        facet.startTimeStorage = date + "T" + "00:00:00.000";
-                        facet.endTimeStorage = date+"T"+"23:59:59.000";
 						facetDao.persist(facet);
 					}
 					addToActivityFacet(facet, entry, fieldName);
@@ -268,8 +266,6 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                         facet.guestId = apiKey.getGuestId();
                         facet.start = dayMetadata.start;
                         facet.end = dayMetadata.end;
-                        facet.startTimeStorage = date+"T"+"23:59:59.000";
-                        facet.endTimeStorage = date+"T"+"23:59:59.000";
                         facetDao.persist(facet);
                     }
                     addToWeightFacet(facet, entry, fieldName);
@@ -325,7 +321,6 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 			return;
 		if (bedTimeString.length() == 5)
 			bedTimeString = facet.date + "T" + bedTimeString + ":00.000";
-		facet.startTimeStorage = bedTimeString;
 		// using UTC just to have a reference point in ordering to
 		// compute riseTime with a duration delta from bedTime
 		MutableDateTime bedTimeUTC = null;
@@ -338,7 +333,6 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 				.parseDateTime(bedTimeString).getMillis();
 		facet.end = format.withZone(DateTimeZone.forID(md.timeZone))
 				.parseDateTime(riseTimeString).getMillis();
-		facet.endTimeStorage = riseTimeString;
 	}
 
 	@Transactional(readOnly = false)

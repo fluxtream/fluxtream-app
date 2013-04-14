@@ -1,7 +1,9 @@
 package com.fluxtream.connectors.zeo;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.TimeZone;
 import com.fluxtream.ApiData;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.domain.AbstractFacet;
@@ -80,12 +82,14 @@ public class ZeoSleepStatsFacetExtractor extends AbstractFacetExtractor {
 		int minutes = o.getInt("minute");
 		int seconds = o.getInt("second");
 
+        Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        c.set(year, month, day, hours, minutes, seconds);
 		if (key.equals("bedTime"))
-            facet.startTimeStorage = toTimeStorage(year, month, day, hours, minutes, seconds);
+            facet.start = c.getTimeInMillis();
 		else {
             facet.date = (new StringBuilder()).append(year)
                     .append("-").append(pad(month)).append("-").append(pad(day)).toString();
-            facet.endTimeStorage = toTimeStorage(year, month, day, hours, minutes, seconds);
+            facet.end = c.getTimeInMillis();
         }
 
 	}

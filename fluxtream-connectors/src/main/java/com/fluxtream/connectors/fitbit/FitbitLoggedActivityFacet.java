@@ -1,14 +1,11 @@
 package com.fluxtream.connectors.fitbit;
 
-import java.text.ParseException;
-import java.util.TimeZone;
 import javax.persistence.Entity;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.domain.AbstractLocalTimeFacet;
 import org.hibernate.search.annotations.Indexed;
-import org.joda.time.DateTime;
 
 @Entity(name="Facet_FitbitLoggedActivity")
 @ObjectTypeSpec(name = "logged_activity", value = 2, extractor= FitbitActivityFacetExtractor.class, prettyname = "Logged Activities", isDateBased = true)
@@ -38,13 +35,5 @@ public class FitbitLoggedActivityFacet extends AbstractLocalTimeFacet {
 
     @Override
 	protected void makeFullTextIndexable() {}
-
-    @Override
-    public void updateTimeInfo(TimeZone timeZone) throws ParseException {
-        super.updateTimeInfo(timeZone);
-        DateTime startDate = new DateTime(this.start);
-        DateTime endDate = startDate.withDurationAdded(this.duration*60000,1);
-        this.end = endDate.getMillis();
-    }
 
 }

@@ -1,12 +1,11 @@
 package com.fluxtream.connectors.flickr;
 
 import java.awt.Dimension;
-import java.util.Date;
 import java.util.List;
-
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.vos.AbstractPhotoFacetVO;
 import com.fluxtream.domain.GuestSettings;
+import org.joda.time.LocalDateTime;
 
 public class FlickrPhotoFacetVO extends
 		AbstractPhotoFacetVO<FlickrPhotoFacet> {
@@ -18,7 +17,8 @@ public class FlickrPhotoFacetVO extends
 	public void fromFacet(FlickrPhotoFacet facet, TimeInterval timeInterval,
 			GuestSettings settings) {
         start = facet.datetaken;
-		startMinute = minuteOfDayFromTimeStorage(facet.startTimeStorage);
+        LocalDateTime t = new LocalDateTime(facet.start);
+		startMinute = t.getHourOfDay()*60+t.getMinuteOfHour();
 		this.thumbnailUrl = "http://farm" + facet.farm + ".static.flickr.com/"
 				+ facet.server + "/" + facet.flickrId + "_" + facet.secret
 				+ "_s.jpg";

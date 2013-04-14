@@ -51,7 +51,6 @@ public class FitbitActivityFacetExtractor extends AbstractFacetExtractor {
 		logger.info("guestId=" + guestId +
                     " connector=fitbit action=extractSummaryActivityInfo");
 		facet.date = (String) apiData.updateInfo.getContext("date");
-        facet.startTimeStorage = facet.endTimeStorage = noon(facet.date);
 
 		if (fitbitSummary.containsKey("activeScore"))
 			facet.activeScore = fitbitSummary.getInt("activeScore");
@@ -121,7 +120,6 @@ public class FitbitActivityFacetExtractor extends AbstractFacetExtractor {
             facet.date = (String) apiData.updateInfo.getContext("date");
 
             final String startTime = loggedActivity.getString("startTime");
-            facet.startTimeStorage = facet.endTimeStorage = facet.date+"T" + startTime+":00.000";
 			if (loggedActivity.containsKey("duration")) {
                 final int duration = loggedActivity.getInt("duration");
                 facet.duration = duration;

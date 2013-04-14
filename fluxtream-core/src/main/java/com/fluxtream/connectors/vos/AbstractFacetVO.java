@@ -8,15 +8,12 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TimeZone;
 import java.util.TreeSet;
-
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.GuestSettings;
-import com.fluxtream.domain.Tag;
 import com.fluxtream.utils.SecurityUtils;
-import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
@@ -38,11 +35,6 @@ public abstract class AbstractFacetVO<T extends AbstractFacet> {
 	static {
 		voClasses = new Hashtable<String, Class<? extends AbstractFacetVO<? extends AbstractFacet>>>();
 	}
-
-    protected int minuteOfDayFromTimeStorage(String timeStorage) {
-        final DateTime dateTime = timeStorageFormat.parseDateTime(timeStorage);
-        return dateTime.getMinuteOfDay();
-    }
 
 	public void extractValues(T facet, TimeInterval timeInterval, GuestSettings settings) {
 		getType(facet);

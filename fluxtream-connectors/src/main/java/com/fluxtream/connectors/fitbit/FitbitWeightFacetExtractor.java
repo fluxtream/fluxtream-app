@@ -1,14 +1,16 @@
 package com.fluxtream.connectors.fitbit;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.TimeZone;
 import com.fluxtream.ApiData;
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import com.fluxtream.aspects.FlxLogger;
 import org.springframework.stereotype.Component;
 
 /**
@@ -48,7 +50,6 @@ public class FitbitWeightFacetExtractor extends AbstractFacetExtractor {
             super.extractCommonFacetData(facet, apiData);
 
             facet.date = (String) apiData.updateInfo.getContext("date");
-            facet.startTimeStorage = facet.endTimeStorage = noon(facet.date);
 
             if (fitbitWeightMeasurements.getJSONObject(i).containsKey("bmi"))
                 facet.bmi = fitbitWeightMeasurements.getJSONObject(i).getDouble("bmi");
@@ -66,7 +67,9 @@ public class FitbitWeightFacetExtractor extends AbstractFacetExtractor {
                 int year = Integer.valueOf(dateParts[0]);
                 int month = Integer.valueOf(dateParts[1]);
                 int day = Integer.valueOf(dateParts[2]);
-                facet.startTimeStorage = facet.endTimeStorage = toTimeStorage(year, month, day, hours, minutes, seconds);
+                Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+                c.set(year, month, day, hours, minutes, seconds);
+                facet.start = facet.end = c.getTimeInMillis();
             }
 
             facets.add(facet);

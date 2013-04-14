@@ -11,6 +11,7 @@ import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.stereotype.Component;
@@ -19,7 +20,7 @@ import org.springframework.stereotype.Component;
 public class FlickrFacetExtractor extends AbstractFacetExtractor {
 
 	private static final DateTimeFormatter format = DateTimeFormat
-			.forPattern("yyyy-MM-dd HH:mm:ss");
+			.forPattern("yyyy-MM-dd HH:mm:ss").withZone(DateTimeZone.UTC);
 
 	public List<AbstractFacet> extractFacets(ApiData apiData,
 			ObjectType objectType) {
@@ -55,9 +56,6 @@ public class FlickrFacetExtractor extends AbstractFacetExtractor {
 				facet.isfamily = Integer.valueOf(it.getString("isfamily")) == 1;
                 final String datetaken = it.getString("datetaken");
                 final DateTime dateTime = format.parseDateTime(datetaken);
-                facet.startTimeStorage = facet.endTimeStorage = toTimeStorage(dateTime.getYear(), dateTime.getMonthOfYear(),
-                              dateTime.getDayOfMonth(), dateTime.getHourOfDay(),
-                              dateTime.getMinuteOfHour(), 0);
                 facet.date = (new StringBuilder(dateTime.getYear()).append("-")
                               .append(pad(dateTime.getMonthOfYear())).append("-")
                               .append(pad(dateTime.getDayOfMonth()))).toString();

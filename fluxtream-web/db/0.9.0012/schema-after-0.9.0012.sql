@@ -51,7 +51,7 @@ CREATE TABLE `ApiKey` (
   PRIMARY KEY (`id`),
   KEY `api_index` (`api`),
   KEY `guestId_index` (`guestId`)
-) ENGINE=MyISAM AUTO_INCREMENT=34 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=46 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -68,7 +68,7 @@ CREATE TABLE `ApiKeyAttribute` (
   `apiKey_id` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `FK63B21617FB39AB73` (`apiKey_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=6568 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=6606 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -116,7 +116,7 @@ CREATE TABLE `ApiUpdates` (
   KEY `api` (`api`),
   KEY `success` (`success`),
   KEY `apiKeyId` (`apiKeyId`)
-) ENGINE=MyISAM AUTO_INCREMENT=62488 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=67094 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -257,7 +257,7 @@ CREATE TABLE `ContextualInfo` (
   KEY `travelType_index` (`travelType`),
   KEY `timeUpdated_index` (`timeUpdated`),
   KEY `apiKey` (`apiKeyId`)
-) ENGINE=MyISAM AUTO_INCREMENT=1135 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=1136 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -483,8 +483,6 @@ CREATE TABLE `Facet_FitbitActivity` (
   `objectType` int(11) NOT NULL,
   `start` bigint(20) NOT NULL,
   `timeUpdated` bigint(20) NOT NULL,
-  `endTimeStorage` varchar(255) DEFAULT NULL,
-  `startTimeStorage` varchar(255) DEFAULT NULL,
   `activeScore` int(11) NOT NULL,
   `activityCalories` int(11) NOT NULL,
   `caloriesJson` longtext,
@@ -547,8 +545,6 @@ CREATE TABLE `Facet_FitbitLoggedActivity` (
   `logId` bigint(20) NOT NULL,
   `name` varchar(255) DEFAULT NULL,
   `steps` int(11) NOT NULL,
-  `endTimeStorage` varchar(255) DEFAULT NULL,
-  `startTimeStorage` varchar(255) DEFAULT NULL,
   `tags` longtext,
   `apiKeyId` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -581,8 +577,6 @@ CREATE TABLE `Facet_FitbitSleep` (
   `objectType` int(11) NOT NULL,
   `start` bigint(20) NOT NULL,
   `timeUpdated` bigint(20) NOT NULL,
-  `endTimeStorage` varchar(255) DEFAULT NULL,
-  `startTimeStorage` varchar(255) DEFAULT NULL,
   `awakeningsCount` int(11) NOT NULL,
   `date` varchar(255) DEFAULT NULL,
   `isMainSleep` bit(1) NOT NULL,
@@ -625,8 +619,6 @@ CREATE TABLE `Facet_FitbitWeight` (
   `objectType` int(11) NOT NULL,
   `start` bigint(20) NOT NULL,
   `timeUpdated` bigint(20) NOT NULL,
-  `endTimeStorage` varchar(255) DEFAULT NULL,
-  `startTimeStorage` varchar(255) DEFAULT NULL,
   `bmi` double NOT NULL,
   `date` varchar(255) DEFAULT NULL,
   `fat` double NOT NULL,
@@ -642,7 +634,7 @@ CREATE TABLE `Facet_FitbitWeight` (
   KEY `guestId_index` (`guestId`),
   KEY `timeUpdated_index` (`timeUpdated`),
   KEY `apiKey` (`apiKeyId`)
-) ENGINE=InnoDB AUTO_INCREMENT=1753 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -678,8 +670,6 @@ CREATE TABLE `Facet_FlickrPhoto` (
   `server` varchar(255) DEFAULT NULL,
   `title` varchar(255) DEFAULT NULL,
   `date` varchar(255) DEFAULT NULL,
-  `endTimeStorage` varchar(255) DEFAULT NULL,
-  `startTimeStorage` varchar(255) DEFAULT NULL,
   `tags` longtext,
   `apiKeyId` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -838,7 +828,7 @@ CREATE TABLE `Facet_GoogleLatitudeLocation` (
   KEY `uri` (`uri`),
   KEY `apiKey` (`apiKeyId`),
   KEY `processed_index` (`processed`)
-) ENGINE=MyISAM AUTO_INCREMENT=472068 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=623927 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1039,7 +1029,7 @@ CREATE TABLE `Facet_RunKeeperFitnessActivity` (
   KEY `guestId_index` (`guestId`),
   KEY `timeUpdated_index` (`timeUpdated`),
   KEY `apiKey` (`apiKeyId`)
-) ENGINE=InnoDB AUTO_INCREMENT=504 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1119,7 +1109,7 @@ CREATE TABLE `Facet_TwitterDirectMessage` (
   KEY `guestId_index` (`guestId`),
   KEY `timeUpdated_index` (`timeUpdated`),
   KEY `apiKey` (`apiKeyId`)
-) ENGINE=InnoDB AUTO_INCREMENT=425 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1252,8 +1242,6 @@ CREATE TABLE `Facet_ZeoSleepStats` (
   `objectType` int(11) NOT NULL,
   `start` bigint(20) NOT NULL,
   `timeUpdated` bigint(20) NOT NULL,
-  `endTimeStorage` varchar(255) DEFAULT NULL,
-  `startTimeStorage` varchar(255) DEFAULT NULL,
   `awakenings` int(11) NOT NULL,
   `morningFeel` int(11) NOT NULL,
   `sleepGraph` longtext,
@@ -1276,7 +1264,7 @@ CREATE TABLE `Facet_ZeoSleepStats` (
   KEY `guestId_index` (`guestId`),
   KEY `timeUpdated_index` (`timeUpdated`),
   KEY `apiKey` (`apiKeyId`)
-) ENGINE=MyISAM AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=6 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1401,7 +1389,7 @@ CREATE TABLE `Notifications` (
   `stackTrace` longtext,
   PRIMARY KEY (`id`),
   KEY `guestId_index` (`guestId`)
-) ENGINE=MyISAM AUTO_INCREMENT=41 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=51 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1450,7 +1438,7 @@ CREATE TABLE `ScheduledUpdate` (
   KEY `guestId_index` (`guestId`),
   KEY `objectTypes_index` (`objectTypes`),
   KEY `retries_index` (`retries`)
-) ENGINE=MyISAM AUTO_INCREMENT=55057 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=55775 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1538,7 +1526,7 @@ CREATE TABLE `WeatherInfo` (
   KEY `city_index` (`city`),
   KEY `fdate_index` (`fdate`),
   KEY `minuteOfDay_index` (`minuteOfDay`)
-) ENGINE=MyISAM AUTO_INCREMENT=79190 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=79238 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1607,4 +1595,4 @@ CREATE TABLE `cities1000` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2013-04-13 11:28:16
+-- Dump completed on 2013-04-14 12:02:14

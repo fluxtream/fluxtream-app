@@ -16,8 +16,8 @@ public class FitbitLoggedActivityFacetVO extends AbstractLocalTimeTimedFacetVO<F
 		this.steps = facet.steps;
 		caloriesOut = facet.calories;
 		description = facet.fullTextDescription;
-        LocalDateTime startTime = timeStorageFormat.parseLocalDateTime(facet.startTimeStorage);
-        LocalDateTime endTime = timeStorageFormat.parseLocalDateTime(facet.endTimeStorage);
+        LocalDateTime startTime = new LocalDateTime(facet.start);
+        LocalDateTime endTime = new LocalDateTime(facet.end);
 		startMinute = startTime.getHourOfDay()*60+startTime.getMinuteOfHour();
 		endMinute = endTime.getHourOfDay()*60+endTime.getMinuteOfHour();
 	}
