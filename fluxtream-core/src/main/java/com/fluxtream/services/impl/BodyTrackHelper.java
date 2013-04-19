@@ -200,19 +200,20 @@ public class BodyTrackHelper {
         }
     }
 
-    public String listSources(ApiKey apiKey, CoachingBuddy coachee){
+    public String listSources(Long uid, CoachingBuddy coachee){
         SourcesResponse response = null;
         try{
-            if (apiKey == null)
+            if (uid == null) {
                 throw new IllegalArgumentException();
-            final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("info",new Object[]{"-r",apiKey.getGuestId()});
+            }
+            final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("info",new Object[]{"-r",uid});
             String result = dataStoreExecutionResult.getResponse();
 
             // TODO: check statusCode in DataStoreExecutionResult
             ChannelInfoResponse infoResponse = gson.fromJson(result,ChannelInfoResponse.class);
 
             // Iterate over the various (photo) connectors (if any), manually inserting each into the ChannelSpecs
-            final Map<String, TimeInterval> photoChannelTimeRanges = photoService.getPhotoChannelTimeRanges(apiKey, coachee);
+            final Map<String, TimeInterval> photoChannelTimeRanges = photoService.getPhotoChannelTimeRanges(uid, coachee);
 
             // create the 'All' photos block
             final Source allPhotosSource = new Source();
@@ -279,7 +280,7 @@ public class BodyTrackHelper {
             // set default styles if necessary
             for (Source source : response.sources){
                 for (Channel channel : source.channels){
-                    ChannelStyle userStyle = getDefaultStyle(apiKey.getGuestId(),source.name,channel.name);
+                    ChannelStyle userStyle = getDefaultStyle(uid,source.name,channel.name);
                     if (userStyle != null)
                         channel.style = userStyle;
                     // Temporary hack: Until generic support is available for time_type, special case
@@ -291,13 +292,12 @@ public class BodyTrackHelper {
                 }
             }
 
-            final String gsonResponse = gson.toJson(response);
-            return gsonResponse;
+            return gson.toJson(response);
         }
         catch(Exception e){
             StringBuilder sb = new StringBuilder("module=bodytrackHelper component=listSources action=listSources")
                     .append(" guestId=")
-                    .append(apiKey.getGuestId())
+                    .append(uid)
                     .append(" message=").append(e.getMessage());
 
             if(response!=null) {

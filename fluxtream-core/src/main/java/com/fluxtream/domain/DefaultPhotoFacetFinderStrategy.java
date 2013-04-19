@@ -2,7 +2,6 @@ package com.fluxtream.domain;
 
 import java.util.List;
 import com.fluxtream.TimeInterval;
-import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.services.ApiDataService;
 import org.springframework.beans.factory.annotation.Autowired;

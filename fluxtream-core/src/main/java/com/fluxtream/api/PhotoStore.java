@@ -117,9 +117,7 @@ public class PhotoStore {
     }
 
     private List<PhotoModel> getPhotos(Guest guest, TimeInterval timeInterval) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
-        final List<ApiKey> fcKeys = guestService.getApiKeys(guest.getId(), Connector.getConnector("fluxtream_capture"));
-        if (fcKeys.size()==0) throw new RuntimeException("No Fluxtream Capture ApiKey for user " + guest.username);
-        final SortedSet<PhotoService.Photo> photos = photoService.getPhotos(fcKeys.get(0), timeInterval);
+        final SortedSet<PhotoService.Photo> photos = photoService.getPhotos(guest.getId(), timeInterval, Connector.getConnector("fluxtream_capture").prettyName(), "photo");
 
         List<PhotoModel> photoModels = new ArrayList<PhotoModel>();
         for (final PhotoService.Photo photo : photos) {

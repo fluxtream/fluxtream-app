@@ -6,7 +6,6 @@ import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.vos.AbstractPhotoFacetVO;
-import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.CoachingBuddy;
 
 /**
@@ -31,7 +30,7 @@ public interface PhotoService {
      * Gets all {@link Photo}s from all {@link Connector}s having image {@link ObjectType}s for the given
      * <code>guestId</code> and {@link TimeInterval}.
      */
-    SortedSet<Photo> getPhotos(ApiKey apiKey, TimeInterval timeInterval) throws ClassNotFoundException, IllegalAccessException, InstantiationException;
+    SortedSet<Photo> getPhotos(long guestId, TimeInterval timeInterval) throws ClassNotFoundException, IllegalAccessException, InstantiationException;
 
     /**
      * <p>
@@ -45,7 +44,7 @@ public interface PhotoService {
      * from all {@link ObjectType}s which are of {@link ObjectType#isImageType() image type}.
      * </p>
      */
-    SortedSet<Photo> getPhotos(ApiKey apiKey, TimeInterval timeInterval, String connectorPrettyName, String objectTypeName) throws ClassNotFoundException, IllegalAccessException, InstantiationException;
+    SortedSet<Photo> getPhotos(long guestId, TimeInterval timeInterval, String connectorPrettyName, String objectTypeName) throws ClassNotFoundException, IllegalAccessException, InstantiationException;
 
     /**
      * <p>
@@ -62,7 +61,7 @@ public interface PhotoService {
      * from all {@link ObjectType}s which are of {@link ObjectType#isImageType() image type}.
      * </p>
      */
-    SortedSet<Photo> getPhotos(ApiKey apiKey, long timeInMillis, String connectorPrettyName, String objectTypeName, int desiredCount, boolean isGetPhotosBeforeTime) throws InstantiationException, IllegalAccessException, ClassNotFoundException;
+    SortedSet<Photo> getPhotos(long guestId, long timeInMillis, String connectorPrettyName, String objectTypeName, int desiredCount, boolean isGetPhotosBeforeTime) throws InstantiationException, IllegalAccessException, ClassNotFoundException;
 
     /**
      * Returns a {@link Map} of photo channels (a {@link String} which is of the form {connector_pretty_name}.{object_name})
@@ -70,5 +69,5 @@ public interface PhotoService {
      * {@link Map}, but guaranteed to not return <code>null</code>.  Note that the {@link TimeInterval} for a channel
      * may be <code>null</code>, for example if the channel is a photo channel, but it currently contains no photos.
      */
-    Map<String, TimeInterval> getPhotoChannelTimeRanges(ApiKey apiKey, final CoachingBuddy coachee);
+    Map<String, TimeInterval> getPhotoChannelTimeRanges(long guestId, final CoachingBuddy coachee);
 }

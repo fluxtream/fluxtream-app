@@ -67,14 +67,14 @@ public class PhotoServiceImpl implements PhotoService {
     }
 
     @Override
-    public SortedSet<Photo> getPhotos(ApiKey apiKey, TimeInterval timeInterval) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
-        return getPhotos(apiKey, timeInterval, ALL_DEVICES_NAME, DEFAULT_PHOTOS_CHANNEL_NAME);
+    public SortedSet<Photo> getPhotos(long guestId, TimeInterval timeInterval) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+        return getPhotos(guestId, timeInterval, ALL_DEVICES_NAME, DEFAULT_PHOTOS_CHANNEL_NAME);
     }
 
     @Override
-    public SortedSet<Photo> getPhotos(final ApiKey apiKey, final TimeInterval timeInterval, final String connectorPrettyName, final String objectTypeName) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+    public SortedSet<Photo> getPhotos(final long guestId, final TimeInterval timeInterval, final String connectorPrettyName, final String objectTypeName) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
 
-        return getPhotos(apiKey, timeInterval, connectorPrettyName, objectTypeName, new PhotoFinder() {
+        return getPhotos(guestId, timeInterval, connectorPrettyName, objectTypeName, new PhotoFinder() {
             public List<AbstractFacet> find(final ApiKey apiKey, final ObjectType objectType) {
                 final PhotoFacetFinderStrategy photoFacetFinderStrategy = getPhotoFacetFinderStrategyFromObjectType(objectType);
                 if (photoFacetFinderStrategy != null) {
@@ -86,12 +86,12 @@ public class PhotoServiceImpl implements PhotoService {
     }
 
     @Override
-    public SortedSet<Photo> getPhotos(final ApiKey apiKey, final long timeInMillis, final String connectorPrettyName, final String objectTypeName, final int desiredCount, final boolean isGetPhotosBeforeTime) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+    public SortedSet<Photo> getPhotos(final long guestId, final long timeInMillis, final String connectorPrettyName, final String objectTypeName, final int desiredCount, final boolean isGetPhotosBeforeTime) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 
         // make sure the count is >= 1
         final int cleanedDesiredCount = Math.max(1, desiredCount);
 
-        final SortedSet<Photo> photos = getPhotos(apiKey, null, connectorPrettyName, objectTypeName, new PhotoFinder() {
+        final SortedSet<Photo> photos = getPhotos(guestId, null, connectorPrettyName, objectTypeName, new PhotoFinder() {
 
             public List<AbstractFacet> find(final ApiKey apiKey, final ObjectType objectType) {
                 final PhotoFacetFinderStrategy photoFacetFinderStrategy = getPhotoFacetFinderStrategyFromObjectType(objectType);
@@ -105,7 +105,6 @@ public class PhotoServiceImpl implements PhotoService {
                 }
                 return new ArrayList<AbstractFacet>(0);
             }
-
         });
 
         // Make sure we don't return more than requested (which may happen if we're merging from multiple photo channels,
@@ -131,22 +130,22 @@ public class PhotoServiceImpl implements PhotoService {
     }
 
     @Override
-    public Map<String, TimeInterval> getPhotoChannelTimeRanges(ApiKey apiKey, final CoachingBuddy coachee) {
+    public Map<String, TimeInterval> getPhotoChannelTimeRanges(final long guestId, final CoachingBuddy coachee) {
         // TODO: This could really benefit from some caching.  The time ranges can only change upon updating a photo
         // connector so it would be better to cache this info and then just refresh it whenever the connector is updated
 
         Map<String, TimeInterval> photoChannelTimeRanges = new HashMap<String, TimeInterval>();
 
-        List<ApiKey> userKeys = guestService.getApiKeys(apiKey.getGuestId());
-        for (ApiKey key : userKeys) {
+        List<ApiKey> userKeys = guestService.getApiKeys(guestId);
+        for (ApiKey apiKey : userKeys) {
             Connector connector = null;
-            if (key != null) {
-                connector = key.getConnector();
+            if (apiKey != null) {
+                connector = apiKey.getConnector();
             }
             if (connector != null && connector.getName() != null &&
                 (coachee == null || coachee.hasAccessToConnector(connector.getName())) && connector.hasImageObjectType()) {
                 // Check the object types, if any, to find the image object type(s)
-                ObjectType[] objectTypes = key.getConnector().objectTypes();
+                ObjectType[] objectTypes = apiKey.getConnector().objectTypes();
                 if (objectTypes == null) {
                     final String channelName = constructChannelName(connector, null);
                     final TimeInterval timeInterval = constructTimeIntervalFromOldestAndNewestFacets(apiKey, null);
@@ -193,16 +192,16 @@ public class PhotoServiceImpl implements PhotoService {
      *
      * May return an empty {@link SortedSet}, but guaranteeed to not return <code>null</code>.
      */
-    private SortedSet<Photo> getPhotos(final ApiKey apiKey, final TimeInterval timeInterval, final String connectorPrettyName, final String objectTypeName, final PhotoFinder facetFinderStrategy) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+    private SortedSet<Photo> getPhotos(final long guestId, final TimeInterval timeInterval, final String connectorPrettyName, final String objectTypeName, final PhotoFinder facetFinderStrategy) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 
         SortedSet<Photo> photos = new TreeSet<Photo>();
 
         if (ALL_DEVICES_NAME.equals(connectorPrettyName)) {
-            List<ApiKey> userKeys = guestService.getApiKeys(apiKey.getGuestId());
-            for (ApiKey key : userKeys) {
+            List<ApiKey> userKeys = guestService.getApiKeys(guestId);
+            for (ApiKey apiKey : userKeys) {
                 Connector connector = null;
-                if (key != null && key.getConnector() != null) {
-                    connector = key.getConnector();
+                if (apiKey != null && apiKey.getConnector() != null) {
+                    connector = apiKey.getConnector();
                 }
                 if (connector != null && connector.hasImageObjectType()) {
                     final ObjectType[] objectTypes = connector.objectTypes();
@@ -218,8 +217,9 @@ public class PhotoServiceImpl implements PhotoService {
             }
         }
         else {
-            final Connector connector = findConnectorByPrettyName(apiKey, connectorPrettyName);
-            if (connector != null) {
+            final ApiKey apiKey = findConnectorApiKeyByPrettyName(guestId, connectorPrettyName);
+            if (apiKey != null && apiKey.getConnector() != null) {
+                final Connector connector = apiKey.getConnector();
                 final ObjectType desiredObjectType = findObjectTypeByName(connector, objectTypeName);
 
                 if (desiredObjectType == null) {
@@ -246,13 +246,13 @@ public class PhotoServiceImpl implements PhotoService {
     }
 
     /** Returns the Connector having the given pretty name.  Returns <code>null</code> if no such connector exists. */
-    private Connector findConnectorByPrettyName(final ApiKey apiKey, final String connectorPrettyName) {
-        List<ApiKey> userKeys = guestService.getApiKeys(apiKey.getGuestId());
+    private ApiKey findConnectorApiKeyByPrettyName(final long guestId, final String connectorPrettyName) {
+        List<ApiKey> userKeys = guestService.getApiKeys(guestId);
         for (ApiKey key : userKeys) {
             if (key != null) {
                 final Connector connector = key.getConnector();
                 if (connector != null && connector.prettyName() != null && connector.prettyName().equals(connectorPrettyName)) {
-                    return connector;
+                    return key;
                 }
             }
         }
