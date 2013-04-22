@@ -203,13 +203,13 @@ define([], function() {
 					return 0;
 				};
 
-				TOOLS.loadJson("/bodytrack/users/" + App.getUID() + "/tags",
+				TOOLS.loadJson("/api/bodytrack/users/" + App.getUID() + "/tags",
 						{},
 						{
 							success : function(data, textStatus, jqXHR) {
 								try {
-									if (jQuery.isArray(data)) {
-										TAG_MANAGER.tags = data.sort(caseInsensitiveSort);
+									if (jQuery.isArray(data['tags'])) {
+										TAG_MANAGER.tags = data['tags'].sort(caseInsensitiveSort);
 									}
 
 									if (typeof successCallback === 'function') {
@@ -452,17 +452,8 @@ define([], function() {
         var urlPrefix = "/api/bodytrack/photos/" + userId + "/"+ (deviceName == null ? "All" : deviceName) + "." + channelName + "/";
         var urlParams = {};
         if (tags != null && tags.length > 0) {
-            if (!!allTags) {
-                urlParams["all_tags"] = tags.join(",");
-            } else {
-                urlParams["any_tags"] = tags.join(",");
-            }
-
-            // TODO: This line is only for compatibility with the server
-            // until the server supports any_tags and all_tags.  This
-            // can be safely removed, with no impact on correctness,
-            // when that server support is added
-            urlParams["tags_filter"] = tags.join(",");
+            urlParams["tags"] = tags.join(",");
+            urlParams["tag-match"] = !!allTags ? "all" : "any"; // TODO: add support for "none" and "untagged"
         }
         if (!!nsfw) {
             urlParams["nsfw"] = "1";

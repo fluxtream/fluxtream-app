@@ -40,6 +40,7 @@ import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.CoachingBuddy;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.Tag;
+import com.fluxtream.domain.TagFilter;
 import com.fluxtream.images.ImageOrientation;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.ApiDataService;
@@ -613,10 +614,16 @@ public class BodyTrackController {
                                  @PathParam("ConnectorPrettyName") String connectorPrettyName,
                                  @PathParam("ObjectTypeName") String objectTypeName,
                                  @PathParam("Level") int level,
-                                 @PathParam("Offset") long offset) {
+                                 @PathParam("Offset") long offset,
+                                 @QueryParam("tags") List<String> tags,
+                                 @QueryParam("tag-match") String tagMatchingStrategyName) {
         long loggedInUserId = AuthHelper.getGuestId();
         boolean accessAllowed = checkForPermissionAccess(uid);
         CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
+
+        final TagFilter.FilteringStrategy tagFilteringStrategy = TagFilter.FilteringStrategy.findByName(tagMatchingStrategyName);
+
+        LOG_DEBUG.debug("BodyTrackController.fetchPhotoTile(): tags = [" + tags + "] tagFilteringStrategy = [" + tagFilteringStrategy + "]");
 
         try {
             if (!accessAllowed && coachee==null) {
@@ -634,7 +641,7 @@ public class BodyTrackController {
             final TimeInterval timeInterval = new TimeInterval(startTimeMillis, endTimeMillis, TimeUnit.DAY, TimeZone.getTimeZone("UTC"));
 
             // fetch the photos for this time interval, and for the desired device/channel
-            final SortedSet<PhotoService.Photo> photos = photoService.getPhotos(uid, timeInterval, connectorPrettyName, objectTypeName);
+            final SortedSet<PhotoService.Photo> photos = photoService.getPhotos(uid, timeInterval, connectorPrettyName, objectTypeName, new TagFilter(tags, tagFilteringStrategy));
 
             // Define the min interval to be 1/20th of the span of the tile.  Value is in seconds
             final double minInterval = LevelOffsetHelper.levelToDuration(level) / 20.0;
@@ -689,18 +696,22 @@ public class BodyTrackController {
                                              @PathParam("count") int desiredCount,
                                              @QueryParam("isBefore") boolean isGetPhotosBeforeTime,
                                              @QueryParam("tags") List<String> tags,
-                                             @QueryParam("isMatchAllTags") boolean isMatchAllTags
+                                             @QueryParam("tag-match") String tagMatchingStrategyName
                                              ) {
         long loggedInUserId = AuthHelper.getGuestId();
         boolean accessAllowed = checkForPermissionAccess(uid);
         CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
+
+        final TagFilter.FilteringStrategy tagFilteringStrategy = TagFilter.FilteringStrategy.findByName(tagMatchingStrategyName);
+
+        LOG_DEBUG.debug("BodyTrackController.getPhotosBeforeOrAfterTime(): tags = [" + tags + "] tagFilteringStrategy = [" + tagFilteringStrategy + "]");
 
         try {
             if (!accessAllowed && coachee==null) {
                 return gson.toJson(new StatusModel(false, "Invalid User ID (null)"));
              }
 
-            final SortedSet<PhotoService.Photo> photos = photoService.getPhotos(uid, (long)(unixTimeInSecs * 1000), connectorPrettyName, objectTypeName, desiredCount, isGetPhotosBeforeTime);
+            final SortedSet<PhotoService.Photo> photos = photoService.getPhotos(uid, (long)(unixTimeInSecs * 1000), connectorPrettyName, objectTypeName, desiredCount, isGetPhotosBeforeTime, new TagFilter(tags, tagFilteringStrategy));
 
             // create the JSON response
             final List<PhotoItem> photoItems = new ArrayList<PhotoItem>();

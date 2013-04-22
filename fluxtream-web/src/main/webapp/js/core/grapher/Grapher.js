@@ -1829,11 +1829,8 @@ define(["core/grapher/BTCore"], function(BTCore) {
                         "isBefore" : shouldLoadPreviousNeighbor
                     };
 
-                    if (isAndJoin) {
-                        urlParams["all_tags"] = tagsFilterArray.join(",");
-                    } else {
-                        urlParams["any_tags"] = tagsFilterArray.join(",");
-                    }
+                    urlParams["tags"] = tagsFilterArray.join(",");
+                    urlParams["tag-match"] = isAndJoin ? "all" : "any"; // TODO: add support for "none" and "untagged"
 
                     TOOLS.loadJson(url, urlParams, {
                         "success"  : function(photos) {

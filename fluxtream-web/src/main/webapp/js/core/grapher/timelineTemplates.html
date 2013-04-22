@@ -443,10 +443,8 @@
       <td>
         <div id="_timeline_photo_dialog_form_status"></div>
           <div id="_timeline_photo_dialog_form"></div>
-          <div style="display:none;">    <!-- TODO: this div is a hack to hide the form until we're ready to add comment/tag editing -->
-            <div id="_timeline_photo_dialog_save_preferences">
-              <input id="_timeline_photo_dialog_save_should_goto_neighbor" type="checkbox" value="true" tabindex="107"><label for="_timeline_photo_dialog_save_should_goto_neighbor">After saving, go to the </label><select id="_timeline_photo_dialog_save_should_goto_neighbor_choice" tabindex="108" disabled="disabled"><option value="1">next</option><option value="-1">previous</option></select><label for="_timeline_photo_dialog_save_should_goto_neighbor"> photo.</label><img id="_timeline_photo_dialog_post_proxy_forward" src="/images/clear.gif" width="1" height="1" tabindex="109"/>
-            </div>
+          <div id="_timeline_photo_dialog_save_preferences">
+            <input id="_timeline_photo_dialog_save_should_goto_neighbor" type="checkbox" value="true" tabindex="107"><label for="_timeline_photo_dialog_save_should_goto_neighbor">After saving, go to the </label><select id="_timeline_photo_dialog_save_should_goto_neighbor_choice" tabindex="108" disabled="disabled"><option value="1">next</option><option value="-1">previous</option></select><label for="_timeline_photo_dialog_save_should_goto_neighbor"> photo.</label><img id="_timeline_photo_dialog_post_proxy_forward" src="/images/clear.gif" width="1" height="1" tabindex="109"/>
           </div>
       </td>
     </tr>
@@ -459,7 +457,6 @@
     <img id="_timeline_photo_dialog_comment_tabhelper_pre_proxy_backward" src="/images/clear.gif" width="1" height="1" tabindex="99"/>
   </div>
   <div id="_timeline_photo_dialog_timestamp"></div>
-  <div style="display:none;">    <!-- TODO: this div is a hack to hide the form until we're ready to add comment/tag editing -->
     <textarea rows="2" id="_timeline_photo_dialog_comment" tabindex="100"></textarea>
     <div style="width:1px;height:1px;">
       <img id="_timeline_photo_dialog_tags_editor_tabhelper_pre_proxy_forward" src="/images/clear.gif" width="1" height="1" tabindex="101"/>
@@ -473,7 +470,6 @@
       <button id="_timeline_photo_dialog_revert_button" tabindex="106">Revert</button>
       <button id="_timeline_photo_dialog_save_button" tabindex="105">Save</button>
     </form>
-  </div>
 </template>
 
 <template id="_timeline_photo_dialog_tags_editor_tag_template">

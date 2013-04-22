@@ -21,9 +21,11 @@ import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.CoachingBuddy;
 import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.domain.PhotoFacetFinderStrategy;
+import com.fluxtream.domain.TagFilter;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.PhotoService;
 import com.fluxtream.services.SettingsService;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -37,6 +39,7 @@ import org.springframework.stereotype.Service;
 public class PhotoServiceImpl implements PhotoService {
 
     private static final FlxLogger LOG = FlxLogger.getLogger("Fluxtream");
+    private static final FlxLogger LOG_DEBUG = FlxLogger.getLogger("Fluxtream");
 
     @Autowired
     SettingsService settingsService;
@@ -48,14 +51,15 @@ public class PhotoServiceImpl implements PhotoService {
     BeanFactory beanFactory;
 
     private static abstract class PhotoFinder {
-        final Map<ObjectType, List<AbstractFacet>> find(final ApiKey apiKey) {
+        final Map<ObjectType, List<AbstractFacet>> find(final ApiKey apiKey,
+                                                        @Nullable TagFilter tagFilter) {
             final Map<ObjectType, List<AbstractFacet>> facets = new HashMap<ObjectType, List<AbstractFacet>>();
-            if (apiKey.getConnector()!= null) {
+            if (apiKey.getConnector() != null) {
                 final ObjectType[] objectTypes = apiKey.getConnector().objectTypes();
                 if (objectTypes != null) {
                     for (final ObjectType objectType : objectTypes) {
                         if (objectType.isImageType()) {
-                            facets.put(objectType, find(apiKey, objectType));
+                            facets.put(objectType, find(apiKey, objectType, tagFilter));
                         }
                     }
                 }
@@ -63,19 +67,31 @@ public class PhotoServiceImpl implements PhotoService {
             return facets;
         }
 
-        protected abstract List<AbstractFacet> find(final ApiKey apiKey, final ObjectType objectType);
+        protected abstract List<AbstractFacet> find(final ApiKey apiKey,
+                                                    final ObjectType objectType,
+                                                    @Nullable TagFilter tagFilter);
     }
 
     @Override
-    public SortedSet<Photo> getPhotos(long guestId, TimeInterval timeInterval) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
-        return getPhotos(guestId, timeInterval, ALL_DEVICES_NAME, DEFAULT_PHOTOS_CHANNEL_NAME);
+    public SortedSet<Photo> getPhotos(long guestId,
+                                      TimeInterval timeInterval) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+        return getPhotos(guestId, timeInterval, ALL_DEVICES_NAME, DEFAULT_PHOTOS_CHANNEL_NAME, null, null);
     }
 
     @Override
-    public SortedSet<Photo> getPhotos(final long guestId, final TimeInterval timeInterval, final String connectorPrettyName, final String objectTypeName) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+    public SortedSet<Photo> getPhotos(final long guestId,
+                                      final TimeInterval timeInterval,
+                                      final String connectorPrettyName,
+                                      final String objectTypeName,
+                                      @Nullable TagFilter tagFilter) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
 
-        return getPhotos(guestId, timeInterval, connectorPrettyName, objectTypeName, new PhotoFinder() {
-            public List<AbstractFacet> find(final ApiKey apiKey, final ObjectType objectType) {
+        return getPhotos(guestId, timeInterval, connectorPrettyName, objectTypeName, tagFilter, new PhotoFinder() {
+            public List<AbstractFacet> find(final ApiKey apiKey,
+                                            final ObjectType objectType,
+                                            @Nullable TagFilter tagFilter) {
+
+                LOG_DEBUG.debug("PhotoServiceImpl.find(): finding photos for ApiKey [" + apiKey + "] and ObjectType [" + objectType + "] having TagFilter [" + tagFilter + "]");
+
                 final PhotoFacetFinderStrategy photoFacetFinderStrategy = getPhotoFacetFinderStrategyFromObjectType(objectType);
                 if (photoFacetFinderStrategy != null) {
                     return photoFacetFinderStrategy.findAll(apiKey, objectType, timeInterval);
@@ -86,14 +102,25 @@ public class PhotoServiceImpl implements PhotoService {
     }
 
     @Override
-    public SortedSet<Photo> getPhotos(final long guestId, final long timeInMillis, final String connectorPrettyName, final String objectTypeName, final int desiredCount, final boolean isGetPhotosBeforeTime) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+    public SortedSet<Photo> getPhotos(final long guestId,
+                                      final long timeInMillis,
+                                      final String connectorPrettyName,
+                                      final String objectTypeName,
+                                      final int desiredCount,
+                                      final boolean isGetPhotosBeforeTime,
+                                      @Nullable TagFilter tagFilter) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 
         // make sure the count is >= 1
         final int cleanedDesiredCount = Math.max(1, desiredCount);
 
-        final SortedSet<Photo> photos = getPhotos(guestId, null, connectorPrettyName, objectTypeName, new PhotoFinder() {
+        final SortedSet<Photo> photos = getPhotos(guestId, null, connectorPrettyName, objectTypeName, tagFilter, new PhotoFinder() {
 
-            public List<AbstractFacet> find(final ApiKey apiKey, final ObjectType objectType) {
+            public List<AbstractFacet> find(final ApiKey apiKey,
+                                            final ObjectType objectType,
+                                            @Nullable TagFilter tagFilter) {
+
+                LOG_DEBUG.debug("PhotoServiceImpl.find(): finding photos for ApiKey [" + apiKey + "] and ObjectType [" + objectType + "] having TagFilter [" + tagFilter + "]");
+
                 final PhotoFacetFinderStrategy photoFacetFinderStrategy = getPhotoFacetFinderStrategyFromObjectType(objectType);
                 if (photoFacetFinderStrategy != null) {
                     if (isGetPhotosBeforeTime) {
@@ -188,11 +215,17 @@ public class PhotoServiceImpl implements PhotoService {
      * belonging to the Connector.  If the <code>connectorPrettyName</code> is not equal to the
      * {@link #ALL_DEVICES_NAME}, then this method finds the specified Connector and ObjectType and adds the photos.
      * Furthermore, if the objectTypeName does not specify an existing ObjectType for the Connector, then this method
-     * returns photos from from all ObjectTypes which are of {@link ObjectType#isImageType() image type}.
+     * returns photos from from all ObjectTypes which are of {@link ObjectType#isImageType() image type}.  The set of
+     * returned photos may also be optionally filtered by the given <code>tags</code> and <code>tagFilteringStrategy</code>.
      *
      * May return an empty {@link SortedSet}, but guaranteeed to not return <code>null</code>.
      */
-    private SortedSet<Photo> getPhotos(final long guestId, final TimeInterval timeInterval, final String connectorPrettyName, final String objectTypeName, final PhotoFinder facetFinderStrategy) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+    private SortedSet<Photo> getPhotos(final long guestId,
+                                       final TimeInterval timeInterval,
+                                       final String connectorPrettyName,
+                                       final String objectTypeName,
+                                       @Nullable TagFilter tagFilter,
+                                       final PhotoFinder facetFinderStrategy) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 
         SortedSet<Photo> photos = new TreeSet<Photo>();
 
@@ -208,7 +241,7 @@ public class PhotoServiceImpl implements PhotoService {
                     if (objectTypes != null) {
                         for (ObjectType objectType : objectTypes) {
                             if (objectType.isImageType()) {
-                                List<AbstractFacet> facets = facetFinderStrategy.find(apiKey, objectType);
+                                List<AbstractFacet> facets = facetFinderStrategy.find(apiKey, objectType, tagFilter);
                                 photos.addAll(convertFacetsToPhotos(apiKey, timeInterval, facets, connector, objectType));
                             }
                         }
@@ -223,7 +256,7 @@ public class PhotoServiceImpl implements PhotoService {
                 final ObjectType desiredObjectType = findObjectTypeByName(connector, objectTypeName);
 
                 if (desiredObjectType == null) {
-                    final Map<ObjectType, List<AbstractFacet>> facetsByObjectType = facetFinderStrategy.find(apiKey);
+                    final Map<ObjectType, List<AbstractFacet>> facetsByObjectType = facetFinderStrategy.find(apiKey, tagFilter);
                     if ((facetsByObjectType != null) && (!facetsByObjectType.isEmpty())) {
                         for (final ObjectType objectType : facetsByObjectType.keySet()) {
                             final List<AbstractFacet> facets = facetsByObjectType.get(objectType);
@@ -234,7 +267,7 @@ public class PhotoServiceImpl implements PhotoService {
                     }
                 }
                 else if (desiredObjectType.isImageType()) {
-                    final List<AbstractFacet> facets = facetFinderStrategy.find(apiKey, desiredObjectType);
+                    final List<AbstractFacet> facets = facetFinderStrategy.find(apiKey, desiredObjectType, tagFilter);
                     if (facets != null) {
                         photos.addAll(convertFacetsToPhotos(apiKey, timeInterval, facets, connector, desiredObjectType));
                     }
@@ -282,7 +315,11 @@ public class PhotoServiceImpl implements PhotoService {
      * Converts {@link AbstractFacet}s to {@link Photo}s.  If the given {@link TimeInterval} is <code>null</code>, this
      * method creates a new one for each {@link AbstractFacet} using the facet's start time.
      */
-    private SortedSet<Photo> convertFacetsToPhotos(final ApiKey apiKey, final TimeInterval timeInterval, final List<AbstractFacet> facets, final Connector connector, final ObjectType objectType) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+    private SortedSet<Photo> convertFacetsToPhotos(final ApiKey apiKey,
+                                                   final TimeInterval timeInterval,
+                                                   final List<AbstractFacet> facets,
+                                                   final Connector connector,
+                                                   final ObjectType objectType) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
         SortedSet<Photo> photos = new TreeSet<Photo>();
 
@@ -317,7 +354,8 @@ public class PhotoServiceImpl implements PhotoService {
     /**
      * Returns the {@link TimeInterval} for the oldest and newest facets.  Returns <code>null</code> if no facets exist.
      */
-    private TimeInterval constructTimeIntervalFromOldestAndNewestFacets(final ApiKey apiKey, final ObjectType objectType) {
+    private TimeInterval constructTimeIntervalFromOldestAndNewestFacets(final ApiKey apiKey,
+                                                                        final ObjectType objectType) {
         final PhotoFacetFinderStrategy photoFacetFinderStrategy = getPhotoFacetFinderStrategyFromObjectType(objectType);
         final AbstractFacet oldestFacet = photoFacetFinderStrategy.findOldest(apiKey, objectType);
         final AbstractFacet newestFacet = photoFacetFinderStrategy.findLatest(apiKey, objectType);
