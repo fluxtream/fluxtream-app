@@ -2,7 +2,6 @@ package com.fluxtream.domain;
 
 import java.util.List;
 import com.fluxtream.TimeInterval;
-import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 
 /**

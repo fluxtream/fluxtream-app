@@ -17,6 +17,7 @@ import com.fluxtream.domain.AbstractUserProfile;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 import com.fluxtream.aspects.FlxLogger;
 import org.apache.velocity.util.StringUtils;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
@@ -30,6 +31,7 @@ public class Connector {
 
     private static Map<String, Connector> connectors = new ConcurrentHashMap<String, Connector>();
     private static Map<Integer, Connector> connectorsByValue = new ConcurrentHashMap<Integer, Connector>();
+    private static Map<String, Connector> connectorsByPrettyName = new ConcurrentHashMap<String, Connector>();
 
     private Class<? extends AbstractFacetExtractor> extractorClass;
     private Map<Integer, Class<? extends AbstractFacetExtractor>> objectTypeExtractorClasses;
@@ -49,6 +51,8 @@ public class Connector {
         flxConnector.name = "fluxtream";
         connectors.put(flxConnector.name, flxConnector);
         connectorsByValue.put(0xCAFEBABE, flxConnector);
+        // NOTE! This connector has no pretty name, and ConcurrentHashMaps don't allow keys or values to be null, so
+        // we won't add it to the connectorsByPrettyName map.
         ObjectType objectType = new ObjectType();
         objectType.value = 0xBABEFACE;
         objectType.name = "comment";
@@ -174,6 +178,9 @@ public class Connector {
 
         connectors.put(connectorName, connector);
         connectorsByValue.put(connector.value(), connector);
+        if (connector.prettyName != null) {
+            connectorsByPrettyName.put(connector.prettyName, connector);
+        }
 
     }
 
@@ -377,6 +384,17 @@ public class Connector {
 
     public static Connector fromValue(int api) {
         return connectorsByValue.get(api);
+    }
+
+    /**
+     * Returns the Connector having the given pretty name.  Returns <code>null</code> if no such connector exists or
+     * if the given pretty name is <code>null</code>.
+     */
+    public static Connector fromPrettyName(@Nullable final String prettyName) {
+        if (prettyName != null) {
+            return connectorsByPrettyName.get(prettyName);
+        }
+        return null;
     }
 
 }

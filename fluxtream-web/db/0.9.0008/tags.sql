@@ -1,1 +1,1 @@
-create index guestId_index on tags (guestId);
+create index guestId_index on Tags (guestId);

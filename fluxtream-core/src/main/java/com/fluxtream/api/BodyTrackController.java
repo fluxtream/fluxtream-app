@@ -261,7 +261,7 @@ public class BodyTrackController {
                             // nothing about whether that request was actually successful
                             final ApiKey apiKey;
                             List<ApiKey> apiKeys = guestService.getApiKeys(guestId, connector);
-                            if (apiKeys != null && apiKeys.size() > 0) {
+                            if (apiKeys != null && !apiKeys.isEmpty()) {
                                 apiKey = apiKeys.get(0);
                             }
                             else {
@@ -545,12 +545,7 @@ public class BodyTrackController {
             if (!accessAllowed){
                 uid = null;
             }
-            final Connector fluxtreamCaptureConnector = Connector.getConnector("fluxtream_capture");
-            ApiKey apiKey = guestService.getApiKey(uid, fluxtreamCaptureConnector);
-            if (apiKey==null) {
-                apiKey = guestService.createApiKey(uid, fluxtreamCaptureConnector);
-            }
-            return bodyTrackHelper.listSources(apiKey, coachee);
+            return bodyTrackHelper.listSources(uid, coachee);
         }
         catch (Exception e){
             return gson.toJson(new StatusModel(false,"Access Denied"));
@@ -639,8 +634,7 @@ public class BodyTrackController {
             final TimeInterval timeInterval = new TimeInterval(startTimeMillis, endTimeMillis, TimeUnit.DAY, TimeZone.getTimeZone("UTC"));
 
             // fetch the photos for this time interval, and for the desired device/channel
-            final ApiKey apiKey = guestService.getApiKey(uid, Connector.getConnector("fluxtream_capture"));
-            final SortedSet<PhotoService.Photo> photos  = photoService.getPhotos(apiKey, timeInterval, connectorPrettyName, objectTypeName);
+            final SortedSet<PhotoService.Photo> photos = photoService.getPhotos(uid, timeInterval, connectorPrettyName, objectTypeName);
 
             // Define the min interval to be 1/20th of the span of the tile.  Value is in seconds
             final double minInterval = LevelOffsetHelper.levelToDuration(level) / 20.0;
@@ -706,8 +700,7 @@ public class BodyTrackController {
                 return gson.toJson(new StatusModel(false, "Invalid User ID (null)"));
              }
 
-            final ApiKey apiKey = guestService.getApiKey(uid, Connector.getConnector("fluxtream_capture"));
-            final SortedSet<PhotoService.Photo> photos = photoService.getPhotos(apiKey, unixTimeInSecs * 1000, connectorPrettyName, objectTypeName, desiredCount, isGetPhotosBeforeTime);
+            final SortedSet<PhotoService.Photo> photos = photoService.getPhotos(uid, unixTimeInSecs * 1000, connectorPrettyName, objectTypeName, desiredCount, isGetPhotosBeforeTime);
 
             // create the JSON response
             final List<PhotoItem> photoItems = new ArrayList<PhotoItem>();
