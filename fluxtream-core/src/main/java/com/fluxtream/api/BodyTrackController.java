@@ -685,7 +685,7 @@ public class BodyTrackController {
     public String getPhotosBeforeOrAfterTime(@PathParam("UID") long uid,
                                              @PathParam("ConnectorPrettyName") String connectorPrettyName,
                                              @PathParam("ObjectTypeName") String objectTypeName,
-                                             @PathParam("unixTime") long unixTimeInSecs,
+                                             @PathParam("unixTime") double unixTimeInSecs,
                                              @PathParam("count") int desiredCount,
                                              @QueryParam("isBefore") boolean isGetPhotosBeforeTime,
                                              @QueryParam("tags") List<String> tags,
@@ -700,7 +700,7 @@ public class BodyTrackController {
                 return gson.toJson(new StatusModel(false, "Invalid User ID (null)"));
              }
 
-            final SortedSet<PhotoService.Photo> photos = photoService.getPhotos(uid, unixTimeInSecs * 1000, connectorPrettyName, objectTypeName, desiredCount, isGetPhotosBeforeTime);
+            final SortedSet<PhotoService.Photo> photos = photoService.getPhotos(uid, (long)(unixTimeInSecs * 1000), connectorPrettyName, objectTypeName, desiredCount, isGetPhotosBeforeTime);
 
             // create the JSON response
             final List<PhotoItem> photoItems = new ArrayList<PhotoItem>();
@@ -986,14 +986,6 @@ public class BodyTrackController {
         String successful_records;
         String failed_records;
         String failure;
-    }
-
-    private static class PhotoUploadMetadata {
-        private long capture_time = -1;
-
-        public boolean isValid() {
-            return capture_time >= 0;
-        }
     }
 
     private class PhotoUploadResponsePayload {
