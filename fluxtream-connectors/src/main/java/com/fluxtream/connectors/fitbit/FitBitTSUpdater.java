@@ -465,8 +465,6 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                                     final TimeZone userTimeZone, final Date date,
                                     final String dateString) throws Exception {
         updateInfo.setContext("date", dateString);
-        long from = TimeUtils.fromMidnight(date.getTime(), userTimeZone);
-        long to = TimeUtils.toMidnight(date.getTime(), userTimeZone);
 
         if (objectTypes.contains(sleepOT)) {
             logger.info("guestId=" + updateInfo.getGuestId() + " objectType=sleep" +
