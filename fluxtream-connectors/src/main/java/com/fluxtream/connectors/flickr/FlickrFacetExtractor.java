@@ -26,7 +26,6 @@ public class FlickrFacetExtractor extends AbstractFacetExtractor {
 			ObjectType objectType) {
 		List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
 
-        String feedString = apiData.jsonObject.toString();
 		JSONObject photosWrapper = apiData.jsonObject.getJSONObject("photos");
 
 		if (photosWrapper != null) {
@@ -56,7 +55,7 @@ public class FlickrFacetExtractor extends AbstractFacetExtractor {
 				facet.isfamily = Integer.valueOf(it.getString("isfamily")) == 1;
                 final String datetaken = it.getString("datetaken");
                 final DateTime dateTime = format.parseDateTime(datetaken);
-                facet.date = (new StringBuilder(dateTime.getYear()).append("-")
+                facet.date = (new StringBuilder(String.valueOf(dateTime.getYear())).append("-")
                               .append(pad(dateTime.getMonthOfYear())).append("-")
                               .append(pad(dateTime.getDayOfMonth()))).toString();
                 facet.datetaken = dateTime.getMillis();
@@ -74,5 +73,14 @@ public class FlickrFacetExtractor extends AbstractFacetExtractor {
 
 		return facets;
 	}
+
+    public static void main(final String[] args) {
+        String datetaken = "2012-10-26 17:29:19";
+        final DateTime dateTime = format.parseDateTime(datetaken);
+        String date = (new StringBuilder(String.valueOf(dateTime.getYear())).append("-")
+                              .append(pad(dateTime.getMonthOfYear())).append("-")
+                              .append(pad(dateTime.getDayOfMonth()))).toString();
+        System.out.println(date);
+    }
 
 }
