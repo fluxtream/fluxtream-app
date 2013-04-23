@@ -30,13 +30,14 @@
     <http pattern="/api/ping" security="none" />
 
 
-    <http access-denied-page="/accessDenied" entry-point-ref="loginUrlAuthenticationEntryPoint"
-		use-expressions="true" create-session="ifRequired">
-		<intercept-url pattern='/api/**' access="hasRole('ROLE_USER')"/>
-		<intercept-url pattern="/**"
-			access="hasRole('ROLE_USER')" />
+    <http pattern="/rest/**" create-session="stateless">
+        <http-basic/>
+    </http>
 
-		<http-basic/>
+    <http access-denied-page="/accessDenied" entry-point-ref="loginUrlAuthenticationEntryPoint"
+		use-expressions="true" create-session="always">
+		<intercept-url pattern="/**" access="hasRole('ROLE_USER')" />
+
 		<custom-filter position="FORM_LOGIN_FILTER" ref="authFilter" />
 		<custom-filter position="LOGOUT_FILTER" ref="logoutFilter" />
 	</http>
