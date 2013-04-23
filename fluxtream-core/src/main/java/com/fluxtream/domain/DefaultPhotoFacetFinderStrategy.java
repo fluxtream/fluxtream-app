@@ -4,6 +4,7 @@ import java.util.List;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.services.ApiDataService;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -28,6 +29,32 @@ public class DefaultPhotoFacetFinderStrategy implements PhotoFacetFinderStrategy
     @Override
     public List<AbstractFacet> findAfter(final ApiKey apiKey, final ObjectType objectType, final long timeInMillis, final int desiredCount) {
         return apiDataService.getApiDataFacetsAfter(apiKey, objectType, timeInMillis, desiredCount);
+    }
+
+    @Override
+    public List<AbstractFacet> findAll(final ApiKey apiKey,
+                                       final ObjectType objectType,
+                                       final TimeInterval timeInterval,
+                                       @Nullable final TagFilter tagFilter) {
+        return apiDataService.getApiDataFacets(apiKey, objectType, timeInterval, tagFilter);
+    }
+
+    @Override
+    public List<AbstractFacet> findBefore(final ApiKey apiKey,
+                                          final ObjectType objectType,
+                                          final long timeInMillis,
+                                          final int desiredCount,
+                                          @Nullable final TagFilter tagFilter) {
+        return apiDataService.getApiDataFacetsBefore(apiKey, objectType, timeInMillis, desiredCount, tagFilter);
+    }
+
+    @Override
+    public List<AbstractFacet> findAfter(final ApiKey apiKey,
+                                         final ObjectType objectType,
+                                         final long timeInMillis,
+                                         final int desiredCount,
+                                         @Nullable final TagFilter tagFilter) {
+        return apiDataService.getApiDataFacetsAfter(apiKey, objectType, timeInMillis, desiredCount, tagFilter);
     }
 
     @Override

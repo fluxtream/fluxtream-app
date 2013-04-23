@@ -51,8 +51,7 @@ public class PhotoServiceImpl implements PhotoService {
     BeanFactory beanFactory;
 
     private static abstract class PhotoFinder {
-        final Map<ObjectType, List<AbstractFacet>> find(final ApiKey apiKey,
-                                                        @Nullable TagFilter tagFilter) {
+        final Map<ObjectType, List<AbstractFacet>> find(final ApiKey apiKey, @Nullable TagFilter tagFilter) {
             final Map<ObjectType, List<AbstractFacet>> facets = new HashMap<ObjectType, List<AbstractFacet>>();
             if (apiKey.getConnector() != null) {
                 final ObjectType[] objectTypes = apiKey.getConnector().objectTypes();
@@ -94,7 +93,7 @@ public class PhotoServiceImpl implements PhotoService {
 
                 final PhotoFacetFinderStrategy photoFacetFinderStrategy = getPhotoFacetFinderStrategyFromObjectType(objectType);
                 if (photoFacetFinderStrategy != null) {
-                    return photoFacetFinderStrategy.findAll(apiKey, objectType, timeInterval);
+                    return photoFacetFinderStrategy.findAll(apiKey, objectType, timeInterval, tagFilter);
                 }
                 return new ArrayList<AbstractFacet>(0);
             }
@@ -124,10 +123,10 @@ public class PhotoServiceImpl implements PhotoService {
                 final PhotoFacetFinderStrategy photoFacetFinderStrategy = getPhotoFacetFinderStrategyFromObjectType(objectType);
                 if (photoFacetFinderStrategy != null) {
                     if (isGetPhotosBeforeTime) {
-                        return photoFacetFinderStrategy.findBefore(apiKey, objectType, timeInMillis, cleanedDesiredCount);
+                        return photoFacetFinderStrategy.findBefore(apiKey, objectType, timeInMillis, cleanedDesiredCount, tagFilter);
                     }
                     else {
-                        return photoFacetFinderStrategy.findAfter(apiKey, objectType, timeInMillis, cleanedDesiredCount);
+                        return photoFacetFinderStrategy.findAfter(apiKey, objectType, timeInMillis, cleanedDesiredCount, tagFilter);
                     }
                 }
                 return new ArrayList<AbstractFacet>(0);

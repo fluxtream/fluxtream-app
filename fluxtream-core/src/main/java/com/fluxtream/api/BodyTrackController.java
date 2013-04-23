@@ -4,10 +4,13 @@ import java.awt.Dimension;
 import java.lang.reflect.Type;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TimeZone;
 import java.util.TreeSet;
@@ -61,6 +64,7 @@ import com.sun.jersey.multipart.BodyPartEntity;
 import com.sun.jersey.multipart.MultiPart;
 import org.apache.commons.io.IOUtils;
 import com.fluxtream.aspects.FlxLogger;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joda.time.DateTime;
@@ -615,15 +619,13 @@ public class BodyTrackController {
                                  @PathParam("ObjectTypeName") String objectTypeName,
                                  @PathParam("Level") int level,
                                  @PathParam("Offset") long offset,
-                                 @QueryParam("tags") List<String> tags,
+                                 @QueryParam("tags") String tagsStr,
                                  @QueryParam("tag-match") String tagMatchingStrategyName) {
         long loggedInUserId = AuthHelper.getGuestId();
         boolean accessAllowed = checkForPermissionAccess(uid);
         CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
 
         final TagFilter.FilteringStrategy tagFilteringStrategy = TagFilter.FilteringStrategy.findByName(tagMatchingStrategyName);
-
-        LOG_DEBUG.debug("BodyTrackController.fetchPhotoTile(): tags = [" + tags + "] tagFilteringStrategy = [" + tagFilteringStrategy + "]");
 
         try {
             if (!accessAllowed && coachee==null) {
@@ -641,7 +643,8 @@ public class BodyTrackController {
             final TimeInterval timeInterval = new TimeInterval(startTimeMillis, endTimeMillis, TimeUnit.DAY, TimeZone.getTimeZone("UTC"));
 
             // fetch the photos for this time interval, and for the desired device/channel
-            final SortedSet<PhotoService.Photo> photos = photoService.getPhotos(uid, timeInterval, connectorPrettyName, objectTypeName, new TagFilter(tags, tagFilteringStrategy));
+            final TagFilter tagFilter = TagFilter.create(Tag.parseTagsIntoStrings(tagsStr, ','), tagFilteringStrategy);
+            final SortedSet<PhotoService.Photo> photos = photoService.getPhotos(uid, timeInterval, connectorPrettyName, objectTypeName, tagFilter);
 
             // Define the min interval to be 1/20th of the span of the tile.  Value is in seconds
             final double minInterval = LevelOffsetHelper.levelToDuration(level) / 20.0;
@@ -695,7 +698,7 @@ public class BodyTrackController {
                                              @PathParam("unixTime") double unixTimeInSecs,
                                              @PathParam("count") int desiredCount,
                                              @QueryParam("isBefore") boolean isGetPhotosBeforeTime,
-                                             @QueryParam("tags") List<String> tags,
+                                             @QueryParam("tags") String tagsStr,
                                              @QueryParam("tag-match") String tagMatchingStrategyName
                                              ) {
         long loggedInUserId = AuthHelper.getGuestId();
@@ -704,14 +707,13 @@ public class BodyTrackController {
 
         final TagFilter.FilteringStrategy tagFilteringStrategy = TagFilter.FilteringStrategy.findByName(tagMatchingStrategyName);
 
-        LOG_DEBUG.debug("BodyTrackController.getPhotosBeforeOrAfterTime(): tags = [" + tags + "] tagFilteringStrategy = [" + tagFilteringStrategy + "]");
-
         try {
             if (!accessAllowed && coachee==null) {
                 return gson.toJson(new StatusModel(false, "Invalid User ID (null)"));
              }
 
-            final SortedSet<PhotoService.Photo> photos = photoService.getPhotos(uid, (long)(unixTimeInSecs * 1000), connectorPrettyName, objectTypeName, desiredCount, isGetPhotosBeforeTime, new TagFilter(tags, tagFilteringStrategy));
+            final TagFilter tagFilter = TagFilter.create(Tag.parseTagsIntoStrings(tagsStr, ','), tagFilteringStrategy);
+            final SortedSet<PhotoService.Photo> photos = photoService.getPhotos(uid, (long)(unixTimeInSecs * 1000), connectorPrettyName, objectTypeName, desiredCount, isGetPhotosBeforeTime, tagFilter);
 
             // create the JSON response
             final List<PhotoItem> photoItems = new ArrayList<PhotoItem>();

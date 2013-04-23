@@ -177,12 +177,14 @@
 <table border="0" cellpadding="0" cellspacing="0" style="width:auto" class="_timeline_photo_series_plot_config">
     <tr>
         <td style="font-size:8pt">
-            Show photos that contain
-            <select id="{{channelElementId}}-photo-tags-isAndJoin">
-                <option value="false">any</option>
-                <option value="true">all</option>
+            Show photos that
+            <select id="{{channelElementId}}-photo-tags-matching-strategy">
+                <option value="any">contain any of the tags specified below</option>
+                <option value="all">contain all of the tags specified below</option>
+                <option value="none">contain none of the tags specified below</option>
+                <option value="untagged">are untagged</option>
             </select>
-            of the tags selected below.<br><br>
+            <br><br>
             <form id="{{channelElementId}}-photo-tags-filter" style="margin-right:10px" action="" method="post" onsubmit="return false;">
                 <input type="text" name="tag[]" value="" class="tag"/>
             </form>

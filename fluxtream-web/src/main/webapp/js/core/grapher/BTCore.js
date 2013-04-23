@@ -446,15 +446,16 @@ define([], function() {
         return __createDatasource(urlPrefix);
     }
 
-    // If allTags is true, we require all tags to be present.
-    // Otherwise, any tag in tags is OK (the default)
-    window.photoDatasource = function(userId, deviceName, channelName, tags, allTags, nsfw) {
+    window.photoDatasource = function(userId, deviceName, channelName, tags, matchingStrategy, nsfw) {
         var urlPrefix = "/api/bodytrack/photos/" + userId + "/"+ (deviceName == null ? "All" : deviceName) + "." + channelName + "/";
         var urlParams = {};
-        if (tags != null && tags.length > 0) {
+        if (matchingStrategy == 'untagged') {
+            urlParams["tag-match"] = matchingStrategy;
+        } else if (tags != null && tags.length > 0) {
             urlParams["tags"] = tags.join(",");
-            urlParams["tag-match"] = !!allTags ? "all" : "any"; // TODO: add support for "none" and "untagged"
+            urlParams["tag-match"] = matchingStrategy;
         }
+
         if (!!nsfw) {
             urlParams["nsfw"] = "1";
         }

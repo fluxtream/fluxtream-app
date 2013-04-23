@@ -7,7 +7,9 @@ import com.fluxtream.connectors.google_latitude.LocationFacet;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.TagFilter;
 import net.sf.json.JSONObject;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.transaction.annotation.Transactional;
 
 public interface ApiDataService {
@@ -34,8 +36,12 @@ public interface ApiDataService {
 
     public <T> List<T> getApiDataFacets(ApiKey apiKey, ObjectType objectType, List<String> dates, Class<T> clazz);
 
-	public List<AbstractFacet> getApiDataFacets(ApiKey apiKey,
-			ObjectType objectType, TimeInterval timeInterval);
+    public List<AbstractFacet> getApiDataFacets(ApiKey apiKey, ObjectType objectType, TimeInterval timeInterval);
+
+    public List<AbstractFacet> getApiDataFacets(ApiKey apiKey,
+                                                ObjectType objectType,
+                                                TimeInterval timeInterval,
+                                                @Nullable TagFilter tagFilter);
 
     public <T> List<T> getApiDataFacets(ApiKey apiKey, ObjectType objectType, TimeInterval timeInterval, Class<T> clazz);
 
@@ -52,6 +58,16 @@ public interface ApiDataService {
                                                       int desiredCount);
 
     /**
+     * Returns up to <code>desiredCount</code> facets which have a timestamp equal to or before the given
+     * <code>timeInMillis</code>.  Returns <code>null</code> if no facets are found.
+     */
+    public List<AbstractFacet> getApiDataFacetsBefore(ApiKey apiKey,
+                                                      ObjectType objectType,
+                                                      long timeInMillis,
+                                                      int desiredCount,
+                                                      @Nullable TagFilter tagFilter);
+
+    /**
      * Returns up to <code>desiredCount</code> facets which have a timestamp equal to or after the given
      * <code>timeInMillis</code>.  Returns <code>null</code> if no facets are found.
      */
@@ -59,6 +75,16 @@ public interface ApiDataService {
                                                      ObjectType objectType,
                                                      long timeInMillis,
                                                      int desiredCount);
+
+    /**
+     * Returns up to <code>desiredCount</code> facets which have a timestamp equal to or after the given
+     * <code>timeInMillis</code>.  Returns <code>null</code> if no facets are found.
+     */
+    public List<AbstractFacet> getApiDataFacetsAfter(ApiKey apiKey,
+                                                     ObjectType objectType,
+                                                     long timeInMillis,
+                                                     int desiredCount,
+                                                     @Nullable TagFilter tagFilter);
 
     public AbstractFacet getFacetById(ApiKey apiKey, ObjectType objectType, long facetId);
 
