@@ -65,9 +65,7 @@ public class MyMeePhotoFacetFinderStrategy implements PhotoFacetFinderStrategy {
                                 " AND" +
                                 " (" + tagFilter.getWhereClause() + ")";
         final Query query = em.createQuery(queryStr);
-        final List<AbstractFacet> resultList = (List<AbstractFacet>)query.getResultList();
-        LOG_DEBUG.debug("MyMeePhotoFacetFinderStrategy.findAll(): found " + resultList.size() + " photos with query [" + queryStr + "]");
-        return resultList;
+        return (List<AbstractFacet>)query.getResultList();
     }
 
     @Override
@@ -90,9 +88,7 @@ public class MyMeePhotoFacetFinderStrategy implements PhotoFacetFinderStrategy {
                                 " ORDER BY facet.start DESC LIMIT " + desiredCount;
         final Query query = em.createQuery(queryStr);
         query.setMaxResults(desiredCount);
-        final List<AbstractFacet> resultList = (List<AbstractFacet>)query.getResultList();
-        LOG_DEBUG.debug("MyMeePhotoFacetFinderStrategy.findBefore(): found " + resultList.size() + " photos with query [" + queryStr + "]");
-        return resultList;
+        return (List<AbstractFacet>)query.getResultList();
     }
 
     @Override
@@ -115,10 +111,7 @@ public class MyMeePhotoFacetFinderStrategy implements PhotoFacetFinderStrategy {
                                 " ORDER BY facet.start ASC LIMIT " + desiredCount;
         final Query query = em.createQuery(queryStr);
         query.setMaxResults(desiredCount);
-        final List<AbstractFacet> resultList = (List<AbstractFacet>)query.getResultList();
-        LOG_DEBUG.debug("MyMeePhotoFacetFinderStrategy.findAfter(): found " + resultList.size() + " photos with query [" + queryStr + "]");
-
-        return resultList;
+        return (List<AbstractFacet>)query.getResultList();
     }
 
     @Override

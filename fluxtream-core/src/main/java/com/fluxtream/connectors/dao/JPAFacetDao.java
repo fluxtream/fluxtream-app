@@ -16,9 +16,11 @@ import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.connectors.google_latitude.LocationFacet;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.TagFilter;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.utils.JPAUtils;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.Cacheable;
@@ -82,24 +84,24 @@ public class JPAFacetDao implements FacetDao {
                         : connector.facetClass();
     }
 
-    public List<AbstractFacet> getFacetsBetween(final ApiKey apiKey, TimeInterval timeInterval) {
-        final ObjectType[] objectTypes = apiKey.getConnector().objectTypes();
-        List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
-        for (ObjectType type : objectTypes) {
-            facets.addAll(getFacetsBetween(apiKey, type, timeInterval));
-        }
-        return facets;
-    }
-
 	@Override
 	public List<AbstractFacet> getFacetsBetween(final ApiKey apiKey, ObjectType objectType, TimeInterval timeInterval) {
+        return getFacetsBetween(apiKey, objectType, timeInterval, null);
+    }
+
+    @Override
+    public List<AbstractFacet> getFacetsBetween(final ApiKey apiKey,
+                                                final ObjectType objectType,
+                                                final TimeInterval timeInterval,
+                                                @Nullable final TagFilter tagFilter) {
         if (objectType==null) {
-            return getFacetsBetween(apiKey, timeInterval);
+            return getFacetsBetween(apiKey, timeInterval, tagFilter);
         } else {
             if (!apiKey.getConnector().hasFacets()) return new ArrayList<AbstractFacet>();
             Class<? extends AbstractFacet> facetClass = getFacetClass(apiKey.getConnector(), objectType);
             final String facetName = getEntityName(facetClass);
-            String queryString = "SELECT facet FROM " + facetName  + " facet WHERE facet.guestId=? AND (facet.apiKeyId=? OR facet.apiKeyId IS NULL) AND facet.start>=? AND facet.end<=?";
+            final String additionalWhereClause = (tagFilter == null) ? "" : " AND (" + tagFilter.getWhereClause() + ")";
+            String queryString = "SELECT facet FROM " + facetName  + " facet WHERE facet.guestId=? AND (facet.apiKeyId=? OR facet.apiKeyId IS NULL) AND facet.start>=? AND facet.end<=?" + additionalWhereClause;
             final TypedQuery<AbstractFacet> query = em.createQuery(queryString, AbstractFacet.class);
             query.setParameter(1, apiKey.getGuestId());
             query.setParameter(2, apiKey.getId());
@@ -108,7 +110,16 @@ public class JPAFacetDao implements FacetDao {
             List<AbstractFacet> facets = query.getResultList();
             return facets;
         }
-	}
+    }
+
+    private List<AbstractFacet> getFacetsBetween(final ApiKey apiKey, TimeInterval timeInterval, @Nullable final TagFilter tagFilter) {
+        final ObjectType[] objectTypes = apiKey.getConnector().objectTypes();
+        List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
+        for (ObjectType type : objectTypes) {
+            facets.addAll(getFacetsBetween(apiKey, type, timeInterval, tagFilter));
+        }
+        return facets;
+    }
 
     @Override
     public AbstractFacet getOldestFacet(final ApiKey apiKey, final ObjectType objectType) {
@@ -122,12 +133,30 @@ public class JPAFacetDao implements FacetDao {
 
     @Override
     public List<AbstractFacet> getFacetsBefore(final ApiKey apiKey, final ObjectType objectType, final long timeInMillis, final int desiredCount) {
-        return getFacets(apiKey, objectType, timeInMillis, desiredCount, "getFacetsBefore");
+        return getFacetsBefore(apiKey, objectType, timeInMillis, desiredCount, null);
     }
 
     @Override
     public List<AbstractFacet> getFacetsAfter(final ApiKey apiKey, final ObjectType objectType, final long timeInMillis, final int desiredCount) {
-        return getFacets(apiKey, objectType, timeInMillis, desiredCount, "getFacetsAfter");
+        return getFacetsAfter(apiKey, objectType, timeInMillis, desiredCount, null);
+    }
+
+    @Override
+    public List<AbstractFacet> getFacetsBefore(final ApiKey apiKey,
+                                               final ObjectType objectType,
+                                               final long timeInMillis,
+                                               final int desiredCount,
+                                               @Nullable final TagFilter tagFilter) {
+        return getFacets(apiKey, objectType, timeInMillis, desiredCount, "getFacetsBefore", tagFilter);
+    }
+
+    @Override
+    public List<AbstractFacet> getFacetsAfter(final ApiKey apiKey,
+                                              final ObjectType objectType,
+                                              final long timeInMillis,
+                                              final int desiredCount,
+                                              @Nullable final TagFilter tagFilter) {
+        return getFacets(apiKey, objectType, timeInMillis, desiredCount, "getFacetsAfter", tagFilter);
     }
 
     @Override
@@ -197,7 +226,12 @@ public class JPAFacetDao implements FacetDao {
         return facet;
     }
 
-    private List<AbstractFacet> getFacets(final ApiKey apiKey, final ObjectType objectType, final long timeInMillis, final int desiredCount, final String methodName) {
+    private List<AbstractFacet> getFacets(final ApiKey apiKey,
+                                          final ObjectType objectType,
+                                          final long timeInMillis,
+                                          final int desiredCount,
+                                          final String methodName,
+                                          @Nullable final TagFilter tagFilter) {
         if (!apiKey.getConnector().hasFacets()) {
             return null;
         }
@@ -206,8 +240,8 @@ public class JPAFacetDao implements FacetDao {
         if (objectType != null) {
             try {
                 Class c = objectType.facetClass();
-                Method m = c.getMethod(methodName, EntityManager.class, ApiKey.class, ObjectType.class, Long.class, Integer.class );
-                facets = (List<AbstractFacet>)m.invoke(null, em, apiKey, objectType, timeInMillis, desiredCount);
+                Method m = c.getMethod(methodName, EntityManager.class, ApiKey.class, ObjectType.class, Long.class, Integer.class, TagFilter.class);
+                facets = (List<AbstractFacet>)m.invoke(null, em, apiKey, objectType, timeInMillis, desiredCount, tagFilter);
             }
             catch (Exception ignored) {
                 if (logger.isInfoEnabled()) {
@@ -220,8 +254,8 @@ public class JPAFacetDao implements FacetDao {
                 for (ObjectType type : apiKey.getConnector().objectTypes()) {
                     try {
                         Class c = type.facetClass();
-                        Method m = c.getMethod(methodName, EntityManager.class, ApiKey.class, ObjectType.class, Long.class, Integer.class);
-                        facets = (List<AbstractFacet>)m.invoke(null, em, apiKey, type, timeInMillis, desiredCount);
+                        Method m = c.getMethod(methodName, EntityManager.class, ApiKey.class, ObjectType.class, Long.class, Integer.class, TagFilter.class);
+                        facets = (List<AbstractFacet>)m.invoke(null, em, apiKey, type, timeInMillis, desiredCount, tagFilter);
                     }
                     catch (Exception ignored) {
                         if (logger.isInfoEnabled()) {
@@ -233,8 +267,8 @@ public class JPAFacetDao implements FacetDao {
             else {
                 try {
                     Class c = apiKey.getConnector().facetClass();
-                    Method m = c.getMethod(methodName, EntityManager.class, ApiKey.class, ObjectType.class, Long.class, Integer.class);
-                    facets = (List<AbstractFacet>)m.invoke(null, em, apiKey, null, timeInMillis, desiredCount);
+                    Method m = c.getMethod(methodName, EntityManager.class, ApiKey.class, ObjectType.class, Long.class, Integer.class, TagFilter.class);
+                    facets = (List<AbstractFacet>)m.invoke(null, em, apiKey, null, timeInMillis, desiredCount, tagFilter);
                 }
                 catch (Exception ignored) {
                     if (logger.isInfoEnabled()) {

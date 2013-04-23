@@ -280,28 +280,24 @@ public class ApiDataServiceImpl implements ApiDataService {
     }
 
     @Override
-	public List<AbstractFacet> getApiDataFacets(ApiKey apiKey, ObjectType objectType,
-			TimeInterval timeInterval) {
-        return jpaDao.getFacetsBetween(apiKey, objectType, timeInterval);
-	}
+    public List<AbstractFacet> getApiDataFacets(ApiKey apiKey, ObjectType objectType, TimeInterval timeInterval) {
+        return getApiDataFacets(apiKey, objectType, timeInterval, (TagFilter)null);
+    }
 
     @Override
     public List<AbstractFacet> getApiDataFacets(final ApiKey apiKey,
                                                 final ObjectType objectType,
                                                 final TimeInterval timeInterval,
                                                 @Nullable final TagFilter tagFilter) {
-        if (tagFilter == null) {
-            return getApiDataFacets(apiKey, objectType, timeInterval);
-        }
-
-        // TODO
-        return getApiDataFacets(apiKey, objectType, timeInterval);
+        return jpaDao.getFacetsBetween(apiKey, objectType, timeInterval, tagFilter);
     }
 
     @Override
-    public <T> List<T> getApiDataFacets(ApiKey apiKey, ObjectType objectType,
-                                                TimeInterval timeInterval, Class<T> clazz) {
-        return (List<T>) jpaDao.getFacetsBetween(apiKey, objectType, timeInterval);
+    public <T> List<T> getApiDataFacets(ApiKey apiKey,
+                                        ObjectType objectType,
+                                        TimeInterval timeInterval,
+                                        Class<T> clazz) {
+        return (List<T>)jpaDao.getFacetsBetween(apiKey, objectType, timeInterval);
     }
 
     @Override
@@ -316,7 +312,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 
     @Override
     public List<AbstractFacet> getApiDataFacetsBefore(ApiKey apiKey, final ObjectType objectType, final long timeInMillis, final int desiredCount) {
-        return jpaDao.getFacetsBefore(apiKey, objectType, timeInMillis, desiredCount);
+        return getApiDataFacetsBefore(apiKey, objectType, timeInMillis, desiredCount, null);
     }
 
     @Override
@@ -325,18 +321,12 @@ public class ApiDataServiceImpl implements ApiDataService {
                                                       final long timeInMillis,
                                                       final int desiredCount,
                                                       @Nullable final TagFilter tagFilter) {
-
-        if (tagFilter == null) {
-            return getApiDataFacetsBefore(apiKey, objectType, timeInMillis, desiredCount);
-        }
-
-        // TODO
-        return getApiDataFacetsBefore(apiKey, objectType, timeInMillis, desiredCount);
+        return jpaDao.getFacetsBefore(apiKey, objectType, timeInMillis, desiredCount, tagFilter);
     }
 
     @Override
     public List<AbstractFacet> getApiDataFacetsAfter(ApiKey apiKey, final ObjectType objectType, final long timeInMillis, final int desiredCount) {
-        return jpaDao.getFacetsAfter(apiKey, objectType, timeInMillis, desiredCount);
+        return getApiDataFacetsAfter(apiKey, objectType, timeInMillis, desiredCount, null);
     }
 
     @Override
@@ -345,12 +335,7 @@ public class ApiDataServiceImpl implements ApiDataService {
                                                      final long timeInMillis,
                                                      final int desiredCount,
                                                      @Nullable final TagFilter tagFilter) {
-        if (tagFilter == null) {
-            return getApiDataFacetsAfter(apiKey, objectType, timeInMillis, desiredCount);
-        }
-
-        // TODO
-        return getApiDataFacetsAfter(apiKey, objectType, timeInMillis, desiredCount);
+        return jpaDao.getFacetsAfter(apiKey, objectType, timeInMillis, desiredCount, tagFilter);
     }
 
     public AbstractFacet getFacetById(ApiKey apiKey, final ObjectType objectType, final long facetId) {

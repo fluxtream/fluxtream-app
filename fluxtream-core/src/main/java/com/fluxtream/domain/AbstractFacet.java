@@ -17,6 +17,7 @@ import javax.persistence.PostLoad;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Query;
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import org.hibernate.annotations.Index;
@@ -24,10 +25,12 @@ import org.hibernate.annotations.Type;
 import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.Store;
+import org.jetbrains.annotations.Nullable;
 
 @MappedSuperclass
 @Indexed
 public abstract class AbstractFacet extends AbstractEntity {
+    private static final FlxLogger LOG_DEBUG = FlxLogger.getLogger("Fluxtream");
 
     private static final String TAG_DELIMITER = ",";
 
@@ -245,12 +248,32 @@ public abstract class AbstractFacet extends AbstractEntity {
                                                       ObjectType objType,
                                                       Long timeInMillis,
                                                       Integer desiredCount) {
+        return getFacetsBefore(em, apiKey, objType, timeInMillis, desiredCount, null);
+    }
+
+    public static List<AbstractFacet> getFacetsAfter(EntityManager em,
+                                                     ApiKey apiKey,
+                                                     ObjectType objType,
+                                                     Long timeInMillis,
+                                                     Integer desiredCount){
+        return getFacetsAfter(em, apiKey, objType, timeInMillis, desiredCount, null);
+    }
+
+    public static List<AbstractFacet> getFacetsBefore(EntityManager em,
+                                                      ApiKey apiKey,
+                                                      ObjectType objType,
+                                                      Long timeInMillis,
+                                                      Integer desiredCount,
+                                                      @Nullable final TagFilter tagFilter) {
         final Class facetClass = getFacetClass(apiKey, objType);
         final Entity entity = (Entity)facetClass.getAnnotation(Entity.class);
-        final Query query = em.createQuery("select facet from " + entity.name()
-                                           + " facet where facet.guestId = "
-                                           + apiKey.getGuestId() + " and facet.start <= "
-                                           + timeInMillis + " order by facet.start desc limit " + desiredCount);
+        final String additionalWhereClause = (tagFilter == null) ? "" : " AND (" + tagFilter.getWhereClause() + ")";
+        final String queryStr = "select facet from " + entity.name()
+                                + " facet where facet.guestId = " + apiKey.getGuestId()
+                                + " and facet.start <= " + timeInMillis
+                                + additionalWhereClause
+                                + " order by facet.start desc limit " + desiredCount;
+        final Query query = em.createQuery(queryStr);
         query.setMaxResults(desiredCount);
         return (List<AbstractFacet>)query.getResultList();
     }
@@ -259,13 +282,17 @@ public abstract class AbstractFacet extends AbstractEntity {
                                                      ApiKey apiKey,
                                                      ObjectType objType,
                                                      Long timeInMillis,
-                                                     Integer desiredCount){
+                                                     Integer desiredCount,
+                                                     @Nullable final TagFilter tagFilter){
         final Class facetClass = getFacetClass(apiKey, objType);
         final Entity entity = (Entity)facetClass.getAnnotation(Entity.class);
-        final Query query = em.createQuery("select facet from " + entity.name()
-                                           + " facet where facet.guestId = " + apiKey.getGuestId()
-                                           + " and facet.start >= " + timeInMillis
-                                           + " order by facet.start asc limit " + desiredCount);
+        final String additionalWhereClause = (tagFilter == null) ? "" : " AND (" + tagFilter.getWhereClause() + ")";
+        final String queryStr = "select facet from " + entity.name()
+                                + " facet where facet.guestId = " + apiKey.getGuestId()
+                                + " and facet.start >= " + timeInMillis
+                                + additionalWhereClause
+                                + " order by facet.start asc limit " + desiredCount;
+        final Query query = em.createQuery(queryStr);
         query.setMaxResults(desiredCount);
         return (List<AbstractFacet>)query.getResultList();
     }
