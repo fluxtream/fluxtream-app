@@ -13,10 +13,16 @@ import org.hibernate.annotations.Index;
 	@NamedQuery( name = "updateWorkerTasks.delete.all",
 		query = "DELETE FROM ScheduledUpdate updt " +
                 "WHERE updt.guestId=?"),
+    @NamedQuery( name = "updateWorkerTasks.cleanup.byApi",
+                 query = "DELETE FROM ScheduledUpdate updt " +
+                         "WHERE updt.guestId=? " +
+                         "AND ((updt.connectorName=? AND updt.apiKeyId IS NULL) OR updt.apiKeyId=?) " +
+                         "AND updt.status>1 " +
+                         "AND updt.updateType!=?"),
 	@NamedQuery( name = "updateWorkerTasks.delete.byApi",
 		query = "DELETE FROM ScheduledUpdate updt " +
                 "WHERE updt.guestId=? " +
-                "AND ((updt.connectorName=? AND updt.apiKeyId iS NULL) OR updt.apiKeyId=?)" +
+                "AND ((updt.connectorName=? AND updt.apiKeyId iS NULL) OR updt.apiKeyId=?) " +
                 "AND updt.updateType!=?"),
     @NamedQuery( name = "updateWorkerTasks.deleteAll.byApi",
                  query = "DELETE FROM ScheduledUpdate updt " +

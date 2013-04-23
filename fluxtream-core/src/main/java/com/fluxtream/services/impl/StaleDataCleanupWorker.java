@@ -2,6 +2,7 @@ package com.fluxtream.services.impl;
 
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.services.ApiDataService;
+import com.fluxtream.services.ConnectorUpdateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -20,10 +21,14 @@ public class StaleDataCleanupWorker implements Runnable {
     @Autowired
     ApiDataService apiDataService;
 
+    @Autowired
+    ConnectorUpdateService connectorUpdateService;
+
     @Override
     public void run() {
         try {
             apiDataService.cleanupStaleData();
+            connectorUpdateService.cleanupStaleData();
         }
         catch (Exception e) {
             StringBuilder sb = new StringBuilder("module=updateQueue component=StaleDataCleanupWorker action=cleanupStaleData")

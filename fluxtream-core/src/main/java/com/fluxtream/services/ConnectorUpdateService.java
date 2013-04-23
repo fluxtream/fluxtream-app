@@ -97,4 +97,6 @@ public interface ConnectorUpdateService {
     public void claim(long taskId);
 
     public void addAuditTrail(long updateWorkerTaskId, UpdateWorkerTask.AuditTrailEntry auditTrailEntry);
+
+    public void cleanupStaleData();
 }

@@ -17,6 +17,7 @@ import com.fluxtream.connectors.updaters.UpdateInfo.UpdateType;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ApiNotification;
 import com.fluxtream.domain.ApiUpdate;
+import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.UpdateWorkerTask;
 import com.fluxtream.domain.UpdateWorkerTask.Status;
 import com.fluxtream.services.ApiDataService;
@@ -87,6 +88,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     public List<ScheduleResult> updateConnector(final ApiKey apiKey, boolean force){
         System.out.println("updateConnector");
         List<ScheduleResult> scheduleResults = new ArrayList<ScheduleResult>();
+
         // if forcing an update (sync now), we actually want to flush the update requests
         // that have stacked up in the queue
         if (force)
@@ -150,6 +152,31 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
         else {
             final ScheduleResult scheduleResult = scheduleUpdate(apiKey, objectTypes, updateType, System.currentTimeMillis());
             scheduleResults.add(scheduleResult);
+        }
+    }
+
+    @Override
+    @Transactional(readOnly=false)
+    public void cleanupStaleData() {
+        final List<Guest> allGuests = guestService.getAllGuests();
+        for (Guest guest : allGuests) {
+            cleanupStaleData(guest.getId());
+        }
+    }
+
+    /**
+     * Calls updateConnector(...) for all of a guest's connector
+     * @param guestId
+     * @return a list of objects that describe worker tasks that have been either modified or added
+     * to the update queue
+     */
+    public void cleanupStaleData(final long guestId) {
+        final List<ApiKey> connectors = guestService.getApiKeys(guestId);
+        for (ApiKey key : connectors) {
+            if (key!=null && key.getConnector()!=null) {
+                // cleanup previously executed tasks
+                cleanupUpdateWorkerTasks(key);
+            }
         }
     }
 
@@ -224,10 +251,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     @Override
     @Transactional(readOnly = false)
     public void pollScheduledUpdates() {
-        List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em,
-                                                                 UpdateWorkerTask.class, "updateWorkerTasks.byStatus",
-                                                                 Status.SCHEDULED, getLiveOrUnclaimedServerUUIDs(),
-                                                                 System.currentTimeMillis());
+        List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em, UpdateWorkerTask.class, "updateWorkerTasks.byStatus", Status.SCHEDULED, getLiveOrUnclaimedServerUUIDs(), System.currentTimeMillis());
         if (updateWorkerTasks.size() == 0) {
             logger.debug("module=updateQueue component=connectorUpdateService action=pollScheduledUpdates message=\"Nothing to do\"");
             return;
@@ -319,12 +343,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     @Override
     public boolean isHistoryUpdateCompleted(final ApiKey apiKey,
                                             int objectTypes) {
-        List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em,
-                                                                 UpdateWorkerTask.class, "updateWorkerTasks.completed",
-                                                                 Status.DONE, apiKey.getGuestId(),
-                                                                 UpdateType.INITIAL_HISTORY_UPDATE, objectTypes,
-                                                                 apiKey.getConnector().getName(),
-                                                                 apiKey.getId());
+        List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em, UpdateWorkerTask.class, "updateWorkerTasks.completed", Status.DONE, apiKey.getGuestId(), UpdateType.INITIAL_HISTORY_UPDATE, objectTypes, apiKey.getConnector().getName(), apiKey.getId());
         return updateWorkerTasks.size() > 0;
     }
 
@@ -396,10 +415,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     @Override
     @Transactional(readOnly = false)
     public List<UpdateWorkerTask> getScheduledOrInProgressUpdateTasks(final ApiKey apiKey) {
-        List<UpdateWorkerTask> updateWorkerTask = JPAUtils.find(em, UpdateWorkerTask.class,
-                                                                "updateWorkerTasks.isScheduledOrInProgress",
-                                                                apiKey.getGuestId(), apiKey.getConnector().getName(),
-                                                                apiKey.getId());
+        List<UpdateWorkerTask> updateWorkerTask = JPAUtils.find(em, UpdateWorkerTask.class, "updateWorkerTasks.isScheduledOrInProgress", apiKey.getGuestId(), apiKey.getConnector().getName(), apiKey.getId());
         for (UpdateWorkerTask workerTask : updateWorkerTask) {
             if (hasStalled(workerTask)) {
                 workerTask.status = Status.STALLED;
@@ -453,6 +469,18 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
 
     private boolean hasStalled(UpdateWorkerTask updateWorkerTask) {
         return System.currentTimeMillis()-updateWorkerTask.timeScheduled>3600000;
+    }
+
+    /**
+     * cleanup done tasks for a guest's connector
+     * @param apiKey The apiKey for which we want to update facets
+     */
+    @Transactional(readOnly = false)
+    public void cleanupUpdateWorkerTasks(final ApiKey apiKey) {
+        final int tasksDeleted = JPAUtils.execute(em, "updateWorkerTasks.cleanup.byApi", apiKey.getGuestId(), apiKey.getConnector().getName(), apiKey.getId(), UpdateType.INITIAL_HISTORY_UPDATE);
+        logger.info("module=updateQueue component=connectorUpdateService action=cleanupUpdateWorkerTasks" +
+                    " deleted=" + tasksDeleted + " connector=" + apiKey.getConnector().getName());
+        em.flush();
     }
 
     /**
