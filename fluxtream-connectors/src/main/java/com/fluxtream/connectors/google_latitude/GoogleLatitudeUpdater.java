@@ -7,6 +7,9 @@ import com.fluxtream.connectors.Connector.UpdateStrategyType;
 import com.fluxtream.connectors.annotations.JsonFacetCollection;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.controllers.GoogleOAuth2Helper;
+import com.fluxtream.connectors.location.LocationFacet;
+import com.fluxtream.connectors.location.LocationFacetVOCollection;
+import com.fluxtream.connectors.location.LocationList;
 import com.fluxtream.connectors.updaters.AbstractGoogleOAuthUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiUpdate;
@@ -49,7 +52,7 @@ public class GoogleLatitudeUpdater extends AbstractGoogleOAuthUpdater {
 	}
 
 	public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
-        final LocationFacet newest = jpaDaoService.findOne("google_latitude.location.newest", LocationFacet.class, updateInfo.getGuestId(), updateInfo.apiKey.getId());
+        final LocationFacet newest = jpaDaoService.findOne("location.newest", LocationFacet.class, updateInfo.getGuestId(), updateInfo.apiKey.getId());
         ApiUpdate lastSuccessfulUpdate = connectorUpdateService
 				.getLastSuccessfulUpdate(updateInfo.apiKey);
 		loadHistory(updateInfo, newest!=null?newest.start:lastSuccessfulUpdate.ts,

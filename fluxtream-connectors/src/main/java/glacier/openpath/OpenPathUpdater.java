@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.TwoLeggedOAuthHelper;
 import com.fluxtream.connectors.annotations.Updater;
-import com.fluxtream.connectors.google_latitude.LocationFacet;
+import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 

@@ -3,7 +3,7 @@ package com.fluxtream.services;
 import java.util.List;
 import java.util.TimeZone;
 
-import com.fluxtream.connectors.google_latitude.LocationFacet;
+import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.domain.metadata.City;
 import com.fluxtream.domain.metadata.DayMetadataFacet;
 import com.fluxtream.domain.metadata.DayMetadataFacet.TravelType;

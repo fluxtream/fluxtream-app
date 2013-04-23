@@ -7,7 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
-import com.fluxtream.connectors.google_latitude.LocationFacet;
+import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.domain.AbstractFacet;
 
 /**

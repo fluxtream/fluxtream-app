@@ -1,7 +1,7 @@
 package com.fluxtream.updaters.quartz;
 
 import java.util.List;
-import com.fluxtream.connectors.google_latitude.LocationFacet;
+import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.JPADaoService;
 import com.fluxtream.utils.JPAUtils;

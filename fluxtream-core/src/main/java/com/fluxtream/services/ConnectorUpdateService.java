@@ -57,12 +57,12 @@ public interface ConnectorUpdateService {
 			int objectTypes, UpdateInfo.UpdateType updateType,
 			long timeScheduled, String... jsonParams);
 
-	public UpdateWorkerTask getScheduledUpdateTask(ApiKey apiKey, int objectTypes);
+	public UpdateWorkerTask getUpdateWorkerTask(ApiKey apiKey, int objectTypes);
 
 	public boolean isHistoryUpdateCompleted(ApiKey apiKey,
 			int objectTypes);
 
-	public void pollScheduledUpdates();
+	public void pollScheduledUpdateWorkerTasks();
 
     /**
      * Sets the updateWorkerTask to the given status

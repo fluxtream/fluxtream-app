@@ -125,7 +125,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     @Override
     public List<ScheduleResult> updateConnectorObjectType(ApiKey apiKey, int objectTypes, boolean force) {
         List<ScheduleResult> scheduleResults = new ArrayList<ScheduleResult>();
-        getScheduledUpdateTask(apiKey, objectTypes);
+        getUpdateWorkerTask(apiKey, objectTypes);
         // if forcing an update (sync now), we actually want to flush the update requests
         // that have stacked up in the queue
         if (force)
@@ -145,7 +145,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     private void scheduleObjectTypeUpdate(final ApiKey apiKey, int objectTypes,
                                           List<ScheduleResult> scheduleResults,
                                           UpdateType updateType) {
-        UpdateWorkerTask updateWorkerTask = getScheduledUpdateTask(apiKey, objectTypes);
+        UpdateWorkerTask updateWorkerTask = getUpdateWorkerTask(apiKey, objectTypes);
         if (updateWorkerTask != null)
             scheduleResults.add(new ScheduleResult(apiKey.getId(), apiKey.getConnector().getName(),
                                                    objectTypes, ScheduleResult.ResultType.ALREADY_SCHEDULED, updateWorkerTask.timeScheduled));
@@ -250,10 +250,10 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
 
     @Override
     @Transactional(readOnly = false)
-    public void pollScheduledUpdates() {
+    public void pollScheduledUpdateWorkerTasks() {
         List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em, UpdateWorkerTask.class, "updateWorkerTasks.byStatus", Status.SCHEDULED, getLiveOrUnclaimedServerUUIDs(), System.currentTimeMillis());
         if (updateWorkerTasks.size() == 0) {
-            logger.debug("module=updateQueue component=connectorUpdateService action=pollScheduledUpdates message=\"Nothing to do\"");
+            logger.debug("module=updateQueue component=connectorUpdateService action=pollScheduledUpdateWorkerTasks message=\"Nothing to do\"");
             return;
         }
 
@@ -274,7 +274,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
 
         for (int i=0; i<nWorkers; i++) {
             UpdateWorkerTask updateWorkerTask = updateWorkerTasks.get(i);
-            logger.info("module=updateQueue component=connectorUpdateService action=pollScheduledUpdates" +
+            logger.info("module=updateQueue component=connectorUpdateService action=pollScheduledUpdateWorkerTasks" +
                         " message=\"Executing update: " +
                         " \"" + updateWorkerTask);
 
@@ -305,7 +305,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     public ScheduleResult scheduleUpdate(final ApiKey apiKey,
                                          int objectTypes, UpdateType updateType, long timeScheduled,
                                          String... jsonParams) {
-        UpdateWorkerTask updateScheduled = getScheduledUpdateTask(apiKey, objectTypes);
+        UpdateWorkerTask updateScheduled = getUpdateWorkerTask(apiKey, objectTypes);
         ScheduleResult scheduleResult = null;
         if (updateScheduled==null) {
             UpdateWorkerTask updateWorkerTask = new UpdateWorkerTask();
@@ -398,7 +398,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
 
     @Override
     @Transactional(readOnly = false)
-    public UpdateWorkerTask getScheduledUpdateTask(final ApiKey apiKey, int objectTypes) {
+    public UpdateWorkerTask getUpdateWorkerTask(final ApiKey apiKey, int objectTypes) {
         UpdateWorkerTask updateWorkerTask = JPAUtils.findUnique(em,
                                                                 UpdateWorkerTask.class, "updateWorkerTasks.withObjectTypes.isScheduled",
                                                                 Status.SCHEDULED, Status.IN_PROGRESS, apiKey.getGuestId(),

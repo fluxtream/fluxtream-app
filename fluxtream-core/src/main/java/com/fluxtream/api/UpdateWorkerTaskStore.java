@@ -120,7 +120,7 @@ public class UpdateWorkerTaskStore {
             final ObjectType objectType = ObjectType.getObjectType(connector, objectTypeName);
             ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector(connectorName));
             final UpdateWorkerTask scheduledUpdate =
-                    connectorUpdateService.getScheduledUpdateTask(apiKey, objectType.value());
+                    connectorUpdateService.getUpdateWorkerTask(apiKey, objectType.value());
             return scheduledUpdate!=null?toJSON(scheduledUpdate).toString():"{}";
         }
         catch (Exception e){

@@ -4,7 +4,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import com.fluxtream.connectors.google_latitude.LocationFacet;
+import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.domain.DefaultPhotoFacetFinderStrategy;
 import com.fluxtream.domain.PhotoFacetFinderStrategy;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;

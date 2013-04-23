@@ -3,7 +3,7 @@ package com.fluxtream.services;
 import java.util.List;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.ObjectType;
-import com.fluxtream.connectors.google_latitude.LocationFacet;
+import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;

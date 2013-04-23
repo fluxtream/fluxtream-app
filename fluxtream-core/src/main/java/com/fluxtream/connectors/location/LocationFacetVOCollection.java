@@ -1,4 +1,4 @@
-package com.fluxtream.connectors.google_latitude;
+package com.fluxtream.connectors.location;
 
 import java.util.ArrayList;
 import java.util.Collections;

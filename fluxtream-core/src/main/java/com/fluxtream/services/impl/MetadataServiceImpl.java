@@ -10,7 +10,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import com.fluxtream.Configuration;
-import com.fluxtream.connectors.google_latitude.LocationFacet;
+import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.connectors.vos.AbstractFacetVO;
 import com.fluxtream.domain.metadata.City;
 import com.fluxtream.domain.metadata.DayMetadataFacet;
@@ -219,14 +219,14 @@ public class MetadataServiceImpl implements MetadataService {
 	@Override
 	public LocationFacet getLastLocation(long guestId, long time) {
 		LocationFacet lastSeen = JPAUtils.findUnique(em, LocationFacet.class,
-                                                     "google_latitude.location.lastSeen", guestId, time);
+                                                     "location.lastSeen", guestId, time);
 		return lastSeen;
 	}
 
 	@Override
 	public LocationFacet getNextLocation(long guestId, long time) {
 		LocationFacet lastSeen = JPAUtils.findUnique(em, LocationFacet.class,
-				"google_latitude.location.nextSeen", guestId, time);
+				"location.nextSeen", guestId, time);
 		return lastSeen;
 	}
 

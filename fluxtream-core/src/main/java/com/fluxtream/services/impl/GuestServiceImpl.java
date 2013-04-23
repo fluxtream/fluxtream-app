@@ -16,7 +16,7 @@ import com.fluxtream.Configuration;
 import com.fluxtream.auth.FlxUserDetails;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.OAuth2Helper;
-import com.fluxtream.connectors.google_latitude.LocationFacet;
+import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.domain.AbstractUserProfile;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ApiKeyAttribute;

@@ -1,4 +1,4 @@
-package com.fluxtream.connectors.google_latitude;
+package com.fluxtream.connectors.location;
 
 import java.io.Serializable;
 
@@ -14,28 +14,18 @@ import com.google.api.client.googleapis.json.JsonCContent;
 import com.google.api.client.util.Key;
 import org.hibernate.annotations.Type;
 
-@Entity(name="Facet_GoogleLatitudeLocation")
+@Entity(name="Facet_Location")
 @ObjectTypeSpec(name = "location", value = 1, prettyname = "Location")
 @NamedQueries({
-		@NamedQuery(name = "google_latitude.location.lastSeen", query = "SELECT facet FROM " +
-				"Facet_GoogleLatitudeLocation facet WHERE " +
+		@NamedQuery(name = "location.lastSeen", query = "SELECT facet FROM " +
+				"Facet_Location facet WHERE " +
 				"facet.guestId=? AND facet.timestampMs<? " +
 				"ORDER BY facet.timestampMs DESC"),
-		@NamedQuery(name = "google_latitude.location.nextSeen", query = "SELECT facet FROM " +
-				"Facet_GoogleLatitudeLocation facet WHERE " +
+		@NamedQuery(name = "location.nextSeen", query = "SELECT facet FROM " +
+				"Facet_Location facet WHERE " +
 				"facet.guestId=? AND facet.timestampMs>? " +
 				"ORDER BY facet.timestampMs ASC"),
-		@NamedQuery(name = "openpath.location.deleteAll", query = "DELETE FROM " +
-				"Facet_GoogleLatitudeLocation facet WHERE " +
-				"facet.source=5 AND facet.guestId=?"),
-		@NamedQuery(name = "google_latitude.location.deleteAll", query = "DELETE FROM " +
-				"Facet_GoogleLatitudeLocation facet WHERE " +
-				"facet.source=2 AND facet.guestId=?"),
-		@NamedQuery(name = "google_latitude.location.between", query = "SELECT facet FROM " +
-				"Facet_GoogleLatitudeLocation facet WHERE " +
-				"facet.guestId=? AND facet.timestampMs>=? AND " +
-				"facet.timestampMs<=? ORDER BY facet.timestampMs"),
-        @NamedQuery(name = "google_latitude.location.newest", query = "SELECT facet FROM Facet_GoogleLatitudeLocation facet WHERE facet.guestId=? AND (facet.apiKeyId is null OR facet.apiKeyId=?) ORDER BY facet.timestampMs DESC")
+        @NamedQuery(name = "location.newest", query = "SELECT facet FROM Facet_Location facet WHERE facet.guestId=? AND (facet.apiKeyId is null OR facet.apiKeyId=?) ORDER BY facet.timestampMs DESC")
 })
 public class LocationFacet extends AbstractFacet implements Comparable<LocationFacet>, Serializable {
 

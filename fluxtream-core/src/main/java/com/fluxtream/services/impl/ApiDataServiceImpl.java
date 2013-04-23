@@ -19,7 +19,7 @@ import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.dao.FacetDao;
-import com.fluxtream.connectors.google_latitude.LocationFacet;
+import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.connectors.vos.AbstractFacetVO;
 import com.fluxtream.domain.AbstractFacet;
@@ -567,7 +567,7 @@ public class ApiDataServiceImpl implements ApiDataService {
     @Transactional(readOnly = false)
     public void processLocation(LocationFacet locationResource) {
         // Create query to check for duplicate
-        Query query = em.createQuery("SELECT e FROM Facet_GoogleLatitudeLocation e WHERE e.guestId=? AND e.start=? AND e.apiKeyId>0");
+        Query query = em.createQuery("SELECT e FROM Facet_Location e WHERE e.guestId=? AND e.start=? AND e.apiKeyId>0");
         query.setParameter(1, locationResource.guestId);
 		query.setParameter(2, locationResource.timestampMs);
 		@SuppressWarnings("rawtypes")

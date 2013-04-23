@@ -15,7 +15,7 @@ public class Consumer {
 
 	public void checkUpdatesQueue() throws Exception {
         logger.debug("module=updateQueue component=consumer action=checkUpdatesQueue");
-		connectorUpdateService.pollScheduledUpdates();
+		connectorUpdateService.pollScheduledUpdateWorkerTasks();
 	}
 
 
