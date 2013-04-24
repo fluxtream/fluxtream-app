@@ -61,6 +61,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ApiDataServiceImpl implements ApiDataService {
 
 	static FlxLogger logger = FlxLogger.getLogger(ApiDataServiceImpl.class);
+    private static final FlxLogger LOG_DEBUG = FlxLogger.getLogger("Fluxtream");
 
 	@Autowired
 	Configuration env;
@@ -456,7 +457,7 @@ public class ApiDataServiceImpl implements ApiDataService {
     @Override
     @Transactional(readOnly = false)
     public <T extends AbstractFacet> T createOrReadModifyWrite(
-            Class<? extends AbstractFacet> facetClass, FacetQuery query, FacetModifier<T> modifier, long apiKeyId) {
+            Class<? extends AbstractFacet> facetClass, FacetQuery query, FacetModifier<T> modifier, Long apiKeyId) {
         //System.out.println("========================================");
         // TODO(rsargent): do we need @Transactional again on class?
 

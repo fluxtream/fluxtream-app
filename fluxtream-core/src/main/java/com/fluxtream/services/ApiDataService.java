@@ -106,7 +106,7 @@ public interface ApiDataService {
         // a facet.  If you are passed facet != null, modify that
         // facet and return it.  If you are passed facet == null,
         // create a new facet, fill it in, and return it
-        public T createOrModify(T facet, long apiKeyId);
+        public T createOrModify(T facet, Long apiKeyId);
     }
 
     public class FacetQuery {
@@ -120,7 +120,7 @@ public interface ApiDataService {
         }
     }
 
-    public <T extends AbstractFacet> T createOrReadModifyWrite(Class<? extends AbstractFacet> facetClass, FacetQuery query, FacetModifier<T> modifier, long apiKeyId);
+    public <T extends AbstractFacet> T createOrReadModifyWrite(Class<? extends AbstractFacet> facetClass, FacetQuery query, FacetModifier<T> modifier, Long apiKeyId);
 
 	public void eraseApiData(ApiKey apiKey);
 

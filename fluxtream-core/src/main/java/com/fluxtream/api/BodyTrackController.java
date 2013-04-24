@@ -860,8 +860,7 @@ public class BodyTrackController {
         }
 
         @Override
-        public AbstractFacet createOrModify(final AbstractFacet existingFacet, final long apiKeyId) {
-
+        public AbstractFacet createOrModify(final AbstractFacet existingFacet, final Long apiKeyId) {
             // the case where the existing facet doesn't exist and is null should never happen here
             if (existingFacet != null) {
                 if (comment != null) {

@@ -70,11 +70,11 @@ public class FluxtreamCapturePhotoFacet extends AbstractFacet implements Seriali
     }
 
     @SuppressWarnings("UnusedDeclaration")
-    public FluxtreamCapturePhotoFacet(long apiKeyId) {
+    public FluxtreamCapturePhotoFacet(Long apiKeyId) {
         super(apiKeyId);
     }
 
-    public FluxtreamCapturePhotoFacet(@NotNull final FluxtreamCapturePhoto photo, final long apiKeyId) {
+    public FluxtreamCapturePhotoFacet(@NotNull final FluxtreamCapturePhoto photo, final Long apiKeyId) {
         super(apiKeyId);
         guestId = photo.getGuestId();
         timeUpdated = System.currentTimeMillis();

@@ -46,7 +46,7 @@ public abstract class AbstractFacet extends AbstractEntity {
             this.objectType = -1;
     }
 
-    public AbstractFacet(long apiKeyId) {
+    public AbstractFacet(Long apiKeyId) {
         this.apiKeyId = apiKeyId;
         figureOutObjectType();
 	}
