@@ -2,6 +2,7 @@ package com.fluxtream.updaters.quartz;
 
 import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.services.ApiDataService;
+import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -28,6 +29,7 @@ public class LocationDatapointHandler implements Runnable {
     @Trace(dispatcher=true,skipTransactionTrace=true)
     @Override
     public void run() {
+        NewRelic.setTransactionName(null, "locationDatapointHandler.processLocation");
         apiDataService.processLocation(locationFacet);
     }
 
