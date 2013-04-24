@@ -355,13 +355,14 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     src.channels[j]["id"] = "src_" + idx;
 
                     grapher.sourcesMap["src_" + idx] = {
-                        "device_name"  : src["name"],
-                        "channel_name" : src.channels[j]["name"],
-                        "min"          : src.channels[j]["min"],
-                        "max"          : src.channels[j]["max"],
-                        "style"        : src.channels[j]["style"],
-                        "time_type"    : src.channels[j]["time_type"],
-                        "type"        : src.channels[j]["type"]
+                        "device_name"      : src["name"],
+                        "channel_name"     : src.channels[j]["name"],
+                        "object_type_name" : (typeof src.channels[j]["objectTypeName"] === 'undefined' ? src.channels[j]["name"] : src.channels[j]["objectTypeName"]),
+                        "min"              : src.channels[j]["min"],
+                        "max"              : src.channels[j]["max"],
+                        "style"            : src.channels[j]["style"],
+                        "time_type"        : src.channels[j]["time_type"],
+                        "type"             : src.channels[j]["type"]
                     };
 
                     if ((src.channels[j].hasOwnProperty("min_time")) &&
@@ -810,7 +811,9 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     }
                     matchingStrategy = photoStyle['filters']['tag']['matchingStrategy'];
                 }
-                plot = new PhotoSeriesPlot(photoDatasource(App.getUID(), channel["device_name"], channel["channel_name"], tags, matchingStrategy),
+                // if defined, we must use the object_type_name here and not the channel_name!
+                var objectTypeOrChannelName = (typeof channel["object_type_name"] === 'undefined' ? channel["channel_name"] : channel["object_type_name"]);
+                plot = new PhotoSeriesPlot(photoDatasource(App.getUID(), channel["device_name"], objectTypeOrChannelName, tags, matchingStrategy),
                     grapher.dateAxis,
                     yAxis,
                     App.getUID(),
@@ -1420,9 +1423,11 @@ define(["core/grapher/BTCore"], function(BTCore) {
 
                     plot.setStyle(newStyle);
 
+                    // we must use the object_type_name here and not the channel_name!
+                    var objectTypeOrChannelName = (typeof channel["object_type_name"] === 'undefined' ? channel["channel_name"] : channel["object_type_name"]);
                     plot.setDatasource(photoDatasource(App.getUID(),
                         channel["device_name"],
-                        channel["channel_name"],
+                        objectTypeOrChannelName,
                         newStyle['filters']["tag"]["tags"],
                         newStyle['filters']["tag"]["matchingStrategy"]
                     ));
@@ -1801,19 +1806,23 @@ define(["core/grapher/BTCore"], function(BTCore) {
     function createPhotoDialogCache(channel, channelFilterTags, matchingStrategy) {
         var cache = {
             photos                             : [],
-            photosById                         : {}, // maps photo ID to an index in the photos array
+            photosByCompoundId                 : {}, // maps CONNECTOR_NAME.OBJECT_TYPE_NAME.PHOTO_ID to an index in the photos array
             isLoadingPreceding                 : false,
             isLoadingFollowing                 : false,
             NUM_PHOTOS_TO_FETCH                : 20,
             DISTANCE_FROM_END_TO_TRIGGER_FETCH : 10,
-            __loadNeighboringPhotoMetadata     : function(currentPhotoId,
+            __loadNeighboringPhotoMetadata     : function(compoundPhotoId,
                                                           currentPhotoTimestamp,
                                                           tagsFilterArray,
                                                           matchingStrategy,
                                                           shouldLoadPreviousNeighbor, // flag which determines whether the previous or following neighbor will be loaded
                                                           callbacks) {
-                currentPhotoId = TOOLS.parseInt(currentPhotoId, -1);
-                if (currentPhotoId >= 0) {
+                // First extract the numeric portion of the compound photo id.  The compound photo id is
+                // of the form CONNECTOR_NAME.OBJECT_TYPE_NAME.PHOTO_ID, so we simply split on periods and
+                // take index 2.
+                var numericPortionOfPhotoId = compoundPhotoId.split(".")[2];
+                numericPortionOfPhotoId = TOOLS.parseInt(numericPortionOfPhotoId, -1);
+                if (numericPortionOfPhotoId >= 0) {
                     if (typeof callbacks === 'undefined') {
                         callbacks = {};
                     }
@@ -1838,14 +1847,17 @@ define(["core/grapher/BTCore"], function(BTCore) {
                                     var photosMetadata = [];
                                     $.each(photos, function(index, photo) {
                                         photosMetadata[index] = {
-                                            "photoId"         : photo['id'],
-                                            "comment"         : photo['comment'],
-                                            "tags"            : photo['tags'],
-                                            "timestamp"       : photo['end_d'],
-                                            "timestampString" : photo['end'],
-                                            "url"             : photo['url'],
-                                            "thumbnails"      : photo['thumbnails'],
-                                            "orientation"     : photo['orientation']
+                                            "photoId"          : photo['id'],
+                                            "comment"          : photo['comment'],
+                                            "tags"             : photo['tags'],
+                                            "timestamp"        : photo['end_d'],
+                                            "timestampString"  : photo['end'],
+                                            "url"              : photo['url'],
+                                            "thumbnails"       : photo['thumbnails'],
+                                            "orientation"      : photo['orientation'],
+                                            "channel_name"     : photo['channel_name'],
+                                            "dev_nickname"     : photo['dev_nickname'],
+                                            "object_type_name" : photo['object_type_name']
                                         };
                                     });
 
@@ -1867,12 +1879,12 @@ define(["core/grapher/BTCore"], function(BTCore) {
                         "complete" : completeCallback
                     });
                 }
-            }, __loadPreceding                 : function(photoId, timestamp, successCallback) {
+            }, __loadPreceding                 : function(compoundPhotoId, timestamp, successCallback) {
                 if (cache.isLoadingPreceding) {
                     console.log("PhotoDialogCache.__loadPreceding(): doing nothing since we're already loading");
                 } else {
                     cache.isLoadingPreceding = true;
-                    cache.__loadNeighboringPhotoMetadata(photoId,
+                    cache.__loadNeighboringPhotoMetadata(compoundPhotoId,
                         timestamp,
                         channelFilterTags,
                         matchingStrategy,
@@ -1885,12 +1897,12 @@ define(["core/grapher/BTCore"], function(BTCore) {
                         });
                 }
             },
-            __loadFollowing                    : function(photoId, timestamp, successCallback) {
+            __loadFollowing                    : function(compoundPhotoId, timestamp, successCallback) {
                 if (cache.isLoadingFollowing) {
                     console.log("PhotoDialogCache.__loadFollowing(): doing nothing since we're already loading");
                 } else {
                     cache.isLoadingFollowing = true;
-                    cache.__loadNeighboringPhotoMetadata(photoId,
+                    cache.__loadNeighboringPhotoMetadata(compoundPhotoId,
                         timestamp,
                         channelFilterTags,
                         matchingStrategy,
@@ -1903,27 +1915,27 @@ define(["core/grapher/BTCore"], function(BTCore) {
                         });
                 }
             },
-            initialize                         : function(photoId, timestamp, callback) {
+            initialize                         : function(compoundPhotoId, timestamp, callback) {
                 //console.log("PhotoDialogCache.initialize()------------------------------------------");
 
                 // To build up the initial cache, fetch the photos BEFORE this photo, then the photos AFTER it.
-                cache.__loadPreceding(photoId,
+                cache.__loadPreceding(compoundPhotoId,
                     timestamp,
                     function(precedingPhotosMetadata) {
-                        cache.__loadFollowing(photoId,
+                        cache.__loadFollowing(compoundPhotoId,
                             timestamp,
                             function(followingPhotosMetadata) {
 
                                 // Iterate over the photos in the precedingPhotosMetadata and followingPhotosMetadata
-                                // arrays, and build up the cache.photos array and the cache.photosById map.  Note that,
-                                // under some conditions, one (or more?) photos might appear in both of the source
-                                // arrays.  To filter them out, we check the cache.photosById map for existence before
-                                // insertion.
+                                // arrays, and build up the cache.photos array and the cache.photosByCompoundId map.  
+                                // Note that, under some conditions, one (or more?) photos might appear in both of the 
+                                // source arrays.  To filter them out, we check the cache.photosByCompoundId map 
+                                // for existence before insertion.
                                 cache.photos = [];
                                 var insertPhoto = function(i, photo) {
-                                    if (typeof cache.photosById[photo['photoId']] === 'undefined') {
+                                    if (typeof cache.photosByCompoundId[photo['photoId']] === 'undefined') {
                                         var index = cache.photos.length;
-                                        cache.photosById[photo['photoId']] = index;
+                                        cache.photosByCompoundId[photo['photoId']] = index;
                                         cache.photos[index] = photo;
                                     }
                                 };
@@ -1938,24 +1950,23 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     });
             },
 
-            __getPhotoMetadata : function(photoId, offset) {
-                if (photoId in cache.photosById) {
-                    var indexOfRequestedPhoto = cache.photosById[photoId] + offset;
+            __getPhotoMetadata : function(compoundPhotoId, offset) {
+                if (compoundPhotoId in cache.photosByCompoundId) {
+                    var indexOfRequestedPhoto = cache.photosByCompoundId[compoundPhotoId] + offset;
                     if (indexOfRequestedPhoto >= 0 && indexOfRequestedPhoto < cache.photos.length) {
                         return cache.photos[indexOfRequestedPhoto];
                     }
                 }
-                //console.log("PhotoDialogCache.__getPhotoMetadata(): Failed to get photo offset [" + offset + "] for ID [" + photoId + "]");
                 return null;
             },
 
-            getPreviousPhotoMetadata : function(photoId) {
-                var photo = cache.__getPhotoMetadata(photoId, -1);
+            getPreviousPhotoMetadata : function(compoundPhotoId) {
+                var photo = cache.__getPhotoMetadata(compoundPhotoId, -1);
 
                 if (photo != null) {
                     // Check how close we are to the beginning of the array.  If it's within __DISTANCE_FROM_END_TO_TRIGGER_FETCH,
                     // then spawn an asyncrhonous job to fetch more photos
-                    var distance = cache.photosById[photoId];
+                    var distance = cache.photosByCompoundId[compoundPhotoId];
                     if (distance < cache.DISTANCE_FROM_END_TO_TRIGGER_FETCH) {
                         var endingPhoto = cache.photos[0];
                         if ('isEndingPhoto' in endingPhoto) {
@@ -1971,16 +1982,16 @@ define(["core/grapher/BTCore"], function(BTCore) {
                                     if (endingPhoto['photoId'] == cache.photos[0]['photoId']) {
                                         // create a new photos array for the cache
                                         var newPhotos = photosMetadata.slice(1).reverse().concat(cache.photos);
-                                        var newPhotosById = {};
+                                        var newphotosByCompoundId = {};
 
                                         // now recreate the map which maps photo ID to photo array element index
                                         $.each(newPhotos, function(index, photo) {
-                                            newPhotosById[photo['photoId']] = index;
+                                            newphotosByCompoundId[photo['photoId']] = index;
                                         });
 
                                         // update the cache's array and map
                                         cache.photos = newPhotos;
-                                        cache.photosById = newPhotosById;
+                                        cache.photosByCompoundId = newphotosByCompoundId;
                                     } else {
                                         console.log("PhotoDialogCache.getPreviousPhotoMetadata(): cache has changed, won't update");
                                     }
@@ -1992,13 +2003,13 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 return photo;
             },
 
-            getNextPhotoMetadata : function(photoId) {
-                var photo = cache.__getPhotoMetadata(photoId, 1);
+            getNextPhotoMetadata : function(compoundPhotoId) {
+                var photo = cache.__getPhotoMetadata(compoundPhotoId, 1);
 
                 if (photo != null) {
                     // Check how close we are to the beginning of the array.  If it's within __DISTANCE_FROM_END_TO_TRIGGER_FETCH,
                     // then spawn an asyncrhonous job to fetch more photos
-                    var distance = cache.photos.length - 1 - cache.photosById[photoId];
+                    var distance = cache.photos.length - 1 - cache.photosByCompoundId[compoundPhotoId];
                     if (distance < cache.DISTANCE_FROM_END_TO_TRIGGER_FETCH) {
                         var endingPhoto = cache.photos[cache.photos.length - 1];
                         if ('isEndingPhoto' in endingPhoto) {
@@ -2014,16 +2025,16 @@ define(["core/grapher/BTCore"], function(BTCore) {
                                     if (endingPhoto['photoId'] == cache.photos[cache.photos.length - 1]['photoId']) {
                                         // create a new photos array for the cache
                                         var newPhotos = cache.photos.concat(photosMetadata.slice(1));
-                                        var newPhotosById = {};
+                                        var newphotosByCompoundId = {};
 
                                         // now recreate the map which maps photo ID to photo array element index
                                         $.each(newPhotos, function(index, photo) {
-                                            newPhotosById[photo['photoId']] = index;
+                                            newphotosByCompoundId[photo['photoId']] = index;
                                         });
 
                                         // update the cache's array and map
                                         cache.photos = newPhotos;
-                                        cache.photosById = newPhotosById;
+                                        cache.photosByCompoundId = newphotosByCompoundId;
                                     } else {
                                         console.log("PhotoDialogCache.getNextPhotoMetadata(): cache has changed, won't update");
                                     }
@@ -2035,20 +2046,16 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 return photo;
             },
 
-            getPhotoMetadata : function(photoId) {
-                return cache.__getPhotoMetadata(photoId, 0);
+            getPhotoMetadata : function(compoundPhotoId) {
+                return cache.__getPhotoMetadata(compoundPhotoId, 0);
             },
 
-            update : function(photoId, newData) {
-                if (photoId in cache.photosById) {
-                    var index = cache.photosById[photoId];
-                    cache.photos[index] = {
-                        "photoId"         : newData['id'],
-                        "comment"         : newData['comment'],
-                        "tags"            : newData['tags'],
-                        "timestamp"       : newData['end_d'],
-                        "timestampString" : newData['end']
-                    };
+            update : function(compoundPhotoId, newData) {
+                console.log("In UPDATE photoId=[" + compoundPhotoId + "] newData = [" + JSON.stringify(newData) + "]")
+                if (compoundPhotoId in cache.photosByCompoundId) {
+                    var index = cache.photosByCompoundId[compoundPhotoId];
+                    cache.photos[index]["comment"] = newData['comment'];
+                    cache.photos[index]["tags"] = newData['tags'];
                 }
             }
         };
@@ -2111,13 +2118,14 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 // create the photo cache
                 var photoCache = createPhotoDialogCache(channel, channelFilterTags, matchingStrategy);
 
-                var createPhotoDialog = function(photoId, timestamp, completionCallback) {
+                var createPhotoDialog = function(compoundPhotoId, timestamp, completionCallback) {
 
-                    var thumbnails = photoCache.getPhotoMetadata(photoId)['thumbnails'];
+                    var photoMetadata = photoCache.getPhotoMetadata(compoundPhotoId);
+                    var thumbnails = photoMetadata['thumbnails'];
                     // This assumes the thumbnails are ordered from smallest to largest.  Might be better to eventually search for the largest.
-                    var mediumResImageUrl = (thumbnails != null && thumbnails.length > 0) ? thumbnails[thumbnails.length - 1]['url'] : photoCache.getPhotoMetadata(photoId)['url'];
-                    var highResImageUrl = photoCache.getPhotoMetadata(photoId)['url'];
-                    var photoOrientation = photoCache.getPhotoMetadata(photoId)['orientation'];
+                    var mediumResImageUrl = (thumbnails != null && thumbnails.length > 0) ? thumbnails[thumbnails.length - 1]['url'] : photoMetadata['url'];
+                    var highResImageUrl = photoMetadata['url'];
+                    var photoOrientation = photoMetadata['orientation'];
                     if (typeof photoOrientation === 'undefined' || photoOrientation == null) {
                         photoOrientation = 1;
                     }
@@ -2163,10 +2171,8 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     $("#_timeline_photo_dialog_next_button").hide();
 
                     // Fetch the metadata for the preceding, following, and current photos from the cache.
-                    var previousPhotoMetadata = photoCache.getPreviousPhotoMetadata(photoId);
-                    var nextPhotoMetadata = photoCache.getNextPhotoMetadata(photoId);
-                    var data = photoCache.getPhotoMetadata(photoId);
-
+                    var previousPhotoMetadata = photoCache.getPreviousPhotoMetadata(compoundPhotoId);
+                    var nextPhotoMetadata = photoCache.getNextPhotoMetadata(compoundPhotoId);
                     var isPreviousPhoto = previousPhotoMetadata != null &&
                                           typeof previousPhotoMetadata !== 'undefined' &&
                                           typeof previousPhotoMetadata['photoId'] !== 'undefined';
@@ -2187,18 +2193,21 @@ define(["core/grapher/BTCore"], function(BTCore) {
                         });
                     }
 
+                    /*
+                    // TODO: do I need this?
                     if (typeof data === 'string') {
                         data = JSON.parse(data);
                     }
+                    */
 
                     // treat undefined or null comment as an empty comment
-                    if (typeof data['comment'] === 'undefined' || data['comment'] == null) {
-                        data['comment'] = '';
+                    if (typeof photoMetadata['comment'] === 'undefined' || photoMetadata['comment'] == null) {
+                        photoMetadata['comment'] = '';
                     }
 
                     // treat undefined or null tags as an empty array
-                    if (typeof data['tags'] === 'undefined' || data['tags'] == null) {
-                        data['tags'] = [];
+                    if (typeof photoMetadata['tags'] === 'undefined' || photoMetadata['tags'] == null) {
+                        photoMetadata['tags'] = [];
                     }
 
                     // add click handler for photo to allow viewing of high-res version
@@ -2294,10 +2303,10 @@ define(["core/grapher/BTCore"], function(BTCore) {
                         $("#_timeline_photo_dialog_form").html(photoMetadataForm);
 
                         // fill in the timestamp
-                        if (typeof data['timestampString'] === 'undefined') {
+                        if (typeof photoMetadata['timestampString'] === 'undefined') {
                             $("#_timeline_photo_dialog_timestamp").html("&nbsp;");
                         } else {
-                            $("#_timeline_photo_dialog_timestamp").text(new Date(data['timestampString']).toString());
+                            $("#_timeline_photo_dialog_timestamp").text(new Date(photoMetadata['timestampString']).toString());
                         }
 
                         // fill in the comment, if any
@@ -2401,10 +2410,12 @@ define(["core/grapher/BTCore"], function(BTCore) {
                             $("#_timeline_photo_dialog_form").hide();
                             $("#_timeline_photo_dialog_form_status").text("Saving...").show();
 
+                            var compoundPhotoIdComponents = compoundPhotoId.split(".");
+
                             $.ajax({
                                 cache    : false,
                                 type     : "POST",
-                                url      : "/bodytrack/users/" + App.getUID() + "/logrecs/" + photoId + "/set",
+                                url      : "/api/bodytrack/metadata/" + App.getUID() + "/" + compoundPhotoIdComponents[0] + "." + compoundPhotoIdComponents[1] + "/" + compoundPhotoIdComponents[2] + "/set",
                                 data     : {
                                     "tags"    : getUserSelectedTags().join(','),
                                     "comment" : $("#_timeline_photo_dialog_comment").val()
@@ -2412,9 +2423,12 @@ define(["core/grapher/BTCore"], function(BTCore) {
                                 dataType : "json",
                                 success  : function(savedData, textStatus, jqXHR) {
                                     if (typeof savedData === 'object') {
-                                        console.log("Successfully saved comment and tags for photo [" + photoId + "]");
+                                        console.log("Successfully saved comment and tags for photo [" + compoundPhotoId + "]");
                                         console.log(savedData);
-                                        photoCache.update(photoId, savedData);
+                                        photoCache.update(compoundPhotoId, {
+                                            "comment": savedData['payload']['comment'],
+                                            "tags": savedData['payload']['tags']
+                                        });
                                         TAG_MANAGER.refreshTagCache(function() {
 
                                             $("#_timeline_photo_dialog_form_status")
@@ -2432,7 +2446,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                                                         $("#_timeline_photo_dialog_next_button").click();
                                                     } else {
                                                         // recreate the comment and tag form
-                                                        createCommentAndTagForm(savedData['comment'], savedData['tags']);
+                                                        createCommentAndTagForm(savedData['payload']['comment'], savedData['payload']['tags']);
 
                                                         $("#_timeline_photo_dialog_form").show();
 
@@ -2442,12 +2456,12 @@ define(["core/grapher/BTCore"], function(BTCore) {
                                                 });
                                         });
                                     } else {
-                                        console.log("Unexpected response when saving comment and tags for photo [" + photoId + "]:  savedData=[" + savedData + "] textStatus=[" + textStatus + "]");
+                                        console.log("Unexpected response when saving comment and tags for photo [" + compoundPhotoId + "]:  savedData=[" + savedData + "] textStatus=[" + textStatus + "]");
                                         $("#_timeline_photo_dialog_form_status").text("Saved failed.").show();
                                     }
                                 },
                                 error    : function(jqXHR, textStatus, errorThrown) {
-                                    console.log("Failed to save comment and tags for photo [" + photoId + "]:  textStatus=[" + textStatus + "] errorThrown=[" + errorThrown + "]");
+                                    console.log("Failed to save comment and tags for photo [" + compoundPhotoId + "]:  textStatus=[" + textStatus + "] errorThrown=[" + errorThrown + "]");
                                     $("#_timeline_photo_dialog_form_status").text("Saved failed.").show();
                                 }
                             });
@@ -2533,7 +2547,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     };
 
                     // create the comment and tag form, hide the status area, and show the form
-                    createCommentAndTagForm(data['comment'], data['tags']);
+                    createCommentAndTagForm(photoMetadata['comment'], photoMetadata['tags']);
                     $("#_timeline_photo_dialog_form_status").hide();
                     $("#_timeline_photo_dialog_form").show();
 

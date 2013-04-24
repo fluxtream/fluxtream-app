@@ -892,7 +892,7 @@ public class BodyTrackController {
         private static final DateTimeFormatter DATE_TIME_FORMATTER = ISODateTimeFormat.dateTime();
 
         boolean nsfw = false;
-        long id;
+        String id;
         String description;
         String comment;
         double begin_d;
@@ -912,7 +912,7 @@ public class BodyTrackController {
         public PhotoItem(final PhotoService.Photo photo) {
             final AbstractPhotoFacetVO photoFacetVO = photo.getAbstractPhotoFacetVO();
 
-            this.id = photoFacetVO.id;
+            this.id = photo.getConnector().prettyName() + "." + photo.getObjectType().getName() + "." + photoFacetVO.id;
             this.description = photoFacetVO.description == null ? "" : photoFacetVO.description;
             this.comment = photoFacetVO.comment == null ? "" : photoFacetVO.comment;
             this.begin_d = photoFacetVO.start / 1000.0; // convert millis to seconds
