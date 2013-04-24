@@ -5,6 +5,9 @@ import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.JPADaoService;
 import com.fluxtream.utils.JPAUtils;
+import com.newrelic.api.agent.NewRelic;
+import com.newrelic.api.agent.Trace;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +22,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class LocationDatapointsProcessor implements InitializingBean {
+
+    Logger logger = Logger.getLogger(LocationDatapointsProcessor.class);
 
     @Autowired
     @Qualifier("locationDatapointHandlersExecutor")
@@ -41,12 +46,12 @@ public class LocationDatapointsProcessor implements InitializingBean {
     }
 
     private void processLocationDatapoint(final LocationFacet locationFacet) {
-        LocationDatapointHandler handler = beanFactory.getBean(LocationDatapointHandler.class);
-        handler.setLocationFacet(locationFacet);
         try {
             executor.execute(new Runnable() {
                 @Override
+                @Trace(dispatcher=true,skipTransactionTrace=true)
                 public void run() {
+                    NewRelic.setTransactionName(null, "locationDatapointHandler.processLocation");
                     apiDataService.processLocation(locationFacet);
                 }
             });
@@ -64,6 +69,7 @@ public class LocationDatapointsProcessor implements InitializingBean {
     public List<LocationFacet> getUnprocessedLocationDatapoints() {
         final String entityName = JPAUtils.getEntityName(LocationFacet.class);
         final List<LocationFacet> locationFacets = jpaDaoService.executeQuery("SELECT facet from " + entityName + " facet WHERE facet.processed = false", LocationFacet.class);
+        logger.info("module=locationDatapointsProcessor component=processor unprocessedDatapoints=" + locationFacets.size());
         return locationFacets;
     }
 
