@@ -6,6 +6,7 @@ import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiUpdate;
 import com.fluxtream.utils.Utils;
+import net.sf.json.JSONObject;
 import org.springframework.stereotype.Component;
 
 import static com.fluxtream.utils.HttpUtils.fetch;
@@ -38,6 +39,9 @@ public class WithingsUpdater extends AbstractUpdater {
 
         try {
             json = fetch(url);
+            JSONObject jsonObject = JSONObject.fromObject(json);
+            if (jsonObject.getInt("status")!=0)
+                throw new Exception("Unexpected status code " + jsonObject.getInt("status"));
             countSuccessfulApiCall(updateInfo.apiKey,
                                    updateInfo.objectTypes, then, url);
         } catch (Exception e) {
@@ -65,14 +69,16 @@ public class WithingsUpdater extends AbstractUpdater {
 
         try {
             json = fetch(url);
-            countSuccessfulApiCall(updateInfo.apiKey,
-                                   updateInfo.objectTypes, then, url);
+            JSONObject jsonObject = JSONObject.fromObject(json);
+            if (jsonObject.getInt("status")!=0)
+                throw new Exception("Unexpected status code " + jsonObject.getInt("status"));
+            countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, url);
+            apiDataService.cacheApiDataJSON(updateInfo, json, -1, -1);
         } catch (Exception e) {
             countFailedApiCall(updateInfo.apiKey,
                                updateInfo.objectTypes, then, url, Utils.stackTrace(e));
             throw e;
         }
-        apiDataService.cacheApiDataJSON(updateInfo, json, -1, -1);
     }
 
 }
