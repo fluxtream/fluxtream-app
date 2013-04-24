@@ -799,7 +799,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
             var plot = null;
             if (("photo" == channel['type']) || "photo" == channel["channel_name"] || "photos" == channel["channel_name"]) {
                 var tags = [];
-                var willJoinUsingAnd = false;
+                var matchingStrategy = "any";
                 var photoStyle = channel['style'];
                 if (typeof photoStyle !== 'undefined' &&
                     typeof photoStyle['filters'] !== 'undefined' &&
@@ -808,9 +808,9 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     if (jQuery.isArray(photoStyle['filters']['tag']['tags'])) {
                         tags = photoStyle['filters']['tag']['tags'];
                     }
-                    willJoinUsingAnd = !!photoStyle['filters']['tag']['isAndJoin'];
+                    matchingStrategy = photoStyle['filters']['tag']['matchingStrategy'];
                 }
-                plot = new PhotoSeriesPlot(photoDatasource(App.getUID(), channel["device_name"], channel["channel_name"], tags, willJoinUsingAnd),
+                plot = new PhotoSeriesPlot(photoDatasource(App.getUID(), channel["device_name"], channel["channel_name"], tags, matchingStrategy),
                     grapher.dateAxis,
                     yAxis,
                     App.getUID(),
@@ -825,13 +825,13 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     if (jQuery.isArray(commentStyle['filters']['tag']['tags'])) {
                         tags = commentStyle['filters']['tag']['tags'];
                     }
-                    willJoinUsingAnd = !!commentStyle['filters']['tag']['isAndJoin'];
+                    matchingStrategy = commentStyle['filters']['tag']['matchingStrategy'];
                 }
                 alert("Implement commentDatasource and CommentSeriesPlot");
                 //			var commentDatasource = commentDatasource(App.getUID(),
                 //			channel["device_name"],
                 //			tags,
-                //			willJoinUsingAnd);
+                //			matchingStrategy);
                 //			plot = new CommentSeriesPlot(commentDatasource,
                 //			dateAxis,
                 //			yAxis,
@@ -1401,11 +1401,11 @@ define(["core/grapher/BTCore"], function(BTCore) {
                         newStyle['filters'] = {};
                     }
 
-                    var isAndJoin = $("#" + channelElementId + "-photo-tags-isAndJoin").val() === 'true';
+                    var matchingStrategy = $("#" + channelElementId + "-photo-tags-matching-strategy").val();
                     var userSelectedTags = getUserSelectedTags();
                     newStyle['filters']["tag"] = {
                         "tags" : userSelectedTags,
-                        "isAndJoin" : isAndJoin
+                        "matchingStrategy" : matchingStrategy
                     };
 
                     // Display the filter settings in the channel tab
@@ -1424,7 +1424,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                         channel["device_name"],
                         channel["channel_name"],
                         newStyle['filters']["tag"]["tags"],
-                        newStyle['filters']["tag"]["isAndJoin"]
+                        newStyle['filters']["tag"]["matchingStrategy"]
                     ));
                 };
 
@@ -1440,17 +1440,17 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 if (!channel["style"]["filters"]["tag"].hasOwnProperty("tags")) {
                     channel["style"]["filters"]["tag"]["tags"] = [];
                 }
-                // Check for filters.tag.isAndJoin property
-                if (!channel["style"]["filters"]["tag"].hasOwnProperty("isAndJoin")) {
-                    channel["style"]["filters"]["tag"]["isAndJoin"] = false;  // default to joining with OR
+                // Check for filters.tag.matchingStrategy property
+                if (!channel["style"]["filters"]["tag"].hasOwnProperty("matchingStrategy")) {
+                    channel["style"]["filters"]["tag"]["matchingStrategy"] = "any";  // default to joining with OR
                 }
 
                 // Load up the existing tag filter (if any)
                 var tagFilter = channel["style"]["filters"]["tag"];
 
-                // Set the initial value of the isAndJoin select menu
-                $("#" + channelElementId + "-photo-tags-isAndJoin").val("" + tagFilter["isAndJoin"]);
-                $("#" + channelElementId + "-photo-tags-isAndJoin").change(updatePhotoSeriesPlotChannelConfig);
+                // Set the initial value of the matchingStrategy select menu
+                $("#" + channelElementId + "-photo-tags-matching-strategy").val("" + tagFilter["matchingStrategy"]);
+                $("#" + channelElementId + "-photo-tags-matching-strategy").change(updatePhotoSeriesPlotChannelConfig);
 
                 // seed the tag filter editor with the tags currently saved in the channel (if any)
                 if (tagFilter['tags'].length > 0) {
@@ -1498,7 +1498,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 $("#" + channelElementId + " ._timeline_photo_series_plot_config").show();
 
                 // Finally, trigger a call updatePhotoSeriesPlotChannelConfig() so that the grapher properly represents the config settings
-                $("#" + channelElementId + "-photo-tags-isAndJoin").change();
+                $("#" + channelElementId + "-photo-tags-matching-strategy").change();
             }
 
             // Force initial resize
@@ -1798,7 +1798,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
         return true;
     }
 
-    function createPhotoDialogCache(channel, channelFilterTags, isAndJoin) {
+    function createPhotoDialogCache(channel, channelFilterTags, matchingStrategy) {
         var cache = {
             photos                             : [],
             photosById                         : {}, // maps photo ID to an index in the photos array
@@ -1809,7 +1809,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
             __loadNeighboringPhotoMetadata     : function(currentPhotoId,
                                                           currentPhotoTimestamp,
                                                           tagsFilterArray,
-                                                          isAndJoin,
+                                                          matchingStrategy,
                                                           shouldLoadPreviousNeighbor, // flag which determines whether the previous or following neighbor will be loaded
                                                           callbacks) {
                 currentPhotoId = TOOLS.parseInt(currentPhotoId, -1);
@@ -1822,18 +1822,14 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     var completeCallback = callbacks['complete'];
 
                     shouldLoadPreviousNeighbor = !!shouldLoadPreviousNeighbor;
-                    isAndJoin = !!isAndJoin;
 
                     var url = "/api/bodytrack/photos/" + App.getUID() + "/" + channel['device_name'] + "." + channel['channel_name'] + "/" + currentPhotoTimestamp + "/" + cache.NUM_PHOTOS_TO_FETCH;
                     var urlParams = {
                         "isBefore" : shouldLoadPreviousNeighbor
                     };
 
-                    if (isAndJoin) {
-                        urlParams["all_tags"] = tagsFilterArray.join(",");
-                    } else {
-                        urlParams["any_tags"] = tagsFilterArray.join(",");
-                    }
+                    urlParams["tags"] = tagsFilterArray.join(",");
+                    urlParams["tag-match"] = matchingStrategy;
 
                     TOOLS.loadJson(url, urlParams, {
                         "success"  : function(photos) {
@@ -1879,7 +1875,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     cache.__loadNeighboringPhotoMetadata(photoId,
                         timestamp,
                         channelFilterTags,
-                        isAndJoin,
+                        matchingStrategy,
                         true,
                         {
                             "success" : successCallback,
@@ -1897,7 +1893,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     cache.__loadNeighboringPhotoMetadata(photoId,
                         timestamp,
                         channelFilterTags,
-                        isAndJoin,
+                        matchingStrategy,
                         false,
                         {
                             "success" : successCallback,
@@ -2109,11 +2105,11 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     return tags;
                 };
                 // get the channel's current settings for tag filtering
-                var isAndJoin = $("#" + channelElementId + "-photo-tags-isAndJoin").val() === 'true';
+                var matchingStrategy = $("#" + channelElementId + "-photo-tags-matching-strategy").val();
                 var channelFilterTags = getTagFilterForChannel();
 
                 // create the photo cache
-                var photoCache = createPhotoDialogCache(channel, channelFilterTags, isAndJoin);
+                var photoCache = createPhotoDialogCache(channel, channelFilterTags, matchingStrategy);
 
                 var createPhotoDialog = function(photoId, timestamp, completionCallback) {
 

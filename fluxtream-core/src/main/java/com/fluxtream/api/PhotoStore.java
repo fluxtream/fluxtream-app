@@ -117,7 +117,7 @@ public class PhotoStore {
     }
 
     private List<PhotoModel> getPhotos(Guest guest, TimeInterval timeInterval) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
-        final SortedSet<PhotoService.Photo> photos = photoService.getPhotos(guest.getId(), timeInterval, Connector.getConnector("fluxtream_capture").prettyName(), "photo");
+        final SortedSet<PhotoService.Photo> photos = photoService.getPhotos(guest.getId(), timeInterval, Connector.getConnector("fluxtream_capture").prettyName(), "photo", null);
 
         List<PhotoModel> photoModels = new ArrayList<PhotoModel>();
         for (final PhotoService.Photo photo : photos) {

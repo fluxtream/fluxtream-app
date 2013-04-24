@@ -17,7 +17,7 @@ import org.hibernate.search.annotations.Indexed;
 		@NamedQuery(name = "fitbit.sleep.newest",
 				query = "SELECT facet FROM Facet_FitbitSleep facet WHERE facet.guestId=? and facet.isEmpty=false ORDER BY facet.end DESC LIMIT 1"),
 		@NamedQuery(name = "fitbit.sleep.oldest",
-				query = "SELECT facet FROM Facet_FitbitSleep facet WHERE facet.guestId=? and facet.isEmpty=false ORDER BY facet.start ASC LIMIT 1"),
+				query = "SELECT facet FROM Facet_FitbitSleep facet WHERE facet.guestId=? and facet.isEmpty=false ORDER BY facet.start ASC LIMIT 1")
 })
 
 //SELECT * FROM Facet_FitbitSleep facet WHERE facet.guestId=1 ORDER BY facet.start ASC LIMIT 1

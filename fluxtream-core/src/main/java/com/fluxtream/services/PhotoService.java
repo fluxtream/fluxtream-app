@@ -1,5 +1,6 @@
 package com.fluxtream.services;
 
+import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import com.fluxtream.TimeInterval;
@@ -7,6 +8,8 @@ import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.vos.AbstractPhotoFacetVO;
 import com.fluxtream.domain.CoachingBuddy;
+import com.fluxtream.domain.TagFilter;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Chris Bartley (bartley@cmu.edu)
@@ -43,8 +46,15 @@ public interface PhotoService {
      * does not specify an existing {@link ObjectType} for the {@link Connector}, then this method returns photos from
      * from all {@link ObjectType}s which are of {@link ObjectType#isImageType() image type}.
      * </p>
+     * <p>
+     * The set of returned photos may optionally be filtered by the given {@link TagFilter}.
+     * </p>
      */
-    SortedSet<Photo> getPhotos(long guestId, TimeInterval timeInterval, String connectorPrettyName, String objectTypeName) throws ClassNotFoundException, IllegalAccessException, InstantiationException;
+    SortedSet<Photo> getPhotos(long guestId,
+                               TimeInterval timeInterval,
+                               String connectorPrettyName,
+                               String objectTypeName,
+                               @Nullable TagFilter tagFilter) throws ClassNotFoundException, IllegalAccessException, InstantiationException;
 
     /**
      * <p>
@@ -60,8 +70,17 @@ public interface PhotoService {
      * does not specify an existing {@link ObjectType} for the {@link Connector}, then this method returns photos from
      * from all {@link ObjectType}s which are of {@link ObjectType#isImageType() image type}.
      * </p>
+     * <p>
+     * The set of returned photos may optionally be filtered by the given {@link TagFilter}.
+     * </p>
      */
-    SortedSet<Photo> getPhotos(long guestId, long timeInMillis, String connectorPrettyName, String objectTypeName, int desiredCount, boolean isGetPhotosBeforeTime) throws InstantiationException, IllegalAccessException, ClassNotFoundException;
+    SortedSet<Photo> getPhotos(long guestId,
+                               long timeInMillis,
+                               String connectorPrettyName,
+                               String objectTypeName,
+                               int desiredCount,
+                               boolean isGetPhotosBeforeTime,
+                               @Nullable TagFilter tagFilter) throws InstantiationException, IllegalAccessException, ClassNotFoundException;
 
     /**
      * Returns a {@link Map} of photo channels (a {@link String} which is of the form {connector_pretty_name}.{object_name})

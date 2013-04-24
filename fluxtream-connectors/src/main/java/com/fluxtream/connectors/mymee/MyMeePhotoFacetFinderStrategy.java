@@ -6,12 +6,15 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import com.fluxtream.TimeInterval;
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.PhotoFacetFinderStrategy;
+import com.fluxtream.domain.TagFilter;
 import com.fluxtream.utils.JPAUtils;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 /**
@@ -19,29 +22,94 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class MyMeePhotoFacetFinderStrategy implements PhotoFacetFinderStrategy {
+    private static final FlxLogger LOG_DEBUG = FlxLogger.getLogger("Fluxtream");
 
     @PersistenceContext
     private EntityManager em;
 
     @Override
     public List<AbstractFacet> findAll(ApiKey apiKey, final ObjectType objectType, final TimeInterval timeInterval) {
-        return (List<AbstractFacet>)JPAUtils.find(em, getFacetClass(apiKey.getConnector(), objectType), "mymee.photo.between", apiKey.getGuestId(), timeInterval.start, timeInterval.end);
+        return findAll(apiKey, objectType, timeInterval, null);
     }
 
     @Override
     public List<AbstractFacet> findBefore(ApiKey apiKey, final ObjectType objectType, final long timeInMillis, final int desiredCount) {
+        return findBefore(apiKey, objectType, timeInMillis, desiredCount, null);
+    }
+
+    @Override
+    public List<AbstractFacet> findAfter(ApiKey apiKey, final ObjectType objectType, final long timeInMillis, final int desiredCount) {
+        return findAfter(apiKey, objectType, timeInMillis, desiredCount, null);
+    }
+
+    @Override
+    public List<AbstractFacet> findAll(final ApiKey apiKey,
+                                       final ObjectType objectType,
+                                       final TimeInterval timeInterval,
+                                       @Nullable final TagFilter tagFilter) {
+        if (tagFilter == null) {
+            return (List<AbstractFacet>)JPAUtils.find(em, getFacetClass(apiKey.getConnector(), objectType), "mymee.photo.between", apiKey.getGuestId(), timeInterval.start, timeInterval.end);
+        }
+
         final Class<? extends AbstractFacet> facetClass = getFacetClass(apiKey.getConnector(), objectType);
         final Entity entity = facetClass.getAnnotation(Entity.class);
-        final Query query = em.createQuery("SELECT facet FROM " + entity.name() + " facet WHERE facet.imageURL IS NOT NULL AND facet.guestId = " + apiKey.getGuestId() + " AND facet.start <= " + timeInMillis + " ORDER BY facet.start DESC LIMIT " + desiredCount);
+        final String queryStr = "SELECT facet FROM " + entity.name() + " facet" +
+                                " WHERE" +
+                                " facet.imageURL IS NOT NULL" +
+                                " AND" +
+                                " facet.guestId = " + apiKey.getGuestId() +
+                                " AND" +
+                                " facet.start >= " + timeInterval.start +
+                                " AND" +
+                                " facet.end <= " + timeInterval.end +
+                                " AND" +
+                                " (" + tagFilter.getWhereClause() + ")";
+        final Query query = em.createQuery(queryStr);
+        return (List<AbstractFacet>)query.getResultList();
+    }
+
+    @Override
+    public List<AbstractFacet> findBefore(final ApiKey apiKey,
+                                          final ObjectType objectType,
+                                          final long timeInMillis,
+                                          final int desiredCount,
+                                          @Nullable final TagFilter tagFilter) {
+        final Class<? extends AbstractFacet> facetClass = getFacetClass(apiKey.getConnector(), objectType);
+        final Entity entity = facetClass.getAnnotation(Entity.class);
+        final String additionalWhereClause = (tagFilter == null) ? "" : " AND (" + tagFilter.getWhereClause() + ")";
+        final String queryStr = "SELECT facet FROM " + entity.name() + " facet" +
+                                " WHERE" +
+                                " facet.imageURL IS NOT NULL" +
+                                " AND" +
+                                " facet.guestId = " + apiKey.getGuestId() +
+                                " AND" +
+                                " facet.start <= " + timeInMillis +
+                                additionalWhereClause +
+                                " ORDER BY facet.start DESC LIMIT " + desiredCount;
+        final Query query = em.createQuery(queryStr);
         query.setMaxResults(desiredCount);
         return (List<AbstractFacet>)query.getResultList();
     }
 
     @Override
-    public List<AbstractFacet> findAfter(ApiKey apiKey, final ObjectType objectType, final long timeInMillis, final int desiredCount) {
+    public List<AbstractFacet> findAfter(final ApiKey apiKey,
+                                         final ObjectType objectType,
+                                         final long timeInMillis,
+                                         final int desiredCount,
+                                         @Nullable final TagFilter tagFilter) {
         final Class<? extends AbstractFacet> facetClass = getFacetClass(apiKey.getConnector(), objectType);
         final Entity entity = facetClass.getAnnotation(Entity.class);
-        final Query query = em.createQuery("SELECT facet FROM " + entity.name() + " facet WHERE facet.imageURL IS NOT NULL AND facet.guestId = " + apiKey.getGuestId() + " AND facet.start >= " + timeInMillis + " ORDER BY facet.start ASC LIMIT " + desiredCount);
+        final String additionalWhereClause = (tagFilter == null) ? "" : " AND (" + tagFilter.getWhereClause() + ")";
+        final String queryStr = "SELECT facet FROM " + entity.name() + " facet" +
+                                " WHERE" +
+                                " facet.imageURL IS NOT NULL" +
+                                " AND" +
+                                " facet.guestId = " + apiKey.getGuestId() +
+                                " AND" +
+                                " facet.start >= " + timeInMillis +
+                                additionalWhereClause +
+                                " ORDER BY facet.start ASC LIMIT " + desiredCount;
+        final Query query = em.createQuery(queryStr);
         query.setMaxResults(desiredCount);
         return (List<AbstractFacet>)query.getResultList();
     }

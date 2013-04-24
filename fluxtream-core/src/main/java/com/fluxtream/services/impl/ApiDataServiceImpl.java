@@ -26,6 +26,7 @@ import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.AbstractUserProfile;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Tag;
+import com.fluxtream.domain.TagFilter;
 import com.fluxtream.domain.metadata.City;
 import com.fluxtream.domain.metadata.DayMetadataFacet;
 import com.fluxtream.domain.metadata.WeatherInfo;
@@ -40,6 +41,7 @@ import com.fluxtream.thirdparty.helpers.WWOHelper;
 import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.Utils;
 import net.sf.json.JSONObject;
+import org.jetbrains.annotations.Nullable;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -278,15 +280,24 @@ public class ApiDataServiceImpl implements ApiDataService {
     }
 
     @Override
-	public List<AbstractFacet> getApiDataFacets(ApiKey apiKey, ObjectType objectType,
-			TimeInterval timeInterval) {
-        return jpaDao.getFacetsBetween(apiKey, objectType, timeInterval);
-	}
+    public List<AbstractFacet> getApiDataFacets(ApiKey apiKey, ObjectType objectType, TimeInterval timeInterval) {
+        return getApiDataFacets(apiKey, objectType, timeInterval, (TagFilter)null);
+    }
 
     @Override
-    public <T> List<T> getApiDataFacets(ApiKey apiKey, ObjectType objectType,
-                                                TimeInterval timeInterval, Class<T> clazz) {
-        return (List<T>) jpaDao.getFacetsBetween(apiKey, objectType, timeInterval);
+    public List<AbstractFacet> getApiDataFacets(final ApiKey apiKey,
+                                                final ObjectType objectType,
+                                                final TimeInterval timeInterval,
+                                                @Nullable final TagFilter tagFilter) {
+        return jpaDao.getFacetsBetween(apiKey, objectType, timeInterval, tagFilter);
+    }
+
+    @Override
+    public <T> List<T> getApiDataFacets(ApiKey apiKey,
+                                        ObjectType objectType,
+                                        TimeInterval timeInterval,
+                                        Class<T> clazz) {
+        return (List<T>)jpaDao.getFacetsBetween(apiKey, objectType, timeInterval);
     }
 
     @Override
@@ -301,12 +312,30 @@ public class ApiDataServiceImpl implements ApiDataService {
 
     @Override
     public List<AbstractFacet> getApiDataFacetsBefore(ApiKey apiKey, final ObjectType objectType, final long timeInMillis, final int desiredCount) {
-        return jpaDao.getFacetsBefore(apiKey, objectType, timeInMillis, desiredCount);
+        return getApiDataFacetsBefore(apiKey, objectType, timeInMillis, desiredCount, null);
+    }
+
+    @Override
+    public List<AbstractFacet> getApiDataFacetsBefore(final ApiKey apiKey,
+                                                      final ObjectType objectType,
+                                                      final long timeInMillis,
+                                                      final int desiredCount,
+                                                      @Nullable final TagFilter tagFilter) {
+        return jpaDao.getFacetsBefore(apiKey, objectType, timeInMillis, desiredCount, tagFilter);
     }
 
     @Override
     public List<AbstractFacet> getApiDataFacetsAfter(ApiKey apiKey, final ObjectType objectType, final long timeInMillis, final int desiredCount) {
-        return jpaDao.getFacetsAfter(apiKey, objectType, timeInMillis, desiredCount);
+        return getApiDataFacetsAfter(apiKey, objectType, timeInMillis, desiredCount, null);
+    }
+
+    @Override
+    public List<AbstractFacet> getApiDataFacetsAfter(final ApiKey apiKey,
+                                                     final ObjectType objectType,
+                                                     final long timeInMillis,
+                                                     final int desiredCount,
+                                                     @Nullable final TagFilter tagFilter) {
+        return jpaDao.getFacetsAfter(apiKey, objectType, timeInMillis, desiredCount, tagFilter);
     }
 
     public AbstractFacet getFacetById(ApiKey apiKey, final ObjectType objectType, final long facetId) {

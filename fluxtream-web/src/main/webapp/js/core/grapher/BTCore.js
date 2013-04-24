@@ -203,13 +203,13 @@ define([], function() {
 					return 0;
 				};
 
-				TOOLS.loadJson("/bodytrack/users/" + App.getUID() + "/tags",
+				TOOLS.loadJson("/api/bodytrack/users/" + App.getUID() + "/tags",
 						{},
 						{
 							success : function(data, textStatus, jqXHR) {
 								try {
-									if (jQuery.isArray(data)) {
-										TAG_MANAGER.tags = data.sort(caseInsensitiveSort);
+									if (jQuery.isArray(data['tags'])) {
+										TAG_MANAGER.tags = data['tags'].sort(caseInsensitiveSort);
 									}
 
 									if (typeof successCallback === 'function') {
@@ -446,24 +446,16 @@ define([], function() {
         return __createDatasource(urlPrefix);
     }
 
-    // If allTags is true, we require all tags to be present.
-    // Otherwise, any tag in tags is OK (the default)
-    window.photoDatasource = function(userId, deviceName, channelName, tags, allTags, nsfw) {
+    window.photoDatasource = function(userId, deviceName, channelName, tags, matchingStrategy, nsfw) {
         var urlPrefix = "/api/bodytrack/photos/" + userId + "/"+ (deviceName == null ? "All" : deviceName) + "." + channelName + "/";
         var urlParams = {};
-        if (tags != null && tags.length > 0) {
-            if (!!allTags) {
-                urlParams["all_tags"] = tags.join(",");
-            } else {
-                urlParams["any_tags"] = tags.join(",");
-            }
-
-            // TODO: This line is only for compatibility with the server
-            // until the server supports any_tags and all_tags.  This
-            // can be safely removed, with no impact on correctness,
-            // when that server support is added
-            urlParams["tags_filter"] = tags.join(",");
+        if (matchingStrategy == 'untagged') {
+            urlParams["tag-match"] = matchingStrategy;
+        } else if (tags != null && tags.length > 0) {
+            urlParams["tags"] = tags.join(",");
+            urlParams["tag-match"] = matchingStrategy;
         }
+
         if (!!nsfw) {
             urlParams["nsfw"] = "1";
         }

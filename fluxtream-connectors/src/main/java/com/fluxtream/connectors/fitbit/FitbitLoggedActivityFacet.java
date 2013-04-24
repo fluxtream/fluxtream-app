@@ -10,7 +10,7 @@ import org.hibernate.search.annotations.Indexed;
 @Entity(name="Facet_FitbitLoggedActivity")
 @ObjectTypeSpec(name = "logged_activity", value = 2, extractor= FitbitActivityFacetExtractor.class, prettyname = "Logged Activities", isDateBased = true)
 @NamedQueries({
-        @NamedQuery(name = "fitbit.logged_activity.newest", query = "SELECT facet FROM Facet_FitbitLoggedActivity facet WHERE facet.guestId=? ORDER BY facet.end DESC LIMIT 1"),
+        @NamedQuery(name = "fitbit.logged_activity.newest", query = "SELECT facet FROM Facet_FitbitLoggedActivity facet WHERE facet.guestId=? ORDER BY facet.end DESC LIMIT 1")
 })
 @Indexed
 public class FitbitLoggedActivityFacet extends AbstractLocalTimeFacet {
