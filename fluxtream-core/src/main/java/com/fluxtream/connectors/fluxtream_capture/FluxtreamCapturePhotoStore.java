@@ -328,7 +328,7 @@ public final class FluxtreamCapturePhotoStore {
         }
 
         @Override
-        public FluxtreamCapturePhotoFacet createOrModify(final FluxtreamCapturePhotoFacet existingFacet, long apiKeyId) {
+        public FluxtreamCapturePhotoFacet createOrModify(final FluxtreamCapturePhotoFacet existingFacet, final long apiKeyId) {
 
             if (existingFacet == null) {
                 wasCreated = true;

@@ -74,7 +74,7 @@ public class FluxtreamCapturePhotoFacet extends AbstractFacet implements Seriali
         super(apiKeyId);
     }
 
-    public FluxtreamCapturePhotoFacet(@NotNull final FluxtreamCapturePhoto photo, long apiKeyId) {
+    public FluxtreamCapturePhotoFacet(@NotNull final FluxtreamCapturePhoto photo, final long apiKeyId) {
         super(apiKeyId);
         guestId = photo.getGuestId();
         timeUpdated = System.currentTimeMillis();

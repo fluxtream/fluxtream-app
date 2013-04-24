@@ -643,7 +643,7 @@ public class BodyTrackController {
             final TimeInterval timeInterval = new TimeInterval(startTimeMillis, endTimeMillis, TimeUnit.DAY, TimeZone.getTimeZone("UTC"));
 
             // fetch the photos for this time interval, and for the desired device/channel
-            final TagFilter tagFilter = TagFilter.create(Tag.parseTagsIntoStrings(tagsStr, ','), tagFilteringStrategy);
+            final TagFilter tagFilter = TagFilter.create(Tag.parseTagsIntoStrings(tagsStr, Tag.COMMA_DELIMITER), tagFilteringStrategy);
             final SortedSet<PhotoService.Photo> photos = photoService.getPhotos(uid, timeInterval, connectorPrettyName, objectTypeName, tagFilter);
 
             // Define the min interval to be 1/20th of the span of the tile.  Value is in seconds
@@ -712,7 +712,7 @@ public class BodyTrackController {
                 return gson.toJson(new StatusModel(false, "Invalid User ID (null)"));
              }
 
-            final TagFilter tagFilter = TagFilter.create(Tag.parseTagsIntoStrings(tagsStr, ','), tagFilteringStrategy);
+            final TagFilter tagFilter = TagFilter.create(Tag.parseTagsIntoStrings(tagsStr, Tag.COMMA_DELIMITER), tagFilteringStrategy);
             final SortedSet<PhotoService.Photo> photos = photoService.getPhotos(uid, (long)(unixTimeInSecs * 1000), connectorPrettyName, objectTypeName, desiredCount, isGetPhotosBeforeTime, tagFilter);
 
             // create the JSON response
@@ -835,7 +835,9 @@ public class BodyTrackController {
                                 return operation.executeOperation(facet);
                             }
                             catch (Exception e) {
-                                return jsonResponseHelper.internalServerError("Unexpected error while trying to operate on metadata for facet [" + facetId + "] for connector [" + deviceNickname + "] and object type [" + objectType + "]");
+                                final String message = "Unexpected error while trying to operate on metadata for facet [" + facetId + "] for connector [" + deviceNickname + "] and object type [" + objectType + "]";
+                                LOG_DEBUG.error(message, e);
+                                return jsonResponseHelper.internalServerError(message);
                             }
                         }
                         return jsonResponseHelper.notFound("Unknown facet [" + facetId + "] for connector [" + deviceNickname + "] and object type [" + objectType + "] and guestId [" + uid + "]");
@@ -862,12 +864,12 @@ public class BodyTrackController {
         }
 
         @Override
-        public AbstractFacet createOrModify(final AbstractFacet existingFacet, long apiKeyId) {
+        public AbstractFacet createOrModify(final AbstractFacet existingFacet, final long apiKeyId) {
 
             // the case where the existing facet doesn't exist and is null should never happen here
             if (existingFacet != null) {
                 if (comment != null) {
-                        existingFacet.comment = comment;
+                    existingFacet.comment = comment;
                 }
 
                 if (tagsStr != null) {
