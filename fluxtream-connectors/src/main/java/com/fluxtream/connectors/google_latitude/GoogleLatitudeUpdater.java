@@ -75,6 +75,7 @@ public class GoogleLatitudeUpdater extends AbstractGoogleOAuthUpdater {
                 locationResource.apiKeyId = updateInfo.apiKey.getId();
 				locationResource.start = locationResource.timestampMs;
 				locationResource.end = locationResource.timestampMs;
+                locationResource.processed = false;
                 locationResource.source = LocationFacet.Source.GOOGLE_LATITUDE;
 
 				storedLocations.add(locationResource);

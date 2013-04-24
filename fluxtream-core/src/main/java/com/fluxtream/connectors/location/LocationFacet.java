@@ -81,7 +81,7 @@ public class LocationFacet extends AbstractFacet implements Comparable<LocationF
 
     @Type(type="yes_no")
     @Index(name="processed_index")
-    public Boolean processed;
+    public Boolean processed = false;
 
     /**
      * serves as a backreference to the resource that originated in this coordinate,

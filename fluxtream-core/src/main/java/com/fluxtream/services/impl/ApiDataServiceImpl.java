@@ -638,6 +638,15 @@ public class ApiDataServiceImpl implements ApiDataService {
             // avoid persisting a facet that was just deleted (as a result of an interrupted update for example)
             if (em.find(LocationFacet.class, locationResource.getId())!=null)
                 em.merge(locationResource);
+        } else {
+            locationResource = em.merge(locationResource);
+            em.remove(locationResource);
+            StringBuilder sb = new StringBuilder("module=updateQueue component=apiDataServiceImpl action=addGuestLocation")
+                    .append(" latitude=").append(locationResource.latitude)
+                    .append(" longitude=").append(locationResource.longitude)
+                    .append(" guestId=").append(locationResource.guestId)
+                    .append(" message=\"deleted duplicate locationFacet\"");
+            logger.info(sb.toString());
         }
     }
 
