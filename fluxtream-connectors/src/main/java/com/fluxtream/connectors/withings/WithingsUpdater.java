@@ -1,12 +1,15 @@
 package com.fluxtream.connectors.withings;
 
+import java.util.List;
 import com.fluxtream.connectors.annotations.JsonFacetCollection;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
-import com.fluxtream.domain.ApiUpdate;
+import com.fluxtream.services.JPADaoService;
+import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.Utils;
 import net.sf.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import static com.fluxtream.utils.HttpUtils.fetch;
@@ -18,6 +21,9 @@ import static com.fluxtream.utils.HttpUtils.fetch;
          defaultChannels = {"Withings.weight","Withings.systolic", "Withings.diastolic", "Withings.heartPulse"})
 @JsonFacetCollection(WithingsFacetVOCollection.class)
 public class WithingsUpdater extends AbstractUpdater {
+
+    @Autowired
+    JPADaoService jpaDaoService;
 
     public WithingsUpdater() {
         super();
@@ -57,14 +63,16 @@ public class WithingsUpdater extends AbstractUpdater {
         long then = System.currentTimeMillis();
         String json;
 
-        ApiUpdate lastSuccessfulUpdate = connectorUpdateService
-                .getLastSuccessfulUpdate(updateInfo.apiKey);
+        long lastBodyscaleMeasurement = getLastBodyScaleMeasurement(updateInfo);
+        long lastBloodPresseureMeasurement = getLastBloodPressureMeasurement(updateInfo);
+
+        long lastMeasurement = Math.max(lastBodyscaleMeasurement, lastBloodPresseureMeasurement);
 
         String url = "http://wbsapi.withings.net/measure?action=getmeas";
         url += "&userid=" + updateInfo.apiKey.getAttributeValue("userid", env);
         url += "&publickey="
                + updateInfo.apiKey.getAttributeValue("publickey", env);
-        url += "&startdate=" + lastSuccessfulUpdate.ts / 1000;
+        url += "&startdate=" + lastMeasurement / 1000;
         url += "&enddate=" + System.currentTimeMillis() / 1000;
 
         try {
@@ -81,4 +89,17 @@ public class WithingsUpdater extends AbstractUpdater {
         }
     }
 
+    private long getLastBloodPressureMeasurement(final UpdateInfo updateInfo) {
+        final String entityName = JPAUtils.getEntityName(WithingsBPMMeasureFacet.class);
+        final List<WithingsBPMMeasureFacet> facets = jpaDaoService.executeQueryWithLimit("SELECT facet from " + entityName + " facet WHERE facet.apiKeyId=? ORDER BY facet.start DESC", 1, WithingsBPMMeasureFacet.class, updateInfo.apiKey.getId());
+        if (facets.size()==0) return 0;
+        return facets.get(0).start;
+    }
+
+    private long getLastBodyScaleMeasurement(final UpdateInfo updateInfo) {
+        final String entityName = JPAUtils.getEntityName(WithingsBodyScaleMeasureFacet.class);
+        final List<WithingsBodyScaleMeasureFacet> facets = jpaDaoService.executeQueryWithLimit("SELECT facet from " + entityName + " facet WHERE facet.apiKeyId=? ORDER BY facet.start DESC", 1, WithingsBodyScaleMeasureFacet.class, updateInfo.apiKey.getId());
+        if (facets.size()==0) return 0;
+        return facets.get(0).start;
+    }
 }
