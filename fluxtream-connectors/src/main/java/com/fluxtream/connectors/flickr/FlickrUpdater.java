@@ -2,6 +2,7 @@ package com.fluxtream.connectors.flickr;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -9,8 +10,9 @@ import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.RateLimitReachedException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
-import com.fluxtream.domain.ApiUpdate;
 import com.fluxtream.services.GuestService;
+import com.fluxtream.services.JPADaoService;
+import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.Utils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -35,6 +37,9 @@ public class FlickrUpdater extends AbstractUpdater {
 
 	private static final int ITEMS_PER_PAGE = 20;
 	private static final DateTimeFormatter dateFormat = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
+
+    @Autowired
+    JPADaoService jpaDaoService;
 
 	public FlickrUpdater() {
 		super();
@@ -80,23 +85,40 @@ public class FlickrUpdater extends AbstractUpdater {
 	@Override
 	public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
 		int retrievedItems = ITEMS_PER_PAGE;
-		ApiUpdate lastSuccessfulUpdate = connectorUpdateService
-				.getLastSuccessfulUpdate(updateInfo.apiKey);
+        long lastUploadTime = getLastUploadTime(updateInfo);
 		for (int page = 0; retrievedItems == ITEMS_PER_PAGE; page++) {
 			JSONObject feed = retrievePhotoHistory(updateInfo,
-					lastSuccessfulUpdate.ts, System.currentTimeMillis(), page);
+					lastUploadTime, System.currentTimeMillis(), page);
+
+            if (!(feed.getString("stat").equalsIgnoreCase("ok"))) {
+                String message = "n/a";
+                if (feed.containsKey("message"))
+                    message = feed.getString("message");
+                throw new Exception("There was an error calling the Flickr API: " + message);
+            }
+
 			JSONObject photosWrapper = feed.getJSONObject("photos");
 
 			if (photosWrapper != null) {
-				JSONArray photos = photosWrapper.getJSONArray("photo");
-				retrievedItems = photos.size();
-				apiDataService.cacheApiDataJSON(updateInfo, feed, -1, -1);
+                if (photosWrapper.containsKey("photo")) {
+                    JSONArray photos = photosWrapper.getJSONArray("photo");
+                    retrievedItems = photos.size();
+                    apiDataService.cacheApiDataJSON(updateInfo, feed, -1, -1);
+                } else break;
 			} else
 				break;
 		}
 	}
 
-	private JSONObject retrievePhotoHistory(UpdateInfo updateInfo, long from,
+    private long getLastUploadTime(final UpdateInfo updateInfo) {
+        final String entityName = JPAUtils.getEntityName(FlickrPhotoFacet.class);
+        final List<FlickrPhotoFacet> facets = jpaDaoService.executeQueryWithLimit("SELECT facet from " + entityName + " facet WHERE facet.apiKeyId=? ORDER BY facet.dateupload DESC", 1, FlickrPhotoFacet.class, updateInfo.apiKey.getId());
+        if (facets.size()==0)
+            return 0;
+        return facets.get(0).dateupload + 1000;
+    }
+
+    private JSONObject retrievePhotoHistory(UpdateInfo updateInfo, long from,
 			long to, int page) throws Exception {
 		long then = System.currentTimeMillis();
 
