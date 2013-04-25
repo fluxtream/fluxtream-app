@@ -93,13 +93,13 @@ public class WithingsUpdater extends AbstractUpdater {
         final String entityName = JPAUtils.getEntityName(WithingsBPMMeasureFacet.class);
         final List<WithingsBPMMeasureFacet> facets = jpaDaoService.executeQueryWithLimit("SELECT facet from " + entityName + " facet WHERE facet.apiKeyId=? ORDER BY facet.start DESC", 1, WithingsBPMMeasureFacet.class, updateInfo.apiKey.getId());
         if (facets.size()==0) return 0;
-        return facets.get(0).start;
+        return facets.get(0).start + 1000;
     }
 
     private long getLastBodyScaleMeasurement(final UpdateInfo updateInfo) {
         final String entityName = JPAUtils.getEntityName(WithingsBodyScaleMeasureFacet.class);
         final List<WithingsBodyScaleMeasureFacet> facets = jpaDaoService.executeQueryWithLimit("SELECT facet from " + entityName + " facet WHERE facet.apiKeyId=? ORDER BY facet.start DESC", 1, WithingsBodyScaleMeasureFacet.class, updateInfo.apiKey.getId());
         if (facets.size()==0) return 0;
-        return facets.get(0).start;
+        return facets.get(0).start + 1000;
     }
 }
