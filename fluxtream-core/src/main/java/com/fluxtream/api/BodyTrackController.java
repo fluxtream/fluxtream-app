@@ -4,13 +4,10 @@ import java.awt.Dimension;
 import java.lang.reflect.Type;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TimeZone;
 import java.util.TreeSet;
@@ -32,14 +29,15 @@ import javax.ws.rs.core.Response;
 import com.fluxtream.Configuration;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.TimeUnit;
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.fluxtream_capture.FluxtreamCapturePhoto;
 import com.fluxtream.connectors.fluxtream_capture.FluxtreamCapturePhotoStore;
 import com.fluxtream.connectors.vos.AbstractPhotoFacetVO;
-import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.AbstractFacet;
+import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.CoachingBuddy;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.Tag;
@@ -63,8 +61,6 @@ import com.sun.jersey.multipart.BodyPart;
 import com.sun.jersey.multipart.BodyPartEntity;
 import com.sun.jersey.multipart.MultiPart;
 import org.apache.commons.io.IOUtils;
-import com.fluxtream.aspects.FlxLogger;
-import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joda.time.DateTime;
@@ -643,7 +639,7 @@ public class BodyTrackController {
             final TimeInterval timeInterval = new TimeInterval(startTimeMillis, endTimeMillis, TimeUnit.DAY, TimeZone.getTimeZone("UTC"));
 
             // fetch the photos for this time interval, and for the desired device/channel
-            final TagFilter tagFilter = TagFilter.create(Tag.parseTagsIntoStrings(tagsStr, ','), tagFilteringStrategy);
+            final TagFilter tagFilter = TagFilter.create(Tag.parseTagsIntoStrings(tagsStr, Tag.COMMA_DELIMITER), tagFilteringStrategy);
             final SortedSet<PhotoService.Photo> photos = photoService.getPhotos(uid, timeInterval, connectorPrettyName, objectTypeName, tagFilter);
 
             // Define the min interval to be 1/20th of the span of the tile.  Value is in seconds
@@ -712,7 +708,7 @@ public class BodyTrackController {
                 return gson.toJson(new StatusModel(false, "Invalid User ID (null)"));
              }
 
-            final TagFilter tagFilter = TagFilter.create(Tag.parseTagsIntoStrings(tagsStr, ','), tagFilteringStrategy);
+            final TagFilter tagFilter = TagFilter.create(Tag.parseTagsIntoStrings(tagsStr, Tag.COMMA_DELIMITER), tagFilteringStrategy);
             final SortedSet<PhotoService.Photo> photos = photoService.getPhotos(uid, (long)(unixTimeInSecs * 1000), connectorPrettyName, objectTypeName, desiredCount, isGetPhotosBeforeTime, tagFilter);
 
             // create the JSON response
@@ -729,14 +725,14 @@ public class BodyTrackController {
     }
 
     @GET
-    @Path("/metadata/{UID}/{DeviceNickname}.{ChannelName}/{facetId}/get")
+    @Path("/metadata/{UID}/{ConnectorName}.{ObjectTypeName}/{facetId}/get")
     @Produces({MediaType.APPLICATION_JSON})
     public Response getFacetMetadata(@PathParam("UID") Long uid,
-                                   final @PathParam("DeviceNickname") String deviceNickname,
-                                   final @PathParam("ChannelName") String channelName,
+                                   final @PathParam("ConnectorName") String connectorName,
+                                   final @PathParam("ObjectTypeName") String objectTypeName,
                                    final @PathParam("facetId") long facetId) {
 
-        return executeFacetMetaDataOperation(uid, deviceNickname, channelName, facetId, new FacetMetaDataOperation() {
+        return executeFacetMetaDataOperation(uid, connectorName, objectTypeName, facetId, new FacetMetaDataOperation() {
             @Override
             @NotNull
             public Response executeOperation(@NotNull final AbstractFacet facet) {
@@ -746,23 +742,23 @@ public class BodyTrackController {
     }
 
     @POST
-    @Path("/metadata/{UID}/{DeviceNickname}.{ChannelName}/{facetId}/set")
+    @Path("/metadata/{UID}/{ConnectorName}.{ObjectTypeName}/{facetId}/set")
     @Produces({MediaType.APPLICATION_JSON})
     public Response setFacetMetadata(final @PathParam("UID") long uid,
-                                     final @PathParam("DeviceNickname") String deviceNickname,
-                                     final @PathParam("ChannelName") String channelName,
+                                     final @PathParam("ConnectorName") String connectorName,
+                                     final @PathParam("ObjectTypeName") String objectTypeName,
                                      final @PathParam("facetId") long facetId,
                                      final @FormParam("comment") String comment,
                                      final @FormParam("tags") String tags) {
 
         // don't bother doing anything if comment and tags are both null
         if (comment != null || tags != null) {
-            return executeFacetMetaDataOperation(uid, deviceNickname, channelName, facetId, new FacetMetaDataOperation() {
+            return executeFacetMetaDataOperation(uid, connectorName, objectTypeName, facetId, new FacetMetaDataOperation() {
                 @Override
                 @NotNull
                 public Response executeOperation(@NotNull final AbstractFacet facet) {
                     if (LOG.isInfoEnabled()) {
-                        LOG.info("BodyTrackController.setFacetMetadata(): Attempting to set metadata for facet [" + facetId + "] for connector [" + deviceNickname + "] and object type [" + channelName + "]");
+                        LOG.info("BodyTrackController.setFacetMetadata(): Attempting to set metadata for facet [" + facetId + "] for connector [" + connectorName + "] and object type [" + objectTypeName + "]");
                     }
 
                     final FacetMetadataModifier facetMetadataModifier = new FacetMetadataModifier(uid, facetId, comment, tags);
@@ -772,7 +768,7 @@ public class BodyTrackController {
                         return jsonResponseHelper.ok("Metadata updated successfully!", new FacetMetadata(modifiedFacet));
                     }
 
-                    return jsonResponseHelper.forbidden("User [" + uid + "] is not allowed to set metadata for facet [" + facetId + "] for connector [" + deviceNickname + "] and object type [" + channelName + "]");
+                    return jsonResponseHelper.forbidden("User [" + uid + "] is not allowed to set metadata for facet [" + facetId + "] for connector [" + connectorName + "] and object type [" + objectTypeName + "]");
                 }
             });
         }
@@ -795,14 +791,14 @@ public class BodyTrackController {
     }
 
     private Response executeFacetMetaDataOperation(final long uid,
-                                                   final String deviceNickname,
-                                                   final String channelName,
+                                                   final String connectorName,
+                                                   final String objectTypeName,
                                                    final long facetId,
                                                    final FacetMetaDataOperation operation) {
             // Try to find the connector by pretty name, and then if that fails the find by actual name
-            Connector connector = ConnectorUtils.findConnectorByPrettyName(guestService, uid, deviceNickname);
+            Connector connector = ConnectorUtils.findConnectorByPrettyName(guestService, uid, connectorName);
             if (connector == null) {
-                connector = Connector.getConnector(deviceNickname);
+                connector = Connector.getConnector(connectorName);
             }
 
             if (connector != null) {
@@ -826,7 +822,7 @@ public class BodyTrackController {
 
                 if (accessAllowed) {
 
-                    final ObjectType objectType = ObjectType.getObjectType(connector, channelName);
+                    final ObjectType objectType = ObjectType.getObjectType(connector, objectTypeName);
                     if (objectType != null) {
                         ApiKey apiKey = guestService.getApiKey(uid, connector);
                         final AbstractFacet facet = apiDataService.getFacetById(apiKey, objectType, facetId);
@@ -835,16 +831,18 @@ public class BodyTrackController {
                                 return operation.executeOperation(facet);
                             }
                             catch (Exception e) {
-                                return jsonResponseHelper.internalServerError("Unexpected error while trying to operate on metadata for facet [" + facetId + "] for connector [" + deviceNickname + "] and object type [" + objectType + "]");
+                                final String message = "Unexpected error while trying to operate on metadata for facet [" + facetId + "] for connector [" + connectorName + "] and object type [" + objectType + "]";
+                                LOG_DEBUG.error(message, e);
+                                return jsonResponseHelper.internalServerError(message);
                             }
                         }
-                        return jsonResponseHelper.notFound("Unknown facet [" + facetId + "] for connector [" + deviceNickname + "] and object type [" + objectType + "] and guestId [" + uid + "]");
+                        return jsonResponseHelper.notFound("Unknown facet [" + facetId + "] for connector [" + connectorName + "] and object type [" + objectType + "] and guestId [" + uid + "]");
                     }
-                    return jsonResponseHelper.notFound("Unknown object type [" + channelName + "] for connector [" + deviceNickname + "]");
+                    return jsonResponseHelper.notFound("Unknown object type [" + objectTypeName + "] for connector [" + connectorName + "]");
                 }
-                return jsonResponseHelper.forbidden("User [" + loggedInUserId + "] is not authorized to access or modify metadata for facets owned by user [" + uid + "] in connector [" + deviceNickname + "]");
+                return jsonResponseHelper.forbidden("User [" + loggedInUserId + "] is not authorized to access or modify metadata for facets owned by user [" + uid + "] in connector [" + connectorName + "]");
             }
-            return jsonResponseHelper.notFound("Unknown connector [" + deviceNickname + "]");
+            return jsonResponseHelper.notFound("Unknown connector [" + connectorName + "]");
     }
 
     private static final class FacetMetadataModifier implements ApiDataService.FacetModifier<AbstractFacet> {
@@ -862,12 +860,11 @@ public class BodyTrackController {
         }
 
         @Override
-        public AbstractFacet createOrModify(final AbstractFacet existingFacet, long apiKeyId) {
-
+        public AbstractFacet createOrModify(final AbstractFacet existingFacet, final Long apiKeyId) {
             // the case where the existing facet doesn't exist and is null should never happen here
             if (existingFacet != null) {
                 if (comment != null) {
-                        existingFacet.comment = comment;
+                    existingFacet.comment = comment;
                 }
 
                 if (tagsStr != null) {
@@ -894,7 +891,7 @@ public class BodyTrackController {
         private static final DateTimeFormatter DATE_TIME_FORMATTER = ISODateTimeFormat.dateTime();
 
         boolean nsfw = false;
-        long id;
+        String id;
         String description;
         String comment;
         double begin_d;
@@ -914,7 +911,7 @@ public class BodyTrackController {
         public PhotoItem(final PhotoService.Photo photo) {
             final AbstractPhotoFacetVO photoFacetVO = photo.getAbstractPhotoFacetVO();
 
-            this.id = photoFacetVO.id;
+            this.id = photo.getConnector().prettyName() + "." + photo.getObjectType().getName() + "." + photoFacetVO.id;
             this.description = photoFacetVO.description == null ? "" : photoFacetVO.description;
             this.comment = photoFacetVO.comment == null ? "" : photoFacetVO.comment;
             this.begin_d = photoFacetVO.start / 1000.0; // convert millis to seconds

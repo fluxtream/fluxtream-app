@@ -170,7 +170,7 @@ public class MymeeUpdater extends AbstractUpdater {
                         // Throw exception if it turns out we can't make sense of the observation's JSON
                         // This will abort the transaction
                         @Override
-                        public MymeeObservationFacet createOrModify(MymeeObservationFacet facet, long apiKeyId) {
+                        public MymeeObservationFacet createOrModify(MymeeObservationFacet facet, Long apiKeyId) {
                             if (facet == null) {
                                 facet = new MymeeObservationFacet(updateInfo.apiKey.getId());
                                 facet.mymeeId = mymeeId;

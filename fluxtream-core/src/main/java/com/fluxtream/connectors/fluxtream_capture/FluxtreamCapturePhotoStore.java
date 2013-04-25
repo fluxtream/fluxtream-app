@@ -191,7 +191,7 @@ public final class FluxtreamCapturePhotoStore {
      * @throws UnsupportedImageFormatException if the save/update fails because the given image is not of a supported format
      */
     @SuppressWarnings("ConstantConditions")
-    public OperationResult<FluxtreamCapturePhoto> saveOrUpdatePhoto(final long guestId, @NotNull final byte[] photoBytes, @NotNull final String jsonMetadata, final long apiKeyId) throws StorageException, InvalidDataException, UnsupportedImageFormatException {
+    public OperationResult<FluxtreamCapturePhoto> saveOrUpdatePhoto(final long guestId, @NotNull final byte[] photoBytes, @NotNull final String jsonMetadata, final Long apiKeyId) throws StorageException, InvalidDataException, UnsupportedImageFormatException {
         if (LOG_DEBUG.isDebugEnabled()) {
             LOG_DEBUG.debug("FluxtreamCapturePhotoStore.savePhoto(" + guestId + ", " + photoBytes.length + ", " + jsonMetadata + ")");
         }
@@ -328,7 +328,7 @@ public final class FluxtreamCapturePhotoStore {
         }
 
         @Override
-        public FluxtreamCapturePhotoFacet createOrModify(final FluxtreamCapturePhotoFacet existingFacet, long apiKeyId) {
+        public FluxtreamCapturePhotoFacet createOrModify(final FluxtreamCapturePhotoFacet existingFacet, final Long apiKeyId) {
 
             if (existingFacet == null) {
                 wasCreated = true;
