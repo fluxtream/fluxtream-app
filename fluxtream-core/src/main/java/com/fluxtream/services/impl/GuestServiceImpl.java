@@ -389,7 +389,7 @@ public class GuestServiceImpl implements GuestService {
 		}
 		Location ipLocation = geoIpLookupService.getLocation(ipAddress);
         long time = System.currentTimeMillis();
-        LocationFacet locationFacet = new LocationFacet(-1);
+        LocationFacet locationFacet = new LocationFacet(1);
         locationFacet.guestId = guestId;
         locationFacet.timestampMs = time;
         locationFacet.start = time;
