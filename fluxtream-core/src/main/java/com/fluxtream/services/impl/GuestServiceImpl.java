@@ -413,7 +413,7 @@ public class GuestServiceImpl implements GuestService {
             }
             catch (Exception ignored){
             }
-		} else {
+		} else if (env.get("ip2location.apiKey")!=null) {
             String ip2locationKey = env.get("ip2location.apiKey");
 			String jsonString = HttpUtils.fetch(
 					"http://api.ipinfodb.com/v3/ip-city/?key=" + ip2locationKey
