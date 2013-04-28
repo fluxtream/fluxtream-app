@@ -25,11 +25,7 @@ public interface MetadataService {
 
 	LocationFacet getLastLocation(long guestId, long time);
 
-	LocationFacet getNextLocation(long guestId, long time);
-
 	TimeZone getTimeZone(double latitude, double longitude);
-
-	DayMetadataFacet getLastDayMetadata(long guestId);
 
     public City getClosestCity(double latitude, double longitude);
 
@@ -38,4 +34,8 @@ public interface MetadataService {
 
     List<WeatherInfo> getWeatherInfo(double latitude, double longitude,
                                      String date, int startMinute, int endMinute);
+
+    public void rebuildMetadata(String username);
+
+    public void updateLocationMetadata(LocationFacet locationFacet);
 }

@@ -21,6 +21,7 @@ import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.JPADaoService;
+import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.WidgetsService;
 import com.google.gson.Gson;
 import net.sf.json.JSONArray;
@@ -56,6 +57,9 @@ public class AdminController {
     @Autowired
     ApiDataService apiDataService;
 
+    @Autowired
+    MetadataService metadataService;
+
     @GET
     @Secured({ "ROLE_ADMIN" })
 	@Path("/properties/{propertyName}")
@@ -75,6 +79,24 @@ public class AdminController {
 				+ propertyName);
 		return gson.toJson(failure);
 	}
+
+    @POST
+    @Secured({ "ROLE_ADMIN" })
+    @Path("/{username}/metadata/rebuild")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String populateBetterMetadataTables(@PathParam("username") String username)
+            throws InstantiationException, IllegalAccessException,
+                   ClassNotFoundException {
+
+        try {
+            metadataService.rebuildMetadata(username);
+            StatusModel success = new StatusModel(true, "done");
+            return gson.toJson(success);
+        } catch (Throwable t) {
+            StatusModel failure = new StatusModel(false, ExceptionUtils.getStackTrace(t));
+            return gson.toJson(failure);
+        }
+    }
 
     @POST
     @Secured({ "ROLE_ADMIN" })
