@@ -10,11 +10,11 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import com.fluxtream.Configuration;
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.connectors.vos.AbstractFacetVO;
 import com.fluxtream.domain.metadata.City;
 import com.fluxtream.domain.metadata.DayMetadataFacet;
-import com.fluxtream.domain.metadata.DayMetadataFacet.TravelType;
 import com.fluxtream.domain.metadata.DayMetadataFacet.VisitedCity;
 import com.fluxtream.domain.metadata.WeatherInfo;
 import com.fluxtream.services.GuestService;
@@ -24,7 +24,6 @@ import com.fluxtream.services.NotificationsService;
 import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.TimeUtils;
 import org.apache.commons.httpclient.HttpException;
-import com.fluxtream.aspects.FlxLogger;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -86,21 +85,6 @@ public class MetadataServiceImpl implements MetadataService {
 		DayMetadataFacet context = getDayMetadata(guestId, date, true);
 		servicesHelper.setTimeZone(context, timeZone);
 		em.merge(context);
-	}
-
-	@Override
-	public void setTraveling(long guestId, String date, TravelType travelType) {
-		DayMetadataFacet info = getDayMetadata(guestId, date, false);
-		if (info == null)
-			return;
-		info.travelType = travelType;
-		em.merge(info);
-	}
-
-	@Override
-	public void addTimeSpentAtHome(long guestId, long startTime, long endTime) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
@@ -275,27 +259,6 @@ public class MetadataServiceImpl implements MetadataService {
             logger.info("guestId=" + guestId + " time= " + time + " action=getTimeZone message=returning UTC Timezone");
 			return TimeZone.getTimeZone("UTC"); // Code should never go here!
 		}
-	}
-
-	@Override
-	@Transactional(readOnly=false)
-	public void setDayCommentTitle(long guestId, String date, String title) {
-		DayMetadataFacet thatDay = getDayMetadata(guestId,
-				date, true);
-		thatDay.title = title;
-		em.merge(thatDay);
-	}
-
-	@Override
-	@Transactional(readOnly=false)
-	public void setDayCommentBody(long guestId, String date, String body) {
-
-        //TODO: better metadata
-
-        DayMetadataFacet thatDay = JPAUtils.findUnique(em,
-				DayMetadataFacet.class, "context.byDate", guestId, date);
-		thatDay.comment = body;
-		em.merge(thatDay);
 	}
 
     @Override

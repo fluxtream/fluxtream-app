@@ -2,11 +2,9 @@ package com.fluxtream.services;
 
 import java.util.List;
 import java.util.TimeZone;
-
 import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.domain.metadata.City;
 import com.fluxtream.domain.metadata.DayMetadataFacet;
-import com.fluxtream.domain.metadata.DayMetadataFacet.TravelType;
 import com.fluxtream.domain.metadata.WeatherInfo;
 
 public interface MetadataService {
@@ -18,16 +16,12 @@ public interface MetadataService {
 	TimeZone getTimeZone(long guestId, long time);
 
 	TimeZone getTimeZone(long guestId, String date);
-	
-	void addTimeSpentAtHome(long guestId, long startTime, long endTime);
 
 	City getMainCity(long guestId, DayMetadataFacet context);
 
 	DayMetadataFacet getDayMetadata(long guestId, String date, boolean create);
 
     List<DayMetadataFacet> getAllDayMetadata(long guestId);
-
-	void setTraveling(long guestId, String date, TravelType travelType);
 
 	LocationFacet getLastLocation(long guestId, long time);
 
@@ -36,10 +30,6 @@ public interface MetadataService {
 	TimeZone getTimeZone(double latitude, double longitude);
 
 	DayMetadataFacet getLastDayMetadata(long guestId);
-	
-	void setDayCommentTitle(long guestId, String date, String title);
-	
-	void setDayCommentBody(long guestId, String date, String body);
 
     public City getClosestCity(double latitude, double longitude);
 

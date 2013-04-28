@@ -8,8 +8,9 @@ import java.util.TreeSet;
 import javax.persistence.Lob;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.TimeUnit;
+import com.fluxtream.domain.AbstractLocalTimeFacet;
 import org.hibernate.annotations.Index;
-public class DayMetadataFacet {
+public class DayMetadataFacet extends AbstractLocalTimeFacet {
 	
 	public class VisitedCity implements Comparable<VisitedCity> {
 
@@ -26,12 +27,6 @@ public class DayMetadataFacet {
 		
 	}
 
-    public long start, end;
-
-	public String title;
-	
-	public String date;
-	
 	@Lob
 	public String cities;
 	
@@ -65,7 +60,14 @@ public class DayMetadataFacet {
 
     public DayMetadataFacet() {}
 
-	public TimeInterval getTimeInterval() {
+    public DayMetadataFacet(long apiKeyId) { this.apiKeyId = apiKeyId; }
+
+    @Override
+    protected void makeFullTextIndexable() {
+        //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    public TimeInterval getTimeInterval() {
         // default to UTC
         TimeZone zone = TimeZone.getTimeZone("UTC");
         if (timeZone!=null)

@@ -17,6 +17,9 @@ import org.hibernate.search.annotations.Indexed;
 @Indexed
 public class VisitedCity extends AbstractLocalTimeFacet {
 
+    public int sunrise;
+    public int sunset;
+
     @Index(name="locationSource_index")
     LocationFacet.Source locationSource;
 
