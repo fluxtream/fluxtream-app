@@ -107,7 +107,10 @@ public class MetadataServiceImpl implements MetadataService {
 	@Transactional(readOnly = false)
 	public DayMetadataFacet getDayMetadata(long guestId, String date,
 			boolean create) {
-		DayMetadataFacet info = JPAUtils.findUnique(em, DayMetadataFacet.class,
+
+        //TODO: better metadata
+
+        DayMetadataFacet info = JPAUtils.findUnique(em, DayMetadataFacet.class,
                                                     "context.byDate", guestId, date);
 		if (info != null)
 			return info;
@@ -133,6 +136,9 @@ public class MetadataServiceImpl implements MetadataService {
 
     @Override
     public List<DayMetadataFacet> getAllDayMetadata(final long guestId) {
+
+        //TODO: better metadata
+
         return JPAUtils.find(em, DayMetadataFacet.class,"context.all",guestId);
     }
 
@@ -166,6 +172,7 @@ public class MetadataServiceImpl implements MetadataService {
 
 	private DayMetadataFacet getNextExistingDayMetadata(long guestId,
 			String todaysDate) {
+        // TODO: better metadata
 		// TODO: not totally accurate, since we are ignoring the timezone
 		// of todaysDate, but should work in most cases
 		long start = formatter.parseMillis(todaysDate);
@@ -232,6 +239,9 @@ public class MetadataServiceImpl implements MetadataService {
 
 	@Override
 	public DayMetadataFacet getLastDayMetadata(long guestId) {
+
+        //TODO: better metadata
+
 		DayMetadataFacet lastDay = JPAUtils.findUnique(em,
 				DayMetadataFacet.class, "context.day.last", guestId);
 		return lastDay;
@@ -239,6 +249,9 @@ public class MetadataServiceImpl implements MetadataService {
 
 	@Override
 	public TimeZone getTimeZone(long guestId, String date) {
+
+        //TODO: better metadata
+
 		DayMetadataFacet thatDay = JPAUtils.findUnique(em,
 				DayMetadataFacet.class, "context.byDate", guestId, date);
 		if (thatDay != null)
@@ -251,6 +264,9 @@ public class MetadataServiceImpl implements MetadataService {
 
 	@Override
 	public TimeZone getTimeZone(long guestId, long time) {
+
+        // TODO: better metadata
+
 		DayMetadataFacet thatDay = JPAUtils.findUnique(em,
 				DayMetadataFacet.class, "context.day.when", guestId, time, time);
 		if (thatDay != null)
@@ -273,7 +289,10 @@ public class MetadataServiceImpl implements MetadataService {
 	@Override
 	@Transactional(readOnly=false)
 	public void setDayCommentBody(long guestId, String date, String body) {
-		DayMetadataFacet thatDay = JPAUtils.findUnique(em,
+
+        //TODO: better metadata
+
+        DayMetadataFacet thatDay = JPAUtils.findUnique(em,
 				DayMetadataFacet.class, "context.byDate", guestId, date);
 		thatDay.comment = body;
 		em.merge(thatDay);
