@@ -4,7 +4,6 @@ import javax.persistence.Entity;
 import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.domain.AbstractLocalTimeFacet;
 import org.hibernate.annotations.Index;
-import org.hibernate.search.annotations.Indexed;
 
 /**
  * User: candide
@@ -12,11 +11,10 @@ import org.hibernate.search.annotations.Indexed;
  * Time: 10:31
  */
 @Entity(name="Facet_VisitedTimezone")
-@Indexed
 public class VisitedTimeZone extends AbstractLocalTimeFacet {
 
     @Index(name="locationSource_index")
-    LocationFacet.Source locationSource;
+    public LocationFacet.Source locationSource;
 
     @Index(name="timezoneID_index")
     public String timezoneID;

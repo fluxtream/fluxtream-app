@@ -37,5 +37,5 @@ public interface MetadataService {
 
     public void rebuildMetadata(String username);
 
-    public void updateLocationMetadata(LocationFacet locationFacet);
+    public void updateLocationMetadata(long guestId, List<LocationFacet> locationResources);
 }

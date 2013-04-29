@@ -3,8 +3,9 @@ package com.fluxtream.services.impl;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
-import java.util.NavigableSet;
 import java.util.TimeZone;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -16,13 +17,15 @@ import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.metadata.City;
 import com.fluxtream.domain.metadata.DayMetadataFacet;
-import com.fluxtream.domain.metadata.DayMetadataFacet.VisitedCity;
+import com.fluxtream.domain.metadata.VisitedCity;
 import com.fluxtream.domain.metadata.WeatherInfo;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.NotificationsService;
 import com.fluxtream.utils.JPAUtils;
 import org.apache.http.HttpException;
+import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
+import com.luckycatlabs.sunrisesunset.dto.Location;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -108,41 +111,10 @@ public class MetadataServiceImpl implements MetadataService {
 
 	@Override
 	public City getMainCity(long guestId, DayMetadataFacet context) {
-		NavigableSet<VisitedCity> cities = context.getOrderedCities();
-		if (cities.size() == 0) {
-			logger.debug("guestId=" + guestId + " message=no_main_city date=" + context.date);
-			return null;
-		}
-		VisitedCity mostVisited = cities.last();
-        City city = null;
-        if (mostVisited.state!=null)
-            city = JPAUtils.findUnique(em, City.class,
-                                       "city.byNameStateAndCountryCode", mostVisited.name,
-                                       mostVisited.state,
-                                       env.getCountryCode(mostVisited.country));
-        else
-            city = JPAUtils.findUnique(em, City.class,
-                    "city.byNameAndCountryCode", mostVisited.name,
-                    env.getCountryCode(mostVisited.country));
-		return city;
-	}
 
-	private void setWeatherInfo(DayMetadataFacet info,
-			List<WeatherInfo> weatherInfo) {
-		if (weatherInfo.size() == 0)
-			return;
+        //TODO: better metadata
 
-		for (WeatherInfo weather : weatherInfo) {
-			if (weather.tempC < info.minTempC)
-				info.minTempC = weather.tempC;
-			if (weather.tempF < info.minTempF)
-				info.minTempF = weather.tempF;
-			if (weather.tempC > info.maxTempC)
-				info.maxTempC = weather.tempC;
-			if (weather.tempF > info.maxTempF)
-				info.maxTempF = weather.tempF;
-		}
-
+        return null;
 	}
 
 	@Override
@@ -259,41 +231,102 @@ public class MetadataServiceImpl implements MetadataService {
     public void rebuildMetadata(final String username) {
         final Guest guest = guestService.getGuest(username);
         String entityName = JPAUtils.getEntityName(LocationFacet.class);
-        final TypedQuery<LocationFacet> query = em.createQuery(String.format("select facet from %s facet WHERE facet.guestId=%s", entityName, guest.getId()), LocationFacet.class);
-        final List<LocationFacet> resultList = query.getResultList();
-        for (LocationFacet locationFacet : resultList) {
-            updateLocationMetadata(locationFacet);
+        int i=0;
+        int count=0;
+        while(true) {
+            final TypedQuery<LocationFacet> query = em.createQuery(String.format("SELECT facet FROM %s facet WHERE facet.guestId=%s",
+                                                                                 entityName, guest.getId()), LocationFacet.class);
+            query.setFirstResult(i);
+            query.setMaxResults(1000);
+            final List<LocationFacet> locations = query.getResultList();
+            if (locations.size()==0)
+                break;
+            updateLocationMetadata(guest.getId(), locations);
+            em.flush();
+            i+=locations.size();
         }
     }
 
+    /**
+     * We want to have an explicit city "check-in" each time that we know we have been some place.
+     * Thus, as we loop through a batch of new location datapoints, we keep track of the current date
+     * and the current city and when either change we store a new datapoint in the VisitedCity table.
+     * Then, for each date in the
+     * @param guestId
+     * @param locationResources
+     */
     @Override
-    public void updateLocationMetadata(final LocationFacet locationFacet) {
-        final City city = getClosestCity(locationFacet.latitude, locationFacet.longitude);
-        storeCity(locationFacet.start, locationFacet.source, city);
-        // get the weather info for this date, time and location
-        WeatherInfo weatherInfo = getWeatherForLocation(locationFacet, TimeZone.getTimeZone(city.geo_timezone));
-        storeWeather(locationFacet.start, locationFacet.source, weatherInfo);
-        storeTimeZone(locationFacet.start, locationFacet.source, city.geo_timezone);
+    public void updateLocationMetadata(final long guestId, final List<LocationFacet> locationResources) {
+        // sort the location data in ascending time order
+        Collections.sort(locationResources, new Comparator<LocationFacet>() {
+            @Override
+            public int compare(final LocationFacet o1, final LocationFacet o2) {
+                return o1.start>o2.start?1:-1;
+            }
+        });
+        // local vars: current city and current day
+        String currentDate = "";
+        long currentCityId  = -1l;
+        List<String> affectedDates = new ArrayList<String>();
+        for (LocationFacet locationResource : locationResources) {
+            City city = getClosestCity(locationResource.latitude, locationResource.longitude);
+            String date = formatter.withZone(DateTimeZone.forID(city.geo_timezone)).print(locationResource.timestampMs);
+            final boolean dateChanged = !date.equals(currentDate);
+            final boolean cityChanged = city.geo_id!=currentCityId;
+            if (dateChanged||cityChanged) {
+                final boolean wasStored = storeCity(locationResource, date, city);
+                if (wasStored)
+                    affectedDates.add(date);
+            }
+        }
     }
 
-    private void storeCity(final long ts, final LocationFacet.Source source, final City city) {
-        // if we already have the same city before ts, than just leave it as is and return
-        // otherwise store it
-        // if we have the same city just after ts, delete it
+    /**
+     * Store a new "checkin" in a city only if there isn't already a checkin in the same city before this one and
+     * on the same day. This method will also remove checkins in the same city that would happen after this one (again,
+     * on the same day).
+     * @param locationResource
+     * @param date
+     * @param city
+     * @return <code>true</code> if the check-in was inserted, <code>false</code> otherwise
+     */
+    private boolean storeCity(final LocationFacet locationResource, String date, final City city) {
+        final String entityName = JPAUtils.getEntityName(VisitedCity.class);
+        TypedQuery<VisitedCity> query = em.createQuery(
+                String.format("SELECT facet from %s facet WHERE facet.guestId=%s AND facet.date='%s' AND facet.start<%s",
+                              entityName, locationResource.guestId, date, locationResource.start),
+                VisitedCity.class);
+        List<VisitedCity> visitedCities = query.getResultList();
+        if (visitedCities.size()>0) {
+            persistCity(locationResource, date, city);
+            return true;
+        }
+        //TODO: remove future checkins on the same day
+        return false;
     }
 
-    private void storeWeather(final long ts, final LocationFacet.Source source, final WeatherInfo weatherInfo) {
-        // if we already have the same weather info before locationFacet.start, than just leave it as is and return
-        // otherwise store it
-        // if we have the same weatherinfo just after locationFacet.start, delete it
+    private void persistCity(final LocationFacet locationResource, final String date, final City city) {
+        //To change body of created methods use File | Settings | File Templates.
     }
 
-    private void storeTimeZone(final long ts, final LocationFacet.Source source, final String timezone) {
-        // if we already have the same timezone before ts, than just leave it as is and return
-        // otherwise store it
-        // if we have the same timezone just after ts, delete it
+    private void computeSunriseSunset(final LocationFacet locationFacet, final City city, final VisitedCity mdFacet) {
+        Location location = new Location(String.valueOf(locationFacet.latitude), String.valueOf(locationFacet.longitude));
+        final TimeZone timeZone = TimeZone.getTimeZone(city.geo_timezone);
+        SunriseSunsetCalculator calc = new SunriseSunsetCalculator(location, timeZone);
+        Calendar c = Calendar.getInstance(timeZone);
+        c.setTimeInMillis(locationFacet.start);
+        Calendar sunrise = calc.getOfficialSunriseCalendarForDate(c);
+        Calendar sunset = calc.getOfficialSunsetCalendarForDate(c);
+        if (sunrise.getTimeInMillis() > sunset.getTimeInMillis()) {
+            Calendar sr = sunrise;
+            Calendar ss = sunset;
+            sunset = sr;
+            sunrise = ss;
+        }
+        //mdFacet.sunrise = AbstractFacetVO.toMinuteOfDay(sunrise.getTime(), timeZone);
+        //mdFacet.sunset = AbstractFacetVO.toMinuteOfDay(sunset.getTime(),
+        //                                                 timeZone);
     }
-
 
     private WeatherInfo getWeatherForLocation(final LocationFacet locationFacet, TimeZone tz) {
         String date = formatter.withZone(DateTimeZone.forTimeZone(tz)).print(locationFacet.start);

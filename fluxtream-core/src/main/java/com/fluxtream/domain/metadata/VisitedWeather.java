@@ -6,7 +6,6 @@ import javax.persistence.ManyToOne;
 import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.domain.AbstractLocalTimeFacet;
 import org.hibernate.annotations.Index;
-import org.hibernate.search.annotations.Indexed;
 
 /**
  * User: candide
@@ -14,11 +13,10 @@ import org.hibernate.search.annotations.Indexed;
  * Time: 10:34
  */
 @Entity(name="Facet_VisitedWeather")
-@Indexed
 public class VisitedWeather extends AbstractLocalTimeFacet {
 
     @Index(name="locationSource_index")
-    LocationFacet.Source locationSource;
+    public LocationFacet.Source locationSource;
 
     @ManyToOne(fetch= FetchType.EAGER, targetEntity = WeatherInfo.class, optional=false)
     WeatherInfo weatherInfo;
