@@ -83,9 +83,6 @@ public class ApiDataServiceImpl implements ApiDataService {
     EventListenerService eventListenerService;
 
     @Autowired
-    ServicesHelper servicesHelper;
-
-    @Autowired
     @Qualifier("AsyncWorker")
     ThreadPoolTaskExecutor executor;
 

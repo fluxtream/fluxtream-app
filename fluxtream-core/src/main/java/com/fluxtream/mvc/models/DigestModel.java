@@ -7,10 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import com.fluxtream.domain.metadata.DayMetadataFacet;
 import com.fluxtream.domain.metadata.WeatherInfo;
-import com.sun.jersey.core.util.StringIgnoreCaseKeyComparator;
 
 public class DigestModel {
 
@@ -21,9 +18,6 @@ public class DigestModel {
 	public boolean hasPictures;
 	public List<NotificationModel> notifications;
 	public Map<String,Collection> addresses;
-	public List<DayMetadataFacet.VisitedCity> cities;
-	public DayMetadataFacet.InTransitType inTransit;
-	public DayMetadataFacet.TravelType travelType;
 	public float minTempC, maxTempC;
 	public float minTempF, maxTempF;
 	public SettingsModel settings;

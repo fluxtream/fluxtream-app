@@ -27,7 +27,10 @@ import com.fluxtream.utils.JPAUtils;
 import org.apache.http.HttpException;
 import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
 import com.luckycatlabs.sunrisesunset.dto.Location;
+import org.joda.time.DateMidnight;
+import org.joda.time.DateTimeConstants;
 import org.joda.time.DateTimeZone;
+import org.joda.time.Days;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,9 +62,6 @@ public class MetadataServiceImpl implements MetadataService {
     //@Autowired
     //WWOHelper wwoHelper;
 
-    @Autowired
-    ServicesHelper servicesHelper;
-
     private static final DateTimeFormatter formatter = DateTimeFormat
             .forPattern("yyyy-MM-dd");
 
@@ -86,9 +86,7 @@ public class MetadataServiceImpl implements MetadataService {
 	@Override
 	@Transactional(readOnly = false)
 	public void setTimeZone(long guestId, String date, String timeZone) {
-		DayMetadataFacet context = getDayMetadata(guestId, date, true);
-		servicesHelper.setTimeZone(context, timeZone);
-		em.merge(context);
+        logger.warn("component=metadata action=setTimeZone message=attempt to set timezone");
 	}
 
 	@Override
@@ -96,18 +94,55 @@ public class MetadataServiceImpl implements MetadataService {
 	public DayMetadataFacet getDayMetadata(long guestId, String date,
 			boolean create) {
 
-        //TODO: better metadata
-
         DayMetadataFacet info = new DayMetadataFacet();
+
+        TypedQuery<VisitedCity> query = em.createQuery("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class) + " facet WHERE facet.guestId=? AND facet.date=? ORDER BY facet.start", VisitedCity.class);
+        query.setParameter(1, guestId);
+        query.setParameter(2, date);
+        List<VisitedCity> cities = query.getResultList();
+        if (cities.size()==0) {
+            cities = searchCitiesBefore(guestId, date);
+            if (cities.size()==0)
+            cities = searchCitiesAfter(guestId, date);
+        }
+        if (cities.size()>0) {
+            VisitedCity tzCity = cities.get(0);
+            long timeForDate = formatter.withZone(DateTimeZone.forID(tzCity.city.geo_timezone)).parseDateTime(date).getMillis();
+            long cityTime = formatter.withZone(DateTimeZone.forID(tzCity.city.geo_timezone)).parseDateTime(tzCity.date).getMillis();
+            info.daysInferred = Days.daysBetween(new DateMidnight(timeForDate), new DateMidnight(cityTime)).getDays();
+            info.timeZone = tzCity.city.geo_timezone;
+            info.start = timeForDate;
+            info.end = timeForDate + DateTimeConstants.MILLIS_PER_DAY;
+        } else {
+            long timeForDate = formatter.withZoneUTC().parseDateTime(date).getMillis();
+            DateMidnight dateMidnight = new DateMidnight(timeForDate);
+            info.start = dateMidnight.getMillis();
+            info.end = info.start + DateTimeConstants.MILLIS_PER_DAY;
+        }
+
         return info;
 	}
+
+    private List<VisitedCity> searchCitiesBefore(final long guestId, final String date) {
+        return searchCities("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class) + " facet WHERE facet.guestId=? AND facet.start<? ORDER BY facet.start", guestId, date);
+    }
+
+    private List<VisitedCity> searchCitiesAfter(final long guestId, final String date) {
+        return searchCities("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class) + " facet WHERE facet.guestId=? AND facet.start>? ORDER BY facet.start", guestId, date);
+    }
+
+    private List<VisitedCity> searchCities(final String queryString, final long guestId, final String date) {
+        long time = formatter.withZoneUTC().parseDateTime(date).getMillis();
+        final TypedQuery<VisitedCity> query = em.createQuery(queryString, VisitedCity.class);
+        query.setParameter(1, guestId);
+        query.setParameter(2, time);
+        return query.getResultList();
+    }
 
     @Override
     public List<DayMetadataFacet> getAllDayMetadata(final long guestId) {
 
-        //TODO: better metadata
-
-        return JPAUtils.find(em, DayMetadataFacet.class, "context.all", guestId);
+        return JPAUtils.find(em, DayMetadataFacet.class,"context.all",guestId);
     }
 
 	@Override
@@ -115,7 +150,7 @@ public class MetadataServiceImpl implements MetadataService {
 
         //TODO: better metadata
 
-        return null;
+        return context.cities.get(0).city;
 	}
 
 	@Override
@@ -127,7 +162,6 @@ public class MetadataServiceImpl implements MetadataService {
 
 	@Override
 	public TimeZone getTimeZone(long guestId, String date) {
-
         //TODO: better metadata
 
 		DayMetadataFacet thatDay = JPAUtils.findUnique(em,
@@ -145,8 +179,7 @@ public class MetadataServiceImpl implements MetadataService {
 
         // TODO: better metadata
 
-		DayMetadataFacet thatDay = JPAUtils.findUnique(em,
-				DayMetadataFacet.class, "context.day.when", guestId, time, time);
+		DayMetadataFacet thatDay = JPAUtils.findUnique(em, DayMetadataFacet.class, "context.day.when", guestId, time, time);
 		if (thatDay != null)
 			return TimeZone.getTimeZone(thatDay.timeZone);
 		else {
@@ -282,21 +315,6 @@ public class MetadataServiceImpl implements MetadataService {
             currentCityId = city.geo_id;
         }
         em.flush();
-        updateVisitedWeatherInfo(guestId, affectedDates);
-        updateSunriseSunsetInfo(guestId, affectedDates);
-        updateTimezoneInfo(guestId, affectedDates);
-    }
-
-    private void updateTimezoneInfo(final long guestId, final List<String> affectedDates) {
-
-    }
-
-    private void updateSunriseSunsetInfo(final long guestId, final List<String> affectedDates) {
-        //To change body of created methods use File | Settings | File Templates.
-    }
-
-    private void updateVisitedWeatherInfo(final long guestId, final List<String> affectedDates) {
-        //To change body of created methods use File | Settings | File Templates.
     }
 
     /**
