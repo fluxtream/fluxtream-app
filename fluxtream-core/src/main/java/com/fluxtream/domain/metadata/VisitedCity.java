@@ -20,6 +20,9 @@ public class VisitedCity extends AbstractLocalTimeFacet {
     @Index(name="locationSource_index")
     public LocationFacet.Source locationSource;
 
+    public int sunrise;
+    public int sunset;
+
     @ManyToOne(fetch= FetchType.EAGER, targetEntity = City.class, optional=false)
     public City city;
 

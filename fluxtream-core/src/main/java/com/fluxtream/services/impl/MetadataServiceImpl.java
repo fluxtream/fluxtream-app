@@ -14,6 +14,7 @@ import javax.persistence.TypedQuery;
 import com.fluxtream.Configuration;
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.location.LocationFacet;
+import com.fluxtream.connectors.vos.AbstractFacetVO;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.metadata.City;
 import com.fluxtream.domain.metadata.DayMetadataFacet;
@@ -287,7 +288,7 @@ public class MetadataServiceImpl implements MetadataService {
     }
 
     private void updateTimezoneInfo(final long guestId, final List<String> affectedDates) {
-        //To change body of created methods use File | Settings | File Templates.
+
     }
 
     private void updateSunriseSunsetInfo(final long guestId, final List<String> affectedDates) {
@@ -346,6 +347,7 @@ public class MetadataServiceImpl implements MetadataService {
         visitedCity.city = city;
         visitedCity.start = locationResource.start;
         visitedCity.end = locationResource.end;
+        computeSunriseSunset(locationResource, city, visitedCity);
         em.persist(visitedCity);
     }
 
@@ -363,9 +365,9 @@ public class MetadataServiceImpl implements MetadataService {
             sunset = sr;
             sunrise = ss;
         }
-        //mdFacet.sunrise = AbstractFacetVO.toMinuteOfDay(sunrise.getTime(), timeZone);
-        //mdFacet.sunset = AbstractFacetVO.toMinuteOfDay(sunset.getTime(),
-        //                                                 timeZone);
+        mdFacet.sunrise = AbstractFacetVO.toMinuteOfDay(sunrise.getTime(), timeZone);
+        mdFacet.sunset = AbstractFacetVO.toMinuteOfDay(sunset.getTime(),
+                                                         timeZone);
     }
 
     private WeatherInfo getWeatherForLocation(final LocationFacet locationFacet, TimeZone tz) {
