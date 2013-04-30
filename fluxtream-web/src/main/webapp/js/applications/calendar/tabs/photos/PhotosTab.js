@@ -90,7 +90,22 @@ define(["core/Tab",
                    currentGroup = [];
                    currentDate = date;
                }
-                currentGroup[currentGroup.length] = data[i];
+                var photoUrl = data[i].photoUrl;
+                if (data[i].thumbnailSizes != null){
+                    var closest = null;
+                    var closestValue = 100000;
+                    for (var j in data[i].thumbnailSizes){
+                        var difference = Math.pow(data[i].thumbnailSizes[j].height - 200,2) + Math.pow(data[i].thumbnailSizes[j].width - 200,2);
+                        if (difference < closestValue){
+                            closest = j;
+                            closestValue = difference;
+                        }
+                    }
+                    if (closest != null){
+                        photoUrl = data[i].thumbnailUrls[closest];
+                    }
+                }
+                currentGroup[currentGroup.length] = {id:data[i].id,photoUrl:photoUrl};
             }
             if (currentGroup.length != 0){
                 $("#photoTab").append(template.render({date:currentDate,photos:currentGroup}));
