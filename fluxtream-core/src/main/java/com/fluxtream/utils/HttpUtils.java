@@ -86,7 +86,7 @@ public class HttpUtils {
                 Entry<String, String> entry = iterator.next();
                 nameValuePairs.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
             }
-            post.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+            post.setEntity(new UrlEncodedFormEntity(nameValuePairs, "utf-8"));
 
             HttpResponse response = client.execute(post);
 
@@ -111,7 +111,7 @@ public class HttpUtils {
                 try {
                     HttpPost post = new HttpPost(url);
                     if (body!=null)
-                        post.setEntity(new StringEntity(body));
+                        post.setEntity(new StringEntity(body, "utf-8"));
                     client.execute(post);
                 }
                 catch (Exception e) {
@@ -136,7 +136,7 @@ public class HttpUtils {
         try {
             HttpPost post = new HttpPost(url);
             if (body!=null)
-                post.setEntity(new StringEntity(body));
+                post.setEntity(new StringEntity(body, "utf-8"));
             HttpResponse response = client.execute(post);
 
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
@@ -160,7 +160,7 @@ public class HttpUtils {
                 try {
                     HttpPost post = new HttpPost(url);
                     if (body!=null)
-                        post.setEntity(new StringEntity(body));
+                        post.setEntity(new StringEntity(body, "utf-8"));
                     client.execute(post);
                 }
                 catch (Exception e) {
