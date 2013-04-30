@@ -584,9 +584,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                     collections[collections.length] = currentCollection;
                 }
             }
-            var inserted = false;
-            for (var j = currentCollection.lastMerge, lj = currentCollection.length; j < lj; j++){
-
+            var inserted = false; //add the position to our current collection
+            for (var j = currentCollection.lastMerge, lj = currentCollection.length; j < lj; j++){//search through the current collection and insert in order
                 if (currentCollection[j].start >= position.start){
                     for (var k = lj; k > j; k--){
                         currentCollection[k] = currentCollection[k-1];
@@ -596,7 +595,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                     break;
                 }
             }
-            if (!inserted)
+            if (!inserted)//if we didn't insert it then that means it has to go at the end
                 currentCollection[currentCollection.length] = position;
         }
         for (var i = 0; i < collections.length ; i++){
