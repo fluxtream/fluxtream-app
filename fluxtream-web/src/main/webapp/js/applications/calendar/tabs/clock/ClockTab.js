@@ -584,7 +584,19 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                     collections[collections.length] = currentCollection;
                 }
             }
-            currentCollection[currentCollection.length] = position;
+            for (var i = currentCollection.lastMerge, li = currentCollection.length; i < li; i++){
+                var inserted = false;
+                if (currentCollection[i].start >= position.start){
+                    for (var j = li; j > i; j--){
+                        currentCollection[j] = currentCollection[j-1];
+                    }
+                    currentCollection[i] = position;
+                    inserted = true;
+                    break;
+                }
+            }
+            if (!inserted)
+                currentCollection[currentCollection.length] = position;
         }
         for (var i = 0; i < collections.length ; i++){
             mergeCollection(collections[i]);
