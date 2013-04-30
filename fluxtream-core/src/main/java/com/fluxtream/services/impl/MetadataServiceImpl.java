@@ -232,9 +232,8 @@ public class MetadataServiceImpl implements MetadataService {
         final Guest guest = guestService.getGuest(username);
         String entityName = JPAUtils.getEntityName(LocationFacet.class);
         int i=0;
-        int count=0;
         while(true) {
-            final TypedQuery<LocationFacet> query = em.createQuery(String.format("SELECT facet FROM %s facet WHERE facet.guestId=%s",
+            final TypedQuery<LocationFacet> query = em.createQuery(String.format("SELECT facet FROM %s facet WHERE facet.guestId=%s ORDER BY facet.start ASC",
                                                                                  entityName, guest.getId()), LocationFacet.class);
             query.setFirstResult(i);
             query.setMaxResults(1000);
@@ -242,7 +241,6 @@ public class MetadataServiceImpl implements MetadataService {
             if (locations.size()==0)
                 break;
             updateLocationMetadata(guest.getId(), locations);
-            em.flush();
             i+=locations.size();
         }
     }
@@ -256,12 +254,13 @@ public class MetadataServiceImpl implements MetadataService {
      * @param locationResources
      */
     @Override
+    @Transactional(readOnly=false)
     public void updateLocationMetadata(final long guestId, final List<LocationFacet> locationResources) {
         // sort the location data in ascending time order
         Collections.sort(locationResources, new Comparator<LocationFacet>() {
             @Override
             public int compare(final LocationFacet o1, final LocationFacet o2) {
-                return o1.start>o2.start?1:-1;
+                return o1.start<o2.start?1:-1;
             }
         });
         // local vars: current city and current day
@@ -278,7 +277,25 @@ public class MetadataServiceImpl implements MetadataService {
                 if (wasStored)
                     affectedDates.add(date);
             }
+            currentDate = date;
+            currentCityId = city.geo_id;
         }
+        em.flush();
+        updateVisitedWeatherInfo(guestId, affectedDates);
+        updateSunriseSunsetInfo(guestId, affectedDates);
+        updateTimezoneInfo(guestId, affectedDates);
+    }
+
+    private void updateTimezoneInfo(final long guestId, final List<String> affectedDates) {
+        //To change body of created methods use File | Settings | File Templates.
+    }
+
+    private void updateSunriseSunsetInfo(final long guestId, final List<String> affectedDates) {
+        //To change body of created methods use File | Settings | File Templates.
+    }
+
+    private void updateVisitedWeatherInfo(final long guestId, final List<String> affectedDates) {
+        //To change body of created methods use File | Settings | File Templates.
     }
 
     /**
@@ -297,16 +314,39 @@ public class MetadataServiceImpl implements MetadataService {
                               entityName, locationResource.guestId, date, locationResource.start),
                 VisitedCity.class);
         List<VisitedCity> visitedCities = query.getResultList();
-        if (visitedCities.size()>0) {
+        if (visitedCities.size()==0) {
             persistCity(locationResource, date, city);
+            // remove checkins in the same city that would happen after this one
+            removeRedundantCityInfo(locationResource, date, city);
             return true;
         }
-        //TODO: remove future checkins on the same day
         return false;
     }
 
+    private void removeRedundantCityInfo(final LocationFacet locationResource, final String date, final City city) {
+        final String entityName = JPAUtils.getEntityName(VisitedCity.class);
+        TypedQuery<VisitedCity> query = em.createQuery(
+                String.format("SELECT facet from %s facet WHERE facet.guestId=%s AND facet.date='%s' AND facet.start>%s ORDER BY facet.start",
+                              entityName, locationResource.guestId, date, locationResource.start),
+                VisitedCity.class);
+        List<VisitedCity> visitedCities = query.getResultList();
+        for (VisitedCity visitedCity : visitedCities) {
+            if (visitedCity.city.geo_id==city.geo_id) {
+                em.remove(visitedCity);
+            }
+        }
+    }
+
+    @Transactional(readOnly=false)
     private void persistCity(final LocationFacet locationResource, final String date, final City city) {
-        //To change body of created methods use File | Settings | File Templates.
+        VisitedCity visitedCity = new VisitedCity();
+        visitedCity.guestId = locationResource.guestId;
+        visitedCity.locationSource = locationResource.source;
+        visitedCity.date = date;
+        visitedCity.city = city;
+        visitedCity.start = locationResource.start;
+        visitedCity.end = locationResource.end;
+        em.persist(visitedCity);
     }
 
     private void computeSunriseSunset(final LocationFacet locationFacet, final City city, final VisitedCity mdFacet) {
