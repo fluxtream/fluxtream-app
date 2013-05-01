@@ -548,6 +548,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             return;
         var collections = [];
         var currentCollection = null;
+        positions = MapUtils.filterGPSData(positions);
         for (var i = 0; i < positions.length; i++){
             if (positions[i].source == "OTHER")
                 continue;
