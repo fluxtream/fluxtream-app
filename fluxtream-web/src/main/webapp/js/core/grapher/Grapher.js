@@ -846,7 +846,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 plot = new DataSeriesPlot(channelDatasource(App.getUID(), channel["device_name"], channel["channel_name"]),
                     grapher.dateAxis,
                     yAxis,
-                    {"style": channel["style"], "localDisplay": false && channel["time_type"] == "local"});
+                    {"style": channel["style"], "localDisplay": channel["time_type"] == "local"});
                 plot.addDataPointListener(function(pointObj, sourceInfo){dataPointListener(grapher,pointObj, sourceInfo)});
             }
 
