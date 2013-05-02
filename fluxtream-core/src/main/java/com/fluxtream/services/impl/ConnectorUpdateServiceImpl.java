@@ -245,7 +245,10 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
             logger.error("module=updateQueue component=connectorUpdateService action=setUpdateWorkerTaskStatus");
             throw exception;
         }
-        updt.status = status;
+        if (status==Status.DONE)
+            em.remove(updt);
+        else
+            updt.status = status;
     }
 
     @Override
