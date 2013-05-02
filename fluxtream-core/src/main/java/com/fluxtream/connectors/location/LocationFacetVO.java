@@ -13,9 +13,11 @@ import com.fluxtream.domain.GuestSettings;
 public class LocationFacetVO extends AbstractInstantFacetVO<LocationFacet> {
 
 	private static DateTimeFormatter hmDateFormat = DateTimeFormat.forPattern("HH:mm");
+    private static DateTimeFormatter dateDateFormat = DateTimeFormat.forPattern("EEE, MMM d, yyyy");
 	
 	public float[] position;
 	public String time;
+    public String date;
     public int accuracy;
     public String source;
 
@@ -30,6 +32,7 @@ public class LocationFacetVO extends AbstractInstantFacetVO<LocationFacet> {
 		Date date = new Date(facet.timestampMs);
 		this.startMinute = toMinuteOfDay(date, timeInterval.timeZone);
 		this.time = hmDateFormat.withZone(DateTimeZone.forTimeZone(timeInterval.timeZone)).print(date.getTime());
+        this.date = dateDateFormat.withZone(DateTimeZone.forTimeZone(timeInterval.timeZone)).print(date.getTime());
         source = facet.source.name();
 	}
 	

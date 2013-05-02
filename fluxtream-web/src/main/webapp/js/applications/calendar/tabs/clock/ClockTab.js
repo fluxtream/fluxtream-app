@@ -548,6 +548,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             return;
         var collections = [];
         var currentCollection = null;
+        positions = MapUtils.filterGPSData(positions);
         for (var i = 0; i < positions.length; i++){
             if (positions[i].source == "OTHER")
                 continue;
@@ -584,7 +585,19 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                     collections[collections.length] = currentCollection;
                 }
             }
-            currentCollection[currentCollection.length] = position;
+            var inserted = false; //add the position to our current collection
+            for (var j = currentCollection.lastMerge, lj = currentCollection.length; j < lj; j++){//search through the current collection and insert in order
+                if (currentCollection[j].start >= position.start){
+                    for (var k = lj; k > j; k--){
+                        currentCollection[k] = currentCollection[k-1];
+                    }
+                    currentCollection[j] = position;
+                    inserted = true;
+                    break;
+                }
+            }
+            if (!inserted)//if we didn't insert it then that means it has to go at the end
+                currentCollection[currentCollection.length] = position;
         }
         for (var i = 0; i < collections.length ; i++){
             mergeCollection(collections[i]);

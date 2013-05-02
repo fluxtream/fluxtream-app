@@ -11,32 +11,8 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         var maxLat = 0; //initialized to the smallest valid latitude
         var minLng = 180; //initialized to the largest valid longitude
         var maxLng = -180; //initialized to the smallest valid longitude
-        var filtered = 0;
-        var avg = 0;
+        gpsData = filterGPSData(gpsData);
         for (var i = 0; i < gpsData.length; i++){
-            if (gpsData[i].accuracy > config.flatAccuracyCutoff || gpsData[i].accuracy == 0){
-                filtered++
-                continue;
-            }
-            avg += gpsData[i].accuracy;
-        }
-        var cutoff = 1000000000;
-        if (filtered != gpsData.length){
-            avg /= gpsData.length - filtered;
-            var std = 0;
-            for (var i = 0; i < gpsData.length; i++){
-                if (gpsData[i].accuracy > config.flatAccuracyCutoff || gpsData[i].accuracy == 0)
-                    continue;
-                std += Math.pow(gpsData[i].accuracy - avg,2);
-            }
-            std /= gpsData.length - filtered;
-            std = Math.sqrt(std);
-            cutoff = avg + std * config.stdAccuracyCutoff;
-        }
-        for (var i = 0; i < gpsData.length; i++){
-            if (gpsData[i].accuracy > cutoff  || (filtered != gpsData.length && gpsData[i].accuracy == 0)){
-                continue;
-            }
             var lat = gpsData[i].position[0];
             var lng = gpsData[i].position[1];
             map.gpsPositions[map.gpsPositions.length] = new google.maps.LatLng(lat,lng);
@@ -63,6 +39,40 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         map.gpsLine = new google.maps.Polyline({map:map, path:map.gpsPositions,clickable:false});
         map.gpsBounds = new google.maps.LatLngBounds(new google.maps.LatLng(minLat,minLng), new google.maps.LatLng(maxLat,maxLng));
         map.noGPSDiv.css("display","none");
+    }
+
+    function filterGPSData(gpsData){
+        var filtered = 0;
+        var avg = 0;
+        for (var i = 0; i < gpsData.length; i++){
+            if (gpsData[i].accuracy > config.flatAccuracyCutoff || gpsData[i].accuracy == 0){
+                filtered++
+                continue;
+            }
+            avg += gpsData[i].accuracy;
+        }
+        var cutoff = 1000000000;
+        if (filtered != gpsData.length){
+            avg /= gpsData.length - filtered;
+            var std = 0;
+            for (var i = 0; i < gpsData.length; i++){
+                if (gpsData[i].accuracy > config.flatAccuracyCutoff || gpsData[i].accuracy == 0)
+                    continue;
+                std += Math.pow(gpsData[i].accuracy - avg,2);
+            }
+            std /= gpsData.length - filtered;
+            std = Math.sqrt(std);
+            cutoff = avg + std * config.stdAccuracyCutoff;
+        }
+        var newDataSet = [];
+        var sub = 0;
+        for (var i = 0, li = gpsData.length; i < li; i++){
+            if (gpsData[i].accuracy > cutoff  || (filtered != gpsData.length && gpsData[i].accuracy == 0)){
+                continue;
+            }
+            newDataSet.push(gpsData[i]);
+        }
+        return newDataSet;
     }
 
     function addData(map,connectorData, connectorInfoId, clickable){
@@ -497,6 +507,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
 
     return {
         isDisplayable: isDisplayable,
+        filterGPSData: filterGPSData,
         newMap: function(center,zoom,divId,hideControls){ //creates and returns a google map with extended functionality
             var options = {
                 zoom : zoom,

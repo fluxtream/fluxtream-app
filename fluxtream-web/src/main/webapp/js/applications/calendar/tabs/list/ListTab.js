@@ -4,7 +4,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
 
     function render(params) {
         this.getTemplate("text!applications/calendar/tabs/list/list.html", "list", function() {
-            setup(params.digest,params.connectorEnabled,params.tabParam == null ? 0 : parseInt(params.tabParam) - 1);
+            setup(params.digest,params.connectorEnabled,0 /*params.tabParam == null ? 0 : parseInt(params.tabParam) - 1*/);
         });
     }
 

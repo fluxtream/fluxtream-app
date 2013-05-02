@@ -161,9 +161,17 @@ define(["core/grapher/BTCore"],function(BTCore){
         var getStats = function(){
             afterload(component.plot.getStatistics( component.xAxis.getMin(), component.xAxis.getMax(),["has_data", "y_max", "y_min"],afterload));
         }
-        getStats();
+        //extremely hacky work arround for a bug in getStatistics
+        //TODO: change this back after bug on GWT side is fixed
+        $.doTimeout(10,getStats);
+        $.doTimeout(100,getStats);
+        $.doTimeout(500,getStats);
+        $.doTimeout(1000,getStats);
 
         component.plotContainer = new PlotContainer(component.plotContainerContainer.attr('id'), true,[ component.plot]);
+        component.plotContainer.setSize(width,height,SequenceNumber.getNext());
+        component.xAxis.setSize(width,height);
+        component.yAxis.setSize(width,height);
     };
 
     BTCore.SOURCES.getAvailableList(function (sources) {
