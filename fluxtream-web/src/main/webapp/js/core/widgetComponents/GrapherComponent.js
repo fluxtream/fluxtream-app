@@ -17,7 +17,7 @@ define(["core/grapher/BTCore"],function(BTCore){
         var component = this;
         this.channelName = channelName;
         this.parent = $(parentElement);
-        var width = this.parent.width() - yAxisWidth;
+        var width = this.parent.width() - yAxisWidth - 1;//-1 makes sure the yAxis canvas doesn't fall get pushed out of sight
         var height = this.parent.height() - xAxisHeight;
         this.width = width;
         this.height = height;
