@@ -68,7 +68,7 @@ public class LocationDatapointsProcessor implements InitializingBean {
 
     public List<LocationFacet> getUnprocessedLocationDatapoints() {
         final String entityName = JPAUtils.getEntityName(LocationFacet.class);
-        final List<LocationFacet> locationFacets = jpaDaoService.executeQuery("SELECT facet from " + entityName + " facet WHERE facet.processed = false", LocationFacet.class);
+        final List<LocationFacet> locationFacets = jpaDaoService.executeQueryWithLimit("SELECT facet from " + entityName + " facet WHERE facet.processed = false", 50, LocationFacet.class);
         logger.info("module=locationDatapointsProcessor component=processor unprocessedDatapoints=" + locationFacets.size());
         return locationFacets;
     }
