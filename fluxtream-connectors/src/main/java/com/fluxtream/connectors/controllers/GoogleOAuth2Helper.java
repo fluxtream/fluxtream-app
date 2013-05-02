@@ -4,12 +4,11 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import com.fluxtream.Configuration;
-import com.fluxtream.connectors.Connector;
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.utils.HttpUtils;
 import net.sf.json.JSONObject;
-import com.fluxtream.aspects.FlxLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -45,7 +44,21 @@ public class GoogleOAuth2Helper {
         params.put("client_secret", env.get("google.client.secret"));
         params.put("grant_type", "refresh_token");
 
-        String fetched = HttpUtils.fetch(swapTokenUrl, params);
+        String fetched;
+        try {
+            fetched = HttpUtils.fetch(swapTokenUrl, params);
+            logger.info("component=background_updates action=refreshToken" +
+                        " connector="
+                        + apiKey.getConnector().getName()
+                        + " guestId=" + apiKey.getGuestId()
+                        + " status=success");
+        } catch (IOException e) {
+            logger.warn("component=background_updates action=refreshToken" +
+                        " connector=" + apiKey.getConnector().getName()
+                        + " guestId=" + apiKey.getGuestId()
+                        + " status=failed");
+            throw e;
+        }
 
         JSONObject token = JSONObject.fromObject(fetched);
         final long expiresIn = token.getLong("expires_in");
@@ -59,7 +72,5 @@ public class GoogleOAuth2Helper {
         guestService.setApiKeyAttribute(apiKey,
                                         "tokenExpires", String.valueOf(tokenExpires));
 
-        String storedAccessToken = guestService.getApiKeyAttribute(apiKey, "accessToken");
-        boolean areEqual = storedAccessToken.equals(access_token);
     }
 }
