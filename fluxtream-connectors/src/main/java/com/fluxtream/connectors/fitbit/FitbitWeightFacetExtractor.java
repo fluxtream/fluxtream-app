@@ -68,7 +68,7 @@ public class FitbitWeightFacetExtractor extends AbstractFacetExtractor {
                 int month = Integer.valueOf(dateParts[1]);
                 int day = Integer.valueOf(dateParts[2]);
                 Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-                c.set(year, month, day, hours, minutes, seconds);
+                c.set(year, month-1, day, hours, minutes, seconds);
                 facet.start = facet.end = c.getTimeInMillis();
             }
 
