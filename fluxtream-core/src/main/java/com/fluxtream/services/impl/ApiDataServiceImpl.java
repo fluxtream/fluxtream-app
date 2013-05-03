@@ -1,11 +1,9 @@
 package com.fluxtream.services.impl;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
@@ -21,7 +19,6 @@ import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.dao.FacetDao;
 import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.connectors.updaters.UpdateInfo;
-import com.fluxtream.connectors.vos.AbstractFacetVO;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.AbstractUserProfile;
 import com.fluxtream.domain.ApiKey;
@@ -29,7 +26,6 @@ import com.fluxtream.domain.Tag;
 import com.fluxtream.domain.TagFilter;
 import com.fluxtream.domain.metadata.City;
 import com.fluxtream.domain.metadata.DayMetadataFacet;
-import com.fluxtream.domain.metadata.WeatherInfo;
 import com.fluxtream.events.DataReceivedEvent;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 import com.fluxtream.services.ApiDataService;
@@ -659,12 +655,12 @@ public class ApiDataServiceImpl implements ApiDataService {
         DayMetadataFacet info = metadataService.getDayMetadata(guestId, date, true);
         servicesHelper.addCity(info, city);
 
-        TimeZone tz = TimeZone.getTimeZone(info.timeZone);
-        List<WeatherInfo> weatherInfo = metadataService.getWeatherInfo(city.geo_latitude,
-                                                                       city.geo_longitude, info.date,
-                                                                       AbstractFacetVO.toMinuteOfDay(new Date(info.start), tz),
-                                                                       AbstractFacetVO.toMinuteOfDay(new Date(info.end), tz));
-        wwoHelper.setWeatherInfo(info, weatherInfo);
+        //TimeZone tz = TimeZone.getTimeZone(info.timeZone);
+        //List<WeatherInfo> weatherInfo = metadataService.getWeatherInfo(city.geo_latitude,
+        //                                                               city.geo_longitude, info.date,
+        //                                                               AbstractFacetVO.toMinuteOfDay(new Date(info.start), tz),
+        //                                                               AbstractFacetVO.toMinuteOfDay(new Date(info.end), tz));
+        //wwoHelper.setWeatherInfo(info, weatherInfo);
 
         em.merge(info);
     }
