@@ -777,14 +777,17 @@ define(["core/grapher/BTCore"], function(BTCore) {
 
             var yMin = channel.min;
             var yMax = channel.max;
-            if (yMin == yMax){
-                yMin -= 1;
-                yMax += 1;
+            var yDiff = yMax - yMin;
+            var padding = 0.5;
+            if(yDiff < 1e-10) {
+                padding = 0.5;
+            } else {
+                padding = 0.1 * yDiff;
             }
 
             var yAxis = new NumberAxis(yAxisElementId, "vertical", {
-                "min" : yMin,
-                "max" : yMax
+                "min" : yMin - padding,
+                "max" : yMax + padding
             });
 
             // Now that yAxis is initialized, if this is a new view,

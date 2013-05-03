@@ -457,7 +457,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         control.css("width","84px");
         var fitButton = $('<button class="btnList btn btnListChecked enabled">Fit to View</button>');
         fitButton.css("margin-bottom","0.5em");
-        var container = $("<div></div>")
+        var container = $("<label style='cursor:pointer;'></label>")
         var preserveView = $('<input type="checkbox">');
         preserveView.css("margin-right","0.5em");
         preserveView.css("float","left");
