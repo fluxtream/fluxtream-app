@@ -27,7 +27,7 @@
 	<task:executor id="updateWorkersExecutor" pool-size="5-25"
 		rejection-policy="CALLER_RUNS" queue-capacity="100" />
 
-    <task:executor id="locationDatapointHandlersExecutor" pool-size="5-25"
+    <task:executor id="locationDatapointHandlersExecutor" pool-size="2"
                    rejection-policy="DISCARD" queue-capacity="100"/>
 
     <cache:annotation-driven />
