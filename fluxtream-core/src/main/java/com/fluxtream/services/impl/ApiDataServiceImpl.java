@@ -574,10 +574,10 @@ public class ApiDataServiceImpl implements ApiDataService {
     public void addGuestLocations(final long guestId, List<LocationFacet> locationResources) {
         for (LocationFacet locationResource : locationResources) {
             locationResource.guestId = guestId;
-            // making the apiKeyId negative will turn the facet into a zombie
-            // and make it recognizable for a separate background task to pick it up and update daymetadata,
+            // setting the processed flag to false
+            // will make it recognizable for a separate background task to pick it up and update daymetadata,
             // which takes time
-            locationResource.apiKeyId = -locationResource.apiKeyId;
+            locationResource.processed = false;
             em.persist(locationResource);
         }
     }
@@ -586,10 +586,9 @@ public class ApiDataServiceImpl implements ApiDataService {
     @Transactional(readOnly = false)
     public void addGuestLocation(final long guestId, LocationFacet locationResource) {
         locationResource.guestId = guestId;
-        // making the apiKeyId negative will turn the facet into a zombie
-        // and make it recognizable for a separate background task to pick it up and update daymetadata,
+        // setting the processed flag to false
+        // will make it recognizable for a separate background task to pick it up and update daymetadata,
         // which takes time
-        locationResource.apiKeyId = -locationResource.apiKeyId;
         locationResource.processed = false;
         em.persist(locationResource);
     }
@@ -597,7 +596,7 @@ public class ApiDataServiceImpl implements ApiDataService {
     @Transactional(readOnly = false)
     public void processLocation(LocationFacet locationResource) {
         // Create query to check for duplicate
-        Query query = em.createQuery("SELECT e FROM Facet_Location e WHERE e.guestId=? AND e.start=? AND e.apiKeyId>0");
+        Query query = em.createQuery("SELECT e FROM Facet_Location e WHERE e.guestId=? AND e.start=? AND e.processed=true");
         query.setParameter(1, locationResource.guestId);
 		query.setParameter(2, locationResource.timestampMs);
 		@SuppressWarnings("rawtypes")
@@ -632,8 +631,7 @@ public class ApiDataServiceImpl implements ApiDataService {
                 logger.warn(sb.toString());
             }
 
-            // make apiKeyId "legit" again
-            locationResource.apiKeyId = -locationResource.apiKeyId;
+            // make location datapoint "legit"
             locationResource.processed = true;
             // Persist the location
             // avoid persisting a facet that was just deleted (as a result of an interrupted update for example)
