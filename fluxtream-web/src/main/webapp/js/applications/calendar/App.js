@@ -283,6 +283,25 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                             digest.cachedData[connectorId][i].hasImage = digest.cachedData[connectorId][i].photoUrl != null;
                             break;
                     }
+                    if (digest.cachedData[connectorId][i].hasImage){
+                        var photo42 = digest.cachedData[connectorId][i].photoUrl;
+                        if (digest.cachedData[connectorId][i].thumbnailUrls != null){
+                            var bestMatch = -1;
+                            var bestMatchAmmount = 0;
+                            for (var j in digest.cachedData[connectorId][i].thumbnailSizes){
+                                var size = digest.cachedData[connectorId][i].thumbnailSizes[j];
+                                var matchAmmount = (size.width - 42) * (size.width - 42) + (size.height - 42) * (size.height - 42);
+                                if (bestMatch == -1 || matchAmmount < bestMatchAmmount){
+                                    bestMatchAmmount = matchAmmount;
+                                    bestMatch = j;
+                                }
+                            }
+                            if (bestMatch != -1){
+                                photo42 = digest.cachedData[connectorId][i].thumbnailUrls[bestMatch];
+                            }
+                        }
+                        digest.cachedData[connectorId][i].photo42 = photo42;
+                    }
                 }
             }
         }
