@@ -15,11 +15,11 @@ define(["core/Tab",
                 return;
             else
                 oldState = params.calendarState;
-            setup(params.digest,params.calendarState,params.connectorEnabled);
+            setup(params.digest,params.calendarState,params.connectorEnabled,params.doneLoading);
         });
     }
 
-    function setup(digest, calendarState,connectorEnabled) {
+    function setup(digest, calendarState,connectorEnabled,doneLoading) {
         digestData  = digest;
         App.fullHeight();
         $("#the_map").empty();
@@ -68,6 +68,7 @@ define(["core/Tab",
         map.preserveViewCheckboxChanged = function(){
             preserveView = map.isPreserveViewChecked();
         }
+        doneLoading();
 	}
 
     function showData(){

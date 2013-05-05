@@ -244,7 +244,8 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
                 calendarState:Calendar.tabState,
                 connectorEnabled:Calendar.connectorEnabled[Calendar.currentTabName],
                 tabParam:Calendar.tabParam,
-                setTabParam:Calendar.setTabParam};
+                setTabParam:Calendar.setTabParam,
+                doneLoading:Calendar.stopLoading};
         });
         tabInterface.setActiveTab(Calendar.currentTabName);
         updateCurrentTab(digest, Calendar);

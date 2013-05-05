@@ -25,6 +25,7 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
                 grapher.setRange(Calendar.timeRange.start / 1000, Calendar.timeRange.end / 1000);
                 Calendar.timeRange.updated = false;
             }
+            params.doneLoading();
         });
     }
 

@@ -24,7 +24,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         params.setTabParam(null);
         hideEventInfo();
         this.getTemplate("text!applications/calendar/tabs/clock/clock.html", "clock", function() {
-			 setup(params.digest, params.timeUnit, params.connectorEnabled);
+			 setup(params.digest, params.timeUnit, params.connectorEnabled, params.doneLoading);
             fetchWeatherData();
 		});
 	}
@@ -39,7 +39,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         });
     }
 
-    function setup(digest, timeUnit, cEn) {
+    function setup(digest, timeUnit, cEn, doneLoading) {
         dgst = digest;
         selectedConnectors = digest.selectedConnectors;
         connectorEnabled = cEn;
@@ -91,6 +91,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 				continue;
 			updateDataDisplay(digest.cachedData[objectTypeName], objectTypeName, digest);
 		}
+        doneLoading();
         //disabled... not sure what the purpose of this is
 		/*for(i=0;i<digest.updateNeeded.length;i++) {
 			getDayInfo(digest.updateNeeded[i], digest);

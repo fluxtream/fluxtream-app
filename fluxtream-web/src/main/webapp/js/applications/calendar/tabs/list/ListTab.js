@@ -4,7 +4,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
 
     function render(params) {
         this.getTemplate("text!applications/calendar/tabs/list/list.html", "list", function() {
-            setup(params.digest,params.connectorEnabled,0 /*params.tabParam == null ? 0 : parseInt(params.tabParam) - 1*/);
+            setup(params.digest,params.connectorEnabled,0,params.doneLoading);
         });
     }
 
@@ -21,7 +21,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
 
     var rendererCount = 0;
 
-    function setup(digest,connectorEnabled,page){
+    function setup(digest,connectorEnabled,page,doneLoading){
         App.loadAllMustacheTemplates("applications/calendar/tabs/list/listTemplates.html",function(listTemplates){
             templates = listTemplates;
             timeZoneOffset = digest.timeZoneOffset;
@@ -74,6 +74,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
             rebuildPagination();
             repopulateList();
             updateNumberOfEvents();
+            doneLoading();
         });
     }
 

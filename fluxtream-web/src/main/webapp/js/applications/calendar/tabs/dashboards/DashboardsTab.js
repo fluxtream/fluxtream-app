@@ -6,8 +6,10 @@ define(["core/Tab",
 	var digest, dashboardData;
 
     var setTabParam;
+      var doneLoading;
 
 	function render(params) {
+        doneLoading = params.doneLoading();
         setTabParam = params.setTabParam;
         if (params.tabParam != null)
             dashboardsTab.activeDashboard = parseInt(params.tabParam);
@@ -33,7 +35,7 @@ define(["core/Tab",
        setTabParam(dashboardsTab.activeDashboard);
         this.getTemplate("text!applications/calendar/tabs/dashboards/dashboards.html", "dashboards",
                          function() {
-                             makeDashboardTabs(dashboardsTemplateData);
+                             makeDashboardTabs(dashboardsTemplateData,doneLoading);
                          },
                          dashboardsTemplateData
         );
@@ -109,7 +111,8 @@ define(["core/Tab",
         for (var i=0; i<activeWidgetInfos.length; i++) {
             var widgetInfo = activeWidgetInfos[i];
             loadWidget(widgetInfo);
-        };
+        }
+        doneLoading();
     }
 
    function loadWidget(widgetInfo) {
