@@ -11,8 +11,10 @@ define(["core/Tab",
     function render(params) {
         params.setTabParam(null);
         this.getTemplate("text!applications/calendar/tabs/map/map.html", "map", function(){
-            if (params.calendarState == oldState)
+            if (params.calendarState == oldState && !params.forceReload){
+                params.doneLoading();
                 return;
+            }
             else
                 oldState = params.calendarState;
             setup(params.digest,params.calendarState,params.connectorEnabled,params.doneLoading);

@@ -156,10 +156,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     }
 
 	Calendar.renderState = function(state, forceUpdate) {
+        startLoading();
         if (typeof state == "string")
             state = Calendar.parseState(state);
         if (!Calendar.timespanInited) {
-            startLoading();
             // NOTE: when loading a URL like /app/calendar/date/2012-12-25 directly,
             // the FlxState routes invoke renderState() directly instead of going
             // through fetchState. That bypasses the timespan label fetching, so we
@@ -175,10 +175,9 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         Builder.createTabs(Calendar);
         if (tabChanged) {
             setDocumentTitle();
+            Builder.updateTab(Calendar.digest, Calendar);
             if (forceUpdate || needDigestReload)
                 fetchCalendar(state)
-            else
-                Builder.updateTab(Calendar.digest, Calendar);
 		} else {
             updateDisplays(state);
             updateDatepicker(state);
@@ -210,6 +209,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     }
 
 	function fetchCalendar(state) {
+        var force = needDigestReload;
         needDigestReload = false;
         startLoading();
 		$.ajax({
@@ -228,7 +228,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 Calendar.digestTabState = state.tabState;
                 enhanceDigest(Calendar.digest);
                 processDigest(Calendar.digest);
-				Builder.updateTab(Calendar.digest, Calendar);
+				Builder.updateTab(Calendar.digest, Calendar, force);
                 //stopLoading();
                 Builder.handleNotifications(response);
 			},

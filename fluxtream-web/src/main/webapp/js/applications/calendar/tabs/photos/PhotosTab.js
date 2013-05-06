@@ -12,8 +12,10 @@ define(["core/Tab",
         params.setTabParam(null);
         this.getTemplate("text!applications/calendar/tabs/photos/photos.html", "photos", function() {
             $(window).resize(); //masonry reorganizes pictures when the window is resized and some tabs can braek the layout, this fixes it
-            if (params.calendarState == oldState)
+            if (params.calendarState == oldState && !params.forceReload){
+                params.doneLoading();
                 return;
+            }
             else
                 oldState = params.calendarState;
             digest = params.digest;
