@@ -34,6 +34,7 @@ public class DigestModel {
     public String timeUnit;
     public long timeZoneOffset;
     public List<GuestModel> coachees;
+    public long generationTimestamp;
 
 	@SuppressWarnings("rawtypes")
 	public Map<String,Collection> cachedData

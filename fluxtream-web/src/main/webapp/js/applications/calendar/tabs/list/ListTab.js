@@ -2,8 +2,16 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
 
     var listTab = new Tab("calendar", "list", "Candide Kemmler", "icon-list", true);
 
+    var lastTimestamp = null;
+
     function render(params) {
         this.getTemplate("text!applications/calendar/tabs/list/list.html", "list", function() {
+            if (lastTimestamp == params.digest.generationTimestamp && !params.forceReload){
+                params.doneLoading();
+                return;
+            }
+            else
+                lastTimestamp = params.digest.generationTimestamp;
             setup(params.digest,params.connectorEnabled,0,params.doneLoading);
         });
     }
