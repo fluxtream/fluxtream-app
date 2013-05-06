@@ -179,15 +179,24 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
 	}
 	
 	function bindTimeNavButtons(Calendar) {
-        $(".menuNextButton").click(function() {
+        $(".menuNextButton").click(function(event) {
+            if($(event.delegateTarget).hasClass('disabled'))
+                return;
+
             Calendar.fetchState("/api/calendar/nav/incrementTimespan",
                                 {state: Calendar.tabState});
         });
-        $(".menuPrevButton").click(function() {
+        $(".menuPrevButton").click(function(event) {
+            if($(event.delegateTarget).hasClass('disabled'))
+                return;
+
             Calendar.fetchState("/api/calendar/nav/decrementTimespan",
                                 {state: Calendar.tabState});
         });
-        $(".menuTodayButton").click(function() {
+        $(".menuTodayButton").click(function(event) {
+            if($(event.delegateTarget).hasClass('disabled'))
+                return;
+
             Calendar.fetchState("/api/calendar/nav/setToToday",
                                 {timeUnit: "DAY"});
         });
@@ -235,7 +244,8 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
                 calendarState:Calendar.tabState,
                 connectorEnabled:Calendar.connectorEnabled[Calendar.currentTabName],
                 tabParam:Calendar.tabParam,
-                setTabParam:Calendar.setTabParam};
+                setTabParam:Calendar.setTabParam,
+                doneLoading:Calendar.stopLoading};
         });
         tabInterface.setActiveTab(Calendar.currentTabName);
         updateCurrentTab(digest, Calendar);

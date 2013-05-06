@@ -18,7 +18,7 @@ define(["core/Tab",
                 oldState = params.calendarState;
             digest = params.digest;
             connectorEnabled = params.connectorEnabled;
-            setup(digest,connectorEnabled);
+            setup(digest,connectorEnabled,params.doneLoading);
 
         });
     }
@@ -30,18 +30,26 @@ define(["core/Tab",
     var connectorEnabled;
     var digest;
 
-    function setup(digest, cEn){
-        $("#photoTab").empty();
-        var noPhotos = true;
-        for (var connectorName in digest.cachedData){
-            if (digest.cachedData[connectorName].hasImages){
-                noPhotos = false;
-                onDataReceived(digest.cachedData[connectorName]);
+    var doneLoading;
+    var thumbnailGroupTemplate;
+
+    function setup(digest, cEn, dl){
+        App.loadMustacheTemplate("applications/calendar/tabs/photos/photosTemplate.html","thumbnailGroup", function(tTemplate){
+            thumbnailGroupTemplate = tTemplate;
+            doneLoading = dl;
+            $("#photoTab").empty();
+            var noPhotos = true;
+            for (var connectorName in digest.cachedData){
+                if (digest.cachedData[connectorName].hasImages){
+                    noPhotos = false;
+                    onDataReceived(digest.cachedData[connectorName]);
+                }
             }
-        }
-        if (noPhotos){
-            showNoPhotos();
-        }
+            if (noPhotos){
+                showNoPhotos();
+            }
+            doneLoading();
+        });
     }
 
     function showNoPhotos(){
@@ -77,55 +85,53 @@ define(["core/Tab",
             return;
         }
         var carouselHTML = PhotoUtils.getCarouselHTML(digest);
-        App.loadMustacheTemplate("applications/calendar/tabs/photos/photosTemplate.html","thumbnailGroup", function(template){
-            var currentGroup = [];
-            var currentDate = null;
-            for (var i = 0; i < data.length; i++){
-               var date = App.formatDate(data[i].start + digest.timeZoneOffset,false,true);
-               if (currentDate == null){
-                   currentDate = date;
-               }
-               else if (currentDate != date) {
-                   $("#photoTab").append(template.render({date:currentDate,photos:currentGroup}));
-                   currentGroup = [];
-                   currentDate = date;
-               }
-                var photoUrl = data[i].photoUrl;
-                if (data[i].thumbnailSizes != null){
-                    var closest = null;
-                    var closestValue = 100000;
-                    for (var j in data[i].thumbnailSizes){
-                        var difference = Math.pow(data[i].thumbnailSizes[j].height - 200,2) + Math.pow(data[i].thumbnailSizes[j].width - 200,2);
-                        if (difference < closestValue){
-                            closest = j;
-                            closestValue = difference;
-                        }
-                    }
-                    if (closest != null){
-                        photoUrl = data[i].thumbnailUrls[closest];
+        var currentGroup = [];
+        var currentDate = null;
+        for (var i = 0; i < data.length; i++){
+           var date = App.formatDate(data[i].start + digest.timeZoneOffset,false,true);
+           if (currentDate == null){
+               currentDate = date;
+           }
+           else if (currentDate != date) {
+               $("#photoTab").append(thumbnailGroupTemplate.render({date:currentDate,photos:currentGroup}));
+               currentGroup = [];
+               currentDate = date;
+           }
+            var photoUrl = data[i].photoUrl;
+            if (data[i].thumbnailSizes != null){
+                var closest = null;
+                var closestValue = 100000;
+                for (var j in data[i].thumbnailSizes){
+                    var difference = Math.pow(data[i].thumbnailSizes[j].height - 200,2) + Math.pow(data[i].thumbnailSizes[j].width - 200,2);
+                    if (difference < closestValue){
+                        closest = j;
+                        closestValue = difference;
                     }
                 }
-                currentGroup[currentGroup.length] = {id:data[i].id,photoUrl:photoUrl};
+                if (closest != null){
+                    photoUrl = data[i].thumbnailUrls[closest];
+                }
             }
-            if (currentGroup.length != 0){
-                $("#photoTab").append(template.render({date:currentDate,photos:currentGroup}));
-            }
-            for (var i = 0; i < data.length; i++){
-                $("#photo-" + i).click({i:i},function(event){
-                    App.makeModal(carouselHTML);
-                    App.carousel(event.data.i);
-                });
-            }
-            var groups = $(".thumbnailGroup");
-            for (var i = 0; i < groups.length; i++){
-                $(groups[i]).imagesLoaded(function(event){
-                    $(this).masonry({
-                         itemSelector: '.photoThumbnail',
-                         columnWidth:1
-                     });
-                });
-            }
-        });
+            currentGroup[currentGroup.length] = {id:data[i].id,photoUrl:photoUrl};
+        }
+        if (currentGroup.length != 0){
+            $("#photoTab").append(thumbnailGroupTemplate.render({date:currentDate,photos:currentGroup}));
+        }
+        for (var i = 0; i < data.length; i++){
+            $("#photo-" + i).click({i:i},function(event){
+                App.makeModal(carouselHTML);
+                App.carousel(event.data.i);
+            });
+        }
+        var groups = $(".thumbnailGroup");
+        for (var i = 0; i < groups.length; i++){
+            $(groups[i]).imagesLoaded(function(event){
+                $(this).masonry({
+                     itemSelector: '.photoThumbnail',
+                     columnWidth:1
+                 });
+            });
+        }
 
     }
 

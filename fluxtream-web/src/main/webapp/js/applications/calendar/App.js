@@ -61,6 +61,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         }
     }
 
+    Calendar.stopLoading = stopLoading;
+
     Calendar.fetchState = function(url, params) {
         startLoading();
         $.ajax({
@@ -75,7 +77,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                Calendar.navigateState(Calendar.currentTabName + "/" + response.state);
                // TODO: Change visible date in the datepicker to Sunday
                // TODO: Would be nice to use updateDatepicker, but what's the state argument?
-               stopLoading();
+               //stopLoading is now called by the tab once it's done processing the data.
            },
            error: handleError("failed to fetch next calendar state!")
         });
@@ -161,7 +163,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             // through fetchState. That bypasses the timespan label fetching, so we
             // need to do that here.
             fetchTimespan(state);
-            stopLoading();
+            //stopLoading();
         }
         var tabChanged = Calendar.tabState === state.tabState;
         Calendar.tabState = state.tabState;
@@ -222,7 +224,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 enhanceDigest(Calendar.digest);
                 processDigest(Calendar.digest);
 				Builder.updateTab(Calendar.digest, Calendar);
-                stopLoading();
+                //stopLoading();
                 Builder.handleNotifications(response);
 			},
 			error: handleError("failed to fetch calendar data!")
@@ -282,6 +284,25 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                         case "mymee-observation":
                             digest.cachedData[connectorId][i].hasImage = digest.cachedData[connectorId][i].photoUrl != null;
                             break;
+                    }
+                    if (digest.cachedData[connectorId][i].hasImage){
+                        var photo42 = digest.cachedData[connectorId][i].photoUrl;
+                        if (digest.cachedData[connectorId][i].thumbnailUrls != null){
+                            var bestMatch = -1;
+                            var bestMatchAmmount = 0;
+                            for (var j in digest.cachedData[connectorId][i].thumbnailSizes){
+                                var size = digest.cachedData[connectorId][i].thumbnailSizes[j];
+                                var matchAmmount = (size.width - 42) * (size.width - 42) + (size.height - 42) * (size.height - 42);
+                                if (bestMatch == -1 || matchAmmount < bestMatchAmmount){
+                                    bestMatchAmmount = matchAmmount;
+                                    bestMatch = j;
+                                }
+                            }
+                            if (bestMatch != -1){
+                                photo42 = digest.cachedData[connectorId][i].thumbnailUrls[bestMatch];
+                            }
+                        }
+                        digest.cachedData[connectorId][i].photo42 = photo42;
                     }
                 }
             }
