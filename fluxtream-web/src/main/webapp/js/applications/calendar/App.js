@@ -4,6 +4,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
 	var Calendar = new Application("calendar", "Candide Kemmler", "icon-calendar");
 
+    var needDigestReload = false;
+
     Calendar.currentTabName = Builder.tabs["date"][0];
     Calendar.currentTab = null;
     Calendar.tabState = null;
@@ -174,7 +176,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         if (tabChanged) {
             setDocumentTitle();
 			Builder.updateTab(Calendar.digest, Calendar);
-            if (forceUpdate)
+            if (forceUpdate || needDigestReload)
                 fetchCalendar(state)
 		} else {
             updateDisplays(state);
@@ -207,6 +209,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     }
 
 	function fetchCalendar(state) {
+        needDigestReload = false;
+        startLoading();
 		$.ajax({
             url: "/api/calendar/all/" + state.tabState,
 			success : function(response) {
@@ -612,11 +616,11 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
      *
      * @param state  new state to be loaded
      */
-    Calendar.changeTabState = function(state) {
+    Calendar.changeTabState = function(state,waitUpdate) {
         if (state.tabName !== Calendar.currentTabName) {
             var msg = "invalid state: cannot use changeTabState() to switch tabs!";
             console.log(msg);
-            alert(msg);
+            //alert(msg); //the alert is commented out because the timeline tab sometimes calls this late and will give the user a nasty popup
             return;
         }
         var updated = false;
@@ -634,7 +638,12 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         if (updated) {
             setDocumentTitle();
             updateDatepicker(state);
-            fetchCalendar(state);
+            if (waitUpdate){
+                needDigestReload = true;
+            }
+            else{
+                fetchCalendar(state);
+            }
             FlxState.router.navigate(Calendar.toURL(state), {trigger: false, replace: true});
             FlxState.saveState("calendar", Calendar.toStateURL(state));
         }

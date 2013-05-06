@@ -59,7 +59,7 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
         if (state.tabState != prevTabState
                 && stateEarly.tabState != prevTabState
                 && stateLate.tabState != prevTabState) {
-            Calendar.changeTabState(state);
+            Calendar.changeTabState(state,true);
             return state;
         }
 
