@@ -209,7 +209,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     }
 
 	function fetchCalendar(state) {
-        var force = needDigestReload;
         needDigestReload = false;
         startLoading();
 		$.ajax({
@@ -228,7 +227,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 Calendar.digestTabState = state.tabState;
                 enhanceDigest(Calendar.digest);
                 processDigest(Calendar.digest);
-				Builder.updateTab(Calendar.digest, Calendar, force);
+				Builder.updateTab(Calendar.digest, Calendar, true);
                 //stopLoading();
                 Builder.handleNotifications(response);
 			},
