@@ -175,9 +175,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         Builder.createTabs(Calendar);
         if (tabChanged) {
             setDocumentTitle();
-			Builder.updateTab(Calendar.digest, Calendar);
             if (forceUpdate || needDigestReload)
                 fetchCalendar(state)
+            else
+                Builder.updateTab(Calendar.digest, Calendar);
 		} else {
             updateDisplays(state);
             updateDatepicker(state);
