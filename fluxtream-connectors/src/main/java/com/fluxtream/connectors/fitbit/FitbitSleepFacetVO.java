@@ -21,6 +21,7 @@ public class FitbitSleepFacetVO extends AbstractLocalTimeTimedFacetVO<FitbitSlee
 		minutesAsleep = new DurationModel(facet.minutesAsleep*60);
 		minutesAwake = new DurationModel(facet.minutesAwake*60);
 		minutesToFallAsleep = new DurationModel(facet.minutesToFallAsleep*60);
+        date = facet.date;
 	}
 
 }
