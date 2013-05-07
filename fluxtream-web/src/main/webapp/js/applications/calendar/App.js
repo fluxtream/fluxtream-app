@@ -44,15 +44,18 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     }
 
     function startLoading() {
+        loading = true;
         $(".calendar-navigation-button").addClass("disabled");
         $(".loading").show();
         $("#tabs").css("opacity", ".3");
     }
 
     function stopLoading() {
-        $("#tabs").css("opacity", "1");
-        $(".calendar-navigation-button").removeClass("disabled");
-        $(".loading").hide();
+        if (fetchId == latestFetchFinished){
+            $("#tabs").css("opacity", "1");
+            $(".calendar-navigation-button").removeClass("disabled");
+            $(".loading").hide();
+        }
     }
 
     function handleError(msg) {
@@ -136,7 +139,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         Calendar.fetchState("/api/calendar/nav/setToToday", {timeUnit: "DAY"});
     };
 
-    function fetchTimespan(state) {
+    function fetchTimespan(state,doneLoadingId) {
         $.ajax({
             url: "/api/calendar/nav/model",
             async: false,
@@ -146,6 +149,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 Calendar.timeRange.start = response.start;
                 Calendar.timeRange.end = response.end;
                 updateTimespan(response.currentTimespanLabel);
+                stopLoading(doneLoadingId);
             },
             error: handleError("failed to fetch timespan label!")
         });
@@ -208,12 +212,19 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         $("#datepicker").datepicker("setUTCDate", currentDate);
     }
 
+    var fetchId = 0;
+    var latestFetchFinished = 0;
+
 	function fetchCalendar(state) {
         needDigestReload = false;
         startLoading();
+        var thisFetchId = ++fetchId;
 		$.ajax({
             url: "/api/calendar/all/" + state.tabState,
 			success : function(response) {
+                if (thisFetchId != fetchId)//filter out old fetch responses
+                    return;
+                latestFetchFinished = thisFetchId;
                 if (response.result === "KO") {
                     handleError(response.message)();
                     return;
@@ -231,7 +242,12 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 //stopLoading();
                 Builder.handleNotifications(response);
 			},
-			error: handleError("failed to fetch calendar data!")
+			error: function(){
+                if (thisFetchId != fetchId)//we don't really care about errors on old fetches
+                    return;
+                latestFetchFinished = thisFetchId;
+                handleError("failed to fetch calendar data!")
+            }
 		});
 	}
 
