@@ -255,10 +255,14 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         loadTemplate("fluxtream-address");
         for (var connectorId in digest.cachedData){
             $.each(digest.cachedData[connectorId], function(i, connector) {
-                connector.getDetails = function(array){
+                connector.getDetails = function(array,showDate){
+                    if (typeof(array) == "boolean"){
+                        showDate = array;
+                        array = null;
+                    }
                     if (array == null)
                         array = [this];
-                    return buildDetails(digest,array);
+                    return buildDetails(digest,array,showDate);
                 };
                 connector.shouldGroup = function(facet){
                     return shouldFacetsGroup(this,facet);
@@ -428,7 +432,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         return digest.detailsTemplates["fluxtream-address"].render(params);
     }
 
-    function buildDetails(digest,facets){
+    function buildDetails(digest,facets,showDate){
         if (facets.length == 0)
             return"";
         if (digest.detailsTemplates[facets[0].type] == null){
@@ -442,6 +446,11 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             params.facets[i] = newFacet;
             for (var member in data){
                 switch (member){
+                    case "date":
+                        if (showDate){
+                            newFacet[member] = data[member];
+                        }
+                        break;
                     case "source":
                         switch (data[member]){
                             case "GOOGLE_LATITUDE":
@@ -476,6 +485,9 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     default:
                         newFacet[member] = data[member];
                 }
+            }
+            if (showDate){
+                newFacet.displayDate = App.formatDate(data.start,false,true);
             }
         }
 
