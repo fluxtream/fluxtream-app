@@ -125,7 +125,7 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
         $("#modal").on("hide",function(){
             hidden = true;
             $.doTimeout("manageConnectorsUpdater");
-            App.activeApp.renderState(App.state.getState(App.activeApp.name),true)
+            App.activeApp.renderState(App.state.getState(App.activeApp.name),true);//force refresh of the current app state
         })
     }
 
