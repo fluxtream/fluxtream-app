@@ -255,10 +255,14 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         loadTemplate("fluxtream-address");
         for (var connectorId in digest.cachedData){
             $.each(digest.cachedData[connectorId], function(i, connector) {
-                connector.getDetails = function(array){
+                connector.getDetails = function(array,showDate){
+                    if (typeof(array) == "boolean"){
+                        showDate = array;
+                        array = null;
+                    }
                     if (array == null)
                         array = [this];
-                    return buildDetails(digest,array);
+                    return buildDetails(digest,array,showDate);
                 };
                 connector.shouldGroup = function(facet){
                     return shouldFacetsGroup(this,facet);
@@ -277,25 +281,27 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     }
                     break;
             }
-            if (digest.cachedData[connectorId].hasImages){
-                for (var i = 0; i < digest.cachedData[connectorId].length; i++){
+
+            for (var i = 0; i < digest.cachedData[connectorId].length; i++){
+                var facet = digest.cachedData[connectorId][i];
+                if (digest.cachedData[connectorId].hasImages){
                     switch (connectorId){
                         case "picasa-photo":
                         case "flickr-photo":
                         case "fluxtream_capture-photo":
-                            digest.cachedData[connectorId][i].hasImage = true;
+                            facet.hasImage = true;
                             break;
                         case "mymee-observation":
-                            digest.cachedData[connectorId][i].hasImage = digest.cachedData[connectorId][i].photoUrl != null;
+                            facet.hasImage = facet.photoUrl != null;
                             break;
                     }
-                    if (digest.cachedData[connectorId][i].hasImage){
-                        var photo42 = digest.cachedData[connectorId][i].photoUrl;
-                        if (digest.cachedData[connectorId][i].thumbnailUrls != null){
+                    if (facet.hasImage){
+                        var photo42 = facet.photoUrl;
+                        if (facet.thumbnailUrls != null){
                             var bestMatch = -1;
                             var bestMatchAmmount = 0;
-                            for (var j in digest.cachedData[connectorId][i].thumbnailSizes){
-                                var size = digest.cachedData[connectorId][i].thumbnailSizes[j];
+                            for (var j in facet.thumbnailSizes){
+                                var size = facet.thumbnailSizes[j];
                                 var matchAmmount = (size.width - 42) * (size.width - 42) + (size.height - 42) * (size.height - 42);
                                 if (bestMatch == -1 || matchAmmount < bestMatchAmmount){
                                     bestMatchAmmount = matchAmmount;
@@ -306,7 +312,32 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                                 photo42 = digest.cachedData[connectorId][i].thumbnailUrls[bestMatch];
                             }
                         }
-                        digest.cachedData[connectorId][i].photo42 = photo42;
+                        facet.photo42 = photo42;
+                    }
+                }
+                if (facet.start == undefined){
+                    if (facet.date != undefined && facet.date != null){
+                        var dateParts = facet.date.split("-");
+                        var year = parseInt(dateParts[0]);
+                        var month = parseInt(dateParts[1]) - 1;
+                        var day = parseInt(dateParts[2]);
+                        if (facet.startTime != null){
+                            var hours = parseInt(facet.startTime.hours);
+                            var minutes = parseInt(facet.startTime.minutes);
+                            if (facet.startTime.ampm == "pm")
+                                hours += 12;
+                            facet.start = new Date(year,month,day,hours,minutes,0,0).getTime();
+                        }
+                        if (facet.endTime != null) {
+                            var hours = parseInt(facet.endTime.hours);
+                            var minutes = parseInt(facet.endTime.minutes);
+                            if (facet.endTime.ampm == "pm")
+                                hours += 12;
+                            facet.end = new Date(year,month,day,hours,minutes,0,0).getTime();
+                            if (facet.end < facet.start){
+                                facet.end = new Date(year,month,day+1,hours,0,0).getTime();
+                            }
+                        }
                     }
                 }
             }
@@ -401,7 +432,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         return digest.detailsTemplates["fluxtream-address"].render(params);
     }
 
-    function buildDetails(digest,facets){
+    function buildDetails(digest,facets,showDate){
         if (facets.length == 0)
             return"";
         if (digest.detailsTemplates[facets[0].type] == null){
@@ -415,6 +446,11 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             params.facets[i] = newFacet;
             for (var member in data){
                 switch (member){
+                    case "date":
+                        if (showDate){
+                            newFacet[member] = data[member];
+                        }
+                        break;
                     case "source":
                         switch (data[member]){
                             case "GOOGLE_LATITUDE":
@@ -449,6 +485,9 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     default:
                         newFacet[member] = data[member];
                 }
+            }
+            if (showDate){
+                newFacet.displayDate = App.formatDate(data.start + digest.timeZoneOffset,false,true);
             }
         }
 

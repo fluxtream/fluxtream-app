@@ -10,7 +10,6 @@ import net.sf.json.JSONObject;
 
 public class FitbitTrackerActivityFacetVO extends AbstractLocalTimeInstantFacetVO<FitbitTrackerActivityFacet> {
 
-    public String date;
 	public int steps;
     public int caloriesOut;
 //	List<FitbitStepsVO> stepsPerMinute;
