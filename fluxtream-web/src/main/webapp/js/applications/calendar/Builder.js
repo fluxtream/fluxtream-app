@@ -234,7 +234,7 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
             });
     }
 	
-	function updateTab(digest, Calendar) {
+	function updateTab(digest, Calendar, force) {
         if (App.activeApp.name != "calendar")
             return;
         tabInterface.setRenderParamsFunction(function(){
@@ -245,7 +245,8 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
                 connectorEnabled:Calendar.connectorEnabled[Calendar.currentTabName],
                 tabParam:Calendar.tabParam,
                 setTabParam:Calendar.setTabParam,
-                doneLoading:Calendar.stopLoading};
+                doneLoading:Calendar.stopLoading,
+                forceReload: force};
         });
         tabInterface.setActiveTab(Calendar.currentTabName);
         updateCurrentTab(digest, Calendar);

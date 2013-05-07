@@ -6,15 +6,17 @@ define(["core/Tab",
     var digestData = null;
     var preserveView = false;
 
-    var oldState = null;
+    var lastTimestamp = null;
 
     function render(params) {
         params.setTabParam(null);
         this.getTemplate("text!applications/calendar/tabs/map/map.html", "map", function(){
-            if (params.calendarState == oldState)
+            if (lastTimestamp == params.digest.generationTimestamp && !params.forceReload){
+                params.doneLoading();
                 return;
+            }
             else
-                oldState = params.calendarState;
+                lastTimestamp = params.digest.generationTimestamp;
             setup(params.digest,params.calendarState,params.connectorEnabled,params.doneLoading);
         });
     }

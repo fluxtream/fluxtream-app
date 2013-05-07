@@ -9,7 +9,7 @@ define(["core/Tab",
       var doneLoading;
 
 	function render(params) {
-        doneLoading = params.doneLoading();
+        doneLoading = params.doneLoading;
         setTabParam = params.setTabParam;
         if (params.tabParam != null)
             dashboardsTab.activeDashboard = parseInt(params.tabParam);

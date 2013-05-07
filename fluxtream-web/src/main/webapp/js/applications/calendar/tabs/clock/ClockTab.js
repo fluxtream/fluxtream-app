@@ -18,13 +18,21 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
     var connectorEnabled;
     var dgst;
 
+    var lastTimestamp = null;
+
     App.addHideTooltipListener(hideEventInfo);
 
 	function render(params) {
         params.setTabParam(null);
         hideEventInfo();
         this.getTemplate("text!applications/calendar/tabs/clock/clock.html", "clock", function() {
-			 setup(params.digest, params.timeUnit, params.connectorEnabled, params.doneLoading);
+            if (lastTimestamp == params.digest.generationTimestamp && !params.forceReload){
+                params.doneLoading();
+                return;
+            }
+            else
+                lastTimestamp = params.digest.generationTimestamp;
+			setup(params.digest, params.timeUnit, params.connectorEnabled, params.doneLoading);
             fetchWeatherData();
 		});
 	}

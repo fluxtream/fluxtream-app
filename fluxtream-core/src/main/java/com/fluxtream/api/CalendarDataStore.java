@@ -192,6 +192,8 @@ public class CalendarDataStore {
                     .append(" guestId=").append(guestId);
             logger.info(sb.toString());
 
+            digest.generationTimestamp = new java.util.Date().getTime();
+
             return gson.toJson(digest);
         }
         catch (Exception e){
@@ -285,6 +287,8 @@ public class CalendarDataStore {
                     .append(" guestId=").append(guestId);
             logger.info(sb.toString());
 
+            digest.generationTimestamp = new java.util.Date().getTime();
+
             return gson.toJson(digest);
         }
         catch (Exception e){
@@ -373,6 +377,9 @@ public class CalendarDataStore {
                     .append(" timeTaken=").append(System.currentTimeMillis()-then)
                     .append(" guestId=").append(guestId);
             logger.info(sb.toString());
+
+            digest.generationTimestamp = new java.util.Date().getTime();
+
             return gson.toJson(digest);
        }
        catch (Exception e){
@@ -464,6 +471,9 @@ public class CalendarDataStore {
                     .append(" timeTaken=").append(System.currentTimeMillis()-then)
                     .append(" guestId=").append(guestId);
             logger.info(sb.toString());
+
+            digest.generationTimestamp = new java.util.Date().getTime();
+
             return gson.toJson(digest);
         }
         catch (Exception e){

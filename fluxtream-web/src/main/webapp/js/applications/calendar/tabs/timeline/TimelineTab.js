@@ -59,7 +59,7 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
         if (state.tabState != prevTabState
                 && stateEarly.tabState != prevTabState
                 && stateLate.tabState != prevTabState) {
-            Calendar.changeTabState(state);
+            Calendar.changeTabState(state,true);
             return state;
         }
 
@@ -80,7 +80,8 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
                 // NOTE: we use $.doTimeout() here to avoid spamming onAxisChanged().
                 // This will fire 100ms after the user stops dragging, since
                 // $.doTimeout() cancels earlier timeouts with the same name.
-                $.doTimeout('TimelineTabAxisChange', 100, function() {
+                $.doTimeout("TimelineTabAxisChange");//cancel previous doTimeout
+                $.doTimeout('TimelineTabAxisChange', 100, function() {//schedule a new one
                     state = onAxisChanged(state);
                 });
             });
