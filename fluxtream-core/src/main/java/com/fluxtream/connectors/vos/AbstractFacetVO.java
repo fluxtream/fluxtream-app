@@ -4,13 +4,12 @@ import java.io.UnsupportedEncodingException;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.SortedSet;
 import java.util.TimeZone;
 import java.util.TreeSet;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.Connector;
-import com.fluxtream.connectors.ObjectType;
+import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.utils.SecurityUtils;
@@ -31,9 +30,11 @@ public abstract class AbstractFacetVO<T extends AbstractFacet> {
 	 * Thread-safe cache for vo classes
 	 */
 	private static Hashtable<String, Class<? extends AbstractFacetVO<? extends AbstractFacet>>> voClasses;
+    private static Hashtable<Class<? extends AbstractFacet>,String> objectTypeNames;
 
 	static {
 		voClasses = new Hashtable<String, Class<? extends AbstractFacetVO<? extends AbstractFacet>>>();
+        objectTypeNames = new Hashtable<Class<? extends AbstractFacet>, String>();
 	}
 
 	public void extractValues(T facet, TimeInterval timeInterval, GuestSettings settings) {
@@ -68,14 +69,21 @@ public abstract class AbstractFacetVO<T extends AbstractFacet> {
 		Connector connector = Connector.fromValue(facet.api);
 		this.type = connector.getName();
 		if (facet.objectType != -1) {
-            final List<ObjectType> objectTypes = ObjectType.getObjectTypes(connector, facet.objectType);
-            ObjectType objectType = objectTypes.get(0);
-			this.type += "-" + objectType.getName();
+            final String objectTypeName = getObjectTypeName(facet);
+            this.type += "-" + objectTypeName;
 		}
 		this.subType = getSubtype(facet);
 		if (subType!=null)
 			this.type += "-" + subType;
 	}
+
+    protected String getObjectTypeName(T facet) {
+        if (objectTypeNames.contains(facet.getClass()))
+            return objectTypeNames.get(facet.getClass());
+        String objectTypeName = facet.getClass().getAnnotation(ObjectTypeSpec.class).name();
+        objectTypeNames.put(facet.getClass(), objectTypeName);
+        return objectTypeName;
+    }
 	
 	protected String getSubtype(T facet) {
 		return null;

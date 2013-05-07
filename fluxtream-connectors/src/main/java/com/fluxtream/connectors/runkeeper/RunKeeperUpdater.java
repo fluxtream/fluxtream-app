@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.annotations.Updater;
+import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
@@ -29,7 +30,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Updater(prettyName = "RunKeeper", value = 35, updateStrategyType = Connector.UpdateStrategyType.INCREMENTAL,
-         objectTypes = {RunKeeperFitnessActivityFacet.class})
+         objectTypes = {RunKeeperFitnessActivityFacet.class, LocationFacet.class})
 public class RunKeeperUpdater  extends AbstractUpdater {
 
     final String DEFAULT_ENDPOINT= "https://api.runkeeper.com";
