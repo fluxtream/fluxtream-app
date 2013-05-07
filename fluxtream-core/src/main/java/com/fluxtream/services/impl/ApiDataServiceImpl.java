@@ -575,6 +575,8 @@ public class ApiDataServiceImpl implements ApiDataService {
             // which takes time
             locationResource.processed = false;
             em.persist(locationResource);
+            //
+            processLocation(locationResource);
         }
     }
 
@@ -587,6 +589,7 @@ public class ApiDataServiceImpl implements ApiDataService {
         // which takes time
         locationResource.processed = false;
         em.persist(locationResource);
+        processLocation(locationResource);
     }
 
     @Transactional(readOnly = false)
