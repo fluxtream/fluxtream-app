@@ -41,14 +41,17 @@ define(["core/Tab",
             doneLoading = dl;
             $("#photoTab").empty();
             var noPhotos = true;
+            var photos = [];
             for (var connectorName in digest.cachedData){
                 if (digest.cachedData[connectorName].hasImages){
                     noPhotos = false;
-                    onDataReceived(digest.cachedData[connectorName]);
+                    photos = _.union(photos, digest.cachedData[connectorName]);
                 }
             }
             if (noPhotos){
                 showNoPhotos();
+            } else{
+                onDataReceived(photos);
             }
             doneLoading();
         });
