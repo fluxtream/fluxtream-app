@@ -51,6 +51,7 @@ define(["core/Tab",
             if (noPhotos){
                 showNoPhotos();
             } else{
+                photos.sort(function(a,b) {return a.start- b.start;});
                 onDataReceived(photos);
             }
             doneLoading();
