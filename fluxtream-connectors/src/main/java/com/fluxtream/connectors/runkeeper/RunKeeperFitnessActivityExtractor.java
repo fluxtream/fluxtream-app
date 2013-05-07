@@ -66,7 +66,8 @@ public class RunKeeperFitnessActivityExtractor extends AbstractFacetExtractor {
                     startTimeSet = true;
                 }
                 locationFacet.altitude = (int) pathElement.getDouble("altitude");
-                locationFacet.timestampMs = facet.start + pathElement.getLong("timestamp");
+                final long millisIncrement = (long)(pathElement.getDouble("timestamp") * 1000d);
+                locationFacet.timestampMs = facet.start + millisIncrement;
                 locationFacet.start = locationFacet.timestampMs;
                 locationFacet.end = locationFacet.timestampMs;
                 locationFacet.source = LocationFacet.Source.RUNKEEPER;

@@ -205,7 +205,7 @@ public class Connector {
         objectType.prettyname = ots.prettyname();
         objectType.isImageType = ots.isImageType();
         objectType.isDateBased = ots.isDateBased();
-        if (ots.extractor() != null) {
+        if (ots.extractor() != null && ots.extractor()!=AbstractFacetExtractor.class) {
             connector.addObjectTypeExtractorClass(
                     objectType.value, ots.extractor(),
                     ots.parallel());
