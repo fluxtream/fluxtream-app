@@ -48,12 +48,6 @@ define(["core/Tab",
 
             if (!map.isPreserveViewChecked())
                 bounds = map.gpsBounds;
-            for (var i = 0; i < digest.selectedConnectors.length; i++){
-                if (!connectorEnabled[digest.selectedConnectors[i].connectorName])
-                    for (var j = 0; j < digest.selectedConnectors[i].facetTypes.length; j++){
-                        map.hideData(digest.selectedConnectors[i].facetTypes[j]);
-                    }
-            }
 
             $("#mapFit").show();
             $("#mapFit").click(function(){
@@ -63,7 +57,7 @@ define(["core/Tab",
         } else {
             $("#mapFit").hide();
         }
-        showData();
+        showData(connectorEnabled);
         if (bounds != null){
             map.fitBounds(bounds,map.isPreserveViewChecked());
         }
@@ -73,9 +67,9 @@ define(["core/Tab",
         doneLoading();
 	}
 
-    function showData(){
+    function showData(connectorEnabled){
         if (!map.isFullyInitialized()){
-            $.doTimeout(100,showData);
+            $.doTimeout(100,function(){showData(connectorEnabled)});
             return;
         }
         var digest = digestData;
@@ -92,6 +86,12 @@ define(["core/Tab",
             if (objectTypeName != "google_latitude-location"){
                 map.addAlternativeGPSData(digest.cachedData[objectTypeName],objectTypeName,true);
             }
+        }
+        for (var i = 0; i < digest.selectedConnectors.length; i++){
+            if (!connectorEnabled[digest.selectedConnectors[i].connectorName])
+                for (var j = 0; j < digest.selectedConnectors[i].facetTypes.length; j++){
+                    map.hideData(digest.selectedConnectors[i].facetTypes[j]);
+                }
         }
 
     }
