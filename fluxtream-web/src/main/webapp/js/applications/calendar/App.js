@@ -470,7 +470,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     case "source":
                         switch (data[member]){
                             case "GOOGLE_LATITUDE":
-                                newFacet[member] = "google latitude";
+                                newFacet[member] = "Google Latitude";
+                                break;
+                            case "RUNKEEPER":
+                                newFacet[member] = "Runkeeper";
                                 break;
                             case "OTHER":
                                 newFacet[member] = "IP lookup";

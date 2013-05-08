@@ -445,6 +445,22 @@
             {{/facets}}
         </div>
     </div>
+    <template id="runkeeper-location">
+        <div class="flx-box" style="border-left-color:{{color}}">
+            <span class="flx-deviceIcon latitude" style="background-size:100% 100%;"></span>
+            <div class="facetDetails">
+                {{#facets}}
+                <div class="facetDetails">
+                    {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
+                    <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
+                    <div class="flx-data">
+                        <span class="flx-description">Source: {{source}}<br>Accuracy: {{accuracy}}m</span>
+                    </div>
+                </div>
+                {{/facets}}
+            </div>
+        </div>
+    </template>
 </template>
 <template id="google_latitude-location">
     <div class="flx-box" style="border-left-color:{{color}}">

@@ -110,13 +110,21 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
         },
         runkeeper:{
             color: "#8c2ebb",
-            mapicon: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/cup.png",
             mapshadow: null,
             facets:{
                 "fitnessActivity":{
+                    mapicon: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/cup.png",
                     list:true,
                     map: true,
                     clock: ClockConfig.BODY_CATEGORY
+                },
+                location:{
+                    mapicon : new google.maps.MarkerImage("https://www.google.com/latitude/apps/static/red_measle.png",null,null,new google.maps.Point(5,5),null),
+                    list: false,
+                    photos: false,
+                    map: true,
+                    gps: true,
+                    clock: true //just has to be nonnull, gps data has special treatment
                 }
             }
         },
