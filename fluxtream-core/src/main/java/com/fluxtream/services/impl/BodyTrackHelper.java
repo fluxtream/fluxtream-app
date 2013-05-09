@@ -17,7 +17,6 @@ import javax.persistence.PersistenceContext;
 import com.fluxtream.Configuration;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.aspects.FlxLogger;
-import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.CoachingBuddy;
 import com.fluxtream.domain.GrapherView;
 import com.fluxtream.domain.Tag;
@@ -61,6 +60,7 @@ public class BodyTrackHelper {
     EntityManager em;
 
     static final boolean verboseOutput = false;
+    static final boolean showOutput = false;
 
     @Autowired
     Configuration env;
@@ -87,7 +87,8 @@ public class BodyTrackHelper {
                     launchCommand += "\"" + part + "\"";
                 }
             }
-            System.out.println("BTDataStore: running with command: " + launchCommand);
+            if (showOutput)
+                System.out.println("BTDataStore: running with command: " + launchCommand);
 
             //create process for operation
             final Process pr = rt.exec(launchCommand);
@@ -97,7 +98,7 @@ public class BodyTrackHelper {
                     BufferedReader error = new BufferedReader(new InputStreamReader(pr.getErrorStream()));
                     String line=null;
                     try{
-                        if (verboseOutput){
+                        if (verboseOutput && showOutput){
                             while((line=error.readLine()) != null) { //output all console output from the execution
                                 System.out.println("BTDataStore-error: " + line);
                             }
@@ -114,17 +115,24 @@ public class BodyTrackHelper {
             String line;
             String result = "";
 
-            while((line=input.readLine()) != null) { //output all console output from the execution
-                System.out.println("BTDataStore: " + line);
-                result += line;
+            if (showOutput){
+                while((line=input.readLine()) != null) { //output all console output from the execution
+                    System.out.println("BTDataStore: " + line);
+                    result += line;
+                }
+            }
+            else{
+                while (input.readLine() != null) {}
             }
 
             int exitValue = pr.waitFor();
-            System.out.println("BTDataStore: exited with code " + exitValue);
+            if (showOutput)
+                System.out.println("BTDataStore: exited with code " + exitValue);
             return new DataStoreExecutionResult(exitValue, result);
         }
         catch (Exception e){
-            System.out.println("BTDataStore: datastore execution failed!");
+            if (showOutput)
+                System.out.println("BTDataStore: datastore execution failed!");
             throw new RuntimeException("Datastore execution failed");
         }
     }
