@@ -225,8 +225,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 			try {
 				JSONObject entry = timeSeriesArray.getJSONObject(i);
 				String date = entry.getString("dateTime");
-				DayMetadataFacet dayMetadata = metadataService.getDayMetadata(
-						apiKey.getGuestId(), date, true);
+				DayMetadataFacet dayMetadata = metadataService.getDayMetadata(apiKey.getGuestId(), date, true);
                 logger.debug("dayMetadata: " + dayMetadata);
                 logger.debug("dayMetadataFacet's timezone: " + dayMetadata.timeZone);
 				TimeInterval timeInterval = dayMetadata.getTimeInterval();
