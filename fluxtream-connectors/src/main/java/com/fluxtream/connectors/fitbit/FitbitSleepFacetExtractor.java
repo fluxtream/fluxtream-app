@@ -45,7 +45,7 @@ public class FitbitSleepFacetExtractor extends AbstractFacetExtractor {
 				facet.minutesToFallAsleep = record
 						.getInt("minutesToFallAsleep");
             facet.date = (String) apiData.updateInfo.getContext("date");
-            final long startTimeMillis = AbstractLocalTimeFacet.timeStorageFormat.parseMillis(startTime);
+            final long startTimeMillis = AbstractLocalTimeFacet.timeStorageFormat.withZoneUTC().parseMillis(startTime);
             facet.start = startTimeMillis;
             facet.end = startTimeMillis + duration;
 
