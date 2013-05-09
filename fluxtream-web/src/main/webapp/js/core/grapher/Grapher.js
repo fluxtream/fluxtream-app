@@ -1532,12 +1532,8 @@ define(["core/grapher/BTCore"], function(BTCore) {
         l = channelIds.length;
 
         // Update xAxis min/max
-        if (l > 0) {
-            plot = grapher.plotsMap[channelIds[0]];
-            xAxis = plot.getHorizontalAxis();
-            VIEWS.data["v2"]["x_axis"]["min"] = xAxis.getMin();
-            VIEWS.data["v2"]["x_axis"]["max"] = xAxis.getMax();
-        }
+        VIEWS.data["v2"]["x_axis"]["min"] = grapher.dateAxis.getMin();
+        VIEWS.data["v2"]["x_axis"]["max"] = grapher.dateAxis.getMax();
 
         // Update yAxis min/max, order, height
         for (i = 0; i < l; i++) {
