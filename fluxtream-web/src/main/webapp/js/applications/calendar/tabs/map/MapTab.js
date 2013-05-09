@@ -19,7 +19,16 @@ define(["core/Tab",
                 lastTimestamp = params.digest.generationTimestamp;
             setup(params.digest,params.calendarState,params.connectorEnabled,params.doneLoading);
         });
+        $(window).resize();
     }
+
+    $(window).resize(function(){
+        if (map != null){
+            setTimeout(function(){
+                google.maps.event.trigger(map,"resize");
+            },100);
+        }
+    });
 
     function setup(digest, calendarState,connectorEnabled,doneLoading) {
         digestData  = digest;
