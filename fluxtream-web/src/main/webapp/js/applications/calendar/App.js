@@ -311,8 +311,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                             facet.hasImage = facet.photoUrl != null;
                             break;
                     }
-                    if (facet.hasImage){
+                    if (facet.hasImage) {
                         var photo42 = facet.photoUrl;
+                        if (typeof(facet.thumbnailUrl)!="undefined")
+                            photo42 = facet.thumbnailUrl;
                         if (facet.thumbnailUrls != null){
                             var bestMatch = -1;
                             var bestMatchAmmount = 0;

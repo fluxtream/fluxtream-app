@@ -104,6 +104,8 @@ define(["core/Tab",
                currentDate = date;
            }
             var photoUrl = data[i].photoUrl;
+            if (typeof(data[i].thumbnailUrl)!="undefined")
+                photoUrl = data[i].thumbnailUrl;
             if (data[i].thumbnailSizes != null){
                 var closest = null;
                 var closestValue = 100000;
