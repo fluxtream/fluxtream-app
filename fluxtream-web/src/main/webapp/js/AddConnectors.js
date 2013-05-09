@@ -26,6 +26,9 @@ define(function() {
     }
 
     function bindDialog(){
+        $("#modal").on("hide",function(){
+            App.activeApp.renderState(App.state.getState(App.activeApp.name),true);//force refresh of the current app state
+        });
     }
 
     var AddConnectors = {};

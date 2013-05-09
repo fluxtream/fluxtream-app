@@ -48,12 +48,6 @@ define(["core/Tab",
 
             if (!map.isPreserveViewChecked())
                 bounds = map.gpsBounds;
-            for (var i = 0; i < digest.selectedConnectors.length; i++){
-                if (!connectorEnabled[digest.selectedConnectors[i].connectorName])
-                    for (var j = 0; j < digest.selectedConnectors[i].facetTypes.length; j++){
-                        map.hideData(digest.selectedConnectors[i].facetTypes[j]);
-                    }
-            }
 
             $("#mapFit").show();
             $("#mapFit").click(function(){
@@ -63,7 +57,7 @@ define(["core/Tab",
         } else {
             $("#mapFit").hide();
         }
-        showData();
+        showData(connectorEnabled);
         if (bounds != null){
             map.fitBounds(bounds,map.isPreserveViewChecked());
         }
@@ -73,23 +67,33 @@ define(["core/Tab",
         doneLoading();
 	}
 
-    function showData(){
+    function showData(connectorEnabled){
         if (!map.isFullyInitialized()){
-            $.doTimeout(100,showData);
+            $.doTimeout(100,function(){showData(connectorEnabled)});
             return;
         }
         var digest = digestData;
         map.addAddresses(digest.addresses,true);
-        if (digest!=null && digest.cachedData!=null &&
-            typeof(digest.cachedData["google_latitude-location"])!="undefined"
-                && digest.cachedData["google_latitude-location"] !=null &&
-            digest.cachedData["google_latitude-location"].length>0){
-            for(var objectTypeName in digest.cachedData) {
-                if (digest.cachedData[objectTypeName]==null||typeof(digest.cachedData[objectTypeName])=="undefined")
-                    continue;
+        for(var objectTypeName in digest.cachedData) {
+            if (digest.cachedData[objectTypeName]==null||typeof(digest.cachedData[objectTypeName])=="undefined")
+                continue;
+            if (digest!=null && digest.cachedData!=null &&
+                typeof(digest.cachedData["google_latitude-location"])!="undefined"
+                    && digest.cachedData["google_latitude-location"] !=null &&
+                digest.cachedData["google_latitude-location"].length>0){
                 map.addData(digest.cachedData[objectTypeName], objectTypeName, true);
             }
+            if (objectTypeName != "google_latitude-location"){
+                map.addAlternativeGPSData(digest.cachedData[objectTypeName],objectTypeName,true);
+            }
         }
+        for (var i = 0; i < digest.selectedConnectors.length; i++){
+            if (!connectorEnabled[digest.selectedConnectors[i].connectorName])
+                for (var j = 0; j < digest.selectedConnectors[i].facetTypes.length; j++){
+                    map.hideData(digest.selectedConnectors[i].facetTypes[j]);
+                }
+        }
+
     }
 
     function connectorToggled(connectorName,objectTypeNames,enabled){
