@@ -474,6 +474,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 			path += " L " + coords[0] + " " + coords[1];
 			angle += 1;
 		}
+        coords = toCoords(center, radius, endAngle);//ensure we go all the way to the end angle and not short a bit
+        path += " L " + coords[0] + " " + coords[1];
 		return path;
 	}
 
