@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -463,12 +464,12 @@ public class BodyTrackHelper {
     }
 
     private static class ViewsList{
-        ArrayList<ViewStub> views = new ArrayList<ViewStub>();
+        LinkedList<ViewStub> views = new LinkedList<ViewStub>();
 
         void populateViews(EntityManager em, Gson gson, long uid){
             List<GrapherView> viewList = JPAUtils.find(em, GrapherView.class,"grapherView",uid);
             for (GrapherView view : viewList){
-                views.add(new ViewStub(view,gson));
+                views.add(0,new ViewStub(view,gson));
             }
         }
     }
