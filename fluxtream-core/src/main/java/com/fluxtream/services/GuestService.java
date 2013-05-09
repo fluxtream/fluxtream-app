@@ -41,6 +41,8 @@ public interface GuestService {
 
 	public String getApiKeyAttribute(ApiKey apiKey, String key);
 
+    public ApiKey getApiKey(long apiKeyId);
+
     public List<ApiKey> getApiKeys(long guestId);
 
 	public boolean hasApiKey(long guestId, Connector connector);

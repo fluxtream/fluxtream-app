@@ -11,7 +11,10 @@ import com.fluxtream.connectors.Connector;
 
 @Entity(name = "Connector")
 // @Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
-@NamedQueries({ @NamedQuery(name = "connectors.all", query = "SELECT connector FROM Connector connector ORDER BY connector.count DESC") })
+@NamedQueries({
+    @NamedQuery(name = "connectors.all", query = "SELECT connector FROM Connector connector ORDER BY connector.count DESC"),
+    @NamedQuery(name = "connector.byName", query = "SELECT connector FROM Connector connector WHERE connectorName=?")
+})
 public class ConnectorInfo extends AbstractEntity {
 
 	public String name;

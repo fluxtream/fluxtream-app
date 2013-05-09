@@ -159,6 +159,11 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
             event.preventDefault();
             connectorSettings(connector);
         });
+        var renewBtn = $("#renew-" + connector.connectorName);
+        renewBtn.click(function(event){
+            event.preventDefault();
+            confirmRenew(connector);
+        });
     }
 
     function connectorSettings(connector){
@@ -286,6 +291,46 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
                     },
                     error: function() {
                         $("#deleteConnectorConfirm").modal("hide");
+                    }
+                });
+            });
+        });
+
+    }
+
+    function confirmRenew(connector) {
+        App.loadMustacheTemplate("connectorMgmtTemplates.html","renewConnectorConfirm",function(template){
+            var html = template.render(connector);
+
+            $("body").append(html);
+            $("#renewConnectorConfirm").modal();
+
+            $("#renewConnectorConfirm").css("zIndex","1052");
+
+            $("#renewConnectorConfirm").on("hidden",function(){
+                $("#renewConnectorConfirm").remove();
+            });
+
+            var backdrops = $(".modal-backdrop");
+            $(backdrops[backdrops.length - 1]).css("zIndex","1051");
+
+            var confirmRenew = $("#confirmRenewConnectorBtn");
+            var cancelRenew = $("#cancelRenewConnectorBtn");
+
+            cancelRenew.click(function() {
+                $("#renewConnectorConfirm").modal("hide");
+            });
+
+            confirmRenew.click(function(){
+                $.ajax({
+                    url: "/api/connectors/renew/" + connector.apiKeyId,
+                    type:"POST",
+                    success: function(result) {
+                        console.log(result.message);
+                        $("#renewConnectorConfirm").modal("hide");
+                    },
+                    error: function() {
+                        $("#renewConnectorConfirm").modal("hide");
                     }
                 });
             });

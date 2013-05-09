@@ -55,7 +55,13 @@ public class SystemServiceImpl implements SystemService {
 		return all;
 	}
 
-	private void initializeConnectorList() {
+    @Override
+    public ConnectorInfo getConnectorInfo(final String connectorName) {
+        final ConnectorInfo connectorInfo = JPAUtils.findUnique(em, ConnectorInfo.class, "connector.byName", connectorName);
+        return connectorInfo;
+    }
+
+    private void initializeConnectorList() {
 		ResourceBundle res = ResourceBundle.getBundle("messages/connectors");
         int order = 0;
         em.persist(new ConnectorInfo("Google Latitude",

@@ -11,7 +11,9 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import com.fluxtream.Configuration;
 import com.fluxtream.api.gson.UpdateInfoSerializer;
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
@@ -33,7 +35,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import com.fluxtream.aspects.FlxLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
@@ -66,12 +67,26 @@ public class ConnectorStore {
     @Autowired
     private ApiDataService apiDataService;
 
+    @Autowired
+    Configuration env;
+
     Gson gson;
 
     public ConnectorStore() {
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.registerTypeAdapter(UpdateInfo.class, new UpdateInfoSerializer());
         gson = gsonBuilder.create();
+    }
+
+    @POST
+    @Path("/renew/{apiKeyId}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String renewConnectorTokens(@PathParam("apiKeyId") long apiKeyId) {
+        final ApiKey apiKey = guestService.getApiKey(apiKeyId);
+        ConnectorInfo connectorInfo = sysService.getConnectorInfo(apiKey.getConnector().getName());
+        JSONObject renewInfo = new JSONObject();
+        renewInfo.accumulate("redirectTo", env.get("homeBaseUrl") + connectorInfo.connectUrl + "?apiKeyId=" + apiKeyId);
+        return renewInfo.toString();
     }
 
     @GET
@@ -100,6 +115,7 @@ public class ConnectorStore {
                     ConnectorInfo connector = connectorInfo;
                     JSONObject connectorJson = new JSONObject();
                     Connector conn = Connector.fromValue(connector.api);
+                    ApiKey apiKey = guestService.getApiKey(guest.getId(), conn);
                     connectorJson.accumulate("prettyName", conn.prettyName());
                     List<String> facetTypes = new ArrayList<String>();
                     ObjectType[] objTypes = conn.objectTypes();
@@ -117,6 +133,7 @@ public class ConnectorStore {
                     connectorJson.accumulate("manageable", connector.manageable);
                     connectorJson.accumulate("text", connector.text);
                     connectorJson.accumulate("api", connector.api);
+                    connectorJson.accumulate("apiKeyId", apiKey.getId());
                     connectorJson.accumulate("lastSync", getLastSync(guest.getId(), conn));
                     connectorJson.accumulate("latestData", getLatestData(guest.getId(), conn));
                     final String auditTrail = checkForErrors(guest.getId(), conn);

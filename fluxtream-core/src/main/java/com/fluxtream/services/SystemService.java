@@ -8,6 +8,8 @@ import com.fluxtream.domain.ConnectorInfo;
 public interface SystemService {
 
 	public List<ConnectorInfo> getConnectors();
+
+    public ConnectorInfo getConnectorInfo(String connectorName);
 	
 	public Connector getApiFromGoogleScope(String scope);
 	

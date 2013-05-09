@@ -47,6 +47,8 @@ public class BodymediaController {
 		String oauthCallback = env.get("homeBaseUrl") + "bodymedia/upgradeToken";
 		if (request.getParameter("guestId") != null)
 			oauthCallback += "?guestId=" + request.getParameter("guestId");
+        if (request.getParameter("apiKeyId") != null)
+            oauthCallback += "?apiKeyId=" + request.getParameter("apiKeyId");
 
 		String apiKey = env.get("bodymediaConsumerKey");
 		OAuthConsumer consumer = new DefaultOAuthConsumer(
@@ -89,7 +91,12 @@ public class BodymediaController {
 		provider.retrieveAccessToken(consumer, verifier);
 		Guest guest = AuthHelper.getGuest();
 
-        final ApiKey apiKey = guestService.createApiKey(guest.getId(), connector());
+        ApiKey apiKey;
+        if (request.getParameter("apiKeyId")!=null) {
+            long apiKeyId = Long.valueOf(request.getParameter("apiKeyId"));
+            apiKey = guestService.getApiKey(apiKeyId);
+        } else
+            apiKey = guestService.createApiKey(guest.getId(), connector());
 
         guestService.setApiKeyAttribute(apiKey, "api_key", env.get("bodymediaConsumerKey"));
 		guestService.setApiKeyAttribute(apiKey,

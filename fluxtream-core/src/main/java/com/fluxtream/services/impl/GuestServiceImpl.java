@@ -203,6 +203,11 @@ public class GuestServiceImpl implements GuestService {
 	}
 
     @Override
+    public ApiKey getApiKey(final long apiKeyId) {
+        return em.find(ApiKey.class, apiKeyId);
+    }
+
+    @Override
 	public List<ApiKey> getApiKeys(long guestId) {
         return JPAUtils.find(em, ApiKey.class, "apiKeys.all",
                 guestId);
