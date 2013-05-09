@@ -45,7 +45,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
     function startLoading() {
         loading = true;
-        $(".calendar-navigation-button").addClass("disabled");
+        //$(".calendar-navigation-button").addClass("disabled");
         $(".loading").show();
         $("#tabs").css("opacity", ".3");
     }
@@ -53,7 +53,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     function stopLoading() {
         if (fetchId == latestFetchFinished){
             $("#tabs").css("opacity", "1");
-            $(".calendar-navigation-button").removeClass("disabled");
+            //$(".calendar-navigation-button").removeClass("disabled");
             $(".loading").hide();
         }
     }
