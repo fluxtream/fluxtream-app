@@ -285,7 +285,7 @@ public class BodyTrackHelper {
                         channel.style = userStyle;
                     // Temporary hack: Until generic support is available for time_type, special case
                     // device named 'Zeo' to use time_type="local"
-                    if(source.name.equals("Zeo")) {
+                    if(source.name.equals("Zeo") || source.name.equals("Fitbit") || source.name.equals("Flickr")) {
                         
                         channel.time_type="local";
                     }
