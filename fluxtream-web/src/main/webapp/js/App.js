@@ -175,7 +175,8 @@ define(
         }
 
         $(window).resize(function() {
-            setTimeout(App.fullHeight, 100);
+            $.doTimeout("fullSizeHandler");//cancel original
+            $.doTimeout("fullSizeHandler",100,App.fullHeight);
         });
 
         $(window).resize();

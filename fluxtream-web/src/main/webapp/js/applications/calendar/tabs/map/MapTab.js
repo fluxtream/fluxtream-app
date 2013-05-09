@@ -24,9 +24,11 @@ define(["core/Tab",
 
     $(window).resize(function(){
         if (map != null){
-            setTimeout(function(){
-                google.maps.event.trigger(map,"resize");
-            },100);
+            $.doTimeout("mapResizeHandler");//cancel original
+            $.doTimeout("mapResizeHandler",100,function(){
+                if (map != null)
+                    google.maps.event.trigger(map,"resize");
+            });
         }
     });
 
