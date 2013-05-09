@@ -46,8 +46,6 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
                     var item = {};
                     item.facet = digest.cachedData[connectorName][i];
                     item.visible = true;
-                    if (connectorName == "picasa-photo")
-                        item.id = i;
                     var found = false;
                     for (var j = 0; j < digest.selectedConnectors.length; j++){
                         for (var k = 0; !found && k < digest.selectedConnectors[j].facetTypes.length; k++){
@@ -76,7 +74,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
                 }
             }
 
-            photoCarouselHTML = PhotoUtils.getCarouselHTML(digest,["picasa-photo","flickr-photo","mymee-observation"]);
+            photoCarouselHTML = PhotoUtils.getCarouselHTML(digest);
 
 
             rebuildPagination();
@@ -213,7 +211,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
         }
         if (list.children().length == 0)
             list.append("Sorry, no data to show.");
-        var photos = $(".flx-box.picasa-photo img, .flx-box.mymee-observation img");
+        var photos = $(".flx-photo");
         for (var i = 0; i < photos.length; i++){
             $(photos[i]).click({i:i}, function(event){
                 App.makeModal(photoCarouselHTML);
