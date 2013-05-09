@@ -149,6 +149,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         loadTimeSeries("body/fat", updateInfo.apiKey, weightOT,
                        "fat");
 
+        jpaDaoService.execute("DELETE FROM Facet_FitbitSleep sleep WHERE sleep.start=0");
         final JSONArray deviceStatusesArray = getDeviceStatusesArray(updateInfo.apiKey);
         final long trackerLastSyncDate = getLastSyncDate(deviceStatusesArray, "TRACKER");
         final long scaleLastSyncDate = getLastSyncDate(deviceStatusesArray, "SCALE");
