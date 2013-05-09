@@ -162,17 +162,23 @@ define(
         }
 
         function fullHeight() {
+            windowHeight = $(window).height();
+            footerHeight = $("#footer").outerHeight();
             if ($(".fullHeight").length>0) {
                 tabsY = $("#tabs").position().top;
-                windowHeight = $(window).height();
-                footerHeight = $("#footer").height();
-                fHeight = (windowHeight-tabsY-footerHeight+20);
+
+                fHeight = (windowHeight-tabsY-footerHeight);
                 $(".fullHeight").height(fHeight);
             }
-            $(window).resize(function() {
-                setTimeout(App.fullHeight, 100);
-            });
+            $("#content").css("min-height",(windowHeight - footerHeight) + "px");
+
         }
+
+        $(window).resize(function() {
+            setTimeout(App.fullHeight, 100);
+        });
+
+        $(window).resize();
 
         function renderApp(appName,state) {
             var app = App.apps[appName];
