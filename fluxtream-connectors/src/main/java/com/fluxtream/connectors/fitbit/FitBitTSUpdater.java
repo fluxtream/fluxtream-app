@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 import com.fluxtream.TimeInterval;
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.Autonomous;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.SignpostOAuthHelper;
@@ -25,12 +26,10 @@ import com.fluxtream.utils.TimeUtils;
 import com.fluxtream.utils.Utils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import com.fluxtream.aspects.FlxLogger;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Days;
 import org.joda.time.DurationFieldType;
 import org.joda.time.LocalDate;
-import org.joda.time.MutableDateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -150,7 +149,6 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         loadTimeSeries("body/fat", updateInfo.apiKey, weightOT,
                        "fat");
 
-        jpaDaoService.execute("DELETE FROM Facet_FitbitSleep sleep WHERE sleep.startTimeStorage=null and sleep.endTimeStorage=null");
         final JSONArray deviceStatusesArray = getDeviceStatusesArray(updateInfo.apiKey);
         final long trackerLastSyncDate = getLastSyncDate(deviceStatusesArray, "TRACKER");
         final long scaleLastSyncDate = getLastSyncDate(deviceStatusesArray, "SCALE");
@@ -243,7 +241,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 						facet.guestId = apiKey.getGuestId();
 						facetDao.persist(facet);
 					}
-					addToSleepFacet(facet, entry, fieldName, dayMetadata);
+					addToSleepFacet(facet, entry, fieldName);
 				} else if (objectType == activityOT) {
 					FitbitTrackerActivityFacet facet = getActivityFacet(
 							apiKey.getGuestId(), timeInterval);
@@ -304,9 +302,9 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 
 	@Transactional(readOnly = false)
 	private void addToSleepFacet(FitbitSleepFacet facet, JSONObject entry,
-			String fieldName, DayMetadataFacet md) {
+			String fieldName) {
 		if (fieldName.equals("startTime")) {
-			storeTime(entry.getString("value"), facet, md);
+			storeTime(entry.getString("value"), facet);
 		} else
 			setFieldValue(facet, fieldName, entry.getString("value"));
 		facetDao.merge(facet);
@@ -315,24 +313,15 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 	private final static DateTimeFormatter format = DateTimeFormat
 			.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
 
-	private void storeTime(String bedTimeString, FitbitSleepFacet facet,
-			DayMetadataFacet md) {
+	private void storeTime(String bedTimeString, FitbitSleepFacet facet) {
 		if (bedTimeString.equals("")) // bedTimeString EST TOUJOURS EGAL A ""!!!
 			return;
 		if (bedTimeString.length() == 5)
 			bedTimeString = facet.date + "T" + bedTimeString + ":00.000";
-		// using UTC just to have a reference point in ordering to
+		// using UTC just to have a reference point in order to
 		// compute riseTime with a duration delta from bedTime
-		MutableDateTime bedTimeUTC = null;
-		bedTimeUTC = format.withZone(DateTimeZone.forID("UTC"))
-				.parseMutableDateTime(bedTimeString);
-		bedTimeUTC.add(facet.timeInBed * 60000);
-		String riseTimeString = format.withZone(DateTimeZone.forID("UTC"))
-				.print(bedTimeUTC.getMillis());
-		facet.start = format.withZone(DateTimeZone.forID(md.timeZone))
-				.parseDateTime(bedTimeString).getMillis();
-		facet.end = format.withZone(DateTimeZone.forID(md.timeZone))
-				.parseDateTime(riseTimeString).getMillis();
+		facet.start = format.withZoneUTC().parseMillis(bedTimeString);
+        facet.end = facet.start + facet.timeInBed * 60000;
 	}
 
 	@Transactional(readOnly = false)
