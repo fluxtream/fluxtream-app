@@ -214,33 +214,43 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
     var fetchId = 0;
     var latestFetchFinished = 0;
+    var lastFetch = null;
 
 	function fetchCalendar(state) {
         needDigestReload = false;
         startLoading();
         var thisFetchId = ++fetchId;
-		$.ajax({
+        if (lastFetch != null)
+            lastFetch.abort();
+        lastFetch = $.ajax({
             url: "/api/calendar/all/" + state.tabState,
 			success : function(response) {
-                if (thisFetchId != fetchId)//filter out old fetch responses
+                if (thisFetchId != fetchId)//we litter the callback with these in case a we got to the callback but a new request started
                     return;
                 latestFetchFinished = thisFetchId;
                 if (response.result === "KO") {
                     handleError(response.message)();
                     return;
                 }
+                Calendar.digest = response;
+                Calendar.digestTabState = state.tabState;
+                if (thisFetchId != fetchId)
+                    return;
+                enhanceDigest(Calendar.digest);
+                if (thisFetchId != fetchId)
+                    return;
+                processDigest(Calendar.digest);
+                if (thisFetchId != fetchId)
+                    return;
+				Builder.updateTab(Calendar.digest, Calendar);
+                if (thisFetchId != fetchId)
+                    return;
+                Builder.handleNotifications(response);
                 if (Calendar.timeUnit==="date") {
                     handleCityInfo(response);
                 } else {
                     $("#mainCity").empty();
                 }
-                Calendar.digest = response;
-                Calendar.digestTabState = state.tabState;
-                enhanceDigest(Calendar.digest);
-                processDigest(Calendar.digest);
-				Builder.updateTab(Calendar.digest, Calendar);
-                //stopLoading();
-                Builder.handleNotifications(response);
 			},
 			error: function(){
                 if (thisFetchId != fetchId)//we don't really care about errors on old fetches
