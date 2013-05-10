@@ -116,16 +116,12 @@ public class BodyTrackHelper {
             String line;
             String result = "";
 
-            if (showOutput){
-                while((line=input.readLine()) != null) { //output all console output from the execution
-                    System.out.println("BTDataStore: " + line);
-                    result += line;
-                }
-            }
-            else{
-                while (input.readLine() != null) {}
-            }
 
+            while((line=input.readLine()) != null) { //output all console output from the execution
+                if (showOutput)
+                    System.out.println("BTDataStore: " + line);
+                result += line;
+            }
             int exitValue = pr.waitFor();
             if (showOutput)
                 System.out.println("BTDataStore: exited with code " + exitValue);
