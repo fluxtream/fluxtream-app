@@ -166,6 +166,14 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             map.infoWindow.open(map,marker);
             marker.showCircle();
         });
+
+        marker._oldSetMap = marker.setMap;
+        marker.setMap = function(newMap){
+            if (marker.circle != null)
+                marker.circle.setMap(newMap);
+            marker._oldSetMap(newMap);
+        }
+        map.markerList.push(marker);
     }
 
     function isDisplayable(itemType){
@@ -294,6 +302,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         if (marker.clickable && marker.item != null){
             addClickListenerForMarker(map,marker,marker.item);
         }
+        map.markerList.push(marker);
     }
 
     function highlightTimespan(map, start,end){
@@ -530,8 +539,13 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     function showNoGPSDisplay(map){
-        map.noGPSDiv = $("<div id='nogeolocation' style='background:white;'>No Geolocation Data Available</div>");
-        map.controls[google.maps.ControlPosition.TOP].push(map.noGPSDiv[0]);
+        if (map.noGPSDiv == null){
+            map.noGPSDiv = $("<div id='nogeolocation' style='background:white;'>No Geolocation Data Available</div>");
+            map.controls[google.maps.ControlPosition.TOP].push(map.noGPSDiv[0]);
+        }
+        else{
+            map.noGPSDiv.css("display","block");
+        }
     }
 
     function fixZooming(map,zoomLevel,isPreserved){
@@ -550,29 +564,51 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     return {
         isDisplayable: isDisplayable,
         filterGPSData: filterGPSData,
-        newMap: function(center,zoom,divId,hideControls){ //creates and returns a google map with extended functionality
+        newMap: function(center,zoom,divId,hideControls,mapTypeId ){ //creates and returns a google map with extended functionality
             var options = {
                 zoom : zoom,
                 center: center,
                 scrollwheel : true,
                 streetViewControl : false,
-                mapTypeId : google.maps.MapTypeId.ROADMAP
+                mapTypeId : mapTypeId != null ? mapTypeId : google.maps.MapTypeId.ROADMAP
             };
             if (hideControls){
                 options.disableDefaultUI = true;
             }
             var map = new google.maps.Map(document.getElementById(divId),options);
-            map.infoWindow = new google.maps.InfoWindow();
-            map.currentHighlightedLine = null;
-            map.highlightSection = null;
-            map.connectorSelected = null;
-            map.selectedMarker = null;
-            map.gpsPosiitons = [];
-            map.gpsTimestamps = [];
-            map.gpsAccuracies = [];
-            map.polylines = {};
-            map.gpsBounds = null;
-            map.markers = {};
+            map.reset = function(){
+                if (map.infoWindow == null){//brand new map, initialize
+                    map.infoWindow = new google.maps.InfoWindow();
+                }
+                else{//old map, remove everything!
+                    for (var i = 0, li = map.markerList.length; i < li; i++){
+                        map.markerList[i].setMap(null);
+                    }
+                    if (map.gpsLine != null)
+                        map.gpsLine.setMap(null);
+                    for (var id in map.polylines){
+                        map.polylines[id].setMap(null);
+                    }
+                }
+                showNoGPSDisplay(map);
+                map.currentHighlightedLine = null;
+                map.highlightSection = null;
+                map.connectorSelected = null;
+                map.selectedMarker = null;
+                map.gpsPosiitons = [];
+                map.gpsTimestamps = [];
+                map.gpsAccuracies = [];
+                map.polylines = {};
+                map.gpsBounds = null;
+                map.markers = {};
+                map.markerList = [];
+                map.gpsLine = null;
+
+            }
+
+            map.reset();
+
+
             map.addGPSData = function(gpsData,clickable){addGPSData(map,gpsData,clickable)};
             map.addData = function(connectorData, connectorInfoId,clickable){return addData(map,connectorData, connectorInfoId,clickable)};
             map.addAlternativeGPSData = function(gpsData,connectorInfoId,clickable){addAlternativeGPSData(map,gpsData,connectorInfoId,clickable)};
@@ -606,7 +642,6 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             if (!hideControls){
                 createMapPositionControls(map);
             }
-            showNoGPSDisplay(map);
             return map;
         }
     }
