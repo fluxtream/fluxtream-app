@@ -55,6 +55,10 @@ define([],function(){
         return orientation >= 5 && orientation <= 8;
     }
 
+    function getNegationFactor(orientation){
+        return orientation >= 7 && orientation <= 8 ? -1 : 1;
+    }
+
     function doResize(){
         var container = $(".photoModalBody");
         var images = container.find(".carousel-inner img");
@@ -82,13 +86,13 @@ define([],function(){
                     if (ratio < cRatio){
                         image.width(cHeight);
                         image.height(cHeight / ratio);
-                        extraTransformations = "translateX(" + ((cHeight - cHeight / ratio) / 2) + "px)";
+                        extraTransformations = "translateX(" + getNegationFactor(orientation) * ((cHeight - cHeight / ratio) / 2) + "px)";
                     }
                     else{
                         image.width(cWidth * ratio);
                         image.height(cWidth);
-                        extraTransformations = "translateX(" + ((cWidth * ratio - cWidth) / 2) + "px)";
-                        extraTransformations += "translateY(" + ((cWidth * ratio - cWidth) / 2) + "px)";
+                        extraTransformations = "translateX(" + getNegationFactor(orientation) * ((cWidth * ratio - cWidth) / 2) + "px)";
+                        extraTransformations += "translateY(" + getNegationFactor(orientation) * ((cWidth * ratio - cWidth) / 2) + "px)";
 
                     }
 
@@ -118,8 +122,6 @@ define([],function(){
     $(window).resize(function(){
         $.doTimeout("photoUtilsResizeTimeout");
         $.doTimeout("photoUtilsResizeTImeout",100,doResize());
-
-
     });
 
 
