@@ -17,7 +17,7 @@ public class DigestModel {
 	public TimeBoundariesModel tbounds;
 	public SolarInfoModel solarInfo;
 	public int nApis;
-	public Set<String> updateNeeded = new HashSet<String>();
+	//public Set<String> updateNeeded = new HashSet<String>();
 	public boolean hasPictures;
 	public List<NotificationModel> notifications;
 	public Map<String,Collection> addresses;
@@ -47,7 +47,7 @@ public class DigestModel {
 	}
 	
 	public void setUpdateNeeded(String connectorName) {
-		updateNeeded.add(connectorName);
+		//updateNeeded.add(connectorName);
 	}
 	
 	public void hasData(String connectorName, boolean b) {

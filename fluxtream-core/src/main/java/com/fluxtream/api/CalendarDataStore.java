@@ -626,10 +626,10 @@ public class CalendarDataStore {
 			Connector connector, ObjectType objectType,
 			Collection<AbstractFacetVO<AbstractFacet>> facetCollection) {
 		digest.hasData(connector.getName(), facetCollection.size() > 0);
-		boolean needsUpdate = needsUpdate(apiKey, dayMetadata);
-        if (needsUpdate) {
-            digest.setUpdateNeeded(apiKey.getConnector().getName());
-        }
+        //boolean needsUpdate = needsUpdate(apiKey, dayMetadata);
+        //if (needsUpdate) {
+        //    digest.setUpdateNeeded(apiKey.getConnector().getName());
+        //}
         if (facetCollection instanceof ImageVOCollection) {
             digest.hasPictures = true;
         }

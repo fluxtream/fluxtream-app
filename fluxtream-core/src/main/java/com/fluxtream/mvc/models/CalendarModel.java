@@ -286,8 +286,15 @@ public class CalendarModel {
     }
 
     public void setWeekTimeUnit() {
+        LocalDate origFromDate = fromDate;
+
         timeUnit = TimeUnit.WEEK;
         fromDate = new LocalDate(fromDate.getYear(), fromDate.getMonthOfYear(), fromDate.getDayOfMonth())
                 .withDayOfWeek(TimeUtils.FIRST_DAY_OF_WEEK);
+        // Unfortunately, the above code returns the following week instead of the containing week for
+        // every day other than Sunday.  Check for this and decrement the week if needed.
+        if(fromDate.isAfter(origFromDate)) {
+            fromDate = fromDate.minusWeeks(1);
+        }
     }
 }
