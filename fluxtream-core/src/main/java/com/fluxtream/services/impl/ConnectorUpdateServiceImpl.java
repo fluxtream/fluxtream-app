@@ -86,7 +86,6 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
      */
     @Override
     public List<ScheduleResult> updateConnector(final ApiKey apiKey, boolean force){
-        System.out.println("updateConnector");
         List<ScheduleResult> scheduleResults = new ArrayList<ScheduleResult>();
 
         // if forcing an update (sync now), we actually want to flush the update requests
@@ -109,6 +108,12 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
                                                                                            : UpdateType.INITIAL_HISTORY_UPDATE);
             }
         }
+        long guestId=0;
+        if(apiKey !=null) {
+            guestId = apiKey.getGuestId();
+        }
+        System.out.println("updateConnector: guestId=" + guestId + ", apiKey=" + apiKey);
+
         return scheduleResults;
     }
 

@@ -35,21 +35,23 @@ define(["core/Tab",
     function setup(digest, calendarState,connectorEnabled,doneLoading) {
         digestData  = digest;
         App.fullHeight();
-        $("#the_map").empty();
         $("#mapFit").unbind("click");
 
         var bounds = null;
-        if (map != null)
-            bounds = map.getBounds();
-
         var addressToUse = {latitude:0,longitude:0};
         if (digest.addresses.ADDRESS_HOME != null && digest.addresses.ADDRESS_HOME.length != 0)
             addressToUse = digest.addresses.ADDRESS_HOME[0];
 
-        map = MapUtils.newMap(new google.maps.LatLng(addressToUse.latitude,addressToUse.longitude),16,"the_map",false);
-        map.setPreserveView(preserveView);
-        if (!map.isPreserveViewChecked())
-            bounds = map.getBounds();
+        if (map == null){//make new map
+            map = MapUtils.newMap(new google.maps.LatLng(addressToUse.latitude,addressToUse.longitude),16,"the_map",false);
+        }
+        else{//recycle old map
+            if (map.isPreserveViewChecked()){
+                bounds = map.getBounds();
+            }
+            map.reset();
+        }
+
 
         if (digest!=null && digest.cachedData!=null &&
             typeof(digest.cachedData["google_latitude-location"])!="undefined"
@@ -71,6 +73,10 @@ define(["core/Tab",
         showData(connectorEnabled);
         if (bounds != null){
             map.fitBounds(bounds,map.isPreserveViewChecked());
+        }
+        else{
+            map.setCenter(new google.maps.LatLng(addressToUse.latitude,addressToUse.longitude));
+            map.setZoom(16);
         }
         map.preserveViewCheckboxChanged = function(){
             preserveView = map.isPreserveViewChecked();

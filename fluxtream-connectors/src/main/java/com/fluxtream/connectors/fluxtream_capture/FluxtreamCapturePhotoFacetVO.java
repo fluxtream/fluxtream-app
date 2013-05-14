@@ -20,7 +20,10 @@ public class FluxtreamCapturePhotoFacetVO extends AbstractPhotoFacetVO<Fluxtream
 
     public Map<Integer, String> thumbnailUrls = new HashMap<Integer, String>(FluxtreamCapturePhotoFacet.NUM_THUMBNAILS);
     public SortedMap<Integer, Dimension> thumbnailSizes = new TreeMap<Integer, Dimension>();
-    public ImageOrientation imageOrientation;
+
+    public transient ImageOrientation imageOrientation;
+
+    public int orientation;
 
     @Override
     protected void fromFacet(final FluxtreamCapturePhotoFacet facet, final TimeInterval timeInterval, final GuestSettings settings) {
@@ -36,6 +39,7 @@ public class FluxtreamCapturePhotoFacetVO extends AbstractPhotoFacetVO<Fluxtream
             thumbnailSizes.put(i, facet.getThumbnailSize(i));
         }
         imageOrientation = facet.getOrientation();
+        orientation = imageOrientation.getId();
     }
 
     @Override
