@@ -56,6 +56,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             //$(".calendar-navigation-button").removeClass("disabled");
             $(".loading").hide();
         }
+        $(window).resize();
     }
 
     function handleError(msg) {

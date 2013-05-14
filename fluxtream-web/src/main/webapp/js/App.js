@@ -564,6 +564,7 @@ define(
             $(".carousel-inner div.item").removeClass("active");
             $(".carousel-inner #photo-"+photoId).addClass("active");
             $("#modal").modal("show");
+            $(window).resize();
         }
 
         function invalidPath() {
