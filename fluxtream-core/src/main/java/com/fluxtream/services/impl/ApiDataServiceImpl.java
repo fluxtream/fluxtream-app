@@ -251,7 +251,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 	@Override
 	@Transactional(readOnly = false)
 	public void eraseApiData(ApiKey apiKey) {
-        JPAUtils.execute(em, "apiUpdates.delete.byApiKey", apiKey.getGuestId(), apiKey.getConnector().value(), apiKey.getId());
+        JPAUtils.execute(em, "apiUpdates.delete.byApiKey", apiKey.getId());
 		if (!apiKey.getConnector().hasFacets())
 			return;
 		jpaDao.deleteAllFacets(apiKey);

@@ -384,17 +384,17 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
 
     @Override
     public ApiUpdate getLastUpdate(ApiKey apiKey) {
-        return JPAUtils.findUnique(em, ApiUpdate.class, "apiUpdates.last", apiKey.getGuestId(), apiKey.getConnector().value(), apiKey.getId());
+        return JPAUtils.findUnique(em, ApiUpdate.class, "apiUpdates.last", apiKey.getId());
     }
 
     @Override
     public ApiUpdate getLastSuccessfulUpdate(ApiKey apiKey) {
-        return JPAUtils.findUnique(em, ApiUpdate.class, "apiUpdates.last.successful.byApi", apiKey.getGuestId(), apiKey.getConnector().value(), apiKey.getId());
+        return JPAUtils.findUnique(em, ApiUpdate.class, "apiUpdates.last.successful.byApi", apiKey.getId());
     }
 
     @Override
     public List<ApiUpdate> getUpdates(ApiKey apiKey, final int pageSize, final int page) {
-        return JPAUtils.findPaged(em, ApiUpdate.class, "apiUpdates.last.paged", pageSize, page, apiKey.getGuestId(), apiKey.getConnector().value(), apiKey.getId());
+        return JPAUtils.findPaged(em, ApiUpdate.class, "apiUpdates.last.paged", pageSize, page, apiKey.getId());
     }
 
     @Override
@@ -402,7 +402,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
                                              int objectTypes) {
         if (objectTypes == -1)
             return getLastSuccessfulUpdate(apiKey);
-        return JPAUtils.findUnique(em, ApiUpdate.class, "apiUpdates.last.successful.byApiAndObjectTypes", apiKey.getGuestId(), apiKey.getConnector().value(), objectTypes, apiKey.getId());
+        return JPAUtils.findUnique(em, ApiUpdate.class, "apiUpdates.last.successful.byApiAndObjectTypes", objectTypes, apiKey.getId());
     }
 
     @Override
