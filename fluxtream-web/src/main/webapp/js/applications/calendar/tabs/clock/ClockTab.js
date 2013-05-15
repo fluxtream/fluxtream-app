@@ -329,7 +329,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                 color:color,
                 time: App.formatMinuteOfDay(minute)[0],
                 ampm: App.formatMinuteOfDay(minute)[1],
-                tooltipData:contents
+                tooltipData:contents,
+                showBodyTrackLinks: sourceName != null
             }));
             ttpdiv.css("position","absolute");
             ttpdiv.css("zIndex","100");
