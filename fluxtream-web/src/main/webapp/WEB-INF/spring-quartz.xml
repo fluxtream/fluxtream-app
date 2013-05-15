@@ -11,6 +11,7 @@
 				<ref bean="producerTrigger" />
 				<ref bean="consumerTrigger" />
                 <!--<ref bean="locationDatapointProcessorTrigger" />-->
+                <ref bean="cleanupCronTrigger" />
 			</list>
 		</property>
 	</bean>
@@ -28,6 +29,21 @@
         <!--<property name="targetMethod" value="processLocationDatapoints" />-->
         <!--<property name="concurrent" value="false" />-->
     <!--</bean>-->
+    <!-- Cron Trigger, run every 5 seconds -->
+
+    <bean id="cronTrigger"
+          class="org.springframework.scheduling.quartz.CronTriggerBean">
+        <property name="jobDetail" ref="cleanupJobDetail" />
+        <property name="cronExpression" value="0 0 0 * * ?" />
+    </bean>
+    <bean id="cleanup" class="com.fluxtream.updaters.quartz.Cleanup"/>
+    <bean id="cleanupJobDetail"
+          class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject" ref="cleanup" />
+        <property name="targetMethod" value="doCleanup" />
+        <property name="concurrent" value="false" />
+    </bean>
+
 
  	<bean id="producerTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
 		<property name="jobDetail" ref="producerJobDetail" />
