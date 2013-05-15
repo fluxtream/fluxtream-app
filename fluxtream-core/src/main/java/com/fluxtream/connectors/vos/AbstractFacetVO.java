@@ -78,7 +78,7 @@ public abstract class AbstractFacetVO<T extends AbstractFacet> {
 	}
 
     protected String getObjectTypeName(T facet) {
-        if (objectTypeNames.contains(facet.getClass()))
+        if (objectTypeNames.containsKey(facet.getClass()))
             return objectTypeNames.get(facet.getClass());
         String objectTypeName = facet.getClass().getAnnotation(ObjectTypeSpec.class).name();
         objectTypeNames.put(facet.getClass(), objectTypeName);

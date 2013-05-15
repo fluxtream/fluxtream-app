@@ -154,7 +154,6 @@
         <jsp:include page="tracker.jsp" />
     <%} catch(Throwable t){} } %>
     <script src="/static/js/bootstrap-2.0.2.min.js"></script>
-    <g:compress>
 		<script src="/static/js/jquery-ui-1.8.18.custom.min.js"></script>
 		<script src="/static/js/jquery.ui.sortable-1.8.2-bt-1.0.0.js"></script>
 		<script src="/static/tiny_mce-3.5b1/jquery.tinymce.js"></script>
@@ -170,10 +169,9 @@
 		<script src="/static/js/jqplot-plugins/jqplot.barRenderer.min.js"></script>
 		<script src="/static/js/raphael-2.1.0.js"></script>
 		<script src="/static/js/underscore-1.3.3-min.js"></script>
-		<script src="/static/js/backbone-0.9.2-min.js"></script>
+		<script src="/static/js/backbone-1.0.0-custom.1-min.js"></script>
         <script src="/static/js/jquery.ba-dotimeout-1.0.0.min.js"></script>
         <script src="/static/js/jquery.masonry-2.1.03.min.js"></script>
-	</g:compress>
 	
 	<!--  TODO: validate version numbers for these libs -->
 	<script src="/static/grapher4/grapher2.nocache.js"></script>

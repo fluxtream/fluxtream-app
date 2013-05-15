@@ -11,6 +11,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
             facets: {}
         },
         fitbit:{
+            device_name: "Fitbit",
             color: "#21b5cf",
             mapicon: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/aed-2.png",
             mapshadow: null,
@@ -73,6 +74,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
             }
         },
         withings:{
+            device_name:"Withings",
             color: "#16924e",
             mapicon: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/medicalstore.png",
             mapshadow: null,
@@ -185,6 +187,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
             }
         },
         bodymedia:{
+            device_name:"BodyMedia",
             color: "rgb(160, 67, 175)",
             mapicon: "http://maps.google.com/mapfiles/marker.png",
             mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
@@ -214,7 +217,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
         },
         flickr:{
             color: "rgb(255, 0, 132)",
-            mapicon: "http://maps.google.com/mapfiles/marker.png",
+            mapicon: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/photo.png",
             mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
             facets: {
                 photo:{
@@ -248,6 +251,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
             }
         },
         zeo:{
+            device_name:"Zeo",
             color: "rgb(255, 178, 0)",
             mapicon: "http://maps.google.com/mapfiles/marker.png",
             mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
@@ -326,14 +330,15 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
             }
         },
         mymee: {
+            device_name: "Mymee",
             filterLabel: "Mymee",
             color : "rgb(5,5,5)",
-            mapicon :new google.maps.MarkerImage("https://www.google.com/latitude/apps/static/red_measle.png",null,null,new google.maps.Point(5,5),null),
+            mapicon :"/" + FLX_RELEASE_NUMBER + "/images/mapicons/glasses.png",
             mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
             facets : {
                 observation : {
                     list : true,
-                    photos : false,
+                    photos : true,
                     map : true,
                     gps : false,
                     clock : ClockConfig.BODY_CATEGORY
@@ -341,20 +346,21 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
             }
         },
         fluxtream_capture:{
-                    filterLabel: "FluxtreamCap",
-                    color: "rgb(204, 204, 204)",
-                    mapicon: "http://maps.google.com/mapfiles/marker.png",
-                    mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
-                    facets: {
-                        photo:{
-                            list:true,
-                            photos: true,
-                            map: true,
-                            gps: false,
-                            clock: ClockConfig.SOCIAL_CATEGORY
-                        }
-                    }
+            device_name:"FluxtreamCapture",
+            filterLabel: "FluxtreamCap",
+            color: "rgb(204, 204, 204)",
+            mapicon: "http://maps.google.com/mapfiles/marker.png",
+            mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
+            facets: {
+                photo:{
+                    list:true,
+                    photos: true,
+                    map: true,
+                    gps: false,
+                    clock: ClockConfig.SOCIAL_CATEGORY
                 }
+            }
+        }
     }
 
 });
