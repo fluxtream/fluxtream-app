@@ -41,7 +41,7 @@
         <property name="targetObject" ref="producer" />
         <property name="targetMethod" value="scheduleIncrementalUpdates" />
         <property name="concurrent" value="false" />
-    </bean>
+    </bean> 
 
  	<bean id="consumerTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
 		<property name="jobDetail" ref="consumerJobDetail" />
