@@ -282,7 +282,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         var contents = facet.getDetails();
 
         showToolTip(tip_x,tip_y,offsetX,offsetY,contents,event.minuteOfDay,$(event.target).attr("stroke"),$(event.target).parent().parent(),
-                    markers[0] == null ? null : markers[0].getPosition(),App.getFacetConnector(facet.type));
+                    markers[0] == null ? null : markers[0].getPosition(),App.getFacetConfig(facet.type).device_name);
 	}
 
     function showToolTip(x,y, offX, offY,contents,minute,color,parent,gpsPos,sourceName){
@@ -402,7 +402,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             });
             $("#tooltipLoadBodyTrack").click(function(event){
                 event.preventDefault();
-                App.renderApp('bodytrack','/grapher/source/' + sourceName,{tbounds: {start:dayStart,end:dayEnd}});
+                App.renderApp('bodytrack','grapher/source/' + sourceName,{tbounds: {start:dayStart,end:dayEnd}});
             });
        });
 
