@@ -330,6 +330,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
             }
         },
         mymee: {
+            device_name: "Mymee",
             filterLabel: "Mymee",
             color : "rgb(5,5,5)",
             mapicon :new google.maps.MarkerImage("https://www.google.com/latitude/apps/static/red_measle.png",null,null,new google.maps.Point(5,5),null),
