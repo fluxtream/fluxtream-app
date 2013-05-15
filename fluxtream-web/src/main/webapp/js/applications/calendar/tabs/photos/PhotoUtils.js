@@ -55,13 +55,14 @@ define([],function(){
         return orientation >= 5 && orientation <= 8;
     }
 
+    function getNegationFactor(orientation){
+        return orientation >= 7 && orientation <= 8 ? -1 : 1;
+    }
+
     function doResize(){
         var container = $(".photoModalBody");
-        var cWidth = container.width();
-        var cHeight = container.height();
         var images = container.find(".carousel-inner img");
         var photoHolder = container.find(".photoHolder");
-        console.log(cWidth + "x" + cHeight);
         for (var i = 0, li = images.length; i < li; i++){
             var image = $(images[i]);
             var fullSizeImage = photoHolder.find("." + image.attr("fullsize"));
@@ -70,23 +71,41 @@ define([],function(){
                     setTimeout(function(){
                         doResize(image,fullSizeImage);
                     },100);
+                    return;
                 }
                 var container = $(".photoModalBody");
                 var cWidth = container.width();
                 var cHeight = container.height();
                 var ratio = fullSizeImage.width() / fullSizeImage.height();
+                var cRatio = cWidth / cHeight;
                 var orientation = image.attr("orientation");
                 image.css("max-height","none");
+                image.css("max-width","none");
                 var extraTransformations = "";
                 if (isSideways(orientation)){
-                    console.log("Blah!");
-                    image.width(cHeight);
-                    image.height(cHeight / ratio);
-                    extraTransformations = "translateX(" + ((cHeight - cHeight / ratio) / 2) + "px)";
+                    if (ratio < cRatio){
+                        image.width(cHeight);
+                        image.height(cHeight / ratio);
+                        extraTransformations = "translateX(" + getNegationFactor(orientation) * ((cHeight - cHeight / ratio) / 2) + "px)";
+                    }
+                    else{
+                        image.width(cWidth * ratio);
+                        image.height(cWidth);
+                        extraTransformations = "translateX(" + getNegationFactor(orientation) * ((cWidth * ratio - cWidth) / 2) + "px)";
+                        extraTransformations += "translateY(" + getNegationFactor(orientation) * ((cWidth * ratio - cWidth) / 2) + "px)";
+
+                    }
+
                 }
                 else{
-                    image.height(cHeight);
-                    image.width(ratio * cHeight);
+                    if (ratio < cRatio){
+                        image.height(cHeight);
+                        image.width(ratio * cHeight);
+                    }
+                    else{
+                        image.width(cWidth);
+                        image.height(cWidth / ratio);
+                    }
                 }
 
                 var fullTransformation = image.attr("transformations") + " " + extraTransformations;
@@ -103,8 +122,6 @@ define([],function(){
     $(window).resize(function(){
         $.doTimeout("photoUtilsResizeTimeout");
         $.doTimeout("photoUtilsResizeTImeout",100,doResize());
-
-
     });
 
 

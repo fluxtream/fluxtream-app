@@ -13,6 +13,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import com.fluxtream.Configuration;
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.auth.FlxUserDetails;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.OAuth2Helper;
@@ -47,6 +48,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional(readOnly=true)
 public class GuestServiceImpl implements GuestService {
+
+    static FlxLogger logger = FlxLogger.getLogger(GuestServiceImpl.class);
 
 	@Autowired
 	Configuration env;
@@ -387,14 +390,23 @@ public class GuestServiceImpl implements GuestService {
 			geoIpLookupService = new LookupService(dbLocation,
 					LookupService.GEOIP_MEMORY_CACHE);
 		}
-		Location ipLocation = geoIpLookupService.getLocation(ipAddress);
-        long time = System.currentTimeMillis();
+
         LocationFacet locationFacet = new LocationFacet(1);
+        long time = System.currentTimeMillis();
         locationFacet.guestId = guestId;
         locationFacet.timestampMs = time;
         locationFacet.start = time;
         locationFacet.end = time;
         locationFacet.guestId = guestId;
+
+        Location ipLocation = null;
+        try {
+    		ipLocation = geoIpLookupService.getLocation(ipAddress);
+        } catch (Throwable t) {
+            StringBuilder sb = new StringBuilder("module=web component=guestServiceImpl action=checkIn")
+                    .append(" guestId=").append(guestId).append(" message=" + t.getMessage());
+            logger.info(sb.toString());
+        }
 		if (ipLocation != null) {
             locationFacet.accuracy = 7000;
             locationFacet.latitude = ipLocation.latitude;
