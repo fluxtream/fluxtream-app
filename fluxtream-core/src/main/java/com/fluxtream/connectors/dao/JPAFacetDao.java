@@ -57,10 +57,9 @@ public class JPAFacetDao implements FacetDao {
             if (i>0) datesBuffer.append(",");
             datesBuffer.append("'").append(dates.get(i)).append("'");
         }
-        String queryString = "SELECT facet FROM " + facetName + " facet WHERE facet.guestId=? AND (facet.apiKeyId=? OR facet.apiKeyId IS NULL) AND facet.date IN (" + datesBuffer.toString() + ")";
+        String queryString = "SELECT facet FROM " + facetName + " facet WHERE facet.apiKeyId=? AND facet.date IN (" + datesBuffer.toString() + ")";
         final TypedQuery<? extends AbstractFacet> query = em.createQuery(queryString, AbstractFacet.class);
-        query.setParameter(1, apiKey.getGuestId());
-        query.setParameter(2, apiKey.getId());
+        query.setParameter(1, apiKey.getId());
         List<? extends AbstractFacet> found = query.getResultList();
         if (found!=null)
             facets.addAll(found);
@@ -101,12 +100,11 @@ public class JPAFacetDao implements FacetDao {
             Class<? extends AbstractFacet> facetClass = getFacetClass(apiKey.getConnector(), objectType);
             final String facetName = getEntityName(facetClass);
             final String additionalWhereClause = (tagFilter == null) ? "" : " AND (" + tagFilter.getWhereClause() + ")";
-            String queryString = "SELECT facet FROM " + facetName  + " facet WHERE facet.guestId=? AND (facet.apiKeyId=? OR facet.apiKeyId IS NULL) AND facet.start>=? AND facet.end<=?" + additionalWhereClause;
+            String queryString = "SELECT facet FROM " + facetName  + " facet WHERE facet.apiKeyId=? AND facet.start>=? AND facet.end<=?" + additionalWhereClause;
             final TypedQuery<AbstractFacet> query = em.createQuery(queryString, AbstractFacet.class);
-            query.setParameter(1, apiKey.getGuestId());
-            query.setParameter(2, apiKey.getId());
-            query.setParameter(3, timeInterval.start);
-            query.setParameter(4, timeInterval.end);
+            query.setParameter(1, apiKey.getId());
+            query.setParameter(2, timeInterval.start);
+            query.setParameter(3, timeInterval.end);
             List<AbstractFacet> facets = query.getResultList();
             return facets;
         }
@@ -330,20 +328,18 @@ public class JPAFacetDao implements FacetDao {
 
     private List<? extends AbstractFacet> getAllFacets(final ApiKey apiKey, final Class<? extends AbstractFacet> facetClass) {
         final String facetName = getEntityName(facetClass);
-        String queryString = "SELECT facet FROM " + facetName + " facet WHERE facet.guestId=? AND (facet.apiKeyId=? OR facet.apiKeyId IS NULL)";
+        String queryString = "SELECT facet FROM " + facetName + " facet WHERE facet.apiKeyId=?";
         final TypedQuery<? extends AbstractFacet> query = em.createQuery(queryString, AbstractFacet.class);
-        query.setParameter(1, apiKey.getGuestId());
-        query.setParameter(2, apiKey.getId());
+        query.setParameter(1, apiKey.getId());
         List<? extends AbstractFacet> found = query.getResultList();
         return found;
     }
 
     private void bulkDeleteFacets(final ApiKey apiKey, final Class<? extends AbstractFacet> facetClass) {
         final String facetName = getEntityName(facetClass);
-        String stmtString = "DELETE FROM " + facetName + " facet WHERE facet.guestId=? AND (facet.apiKeyId=? OR facet.apiKeyId IS NULL)";
+        String stmtString = "DELETE FROM " + facetName + " facet WHERE facet.apiKeyId=?";
         final Query query = em.createQuery(stmtString);
-        query.setParameter(1, apiKey.getGuestId());
-        query.setParameter(2, apiKey.getId());
+        query.setParameter(1, apiKey.getId());
         query.executeUpdate();
     }
 

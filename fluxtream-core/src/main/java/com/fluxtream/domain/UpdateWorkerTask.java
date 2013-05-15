@@ -15,28 +15,23 @@ import org.hibernate.annotations.Index;
                 "WHERE updt.guestId=?"),
     @NamedQuery( name = "updateWorkerTasks.cleanup.byApi",
                  query = "DELETE FROM UpdateWorkerTask updt " +
-                         "WHERE updt.guestId=? " +
-                         "AND ((updt.connectorName=? AND updt.apiKeyId IS NULL) OR updt.apiKeyId=?) " +
+                         "WHERE updt.apiKeyId=? " +
                          "AND updt.status>1 " +
                          "AND updt.updateType!=?"),
 	@NamedQuery( name = "updateWorkerTasks.delete.byApi",
 		query = "DELETE FROM UpdateWorkerTask updt " +
-                "WHERE updt.guestId=? " +
-                "AND ((updt.connectorName=? AND updt.apiKeyId iS NULL) OR updt.apiKeyId=?) " +
+                "WHERE updt.apiKeyId=? " +
                 "AND updt.updateType!=?"),
     @NamedQuery( name = "updateWorkerTasks.deleteAll.byApi",
                  query = "DELETE FROM UpdateWorkerTask updt " +
-                         "WHERE updt.guestId=? " +
-                         "AND ((updt.connectorName=? AND updt.apiKeyId iS NULL) OR updt.apiKeyId=?)"),
+                         "WHERE updt.apiKeyId=?"),
     @NamedQuery( name = "updateWorkerTasks.deleteAll.byApiAndObjectType",
                  query = "DELETE FROM UpdateWorkerTask updt " +
-                         "WHERE updt.guestId=? " +
-                         "AND ((updt.connectorName=? AND updt.apiKeyId iS NULL) OR updt.apiKeyId=?) " +
+                         "WHERE updt.apiKeyId=? " +
                          "AND updt.objectTypes=?"),
     @NamedQuery( name = "updateWorkerTasks.delete.byApiAndObjectType",
 		query = "DELETE FROM UpdateWorkerTask updt " +
-                "WHERE updt.guestId=? " +
-                "AND ((updt.connectorName=? AND updt.apiKeyId iS NULL) OR updt.apiKeyId=?) " +
+                "WHERE updt.apiKeyId=? " +
                 "AND updt.objectTypes=?" +
                 "AND updt.updateType!=?"),
 	@NamedQuery( name = "updateWorkerTasks.byStatus",
@@ -49,36 +44,32 @@ import org.hibernate.annotations.Index;
                 "WHERE (updt.status=0 " +
                     "OR updt.status=1) " +
                 "AND updt.guestId=? " +
-                "AND ((updt.connectorName=? AND updt.apiKeyId iS NULL) OR updt.apiKeyId=?)"),
+                "AND updt.apiKeyId=?"),
     @NamedQuery( name = "updateWorkerTasks.withObjectTypes.isScheduled",
 		query = "SELECT updt FROM UpdateWorkerTask updt " +
                 "WHERE (updt.status=? OR updt.status=?) " +
-                "AND updt.guestId=? " +
-			    "AND updt.objectTypes=? AND ((updt.connectorName=? AND updt.apiKeyId iS NULL) OR updt.apiKeyId=?) " +
+			    "AND updt.objectTypes=? AND updt.apiKeyId=? " +
                 "ORDER BY updt.timeScheduled DESC"),
 	@NamedQuery( name = "updateWorkerTasks.completed",
 		query = "SELECT updt FROM UpdateWorkerTask updt " +
                 "WHERE updt.status=? " +
-				"AND updt.guestId=? " +
 				"AND updt.updateType=? " +
                 "AND updt.objectTypes=? " +
-				"AND ((updt.connectorName=? AND updt.apiKeyId iS NULL) OR updt.apiKeyId=?)"),
+				"AND updt.apiKeyId=?"),
     @NamedQuery( name = "updateWorkerTasks.isInProgressOrScheduledBefore",
         query = "SELECT updt FROM UpdateWorkerTask updt " +
                 "WHERE (updt.status=1 " +
                     "OR (updt.status=0 " +
                         "AND updt.timeScheduled<?1))" +
-                "AND updt.guestId=?2 " +
-                "AND updt.serverUUID IN (?3) " +
-                "AND ((updt.connectorName=?4 AND updt.apiKeyId IS NULL) OR updt.apiKeyId=?5) "),
+                "AND updt.serverUUID IN (?2) " +
+                "AND updt.apiKeyId=?3 "),
     @NamedQuery( name = "updateWorkerTasks.getLastFinishedTask",
         query = "SELECT updt FROM UpdateWorkerTask updt " +
                 "WHERE updt.timeScheduled<? " +
                 "AND (updt.status=2 " +
                     "OR updt.status=3 " +
                     "OR updt.status=4) " +
-                "AND updt.guestId=? " +
-                "AND ((updt.connectorName=? AND updt.apiKeyId iS NULL) OR updt.apiKeyId=?) " +
+                "AND updt.apiKeyId=? " +
                 "ORDER BY updt.timeScheduled DESC")
 })
 public class UpdateWorkerTask extends AbstractEntity {

@@ -22,18 +22,16 @@ import org.hibernate.annotations.Type;
 		query = "SELECT COUNT(updt) FROM ApiUpdates updt WHERE updt.guestId=? AND updt.api=?"),
 	@NamedQuery(name = "apiUpdates.delete.all",
 		query = "DELETE FROM ApiUpdates updt WHERE updt.guestId=?"),
-	@NamedQuery(name = "apiUpdates.delete.byApiKeyAndObjectTypes",
-		query = "DELETE FROM ApiUpdates updt WHERE updt.guestId=? AND updt.api=? AND (updt.apiKeyId=? OR updt.apiKeyId IS NULL) AND updt.objectTypes=?"),
 	@NamedQuery(name = "apiUpdates.delete.byApiKey",
-		query = "DELETE FROM ApiUpdates updt WHERE updt.guestId=? AND updt.api=? AND (updt.apiKeyId=? OR updt.apiKeyId IS NULL)"),
+		query = "DELETE FROM ApiUpdates updt WHERE updt.apiKeyId=?"),
     @NamedQuery( name="apiUpdates.last.paged",
-                 query="SELECT updt FROM ApiUpdates updt WHERE updt.guestId=? and updt.api=? AND (updt.apiKeyId=? OR updt.apiKeyId IS NULL) ORDER BY updt.ts DESC"),
+                 query="SELECT updt FROM ApiUpdates updt WHERE updt.apiKeyId=? ORDER BY updt.ts DESC"),
     @NamedQuery( name="apiUpdates.last",
-		query="SELECT updt FROM ApiUpdates updt WHERE updt.guestId=? and updt.api=? AND (updt.apiKeyId=? OR updt.apiKeyId IS NULL) ORDER BY updt.ts DESC LIMIT 10"),
+		query="SELECT updt FROM ApiUpdates updt WHERE updt.apiKeyId=? ORDER BY updt.ts DESC LIMIT 10"),
 	@NamedQuery( name="apiUpdates.last.successful.byApi",
-		query="SELECT updt FROM ApiUpdates updt WHERE updt.guestId=? and updt.api=? AND (updt.apiKeyId=? OR updt.apiKeyId IS NULL) and updt.success=true ORDER BY updt.ts DESC"),
+		query="SELECT updt FROM ApiUpdates updt WHERE updt.apiKeyId=? and updt.success=true ORDER BY updt.ts DESC"),
 	@NamedQuery( name="apiUpdates.last.successful.byApiAndObjectTypes",
-		query="SELECT updt FROM ApiUpdates updt WHERE updt.guestId=? and updt.api=? AND (updt.apiKeyId=? OR updt.apiKeyId IS NULL) and updt.objectTypes=? and updt.success=true ORDER BY updt.ts DESC")})
+		query="SELECT updt FROM ApiUpdates updt WHERE updt.apiKeyId=? and updt.objectTypes=? and updt.success=true ORDER BY updt.ts DESC")})
 public class ApiUpdate extends AbstractEntity {
 
     /**
