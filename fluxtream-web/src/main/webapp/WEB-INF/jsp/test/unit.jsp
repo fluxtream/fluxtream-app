@@ -15,7 +15,7 @@
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
     <script src="${pageContext.request.contextPath}/static/js/hogan-2.0.0.js"></script>
     <script src="${pageContext.request.contextPath}/static/js/underscore-1.3.3-min.js"></script>
-    <script src="${pageContext.request.contextPath}/static/js/backbone-0.9.2-min.js"></script>
+    <script src="${pageContext.request.contextPath}/static/js/backbone-1.0.0-custom.1-min.js"></script>
     <script data-main="/${release}/js/test.js" src="${pageContext.request.contextPath}/static/js/require-1.0.3.js"></script>
     <!-- spec files -->
     <script src="/${release}/js/test/FlxStateSpec.js"></script>

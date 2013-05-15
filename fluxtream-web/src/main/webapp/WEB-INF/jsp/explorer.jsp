@@ -79,7 +79,7 @@
         <script src="/static/js/bootstrap-2.0.2.min.js"></script>
         <script src="/static/js/raphael-2.1.0.js"></script>
         <script src="/static/js/underscore-1.3.3-min.js"></script>
-        <script src="/static/js/backbone-0.9.2-min.js"></script>
+        <script src="/static/js/backbone-1.0.0-custom.1-min.js"></script>
     </g:compress>
 </body>
 </html>
