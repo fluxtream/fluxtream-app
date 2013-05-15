@@ -59,7 +59,6 @@ public class JPAFacetDao implements FacetDao {
         }
         String queryString = "SELECT facet FROM " + facetName + " facet WHERE facet.apiKeyId=? AND facet.date IN (" + datesBuffer.toString() + ")";
         final TypedQuery<? extends AbstractFacet> query = em.createQuery(queryString, AbstractFacet.class);
-        query.setParameter(1, apiKey.getGuestId());
         query.setParameter(2, apiKey.getId());
         List<? extends AbstractFacet> found = query.getResultList();
         if (found!=null)
