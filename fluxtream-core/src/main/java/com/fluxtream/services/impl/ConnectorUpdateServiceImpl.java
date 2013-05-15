@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.UUID;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
@@ -17,7 +18,6 @@ import com.fluxtream.connectors.updaters.UpdateInfo.UpdateType;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ApiNotification;
 import com.fluxtream.domain.ApiUpdate;
-import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.UpdateWorkerTask;
 import com.fluxtream.domain.UpdateWorkerTask.Status;
 import com.fluxtream.services.ApiDataService;
@@ -26,6 +26,7 @@ import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.SystemService;
 import com.fluxtream.utils.JPAUtils;
+import org.joda.time.DateTimeConstants;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -163,10 +164,13 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     @Override
     @Transactional(readOnly=false)
     public void cleanupStaleData() {
-        final List<Guest> allGuests = guestService.getAllGuests();
-        for (Guest guest : allGuests) {
-            cleanupStaleData(guest.getId());
-        }
+        long oneDayAgo = System.currentTimeMillis() - DateTimeConstants.MILLIS_PER_DAY;
+        final Query cleanupUpdateWorkerTasks = em.createNativeQuery(String.format("DELETE FROM UpdateWorkerTask WHERE not(status=2 AND updateType=2) and timeScheduled<%s", oneDayAgo));
+        final int updateWorkerTasksDeleted = cleanupUpdateWorkerTasks.executeUpdate();
+        System.out.println("deleted " + updateWorkerTasksDeleted + " UpdateWorkerTasks");
+        final Query cleanupApiUpdates = em.createNativeQuery(String.format("DELETE FROM ApiUpdates WHERE ts<%s", oneDayAgo));
+        final int apiUpdatesDeleted = cleanupApiUpdates.executeUpdate();
+        System.out.println("deleted " + apiUpdatesDeleted + " ApiUpdates");
     }
 
     /**
