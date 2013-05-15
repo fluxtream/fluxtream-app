@@ -338,7 +338,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
             facets : {
                 observation : {
                     list : true,
-                    photos : false,
+                    photos : true,
                     map : true,
                     gps : false,
                     clock : ClockConfig.BODY_CATEGORY
