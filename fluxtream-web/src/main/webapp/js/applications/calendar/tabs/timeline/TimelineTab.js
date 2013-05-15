@@ -6,6 +6,7 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
     var digest;
     var grapher = null;
     var connectorEnabled;
+    var channelStates = {};
 
     function connectorDisplayable(connector){
         return connector.channelNames.length != 0;
@@ -69,6 +70,9 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
     function setup(digest, timeUnit) {
         if (grapher !== null) {
             $(window).resize();
+            for (var connectorName in connectorEnabled){
+                connectorToggled(connectorName,null,connectorEnabled[connectorName]);
+            }
             return;
         }
         grapher = new Grapher($("#timelineTabContainer"), {onLoadActions: [function() {
@@ -89,20 +93,40 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
     }
 
     function connectorToggled(connectorName,objectTypeNames,enabled){
+
+        var found = false;
+
         $.each(digest.selectedConnectors, function(i, connector) {
             if (connectorName !== connector.connectorName) {
                 return true;
             }
+            found = true;
+            if (channelStates[connectorName] == null)
+                channelStates[connectorName] = {};
             var channels = connector.channelNames;
-            $.each(connector.channelNames, function(j, channelName) {
-                if (enabled) {
-                    grapher.addChannel(channelName);
-                } else {
-                    grapher.removeChannel(channelName);
-                }
-            });
+
+            for (var i = 0, li = channels.length; i < li; i++){
+                if (channelStates[connectorName][channels[i]] == null)
+                    channelStates[connectorName][channels[i]] = false;
+            }
+
+
             return false;
         });
+
+        if (!found){
+            enabled = false;
+        }
+        for (var channel in channelStates[connectorName]){
+            if (channelStates[connectorName][channel] === enabled)
+                continue;
+            if (enabled) {
+                grapher.addChannel(channel);
+            } else {
+                grapher.removeChannel(channel);
+            }
+            channelStates[connectorName][channel] = enabled;
+        }
     }
 
     timelineTab.initialized = false;
