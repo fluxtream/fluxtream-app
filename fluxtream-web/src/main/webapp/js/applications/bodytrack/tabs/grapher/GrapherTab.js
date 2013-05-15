@@ -1,10 +1,12 @@
-define(["core/Tab","core/grapher/Grapher"], function(Tab,Grapher) {
+define(["core/Tab","core/grapher/Grapher","core/FlxState"], function(Tab,Grapher,FlxState) {
 	
 	var grapherTab = new Tab("bodytrack", "grapher", "Candide Kemmler", "icon-film", true);
+    var currentView = null;
 
     var grapher = null;
 
     grapherTab.render = function(params){
+        currentView = null;
         tbounds = params.tbounds;
         this.getTemplate("text!applications/bodytrack/tabs/grapher/grapher.html", "grapher", function() {
             var sourceName = null;
@@ -25,7 +27,7 @@ define(["core/Tab","core/grapher/Grapher"], function(Tab,Grapher) {
     function setup(){
         if (grapher == null)
             grapher = new Grapher($("#grapherContainer"),
-                {showFullControls: true, showDeleteBtn: true, onLoadActions: [onGrapherLoad]});
+                {showFullControls: true, showDeleteBtn: true, onLoadActions: [onGrapherLoad], loadViewOverride: loadView});
         else
             onGrapherLoad();
     }
@@ -48,6 +50,7 @@ define(["core/Tab","core/grapher/Grapher"], function(Tab,Grapher) {
         if (viewLoad != null){
             var view = viewLoad;
             viewLoad = null;
+            currentView = view;
             grapher.loadView(view);
         }
         if (tbounds != null){
@@ -55,6 +58,19 @@ define(["core/Tab","core/grapher/Grapher"], function(Tab,Grapher) {
             tbounds = null;
         }
 
+    }
+
+    function loadView(viewId){
+        if (currentView == viewId)
+            return false;
+        if (viewId == null){
+            App.renderApp("bodytrack","grapher");
+            return false;
+        }
+        else{
+            App.renderApp("bodytrack","grapher/view/" + viewId);
+            return true;
+        }
     }
 
 	return grapherTab;

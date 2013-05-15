@@ -14,6 +14,8 @@ define(["core/grapher/BTCore"], function(BTCore) {
             grapher[param] = options[param];
         if (grapher.onLoadActions == null)
             grapher.onLoadActions = [];
+        if (grapher.loadViewOverride == null)
+            grapher.loadViewOverride = function(){return false;}
         if (grapher.loaded != null || grapher.onLoad != null)
             console.log("grapher.loaded and grapher.onLoad should not be set with options to constructor");
         grapher.loaded = false;
@@ -525,6 +527,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
     }
 
     Grapher.prototype.newView = function(start, end) {
+        if (this.loadViewOverride(null)) return;
         if (start == null || end == null){
             end = new Date().getTime()/1000.0;
             start = end - 86400;
@@ -551,6 +554,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
     }
 
     Grapher.prototype.loadView = function(id, mode, callback) {
+        if (this.loadViewOverride(id)) return;
         $("#" + this.grapherId + "_timeline_save_view_btn").addClass("disabled");
         var grapher = this;
         VIEWS.load(id, function(data) {
