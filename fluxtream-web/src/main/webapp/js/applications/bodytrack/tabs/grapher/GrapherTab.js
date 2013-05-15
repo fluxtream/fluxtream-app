@@ -8,8 +8,8 @@ define(["core/Tab","core/grapher/Grapher"], function(Tab,Grapher) {
         tbounds = params.tbounds;
         this.getTemplate("text!applications/bodytrack/tabs/grapher/grapher.html", "grapher", function() {
             var sourceName = null;
-            if (params.stateParts != null && params.stateParts.length == 4 && params.stateParts[2] == "source") {
-                srcLoad = params.stateParts[3];
+            if (params.stateParts != null && params.stateParts.length == 2 && params.stateParts[0] == "source") {
+                srcLoad = params.stateParts[1];
             }
             if (params.stateParts != null && params.stateParts.length == 2 && params.stateParts[0] == "view"){
                 viewLoad = params.stateParts[1];

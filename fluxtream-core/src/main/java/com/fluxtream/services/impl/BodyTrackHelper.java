@@ -329,6 +329,43 @@ public class BodyTrackHelper {
             // TODO: check statusCode in DataStoreExecutionResult
             ChannelInfoResponse infoResponse = gson.fromJson(result,ChannelInfoResponse.class);
 
+            final Map<String, TimeInterval> photoChannelTimeRanges = photoService.getPhotoChannelTimeRanges(uid, null);
+            if (!photoChannelTimeRanges.isEmpty()) {
+                final double defaultTimeForNullTimeIntervals = System.currentTimeMillis() / 1000;
+
+                for (final String channelName : photoChannelTimeRanges.keySet()) {
+                    final ChannelSpecs channelSpecs = new ChannelSpecs();
+                    final TimeInterval timeInterval = photoChannelTimeRanges.get(channelName);
+
+                    // mark this channel as a photo channel so that the grapher can properly render it as a photo channel
+                    channelSpecs.channelType = PhotoService.DEFAULT_PHOTOS_CHANNEL_NAME;
+                    final String[] connectorNameAndObjectTypeName = channelName.split("\\.");
+                    if (connectorNameAndObjectTypeName.length > 1) {
+                        channelSpecs.objectTypeName = connectorNameAndObjectTypeName[1];
+                    }
+
+                    channelSpecs.channel_bounds = new ChannelBounds();
+                    if (timeInterval == null) {
+                        channelSpecs.channel_bounds.min_time = defaultTimeForNullTimeIntervals;
+                        channelSpecs.channel_bounds.max_time = defaultTimeForNullTimeIntervals;
+                    }
+                    else {
+                        channelSpecs.channel_bounds.min_time = timeInterval.start / 1000;
+                        channelSpecs.channel_bounds.max_time = timeInterval.end / 1000;
+                    }
+                    channelSpecs.channel_bounds.min_value = .6;
+                    channelSpecs.channel_bounds.max_value = 1;
+
+                    infoResponse.channel_specs.put(channelName, channelSpecs);
+
+                    if (timeInterval != null) {
+                        // update the min/max times in ChannelInfoResponse and in the All photos channel
+                        infoResponse.min_time = Math.min(infoResponse.min_time, channelSpecs.channel_bounds.min_time);
+                        infoResponse.max_time = Math.max(infoResponse.max_time, channelSpecs.channel_bounds.max_time);
+                    }
+                }
+            }
+
             SourceInfo response = new SourceInfo(infoResponse,deviceName);
 
             return gson.toJson(response);
