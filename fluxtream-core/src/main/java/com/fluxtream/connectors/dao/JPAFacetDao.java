@@ -59,7 +59,7 @@ public class JPAFacetDao implements FacetDao {
         }
         String queryString = "SELECT facet FROM " + facetName + " facet WHERE facet.apiKeyId=? AND facet.date IN (" + datesBuffer.toString() + ")";
         final TypedQuery<? extends AbstractFacet> query = em.createQuery(queryString, AbstractFacet.class);
-        query.setParameter(2, apiKey.getId());
+        query.setParameter(1, apiKey.getId());
         List<? extends AbstractFacet> found = query.getResultList();
         if (found!=null)
             facets.addAll(found);
@@ -102,9 +102,9 @@ public class JPAFacetDao implements FacetDao {
             final String additionalWhereClause = (tagFilter == null) ? "" : " AND (" + tagFilter.getWhereClause() + ")";
             String queryString = "SELECT facet FROM " + facetName  + " facet WHERE facet.apiKeyId=? AND facet.start>=? AND facet.end<=?" + additionalWhereClause;
             final TypedQuery<AbstractFacet> query = em.createQuery(queryString, AbstractFacet.class);
-            query.setParameter(2, apiKey.getId());
-            query.setParameter(3, timeInterval.start);
-            query.setParameter(4, timeInterval.end);
+            query.setParameter(1, apiKey.getId());
+            query.setParameter(2, timeInterval.start);
+            query.setParameter(3, timeInterval.end);
             List<AbstractFacet> facets = query.getResultList();
             return facets;
         }
@@ -330,7 +330,7 @@ public class JPAFacetDao implements FacetDao {
         final String facetName = getEntityName(facetClass);
         String queryString = "SELECT facet FROM " + facetName + " facet WHERE facet.apiKeyId=?";
         final TypedQuery<? extends AbstractFacet> query = em.createQuery(queryString, AbstractFacet.class);
-        query.setParameter(2, apiKey.getId());
+        query.setParameter(1, apiKey.getId());
         List<? extends AbstractFacet> found = query.getResultList();
         return found;
     }
@@ -339,7 +339,7 @@ public class JPAFacetDao implements FacetDao {
         final String facetName = getEntityName(facetClass);
         String stmtString = "DELETE FROM " + facetName + " facet WHERE facet.apiKeyId=?";
         final Query query = em.createQuery(stmtString);
-        query.setParameter(2, apiKey.getId());
+        query.setParameter(1, apiKey.getId());
         query.executeUpdate();
     }
 
