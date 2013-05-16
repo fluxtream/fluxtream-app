@@ -333,7 +333,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
             device_name: "Mymee",
             filterLabel: "Mymee",
             color : "rgb(5,5,5)",
-            mapicon :"/" + FLX_RELEASE_NUMBER + "/images/mapicons/glasses.png",
+            mapicon :"/" + FLX_RELEASE_NUMBER + "/images/mapicons/mymee.png",
             mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
             facets : {
                 observation : {
