@@ -514,6 +514,14 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                             newFacet[member] = data[member];
                         }
                         break;
+                    case "averageHeartRate":
+                        newFacet[member] = data[member];
+                        newFacet.showHeartRate = newFacet[member] != 0;
+                        break;
+                    case "total_climb":
+                        newFacet[member] = data[member];
+                        newFacet.showClimb = newFacet[member] != 0;
+                        break;
                     default:
                         newFacet[member] = data[member];
                 }

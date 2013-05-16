@@ -15,7 +15,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
         if (grapher.onLoadActions == null)
             grapher.onLoadActions = [];
         if (grapher.loadViewOverride == null)
-            grapher.loadViewOverride = function(){return false;}
+            grapher.loadViewOverride = function(){return false;};
         if (grapher.loaded != null || grapher.onLoad != null)
             console.log("grapher.loaded and grapher.onLoad should not be set with options to constructor");
         grapher.loaded = false;
@@ -123,17 +123,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     }
                 }
             }
-            SOURCES.initialized = true
-            if (grapher.onLoad != null) {
-                var onload = grapher.onLoad;
-                grapher.onLoad = null;
-                onload();
-                $.doTimeout(1000, function() {
-                    $.ajax("/api/timezones/mapping", {success: function(mapping) {
-                        grapher.dateAxis.setTimeZoneMapping(mapping);
-                    }});
-                });
-            }
+            SOURCES.initialized = true;
         });
 
         // Make the channel list sortable
@@ -1678,8 +1668,8 @@ define(["core/grapher/BTCore"], function(BTCore) {
 
     Grapher.prototype.getCurrentTimeUnit = function(){
         var range = this.dateAxis.getMax() - this.dateAxis.getMin();
-        if (range > 364 * 24 * 3600)
-            return "year";
+        //if (range > 364 * 24 * 3600)   Temporarily disabled
+        //    return "year";
         if (range > 27 * 24 * 3600)
             return "month";
         if (range > 6 * 24 * 3600)
@@ -2835,6 +2825,24 @@ define(["core/grapher/BTCore"], function(BTCore) {
         APP.init(function() {
             init(grapher, function() {
                 grapher.newView();
+
+                var finishLoading = function(){
+                    if (SOURCES.initialized){
+                        if (grapher.onLoad != null) {
+                            var onload = grapher.onLoad;
+                            grapher.onLoad = null;
+                            onload();
+                        }
+                        $.ajax("/api/timezones/mapping", {success: function(mapping) {
+                            grapher.dateAxis.setTimeZoneMapping(mapping);
+                        }});
+                    }
+                    else{
+                        $.doTimeout(100,finishLoading);
+                    }
+                }
+
+                finishLoading();
             });
         });
     }

@@ -106,7 +106,6 @@ public class WithingsFacetExtractor extends AbstractFacetExtractor {
 					facets.add(bpmFacet);
 				}
 			} else {
-                System.out.println("weight");
                 if (objectType==ObjectType.getObjectType(connector(), "weight"))
 					facets.add(facet);
 			}

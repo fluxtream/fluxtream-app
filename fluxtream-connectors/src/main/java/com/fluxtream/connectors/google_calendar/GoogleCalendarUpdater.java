@@ -24,7 +24,7 @@ import org.springframework.stereotype.Component;
 @JsonFacetCollection(GoogleCalendarFacetVOCollection.class)
 public class GoogleCalendarUpdater extends AbstractGoogleOAuthUpdater {
 
-    private static final FlxLogger LOG = FlxLogger.getLogger(GoogleCalendarUpdater.class);
+    private static final FlxLogger logger = FlxLogger.getLogger(GoogleCalendarUpdater.class);
 
     @Override
     protected void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception {
@@ -33,9 +33,12 @@ public class GoogleCalendarUpdater extends AbstractGoogleOAuthUpdater {
 
     @Override
     public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
-        loadHistory(updateInfo,
-                    updateInfo.timeInterval.start,
-                    updateInfo.timeInterval.end);
+        if (updateInfo.timeInterval==null) {
+            logger.warn("module=updateQueue component=googleCalendarUpdater action=updateConnectorData message=\"attempt to update connector data with a null timeInterval\"");
+        } else
+            loadHistory(updateInfo,
+                        updateInfo.timeInterval.start,
+                        updateInfo.timeInterval.end);
     }
 
     private void loadHistory(UpdateInfo updateInfo, long from, long to) throws Exception {
@@ -85,14 +88,14 @@ public class GoogleCalendarUpdater extends AbstractGoogleOAuthUpdater {
                         apiDataService.cacheApiDataObject(updateInfo, -1, -1, payload);
                     }
                     else {
-                        if (LOG.isEnabledFor(Level.ERROR)) {
-                            LOG.error("GoogleCalendarUpdater.loadHistory(): CalendarEventEntry times is empty for event [" + calendarEventEntry.getTitle().getPlainText() + "]");
+                        if (logger.isEnabledFor(Level.ERROR)) {
+                            logger.error("GoogleCalendarUpdater.loadHistory(): CalendarEventEntry times is empty for event [" + calendarEventEntry.getTitle().getPlainText() + "]");
                         }
                     }
                 }
                 else {
-                    if (LOG.isEnabledFor(Level.ERROR)) {
-                        LOG.error("GoogleCalendarUpdater.loadHistory(): CalendarEventEntry times is null for event [" + calendarEventEntry.getTitle().getPlainText());
+                    if (logger.isEnabledFor(Level.ERROR)) {
+                        logger.error("GoogleCalendarUpdater.loadHistory(): CalendarEventEntry times is null for event [" + calendarEventEntry.getTitle().getPlainText());
                     }
                 }
             }

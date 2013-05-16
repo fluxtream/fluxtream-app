@@ -50,6 +50,7 @@ public class FitbitWeightFacetExtractor extends AbstractFacetExtractor {
             super.extractCommonFacetData(facet, apiData);
 
             facet.date = (String) apiData.updateInfo.getContext("date");
+            facet.startTimeStorage = facet.endTimeStorage = noon(facet.date);
 
             if (fitbitWeightMeasurements.getJSONObject(i).containsKey("bmi"))
                 facet.bmi = fitbitWeightMeasurements.getJSONObject(i).getDouble("bmi");
@@ -69,7 +70,9 @@ public class FitbitWeightFacetExtractor extends AbstractFacetExtractor {
                 int day = Integer.valueOf(dateParts[2]);
                 Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
                 c.set(year, month-1, day, hours, minutes, seconds);
+                c.set(Calendar.MILLISECOND, 0);
                 facet.start = facet.end = c.getTimeInMillis();
+                facet.startTimeStorage = facet.endTimeStorage = toTimeStorage(year, month, day, hours, minutes, seconds);
             }
 
             facets.add(facet);
