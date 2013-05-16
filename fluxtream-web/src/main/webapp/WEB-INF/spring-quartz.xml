@@ -18,7 +18,7 @@
     <bean id="cleanupCronTrigger"
           class="org.springframework.scheduling.quartz.CronTriggerBean">
         <property name="jobDetail" ref="cleanupJobDetail" />
-        <property name="cronExpression" value="0 0 0 * * ?" />
+        <property name="cronExpression" value="0 0 * * * ?" />
     </bean>
     <bean id="cleanup" class="com.fluxtream.updaters.quartz.Cleanup"/>
     <bean id="cleanupJobDetail"

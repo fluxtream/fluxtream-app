@@ -690,14 +690,14 @@ public class ApiDataServiceImpl implements ApiDataService {
                 if (entityName.startsWith("Facet_")) {
                     if (!JPAUtils.hasRelation(cls)) {
                         Query query = em
-                                .createNativeQuery("DELETE FROM " + entityName + " WHERE apiKeyId NOT IN (SELECT DISTINCT id from ApiKey);");
+                                .createNativeQuery("DELETE FROM " + entityName + " WHERE apiKeyId NOT IN (SELECT DISTINCT id from ApiKey) OR apiKeyId=0;");
                         final int i = query.executeUpdate();
                         StringBuilder sb = new StringBuilder("module=updateQueue component=apiDataServiceImpl action=deleteStaleData")
                                 .append(" facetTable=").append(entityName).append(" facetsDeleted=").append(i);
                         logger.info(sb.toString());
                     } else {
                         Query query = em
-                                .createNativeQuery("SELECT * FROM " + entityName + " WHERE apiKeyId NOT IN (SELECT DISTINCT id from ApiKey);", cls);
+                                .createNativeQuery("SELECT * FROM " + entityName + " WHERE apiKeyId NOT IN (SELECT DISTINCT id from ApiKey) OR apiKeyId=0;", cls);
                         final List<?extends AbstractFacet> facetsToDelete = query.getResultList();
                         final int i = facetsToDelete.size();
                         if (i>0) {
