@@ -138,14 +138,14 @@
                         <span class="flx-dataLabel">{{activityType}}</span>
                         <span class="flx-text">{{duration.hours}} <span class="flx-dataLabel">h</span> {{duration.minutes}} <span class="flx-dataLabel">min</span> {{duration.seconds}} <span class="flx-dataLabel">sec</span></span>
                     </div>
-                    <div>
+                    {{#showHeartRate}}<div>
                         <span class="flx-dataLabel">Avg. Heart Rate</span>
                         <span class="flx-text">{{averageHeartRate}} <span class="flx-dataLabel">bpm</span></span>
-                    </div>
-                    <div>
+                    </div>{{/showHeartRate}}
+                    {{#showClimb}}<div>
                         <span class="flx-dataLabel">Total Climb</span>
                         <span class="flx-text">{{total_climb}} <span class="flx-dataLabel">m</span></span>
-                    </div>
+                    </div>{{/showClimb}}
                 </div>
             </div>
             {{/facets}}
