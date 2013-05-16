@@ -8,6 +8,8 @@ import org.joda.time.format.DateTimeFormatter;
 public abstract class AbstractLocalTimeFacet extends AbstractFacet {
 
     public String date;
+    public String startTimeStorage;
+    public String endTimeStorage;
 
 	public static DateTimeFormatter timeStorageFormat = DateTimeFormat.forPattern(
 			"yyyy-MM-dd'T'HH:mm:ss.SSS");
