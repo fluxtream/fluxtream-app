@@ -123,17 +123,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     }
                 }
             }
-            SOURCES.initialized = true
-            if (grapher.onLoad != null) {
-                var onload = grapher.onLoad;
-                grapher.onLoad = null;
-                onload();
-                $.doTimeout(1000, function() {
-                    $.ajax("/api/timezones/mapping", {success: function(mapping) {
-                        grapher.dateAxis.setTimeZoneMapping(mapping);
-                    }});
-                });
-            }
+            SOURCES.initialized = true;
         });
 
         // Make the channel list sortable
@@ -2835,6 +2825,16 @@ define(["core/grapher/BTCore"], function(BTCore) {
         APP.init(function() {
             init(grapher, function() {
                 grapher.newView();
+                if (grapher.onLoad != null) {
+                    var onload = grapher.onLoad;
+                    grapher.onLoad = null;
+                    onload();
+                    $.doTimeout(1000, function() {
+                        $.ajax("/api/timezones/mapping", {success: function(mapping) {
+                            grapher.dateAxis.setTimeZoneMapping(mapping);
+                        }});
+                    });
+                }
             });
         });
     }
