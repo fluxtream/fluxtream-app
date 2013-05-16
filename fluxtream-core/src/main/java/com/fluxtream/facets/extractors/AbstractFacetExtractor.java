@@ -42,6 +42,16 @@ public abstract class AbstractFacetExtractor {
         return date + "T12:00:00.000";
     }
 
+    protected String toTimeStorage(int year, int month, int day, int hours,
+                                   int minutes, int seconds) {
+        //yyyy-MM-dd'T'HH:mm:ss.SSS
+        return (new StringBuilder()).append(year)
+                .append("-").append(pad(month)).append("-")
+                .append(pad(day)).append("T").append(pad(hours))
+                .append(":").append(pad(minutes)).append(":")
+                .append(pad(seconds)).append(".000").toString();
+    }
+
     protected static String pad(int i) {
         return i<10
                ? (new StringBuilder("0").append(i)).toString()
