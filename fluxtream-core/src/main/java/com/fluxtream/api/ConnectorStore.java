@@ -124,6 +124,7 @@ public class ConnectorStore {
                     connectorJson.accumulate("auditTrail", auditTrail!=null?auditTrail:"");
                     connectorJson.accumulate("syncing", checkIfSyncInProgress(guest.getId(), conn));
                     connectorJson.accumulate("channels", settingsService.getChannelsForConnector(guest.getId(), conn));
+                    connectorJson.accumulate("sticky", connector.connectorName.equals("fluxtream_capture"));
                     connectorsArray.add(connectorJson);
                 }
             }

@@ -54,8 +54,8 @@
                                 <p>{{latestData}}</p>
                                 <!-- <a href="javascript:App.renderApp('bodytrack','/grapher/source/{{name}}'); App.closeModal();" id="viewData-{{connectorName}}">View graph <i class="icon-bar-chart"></i></a><br/> -->
                             </td>
-                            <td class="remove" style="background:inherit">
-                                <a id="remove-{{connectorName}}" href="#"><i class="icon-trash"></i></a>
+                            <td class="remove" style="background:inherit" >
+                                <a {{#sticky}}style="display:none;"{{/sticky}} id="remove-{{connectorName}}" href="#"><i class="icon-trash"></i></a>
                             </td>
                         </tr>
                         {{/connectors}}
@@ -98,8 +98,8 @@
                                 <p>{{latestData}}</p>
                                 <!-- <a href="javascript:App.renderApp('bodytrack','/grapher/source/{{name}}'); App.closeModal();" id="viewData-{{connectorName}}">View graph <i class="icon-bar-chart"></i></a><br/> -->
                             </td>
-                            <td class="remove" style="background:inherit">
-                                <a id="remove-{{connectorName}}" href="#"><i class="icon-trash"></i></a>
+                            <td class="remove" style="background:inherit" >
+                                <a {{#sticky}}style="display:none;"{{/sticky}} id="remove-{{connectorName}}" href="#"><i class="icon-trash"></i></a>
                             </td>
                         </tr>
 </template>
@@ -132,7 +132,7 @@
         <!-- <a href="javascript:App.renderApp('bodytrack','/grapher/source/{{name}}'); App.closeModal();" id="viewData-{{connectorName}}">View graph <i class="icon-bar-chart"></i></a><br/> -->
     </td>
     <td class="remove" style="background:inherit">
-        <a id="remove-{{connectorName}}" href="#"><i class="icon-trash"></i></a>
+        <a {{#sticky}}style="display:none;"{{/sticky}} id="remove-{{connectorName}}" href="#"><i class="icon-trash"></i></a>
     </td>
     </tr>
 </template>
