@@ -16,6 +16,24 @@ CREATE PROCEDURE RestoreFitbitActivityLocalTimeStorage()
   END $$
 DELIMITER ;
 
+
+DELIMITER $$
+CREATE PROCEDURE RestoreFitbitLoggedActivitiesLocalTimeStorage()
+  BEGIN
+    DECLARE _count INT;
+    SET _count = (  SELECT COUNT(*)
+                    FROM INFORMATION_SCHEMA.COLUMNS
+                    WHERE   TABLE_NAME = 'Facet_FitbitLoggedActivity' AND
+                            COLUMN_NAME = 'startTimeStorage');
+    IF _count = 0 THEN
+      ALTER TABLE Facet_FitbitLoggedActivity
+      ADD COLUMN startTimeStorage varchar(255) DEFAULT NULL;
+      ALTER TABLE Facet_FitbitLoggedActivity
+      ADD COLUMN endTimeStorage varchar(255) DEFAULT NULL;
+    END IF;
+  END $$
+DELIMITER ;
+
 DELIMITER $$
 CREATE PROCEDURE RestoreFitbitSleepLocalTimeStorage()
   BEGIN
@@ -85,6 +103,7 @@ CREATE PROCEDURE RestoreZeoSleepStatsLocalTimeStorage()
 DELIMITER ;
 
 CALL RestoreFitbitActivityLocalTimeStorage();
+CALL RestoreFitbitLoggedActivitiesLocalTimeStorage();
 CALL RestoreFitbitSleepLocalTimeStorage();
 CALL RestoreFitbitWeightLocalTimeStorage();
 CALL RestoreFlickrPhotoLocalTimeStorage();
