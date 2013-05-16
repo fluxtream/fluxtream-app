@@ -2825,16 +2825,24 @@ define(["core/grapher/BTCore"], function(BTCore) {
         APP.init(function() {
             init(grapher, function() {
                 grapher.newView();
-                if (grapher.onLoad != null) {
-                    var onload = grapher.onLoad;
-                    grapher.onLoad = null;
-                    onload();
-                    $.doTimeout(1000, function() {
+
+                var finishLoading = function(){
+                    if (SOURCES.initialized){
+                        if (grapher.onLoad != null) {
+                            var onload = grapher.onLoad;
+                            grapher.onLoad = null;
+                            onload();
+                        }
                         $.ajax("/api/timezones/mapping", {success: function(mapping) {
                             grapher.dateAxis.setTimeZoneMapping(mapping);
                         }});
-                    });
+                    }
+                    else{
+                        $.doTimeout(100,finishLoading);
+                    }
                 }
+
+                finishLoading();
             });
         });
     }
