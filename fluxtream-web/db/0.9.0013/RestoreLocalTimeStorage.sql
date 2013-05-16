@@ -1,3 +1,9 @@
+DROP PROCEDURE IF EXISTS RestoreFitbitActivityLocalTimeStorage;
+DROP PROCEDURE IF EXISTS RestoreFitbitLoggedActivitiesLocalTimeStorage;
+DROP PROCEDURE IF EXISTS RestoreFitbitSleepLocalTimeStorage;
+DROP PROCEDURE IF EXISTS RestoreFitbitWeightLocalTimeStorage;
+DROP PROCEDURE IF EXISTS RestoreFlickrPhotoLocalTimeStorage;
+DROP PROCEDURE IF EXISTS RestoreZeoSleepStatsLocalTimeStorage;
 
 DELIMITER $$
 CREATE PROCEDURE RestoreFitbitActivityLocalTimeStorage()
@@ -5,7 +11,8 @@ CREATE PROCEDURE RestoreFitbitActivityLocalTimeStorage()
     DECLARE _count INT;
     SET _count = (  SELECT COUNT(*)
                     FROM INFORMATION_SCHEMA.COLUMNS
-                    WHERE   TABLE_NAME = 'Facet_FitbitActivity' AND
+                    WHERE   TABLE_SCHEMA = 'flx' AND
+                            TABLE_NAME = 'Facet_FitbitActivity' AND
                             COLUMN_NAME = 'startTimeStorage');
     IF _count = 0 THEN
       ALTER TABLE Facet_FitbitActivity
@@ -23,7 +30,8 @@ CREATE PROCEDURE RestoreFitbitLoggedActivitiesLocalTimeStorage()
     DECLARE _count INT;
     SET _count = (  SELECT COUNT(*)
                     FROM INFORMATION_SCHEMA.COLUMNS
-                    WHERE   TABLE_NAME = 'Facet_FitbitLoggedActivity' AND
+                    WHERE   TABLE_SCHEMA = 'flx' AND
+                            TABLE_NAME = 'Facet_FitbitLoggedActivity' AND
                             COLUMN_NAME = 'startTimeStorage');
     IF _count = 0 THEN
       ALTER TABLE Facet_FitbitLoggedActivity
@@ -40,7 +48,8 @@ CREATE PROCEDURE RestoreFitbitSleepLocalTimeStorage()
     DECLARE _count INT;
     SET _count = (  SELECT COUNT(*)
                     FROM INFORMATION_SCHEMA.COLUMNS
-                    WHERE   TABLE_NAME = 'Facet_FitbitSleep' AND
+                    WHERE   TABLE_SCHEMA = 'flx' AND
+                            TABLE_NAME = 'Facet_FitbitSleep' AND
                             COLUMN_NAME = 'startTimeStorage');
     IF _count = 0 THEN
       ALTER TABLE Facet_FitbitSleep
@@ -57,7 +66,8 @@ CREATE PROCEDURE RestoreFitbitWeightLocalTimeStorage()
     DECLARE _count INT;
     SET _count = (  SELECT COUNT(*)
                     FROM INFORMATION_SCHEMA.COLUMNS
-                    WHERE   TABLE_NAME = 'Facet_FitbitWeight' AND
+                    WHERE   TABLE_SCHEMA = 'flx' AND
+                            TABLE_NAME = 'Facet_FitbitWeight' AND
                             COLUMN_NAME = 'startTimeStorage');
     IF _count = 0 THEN
       ALTER TABLE Facet_FitbitWeight
@@ -74,7 +84,8 @@ CREATE PROCEDURE RestoreFlickrPhotoLocalTimeStorage()
     DECLARE _count INT;
     SET _count = (  SELECT COUNT(*)
                     FROM INFORMATION_SCHEMA.COLUMNS
-                    WHERE   TABLE_NAME = 'Facet_FlickrPhoto' AND
+                    WHERE   TABLE_SCHEMA = 'flx' AND
+                            TABLE_NAME = 'Facet_FlickrPhoto' AND
                             COLUMN_NAME = 'startTimeStorage');
     IF _count = 0 THEN
       ALTER TABLE Facet_FlickrPhoto
@@ -91,7 +102,8 @@ CREATE PROCEDURE RestoreZeoSleepStatsLocalTimeStorage()
     DECLARE _count INT;
     SET _count = (  SELECT COUNT(*)
                     FROM INFORMATION_SCHEMA.COLUMNS
-                    WHERE   TABLE_NAME = 'Facet_ZeoSleepStats' AND
+                    WHERE   TABLE_SCHEMA = 'flx' AND
+                            TABLE_NAME = 'Facet_ZeoSleepStats' AND
                             COLUMN_NAME = 'startTimeStorage');
     IF _count = 0 THEN
       ALTER TABLE Facet_ZeoSleepStats
