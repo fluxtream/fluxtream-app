@@ -44,10 +44,14 @@ public class FitbitSleepFacetExtractor extends AbstractFacetExtractor {
 			if (record.containsKey("minutesToFallAsleep"))
 				facet.minutesToFallAsleep = record
 						.getInt("minutesToFallAsleep");
+
             facet.date = (String) apiData.updateInfo.getContext("date");
             final long startTimeMillis = AbstractLocalTimeFacet.timeStorageFormat.withZoneUTC().parseMillis(startTime);
             facet.start = startTimeMillis;
             facet.end = startTimeMillis + duration;
+            facet.startTimeStorage = startTime;
+            final long endTimeMillis = startTimeMillis + duration;
+            facet.endTimeStorage = AbstractLocalTimeFacet.timeStorageFormat.withZoneUTC().print(endTimeMillis);
 
 			if (record.containsKey("awakeningsCount"))
 				facet.awakeningsCount = record.getInt("awakeningsCount");
@@ -60,15 +64,10 @@ public class FitbitSleepFacetExtractor extends AbstractFacetExtractor {
 		return facets;
 	}
 
-    private static String getDate(final String timeStr) {
-        int i = timeStr.indexOf("T");
-        return timeStr.substring(0, i);
-    }
-
     public static void main(final String[] args) {
         String s = "2012-11-07T03:13:00.000";
         final long startTimeMillis = AbstractLocalTimeFacet.timeStorageFormat.withZoneUTC().parseMillis(s);
-        long endTimeMillis = startTimeMillis;
+        long endTimeMillis = startTimeMillis+3600000;
         final String endTimeStorage = AbstractLocalTimeFacet.timeStorageFormat.withZoneUTC().print(endTimeMillis);
         System.out.println(startTimeMillis);
         System.out.println(endTimeStorage);
