@@ -20,7 +20,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
     var itemGroups;
     var list;
     var pagination;
-    var maxPerPage = 250;
+    var maxPerPage = 200;
     var currentPage = 0;
     var photoCarouselHTML;
     var timeZoneOffset;
@@ -184,7 +184,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
            var item = items[i];
            if (item.visible){
                visibleCount++;
-               if (visibleCount >= currentPage * maxPerPage && visibleCount <= (currentPage + 1) * maxPerPage){
+               if (visibleCount > currentPage * maxPerPage && visibleCount <= (currentPage + 1) * maxPerPage){
                     var facetDate = App.formatDate(item.facet.start  + timeZoneOffset,false,true);
                     if (currentArray.length == 0){
                         currentArray = [item.facet];
