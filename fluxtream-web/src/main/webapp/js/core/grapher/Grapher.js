@@ -15,7 +15,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
         if (grapher.onLoadActions == null)
             grapher.onLoadActions = [];
         if (grapher.loadViewOverride == null)
-            grapher.loadViewOverride = function(){return false;}
+            grapher.loadViewOverride = function(){return false;};
         if (grapher.loaded != null || grapher.onLoad != null)
             console.log("grapher.loaded and grapher.onLoad should not be set with options to constructor");
         grapher.loaded = false;
@@ -1678,8 +1678,8 @@ define(["core/grapher/BTCore"], function(BTCore) {
 
     Grapher.prototype.getCurrentTimeUnit = function(){
         var range = this.dateAxis.getMax() - this.dateAxis.getMin();
-        if (range > 364 * 24 * 3600)
-            return "year";
+        //if (range > 364 * 24 * 3600)   Temporarily disabled
+        //    return "year";
         if (range > 27 * 24 * 3600)
             return "month";
         if (range > 6 * 24 * 3600)
