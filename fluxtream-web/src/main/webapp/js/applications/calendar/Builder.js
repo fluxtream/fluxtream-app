@@ -136,6 +136,7 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
         }).appendTo(button);
         button.hide();
         $("#selectedConnectors").append(button);
+        return button;
     }
 
     function bindConnectorButtons(App, Calendar) {
@@ -260,6 +261,9 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
         }
         for (var i = 0; i < digest.selectedConnectors.length; i++){
             var button = $("#flx-connector-btn-" + digest.selectedConnectors[i].connectorName);
+            if (button.length == 0){
+                button = createConnectorButton(App,Calendar,digest.selectedConnectors[i]);
+            }
             if (Calendar.currentTab.connectorDisplayable(digest.selectedConnectors[i])){
                 button.show();
                 if (Calendar.currentTab.connectorsAlwaysEnabled()){
