@@ -381,10 +381,11 @@ public class ApiDataServiceImpl implements ApiDataService {
 			entityName = entityAnnotation.name();
 			facetEntityNames.put(facet.getClass().getName(), entityName);
 		}
-        Query query = em.createQuery("SELECT e FROM " + entityName + " e WHERE e.guestId=? AND e.start=? AND e.end=?");
+        Query query = em.createQuery("SELECT e FROM " + entityName + " e WHERE e.guestId=? AND e.start=? AND e.end=? AND e.apiKeyId=?");
 		query.setParameter(1, facet.guestId);
 		query.setParameter(2, facet.start);
 		query.setParameter(3, facet.end);
+        query.setParameter(4, facet.apiKeyId);
 		@SuppressWarnings("rawtypes")
 		List existing = query.getResultList();
 		if (existing.size()>0) {
