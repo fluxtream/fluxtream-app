@@ -15,7 +15,7 @@ import org.hibernate.search.annotations.Indexed;
 @Indexed
 public class WithingsHeartPulseMeasureFacet extends AbstractFacet {
 
-    public transient float heartPulse;
+    public float heartPulse;
 
     public WithingsHeartPulseMeasureFacet() {}
 
