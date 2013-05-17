@@ -31,10 +31,10 @@ public class ZeoRiseTimeFieldHandler implements FieldHandler {
         List<List<Object>> data = new ArrayList<List<Object>>();
         List<Object> record = new ArrayList<Object>();
         // Creating the array [time, riseTime_in_hours] to insert in datastore
-        record.add(facet.end);
+        record.add(((double)facet.end)/1000.0);
         record.add(((double)rtHour)+((double)rtMin)/60.0);
         data.add(record);
-        
+
         // TODO: check the status code in the BodyTrackUploadResult
         bodyTrackHelper.uploadToBodyTrack(guestId, "Zeo", Arrays.asList("riseTime"), data);
     }

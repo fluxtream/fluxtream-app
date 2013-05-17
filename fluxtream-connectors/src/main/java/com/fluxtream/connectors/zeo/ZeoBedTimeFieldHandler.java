@@ -31,10 +31,10 @@ public class ZeoBedTimeFieldHandler implements FieldHandler {
         List<List<Object>> data = new ArrayList<List<Object>>();
         List<Object> record = new ArrayList<Object>();
         // Creating the array [time, bedTime_in_hours] to insert in datastore
-        record.add(facet.start);
+        record.add(((double)facet.start)/1000.0);
         record.add(((double)stHour)+((double)stMin)/60.0);
         data.add(record);
-        
+
         // TODO: check the status code in the BodyTrackUploadResult
         bodyTrackHelper.uploadToBodyTrack(guestId , "Zeo", Arrays.asList("bedTime"), data);
     }
