@@ -461,10 +461,10 @@ public class BodyTrackController {
     @Produces({MediaType.APPLICATION_JSON})
     public String fetchTile(@PathParam("UID") Long uid, @PathParam("DeviceNickname") String deviceNickname,
                                    @PathParam("ChannelName") String channelName, @PathParam("Level") int level, @PathParam("Offset") long offset){
-        long loggedInUserId = AuthHelper.getGuestId();
-        boolean accessAllowed = checkForPermissionAccess(uid);
-        CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
         try{
+            long loggedInUserId = AuthHelper.getGuestId();
+            boolean accessAllowed = checkForPermissionAccess(uid);
+            CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
             if (!accessAllowed&&coachee==null){
                 uid = null;
             }
@@ -478,10 +478,10 @@ public class BodyTrackController {
     @Path("/users/{UID}/views")
     @Produces({MediaType.APPLICATION_JSON})
     public String getViews(@PathParam("UID") Long uid) {
-        long loggedInUserId = AuthHelper.getGuestId();
-        boolean accessAllowed = checkForPermissionAccess(uid);
-        CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
         try{
+            long loggedInUserId = AuthHelper.getGuestId();
+            boolean accessAllowed = checkForPermissionAccess(uid);
+            CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
             if (!accessAllowed&&coachee==null){
                 uid = null;
             }
@@ -496,11 +496,11 @@ public class BodyTrackController {
     @Path("/users/{UID}/views/{id}")
     @Produces({MediaType.APPLICATION_JSON})
     public String bodyTrackView(@PathParam("UID") Long uid, @PathParam("id") long id) {
-        long loggedInUserId = AuthHelper.getGuestId();
-        boolean accessAllowed = checkForPermissionAccess(uid);
-        CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
-
         try{
+            long loggedInUserId = AuthHelper.getGuestId();
+            boolean accessAllowed = checkForPermissionAccess(uid);
+            CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
+
             if (!accessAllowed && coachee==null) {
                 uid = null;
             }
@@ -516,11 +516,11 @@ public class BodyTrackController {
     @Path("/users/{UID}/views")
     @Produces({MediaType.APPLICATION_JSON})
     public String setView(@PathParam("UID") Long uid, @FormParam("name") String name, @FormParam("data") String data) {
-        long loggedInUserId = AuthHelper.getGuestId();
-        boolean accessAllowed = checkForPermissionAccess(uid);
-        CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
-
         try{
+            long loggedInUserId = AuthHelper.getGuestId();
+            boolean accessAllowed = checkForPermissionAccess(uid);
+            CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
+
             if (!accessAllowed && coachee==null) {
                 uid = null;
             }
@@ -535,14 +535,14 @@ public class BodyTrackController {
     @Path("/users/{UID}/sources/list")
     @Produces({MediaType.APPLICATION_JSON})
     public String getSourceList(@PathParam("UID") Long uid) {
-        final long loggedInUserId = AuthHelper.getGuestId();
-        boolean accessAllowed = checkForPermissionAccess(uid);
-        CoachingBuddy coachee = null;
-        if (!accessAllowed) {
-            coachee = coachingService.getCoachee(loggedInUserId, uid);
-            accessAllowed = (coachee!=null);
-        }
         try{
+            final long loggedInUserId = AuthHelper.getGuestId();
+            boolean accessAllowed = checkForPermissionAccess(uid);
+            CoachingBuddy coachee = null;
+            if (!accessAllowed) {
+                coachee = coachingService.getCoachee(loggedInUserId, uid);
+                accessAllowed = (coachee!=null);
+            }
             if (!accessAllowed){
                 uid = null;
             }
@@ -557,11 +557,11 @@ public class BodyTrackController {
     @Path(value = "/users/{UID}/sources/{source}/default_graph_specs")
     @Produces({MediaType.APPLICATION_JSON})
     public String bodyTrackGetDefaultGraphSpecs(@PathParam("UID") Long uid, @PathParam("source") String name) {
-        long loggedInUserId = AuthHelper.getGuestId();
-        boolean accessAllowed = checkForPermissionAccess(uid);
-        CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
-
         try{
+            long loggedInUserId = AuthHelper.getGuestId();
+            boolean accessAllowed = checkForPermissionAccess(uid);
+            CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
+
             if (!accessAllowed && coachee==null) {
                 uid = null;
             }
@@ -576,10 +576,10 @@ public class BodyTrackController {
     @Path(value = "/users/{UID}/tags")
     @Produces({MediaType.APPLICATION_JSON})
     public String getAllTagsForUser(@PathParam("UID") Long uid) {
-        long loggedInUserId = AuthHelper.getGuestId();
-        boolean accessAllowed = checkForPermissionAccess(uid);
-        CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
         try {
+            long loggedInUserId = AuthHelper.getGuestId();
+            boolean accessAllowed = checkForPermissionAccess(uid);
+            CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
             if (!accessAllowed && coachee == null) {
                 uid = null;
             }
@@ -617,13 +617,13 @@ public class BodyTrackController {
                                  @PathParam("Offset") long offset,
                                  @QueryParam("tags") String tagsStr,
                                  @QueryParam("tag-match") String tagMatchingStrategyName) {
-        long loggedInUserId = AuthHelper.getGuestId();
-        boolean accessAllowed = checkForPermissionAccess(uid);
-        CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
-
-        final TagFilter.FilteringStrategy tagFilteringStrategy = TagFilter.FilteringStrategy.findByName(tagMatchingStrategyName);
-
         try {
+            long loggedInUserId = AuthHelper.getGuestId();
+            boolean accessAllowed = checkForPermissionAccess(uid);
+            CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
+
+            final TagFilter.FilteringStrategy tagFilteringStrategy = TagFilter.FilteringStrategy.findByName(tagMatchingStrategyName);
+
             if (!accessAllowed && coachee==null) {
                 uid = null;
             }
@@ -697,13 +697,13 @@ public class BodyTrackController {
                                              @QueryParam("tags") String tagsStr,
                                              @QueryParam("tag-match") String tagMatchingStrategyName
                                              ) {
-        long loggedInUserId = AuthHelper.getGuestId();
-        boolean accessAllowed = checkForPermissionAccess(uid);
-        CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
-
-        final TagFilter.FilteringStrategy tagFilteringStrategy = TagFilter.FilteringStrategy.findByName(tagMatchingStrategyName);
-
         try {
+            long loggedInUserId = AuthHelper.getGuestId();
+            boolean accessAllowed = checkForPermissionAccess(uid);
+            CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
+
+            final TagFilter.FilteringStrategy tagFilteringStrategy = TagFilter.FilteringStrategy.findByName(tagMatchingStrategyName);
+
             if (!accessAllowed && coachee==null) {
                 return gson.toJson(new StatusModel(false, "Invalid User ID (null)"));
              }

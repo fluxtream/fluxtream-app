@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
  *
  * @author Candide Kemmler (candide@fluxtream.com)
  */
-@Component("zeoBedTime")
+@Component("zeoRiseTime")
 public class ZeoRiseTimeFieldHandler implements FieldHandler {
 
     @Autowired
@@ -24,17 +24,18 @@ public class ZeoRiseTimeFieldHandler implements FieldHandler {
     @Override
     public void handleField ( final long guestId, AbstractFacet facet) {
         ZeoSleepStatsFacet sleepStatsFacet = (ZeoSleepStatsFacet) facet;
-        DateTime startTimeJoda = new DateTime(facet.start,DateTimeZone.UTC);
-        int stHour = startTimeJoda.getHourOfDay();
-        int stMin = startTimeJoda.getMinuteOfHour();
+        DateTime riseTimeJoda = new DateTime(facet.end,DateTimeZone.UTC);
+        int rtHour = riseTimeJoda.getHourOfDay();
+        int rtMin = riseTimeJoda.getMinuteOfHour();
 
         List<List<Object>> data = new ArrayList<List<Object>>();
         List<Object> record = new ArrayList<Object>();
-        // Want [time, bedTime_in_hours]
-        record.add(facet.start);
-        record.add(((double)stHour)+((double)stMin)/60.0);
-
+        // Creating the array [time, riseTime_in_hours] to insert in datastore
+        record.add(facet.end);
+        record.add(((double)rtHour)+((double)rtMin)/60.0);
+        data.add(record);
+        
         // TODO: check the status code in the BodyTrackUploadResult
-        bodyTrackHelper.uploadToBodyTrack(guestId, "Zeo", Arrays.asList("bedTime"), data);
+        bodyTrackHelper.uploadToBodyTrack(guestId, "Zeo", Arrays.asList("riseTime"), data);
     }
 }
