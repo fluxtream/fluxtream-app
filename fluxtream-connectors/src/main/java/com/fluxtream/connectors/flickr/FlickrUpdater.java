@@ -29,7 +29,11 @@ import static com.fluxtream.utils.Utils.hash;
  * 
  */
 @Component
-@Updater(prettyName = "Flickr", value = 11, objectTypes = FlickrPhotoFacet.class, extractor = FlickrFacetExtractor.class)
+@Updater(prettyName = "Flickr",
+         value = 11,
+         objectTypes = FlickrPhotoFacet.class,
+         extractor = FlickrFacetExtractor.class,
+         defaultChannels = {"Flickr.photo"})
 public class FlickrUpdater extends AbstractUpdater {
 
     @Autowired
