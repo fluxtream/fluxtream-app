@@ -8,6 +8,8 @@ import com.fluxtream.services.impl.BodyTrackHelper;
 import com.fluxtream.services.impl.FieldHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.joda.time.DateTimeZone;
+import org.joda.time.DateTime;
 
 /**
  *
@@ -27,9 +29,25 @@ public class ZeoSleepGraphFieldHandler implements FieldHandler {
         if (sleepStatsFacet.sleepGraph==null)
             return;
         int graphSize = sleepStatsFacet.sleepGraph.length();
+        // To be consistent with the Zeo web site, round the start time down to the previous
+        // 5-minute boundary to compute the graph start time to use.
+        DateTime startTimeJoda = new DateTime(facet.start,DateTimeZone.UTC);
+        int stMin = startTimeJoda.getMinuteOfHour();
+        // Compute number of minutes we need to subtract from startTime to get graph start time
+        int gtMinSub = stMin%5;
+        // For some reason it looks like if the sleep time is at an even 5-minute boundary
+        // they are starting the graph 5 minutes before that
+        if(gtMinSub == 0) {
+            gtMinSub = 5;
+        }
+        // Subtract seconds/milliseconds of startTime + gtMinSub minutes in milliseconds
+        // from start to get graph start time
+        long graphStartTime = facet.start - (startTimeJoda.getMillisOfSecond()+startTimeJoda.getSecondOfMinute()*1000+gtMinSub*60000);
+
+
         List<List<Object>> data = new ArrayList<List<Object>>();
         for (int i=0; i<graphSize; i++) {
-            addSleepGraphColumn(data, sleepStatsFacet.sleepGraph, facet.start/1000+i*timeIncrement, i);
+            addSleepGraphColumn(data, sleepStatsFacet.sleepGraph, graphStartTime/1000+i*timeIncrement, i);
         }
 
         // TODO: check the status code in the BodyTrackUploadResult

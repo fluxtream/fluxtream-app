@@ -16,7 +16,7 @@ import static com.fluxtream.utils.HttpUtils.fetch;
 
 @Component
 @Updater(prettyName = "Withings", value = 4, objectTypes = {
-        WithingsBPMMeasureFacet.class, WithingsBodyScaleMeasureFacet.class },
+        WithingsBPMMeasureFacet.class, WithingsBodyScaleMeasureFacet.class, WithingsHeartPulseMeasureFacet.class },
          extractor = WithingsFacetExtractor.class,
          defaultChannels = {"Withings.weight","Withings.systolic", "Withings.diastolic", "Withings.heartPulse"})
 @JsonFacetCollection(WithingsFacetVOCollection.class)

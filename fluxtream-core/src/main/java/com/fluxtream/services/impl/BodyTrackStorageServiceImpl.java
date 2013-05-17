@@ -105,11 +105,12 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
                                  String deviceName,
                                  List<AbstractFacet> deviceFacets,
                                  String facetName) {
-        List<String> dailyDataChannelNames = getDailyDataChannelNames(facetName);
-        List<List<Object>> dailyDataChannelValues = getDailyDataChannelValues(deviceFacets, dailyDataChannelNames);
+        List<String> datastoreChannelNames = getDailyDatastoreChannelNames(facetName);
+        List<String> facetColumnNames = getFacetColumnNames(facetName);
+        List<List<Object>> dailyDataChannelValues = getDailyDataChannelValues(deviceFacets, facetColumnNames);
 
         // TODO: check the status code in the BodyTrackUploadResult
-        bodyTrackHelper.uploadToBodyTrack(guestId, deviceName, dailyDataChannelNames, dailyDataChannelValues);
+        bodyTrackHelper.uploadToBodyTrack(guestId, deviceName, datastoreChannelNames, dailyDataChannelValues);
     }
 
     private void uploadIntradayData(long guestId, List<AbstractFacet> deviceFacets, FieldHandler fieldHandler) {
@@ -127,7 +128,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
         return fieldHandlers.get(HandlerName);
     }
 
-    private List<String> getDailyDataChannelNames(String facetName) {
+    private List<String> getDailyDatastoreChannelNames(String facetName) {
         String[] channelNamesMappings = env.bodytrackProperties.getStringArray(facetName + ".channel_names");
         List<String> channelNames = new ArrayList<String>();
         for (String mapping : channelNamesMappings) {
@@ -135,6 +136,18 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
             if (terms[1].startsWith("#"))
                 continue;
             channelNames.add(terms[0]);
+        }
+        return channelNames;
+    }
+
+    private List<String> getFacetColumnNames(String facetName) {
+        String[] channelNamesMappings = env.bodytrackProperties.getStringArray(facetName + ".channel_names");
+        List<String> channelNames = new ArrayList<String>();
+        for (String mapping : channelNamesMappings) {
+            String[] terms = StringUtils.split(mapping, ":");
+            if (terms[1].startsWith("#"))
+                continue;
+            channelNames.add(terms[1]);
         }
         return channelNames;
     }
