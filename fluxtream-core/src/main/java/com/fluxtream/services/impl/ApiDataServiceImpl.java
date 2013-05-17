@@ -689,15 +689,17 @@ public class ApiDataServiceImpl implements ApiDataService {
                 System.out.println("cleaning up " + entityName + "...");
                 if (entityName.startsWith("Facet_")) {
                     if (!JPAUtils.hasRelation(cls)) {
+                        // Clean up entries for apiKeyId's which are no longer present in the system, but preserve items with
+                        // api=0 to preserve the locations generated from reverse IP lookup when the users log in.
                         Query query = em
-                                .createNativeQuery("DELETE FROM " + entityName + " WHERE apiKeyId NOT IN (SELECT DISTINCT id from ApiKey) OR apiKeyId=0;");
+                                .createNativeQuery("DELETE FROM " + entityName + " WHERE (apiKeyId NOT IN (SELECT DISTINCT id from ApiKey)) AND api!=0;");
                         final int i = query.executeUpdate();
                         StringBuilder sb = new StringBuilder("module=updateQueue component=apiDataServiceImpl action=deleteStaleData")
                                 .append(" facetTable=").append(entityName).append(" facetsDeleted=").append(i);
                         logger.info(sb.toString());
                     } else {
                         Query query = em
-                                .createNativeQuery("SELECT * FROM " + entityName + " WHERE apiKeyId NOT IN (SELECT DISTINCT id from ApiKey) OR apiKeyId=0;", cls);
+                                .createNativeQuery("SELECT * FROM " + entityName + " WHERE (apiKeyId NOT IN (SELECT DISTINCT id from ApiKey)) AND api!=0;", cls);
                         final List<?extends AbstractFacet> facetsToDelete = query.getResultList();
                         final int i = facetsToDelete.size();
                         if (i>0) {
