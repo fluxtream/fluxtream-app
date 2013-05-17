@@ -58,7 +58,7 @@ public class ObjectType {
 	
 	public static ObjectType getObjectType(Connector connector, String name) {
 		Map<String, ObjectType> connectorObjectTypes = connectorNamedObjectTypes.get(connector);
-		ObjectType namedObjectType = connectorObjectTypes.get(name.toLowerCase());
+		ObjectType namedObjectType = connectorObjectTypes.get(name);
 		return namedObjectType;
 	}
 	
