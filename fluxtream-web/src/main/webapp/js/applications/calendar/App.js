@@ -240,10 +240,13 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 enhanceDigest(Calendar.digest);
                 if (thisFetchId != fetchId)
                     return;
+                Builder.updateTab(Calendar.digest, Calendar);
+                if (thisFetchId != fetchId)
+                    return;
                 processDigest(Calendar.digest);
                 if (thisFetchId != fetchId)
                     return;
-				Builder.updateTab(Calendar.digest, Calendar);
+                Builder.updateTab(Calendar.digest, Calendar); //TODO: shouldn't be calling this twice really
                 if (thisFetchId != fetchId)
                     return;
                 Builder.handleNotifications(response);
