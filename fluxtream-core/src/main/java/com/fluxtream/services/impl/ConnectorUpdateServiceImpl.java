@@ -261,28 +261,24 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     @Override
     @Transactional(readOnly = false)
     public void pollScheduledUpdateWorkerTasks() {
-        List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em, UpdateWorkerTask.class, "updateWorkerTasks.byStatus", Status.SCHEDULED, getLiveOrUnclaimedServerUUIDs(), System.currentTimeMillis());
-        if (updateWorkerTasks.size() == 0) {
-            logger.debug("module=updateQueue component=connectorUpdateService action=pollScheduledUpdateWorkerTasks message=\"Nothing to do\"");
-            return;
-        }
 
         int maxThreads = executor.getMaxPoolSize();
         int activeThreads = executor.getActiveCount();
         int availableThreads = maxThreads - activeThreads;
 
+        List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em, UpdateWorkerTask.class, "updateWorkerTasks.byStatus", 0, availableThreads, Status.SCHEDULED, getLiveOrUnclaimedServerUUIDs(), System.currentTimeMillis());
+        if (updateWorkerTasks.size() == 0) {
+            logger.debug("module=updateQueue component=connectorUpdateService action=pollScheduledUpdateWorkerTasks message=\"Nothing to do\"");
+            return;
+        }
+
+
         StringBuilder sb = new StringBuilder("module=updateQueue component=connectorUpdateService action=pollScheduleUpdates")
             .append(" availableThreads="+availableThreads);
 
         logger.info(sb);
-        if (availableThreads<updateWorkerTasks.size()) {
-            sb.append(" message=\"tasks overflow!\" nTasks=" + updateWorkerTasks.size());
-            logger.warn(sb);
-        }
 
-        int nWorkers = Math.min(updateWorkerTasks.size(), availableThreads);
-
-        for (int i=0; i<nWorkers; i++) {
+        for (int i=0; i<updateWorkerTasks.size(); i++) {
             UpdateWorkerTask updateWorkerTask = updateWorkerTasks.get(i);
             logger.info("module=updateQueue component=connectorUpdateService action=pollScheduledUpdateWorkerTasks" +
                         " message=\"Executing update: " +
