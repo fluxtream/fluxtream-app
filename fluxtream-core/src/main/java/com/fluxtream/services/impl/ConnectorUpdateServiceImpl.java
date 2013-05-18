@@ -266,7 +266,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
         int activeThreads = executor.getActiveCount();
         int availableThreads = maxThreads - activeThreads;
 
-        List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em, UpdateWorkerTask.class, "updateWorkerTasks.byStatus", 0, availableThreads, Status.SCHEDULED, getLiveOrUnclaimedServerUUIDs(), System.currentTimeMillis());
+        List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.findWithLimit(em, UpdateWorkerTask.class, "updateWorkerTasks.byStatus", 0, availableThreads, Status.SCHEDULED, getLiveOrUnclaimedServerUUIDs(), System.currentTimeMillis());
         if (updateWorkerTasks.size() == 0) {
             logger.debug("module=updateQueue component=connectorUpdateService action=pollScheduledUpdateWorkerTasks message=\"Nothing to do\"");
             return;

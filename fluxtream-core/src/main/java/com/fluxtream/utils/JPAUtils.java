@@ -99,8 +99,7 @@ public class JPAUtils {
 		return results;
 	}
 
-	public static <T> List<T> find(EntityManager em, Class<T> clazz,
-			String queryName, int firstResult, int maxResults, Object... params) {
+	public static <T> List<T> findWithLimit(EntityManager em, Class<T> clazz, String queryName, int firstResult, int maxResults, Object... params) {
 		List<T> results = doQuery(em, queryName, true, firstResult,
 				maxResults, params);
 		return results;

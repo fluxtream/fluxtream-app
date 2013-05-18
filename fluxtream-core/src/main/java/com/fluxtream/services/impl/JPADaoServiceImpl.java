@@ -35,8 +35,7 @@ public class JPADaoServiceImpl implements JPADaoService {
 
 	@Override
 	public <T> List<T> findWithLimit(String queryName, Class<T> clazz, int firstResult, int maxResults, Object... params) {
-		return JPAUtils.find(em, clazz, queryName, firstResult, maxResults,
-				params);
+		return JPAUtils.findWithLimit(em, clazz, queryName, firstResult, maxResults, params);
 	}
 
     @Override
