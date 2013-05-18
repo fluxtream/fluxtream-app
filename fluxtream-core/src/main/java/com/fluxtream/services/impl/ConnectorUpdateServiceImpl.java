@@ -218,6 +218,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
         if (!incrementRetries) {
             UpdateWorkerTask failed = new UpdateWorkerTask(updt);
             failed.auditTrail = updt.auditTrail;
+            failed.apiKeyId = updt.apiKeyId;
             failed.retries = updt.retries;
             failed.connectorName = updt.connectorName;
             failed.status = Status.FAILED;
