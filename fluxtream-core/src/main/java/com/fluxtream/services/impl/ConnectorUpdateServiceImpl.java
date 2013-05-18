@@ -272,9 +272,9 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
             return;
         }
 
-
         StringBuilder sb = new StringBuilder("module=updateQueue component=connectorUpdateService action=pollScheduleUpdates")
-            .append(" availableThreads="+availableThreads);
+            .append(" availableThreads="+availableThreads)
+            .append(" message=\"adding " + updateWorkerTasks.size() + " update worker tasks\"");
 
         logger.info(sb);
 
