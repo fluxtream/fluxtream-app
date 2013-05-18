@@ -33,7 +33,7 @@ import com.fluxtream.services.BodyTrackStorageService;
 import com.fluxtream.services.EventListenerService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
-import com.fluxtream.thirdparty.helpers.WWOHelper;
+//import com.fluxtream.thirdparty.helpers.WWOHelper;
 import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.Utils;
 import net.sf.json.JSONObject;
@@ -86,8 +86,8 @@ public class ApiDataServiceImpl implements ApiDataService {
     @Autowired
     EventListenerService eventListenerService;
 
-    @Autowired
-    WWOHelper wwoHelper;
+//    @Autowired
+//    WWOHelper wwoHelper;
 
     @Autowired
     ServicesHelper servicesHelper;
