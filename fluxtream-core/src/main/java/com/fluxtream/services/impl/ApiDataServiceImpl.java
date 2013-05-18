@@ -538,7 +538,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 					sb.append("]");
 				}
 			}
-			logger.warn(sb.toString());
+			logger.info(sb.toString());
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
