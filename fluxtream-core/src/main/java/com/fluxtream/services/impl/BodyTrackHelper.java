@@ -289,8 +289,13 @@ public class BodyTrackHelper {
                     if (userStyle != null)
                         channel.style = userStyle;
                     // Temporary hack: Until generic support is available for time_type, special case
-                    // device named 'Zeo' to use time_type="local"
-                    if(source.name.equals("Zeo") || source.name.equals("Fitbit") || source.name.equals("Flickr")) {
+                    // devices named 'Zeo' or 'Fitbit' to use time_type="local"
+                    // This had briefly included  || source.name.equals("Flickr")
+                    // since Flickr timestamps are in local time.  However, the grapher
+                    // does not properly display local time photo channels at this point
+                    // so this change was reverted on 5/18/2013.  Consider how to handle
+                    // this in the future.
+                    if(source.name.equals("Zeo") || source.name.equals("Fitbit")) {
                         
                         channel.time_type="local";
                     }
