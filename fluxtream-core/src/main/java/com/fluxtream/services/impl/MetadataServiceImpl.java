@@ -20,7 +20,7 @@ import com.fluxtream.domain.metadata.WeatherInfo;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.NotificationsService;
-import com.fluxtream.thirdparty.helpers.WWOHelper;
+//import com.fluxtream.thirdparty.helpers.WWOHelper;
 import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.TimeUtils;
 import org.apache.commons.httpclient.HttpException;
@@ -52,8 +52,8 @@ public class MetadataServiceImpl implements MetadataService {
 	@Autowired
 	NotificationsService notificationsService;
 
-    @Autowired
-    WWOHelper wwoHelper;
+    //@Autowired
+    //WWOHelper wwoHelper;
 
     @Autowired
     ServicesHelper servicesHelper;
@@ -357,13 +357,13 @@ public class MetadataServiceImpl implements MetadataService {
     @Transactional(readOnly = false)
     private void fetchWeatherInfo(double latitude, double longitude,
                                   String city, String date) throws HttpException, IOException {
-        List<WeatherInfo> weatherInfo = wwoHelper.getWeatherInfo(latitude,
-                                                                 longitude, date);
-        for (WeatherInfo info : weatherInfo) {
-            info.city = city;
-            info.fdate = date;
-            em.persist(info);
-        }
+        //List<WeatherInfo> weatherInfo = wwoHelper.getWeatherInfo(latitude,
+        //                                                         longitude, date);
+        //for (WeatherInfo info : weatherInfo) {
+        //    info.city = city;
+        //    info.fdate = date;
+        //    em.persist(info);
+        //}
     }
 
     private void addIcons(List<WeatherInfo> weather){
