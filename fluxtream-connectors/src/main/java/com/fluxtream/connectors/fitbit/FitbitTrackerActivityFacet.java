@@ -16,7 +16,7 @@ import org.hibernate.search.annotations.Indexed;
 @ObjectTypeSpec(name = "activity_summary", value = 1, extractor= FitbitActivityFacetExtractor.class, prettyname = "Activity Summary", isDateBased = true)
 @NamedQueries({
 		@NamedQuery(name = "fitbit.activity_summary.byDate",
-				query = "SELECT facet FROM Facet_FitbitActivity facet WHERE facet.apiKeyIdId=? AND facet.date=?")
+				query = "SELECT facet FROM Facet_FitbitActivity facet WHERE facet.apiKeyId=? AND facet.date=?")
 })
 @Indexed
 public class FitbitTrackerActivityFacet extends AbstractLocalTimeFacet implements Updatable {
