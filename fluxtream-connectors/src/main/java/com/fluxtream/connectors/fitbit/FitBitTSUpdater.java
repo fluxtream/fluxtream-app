@@ -26,6 +26,8 @@ import com.fluxtream.utils.TimeUtils;
 import com.fluxtream.utils.Utils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeConstants;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Days;
 import org.joda.time.DurationFieldType;
@@ -249,9 +251,15 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 						facet = new FitbitTrackerActivityFacet(apiKey.getId());
 						facet.date = date;
 						facet.api = connector().value();
+                        final DateTime dateTime = dateFormat.withZoneUTC().parseDateTime(date);
+
+                        facet.start = dateTime.getMillis();
+                        facet.end = dateTime.getMillis()+ DateTimeConstants.MILLIS_PER_DAY-1;
+
+                        facet.startTimeStorage = date + "T00:00:00.000";
+                        facet.endTimeStorage = date + "T23:59:59.999";
+
 						facet.guestId = apiKey.getGuestId();
-						facet.start = dayMetadata.start;
-						facet.end = dayMetadata.end;
 						facetDao.persist(facet);
 					}
 					addToActivityFacet(facet, entry, fieldName);
