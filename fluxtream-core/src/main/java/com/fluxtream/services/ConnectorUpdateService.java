@@ -94,7 +94,9 @@ public interface ConnectorUpdateService {
 
     public Collection<UpdateWorkerTask> getLastFinishedUpdateTasks(ApiKey apiKey);
 
-    public void claim(long taskId);
+    // Returns true if the task was claimed and false otherwise.  If returns false the caller
+    // should not try to continue with task execution.
+    public boolean claim(long taskId);
 
     public void addAuditTrail(long updateWorkerTaskId, UpdateWorkerTask.AuditTrailEntry auditTrailEntry);
 
