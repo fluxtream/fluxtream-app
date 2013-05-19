@@ -34,7 +34,7 @@ public class GoogleCalendarUpdater extends AbstractGoogleOAuthUpdater {
     @Override
     public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
         if (updateInfo.timeInterval==null) {
-            logger.warn("module=updateQueue component=googleCalendarUpdater action=updateConnectorData message=\"attempt to update connector data with a null timeInterval\"");
+            logger.info("module=updateQueue component=googleCalendarUpdater action=updateConnectorData message=\"attempt to update connector data with a null timeInterval\"");
         } else
             loadHistory(updateInfo,
                         updateInfo.timeInterval.start,
