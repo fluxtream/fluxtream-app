@@ -396,6 +396,23 @@
         </div>
     </div>
 </template>
+<template id="withings-heart_pulse">
+    <div class="flx-box" style="border-left-color:{{color}}">
+        <span class="flx-deviceIcon withings-heart_pulse"></span>
+        <div class="facetDetails">
+            {{#facets}}
+            <div class="facetDetails">
+                {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
+                <div class="flx-tTime">{{time}}  <span class="flx-dataLabel">{{ampm}}</span></div>
+                <div class="flx-data">
+                    <span class="flx-dataLabel">Pulse:</span>
+                    <span class="flx-text">{{pulse}} bpm</span>
+                </div>
+            </div>
+            {{/facets}}
+        </div>
+    </div>
+</template>
 <template id="withings-weight">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon withings"></span>
