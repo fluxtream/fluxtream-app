@@ -144,6 +144,8 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
             });
         });
         var viewDataBtn = $("#viewUpdates-" + connector.connectorName);
+        // remove previously bound handler
+        viewDataBtn.off("click");
         viewDataBtn.click(function(event){
             event.preventDefault();
             App.loadMustacheTemplate("connectorMgmtTemplates.html","viewUpdates",function(template){
@@ -151,6 +153,8 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
             });
         });
         var settingsBtn = $("#settings-" + connector.connectorName);
+        // remove previously bound handler
+        settingsBtn.off("click");
         settingsBtn.click(function(event){
             event.preventDefault();
             connectorSettings(connector);
