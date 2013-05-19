@@ -244,7 +244,7 @@ public class MetadataServiceImpl implements MetadataService {
 		if (thatDay != null)
 			return TimeZone.getTimeZone(thatDay.timeZone);
 		else {
-			logger.warn("guestId=" + guestId + " action=getTimeZone warning=returning UTC Timezone");
+			logger.info("guestId=" + guestId + " date= " + date + " action=getTimeZone message=returning UTC Timezone");
 			return TimeZone.getTimeZone("UTC"); // Code should never go here!
 		}
 	}
@@ -256,7 +256,7 @@ public class MetadataServiceImpl implements MetadataService {
 		if (thatDay != null)
 			return TimeZone.getTimeZone(thatDay.timeZone);
 		else {
-			logger.warn("guestId=" + guestId + " action=getTimeZone warning=returning UTC Timezone");
+            logger.info("guestId=" + guestId + " time= " + time + " action=getTimeZone message=returning UTC Timezone");
 			return TimeZone.getTimeZone("UTC"); // Code should never go here!
 		}
 	}
