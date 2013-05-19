@@ -234,7 +234,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                 logger.debug("dayMetadataFacet's timeInterval: " + timeInterval);
 
 				if (objectType == sleepOT) {
-					FitbitSleepFacet facet = getSleepFacet(apiKey.getGuestId(),
+					FitbitSleepFacet facet = getSleepFacet(apiKey.getId(),
 							date);
 					if (facet == null) {
 						facet = new FitbitSleepFacet(apiKey.getId());
@@ -246,7 +246,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 					addToSleepFacet(facet, entry, fieldName);
 				} else if (objectType == activityOT) {
 					FitbitTrackerActivityFacet facet = getActivityFacet(
-							apiKey.getGuestId(), timeInterval);
+							apiKey.getId(), date);
 					if (facet == null) {
 						facet = new FitbitTrackerActivityFacet(apiKey.getId());
 						facet.date = date;
@@ -264,7 +264,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 					}
 					addToActivityFacet(facet, entry, fieldName);
 				} else if (objectType == weightOT) {
-                    FitbitWeightFacet facet = getWeightFacet(apiKey.getGuestId(), timeInterval);
+                    FitbitWeightFacet facet = getWeightFacet(apiKey.getId(), date);
                     if (facet == null) {
                         facet = new FitbitWeightFacet(apiKey.getId());
                         facet.date = date;
@@ -290,22 +290,20 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         facetDao.merge(facet);
     }
 
-    private FitbitWeightFacet getWeightFacet(final long guestId, final TimeInterval timeInterval) {
-        return jpaDaoService.findOne("fitbit.weight.byStartEnd",
-                                     FitbitWeightFacet.class, guestId, timeInterval.start,
-                                     timeInterval.end);
+    private FitbitWeightFacet getWeightFacet(final long apiKeyId, String date) {
+        return jpaDaoService.findOne("fitbit.weight.byDate",
+                                     FitbitWeightFacet.class, apiKeyId, date);
     }
 
-    private FitbitTrackerActivityFacet getActivityFacet(long guestId,
-			TimeInterval timeInterval) {
-		return jpaDaoService.findOne("fitbit.activity_summary.byStartEnd",
-				FitbitTrackerActivityFacet.class, guestId, timeInterval.start,
-				timeInterval.end);
+    private FitbitTrackerActivityFacet getActivityFacet(long apiKeyId,
+			String date) {
+		return jpaDaoService.findOne("fitbit.activity_summary.byDate",
+				FitbitTrackerActivityFacet.class, apiKeyId, date);
 	}
 
-	private FitbitSleepFacet getSleepFacet(long guestId, String date) {
+	private FitbitSleepFacet getSleepFacet(long apiKeyId, String date) {
 		return jpaDaoService.findOne("fitbit.sleep.byDate",
-				FitbitSleepFacet.class, guestId, date);
+				FitbitSleepFacet.class, apiKeyId, date);
 	}
 
 	@Transactional(readOnly = false)

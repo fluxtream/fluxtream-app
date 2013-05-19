@@ -15,8 +15,8 @@ import org.hibernate.search.annotations.Indexed;
 @Entity(name="Facet_FitbitActivity")
 @ObjectTypeSpec(name = "activity_summary", value = 1, extractor= FitbitActivityFacetExtractor.class, prettyname = "Activity Summary", isDateBased = true)
 @NamedQueries({
-		@NamedQuery(name = "fitbit.activity_summary.byStartEnd",
-				query = "SELECT facet FROM Facet_FitbitActivity facet WHERE facet.guestId=? AND facet.start=? and facet.end=?"),
+		@NamedQuery(name = "fitbit.activity_summary.byDate",
+				query = "SELECT facet FROM Facet_FitbitActivity facet WHERE facet.apiKeyIdId=? AND facet.date=?"),
 		@NamedQuery(name = "fitbit.activity_summary.all",
 				query = "SELECT facet FROM Facet_FitbitActivity facet WHERE facet.guestId=? ORDER BY facet.start DESC"),
 		@NamedQuery(name = "fitbit.activity_summary.newest",
