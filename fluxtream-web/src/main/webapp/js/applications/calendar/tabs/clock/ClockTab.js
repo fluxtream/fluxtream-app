@@ -289,10 +289,10 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         var weatherInfo = getWeatherData(minute);
         var weatherIcon;
         if (solarInfo != null && (minute < solarInfo.sunrise || minute > solarInfo.sunset)){//night
-            weatherIcon =  weatherInfo == null ? "" : weatherInfo.weatherIconUrlNight;
+            weatherIcon =  weatherInfo == null ? "images/clear.gif" : weatherInfo.weatherIconUrlNight;
         }
         else{//day
-            weatherIcon = weatherInfo == null ? "" : weatherInfo.weatherIconUrlDay;
+            weatherIcon = weatherInfo == null ? "images/clear.gif" : weatherInfo.weatherIconUrlDay;
         }
         weatherIcon = "/" + FLX_RELEASE_NUMBER + "/" + weatherIcon;
         var orientation, tailOrientation;
@@ -332,10 +332,24 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                 tooltipData:contents,
                 showBodyTrackLinks: sourceName != null
             }));
+            console.log(gpsPos)
             ttpdiv.css("position","absolute");
             ttpdiv.css("zIndex","100");
             var tail = ttpdiv.find(".flx-toolTipTail-" + orientation);
             parent.append(ttpdiv);
+
+            // WIP: have the map take all the available space when there is no weather info
+            //if (weatherInfo==null) {
+            //    $(".flx-toolTipWeather").hide();
+            //    $(".flx-toolTipLocation").css("width", "400px");
+            //    $("#clockMapContainer").css("width", "400px");
+            //    $("#clockMap").css("width", "400px");
+            //} else {
+            //    $(".flx-toolTipWeather").show();
+            //    $(".flx-toolTipLocation").css("width", "50%");
+            //    $("#clockMapContainer").css("width", "200px");
+            //    $("#clockMap").css("width", "200px");
+            //}
 
             var repositionTooltip = function(){
                 var displayX = x;
