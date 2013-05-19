@@ -213,7 +213,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             // elevation and floors are not available for earlier trackers, so we can safely ignore them
             if (fieldName.equals("elevation")||fieldName.equals("floors")) {
                 logger.info("guestId=" + apiKey.getGuestId() +
-                            " connector=fitbit action=loadTimeSeries message=\"Could not load timeseries for \" + fieldName");
+                            " connector=fitbit action=loadTimeSeries message=\"Could not load timeseries for " + fieldName);
                 return;
             }
         }
