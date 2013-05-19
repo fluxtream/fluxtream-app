@@ -89,7 +89,8 @@ public class WithingsFacetExtractor extends AbstractFacetExtractor {
 				}
 			}
 			if (hasVitals) {
-                if (objectType.equals(ObjectType.getObjectType(connector(), "blood_pressure"))) {
+                if (objectType.equals(ObjectType.getObjectType(connector(), "blood_pressure"))&&
+                    (facet.systolic>0||facet.diastolic>0)) {
 					WithingsBPMMeasureFacet bpmFacet = new WithingsBPMMeasureFacet(apiData.updateInfo.apiKey.getId());
 					super.extractCommonFacetData(bpmFacet, apiData);
 					bpmFacet.objectType = ObjectType.getObjectType(connector(), "blood_pressure").value();
