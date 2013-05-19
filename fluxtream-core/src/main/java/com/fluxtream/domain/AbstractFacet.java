@@ -1,12 +1,10 @@
 package com.fluxtream.domain;
 
-import java.util.List;
-import java.util.SortedSet;
-import java.util.StringTokenizer;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.StringTokenizer;
 import java.util.TreeSet;
 import javax.persistence.Entity;
@@ -35,6 +33,7 @@ public abstract class AbstractFacet extends AbstractEntity {
     private static final String TAG_DELIMITER = ",";
 
     public AbstractFacet() {
+        this.timeUpdated = System.currentTimeMillis();
         figureOutObjectType();
     }
 
