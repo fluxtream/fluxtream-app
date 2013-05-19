@@ -46,6 +46,7 @@ public abstract class AbstractFacet extends AbstractEntity {
     }
 
     public AbstractFacet(Long apiKeyId) {
+        this.timeUpdated = System.currentTimeMillis();
         this.apiKeyId = apiKeyId;
         figureOutObjectType();
 	}
