@@ -64,11 +64,13 @@ public class SystemServiceImpl implements SystemService {
     private void initializeConnectorList() {
 		ResourceBundle res = ResourceBundle.getBundle("messages/connectors");
         int order = 0;
-        em.persist(new ConnectorInfo("Google Latitude",
-                                     "/images/connectors/connector-google_latitude.jpg",
-                                     res.getString("google_latitude"),
-                                     "/google/oauth2/token?scope=https://www.googleapis.com/auth/latitude.all.best",
-                                     Connector.getConnector("google_latitude"), order++, true));
+        final ConnectorInfo latitudeConnectorInfo = new ConnectorInfo("Google Latitude",
+                                                                      "/images/connectors/connector-google_latitude.jpg",
+                                                                      res.getString("google_latitude"),
+                                                                      "/google/oauth2/token?scope=https://www.googleapis.com/auth/latitude.all.best",
+                                                                      Connector.getConnector("google_latitude"), order++, true);
+        latitudeConnectorInfo.supportsRenewTokens = true;
+        em.persist(latitudeConnectorInfo);
         em.persist(new ConnectorInfo("Fitbit",
                                      "/images/connectors/connector-fitbit.jpg",
                                      res.getString("fitbit"), "/fitbit/token",

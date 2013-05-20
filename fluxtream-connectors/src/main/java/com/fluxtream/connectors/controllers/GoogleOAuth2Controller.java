@@ -49,6 +49,10 @@ public class GoogleOAuth2Controller {
 		String scope = request.getParameter("scope");
 		request.getSession().setAttribute("oauth2Scope", scope);
 		String redirectUri = env.get("homeBaseUrl") + "google/oauth2/swapToken";
+
+        final String apiKeyId = request.getParameter("apiKeyId");
+        if (apiKeyId !=null)
+            redirectUri += "?apiKeyId=" + apiKeyId;
 		
 		String clientId = env.get("google.client.id");
 
@@ -98,7 +102,12 @@ public class GoogleOAuth2Controller {
             return "redirect:/app";
         }
         final String refresh_token = token.getString("refresh_token");
-        final ApiKey apiKey = guestService.createApiKey(guest.getId(), scopedApi);
+        ApiKey apiKey;
+        String apiKeyId = request.getParameter("apiKeyId");
+        if (apiKeyId!=null)
+            apiKey = guestService.getApiKey(Long.valueOf(apiKeyId));
+        else
+            apiKey = guestService.createApiKey(guest.getId(), scopedApi);
 
         guestService.setApiKeyAttribute(apiKey,
 				"accessToken", token.getString("access_token"));
