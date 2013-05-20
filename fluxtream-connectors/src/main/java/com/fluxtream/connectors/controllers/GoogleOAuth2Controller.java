@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 import com.fluxtream.Configuration;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.connectors.OAuth2Helper;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.Notification;
@@ -38,11 +39,17 @@ public class GoogleOAuth2Controller {
     @Autowired
     NotificationsService notificationsService;
 
+    @Autowired
+    OAuth2Helper oAuth2Helper;
+
     private final static String APIKEYID_ATTRIBUTE = "google_latitude.apiKeyId";
 
     @RequestMapping(value = "/{apiKeyId}/token")
-    public String renewToken(@PathVariable("apiKeyId") String apiKeyId, HttpServletRequest request) throws IOException, ServletException{
+    public String renewToken(@PathVariable("apiKeyId") String apiKeyId, HttpServletRequest request) throws IOException, ServletException {
         request.getSession().setAttribute(APIKEYID_ATTRIBUTE, apiKeyId);
+        final ApiKey apiKey = guestService.getApiKey(Long.valueOf(apiKeyId));
+        final String refreshTokenRemoveURL = apiKey.getAttributeValue("refreshTokenRemoveURL", env);
+        oAuth2Helper.revokeRefreshToken(apiKey.getGuestId(), apiKey.getConnector(), refreshTokenRemoveURL);
         return getToken(request);
     }
 
