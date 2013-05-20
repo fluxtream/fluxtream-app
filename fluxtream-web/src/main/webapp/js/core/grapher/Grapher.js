@@ -2311,12 +2311,24 @@ define(["core/grapher/BTCore"], function(BTCore) {
                             $("#_timeline_photo_dialog_timestamp").html("&nbsp;");
                         } else {
                             var photoTimestamp = new Date(photoMetadata['timestampString']);
+                            var photoTimestampStr = null;
                             if (photoMetadata['isLocalTimeType']) {
                                 // if local time type, then get the timezone offset (in minutes), convert
                                 // it to millis, and add to the time to get the correct time
                                 photoTimestamp = new Date(photoTimestamp.getTime() + photoTimestamp.getTimezoneOffset() * 60000);
+
+                                // format the date without the timezone
+                                photoTimestampStr = photoTimestamp.toDateString() + " " +
+                                                    (photoTimestamp.getHours() < 10 ? "0" : "") + photoTimestamp.getHours() +
+                                                    ":" +
+                                                    (photoTimestamp.getMinutes() < 10 ? "0" : "") + photoTimestamp.getMinutes() +
+                                                    ":" +
+                                                    (photoTimestamp.getSeconds() < 10 ? "0" : "") + photoTimestamp.getSeconds();
                             }
-                            $("#_timeline_photo_dialog_timestamp").text(photoTimestamp.toString());
+                            else {
+                                photoTimestampStr = photoTimestamp.toString();
+                            }
+                            $("#_timeline_photo_dialog_timestamp").text(photoTimestampStr);
                         }
 
                         // fill in the comment, if any
