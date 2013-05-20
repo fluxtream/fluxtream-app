@@ -23,7 +23,7 @@ public class FlickrPhotoFacetVO extends
 		startMinute = c.get(Calendar.HOUR_OF_DAY)*60+c.get(Calendar.MINUTE);
 		this.thumbnailUrl = "http://farm" + facet.farm + ".static.flickr.com/"
 				+ facet.server + "/" + facet.flickrId + "_" + facet.secret
-				+ "_s.jpg";
+				+ "_m.jpg";
         this.photoUrl = "http://farm" + facet.farm + ".static.flickr.com/"
                         + facet.server + "/" + facet.flickrId + "_" + facet.secret
                         + "_z.jpg";
