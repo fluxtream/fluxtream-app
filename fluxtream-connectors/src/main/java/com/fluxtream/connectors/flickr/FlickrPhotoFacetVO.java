@@ -14,6 +14,11 @@ public class FlickrPhotoFacetVO extends
 	public String photoUrl;
     public String thumbnailUrl;
 
+    public FlickrPhotoFacetVO()
+    {
+        timeType="local";
+    }
+
 	@Override
 	public void fromFacet(FlickrPhotoFacet facet, TimeInterval timeInterval,
 			GuestSettings settings) {
