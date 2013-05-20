@@ -70,6 +70,7 @@ public class SystemServiceImpl implements SystemService {
                                                                       "/google/oauth2/token?scope=https://www.googleapis.com/auth/latitude.all.best",
                                                                       Connector.getConnector("google_latitude"), order++, true);
         latitudeConnectorInfo.supportsRenewTokens = true;
+        latitudeConnectorInfo.renewTokensUrlTemplate = "google/oauth2/%s/token?scope=https://www.googleapis.com/auth/latitude.all.best";
         em.persist(latitudeConnectorInfo);
         em.persist(new ConnectorInfo("Fitbit",
                                      "/images/connectors/connector-fitbit.jpg",
@@ -81,6 +82,7 @@ public class SystemServiceImpl implements SystemService {
                                                                        "/bodymedia/token",
                                                                        Connector.getConnector("bodymedia"), order++, true);
         bodymediaConnectorInfo.supportsRenewTokens = true;
+        bodymediaConnectorInfo.renewTokensUrlTemplate = "bodymedia/token?apiKeyId=%s";
         em.persist(bodymediaConnectorInfo);
         em.persist(new ConnectorInfo("Withings",
                                      "/images/connectors/connector-withings.jpg",

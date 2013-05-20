@@ -85,7 +85,9 @@ public class ConnectorStore {
         final ApiKey apiKey = guestService.getApiKey(apiKeyId);
         ConnectorInfo connectorInfo = sysService.getConnectorInfo(apiKey.getConnector().getName());
         JSONObject renewInfo = new JSONObject();
-        renewInfo.accumulate("redirectTo", env.get("homeBaseUrl") + connectorInfo.connectUrl + "?apiKeyId=" + apiKeyId);
+        final String renewTokensUrlTemplate = connectorInfo.renewTokensUrlTemplate;
+        final String renewTokensUrl = String.format(renewTokensUrlTemplate, apiKey.getId());
+        renewInfo.accumulate("redirectTo", env.get("homeBaseUrl") + renewTokensUrl);
         return renewInfo.toString();
     }
 
