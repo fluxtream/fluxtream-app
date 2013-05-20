@@ -1850,7 +1850,9 @@ define(["core/grapher/BTCore"], function(BTCore) {
                                             "orientation"      : photo['orientation'],
                                             "channel_name"     : photo['channel_name'],
                                             "dev_nickname"     : photo['dev_nickname'],
-                                            "object_type_name" : photo['object_type_name']
+                                            "object_type_name" : photo['object_type_name'],
+                                            "timeType"         : photo['time_type'],
+                                            "isLocalTimeType"  : (photo['time_type'] == "local")
                                         };
                                     });
 
@@ -2299,7 +2301,13 @@ define(["core/grapher/BTCore"], function(BTCore) {
                         if (typeof photoMetadata['timestampString'] === 'undefined') {
                             $("#_timeline_photo_dialog_timestamp").html("&nbsp;");
                         } else {
-                            $("#_timeline_photo_dialog_timestamp").text(new Date(photoMetadata['timestampString']).toString());
+                            var photoTimestamp = new Date(photoMetadata['timestampString']);
+                            if (photoMetadata['isLocalTimeType']) {
+                                // if local time type, then get the timezone offset (in minutes), convert
+                                // it to millis, and add to the time to get the correct time
+                                photoTimestamp = new Date(photoTimestamp.getTime() + photoTimestamp.getTimezoneOffset() * 60000);
+                            }
+                            $("#_timeline_photo_dialog_timestamp").text(photoTimestamp.toString());
                         }
 
                         // fill in the comment, if any
