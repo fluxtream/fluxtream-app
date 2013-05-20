@@ -47,6 +47,8 @@ public class BodymediaController {
 		String oauthCallback = env.get("homeBaseUrl") + "bodymedia/upgradeToken";
 		if (request.getParameter("guestId") != null)
 			oauthCallback += "?guestId=" + request.getParameter("guestId");
+        if (request.getParameter("apiKeyId") != null)
+            oauthCallback += "?apiKeyId=" + request.getParameter("apiKeyId");
 
 		String apiKey = env.get("bodymediaConsumerKey");
 		OAuthConsumer consumer = new DefaultOAuthConsumer(
@@ -89,7 +91,12 @@ public class BodymediaController {
 		provider.retrieveAccessToken(consumer, verifier);
 		Guest guest = AuthHelper.getGuest();
 
-        final ApiKey apiKey = guestService.createApiKey(guest.getId(), connector());
+        ApiKey apiKey;
+        if (request.getParameter("apiKeyId")!=null) {
+            long apiKeyId = Long.valueOf(request.getParameter("apiKeyId"));
+            apiKey = guestService.getApiKey(apiKeyId);
+        } else
+            apiKey = guestService.createApiKey(guest.getId(), connector());
 
         guestService.setApiKeyAttribute(apiKey, "api_key", env.get("bodymediaConsumerKey"));
 		guestService.setApiKeyAttribute(apiKey,
@@ -98,6 +105,9 @@ public class BodymediaController {
 				"tokenSecret", consumer.getTokenSecret());
         guestService.setApiKeyAttribute(apiKey,
                 "tokenExpiration", provider.getResponseParameters().get("xoauth_token_expiration_time").first());
+
+        request.getSession().removeAttribute(BODYMEDIA_OAUTH_CONSUMER);
+        request.getSession().removeAttribute(BODYMEDIA_OAUTH_PROVIDER);
 
 		return "redirect:/app/from/" + connector().getName();
 	}

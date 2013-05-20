@@ -21,6 +21,7 @@
                             <th class="desc"></th>
                             <th class="lastSync">Last Sync.</th>
                             <th class="latestData">Latest Data</th>
+                            <th class="renew">Renew</th>
                             <th class="remove">Remove</th>
                         </tr>
                         </thead>
@@ -54,7 +55,11 @@
                                 <p>{{latestData}}</p>
                                 <!-- <a href="javascript:App.renderApp('bodytrack','/grapher/source/{{name}}'); App.closeModal();" id="viewData-{{connectorName}}">View graph <i class="icon-bar-chart"></i></a><br/> -->
                             </td>
-                            <td class="remove" style="background:inherit" >
+                            <td class="renew" style="background:inherit">
+                                {{#supportsRenewToken}}<a id="renew-{{connectorName}}" href="#"><i class="icon-resize-small icon-large" style="padding-top:18px"></i></a>{{/supportsRenewToken}}
+                                {{^supportsRenewToken}}<br><p></p>{{/supportsRenewToken}}
+                            </td>
+                            <td class="remove" style="background:inherit">
                                 <a {{#sticky}}style="display:none;"{{/sticky}} id="remove-{{connectorName}}" href="#"><i class="icon-trash"></i></a>
                             </td>
                         </tr>
@@ -98,7 +103,11 @@
                                 <p>{{latestData}}</p>
                                 <!-- <a href="javascript:App.renderApp('bodytrack','/grapher/source/{{name}}'); App.closeModal();" id="viewData-{{connectorName}}">View graph <i class="icon-bar-chart"></i></a><br/> -->
                             </td>
-                            <td class="remove" style="background:inherit" >
+                            <td class="renew" style="background:inherit">
+                                {{#supportsRenewToken}}<a id="renew-{{connectorName}}" href="#"><i class="icon-resize-small icon-large" style="padding-top:18px"></i></a>{{/supportsRenewToken}}
+                                {{^supportsRenewToken}}<br><p></p>{{/supportsRenewToken}}
+                            </td>
+                            <td class="remove" style="background:inherit">
                                 <a {{#sticky}}style="display:none;"{{/sticky}} id="remove-{{connectorName}}" href="#"><i class="icon-trash"></i></a>
                             </td>
                         </tr>
@@ -131,6 +140,10 @@
         <p>{{latestData}}</p>
         <!-- <a href="javascript:App.renderApp('bodytrack','/grapher/source/{{name}}'); App.closeModal();" id="viewData-{{connectorName}}">View graph <i class="icon-bar-chart"></i></a><br/> -->
     </td>
+    <td class="renew" style="background:inherit">
+        {{#supportsRenewToken}}<a id="renew-{{connectorName}}" href="#"><i class="icon-resize-small icon-large" style="padding-top:18px"></i></a>{{/supportsRenewToken}}
+        {{^supportsRenewToken}}<br></be><p></p>{{/supportsRenewToken}}
+    </td>
     <td class="remove" style="background:inherit">
         <a {{#sticky}}style="display:none;"{{/sticky}} id="remove-{{connectorName}}" href="#"><i class="icon-trash"></i></a>
     </td>
@@ -149,6 +162,22 @@
         <div class="modal-footer">
             <button id="confirmRemoveConnectorBtn" class="btn">Confirm</button>
             <button class="btn" id="cancelRemoveConnectorBtn">Cancel</button>
+        </div>
+    </div>
+</template>
+<template id="renewConnectorConfirm">
+    <div class="modal fade" id="renewConnectorConfirm">
+        <div class="modal-header">
+            <h3>Confirm Authorization Renewal<a href="#" class="close" data-dismiss="modal">&times;</a></h3>
+        </div>
+        <div class="modal-body" style="overflow:hidden">
+            <div class="alert alert-block"><h4 class="alert-heading">Warning!</h4>
+                You are about to renew an authorization to access your {{name}} data on your behalf. Are you sure?
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="confirmRenewConnectorBtn" class="btn">Confirm</button>
+            <button class="btn" id="cancelRenewConnectorBtn">Cancel</button>
         </div>
     </div>
 </template>

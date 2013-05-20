@@ -11,7 +11,10 @@ import com.fluxtream.connectors.Connector;
 
 @Entity(name = "Connector")
 // @Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
-@NamedQueries({ @NamedQuery(name = "connectors.all", query = "SELECT connector FROM Connector connector ORDER BY connector.count DESC") })
+@NamedQueries({
+    @NamedQuery(name = "connectors.all", query = "SELECT connector FROM Connector connector ORDER BY connector.count DESC"),
+    @NamedQuery(name = "connector.byName", query = "SELECT connector FROM Connector connector WHERE connectorName=?")
+})
 public class ConnectorInfo extends AbstractEntity {
 
 	public String name;
@@ -19,6 +22,9 @@ public class ConnectorInfo extends AbstractEntity {
 	public String connectUrl;
 	public String image;
 	public String connectorName;
+
+    @Type(type = "yes_no")
+    public boolean supportsRenewTokens = false;
 
 	@Type(type = "yes_no")
 	public boolean enabled;

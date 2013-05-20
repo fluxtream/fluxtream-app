@@ -55,7 +55,13 @@ public class SystemServiceImpl implements SystemService {
 		return all;
 	}
 
-	private void initializeConnectorList() {
+    @Override
+    public ConnectorInfo getConnectorInfo(final String connectorName) {
+        final ConnectorInfo connectorInfo = JPAUtils.findUnique(em, ConnectorInfo.class, "connector.byName", connectorName);
+        return connectorInfo;
+    }
+
+    private void initializeConnectorList() {
 		ResourceBundle res = ResourceBundle.getBundle("messages/connectors");
         int order = 0;
         em.persist(new ConnectorInfo("Google Latitude",
@@ -67,11 +73,13 @@ public class SystemServiceImpl implements SystemService {
                                      "/images/connectors/connector-fitbit.jpg",
                                      res.getString("fitbit"), "/fitbit/token",
                                      Connector.getConnector("fitbit"), order++, true));
-        em.persist(new ConnectorInfo("BodyMedia",
-                                     "/images/connectors/connector-bodymedia.jpg",
-                                     res.getString("bodymedia"),
-                                     "/bodymedia/token",
-                                     Connector.getConnector("bodymedia"), order++, true));
+        final ConnectorInfo bodymediaConnectorInfo = new ConnectorInfo("BodyMedia",
+                                                                       "/images/connectors/connector-bodymedia.jpg",
+                                                                       res.getString("bodymedia"),
+                                                                       "/bodymedia/token",
+                                                                       Connector.getConnector("bodymedia"), order++, true);
+        bodymediaConnectorInfo.supportsRenewTokens = true;
+        em.persist(bodymediaConnectorInfo);
         em.persist(new ConnectorInfo("Withings",
                                      "/images/connectors/connector-withings.jpg",
                                      res.getString("withings"),
