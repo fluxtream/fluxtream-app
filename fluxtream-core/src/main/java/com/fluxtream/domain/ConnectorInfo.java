@@ -23,6 +23,9 @@ public class ConnectorInfo extends AbstractEntity {
 	public String image;
 	public String connectorName;
 
+    @Type(type = "yes_no")
+    public boolean supportsRenewTokens = false;
+
 	@Type(type = "yes_no")
 	public boolean enabled;
 

@@ -160,6 +160,7 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
             connectorSettings(connector);
         });
         var renewBtn = $("#renew-" + connector.connectorName);
+        renewBtn.off("click");
         renewBtn.click(function(event){
             event.preventDefault();
             confirmRenew(connector);
@@ -326,7 +327,8 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
                     url: "/api/connectors/renew/" + connector.apiKeyId,
                     type:"POST",
                     success: function(result) {
-                        console.log(result.message);
+                        console.log("redirect to: " + result.redirectTo);
+                        window.location = result.redirectTo;
                         $("#renewConnectorConfirm").modal("hide");
                     },
                     error: function() {

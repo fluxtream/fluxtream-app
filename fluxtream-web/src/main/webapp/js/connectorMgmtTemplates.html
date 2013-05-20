@@ -56,7 +56,8 @@
                                 <!-- <a href="javascript:App.renderApp('bodytrack','/grapher/source/{{name}}'); App.closeModal();" id="viewData-{{connectorName}}">View graph <i class="icon-bar-chart"></i></a><br/> -->
                             </td>
                             <td class="renew" style="background:inherit">
-                                <a id="renew-{{connectorName}}" href="#"><i class="icon-resize-small"></i></a>
+                                {{#supportsRenewToken}}<a id="renew-{{connectorName}}" href="#"><i class="icon-resize-small icon-large" style="padding-top:18px"></i></a>{{/supportsRenewToken}}
+                                {{^supportsRenewToken}}<br><p></p>{{/supportsRenewToken}}
                             </td>
                             <td class="remove" style="background:inherit">
                                 <a {{#sticky}}style="display:none;"{{/sticky}} id="remove-{{connectorName}}" href="#"><i class="icon-trash"></i></a>
@@ -103,7 +104,8 @@
                                 <!-- <a href="javascript:App.renderApp('bodytrack','/grapher/source/{{name}}'); App.closeModal();" id="viewData-{{connectorName}}">View graph <i class="icon-bar-chart"></i></a><br/> -->
                             </td>
                             <td class="renew" style="background:inherit">
-                                <a id="renew-{{connectorName}}" href="#"><i class="icon-resize-small"></i></a>
+                                {{#supportsRenewToken}}<a id="renew-{{connectorName}}" href="#"><i class="icon-resize-small icon-large" style="padding-top:18px"></i></a>{{/supportsRenewToken}}
+                                {{^supportsRenewToken}}<br><p></p>{{/supportsRenewToken}}
                             </td>
                             <td class="remove" style="background:inherit">
                                 <a {{#sticky}}style="display:none;"{{/sticky}} id="remove-{{connectorName}}" href="#"><i class="icon-trash"></i></a>
@@ -139,7 +141,8 @@
         <!-- <a href="javascript:App.renderApp('bodytrack','/grapher/source/{{name}}'); App.closeModal();" id="viewData-{{connectorName}}">View graph <i class="icon-bar-chart"></i></a><br/> -->
     </td>
     <td class="renew" style="background:inherit">
-        <a id="renew-{{connectorName}}" href="#"><i class="icon-resize-small"></i></a>
+        {{#supportsRenewToken}}<a id="renew-{{connectorName}}" href="#"><i class="icon-resize-small icon-large" style="padding-top:18px"></i></a>{{/supportsRenewToken}}
+        {{^supportsRenewToken}}<br></be><p></p>{{/supportsRenewToken}}
     </td>
     <td class="remove" style="background:inherit">
         <a {{#sticky}}style="display:none;"{{/sticky}} id="remove-{{connectorName}}" href="#"><i class="icon-trash"></i></a>

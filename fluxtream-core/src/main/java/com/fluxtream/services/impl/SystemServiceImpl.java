@@ -73,11 +73,13 @@ public class SystemServiceImpl implements SystemService {
                                      "/images/connectors/connector-fitbit.jpg",
                                      res.getString("fitbit"), "/fitbit/token",
                                      Connector.getConnector("fitbit"), order++, true));
-        em.persist(new ConnectorInfo("BodyMedia",
-                                     "/images/connectors/connector-bodymedia.jpg",
-                                     res.getString("bodymedia"),
-                                     "/bodymedia/token",
-                                     Connector.getConnector("bodymedia"), order++, true));
+        final ConnectorInfo bodymediaConnectorInfo = new ConnectorInfo("BodyMedia",
+                                                                       "/images/connectors/connector-bodymedia.jpg",
+                                                                       res.getString("bodymedia"),
+                                                                       "/bodymedia/token",
+                                                                       Connector.getConnector("bodymedia"), order++, true);
+        bodymediaConnectorInfo.supportsRenewTokens = true;
+        em.persist(bodymediaConnectorInfo);
         em.persist(new ConnectorInfo("Withings",
                                      "/images/connectors/connector-withings.jpg",
                                      res.getString("withings"),

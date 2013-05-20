@@ -106,6 +106,9 @@ public class BodymediaController {
         guestService.setApiKeyAttribute(apiKey,
                 "tokenExpiration", provider.getResponseParameters().get("xoauth_token_expiration_time").first());
 
+        request.getSession().removeAttribute(BODYMEDIA_OAUTH_CONSUMER);
+        request.getSession().removeAttribute(BODYMEDIA_OAUTH_PROVIDER);
+
 		return "redirect:/app/from/" + connector().getName();
 	}
 

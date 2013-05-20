@@ -142,6 +142,7 @@ public class ConnectorStore {
                     connectorJson.accumulate("syncing", checkIfSyncInProgress(guest.getId(), conn));
                     connectorJson.accumulate("channels", settingsService.getChannelsForConnector(guest.getId(), conn));
                     connectorJson.accumulate("sticky", connector.connectorName.equals("fluxtream_capture"));
+                    connectorJson.accumulate("supportsRenewToken", connector.supportsRenewTokens);
                     connectorsArray.add(connectorJson);
                 }
             }
