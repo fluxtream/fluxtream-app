@@ -77,6 +77,7 @@ define(["core/Tab",
                 if (found){
                    if (connectorEnabled[digest.selectedConnectors[j].connectorName]){
                        data[data.length] = photos[i];
+                       break;//to avoid duplicates
                    }
                 }
             }
