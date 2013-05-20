@@ -225,7 +225,7 @@
                 <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
                 <div class="flx-data">
                     <!--<span class="flx-photo" style="background:url('{{photoUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>-->
-                    <img src="{{photo42}}" style="max-height:42px">
+                    <img class="flx-photo" photoId="{{id}}" src="{{photo42}}" style="max-height:42px">
                     <span class="flx-description">{{description}}</span>
                 </div>
             </div>
@@ -242,7 +242,7 @@
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
                 <div class="flx-data">
-                    <span class="flx-photo" style="background:url('{{photo42}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
+                    <span photoId="{{id}}" class="flx-photo" style="background:url('{{photo42}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
                     <span class="flx-description">{{description}}</span>
                 </div>
             </div>
@@ -563,7 +563,7 @@
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
                 <div class="flx-data">
-                    {{#photoUrl}}<img src="{{photo42}}" style="max-height:42px; float:left;  margin:0 10px 0 0; cursor:pointer">{{/photoUrl}}
+                    {{#photoUrl}}<img photoId="{{id}}" class="flx-photo" src="{{photo42}}" style="max-height:42px; float:left;  margin:0 10px 0 0; cursor:pointer">{{/photoUrl}}
                     <span class="flx-description">{{name}} {{amount}}</span>
                     <span class="flx-description">{{note}}</span>
                 </div>
@@ -581,7 +581,7 @@
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
                 <div class="flx-data">
-                    <span class="flx-photo" style="background:url('{{photo42}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
+                    <span photoId="{{id}}" class="flx-photo" style="background:url('{{photo42}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
                     <span class="flx-description">{{description}}</span>
                 </div>
             </div>

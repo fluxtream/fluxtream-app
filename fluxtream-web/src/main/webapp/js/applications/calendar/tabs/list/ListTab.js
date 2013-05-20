@@ -39,12 +39,15 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
             items = [];
             itemGroups = {};
             list.empty();
+            var photoCount = 0;
             for (var connectorName in digest.cachedData){
                 if (!shouldDisplayInListView(connectorName))
                     continue;
                 for (var i = 0; i < digest.cachedData[connectorName].length; i++){
                     var item = {};
                     item.facet = digest.cachedData[connectorName][i];
+                    if (item.facet.hasPhoto)
+                        item.facet.id = photoCount++;
                     item.visible = true;
                     var found = false;
                     for (var j = 0; j < digest.selectedConnectors.length; j++){
@@ -183,6 +186,8 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
         for (var i = 0; i < items.length; i++){
            var item = items[i];
            if (item.visible){
+               if (item.facet != null && item.facet.hasPhoto)
+                   item.facet.id = i;
                visibleCount++;
                if (visibleCount > currentPage * maxPerPage && visibleCount <= (currentPage + 1) * maxPerPage){
                     var facetDate = App.formatDate(item.facet.start  + timeZoneOffset,false,true);
@@ -213,9 +218,9 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
             list.append("Sorry, no data to show.");
         var photos = $(".flx-photo");
         for (var i = 0; i < photos.length; i++){
-            $(photos[i]).click({i:i}, function(event){
+            $(photos[i]).click(function(event){
                 App.makeModal(photoCarouselHTML);
-                App.carousel(event.data.i);
+                App.carousel($(event.delegateTarget).attr("photoId"));
             });
         }
     }
