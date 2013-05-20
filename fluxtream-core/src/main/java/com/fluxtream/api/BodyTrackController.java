@@ -907,6 +907,7 @@ public class BodyTrackController {
         ArrayList<PhotoItemThumbnail> thumbnails = new ArrayList<PhotoItemThumbnail>();
         int count = 1;
         int orientation;
+        String time_type;
 
         public PhotoItem(final PhotoService.Photo photo) {
             final AbstractPhotoFacetVO photoFacetVO = photo.getAbstractPhotoFacetVO();
@@ -921,6 +922,7 @@ public class BodyTrackController {
             this.dev_id = photo.getConnector().getName();
             this.dev_nickname = photo.getConnector().prettyName();
             this.object_type_name = photo.getObjectType().getName();
+            this.time_type = photoFacetVO.timeType;
             this.channel_name = PhotoService.DEFAULT_PHOTOS_CHANNEL_NAME;   // photo channels are always named the same
             final List<Dimension> thumbnailSizes = photoFacetVO.getThumbnailSizes();
             if ((thumbnailSizes != null) && (!thumbnailSizes.isEmpty())) {

@@ -19,6 +19,11 @@ public class FlickrPhotoFacetVO extends
     public Map<Integer, String> thumbnailUrls = new HashMap<Integer, String>();
     public SortedMap<Integer, Dimension> thumbnailSizes = new TreeMap<Integer, Dimension>();
 
+    public FlickrPhotoFacetVO()
+    {
+        timeType="local";
+    }
+
 	@Override
 	public void fromFacet(FlickrPhotoFacet facet, TimeInterval timeInterval,
 			GuestSettings settings) {
