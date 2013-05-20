@@ -168,21 +168,35 @@ public class AppController {
 		return home(request);
 	}
 
+    @RequestMapping(value = "/app/tokenRenewed/{connectorName}")
+    public String tokenRenewed(@PathVariable("connectorName") String connectorName) {
+        final Connector connector = Connector.getConnector(connectorName);
+        String message = "You have successfully renewed your "
+                         + connector.prettyName()
+                         + " authentication tokens. We will now update your data.";
+        return welcomeBack(connectorName, message);
+    }
+
 	@RequestMapping(value = "/app/from/{connectorName}")
 	public String home(@PathVariable("connectorName") String connectorName) {
-		long guestId = AuthHelper.getGuestId();
         final Connector connector = Connector.getConnector(connectorName);
         String message = "You have successfully added a new connector: "
-				+ connector.prettyName()
-				+ ". Your data is now being retrieved. "
-				+ "It may take a little while until it becomes visible.";
-		notificationsService.addNotification(guestId, Type.INFO, message);
-        ApiKey apiKey = guestService.getApiKey(guestId, connector);
-        connectorUpdateService.updateConnector(apiKey, true);
-		return "redirect:/app";
+                         + connector.prettyName()
+                         + ". Your data is now being retrieved. "
+                         + "It may take a little while until it becomes visible.";
+        return welcomeBack(connectorName, message);
 	}
 
-	private void checkIn(HttpServletRequest request, long guestId)
+    public String welcomeBack(String connectorName, String message) {
+        long guestId = AuthHelper.getGuestId();
+        final Connector connector = Connector.getConnector(connectorName);
+        notificationsService.addNotification(guestId, Type.INFO, message);
+        ApiKey apiKey = guestService.getApiKey(guestId, connector);
+        connectorUpdateService.updateConnector(apiKey, true);
+        return "redirect:/app";
+    }
+
+        private void checkIn(HttpServletRequest request, long guestId)
 			throws IOException {
 		String remoteAddr = request.getHeader("X-Forwarded-For");
 		if (remoteAddr == null)

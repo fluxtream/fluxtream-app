@@ -44,8 +44,9 @@ public class ConnectorInfo extends AbstractEntity {
     public String[] channels;
 
     public int api;
+    public String renewTokensUrlTemplate;
 
-	public ConnectorInfo() {
+    public ConnectorInfo() {
 	}
 
 	public ConnectorInfo(String name, String imageUrl, String text,

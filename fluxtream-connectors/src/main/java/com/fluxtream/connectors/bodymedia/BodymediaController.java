@@ -109,7 +109,10 @@ public class BodymediaController {
         request.getSession().removeAttribute(BODYMEDIA_OAUTH_CONSUMER);
         request.getSession().removeAttribute(BODYMEDIA_OAUTH_PROVIDER);
 
-		return "redirect:/app/from/" + connector().getName();
+        if (request.getParameter("apiKeyId")!=null)
+    		return "redirect:/app/tokenRenewed/" + connector().getName();
+        else
+            return "redirect:/app/from/" + connector().getName();
 	}
 
 	private Connector connector() {

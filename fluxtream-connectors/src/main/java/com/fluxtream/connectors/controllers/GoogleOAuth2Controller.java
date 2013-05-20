@@ -1,4 +1,4 @@
-    package com.fluxtream.connectors.controllers;
+package com.fluxtream.connectors.controllers;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -19,6 +19,7 @@ import com.fluxtream.utils.HttpUtils;
 import net.sf.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
@@ -39,18 +40,18 @@ public class GoogleOAuth2Controller {
 
     private final static String APIKEYID_ATTRIBUTE = "google_latitude.apiKeyId";
 
+    @RequestMapping(value = "/{apiKeyId}/token")
+    public String renewToken(@PathVariable("apiKeyId") String apiKeyId, HttpServletRequest request) throws IOException, ServletException{
+        request.getSession().setAttribute(APIKEYID_ATTRIBUTE, apiKeyId);
+        return getToken(request);
+    }
+
     @RequestMapping(value = "/token")
 	public String getToken(HttpServletRequest request) throws IOException, ServletException{
 		
 		String scope = request.getParameter("scope");
 		request.getSession().setAttribute("oauth2Scope", scope);
 		String redirectUri = env.get("homeBaseUrl") + "google/oauth2/swapToken";
-
-        final String apiKeyId = request.getParameter("apiKeyId");
-
-        if (apiKeyId !=null)
-            request.getSession().setAttribute(APIKEYID_ATTRIBUTE, apiKeyId);
-
 		String clientId = env.get("google.client.id");
 
 		String authorizeUrl = "https://accounts.google.com/o/oauth2/auth?client_id=" + clientId +
@@ -100,7 +101,8 @@ public class GoogleOAuth2Controller {
         }
         final String refresh_token = token.getString("refresh_token");
         ApiKey apiKey;
-        if (request.getSession().getAttribute(APIKEYID_ATTRIBUTE)!=null) {
+        final boolean isRenewToken = request.getSession().getAttribute(APIKEYID_ATTRIBUTE) != null;
+        if (isRenewToken) {
             String apiKeyId = (String)request.getSession().getAttribute(APIKEYID_ATTRIBUTE);
             apiKey = guestService.getApiKey(Long.valueOf(apiKeyId));
         } else
@@ -118,8 +120,10 @@ public class GoogleOAuth2Controller {
                                         "https://accounts.google.com/o/oauth2/revoke?token="
                                         + encodedRefreshToken);
 
-        request.getSession().removeAttribute(APIKEYID_ATTRIBUTE);
-
+        if (isRenewToken) {
+            request.getSession().removeAttribute(APIKEYID_ATTRIBUTE);
+            return "redirect:/app/tokenRenewed/"+scopedApi.getName();
+        }
         return "redirect:/app/from/"+scopedApi.getName();
     }
 }

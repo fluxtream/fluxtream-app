@@ -89,7 +89,7 @@ public class GoogleLatitudeUpdater extends AbstractGoogleOAuthUpdater {
             if(oldest.timestampMs-1000 >= from) {
                 loadHistory(updateInfo, from, oldest.timestampMs-1000);
             }
-    		}
+        }
 	}
 
 	private List<LocationFacet> executeList(UpdateInfo updateInfo,
