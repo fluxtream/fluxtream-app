@@ -712,7 +712,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
     }
 
     // Add new channel to target
-    Grapher.prototype.addChannel = function(channel, target) {
+    Grapher.prototype.addChannel = function(channel, target, dontPad) {
         var grapher = this;
         if (typeof channel == "string"){
             if (!SOURCES.initialized){
@@ -785,6 +785,8 @@ define(["core/grapher/BTCore"], function(BTCore) {
             } else {
                 padding = 0.1 * yDiff;
             }
+
+            if (dontPad) padding = 0;
 
             var yAxis = new NumberAxis(yAxisElementId, "vertical", {
                 "min" : yMin - padding,
@@ -1667,7 +1669,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     yAxes[i]["max_time"] = channel["max_time"];
                 }
 
-                grapher.addChannel(yAxes[i], null);
+                grapher.addChannel(yAxes[i], null, true);
             }
         }
         $(window).resize();//fixes issue of no date axis when window no channels are in view.
