@@ -4,27 +4,22 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import com.fluxtream.domain.ApiKey;
-import com.fluxtream.domain.Notification;
+import com.fluxtream.Configuration;
 import com.fluxtream.auth.AuthHelper;
+import com.fluxtream.connectors.Connector;
+import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.Guest;
+import com.fluxtream.domain.Notification;
+import com.fluxtream.services.GuestService;
 import com.fluxtream.services.NotificationsService;
+import com.fluxtream.services.SystemService;
+import com.fluxtream.utils.HttpUtils;
 import net.sf.json.JSONObject;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-
-import com.fluxtream.Configuration;
-import com.fluxtream.connectors.Connector;
-import com.fluxtream.domain.Guest;
-import com.fluxtream.services.GuestService;
-import com.fluxtream.services.SystemService;
-import com.fluxtream.utils.HttpUtils;
 
 @Controller
 @RequestMapping(value = "/google/oauth2")
@@ -42,18 +37,20 @@ public class GoogleOAuth2Controller {
     @Autowired
     NotificationsService notificationsService;
 
-	@RequestMapping(value = "/token")
-	public String getToken(HttpServletRequest request,
-			HttpServletResponse response) throws IOException, ServletException{
+    private final static String APIKEYID_ATTRIBUTE = "google_latitude.apiKeyId";
+
+    @RequestMapping(value = "/token")
+	public String getToken(HttpServletRequest request) throws IOException, ServletException{
 		
 		String scope = request.getParameter("scope");
 		request.getSession().setAttribute("oauth2Scope", scope);
 		String redirectUri = env.get("homeBaseUrl") + "google/oauth2/swapToken";
 
         final String apiKeyId = request.getParameter("apiKeyId");
+
         if (apiKeyId !=null)
-            redirectUri += "?apiKeyId=" + apiKeyId;
-		
+            request.getSession().setAttribute(APIKEYID_ATTRIBUTE, apiKeyId);
+
 		String clientId = env.get("google.client.id");
 
 		String authorizeUrl = "https://accounts.google.com/o/oauth2/auth?client_id=" + clientId +
@@ -103,10 +100,10 @@ public class GoogleOAuth2Controller {
         }
         final String refresh_token = token.getString("refresh_token");
         ApiKey apiKey;
-        String apiKeyId = request.getParameter("apiKeyId");
-        if (apiKeyId!=null)
+        if (request.getSession().getAttribute(APIKEYID_ATTRIBUTE)!=null) {
+            String apiKeyId = (String)request.getSession().getAttribute(APIKEYID_ATTRIBUTE);
             apiKey = guestService.getApiKey(Long.valueOf(apiKeyId));
-        else
+        } else
             apiKey = guestService.createApiKey(guest.getId(), scopedApi);
 
         guestService.setApiKeyAttribute(apiKey,
@@ -120,6 +117,8 @@ public class GoogleOAuth2Controller {
                                         "refreshTokenRemoveURL",
                                         "https://accounts.google.com/o/oauth2/revoke?token="
                                         + encodedRefreshToken);
+
+        request.getSession().removeAttribute(APIKEYID_ATTRIBUTE);
 
         return "redirect:/app/from/"+scopedApi.getName();
     }
