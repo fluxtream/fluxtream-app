@@ -366,6 +366,7 @@ define([], function() {
 			discoveryList  : [],
 
 			getAvailableList : function(callback) {
+                SOURCES.intialized = false;
 				$.ajax({
 					cache   : false,
 					type    : "GET",

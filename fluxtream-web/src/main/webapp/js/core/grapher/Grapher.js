@@ -123,7 +123,6 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     }
                 }
             }
-            SOURCES.initialized = true;
         });
 
         // Make the channel list sortable
@@ -367,6 +366,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
 
                     idx += 1;
                 }
+                SOURCES.initialized = true;
             }
 
             // Render add channels area
@@ -721,6 +721,13 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     grapher.addChannel(channel,target);
                 });
                 return;
+            }
+            else if (SOURCES.availableList == null || (SOURCES.availableList.length > 0 && SOURCES.availableList[0].channels.length > 0 && SOURCES.availableList[0].channels[0].id == null)){
+                getSources(grapher,function(){
+                    grapher.addChannel(channel,target);
+                });
+                return;
+
             }
             var channel = getSourceChannelByFullName(channel);
             if (channel == null)

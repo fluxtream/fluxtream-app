@@ -105,6 +105,15 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
                 channelStates[connectorName] = {};
             var channels = connector.channelNames;
 
+
+            for (var channelName in channelStates[connectorName]){
+                if (channels.indexOf(channelName) == -1){
+                    if (channelStates[connectorName][channelName]){
+                        grapher.removeChannel(channelName);
+                    }
+                    delete channelStates[connectorName][channelName];
+                }
+            }
             for (var i = 0, li = channels.length; i < li; i++){
                 if (channelStates[connectorName][channels[i]] == null)
                     channelStates[connectorName][channels[i]] = false;
