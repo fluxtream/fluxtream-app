@@ -19,6 +19,8 @@ public class FlickrPhotoFacetVO extends
     public Map<Integer, String> thumbnailUrls = new HashMap<Integer, String>();
     public SortedMap<Integer, Dimension> thumbnailSizes = new TreeMap<Integer, Dimension>();
 
+    public float[] position;
+
     public FlickrPhotoFacetVO()
     {
         timeType="local";
@@ -67,6 +69,12 @@ public class FlickrPhotoFacetVO extends
                         + facet.server + "/" + facet.flickrId + "_" + facet.secret
                         + "_z.jpg";
 		description = facet.title;
+
+        if (facet.longitude != null && !facet.longitude.equals("")){
+            position = new float[2];
+            position[0] = Float.parseFloat(facet.latitude);
+            position[1] = Float.parseFloat(facet.longitude);
+        }
 	}
 
     @Override
