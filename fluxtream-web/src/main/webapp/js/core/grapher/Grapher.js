@@ -1418,8 +1418,24 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     };
 
                     // Display the filter settings in the channel tab
-                    if (userSelectedTags.length > 0) {
-                        var filterHtml = App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_channel_tab_filter_template").render({"value":userSelectedTags.join(", ")});
+                    if (userSelectedTags.length > 0 || matchingStrategy == "untagged") {
+                        var params = {
+                            value:userSelectedTags.join(", "),
+                            matchingString: "Any of:"
+                        };
+                        switch (matchingStrategy){
+                            case "all":
+                                params.matchingString = "All of:";
+                                break;
+                            case "none":
+                                params.matchingString = "None of:";
+                                break;
+                            case "untagged":
+                                params.matchingString = "Untagged";
+                                params.value = "";
+                                break;
+                        }
+                        var filterHtml = App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_channel_tab_filter_template").render(params);
                         $("#" + channelElementId + "-timeline-channel-filter").html(filterHtml).shorten();
                     } else {
                         $("#" + channelElementId + "-timeline-channel-filter").text('').hide();

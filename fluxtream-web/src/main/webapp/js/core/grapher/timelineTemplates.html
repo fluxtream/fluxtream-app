@@ -138,6 +138,7 @@
                     <div class="flx-channel-name">
                         <h4 title="{{deviceName}}">{{deviceName}}</h4>
                         <p title="{{channelName}}">{{channelName}}</p>
+                        <p id="{{channelElementId}}-timeline-channel-filter"></p>
                     </div>
                     <ul class="flx-channel-controls">
                         <li><a href="#" id="{{channelElementId}}_btnShowAllY"><i class="icon-resize-vertical"></i></a></li>
@@ -478,4 +479,4 @@
   <input type="text" name="tag[]" value="{{value}}" class="tag"/>
 </template>
 
-<template id="_timeline_channel_tab_filter_template"><span class="_timeline_channelFilter_label">Tags</span>: {{value}}</template>
+<template id="_timeline_channel_tab_filter_template"><span class="_timeline_channelFilter_label">{{matchingString}}</span> {{value}}</template>
