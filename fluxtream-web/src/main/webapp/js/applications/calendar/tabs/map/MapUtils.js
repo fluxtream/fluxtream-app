@@ -300,6 +300,9 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 });
                 marker.gpsData = gpsDataToUse;
                 map.enhanceMarkerWithItem(marker,item);
+                var bounds = marker.getBounds();
+                addToGPSBounds(map, bounds.getNorthEast());
+                addToGPSBounds(map, bounds.getSouthWest());
                 return marker;
 
             }
@@ -307,14 +310,18 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
 
         }
         else{
+            var point = new google.maps.LatLng(item.position[0],item.position[1]);
             var marker = new google.maps.Marker({
                 map:map,
-                position:new google.maps.LatLng(item.position[0],item.position[1]),
+                position:point,
                 icon:itemConfig.mapicon,
                 shadow:itemConfig.mapshadow,
                 clickable:clickable
             });
             map.enhanceMarkerWithItem(marker,item);
+            var bounds = marker.getBounds();
+            addToGPSBounds(map, bounds.getNorthEast());
+            addToGPSBounds(map, bounds.getSouthWest());
             return marker;
         }
 
