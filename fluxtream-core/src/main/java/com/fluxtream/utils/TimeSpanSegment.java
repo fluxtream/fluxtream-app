@@ -9,6 +9,9 @@ import java.util.TimeZone;
  */
 public class TimespanSegment<T> implements Comparable<TimespanSegment>{
 
+    private static final int SIMULTANEOUS = 0;
+    private static final int AFTER = 1;
+    private static final int BEFORE = -1;
     long start;
     long end;
     T value;
@@ -43,10 +46,19 @@ public class TimespanSegment<T> implements Comparable<TimespanSegment>{
     public int compareTo(final TimespanSegment o) {
         final long startTimeDifference = this.start - o.start;
         if(startTimeDifference>0)
-            return 1;
+            return AFTER;
         else if (startTimeDifference<0)
-            return -1;
-        else return 0;
+            return BEFORE;
+        else return SIMULTANEOUS;
+    }
+
+    public int compareEnd(final TimespanSegment o) {
+        final long timeDifference = this.end - o.start;
+        if(timeDifference>0)
+            return AFTER;
+        else if (timeDifference<0)
+            return BEFORE;
+        else return SIMULTANEOUS;
     }
 
     public static void main(final String[] args) {

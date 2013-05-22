@@ -10,21 +10,29 @@ import java.util.TreeSet;
  */
 public class TimespanMap<T> {
 
+    private long end, start;
     private int coalesceMillis;
     TreeSet<TimespanSegment<T>> spans = new TreeSet<TimespanSegment<T>>();
 
     public TimespanMap(long start, long end, final int i) {
         coalesceMillis = i;
-        spans.add(new TimespanSegment<T>(start, end));
+        this.start = start;
+        this.end = end;
+        spans.add(new TimespanSegment<T>(this.start, this.end));
     }
 
     public TimespanMap(final int i) {
-        coalesceMillis = i;
-        spans.add(new TimespanSegment<T>(Long.MIN_VALUE, Long.MAX_VALUE));
+        this(Long.MIN_VALUE, Long.MAX_VALUE, i);
     }
 
     public void add(TimespanSegment<T> segment) {
+        final TimespanSegment<T> startLower = spans.floor(segment);
+        TimespanSegment endSegment = new TimespanSegment(segment.end, segment.end);
+        final TimespanSegment<T> endLower = spans.floor(endSegment);
+        if (startLower==endLower) {
+        } else {
 
+        }
     }
 
     public int size() {
