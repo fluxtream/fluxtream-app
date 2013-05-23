@@ -325,6 +325,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             var bounds = marker.getBounds();
             addToGPSBounds(map, bounds.getNorthEast());
             addToGPSBounds(map, bounds.getSouthWest());
+            map.noGPSDiv.css("display","none");
             return marker;
         }
     }
