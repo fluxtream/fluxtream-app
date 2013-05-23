@@ -279,19 +279,17 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         var tip_x = target.left + event.offsetX;
         var offsetX = config.CLOCK_CENTER[0] - event.offsetX;
         var offsetY = config.CLOCK_CENTER[1] - event.offsetY;
-        if (map.primaryGPSData != null){
-            markers[0] = map.addItem(span.item,false);
-            if (markers[0] != null){
-                markers[0].doHighlighting();
-                markers[0].showCircle();
-                map.zoomOnMarker(markers[0]);
-                //markers[0].hideMarker();
-               /* markers[1] = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(event.timeTarget),
-                                                    icon:markers[0].getIcon(),shadow:markers[0].getShadow(),clickable:false});
-                map.enhanceMarker(markers[1],event.timeTarget);
-                markers[1].showCircle();
-                map.zoomOnMarker(markers[1]); */
-            }
+        markers[0] = map.addItem(span.item,false);
+        if (markers[0] != null){
+            markers[0].doHighlighting();
+            markers[0].showCircle();
+            map.zoomOnMarker(markers[0]);
+            //markers[0].hideMarker();
+           /* markers[1] = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(event.timeTarget),
+                                                icon:markers[0].getIcon(),shadow:markers[0].getShadow(),clickable:false});
+            map.enhanceMarker(markers[1],event.timeTarget);
+            markers[1].showCircle();
+            map.zoomOnMarker(markers[1]); */
         }
 
         var contents = facet.getDetails();
