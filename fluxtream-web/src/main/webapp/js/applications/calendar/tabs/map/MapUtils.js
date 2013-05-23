@@ -418,16 +418,20 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             }
         }
         marker.doHighlighting = function(){
-            if (map.gpsLine == null)
+            if (this.gpsData == null)
                 return;
             if (map.currentHighlightedLine != null){
                 map.currentHighlightedLine.setMap(null);
                 map.currentHighlightedLine = null
             }
-            if ((marker.item != null && marker.item.end != null) || end != null){
-                map.currentHighlightedLine = map.createPolyLineSegment(marker.item != null ? marker.item.start : start, marker.item != null ? marker.item.end : end, {strokeColor:"orange", zIndex: 100});
+            if ((this.item != null && this.item.end != null) || end != null){
+                var strokeColor = App.getFacetConfig(this.item.type).color;
+                if (strokeColor == this.gpsData.color){
+                    strokeColor = $.xcolor.darken(strokeColor,2).getCSS();
+                }
+                map.currentHighlightedLine = map.createPolyLineSegment(this.gpsData, this.item != null ? this.item.start : start, this.item != null ? this.item.end : end, {strokeColor:strokeColor, zIndex: 100});
                 marker.line = map.currentHighlightedLine;
-                if (map.gpsLine.getMap() == null)
+                if (this.gpsData.gpsLine.getMap() == null)
                     map.currentHighlightedLine.setMap(null);
             }
         }
