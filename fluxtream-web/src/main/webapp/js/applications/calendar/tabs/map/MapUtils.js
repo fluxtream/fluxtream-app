@@ -336,7 +336,9 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             if (map.selectedMarker != null)
                 map.selectedMarker.hideCircle();
             map.selectedMarker = marker;
-            map.infoWindow.setContent(item.getDetails(true));
+            var details = $(item.getDetails(true));
+            details.find(".mapLink").remove();
+            map.infoWindow.setContent(details[0]);
             map.infoWindow.open(map,marker);
             marker.doHighlighting();
             marker.showCircle();

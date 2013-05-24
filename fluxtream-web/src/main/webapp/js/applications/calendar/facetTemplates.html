@@ -561,7 +561,7 @@
             {{#facets}}
             <div class="facetDetails">
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
-                <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
+                <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span>{{#hasPosition}}&nbsp;<a class="mapLink" href="#" onclick="$('.calendar-map-tab').click(); return false;"><i class="icon-map-marker"></i></a>{{/hasPosition}}</div>
                 <div class="flx-data">
                     {{#photoUrl}}<img photoId="{{id}}" class="flx-photo" src="{{photo42}}" style="max-height:42px; float:left;  margin:0 10px 0 0; cursor:pointer">{{/photoUrl}}
                     <span class="flx-description">{{name}} {{amount}}</span>
