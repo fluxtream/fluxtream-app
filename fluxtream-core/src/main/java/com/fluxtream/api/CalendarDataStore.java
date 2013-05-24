@@ -419,8 +419,16 @@ public class CalendarDataStore {
 	public String getAllConnectorsDayData(@PathParam("date") String date,
 			@QueryParam("filter") String filter) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
-        Guest guest = AuthHelper.getGuest();
-        long guestId = guest.getId();
+        Guest guest = null;
+        long guestId = 0;
+
+        try {
+            guest = AuthHelper.getGuest();
+            guestId = guest.getId();
+        } catch (Throwable e) {
+            return gson.toJson(new StatusModel(false, "You are no longer logged in. Please reload your browser window"));
+        }
+
         CoachingBuddy coachee = null;
         try {
             coachee = AuthHelper.getCoachee();
