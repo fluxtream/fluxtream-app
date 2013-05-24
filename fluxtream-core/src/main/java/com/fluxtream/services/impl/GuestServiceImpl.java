@@ -163,8 +163,9 @@ public class GuestServiceImpl implements GuestService {
 
 	@Override
 	@Transactional(readOnly = false)
-	public ApiKey setApiKeyAttribute(ApiKey apiKey, String key,
+	public ApiKey setApiKeyAttribute(ApiKey ak, String key,
 			String value) {
+        ApiKey apiKey = em.find(ApiKey.class, ak.getId());
         apiKey.removeAttribute(key);
         ApiKeyAttribute attr = new ApiKeyAttribute();
 		attr.attributeKey = key;
@@ -198,7 +199,8 @@ public class GuestServiceImpl implements GuestService {
 
     @Override
     @Deprecated
-	public String getApiKeyAttribute(ApiKey apiKey, String key) {
+	public String getApiKeyAttribute(ApiKey ak, String key) {
+        ApiKey apiKey = em.find(ApiKey.class, ak.getId());
 		return apiKey.getAttributeValue(key, env);
 	}
 
