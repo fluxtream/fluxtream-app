@@ -227,7 +227,9 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
 
 
 
-    function getPointForItemOnLine(map,gpsData,item){
+    function getPointForItemOnLine(map,gpsData,item,allowNull){
+        if (allowNull == null)
+            allowNull = true;
         var startTime = item.start;
         var endTime = item.end == null ? startTime : item.end;
         var time = (startTime + endTime) / 2;
@@ -235,10 +237,10 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         if (gpsData.gpsTimestamps.length == 0)
             return null;
         if (time <= gpsData.gpsTimestamps[0]){
-            return endTime >= gpsData.gpsTimestamps[0] ? gpsData.gpsPositions[0] : null;
+            return (!allowNull || endTime >= gpsData.gpsTimestamps[0]) ? gpsData.gpsPositions[0] : null;
         }
         if (time >= gpsData.gpsTimestamps[gpsData.gpsTimestamps.length - 1]){
-            return endTime <= gpsData.gpsTimestamps[gpsData.gpsTimestamps.length - 1] ? gpsData.gpsPositions[gpsData.gpsPositions.length-1] : null;
+            return (!allowNull || endTime <= gpsData.gpsTimestamps[gpsData.gpsTimestamps.length - 1]) ? gpsData.gpsPositions[gpsData.gpsPositions.length-1] : null;
         }
         var endIndex;
         for (endIndex = 1; endIndex < gpsData.gpsTimestamps.length && gpsData.gpsTimestamps[endIndex] < time; endIndex++);
@@ -292,6 +294,13 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                         break;
                     }
                 }
+            }
+            if (point == null){
+                point = getPointForItemOnLine(map,map.primaryGPSData,item,false);
+                if (point != null){
+                    gpsDataToUse = map.primaryGPSData;
+                }
+
             }
             if (point != null){
                 var marker = new google.maps.Marker({
@@ -421,12 +430,12 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             }
         }
         marker.doHighlighting = function(){
-            if (this.gpsData == null)
-                return;
             if (map.currentHighlightedLine != null){
                 map.currentHighlightedLine.setMap(null);
                 map.currentHighlightedLine = null
             }
+            if (this.gpsData == null)
+                return;
             if ((this.item != null && this.item.end != null) || end != null){
                 var strokeColor = App.getFacetConfig(this.item.type).color;
                 if (strokeColor == this.gpsData.color){
@@ -762,6 +771,15 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             map.reset = function(){
                 if (map.infoWindow == null){//brand new map, initialize
                     map.infoWindow = new google.maps.InfoWindow();
+                    google.maps.event.addListener(map.infoWindow,"closeclick",function(){
+                        if (map.selectedMarker != null){
+                            map.selectedMarker.hideCircle();
+                            if (map.currentHighlightedLine != null){
+                                map.currentHighlightedLine.setMap(null);
+                                map.currentHighlightedLine = null
+                            }
+                        }
+                    })
                 }
                 else{//old map, remove everything!
                     for (var i = 0, li = map.markerList.length; i < li; i++){
