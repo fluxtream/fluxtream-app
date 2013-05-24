@@ -1,9 +1,20 @@
 define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     var config = Config.getConfig();
+    google.maps.visualRefresh = true;
 
-    function addGPSData(map,gpsData, clickable){
-        map.gpsPositions = [];
-        map.gpsTimestamps = [];
+    function addGPSData(map,gpsData, config, clickable){
+        if (!(config.map && config.gps))
+            return;
+        var newGPSDataSet = {};
+        map.gpsData[gpsData[0].type] = newGPSDataSet;
+        if (map.primaryGPSData == null){
+            map.primaryGPSData = newGPSDataSet;
+        }
+        newGPSDataSet.color = config.color;
+
+        newGPSDataSet.gpsPositions = [];
+        newGPSDataSet.gpsTimestamps = [];
+        newGPSDataSet.gpsAccuracies = [];
         if (gpsData.length == 0)
             return;
         map.markers[gpsData[0].type] = [];
@@ -15,15 +26,15 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         for (var i = 0; i < gpsData.length; i++){
             var lat = gpsData[i].position[0];
             var lng = gpsData[i].position[1];
-            map.gpsPositions[map.gpsPositions.length] = new google.maps.LatLng(lat,lng);
+            newGPSDataSet.gpsPositions.push(new google.maps.LatLng(lat,lng));
             try {
-            map.markers[gpsData[i].type][map.markers[gpsData[i].type].length] = new google.maps.Marker({map:map,
-                                                                            position:map.gpsPositions[map.gpsPositions.length-1],
-                                                                           icon:App.getConnectorConfig(App.getFacetConnector(gpsData[i].type)).mapicon,
-                                                                           shadow:App.getConnectorConfig(App.getFacetConnector(gpsData[i].type)).mapshadow,
-                                                                           clickable:clickable});
-            map.gpsTimestamps[map.gpsTimestamps.length] = gpsData[i].start;
-            map.gpsAccuracies[map.gpsAccuracies.length] = gpsData[i].accuracy;
+            map.markers[gpsData[i].type].push(new google.maps.Marker({map:map,
+                                                                    position:newGPSDataSet.gpsPositions[newGPSDataSet.gpsPositions.length-1],
+                                                                   icon:config.mapicon,
+                                                                   shadow:config.mapshadow,
+                                                                   clickable:clickable}));
+            newGPSDataSet.gpsTimestamps.push(gpsData[i].start);
+            newGPSDataSet.gpsAccuracies.push(gpsData[i].accuracy);
             map.enhanceMarkerWithItem(map.markers[gpsData[i].type][map.markers[gpsData[i].type].length-1],gpsData[i]);
             var bounds = map.markers[gpsData[i].type][map.markers[gpsData[i].type].length-1].getBounds();
             if (bounds.getSouthWest().lat() < minLat)
@@ -36,9 +47,30 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 maxLng = bounds.getNorthEast().lng();
             } catch (e) {}
         }
-        map.gpsLine = new google.maps.Polyline({map:map, path:map.gpsPositions,clickable:false});
-        map.gpsBounds = new google.maps.LatLngBounds(new google.maps.LatLng(minLat,minLng), new google.maps.LatLng(maxLat,maxLng));
+        newGPSDataSet.gpsLine = new google.maps.Polyline({
+            map:map,
+            path:newGPSDataSet.gpsPositions,
+            clickable:false,
+            strokeColor: newGPSDataSet.color});
+        addToGPSBounds(map, new google.maps.LatLng(minLat,minLng));
+        addToGPSBounds(map, new google.maps.LatLng(maxLat,maxLng));
+
         map.noGPSDiv.css("display","none");
+    }
+
+    function addToGPSBounds(map, point){
+        if (map.gpsBounds == null){
+            map.gpsBounds = new google.maps.LatLngBounds(point,point);
+            return;
+        }
+
+        var maxLng = Math.max(point.lng(),map.gpsBounds.getNorthEast().lng());
+        var minLng = Math.min(point.lng(),map.gpsBounds.getSouthWest().lng());
+        var minLat = Math.min(point.lat(),map.gpsBounds.getSouthWest().lat());
+        var maxLat = Math.max(point.lat(),map.gpsBounds.getNorthEast().lat());
+
+        map.gpsBounds = new google.maps.LatLngBounds(new google.maps.LatLng(minLat,minLng),new google.maps.LatLng(maxLat,maxLng));
+
     }
 
     function filterGPSData(gpsData){//also sorts it
@@ -138,6 +170,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 break;
         }
         var marker = new google.maps.Marker({map:map, position:new google.maps.LatLng(address.latitude,address.longitude), icon:icon});
+        map.markerList.push(marker);
         marker.showCircle = function(){
             if (marker.circle != null)
                 return;
@@ -173,7 +206,6 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 marker.circle.setMap(newMap);
             marker._oldSetMap(newMap);
         }
-        map.markerList.push(marker);
     }
 
     function isDisplayable(itemType){
@@ -193,16 +225,118 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         return markerArray;
     }
 
+
+
+    function getPointForItemOnLine(map,gpsData,item,allowNull){
+        if (allowNull == null)
+            allowNull = true;
+        var startTime = item.start;
+        var endTime = item.end == null ? startTime : item.end;
+        var time = (startTime + endTime) / 2;
+
+        if (gpsData.gpsTimestamps.length == 0)
+            return null;
+        if (time <= gpsData.gpsTimestamps[0]){
+            return (!allowNull || endTime >= gpsData.gpsTimestamps[0]) ? gpsData.gpsPositions[0] : null;
+        }
+        if (time >= gpsData.gpsTimestamps[gpsData.gpsTimestamps.length - 1]){
+            return (!allowNull || endTime <= gpsData.gpsTimestamps[gpsData.gpsTimestamps.length - 1]) ? gpsData.gpsPositions[gpsData.gpsPositions.length-1] : null;
+        }
+        var endIndex;
+        for (endIndex = 1; endIndex < gpsData.gpsTimestamps.length && gpsData.gpsTimestamps[endIndex] < time; endIndex++);
+        var startIndex = endIndex - 1;
+        var percentThrough = (time - gpsData.gpsTimestamps[startIndex]) / (gpsData.gpsTimestamps[endIndex] - gpsData.gpsTimestamps[startIndex]);
+
+        var projection = map.getProjection();
+        var startPoint = projection.fromLatLngToPoint(gpsData.gpsPositions[startIndex]);
+        var endPoint = projection.fromLatLngToPoint(gpsData.gpsPositions[endIndex]);
+
+        var x = (endPoint.x - startPoint.x) * percentThrough + startPoint.x;
+        var y = (endPoint.y - startPoint.y) * percentThrough + startPoint.y;
+        var latlng = projection.fromPointToLatLng(new google.maps.Point(x,y));
+        return latlng;
+
+    }
+
     //creates a marker with extended functionality
     function addItemToMap(map,item,clickable){
         var itemConfig = App.getFacetConfig(item.type);
         var start = item.start;
         var end = item.end;
-        if (start > map.gpsTimestamps[map.gpsTimestamps.length - 1] || (end == null && start < map.gpsTimestamps[0]))
-            return;
-        var marker = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(start), icon:itemConfig.mapicon, shadow:itemConfig.mapshadow,clickable:clickable});
-        map.enhanceMarkerWithItem(marker,item);
-        return marker;
+
+        if (item.position == null){
+            var gpsDataToUse = null;
+            var matchingGPSData = null;
+            var point = null;
+            for (var objectType in map.gpsData){
+                if (App.getFacetConnector(item.type) == App.getFacetConnector(objectType)){
+                    matchingGPSData = map.gpsData[objectType];
+                    break;
+                }
+            }
+            if (matchingGPSData != null){
+                point = getPointForItemOnLine(map,matchingGPSData,item);
+                if (point != null){
+                    gpsDataToUse = matchingGPSData;
+                }
+            }
+            if (point == null && map.primaryGPSData != null){
+                point = getPointForItemOnLine(map,map.primaryGPSData,item);
+                if (point != null){
+                    gpsDataToUse = map.primaryGPSData;
+                }
+            }
+            if (point == null){
+                for (var objectType in map.gpsData){
+                    point = getPointForItemOnLine(map,map.gpsData[objectType],item);
+                    if (point != null){
+                        gpsDataToUse = map.gpsData[objectType];
+                        break;
+                    }
+                }
+            }
+            if (point == null){
+                point = getPointForItemOnLine(map,map.primaryGPSData,item,false);
+                if (point != null){
+                    gpsDataToUse = map.primaryGPSData;
+                }
+
+            }
+            if (point != null){
+                var marker = new google.maps.Marker({
+                    map:map,
+                    position:point,
+                    icon:itemConfig.mapicon,
+                    shadow:itemConfig.mapshadow,
+                    clickable:clickable
+                });
+                marker.gpsData = gpsDataToUse;
+                map.enhanceMarkerWithItem(marker,item);
+                var bounds = marker.getBounds();
+                addToGPSBounds(map, bounds.getNorthEast());
+                addToGPSBounds(map, bounds.getSouthWest());
+                return marker;
+
+            }
+            return null;
+
+        }
+        else{
+            var point = new google.maps.LatLng(item.position[0],item.position[1]);
+            var marker = new google.maps.Marker({
+                map:map,
+                position:point,
+                icon:itemConfig.mapicon,
+                shadow:itemConfig.mapshadow,
+                clickable:clickable
+            });
+            map.enhanceMarkerWithItem(marker,item);
+            var bounds = marker.getBounds();
+            addToGPSBounds(map, bounds.getNorthEast());
+            addToGPSBounds(map, bounds.getSouthWest());
+            map.noGPSDiv.css("display","none");
+            return marker;
+        }
     }
 
     function addClickListenerForMarker(map,marker,item){
@@ -211,7 +345,9 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             if (map.selectedMarker != null)
                 map.selectedMarker.hideCircle();
             map.selectedMarker = marker;
-            map.infoWindow.setContent(item.getDetails(true));
+            var details = $(item.getDetails(true));
+            details.find(".mapLink").remove();
+            map.infoWindow.setContent(details[0]);
             map.infoWindow.open(map,marker);
             marker.doHighlighting();
             marker.showCircle();
@@ -232,8 +368,16 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         marker._oldSetMap = marker.setMap;
         marker.targetMap = null;
         marker.circle = null;
+        var gpsDataToUse = marker.gpsData == null ? map.primaryGPSData : marker.gpsData;
         var config = marker.item != null ? App.getFacetConfig(marker.item.type) : {gps:false};
-        var accuracy = config.gps ? marker.item.accuracy : getGPSAccuracy(map,marker.item != null ? marker.item.start : start);
+        var startTime = marker.item != null ? marker.item.start : start;
+        var endTime = marker.item != null && marker.item.end != null ? marker.item.end : end;
+        if (endTime == null)
+            endTime =  startTime;
+        var time = (startTime + endTime) / 2;
+        var accuracy = (marker.item != null  && marker.item.position != null) ? marker.item.accuracy : getGPSAccuracy(gpsDataToUse,time);
+        if (accuracy == null)
+            accuracy = 0;
         marker.showCircle = function(){
             if (marker.circle != null)
                 return;
@@ -286,16 +430,20 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             }
         }
         marker.doHighlighting = function(){
-            if (map.gpsLine == null)
-                return;
             if (map.currentHighlightedLine != null){
                 map.currentHighlightedLine.setMap(null);
                 map.currentHighlightedLine = null
             }
-            if ((marker.item != null && marker.item.end != null) || end != null){
-                map.currentHighlightedLine = map.createPolyLineSegment(marker.item != null ? marker.item.start : start, marker.item != null ? marker.item.end : end, {strokeColor:"orange", zIndex: 100});
+            if (this.gpsData == null)
+                return;
+            if ((this.item != null && this.item.end != null) || end != null){
+                var strokeColor = App.getFacetConfig(this.item.type).color;
+                if (strokeColor == this.gpsData.color){
+                    strokeColor = $.xcolor.darken(strokeColor,2).getCSS();
+                }
+                map.currentHighlightedLine = map.createPolyLineSegment(this.gpsData, this.item != null ? this.item.start : start, this.item != null ? this.item.end : end, {strokeColor:strokeColor, zIndex: 100});
                 marker.line = map.currentHighlightedLine;
-                if (map.gpsLine.getMap() == null)
+                if (this.gpsData.gpsLine.getMap() == null)
                     map.currentHighlightedLine.setMap(null);
             }
         }
@@ -305,127 +453,165 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         map.markerList.push(marker);
     }
 
-    function highlightTimespan(map, start,end){
-        if (map.gpsTimestamps.length == 0)
-            return;
-        if (map.highlightSection != null){
-            map.highlightSection.setMap(null);
-            map.highlightSection = null;
+    function highlightTimespan(map, start,end,gpsDataSet){
+        function highlight(map,gpsDataSet,start,end){
+            if (gpsDataSet.gpsTimestamps.length == 0)
+                return;
+            if (gpsDataSet.highlightSection != null){
+                gpsDataSet.highlightSection.setMap(null);
+                gpsDataSet.highlightSection = null;
+            }
+            if (start <= gpsDataSet.gpsTimestamps[0] && end >= gpsDataSet.gpsTimestamps[gpsDataSet.gpsTimestamps.length - 1]){
+                gpsDataSet.gpsLine.setOptions({strokeColor: gpsDataSet.color});
+                return;
+            }
+            gpsDataSet.gpsLine.setOptions({strokeColor: $.xcolor.opacity(gpsDataSet.color, 'lightgrey', 0.69).getCSS()});
+            gpsDataSet.highlightSection = map.createPolyLineSegment(gpsDataSet, start, end, {strokeColor:gpsDataSet.color, zIndex: 99});
         }
-        if (start <= map.gpsTimestamps[0] && end >= map.gpsTimestamps[map.gpsTimestamps.length - 1]){
-            map.gpsLine.setOptions({strokeColor: "black"});
-            return;
+        if (gpsDataSet != null){
+            highlight(map, gpsDataSet,start,end);
         }
-        map.gpsLine.setOptions({strokeColor: "grey"});
-        map.highlightSection = map.createPolyLineSegment(start, end, {strokeColor:"black", zIndex: 99});
+        else{
+            for (var objectType in map.gpsData){
+                highlight(map, map.gpsData[objectType],start,end);
+            }
+        }
     }
 
-    function getFirstIndexAfter(map, time){
+    function getFirstIndexAfter(gpsDataSet, time){
         var endIndex;
-        for (endIndex = 0; endIndex < map.gpsTimestamps.length && map.gpsTimestamps[endIndex] < time; endIndex++);
+        for (endIndex = 0; endIndex < gpsDataSet.gpsTimestamps.length && gpsDataSet.gpsTimestamps[endIndex] < time; endIndex++);
         return endIndex;
     }
 
-    function getFirstIndexBefore(map, time){
-        if (time <= map.gpsTimestamps[0])
+    function getFirstIndexBefore(gpsDataSet, time){
+        if (time <= gpsDataSet.gpsTimestamps[0])
             return -1;
         var endIndex;
-        for (endIndex = 1; endIndex < map.gpsTimestamps.length && map.gpsTimestamps[endIndex] < time; endIndex++);
+        for (endIndex = 1; endIndex < gpsDataSet.gpsTimestamps.length && gpsDataSet.gpsTimestamps[endIndex] < time; endIndex++);
         return endIndex - 1;
     }
 
-    function createPolyLineSegment(map, start, end, options){
+    function createPolyLineSegment(map, gpsDataSet, start, end, options){
         options.map = map;
         var newPoints = new Array();
-        newPoints[0] = map.getLatLngOnGPSLine(start);
+        newPoints[0] = map.getLatLngOnGPSLine(start,gpsDataSet);
         if (newPoints[0] == null)
             return null;
-        var startIndex = map.getFirstIndexAfter(start);
-        var endIndex = map.getFirstIndexBefore(end);
+        var startIndex = map.getFirstIndexAfter(gpsDataSet,start);
+        var endIndex = map.getFirstIndexBefore(gpsDataSet,end);
         for (var i = 0; i + startIndex <= endIndex; i++){
-            newPoints[i+1] = map.gpsPositions[i+startIndex];
+            newPoints[i+1] = gpsDataSet.gpsPositions[i+startIndex];
         }
-        newPoints[newPoints.length] = map.getLatLngOnGPSLine(end);
+        newPoints[newPoints.length] = map.getLatLngOnGPSLine(end,gpsDataSet);
         options.path = newPoints;
         options.clickable = false;
         return new google.maps.Polyline(options);
     }
 
-    function getGPSAccuracy(map,time){
-        if (map.gpsTimestamps.length == 0)
+    function getGPSAccuracy(gpsData,time){
+        if (gpsData == null)
             return -1;
-        if (time <= map.gpsTimestamps[0])
-            return map.gpsAccuracies[0];
-        if (map >= map.gpsTimestamps[map.gpsTimestamps.length - 1])
-            return map.gpsAccuracies[map.gpsAccuracies.length - 1];
+        if (gpsData.gpsTimestamps.length == 0)
+            return -1;
+        if (time <= gpsData.gpsTimestamps[0])
+            return gpsData.gpsAccuracies[0];
+        if (time >= gpsData.gpsTimestamps[gpsData.gpsTimestamps.length - 1])
+            return gpsData.gpsAccuracies[gpsData.gpsAccuracies.length - 1];
 
         var endIndex;
-        for (endIndex = 1; endIndex < map.gpsTimestamps.length && map.gpsTimestamps[endIndex] < time; endIndex++);
+        for (endIndex = 1; endIndex < gpsData.gpsTimestamps.length && gpsData.gpsTimestamps[endIndex] < time; endIndex++);
         var startIndex = endIndex - 1;
-        var percentThrough = (time - map.gpsTimestamps[startIndex]) / (map.gpsTimestamps[endIndex] - map.gpsTimestamps[startIndex]);
+        var percentThrough = (time - gpsData.gpsTimestamps[startIndex]) / (gpsData.gpsTimestamps[endIndex] - gpsData.gpsTimestamps[startIndex]);
         if (isNaN(percentThrough))
-            return map.gpsAccuracies[startIndex];
-        return (map.gpsAccuracies[endIndex] - map.gpsAccuracies[startIndex]) * percentThrough + map.gpsAccuracies[startIndex];
+            return gpsData.gpsAccuracies[startIndex];
+        return (gpsData.gpsAccuracies[endIndex] - gpsData.gpsAccuracies[startIndex]) * percentThrough + gpsData.gpsAccuracies[startIndex];
     }
 
-    function getLatLngOnGPSLine(map,time){
-        if (map.gpsTimestamps.length == 0)
+    function getLatLngOnGPSLine(map, time, gpsDataSet){
+        if (gpsDataSet == null)
+            gpsDataSet = map.primaryGPSData;
+        if (gpsDataSet == null)
             return null;
-        if (time <= map.gpsTimestamps[0])
-            return map.gpsPositions[0];
-        if (time >= map.gpsTimestamps[map.gpsTimestamps.length - 1])
-            return map.gpsPositions[map.gpsPositions.length-1];
+
+        if (gpsDataSet.gpsTimestamps.length == 0)
+            return null;
+        if (time <= gpsDataSet.gpsTimestamps[0])
+            return gpsDataSet.gpsPositions[0];
+        if (time >= gpsDataSet.gpsTimestamps[gpsDataSet.gpsTimestamps.length - 1])
+            return gpsDataSet.gpsPositions[gpsDataSet.gpsPositions.length-1];
         var endIndex;
-        for (endIndex = 1; endIndex < map.gpsTimestamps.length && map.gpsTimestamps[endIndex] < time; endIndex++);
+        for (endIndex = 1; endIndex < gpsDataSet.gpsTimestamps.length && gpsDataSet.gpsTimestamps[endIndex] < time; endIndex++);
         var startIndex = endIndex - 1;
-        var percentThrough = (time - map.gpsTimestamps[startIndex]) / (map.gpsTimestamps[endIndex] - map.gpsTimestamps[startIndex]);
+        var percentThrough = (time - gpsDataSet.gpsTimestamps[startIndex]) / (gpsDataSet.gpsTimestamps[endIndex] - gpsDataSet.gpsTimestamps[startIndex]);
 
         var projection = map.getProjection();
-        var startPoint = projection.fromLatLngToPoint(map.gpsPositions[startIndex]);
-        var endPoint = projection.fromLatLngToPoint(map.gpsPositions[endIndex]);
+        var startPoint = projection.fromLatLngToPoint(gpsDataSet.gpsPositions[startIndex]);
+        var endPoint = projection.fromLatLngToPoint(gpsDataSet.gpsPositions[endIndex]);
 
         var x = (endPoint.x - startPoint.x) * percentThrough + startPoint.x;
         var y = (endPoint.y - startPoint.y) * percentThrough + startPoint.y;
         var latlng = projection.fromPointToLatLng(new google.maps.Point(x,y));
         return new google.maps.LatLng(latlng.lat(),latlng.lng());
+
     }
 
     function zoomOnTimespan(map, start,end){
         var minLat, maxLat, minLng, maxLng;
-        var startPoint = map.getLatLngOnGPSLine(start);
-        var endPoint = map.getLatLngOnGPSLine(end);
-        if (startPoint == null || endPoint == null)
+        function zoom(map,gpsDataSet,start,end){
+            if (start > gpsDataSet.gpsTimestamps[gpsDataSet.gpsTimestamps.length - 1] || end < gpsDataSet.gpsTimestamps[0])
+                return;
+            var startPoint = map.getLatLngOnGPSLine(start,gpsDataSet);
+            var endPoint = map.getLatLngOnGPSLine(end,gpsDataSet);
+            if (startPoint == null || endPoint == null)
+                return;
+            if (minLat == null){
+                if (startPoint.lat() < endPoint.lat()){
+                    minLat = startPoint.lat();
+                    maxLat = endPoint.lat();
+                }
+                else{
+                    minLat = endPoint.lat();
+                    maxLat = startPoint.lat();
+                }
+                if (startPoint.lng() < endPoint.lng()){
+                    minLng = startPoint.lng();
+                    maxLng = endPoint.lng();
+                }
+                else{
+                    minLng = endPoint.lng();
+                    maxLng = startPoint.lng();
+                }
+            }
+            else{
+                minLat = Math.min(Math.min(minLat,startPoint.lat()),endPoint.lat());
+                maxLat = Math.max(Math.max(maxLat,startPoint.lat()),endPoint.lat());
+                minLng = Math.min(Math.min(minLng,startPoint.lng()),endPoint.lng());
+                maxLng = Math.max(Math.max(maxLng,startPoint.lng()),endPoint.lng());
+            }
+
+            var startIndex = map.getFirstIndexAfter(gpsDataSet,start);
+            var endIndex = map.getFirstIndexBefore(gpsDataSet,end);
+
+            for (var i = startIndex; i < endIndex; i++){
+                if (gpsDataSet.gpsPositions[i].lat() < minLat)
+                    minLat = gpsDataSet.gpsPositions[i].lat();
+                else if (gpsDataSet.gpsPositions[i].lat() > maxLat)
+                    maxLat = gpsDataSet.gpsPositions[i].lat();
+                if (gpsDataSet.gpsPositions[i].lng() < minLng)
+                    minLng = gpsDataSet.gpsPositions[i].lng();
+                else if (gpsDataSet.gpsPositions[i].lng() > maxLng)
+                    maxLng = gpsDataSet.gpsPositions[i].lng();
+            }
+
+        }
+        for (var objectTypeId in map.gpsData){
+            zoom(map,map.gpsData[objectTypeId],start,end);
+        }
+
+        if (minLat == null)
             return;
-        if (startPoint.lat() < endPoint.lat()){
-            minLat = startPoint.lat();
-            maxLat = endPoint.lat();
-        }
-        else{
-            minLat = endPoint.lat();
-            maxLat = startPoint.lat();
-        }
-        if (startPoint.lng() < endPoint.lng()){
-            minLng = startPoint.lng();
-            maxLng = endPoint.lng();
-        }
-        else{
-            minLng = endPoint.lng();
-            maxLng = startPoint.lng();
-        }
 
-        var startIndex = map.getFirstIndexAfter(start);
-        var endIndex = map.getFirstIndexBefore(end);
-
-        for (var i = startIndex; i < endIndex; i++){
-            if (map.gpsPositions[i].lat() < minLat)
-                minLat = map.gpsPositions[i].lat();
-            else if (map.gpsPositions[i].lat() > maxLat)
-                maxLat = map.gpsPositions[i].lat();
-            if (map.gpsPositions[i].lng() < minLng)
-                minLng = map.gpsPositions[i].lng();
-            else if (map.gpsPositions[i].lng() > maxLng)
-                maxLng = map.gpsPositions[i].lng();
-        }
         map.fitBounds(new google.maps.LatLngBounds(new google.maps.LatLng(minLat,minLng), new google.maps.LatLng(maxLat,maxLng)));
     }
 
@@ -454,8 +640,8 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         for (var i = 0; i < map.markers[connectorId].length; i++){
             map.markers[connectorId][i].setMap(null);
         }
-        if (map.polylines[connectorId] != null)
-            map.polylines[connectorId].setMap(null);
+        if (map.gpsData[connectorId] != null)
+            map.gpsData[connectorId].gpsLine.setMap(null);
     }
 
     function showData(map,connectorId){
@@ -469,12 +655,18 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             if (map.selectedMarker == map.markers[connectorId][i])
                 map.selectedMarker.showCircle();
         }
-        if (map.polylines[connectorId] != null)
-            map.polylines[connectorId].setMap(map);
+        if (map.gpsData[connectorId] != null)
+            map.gpsData[connectorId].gpsLine.setMap(map);
     }
 
     function hasData(map,connectorId){
-        return map.markers[connectorId] != null || map.polylines[connectorId] != null;
+        if (map.markers[connectorId] != null)
+            return true;
+        for (var objectType in map.gpsData){
+            if (App.getFacetConnector(objectType) == connectorId)
+                return true;
+        }
+        return false;
     }
 
     function isFullyInitialized(map){
@@ -579,15 +771,22 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             map.reset = function(){
                 if (map.infoWindow == null){//brand new map, initialize
                     map.infoWindow = new google.maps.InfoWindow();
+                    google.maps.event.addListener(map.infoWindow,"closeclick",function(){
+                        if (map.selectedMarker != null){
+                            map.selectedMarker.hideCircle();
+                            if (map.currentHighlightedLine != null){
+                                map.currentHighlightedLine.setMap(null);
+                                map.currentHighlightedLine = null
+                            }
+                        }
+                    })
                 }
                 else{//old map, remove everything!
                     for (var i = 0, li = map.markerList.length; i < li; i++){
                         map.markerList[i].setMap(null);
                     }
-                    if (map.gpsLine != null)
-                        map.gpsLine.setMap(null);
-                    for (var id in map.polylines){
-                        map.polylines[id].setMap(null);
+                    for (var dataset in map.gpsData){
+                        map.gpsData[dataset].gpsLine.setMap(null);
                     }
                 }
                 showNoGPSDisplay(map);
@@ -595,28 +794,27 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 map.highlightSection = null;
                 map.connectorSelected = null;
                 map.selectedMarker = null;
-                map.gpsPosiitons = [];
-                map.gpsTimestamps = [];
-                map.gpsAccuracies = [];
-                map.polylines = {};
-                map.gpsBounds = null;
+
                 map.markers = {};
                 map.markerList = [];
-                map.gpsLine = null;
+
+                map.gpsBounds = null;
+
+                map.gpsData = {};
+                map.primaryGPSData = null;
 
             }
 
             map.reset();
 
 
-            map.addGPSData = function(gpsData,clickable){addGPSData(map,gpsData,clickable)};
+            map.addGPSData = function(gpsData,config,clickable){addGPSData(map,gpsData, config,clickable)};
             map.addData = function(connectorData, connectorInfoId,clickable){return addData(map,connectorData, connectorInfoId,clickable)};
-            map.addAlternativeGPSData = function(gpsData,connectorInfoId,clickable){addAlternativeGPSData(map,gpsData,connectorInfoId,clickable)};
             map.addAddresses = function(addresses,clickable){addAddresses(map,addresses,clickable)}
-            map.getLatLngOnGPSLine = function(time){return getLatLngOnGPSLine(map,time)};
-            map.createPolyLineSegment = function(start,end,options){return createPolyLineSegment(map,start,end,options)};
-            map.getFirstIndexAfter = function(time){return getFirstIndexAfter(map,time)};
-            map.getFirstIndexBefore = function(time){return getFirstIndexBefore(map,time)};
+            map.getLatLngOnGPSLine = function(time,gpsDataSet){return getLatLngOnGPSLine(map,time,gpsDataSet)};
+            map.createPolyLineSegment = function(gpsDataSet, start,end,options){return createPolyLineSegment(map, gpsDataSet,start,end,options)};
+            map.getFirstIndexAfter = function(gpsDataSet, time){return getFirstIndexAfter(gpsDataSet,time)};
+            map.getFirstIndexBefore = function(gpsDataSet, time){return getFirstIndexBefore(gpsDataSet,time)};
             map.zoomOnTimespan = function(start,end){zoomOnTimespan(map,start,end)};
             map.highlightTimespan = function(start,end){highlightTimespan(map,start,end)};
             map.showData = function(connectorId){showData(map,connectorId)};

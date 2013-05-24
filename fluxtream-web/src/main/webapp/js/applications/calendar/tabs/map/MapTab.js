@@ -51,58 +51,52 @@ define(["core/Tab",
             }
             map.reset();
         }
+        $("#mapFit").click(function(){
+            map.fitBounds(map.gpsBounds);
+        });
+
+        showData(connectorEnabled,bounds,function(bounds){
+            if (bounds != null){
+                map.fitBounds(bounds,map.isPreserveViewChecked());
+            }
+            else{
+                map.setCenter(new google.maps.LatLng(addressToUse.latitude,addressToUse.longitude));
+                map.setZoom(16);
+            }
+            map.preserveViewCheckboxChanged = function(){
+                preserveView = map.isPreserveViewChecked();
+            }
+            doneLoading();
+
+        });
 
 
+	}
+
+    function showData(connectorEnabled,bounds,doneLoading){
+        if (!map.isFullyInitialized()){
+            $.doTimeout(100,function(){showData(connectorEnabled,bounds,doneLoading)});
+            return;
+        }
+        var digest = digestData;
         if (digest!=null && digest.cachedData!=null &&
             typeof(digest.cachedData["google_latitude-location"])!="undefined"
                 && digest.cachedData["google_latitude-location"] !=null &&
             digest.cachedData["google_latitude-location"].length>0) { //make sure gps data is available before trying to display it
-            map.addGPSData(digest.cachedData["google_latitude-location"],true);
+            map.addGPSData(digest.cachedData["google_latitude-location"],App.getFacetConfig("google_latitude-location"),true);
+        }
 
-            if (!map.isPreserveViewChecked())
-                bounds = map.gpsBounds;
+        for (var objectType in digest.cachedData){
+            if (objectType == "google_latitude-location")
+                continue;//we already showed google latitude data if it existed
+            map.addGPSData(digest.cachedData[objectType],App.getFacetConfig(objectType),true)
+        }
 
-            $("#mapFit").show();
-            $("#mapFit").click(function(){
-                map.fitBounds(map.gpsBounds);
-            });
-
-        } else {
-            $("#mapFit").hide();
-        }
-        showData(connectorEnabled);
-        if (bounds != null){
-            map.fitBounds(bounds,map.isPreserveViewChecked());
-        }
-        else{
-            map.setCenter(new google.maps.LatLng(addressToUse.latitude,addressToUse.longitude));
-            map.setZoom(16);
-        }
-        map.preserveViewCheckboxChanged = function(){
-            preserveView = map.isPreserveViewChecked();
-        }
-        doneLoading();
-	}
-
-    function showData(connectorEnabled){
-        if (!map.isFullyInitialized()){
-            $.doTimeout(100,function(){showData(connectorEnabled)});
-            return;
-        }
-        var digest = digestData;
         map.addAddresses(digest.addresses,true);
         for(var objectTypeName in digest.cachedData) {
             if (digest.cachedData[objectTypeName]==null||typeof(digest.cachedData[objectTypeName])=="undefined")
                 continue;
-            if (digest!=null && digest.cachedData!=null &&
-                typeof(digest.cachedData["google_latitude-location"])!="undefined"
-                    && digest.cachedData["google_latitude-location"] !=null &&
-                digest.cachedData["google_latitude-location"].length>0){
-                map.addData(digest.cachedData[objectTypeName], objectTypeName, true);
-            }
-            if (objectTypeName != "google_latitude-location"){
-                map.addAlternativeGPSData(digest.cachedData[objectTypeName],objectTypeName,true);
-            }
+            map.addData(digest.cachedData[objectTypeName], objectTypeName, true);
         }
         for (var i = 0; i < digest.selectedConnectors.length; i++){
             if (!connectorEnabled[digest.selectedConnectors[i].connectorName])
@@ -110,6 +104,8 @@ define(["core/Tab",
                     map.hideData(digest.selectedConnectors[i].facetTypes[j]);
                 }
         }
+
+        doneLoading(map.isPreserveViewChecked() ? bounds : map.gpsBounds);
 
     }
 

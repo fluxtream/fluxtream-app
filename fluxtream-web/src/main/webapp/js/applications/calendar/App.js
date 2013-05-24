@@ -525,6 +525,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                         newFacet[member] = data[member];
                         newFacet.showClimb = newFacet[member] != 0;
                         break;
+                    case "position":
+                        newFacet[member] = data[member];
+                        newFacet.hasPosition = true;
+                        break;
                     default:
                         newFacet[member] = data[member];
                 }

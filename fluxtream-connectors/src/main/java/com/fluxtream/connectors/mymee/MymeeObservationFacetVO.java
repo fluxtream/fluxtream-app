@@ -22,8 +22,7 @@ public class MymeeObservationFacetVO extends AbstractPhotoFacetVO<MymeeObservati
     public Integer baseAmount;
     public String unit;
     public String baseUnit;
-    public Double longitude;
-    public Double latitude;
+    public float[] position;
 
     @Override
     protected void fromFacet(final MymeeObservationFacet facet, final TimeInterval timeInterval, final GuestSettings settings) {
@@ -39,8 +38,11 @@ public class MymeeObservationFacetVO extends AbstractPhotoFacetVO<MymeeObservati
         this.unit = facet.unit;
         this.baseUnit = facet.baseUnit;
         this.photoUrl = facet.imageURL;
-        this.longitude = facet.longitude;
-        this.latitude = facet.latitude;
+        if (facet.longitude != null){
+            position = new float[2];
+            position[0] = facet.latitude.floatValue();
+            position[1] = facet.longitude.floatValue();
+        }
     }
 
     double round(double v) {

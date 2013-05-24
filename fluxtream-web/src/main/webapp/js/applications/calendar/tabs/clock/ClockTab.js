@@ -56,9 +56,22 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         distanceUnit = digest.settings.distanceUnit;
         dayStart = digest.tbounds.start;
         dayEnd = digest.tbounds.end;
-        map = MapUtils.newMap(new google.maps.LatLng(0,0),16,"clockMap",true);
-        if (digest.cachedData != null && digest.cachedData["google_latitude-location"] != null){
+        if (map == null)
+            map = MapUtils.newMap(new google.maps.LatLng(0,0),16,"clockMap",true);
+        else
+            map.reset();
+
+        if (digest.cachedData != null && digest.cachedData["google_latitude-location"] != null)
+            map.addGPSData(digest.cachedData["google_latitude-location"],App.getFacetConfig("google_latitude-location"),false);
+        for (var objectType in digest.cachedData){
+            if (objectType == "google_latitude-location")
+                continue;//we already showed google latitude data if it existed
+            map.addGPSData(digest.cachedData[objectType],App.getFacetConfig(objectType),false)
+        }
+        map.fitBounds(map.gpsBounds);
+        /*if (digest.cachedData != null && digest.cachedData["google_latitude-location"] != null){
             map.addGPSData(digest.cachedData["google_latitude-location"],false);
+
             map.fitBounds(map.gpsBounds);
         }
         else{
@@ -67,7 +80,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                 addressToUse = digest.addresses.ADDRESS_HOME[0];
             map.setCenter(new google.maps.LatLng(addressToUse.latitude,addressToUse.longitude));
             hideQTipMap();
-        }
+        }      */
         map.addAddresses(digest.addresses, false);
 
 		var availableWidth = $("#clockTab").width();
@@ -266,17 +279,17 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         var tip_x = target.left + event.offsetX;
         var offsetX = config.CLOCK_CENTER[0] - event.offsetX;
         var offsetY = config.CLOCK_CENTER[1] - event.offsetY;
-        if (map.gpsLine != null){
-            markers[0] = map.addItem(span.item,false);
-            if (markers[0] != null){
-                markers[0].doHighlighting();
-                markers[0].hideMarker();
-                markers[1] = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(event.timeTarget),
-                                                    icon:markers[0].getIcon(),shadow:markers[0].getShadow(),clickable:false});
-                map.enhanceMarker(markers[1],event.timeTarget);
-                markers[1].showCircle();
-                map.zoomOnMarker(markers[1]);
-            }
+        markers[0] = map.addItem(span.item,false);
+        if (markers[0] != null){
+            markers[0].doHighlighting();
+            markers[0].showCircle();
+            map.zoomOnMarker(markers[0]);
+            //markers[0].hideMarker();
+           /* markers[1] = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(event.timeTarget),
+                                                icon:markers[0].getIcon(),shadow:markers[0].getShadow(),clickable:false});
+            map.enhanceMarker(markers[1],event.timeTarget);
+            markers[1].showCircle();
+            map.zoomOnMarker(markers[1]); */
         }
 
         var contents = facet.getDetails();

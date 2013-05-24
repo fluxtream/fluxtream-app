@@ -172,6 +172,7 @@
 		<script src="/static/js/backbone-1.0.0-custom.1-min.js"></script>
         <script src="/static/js/jquery.ba-dotimeout-1.0.0.min.js"></script>
         <script src="/static/js/jquery.masonry-2.1.03.min.js"></script>
+    <script src="/static/js/jquery.xcolor-1.8.js"></script>
 	
 	<!--  TODO: validate version numbers for these libs -->
 	<script src="/static/grapher4/grapher2.nocache.js"></script>
