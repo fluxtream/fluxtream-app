@@ -128,7 +128,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                     clock: ClockConfig.BODY_CATEGORY
                 },
                 location:{
-                    mapicon : new google.maps.MarkerImage("/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",null,null,new google.maps.Point(5,5),null),
+                    mapicon : new google.maps.MarkerImage("https://www.google.com/latitude/apps/static/red_measle.png",null,null,new google.maps.Point(5,5),null),
                     list: false,
                     photos: false,
                     map: true,
