@@ -6,6 +6,13 @@ import java.util.TimeZone;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.TimeUnit;
 import com.fluxtream.domain.AbstractLocalTimeFacet;
+import org.joda.time.DateMidnight;
+import org.joda.time.DateTimeConstants;
+import org.joda.time.DateTimeZone;
+import org.joda.time.Days;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+
 public class DayMetadataFacet extends AbstractLocalTimeFacet {
 	
 	public float maxTempC = -10000,
@@ -15,8 +22,11 @@ public class DayMetadataFacet extends AbstractLocalTimeFacet {
 	
 	public String timeZone = "UTC";
 
-    public transient List<VisitedCity> cities;
-    public transient int daysInferred = 0;
+    public List<VisitedCity> cities;
+    public int daysInferred = 0;
+
+    private static final DateTimeFormatter formatter = DateTimeFormat
+            .forPattern("yyyy-MM-dd");
 
 	/**
 	 * we consider only the first timezone and that which
@@ -25,9 +35,34 @@ public class DayMetadataFacet extends AbstractLocalTimeFacet {
 	 */
 	public String otherTimeZone;
 
+    @Deprecated
     public DayMetadataFacet() {}
 
-    public DayMetadataFacet(long apiKeyId) { this.apiKeyId = apiKeyId; }
+    public DayMetadataFacet(String forDate) {
+        long timeForDate = formatter.withZoneUTC().parseDateTime(forDate).getMillis();
+        DateMidnight dateMidnight = new DateMidnight(timeForDate);
+        start = dateMidnight.getMillis();
+        end = start + DateTimeConstants.MILLIS_PER_DAY;
+    }
+
+    public DayMetadataFacet(List<VisitedCity> cities, String forDate) {
+        this.cities = cities;
+        VisitedCity mainVisitedCity = getMainVisitedCity();
+        long cityTime = formatter.withZone(DateTimeZone.forID(mainVisitedCity.city.geo_timezone)).parseDateTime(mainVisitedCity.date).getMillis();
+        long forDateTime = formatter.withZone(DateTimeZone.forID(mainVisitedCity.city.geo_timezone)).parseDateTime(forDate).getMillis();
+        daysInferred = Days.daysBetween(new DateMidnight(forDateTime), new DateMidnight(cityTime)).getDays();
+        timeZone = mainVisitedCity.city.geo_timezone;
+        start = forDateTime;
+        end = forDateTime + DateTimeConstants.MILLIS_PER_DAY;
+    }
+
+    public VisitedCity getMainVisitedCity() {
+        for (VisitedCity city : cities) {
+            if (city.apiKeyId==0)
+                return city;
+        }
+        return null;
+    }
 
     @Override
     protected void makeFullTextIndexable() {
@@ -48,8 +83,4 @@ public class DayMetadataFacet extends AbstractLocalTimeFacet {
 		return c;
 	}
 
-	public List<VisitedCity> getOrderedCities() {
-		return cities;
-	}
-		
 }

@@ -17,9 +17,7 @@ public interface MetadataService {
 
 	TimeZone getTimeZone(long guestId, String date);
 
-	City getMainCity(long guestId, DayMetadataFacet context);
-
-	DayMetadataFacet getDayMetadata(long guestId, String date, boolean create);
+	DayMetadataFacet getDayMetadata(long guestId, String date);
 
     List<DayMetadataFacet> getAllDayMetadata(long guestId);
 

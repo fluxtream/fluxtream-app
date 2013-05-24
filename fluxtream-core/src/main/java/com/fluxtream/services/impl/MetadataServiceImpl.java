@@ -1,6 +1,8 @@
 package com.fluxtream.services.impl;
 
+import java.awt.geom.Point2D;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -15,6 +17,8 @@ import com.fluxtream.Configuration;
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.connectors.vos.AbstractFacetVO;
+import com.fluxtream.domain.AbstractLocalTimeFacet;
+import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.metadata.City;
 import com.fluxtream.domain.metadata.DayMetadataFacet;
@@ -24,13 +28,10 @@ import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.NotificationsService;
 import com.fluxtream.utils.JPAUtils;
-import org.apache.http.HttpException;
 import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
 import com.luckycatlabs.sunrisesunset.dto.Location;
-import org.joda.time.DateMidnight;
-import org.joda.time.DateTimeConstants;
+import org.apache.http.HttpException;
 import org.joda.time.DateTimeZone;
-import org.joda.time.Days;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +46,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly=true)
 public class MetadataServiceImpl implements MetadataService {
 
-	FlxLogger logger = FlxLogger.getLogger(MetadataServiceImpl.class);
+    FlxLogger logger = FlxLogger.getLogger(MetadataServiceImpl.class);
+
+    // threshold range in meters to consider successive location points to be in the same city
+    // without checking
+    private static final float CITY_RANGE = 1000.f;
 
 	@Autowired
 	Configuration env;
@@ -90,68 +95,117 @@ public class MetadataServiceImpl implements MetadataService {
 	}
 
 	@Override
-	@Transactional(readOnly = false)
-	public DayMetadataFacet getDayMetadata(long guestId, String date,
-			boolean create) {
-
-        DayMetadataFacet info = new DayMetadataFacet();
-
-        TypedQuery<VisitedCity> query = em.createQuery("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class) + " facet WHERE facet.guestId=? AND facet.date=? ORDER BY facet.start", VisitedCity.class);
-        query.setParameter(1, guestId);
-        query.setParameter(2, date);
-        List<VisitedCity> cities = query.getResultList();
+	public DayMetadataFacet getDayMetadata(long guestId, String date) {
+        // get visited cities for a specific date . If we don't have any data for that date,
+        // retrieve cities for the first date for which we do have data
+        List<VisitedCity> cities = getVisitedCitiesForDate(guestId, date);
         if (cities.size()==0) {
-            cities = searchCitiesBefore(guestId, date);
-            if (cities.size()==0)
-            cities = searchCitiesAfter(guestId, date);
+            VisitedCity existingCity = searchCityBefore(guestId, date);
+            if (existingCity==null)
+                existingCity = searchCityAfter(guestId, date);
+            if (existingCity!=null) {
+                cities = getVisitedCitiesForDate(guestId, existingCity.date);
+            }
         }
         if (cities.size()>0) {
-            VisitedCity tzCity = cities.get(0);
-            long timeForDate = formatter.withZone(DateTimeZone.forID(tzCity.city.geo_timezone)).parseDateTime(date).getMillis();
-            long cityTime = formatter.withZone(DateTimeZone.forID(tzCity.city.geo_timezone)).parseDateTime(tzCity.date).getMillis();
-            info.daysInferred = Days.daysBetween(new DateMidnight(timeForDate), new DateMidnight(cityTime)).getDays();
-            info.timeZone = tzCity.city.geo_timezone;
-            info.start = timeForDate;
-            info.end = timeForDate + DateTimeConstants.MILLIS_PER_DAY;
+            DayMetadataFacet info = new DayMetadataFacet(cities, date);
+            return info;
         } else {
-            long timeForDate = formatter.withZoneUTC().parseDateTime(date).getMillis();
-            DateMidnight dateMidnight = new DateMidnight(timeForDate);
-            info.start = dateMidnight.getMillis();
-            info.end = info.start + DateTimeConstants.MILLIS_PER_DAY;
+            DayMetadataFacet info = new DayMetadataFacet(date);
+            return info;
         }
-
-        return info;
 	}
 
-    private List<VisitedCity> searchCitiesBefore(final long guestId, final String date) {
-        return searchCities("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class) + " facet WHERE facet.guestId=? AND facet.start<? ORDER BY facet.start", guestId, date);
+    private List<VisitedCity> getVisitedCitiesForDate(final long guestId, final String date) {
+        TypedQuery<VisitedCity> query = em.createQuery("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class) + " facet WHERE facet.guestId=? AND facet.date=? ORDER BY facet.timeUpdated", VisitedCity.class);
+        query.setParameter(1, guestId);
+        query.setParameter(2, date);
+        final List<VisitedCity> cities = query.getResultList();
+        if (cities.size()>0) {
+            final VisitedCity mainVisitedCity = getMainVisitedCity(cities);
+            // for now just recompute it each time; later, we want this to be persisted and cached
+            cities.add(mainVisitedCity);
+        }
+        return cities;
     }
 
-    private List<VisitedCity> searchCitiesAfter(final long guestId, final String date) {
-        return searchCities("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class) + " facet WHERE facet.guestId=? AND facet.start>? ORDER BY facet.start", guestId, date);
+    private VisitedCity getMainVisitedCity(final List<VisitedCity> cities) {
+        Collections.sort(cities, new Comparator<VisitedCity>() {
+            @Override
+            public int compare(final VisitedCity a, final VisitedCity b) {
+                int timeSpentInA = (int) (a.end-a.start+1); //add one if start and end are equal
+                int timeSpentInB = (int) (b.end-b.start+1);
+                return timeSpentInA-timeSpentInB;
+            }
+        });
+        final VisitedCity visitedCity = cities.get(0);
+        VisitedCity mainCity = new VisitedCity();
+        mainCity.apiKeyId = 0l;
+        mainCity.start = visitedCity.start;
+        mainCity.end = visitedCity.end;
+        mainCity.city = visitedCity.city;
+        mainCity.sunrise = visitedCity.sunrise;
+        mainCity.sunset = visitedCity.sunset;
+        mainCity.count = visitedCity.count;
+        mainCity.startTimeStorage = visitedCity.startTimeStorage;
+        mainCity.endTimeStorage = visitedCity.endTimeStorage;
+        mainCity.api = visitedCity.api;
+        mainCity.date = visitedCity.date;
+        mainCity.locationSource = visitedCity.locationSource;
+        return mainCity;
     }
 
-    private List<VisitedCity> searchCities(final String queryString, final long guestId, final String date) {
+    private String findClosestKnownDateForTime(final long guestId, final long time) {
+        VisitedCity existingCity = searchCityBefore(guestId, time);
+        if (existingCity==null)
+            existingCity = searchCityAfter(guestId, time);
+        if (existingCity!=null) {
+            return existingCity.date;
+        }
+        return formatter.withZoneUTC().print(time);
+    }
+
+    private VisitedCity searchCityBefore(final long guestId, final long instant) {
+        return searchCity("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class) + " facet WHERE facet.guestId=? AND facet.start<? ORDER BY facet.start", guestId, instant);
+    }
+
+    private VisitedCity searchCityAfter(final long guestId, final long instant) {
+        return searchCity("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class) + " facet WHERE facet.guestId=? AND facet.start>? ORDER BY facet.start", guestId, instant);
+    }
+
+    private VisitedCity searchCity(final String queryString, final long guestId, final long instant) {
+        final TypedQuery<VisitedCity> query = em.createQuery(queryString, VisitedCity.class);
+        return getVisitedCity(guestId, instant, query);
+    }
+
+    private VisitedCity getVisitedCity(final long guestId, final long instant, final TypedQuery<VisitedCity> query) {
+        query.setMaxResults(1);
+        query.setParameter(1, guestId);
+        query.setParameter(2, instant);
+        final List<VisitedCity> cities = query.getResultList();
+        if (cities.size()>0)
+            return cities.get(0);
+        return null;
+    }
+
+    private VisitedCity searchCityBefore(final long guestId, final String date) {
+        return searchCity("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class) + " facet WHERE facet.guestId=? AND facet.start<? ORDER BY facet.start", guestId, date);
+    }
+
+    private VisitedCity searchCityAfter(final long guestId, final String date) {
+        return searchCity("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class) + " facet WHERE facet.guestId=? AND facet.start>? ORDER BY facet.start", guestId, date);
+    }
+
+    private VisitedCity searchCity(final String queryString, final long guestId, final String date) {
         long time = formatter.withZoneUTC().parseDateTime(date).getMillis();
         final TypedQuery<VisitedCity> query = em.createQuery(queryString, VisitedCity.class);
-        query.setParameter(1, guestId);
-        query.setParameter(2, time);
-        return query.getResultList();
+        return getVisitedCity(guestId, time, query);
     }
 
     @Override
     public List<DayMetadataFacet> getAllDayMetadata(final long guestId) {
-
         return JPAUtils.find(em, DayMetadataFacet.class,"context.all",guestId);
     }
-
-	@Override
-	public City getMainCity(long guestId, DayMetadataFacet context) {
-
-        //TODO: better metadata
-
-        return context.cities.get(0).city;
-	}
 
 	@Override
 	public LocationFacet getLastLocation(long guestId, long time) {
@@ -162,30 +216,14 @@ public class MetadataServiceImpl implements MetadataService {
 
 	@Override
 	public TimeZone getTimeZone(long guestId, String date) {
-        //TODO: better metadata
-
-		DayMetadataFacet thatDay = JPAUtils.findUnique(em,
-				DayMetadataFacet.class, "context.byDate", guestId, date);
-		if (thatDay != null)
-			return TimeZone.getTimeZone(thatDay.timeZone);
-		else {
-			logger.info("guestId=" + guestId + " date= " + date + " action=getTimeZone message=returning UTC Timezone");
-			return TimeZone.getTimeZone("UTC"); // Code should never go here!
-		}
+        final DayMetadataFacet dayMetadata = getDayMetadata(guestId, date);
+        return TimeZone.getTimeZone(dayMetadata.timeZone);
 	}
 
 	@Override
 	public TimeZone getTimeZone(long guestId, long time) {
-
-        // TODO: better metadata
-
-		DayMetadataFacet thatDay = JPAUtils.findUnique(em, DayMetadataFacet.class, "context.day.when", guestId, time, time);
-		if (thatDay != null)
-			return TimeZone.getTimeZone(thatDay.timeZone);
-		else {
-            logger.info("guestId=" + guestId + " time= " + time + " action=getTimeZone message=returning UTC Timezone");
-			return TimeZone.getTimeZone("UTC"); // Code should never go here!
-		}
+        String date = findClosestKnownDateForTime(guestId, time);
+        return getTimeZone(guestId, date);
 	}
 
     @Override
@@ -265,16 +303,33 @@ public class MetadataServiceImpl implements MetadataService {
     public void rebuildMetadata(final String username) {
         final Guest guest = guestService.getGuest(username);
         String entityName = JPAUtils.getEntityName(LocationFacet.class);
+        final Query nativeQuery = em.createNativeQuery(String.format("SELECT DISTINCT apiKeyId FROM %s WHERE guestId=%s", entityName, guest.getId()));
+        final List<BigInteger> resultList = nativeQuery.getResultList();
+        for (BigInteger apiKeyId : resultList) {
+            rebuildMetadata(username, apiKeyId.longValue());
+        }
+    }
+
+    private void rebuildMetadata(final String username, long apiKeyId) {
+        final ApiKey apiKey = em.find(ApiKey.class, apiKeyId);
+        System.out.println("rebuilding metadata for " + username + ", connector:" + apiKey.getConnector().getName());
+        final Guest guest = guestService.getGuest(username);
+        String entityName = JPAUtils.getEntityName(LocationFacet.class);
         int i=0;
+        final Query facetsQuery = em.createQuery(String.format("SELECT facet FROM %s facet WHERE facet.apiKeyId=? ORDER BY facet.start ASC", entityName));
+        facetsQuery.setParameter(1, apiKeyId);
         while(true) {
-            final TypedQuery<LocationFacet> query = em.createQuery(String.format("SELECT facet FROM %s facet WHERE facet.guestId=%s ORDER BY facet.start ASC",
-                                                                                 entityName, guest.getId()), LocationFacet.class);
-            query.setFirstResult(i);
-            query.setMaxResults(1000);
-            final List<LocationFacet> locations = query.getResultList();
+            facetsQuery.setFirstResult(i);
+            facetsQuery.setMaxResults(1000);
+            final List<LocationFacet> locations = facetsQuery.getResultList();
+            System.out.println("retrieved " + locations.size() + " location datapoints (offset is " + i + ")");
             if (locations.size()==0)
                 break;
+            System.out.println(AbstractLocalTimeFacet.timeStorageFormat.withZoneUTC().print(locations.get(0).start));
+            long then = System.currentTimeMillis();
             updateLocationMetadata(guest.getId(), locations);
+            long now = System.currentTimeMillis();
+            System.out.println(String.format("updateLocationMetadata took %s ms to complete", (now-then)));
             i+=locations.size();
         }
     }
@@ -291,80 +346,109 @@ public class MetadataServiceImpl implements MetadataService {
     @Transactional(readOnly=false)
     public void updateLocationMetadata(final long guestId, final List<LocationFacet> locationResources) {
         // sort the location data in ascending time order
+        System.out.println("processing " + locationResources.size() + " location datapoints...");
         Collections.sort(locationResources, new Comparator<LocationFacet>() {
             @Override
             public int compare(final LocationFacet o1, final LocationFacet o2) {
-                return o1.start<o2.start?1:-1;
+                return o1.start>o2.start?1:-1;
             }
         });
         // local vars: current city and current day
         String currentDate = "";
-        long currentCityId  = -1l;
-        List<String> affectedDates = new ArrayList<String>();
+        Point2D.Double anchorLocation = new Point2D.Double(locationResources.get(0).latitude, locationResources.get(0).longitude);
+        City anchorCity = getClosestCity(anchorLocation.x, anchorLocation.y);
+        int count = 0;
+        LocationFacet lastLocationResourceMatchingAnchor=locationResources.get(0);
+        long start = locationResources.get(0).start;
+
         for (LocationFacet locationResource : locationResources) {
-            City city = getClosestCity(locationResource.latitude, locationResource.longitude);
-            String date = formatter.withZone(DateTimeZone.forID(city.geo_timezone)).print(locationResource.timestampMs);
-            final boolean dateChanged = !date.equals(currentDate);
-            final boolean cityChanged = city.geo_id!=currentCityId;
-            if (dateChanged||cityChanged) {
-                final boolean wasStored = storeCity(locationResource, date, city);
-                if (wasStored)
-                    affectedDates.add(date);
+            City newCity = anchorCity;
+            Point2D.Double location = new Point2D.Double(locationResource.latitude, locationResource.longitude);
+            if (!isWithinRange(location, anchorLocation)) {
+                anchorLocation = new Point2D.Double(locationResource.latitude, locationResource.longitude);
+                newCity = getClosestCity(locationResource.latitude, locationResource.longitude);
             }
-            currentDate = date;
-            currentCityId = city.geo_id;
+            else {
+                lastLocationResourceMatchingAnchor=locationResource;
+            }
+
+            String newDate = formatter.withZone(DateTimeZone.forID(newCity.geo_timezone)).print(locationResource.timestampMs);
+            final boolean dateChanged = !newDate.equals(currentDate);
+            final boolean cityChanged = newCity.geo_id!=anchorCity.geo_id;
+            if (dateChanged||cityChanged) {
+                if (count>0)
+                    storeCityInfo(lastLocationResourceMatchingAnchor, currentDate, anchorCity, start, count);
+                anchorCity = newCity;
+                start = locationResource.start;
+                count = 0;
+            }
+            count++;
+            // update count on the last location before we finish
+            if (locationResources.indexOf(locationResource)==locationResources.size()-1)
+                storeCityInfo(locationResource, newDate, newCity, start, count);
+            currentDate = newDate;
+            lastLocationResourceMatchingAnchor = locationResource;
         }
         em.flush();
     }
 
-    /**
-     * Store a new "checkin" in a city only if there isn't already a checkin in the same city before this one and
-     * on the same day. This method will also remove checkins in the same city that would happen after this one (again,
-     * on the same day).
-     * @param locationResource
-     * @param date
-     * @param city
-     * @return <code>true</code> if the check-in was inserted, <code>false</code> otherwise
-     */
-    private boolean storeCity(final LocationFacet locationResource, String date, final City city) {
-        final String entityName = JPAUtils.getEntityName(VisitedCity.class);
-        TypedQuery<VisitedCity> query = em.createQuery(
-                String.format("SELECT facet from %s facet WHERE facet.guestId=%s AND facet.date='%s' AND facet.start<%s",
-                              entityName, locationResource.guestId, date, locationResource.start),
-                VisitedCity.class);
-        List<VisitedCity> visitedCities = query.getResultList();
-        if (visitedCities.size()==0) {
-            persistCity(locationResource, date, city);
-            // remove checkins in the same city that would happen after this one
-            removeRedundantCityInfo(locationResource, date, city);
-            return true;
+    private void storeCityInfo(final LocationFacet locationResource, String date, final City city, final long start, final int count) {
+        VisitedCity previousRecord = JPAUtils.findUnique(em, VisitedCity.class,
+                                                         "visitedCities.byApiDateAndCity",
+                                                         locationResource.apiKeyId,
+                                                         date,
+                                                         city.geo_id);
+        if (previousRecord==null) {
+            persistCity(locationResource, date, start, count, city);
+        } else {
+            // update start time and end time if necessary
+            if (start<previousRecord.start) {
+                previousRecord.start = start;
+                previousRecord.startTimeStorage = AbstractLocalTimeFacet.timeStorageFormat.withZone(DateTimeZone.forID(city.geo_timezone)).print(start);
+            }
+            if (locationResource.end>previousRecord.end) {
+                previousRecord.end = locationResource.end;
+                previousRecord.endTimeStorage = AbstractLocalTimeFacet.timeStorageFormat.withZone(DateTimeZone.forID(city.geo_timezone)).print(locationResource.end);
+            }
+            // update timeUpdated
+            previousRecord.timeUpdated = System.currentTimeMillis();
+            previousRecord.count += count;
+            em.persist(previousRecord);
         }
-        return false;
     }
 
-    private void removeRedundantCityInfo(final LocationFacet locationResource, final String date, final City city) {
-        final String entityName = JPAUtils.getEntityName(VisitedCity.class);
-        TypedQuery<VisitedCity> query = em.createQuery(
-                String.format("SELECT facet from %s facet WHERE facet.guestId=%s AND facet.date='%s' AND facet.start>%s ORDER BY facet.start",
-                              entityName, locationResource.guestId, date, locationResource.start),
-                VisitedCity.class);
-        List<VisitedCity> visitedCities = query.getResultList();
-        for (VisitedCity visitedCity : visitedCities) {
-            if (visitedCity.city.geo_id==city.geo_id) {
-                em.remove(visitedCity);
-            }
-        }
+    private static float getMeterDistance(final Point2D.Double location, final Point2D.Double anchorLocation) {
+        double earthRadius = 3958.75;
+        double dLat = Math.toRadians(anchorLocation.x-location.x);
+        double dLng = Math.toRadians(anchorLocation.y-location.y);
+        double a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                   Math.cos(Math.toRadians(location.x)) * Math.cos(Math.toRadians(anchorLocation.x)) *
+                   Math.sin(dLng/2) * Math.sin(dLng/2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        double dist = earthRadius * c;
+        int meterConversion = 1609;
+        float meters = new Float(dist * meterConversion).floatValue();
+        return meters;
+    }
+
+    private boolean isWithinRange(final Point2D.Double location, final Point2D.Double anchorLocation) {
+        float meters = getMeterDistance(location, anchorLocation);
+        return meters< CITY_RANGE;
     }
 
     @Transactional(readOnly=false)
-    private void persistCity(final LocationFacet locationResource, final String date, final City city) {
-        VisitedCity visitedCity = new VisitedCity();
+    private void persistCity(final LocationFacet locationResource, final String date, long start, int count, final City city) {
+        VisitedCity visitedCity = new VisitedCity(locationResource.apiKeyId);
         visitedCity.guestId = locationResource.guestId;
         visitedCity.locationSource = locationResource.source;
+        visitedCity.api = locationResource.api;
         visitedCity.date = date;
         visitedCity.city = city;
-        visitedCity.start = locationResource.start;
+        visitedCity.count = count;
+        visitedCity.start = start;
         visitedCity.end = locationResource.end;
+        visitedCity.startTimeStorage = AbstractLocalTimeFacet.timeStorageFormat.withZone(DateTimeZone.forID(city.geo_timezone)).print(start);
+        visitedCity.endTimeStorage = AbstractLocalTimeFacet.timeStorageFormat.withZone(DateTimeZone.forID(city.geo_timezone)).print(locationResource.end);
         computeSunriseSunset(locationResource, city, visitedCity);
         em.persist(visitedCity);
     }
@@ -377,6 +461,8 @@ public class MetadataServiceImpl implements MetadataService {
         c.setTimeInMillis(locationFacet.start);
         Calendar sunrise = calc.getOfficialSunriseCalendarForDate(c);
         Calendar sunset = calc.getOfficialSunsetCalendarForDate(c);
+        if (sunrise==null||sunset==null)
+            return;
         if (sunrise.getTimeInMillis() > sunset.getTimeInMillis()) {
             Calendar sr = sunrise;
             Calendar ss = sunset;
@@ -521,6 +607,23 @@ public class MetadataServiceImpl implements MetadataService {
                     break;
             }
         }
+    }
+
+    public static void main(final String[] args) {
+        Point2D.Double p1 = new Point2D.Double(0,0);
+        Point2D.Double p2 = new Point2D.Double(0,0.0089);
+        System.out.println(getMeterDistance(p1, p2));
+        p2 = new Point2D.Double(0.00904,0.00);
+        System.out.println(getMeterDistance(p1, p2));
+        p2 = new Point2D.Double(0.00639, 0.00629);
+        System.out.println(getMeterDistance(p1, p2));
+        p1 = new Point2D.Double(40.0, 0.0);
+        p2 = new Point2D.Double(40, 0.0117647);
+        System.out.println(getMeterDistance(p1, p2));
+        p2 = new Point2D.Double(40.00904, 0.0);
+        System.out.println(getMeterDistance(p1, p2));
+        p2 = new Point2D.Double(40.00639, 0.0083);
+        System.out.println(getMeterDistance(p1, p2));
     }
 
 }

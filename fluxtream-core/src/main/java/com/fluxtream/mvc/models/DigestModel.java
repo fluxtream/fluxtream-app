@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import com.fluxtream.domain.metadata.VisitedCity;
 import com.fluxtream.domain.metadata.WeatherInfo;
 
 public class DigestModel {
@@ -14,9 +15,10 @@ public class DigestModel {
 	public TimeBoundariesModel tbounds;
 	public SolarInfoModel solarInfo;
 	public int nApis;
-	//public Set<String> updateNeeded = new HashSet<String>();
 	public boolean hasPictures;
 	public List<NotificationModel> notifications;
+    public VisitedCity mainCity;
+    public List<VisitedCity> cities = new ArrayList<VisitedCity>();
 	public Map<String,Collection> addresses;
 	public float minTempC, maxTempC;
 	public float minTempF, maxTempF;
@@ -39,11 +41,7 @@ public class DigestModel {
 			notifications = new ArrayList<NotificationModel>();
 		notifications.add(nm);
 	}
-	
-	public void setUpdateNeeded(String connectorName) {
-		//updateNeeded.add(connectorName);
-	}
-	
+
 	public void hasData(String connectorName, boolean b) {
 		if (b) {
 			haveDataConnectors.add(connectorName);

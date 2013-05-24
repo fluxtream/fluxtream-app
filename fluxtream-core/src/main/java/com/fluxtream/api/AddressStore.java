@@ -84,7 +84,7 @@ public class AddressStore {
     }
 
     private List<GuestAddress> getAddressesAtDate(Guest guest, String date){
-        DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(),date,true);
+        DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(), date);
         return settingsService.getAllAddressesForDate(guest.getId(),(dayMeta.start + dayMeta.end)/2);
     }
 
@@ -133,7 +133,7 @@ public class AddressStore {
     public String getAddressesOfTypeAtDate(@PathParam("type") String type, @PathParam("date") String date){
         try{
             Guest guest = AuthHelper.getGuest();
-            DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(),date,true);
+            DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(), date);
             List<GuestAddress> addresses = settingsService.getAllAddressesOfTypeForDate(guest.getId(),type,(dayMeta.start + dayMeta.end)/2);
             return gson.toJson(addresses);
         } catch (Exception e) {
@@ -148,7 +148,7 @@ public class AddressStore {
     public String getAddressesOfTypeAtDate(@PathParam("type") String type, @PathParam("date") String date, @PathParam("index") int index){
         try{
             Guest guest = AuthHelper.getGuest();
-            DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(),date,true);
+            DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(), date);
             List<GuestAddress> addresses = settingsService.getAllAddressesOfTypeForDate(guest.getId(),type,(dayMeta.start + dayMeta.end)/2);
             return gson.toJson(addresses.get(index));
         } catch (Exception e) {
@@ -163,7 +163,7 @@ public class AddressStore {
             Guest guest = guestService.getGuest(username);
             long startTime, endTime = 0;
             try{
-                DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(),since,true);
+                DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(), since);
                 startTime = dayMeta.start;
             } catch (Exception e){
                 startTime = Long.parseLong(since);
@@ -173,7 +173,7 @@ public class AddressStore {
                     endTime = Long.MAX_VALUE;
                 else{
                     try{
-                        DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(),until,true);
+                        DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(), until);
                         endTime = dayMeta.end;
                     } catch (Exception e){
                         endTime = Long.parseLong(until);
@@ -295,7 +295,7 @@ public class AddressStore {
         try{
             Guest guest = AuthHelper.getGuest();
             try{
-                DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(),selector,true);
+                DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(), selector);
                 settingsService.deleteAllAddressesAtDate(guest.getId(),(dayMeta.start + dayMeta.end) / 2);
             } catch (Exception e) {
                 settingsService.deleteAllAddressesOfType(guest.getId(),selector);
@@ -315,7 +315,7 @@ public class AddressStore {
         StatusModel result;
         try{
             Guest guest = AuthHelper.getGuest();
-            DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(),date,true);
+            DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(), date);
             settingsService.deleteAllAddressesOfTypeForDate(guest.getId(),type,(dayMeta.start + dayMeta.end)/2);
             result = new StatusModel(false, "Successfully deleted addresses");
         } catch (Exception e) {
@@ -331,7 +331,7 @@ public class AddressStore {
         StatusModel result;
         try{
             Guest guest = AuthHelper.getGuest();
-            DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(),date,true);
+            DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(), date);
             List<GuestAddress> addresses = settingsService.getAllAddressesOfTypeForDate(guest.getId(),type,(dayMeta.start + dayMeta.end)/2);
             settingsService.deleteAddressById(guest.getId(),addresses.get(index).id);
             result = new StatusModel(false, "Successfully deleted addresses");
@@ -356,7 +356,7 @@ public class AddressStore {
             Long startTime = null, endTime = null;
             if (since != null){
                 try{
-                    DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(),since,true);
+                    DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(), since);
                     startTime = dayMeta.start;
                 } catch (Exception e){
                     startTime = Long.parseLong(since);
@@ -367,7 +367,7 @@ public class AddressStore {
                     endTime = Long.MAX_VALUE;
                 else{
                     try{
-                        DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(),until,true);
+                        DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(), until);
                         endTime = dayMeta.end;
                     } catch (Exception e){
                         endTime = Long.parseLong(until);
@@ -414,7 +414,7 @@ public class AddressStore {
         StatusModel result;
         try{
             Guest guest = AuthHelper.getGuest();
-            DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(),date,true);
+            DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(), date);
             List<GuestAddress> addresses = settingsService.getAllAddressesOfTypeForDate(guest.getId(),type,(dayMeta.start + dayMeta.end)/2);
             settingsService.deleteAddressById(guest.getId(),addresses.get(index).id);
             result = new StatusModel(false, "Successfully deleted addresses");
