@@ -32,7 +32,6 @@ import com.fluxtream.services.EventListenerService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.utils.JPAUtils;
-import com.fluxtream.utils.Utils;
 import net.sf.json.JSONObject;
 import org.jetbrains.annotations.Nullable;
 import org.joda.time.format.DateTimeFormat;
@@ -582,6 +581,9 @@ public class ApiDataServiceImpl implements ApiDataService {
         locationResource.processed = false;
         em.persist(locationResource);
         processLocation(locationResource);
+        List<LocationFacet> locationResources = new ArrayList<LocationFacet>();
+        locationResources.add(locationResource);
+        metadataService.updateLocationMetadata(guestId, locationResources);
     }
 
     @Transactional(readOnly = false)
@@ -640,26 +642,6 @@ public class ApiDataServiceImpl implements ApiDataService {
             logger.info(sb.toString());
         }
     }
-
-    //@Transactional(readOnly = false)
-    //private void updateDayMetadata(long guestId, long time, float latitude,
-    //                              float longitude) {
-    //    City city = metadataService.getClosestCity((double)latitude, (double)longitude);
-    //    String date = formatter.withZone(DateTimeZone.forID(city.geo_timezone))
-    //            .print(time);
-    //
-    //    DayMetadata info = metadataService.getDayMetadata(guestId, date, true);
-    //    servicesHelper.addCity(info, city);
-    //
-    //    //TimeZone tz = TimeZone.getTimeZone(info.timeZone);
-    //    //List<WeatherInfo> weatherInfo = metadataService.getWeatherInfo(city.geo_latitude,
-    //    //                                                               city.geo_longitude, info.date,
-    //    //                                                               AbstractFacetVO.toMinuteOfDay(new Date(info.start), tz),
-    //    //                                                               AbstractFacetVO.toMinuteOfDay(new Date(info.end), tz));
-    //    //wwoHelper.setWeatherInfo(info, weatherInfo);
-    //
-    //    em.merge(info);
-    //}
 
     @Override
     @Transactional(readOnly = false)
