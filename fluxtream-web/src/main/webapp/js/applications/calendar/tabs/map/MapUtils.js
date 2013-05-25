@@ -295,7 +295,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                     }
                 }
             }
-            if (point == null){
+            if (point == null && map.primaryGPSData != null){
                 point = getPointForItemOnLine(map,map.primaryGPSData,item,false);
                 if (point != null){
                     gpsDataToUse = map.primaryGPSData;
