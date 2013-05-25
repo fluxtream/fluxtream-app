@@ -648,7 +648,7 @@ public class ApiDataServiceImpl implements ApiDataService {
     //    String date = formatter.withZone(DateTimeZone.forID(city.geo_timezone))
     //            .print(time);
     //
-    //    DayMetadataFacet info = metadataService.getDayMetadata(guestId, date, true);
+    //    DayMetadata info = metadataService.getDayMetadata(guestId, date, true);
     //    servicesHelper.addCity(info, city);
     //
     //    //TimeZone tz = TimeZone.getTimeZone(info.timeZone);

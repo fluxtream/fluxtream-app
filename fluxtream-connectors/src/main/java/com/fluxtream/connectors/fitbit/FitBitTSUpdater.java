@@ -18,7 +18,7 @@ import com.fluxtream.connectors.updaters.RateLimitReachedException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractLocalTimeFacet;
 import com.fluxtream.domain.ApiKey;
-import com.fluxtream.domain.metadata.DayMetadataFacet;
+import com.fluxtream.DayMetadata;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.NotificationsService;
@@ -227,7 +227,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 			try {
 				JSONObject entry = timeSeriesArray.getJSONObject(i);
 				String date = entry.getString("dateTime");
-				DayMetadataFacet dayMetadata = metadataService.getDayMetadata(apiKey.getGuestId(), date);
+				DayMetadata dayMetadata = metadataService.getDayMetadata(apiKey.getGuestId(), date);
                 logger.debug("dayMetadata: " + dayMetadata);
                 logger.debug("dayMetadataFacet's timezone: " + dayMetadata.timeZone);
 				TimeInterval timeInterval = dayMetadata.getTimeInterval();

@@ -12,7 +12,7 @@ import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.connectors.updaters.UpdateResult;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
-import com.fluxtream.domain.metadata.DayMetadataFacet;
+import com.fluxtream.DayMetadata;
 import com.fluxtream.mvc.models.ConnectorResponseModel;
 import com.fluxtream.mvc.models.TimeBoundariesModel;
 import com.fluxtream.services.ApiDataService;
@@ -46,7 +46,7 @@ public class CalendarDataHelper {
 	 * This is to let the client discard responses that are coming "too late"
 	 * 
 	 */
-	TimeBoundariesModel getStartEndResponseBoundaries(DayMetadataFacet dayMetadata) {
+	TimeBoundariesModel getStartEndResponseBoundaries(DayMetadata dayMetadata) {
 		TimeBoundariesModel tb = new TimeBoundariesModel();
 		tb.start = dayMetadata.start;
 		tb.end = dayMetadata.end;
@@ -78,7 +78,7 @@ public class CalendarDataHelper {
     }
 
 	public List<AbstractFacet> getFacets(Connector connector,
-			ObjectType objectType, DayMetadataFacet dayMetadata,
+			ObjectType objectType, DayMetadata dayMetadata,
 			int lookbackDays) {
 		List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
 		try {
@@ -92,7 +92,7 @@ public class CalendarDataHelper {
 		return facets;
 	}
 
-	void refreshApiData(DayMetadataFacet dayMetadata, ApiKey apiKey,
+	void refreshApiData(DayMetadata dayMetadata, ApiKey apiKey,
 			ObjectType objectType, ConnectorResponseModel crm) {
 		// if objectType is not specified and the connector has multiple object
 		// types

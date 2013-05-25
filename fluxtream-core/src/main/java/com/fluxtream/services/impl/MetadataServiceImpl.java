@@ -21,7 +21,7 @@ import com.fluxtream.domain.AbstractLocalTimeFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.metadata.City;
-import com.fluxtream.domain.metadata.DayMetadataFacet;
+import com.fluxtream.DayMetadata;
 import com.fluxtream.domain.metadata.VisitedCity;
 import com.fluxtream.domain.metadata.WeatherInfo;
 import com.fluxtream.services.GuestService;
@@ -95,7 +95,7 @@ public class MetadataServiceImpl implements MetadataService {
 	}
 
 	@Override
-	public DayMetadataFacet getDayMetadata(long guestId, String date) {
+	public DayMetadata getDayMetadata(long guestId, String date) {
         // get visited cities for a specific date . If we don't have any data for that date,
         // retrieve cities for the first date for which we do have data
         List<VisitedCity> cities = getVisitedCitiesForDate(guestId, date);
@@ -109,10 +109,10 @@ public class MetadataServiceImpl implements MetadataService {
         }
         if (cities.size()>0) {
             final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities);
-            DayMetadataFacet info = new DayMetadataFacet(cities, consensusVisitedCity, date);
+            DayMetadata info = new DayMetadata(cities, consensusVisitedCity, date);
             return info;
         } else {
-            DayMetadataFacet info = new DayMetadataFacet(date);
+            DayMetadata info = new DayMetadata(date);
             return info;
         }
 	}
@@ -191,8 +191,8 @@ public class MetadataServiceImpl implements MetadataService {
     }
 
     @Override
-    public List<DayMetadataFacet> getAllDayMetadata(final long guestId) {
-        return JPAUtils.find(em, DayMetadataFacet.class,"context.all",guestId);
+    public List<DayMetadata> getAllDayMetadata(final long guestId) {
+        return JPAUtils.find(em, DayMetadata.class,"context.all",guestId);
     }
 
 	@Override
@@ -204,7 +204,7 @@ public class MetadataServiceImpl implements MetadataService {
 
 	@Override
 	public TimeZone getTimeZone(long guestId, String date) {
-        final DayMetadataFacet dayMetadata = getDayMetadata(guestId, date);
+        final DayMetadata dayMetadata = getDayMetadata(guestId, date);
         return TimeZone.getTimeZone(dayMetadata.timeZone);
 	}
 

@@ -6,7 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 import com.fluxtream.Configuration;
 import com.fluxtream.aspects.FlxLogger;
-import com.fluxtream.domain.metadata.DayMetadataFacet;
+import com.fluxtream.DayMetadata;
 import com.fluxtream.domain.metadata.WeatherInfo;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -25,7 +25,7 @@ public class WWOHelper {
 	private Configuration env;
 
 
-    public void setWeatherInfo(DayMetadataFacet info,
+    public void setWeatherInfo(DayMetadata info,
                                 List<WeatherInfo> weatherInfo) {
         if (weatherInfo.size() == 0)
             return;

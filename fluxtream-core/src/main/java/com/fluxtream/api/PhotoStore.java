@@ -15,7 +15,7 @@ import com.fluxtream.TimeInterval;
 import com.fluxtream.TimeUnit;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.Guest;
-import com.fluxtream.domain.metadata.DayMetadataFacet;
+import com.fluxtream.DayMetadata;
 import com.fluxtream.mvc.models.PhotoModel;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.GuestService;
@@ -52,7 +52,7 @@ public class PhotoStore {
     public String getPhotosForDate(@PathParam("username") String username, @PathParam("date") String date){
         try{
             Guest guest = guestService.getGuest(username);
-            DayMetadataFacet dayMeta = metadataService.getDayMetadata(guest.getId(), date);
+            DayMetadata dayMeta = metadataService.getDayMetadata(guest.getId(), date);
             return gson.toJson(getPhotos(guest, dayMeta.getTimeInterval()));
         } catch (Exception e){
             StatusModel result = new StatusModel(false, "Could not get guest addresses: " + e.getMessage());
@@ -71,7 +71,7 @@ public class PhotoStore {
             c.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
             Guest guest = guestService.getGuest(username);
             DecimalFormat datePartFormat = new DecimalFormat("00");
-            DayMetadataFacet dayMetaStart = metadataService.getDayMetadata(guest.getId(), year + "-" + datePartFormat.format(c.get(Calendar.MONTH) + 1) +
+            DayMetadata dayMetaStart = metadataService.getDayMetadata(guest.getId(), year + "-" + datePartFormat.format(c.get(Calendar.MONTH) + 1) +
                                                                                           "-" + datePartFormat.format(c.get(Calendar.DAY_OF_MONTH)));
             int newDay = c.get(Calendar.DAY_OF_YEAR) + 6;
             if (newDay > (isLeapYear(year) ? 366 : 365)){
@@ -80,7 +80,7 @@ public class PhotoStore {
                 c.set(Calendar.YEAR,year);
             }
             c.set(Calendar.DAY_OF_YEAR,newDay);
-            DayMetadataFacet dayMetaEnd = metadataService.getDayMetadata(guest.getId(), year + "-" + datePartFormat.format(c.get(Calendar.MONTH) + 1) +
+            DayMetadata dayMetaEnd = metadataService.getDayMetadata(guest.getId(), year + "-" + datePartFormat.format(c.get(Calendar.MONTH) + 1) +
                                                                                           "-" + datePartFormat.format(c.get(Calendar.DAY_OF_MONTH)));
             return gson.toJson(getPhotos(guest, new TimeInterval(dayMetaStart.start,dayMetaEnd.end,TimeUnit.WEEK,TimeZone.getTimeZone(dayMetaStart.timeZone))));
         } catch (Exception e){
@@ -96,9 +96,9 @@ public class PhotoStore {
         try{
 
             Guest guest = guestService.getGuest(username);
-            DayMetadataFacet dayMetaStart = metadataService.getDayMetadata(guest.getId(), year + "-01-01");
+            DayMetadata dayMetaStart = metadataService.getDayMetadata(guest.getId(), year + "-01-01");
 
-            DayMetadataFacet dayMetaEnd = metadataService.getDayMetadata(guest.getId(), year + "-12-31");
+            DayMetadata dayMetaEnd = metadataService.getDayMetadata(guest.getId(), year + "-12-31");
             return gson.toJson(getPhotos(guest, new TimeInterval(dayMetaStart.start,dayMetaEnd.end,TimeUnit.WEEK,TimeZone.getTimeZone(dayMetaStart.timeZone))));
         } catch (Exception e){
             StatusModel result = new StatusModel(false, "Could not get photos: " + e.getMessage());

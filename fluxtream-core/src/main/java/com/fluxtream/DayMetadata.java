@@ -1,11 +1,9 @@
-package com.fluxtream.domain.metadata;
+package com.fluxtream;
 
 import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;
-import com.fluxtream.TimeInterval;
-import com.fluxtream.TimeUnit;
-import com.fluxtream.domain.AbstractLocalTimeFacet;
+import com.fluxtream.domain.metadata.VisitedCity;
 import org.joda.time.DateMidnight;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.DateTimeZone;
@@ -13,7 +11,7 @@ import org.joda.time.Days;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
-public class DayMetadataFacet extends AbstractLocalTimeFacet {
+public class DayMetadata {
 	
 	public float maxTempC = -10000,
 			maxTempF = -10000,
@@ -21,6 +19,8 @@ public class DayMetadataFacet extends AbstractLocalTimeFacet {
 			minTempF = 10000;
 	
 	public String timeZone = "UTC";
+    public String date;
+    public long start, end;
     public int daysInferred = 0;
 
     public VisitedCity consensusVisitedCity;
@@ -38,16 +38,16 @@ public class DayMetadataFacet extends AbstractLocalTimeFacet {
 	public String otherTimeZone;
 
     @Deprecated
-    public DayMetadataFacet() {}
+    public DayMetadata() {}
 
-    public DayMetadataFacet(String forDate) {
+    public DayMetadata(String forDate) {
         long timeForDate = formatter.withZoneUTC().parseDateTime(forDate).getMillis();
         DateMidnight dateMidnight = new DateMidnight(timeForDate);
         start = dateMidnight.getMillis();
         end = start + DateTimeConstants.MILLIS_PER_DAY;
     }
 
-    public DayMetadataFacet(List<VisitedCity> cities, VisitedCity consensusVisitedCity, String forDate) {
+    public DayMetadata(List<VisitedCity> cities, VisitedCity consensusVisitedCity, String forDate) {
         this.cities = cities;
         this.consensusVisitedCity = consensusVisitedCity;
         long cityTime = formatter.withZone(DateTimeZone.forID(consensusVisitedCity.city.geo_timezone)).parseDateTime(consensusVisitedCity.date).getMillis();
@@ -56,11 +56,6 @@ public class DayMetadataFacet extends AbstractLocalTimeFacet {
         timeZone = consensusVisitedCity.city.geo_timezone;
         start = forDateTime;
         end = forDateTime + DateTimeConstants.MILLIS_PER_DAY;
-    }
-
-    @Override
-    protected void makeFullTextIndexable() {
-        //To change body of implemented methods use File | Settings | File Templates.
     }
 
     public TimeInterval getTimeInterval() {
