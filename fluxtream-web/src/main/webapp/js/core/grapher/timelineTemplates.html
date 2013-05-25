@@ -219,13 +219,16 @@
                     <td><input id="{{channelElementId}}-config-lines-color" type="text"/></td>
                     <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
                     <td>
-                        <select id="{{channelElementId}}-config-lines-lineWidth" class="_timeline_channelConfig_image_menu">
-                            <option value="1" title="/static/images/msdropdown/lineWidth1.png"></option>
-                            <option value="2" title="/static/images/msdropdown/lineWidth2.png"></option>
-                            <option value="3" title="/static/images/msdropdown/lineWidth3.png"></option>
-                            <option value="4" title="/static/images/msdropdown/lineWidth4.png"></option>
-                            <option value="5" title="/static/images/msdropdown/lineWidth5.png"></option>
-                        </select>
+                        <div class="btn-group configDropdown configLineWidth">
+                            <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown" value="1"><img style="display:inline;" src="/static/images/msdropdown/lineWidth1.png"> <span class="caret"></span></button>
+                            <ul class="dropdown-menu">
+                                <li><a href="#" value="1"><img style="display:inline;" src="/static/images/msdropdown/lineWidth1.png"></a></li>
+                                <li><a href="#" value="2"><img style="display:inline;" src="/static/images/msdropdown/lineWidth2.png"></a></li>
+                                <li><a href="#" value="3"><img style="display:inline;" src="/static/images/msdropdown/lineWidth3.png"></a></li>
+                                <li><a href="#" value="4"><img style="display:inline;" src="/static/images/msdropdown/lineWidth4.png"></a></li>
+                                <li><a href="#" value="5"><img style="display:inline;" src="/static/images/msdropdown/lineWidth5.png"></a></li>
+                            </ul>
+                        </div>
                     </td>
                     <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
                     <td>&nbsp;</td>
@@ -238,27 +241,33 @@
                     <td><input id="{{channelElementId}}-config-points-color" type="text"/></td>
                     <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
                     <td>
-                        <select id="{{channelElementId}}-config-points-radius" class="_timeline_channelConfig_image_menu">
-                            <option value="1" title="/static/images/msdropdown/pointSize1.png"></option>
-                            <option value="2" title="/static/images/msdropdown/pointSize2.png"></option>
-                            <option value="3" title="/static/images/msdropdown/pointSize3.png"></option>
-                            <option value="4" title="/static/images/msdropdown/pointSize4.png"></option>
-                            <option value="5" title="/static/images/msdropdown/pointSize5.png"></option>
-                        </select>
+                        <div class="btn-group configDropdown configPointsRadius">
+                            <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown" value="1"><img style="display:inline;" src="/static/images/msdropdown/pointSize1.png"> <span class="caret"></span></button>
+                            <ul class="dropdown-menu">
+                                <li><a href="#" value="1"><img style="display:inline;" src="/static/images/msdropdown/pointSize1.png"></a></li>
+                                <li><a href="#" value="2"><img style="display:inline;" src="/static/images/msdropdown/pointSize2.png"></a></li>
+                                <li><a href="#" value="3"><img style="display:inline;" src="/static/images/msdropdown/pointSize3.png"></a></li>
+                                <li><a href="#" value="4"><img style="display:inline;" src="/static/images/msdropdown/pointSize4.png"></a></li>
+                                <li><a href="#" value="5"><img style="display:inline;" src="/static/images/msdropdown/pointSize5.png"></a></li>
+                            </ul>
+                        </div>
                     </td>
                     <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
                     <td>
                         <table border="0" cellpadding="0" cellspacing="0" style="width:auto">
                             <tr>
                                 <td style="padding-right:3px">
-                                    <select id="{{channelElementId}}-config-points-type" class="_timeline_channelConfig_image_menu">
-                                        <option value="point-filled" title="/static/images/msdropdown/pointStyleCircleFilled.png"></option>
-                                        <option value="square-filled" title="/static/images/msdropdown/pointStyleSquareFilled.png"></option>
-                                        <option value="point" title="/static/images/msdropdown/pointStyleCircle.png"></option>
-                                        <option value="square" title="/static/images/msdropdown/pointStyleSquare.png"></option>
-                                        <option value="cross" title="/static/images/msdropdown/pointStyleCross.png"></option>
-                                        <option value="plus" title="/static/images/msdropdown/pointStylePlus.png"></option>
-                                    </select>
+                                    <div class="btn-group configDropdown configPointsType">
+                                        <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown" value="point-filled"><img style="display:inline;" src="/static/images/msdropdown/pointStyleCircleFilled.png"> <span class="caret"></span></button>
+                                        <ul class="dropdown-menu">
+                                            <li><a href="#" value="point-filled"><img style="display:inline;" src="/static/images/msdropdown/pointStyleCircleFilled.png"></a></li>
+                                            <li><a href="#" value="square-filled"><img style="display:inline;" src="/static/images/msdropdown/pointStyleSquareFilled.png"></a></li>
+                                            <li><a href="#" value="point"><img style="display:inline;" src="/static/images/msdropdown/pointStyleCircle.png"></a></li>
+                                            <li><a href="#" value="square"><img style="display:inline;" src="/static/images/msdropdown/pointStyleSquare.png"></a></li>
+                                            <li><a href="#" value="cross"><img style="display:inline;" src="/static/images/msdropdown/pointStyleCross.png"></a></li>
+                                            <li><a href="#" value="plus"><img style="display:inline;" src="/static/images/msdropdown/pointStylePlus.png"></a></li>
+                                        </ul>
+                                    </div>
                                 </td>
                                 <td id="{{channelElementId}}-config-points-fillColor-container">
                                     <input id="{{channelElementId}}-config-points-fillColor" type="text"/>
@@ -275,13 +284,16 @@
                     <td><input id="{{channelElementId}}-config-bars-color" type="text"/></td>
                     <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
                     <td>
-                        <select id="{{channelElementId}}-config-bars-lineWidth" class="_timeline_channelConfig_image_menu">
-                            <option value="1" title="/static/images/msdropdown/barWidth1.png"></option>
-                            <option value="2" title="/static/images/msdropdown/barWidth2.png"></option>
-                            <option value="3" title="/static/images/msdropdown/barWidth3.png"></option>
-                            <option value="4" title="/static/images/msdropdown/barWidth4.png"></option>
-                            <option value="5" title="/static/images/msdropdown/barWidth5.png"></option>
-                        </select>
+                        <div class="btn-group configDropdown configBarsLineWidth">
+                            <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown" value="1"><img style="display:inline;" src="/static/images/msdropdown/barWidth1.png"> <span class="caret"></span></button>
+                            <ul class="dropdown-menu">
+                                <li><a href="#" value="1"><img style="display:inline;" src="/static/images/msdropdown/barWidth1.png"></a></li>
+                                <li><a href="#" value="2"><img style="display:inline;" src="/static/images/msdropdown/barWidth2.png"></a></li>
+                                <li><a href="#" value="3"><img style="display:inline;" src="/static/images/msdropdown/barWidth3.png"></a></li>
+                                <li><a href="#" value="4"><img style="display:inline;" src="/static/images/msdropdown/barWidth4.png"></a></li>
+                                <li><a href="#" value="5"><img style="display:inline;" src="/static/images/msdropdown/barWidth5.png"></a></li>
+                            </ul>
+                        </div>
                     </td>
                     <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
                     <td>&nbsp;</td>
@@ -294,41 +306,53 @@
                     <td><input id="{{channelElementId}}-config-values-fillColor" type="text"/></td>
                     <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
                     <td>
-                        <select id="{{channelElementId}}-config-values-numberFormat" class="_timeline_channelConfig_image_menu">
-                            <option value="###,##0.0##">#.###</option>
-                            <option value="###,##0.0#">#.##</option>
-                            <option value="###,##0.0">#.#</option>
-                            <option value="###,##0">#</option>
-                        </select>
+                        <div class="btn-group configDropdown configValuesNumberFormat">
+                            <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown" value="###,##0.0##">#.### <span class="caret"></span></button>
+                            <ul class="dropdown-menu">
+                                <li><a href="#" value="###,##0.0##">#.###</a></li>
+                                <li><a href="#" value="###,##0.0#">#.##</a></li>
+                                <li><a href="#" value="###,##0.0">#.#</a></li>
+                                <li><a href="#" value="###,##0">#</a></li>
+                            </ul>
+                        </div>
                     </td>
                     <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
                     <td>
                         <table border="0" cellpadding="0" cellspacing="0">
                             <tr>
-                                <td><label for="{{channelElementId}}-config-values-verticalOffset">Position:</label></td>
+                                <td><label>Position:</label></td>
                                 <td style="padding-left:2px">
-                                    <select id="{{channelElementId}}-config-values-verticalOffset" class="_timeline_channelConfig_image_menu">
-                                        <option value="7">Above</option>
-                                        <option value="-3">On</option>
-                                        <option value="-13">Below</option>
-                                    </select>
+                                    <div class="btn-group configDropdown configValuesVerticalOffset">
+                                        <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown" value="7">Above <span class="caret"></span></button>
+                                        <ul class="dropdown-menu">
+                                            <li><a href="#" value="7">Above</a></li>
+                                            <li><a href="#" value="-3">On</a></li>
+                                            <li><a href="#" value="-13">Below</a></li>
+                                        </ul>
+                                    </div>
                                 </td>
-                                <td style="padding-left:10px"><label for="{{channelElementId}}-config-values-showOnlyOnHighlight">Visible:</label></td>
+                                <td style="padding-left:10px"><label>Visible:</label></td>
                                 <td style="padding-left:2px">
-                                    <select id="{{channelElementId}}-config-values-showOnlyOnHighlight" style="width:70px">
-                                        <option value="false">Always</option>
-                                        <option value="true">Mouseover</option>
-                                    </select>
+                                    <div class="btn-group configDropdown configValuesShowOnlyOnHighlight">
+                                        <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown" value="false">Always <span class="caret"></span></button>
+                                        <ul class="dropdown-menu">
+                                            <li><a href="#" value="false">Always</a></li>
+                                            <li><a href="#" value="true">Mouseover</a></li>
+                                        </ul>
+                                    </div>
                                 </td>
-                                <td id="{{channelElementId}}-config-values-marginWidth-label-container" style="padding-left:10px"><label for="{{channelElementId}}-config-values-marginWidth">Margin:</label></td>
+                                <td id="{{channelElementId}}-config-values-marginWidth-label-container" style="padding-left:10px"><label>Margin:</label></td>
                                 <td id="{{channelElementId}}-config-values-marginWidth-container" style="padding-left:2px">
-                                    <select id="{{channelElementId}}-config-values-marginWidth" class="_timeline_channelConfig_image_menu">
-                                        <option value="5">5</option>
-                                        <option value="10">10</option>
-                                        <option value="15">15</option>
-                                        <option value="20">20</option>
-                                        <option value="25">25</option>
-                                    </select>
+                                    <div class="btn-group configDropdown configValuesMarginWidth">
+                                        <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown" value="5">5 <span class="caret"></span></button>
+                                        <ul class="dropdown-menu">
+                                            <li><a href="#" value="5">5</a></li>
+                                            <li><a href="#" value="10">10</a></li>
+                                            <li><a href="#" value="15">15</a></li>
+                                            <li><a href="#" value="20">20</a></li>
+                                            <li><a href="#" value="25">25</a></li>
+                                        </ul>
+                                    </div>
                                 </td>
                             </tr>
                         </table>
@@ -342,27 +366,33 @@
                     <td><input id="{{channelElementId}}-config-comments-color" type="text"/></td>
                     <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
                     <td>
-                        <select id="{{channelElementId}}-config-comments-radius" class="_timeline_channelConfig_image_menu">
-                            <option value="1" title="/static/images/msdropdown/pointSize1.png"></option>
-                            <option value="2" title="/static/images/msdropdown/pointSize2.png"></option>
-                            <option value="3" title="/static/images/msdropdown/pointSize3.png"></option>
-                            <option value="4" title="/static/images/msdropdown/pointSize4.png"></option>
-                            <option value="5" title="/static/images/msdropdown/pointSize5.png"></option>
-                        </select>
+                        <div class="btn-group configDropdown configCommentsRadius">
+                            <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown" value="1"><img style="display:inline;" src="/static/images/msdropdown/pointSize1.png"> <span class="caret"></span></button>
+                            <ul class="dropdown-menu">
+                                <li><a href="#" value="1"><img style="display:inline;" src="/static/images/msdropdown/pointSize1.png"></a></li>
+                                <li><a href="#" value="2"><img style="display:inline;" src="/static/images/msdropdown/pointSize2.png"></a></li>
+                                <li><a href="#" value="3"><img style="display:inline;" src="/static/images/msdropdown/pointSize3.png"></a></li>
+                                <li><a href="#" value="4"><img style="display:inline;" src="/static/images/msdropdown/pointSize4.png"></a></li>
+                                <li><a href="#" value="5"><img style="display:inline;" src="/static/images/msdropdown/pointSize5.png"></a></li>
+                            </ul>
+                        </div>
                     </td>
                     <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
                     <td>
                         <table border="0" cellpadding="0" cellspacing="0" style="width:auto">
                             <tr>
                                 <td style="padding-right:3px">
-                                    <select id="{{channelElementId}}-config-comments-type" class="_timeline_channelConfig_image_menu">
-                                        <option value="point-filled" title="/static/images/msdropdown/pointStyleCircleFilled.png"></option>
-                                        <option value="square-filled" title="/static/images/msdropdown/pointStyleSquareFilled.png"></option>
-                                        <option value="point" title="/static/images/msdropdown/pointStyleCircle.png"></option>
-                                        <option value="square" title="/static/images/msdropdown/pointStyleSquare.png"></option>
-                                        <option value="cross" title="/static/images/msdropdown/pointStyleCross.png"></option>
-                                        <option value="plus" title="/static/images/msdropdown/pointStylePlus.png"></option>
-                                    </select>
+                                    <div class="btn-group configDropdown configCommentsType">
+                                        <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown" value="point-filled"><img style="display:inline;" src="/static/images/msdropdown/pointStyleCircleFilled.png"> <span class="caret"></span></button>
+                                        <ul class="dropdown-menu">
+                                            <li><a href="#" value="point-filled"><img style="display:inline;" src="/static/images/msdropdown/pointStyleCircleFilled.png"></a></li>
+                                            <li><a href="#" value="square-filled"><img style="display:inline;" src="/static/images/msdropdown/pointStyleSquareFilled.png"></a></li>
+                                            <li><a href="#" value="point"><img style="display:inline;" src="/static/images/msdropdown/pointStyleCircle.png"></a></li>
+                                            <li><a href="#" value="square"><img style="display:inline;" src="/static/images/msdropdown/pointStyleSquare.png"></a></li>
+                                            <li><a href="#" value="cross"><img style="display:inline;" src="/static/images/msdropdown/pointStyleCross.png"></a></li>
+                                            <li><a href="#" value="plus"><img style="display:inline;" src="/static/images/msdropdown/pointStylePlus.png"></a></li>
+                                        </ul>
+                                    </div>
                                 </td>
                                 <td id="{{channelElementId}}-config-comments-fillColor-container">
                                     <input id="{{channelElementId}}-config-comments-fillColor" type="text"/>
