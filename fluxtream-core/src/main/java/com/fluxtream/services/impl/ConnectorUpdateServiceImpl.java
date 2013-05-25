@@ -539,12 +539,20 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     @Transactional(readOnly = false)
     @Override
     public void flushUpdateWorkerTasks(final ApiKey apiKey, boolean wipeOutHistory) {
-        if (!wipeOutHistory)
-            JPAUtils.execute(em, "updateWorkerTasks.delete.byApi",
-                             apiKey.getId(),
-                             UpdateType.INITIAL_HISTORY_UPDATE);
-        else
-            JPAUtils.execute(em, "updateWorkerTasks.deleteAll.byApi", apiKey.getId());
+        if (!wipeOutHistory) {
+            // Here we want to leave the completed history updates but get rid of the scheduled
+            // items for this apiKey.  That translates into deleting items with status=0.
+             JPAUtils.execute(em, "updateWorkerTasks.delete.scheduledByApi",
+                             apiKey.getId());
+        }
+        else {
+            // Here we want to cause the next connector update to do a full history updates
+            // as well as get rid of the scheduled items for this apiKey.
+            // That translates into deleting all items other than the ones that are
+            // currently in progress.
+            JPAUtils.execute(em, "updateWorkerTasks.delete.byApi", apiKey.getId(),
+                             Status.IN_PROGRESS);
+        }
     }
 
     /**
