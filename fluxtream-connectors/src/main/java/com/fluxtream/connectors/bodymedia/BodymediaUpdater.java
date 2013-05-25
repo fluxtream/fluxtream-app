@@ -151,20 +151,42 @@ public class BodymediaUpdater extends AbstractUpdater {
     {
         DateTimeComparator comparator = DateTimeComparator.getDateOnlyInstance();
 
-        // Retrieve the lastSync date if set in an extractor
-        DateTime lastSync = (DateTime)updateInfo.getContext("lastSync");
-        String updateProgressDate = updateProgressTime.toString(formatter);
+        // Calculate the name of the key in the ApiAttributes table
+        // where the next start of update for this object type is
+        // stored and retrieve the stored value.  This stored value
+        // may potentially be null if something happened to the attributes table
+        String updateKeyName = "BodyMedia." + ot.getName() + ".updateStartDate";
+        String storedUpdateStartDate = guestService.getApiKeyAttribute(updateInfo.apiKey, updateKeyName);
 
-        // Default updateStartDate to be
-        String nextUpdateStartDate = updateProgressDate;
+        // Retrieve the lastSync date if it has been added to the
+        // updateInfo context by an extractor
+        DateTime lastSync = (DateTime)updateInfo.getContext("lastSync");
+
+
+        // Check which is earlier: the lastSync time returned from Bodymedia or the
+        // point we were in the update that just ended.  Store the lesser of the two
+        // in nextUpdateStartDate
+        String nextUpdateStartDate = storedUpdateStartDate;
         if (lastSync != null) {
             if (comparator.compare(updateProgressTime, lastSync) > 0) {
+                // lastSync from Bodymedia is less than the update progress
                 nextUpdateStartDate = lastSync.toString(formatter);
             }
+            else {
+                // the update progress is less than lastSync from Bodymedia
+                nextUpdateStartDate = updateProgressTime.toString(formatter);
+            }
+        }
+        else {
+            // Last sync is null, just leave the stored updateTime
+            // alone since it's better to get some extra data next
+            // time than to skip data from dates that potentially changed
         }
 
-        String updateKeyName = "BodyMedia." + ot.getName() + ".updateStartDate";
-        guestService.setApiKeyAttribute(updateInfo.apiKey, updateKeyName, nextUpdateStartDate);
+        // Store the new value if it's different than what's stored in ApiKeyAttributes
+        if(storedUpdateStartDate==null || !nextUpdateStartDate.equals(storedUpdateStartDate)) {
+            guestService.setApiKeyAttribute(updateInfo.apiKey, updateKeyName, nextUpdateStartDate);
+        }
     }
 
     OAuthConsumer setupConsumer(ApiKey apiKey) {
