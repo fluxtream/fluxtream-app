@@ -108,9 +108,8 @@ public class MetadataServiceImpl implements MetadataService {
             }
         }
         if (cities.size()>0) {
-            List<VisitedCity> nonConsensusVisitedCities = getNonConsensusVisitedCities(cities);
             final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities);
-            DayMetadataFacet info = new DayMetadataFacet(nonConsensusVisitedCities, consensusVisitedCity, date);
+            DayMetadataFacet info = new DayMetadataFacet(cities, consensusVisitedCity, date);
             return info;
         } else {
             DayMetadataFacet info = new DayMetadataFacet(date);
@@ -119,26 +118,15 @@ public class MetadataServiceImpl implements MetadataService {
 	}
 
     private List<VisitedCity> getVisitedCitiesForDate(final long guestId, final String date) {
-        TypedQuery<VisitedCity> query = em.createQuery("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class) + " facet WHERE facet.guestId=? AND facet.date=? ORDER BY facet.timeUpdated", VisitedCity.class);
+        TypedQuery<VisitedCity> query = em.createQuery("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class) + " facet WHERE facet.guestId=? AND facet.date=?", VisitedCity.class);
         query.setParameter(1, guestId);
         query.setParameter(2, date);
-        // TODO: check that the consensus city's timeupdated is still > max(timeUpdated) of the other cities
-        // if not, recompute the consensus city
         final List<VisitedCity> cities = query.getResultList();
         return cities;
     }
 
     /**
-     * get all cities but the consensus one
-     * @param cities
-     * @return
-     */
-    private List<VisitedCity> getNonConsensusVisitedCities(final List<VisitedCity> cities) {
-        return cities;
-    }
-
-    /**
-     * get only the consensus city
+     * Get only the consensus city: for now, just the city where the user has spent the most time in
      * @param cities
      * @return
      */
@@ -152,23 +140,7 @@ public class MetadataServiceImpl implements MetadataService {
             }
         });
 
-        // for now just create it each time
-        // later, persist it and identify it by looping over each city and calling isConsensus on them
-
-        final VisitedCity visitedCity = cities.get(0);
-        VisitedCity mainCity = new VisitedCity();
-        mainCity.start = visitedCity.start;
-        mainCity.end = visitedCity.end;
-        mainCity.city = visitedCity.city;
-        mainCity.sunrise = visitedCity.sunrise;
-        mainCity.sunset = visitedCity.sunset;
-        mainCity.count = visitedCity.count;
-        mainCity.startTimeStorage = visitedCity.startTimeStorage;
-        mainCity.endTimeStorage = visitedCity.endTimeStorage;
-        mainCity.api = visitedCity.api;
-        mainCity.date = visitedCity.date;
-        mainCity.locationSource = visitedCity.locationSource;
-        return mainCity;
+        return cities.get(0);
     }
 
     private String findClosestKnownDateForTime(final long guestId, final long time) {
@@ -380,12 +352,11 @@ public class MetadataServiceImpl implements MetadataService {
         for (LocationFacet locationResource : locationResources) {
             City newCity = anchorCity;
             Point2D.Double location = new Point2D.Double(locationResource.latitude, locationResource.longitude);
-            if (!isWithinRange(location, anchorLocation)) {
+            boolean withinAnchorRange = isWithinRange(location, anchorLocation);
+
+            if (!withinAnchorRange) {
                 anchorLocation = new Point2D.Double(locationResource.latitude, locationResource.longitude);
                 newCity = getClosestCity(locationResource.latitude, locationResource.longitude);
-            }
-            else {
-                lastLocationResourceMatchingAnchor=locationResource;
             }
 
             String newDate = formatter.withZone(DateTimeZone.forID(newCity.geo_timezone)).print(locationResource.timestampMs);
