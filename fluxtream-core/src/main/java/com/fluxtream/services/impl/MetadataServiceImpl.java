@@ -300,7 +300,6 @@ public class MetadataServiceImpl implements MetadataService {
 
     private void rebuildMetadata(final String username, long apiKeyId) {
         final ApiKey apiKey = em.find(ApiKey.class, apiKeyId);
-        System.out.println("rebuilding metadata for " + username + ", connector:" + apiKey.getConnector().getName());
         final Guest guest = guestService.getGuest(username);
         String entityName = JPAUtils.getEntityName(LocationFacet.class);
         int i=0;
