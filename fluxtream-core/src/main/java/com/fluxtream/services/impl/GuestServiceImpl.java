@@ -166,6 +166,16 @@ public class GuestServiceImpl implements GuestService {
 	public ApiKey setApiKeyAttribute(ApiKey ak, String key,
 			String value) {
         ApiKey apiKey = em.find(ApiKey.class, ak.getId());
+
+        // apiKey could be null, for example if the connector
+        // was already deleted.  In this case just return
+        // null
+        if(apiKey==null) {
+            return null;
+        }
+
+        // At this point we know that apiKey exists and
+        // is non-null
         apiKey.removeAttribute(key);
         ApiKeyAttribute attr = new ApiKeyAttribute();
 		attr.attributeKey = key;
@@ -180,6 +190,13 @@ public class GuestServiceImpl implements GuestService {
 	@Override
 	public void removeApiKey(long apiKeyId) {
 		ApiKey apiKey = em.find(ApiKey.class, apiKeyId);
+
+        // apiKey could be null, for example if the connector
+        // was already deleted.  In this case just return
+        if(apiKey==null) {
+            return;
+        }
+
         final String refreshTokenRemoveURL = apiKey.getAttributeValue("refreshTokenRemoveURL", env);
         // Revoke refresh token might throw.  If it does we still want to remove the apiKeys from
         // the DB which is why we put it in a try/finally block
@@ -201,7 +218,14 @@ public class GuestServiceImpl implements GuestService {
     @Deprecated
 	public String getApiKeyAttribute(ApiKey ak, String key) {
         ApiKey apiKey = em.find(ApiKey.class, ak.getId());
-		return apiKey.getAttributeValue(key, env);
+        // apiKey could be null, for example if the connector
+        // was deleted.  In this case return null
+        if(apiKey!=null) {
+		    return apiKey.getAttributeValue(key, env);
+        }
+        else {
+            return null;
+        }
 	}
 
     @Override
