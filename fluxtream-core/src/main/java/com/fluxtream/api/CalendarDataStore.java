@@ -147,14 +147,15 @@ public class CalendarDataStore {
                                                            dayMetadata.end);
             digest.timeZoneOffset = TimeZone.getTimeZone(dayMetadata.timeZone).getOffset((digest.tbounds.start + digest.tbounds.end)/2);
 
-            City city = dayMetadata.getMainVisitedCity().city;
+            City city = dayMetadata.consensusVisitedCity.city;
 
-            /*if (city != null){                          well
+            /*if (city != null){
                 digest.hourlyWeatherData = metadataService.getWeatherInfo(city.geo_latitude,city.geo_longitude, date, 0, 24 * 60);
                 Collections.sort(digest.hourlyWeatherData);
             }*/
 
-            setSolarInfo(digest, city, guestId, dayMetadata);
+            if (digest.mainCity!=null)
+                setSolarInfo(digest, city, guestId, dayMetadata);
 
             List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter, coachee);
             digest.selectedConnectors = connectorInfos(guestId,apiKeySelection);
@@ -239,14 +240,15 @@ public class CalendarDataStore {
                                                            dayMetadata.end);
             digest.timeZoneOffset = TimeZone.getTimeZone(dayMetadata.timeZone).getOffset((digest.tbounds.start + digest.tbounds.end)/2);
 
-            City city = dayMetadata.getMainVisitedCity().city;
+            City city = dayMetadata.consensusVisitedCity.city;
 
             /*if (city != null){
                 digest.hourlyWeatherData = metadataService.getWeatherInfo(city.geo_latitude,city.geo_longitude, date, 0, 24 * 60);
                 Collections.sort(digest.hourlyWeatherData);
             }*/
 
-            setSolarInfo(digest, city, guestId, dayMetadata);
+            if (digest.mainCity!=null)
+                setSolarInfo(digest, city, guestId, dayMetadata);
 
             List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter, coachee);
             digest.selectedConnectors = connectorInfos(guestId,apiKeySelection);
@@ -325,14 +327,15 @@ public class CalendarDataStore {
                                                            dayMetadata.end);
             digest.timeZoneOffset = TimeZone.getTimeZone(dayMetadata.timeZone).getOffset((digest.tbounds.start + digest.tbounds.end)/2);
 
-            City city = dayMetadata.getMainVisitedCity().city;
+            City city = dayMetadata.consensusVisitedCity.city;
 
             /*if (city != null){
                 digest.hourlyWeatherData = metadataService.getWeatherInfo(city.geo_latitude,city.geo_longitude, date, 0, 24 * 60);
                 Collections.sort(digest.hourlyWeatherData);
             }*/
 
-            setSolarInfo(digest, city, guestId, dayMetadata);
+            if (digest.mainCity!=null)
+                setSolarInfo(digest, city, guestId, dayMetadata);
 
             List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter, coachee);
             digest.selectedConnectors = connectorInfos(guestId, apiKeySelection);
@@ -386,7 +389,7 @@ public class CalendarDataStore {
         digest.tbounds = getStartEndResponseBoundaries(dayMetadata.start, dayMetadata.end);
         digest.timeZoneOffset = TimeZone.getTimeZone(dayMetadata.timeZone).getOffset((digest.tbounds.start + digest.tbounds.end)/2);
 
-        City city = dayMetadata.getMainVisitedCity().city;
+        City city = dayMetadata.consensusVisitedCity.city;
         if (city != null){
             digest.hourlyWeatherData = metadataService.getWeatherInfo(city.geo_latitude,city.geo_longitude, date, 0, 24 * 60);
             Collections.sort(digest.hourlyWeatherData);
@@ -427,10 +430,11 @@ public class CalendarDataStore {
                     dayMetadata.end);
             digest.timeZoneOffset = TimeZone.getTimeZone(dayMetadata.timeZone).getOffset((digest.tbounds.start + digest.tbounds.end)/2);
 
-            digest.mainCity = dayMetadata.getMainVisitedCity();
+            digest.mainCity = dayMetadata.consensusVisitedCity;
             digest.cities = dayMetadata.cities;
 
-            setSolarInfo(digest, digest.mainCity.city, guestId, dayMetadata);
+            if (digest.mainCity!=null)
+                setSolarInfo(digest, digest.mainCity.city, guestId, dayMetadata);
 
             List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter, coachee);
             digest.selectedConnectors = connectorInfos(guestId,apiKeySelection);

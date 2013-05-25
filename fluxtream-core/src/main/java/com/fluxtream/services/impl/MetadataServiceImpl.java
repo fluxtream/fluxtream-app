@@ -108,7 +108,9 @@ public class MetadataServiceImpl implements MetadataService {
             }
         }
         if (cities.size()>0) {
-            DayMetadataFacet info = new DayMetadataFacet(cities, date);
+            List<VisitedCity> nonConsensusVisitedCities = getNonConsensusVisitedCities(cities);
+            final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities);
+            DayMetadataFacet info = new DayMetadataFacet(nonConsensusVisitedCities, consensusVisitedCity, date);
             return info;
         } else {
             DayMetadataFacet info = new DayMetadataFacet(date);
@@ -120,16 +122,27 @@ public class MetadataServiceImpl implements MetadataService {
         TypedQuery<VisitedCity> query = em.createQuery("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class) + " facet WHERE facet.guestId=? AND facet.date=? ORDER BY facet.timeUpdated", VisitedCity.class);
         query.setParameter(1, guestId);
         query.setParameter(2, date);
+        // TODO: check that the consensus city's timeupdated is still > max(timeUpdated) of the other cities
+        // if not, recompute the consensus city
         final List<VisitedCity> cities = query.getResultList();
-        if (cities.size()>0) {
-            final VisitedCity mainVisitedCity = getMainVisitedCity(cities);
-            // for now just recompute it each time; later, we want this to be persisted and cached
-            cities.add(mainVisitedCity);
-        }
         return cities;
     }
 
-    private VisitedCity getMainVisitedCity(final List<VisitedCity> cities) {
+    /**
+     * get all cities but the consensus one
+     * @param cities
+     * @return
+     */
+    private List<VisitedCity> getNonConsensusVisitedCities(final List<VisitedCity> cities) {
+        return cities;
+    }
+
+    /**
+     * get only the consensus city
+     * @param cities
+     * @return
+     */
+    private VisitedCity getConsensusVisitedCity(final List<VisitedCity> cities) {
         Collections.sort(cities, new Comparator<VisitedCity>() {
             @Override
             public int compare(final VisitedCity a, final VisitedCity b) {
@@ -138,9 +151,12 @@ public class MetadataServiceImpl implements MetadataService {
                 return timeSpentInA-timeSpentInB;
             }
         });
+
+        // for now just create it each time
+        // later, persist it and identify it by looping over each city and calling isConsensus on them
+
         final VisitedCity visitedCity = cities.get(0);
         VisitedCity mainCity = new VisitedCity();
-        mainCity.apiKeyId = 0l;
         mainCity.start = visitedCity.start;
         mainCity.end = visitedCity.end;
         mainCity.city = visitedCity.city;

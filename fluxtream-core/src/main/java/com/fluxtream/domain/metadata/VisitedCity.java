@@ -31,9 +31,14 @@ public class VisitedCity extends AbstractLocalTimeFacet {
 
     public long count;
 
+    public boolean isConsensus() {
+        return apiKeyId==0;
+    }
+
     @ManyToOne(fetch= FetchType.EAGER, targetEntity = City.class, optional=false)
     public City city;
 
+    // for consensus, make apiKeyId=0
     public VisitedCity(long apiKeyId) {
         super(apiKeyId);
     }

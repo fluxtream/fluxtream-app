@@ -21,9 +21,11 @@ public class DayMetadataFacet extends AbstractLocalTimeFacet {
 			minTempF = 10000;
 	
 	public String timeZone = "UTC";
-
-    public List<VisitedCity> cities;
     public int daysInferred = 0;
+
+    public VisitedCity consensusVisitedCity;
+    public List<VisitedCity> cities;
+
 
     private static final DateTimeFormatter formatter = DateTimeFormat
             .forPattern("yyyy-MM-dd");
@@ -45,23 +47,15 @@ public class DayMetadataFacet extends AbstractLocalTimeFacet {
         end = start + DateTimeConstants.MILLIS_PER_DAY;
     }
 
-    public DayMetadataFacet(List<VisitedCity> cities, String forDate) {
+    public DayMetadataFacet(List<VisitedCity> cities, VisitedCity consensusVisitedCity, String forDate) {
         this.cities = cities;
-        VisitedCity mainVisitedCity = getMainVisitedCity();
-        long cityTime = formatter.withZone(DateTimeZone.forID(mainVisitedCity.city.geo_timezone)).parseDateTime(mainVisitedCity.date).getMillis();
-        long forDateTime = formatter.withZone(DateTimeZone.forID(mainVisitedCity.city.geo_timezone)).parseDateTime(forDate).getMillis();
+        this.consensusVisitedCity = consensusVisitedCity;
+        long cityTime = formatter.withZone(DateTimeZone.forID(consensusVisitedCity.city.geo_timezone)).parseDateTime(consensusVisitedCity.date).getMillis();
+        long forDateTime = formatter.withZone(DateTimeZone.forID(consensusVisitedCity.city.geo_timezone)).parseDateTime(forDate).getMillis();
         daysInferred = Days.daysBetween(new DateMidnight(forDateTime), new DateMidnight(cityTime)).getDays();
-        timeZone = mainVisitedCity.city.geo_timezone;
+        timeZone = consensusVisitedCity.city.geo_timezone;
         start = forDateTime;
         end = forDateTime + DateTimeConstants.MILLIS_PER_DAY;
-    }
-
-    public VisitedCity getMainVisitedCity() {
-        for (VisitedCity city : cities) {
-            if (city.apiKeyId==0)
-                return city;
-        }
-        return null;
     }
 
     @Override
