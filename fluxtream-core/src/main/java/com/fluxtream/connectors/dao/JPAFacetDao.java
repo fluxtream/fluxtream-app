@@ -17,6 +17,7 @@ import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.TagFilter;
+import com.fluxtream.domain.metadata.VisitedCity;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.utils.JPAUtils;
@@ -299,10 +300,20 @@ public class JPAFacetDao implements FacetDao {
                 bulkDeleteFacets(apiKey, facetClass);
             }
             final LocationFacet.Source locationFacetSource = getLocationFacetSource(facetClass);
-            if (locationFacetSource != LocationFacet.Source.NONE)
+            if (locationFacetSource != LocationFacet.Source.NONE) {
                 deleteLocationData(apiKey);
+                deleteVisitedCitiesData(apiKey);
+            }
         }
 	}
+
+    private void deleteVisitedCitiesData(final ApiKey apiKey) {
+        final String facetName = getEntityName(VisitedCity.class);
+        String stmtString = "DELETE FROM " + facetName + " facet WHERE facet.apiKeyId=?";
+        final Query query = em.createQuery(stmtString);
+        query.setParameter(1, apiKey.getId());
+        query.executeUpdate();
+    }
 
     private void deleteLocationData(final ApiKey apiKey) {
         final String facetName = getEntityName(LocationFacet.class);
