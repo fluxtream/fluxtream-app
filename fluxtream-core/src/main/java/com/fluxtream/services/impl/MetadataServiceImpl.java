@@ -14,14 +14,13 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import com.fluxtream.Configuration;
+import com.fluxtream.DayMetadata;
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.connectors.vos.AbstractFacetVO;
 import com.fluxtream.domain.AbstractLocalTimeFacet;
-import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.metadata.City;
-import com.fluxtream.DayMetadata;
 import com.fluxtream.domain.metadata.VisitedCity;
 import com.fluxtream.domain.metadata.WeatherInfo;
 import com.fluxtream.services.GuestService;
@@ -299,7 +298,6 @@ public class MetadataServiceImpl implements MetadataService {
     }
 
     private void rebuildMetadata(final String username, long apiKeyId) {
-        final ApiKey apiKey = em.find(ApiKey.class, apiKeyId);
         final Guest guest = guestService.getGuest(username);
         String entityName = JPAUtils.getEntityName(LocationFacet.class);
         int i=0;
