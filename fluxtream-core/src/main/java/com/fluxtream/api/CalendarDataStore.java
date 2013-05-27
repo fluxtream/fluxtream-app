@@ -15,6 +15,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import com.fluxtream.Configuration;
+import com.fluxtream.DayMetadata;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.auth.AuthHelper;
@@ -32,7 +34,7 @@ import com.fluxtream.domain.GuestAddress;
 import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.domain.Notification;
 import com.fluxtream.domain.metadata.City;
-import com.fluxtream.DayMetadata;
+import com.fluxtream.domain.metadata.VisitedCity;
 import com.fluxtream.mvc.models.AddressModel;
 import com.fluxtream.mvc.models.ConnectorDigestModel;
 import com.fluxtream.mvc.models.ConnectorResponseModel;
@@ -43,6 +45,7 @@ import com.fluxtream.mvc.models.SettingsModel;
 import com.fluxtream.mvc.models.SolarInfoModel;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.mvc.models.TimeBoundariesModel;
+import com.fluxtream.mvc.models.VisitedCityModel;
 import com.fluxtream.services.CoachingService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
@@ -91,6 +94,9 @@ public class CalendarDataStore {
 
     @Autowired
     CoachingService coachingService;
+
+    @Autowired
+    Configuration env;
 
 	Gson gson = new Gson();
 
@@ -410,11 +416,16 @@ public class CalendarDataStore {
                     dayMetadata.end);
             digest.timeZoneOffset = TimeZone.getTimeZone(dayMetadata.timeZone).getOffset((digest.tbounds.start + digest.tbounds.end)/2);
 
-            digest.mainCity = dayMetadata.consensusVisitedCity;
-            digest.cities = dayMetadata.cities;
+            digest.mainCity = new VisitedCityModel(dayMetadata.consensusVisitedCity, env);
+            List<VisitedCityModel> cityModels = new ArrayList<VisitedCityModel>();
+            for (VisitedCity city : dayMetadata.cities) {
+                VisitedCityModel cityModel = new VisitedCityModel(city, env);
+                cityModels.add(cityModel);
+            }
+            digest.cities = cityModels;
 
             if (digest.mainCity!=null)
-                setSolarInfo(digest, digest.mainCity.city, guestId, dayMetadata);
+                setSolarInfo(digest, dayMetadata.consensusVisitedCity.city, guestId, dayMetadata);
 
             List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter, coachee);
             digest.selectedConnectors = connectorInfos(guestId,apiKeySelection);

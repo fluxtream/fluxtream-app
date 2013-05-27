@@ -619,8 +619,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     function handleCityInfo(digestInfo) {
         $("#mainCity").empty();
         if (digestInfo.mainCity) {
-            $("#mainCity").html(cityLabel(digestInfo.mainCity) +
-                                temperaturesLabel(digestInfo))
+           $("#mainCity").html(cityLabel(digestInfo.mainCity) +
+                               temperaturesLabel(digestInfo))
         }
     }
 
@@ -661,9 +661,9 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
     function cityLabel(cityInfo) {
         var s = "";
-        s += cityInfo.city.geo_name;
-        if (cityInfo.city.geo_admin1_code) s += ", " + cityInfo.city.geo_admin1_code;
-        s += ", " + cityInfo.city.geo_country_code;
+        s += cityInfo.name;
+        if (cityInfo.state) s += ", " + cityInfo.state;
+        s += ", " + cityInfo.country;
         return s;
     }
 

@@ -7,7 +7,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import com.fluxtream.domain.metadata.VisitedCity;
 import com.fluxtream.domain.metadata.WeatherInfo;
 
 public class DigestModel {
@@ -17,8 +16,8 @@ public class DigestModel {
 	public int nApis;
 	public boolean hasPictures;
 	public List<NotificationModel> notifications;
-    public VisitedCity mainCity;
-    public List<VisitedCity> cities = new ArrayList<VisitedCity>();
+    public VisitedCityModel mainCity;
+    public List<VisitedCityModel> cities = new ArrayList<VisitedCityModel>();
 	public Map<String,Collection> addresses;
 	public float minTempC, maxTempC;
 	public float minTempF, maxTempF;
