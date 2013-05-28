@@ -3,7 +3,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         "core/Tab",
         "applications/calendar/App",
         "applications/calendar/tabs/map/MapUtils",
-        "App"], function(DrawingUtils, Config, Tab, Log, MapUtils, App) {
+        "App",
+        "applications/calendar/tabs/photos/PhotoUtils"], function(DrawingUtils, Config, Tab, Log, MapUtils, App, PhotoUtils) {
 	
 	var paper = null;
 	var config = null;
@@ -18,6 +19,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
     var connectorEnabled;
     var dgst;
 
+
+    var photoCarouselHTML;
     var lastTimestamp = null;
 
     App.addHideTooltipListener(hideEventInfo);
@@ -112,6 +115,9 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 				continue;
 			updateDataDisplay(digest.cachedData[objectTypeName], objectTypeName, digest);
 		}
+
+        photoCarouselHTML = PhotoUtils.getCarouselHTML(digest);
+
         doneLoading();
         //disabled... not sure what the purpose of this is
 		/*for(i=0;i<digest.updateNeeded.length;i++) {
@@ -431,6 +437,11 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             $("#tooltipLoadBodyTrack").click(function(event){
                 event.preventDefault();
                 App.renderApp('bodytrack','grapher/source/' + sourceName,{tbounds: {start:dayStart,end:dayEnd}});
+            });
+
+            ttpdiv.find(".flx-photo").click(function(event){
+                App.makeModal(photoCarouselHTML);
+                App.carousel($(event.delegateTarget).attr("photoId"));
             });
        });
 

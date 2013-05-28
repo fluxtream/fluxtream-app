@@ -1,12 +1,14 @@
 define(["core/Tab",
         "applications/calendar/App",
-       "applications/calendar/tabs/map/MapUtils"], function(Tab, Calendar, MapUtils) {
+       "applications/calendar/tabs/map/MapUtils",
+       "applications/calendar/tabs/photos/PhotoUtils"], function(Tab, Calendar, MapUtils, PhotoUtils) {
 
 	var map = null;
     var digestData = null;
     var preserveView = false;
 
     var lastTimestamp = null;
+    var photoCarouselHTML;
 
     function render(params) {
         params.setTabParam(null);
@@ -44,6 +46,12 @@ define(["core/Tab",
 
         if (map == null){//make new map
             map = MapUtils.newMap(new google.maps.LatLng(addressToUse.latitude,addressToUse.longitude),16,"the_map",false);
+            map.infoWindowShown = function(){
+                $("#the_map").find(".flx-photo").click(function(event){
+                    App.makeModal(photoCarouselHTML);
+                    App.carousel($(event.delegateTarget).attr("photoId"));
+                });
+            }
         }
         else{//recycle old map
             if (map.isPreserveViewChecked()){
@@ -69,6 +77,8 @@ define(["core/Tab",
             doneLoading();
 
         });
+
+        photoCarouselHTML = PhotoUtils.getCarouselHTML(digest);
 
 
 	}
