@@ -117,7 +117,9 @@ public class MetadataServiceImpl implements MetadataService {
 	}
 
     private List<VisitedCity> getVisitedCitiesForDate(final long guestId, final String date) {
-        TypedQuery<VisitedCity> query = em.createQuery("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class) + " facet WHERE facet.guestId=? AND facet.date=?", VisitedCity.class);
+        TypedQuery<VisitedCity> query = em.createQuery("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class)
+                                                       + " facet WHERE facet.guestId=? AND facet.date=?"
+                                                       + " GROUP BY facet.locationSource ORDER BY facet.start", VisitedCity.class);
         query.setParameter(1, guestId);
         query.setParameter(2, date);
         final List<VisitedCity> cities = query.getResultList();

@@ -623,8 +623,31 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                                temperaturesLabel(digestInfo))
         }
         if (digestInfo.cities&&digestInfo.cities.length>0) {
-            console.log(digestInfo.cities);
+            $("#visitedCitiesDetails").off("click");
+            $("#visitedCitiesDetails").on("click", function(){
+                showVisitedCities(digestInfo.cities);
+            });
         }
+    }
+
+    function showVisitedCities(cities) {
+        var cityData = [];
+        for (var i=0; i<cities.length; i++) {
+            cityInfo = {};
+            cityInfo.source = cities[i].source;
+            cityInfo.description = cities[i].description;
+            var minutes = cities[i].startMinute%60;
+            minutes = minutes<10?"0"+minutes:""+minutes;
+            cityInfo.firstSeenHere = Math.floor(cities[i].startMinute/60)+"h"+minutes;
+            minutes = cities[i].endMinute%60;
+            minutes = minutes<10?"0"+minutes:""+minutes;
+            cityInfo.lastSeenHere = Math.floor(cities[i].endMinute/60)+"h"+minutes;
+            cityData[cityData.length] = cityInfo;
+        }
+        App.loadMustacheTemplate("applications/calendar/template.html","visitedCities-details",function(template){
+            var html = template.render({cities:cityData});
+            App.makeModal(html);
+        });
     }
 
     function ephemerisLabel(digestInfo) {

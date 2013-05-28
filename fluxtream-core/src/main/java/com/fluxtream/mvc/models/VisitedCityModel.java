@@ -14,6 +14,7 @@ import org.apache.commons.lang.WordUtils;
  */
 public class VisitedCityModel {
 
+    public String source;
     public String name;
     public String state;
     public String country;
@@ -22,7 +23,8 @@ public class VisitedCityModel {
 
     public DurationModel duration;
 
-    public VisitedCityModel(VisitedCity vcity, Configuration env) {
+    public VisitedCityModel(VisitedCity vcity,  Configuration env) {
+        source = vcity.locationSource.toString();
         City city = vcity.city;
         name = city.geo_name;
         country = env.getCountry(city.geo_country_code);
