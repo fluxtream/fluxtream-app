@@ -12,6 +12,7 @@ public class TimespanSegment<T> implements Comparable<TimespanSegment>{
     private static final int SIMULTANEOUS = 0;
     private static final int AFTER = 1;
     private static final int BEFORE = -1;
+
     long start;
     long end;
     T value;
@@ -38,9 +39,26 @@ public class TimespanSegment<T> implements Comparable<TimespanSegment>{
         this.value = value;
     }
 
+    public long getStart() {
+        return start;
+    }
+
+    public long getEnd() {
+        return end;
+    }
+
+    public T getValue() {
+        return value;
+    }
+
     public long duration() {
         return end-start;
     }
+
+    public boolean isTimeInSpan(long ts) {
+        return (ts>=start && ts<end);
+    }
+
 
     @Override
     public int compareTo(final TimespanSegment o) {

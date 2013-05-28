@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.SignpostOAuthHelper;
 import com.fluxtream.connectors.annotations.Updater;
@@ -11,7 +12,9 @@ import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.services.MetadataService;
+import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.TimeUtils;
+import com.fluxtream.utils.Utils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import oauth.signpost.OAuthConsumer;
@@ -27,6 +30,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeComparator;
+import org.joda.time.DateTimeConstants;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -41,6 +45,7 @@ import org.springframework.stereotype.Component;
          hasFacets = true,
          defaultChannels = {"BodyMedia.mets", "BodyMedia.lying"})
 public class BodymediaUpdater extends AbstractUpdater {
+    static FlxLogger logger = FlxLogger.getLogger(AbstractUpdater.class);
 
     @Autowired
     SignpostOAuthHelper signpostHelper;
@@ -74,36 +79,9 @@ public class BodymediaUpdater extends AbstractUpdater {
     }
 
     public void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception {
-        // Get timezone map for this user
-        List<TimezoneMapElt> tzMap = getTimezoneMap(updateInfo);
-
-        // Prasanth removed this and said it doesn't work in checkin
-        // https://github.com/fluxtream/fluxtream-app/commit/eb10e1a3bb38170657f81621d26e1775644aa18f
-        // TODO: figure out how to handle exchanging the token in a way that does work
-
-        //checkAndReplaceOauthToken(updateInfo);
-        for(ObjectType ot : updateInfo.objectTypes())
-        {
-            String date = jpaDaoService.findOne("bodymedia." + ot.getName() + ".getFailedUpdate",
-                                                String.class, updateInfo.getGuestId());
-            DateTime end;
-            if(date!=null)
-            {
-                end = formatter.parseDateTime(date);
-            }
-            else
-            {
-                //DateTime should be initialized to the current time
-                end = new DateTime();
-            }
-
-            OAuthConsumer consumer = setupConsumer(updateInfo.apiKey);
-            String api_key = env.get("bodymediaConsumerKey");
-            String startDate = getUserRegistrationDate(updateInfo, api_key, consumer);
-            DateTime start = formatter.parseDateTime(startDate);
-
-            retrieveHistory(updateInfo, ot, url.get(ot), maxIncrement.get(ot), start, end);
-        }
+        // There's no difference between the initial history update and the incremental updates, so
+        // just call updateConnectorData in either case
+        updateConnectorData(updateInfo);
     }
 
     private void checkAndReplaceOauthToken(UpdateInfo updateInfo) throws OAuthExpectationFailedException,
@@ -128,33 +106,86 @@ public class BodymediaUpdater extends AbstractUpdater {
      */
     private void retrieveHistory(UpdateInfo updateInfo, ObjectType ot, String urlExtension, int increment, DateTime start, DateTime end) throws Exception {
         DateTimeComparator comparator = DateTimeComparator.getDateOnlyInstance();
-        DateTime current = end;
+        DateTime current = start;
         try {
-            while (comparator.compare(current, start) > 0)
+            //  Loop from start to end, incrementing by the max number of days you can
+            //  specify for a given type of query.  This is 1 for burn and sleep, and 31 for steps.
             //@ loop_invariant date.compareTo(userRegistrationDate) >= 0;
+            while (comparator.compare(current, end) < 0)
             {
-                String startPeriod = current.minusDays(increment - 1).toString(formatter);
-                String endPeriod = current.toString(formatter);
+                String startPeriod = current.toString(formatter);
+                String endPeriod = current.plusDays(increment - 1).toString(formatter);
                 String minutesUrl = "http://api.bodymedia.com/v2/json/" + urlExtension + startPeriod + "/" + endPeriod +
                                     "?api_key=" + updateInfo.apiKey.getAttributeValue("api_key", env);
                 //The following call may fail due to bodymedia's api. That is expected behavior
                 String jsonResponse = signpostHelper.makeRestCall(updateInfo.apiKey, ot.value(), minutesUrl);
                 apiDataService.cacheApiDataJSON(updateInfo, jsonResponse, -1, -1);
-                current = current.minusDays(increment);
+                current = current.plusDays(increment);
+
             }
-            String startPeriod = start.toString(formatter);
-            String endPeriod = current.plusDays(increment - 1).toString(formatter);
-            String minutesUrl = "http://api.bodymedia.com/v2/json/" + urlExtension + startPeriod + "/" + endPeriod +
-                                "?api_key=" + updateInfo.apiKey.getAttributeValue("api_key", env);
-            //The following call may fail due to bodymedia's api. That is expected behavior
-            String jsonResponse = signpostHelper.makeRestCall(updateInfo.apiKey, ot.value(), minutesUrl);
-            apiDataService.cacheApiDataJSON(updateInfo, jsonResponse, -1, -1);
+
+            // Update the stored value that controls when we will start updating next time
+            updateStartDate(updateInfo,ot,current);
         }
         catch (Exception e) {
-            JSONObject json = new JSONObject();
-            json.put("Failed", "");
-            json.put("Date", current.toString(formatter));
-            apiDataService.cacheApiDataJSON(updateInfo, json, -1, -1);
+            StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=BodymediaUpdater.retrieveHistory")
+                                                .append(" message=\"exception while retrieving history\" connector=")
+                                                .append(updateInfo.apiKey.getConnector().toString())
+                                                .append(" guestId=").append(updateInfo.apiKey.getGuestId())
+                                                .append(" updatingDate=").append(current);
+            logger.info(sb.toString());
+
+            // Update the stored value that controls when we will start updating next time
+            updateStartDate(updateInfo,ot,current);
+
+            // Rethrow the error so that this task gets rescheduled
+            throw e;
+        }
+
+    }
+
+    // Update the start date for next time.  The parameter the updateProgressDate is the date
+    // of that retrieveHistory had gotten to when it completed or gave up.
+    // If lastSync is set and is < updateProgressDate we will use that, and otherwise use updateProgressDate.
+    void updateStartDate(UpdateInfo updateInfo, ObjectType ot, DateTime updateProgressTime)
+    {
+        DateTimeComparator comparator = DateTimeComparator.getDateOnlyInstance();
+
+        // Calculate the name of the key in the ApiAttributes table
+        // where the next start of update for this object type is
+        // stored and retrieve the stored value.  This stored value
+        // may potentially be null if something happened to the attributes table
+        String updateKeyName = "BodyMedia." + ot.getName() + ".updateStartDate";
+        String storedUpdateStartDate = guestService.getApiKeyAttribute(updateInfo.apiKey, updateKeyName);
+
+        // Retrieve the lastSync date if it has been added to the
+        // updateInfo context by an extractor
+        DateTime lastSync = (DateTime)updateInfo.getContext("lastSync");
+
+
+        // Check which is earlier: the lastSync time returned from Bodymedia or the
+        // point we were in the update that just ended.  Store the lesser of the two
+        // in nextUpdateStartDate
+        String nextUpdateStartDate = storedUpdateStartDate;
+        if (lastSync != null) {
+            if (comparator.compare(updateProgressTime, lastSync) > 0) {
+                // lastSync from Bodymedia is less than the update progress
+                nextUpdateStartDate = lastSync.toString(formatter);
+            }
+            else {
+                // the update progress is less than lastSync from Bodymedia
+                nextUpdateStartDate = updateProgressTime.toString(formatter);
+            }
+        }
+        else {
+            // Last sync is null, just leave the stored updateTime
+            // alone since it's better to get some extra data next
+            // time than to skip data from dates that potentially changed
+        }
+
+        // Store the new value if it's different than what's stored in ApiKeyAttributes
+        if(storedUpdateStartDate==null || !nextUpdateStartDate.equals(storedUpdateStartDate)) {
+            guestService.setApiKeyAttribute(updateInfo.apiKey, updateKeyName, nextUpdateStartDate);
         }
     }
 
@@ -173,44 +204,69 @@ public class BodymediaUpdater extends AbstractUpdater {
 
     public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
         // Get timezone map for this user
-        List<TimezoneMapElt> tzMap = getTimezoneMap(updateInfo);
+        TimezoneMap tzMap = getTimezoneMap(updateInfo);
+
+        // Insert tzMap into the updateInfo context so it's accessible to the extractors
+        updateInfo.setContext("tzMap", tzMap);
 
         //checkAndReplaceOauthToken(updateInfo);
         for (ObjectType ot : updateInfo.objectTypes()) {
-            BodymediaAbstractFacet endDate = jpaDaoService.findOne("bodymedia." + ot.getName() + ".getFailedUpdate", BodymediaAbstractFacet.class, updateInfo.getGuestId());
-            DateTime start, end;
-            if (endDate != null) {
-                end = formatter.parseDateTime(endDate.date);
-                TimeZone timeZone = metadataService.getTimeZone(updateInfo.getGuestId(), end.getMillis());
-                BodymediaAbstractFacet startDate = jpaDaoService.findOne("bodymedia." + ot.getName() + ".getDaysPrior", BodymediaAbstractFacet.class, updateInfo.getGuestId(), TimeUtils.fromMidnight(end.getMillis(), timeZone));
-                start = formatter.parseDateTime(startDate.date);
-            }
-            else {
-                end = new DateTime();
-                start = getStartDate(updateInfo, ot);
-            }
+            // Get the start date either from user registration info or from the stored apiKeyAttributes.
+            // Set the end date to be today + 1 to cover the case of people in timezones which are later
+            // than the timezone of the server where it's already the next day
+            DateTime start = getStartDate(updateInfo, ot);
+            DateTime end = new DateTime().plusDays(1);
             retrieveHistory(updateInfo, ot, url.get(ot), maxIncrement.get(ot), start, end);
         }
     }
 
     public DateTime getStartDate(UpdateInfo updateInfo, ObjectType ot) throws Exception
     {
-        BodymediaAbstractFacet facet = jpaDaoService.findOne("bodymedia." + ot.getName() + ".getByLastSync", BodymediaAbstractFacet.class, updateInfo.getGuestId());
-        String startDate;
-        if(facet == null)
-        {
+        ApiKey apiKey = updateInfo.apiKey;
+
+        // The updateStartDate for a given object type is stored in the apiKeyAttributes
+        // as BodyMedia.<objectName>.updateStartDate.  In the case of a failure the updater will store the date
+        // that failed and start there next time.  In the case of a successfully completed update it will store
+        // the lastSync date returned from BodyMedia along with each API call.
+        String updateKeyName = "BodyMedia." + ot.getName() + ".updateStartDate";
+        String updateStartDate = guestService.getApiKeyAttribute(apiKey, updateKeyName);
+
+        // The first time we do this there won't be an apiKeyAttribute yet.  In that case get the
+        // registration date for the user and store that.
+
+        if(updateStartDate == null) {
             OAuthConsumer consumer = setupConsumer(updateInfo.apiKey);
             String api_key = env.get("bodymediaConsumerKey");
-            startDate = getUserRegistrationDate(updateInfo, api_key, consumer);
-        }
-        else
-        {
-            startDate = facet.date;
+            updateStartDate = getUserRegistrationDate(updateInfo, api_key, consumer);
+
+            // This is a hack to deal with backward compatibility with systems containing data
+            // from earlier versions of this updater.  The algorighm for setting start and end times
+            // was flawed in earlier versions.  It used the inferred timezone from the metadata service
+            // rather than the timezone map from BodyMedia.  This means that the usual apiUpdateService
+            // method for dealing with duplicate facets won't work since it just matches on the basis
+            // of start and end times.
+
+            // When we are at this point in the code, this connector is either:
+            //   1) just created after the new version of the connector too effect, or
+            //   2) a legacy connector which has stale data lying around
+            // In the first case, it does no harm to delete all the facets in the objects facet
+            // table at this point, since we're about to import all the data starting from the
+            // registration date.  In the second case, we need to delete the existing data or we'll
+            // potentially end up with duplicates.
+            String sqlTableName=JPAUtils.getEntityName(ot.facetClass());
+
+            System.out.println("***** Detected first run of new BodymediaUpdater for guestId=" +
+                               updateInfo.getGuestId() + " objectType=" + ot.getName() + " apiKeyId="+ updateInfo.apiKey.getId());
+
+            jpaDaoService.execute("DELETE FROM " + sqlTableName + " WHERE apiKeyId=" + updateInfo.apiKey.getId());
+
+            // Store in the apiKeyAttribute for next time
+            guestService.setApiKeyAttribute(updateInfo.apiKey, updateKeyName, updateStartDate);
         }
         try{
-            return formatter.parseDateTime(startDate);
+            return formatter.parseDateTime(updateStartDate);
         } catch (IllegalArgumentException e){
-            return formatter2.parseDateTime(startDate);
+            return formatter2.parseDateTime(updateStartDate);
         }
     }
 
@@ -233,15 +289,15 @@ public class BodymediaUpdater extends AbstractUpdater {
         else {
             final String reasonPhrase = response.getStatusLine().getReasonPhrase();
             countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, requestUrl, reasonPhrase);
-            throw new Exception("Error: " + statusCode + " Unexpected error trying to get statuses");
+            throw new Exception("Error: " + statusCode + " Unexpected error trying to get BodyMedia user registration date for guestId="+updateInfo.getGuestId());
         }
     }
 
-    public List<TimezoneMapElt> getTimezoneMap(UpdateInfo updateInfo) throws Exception {
+    public TimezoneMap getTimezoneMap(UpdateInfo updateInfo) throws Exception {
             OAuthConsumer consumer = setupConsumer(updateInfo.apiKey);
             String api_key = env.get("bodymediaConsumerKey");
             JSONArray timezoneMapJson = getUserTimezoneHistory(updateInfo, api_key, consumer);
-            List<TimezoneMapElt> ret= new ArrayList<TimezoneMapElt>();
+            TimezoneMap ret= new TimezoneMap();
 
             try{
                 for(int i=0; i<timezoneMapJson.size(); i++) {
@@ -252,25 +308,27 @@ public class BodymediaUpdater extends AbstractUpdater {
                     DateTime startDate;
                     DateTime endDate;
                     DateTimeZone tz;
-                    TimezoneMapElt tzElt;
 
                     tz = DateTimeZone.forID(tzName);
                     startDate = tzmapFormatter.parseDateTime(startDateStr);
                     if(endDateStr.equals("")) {
-                        // Last entry in table has no endDate, set it to be now in the target timezone
-                        // TODO: this should perhaps be in the future instead
-                        endDate=new DateTime(tz);
+                        // Last entry in table has no endDate, set it to be one day in the future
+                        endDate=new DateTime(tz).plusDays(1);
                     }
                     else {
                         endDate = tzmapFormatter.parseDateTime(endDateStr);
                     }
-                    tzElt = new TimezoneMapElt(startDate,endDate,tz);
 
-                    ret.add(tzElt);
+                    ret.add(startDate.getMillis(), endDate.getMillis(),tz);
                 }
 
             } catch (Throwable e){
-
+                StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=BodymediaUpdater.getTimezoneMap")
+                                    .append(" message=\"exception while getting timezone map\" connector=")
+                                    .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
+                                    .append(updateInfo.apiKey.getGuestId())
+                                    .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");;
+                logger.info(sb.toString());
             }
             return ret;
         }

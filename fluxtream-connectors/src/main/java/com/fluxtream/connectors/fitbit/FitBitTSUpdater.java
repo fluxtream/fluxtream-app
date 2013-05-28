@@ -160,6 +160,13 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                                         String.valueOf(trackerLastSyncDate));
         guestService.setApiKeyAttribute(updateInfo.apiKey, "SCALE.lastSyncDate",
                                         String.valueOf(scaleLastSyncDate));
+
+        // Flush the initial fitbit history data to the datastore.
+        // This is handled automatically by the incremental updates because
+        // it uses the apiDataService.cacheApiDataJSON APIs.  However,
+        // the above code does not do that so we explicity send the
+        // Fitbit facet data to the datastore here.
+        bodyTrackStorageService.storeInitialHistory(updateInfo.apiKey);
     }
 
 	public void updateCaloriesIntraday(FitbitTrackerActivityFacet facet, ApiKey apiKey)

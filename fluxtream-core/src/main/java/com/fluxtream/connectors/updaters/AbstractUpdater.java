@@ -71,10 +71,37 @@ public abstract class AbstractUpdater extends ApiClientSupport {
                 " guestId=" + updateInfo.getGuestId() + " connector=" + updateInfo.apiKey.getConnector().getName());
 
             updateConnectorDataHistory(updateInfo);
-            bodyTrackStorageService.storeInitialHistory(updateInfo.apiKey);
+
+            // At this point, versions prior to 5/25/13 called
+            //    bodyTrackStorageService.storeInitialHistory(updateInfo.apiKey);
+            // to flush all the facets created for this connector to the
+            // datastore.  However, incremental updates of connectors are
+            // expected to flush their new facets to the datastore
+            // as they go, which in practice means that the initial
+            // history updates for almost all the connectors are
+            // sent to the datastore at least twice.  In fact,
+            // it's worse than that because updateDataHistory is
+            // potentially called by multiple different object types
+            // for a given connector.  So in the old version
+            // a given facet was potentially sent to the datastore
+            // 2*<number of object types> times (for example,
+            // 6 times for the Bodymedia connector).
+            //
+            // It's much better to require that each connector flushes its
+            // own facets to the datstore for both the initial history and
+            // incremental updates.
+            //
+            // If the connector consistently uses the
+            //    apiDataService.cacheApiData
+            // calls to store the data retrieved from API calls, then this
+            // will happen automatically.  See the Bodymedia connector for
+            // an example.
+            //
+            // Otherwise, the updater needs to
+            // manually make sure to flush the data to the datastore.
+            // See the Mymee updater for an example.
 
             return UpdateResult.successResult();
-        // TODO: in case of a problem here, we really should reset the connector's data
         } catch (RateLimitReachedException e) {
             StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=updateDataHistory")
                     .append(" message=\"rate limit was reached exception\" connector=")
