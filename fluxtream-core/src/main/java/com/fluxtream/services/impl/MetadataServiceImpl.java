@@ -135,7 +135,7 @@ public class MetadataServiceImpl implements MetadataService {
             public int compare(final VisitedCity a, final VisitedCity b) {
                 int timeSpentInA = (int) (a.end-a.start+1); //add one if start and end are equal
                 int timeSpentInB = (int) (b.end-b.start+1);
-                return timeSpentInA-timeSpentInB;
+                return timeSpentInB-timeSpentInA;
             }
         });
 

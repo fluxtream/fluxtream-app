@@ -1,5 +1,7 @@
 package com.fluxtream.mvc.models;
 
+import java.util.Calendar;
+import java.util.TimeZone;
 import com.fluxtream.Configuration;
 import com.fluxtream.domain.metadata.City;
 import com.fluxtream.domain.metadata.VisitedCity;
@@ -16,6 +18,7 @@ public class VisitedCityModel {
     public String state;
     public String country;
     public String description;
+    int startMinute, endMinute;
 
     public DurationModel duration;
 
@@ -35,6 +38,14 @@ public class VisitedCityModel {
             description = city.geo_name + "/" + state + "/" + country;
         else
             description = city.geo_name + "/" + country;
+        duration = new DurationModel((int)(vcity.end - vcity.start)/1000);
+
+        Calendar c = Calendar.getInstance(TimeZone.getTimeZone(vcity.city.geo_timezone));
+        c.setTimeInMillis(vcity.start);
+        this.startMinute = c.get(Calendar.HOUR_OF_DAY)*60 + c.get(Calendar.MINUTE);
+        c.setTimeInMillis(vcity.end);
+        this.endMinute = c.get(Calendar.HOUR_OF_DAY)*60 + c.get(Calendar.MINUTE);
+
     }
 
 }

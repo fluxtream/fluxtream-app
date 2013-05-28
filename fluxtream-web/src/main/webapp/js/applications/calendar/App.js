@@ -622,6 +622,9 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
            $("#mainCity").html(cityLabel(digestInfo.mainCity) +
                                temperaturesLabel(digestInfo))
         }
+        if (digestInfo.cities&&digestInfo.cities.length>0) {
+            console.log(digestInfo.cities);
+        }
     }
 
     function ephemerisLabel(digestInfo) {
