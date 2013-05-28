@@ -10,10 +10,19 @@ define(["core/Tab",
     var lastTimestamp = null;
     var photoCarouselHTML;
 
+    var itemToShow = null;
+
     function render(params) {
+        itemToShow = params.tabParam;
         params.setTabParam(null);
         this.getTemplate("text!applications/calendar/tabs/map/map.html", "map", function(){
             if (lastTimestamp == params.digest.generationTimestamp && !params.forceReload){
+                $.doTimeout(250,function(){
+                    if (itemToShow != null)
+                        map.zoomOnItemAndClick(itemToShow);
+
+                });
+
                 params.doneLoading();
                 return;
             }
@@ -73,6 +82,9 @@ define(["core/Tab",
             }
             map.preserveViewCheckboxChanged = function(){
                 preserveView = map.isPreserveViewChecked();
+            }
+            if (itemToShow != null){
+                map.zoomOnItemAndClick(itemToShow);
             }
             doneLoading();
 

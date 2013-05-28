@@ -23,10 +23,13 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
     var photoCarouselHTML;
     var lastTimestamp = null;
 
+    var setTabParam;
+
     App.addHideTooltipListener(hideEventInfo);
 
 	function render(params) {
-        params.setTabParam(null);
+        setTabParam = params.setTabParam;
+        setTabParam(null);
         hideEventInfo();
         this.getTemplate("text!applications/calendar/tabs/clock/clock.html", "clock", function() {
             if (lastTimestamp == params.digest.generationTimestamp && !params.forceReload){
@@ -442,6 +445,12 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             ttpdiv.find(".flx-photo").click(function(event){
                 App.makeModal(photoCarouselHTML);
                 App.carousel($(event.delegateTarget).attr("photoId"));
+            });
+
+            ttpdiv.find(".mapLink").click(function(event){
+                setTabParam($(event.delegateTarget).attr("itemid"));
+                $(".calendar-map-tab").click();
+                return false;
             });
        });
 
