@@ -332,8 +332,10 @@ public class MetadataServiceImpl implements MetadataService {
     @Override
     @Transactional(readOnly=false)
     public void updateLocationMetadata(final long guestId, final List<LocationFacet> locationResources) {
-        // sort the location data in ascending time order
+        if (locationResources.size()==0)
+            return;
         System.out.println("processing " + locationResources.size() + " location datapoints...");
+        // sort the location data in ascending time order
         Collections.sort(locationResources, new Comparator<LocationFacet>() {
             @Override
             public int compare(final LocationFacet o1, final LocationFacet o2) {
