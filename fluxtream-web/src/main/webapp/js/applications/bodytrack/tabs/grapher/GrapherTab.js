@@ -6,7 +6,6 @@ define(["core/Tab","core/grapher/Grapher","core/FlxState"], function(Tab,Grapher
     var grapher = null;
 
     grapherTab.render = function(params){
-        currentView = null;
         tbounds = params.tbounds;
         this.getTemplate("text!applications/bodytrack/tabs/grapher/grapher.html", "grapher", function() {
             var sourceName = null;
@@ -48,10 +47,13 @@ define(["core/Tab","core/grapher/Grapher","core/FlxState"], function(Tab,Grapher
 
     function onSourceLoad(){
         if (viewLoad != null){
-            var view = viewLoad;
+            if (currentView != viewLoad){
+                var view = viewLoad;
+
+                currentView = view;
+                grapher.loadView(view);
+            }
             viewLoad = null;
-            currentView = view;
-            grapher.loadView(view);
         }
         if (tbounds != null){
             grapher.setRange(tbounds.start/1000,tbounds.end/1000);
