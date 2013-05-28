@@ -351,6 +351,9 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             map.infoWindow.open(map,marker);
             marker.doHighlighting();
             marker.showCircle();
+            if (map.infoWindowShown != null){
+                map.infoWindowShown();
+            }
         });
 
     }
