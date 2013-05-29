@@ -424,7 +424,7 @@
 }
 
 ._timeline_photo_dialog_timestamp {
-    font-size: 9pt;
+    font-size: 8pt;
     width: 300px;
     min-width: 300px;
     border-bottom: 1px solid #aaaaaa;
@@ -434,7 +434,7 @@
 ._timeline_photo_dialog_comment {
     margin: 12px 0 0 0;
     padding: 0 2px 0 2px;
-    width: 294px;
+    width: 290px;
     max-width: 300px;
     height: auto;
     font-size: .85em;
