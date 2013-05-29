@@ -20,6 +20,7 @@ public class VisitedCityModel {
     public String country;
     public String description;
     int startMinute, endMinute;
+    long count;
 
     public DurationModel duration;
 
@@ -48,6 +49,7 @@ public class VisitedCityModel {
         c.setTimeInMillis(vcity.end);
         this.endMinute = c.get(Calendar.HOUR_OF_DAY)*60 + c.get(Calendar.MINUTE);
 
+        this.count = vcity.count;
     }
 
 }

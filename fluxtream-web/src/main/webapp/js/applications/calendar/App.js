@@ -633,7 +633,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     function showVisitedCities(cities) {
         var cityData = [];
         for (var i=0; i<cities.length; i++) {
-            cityInfo = {};
+            var cityInfo = {};
+            cityInfo.count = cities[i].count;
             cityInfo.source = cities[i].source;
             cityInfo.description = cities[i].description;
             var minutes = cities[i].startMinute%60;
@@ -647,6 +648,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         App.loadMustacheTemplate("applications/calendar/template.html","visitedCities-details",function(template){
             var html = template.render({cities:cityData});
             App.makeModal(html);
+            $("#modal").on("hide",function(){
+                console.log("hahahahahahaha");
+                //App.activeApp.renderState(App.state.getState(App.activeApp.name),true);//force refresh of the current app state
+            });
         });
     }
 
