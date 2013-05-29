@@ -53,14 +53,16 @@
             <table class="table">
                 <tr>
                     <th>City</th>
-                    <th>First seen here</th>
-                    <th>Last seen here</th>
+                    <th>Time Zone</th>
+                    <th>From</th>
+                    <th>Until</th>
                     <th>Count</th>
                     <th>Source</th>
                 </tr>
             {{#cities}}
                 <tr>
                     <td>{{description}}</td>
+                    <td>{{timezone}}</td>
                     <td>{{firstSeenHere}}</td>
                     <td>{{lastSeenHere}}</td>
                     <td>{{count}}</td>

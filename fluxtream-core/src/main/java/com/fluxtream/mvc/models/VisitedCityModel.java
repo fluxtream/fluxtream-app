@@ -19,6 +19,7 @@ public class VisitedCityModel {
     public String state;
     public String country;
     public String description;
+    public String timezone;
     int startMinute, endMinute;
     long count;
 
@@ -48,8 +49,10 @@ public class VisitedCityModel {
         this.startMinute = c.get(Calendar.HOUR_OF_DAY)*60 + c.get(Calendar.MINUTE);
         c.setTimeInMillis(vcity.end);
         this.endMinute = c.get(Calendar.HOUR_OF_DAY)*60 + c.get(Calendar.MINUTE);
-
         this.count = vcity.count;
+
+        TimeZone tz = TimeZone.getTimeZone(vcity.city.geo_timezone);
+        timezone = tz.getDisplayName(true, TimeZone.SHORT);
     }
 
 }

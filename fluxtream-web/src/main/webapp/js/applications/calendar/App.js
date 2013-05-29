@@ -638,6 +638,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             cityInfo.count = cities[i].count;
             cityInfo.source = cities[i].source;
             cityInfo.description = cities[i].description;
+            cityInfo.timezone = cities[i].timezone;
             var minutes = cities[i].startMinute%60;
             minutes = minutes<10?"0"+minutes:""+minutes;
             cityInfo.firstSeenHere = Math.floor(cities[i].startMinute/60)+"h"+minutes;
@@ -694,8 +695,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     function cityLabel(cityInfo) {
         var s = "";
         s += cityInfo.name;
-        if (cityInfo.state) s += ", " + cityInfo.state;
-        s += ", " + cityInfo.country;
+        if (cityInfo.country=="US"||cityInfo.country=="USA") s += ", " + cityInfo.state;
+        s += ", " + cityInfo.country + " (" + cityInfo.timezone + ")";
         return s;
     }
 
