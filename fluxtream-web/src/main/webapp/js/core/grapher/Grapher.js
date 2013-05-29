@@ -2869,9 +2869,9 @@ define(["core/grapher/BTCore"], function(BTCore) {
                             grapher.onLoad = null;
                             onload();
                         }
-                        $.ajax("/api/timezones/mapping", {success: function(mapping) {
+                        /*$.ajax("/api/timezones/mapping", {success: function(mapping) {    //Disabled for now
                             grapher.dateAxis.setTimeZoneMapping(mapping);
-                        }});
+                        }});    */
                     }
                     else{
                         $.doTimeout(100,finishLoading);
