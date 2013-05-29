@@ -650,10 +650,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         App.loadMustacheTemplate("applications/calendar/template.html","visitedCities-details",function(template){
             var html = template.render({cities:cityData});
             App.makeModal(html);
-            $("#modal").on("hide",function(){
-                console.log("hahahahahahaha");
-                //App.activeApp.renderState(App.state.getState(App.activeApp.name),true);//force refresh of the current app state
-            });
         });
     }
 
