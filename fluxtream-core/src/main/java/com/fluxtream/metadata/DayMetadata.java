@@ -1,8 +1,10 @@
-package com.fluxtream;
+package com.fluxtream.metadata;
 
 import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;
+import com.fluxtream.TimeInterval;
+import com.fluxtream.TimeUnit;
 import com.fluxtream.domain.metadata.VisitedCity;
 import org.joda.time.DateMidnight;
 import org.joda.time.DateTimeConstants;

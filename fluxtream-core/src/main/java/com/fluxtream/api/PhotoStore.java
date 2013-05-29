@@ -15,7 +15,7 @@ import com.fluxtream.TimeInterval;
 import com.fluxtream.TimeUnit;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.Guest;
-import com.fluxtream.DayMetadata;
+import com.fluxtream.metadata.DayMetadata;
 import com.fluxtream.mvc.models.PhotoModel;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.GuestService;

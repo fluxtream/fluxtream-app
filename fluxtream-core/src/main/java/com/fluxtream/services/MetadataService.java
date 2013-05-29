@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.TimeZone;
 import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.domain.metadata.City;
-import com.fluxtream.DayMetadata;
+import com.fluxtream.metadata.DayMetadata;
 import com.fluxtream.domain.metadata.WeatherInfo;
 
 public interface MetadataService {

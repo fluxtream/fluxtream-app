@@ -6,7 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 import com.fluxtream.Configuration;
 import com.fluxtream.aspects.FlxLogger;
-import com.fluxtream.DayMetadata;
+import com.fluxtream.metadata.DayMetadata;
 import com.fluxtream.domain.metadata.WeatherInfo;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;

@@ -15,7 +15,7 @@ import com.fluxtream.Configuration;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.GuestAddress;
-import com.fluxtream.DayMetadata;
+import com.fluxtream.metadata.DayMetadata;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;

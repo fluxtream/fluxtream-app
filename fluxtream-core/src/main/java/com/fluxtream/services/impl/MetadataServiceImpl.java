@@ -14,7 +14,7 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import com.fluxtream.Configuration;
-import com.fluxtream.DayMetadata;
+import com.fluxtream.metadata.DayMetadata;
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.connectors.vos.AbstractFacetVO;

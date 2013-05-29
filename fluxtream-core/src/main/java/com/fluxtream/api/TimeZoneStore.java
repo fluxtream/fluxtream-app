@@ -8,7 +8,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.auth.AuthHelper;
-import com.fluxtream.DayMetadata;
+import com.fluxtream.metadata.DayMetadata;
 import com.fluxtream.mvc.models.TimeZoneMappingModel;
 import com.fluxtream.mvc.models.TimeZoneSegmentModel;
 import com.fluxtream.services.MetadataService;

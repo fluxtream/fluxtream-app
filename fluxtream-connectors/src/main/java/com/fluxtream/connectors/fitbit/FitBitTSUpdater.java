@@ -18,7 +18,7 @@ import com.fluxtream.connectors.updaters.RateLimitReachedException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractLocalTimeFacet;
 import com.fluxtream.domain.ApiKey;
-import com.fluxtream.DayMetadata;
+import com.fluxtream.metadata.DayMetadata;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.NotificationsService;
