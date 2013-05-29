@@ -22,6 +22,10 @@ import org.hibernate.annotations.Index;
 		query = "DELETE FROM UpdateWorkerTask updt " +
                 "WHERE updt.apiKeyId=? " +
                 "AND updt.updateType!=?"),
+    @NamedQuery( name = "updateWorkerTasks.delete.scheduledByApi",
+   		query = "DELETE FROM UpdateWorkerTask updt " +
+                   "WHERE updt.apiKeyId=? " +
+                   "AND updt.status=0"),
     @NamedQuery( name = "updateWorkerTasks.deleteAll.byApi",
                  query = "DELETE FROM UpdateWorkerTask updt " +
                          "WHERE updt.apiKeyId=?"),
@@ -37,18 +41,17 @@ import org.hibernate.annotations.Index;
 	@NamedQuery( name = "updateWorkerTasks.byStatus",
 		query = "SELECT updt FROM UpdateWorkerTask updt " +
                 "WHERE updt.status=?1 " +
-                "AND updt.serverUUID IN (?2) " +
-                "AND updt.timeScheduled<?3"),
+                "AND updt.timeScheduled<?2"),
     @NamedQuery( name = "updateWorkerTasks.isScheduledOrInProgress",
         query = "SELECT updt FROM UpdateWorkerTask updt " +
-                "WHERE (updt.status=0 " +
-                    "OR updt.status=1) " +
-                "AND updt.guestId=? " +
-                "AND updt.apiKeyId=?"),
+                "WHERE (updt.status=0 OR " +
+                "      (updt.status=1 AND updt.serverUUID IN (?1))) " +
+                "AND updt.apiKeyId=?2"),
     @NamedQuery( name = "updateWorkerTasks.withObjectTypes.isScheduled",
 		query = "SELECT updt FROM UpdateWorkerTask updt " +
-                "WHERE (updt.status=? OR updt.status=?) " +
-			    "AND updt.objectTypes=? AND updt.apiKeyId=? " +
+                "WHERE (updt.status=0 OR " +
+                "      (updt.status=1 AND updt.serverUUID IN (?1))) " +
+			    "AND updt.objectTypes=?2 AND updt.apiKeyId=?3 " +
                 "ORDER BY updt.timeScheduled DESC"),
 	@NamedQuery( name = "updateWorkerTasks.completed",
 		query = "SELECT updt FROM UpdateWorkerTask updt " +
@@ -58,10 +61,9 @@ import org.hibernate.annotations.Index;
 				"AND updt.apiKeyId=?"),
     @NamedQuery( name = "updateWorkerTasks.isInProgressOrScheduledBefore",
         query = "SELECT updt FROM UpdateWorkerTask updt " +
-                "WHERE (updt.status=1 " +
+                "WHERE ((updt.status=1 AND updt.serverUUID IN (?2))" +
                     "OR (updt.status=0 " +
                         "AND updt.timeScheduled<?1))" +
-                "AND updt.serverUUID IN (?2) " +
                 "AND updt.apiKeyId=?3 "),
     @NamedQuery( name = "updateWorkerTasks.getLastFinishedTask",
         query = "SELECT updt FROM UpdateWorkerTask updt " +

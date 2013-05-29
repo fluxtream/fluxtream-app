@@ -351,6 +351,9 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             map.infoWindow.open(map,marker);
             marker.doHighlighting();
             marker.showCircle();
+            if (map.infoWindowShown != null){
+                map.infoWindowShown();
+            }
         });
 
     }
@@ -753,6 +756,18 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             map.setZoom(map.getZoom()+1);
     }
 
+    function zoomOnItemAndClick(map,itemId){
+        var targetMarker = null;
+        for (var i = 0, li = map.markerList.length; i < li && targetMarker == null; i++){
+            if (map.markerList[i].item != null && map.markerList[i].item.id == itemId)
+                targetMarker = map.markerList[i];
+        }
+        if (targetMarker != null){
+            map.zoomOnMarker(targetMarker);
+            google.maps.event.trigger(targetMarker,"click");
+        }
+    }
+
     return {
         isDisplayable: isDisplayable,
         filterGPSData: filterGPSData,
@@ -829,6 +844,9 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             map.enhanceMarkerWithItem = function(marker,item){enhanceMarkerWithItem(map,marker,item)};
             map.isFullyInitialized = function(){return isFullyInitialized(map)};
             map.isPreserveViewChecked = function(){return false;}
+            map.zoomOnItemAndClick = function(itemId){
+                zoomOnItemAndClick(map,itemId);
+            }
             map._oldFitBounds = map.fitBounds;
             map.fitBounds = function(bounds,isPreservedView){
                 if (bounds == null)

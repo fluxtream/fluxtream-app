@@ -1,17 +1,28 @@
 define(["core/Tab",
         "applications/calendar/App",
-       "applications/calendar/tabs/map/MapUtils"], function(Tab, Calendar, MapUtils) {
+       "applications/calendar/tabs/map/MapUtils",
+       "applications/calendar/tabs/photos/PhotoUtils"], function(Tab, Calendar, MapUtils, PhotoUtils) {
 
 	var map = null;
     var digestData = null;
     var preserveView = false;
 
     var lastTimestamp = null;
+    var photoCarouselHTML;
+
+    var itemToShow = null;
 
     function render(params) {
+        itemToShow = params.tabParam;
         params.setTabParam(null);
         this.getTemplate("text!applications/calendar/tabs/map/map.html", "map", function(){
             if (lastTimestamp == params.digest.generationTimestamp && !params.forceReload){
+                $.doTimeout(250,function(){
+                    if (itemToShow != null)
+                        map.zoomOnItemAndClick(itemToShow);
+
+                });
+
                 params.doneLoading();
                 return;
             }
@@ -44,6 +55,12 @@ define(["core/Tab",
 
         if (map == null){//make new map
             map = MapUtils.newMap(new google.maps.LatLng(addressToUse.latitude,addressToUse.longitude),16,"the_map",false);
+            map.infoWindowShown = function(){
+                $("#the_map").find(".flx-photo").click(function(event){
+                    App.makeModal(photoCarouselHTML);
+                    App.carousel($(event.delegateTarget).attr("photoId"));
+                });
+            }
         }
         else{//recycle old map
             if (map.isPreserveViewChecked()){
@@ -66,9 +83,14 @@ define(["core/Tab",
             map.preserveViewCheckboxChanged = function(){
                 preserveView = map.isPreserveViewChecked();
             }
+            if (itemToShow != null){
+                map.zoomOnItemAndClick(itemToShow);
+            }
             doneLoading();
 
         });
+
+        photoCarouselHTML = PhotoUtils.getCarouselHTML(digest);
 
 
 	}

@@ -242,6 +242,10 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
 
         updt.addAuditTrailEntry(auditTrailEntry);
         updt.status = Status.SCHEDULED;
+
+        // Reset serverUUID to UNCLAIMED to reflect the fact that this task is no longer in the process of being
+        // executed.
+        updt.serverUUID = UNCLAIMED;
         updt.timeScheduled = time;
         em.persist(updt);
 
@@ -270,6 +274,16 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
         }
         else {
             updt.status = status;
+
+            // If the status is in_progress, set serverUUID to the current one.
+            // For anything other than IN_PROGRESS, set the serverUUID to null to reflect that it's not claimed
+            if(status==Status.IN_PROGRESS) {
+                updt.serverUUID = SERVER_UUID;
+            } else {
+                updt.serverUUID = UNCLAIMED;
+            }
+
+            em.persist(updt);
         }
     }
 
@@ -281,7 +295,11 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
         int activeThreads = executor.getActiveCount();
         int availableThreads = maxThreads - activeThreads;
 
-        List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.findWithLimit(em, UpdateWorkerTask.class, "updateWorkerTasks.byStatus", 0, availableThreads, Status.SCHEDULED, getLiveOrUnclaimedServerUUIDs(), System.currentTimeMillis());
+        List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.findWithLimit(em, UpdateWorkerTask.class,
+                                                                          "updateWorkerTasks.byStatus",
+                                                                          0, availableThreads,
+                                                                          Status.SCHEDULED,
+                                                                          System.currentTimeMillis());
         if (updateWorkerTasks.size() == 0) {
             logger.debug("module=updateQueue component=connectorUpdateService action=pollScheduledUpdateWorkerTasks message=\"Nothing to do\"");
             return;
@@ -425,7 +443,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     public UpdateWorkerTask getUpdateWorkerTask(final ApiKey apiKey, int objectTypes) {
         UpdateWorkerTask updateWorkerTask = JPAUtils.findUnique(em,
                                                                 UpdateWorkerTask.class, "updateWorkerTasks.withObjectTypes.isScheduled",
-                                                                Status.SCHEDULED, Status.IN_PROGRESS,
+                                                                getLiveServerUUIDs(),
                                                                 objectTypes,
                                                                 apiKey.getId());
         if (updateWorkerTask!=null&&hasStalled(updateWorkerTask)) {
@@ -439,7 +457,11 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     @Override
     @Transactional(readOnly = false)
     public List<UpdateWorkerTask> getScheduledOrInProgressUpdateTasks(final ApiKey apiKey) {
-        List<UpdateWorkerTask> updateWorkerTask = JPAUtils.find(em, UpdateWorkerTask.class, "updateWorkerTasks.isScheduledOrInProgress", apiKey.getId());
+        // Get the tasks that are currently scheduled or in progress and either have the active
+        List<UpdateWorkerTask> updateWorkerTask = JPAUtils.find(em, UpdateWorkerTask.class,
+                                                                "updateWorkerTasks.isScheduledOrInProgress",
+                                                                getLiveServerUUIDs(),
+                                                                apiKey.getId());
         for (UpdateWorkerTask workerTask : updateWorkerTask) {
             if (hasStalled(workerTask)) {
                 workerTask.status = Status.STALLED;
@@ -517,12 +539,20 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     @Transactional(readOnly = false)
     @Override
     public void flushUpdateWorkerTasks(final ApiKey apiKey, boolean wipeOutHistory) {
-        if (!wipeOutHistory)
-            JPAUtils.execute(em, "updateWorkerTasks.delete.byApi",
-                             apiKey.getId(),
-                             UpdateType.INITIAL_HISTORY_UPDATE);
-        else
-            JPAUtils.execute(em, "updateWorkerTasks.deleteAll.byApi", apiKey.getId());
+        if (!wipeOutHistory) {
+            // Here we want to leave the completed history updates but get rid of the scheduled
+            // items for this apiKey.  That translates into deleting items with status=0.
+             JPAUtils.execute(em, "updateWorkerTasks.delete.scheduledByApi",
+                             apiKey.getId());
+        }
+        else {
+            // Here we want to cause the next connector update to do a full history updates
+            // as well as get rid of the scheduled items for this apiKey.
+            // That translates into deleting all items other than the ones that are
+            // currently in progress.
+            JPAUtils.execute(em, "updateWorkerTasks.delete.byApi", apiKey.getId(),
+                             Status.IN_PROGRESS);
+        }
     }
 
     /**

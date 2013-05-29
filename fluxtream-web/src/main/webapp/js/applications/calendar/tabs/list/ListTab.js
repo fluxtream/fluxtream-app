@@ -4,7 +4,10 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
 
     var lastTimestamp = null;
 
+    var setTabParam;
+
     function render(params) {
+        setTabParam = params.setTabParam;
         this.getTemplate("text!applications/calendar/tabs/list/list.html", "list", function() {
             if (lastTimestamp == params.digest.generationTimestamp && !params.forceReload){
                 params.doneLoading();
@@ -223,6 +226,11 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
                 App.carousel($(event.delegateTarget).attr("photoId"));
             });
         }
+        $(".mapLink").click(function(event){
+            setTabParam($(event.delegateTarget).attr("itemid"));
+            $(".calendar-map-tab").click();
+            return false;
+        });
     }
 
     function paginationClickCallback(event){

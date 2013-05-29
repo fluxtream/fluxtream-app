@@ -16,8 +16,11 @@ import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 import com.fluxtream.aspects.FlxLogger;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeConstants;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.LocalDate;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -83,6 +86,13 @@ public class BodymediaBurnFacetExtractor extends AbstractFacetExtractor
         if(bodymediaResponse.has("days") && bodymediaResponse.has("lastSync"))
         {
             DateTime d = form.parseDateTime(bodymediaResponse.getJSONObject("lastSync").getString("dateTime"));
+
+            // Get timezone map from UpdateInfo context
+            TimezoneMap tzMap = (TimezoneMap)updateInfo.getContext("tzMap");
+
+            // Insert lastSync into the updateInfo context so it's accessible to the updater
+            updateInfo.setContext("lastSync", d);
+
             JSONArray daysArray = bodymediaResponse.getJSONArray("days");
             for(Object o : daysArray)
             {
@@ -101,12 +111,32 @@ public class BodymediaBurnFacetExtractor extends AbstractFacetExtractor
 
                     DateTime date = formatter.parseDateTime(day.getString("date"));
                     burn.date = dateFormatter.print(date.getMillis());
-                    TimeZone timeZone = metadataService.getTimeZone(apiData.updateInfo.getGuestId(), date.getMillis());
-                    long fromMidnight = TimeUtils.fromMidnight(date.getMillis(), timeZone);
-                    long toMidnight = TimeUtils.toMidnight(date.getMillis(), timeZone);
-                    //Sets the start and end times for the facet so that it can be uniquely defined
-                    burn.start = fromMidnight;
-                    burn.end = toMidnight;
+
+                    if(tzMap!=null)
+                    {
+                        // Create a LocalDate object which just captures the date without any
+                        // timezone assumptions
+                        LocalDate ld = new LocalDate(date.getYear(),date.getMonthOfYear(),date.getDayOfMonth());
+                        // Use tzMap to convert date into a datetime with timezone information
+                        DateTime realDateStart = tzMap.getStartOfDate(ld);
+                        // Set the start and end times for the facet.  The start time is the leading midnight
+                        // of burn.date according to BodyMedia's idea of what timezone you were in then.
+                        // End should, I think, be start + the number of minutes in the minutes array *
+                        // the number of milliseconds in a minute.
+                        burn.start = realDateStart.getMillis();
+                        int minutesLength = 1440;
+                        burn.end = burn.start + DateTimeConstants.MILLIS_PER_MINUTE * minutesLength;
+                    }
+                    else {
+                        // This is the old code from Prasanth that uses metadataService, which isn't right
+                        TimeZone timeZone = metadataService.getTimeZone(apiData.updateInfo.getGuestId(), date.getMillis());
+                        long fromMidnight = TimeUtils.fromMidnight(date.getMillis(), timeZone);
+                        long toMidnight = TimeUtils.toMidnight(date.getMillis(), timeZone);
+                        //Sets the start and end times for the facet so that it can be uniquely defined
+                        burn.start = fromMidnight;
+                        burn.end = toMidnight;
+                    }
+
 
                     facets.add(burn);
                 }
