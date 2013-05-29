@@ -254,6 +254,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     handleCityInfo(response);
                 } else {
                     $("#mainCity").empty();
+                    $("#visitedCitiesDetails").empty();
                 }
 			},
 			error: function(){
