@@ -174,19 +174,18 @@
 <div class="_timeline_channelConfig">
 <table border="0" cellpadding="0" cellspacing="0">
 <tr>
-<td>
+<td style="padding:5px">
 <table border="0" cellpadding="0" cellspacing="0" style="width:auto" class="_timeline_photo_series_plot_config">
     <tr>
         <td style="font-size:8pt">
             Show photos that
-            <select id="{{channelElementId}}-photo-tags-matching-strategy">
+            <select id="{{channelElementId}}-photo-tags-matching-strategy" style="font-family: Arial, Verdana, sans-serif; font-size: 11px; margin-bottom:0; width:auto">
                 <option value="any">contain any of the tags specified below</option>
                 <option value="all">contain all of the tags specified below</option>
                 <option value="none">contain none of the tags specified below</option>
                 <option value="untagged">are untagged</option>
             </select>
-            <br><br>
-            <form id="{{channelElementId}}-photo-tags-filter" style="margin-right:10px" action="" method="post" onsubmit="return false;">
+            <form id="{{channelElementId}}-photo-tags-filter" style="margin:10px 0 0 0;" action="" method="post" onsubmit="return false;">
                 <input type="text" name="tag[]" value="" class="tag"/>
             </form>
         </td>
@@ -479,10 +478,10 @@
           <div id="_timeline_photo_dialog_save_preferences">
               <table border="0" cellpadding="3" cellspacing="0" align="center">
                   <tr valign="middle">
-                      <td><input id="_timeline_photo_dialog_save_should_goto_neighbor" type="checkbox" value="true" tabindex="107" style="margin-top:-5px"></td>
-                      <td><label for="_timeline_photo_dialog_save_should_goto_neighbor" style="font-size:8pt">After saving, go to the </label></td>
-                      <td><select id="_timeline_photo_dialog_save_should_goto_neighbor_choice" tabindex="108" disabled="disabled" style="width:auto; font-size:8pt"><option value="1">next</option><option value="-1">previous</option></select></td>
-                      <td><label for="_timeline_photo_dialog_save_should_goto_neighbor" style="font-size:8pt"> photo.</label><img id="_timeline_photo_dialog_post_proxy_forward" src="/images/clear.gif" width="1" height="1" tabindex="109"/></td>
+                      <td><input id="_timeline_photo_dialog_save_should_goto_neighbor" type="checkbox" value="true" tabindex="107"></td>
+                      <td><label for="_timeline_photo_dialog_save_should_goto_neighbor" style="font-size:8pt; margin:0">After saving, go to the </label></td>
+                      <td><select id="_timeline_photo_dialog_save_should_goto_neighbor_choice" tabindex="108" disabled="disabled" style="width:auto; font-size:8pt; margin:0; font-family: 'Arial Unicode MS', Arial, sans-serif"><option value="1">next</option><option value="-1">previous</option></select></td>
+                      <td><label for="_timeline_photo_dialog_save_should_goto_neighbor" style="font-size:8pt; margin:0"> photo.</label><img id="_timeline_photo_dialog_post_proxy_forward" src="/images/clear.gif" width="1" height="1" tabindex="109"/></td>
                   </tr>
               </table>
           </div>
