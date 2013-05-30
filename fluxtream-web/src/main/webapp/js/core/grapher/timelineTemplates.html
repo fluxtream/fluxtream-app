@@ -135,9 +135,9 @@
             <td class="_timeline_channeltd flx-channel" rowspan="2">
                 <table class="flx-channel-tab" border="0" cellpadding="0" cellspacing="0" id="_timeline_channelTab_{{plotId}}">
                     <tr valign="middle">
-                        <td style="width:25px"><div class="flx-remove-channel" id="{{channelElementId}}_delete_btn">{{#showDeleteBtn}}<a href="#"><i class="icon-remove-sign"></i></a>{{/showDeleteBtn}}{{^showDeleteBtn}}<span><i style="opacity:0" class="icon-remove-sign"></i></span>{{/showDeleteBtn}}</div></td>
-                        <td style="width:180px">
-                            <div class="flx-channel-name">
+                        {{#showDeleteBtn}}<td style="width:25px"><div class="flx-remove-channel" id="{{channelElementId}}_delete_btn"><a href="#"><i class="icon-remove-sign"></i></a></div></td>{{/showDeleteBtn}}
+                        <td>
+                            <div class="flx-channel-name{{^showDeleteBtn}}-nodeletebutton{{/showDeleteBtn}}">
                                 <h4 title="{{deviceName}}">{{deviceName}}</h4>
                                 <p title="{{channelName}}">{{channelName}}</p>
                                 <p id="{{channelElementId}}-timeline-channel-filter" class="flx-channel-filter"></p>
