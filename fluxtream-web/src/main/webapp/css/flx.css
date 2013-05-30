@@ -887,6 +887,7 @@ table .remove i {
 .load-view-subMenu .view-filters {
   text-align: right;
   line-height: 1em;
+  list-style: none;
 }
 .load-view-subMenu .view-filters a {
   color: #07900c;

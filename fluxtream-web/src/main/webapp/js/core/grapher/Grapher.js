@@ -1469,6 +1469,11 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 // Set the initial value of the matchingStrategy select menu
                 $("#" + channelElementId + "-photo-tags-matching-strategy").val("" + tagFilter["matchingStrategy"]);
                 $("#" + channelElementId + "-photo-tags-matching-strategy").change(updatePhotoSeriesPlotChannelConfig);
+                $("#" + channelElementId + "-photo-tags-matching-strategy").change(function(){
+                    // show/hide the tags text box depending on the matching strategy (hidden when the "untagged" strategy is selected)
+                    var matchingStrategy = $("#" + channelElementId + "-photo-tags-matching-strategy").val();
+                    $("#" + channelElementId + "-photo-tags-filter").toggle(matchingStrategy != "untagged");
+                });
 
                 // seed the tag filter editor with the tags currently saved in the channel (if any)
                 if (tagFilter['tags'].length > 0) {
@@ -2869,9 +2874,9 @@ define(["core/grapher/BTCore"], function(BTCore) {
                             grapher.onLoad = null;
                             onload();
                         }
-                        $.ajax("/api/timezones/mapping", {success: function(mapping) {
+                        /*$.ajax("/api/timezones/mapping", {success: function(mapping) {    //Disabled for now
                             grapher.dateAxis.setTimeZoneMapping(mapping);
-                        }});
+                        }});    */
                     }
                     else{
                         $.doTimeout(100,finishLoading);

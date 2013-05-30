@@ -674,6 +674,10 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             $(span.node).attr("notthide",true);
             $(span.node).css("cursor", "pointer");
             $(span.node).click(function(event) {
+                if (typeof(event.offsetX) == "undefined"){
+                    event.offsetX = event.originalEvent.layerX;
+                    event.offsetY = event.originalEvent.layerY;
+                }
                 event.timeTarget = getTimestampForPoint(event.offsetX,event.offsetY);
                 if (event.timeTarget < event.target.item.start)
                     event.timeTarget = event.target.item.start;
