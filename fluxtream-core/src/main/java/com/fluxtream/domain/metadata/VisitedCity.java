@@ -21,7 +21,7 @@ import org.hibernate.search.annotations.Indexed;
        @NamedQuery( name="visitedCities.byApiDateAndCity",
                     query="SELECT facet from Facet_VisitedCity facet WHERE facet.apiKeyId=? AND facet.date=? AND facet.city.id=?")
 })
-public class VisitedCity extends AbstractLocalTimeFacet {
+public class VisitedCity extends AbstractLocalTimeFacet implements Comparable<VisitedCity>{
 
     @Index(name="locationSource_index")
     public LocationFacet.Source locationSource;
@@ -34,11 +34,10 @@ public class VisitedCity extends AbstractLocalTimeFacet {
     @ManyToOne(fetch= FetchType.EAGER, targetEntity = City.class, optional=false)
     public City city;
 
+    public VisitedCity() {}
+
     public VisitedCity(long apiKeyId) {
         super(apiKeyId);
-    }
-
-    public VisitedCity() {
     }
 
     @Override
@@ -47,4 +46,8 @@ public class VisitedCity extends AbstractLocalTimeFacet {
             this.fullTextDescription = city.geo_name;
     }
 
+    @Override
+    public int compareTo(final VisitedCity o) {
+        return (int)(start-o.start);
+    }
 }

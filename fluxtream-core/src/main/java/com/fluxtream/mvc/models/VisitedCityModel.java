@@ -21,6 +21,7 @@ public class VisitedCityModel {
     public String description;
     public String timezone;
     int startMinute, endMinute;
+    String startTime, endTime;
     long count;
 
     public DurationModel duration;
@@ -53,6 +54,9 @@ public class VisitedCityModel {
 
         TimeZone tz = TimeZone.getTimeZone(vcity.city.geo_timezone);
         timezone = tz.getDisplayName(true, TimeZone.SHORT);
+
+        this.startTime = vcity.startTimeStorage;
+        this.endTime = vcity.endTimeStorage;
     }
 
 }

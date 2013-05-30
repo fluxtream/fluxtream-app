@@ -250,12 +250,13 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 if (thisFetchId != fetchId)
                     return;
                 Builder.handleNotifications(response);
-                if (Calendar.timeUnit==="date") {
-                    handleCityInfo(response);
-                } else {
-                    $("#mainCity").empty();
-                    $("#visitedCitiesDetails").empty();
-                }
+                //if (Calendar.timeUnit==="date") {
+                //    handleCityInfo(response);
+                //} else {
+                //    //$("#mainCity").empty();
+                //    //$("#visitedCitiesDetails").empty();
+                //}
+                handleCityInfo(response);
 			},
 			error: function(){
                 if (thisFetchId != fetchId)//we don't really care about errors on old fetches
@@ -619,19 +620,19 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
     function handleCityInfo(digestInfo) {
         $("#mainCity").empty();
-        if (digestInfo.mainCity) {
-           $("#mainCity").html(cityLabel(digestInfo.mainCity) +
+        if (digestInfo.metadata.mainCity) {
+           $("#mainCity").html(cityLabel(digestInfo.metadata.mainCity) +
                                temperaturesLabel(digestInfo))
         }
-        if (digestInfo.cities&&digestInfo.cities.length>0) {
+        if (digestInfo.metadata.cities&&digestInfo.metadata.cities.length>0) {
             $("#visitedCitiesDetails").off("click");
             $("#visitedCitiesDetails").on("click", function(){
-                showVisitedCities(digestInfo.cities);
+                showVisitedCities(digestInfo.metadata.cities, digestInfo.metadata.timeUnit);
             });
         }
     }
 
-    function showVisitedCities(cities) {
+    function showVisitedCities(cities, timeUnit) {
         var cityData = [];
         for (var i=0; i<cities.length; i++) {
             var cityInfo = {};
@@ -639,12 +640,17 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             cityInfo.source = cities[i].source;
             cityInfo.description = cities[i].description;
             cityInfo.timezone = cities[i].timezone;
-            var minutes = cities[i].startMinute%60;
-            minutes = minutes<10?"0"+minutes:""+minutes;
-            cityInfo.firstSeenHere = Math.floor(cities[i].startMinute/60)+"h"+minutes;
-            minutes = cities[i].endMinute%60;
-            minutes = minutes<10?"0"+minutes:""+minutes;
-            cityInfo.lastSeenHere = Math.floor(cities[i].endMinute/60)+"h"+minutes;
+            if (timeUnit=="DAY") {
+                var minutes = cities[i].startMinute%60;
+                minutes = minutes<10?"0"+minutes:""+minutes;
+                cityInfo.firstSeenHere = Math.floor(cities[i].startMinute/60)+"h"+minutes;
+                minutes = cities[i].endMinute%60;
+                minutes = minutes<10?"0"+minutes:""+minutes;
+                cityInfo.lastSeenHere = Math.floor(cities[i].endMinute/60)+"h"+minutes;
+            } else {
+                cityInfo.firstSeenHere = cities[i].startTime;
+                cityInfo.lastSeenHere = cities[i].endTime;
+            }
             cityData[cityData.length] = cityInfo;
         }
         App.loadMustacheTemplate("applications/calendar/template.html","visitedCities-details",function(template){
@@ -665,24 +671,24 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     }
 
     function temperaturesLabel(digestInfo) {
-        if (digestInfo.maxTempC == -10000) {
+        if (digestInfo.metadata.maxTempC == -10000) {
             return "";
         }
         else if (digestInfo.settings.temperatureUnit != "CELSIUS") {
             return ephemerisLabel(digestInfo) + "<i class=\"flx-pict-temp\">&nbsp;</i>"
                        + "<span class=\"ephemeris\" style=\"font-weight:normal;\">&nbsp;"
-                       + digestInfo.minTempF
+                       + digestInfo.metadata.minTempF
                        + " / "
-                       + digestInfo.maxTempF
+                       + digestInfo.metadata.maxTempF
                        + "&deg;F"
                 + "</span>";
         }
         else {
             return ephemerisLabel(digestInfo) + "<i class=\"flx-pict-temp\">&nbsp;</i>"
                        + "<span class=\"ephemeris\" style=\"font-weight:normal;\">&nbsp;"
-                       + digestInfo.minTempC
+                       + digestInfo.metadata.minTempC
                        + " / "
-                       + digestInfo.maxTempC
+                       + digestInfo.metadata.maxTempC
                        + "&deg;C"
                 + "</span>";
         }

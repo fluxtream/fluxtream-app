@@ -4,8 +4,10 @@ import java.util.List;
 import java.util.TimeZone;
 import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.domain.metadata.City;
-import com.fluxtream.metadata.DayMetadata;
 import com.fluxtream.domain.metadata.WeatherInfo;
+import com.fluxtream.metadata.DayMetadata;
+import com.fluxtream.metadata.MonthMetadata;
+import com.fluxtream.metadata.WeekMetadata;
 
 public interface MetadataService {
 
@@ -18,6 +20,10 @@ public interface MetadataService {
 	TimeZone getTimeZone(long guestId, String date);
 
 	DayMetadata getDayMetadata(long guestId, String date);
+
+    WeekMetadata getWeekMetadata(long guestId, int year, int week);
+
+    MonthMetadata getMonthMetadata(long guestId, int year, int month);
 
     List<DayMetadata> getAllDayMetadata(long guestId);
 

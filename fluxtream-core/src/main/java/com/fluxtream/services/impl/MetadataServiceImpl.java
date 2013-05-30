@@ -9,12 +9,12 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.TimeZone;
+import java.util.TreeSet;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import com.fluxtream.Configuration;
-import com.fluxtream.metadata.DayMetadata;
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.connectors.vos.AbstractFacetVO;
@@ -23,14 +23,19 @@ import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.metadata.City;
 import com.fluxtream.domain.metadata.VisitedCity;
 import com.fluxtream.domain.metadata.WeatherInfo;
+import com.fluxtream.metadata.DayMetadata;
+import com.fluxtream.metadata.MonthMetadata;
+import com.fluxtream.metadata.WeekMetadata;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.NotificationsService;
 import com.fluxtream.utils.JPAUtils;
+import com.fluxtream.utils.TimeUtils;
 import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
 import com.luckycatlabs.sunrisesunset.dto.Location;
 import org.apache.http.HttpException;
 import org.joda.time.DateTimeZone;
+import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -116,6 +121,58 @@ public class MetadataServiceImpl implements MetadataService {
         }
 	}
 
+    @Override
+    public WeekMetadata getWeekMetadata(final long guestId, final int year, final int week) {
+        TreeSet<String> dates = getDatesForWeek(year, week);
+        List<VisitedCity> cities = getVisitedCitiesForDates(guestId, dates);
+        if (cities.size()>0) {
+            final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities);
+            WeekMetadata info = new WeekMetadata(cities, consensusVisitedCity, year, week);
+            return info;
+        } else {
+            WeekMetadata info = new WeekMetadata(year, week);
+            return info;
+        }
+    }
+
+    private TreeSet<String> getDatesForWeek(final int year, final int week) {
+        LocalDate weekDay = TimeUtils.getBeginningOfWeek(year, week);
+        final LocalDate nextWeekStart = weekDay.plusWeeks(1);
+        TreeSet<String> dates = new TreeSet<String>();
+        while(weekDay.isBefore(nextWeekStart)) {
+            final String date = formatter.withZoneUTC().print(weekDay);
+            dates.add(date);
+            weekDay = weekDay.plusDays(1);
+        }
+        return dates;
+    }
+
+    private TreeSet<String> getDatesForMonth(final int year, final int month) {
+        LocalDate dayOfMonth = TimeUtils.getBeginningOfMonth(year, month);
+        final LocalDate nextMonthStart = dayOfMonth.plusMonths(1);
+        TreeSet<String> dates = new TreeSet<String>();
+        while(dayOfMonth.isBefore(nextMonthStart)) {
+            final String date = formatter.withZoneUTC().print(dayOfMonth);
+            dates.add(date);
+            dayOfMonth = dayOfMonth.plusDays(1);
+        }
+        return dates;
+    }
+
+    @Override
+    public MonthMetadata getMonthMetadata(final long guestId, final int year, final int month) {
+        TreeSet<String> dates = getDatesForMonth(year, month);
+        List<VisitedCity> cities = getVisitedCitiesForDates(guestId, dates);
+        if (cities.size()>0) {
+            final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities);
+            MonthMetadata info = new MonthMetadata(cities, consensusVisitedCity, year, month);
+            return info;
+        } else {
+            MonthMetadata info = new MonthMetadata(year, month);
+            return info;
+        }
+    }
+
     private List<VisitedCity> getVisitedCitiesForDate(final long guestId, final String date) {
         TypedQuery<VisitedCity> query = em.createQuery("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class)
                                                        + " facet WHERE facet.guestId=? AND facet.date=?"
@@ -123,6 +180,24 @@ public class MetadataServiceImpl implements MetadataService {
         query.setParameter(1, guestId);
         query.setParameter(2, date);
         final List<VisitedCity> cities = query.getResultList();
+        return cities;
+    }
+
+    private List<VisitedCity> getVisitedCitiesForDates(final long guestId, final TreeSet<String> dates) {
+        TypedQuery<VisitedCity> query = em.createQuery("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class)
+                                                       + " facet WHERE facet.guestId=:guestId AND facet.date IN :dates"
+                                                       + " ORDER BY facet.start", VisitedCity.class);
+        query.setParameter("guestId", guestId);
+        query.setParameter("dates", dates);
+        List<VisitedCity> cities = query.getResultList();
+        if (cities.size()==0) {
+            VisitedCity existingCity = searchCityBefore(guestId, dates.first());
+            if (existingCity==null)
+                existingCity = searchCityAfter(guestId, dates.last());
+            if (existingCity!=null) {
+                cities = getVisitedCitiesForDate(guestId, existingCity.date);
+            }
+        }
         return cities;
     }
 

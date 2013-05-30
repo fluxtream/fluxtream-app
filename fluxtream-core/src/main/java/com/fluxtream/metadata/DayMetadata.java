@@ -8,38 +8,11 @@ import com.fluxtream.TimeUnit;
 import com.fluxtream.domain.metadata.VisitedCity;
 import org.joda.time.DateMidnight;
 import org.joda.time.DateTimeConstants;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Days;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 
-public class DayMetadata {
-	
-	public float maxTempC = -10000,
-			maxTempF = -10000,
-			minTempC = 10000,
-			minTempF = 10000;
-	
-	public String timeZone = "UTC";
+public class DayMetadata extends AbstractTimeUnitMetadata {
+
     public String date;
-    public long start, end;
-    public int daysInferred = 0;
 
-    public VisitedCity consensusVisitedCity;
-    public List<VisitedCity> cities;
-
-
-    private static final DateTimeFormatter formatter = DateTimeFormat
-            .forPattern("yyyy-MM-dd");
-
-	/**
-	 * we consider only the first timezone and that which
-	 * will be set last (/latest) which we will consider
-	 * to be that of the evening
-	 */
-	public String otherTimeZone;
-
-    @Deprecated
     public DayMetadata() {}
 
     public DayMetadata(String forDate) {
@@ -50,13 +23,8 @@ public class DayMetadata {
     }
 
     public DayMetadata(List<VisitedCity> cities, VisitedCity consensusVisitedCity, String forDate) {
-        this.cities = cities;
-        this.consensusVisitedCity = consensusVisitedCity;
-        long cityTime = formatter.withZone(DateTimeZone.forID(consensusVisitedCity.city.geo_timezone)).parseDateTime(consensusVisitedCity.date).getMillis();
-        long forDateTime = formatter.withZone(DateTimeZone.forID(consensusVisitedCity.city.geo_timezone)).parseDateTime(forDate).getMillis();
-        daysInferred = Days.daysBetween(new DateMidnight(forDateTime), new DateMidnight(cityTime)).getDays();
-        timeZone = consensusVisitedCity.city.geo_timezone;
-        start = forDateTime;
+        super(cities, consensusVisitedCity);
+        long forDateTime = getTimeForDate(consensusVisitedCity, forDate);
         end = forDateTime + DateTimeConstants.MILLIS_PER_DAY;
     }
 

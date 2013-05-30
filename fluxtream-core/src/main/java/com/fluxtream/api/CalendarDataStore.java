@@ -1,6 +1,5 @@
 package com.fluxtream.api;
 
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -16,14 +15,13 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.Configuration;
-import com.fluxtream.metadata.DayMetadata;
 import com.fluxtream.TimeInterval;
+import com.fluxtream.TimeUnit;
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.auth.CoachRevokedException;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
-import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.connectors.vos.AbstractFacetVO;
 import com.fluxtream.connectors.vos.ImageVOCollection;
 import com.fluxtream.domain.AbstractFacet;
@@ -35,11 +33,14 @@ import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.domain.Notification;
 import com.fluxtream.domain.metadata.City;
 import com.fluxtream.domain.metadata.VisitedCity;
+import com.fluxtream.metadata.AbstractTimeUnitMetadata;
+import com.fluxtream.metadata.DayMetadata;
+import com.fluxtream.metadata.MonthMetadata;
+import com.fluxtream.metadata.WeekMetadata;
 import com.fluxtream.mvc.models.AddressModel;
 import com.fluxtream.mvc.models.ConnectorDigestModel;
 import com.fluxtream.mvc.models.ConnectorResponseModel;
 import com.fluxtream.mvc.models.DigestModel;
-import com.fluxtream.mvc.models.GuestModel;
 import com.fluxtream.mvc.models.NotificationModel;
 import com.fluxtream.mvc.models.SettingsModel;
 import com.fluxtream.mvc.models.SolarInfoModel;
@@ -51,16 +52,13 @@ import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.NotificationsService;
 import com.fluxtream.services.SettingsService;
-import com.fluxtream.updaters.strategies.UpdateStrategy;
 import com.fluxtream.updaters.strategies.UpdateStrategyFactory;
-import com.fluxtream.utils.TimeUtils;
 import com.fluxtream.utils.Utils;
 import com.google.gson.Gson;
 import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
 import com.luckycatlabs.sunrisesunset.dto.Location;
 import org.codehaus.plexus.util.ExceptionUtils;
 import org.joda.time.DateTimeZone;
-import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -125,33 +123,18 @@ public class CalendarDataStore {
             //TODO:proper week data retrieval implementation
             //this implementation is just a dirt hacky way to make it work and some aspects (weather info) don't work
 
-            DigestModel digest = new DigestModel();
+            DigestModel digest = new DigestModel(TimeUnit.WEEK);
 
-            digest.timeUnit = "WEEK";
             if (filter == null) {
                 filter = "";
             }
 
-            final LocalDate weekStart = TimeUtils.getBeginningOfWeek(year, week);
-            final LocalDate weekEnd = weekStart.plusWeeks(1).minusDays(1);
+            WeekMetadata weekMetadata = metadataService.getWeekMetadata(guestId, year, week);
+            setMetadata(digest, weekMetadata);
 
-            DecimalFormat datePartFormat = new DecimalFormat("00");
-            DayMetadata dayMetaStart = metadataService.getDayMetadata(guest.getId(),
-                weekStart.getYear() + "-" + datePartFormat.format(weekStart.getMonthOfYear())
-                    + "-" + datePartFormat.format(weekStart.getDayOfMonth()));
-
-            DayMetadata dayMetaEnd = metadataService.getDayMetadata(guest.getId(),
-                weekEnd.getYear() + "-" + datePartFormat.format(weekEnd.getMonthOfYear())
-                    + "-" + datePartFormat.format(weekEnd.getDayOfMonth()));
-
-            DayMetadata dayMetadata = new DayMetadata();
-            dayMetadata.timeZone = dayMetaStart.timeZone;
-            dayMetadata.start = dayMetaStart.start;
-            dayMetadata.end = dayMetaEnd.end;
-
-            digest.tbounds = getStartEndResponseBoundaries(dayMetadata.start,
-                                                           dayMetadata.end);
-            digest.timeZoneOffset = TimeZone.getTimeZone(dayMetadata.timeZone).getOffset((digest.tbounds.start + digest.tbounds.end)/2);
+            digest.tbounds = getStartEndResponseBoundaries(weekMetadata.start,
+                                                           weekMetadata.end);
+            digest.metadata.timeZoneOffset = TimeZone.getTimeZone(weekMetadata.timeZone).getOffset((digest.tbounds.start + digest.tbounds.end)/2);
 
             List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter, coachee);
             digest.selectedConnectors = connectorInfos(guestId,apiKeySelection);
@@ -161,11 +144,11 @@ public class CalendarDataStore {
             GuestSettings settings = settingsService.getSettings(AuthHelper.getGuestId());
 
             setCachedData(digest, allApiKeys, settings, apiKeySelection,
-                          dayMetadata);
+                          weekMetadata);
 
-            copyMetadata(digest, dayMetadata);
+            copyMetadata(digest, weekMetadata);
             setNotifications(digest, AuthHelper.getGuestId());
-            setCurrentAddress(digest, guestId, dayMetadata.start);
+            setCurrentAddress(digest, guestId, weekMetadata.start);
             digest.settings = new SettingsModel(settings,guest);
 
             StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getAllConnectorsWeekData")
@@ -199,7 +182,7 @@ public class CalendarDataStore {
 			IllegalAccessException, ClassNotFoundException {
         Guest guest = AuthHelper.getGuest();
         long guestId = guest.getId();
-        CoachingBuddy coachee = null;
+        CoachingBuddy coachee;
         try {
             coachee = AuthHelper.getCoachee();
         } catch (CoachRevokedException e) {
@@ -211,30 +194,19 @@ public class CalendarDataStore {
         }
         try{
             long then = System.currentTimeMillis();
-            DigestModel digest = new DigestModel();
+            DigestModel digest = new DigestModel(TimeUnit.MONTH);
 
-            digest.timeUnit = "MONTH";
+            digest.metadata.timeUnit = "MONTH";
             if (filter == null) {
                 filter = "";
             }
 
-            final LocalDate monthStart = new LocalDate(year, month, 1);
-            final LocalDate monthEnd = monthStart.plusMonths(1).minusDays(1);
+            MonthMetadata monthMetadata = metadataService.getMonthMetadata(guestId, year, month);
+            setMetadata(digest, monthMetadata);
 
-            DayMetadata dayMetaStart = metadataService.getDayMetadata(guest.getId(),
-                monthStart.getYear() + "-" + monthStart.getMonthOfYear() + "-" + monthStart.getDayOfMonth());
-
-            DayMetadata dayMetaEnd = metadataService.getDayMetadata(guest.getId(),
-                monthEnd.getYear() + "-" + monthEnd.getMonthOfYear() + "-" + monthEnd.getDayOfMonth());
-
-            DayMetadata dayMetadata = new DayMetadata();
-            dayMetadata.timeZone = dayMetaStart.timeZone;
-            dayMetadata.start = dayMetaStart.start;
-            dayMetadata.end = dayMetaEnd.end;
-
-            digest.tbounds = getStartEndResponseBoundaries(dayMetadata.start,
-                                                           dayMetadata.end);
-            digest.timeZoneOffset = TimeZone.getTimeZone(dayMetadata.timeZone).getOffset((digest.tbounds.start + digest.tbounds.end)/2);
+            digest.tbounds = getStartEndResponseBoundaries(monthMetadata.start,
+                                                           monthMetadata.end);
+            digest.metadata.timeZoneOffset = TimeZone.getTimeZone(monthMetadata.timeZone).getOffset((digest.tbounds.start + digest.tbounds.end)/2);
 
             List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter, coachee);
             digest.selectedConnectors = connectorInfos(guestId,apiKeySelection);
@@ -244,11 +216,11 @@ public class CalendarDataStore {
             GuestSettings settings = settingsService.getSettings(AuthHelper.getGuestId());
 
             setCachedData(digest, allApiKeys, settings, apiKeySelection,
-                          dayMetadata);
+                          monthMetadata);
 
-            copyMetadata(digest, dayMetadata);
+            copyMetadata(digest, monthMetadata);
             setNotifications(digest, AuthHelper.getGuestId());
-            setCurrentAddress(digest, guestId, dayMetadata.start);
+            setCurrentAddress(digest, guestId, monthMetadata.start);
             digest.settings = new SettingsModel(settings, guest);
 
             StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getAllConnectorsMonthData")
@@ -281,7 +253,7 @@ public class CalendarDataStore {
 			IllegalAccessException, ClassNotFoundException {
         Guest guest = AuthHelper.getGuest();
         long guestId = guest.getId();
-        CoachingBuddy coachee = null;
+        CoachingBuddy coachee;
         try {
             coachee = AuthHelper.getCoachee();
         } catch (CoachRevokedException e) {
@@ -293,9 +265,9 @@ public class CalendarDataStore {
         }
         try {
             long then = System.currentTimeMillis();
-            DigestModel digest = new DigestModel();
+            DigestModel digest = new DigestModel(TimeUnit.YEAR);
 
-            digest.timeUnit = "YEAR";
+            digest.metadata.timeUnit = "YEAR";
             if (filter == null) {
                 filter = "";
             }
@@ -311,7 +283,7 @@ public class CalendarDataStore {
 
             digest.tbounds = getStartEndResponseBoundaries(dayMetadata.start,
                                                            dayMetadata.end);
-            digest.timeZoneOffset = TimeZone.getTimeZone(dayMetadata.timeZone).getOffset((digest.tbounds.start + digest.tbounds.end)/2);
+            digest.metadata.timeZoneOffset = TimeZone.getTimeZone(dayMetadata.timeZone).getOffset((digest.tbounds.start + digest.tbounds.end)/2);
 
             City city = dayMetadata.consensusVisitedCity.city;
 
@@ -320,7 +292,7 @@ public class CalendarDataStore {
                 Collections.sort(digest.hourlyWeatherData);
             }*/
 
-            if (digest.mainCity!=null)
+            if (digest.metadata.mainCity!=null)
                 setSolarInfo(digest, city, guestId, dayMetadata);
 
             List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter, coachee);
@@ -370,10 +342,10 @@ public class CalendarDataStore {
         Guest guest = AuthHelper.getGuest();
         long guestId = guest.getId();
 
-        DigestModel digest = new DigestModel();
+        DigestModel digest = new DigestModel(TimeUnit.DAY);
         DayMetadata dayMetadata = metadataService.getDayMetadata(guestId, date);
         digest.tbounds = getStartEndResponseBoundaries(dayMetadata.start, dayMetadata.end);
-        digest.timeZoneOffset = TimeZone.getTimeZone(dayMetadata.timeZone).getOffset((digest.tbounds.start + digest.tbounds.end)/2);
+        digest.metadata.timeZoneOffset = TimeZone.getTimeZone(dayMetadata.timeZone).getOffset((digest.tbounds.start + digest.tbounds.end)/2);
 
         City city = dayMetadata.consensusVisitedCity.city;
         if (city != null){
@@ -412,9 +384,9 @@ public class CalendarDataStore {
         }
         try{
             long then = System.currentTimeMillis();
-            DigestModel digest = new DigestModel();
+            DigestModel digest = new DigestModel(TimeUnit.DAY);
 
-            digest.timeUnit = "DAY";
+            digest.metadata.timeUnit = "DAY";
             if (filter == null) {
                 filter = "";
             }
@@ -422,17 +394,11 @@ public class CalendarDataStore {
             DayMetadata dayMetadata = metadataService.getDayMetadata(guestId, date);
             digest.tbounds = getStartEndResponseBoundaries(dayMetadata.start,
                     dayMetadata.end);
-            digest.timeZoneOffset = TimeZone.getTimeZone(dayMetadata.timeZone).getOffset((digest.tbounds.start + digest.tbounds.end)/2);
+            digest.metadata.timeZoneOffset = TimeZone.getTimeZone(dayMetadata.timeZone).getOffset((digest.tbounds.start + digest.tbounds.end)/2);
 
-            digest.mainCity = new VisitedCityModel(dayMetadata.consensusVisitedCity, env);
-            List<VisitedCityModel> cityModels = new ArrayList<VisitedCityModel>();
-            for (VisitedCity city : dayMetadata.cities) {
-                VisitedCityModel cityModel = new VisitedCityModel(city, env);
-                cityModels.add(cityModel);
-            }
-            digest.cities = cityModels;
+            setMetadata(digest, dayMetadata);
 
-            if (digest.mainCity!=null)
+            if (digest.metadata.mainCity!=null)
                 setSolarInfo(digest, dayMetadata.consensusVisitedCity.city, guestId, dayMetadata);
 
             List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter, coachee);
@@ -471,12 +437,14 @@ public class CalendarDataStore {
         }
 	}
 
-    List<GuestModel> toGuestModels(List<Guest> guests) {
-        List<GuestModel> models = new ArrayList<GuestModel>();
-        for (Guest guest : guests) {
-            models.add(new GuestModel(guest));
+    private void setMetadata(final DigestModel digest, final AbstractTimeUnitMetadata dayMetadata) {
+        digest.metadata.mainCity = new VisitedCityModel(dayMetadata.consensusVisitedCity, env);
+        List<VisitedCityModel> cityModels = new ArrayList<VisitedCityModel>();
+        for (VisitedCity city : dayMetadata.cities) {
+            VisitedCityModel cityModel = new VisitedCityModel(city, env);
+            cityModels.add(cityModel);
         }
-        return models;
+        digest.metadata.cities = cityModels;
     }
 
 	private List<ApiKey> removeConnectorsWithoutFacets(List<ApiKey> allApiKeys, CoachingBuddy coachee) {
@@ -557,7 +525,7 @@ public class CalendarDataStore {
 	@SuppressWarnings("rawtypes")
 	private void setCachedData(DigestModel digest, List<ApiKey> userKeys,
 			GuestSettings settings, List<ApiKey> apiKeySelection,
-			DayMetadata dayMetadata) throws InstantiationException,
+			AbstractTimeUnitMetadata dayMetadata) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
 		for (ApiKey apiKey : userKeys) {
 			Connector connector = apiKey.getConnector();
@@ -576,14 +544,14 @@ public class CalendarDataStore {
                     else
                         facetCollection = getFacetVos(dayMetadata, settings, connector, objectType);
 
-                    setFilterInfo(dayMetadata, digest, apiKeySelection, apiKey,
+                    setFilterInfo(digest, apiKeySelection, apiKey,
                                   connector, objectType, facetCollection);
                 }
             }
             else {
                 Collection<AbstractFacetVO<AbstractFacet>> facetCollection = getFacetVos(dayMetadata, settings,
                                                                                          connector, null);
-                setFilterInfo(dayMetadata, digest, apiKeySelection, apiKey,
+                setFilterInfo(digest, apiKeySelection, apiKey,
                               connector, null, facetCollection);
             }
 		}
@@ -604,8 +572,7 @@ public class CalendarDataStore {
     }
 
     @SuppressWarnings("rawtypes")
-	private void setFilterInfo(DayMetadata dayMetadata,
-			DigestModel digest, List<ApiKey> apiKeySelection, ApiKey apiKey,
+	private void setFilterInfo(DigestModel digest, List<ApiKey> apiKeySelection, ApiKey apiKey,
 			Connector connector, ObjectType objectType,
 			Collection<AbstractFacetVO<AbstractFacet>> facetCollection) {
 		digest.hasData(connector.getName(), facetCollection.size() > 0);
@@ -661,7 +628,7 @@ public class CalendarDataStore {
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
-	private Collection<AbstractFacetVO<AbstractFacet>> getFacetVos(DayMetadata dayMetadata,
+	private Collection<AbstractFacetVO<AbstractFacet>> getFacetVos(AbstractTimeUnitMetadata dayMetadata,
                                                                    GuestSettings settings, Connector connector,
                                                                    ObjectType objectType)
 			throws InstantiationException, IllegalAccessException,
@@ -669,55 +636,8 @@ public class CalendarDataStore {
         List<AbstractFacet> objectTypeFacets = calendarDataHelper.getFacets(
 				connector,
 				objectType,
-				dayMetadata,
-				getLookbackDays(connector.getName(), objectType == null ? null
-                                                                        : objectType.getName()));
+				dayMetadata);
         return getAbstractFacetVOs(settings, objectTypeFacets, dayMetadata.getTimeInterval());
-	}
-
-    private boolean needsUpdate(ApiKey apiKey, DayMetadata dayMetadata) {
-		TimeInterval interval = dayMetadata.getTimeInterval();
-		UpdateStrategy updateStrategy = updateStrategyFactory
-				.getUpdateStrategy(apiKey.getConnector());
-        if (updateStrategy == null) {
-            return false;
-        }
-		List<UpdateInfo> updateInfos = getUpdateInfos(updateStrategy, apiKey,
-				interval);
-		for (UpdateInfo info : updateInfos) {
-            if (info.getUpdateType() != UpdateInfo.UpdateType.NOOP_UPDATE) {
-                return true;
-            }
-		}
-		return false;
-	}
-
-	private List<UpdateInfo> getUpdateInfos(UpdateStrategy updateStrategy,
-			ApiKey apiKey, TimeInterval interval) {
-		List<UpdateInfo> updateInfos = new ArrayList<UpdateInfo>();
-		int[] objectTypeValues = apiKey.getConnector().objectTypeValues();
-		if (objectTypeValues != null && objectTypeValues.length > 0) {
-			for (int i = 0; i < objectTypeValues.length; i++) {
-				UpdateInfo updateInfo = updateStrategy.getUpdateInfo(apiKey,
-						objectTypeValues[i], interval);
-				updateInfos.add(updateInfo);
-			}
-		} else {
-			UpdateInfo updateInfo = updateStrategy.getUpdateInfo(apiKey, -1,
-					interval);
-			updateInfos.add(updateInfo);
-		}
-		return updateInfos;
-	}
-
-	private int getLookbackDays(String connectorName, String objectTypeName) {
-        if (objectTypeName == null) {
-            return 0;
-        }
-        if (connectorName.equals("withings") && objectTypeName.equals("weight")) {
-            return 15;
-        }
-		return 0;
 	}
 
 	private void setCurrentAddress(DigestModel digest, long guestId, long start) {
@@ -741,11 +661,11 @@ public class CalendarDataStore {
 		}
 	}
 
-	private void copyMetadata(DigestModel digest, DayMetadata md) {
-		digest.minTempC = md.minTempC;
-		digest.minTempF = md.minTempF;
-		digest.maxTempC = md.maxTempC;
-		digest.maxTempF = md.maxTempF;
+	private void copyMetadata(DigestModel digest, AbstractTimeUnitMetadata md) {
+		digest.metadata.minTempC = md.minTempC;
+		digest.metadata.minTempF = md.minTempF;
+		digest.metadata.maxTempC = md.maxTempC;
+		digest.metadata.maxTempF = md.maxTempF;
     }
 
     private List<ConnectorDigestModel> connectorInfos(long guestId, List<ApiKey> apis){

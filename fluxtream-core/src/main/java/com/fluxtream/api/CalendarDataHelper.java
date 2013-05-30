@@ -12,6 +12,7 @@ import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.connectors.updaters.UpdateResult;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
+import com.fluxtream.metadata.AbstractTimeUnitMetadata;
 import com.fluxtream.metadata.DayMetadata;
 import com.fluxtream.mvc.models.ConnectorResponseModel;
 import com.fluxtream.mvc.models.TimeBoundariesModel;
@@ -78,8 +79,7 @@ public class CalendarDataHelper {
     }
 
 	public List<AbstractFacet> getFacets(Connector connector,
-			ObjectType objectType, DayMetadata dayMetadata,
-			int lookbackDays) {
+			ObjectType objectType, AbstractTimeUnitMetadata dayMetadata) {
 		List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
 		try {
             if (AuthHelper.isViewingGranted(connector.getName(), coachingService))
