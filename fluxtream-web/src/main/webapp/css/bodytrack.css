@@ -137,6 +137,7 @@
     margin: 0;
     padding: 0;
     border: 1px solid #D1D2D3;
+    background-color: white;
 }
 
 ._timeline_channel_hover {
