@@ -122,6 +122,15 @@ public class BodymediaController {
     public void replaceToken(UpdateInfo updateInfo) throws OAuthExpectationFailedException, OAuthMessageSignerException,
                                                            OAuthCommunicationException, OAuthNotAuthorizedException {
         String apiKey = guestService.getApiKeyAttribute(updateInfo.apiKey, "api_key");
+
+        // The api_key attribute will be the same as the env.get("bodymediaConsumerKey"), so
+        // in the case where apiKey is null default to the value from properties
+        if(apiKey==null) {
+            apiKey = env.get("bodymediaConsumerKey");
+        }
+
+        // TODO: If apiKey is still null, we should report to the user since it means this instance isn't
+        // properly configured with OAuth host keys for BodyMedia
         OAuthConsumer consumer = new DefaultOAuthConsumer(
                 apiKey,
                 env.get("bodymediaConsumerSecret"));
