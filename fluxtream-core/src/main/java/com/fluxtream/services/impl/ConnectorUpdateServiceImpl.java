@@ -546,10 +546,11 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
                              apiKey.getId());
         }
         else {
-            // Here we want to cause the next connector update to do a full history updates
-            // as well as get rid of the scheduled items for this apiKey.
-            // That translates into deleting all items other than the ones that are
-            // currently in progress.
+            // Here we want to delete all update worker tasks relating to this
+            // apiKey other than the ones that are currently in progress.
+            // This happens asynchronously after connector deletion and
+            // is executed by ApiDataCleanupWorker, or while servicing a request to
+            // reset a connector.
             JPAUtils.execute(em, "updateWorkerTasks.delete.byApi", apiKey.getId(),
                              Status.IN_PROGRESS);
         }
