@@ -6,8 +6,10 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.TimeZone;
+import java.util.TreeSet;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -440,7 +442,10 @@ public class CalendarDataStore {
     private void setMetadata(final DigestModel digest, final AbstractTimeUnitMetadata dayMetadata) {
         digest.metadata.mainCity = new VisitedCityModel(dayMetadata.consensusVisitedCity, env);
         List<VisitedCityModel> cityModels = new ArrayList<VisitedCityModel>();
-        for (VisitedCity city : dayMetadata.cities) {
+        TreeSet<VisitedCity> orderedCities = new TreeSet<VisitedCity>(dayMetadata.cities);
+        final Iterator<VisitedCity> cityIterator = orderedCities.iterator();
+        while (cityIterator.hasNext()) {
+            VisitedCity city = cityIterator.next();
             VisitedCityModel cityModel = new VisitedCityModel(city, env);
             cityModels.add(cityModel);
         }

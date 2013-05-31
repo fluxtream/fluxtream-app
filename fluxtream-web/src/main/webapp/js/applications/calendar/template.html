@@ -42,7 +42,7 @@
 
 <template id="visitedCities-details">
 
-    <div id="modal" class="modal hide fade" style="width: 650px">
+    <div id="modal" class="modal hide fade" style="width: 680px">
 
         <div class="modal-header">
             <a class="close" data-dismiss="modal">&times;</a>
@@ -52,6 +52,7 @@
         <div class="modal-body">
             <table class="table">
                 <tr>
+                    <th>Main</th>
                     <th>City</th>
                     <th>Time Zone</th>
                     <th>From</th>
@@ -61,6 +62,7 @@
                 </tr>
             {{#cities}}
                 <tr>
+                    <td><input type="checkbox"></td>
                     <td>{{description}}</td>
                     <td>{{timezone}}</td>
                     <td>{{firstSeenHere}}</td>

@@ -2,10 +2,14 @@ package com.fluxtream.mvc.models;
 
 import java.util.Calendar;
 import java.util.TimeZone;
+import javax.xml.bind.DatatypeConverter;
 import com.fluxtream.Configuration;
 import com.fluxtream.domain.metadata.City;
 import com.fluxtream.domain.metadata.VisitedCity;
 import org.apache.commons.lang.WordUtils;
+import org.codehaus.plexus.util.StringUtils;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 /**
  * User: candide
@@ -23,6 +27,8 @@ public class VisitedCityModel {
     int startMinute, endMinute;
     String startTime, endTime;
     long count;
+
+    static final DateTimeFormatter fmt = DateTimeFormat.forPattern("MMM dd, HH:mm' 'a");
 
     public DurationModel duration;
 
@@ -55,8 +61,10 @@ public class VisitedCityModel {
         TimeZone tz = TimeZone.getTimeZone(vcity.city.geo_timezone);
         timezone = tz.getDisplayName(true, TimeZone.SHORT);
 
-        this.startTime = vcity.startTimeStorage;
-        this.endTime = vcity.endTimeStorage;
+        Calendar calendar = DatatypeConverter.parseDateTime(vcity.startTimeStorage);
+        this.startTime = StringUtils.capitalise(fmt.print(calendar.getTimeInMillis()).toLowerCase());
+        calendar = DatatypeConverter.parseDateTime(vcity.endTimeStorage);
+        this.endTime = StringUtils.capitalise(fmt.print(calendar.getTimeInMillis()).toLowerCase());
     }
 
 }
