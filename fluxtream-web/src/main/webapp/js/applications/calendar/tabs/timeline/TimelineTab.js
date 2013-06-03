@@ -89,6 +89,7 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
                     state = onAxisChanged(state);
                 });
             });
+            grapher.setTimeCursorPosition((Calendar.timeRange.start + Calendar.timeRange.end) / 2000)
         }]});
     }
 

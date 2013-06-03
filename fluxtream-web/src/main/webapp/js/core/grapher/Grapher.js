@@ -2848,6 +2848,15 @@ define(["core/grapher/BTCore"], function(BTCore) {
         });
     }
 
+    Grapher.prototype.setTimeCursorPosition = function(position){
+        this.dateAxis.setCursorPosition(position);
+        repaintAllPlots(this);
+    }
+
+    Grapher.prototype.getTimeCursorPosition = function(){
+        return this.dateAxis.getCursorPosition();
+    }
+
     function repaintAllPlots(grapher) {
         for (var plotKey in grapher.plotsMap) {
             var plot = grapher.plotsMap[plotKey];
