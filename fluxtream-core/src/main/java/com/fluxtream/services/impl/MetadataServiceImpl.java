@@ -15,6 +15,7 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import com.fluxtream.Configuration;
+import com.fluxtream.TimeUnit;
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.connectors.vos.AbstractFacetVO;
@@ -34,6 +35,8 @@ import com.fluxtream.utils.TimeUtils;
 import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
 import com.luckycatlabs.sunrisesunset.dto.Location;
 import org.apache.http.HttpException;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeConstants;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
@@ -98,7 +101,96 @@ public class MetadataServiceImpl implements MetadataService {
         logger.warn("component=metadata action=setTimeZone message=attempt to set timezone");
 	}
 
-	@Override
+    @Override
+    public void setDayMainCity(final long guestId, final float latitude, final float longitude, final String date) {
+        final City closestCity = getClosestCity(latitude, longitude);
+        setDayMainCity(guestId, date, closestCity);
+    }
+
+    @Override
+    public void setDayMainCity(final long guestId, final long visitedCityId, final String date) {
+        final VisitedCity visitedCity = em.find(VisitedCity.class, visitedCityId);
+        setDayMainCity(guestId, date, visitedCity.city);
+    }
+
+    private void setDayMainCity(final long guestId, final String date, final City closestCity) {
+        clearMainCity(guestId, date);
+        final DateTime dateTime = formatter.withZone(DateTimeZone.forID(closestCity.geo_timezone)).parseDateTime(date);
+        setMainCity(guestId, closestCity, dateTime.getMillis(), dateTime.getMillis()+ DateTimeConstants.MILLIS_PER_DAY, TimeUnit.DAY, date);
+    }
+
+    @Override
+    public void setWeekMainCity(final long guestId, final float latitude, final float longitude, final int year, final int week) {
+        final City closestCity = getClosestCity(latitude, longitude);
+        setWeekMainCity(guestId, year, week, closestCity);
+    }
+
+    @Override
+    public void setWeekMainCity(final long guestId, final long visitedCityId, final int year, final int week) {
+        final VisitedCity visitedCity = em.find(VisitedCity.class, visitedCityId);
+        setWeekMainCity(guestId, year, week, visitedCity.city);
+    }
+
+    private void setWeekMainCity(final long guestId, final int year, final int week, final City closestCity) {
+        final String timePeriod = String.format("week/%s/%s", year, week);
+        clearMainCity(guestId, timePeriod);
+        long start = WeekMetadata.getStartOfWeek(closestCity.geo_timezone, year, week);
+        long end = WeekMetadata.getEndOfWeek(closestCity.geo_timezone, year, week);
+        setMainCity(guestId, closestCity, start, end, TimeUnit.WEEK, timePeriod);
+    }
+
+    @Override
+    public void setMonthMainCity(final long guestId, final float latitude, final float longitude, final int year, final int month) {
+        final City closestCity = getClosestCity(latitude, longitude);
+        setMonthMainCity(guestId, year, month, closestCity);
+    }
+
+    @Override
+    public void setMonthMainCity(final long guestId, final long visitedCityId, final int year, final int month) {
+        final VisitedCity visitedCity = em.find(VisitedCity.class, visitedCityId);
+        setMonthMainCity(guestId, year, month, visitedCity.city);
+    }
+
+    private void setMonthMainCity(final long guestId, final int year, final int month, final City closestCity) {
+        final String timePeriod = String.format("month/%s/%s", year, month);
+        clearMainCity(guestId, timePeriod);
+        long start = MonthMetadata.getStartOfMonth(closestCity.geo_timezone, year, month);
+        long end = MonthMetadata.getEndOfMonth(closestCity.geo_timezone, year, month);
+        setMainCity(guestId, closestCity, start, end, TimeUnit.MONTH, timePeriod);
+    }
+
+    @Transactional(readOnly=false)
+    private void setMainCity(final long guestId, final City city,
+                             final long start, final long end,
+                             TimeUnit timeUnit, final String timePeriod) {
+        VisitedCity visitedCity = new VisitedCity();
+        visitedCity.guestId = guestId;
+        visitedCity.date = timePeriod;
+        visitedCity.locationSource = LocationFacet.Source.USER;
+        visitedCity.city = city;
+        visitedCity.start = start;
+        visitedCity.end = end;
+        visitedCity.mainCityBitPattern = timeUnit.bitPattern();
+        visitedCity.startTimeStorage = AbstractLocalTimeFacet.timeStorageFormat.withZone(DateTimeZone.forID(city.geo_timezone)).print(start);
+        visitedCity.endTimeStorage = AbstractLocalTimeFacet.timeStorageFormat.withZone(DateTimeZone.forID(city.geo_timezone)).print(end);
+        em.persist(visitedCity);
+    }
+
+    @Transactional(readOnly=false)
+    private void clearMainCity(final long guestId, final String date) {
+        TypedQuery<VisitedCity> query = em.createQuery("SELECT facet FROM " +
+                                                       JPAUtils.getEntityName(VisitedCity.class) +
+                                                       " facet WHERE facet.guestId=? AND facet.locationSource=? AND facet.date=?" +
+                                                       " ORDER BY facet.start", VisitedCity.class);
+        query.setParameter(1, guestId);
+        query.setParameter(2, LocationFacet.Source.USER);
+        query.setParameter(3, date);
+        final List<VisitedCity> cities = query.getResultList();
+        for (VisitedCity city : cities)
+            em.remove(city);
+    }
+
+    @Override
 	public DayMetadata getDayMetadata(long guestId, String date) {
         // get visited cities for a specific date . If we don't have any data for that date,
         // retrieve cities for the first date for which we do have data
@@ -112,7 +204,7 @@ public class MetadataServiceImpl implements MetadataService {
             }
         }
         if (cities.size()>0) {
-            final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities);
+            final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities, TimeUnit.DAY);
             DayMetadata info = new DayMetadata(cities, consensusVisitedCity, date);
             return info;
         } else {
@@ -126,11 +218,25 @@ public class MetadataServiceImpl implements MetadataService {
         TreeSet<String> dates = getDatesForWeek(year, week);
         List<VisitedCity> cities = getVisitedCitiesForDates(guestId, dates);
         if (cities.size()>0) {
-            final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities);
+            final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities, TimeUnit.WEEK);
             WeekMetadata info = new WeekMetadata(cities, consensusVisitedCity, year, week);
             return info;
         } else {
             WeekMetadata info = new WeekMetadata(year, week);
+            return info;
+        }
+    }
+
+    @Override
+    public MonthMetadata getMonthMetadata(final long guestId, final int year, final int month) {
+        TreeSet<String> dates = getDatesForMonth(year, month);
+        List<VisitedCity> cities = getVisitedCitiesForDates(guestId, dates);
+        if (cities.size()>0) {
+            final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities, TimeUnit.MONTH);
+            MonthMetadata info = new MonthMetadata(cities, consensusVisitedCity, year, month);
+            return info;
+        } else {
+            MonthMetadata info = new MonthMetadata(year, month);
             return info;
         }
     }
@@ -159,24 +265,8 @@ public class MetadataServiceImpl implements MetadataService {
         return dates;
     }
 
-    @Override
-    public MonthMetadata getMonthMetadata(final long guestId, final int year, final int month) {
-        TreeSet<String> dates = getDatesForMonth(year, month);
-        List<VisitedCity> cities = getVisitedCitiesForDates(guestId, dates);
-        if (cities.size()>0) {
-            final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities);
-            MonthMetadata info = new MonthMetadata(cities, consensusVisitedCity, year, month);
-            return info;
-        } else {
-            MonthMetadata info = new MonthMetadata(year, month);
-            return info;
-        }
-    }
-
     private List<VisitedCity> getVisitedCitiesForDate(final long guestId, final String date) {
-        TypedQuery<VisitedCity> query = em.createQuery("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class)
-                                                       + " facet WHERE facet.guestId=? AND facet.date=?"
-                                                       + " ORDER BY facet.start", VisitedCity.class);
+        TypedQuery<VisitedCity> query = em.createQuery("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class) + " facet WHERE facet.guestId=? AND facet.date=?" + " ORDER BY facet.start", VisitedCity.class);
         query.setParameter(1, guestId);
         query.setParameter(2, date);
         final List<VisitedCity> cities = query.getResultList();
@@ -202,11 +292,18 @@ public class MetadataServiceImpl implements MetadataService {
     }
 
     /**
-     * Get only the consensus city: for now, just the city where the user has spent the most time in
+     * Get only the consensus city. Return user's preference if it has been set, otherwise return
+     * the city where the user has spent the most time.
      * @param cities
      * @return
      */
-    private VisitedCity getConsensusVisitedCity(final List<VisitedCity> cities) {
+    private VisitedCity getConsensusVisitedCity(final List<VisitedCity> cities, TimeUnit timeUnit) {
+
+        for (VisitedCity city : cities)
+            if (city.locationSource== LocationFacet.Source.USER &&
+                (city.mainCityBitPattern&timeUnit.bitPattern())>0)
+                return city;
+
         Collections.sort(cities, new Comparator<VisitedCity>() {
             @Override
             public int compare(final VisitedCity a, final VisitedCity b) {
@@ -673,6 +770,9 @@ public class MetadataServiceImpl implements MetadataService {
     }
 
     public static void main(final String[] args) {
+        final DateTime dateTime = formatter.withZone(DateTimeZone.forID("Europe/Brussels")).parseDateTime("2013-06-03");
+        System.out.println(dateTime.getMillis());
+        System.out.println(dateTime.getMillis()+DateTimeConstants.MILLIS_PER_DAY);
         Point2D.Double p1 = new Point2D.Double(0,0);
         Point2D.Double p2 = new Point2D.Double(0,0.0089);
         System.out.println(getMeterDistance(p1, p2));

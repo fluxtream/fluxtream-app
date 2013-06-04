@@ -26,11 +26,23 @@ public class WeekMetadata extends AbstractTimeUnitMetadata {
 
     public WeekMetadata(final List<VisitedCity> cities, final VisitedCity consensusVisitedCity, final int year, final int week) {
         super(cities, consensusVisitedCity);
+        this.start = getStartOfWeek(consensusVisitedCity.city.geo_timezone, year, week);
+        this.end = getEndOfWeek(consensusVisitedCity.city.geo_timezone, year, week);
+    }
+
+    public static long getEndOfWeek(final String timeZone, final int year, final int week) {
         final LocalDate beginningOfWeek = TimeUtils.getBeginningOfWeek(year, week);
-        final DateTimeZone consensusTimezone = DateTimeZone.forID(consensusVisitedCity.city.geo_timezone);
-        this.start = beginningOfWeek.toDateTimeAtStartOfDay(consensusTimezone).getMillis();
         final LocalDate endOfWeek = beginningOfWeek.plusDays(7);
-        this.end = endOfWeek.toDateTimeAtStartOfDay(consensusTimezone).getMillis() + DateTimeConstants.MILLIS_PER_DAY;
+        final DateTimeZone consensusTimezone = DateTimeZone.forID(timeZone);
+        long t = endOfWeek.toDateTimeAtStartOfDay(consensusTimezone).getMillis() + DateTimeConstants.MILLIS_PER_DAY;
+        return t;
+    }
+
+    public static long getStartOfWeek(final String timeZone, final int year, final int week) {
+        final LocalDate beginningOfWeek = TimeUtils.getBeginningOfWeek(year, week);
+        final DateTimeZone consensusTimezone = DateTimeZone.forID(timeZone);
+        long t = beginningOfWeek.toDateTimeAtStartOfDay(consensusTimezone).getMillis();
+        return t;
     }
 
     public TimeInterval getTimeInterval() {

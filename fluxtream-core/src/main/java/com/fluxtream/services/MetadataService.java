@@ -13,6 +13,18 @@ public interface MetadataService {
 
 	void setTimeZone(long guestId, String date, String timeZone);
 
+    void setDayMainCity(long guestId, float latitude, float longitude, String date);
+
+    void setWeekMainCity(long guestId, float latitude, float longitude, int year, int week);
+
+    void setMonthMainCity(long guestId, float latitude, float longitude, int year, int month);
+
+    void setDayMainCity(long guestId, long visitedCityId, String date);
+
+    void setWeekMainCity(long guestId, long visitedCityId, int year, int week);
+
+    void setMonthMainCity(long guestId, long visitedCityId, int year, int month);
+
 	TimeZone getCurrentTimeZone(long guestId);
 
 	TimeZone getTimeZone(long guestId, long time);

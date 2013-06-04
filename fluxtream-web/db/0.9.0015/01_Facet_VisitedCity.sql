@@ -19,6 +19,7 @@ CREATE TABLE `Facet_VisitedCity` (
   `sunrise` int(11) NOT NULL,
   `sunset` int(11) NOT NULL,
   `city_geo_id` bigint(20) NOT NULL,
+  `mainCityBitPattern` tinyint NULL,
   PRIMARY KEY (`id`),
   KEY `isEmpty_index` (`isEmpty`),
   KEY `end_index` (`end`),

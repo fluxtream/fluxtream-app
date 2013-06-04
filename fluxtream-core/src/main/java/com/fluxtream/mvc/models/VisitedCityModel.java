@@ -24,6 +24,7 @@ public class VisitedCityModel {
     public String country;
     public String description;
     public String timezone;
+    public long visitedCityId;
     int startMinute, endMinute;
     String startTime, endTime;
     long count;
@@ -33,6 +34,7 @@ public class VisitedCityModel {
     public DurationModel duration;
 
     public VisitedCityModel(VisitedCity vcity,  Configuration env) {
+        this.visitedCityId = vcity.getId();
         source = vcity.locationSource.toString();
         City city = vcity.city;
         name = city.geo_name;
@@ -59,12 +61,13 @@ public class VisitedCityModel {
         this.count = vcity.count;
 
         TimeZone tz = TimeZone.getTimeZone(vcity.city.geo_timezone);
-        timezone = tz.getDisplayName(true, TimeZone.SHORT);
+        timezone = tz.getDisplayName(true, TimeZone.LONG);
 
         Calendar calendar = DatatypeConverter.parseDateTime(vcity.startTimeStorage);
         this.startTime = StringUtils.capitalise(fmt.print(calendar.getTimeInMillis()).toLowerCase());
         calendar = DatatypeConverter.parseDateTime(vcity.endTimeStorage);
         this.endTime = StringUtils.capitalise(fmt.print(calendar.getTimeInMillis()).toLowerCase());
+
     }
 
 }

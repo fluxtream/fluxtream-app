@@ -1739,3 +1739,13 @@ table .remove i {
 #coachesDropdown {
   float: left;
 }
+a.disabled {
+  pointer-events: none;
+  cursor: default;
+  color: #808080;
+}
+a.enabled {
+  pointer-events: auto;
+  cursor: hand;
+  color: #0088cc;
+}

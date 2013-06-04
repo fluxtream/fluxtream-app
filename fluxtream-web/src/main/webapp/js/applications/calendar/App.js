@@ -5,6 +5,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 	var Calendar = new Application("calendar", "Candide Kemmler", "icon-calendar");
 
     var needDigestReload = false;
+    var currentCityPool;
 
     Calendar.currentTabName = Builder.tabs["date"][0];
     Calendar.currentTab = null;
@@ -627,15 +628,16 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         if (digestInfo.metadata.cities&&digestInfo.metadata.cities.length>0) {
             $("#visitedCitiesDetails").off("click");
             $("#visitedCitiesDetails").on("click", function(){
-                showVisitedCities(digestInfo.metadata.cities, digestInfo.metadata.timeUnit);
+                showVisitedCities(digestInfo.metadata.cities, digestInfo.metadata.timeUnit, digestInfo.metadata.mainCity);
             });
         }
     }
 
-    function showVisitedCities(cities, timeUnit) {
+    function showVisitedCities(cities, timeUnit, mainCity) {
         var cityData = [];
         for (var i=0; i<cities.length; i++) {
             var cityInfo = {};
+            cityInfo.visitedCityId = cities[i].visitedCityId;
             cityInfo.count = cities[i].count;
             cityInfo.source = cities[i].source;
             cityInfo.description = cities[i].description;
@@ -653,10 +655,118 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             }
             cityData[cityData.length] = cityInfo;
         }
-        App.loadMustacheTemplate("applications/calendar/template.html","visitedCities-details",function(template){
-            var html = template.render({cities:cityData});
-            App.makeModal(html);
+        var mainCityMessage;
+        if (mainCity.source!="USER")
+            mainCityMessage="We detected that you were in <b>" + cityLabel(mainCity) + "</b>";
+        else
+            mainCityMessage="You have indicated that you were in <b>" + cityLabel(mainCity) + "</b>";
+        switch (timeUnit) {
+            case "DAY":
+                mainCityMessage += " today.<br>";
+                break;
+            case "WEEK":
+                mainCityMessage += " this week.<br>";
+                break;
+            case "MONTH":
+                mainCityMessage += " this month.<br>";
+                break;
+        }
+        var changeMainCityMessage;
+        if (cities.length>0)
+            changeMainCityMessage="You can choose an alternate city in the list below or enter a city name manually here:<br><br>";
+
+        else
+            changeMainCityMessage="You can change it by entering a city name below.<br><br>";
+
+        App.loadMustacheTemplate("applications/calendar/facetTemplates.html","visitedCities-details",function(template){
+
+            bindCitySearch(template.render(
+                {
+                    cities:cityData,
+                    mainCityMessage:mainCityMessage,
+                    changeMainCityMessage:changeMainCityMessage
+                }));
+
         });
+    }
+
+    function bindCitySearch(html) {
+        App.makeModal(html);
+
+        $("#mainCitySearch").off("click");
+        $("#mainCitySearch").on("click", function(){
+            var cityName = $("#mainCityInput").val();
+            $("#mainCitySelect").attr("disabled","disabled");
+            $("#mainCitySearch").attr("disabled","disabled");
+            $("#mainCityInput").attr("disabled","disabled");
+            App.geocoder.geocode({"address":cityName},function(results,status){
+                var options = $("#mainCitySelect").children();
+                for (var i = 1; i < options.length; i++)
+                    $(options[i]).remove();
+                if (status == google.maps.GeocoderStatus.OK) {
+                    if (results.length>0) {
+                        $("#selectMainCity").removeClass("disabled");
+                        $("#selectMainCity").addClass("enabled");
+                        $("#selectMainCity").click(function(){
+                            selectMainCity();
+                        });
+                    }
+                    for (var i = 0; i < results.length; i++){
+                        $("#mainCitySelect").append('<option>' + results[i].formatted_address + '</option>')
+                    }
+                    currentCityPool = results;
+                    $("#mainCitySelect")[0].selectedIndex = 1;
+                }
+                else{
+                    $("#mainCitySelect")[0].selectedIndex = 0;
+                    $("#selectMainCity").removeClass("enabled");
+                    $("#selectMainCity").addClass("disabled");
+                    currentCityPool = [];
+                }
+                $("#mainCitySelect").removeAttr("disabled");
+                $("#mainCitySearch").removeAttr("disabled");
+                $("#mainCityInput").removeAttr("disabled");
+            });
+        });
+        $("#mainCityInput").off("keyup");
+        $("#mainCityInput").on("keyup", function(event){
+            if (event.keyCode == 13)
+                $("#mainCitySearch").click();
+            else{
+                var options = $("#mainCitySelect").children();
+                for (var i = 1; i < options.length; i++)
+                    $(options[i]).remove();
+                currentCityPool = [];
+            }
+        })
+        $(".selectVisitedCity").click(function(evt){selectVisitedCity(evt);});
+    }
+
+    function selectVisitedCity(evt) {
+        var visitedCityId = evt.target.id.substring("visitedCity-".length);
+        console.log("user selected visitedCity " + visitedCityId);
+    }
+
+    function selectMainCity() {
+        var selectedIndex = $("#mainCitySelect")[0].selectedIndex-1;
+        var selectedCity = currentCityPool[selectedIndex];
+        if(typeof(selectedCity.geometry)!="undefined"&&
+           typeof(selectedCity.geometry.location)!="undefined"&&
+           typeof(selectedCity.geometry.location.jb)!="undefined") {
+            var latitude = selectedCity.geometry.location.jb;
+            var longitude = selectedCity.geometry.location.kb;
+            console.log("coords: " + latitude + ", " + longitude);
+        } else {
+            console.log("no city");
+        }
+    }
+
+    function cityLabel(cityInfo) {
+       var s = "";
+       s += cityInfo.name;
+       if (cityInfo.country=="US"||cityInfo.country=="USA") s += ", " + cityInfo.state;
+       s += ", " + cityInfo.country + " (" + cityInfo.timezone + ")";
+       return s;
     }
 
     function ephemerisLabel(digestInfo) {
@@ -692,14 +802,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                        + "&deg;C"
                 + "</span>";
         }
-    }
-
-    function cityLabel(cityInfo) {
-        var s = "";
-        s += cityInfo.name;
-        if (cityInfo.country=="US"||cityInfo.country=="USA") s += ", " + cityInfo.state;
-        s += ", " + cityInfo.country + " (" + cityInfo.timezone + ")";
-        return s;
     }
 
     Calendar.toState = function(tabName, timeUnit, date) {

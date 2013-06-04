@@ -26,11 +26,22 @@ public class MonthMetadata extends AbstractTimeUnitMetadata {
 
     public MonthMetadata(final List<VisitedCity> cities, final VisitedCity consensusVisitedCity, final int year, final int month) {
         super(cities, consensusVisitedCity);
-        final LocalDate firstDayOfMonth = TimeUtils.getBeginningOfMonth(year, month);
-        final DateTimeZone consensusTimezone = DateTimeZone.forID(consensusVisitedCity.city.geo_timezone);
-        this.start = firstDayOfMonth.toDateTimeAtStartOfDay(consensusTimezone).getMillis();
+        this.start = getStartOfMonth(consensusVisitedCity.city.geo_timezone, year, month);
+        this.end = getEndOfMonth(consensusVisitedCity.city.geo_timezone, year, month);
+    }
+
+    public static long getEndOfMonth(String timeZone, final int year, final int month) {
+        final DateTimeZone consensusTimezone = DateTimeZone.forID(timeZone);
         final LocalDate lastDayOfMonth = TimeUtils.getEndOfMonth(year, month);
-        this.end = lastDayOfMonth.toDateTimeAtStartOfDay(consensusTimezone).getMillis() + DateTimeConstants.MILLIS_PER_DAY;
+        long t = lastDayOfMonth.toDateTimeAtStartOfDay(consensusTimezone).getMillis() + DateTimeConstants.MILLIS_PER_DAY;
+        return t;
+    }
+
+    public static long getStartOfMonth(String timeZone, final int year, final int month) {
+        final LocalDate firstDayOfMonth = TimeUtils.getBeginningOfMonth(year, month);
+        final DateTimeZone consensusTimezone = DateTimeZone.forID(timeZone);
+        final long t = firstDayOfMonth.toDateTimeAtStartOfDay(consensusTimezone).getMillis();
+        return t;
     }
 
     public TimeInterval getTimeInterval() {

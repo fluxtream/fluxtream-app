@@ -31,6 +31,8 @@ public class VisitedCity extends AbstractLocalTimeFacet implements Comparable<Vi
 
     public long count;
 
+    public Byte mainCityBitPattern;
+
     @ManyToOne(fetch= FetchType.EAGER, targetEntity = City.class, optional=false)
     public City city;
 
@@ -50,4 +52,5 @@ public class VisitedCity extends AbstractLocalTimeFacet implements Comparable<Vi
     public int compareTo(final VisitedCity o) {
         return (int)(start-o.start);
     }
+
 }
