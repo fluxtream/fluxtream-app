@@ -89,7 +89,7 @@ public class BodymediaUpdater extends AbstractUpdater {
                                                                          OAuthNotAuthorizedException,
                                                                          OAuthCommunicationException {
         String time = guestService.getApiKeyAttribute(updateInfo.apiKey, "tokenExpiration");
-        if(Long.parseLong(time) < System.currentTimeMillis()/1000)
+        if(time==null || Long.parseLong(time) < System.currentTimeMillis()/1000)
             bodymediaController.replaceToken(updateInfo);
     }
 
@@ -203,13 +203,15 @@ public class BodymediaUpdater extends AbstractUpdater {
     }
 
     public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
+        // Check if the token has expired, and if so try to exchange it
+        checkAndReplaceOauthToken(updateInfo);
+
         // Get timezone map for this user
         TimezoneMap tzMap = getTimezoneMap(updateInfo);
 
         // Insert tzMap into the updateInfo context so it's accessible to the extractors
         updateInfo.setContext("tzMap", tzMap);
 
-        //checkAndReplaceOauthToken(updateInfo);
         for (ObjectType ot : updateInfo.objectTypes()) {
             // Get the start date either from user registration info or from the stored apiKeyAttributes.
             // Set the end date to be today + 1 to cover the case of people in timezones which are later

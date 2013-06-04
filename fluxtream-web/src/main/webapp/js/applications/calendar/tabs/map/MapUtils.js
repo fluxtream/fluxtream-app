@@ -347,6 +347,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             map.selectedMarker = marker;
             var details = $(item.getDetails(true));
             details.find(".mapLink").remove();
+            details.css("width","300px");
             map.infoWindow.setContent(details[0]);
             map.infoWindow.open(map,marker);
             marker.doHighlighting();

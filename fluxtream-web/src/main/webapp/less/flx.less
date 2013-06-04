@@ -510,27 +510,39 @@ table .remove { text-align:center;
 
 .flx-channel-navigation { .btn { padding-left: 13px; padding-right:12px; } }
 
-.flx-channel { width:235px; .flx-floater; border-bottom:3px solid darken(@hd-bg-color,8%);
+.flx-channel { width:235px; .flx-floater;
     background: @hd-bg-color;
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='lighten(@hd-bg-color,10%)', endColorstr='@hd-bg-color');
     background: -webkit-gradient(linear, left top, left bottom, from(lighten(@hd-bg-color,10%)), to(@hd-bg-color));
     background: -moz-linear-gradient(top,  lighten(@hd-bg-color,10%),  @hd-bg-color);
     div { .flx-floatL;  }
-    .flx-remove-channel { padding: 28px 20px 28px 15px; font-size: 20px; 
+    .flx-channel-tab {
+      width:235px;
+    }
+    .flx-remove-channel { padding: 0; font-size: 20px;
         a {color: lighten(@grey,20%)}
         a:hover {color: darken(@grey, 10%); text-decoration: none;} 
     }
-    .flx-channel-name { padding: 20px 0 20px; overflow:hidden; text-shadow:1px 1px @white; max-width: 130px;
+    .flx-channel-name { padding: 0; overflow:hidden; text-shadow:1px 1px @white; width:180px; max-width: 180px;
         h4 { font-size: 18px; color:lighten(@black, 30%); overflow: hidden; text-overflow: ellipsis;}
         p { margin:0; padding:0; overflow: hidden; text-overflow: ellipsis;}
     }
-    .flx-channel-controls { padding: 20px 15px 0; list-style-type: none; 
+    .flx-channel-name-nodeletebutton { padding: 0 0 0 5px; overflow:hidden; text-shadow:1px 1px @white; width:200px; max-width: 200px;
+        h4 { font-size: 18px; color:lighten(@black, 30%); overflow: hidden; text-overflow: ellipsis;}
+        p { margin:0; padding:0; overflow: hidden; text-overflow: ellipsis;}
+    }
+    .flx-channel-controls { padding: 0; margin: 0; list-style-type: none;
         li { list-style-type: none; text-align:right; font-size: 20px; line-height: 22px;}
         a { color:lighten(@grey, 20%);
             i { text-shadow:1px 1px @white; } 
         }
         a:hover {color: darken(@grey, 10%); text-decoration: none;} 
-    }   
+    }
+    .flx-channel-filter {
+      font-size: 8pt;
+      font-style: italic;
+      color: #aaaaaa;
+    }
 }
 
 //------- DASHBOARDS

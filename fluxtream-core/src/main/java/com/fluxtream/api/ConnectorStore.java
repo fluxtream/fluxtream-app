@@ -118,6 +118,7 @@ public class ConnectorStore {
                     JSONObject connectorJson = new JSONObject();
                     Connector conn = Connector.fromValue(connector.api);
                     ApiKey apiKey = guestService.getApiKey(guest.getId(), conn);
+
                     connectorJson.accumulate("prettyName", conn.prettyName());
                     List<String> facetTypes = new ArrayList<String>();
                     ObjectType[] objTypes = conn.objectTypes();
@@ -136,9 +137,9 @@ public class ConnectorStore {
                     connectorJson.accumulate("text", connector.text);
                     connectorJson.accumulate("api", connector.api);
                     connectorJson.accumulate("apiKeyId", apiKey.getId());
-                    connectorJson.accumulate("lastSync", getLastSync(guest.getId(), conn));
-                    connectorJson.accumulate("latestData", getLatestData(guest.getId(), conn));
-                    final String auditTrail = checkForErrors(guest.getId(), conn);
+                    connectorJson.accumulate("lastSync", getLastSync(apiKey));
+                    connectorJson.accumulate("latestData", getLatestData(apiKey));
+                    final String auditTrail = checkForErrors(apiKey);
                     connectorJson.accumulate("errors", auditTrail!=null);
                     connectorJson.accumulate("auditTrail", auditTrail!=null?auditTrail:"");
                     connectorJson.accumulate("syncing", checkIfSyncInProgress(guest.getId(), conn));
@@ -197,8 +198,12 @@ public class ConnectorStore {
 
     private boolean checkIfSyncInProgress(long guestId, Connector connector){
         final ApiKey apiKey = guestService.getApiKey(guestId, connector);
+        return (checkIfSyncInProgress(apiKey));
+    }
+
+    private boolean checkIfSyncInProgress(ApiKey apiKey) {
         final Collection<UpdateWorkerTask> scheduledUpdates = connectorUpdateService.getUpdatingUpdateTasks(apiKey);
-        return (scheduledUpdates.size()!=0);
+        return (scheduledUpdates.size() != 0);
     }
 
     /**
@@ -209,14 +214,23 @@ public class ConnectorStore {
      */
     private String checkForErrors(long guestId, Connector connector){
         final ApiKey apiKey = guestService.getApiKey(guestId, connector);
+
+        return checkForErrors(apiKey);
+    }
+
+    private String checkForErrors(ApiKey apiKey) {
         Collection<UpdateWorkerTask> update = connectorUpdateService.getLastFinishedUpdateTasks(apiKey);
-        if(update.size() < 1) return null;
-        for(UpdateWorkerTask workerTask : update)
-        {
-            if(workerTask == null || workerTask.status!= UpdateWorkerTask.Status.DONE) {
-                if (workerTask.auditTrail!=null)
+        if (update.size() < 1) {
+            return null;
+        }
+        for (UpdateWorkerTask workerTask : update) {
+            if (workerTask == null || workerTask.status != UpdateWorkerTask.Status.DONE) {
+                if (workerTask.auditTrail != null) {
                     return workerTask.auditTrail;
-                else return "no audit trail";
+                }
+                else {
+                    return "no audit trail";
+                }
             }
         }
         return null;
@@ -224,13 +238,21 @@ public class ConnectorStore {
 
     private long getLastSync(long guestId, Connector connector){
         final ApiKey apiKey = guestService. getApiKey(guestId, connector);
-        ApiUpdate update = connectorUpdateService.getLastSuccessfulUpdate(apiKey);
-        return update != null ? update.ts : Long.MAX_VALUE;
+        return getLastSync(apiKey);
 
     }
 
     private long getLatestData(long guestId, Connector connector){
         final ApiKey apiKey = guestService.getApiKey(guestId, connector);
+        return getLatestData(apiKey);
+    }
+
+    private long getLastSync(ApiKey apiKey) {
+        ApiUpdate update = connectorUpdateService.getLastSuccessfulUpdate(apiKey);
+        return update != null ? update.ts : Long.MAX_VALUE;
+    }
+
+    private long getLatestData(ApiKey apiKey) {
         AbstractFacet facet = apiDataService.getLatestApiDataFacet(apiKey, null);
         return facet == null ? Long.MAX_VALUE : facet.end;
     }

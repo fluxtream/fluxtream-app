@@ -300,7 +300,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
         if (VIEWS.data != "") {
             updateViewData(grapher);
             newvdata = JSON.stringify(VIEWS.data);
-            if (loadedViewStr != newvdata) {
+            if (false && loadedViewStr != newvdata) {//TODO: fix this, it's disabled for now...
                 hasUnsavedChanges = true;
                 return confirm("You have unsaved changes. Do you wish to continue?");
             }
