@@ -33,6 +33,8 @@ public class VisitedCity extends AbstractLocalTimeFacet implements Comparable<Vi
 
     public Byte mainCityBitPattern;
 
+    public transient int daysInferred;
+
     @ManyToOne(fetch= FetchType.EAGER, targetEntity = City.class, optional=false)
     public City city;
 

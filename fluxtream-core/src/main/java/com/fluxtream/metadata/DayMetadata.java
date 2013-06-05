@@ -22,9 +22,11 @@ public class DayMetadata extends AbstractTimeUnitMetadata {
         end = start + DateTimeConstants.MILLIS_PER_DAY;
     }
 
-    public DayMetadata(List<VisitedCity> cities, VisitedCity consensusVisitedCity, String forDate) {
-        super(cities, consensusVisitedCity);
-        long forDateTime = getTimeForDate(consensusVisitedCity, forDate);
+    public DayMetadata(List<VisitedCity> cities, VisitedCity consensusVisitedCity,
+                       VisitedCity previousInferredCity, VisitedCity nextInferredCity,
+                       String date) {
+        super(cities, consensusVisitedCity, previousInferredCity, nextInferredCity);
+        long forDateTime = getTimeForDate(consensusVisitedCity, date);
         end = forDateTime + DateTimeConstants.MILLIS_PER_DAY;
     }
 

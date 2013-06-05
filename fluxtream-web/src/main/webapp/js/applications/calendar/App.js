@@ -637,7 +637,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         var cityData = [];
         for (var i=0; i<cities.length; i++) {
             var cityInfo = {};
-            cityInfo.isGuess = cities[i].daysInferred>0;
             cityInfo.visitedCityId = cities[i].visitedCityId;
             cityInfo.count = cities[i].count;
             cityInfo.source = cities[i].source;

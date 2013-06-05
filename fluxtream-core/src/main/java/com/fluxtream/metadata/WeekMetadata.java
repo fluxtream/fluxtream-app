@@ -24,8 +24,10 @@ public class WeekMetadata extends AbstractTimeUnitMetadata {
         this.end = endOfWeek.toDateTimeAtStartOfDay().getMillis() + DateTimeConstants.MILLIS_PER_DAY;
     }
 
-    public WeekMetadata(final List<VisitedCity> cities, final VisitedCity consensusVisitedCity, final int year, final int week) {
-        super(cities, consensusVisitedCity);
+    public WeekMetadata(final List<VisitedCity> cities, final VisitedCity consensusVisitedCity,
+                        VisitedCity previousInferredCity, VisitedCity nextInferredCity,
+                        final int year, final int week) {
+        super(cities, consensusVisitedCity, previousInferredCity, nextInferredCity);
         this.start = getStartOfWeek(consensusVisitedCity.city.geo_timezone, year, week);
         this.end = getEndOfWeek(consensusVisitedCity.city.geo_timezone, year, week);
     }

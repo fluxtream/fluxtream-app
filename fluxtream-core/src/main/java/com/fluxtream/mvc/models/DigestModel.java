@@ -7,8 +7,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import com.fluxtream.Configuration;
 import com.fluxtream.TimeUnit;
 import com.fluxtream.domain.metadata.WeatherInfo;
+import com.fluxtream.metadata.AbstractTimeUnitMetadata;
 
 public class DigestModel {
 
@@ -28,18 +30,27 @@ public class DigestModel {
 
     public Metadata metadata;
 
-    public DigestModel(TimeUnit timeUnit) {
-        metadata = new Metadata(timeUnit.toString());
+    public DigestModel(TimeUnit timeUnit, AbstractTimeUnitMetadata metadata, Configuration env) {
+        VisitedCityModel nic = null, pic = null;
+        if (metadata.nextInferredCity!=null)
+            nic = new VisitedCityModel(metadata.nextInferredCity, env);
+        if (metadata.previousInferredCity!=null)
+            pic = new VisitedCityModel(metadata.previousInferredCity, env);
+        this.metadata = new Metadata(timeUnit.toString(), pic, nic);
     }
 
     public class Metadata {
 
-        Metadata(String timeUnit) {
+        Metadata(String timeUnit, VisitedCityModel previousInferredCity, VisitedCityModel nextInferredCity) {
             this.timeUnit = timeUnit;
+            this.previousInferredCity = previousInferredCity;
+            this.nextInferredCity = nextInferredCity;
         }
 
         public String timeUnit;
         public List<VisitedCityModel> cities = new ArrayList<VisitedCityModel>();
+        public VisitedCityModel previousInferredCity;
+        public VisitedCityModel nextInferredCity;
         public VisitedCityModel mainCity;
         public float minTempC, maxTempC;
         public float minTempF, maxTempF;

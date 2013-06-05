@@ -24,8 +24,10 @@ public class MonthMetadata extends AbstractTimeUnitMetadata {
         this.end = lastDayOfMonth.toDateTimeAtStartOfDay().getMillis() + DateTimeConstants.MILLIS_PER_DAY;
     }
 
-    public MonthMetadata(final List<VisitedCity> cities, final VisitedCity consensusVisitedCity, final int year, final int month) {
-        super(cities, consensusVisitedCity);
+    public MonthMetadata(final List<VisitedCity> cities, final VisitedCity consensusVisitedCity,
+                         VisitedCity previousInferredCity, VisitedCity nextInferredCity,
+                         final int year, final int month) {
+        super(cities, consensusVisitedCity, previousInferredCity, nextInferredCity);
         this.start = getStartOfMonth(consensusVisitedCity.city.geo_timezone, year, month);
         this.end = getEndOfMonth(consensusVisitedCity.city.geo_timezone, year, month);
     }

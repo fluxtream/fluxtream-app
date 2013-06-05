@@ -25,10 +25,10 @@ public class VisitedCityModel {
     public String description;
     public String timezone;
     public long visitedCityId;
-    public int daysInferred;
     int startMinute, endMinute;
     String startTime, endTime;
     long count;
+    int daysInferred;
 
     static final DateTimeFormatter fmt = DateTimeFormat.forPattern("MMM dd, HH:mm' 'a");
 
@@ -36,7 +36,7 @@ public class VisitedCityModel {
 
     public VisitedCityModel(VisitedCity vcity,  Configuration env) {
         this.visitedCityId = vcity.getId();
-        this.daysInferred = daysInferred;
+        this.daysInferred = vcity.daysInferred;
         source = vcity.locationSource.toString();
         City city = vcity.city;
         name = city.geo_name;

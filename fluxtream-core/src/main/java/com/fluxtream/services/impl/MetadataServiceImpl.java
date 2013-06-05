@@ -40,6 +40,7 @@ import org.apache.http.HttpException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.DateTimeZone;
+import org.joda.time.Days;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -203,17 +204,14 @@ public class MetadataServiceImpl implements MetadataService {
         // get visited cities for a specific date . If we don't have any data for that date,
         // retrieve cities for the first date for which we do have data
         List<VisitedCity> cities = getVisitedCitiesForDate(guestId, date);
+        VisitedCity previousInferredCity = null, nextInferredCity = null;
         if (cities.size()==0) {
-            VisitedCity existingCity = searchCityBefore(guestId, date);
-            if (existingCity==null)
-                existingCity = searchCityAfter(guestId, date);
-            if (existingCity!=null) {
-                cities = getVisitedCitiesForDate(guestId, existingCity.date);
-            }
+            previousInferredCity = searchCityBefore(guestId, date);
+            nextInferredCity = searchCityAfter(guestId, date);
         }
-        if (cities.size()>0) {
+        if (previousInferredCity!=null||nextInferredCity!=null) {
             final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities, TimeUnit.DAY);
-            DayMetadata info = new DayMetadata(cities, consensusVisitedCity, date);
+            DayMetadata info = new DayMetadata(cities, consensusVisitedCity, previousInferredCity, nextInferredCity, date);
             return info;
         } else {
             DayMetadata info = new DayMetadata(date);
@@ -221,13 +219,26 @@ public class MetadataServiceImpl implements MetadataService {
         }
 	}
 
+    private int daysBetween(String date, VisitedCity vcity) {
+        final DateTime wantedDate = formatter.withZone(DateTimeZone.forID(vcity.city.geo_timezone)).parseDateTime(date);
+        final DateTime availableDate = formatter.withZone(DateTimeZone.forID(vcity.city.geo_timezone)).parseDateTime(vcity.date);
+        final int days = Days.daysBetween(wantedDate, availableDate).getDays();
+        final int absDays = Math.abs(days);
+        return absDays;
+    }
+
     @Override
     public WeekMetadata getWeekMetadata(final long guestId, final int year, final int week) {
         TreeSet<String> dates = getDatesForWeek(year, week);
         List<VisitedCity> cities = getVisitedCitiesForDates(guestId, dates);
-        if (cities.size()>0) {
+        VisitedCity previousInferredCity = null, nextInferredCity = null;
+        if (cities.size()==0) {
+            previousInferredCity = searchCityBefore(guestId, dates.first());
+            nextInferredCity = searchCityAfter(guestId, dates.last());
+        }
+        if (previousInferredCity!=null||nextInferredCity!=null) {
             final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities, TimeUnit.WEEK);
-            WeekMetadata info = new WeekMetadata(cities, consensusVisitedCity, year, week);
+            WeekMetadata info = new WeekMetadata(cities, consensusVisitedCity, previousInferredCity, nextInferredCity, year, week);
             return info;
         } else {
             WeekMetadata info = new WeekMetadata(year, week);
@@ -239,9 +250,14 @@ public class MetadataServiceImpl implements MetadataService {
     public MonthMetadata getMonthMetadata(final long guestId, final int year, final int month) {
         TreeSet<String> dates = getDatesForMonth(year, month);
         List<VisitedCity> cities = getVisitedCitiesForDates(guestId, dates);
-        if (cities.size()>0) {
+        VisitedCity previousInferredCity = null, nextInferredCity = null;
+        if (cities.size()==0) {
+            previousInferredCity = searchCityBefore(guestId, dates.first());
+            nextInferredCity = searchCityAfter(guestId, dates.last());
+        }
+        if (previousInferredCity!=null||nextInferredCity!=null) {
             final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities, TimeUnit.MONTH);
-            MonthMetadata info = new MonthMetadata(cities, consensusVisitedCity, year, month);
+            MonthMetadata info = new MonthMetadata(cities, consensusVisitedCity, previousInferredCity, nextInferredCity, year, month);
             return info;
         } else {
             MonthMetadata info = new MonthMetadata(year, month);
@@ -358,11 +374,17 @@ public class MetadataServiceImpl implements MetadataService {
     }
 
     private VisitedCity searchCityBefore(final long guestId, final String date) {
-        return searchCity("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class) + " facet WHERE facet.guestId=? AND facet.start<? ORDER BY facet.start", guestId, date);
+        final VisitedCity visitedCity = searchCity("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class) + " facet WHERE facet.guestId=? AND facet.start<? ORDER BY facet.start DESC", guestId, date);
+        if (visitedCity!=null)
+            visitedCity.daysInferred = daysBetween(date, visitedCity);
+        return visitedCity;
     }
 
     private VisitedCity searchCityAfter(final long guestId, final String date) {
-        return searchCity("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class) + " facet WHERE facet.guestId=? AND facet.start>? ORDER BY facet.start", guestId, date);
+        final VisitedCity visitedCity = searchCity("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class) + " facet WHERE facet.guestId=? AND facet.start>? ORDER BY facet.start", guestId, date);
+        if (visitedCity!=null)
+            visitedCity.daysInferred = daysBetween(date, visitedCity);
+        return visitedCity;
     }
 
     private VisitedCity searchCity(final String queryString, final long guestId, final String date) {

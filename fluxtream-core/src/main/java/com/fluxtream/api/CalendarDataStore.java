@@ -125,13 +125,13 @@ public class CalendarDataStore {
             //TODO:proper week data retrieval implementation
             //this implementation is just a dirt hacky way to make it work and some aspects (weather info) don't work
 
-            DigestModel digest = new DigestModel(TimeUnit.WEEK);
+            WeekMetadata weekMetadata = metadataService.getWeekMetadata(guestId, year, week);
+            DigestModel digest = new DigestModel(TimeUnit.WEEK, weekMetadata, env);
 
             if (filter == null) {
                 filter = "";
             }
 
-            WeekMetadata weekMetadata = metadataService.getWeekMetadata(guestId, year, week);
             setMetadata(digest, weekMetadata);
 
             digest.tbounds = getStartEndResponseBoundaries(weekMetadata.start,
@@ -196,14 +196,14 @@ public class CalendarDataStore {
         }
         try{
             long then = System.currentTimeMillis();
-            DigestModel digest = new DigestModel(TimeUnit.MONTH);
+            MonthMetadata monthMetadata = metadataService.getMonthMetadata(guestId, year, month);
+            DigestModel digest = new DigestModel(TimeUnit.MONTH, monthMetadata, env);
 
             digest.metadata.timeUnit = "MONTH";
             if (filter == null) {
                 filter = "";
             }
 
-            MonthMetadata monthMetadata = metadataService.getMonthMetadata(guestId, year, month);
             setMetadata(digest, monthMetadata);
 
             digest.tbounds = getStartEndResponseBoundaries(monthMetadata.start,
@@ -247,95 +247,6 @@ public class CalendarDataStore {
         }
 	}
 
-	@GET
-	@Path("/all/year/{year}")
-	@Produces({ MediaType.APPLICATION_JSON })
-	public String getAllConnectorsYearData(@PathParam("year") int year,
-			@QueryParam("filter") String filter) throws InstantiationException,
-			IllegalAccessException, ClassNotFoundException {
-        Guest guest = AuthHelper.getGuest();
-        long guestId = guest.getId();
-        CoachingBuddy coachee;
-        try {
-            coachee = AuthHelper.getCoachee();
-        } catch (CoachRevokedException e) {
-            return gson.toJson(new StatusModel(false, "Sorry, permission to access this data has been revoked."));
-        }
-        if (coachee!=null) {
-            guestId = coachee.guestId;
-            guest = guestService.getGuestById(guestId);
-        }
-        try {
-            long then = System.currentTimeMillis();
-            DigestModel digest = new DigestModel(TimeUnit.YEAR);
-
-            digest.metadata.timeUnit = "YEAR";
-            if (filter == null) {
-                filter = "";
-            }
-
-            DayMetadata dayMetaStart = metadataService.getDayMetadata(guest.getId(), year + "-01-01");
-
-            DayMetadata dayMetaEnd = metadataService.getDayMetadata(guest.getId(), year + "-12-31");
-
-            DayMetadata dayMetadata = new DayMetadata();
-            dayMetadata.timeZone = dayMetaStart.timeZone;
-            dayMetadata.start = dayMetaStart.start;
-            dayMetadata.end = dayMetaEnd.end;
-
-            digest.tbounds = getStartEndResponseBoundaries(dayMetadata.start,
-                                                           dayMetadata.end);
-            digest.metadata.timeZoneOffset = TimeZone.getTimeZone(dayMetadata.timeZone).getOffset((digest.tbounds.start + digest.tbounds.end)/2);
-
-            City city = dayMetadata.consensusVisitedCity.city;
-
-            /*if (city != null){
-                digest.hourlyWeatherData = metadataService.getWeatherInfo(city.geo_latitude,city.geo_longitude, date, 0, 24 * 60);
-                Collections.sort(digest.hourlyWeatherData);
-            }*/
-
-            if (digest.metadata.mainCity!=null)
-                setSolarInfo(digest, city, guestId, dayMetadata);
-
-            List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter, coachee);
-            digest.selectedConnectors = connectorInfos(guestId, apiKeySelection);
-            List<ApiKey> allApiKeys = guestService.getApiKeys(guestId);
-            allApiKeys = removeConnectorsWithoutFacets(allApiKeys, coachee);
-            digest.nApis = allApiKeys.size();
-            GuestSettings settings = settingsService.getSettings(AuthHelper.getGuestId());
-
-            List<ApiKey> userKeys = new ArrayList<ApiKey>(allApiKeys);
-            for (int i = 0; i < userKeys.size(); i++)
-                if (userKeys.get(i).getConnector().getName().equals("google_latitude"))
-                    userKeys.remove(i--);
-
-            setCachedData(digest, userKeys, settings, apiKeySelection,
-                          dayMetadata);
-
-            copyMetadata(digest, dayMetadata);
-            setNotifications(digest, AuthHelper.getGuestId());
-            setCurrentAddress(digest, guestId, dayMetadata.start);
-            digest.settings = new SettingsModel(settings,guest);
-
-            StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getAllConnectorsYearData")
-                    .append(" year=").append(year)
-                    .append(" timeTaken=").append(System.currentTimeMillis()-then)
-                    .append(" guestId=").append(guestId);
-            logger.info(sb.toString());
-
-            digest.generationTimestamp = new java.util.Date().getTime();
-
-            return gson.toJson(digest);
-       }
-       catch (Exception e){
-           StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getAllConnectorsYearData")
-                   .append(" year=").append(year)
-                   .append(" guestId=").append(guestId);
-           logger.warn(sb.toString());
-           return gson.toJson(new StatusModel(false,"Failed to get digest: " + e.getMessage()));
-       }
-	}
-
     @GET
     @Path("/weather/date/{date}")
     @Produces({ MediaType.APPLICATION_JSON })
@@ -344,8 +255,8 @@ public class CalendarDataStore {
         Guest guest = AuthHelper.getGuest();
         long guestId = guest.getId();
 
-        DigestModel digest = new DigestModel(TimeUnit.DAY);
         DayMetadata dayMetadata = metadataService.getDayMetadata(guestId, date);
+        DigestModel digest = new DigestModel(TimeUnit.DAY, dayMetadata, env);
         digest.tbounds = getStartEndResponseBoundaries(dayMetadata.start, dayMetadata.end);
         digest.metadata.timeZoneOffset = TimeZone.getTimeZone(dayMetadata.timeZone).getOffset((digest.tbounds.start + digest.tbounds.end)/2);
 
@@ -386,14 +297,14 @@ public class CalendarDataStore {
         }
         try{
             long then = System.currentTimeMillis();
-            DigestModel digest = new DigestModel(TimeUnit.DAY);
+            DayMetadata dayMetadata = metadataService.getDayMetadata(guestId, date);
+            DigestModel digest = new DigestModel(TimeUnit.DAY, dayMetadata, env);
 
             digest.metadata.timeUnit = "DAY";
             if (filter == null) {
                 filter = "";
             }
 
-            DayMetadata dayMetadata = metadataService.getDayMetadata(guestId, date);
             digest.tbounds = getStartEndResponseBoundaries(dayMetadata.start,
                     dayMetadata.end);
             digest.metadata.timeZoneOffset = TimeZone.getTimeZone(dayMetadata.timeZone).getOffset((digest.tbounds.start + digest.tbounds.end)/2);
