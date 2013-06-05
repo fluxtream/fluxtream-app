@@ -637,6 +637,7 @@
                     <th>Until</th>
                     <th>Count</th>
                     <th>Source</th>
+                    <th>Guessing</th>
                     <th>&nbsp;</th>
                 </tr>
                 {{#cities}}
@@ -647,7 +648,8 @@
                     <td>{{lastSeenHere}}</td>
                     <td>{{count}}</td>
                     <td>{{source}}</td>
-                    <td><a href="#" class="selectVisitedCity enabled" id="visitedCity-{{visitedCityId}}">select {{visitedCityId}}</a></td>
+                    <td>{{isGuess}}</td>
+                    <td><a href="#" class="selectVisitedCity enabled" id="visitedCity-{{visitedCityId}}">select</a></td>
                 </tr>
                 {{/cities}}
             </table>

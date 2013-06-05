@@ -637,6 +637,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         var cityData = [];
         for (var i=0; i<cities.length; i++) {
             var cityInfo = {};
+            cityInfo.isGuess = cities[i].daysInferred>0;
             cityInfo.visitedCityId = cities[i].visitedCityId;
             cityInfo.count = cities[i].count;
             cityInfo.source = cities[i].source;
@@ -685,12 +686,12 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     cities:cityData,
                     mainCityMessage:mainCityMessage,
                     changeMainCityMessage:changeMainCityMessage
-                }));
+                }), timeUnit);
 
         });
     }
 
-    function bindCitySearch(html) {
+    function bindCitySearch(html, timeUnit) {
         App.makeModal(html);
 
         $("#mainCitySearch").off("click");
@@ -708,7 +709,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                         $("#selectMainCity").removeClass("disabled");
                         $("#selectMainCity").addClass("enabled");
                         $("#selectMainCity").click(function(){
-                            selectMainCity();
+                            selectMainCity(timeUnit);
                         });
                     }
                     for (var i = 0; i < results.length; i++){
@@ -744,10 +745,13 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
     function selectVisitedCity(evt) {
         var visitedCityId = evt.target.id.substring("visitedCity-".length);
+        var state = App.state.getState("calendar");
+        state = state.substring(state.indexOf("/"));
         console.log("user selected visitedCity " + visitedCityId);
+        postMainVisitedCity("/api/metadata/mainCity/"+visitedCityId+state);
     }
 
-    function selectMainCity() {
+    function selectMainCity(timeUnit) {
         var selectedIndex = $("#mainCitySelect")[0].selectedIndex-1;
         var selectedCity = currentCityPool[selectedIndex];
         if(typeof(selectedCity.geometry)!="undefined"&&
@@ -755,10 +759,34 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
            typeof(selectedCity.geometry.location.jb)!="undefined") {
             var latitude = selectedCity.geometry.location.jb;
             var longitude = selectedCity.geometry.location.kb;
-            console.log("coords: " + latitude + ", " + longitude);
+            var state = App.state.getState("calendar");
+            state = state.substring(state.indexOf("/"));
+            console.log("coords: " + latitude + ", " + longitude + " (" + timeUnit + ")");
+            postMainCity("/api/metadata/mainCity"+state, {"latitude":latitude,"longitude":longitude});
         } else {
-            console.log("no city");
+            console.log("no city (" + timeUnit + ")");
         }
+    }
+
+    function postMainCity(url, data) {
+       $.ajax({
+           url: url,
+           type: "POST",
+           data: data,
+           success: function(status) {
+               console.log(status);
+           }
+       })
+    }
+
+    function postMainVisitedCity(url) {
+       $.ajax({
+           url: url,
+           type: "POST",
+           success: function(status) {
+               console.log(status);
+           }
+       })
     }
 
     function cityLabel(cityInfo) {

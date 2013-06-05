@@ -4,7 +4,9 @@ import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -114,9 +116,9 @@ public class MetadataServiceImpl implements MetadataService {
     }
 
     private void setDayMainCity(final long guestId, final String date, final City closestCity) {
-        clearMainCity(guestId, date);
+        clearMainCities(guestId, Arrays.asList(date), TimeUnit.DAY);
         final DateTime dateTime = formatter.withZone(DateTimeZone.forID(closestCity.geo_timezone)).parseDateTime(date);
-        setMainCity(guestId, closestCity, dateTime.getMillis(), dateTime.getMillis()+ DateTimeConstants.MILLIS_PER_DAY, TimeUnit.DAY, date);
+        setMainCity(guestId, closestCity, dateTime.getMillis(), dateTime.getMillis() + DateTimeConstants.MILLIS_PER_DAY-1, TimeUnit.DAY, date);
     }
 
     @Override
@@ -132,11 +134,9 @@ public class MetadataServiceImpl implements MetadataService {
     }
 
     private void setWeekMainCity(final long guestId, final int year, final int week, final City closestCity) {
-        final String timePeriod = String.format("week/%s/%s", year, week);
-        clearMainCity(guestId, timePeriod);
-        long start = WeekMetadata.getStartOfWeek(closestCity.geo_timezone, year, week);
-        long end = WeekMetadata.getEndOfWeek(closestCity.geo_timezone, year, week);
-        setMainCity(guestId, closestCity, start, end, TimeUnit.WEEK, timePeriod);
+        final TreeSet<String> dates = getDatesForWeek(year, week);
+        clearMainCities(guestId, dates, TimeUnit.WEEK);
+        setMainCity(guestId, closestCity, dates, TimeUnit.WEEK);
     }
 
     @Override
@@ -152,11 +152,32 @@ public class MetadataServiceImpl implements MetadataService {
     }
 
     private void setMonthMainCity(final long guestId, final int year, final int month, final City closestCity) {
-        final String timePeriod = String.format("month/%s/%s", year, month);
-        clearMainCity(guestId, timePeriod);
-        long start = MonthMetadata.getStartOfMonth(closestCity.geo_timezone, year, month);
-        long end = MonthMetadata.getEndOfMonth(closestCity.geo_timezone, year, month);
-        setMainCity(guestId, closestCity, start, end, TimeUnit.MONTH, timePeriod);
+        final TreeSet<String> dates = getDatesForMonth(year, month);
+        clearMainCities(guestId, dates, TimeUnit.MONTH);
+        setMainCity(guestId, closestCity, dates, TimeUnit.MONTH);
+    }
+
+    private void clearMainCities(final long guestId, final Collection<String> dates, final TimeUnit timeUnit) {
+        TypedQuery<VisitedCity> query = em.createQuery("SELECT facet FROM " +
+                                                       JPAUtils.getEntityName(VisitedCity.class) +
+                                                       " facet WHERE facet.guestId=:guestId AND facet.locationSource=:source AND facet.mainCityBitPattern!=null AND facet.mainCityBitPattern>:bitPattern AND facet.date IN :dates" +
+                                                       " ORDER BY facet.start", VisitedCity.class);
+        query.setParameter("guestId", guestId);
+        query.setParameter("source", LocationFacet.Source.USER);
+        query.setParameter("bitPattern", timeUnit.bitPattern());
+        query.setParameter("dates", dates);
+        final List<VisitedCity> resultList = query.getResultList();
+        for (VisitedCity city : resultList) {
+            em.remove(city);
+        }
+    }
+
+    private void setMainCity(final long guestId, final City city, final TreeSet<String> dates, final TimeUnit timeUnit) {
+        for (String date : dates) {
+            long start = formatter.withZone(DateTimeZone.forID(city.geo_timezone)).parseDateTime(date).getMillis();
+            long end = start + DateTimeConstants.MILLIS_PER_DAY-1;
+            setMainCity(guestId, city, start, end, timeUnit, date);
+        }
     }
 
     @Transactional(readOnly=false)
@@ -171,23 +192,10 @@ public class MetadataServiceImpl implements MetadataService {
         visitedCity.start = start;
         visitedCity.end = end;
         visitedCity.mainCityBitPattern = timeUnit.bitPattern();
+        visitedCity.count = 1;
         visitedCity.startTimeStorage = AbstractLocalTimeFacet.timeStorageFormat.withZone(DateTimeZone.forID(city.geo_timezone)).print(start);
         visitedCity.endTimeStorage = AbstractLocalTimeFacet.timeStorageFormat.withZone(DateTimeZone.forID(city.geo_timezone)).print(end);
         em.persist(visitedCity);
-    }
-
-    @Transactional(readOnly=false)
-    private void clearMainCity(final long guestId, final String date) {
-        TypedQuery<VisitedCity> query = em.createQuery("SELECT facet FROM " +
-                                                       JPAUtils.getEntityName(VisitedCity.class) +
-                                                       " facet WHERE facet.guestId=? AND facet.locationSource=? AND facet.date=?" +
-                                                       " ORDER BY facet.start", VisitedCity.class);
-        query.setParameter(1, guestId);
-        query.setParameter(2, LocationFacet.Source.USER);
-        query.setParameter(3, date);
-        final List<VisitedCity> cities = query.getResultList();
-        for (VisitedCity city : cities)
-            em.remove(city);
     }
 
     @Override
@@ -301,7 +309,7 @@ public class MetadataServiceImpl implements MetadataService {
 
         for (VisitedCity city : cities)
             if (city.locationSource== LocationFacet.Source.USER &&
-                (city.mainCityBitPattern&timeUnit.bitPattern())>0)
+                (city.mainCityBitPattern&timeUnit.bitPattern())>=timeUnit.bitPattern())
                 return city;
 
         Collections.sort(cities, new Comparator<VisitedCity>() {
