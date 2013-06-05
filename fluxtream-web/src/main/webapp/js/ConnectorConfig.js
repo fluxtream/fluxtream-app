@@ -88,6 +88,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                     clock: ClockConfig.BODY_CATEGORY
                 },
                 weight:{
+                    channel_name: "weight",
                     list: true,
                     photos: false,
                     map: true,
@@ -95,6 +96,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                     clock: ClockConfig.BODY_CATEGORY
                 },
                 heart_pulse:{
+                    channel_name: "scaleHeartRate",
                     list: true,
                     photos: false,
                     map: true,

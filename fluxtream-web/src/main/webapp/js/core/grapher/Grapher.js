@@ -2848,6 +2848,15 @@ define(["core/grapher/BTCore"], function(BTCore) {
         });
     }
 
+    Grapher.prototype.getRange = function(){
+        return {min:this.dateAxis.getMin(), max:this.dateAxis.getMax()};
+    }
+
+    Grapher.prototype.getCenter = function(){
+        var range = this.getRange();
+        return (range.min + range.max) / 2;
+    }
+
     Grapher.prototype.setTimeCursorPosition = function(position){
         this.dateAxis.setCursorPosition(position);
         repaintAllPlots(this);
