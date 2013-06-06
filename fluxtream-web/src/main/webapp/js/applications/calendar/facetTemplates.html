@@ -600,7 +600,7 @@
 
 <template id="visitedCities-details">
 
-    <div id="modal" class="modal hide fade" style="width: 680px">
+    <div id="visitedCitiesDialog" class="modal hide fade" style="width: 680px">
 
         <div class="modal-header">
             <a class="close" data-dismiss="modal">&times;</a>
@@ -613,22 +613,27 @@
 
             <div>{{{changeMainCityMessage}}}</div>
 
-            <form class="form-horizontal">
-                <fieldset>
-                    <div class="control-group">
-                        <label class="control-label">City Name</label>
-                        <div class="controls">
-                            <input id="mainCityInput" type="text" class="input-xlarge span3">&nbsp;<a id="mainCitySearch" class="btn">Search</a>
-                            <br>
-                            <br>
-                            <select id="mainCitySelect" disabled class="input-xlarge">
-                                <option style="display: none;">Select a city</option>
-                            </select>&nbsp;&nbsp;&nbsp;<a id="selectMainCity" href="#" class="disabled">select</a>
-                        </div>
-                    </div>
-                </fieldset>
-            </form>
-
+            {{#guessed}}
+            <table class="table">
+                <tr>
+                    <th>City</th>
+                    <th>Time Zone</th>
+                    <th>Source</th>
+                    <th>When</th>
+                    <th>&nbsp;</th>
+                </tr>
+                {{#cities}}
+                <tr class="guessed">
+                    <td>{{description}}</td>
+                    <td>{{timezone}}</td>
+                    <td>{{source}}</td>
+                    <td>{{when}}</td>
+                    <td><a href="#" class="selectVisitedCity enabled" id="visitedCity-{{visitedCityId}}">select</a></td>
+                </tr>
+                {{/cities}}
+            </table>
+            {{/guessed}}
+            {{^guessed}}
             <table class="table">
                 <tr>
                     <th>City</th>
@@ -651,6 +656,24 @@
                 </tr>
                 {{/cities}}
             </table>
+            {{/guessed}}
+            <span>Not seeing the right city? <a class="enabled" href="javascript:$('#addCityForm').show()">Add it here</a></span>
+            <br><br>
+            <form id="addCityForm" class="form-horizontal" style="display:none" action="javascript:void(0);">
+                <fieldset>
+                    <div class="control-group">
+                        <label class="control-label">City Name</label>
+                        <div class="controls">
+                            <input id="mainCityInput" type="text" class="input-xlarge span3">&nbsp;<a id="mainCitySearch" class="btn">Search</a>
+                            <br>
+                            <br>
+                            <select id="mainCitySelect" disabled class="input-xlarge">
+                                <option style="display: none;">Select a city</option>
+                            </select>&nbsp;&nbsp;&nbsp;<a id="selectMainCity" href="#" class="disabled">select</a>
+                        </div>
+                    </div>
+                </fieldset>
+            </form>
         </div>
         <div class="modal-footer">
             <a class="btn" data-dismiss="modal">Close</a>

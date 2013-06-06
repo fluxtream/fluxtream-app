@@ -624,17 +624,31 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         if (digestInfo.metadata.mainCity) {
            $("#mainCity").html(cityLabel(digestInfo.metadata.mainCity) +
                                temperaturesLabel(digestInfo))
+            if (digestInfo.metadata.previousInferredCity!=null||
+                digestInfo.metadata.nextInferredCity!=null)
+                $("#mainCity").addClass("guessed");
+            else
+                $("#mainCity").removeClass("guessed");
         }
-        if (digestInfo.metadata.cities&&digestInfo.metadata.cities.length>0) {
-            $("#visitedCitiesDetails").off("click");
-            $("#visitedCitiesDetails").on("click", function(){
-                showVisitedCities(digestInfo.metadata.cities, digestInfo.metadata.timeUnit, digestInfo.metadata.mainCity);
-            });
-        }
+        $("#visitedCitiesDetails").off("click");
+        $("#visitedCitiesDetails").on("click", function(){
+            showVisitedCities(digestInfo.metadata);
+        });
     }
 
-    function showVisitedCities(cities, timeUnit, mainCity) {
+    function showVisitedCities(metadata) {
+        var cities = [];
+        for(var i=0; i<metadata.cities.length;i++)
+            cities.push(metadata.cities[i]);
+        var timeUnit = metadata.timeUnit;
+        var mainCity = metadata.mainCity;
         var cityData = [];
+        if (typeof(metadata.previousInferredCity)!="undefined") {
+            cities.push(metadata.previousInferredCity);
+        }
+        if (typeof(metadata.nextInferredCity)!="undefined") {
+            cities.push(metadata.nextInferredCity);
+        }
         for (var i=0; i<cities.length; i++) {
             var cityInfo = {};
             cityInfo.visitedCityId = cities[i].visitedCityId;
@@ -642,6 +656,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             cityInfo.source = cities[i].source;
             cityInfo.description = cities[i].description;
             cityInfo.timezone = cities[i].timezone;
+            if (cities[i].daysInferred!=0)
+                cityInfo.when = (cities[i].daysInferred<0)
+                    ? Math.abs(cities[i].daysInferred) + " days ago"
+                    : cities[i].daysInferred + " days later";
             if (timeUnit=="DAY") {
                 var minutes = cities[i].startMinute%60;
                 minutes = minutes<10?"0"+minutes:""+minutes;
@@ -656,7 +674,11 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             cityData[cityData.length] = cityInfo;
         }
         var mainCityMessage;
-        if (mainCity.source!="USER")
+        var guessed = false;
+        if (metadata.previousInferredCity!=null||metadata.nextInferredCity!=null) {
+            guessed = true;
+            mainCityMessage = "Based on past/future location data, we guessed the you were in <b>" + cityLabel(mainCity) + "</b>";
+        } else if (mainCity.source!="USER")
             mainCityMessage="We detected that you were in <b>" + cityLabel(mainCity) + "</b>";
         else
             mainCityMessage="You have indicated that you were in <b>" + cityLabel(mainCity) + "</b>";
@@ -683,6 +705,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             bindCitySearch(template.render(
                 {
                     cities:cityData,
+                    guessed:guessed,
                     mainCityMessage:mainCityMessage,
                     changeMainCityMessage:changeMainCityMessage
                 }), timeUnit);
@@ -730,6 +753,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         });
         $("#mainCityInput").off("keyup");
         $("#mainCityInput").on("keyup", function(event){
+            event.preventDefault();
             if (event.keyCode == 13)
                 $("#mainCitySearch").click();
             else{
@@ -738,8 +762,9 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     $(options[i]).remove();
                 currentCityPool = [];
             }
-        })
+        });
         $(".selectVisitedCity").click(function(evt){selectVisitedCity(evt);});
+
     }
 
     function selectVisitedCity(evt) {
@@ -774,6 +799,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
            data: data,
            success: function(status) {
                console.log(status);
+               $("#visitedCitiesDialog").modal('hide');
+               App.activeApp.renderState(App.state.getState(App.activeApp.name),true);//force refresh of the current app state
            }
        })
     }
@@ -784,6 +811,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
            type: "POST",
            success: function(status) {
                console.log(status);
+               $("#visitedCitiesDialog").modal('hide');
+               App.activeApp.renderState(App.state.getState(App.activeApp.name),true);//force refresh of the current app state
            }
        })
     }

@@ -1777,3 +1777,6 @@ a.enabled {
   cursor: hand;
   color: #0088cc;
 }
+.guessed {
+  font-style: italic;
+}

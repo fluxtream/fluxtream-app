@@ -206,17 +206,16 @@ public class MetadataServiceImpl implements MetadataService {
         List<VisitedCity> cities = getVisitedCitiesForDate(guestId, date);
         VisitedCity previousInferredCity = null, nextInferredCity = null;
         if (cities.size()==0) {
-            previousInferredCity = searchCityBefore(guestId, date);
-            nextInferredCity = searchCityAfter(guestId, date);
+            previousInferredCity = searchCityBefore(guestId, date, TimeUnit.DAY);
+            nextInferredCity = searchCityAfter(guestId, date, TimeUnit.DAY);
+            if (previousInferredCity==null&&nextInferredCity==null) {
+                DayMetadata info = new DayMetadata(date);
+                return info;
+            }
         }
-        if (previousInferredCity!=null||nextInferredCity!=null) {
-            final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities, TimeUnit.DAY);
-            DayMetadata info = new DayMetadata(cities, consensusVisitedCity, previousInferredCity, nextInferredCity, date);
-            return info;
-        } else {
-            DayMetadata info = new DayMetadata(date);
-            return info;
-        }
+        final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities, previousInferredCity, nextInferredCity, TimeUnit.DAY);
+        DayMetadata info = new DayMetadata(cities, consensusVisitedCity, previousInferredCity, nextInferredCity, date);
+        return info;
 	}
 
     private int daysBetween(String date, VisitedCity vcity) {
@@ -233,17 +232,16 @@ public class MetadataServiceImpl implements MetadataService {
         List<VisitedCity> cities = getVisitedCitiesForDates(guestId, dates);
         VisitedCity previousInferredCity = null, nextInferredCity = null;
         if (cities.size()==0) {
-            previousInferredCity = searchCityBefore(guestId, dates.first());
-            nextInferredCity = searchCityAfter(guestId, dates.last());
+            previousInferredCity = searchCityBefore(guestId, dates.first(), TimeUnit.WEEK);
+            nextInferredCity = searchCityAfter(guestId, dates.last(), TimeUnit.DAY);
+            if (previousInferredCity==null&&nextInferredCity==null) {
+                WeekMetadata info = new WeekMetadata(year, week);
+                return info;
+            }
         }
-        if (previousInferredCity!=null||nextInferredCity!=null) {
-            final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities, TimeUnit.WEEK);
-            WeekMetadata info = new WeekMetadata(cities, consensusVisitedCity, previousInferredCity, nextInferredCity, year, week);
-            return info;
-        } else {
-            WeekMetadata info = new WeekMetadata(year, week);
-            return info;
-        }
+        final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities, previousInferredCity, nextInferredCity, TimeUnit.WEEK);
+        WeekMetadata info = new WeekMetadata(cities, consensusVisitedCity, previousInferredCity, nextInferredCity, year, week);
+        return info;
     }
 
     @Override
@@ -252,17 +250,16 @@ public class MetadataServiceImpl implements MetadataService {
         List<VisitedCity> cities = getVisitedCitiesForDates(guestId, dates);
         VisitedCity previousInferredCity = null, nextInferredCity = null;
         if (cities.size()==0) {
-            previousInferredCity = searchCityBefore(guestId, dates.first());
-            nextInferredCity = searchCityAfter(guestId, dates.last());
+            previousInferredCity = searchCityBefore(guestId, dates.first(), TimeUnit.MONTH);
+            nextInferredCity = searchCityAfter(guestId, dates.last(), TimeUnit.MONTH);
+            if (previousInferredCity==null||nextInferredCity==null) {
+                MonthMetadata info = new MonthMetadata(year, month);
+                return info;
+            }
         }
-        if (previousInferredCity!=null||nextInferredCity!=null) {
-            final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities, TimeUnit.MONTH);
-            MonthMetadata info = new MonthMetadata(cities, consensusVisitedCity, previousInferredCity, nextInferredCity, year, month);
-            return info;
-        } else {
-            MonthMetadata info = new MonthMetadata(year, month);
-            return info;
-        }
+        final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities, previousInferredCity, nextInferredCity, TimeUnit.MONTH);
+        MonthMetadata info = new MonthMetadata(cities, consensusVisitedCity, previousInferredCity, nextInferredCity, year, month);
+        return info;
     }
 
     private TreeSet<String> getDatesForWeek(final int year, final int week) {
@@ -304,14 +301,6 @@ public class MetadataServiceImpl implements MetadataService {
         query.setParameter("guestId", guestId);
         query.setParameter("dates", dates);
         List<VisitedCity> cities = query.getResultList();
-        if (cities.size()==0) {
-            VisitedCity existingCity = searchCityBefore(guestId, dates.first());
-            if (existingCity==null)
-                existingCity = searchCityAfter(guestId, dates.last());
-            if (existingCity!=null) {
-                cities = getVisitedCitiesForDate(guestId, existingCity.date);
-            }
-        }
         return cities;
     }
 
@@ -321,12 +310,25 @@ public class MetadataServiceImpl implements MetadataService {
      * @param cities
      * @return
      */
-    private VisitedCity getConsensusVisitedCity(final List<VisitedCity> cities, TimeUnit timeUnit) {
+    private VisitedCity getConsensusVisitedCity(final List<VisitedCity> cities,
+                                                VisitedCity previousInferredCity,
+                                                VisitedCity nextInferredCity,
+                                                TimeUnit timeUnit) {
 
         for (VisitedCity city : cities)
             if (city.locationSource== LocationFacet.Source.USER &&
                 (city.mainCityBitPattern&timeUnit.bitPattern())>=timeUnit.bitPattern())
                 return city;
+
+        if (previousInferredCity!=null&&nextInferredCity!=null) {
+            if (previousInferredCity.daysInferred>nextInferredCity.daysInferred)
+                return nextInferredCity;
+            else
+                return previousInferredCity;
+        } else if (previousInferredCity!=null)
+            return previousInferredCity;
+        else if (nextInferredCity!=null)
+            return nextInferredCity;
 
         Collections.sort(cities, new Comparator<VisitedCity>() {
             @Override
@@ -337,7 +339,9 @@ public class MetadataServiceImpl implements MetadataService {
             }
         });
 
-        return cities.get(0);
+        if (cities.size()>0)
+            return cities.get(0);
+        return null;
     }
 
     private String findClosestKnownDateForTime(final long guestId, final long time) {
@@ -373,17 +377,21 @@ public class MetadataServiceImpl implements MetadataService {
         return null;
     }
 
-    private VisitedCity searchCityBefore(final long guestId, final String date) {
-        final VisitedCity visitedCity = searchCity("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class) + " facet WHERE facet.guestId=? AND facet.start<? ORDER BY facet.start DESC", guestId, date);
-        if (visitedCity!=null)
+    private VisitedCity searchCityBefore(final long guestId, final String date, TimeUnit timeUnit) {
+        VisitedCity visitedCity = searchCity("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class) + " facet WHERE facet.guestId=? AND facet.start<? ORDER BY facet.start DESC", guestId, date);
+        if (visitedCity!=null) {
+            visitedCity = getConsensusVisitedCity(getVisitedCitiesForDate(guestId, visitedCity.date), null, null, timeUnit);
             visitedCity.daysInferred = daysBetween(date, visitedCity);
+        }
         return visitedCity;
     }
 
-    private VisitedCity searchCityAfter(final long guestId, final String date) {
-        final VisitedCity visitedCity = searchCity("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class) + " facet WHERE facet.guestId=? AND facet.start>? ORDER BY facet.start", guestId, date);
-        if (visitedCity!=null)
+    private VisitedCity searchCityAfter(final long guestId, final String date, TimeUnit timeUnit) {
+        VisitedCity visitedCity = searchCity("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class) + " facet WHERE facet.guestId=? AND facet.start>? ORDER BY facet.start", guestId, date);
+        if (visitedCity!=null) {
+            visitedCity = getConsensusVisitedCity(getVisitedCitiesForDate(guestId, visitedCity.date), null, null, timeUnit);
             visitedCity.daysInferred = daysBetween(date, visitedCity);
+        }
         return visitedCity;
     }
 
