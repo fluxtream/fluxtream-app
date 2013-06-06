@@ -383,6 +383,7 @@
     padding: 0 5px 0 5px;
     text-align: left;
     color: #778899;
+    pointer-events: none;
 }
 
 ._timeline_dataPointValueLabel {
@@ -390,6 +391,7 @@
     padding: 0 5px 0 5px;
     text-align: right;
     margin-top: -20px;
+    pointer-events: none;
 }
 
 .ui-dialog .ui-dialog-content {
