@@ -656,10 +656,12 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             cityInfo.source = cities[i].source;
             cityInfo.description = cities[i].description;
             cityInfo.timezone = cities[i].timezone;
-            if (cities[i].daysInferred!=0)
+            if (cities[i].daysInferred!=0) {
+                var dayOrDays = Math.abs(cities[i].daysInferred)==1?"day":"days";
                 cityInfo.when = (cities[i].daysInferred<0)
-                    ? Math.abs(cities[i].daysInferred) + " days ago"
-                    : cities[i].daysInferred + " days later";
+                    ? Math.abs(cities[i].daysInferred) + " " + dayOrDays + " ago"
+                    : cities[i].daysInferred + " " + dayOrDays + " later";
+            }
             if (timeUnit=="DAY") {
                 var minutes = cities[i].startMinute%60;
                 minutes = minutes<10?"0"+minutes:""+minutes;
@@ -695,10 +697,11 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         }
         var changeMainCityMessage;
         if (cities.length>0)
-            changeMainCityMessage="You can choose an alternate city in the list below or enter a city name manually here:<br><br>";
+            changeMainCityMessage="You can choose an alternate city in the list below.<br><br>";
 
-        else
+        else {
             changeMainCityMessage="You can change it by entering a city name below.<br><br>";
+        }
 
         App.loadMustacheTemplate("applications/calendar/facetTemplates.html","visitedCities-details",function(template){
 
