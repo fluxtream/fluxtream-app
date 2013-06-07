@@ -640,7 +640,7 @@
                 </tr>
                 {{#cities}}
                 <tr class="guessed">
-                    <td>{{description}}</td>
+                    <td>{{#consensus}}<span class="icon-hand-right" style="width:32px"></span>{{/consensus}}{{description}}</td>
                     <td>{{timezone}}</td>
                     <td>{{source}}</td>
                     <td>{{when}}</td>
@@ -662,7 +662,7 @@
                 </tr>
                 {{#cities}}
                 <tr>
-                    <td>{{description}}</td>
+                    <td>{{#consensus}}<span class="icon-hand-right" style="width:32px"></span>{{/consensus}} {{description}}</td>
                     <td>{{timezone}}</td>
                     <td>{{firstSeenHere}}</td>
                     <td>{{lastSeenHere}}</td>
