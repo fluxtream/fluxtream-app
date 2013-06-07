@@ -644,7 +644,8 @@
                     <td>{{timezone}}</td>
                     <td>{{source}}</td>
                     <td>{{when}}</td>
-                    <td><a href="#" class="selectVisitedCity enabled" id="visitedCity-{{visitedCityId}}">select</a></td>
+                    {{^consensus}}<td><a href="#" class="selectVisitedCity enabled" id="visitedCity-{{visitedCityId}}">select</a></td>{{/consensus}}
+                    {{#consensus}}<td>&nbsp;</td>{{/consensus}}
                 </tr>
                 {{/cities}}
             </table>
@@ -668,7 +669,11 @@
                     <td>{{lastSeenHere}}</td>
                     <td>{{count}}</td>
                     <td>{{source}}</td>
-                    <td><a href="#" class="selectVisitedCity enabled" id="visitedCity-{{visitedCityId}}">select</a></td>
+                    {{#isUser}}<td><a href="#" class="selectVisitedCity enabled undo" id="visitedCity-{{visitedCityId}}">reset</a></td>{{/isUser}}
+                    {{^isUser}}
+                        {{^consensus}}<td><a href="#" class="selectVisitedCity enabled" id="visitedCity-{{visitedCityId}}">select</a></td>{{/consensus}}
+                        {{#consensus}}<td>&nbsp;</td>{{/consensus}}
+                    {{/isUser}}
                 </tr>
                 {{/cities}}
             </table>

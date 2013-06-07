@@ -24,6 +24,7 @@ public class VisitedCityModel {
     public String country;
     public String description;
     public String timezone;
+    public String shortTimezone;
     public long visitedCityId;
     int startMinute, endMinute;
     String startTime, endTime;
@@ -64,6 +65,7 @@ public class VisitedCityModel {
 
         TimeZone tz = TimeZone.getTimeZone(vcity.city.geo_timezone);
         timezone = tz.getDisplayName(true, TimeZone.LONG);
+        shortTimezone = tz.getDisplayName(true, TimeZone.SHORT);
 
         Calendar calendar = DatatypeConverter.parseDateTime(vcity.startTimeStorage);
         this.startTime = StringUtils.capitalise(fmt.print(calendar.getTimeInMillis()).toLowerCase());

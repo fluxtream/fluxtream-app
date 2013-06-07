@@ -43,7 +43,6 @@ public abstract class AbstractTimeUnitMetadata {
 
     protected long getTimeForDate(final VisitedCity consensusVisitedCity, final String forDate) {
         final DateTimeZone dateTimeZone = DateTimeZone.forID(consensusVisitedCity.city.geo_timezone);
-        long cityTime = formatter.withZone(dateTimeZone).parseDateTime(consensusVisitedCity.date).getMillis();
         long forDateTime = formatter.withZone(dateTimeZone).parseDateTime(forDate).getMillis();
         timeZone = consensusVisitedCity.city.geo_timezone;
         start = forDateTime;

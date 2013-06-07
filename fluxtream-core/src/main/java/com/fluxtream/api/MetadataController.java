@@ -1,5 +1,6 @@
 package com.fluxtream.api;
 
+import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -70,6 +71,44 @@ public class MetadataController {
                 .append(" guestId=").append(guestId);
         logger.info(sb.toString());
         metadataService.setMonthMainCity(guestId, latitude, longitude, year, month);
+        return new StatusModel(true, "OK");
+    }
+
+    @DELETE
+    @Path(value="/mainCity/date/{date}")
+    @Produces({ MediaType.APPLICATION_JSON } )
+    public StatusModel resetDayMainCity(@PathParam("date") String date) {
+        final long guestId = AuthHelper.getGuestId();
+        StringBuilder sb = new StringBuilder("module=API component=calendarController action=resetDayMainCity")
+                .append(" guestId=").append(guestId);
+        logger.info(sb.toString());
+        metadataService.resetDayMainCity(guestId, date);
+        return new StatusModel(true, "OK");
+    }
+
+    @DELETE
+    @Path(value="/mainCity/week/{year}/{week}")
+    @Produces({ MediaType.APPLICATION_JSON } )
+    public StatusModel resetWeekMainCity(@PathParam("year") int year,
+                                         @PathParam("week") int week) {
+        final long guestId = AuthHelper.getGuestId();
+        StringBuilder sb = new StringBuilder("module=API component=calendarController action=resetWeekMainCity")
+                .append(" guestId=").append(guestId);
+        logger.info(sb.toString());
+        metadataService.resetWeekMainCity(guestId, year, week);
+        return new StatusModel(true, "OK");
+    }
+
+    @DELETE
+    @Path(value="/mainCity/month/{year}/{month}")
+    @Produces({ MediaType.APPLICATION_JSON } )
+    public StatusModel resetMonthMainCity(@PathParam("year") int year,
+                                          @PathParam("month") int month) {
+        final long guestId = AuthHelper.getGuestId();
+        StringBuilder sb = new StringBuilder("module=API component=calendarController action=resetMonthMainCity")
+                .append(" guestId=").append(guestId);
+        logger.info(sb.toString());
+        metadataService.resetMonthMainCity(guestId, year, month);
         return new StatusModel(true, "OK");
     }
 

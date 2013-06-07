@@ -105,6 +105,26 @@ public class MetadataServiceImpl implements MetadataService {
 	}
 
     @Override
+    @Transactional(readOnly = false)
+    public void resetDayMainCity(final long guestId, final String date) {
+        final List<VisitedCity> visitedCities = getVisitedCitiesForDate(guestId, date);
+        for (VisitedCity visitedCity : visitedCities) {
+            if (visitedCity.locationSource== LocationFacet.Source.USER)
+                em.remove(visitedCity);
+        }
+    }
+
+    @Override
+    public void resetWeekMainCity(final long guestId, final int year, final int week) {
+        //TODO: implement this
+    }
+
+    @Override
+    public void resetMonthMainCity(final long guestId, final int year, final int month) {
+        //TODO: implement this
+    }
+
+    @Override
     public void setDayMainCity(final long guestId, final float latitude, final float longitude, final String date) {
         final City closestCity = getClosestCity(latitude, longitude);
         setDayMainCity(guestId, date, closestCity);
@@ -119,7 +139,7 @@ public class MetadataServiceImpl implements MetadataService {
     private void setDayMainCity(final long guestId, final String date, final City closestCity) {
         clearMainCities(guestId, Arrays.asList(date), TimeUnit.DAY);
         final DateTime dateTime = formatter.withZone(DateTimeZone.forID(closestCity.geo_timezone)).parseDateTime(date);
-        setMainCity(guestId, closestCity, dateTime.getMillis(), dateTime.getMillis() + DateTimeConstants.MILLIS_PER_DAY-1, TimeUnit.DAY, date);
+        setMainCity(guestId, closestCity, dateTime.getMillis(), dateTime.getMillis() + DateTimeConstants.MILLIS_PER_DAY - 1, TimeUnit.DAY, date);
     }
 
     @Override
