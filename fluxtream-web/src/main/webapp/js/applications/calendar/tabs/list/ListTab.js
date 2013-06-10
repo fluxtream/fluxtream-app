@@ -35,7 +35,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
     function setup(digest,connectorEnabled,page,doneLoading){
         App.loadAllMustacheTemplates("applications/calendar/tabs/list/listTemplates.html",function(listTemplates){
             templates = listTemplates;
-            timeZoneOffset = digest.timeZoneOffset;
+            timeZoneOffset = digest.metadata.timeZoneOffset;
             list = $("#list");
             pagination = $("#pagination");
             currentPage = page;

@@ -95,7 +95,7 @@ define(["core/Tab",
         var currentGroup = [];
         var currentDate = null;
         for (var i = 0; i < data.length; i++){
-           var date = App.formatDate(data[i].start + digest.timeZoneOffset,false,true);
+           var date = App.formatDate(data[i].start + digest.metadata.timeZoneOffset,false,true);
            if (currentDate == null){
                currentDate = date;
            }
