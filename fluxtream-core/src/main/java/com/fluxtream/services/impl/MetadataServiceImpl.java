@@ -242,8 +242,7 @@ public class MetadataServiceImpl implements MetadataService {
         final DateTime wantedDate = formatter.withZone(DateTimeZone.forID(vcity.city.geo_timezone)).parseDateTime(date);
         final DateTime availableDate = formatter.withZone(DateTimeZone.forID(vcity.city.geo_timezone)).parseDateTime(vcity.date);
         final int days = Days.daysBetween(wantedDate, availableDate).getDays();
-        final int absDays = Math.abs(days);
-        return absDays;
+        return days;
     }
 
     @Override
@@ -341,7 +340,7 @@ public class MetadataServiceImpl implements MetadataService {
                 return city;
 
         if (previousInferredCity!=null&&nextInferredCity!=null) {
-            if (previousInferredCity.daysInferred>nextInferredCity.daysInferred)
+            if (Math.abs(previousInferredCity.daysInferred)>Math.abs(nextInferredCity.daysInferred))
                 return nextInferredCity;
             else
                 return previousInferredCity;

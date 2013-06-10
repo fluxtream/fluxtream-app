@@ -43,10 +43,7 @@ public class DigestModel {
 
         Metadata(String timeUnit, VisitedCityModel previousInferredCity, VisitedCityModel nextInferredCity) {
             this.timeUnit = timeUnit;
-            if (previousInferredCity!=null) {
-                this.previousInferredCity = previousInferredCity;
-                this.previousInferredCity.daysInferred = -previousInferredCity.daysInferred;
-            }
+            this.previousInferredCity = previousInferredCity;
             this.nextInferredCity = nextInferredCity;
         }
 

@@ -659,6 +659,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             cityInfo.timezone = cities[i].shortTimezone;
             cityInfo.startMinute = cities[i].startMinute;
             cityInfo.endMinute = cities[i].endMinute;
+            cityInfo.daysInferred = cities[i].daysInferred;
             if (cities[i].daysInferred!=0) {
                 var dayOrDays = Math.abs(cities[i].daysInferred)==1?"day":"days";
                 cityInfo.when = (cities[i].daysInferred<0)
@@ -681,7 +682,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         for (var i=0; i<cityData.length; i++) {
             if (cityData[i].startMinute==metadata.mainCity.startMinute&&
                 cityData[i].endMinute==metadata.mainCity.endMinute&&
-                cityData[i].source==toPrettySource(metadata.mainCity.source))
+                cityData[i].source==toPrettySource(metadata.mainCity.source)&&
+                cityData[i].daysInferred==metadata.mainCity.daysInferred)
             cityData[i].consensus = true;
         }
         var mainCityMessage;
