@@ -8,6 +8,8 @@ import com.fluxtream.domain.metadata.City;
 import com.fluxtream.domain.metadata.VisitedCity;
 import org.apache.commons.lang.WordUtils;
 import org.codehaus.plexus.util.StringUtils;
+import org.joda.time.DateTimeConstants;
+import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
@@ -27,17 +29,23 @@ public class VisitedCityModel {
     public String shortTimezone;
     public long visitedCityId;
     int startMinute, endMinute;
+    String date;
     String startTime, endTime;
+    long dayStart, dayEnd;
     long count;
     int daysInferred;
+    int tzOffset;
 
     static final DateTimeFormatter fmt = DateTimeFormat.forPattern("MMM dd, HH:mm' 'a");
+    private static final DateTimeFormatter formatter = DateTimeFormat
+            .forPattern("yyyy-MM-dd");
 
     public DurationModel duration;
 
     public VisitedCityModel(VisitedCity vcity,  Configuration env) {
         this.visitedCityId = vcity.getId();
         this.daysInferred = vcity.daysInferred;
+        this.date = vcity.date;
         source = vcity.locationSource.toString();
         City city = vcity.city;
         name = city.geo_name;
@@ -71,6 +79,10 @@ public class VisitedCityModel {
         this.startTime = StringUtils.capitalise(fmt.print(calendar.getTimeInMillis()).toLowerCase());
         calendar = DatatypeConverter.parseDateTime(vcity.endTimeStorage);
         this.endTime = StringUtils.capitalise(fmt.print(calendar.getTimeInMillis()).toLowerCase());
+
+        this.dayStart = formatter.withZone(DateTimeZone.forTimeZone(tz)).parseDateTime(this.date).getMillis();
+        this.dayEnd = dayStart + DateTimeConstants.MILLIS_PER_DAY;
+        tzOffset = tz.getOffset(dayStart);
 
     }
 

@@ -54,7 +54,6 @@ public class DigestModel {
         public VisitedCityModel mainCity;
         public float minTempC, maxTempC;
         public float minTempF, maxTempF;
-        public long timeZoneOffset;
     }
 
 	@SuppressWarnings("rawtypes")

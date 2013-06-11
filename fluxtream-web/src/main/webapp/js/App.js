@@ -423,6 +423,17 @@ define(
             }
         };
 
+        App.getFacetCity = function(facet, cities){
+            for (var i=0; i<cities.length; i++) {
+                var city = cities[i];
+                if (city.dayStart<=facet.start && facet.start<city.dayEnd)
+                    return city;
+            }
+            console.log("WARNING: facet isn't within metadata time boundaries")
+            console.log(facet);
+            return null;
+        }
+
         App.formatDate = function(date, includeTime, UTC){
             if (includeTime == null)
                 includeTime = false;

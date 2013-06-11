@@ -136,7 +136,6 @@ public class CalendarDataStore {
 
             digest.tbounds = getStartEndResponseBoundaries(weekMetadata.start,
                                                            weekMetadata.end);
-            digest.metadata.timeZoneOffset = TimeZone.getTimeZone(weekMetadata.timeZone).getOffset((digest.tbounds.start + digest.tbounds.end)/2);
 
             List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter, coachee);
             digest.selectedConnectors = connectorInfos(guestId,apiKeySelection);
@@ -208,7 +207,6 @@ public class CalendarDataStore {
 
             digest.tbounds = getStartEndResponseBoundaries(monthMetadata.start,
                                                            monthMetadata.end);
-            digest.metadata.timeZoneOffset = TimeZone.getTimeZone(monthMetadata.timeZone).getOffset((digest.tbounds.start + digest.tbounds.end)/2);
 
             List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter, coachee);
             digest.selectedConnectors = connectorInfos(guestId,apiKeySelection);
@@ -258,7 +256,6 @@ public class CalendarDataStore {
         DayMetadata dayMetadata = metadataService.getDayMetadata(guestId, date);
         DigestModel digest = new DigestModel(TimeUnit.DAY, dayMetadata, env);
         digest.tbounds = getStartEndResponseBoundaries(dayMetadata.start, dayMetadata.end);
-        digest.metadata.timeZoneOffset = TimeZone.getTimeZone(dayMetadata.timeZone).getOffset((digest.tbounds.start + digest.tbounds.end)/2);
 
         City city = dayMetadata.consensusVisitedCity.city;
         if (city != null){
@@ -307,7 +304,6 @@ public class CalendarDataStore {
 
             digest.tbounds = getStartEndResponseBoundaries(dayMetadata.start,
                     dayMetadata.end);
-            digest.metadata.timeZoneOffset = TimeZone.getTimeZone(dayMetadata.timeZone).getOffset((digest.tbounds.start + digest.tbounds.end)/2);
 
             setMetadata(digest, dayMetadata);
 

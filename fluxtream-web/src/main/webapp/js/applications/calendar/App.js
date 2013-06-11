@@ -537,7 +537,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 }
             }
             if (showDate){
-                newFacet.displayDate = App.formatDate(data.start + digest.metadata.timeZoneOffset,false,true);
+                facetCity = App.getFacetCity(data.start, digest);
+                newFacet.displayDate = App.formatDate(data.start + facetCity.tzOffset,false,true);
             }
         }
 

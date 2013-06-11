@@ -259,8 +259,25 @@ public class MetadataServiceImpl implements MetadataService {
             }
         }
         final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities, previousInferredCity, nextInferredCity, TimeUnit.WEEK);
-        WeekMetadata info = new WeekMetadata(cities, consensusVisitedCity, previousInferredCity, nextInferredCity, year, week);
+        final List<VisitedCity> consensusCities = getConsensusCities(guestId, dates);
+        WeekMetadata info = new WeekMetadata(consensusCities, consensusVisitedCity, previousInferredCity, nextInferredCity, year, week);
         return info;
+    }
+
+    private List<VisitedCity> getConsensusCities(final long guestId, final TreeSet<String> dates) {
+        List<VisitedCity> consensusCities = new ArrayList<VisitedCity>();
+        Collections.sort(consensusCities,
+            new Comparator<VisitedCity>(){
+                @Override
+                public int compare(final VisitedCity o1, final VisitedCity o2) {
+                    return o1.date.compareTo(o2.date);
+                }
+            });
+        for (String date : dates) {
+            final DayMetadata dayMetadata = getDayMetadata(guestId, date);
+            consensusCities.add(dayMetadata.consensusVisitedCity);
+        }
+        return consensusCities;
     }
 
     @Override
@@ -277,7 +294,8 @@ public class MetadataServiceImpl implements MetadataService {
             }
         }
         final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities, previousInferredCity, nextInferredCity, TimeUnit.MONTH);
-        MonthMetadata info = new MonthMetadata(cities, consensusVisitedCity, previousInferredCity, nextInferredCity, year, month);
+        final List<VisitedCity> consensusCities = getConsensusCities(guestId, dates);
+        MonthMetadata info = new MonthMetadata(consensusCities, consensusVisitedCity, previousInferredCity, nextInferredCity, year, month);
         return info;
     }
 
@@ -330,9 +348,9 @@ public class MetadataServiceImpl implements MetadataService {
      * @return
      */
     private VisitedCity getConsensusVisitedCity(final List<VisitedCity> cities,
-                                                VisitedCity previousInferredCity,
-                                                VisitedCity nextInferredCity,
-                                                TimeUnit timeUnit) {
+                                                final VisitedCity previousInferredCity,
+                                                final VisitedCity nextInferredCity,
+                                                final TimeUnit timeUnit) {
 
         for (VisitedCity city : cities)
             if (city.locationSource== LocationFacet.Source.USER &&
@@ -349,7 +367,8 @@ public class MetadataServiceImpl implements MetadataService {
         else if (nextInferredCity!=null)
             return nextInferredCity;
 
-        Collections.sort(cities, new Comparator<VisitedCity>() {
+        List<VisitedCity> cityList = new ArrayList<VisitedCity>(cities);
+        Collections.sort(cityList, new Comparator<VisitedCity>() {
             @Override
             public int compare(final VisitedCity a, final VisitedCity b) {
                 int timeSpentInA = (int) (a.end-a.start+1); //add one if start and end are equal
@@ -358,8 +377,8 @@ public class MetadataServiceImpl implements MetadataService {
             }
         });
 
-        if (cities.size()>0)
-            return cities.get(0);
+        if (cityList.size()>0)
+            return cityList.get(0);
         return null;
     }
 
