@@ -2,7 +2,6 @@ package com.fluxtream;
 
 import java.util.Date;
 import java.util.TimeZone;
-import com.fluxtream.utils.TimeUtils;
 
 public class SimpleTimeInterval implements TimeInterval {
 
@@ -17,13 +16,6 @@ public class SimpleTimeInterval implements TimeInterval {
 		this.setEnd(end);
 		this.setTimeUnit(timeUnit);
 		this.setTimeZone(timeZone);
-	}
-	
-	@Override
-    public boolean isMostRecent() {
-		long now = System.currentTimeMillis();
-		long fromMidnight = TimeUtils.fromMidnight(now, getMainTimeZone());
-		return getStart() >=fromMidnight;
 	}
 	
 	public String toString() {
