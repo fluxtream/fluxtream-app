@@ -54,7 +54,8 @@ define(["core/Tab",
                 photos.sort(function(a,b) {return a.start- b.start;});
                 onDataReceived(photos);
             }
-            doneLoading();
+            if (doneLoading != null)
+                doneLoading();
         });
     }
 
@@ -127,7 +128,7 @@ define(["core/Tab",
             $("#photoTab").append(thumbnailGroupTemplate.render({date:currentDate,photos:currentGroup}));
         }
         for (var i = 0; i < data.length; i++){
-            $("#photo-" + i).click({i:i},function(event){
+            $("#photo-" + data[i].id).click({i:data[i].id},function(event){
                 App.makeModal(carouselHTML);
                 App.carousel(event.data.i);
             });
