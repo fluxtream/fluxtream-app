@@ -719,6 +719,14 @@ define(["core/grapher/BTCore"], function(BTCore) {
         }
     }
 
+    Grapher.prototype.hasChannel = function(channelName){
+        for (var member in this.channelsMap){
+            if (this.channelsMap[member].device_name + "." + this.channelsMap[member].channel_name == channelName)
+                return true;
+        }
+        return false;
+    }
+
     // Add new channel to target
     Grapher.prototype.addChannel = function(channel, target, dontPad) {
         var grapher = this;
@@ -741,6 +749,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
             if (channel == null)
                 return;
             var channel = grapher.sourcesMap[channel.id];
+            console.log(channel);
         }
 
         App.loadMustacheTemplate("core/grapher/timelineTemplates.html","channelTemplate",function(template){

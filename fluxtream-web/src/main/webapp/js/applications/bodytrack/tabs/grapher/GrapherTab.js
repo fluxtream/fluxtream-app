@@ -6,8 +6,22 @@ define(["core/Tab","core/grapher/Grapher","core/FlxState"], function(Tab,Grapher
     var grapher = null;
     var pointLoad = null;
     var currentPointLoad = null;
+    var cursorPositionToSet = null;
+    var channelToAdd = null;
 
     grapherTab.render = function(params){
+        if (params.rebuildURL){
+            params.rebuildURL = false;
+            var append = "";
+            if (currentView != null){
+                append = "/view/" + currentView;
+            }
+            App.renderApp("bodytrack","grapher" + append,params);
+            return;
+        }
+        console.log(params);
+        cursorPositionToSet = params.cursorPos;
+        channelToAdd = params.channelAdd;
         tbounds = params.tbounds;
         this.getTemplate("text!applications/bodytrack/tabs/grapher/grapher.html", "grapher", function() {
             var sourceName = null;
@@ -16,14 +30,6 @@ define(["core/Tab","core/grapher/Grapher","core/FlxState"], function(Tab,Grapher
             }
             if (params.stateParts != null && params.stateParts.length == 2 && params.stateParts[0] == "view"){
                 viewLoad = params.stateParts[1];
-            }
-            if (params.stateParts != null && params.stateParts.length == 4 && params.stateParts[0] == "point"){
-                pointLoad = {
-                    device: params.stateParts[1],
-                    channel: params.stateParts[2],
-                    time: parseInt(params.stateParts[3]) / 1000
-                }
-
             }
             setup();
         });
@@ -56,17 +62,13 @@ define(["core/Tab","core/grapher/Grapher","core/FlxState"], function(Tab,Grapher
     }
 
     function onSourceLoad(){
-        if (pointLoad != null){
-            if (currentPointLoad !== pointLoad){
-                currentPointLoad = pointLoad;
-                currentView = null;
-                grapher.newView(pointLoad.time - 60 * 60 * 12, pointLoad.time + 60 * 60 * 12);
-                grapher.addChannel(pointLoad.device + "." + pointLoad.channel);
-                grapher.setTimeCursorPosition(pointLoad.time);
-                pointLoad = null;
-                tbounds = null;
-            }
-        }
+        if (cursorPositionToSet != null)
+            grapher.setTimeCursorPosition(cursorPositionToSet);
+        if (channelToAdd != null)
+            if (!grapher.hasChannel(channelToAdd))
+                grapher.addChannel(channelToAdd);
+        if (tbounds != null)
+            grapher.setRange(tbounds.start/1000,tbounds.end/1000);
         onPointLoad();
     }
 
@@ -80,11 +82,6 @@ define(["core/Tab","core/grapher/Grapher","core/FlxState"], function(Tab,Grapher
             }
             viewLoad = null;
         }
-        if (tbounds != null){
-            grapher.setRange(tbounds.start/1000,tbounds.end/1000);
-            tbounds = null;
-        }
-
         if (grapher.getTimeCursorPosition() == null)
             grapher.setTimeCursorPosition(grapher.getCenter());
 

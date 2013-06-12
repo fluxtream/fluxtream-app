@@ -454,7 +454,12 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 
            ttpdiv.find("#tooltipLoadBodyTrack").click(function(event){
                 event.preventDefault();
-                App.renderApp('bodytrack','grapher/point/' + sourceName + "/" + channelName + "/" + facet.start);
+                App.renderApp('bodytrack','grapher', {
+                    cursorPos: facet.start / 1000,
+                    rebuildURL: true,
+                    channelAdd: sourceName + "." + channelName,
+                    tbounds: dgst.tbounds
+                });
             });
        });
 
