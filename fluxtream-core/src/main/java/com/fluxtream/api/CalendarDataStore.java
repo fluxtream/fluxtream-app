@@ -54,7 +54,6 @@ import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.NotificationsService;
 import com.fluxtream.services.SettingsService;
-import com.fluxtream.updaters.strategies.UpdateStrategyFactory;
 import com.fluxtream.utils.Utils;
 import com.google.gson.Gson;
 import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
@@ -85,9 +84,6 @@ public class CalendarDataStore {
 
 	@Autowired
 	NotificationsService notificationsService;
-
-	@Autowired
-	UpdateStrategyFactory updateStrategyFactory;
 
 	@Autowired
     CalendarDataHelper calendarDataHelper;
@@ -389,8 +385,6 @@ public class CalendarDataStore {
             ObjectType[] objectTypes = connector.objectTypes();
             ApiKey apiKey = guestService.getApiKey(AuthHelper.getGuestId(),
                                                    connector);
-
-            calendarDataHelper.refreshApiData(dayMetadata, apiKey, null, day);
 
             if (objectTypes != null) {
                 for (ObjectType objectType : objectTypes) {
