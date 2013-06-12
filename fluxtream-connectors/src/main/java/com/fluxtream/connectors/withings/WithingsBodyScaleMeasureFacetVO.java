@@ -31,9 +31,9 @@ public class WithingsBodyScaleMeasureFacetVO extends
 	public void fromFacet(WithingsBodyScaleMeasureFacet facet,
 			TimeInterval timeInterval, GuestSettings settings) {
 		long elapsed = timeInterval.getStart()
-				- TimeUtils.fromMidnight(facet.measureTime, timeInterval.getTimeZone());
+				- TimeUtils.fromMidnight(facet.measureTime, timeInterval.getMainTimeZone());
 		daysAgo = (int) (elapsed / (24 * 3600000));
-		this.startMinute = toMinuteOfDay(new Date(facet.measureTime), timeInterval.getTimeZone());
+		this.startMinute = toMinuteOfDay(new Date(facet.measureTime), timeInterval.getMainTimeZone());
 		format(facet.weight, settings.weightMeasureUnit);
 		this.description = new StringBuffer().append(weight).append(" ")
 				.append(unitLabel).toString();

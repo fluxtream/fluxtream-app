@@ -15,7 +15,7 @@ public class TweetFacetVO extends AbstractInstantFacetVO<TweetFacet> {
 	
 	@Override
 	public void fromFacet(TweetFacet facet, TimeInterval timeInterval, GuestSettings settings) {
-		startMinute = toMinuteOfDay(new Date(facet.time), timeInterval.getTimeZone());
+		startMinute = toMinuteOfDay(new Date(facet.time), timeInterval.getMainTimeZone());
 		text = facet.text;
 		description = facet.text;
         this.profileImageUrl = facet.profileImageUrl;

@@ -16,8 +16,8 @@ public class GoogleCalendarEntryFacetVO extends AbstractTimedFacetVO<GoogleCalen
         this.type = "google_calendar-entry";
 		this.description = facet.title;
 		SWhen when = facet.times.get(0);
-		startMinute = toMinuteOfDay(new Date(when.startTime), timeInterval.getTimeZone());
-		endMinute = toMinuteOfDay(new Date(when.endTime), timeInterval.getTimeZone());
+		startMinute = toMinuteOfDay(new Date(when.startTime), timeInterval.getMainTimeZone());
+		endMinute = toMinuteOfDay(new Date(when.endTime), timeInterval.getMainTimeZone());
 		this.title = facet.title;
 	}
 

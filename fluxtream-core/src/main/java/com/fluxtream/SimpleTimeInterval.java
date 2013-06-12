@@ -22,7 +22,7 @@ public class SimpleTimeInterval implements TimeInterval {
 	@Override
     public boolean isMostRecent() {
 		long now = System.currentTimeMillis();
-		long fromMidnight = TimeUtils.fromMidnight(now, getTimeZone());
+		long fromMidnight = TimeUtils.fromMidnight(now, getMainTimeZone());
 		return getStart() >=fromMidnight;
 	}
 	
@@ -34,7 +34,7 @@ public class SimpleTimeInterval implements TimeInterval {
 		TimeInterval ti = (TimeInterval) o;
 		return ti.getStart() == getStart() &&
 				ti.getEnd() == getEnd() && ti.getTimeUnit() == getTimeUnit() &&
-				ti.getTimeZone() == getTimeZone();
+				ti.getMainTimeZone() == getMainTimeZone();
 	}
 
     @Override
@@ -68,7 +68,7 @@ public class SimpleTimeInterval implements TimeInterval {
     }
 
     @Override
-    public TimeZone getTimeZone() {
+    public TimeZone getMainTimeZone() {
         return timeZone;
     }
 

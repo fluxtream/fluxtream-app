@@ -8,7 +8,6 @@ import java.util.TimeZone;
  * Time: 14:08
  */
 public interface TimeInterval {
-    boolean isMostRecent();
 
     long getStart();
 
@@ -22,7 +21,8 @@ public interface TimeInterval {
 
     void setTimeUnit(TimeUnit timeUnit);
 
-    TimeZone getTimeZone();
+    @Deprecated
+    TimeZone getMainTimeZone();
 
     void setTimeZone(TimeZone timeZone);
 }

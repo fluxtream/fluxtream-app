@@ -13,7 +13,7 @@ public class WithingsBPMMeasureFacetVO extends AbstractInstantFacetVO<WithingsBP
 	@Override
 	public void fromFacet(WithingsBPMMeasureFacet facet, TimeInterval timeInterval,
 			GuestSettings settings) {
-		this.startMinute = toMinuteOfDay(new Date(facet.measureTime), timeInterval.getTimeZone());
+		this.startMinute = toMinuteOfDay(new Date(facet.measureTime), timeInterval.getMainTimeZone());
 		systolic = facet.systolic;
 		diastolic = facet.diastolic;
 		pulse = facet.heartPulse;

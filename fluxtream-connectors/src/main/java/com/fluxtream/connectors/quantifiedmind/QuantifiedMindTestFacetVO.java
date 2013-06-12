@@ -18,7 +18,7 @@ public class QuantifiedMindTestFacetVO extends AbstractInstantFacetVO<Quantified
 
     @Override
     protected void fromFacet(final QuantifiedMindTestFacet facet, final TimeInterval timeInterval, final GuestSettings settings) {
-        startMinute = toMinuteOfDay(new Date(facet.start), timeInterval.getTimeZone());
+        startMinute = toMinuteOfDay(new Date(facet.start), timeInterval.getMainTimeZone());
         this.start = facet.start;
         this.test_name = facet.test_name;
         this.result_name = facet.result_name;

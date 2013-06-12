@@ -12,7 +12,7 @@ public class WithingsHeartPulseMeasureFacetVO extends AbstractInstantFacetVO<Wit
 	@Override
 	public void fromFacet(WithingsHeartPulseMeasureFacet facet, TimeInterval timeInterval,
 			GuestSettings settings) {
-		this.startMinute = toMinuteOfDay(new Date(facet.start), timeInterval.getTimeZone());
+		this.startMinute = toMinuteOfDay(new Date(facet.start), timeInterval.getMainTimeZone());
 		pulse = facet.heartPulse;
 		description = facet.heartPulse + " bpm";
 	}

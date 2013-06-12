@@ -35,8 +35,8 @@ public class ZeoSleepStatsFacetVO extends AbstractLocalTimeTimedFacetVO<ZeoSleep
 		zq = facet.zq;
 		morningFeel = facet.morningFeel;
 		sleepGraph = facet.sleepGraph;
-        s = zeoTimeFormat.withZone(DateTimeZone.forTimeZone(timeInterval.getTimeZone())).print(facet.start);
-        e = zeoTimeFormat.withZone(DateTimeZone.forTimeZone(timeInterval.getTimeZone())).print(facet.end);
+        s = zeoTimeFormat.withZone(DateTimeZone.forTimeZone(timeInterval.getMainTimeZone())).print(facet.start);
+        e = zeoTimeFormat.withZone(DateTimeZone.forTimeZone(timeInterval.getMainTimeZone())).print(facet.end);
     }
 
 }

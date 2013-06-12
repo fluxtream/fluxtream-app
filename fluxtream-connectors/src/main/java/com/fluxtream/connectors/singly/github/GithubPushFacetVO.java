@@ -18,7 +18,7 @@ public class GithubPushFacetVO extends AbstractInstantFacetVO<GithubPushFacet> {
 
     @Override
     protected void fromFacet(final GithubPushFacet facet, final TimeInterval timeInterval, final GuestSettings settings) {
-        startMinute = toMinuteOfDay(new Date(facet.start), timeInterval.getTimeZone());
+        startMinute = toMinuteOfDay(new Date(facet.start), timeInterval.getMainTimeZone());
         this.start = facet.start;
         this.repoName = facet.repoName;
         this.repoURL = facet.repoURL;
