@@ -2,6 +2,7 @@ package com.fluxtream.metadata;
 
 import java.util.List;
 import java.util.TimeZone;
+import com.fluxtream.SimpleTimeInterval;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.TimeUnit;
 import com.fluxtream.domain.metadata.VisitedCity;
@@ -52,7 +53,7 @@ public class WeekMetadata extends AbstractTimeUnitMetadata {
         TimeZone zone = TimeZone.getTimeZone("UTC");
         if (timeZone!=null)
             zone = TimeZone.getTimeZone(timeZone);
-        return new TimeInterval(start, end, TimeUnit.WEEK, zone);
+        return new SimpleTimeInterval(start, end, TimeUnit.WEEK, zone);
     }
 
 }

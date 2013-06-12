@@ -3,6 +3,7 @@ package com.fluxtream.metadata;
 import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;
+import com.fluxtream.SimpleTimeInterval;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.TimeUnit;
 import com.fluxtream.domain.metadata.VisitedCity;
@@ -35,7 +36,7 @@ public class DayMetadata extends AbstractTimeUnitMetadata {
         TimeZone zone = TimeZone.getTimeZone("UTC");
         if (timeZone!=null)
             zone = TimeZone.getTimeZone(timeZone);
-        return new TimeInterval(start, end, TimeUnit.DAY, zone);
+        return new SimpleTimeInterval(start, end, TimeUnit.DAY, zone);
 	}
 	
 	public Calendar getStartCalendar() {

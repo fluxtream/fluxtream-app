@@ -7,7 +7,6 @@ import java.util.Map;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.domain.ApiKey;
-import com.google.gson.annotations.Expose;
 
 public class UpdateInfo implements Cloneable {
 
@@ -46,7 +45,7 @@ public class UpdateInfo implements Cloneable {
         if (!sameData) return false;
         boolean sameTimeInterval = timeInterval==null
                                  ? other.timeInterval==null
-                                 : other.timeInterval.start == timeInterval.start && other.timeInterval.end == timeInterval.start;
+                                 : other.timeInterval.getStart() == timeInterval.getStart() && other.timeInterval.getEnd() == timeInterval.getStart();
         if (!sameTimeInterval) return false;
         boolean sameUpdateType = updateType == other.updateType;
         if (!sameUpdateType) return false;

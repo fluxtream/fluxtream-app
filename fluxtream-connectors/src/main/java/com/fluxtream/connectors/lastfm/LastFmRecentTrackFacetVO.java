@@ -17,7 +17,7 @@ public class LastFmRecentTrackFacetVO extends AbstractInstantFacetVO<LastFmRecen
 	@Override
 	public void fromFacet(LastFmRecentTrackFacet facet, TimeInterval timeInterval,
 			GuestSettings settings) {
-		startMinute = toMinuteOfDay(new Date(facet.time), timeInterval.timeZone);
+		startMinute = toMinuteOfDay(new Date(facet.time), timeInterval.getTimeZone());
 		artist = facet.artist;
 		this.album_mbid = facet.album_mbid;
 		this.artist_mbid = facet.artist_mbid;

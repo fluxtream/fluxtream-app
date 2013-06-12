@@ -104,8 +104,8 @@ public class JPAFacetDao implements FacetDao {
             String queryString = "SELECT facet FROM " + facetName  + " facet WHERE facet.apiKeyId=? AND facet.start>=? AND facet.end<=?" + additionalWhereClause;
             final TypedQuery<AbstractFacet> query = em.createQuery(queryString, AbstractFacet.class);
             query.setParameter(1, apiKey.getId());
-            query.setParameter(2, timeInterval.start);
-            query.setParameter(3, timeInterval.end);
+            query.setParameter(2, timeInterval.getStart());
+            query.setParameter(3, timeInterval.getEnd());
             List<AbstractFacet> facets = query.getResultList();
             return facets;
         }

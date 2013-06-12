@@ -26,7 +26,7 @@ public class MymeeObservationFacetVO extends AbstractPhotoFacetVO<MymeeObservati
 
     @Override
     protected void fromFacet(final MymeeObservationFacet facet, final TimeInterval timeInterval, final GuestSettings settings) {
-        startMinute = toMinuteOfDay(new Date(facet.start), timeInterval.timeZone);
+        startMinute = toMinuteOfDay(new Date(facet.start), timeInterval.getTimeZone());
         this.start = facet.start;
         this.mymeeId = facet.mymeeId;
         this.name = facet.name;

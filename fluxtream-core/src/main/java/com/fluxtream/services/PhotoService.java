@@ -1,8 +1,8 @@
 package com.fluxtream.services;
 
-import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
+import com.fluxtream.SimpleTimeInterval;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
@@ -31,14 +31,14 @@ public interface PhotoService {
 
     /**
      * Gets all {@link Photo}s from all {@link Connector}s having image {@link ObjectType}s for the given
-     * <code>guestId</code> and {@link TimeInterval}.
+     * <code>guestId</code> and {@link SimpleTimeInterval}.
      */
     SortedSet<Photo> getPhotos(long guestId, TimeInterval timeInterval) throws ClassNotFoundException, IllegalAccessException, InstantiationException;
 
     /**
      * <p>
      * Returns a {@link SortedSet} of {@link Photo} objects for the given <code>guestId</code> and within the given
-     * {@link TimeInterval} which belong to the {@link Connector} {@link ObjectType} specified by the given
+     * {@link SimpleTimeInterval} which belong to the {@link Connector} {@link ObjectType} specified by the given
      * <code>connectorPrettyName</code> and <code>objectTypeName</code>.
      * </p>
      * <p>
@@ -84,8 +84,8 @@ public interface PhotoService {
 
     /**
      * Returns a {@link Map} of photo channels (a {@link String} which is of the form {connector_pretty_name}.{object_name})
-     * mapped to a {@link TimeInterval} which specifies the time range for that channel.  May return an empty
-     * {@link Map}, but guaranteed to not return <code>null</code>.  Note that the {@link TimeInterval} for a channel
+     * mapped to a {@link SimpleTimeInterval} which specifies the time range for that channel.  May return an empty
+     * {@link Map}, but guaranteed to not return <code>null</code>.  Note that the {@link SimpleTimeInterval} for a channel
      * may be <code>null</code>, for example if the channel is a photo channel, but it currently contains no photos.
      */
     Map<String, TimeInterval> getPhotoChannelTimeRanges(long guestId, final CoachingBuddy coachee);

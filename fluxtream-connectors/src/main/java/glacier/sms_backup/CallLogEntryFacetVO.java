@@ -16,7 +16,7 @@ public class CallLogEntryFacetVO extends AbstractTimedFacetVO<CallLogEntryFacet>
 			title = phoneCall.personName;
 		else
 			title = phoneCall.personName;
-		this.startMinute = toMinuteOfDay(phoneCall.date, timeInterval.timeZone);
+		this.startMinute = toMinuteOfDay(phoneCall.date, timeInterval.getTimeZone());
 		this.endMinute = this.startMinute + phoneCall.seconds/60;
 		this.secondsTalking = Math.round(phoneCall.seconds);
 		this.description = title;

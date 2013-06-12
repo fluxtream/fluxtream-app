@@ -256,8 +256,8 @@ public class BodyTrackHelper {
                         channelSpecs.channel_bounds.max_time = defaultTimeForNullTimeIntervals;
                     }
                     else {
-                        channelSpecs.channel_bounds.min_time = timeInterval.start / 1000;
-                        channelSpecs.channel_bounds.max_time = timeInterval.end / 1000;
+                        channelSpecs.channel_bounds.min_time = timeInterval.getStart() / 1000;
+                        channelSpecs.channel_bounds.max_time = timeInterval.getEnd() / 1000;
                     }
                     channelSpecs.channel_bounds.min_value = .6;
                     channelSpecs.channel_bounds.max_value = 1;
@@ -350,8 +350,8 @@ public class BodyTrackHelper {
                         channelSpecs.channel_bounds.max_time = defaultTimeForNullTimeIntervals;
                     }
                     else {
-                        channelSpecs.channel_bounds.min_time = timeInterval.start / 1000;
-                        channelSpecs.channel_bounds.max_time = timeInterval.end / 1000;
+                        channelSpecs.channel_bounds.min_time = timeInterval.getStart() / 1000;
+                        channelSpecs.channel_bounds.max_time = timeInterval.getEnd() / 1000;
                     }
                     channelSpecs.channel_bounds.min_value = .6;
                     channelSpecs.channel_bounds.max_value = 1;

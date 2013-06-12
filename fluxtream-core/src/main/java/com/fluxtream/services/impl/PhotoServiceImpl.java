@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TimeZone;
 import java.util.TreeSet;
+import com.fluxtream.SimpleTimeInterval;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.TimeUnit;
 import com.fluxtream.aspects.FlxLogger;
@@ -311,7 +312,7 @@ public class PhotoServiceImpl implements PhotoService {
     }
 
     /**
-     * Converts {@link AbstractFacet}s to {@link Photo}s.  If the given {@link TimeInterval} is <code>null</code>, this
+     * Converts {@link AbstractFacet}s to {@link Photo}s.  If the given {@link SimpleTimeInterval} is <code>null</code>, this
      * method creates a new one for each {@link AbstractFacet} using the facet's start time.
      */
     private SortedSet<Photo> convertFacetsToPhotos(final ApiKey apiKey,
@@ -329,7 +330,7 @@ public class PhotoServiceImpl implements PhotoService {
 
             final TimeInterval actualTimeInterval;
             if (timeInterval == null) {
-                actualTimeInterval = new TimeInterval(facet.start, facet.start, TimeUnit.DAY, TimeZone.getTimeZone("UTC"));
+                actualTimeInterval = new SimpleTimeInterval(facet.start, facet.start, TimeUnit.DAY, TimeZone.getTimeZone("UTC"));
             }
             else {
                 actualTimeInterval = timeInterval;
@@ -351,7 +352,7 @@ public class PhotoServiceImpl implements PhotoService {
     }
 
     /**
-     * Returns the {@link TimeInterval} for the oldest and newest facets.  Returns <code>null</code> if no facets exist.
+     * Returns the {@link SimpleTimeInterval} for the oldest and newest facets.  Returns <code>null</code> if no facets exist.
      */
     private TimeInterval constructTimeIntervalFromOldestAndNewestFacets(final ApiKey apiKey,
                                                                         final ObjectType objectType) {
@@ -360,7 +361,7 @@ public class PhotoServiceImpl implements PhotoService {
         final AbstractFacet newestFacet = photoFacetFinderStrategy.findLatest(apiKey, objectType);
 
         if (oldestFacet != null && newestFacet != null) {
-            return new TimeInterval(oldestFacet.start, newestFacet.start, TimeUnit.DAY, TimeZone.getTimeZone("UTC"));
+            return new SimpleTimeInterval(oldestFacet.start, newestFacet.start, TimeUnit.DAY, TimeZone.getTimeZone("UTC"));
         }
 
         return null;

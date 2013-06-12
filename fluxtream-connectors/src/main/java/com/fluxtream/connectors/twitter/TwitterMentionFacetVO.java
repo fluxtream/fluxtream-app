@@ -14,7 +14,7 @@ public class TwitterMentionFacetVO extends AbstractInstantFacetVO<TwitterMention
 	
 	@Override
 	public void fromFacet(TwitterMentionFacet facet, TimeInterval timeInterval, GuestSettings settings) {
-		startMinute = toMinuteOfDay(new Date(facet.time), timeInterval.timeZone);
+		startMinute = toMinuteOfDay(new Date(facet.time), timeInterval.getTimeZone());
 		text = facet.text;
 		description = facet.text;
 		this.profileImageUrl = facet.profileImageUrl;
