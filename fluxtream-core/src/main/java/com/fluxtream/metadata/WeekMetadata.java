@@ -16,7 +16,7 @@ import org.joda.time.LocalDate;
  * Date: 29/05/13
  * Time: 18:04
  */
-public class WeekMetadata extends AbstractTimeUnitMetadata {
+public class WeekMetadata extends AbstractTimespanMetadata {
 
     public WeekMetadata(final int year, final int week) {
         final LocalDate beginningOfWeek = TimeUtils.getBeginningOfWeek(year, week);

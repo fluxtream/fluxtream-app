@@ -10,7 +10,7 @@ import com.fluxtream.domain.metadata.VisitedCity;
 import org.joda.time.DateMidnight;
 import org.joda.time.DateTimeConstants;
 
-public class DayMetadata extends AbstractTimeUnitMetadata {
+public class DayMetadata extends AbstractTimespanMetadata {
 
     public String date;
 

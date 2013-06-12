@@ -6,7 +6,7 @@ import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.domain.AbstractFacet;
-import com.fluxtream.metadata.AbstractTimeUnitMetadata;
+import com.fluxtream.metadata.AbstractTimespanMetadata;
 import com.fluxtream.metadata.DayMetadata;
 import com.fluxtream.mvc.models.TimeBoundariesModel;
 import com.fluxtream.services.ApiDataService;
@@ -54,7 +54,7 @@ public class CalendarDataHelper {
     }
 
 	public List<AbstractFacet> getFacets(Connector connector,
-			ObjectType objectType, AbstractTimeUnitMetadata dayMetadata) {
+			ObjectType objectType, AbstractTimespanMetadata dayMetadata) {
 		List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
 		try {
             if (AuthHelper.isViewingGranted(connector.getName(), coachingService))

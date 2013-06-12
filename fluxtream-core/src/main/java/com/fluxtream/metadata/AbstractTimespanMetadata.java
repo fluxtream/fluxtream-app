@@ -12,7 +12,7 @@ import org.joda.time.format.DateTimeFormatter;
  * Date: 30/05/13
  * Time: 10:39
  */
-public abstract class AbstractTimeUnitMetadata {
+public abstract class AbstractTimespanMetadata {
 
     public float maxTempC = -10000,
             maxTempF = -10000,
@@ -31,10 +31,9 @@ public abstract class AbstractTimeUnitMetadata {
     protected static final DateTimeFormatter formatter = DateTimeFormat
             .forPattern("yyyy-MM-dd");
 
-    public AbstractTimeUnitMetadata() {}
+    public AbstractTimespanMetadata() {}
 
-    AbstractTimeUnitMetadata(List<VisitedCity> cities, VisitedCity consensusVisitedCity,
-                             VisitedCity previousInferredCity, VisitedCity nextInferredCity) {
+    AbstractTimespanMetadata(List<VisitedCity> cities, VisitedCity consensusVisitedCity, VisitedCity previousInferredCity, VisitedCity nextInferredCity) {
         this.cities = cities;
         this.consensusVisitedCity = consensusVisitedCity;
         this.nextInferredCity = nextInferredCity;

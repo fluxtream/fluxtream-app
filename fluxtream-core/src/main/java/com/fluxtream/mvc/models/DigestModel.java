@@ -10,7 +10,7 @@ import java.util.Set;
 import com.fluxtream.Configuration;
 import com.fluxtream.TimeUnit;
 import com.fluxtream.domain.metadata.WeatherInfo;
-import com.fluxtream.metadata.AbstractTimeUnitMetadata;
+import com.fluxtream.metadata.AbstractTimespanMetadata;
 
 public class DigestModel {
 
@@ -30,7 +30,7 @@ public class DigestModel {
 
     public Metadata metadata;
 
-    public DigestModel(TimeUnit timeUnit, AbstractTimeUnitMetadata metadata, Configuration env) {
+    public DigestModel(TimeUnit timeUnit, AbstractTimespanMetadata metadata, Configuration env) {
         VisitedCityModel nic = null, pic = null;
         if (metadata.nextInferredCity!=null)
             nic = new VisitedCityModel(metadata.nextInferredCity, env);

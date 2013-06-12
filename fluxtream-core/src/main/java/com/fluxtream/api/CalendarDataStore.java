@@ -35,7 +35,7 @@ import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.domain.Notification;
 import com.fluxtream.domain.metadata.City;
 import com.fluxtream.domain.metadata.VisitedCity;
-import com.fluxtream.metadata.AbstractTimeUnitMetadata;
+import com.fluxtream.metadata.AbstractTimespanMetadata;
 import com.fluxtream.metadata.DayMetadata;
 import com.fluxtream.metadata.MonthMetadata;
 import com.fluxtream.metadata.WeekMetadata;
@@ -342,7 +342,7 @@ public class CalendarDataStore {
         }
 	}
 
-    private void setMetadata(final DigestModel digest, final AbstractTimeUnitMetadata dayMetadata) {
+    private void setMetadata(final DigestModel digest, final AbstractTimespanMetadata dayMetadata) {
         digest.metadata.mainCity = new VisitedCityModel(dayMetadata.consensusVisitedCity, env);
         List<VisitedCityModel> cityModels = new ArrayList<VisitedCityModel>();
         TreeSet<VisitedCity> orderedCities = new TreeSet<VisitedCity>(dayMetadata.cities);
@@ -431,7 +431,7 @@ public class CalendarDataStore {
 	@SuppressWarnings("rawtypes")
 	private void setCachedData(DigestModel digest, List<ApiKey> userKeys,
 			GuestSettings settings, List<ApiKey> apiKeySelection,
-			AbstractTimeUnitMetadata dayMetadata) throws InstantiationException,
+			AbstractTimespanMetadata dayMetadata) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
 		for (ApiKey apiKey : userKeys) {
 			Connector connector = apiKey.getConnector();
@@ -534,7 +534,7 @@ public class CalendarDataStore {
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
-	private Collection<AbstractFacetVO<AbstractFacet>> getFacetVos(AbstractTimeUnitMetadata dayMetadata,
+	private Collection<AbstractFacetVO<AbstractFacet>> getFacetVos(AbstractTimespanMetadata dayMetadata,
                                                                    GuestSettings settings, Connector connector,
                                                                    ObjectType objectType)
 			throws InstantiationException, IllegalAccessException,
@@ -567,7 +567,7 @@ public class CalendarDataStore {
 		}
 	}
 
-	private void copyMetadata(DigestModel digest, AbstractTimeUnitMetadata md) {
+	private void copyMetadata(DigestModel digest, AbstractTimespanMetadata md) {
 		digest.metadata.minTempC = md.minTempC;
 		digest.metadata.minTempF = md.minTempF;
 		digest.metadata.maxTempC = md.maxTempC;

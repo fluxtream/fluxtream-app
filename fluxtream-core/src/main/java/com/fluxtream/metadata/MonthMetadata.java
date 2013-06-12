@@ -16,7 +16,7 @@ import org.joda.time.LocalDate;
  * Date: 29/05/13
  * Time: 18:19
  */
-public class MonthMetadata extends AbstractTimeUnitMetadata {
+public class MonthMetadata extends AbstractTimespanMetadata {
 
     public MonthMetadata(final int year, final int month) {
         final LocalDate firstDayOfMonth = TimeUtils.getBeginningOfMonth(year, month);
