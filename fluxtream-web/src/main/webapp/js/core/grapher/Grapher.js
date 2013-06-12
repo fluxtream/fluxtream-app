@@ -146,6 +146,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
             // will automatically shrink if the Add Channels and/or Details pane is visible, so we don't explicitly need
             // to account for them here).
             var plotContainerWidth = $("#" + grapher.grapherId + "_timeline_channelsArea").width() - widthOfAreaLeftOfPlotContainer - widthOfAreaRightOfPlotContainer - widthOfPlotContainerLeftAndRightBorder - 20;
+            if (plotContainerWidth < 1) plotContainerWidth = 1; //sometimes the calculated value can be negative. This can cause crashes in IE so we force it to be > 0
 
             // resize plot containers
             var plotContainerEventId = SequenceNumber.getNext();
