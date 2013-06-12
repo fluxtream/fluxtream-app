@@ -65,6 +65,11 @@ public class SimpleTimeInterval implements TimeInterval {
     }
 
     @Override
+    public TimeZone getTimeZone(final long time) throws OutsideTimeBoundariesException {
+        return getMainTimeZone();
+    }
+
+    @Override
     public void setTimeZone(final TimeZone timeZone) {
         this.timeZone = timeZone;
     }

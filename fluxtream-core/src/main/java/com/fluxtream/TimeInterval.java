@@ -24,5 +24,7 @@ public interface TimeInterval {
     @Deprecated
     TimeZone getMainTimeZone();
 
+    TimeZone getTimeZone(long time) throws OutsideTimeBoundariesException;
+
     void setTimeZone(TimeZone timeZone);
 }
