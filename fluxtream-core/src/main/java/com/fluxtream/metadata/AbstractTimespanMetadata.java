@@ -1,7 +1,10 @@
 package com.fluxtream.metadata;
 
 import java.util.List;
+import java.util.TimeZone;
+import com.fluxtream.OutsideTimeBoundariesException;
 import com.fluxtream.TimeInterval;
+import com.fluxtream.TimeUnit;
 import com.fluxtream.domain.metadata.VisitedCity;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
@@ -19,7 +22,6 @@ public abstract class AbstractTimespanMetadata {
             minTempC = 10000,
             minTempF = 10000;
 
-    public String timeZone = "UTC";
     public long start, end;
 
     public VisitedCity consensusVisitedCity;
@@ -30,6 +32,37 @@ public abstract class AbstractTimespanMetadata {
 
     protected static final DateTimeFormatter formatter = DateTimeFormat
             .forPattern("yyyy-MM-dd");
+
+    protected class TimespanTimeInterval implements TimeInterval {
+
+        @Override
+        public TimeZone getMainTimeZone() {
+            return TimeZone.getTimeZone(consensusVisitedCity.city.geo_timezone);
+        }
+
+        @Override
+        public long getStart() { return start; };
+
+        @Override
+        public long getEnd() { return end; }
+
+        @Override
+        public TimeUnit getTimeUnit() { return getTimespanTimeUnit(); }
+
+        @Override
+        public TimeZone getTimeZone(final long time) throws OutsideTimeBoundariesException {
+            if (getTimeUnit()==TimeUnit.DAY)
+                return getMainTimeZone();
+            for (VisitedCity city : cities) {
+                long dayStart = city.getDayStart();
+                long dayEnd = city.getDayEnd();
+                if (dayStart<time&&dayEnd>time)
+                    return TimeZone.getTimeZone(city.city.geo_timezone);
+            }
+            throw new OutsideTimeBoundariesException();
+        }
+
+    }
 
     public AbstractTimespanMetadata() {}
 
@@ -43,12 +76,14 @@ public abstract class AbstractTimespanMetadata {
     protected long getTimeForDate(final VisitedCity consensusVisitedCity, final String forDate) {
         final DateTimeZone dateTimeZone = DateTimeZone.forID(consensusVisitedCity.city.geo_timezone);
         long forDateTime = formatter.withZone(dateTimeZone).parseDateTime(forDate).getMillis();
-        timeZone = consensusVisitedCity.city.geo_timezone;
         start = forDateTime;
         return forDateTime;
     }
 
-    @Deprecated
-    public abstract TimeInterval getTimeInterval();
+    protected abstract TimeUnit getTimespanTimeUnit();
+
+    public TimeInterval getTimeInterval() {
+        return new TimespanTimeInterval();
+    }
 
 }

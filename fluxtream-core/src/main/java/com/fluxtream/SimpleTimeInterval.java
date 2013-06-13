@@ -5,17 +5,13 @@ import java.util.TimeZone;
 
 public class SimpleTimeInterval implements TimeInterval {
 
-	private long start;
-    private long end;
-
-	private TimeUnit timeUnit;
-	private transient TimeZone timeZone;
+    private transient TimeZone timeZone;
 	
 	public SimpleTimeInterval(long start, long end, TimeUnit timeUnit, TimeZone timeZone) {
-		this.setStart(start);
-		this.setEnd(end);
-		this.setTimeUnit(timeUnit);
-		this.setTimeZone(timeZone);
+        this.start = start;
+        this.end = end;
+        this.timeUnit = timeUnit;
+        this.timeZone = timeZone;
 	}
 	
 	public String toString() {
@@ -30,36 +26,6 @@ public class SimpleTimeInterval implements TimeInterval {
 	}
 
     @Override
-    public long getStart() {
-        return start;
-    }
-
-    @Override
-    public void setStart(final long start) {
-        this.start = start;
-    }
-
-    @Override
-    public long getEnd() {
-        return end;
-    }
-
-    @Override
-    public void setEnd(final long end) {
-        this.end = end;
-    }
-
-    @Override
-    public TimeUnit getTimeUnit() {
-        return timeUnit;
-    }
-
-    @Override
-    public void setTimeUnit(final TimeUnit timeUnit) {
-        this.timeUnit = timeUnit;
-    }
-
-    @Override
     public TimeZone getMainTimeZone() {
         return timeZone;
     }
@@ -69,8 +35,20 @@ public class SimpleTimeInterval implements TimeInterval {
         return getMainTimeZone();
     }
 
-    @Override
-    public void setTimeZone(final TimeZone timeZone) {
-        this.timeZone = timeZone;
+    private long start;
+    private long end;
+    private TimeUnit timeUnit;
+
+    public long getStart() {
+        return start;
     }
+
+    public long getEnd() {
+        return end;
+    }
+
+    public TimeUnit getTimeUnit() {
+        return timeUnit;
+    }
+
 }

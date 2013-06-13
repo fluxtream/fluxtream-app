@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TimeZone;
 import java.util.TreeSet;
+import com.fluxtream.OutsideTimeBoundariesException;
 import com.fluxtream.SimpleTimeInterval;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.TimeUnit;
@@ -74,7 +75,7 @@ public class PhotoServiceImpl implements PhotoService {
 
     @Override
     public SortedSet<Photo> getPhotos(long guestId,
-                                      TimeInterval timeInterval) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+                                      TimeInterval timeInterval) throws ClassNotFoundException, IllegalAccessException, InstantiationException, OutsideTimeBoundariesException {
         return getPhotos(guestId, timeInterval, ALL_DEVICES_NAME, DEFAULT_PHOTOS_CHANNEL_NAME, null, null);
     }
 
@@ -83,7 +84,7 @@ public class PhotoServiceImpl implements PhotoService {
                                       final TimeInterval timeInterval,
                                       final String connectorPrettyName,
                                       final String objectTypeName,
-                                      @Nullable TagFilter tagFilter) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+                                      @Nullable TagFilter tagFilter) throws ClassNotFoundException, IllegalAccessException, InstantiationException, OutsideTimeBoundariesException {
 
         return getPhotos(guestId, timeInterval, connectorPrettyName, objectTypeName, tagFilter, new PhotoFinder() {
             public List<AbstractFacet> find(final ApiKey apiKey,
@@ -108,7 +109,7 @@ public class PhotoServiceImpl implements PhotoService {
                                       final String objectTypeName,
                                       final int desiredCount,
                                       final boolean isGetPhotosBeforeTime,
-                                      @Nullable TagFilter tagFilter) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+                                      @Nullable TagFilter tagFilter) throws InstantiationException, IllegalAccessException, ClassNotFoundException, OutsideTimeBoundariesException {
 
         // make sure the count is >= 1
         final int cleanedDesiredCount = Math.max(1, desiredCount);
@@ -225,7 +226,9 @@ public class PhotoServiceImpl implements PhotoService {
                                        final String connectorPrettyName,
                                        final String objectTypeName,
                                        @Nullable TagFilter tagFilter,
-                                       final PhotoFinder facetFinderStrategy) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+                                       final PhotoFinder facetFinderStrategy)
+            throws InstantiationException, IllegalAccessException, ClassNotFoundException, OutsideTimeBoundariesException
+    {
 
         SortedSet<Photo> photos = new TreeSet<Photo>();
 
@@ -319,7 +322,9 @@ public class PhotoServiceImpl implements PhotoService {
                                                    final TimeInterval timeInterval,
                                                    final List<AbstractFacet> facets,
                                                    final Connector connector,
-                                                   final ObjectType objectType) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+                                                   final ObjectType objectType)
+            throws ClassNotFoundException, InstantiationException, IllegalAccessException, OutsideTimeBoundariesException
+    {
 
         SortedSet<Photo> photos = new TreeSet<Photo>();
 

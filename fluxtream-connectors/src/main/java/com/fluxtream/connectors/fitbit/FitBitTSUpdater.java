@@ -236,7 +236,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 				String date = entry.getString("dateTime");
 				DayMetadata dayMetadata = metadataService.getDayMetadata(apiKey.getGuestId(), date);
                 logger.debug("dayMetadata: " + dayMetadata);
-                logger.debug("dayMetadataFacet's timezone: " + dayMetadata.timeZone);
+                logger.debug("dayMetadataFacet's timezone: " + dayMetadata.getTimeInterval().getMainTimeZone().getID());
 				TimeInterval timeInterval = dayMetadata.getTimeInterval();
                 logger.debug("dayMetadataFacet's timeInterval: " + timeInterval);
 

@@ -5,12 +5,12 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.SortedSet;
-import java.util.TimeZone;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import com.fluxtream.OutsideTimeBoundariesException;
 import com.fluxtream.SimpleTimeInterval;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.TimeUnit;
@@ -83,7 +83,7 @@ public class PhotoStore {
             c.set(Calendar.DAY_OF_YEAR,newDay);
             DayMetadata dayMetaEnd = metadataService.getDayMetadata(guest.getId(), year + "-" + datePartFormat.format(c.get(Calendar.MONTH) + 1) +
                                                                                           "-" + datePartFormat.format(c.get(Calendar.DAY_OF_MONTH)));
-            return gson.toJson(getPhotos(guest, new SimpleTimeInterval(dayMetaStart.start,dayMetaEnd.end,TimeUnit.WEEK,TimeZone.getTimeZone(dayMetaStart.timeZone))));
+            return gson.toJson(getPhotos(guest, new SimpleTimeInterval(dayMetaStart.start,dayMetaEnd.end,TimeUnit.WEEK,dayMetaStart.getTimeInterval().getMainTimeZone())));
         } catch (Exception e){
             StatusModel result = new StatusModel(false, "Could not get photos: " + e.getMessage());
             return gson.toJson(result);
@@ -100,7 +100,7 @@ public class PhotoStore {
             DayMetadata dayMetaStart = metadataService.getDayMetadata(guest.getId(), year + "-01-01");
 
             DayMetadata dayMetaEnd = metadataService.getDayMetadata(guest.getId(), year + "-12-31");
-            return gson.toJson(getPhotos(guest, new SimpleTimeInterval(dayMetaStart.start,dayMetaEnd.end,TimeUnit.WEEK,TimeZone.getTimeZone(dayMetaStart.timeZone))));
+            return gson.toJson(getPhotos(guest, new SimpleTimeInterval(dayMetaStart.start,dayMetaEnd.end,TimeUnit.WEEK,dayMetaStart.getTimeInterval().getMainTimeZone())));
         } catch (Exception e){
             StatusModel result = new StatusModel(false, "Could not get photos: " + e.getMessage());
             return gson.toJson(result);
@@ -116,7 +116,9 @@ public class PhotoStore {
         return year % 4 == 0;
     }
 
-    private List<PhotoModel> getPhotos(Guest guest, TimeInterval timeInterval) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+    private List<PhotoModel> getPhotos(Guest guest, TimeInterval timeInterval)
+            throws ClassNotFoundException, IllegalAccessException, InstantiationException, OutsideTimeBoundariesException
+    {
         final SortedSet<PhotoService.Photo> photos = photoService.getPhotos(guest.getId(), timeInterval, Connector.getConnector("fluxtream_capture").prettyName(), "photo", null);
 
         List<PhotoModel> photoModels = new ArrayList<PhotoModel>();

@@ -3,6 +3,7 @@ package com.fluxtream.connectors.mymee;
 import java.awt.Dimension;
 import java.util.Date;
 import java.util.List;
+import com.fluxtream.OutsideTimeBoundariesException;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.vos.AbstractPhotoFacetVO;
 import com.fluxtream.domain.GuestSettings;
@@ -25,8 +26,9 @@ public class MymeeObservationFacetVO extends AbstractPhotoFacetVO<MymeeObservati
     public float[] position;
 
     @Override
-    protected void fromFacet(final MymeeObservationFacet facet, final TimeInterval timeInterval, final GuestSettings settings) {
-        startMinute = toMinuteOfDay(new Date(facet.start), timeInterval.getMainTimeZone());
+    protected void fromFacet(final MymeeObservationFacet facet, final TimeInterval timeInterval, final GuestSettings settings)
+            throws OutsideTimeBoundariesException {
+        startMinute = toMinuteOfDay(new Date(facet.start), timeInterval.getTimeZone(facet.start));
         this.start = facet.start;
         this.mymeeId = facet.mymeeId;
         this.name = facet.name;

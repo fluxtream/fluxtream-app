@@ -2,6 +2,7 @@ package com.fluxtream.services;
 
 import java.util.Map;
 import java.util.SortedSet;
+import com.fluxtream.OutsideTimeBoundariesException;
 import com.fluxtream.SimpleTimeInterval;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.Connector;
@@ -33,7 +34,7 @@ public interface PhotoService {
      * Gets all {@link Photo}s from all {@link Connector}s having image {@link ObjectType}s for the given
      * <code>guestId</code> and {@link SimpleTimeInterval}.
      */
-    SortedSet<Photo> getPhotos(long guestId, TimeInterval timeInterval) throws ClassNotFoundException, IllegalAccessException, InstantiationException;
+    SortedSet<Photo> getPhotos(long guestId, TimeInterval timeInterval) throws ClassNotFoundException, IllegalAccessException, InstantiationException, OutsideTimeBoundariesException;
 
     /**
      * <p>
@@ -54,7 +55,7 @@ public interface PhotoService {
                                TimeInterval timeInterval,
                                String connectorPrettyName,
                                String objectTypeName,
-                               @Nullable TagFilter tagFilter) throws ClassNotFoundException, IllegalAccessException, InstantiationException;
+                               @Nullable TagFilter tagFilter) throws ClassNotFoundException, IllegalAccessException, InstantiationException, OutsideTimeBoundariesException;
 
     /**
      * <p>
@@ -80,7 +81,7 @@ public interface PhotoService {
                                String objectTypeName,
                                int desiredCount,
                                boolean isGetPhotosBeforeTime,
-                               @Nullable TagFilter tagFilter) throws InstantiationException, IllegalAccessException, ClassNotFoundException;
+                               @Nullable TagFilter tagFilter) throws InstantiationException, IllegalAccessException, ClassNotFoundException, OutsideTimeBoundariesException;
 
     /**
      * Returns a {@link Map} of photo channels (a {@link String} which is of the form {connector_pretty_name}.{object_name})

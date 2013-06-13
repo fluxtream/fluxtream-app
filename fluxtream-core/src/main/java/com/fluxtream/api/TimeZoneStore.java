@@ -36,9 +36,9 @@ public class TimeZoneStore {
         List<DayMetadata> metaData = metadataService.getAllDayMetadata(AuthHelper.getGuestId());
         for (DayMetadata dayMetadata  : metaData){
             TimeZoneSegmentModel curTimeZone;
-            if (timeZoneMapping.timeZones.size() == 0 || !timeZoneMapping.timeZones.get(timeZoneMapping.timeZones.size() - 1).name.equals(dayMetadata.timeZone)){
+            if (timeZoneMapping.timeZones.size() == 0 || !timeZoneMapping.timeZones.get(timeZoneMapping.timeZones.size() - 1).name.equals(dayMetadata.getTimeInterval().getMainTimeZone().getID())){
                 curTimeZone = new TimeZoneSegmentModel();
-                curTimeZone.name = dayMetadata.timeZone;
+                curTimeZone.name = dayMetadata.getTimeInterval().getMainTimeZone().getID();
                 curTimeZone.start = dayMetadata.start;
                 curTimeZone.tz = TimeZone.getTimeZone(curTimeZone.name);
                 curTimeZone.start +=  curTimeZone.tz.getOffset(curTimeZone.start);

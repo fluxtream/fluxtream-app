@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import com.fluxtream.OutsideTimeBoundariesException;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.vos.AbstractFacetVOCollection;
 import com.fluxtream.domain.GuestSettings;
@@ -17,7 +18,7 @@ public class WithingsFacetVOCollection extends AbstractFacetVOCollection {
 
 	@Override
 	public void extractFacets(List facets, TimeInterval timeInterval,
-			GuestSettings settings) {
+			GuestSettings settings) throws OutsideTimeBoundariesException {
 		if (facets.size() == 0)
 			return;
 		for (Object facet : facets) {
@@ -67,7 +68,7 @@ public class WithingsFacetVOCollection extends AbstractFacetVOCollection {
 	}
 
 	private void addBpmMeasure(WithingsBPMMeasureFacet facet,
-			TimeInterval timeInterval, GuestSettings settings) {
+			TimeInterval timeInterval, GuestSettings settings) throws OutsideTimeBoundariesException {
 		if (bpmMeasures == null)
 			bpmMeasures = new ArrayList<WithingsBPMMeasureFacetVO>();
 		WithingsBPMMeasureFacetVO jsonFacet = new WithingsBPMMeasureFacetVO();
@@ -76,7 +77,7 @@ public class WithingsFacetVOCollection extends AbstractFacetVOCollection {
 	}
 
 	private void addWeightMeasure(WithingsBodyScaleMeasureFacet facet,
-			TimeInterval timeInterval, GuestSettings settings) {
+			TimeInterval timeInterval, GuestSettings settings) throws OutsideTimeBoundariesException {
 		if (weightMeasures == null)
 			weightMeasures = new ArrayList<WithingsBodyScaleMeasureFacetVO>();
 		WithingsBodyScaleMeasureFacetVO jsonFacet = new WithingsBodyScaleMeasureFacetVO();

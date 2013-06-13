@@ -1,9 +1,6 @@
 package com.fluxtream.metadata;
 
 import java.util.List;
-import java.util.TimeZone;
-import com.fluxtream.SimpleTimeInterval;
-import com.fluxtream.TimeInterval;
 import com.fluxtream.TimeUnit;
 import com.fluxtream.domain.metadata.VisitedCity;
 import com.fluxtream.utils.TimeUtils;
@@ -47,12 +44,9 @@ public class MonthMetadata extends AbstractTimespanMetadata {
         return t;
     }
 
-    public TimeInterval getTimeInterval() {
-        // default to UTC
-        TimeZone zone = TimeZone.getTimeZone("UTC");
-        if (timeZone!=null)
-            zone = TimeZone.getTimeZone(timeZone);
-        return new SimpleTimeInterval(start, end, TimeUnit.MONTH, zone);
+    @Override
+    protected TimeUnit getTimespanTimeUnit() {
+        return TimeUnit.MONTH;
     }
 
 }

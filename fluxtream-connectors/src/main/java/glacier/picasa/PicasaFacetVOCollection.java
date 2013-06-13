@@ -3,6 +3,7 @@ package glacier.picasa;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fluxtream.OutsideTimeBoundariesException;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.vos.AbstractFacetVOCollection;
 import com.fluxtream.connectors.vos.ImageVOCollection;
@@ -16,7 +17,7 @@ public class PicasaFacetVOCollection extends
 
 	@Override
 	public void extractFacets(List<PicasaPhotoFacet> facets,
-			TimeInterval timeInterval, GuestSettings settings) {
+			TimeInterval timeInterval, GuestSettings settings) throws OutsideTimeBoundariesException {
 		if (facets.size() == 0)
 			return;
 		photos = new ArrayList<PicasaPhotoFacetVO>();

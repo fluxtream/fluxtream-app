@@ -275,7 +275,10 @@ public class MetadataServiceImpl implements MetadataService {
             });
         for (String date : dates) {
             final DayMetadata dayMetadata = getDayMetadata(guestId, date);
-            consensusCities.add(dayMetadata.consensusVisitedCity);
+            final VisitedCity consensusVisitedCity = dayMetadata.consensusVisitedCity;
+            // Explicitely set the date on this visitedCity to enable time boundaries checking
+            consensusVisitedCity.setDate(date);
+            consensusCities.add(consensusVisitedCity);
         }
         return consensusCities;
     }
@@ -454,7 +457,7 @@ public class MetadataServiceImpl implements MetadataService {
 	@Override
 	public TimeZone getTimeZone(long guestId, String date) {
         final DayMetadata dayMetadata = getDayMetadata(guestId, date);
-        return TimeZone.getTimeZone(dayMetadata.timeZone);
+        return dayMetadata.getTimeInterval().getMainTimeZone();
 	}
 
 	@Override

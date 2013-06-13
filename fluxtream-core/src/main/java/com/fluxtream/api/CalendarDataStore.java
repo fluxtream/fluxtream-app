@@ -17,6 +17,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.Configuration;
+import com.fluxtream.OutsideTimeBoundariesException;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.TimeUnit;
 import com.fluxtream.aspects.FlxLogger;
@@ -383,12 +384,10 @@ public class CalendarDataStore {
             GuestSettings settings = settingsService.getSettings(guestId);
             ConnectorResponseModel day = prepareConnectorResponseModel(dayMetadata);
             ObjectType[] objectTypes = connector.objectTypes();
-            ApiKey apiKey = guestService.getApiKey(AuthHelper.getGuestId(),
-                                                   connector);
 
             if (objectTypes != null) {
                 for (ObjectType objectType : objectTypes) {
-                    Collection<AbstractFacetVO<AbstractFacet>> facetCollection = null;
+                    Collection<AbstractFacetVO<AbstractFacet>> facetCollection;
                     if (objectType.isDateBased())
                         facetCollection = getFacetVos(Arrays.asList(date), settings, connector, objectType, dayMetadata.getTimeInterval());
                     else
@@ -431,8 +430,9 @@ public class CalendarDataStore {
 	@SuppressWarnings("rawtypes")
 	private void setCachedData(DigestModel digest, List<ApiKey> userKeys,
 			GuestSettings settings, List<ApiKey> apiKeySelection,
-			AbstractTimespanMetadata dayMetadata) throws InstantiationException,
-			IllegalAccessException, ClassNotFoundException {
+			AbstractTimespanMetadata dayMetadata)
+            throws InstantiationException, IllegalAccessException, ClassNotFoundException, OutsideTimeBoundariesException
+    {
 		for (ApiKey apiKey : userKeys) {
 			Connector connector = apiKey.getConnector();
 			ObjectType[] objectTypes = connector.objectTypes();
@@ -442,7 +442,7 @@ public class CalendarDataStore {
                     if (objectType.isDateBased())
                         facetCollection = getFacetVos(toDates(dayMetadata.start,
                                                               dayMetadata.end,
-                                                              TimeZone.getTimeZone(dayMetadata.timeZone)),
+                                                              dayMetadata.getTimeInterval().getMainTimeZone()),
                                                       settings,
                                                       connector,
                                                       objectType,
@@ -507,8 +507,8 @@ public class CalendarDataStore {
                                                                    Connector connector,
                                                                    ObjectType objectType,
                                                                    TimeInterval timeInterval)
-            throws InstantiationException, IllegalAccessException,
-                   ClassNotFoundException {
+            throws InstantiationException, IllegalAccessException, ClassNotFoundException, OutsideTimeBoundariesException
+    {
         List<AbstractFacet> objectTypeFacets = calendarDataHelper.getFacets(
                 connector,
                 objectType,
@@ -519,14 +519,17 @@ public class CalendarDataStore {
     private Collection<AbstractFacetVO<AbstractFacet>> getAbstractFacetVOs(final GuestSettings settings,
                                                                            final List<AbstractFacet> objectTypeFacets,
                                                                            final TimeInterval timeInterval)
-            throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+            throws InstantiationException, IllegalAccessException, ClassNotFoundException, OutsideTimeBoundariesException
+    {
         Collection<AbstractFacetVO<AbstractFacet>> facetCollection = new ArrayList<AbstractFacetVO<AbstractFacet>>();
         if (objectTypeFacets != null) {
             for (AbstractFacet abstractFacet : objectTypeFacets) {
                 AbstractFacetVO<AbstractFacet> facetVO = AbstractFacetVO
                         .getFacetVOClass(abstractFacet).newInstance();
+                try {
                 facetVO.extractValues(abstractFacet,
                                       timeInterval, settings);
+                } catch(OutsideTimeBoundariesException e) {e.printStackTrace();}
                 facetCollection.add(facetVO);
             }
         }
@@ -537,8 +540,8 @@ public class CalendarDataStore {
 	private Collection<AbstractFacetVO<AbstractFacet>> getFacetVos(AbstractTimespanMetadata dayMetadata,
                                                                    GuestSettings settings, Connector connector,
                                                                    ObjectType objectType)
-			throws InstantiationException, IllegalAccessException,
-			ClassNotFoundException {
+            throws InstantiationException, IllegalAccessException, ClassNotFoundException, OutsideTimeBoundariesException
+    {
         List<AbstractFacet> objectTypeFacets = calendarDataHelper.getFacets(
 				connector,
 				objectType,

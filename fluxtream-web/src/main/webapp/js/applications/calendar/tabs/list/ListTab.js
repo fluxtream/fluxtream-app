@@ -143,6 +143,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
         var visibleCount = 0;
         var currentArray = [];
         var facetCity;
+        var currentCity;
         for (var i = 0; i < items.length; i++){
            var item = items[i];
            if (item.visible){
@@ -156,18 +157,19 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
                     if (currentArray.length == 0){
                         currentArray = [item.facet];
                         currentDate = facetCity.date;
+                        currentCity = facetCity;
                     }
                     else if (currentArray[0].shouldGroup(item.facet) && facetCity.date == currentDate)
                         currentArray[currentArray.length] = item.facet;
                     else {
-                        if (currentDate != prevDate){
-                            var displayDate = App.formatDate(item.facet.start + facetCity.tzOffset,false,true);
-                            list.append(templates.date.render({date:displayDate,city:facetCity.name,timezone:facetCity.shortTimezone,state:"list/date/"+facetCity.date}));
+                        if (currentDate != prevDate) {
+                            list.append(templates.date.render({date:App.prettyDateFormat(currentDate),city:currentCity.name,timezone:currentCity.shortTimezone,state:"list/date/"+currentDate}));
                             prevDate = currentDate;
                         }
                         list.append(templates.item.render({item:currentArray[0].getDetails(currentArray)}));
                         currentArray = [item.facet];
                         currentDate = facetCity.date;
+                        currentCity = facetCity;
                     }
                }
            }
@@ -176,8 +178,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
             if (currentDate != prevDate) {
                 facetCity = App.getFacetCity(item.facet, cities);
                 if (facetCity!=null) {
-                    var displayDate = App.formatDate(item.facet.start + facetCity.tzOffset,false,true);
-                    list.append(templates.date.render({date:displayDate,city:facetCity.name,timezone:facetCity.shortTimezone,link:"list/date/"+facetCity.date}));
+                    list.append(templates.date.render({date:App.prettyDateFormat(currentDate),city:currentCity.name,timezone:facetCity.shortTimezone,state:"list/date/"+currentDate}));
                 }
             }
             if (facetCity!=null)

@@ -3,8 +3,6 @@ package com.fluxtream.metadata;
 import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;
-import com.fluxtream.SimpleTimeInterval;
-import com.fluxtream.TimeInterval;
 import com.fluxtream.TimeUnit;
 import com.fluxtream.domain.metadata.VisitedCity;
 import org.joda.time.DateMidnight;
@@ -15,6 +13,11 @@ public class DayMetadata extends AbstractTimespanMetadata {
     public String date;
 
     public DayMetadata() {}
+
+    @Override
+    protected TimeUnit getTimespanTimeUnit() {
+        return TimeUnit.DAY;
+    }
 
     public DayMetadata(String forDate) {
         long timeForDate = formatter.withZoneUTC().parseDateTime(forDate).getMillis();
@@ -31,16 +34,8 @@ public class DayMetadata extends AbstractTimespanMetadata {
         end = forDateTime + DateTimeConstants.MILLIS_PER_DAY;
     }
 
-    public TimeInterval getTimeInterval() {
-        // default to UTC
-        TimeZone zone = TimeZone.getTimeZone("UTC");
-        if (timeZone!=null)
-            zone = TimeZone.getTimeZone(timeZone);
-        return new SimpleTimeInterval(start, end, TimeUnit.DAY, zone);
-	}
-	
 	public Calendar getStartCalendar() {
-		Calendar c = Calendar.getInstance(TimeZone.getTimeZone(this.timeZone));
+		Calendar c = Calendar.getInstance(TimeZone.getTimeZone(this.consensusVisitedCity.city.geo_timezone));
 		c.setTimeInMillis(start);
 		return c;
 	}

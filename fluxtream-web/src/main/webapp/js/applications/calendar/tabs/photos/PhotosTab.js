@@ -94,16 +94,22 @@ define(["core/Tab",
         var carouselHTML = PhotoUtils.getCarouselHTML(digest);
         var currentGroup = [];
         var currentDate = null;
+        var facetCity = null;
+        var currentCity = null;
         for (var i = 0; i < data.length; i++){
-           var facetCity = App.getFacetCity(data[i].start, digest);
+           facetCity = App.getFacetCity(data[i], digest.metadata.cities);
+           if (facetCity==null)
+               continue;
            var date = App.formatDate(data[i].start + facetCity.tzOffset,false,true);
            if (currentDate == null){
-               currentDate = date;
+               currentDate = facetCity.date;
+               currentCity = facetCity;
            }
-           else if (currentDate != date) {
-               $("#photoTab").append(thumbnailGroupTemplate.render({date:currentDate,photos:currentGroup}));
+           else if (currentDate != facetCity.date) {
+               $("#photoTab").append(thumbnailGroupTemplate.render({date:App.prettyDateFormat(currentDate),city:currentCity.name,timezone:currentCity.shortTimezone,state:"list/date/"+currentDate,photos:currentGroup}));
                currentGroup = [];
-               currentDate = date;
+               currentDate = facetCity.date;
+               currentCity = facetCity;
            }
             var photoUrl = data[i].photoUrl;
             if (typeof(data[i].thumbnailUrl)!="undefined")
@@ -125,7 +131,7 @@ define(["core/Tab",
             currentGroup[currentGroup.length] = {id:data[i].id,photoUrl:photoUrl};
         }
         if (currentGroup.length != 0){
-            $("#photoTab").append(thumbnailGroupTemplate.render({date:currentDate,photos:currentGroup}));
+            $("#photoTab").append(thumbnailGroupTemplate.render({date:App.prettyDateFormat(currentDate),city:currentCity.name,timezone:currentCity.shortTimezone,state:"list/date/"+currentDate,photos:currentGroup}));
         }
         for (var i = 0; i < data.length; i++){
             $("#photo-" + i).click({i:i},function(event){

@@ -9,6 +9,11 @@ import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.domain.AbstractLocalTimeFacet;
 import org.hibernate.annotations.Index;
 import org.hibernate.search.annotations.Indexed;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeConstants;
+import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 /**
  * User: candide
@@ -35,6 +40,11 @@ public class VisitedCity extends AbstractLocalTimeFacet implements Comparable<Vi
 
     public transient int daysInferred;
 
+    private transient DateTime dateTime;
+
+    protected static final DateTimeFormatter formatter = DateTimeFormat
+            .forPattern("yyyy-MM-dd");
+
     @ManyToOne(fetch= FetchType.EAGER, targetEntity = City.class, optional=false)
     public City city;
 
@@ -42,6 +52,26 @@ public class VisitedCity extends AbstractLocalTimeFacet implements Comparable<Vi
 
     public VisitedCity(long apiKeyId) {
         super(apiKeyId);
+    }
+
+    public void setDate(final String date) {
+        this.date = date;
+    }
+
+    public long getDayStart() {
+        final DateTime dateTime = getDateTime();
+        return dateTime.getMillis();
+    }
+
+    public long getDayEnd() {
+        final DateTime dateTime = getDateTime();
+        return dateTime.getMillis()+ DateTimeConstants.MILLIS_PER_DAY;
+    }
+
+    private DateTime getDateTime() {
+        if (dateTime==null)
+            dateTime = formatter.withZone(DateTimeZone.forID(city.geo_timezone)).parseDateTime(date);
+        return dateTime;
     }
 
     @Override
@@ -54,5 +84,4 @@ public class VisitedCity extends AbstractLocalTimeFacet implements Comparable<Vi
     public int compareTo(final VisitedCity o) {
         return (int)(start-o.start);
     }
-
 }

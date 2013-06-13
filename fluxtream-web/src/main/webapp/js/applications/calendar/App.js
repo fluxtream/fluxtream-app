@@ -251,13 +251,12 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 if (thisFetchId != fetchId)
                     return;
                 Builder.handleNotifications(response);
-                //if (Calendar.timeUnit==="date") {
-                //    handleCityInfo(response);
-                //} else {
-                //    //$("#mainCity").empty();
-                //    //$("#visitedCitiesDetails").empty();
-                //}
-                handleCityInfo(response);
+                if (Calendar.timeUnit==="date") {
+                    handleCityInfo(response);
+                } else {
+                    $("#mainCity").empty();
+                    $("#visitedCitiesDetails").hide();
+                }
 			},
 			error: function(){
                 if (thisFetchId != fetchId)//we don't really care about errors on old fetches
@@ -281,7 +280,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         }
         $.each(digest.selectedConnectors, function(i, connector) {
             $.each(connector.facetTypes, function(j, facetType) {
-                console.log("loading facetType: " + facetType);
                 loadTemplate(facetType);
             });
         });
@@ -631,6 +629,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             else
                 $("#mainCity").removeClass("guessed");
         }
+        $("#visitedCitiesDetails").show();
         $("#visitedCitiesDetails").off("click");
         $("#visitedCitiesDetails").on("click", function(){
             showVisitedCities(digestInfo.metadata);

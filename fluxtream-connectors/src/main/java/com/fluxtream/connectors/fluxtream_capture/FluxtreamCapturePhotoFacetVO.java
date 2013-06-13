@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import com.fluxtream.OutsideTimeBoundariesException;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.vos.AbstractPhotoFacetVO;
 import com.fluxtream.domain.GuestSettings;
@@ -26,9 +27,10 @@ public class FluxtreamCapturePhotoFacetVO extends AbstractPhotoFacetVO<Fluxtream
     public int orientation;
 
     @Override
-    protected void fromFacet(final FluxtreamCapturePhotoFacet facet, final TimeInterval timeInterval, final GuestSettings settings) {
+    protected void fromFacet(final FluxtreamCapturePhotoFacet facet, final TimeInterval timeInterval, final GuestSettings settings)
+            throws OutsideTimeBoundariesException {
         start = facet.start;
-        startMinute = toMinuteOfDay(new Date(facet.start), timeInterval.getMainTimeZone());
+        startMinute = toMinuteOfDay(new Date(facet.start), timeInterval.getTimeZone(facet.start));
 
         final String photoStoreKey = facet.getPhotoStoreKey();
         photoUrl = "/api/bodytrack/photo/" + photoStoreKey;
