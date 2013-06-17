@@ -4,7 +4,7 @@ var $gwt_version = "2.5.1";
 var $wnd = parent;
 var $doc = $wnd.document;
 var $moduleName, $moduleBase;
-var $strongName = '6362A4001923CD22815F8F4DB46DFE20';
+var $strongName = 'F3033B2A25319293EE6D0382CD9C7DC4';
 var $stats = $wnd.__gwtStatsEvent ? function(a) {return $wnd.__gwtStatsEvent(a);} : null,
 $sessionId = $wnd.__gwtStatsSessionId ? $wnd.__gwtStatsSessionId : null;
 $stats && $stats({moduleName:'grapher2',sessionId:$sessionId,subSystem:'startup',evtGroup:'moduleStartup',millis:(new Date()).getTime(),type:'moduleEvalStart'});
@@ -9396,9 +9396,16 @@ function org_bodytrack_client_LollipopRenderingStrategy_LollipopRenderingStrateg
 
 com_google_gwt_lang_SeedUtil_defineSeed__IILcom_google_gwt_core_client_JavaScriptObject_2Lcom_google_gwt_core_client_JavaScriptObject_2(303, 261, makeCastMap([Q$org_bodytrack_client_DataPointRenderingStrategy, Q$org_bodytrack_client_SeriesPlotRenderingStrategy]), org_bodytrack_client_LollipopRenderingStrategy_LollipopRenderingStrategy__Lorg_bodytrack_client_StyleDescription$StyleType_2Ljava_lang_Double_2V);
 _.paintPoint__Lorg_bodytrack_client_BoundedDrawingBox_2Lorg_bodytrack_client_GraphAxis_2Lorg_bodytrack_client_GraphAxis_2DDLorg_bodytrack_client_PlottablePoint_2V = function org_bodytrack_client_LollipopRenderingStrategy_paintPoint__Lorg_bodytrack_client_BoundedDrawingBox_2Lorg_bodytrack_client_GraphAxis_2Lorg_bodytrack_client_GraphAxis_2DDLorg_bodytrack_client_PlottablePoint_2V(drawing, xAxis, yAxis, x, y, rawDataPoint){
-  var maxDrawY, minDrawY;
-  minDrawY = org_bodytrack_client_Vector2_$add__Lorg_bodytrack_client_Vector2_2Lorg_bodytrack_client_Vector2_2Lorg_bodytrack_client_Vector2_2(yAxis.org_bodytrack_client_GraphAxis_begin, org_bodytrack_client_Vector2_$scale__Lorg_bodytrack_client_Vector2_2DLorg_bodytrack_client_Vector2_2(yAxis.org_bodytrack_client_GraphAxis_basis.org_bodytrack_client_Basis_y, (0 - yAxis.org_bodytrack_client_GraphAxis_min) * yAxis.org_bodytrack_client_GraphAxis_scale)).org_bodytrack_client_Vector2_y;
-  maxDrawY = y + this.org_bodytrack_client_PointRenderingStrategy_radius;
+  var maxDrawY, minDrawY, zeroY;
+  zeroY = org_bodytrack_client_Vector2_$add__Lorg_bodytrack_client_Vector2_2Lorg_bodytrack_client_Vector2_2Lorg_bodytrack_client_Vector2_2(yAxis.org_bodytrack_client_GraphAxis_begin, org_bodytrack_client_Vector2_$scale__Lorg_bodytrack_client_Vector2_2DLorg_bodytrack_client_Vector2_2(yAxis.org_bodytrack_client_GraphAxis_basis.org_bodytrack_client_Basis_y, (0 - yAxis.org_bodytrack_client_GraphAxis_min) * yAxis.org_bodytrack_client_GraphAxis_scale)).org_bodytrack_client_Vector2_y;
+  if (zeroY > y) {
+    minDrawY = zeroY;
+    maxDrawY = y + this.org_bodytrack_client_PointRenderingStrategy_radius;
+  }
+   else {
+    maxDrawY = zeroY;
+    minDrawY = y - this.org_bodytrack_client_PointRenderingStrategy_radius;
+  }
   minDrawY > maxDrawY && (org_bodytrack_client_GrapherCanvas_$moveTo__Lorg_bodytrack_client_GrapherCanvas_2DDLorg_bodytrack_client_GrapherCanvas_2(drawing.org_bodytrack_client_BoundedDrawingBox_canvas, x, minDrawY) , org_bodytrack_client_GrapherCanvas_$lineTo__Lorg_bodytrack_client_GrapherCanvas_2DDLorg_bodytrack_client_GrapherCanvas_2(drawing.org_bodytrack_client_BoundedDrawingBox_canvas, x, maxDrawY));
   org_bodytrack_client_BoundedDrawingBox_$drawCircle__Lorg_bodytrack_client_BoundedDrawingBox_2DDDV(drawing, x, y, this.org_bodytrack_client_PointRenderingStrategy_radius);
 }
@@ -10473,7 +10480,7 @@ function org_bodytrack_client_PlottablePoint_$equals__Lorg_bodytrack_client_Plot
   if (!com_google_gwt_lang_Cast_instanceOf__Ljava_lang_Object_2IZ(obj, Q$org_bodytrack_client_PlottablePoint)) {
     return false;
   }
-  return java_lang_Math_abs__DD(java_lang_Math_floor__DD(this$static.org_bodytrack_client_PlottablePoint_myDate) - java_lang_Math_floor__DD(com_google_gwt_lang_Cast_dynamicCast__Ljava_lang_Object_2ILjava_lang_Object_2(obj, Q$org_bodytrack_client_PlottablePoint).org_bodytrack_client_PlottablePoint_myDate)) < 0.5;
+  return java_lang_Math_abs__DD(this$static.org_bodytrack_client_PlottablePoint_myDate - com_google_gwt_lang_Cast_dynamicCast__Ljava_lang_Object_2ILjava_lang_Object_2(obj, Q$org_bodytrack_client_PlottablePoint).org_bodytrack_client_PlottablePoint_myDate) < 1.0E-6 && java_lang_Math_abs__DD(this$static.org_bodytrack_client_PlottablePoint_myValue - com_google_gwt_lang_Cast_dynamicCast__Ljava_lang_Object_2ILjava_lang_Object_2(obj, Q$org_bodytrack_client_PlottablePoint).org_bodytrack_client_PlottablePoint_myValue) < 1.0E-6 && (this$static.org_bodytrack_client_PlottablePoint_comment == com_google_gwt_lang_Cast_dynamicCast__Ljava_lang_Object_2ILjava_lang_Object_2(obj, Q$org_bodytrack_client_PlottablePoint).org_bodytrack_client_PlottablePoint_comment || this$static.org_bodytrack_client_PlottablePoint_comment != null && java_lang_String_$equals__Ljava_lang_String_2Ljava_lang_Object_2Z(this$static.org_bodytrack_client_PlottablePoint_comment, com_google_gwt_lang_Cast_dynamicCast__Ljava_lang_Object_2ILjava_lang_Object_2(obj, Q$org_bodytrack_client_PlottablePoint).org_bodytrack_client_PlottablePoint_comment));
 }
 
 function org_bodytrack_client_PlottablePoint_$getValueAsString__Lorg_bodytrack_client_PlottablePoint_2Ljava_lang_String_2(this$static){
@@ -10606,6 +10613,8 @@ function org_bodytrack_client_Reference_Reference__Ljava_lang_Object_2V(obj){
 }
 
 com_google_gwt_lang_SeedUtil_defineSeed__IILcom_google_gwt_core_client_JavaScriptObject_2Lcom_google_gwt_core_client_JavaScriptObject_2(322, 1, makeCastMap([Q$org_bodytrack_client_Reference]), org_bodytrack_client_Reference_Reference__Ljava_lang_Object_2V);
+--></script>
+<script><!--
 _.equals__Ljava_lang_Object_2Z$ = function org_bodytrack_client_Reference_equals__Ljava_lang_Object_2Z(o){
   var other;
   if (this === o)
@@ -10629,8 +10638,6 @@ _.hashCode__I$ = function org_bodytrack_client_Reference_hashCode__I(){
   return !this.org_bodytrack_client_Reference_obj?0:this.org_bodytrack_client_Reference_obj.java_lang_Integer_value;
 }
 ;
---></script>
-<script><!--
 _.toString__Ljava_lang_String_2$ = function org_bodytrack_client_Reference_toString__Ljava_lang_String_2(){
   return !this.org_bodytrack_client_Reference_obj?$intern_11:$intern_11 + this.org_bodytrack_client_Reference_obj.java_lang_Integer_value;
 }
@@ -10835,6 +10842,8 @@ function org_bodytrack_client_SeriesPlotContainer_$showValueMessages__Lorg_bodyt
   com_google_gwt_canvas_dom_client_Context2d_$setStrokeStyleWeb__Lcom_google_gwt_canvas_dom_client_Context2d_2Lcom_google_gwt_canvas_dom_client_FillStrokeStyle_2V(context, (org_bodytrack_client_GrapherCanvas_$clinit__V() , org_bodytrack_client_GrapherCanvas_DEFAULT_1COLOR));
 }
 
+--></script>
+<script><!--
 function org_bodytrack_client_SeriesPlotContainer_SeriesPlotContainer__Ljava_lang_String_2ZV(placeholderElementId, ignoreClickEvents){
   org_bodytrack_client_SeriesPlotContainer_$clinit__V();
   var placeholderElement;
@@ -10858,8 +10867,6 @@ function org_bodytrack_client_SeriesPlotContainer_SeriesPlotContainer__Ljava_lan
 }
 
 com_google_gwt_lang_SeedUtil_defineSeed__IILcom_google_gwt_core_client_JavaScriptObject_2Lcom_google_gwt_core_client_JavaScriptObject_2(324, 252, {}, org_bodytrack_client_SeriesPlotContainer_SeriesPlotContainer__Ljava_lang_String_2ZV);
---></script>
-<script><!--
 _.setSize__IIIV = function org_bodytrack_client_SeriesPlotContainer_setSize__IIIV(widthInPixels, heightInPixels, newPaintEventId){
   var canvas;
   canvas = this.org_bodytrack_client_SeriesPlotContainer_drawing.com_google_gwt_user_client_ui_UIObject_element;
@@ -11115,6 +11122,8 @@ _.org_bodytrack_client_StandardTileLoader_pendingUrls = null;
 _.org_bodytrack_client_StandardTileLoader_timeAxis = null;
 _.org_bodytrack_client_StandardTileLoader_timeZoneMap = null;
 var org_bodytrack_client_StandardTileLoader_MIN_1TILE_1WIDTH_1ULPS;
+--></script>
+<script><!--
 function org_bodytrack_client_StandardTileLoader$FilteredEventListener_StandardTileLoader$FilteredEventListener__Lorg_bodytrack_client_TileLoader$EventListener_2V(listener){
   if (!listener)
     throw new java_lang_NullPointerException_NullPointerException__V;
@@ -11166,8 +11175,6 @@ _.handleLoadFailure__V = function org_bodytrack_client_StandardTileLoader$AllLoa
   this.org_bodytrack_client_StandardTileLoader$FilteredEventListener_listener.handleLoadFailure__V();
 }
 ;
---></script>
-<script><!--
 _.handleLoadSuccess__V = function org_bodytrack_client_StandardTileLoader$AllLoadEventListener_handleLoadSuccess__V(){
   org_bodytrack_client_StandardTileLoader_$removeFilteredEventListener__Lorg_bodytrack_client_StandardTileLoader_2Lorg_bodytrack_client_StandardTileLoader$FilteredEventListener_2V(this.org_bodytrack_client_StandardTileLoader$AllLoadEventListener_this$0, this);
   this.org_bodytrack_client_StandardTileLoader$FilteredEventListener_listener.handleLoadSuccess__V();
