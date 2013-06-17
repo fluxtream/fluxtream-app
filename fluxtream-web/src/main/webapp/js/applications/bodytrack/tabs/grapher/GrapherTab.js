@@ -62,13 +62,16 @@ define(["core/Tab","core/grapher/Grapher","core/FlxState"], function(Tab,Grapher
     }
 
     function onSourceLoad(){
-        if (cursorPositionToSet != null)
-            grapher.setTimeCursorPosition(cursorPositionToSet);
         if (channelToAdd != null)
             if (!grapher.hasChannel(channelToAdd))
                 grapher.addChannel(channelToAdd);
         if (tbounds != null)
             grapher.setRange(tbounds.start/1000,tbounds.end/1000);
+        if (cursorPositionToSet != null){
+            grapher.setTimeCursorPosition(cursorPositionToSet);
+        }
+        if (channelToAdd != null)
+            grapher.doCursorClick(channelToAdd);
         onPointLoad();
     }
 
