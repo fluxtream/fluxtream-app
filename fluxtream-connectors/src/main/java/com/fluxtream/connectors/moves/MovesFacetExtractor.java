@@ -60,10 +60,11 @@ public class MovesFacetExtractor extends AbstractFacetExtractor {
 
     private void extractPlaceData(final JSONObject segment, final MovesPlaceFacet facet) {
         JSONObject placeData = segment.getJSONObject("place");
-        facet.placeId = placeData.getLong("id");
-        facet.name = placeData.getString("name");
+        if (placeData.has("id"))
+            facet.placeId = placeData.getLong("id");
         facet.type = placeData.getString("type");
         if (facet.type.equals("foursquare")){
+            facet.name = placeData.getString("name");
             facet.foursquareId = placeData.getString("foursquareId");
         }
         JSONObject locationData = placeData.getJSONObject("location");
@@ -77,7 +78,7 @@ public class MovesFacetExtractor extends AbstractFacetExtractor {
         return facet;
     }
 
-    private void extractMoveData(final String date, final JSONObject segment, final MovesMoveFacet facet) {
+    private void extractMoveData(final String date, final JSONObject segment, final MovesFacet facet) {
         facet.date = date;
         final DateTime startTime = timeStorageFormat.withZoneUTC().parseDateTime(segment.getString("startTime"));
         final DateTime endTime = timeStorageFormat.withZoneUTC().parseDateTime(segment.getString("endTime"));
@@ -88,13 +89,15 @@ public class MovesFacetExtractor extends AbstractFacetExtractor {
         extractActivities(segment, facet);
     }
 
-    private void extractActivities(final JSONObject segment, final MovesMoveFacet facet) {
+    private void extractActivities(final JSONObject segment, final MovesFacet facet) {
+        if (!segment.has("activities"))
+            return;
         final JSONArray activities = segment.getJSONArray("activities");
         if (activities.size()>0)
-            facet.activities = new ArrayList<Activity>();
+            facet.activities = new ArrayList<MovesActivity>();
         for (int i=0; i<activities.size(); i++) {
             JSONObject activityData = activities.getJSONObject(i);
-            Activity activity = new Activity();
+            MovesActivity activity = new MovesActivity();
             activity.activityId = UUID.randomUUID().toString();
             activity.activity = activityData.getString("activity");
             final DateTime startTime = timeStorageFormat.withZoneUTC().parseDateTime(activityData.getString("startTime"));
@@ -103,7 +106,8 @@ public class MovesFacetExtractor extends AbstractFacetExtractor {
             activity.endTimeStorage = AbstractLocalTimeFacet.timeStorageFormat.print(endTime);
             activity.start = startTime.getMillis();
             activity.end = endTime.getMillis();
-            activity.steps = activityData.getInt("steps");
+            if (activityData.has("steps"))
+                activity.steps = activityData.getInt("steps");
             activity.distance = activityData.getInt("distance");
             extractTrackPoints(activity.activityId, activityData);
         }
@@ -118,7 +122,7 @@ public class MovesFacetExtractor extends AbstractFacetExtractor {
             locationFacet.isLocalTime = true;
             locationFacet.latitude = (float) trackPoint.getDouble("lat");
             locationFacet.longitude = (float) trackPoint.getDouble("lon");
-            final DateTime time = timeStorageFormat.withZoneUTC().parseDateTime(activityData.getString("time"));
+            final DateTime time = timeStorageFormat.withZoneUTC().parseDateTime(trackPoint.getString("time"));
             locationFacet.timestampMs = time.getMillis();
             locationFacet.start = locationFacet.timestampMs;
             locationFacet.end = locationFacet.timestampMs;

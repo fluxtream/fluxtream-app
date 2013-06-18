@@ -10,9 +10,9 @@ import com.fluxtream.connectors.annotations.ObjectTypeSpec;
  */
 @Entity(name="Facet_MovesPlace")
 @ObjectTypeSpec(name = "place", value = 2, extractor=MovesFacetExtractor.class, parallel=true, prettyname = "Places")
-public class MovesPlaceFacet extends MovesMoveFacet  {
+public class MovesPlaceFacet extends MovesFacet  {
 
-    public long placeId;
+    public Long placeId;
     public String name;
     public String type;
     public String foursquareId;

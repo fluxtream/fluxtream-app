@@ -67,7 +67,7 @@ public class SystemServiceImpl implements SystemService {
         final ConnectorInfo movesConnectorInfo = new ConnectorInfo("Moves",
                                                                    "/images/connectors/connector-moves.jpg",
                                                                    res.getString("moves"),
-                                                                   "/moves/token",
+                                                                   "/moves/oauth2/token",
                                                                    Connector.getConnector("moves"), order++, true);
         em.persist(movesConnectorInfo);
         final ConnectorInfo latitudeConnectorInfo = new ConnectorInfo("Google Latitude",

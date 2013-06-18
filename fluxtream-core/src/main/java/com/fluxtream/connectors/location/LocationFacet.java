@@ -85,7 +85,9 @@ public class LocationFacet extends AbstractFacet implements Comparable<LocationF
 
     @Index(name="date")
     public String date;
-    @Index(name="localTime")
+
+    @Index(name="isLocalTime")
+    @Type(type = "yes_no")
     public Boolean isLocalTime = false;
 
     /**

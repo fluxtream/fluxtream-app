@@ -12,6 +12,7 @@ import net.sf.json.JSONObject;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -26,10 +27,14 @@ public class MovesUpdater extends AbstractUpdater {
     final static String host = "https://api.moves-app.com/api/v1";
     public static DateTimeFormatter dateFormat = DateTimeFormat.forPattern("yyyyMMdd");
 
+    @Autowired
+    MovesController controller;
+
     @Override
     protected void updateConnectorDataHistory(final UpdateInfo updateInfo) throws Exception {
         long then = System.currentTimeMillis();
-        String query = host + "/user/profile";
+        String accessToken = controller.getAccessToken(updateInfo.apiKey);
+        String query = host + "/user/profile?access_token=" + accessToken;
         String firstDate = null;
         try {
             final String fetched = HttpUtils.fetch(query);
@@ -48,18 +53,23 @@ public class MovesUpdater extends AbstractUpdater {
         updateConnectorDataSince(updateInfo, firstDate);
     }
 
-    private void updateConnectorDataSince(final UpdateInfo updateInfo, final String lastDate) {
+    private void updateConnectorDataSince(final UpdateInfo updateInfo, final String lastDate) throws Exception {
         List<String> dates = getDatesSince(lastDate);
         for (String date : dates) {
             long then = System.currentTimeMillis();
+            String fetched = null;
             try {
-                String fetchUrl = String.format(host + "/user/storyline/daily/%s?trackPoints=true",date);
-                final String fetched = HttpUtils.fetch(fetchUrl);
+                String accessToken = controller.getAccessToken(updateInfo.apiKey);
+                String fetchUrl = String.format(host + "/user/storyline/daily/%s?trackPoints=true&access_token=%s",
+                                                date, accessToken);
+                fetched = HttpUtils.fetch(fetchUrl);
                 countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, fetchUrl);
-                apiDataService.cacheApiDataJSON(updateInfo, fetched, -1, -1);
-                guestService.setApiKeyAttribute(updateInfo.apiKey, "lastDate", date);
             } catch (Exception e) {
                 countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, date, Utils.stackTrace(e));
+            }
+            if (fetched!=null) {
+                apiDataService.cacheApiDataJSON(updateInfo, fetched, -1, -1);
+                guestService.setApiKeyAttribute(updateInfo.apiKey, "lastDate", date);
             }
         }
     }

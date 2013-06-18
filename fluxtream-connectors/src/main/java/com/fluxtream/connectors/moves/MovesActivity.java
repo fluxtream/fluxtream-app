@@ -8,7 +8,8 @@ import javax.persistence.Embeddable;
  * Time: 23:32
  */
 @Embeddable
-public class Activity {
+
+public class MovesActivity {
 
     String activityId;
     public String activity;
@@ -16,7 +17,7 @@ public class Activity {
     public String startTimeStorage, endTimeStorage;
     public long start, end;
     public int distance;
-    public int steps;
+    public Integer steps;
 
     public String getActivityId() {
         return activityId;

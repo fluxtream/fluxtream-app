@@ -1,13 +1,7 @@
 package com.fluxtream.connectors.moves;
 
-import java.util.List;
-import javax.persistence.CollectionTable;
-import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
-import com.fluxtream.domain.AbstractLocalTimeFacet;
 
 /**
  * User: candide
@@ -16,14 +10,7 @@ import com.fluxtream.domain.AbstractLocalTimeFacet;
  */
 @Entity(name="Facet_MovesMove")
 @ObjectTypeSpec(name = "move", value = 1, extractor=MovesFacetExtractor.class, parallel=true, prettyname = "Moves")
-public class MovesMoveFacet  extends AbstractLocalTimeFacet {
-
-    @ElementCollection(fetch= FetchType.EAGER)
-    @CollectionTable(
-            name = "Activity",
-            joinColumns = @JoinColumn(name="ActivityID")
-    )
-    public List<Activity> activities;
+public class MovesMoveFacet extends MovesFacet {
 
     public MovesMoveFacet() {}
 

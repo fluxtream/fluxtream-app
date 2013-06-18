@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import com.fluxtream.Configuration;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
@@ -26,7 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * Time: 16:49
  */
 @Controller
-@RequestMapping(value = "/moves")
+@RequestMapping(value = "/moves/oauth2")
 public class MovesController {
 
     @Autowired
@@ -39,23 +38,21 @@ public class MovesController {
     GuestService guestService;
 
     @RequestMapping(value = "/token")
-    public String getToken(HttpServletRequest request,
-                           HttpServletResponse response) throws IOException, ServletException {
+    public String getToken() throws IOException, ServletException {
 
         String redirectUri = getRedirectUri();
 
         String approvalPageUrl = String.format("https://api.moves-app.com/oauth/v1/authorize?" +
                                                "redirect_uri=%s&" +
-                                               "response_type=code&client_id=%s&scope=both",
-                                               redirectUri,
-                                               env.get("moves.client.id"));
+                                               "response_type=code&client_id=%s&" +
+                                               "scope=activity location",
+                                               redirectUri, env.get("moves.client.id"));
 
         return "redirect:" + approvalPageUrl;
     }
 
     private String getRedirectUri() {
-        return env.get("homeBaseUrl")
-                                   + "moves/oauth2/swapToken";
+        return env.get("homeBaseUrl") + "moves/oauth2/swapToken";
     }
 
     @RequestMapping(value="swapToken")
@@ -74,7 +71,7 @@ public class MovesController {
         parameters.put("grant_type", "authorization_code");
         parameters.put("code", code);
         parameters.put("client_id", env.get("moves.client.id"));
-        parameters.put("client_secret", env.get("movies.client.secret"));
+        parameters.put("client_secret", env.get("moves.client.secret"));
         parameters.put("redirect_uri", getRedirectUri());
         final String json = HttpUtils.fetch("https://api.moves-app.com/oauth/v1/access_token", parameters);
 
@@ -99,6 +96,45 @@ public class MovesController {
                                         "refreshToken", refresh_token);
 
         return "redirect:/app/from/moves";
+    }
+
+    String getAccessToken(final ApiKey apiKey) throws IOException {
+        final String expiresString = guestService.getApiKeyAttribute(apiKey, "tokenExpires");
+        long expires = Long.valueOf(expiresString);
+        if (expires<System.currentTimeMillis())
+            refreshToken(apiKey);
+        return guestService.getApiKeyAttribute(apiKey, "accessToken");
+    }
+
+    private void refreshToken(final ApiKey apiKey) throws IOException {
+        String swapTokenUrl = "https://api.moves-app.com/oauth/v1/access_token";
+
+        final String refreshToken = guestService.getApiKeyAttribute(apiKey, "refreshToken");
+        Map<String,String> params = new HashMap<String,String>();
+        params.put("refresh_token", refreshToken);
+        params.put("client_id", env.get("google.client.id"));
+        params.put("client_secret", env.get("google.client.secret"));
+        params.put("grant_type", "refresh_token");
+
+        String fetched;
+        try {
+            fetched = HttpUtils.fetch(swapTokenUrl, params);
+        } catch (IOException e) {
+            throw e;
+        }
+
+        JSONObject token = JSONObject.fromObject(fetched);
+        final long expiresIn = token.getLong("expires_in");
+        final String access_token = token.getString("access_token");
+
+        final long now = System.currentTimeMillis();
+        long tokenExpires = now + (expiresIn*1000);
+
+        guestService.setApiKeyAttribute(apiKey,
+                                        "accessToken", access_token);
+        guestService.setApiKeyAttribute(apiKey,
+                                        "tokenExpires", String.valueOf(tokenExpires));
+
     }
 
 
