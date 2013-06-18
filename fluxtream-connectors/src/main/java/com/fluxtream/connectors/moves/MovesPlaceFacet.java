@@ -2,6 +2,7 @@ package com.fluxtream.connectors.moves;
 
 import javax.persistence.Entity;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
+import com.fluxtream.connectors.location.LocationFacet;
 
 /**
  * User: candide
@@ -9,7 +10,8 @@ import com.fluxtream.connectors.annotations.ObjectTypeSpec;
  * Time: 23:28
  */
 @Entity(name="Facet_MovesPlace")
-@ObjectTypeSpec(name = "place", value = 2, extractor=MovesFacetExtractor.class, parallel=true, prettyname = "Places")
+@ObjectTypeSpec(name = "place", value = 2, extractor=MovesFacetExtractor.class, parallel=true, prettyname = "Places",
+                locationFacetSource = LocationFacet.Source.MOVES)
 public class MovesPlaceFacet extends MovesFacet  {
 
     public Long placeId;
@@ -26,6 +28,7 @@ public class MovesPlaceFacet extends MovesFacet  {
 
     @Override
     protected void makeFullTextIndexable() {
-        //To change body of implemented methods use File | Settings | File Templates.
+        if (name!=null)
+            fullTextDescription = name;
     }
 }

@@ -2,6 +2,7 @@ package com.fluxtream.connectors.moves;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.UUID;
 import com.fluxtream.ApiData;
 import com.fluxtream.connectors.ObjectType;
@@ -10,9 +11,11 @@ import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.AbstractLocalTimeFacet;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 import com.fluxtream.services.ApiDataService;
+import com.fluxtream.services.MetadataService;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +33,9 @@ public class MovesFacetExtractor extends AbstractFacetExtractor {
 
     @Autowired
     ApiDataService apiDataService;
+
+    @Autowired
+    MetadataService metadataService;
 
     @Override
     public List<AbstractFacet> extractFacets(final ApiData apiData, final ObjectType objectType) throws Exception {
@@ -86,10 +92,10 @@ public class MovesFacetExtractor extends AbstractFacetExtractor {
         facet.endTimeStorage = AbstractLocalTimeFacet.timeStorageFormat.print(endTime);
         facet.start = startTime.getMillis();
         facet.end = endTime.getMillis();
-        extractActivities(segment, facet);
+        extractActivities(date, segment, facet);
     }
 
-    private void extractActivities(final JSONObject segment, final MovesFacet facet) {
+    private void extractActivities(final String date, final JSONObject segment, final MovesFacet facet) {
         if (!segment.has("activities"))
             return;
         final JSONArray activities = segment.getJSONArray("activities");
@@ -109,20 +115,23 @@ public class MovesFacetExtractor extends AbstractFacetExtractor {
             if (activityData.has("steps"))
                 activity.steps = activityData.getInt("steps");
             activity.distance = activityData.getInt("distance");
-            extractTrackPoints(activity.activityId, activityData);
+            extractTrackPoints(date, activity.activityId, activityData);
         }
     }
 
-    private void extractTrackPoints(final String activityId, final JSONObject activityData) {
+    private void extractTrackPoints(final String date, final String activityId, final JSONObject activityData) {
         final JSONArray trackPoints = activityData.getJSONArray("trackPoints");
         List<LocationFacet> locationFacets = new ArrayList<LocationFacet>();
+        // timeZone is computed based on first location for each batch of trackPoints
+        TimeZone timeZone = null;
         for (int i=0; i<trackPoints.size(); i++) {
             JSONObject trackPoint = trackPoints.getJSONObject(i);
             LocationFacet locationFacet = new LocationFacet(updateInfo.apiKey.getId());
-            locationFacet.isLocalTime = true;
             locationFacet.latitude = (float) trackPoint.getDouble("lat");
             locationFacet.longitude = (float) trackPoint.getDouble("lon");
-            final DateTime time = timeStorageFormat.withZoneUTC().parseDateTime(trackPoint.getString("time"));
+            if (timeZone==null)
+                timeZone = metadataService.getTimeZone(locationFacet.latitude, locationFacet.longitude);
+            final DateTime time = timeStorageFormat.withZone(DateTimeZone.forTimeZone(timeZone)).parseDateTime(trackPoint.getString("time"));
             locationFacet.timestampMs = time.getMillis();
             locationFacet.start = locationFacet.timestampMs;
             locationFacet.end = locationFacet.timestampMs;

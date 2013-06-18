@@ -2,6 +2,7 @@ package com.fluxtream.connectors.moves;
 
 import javax.persistence.Entity;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
+import com.fluxtream.connectors.location.LocationFacet;
 
 /**
  * User: candide
@@ -9,7 +10,8 @@ import com.fluxtream.connectors.annotations.ObjectTypeSpec;
  * Time: 23:28
  */
 @Entity(name="Facet_MovesMove")
-@ObjectTypeSpec(name = "move", value = 1, extractor=MovesFacetExtractor.class, parallel=true, prettyname = "Moves")
+@ObjectTypeSpec(name = "move", value = 1, extractor=MovesFacetExtractor.class, parallel=true, prettyname = "Moves",
+        locationFacetSource = LocationFacet.Source.MOVES)
 public class MovesMoveFacet extends MovesFacet {
 
     public MovesMoveFacet() {}

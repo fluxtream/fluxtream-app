@@ -83,13 +83,6 @@ public class LocationFacet extends AbstractFacet implements Comparable<LocationF
     @Index(name="processed_index")
     public Boolean processed = false;
 
-    @Index(name="date")
-    public String date;
-
-    @Index(name="isLocalTime")
-    @Type(type = "yes_no")
-    public Boolean isLocalTime = false;
-
     /**
      * serves as a backreference to the resource that originated in this coordinate,
      * e.g. a runkeeper run or bike ride
