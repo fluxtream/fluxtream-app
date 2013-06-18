@@ -13,7 +13,7 @@ import com.fluxtream.domain.Updatable;
 import org.hibernate.search.annotations.Indexed;
 
 @Entity(name="Facet_FitbitActivity")
-@ObjectTypeSpec(name = "activity_summary", value = 1, extractor= FitbitActivityFacetExtractor.class, prettyname = "MovesActivity Summary", isDateBased = true)
+@ObjectTypeSpec(name = "activity_summary", value = 1, extractor= FitbitActivityFacetExtractor.class, prettyname = "Activity Summary", isDateBased = true)
 @NamedQueries({
 		@NamedQuery(name = "fitbit.activity_summary.byDate",
 				query = "SELECT facet FROM Facet_FitbitActivity facet WHERE facet.apiKeyId=? AND facet.date=?")
