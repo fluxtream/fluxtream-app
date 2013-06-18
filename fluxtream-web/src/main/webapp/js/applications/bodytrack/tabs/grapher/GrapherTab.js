@@ -85,6 +85,9 @@ define(["core/Tab","core/grapher/Grapher","core/FlxState"], function(Tab,Grapher
             }
             viewLoad = null;
         }
+        else{
+            currentView = null;
+        }
         if (grapher.getTimeCursorPosition() == null)
             grapher.setTimeCursorPosition(grapher.getCenter());
 
