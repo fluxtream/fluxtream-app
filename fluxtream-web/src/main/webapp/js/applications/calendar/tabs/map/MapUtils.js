@@ -734,6 +734,35 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         }
     }
 
+    function createTimelineControls(map){
+        var control = $("<div id='mapDateAxis' class='timeAxis'></div>");
+        map.controls[google.maps.ControlPosition.TOP].push(control[0]);
+
+        createDateAxis(map,"mapDateAxis");
+
+
+    }
+
+    function createDateAxis(map,id){
+        if ($("#" + id).length == 0){
+            setTimeout(function(){
+                createDateAxis(map,id);
+            },10);
+            return;
+        }
+
+        map.dateAxis = new DateAxis(id, "horizontal", {
+            "min" : 0,
+            "max" : 3600
+        });
+        map.dateAxis.setCursorPosition(1800);
+        map.dateAxisContainer =  $("#" + id);
+        $(window).resize(function(){
+            map.dateAxis.setSize(map.dateAxisContainer.width(),map.dateAxisContainer.height(), SequenceNumber.getNext());
+        });
+        $(window).resize();
+    }
+
     function showNoGPSDisplay(map){
         if (map.noGPSDiv == null){
             map.noGPSDiv = $("<div id='nogeolocation' style='background:white;'>No Geolocation Data Available</div>");
@@ -858,6 +887,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             }
             if (!hideControls){
                 createMapPositionControls(map);
+                createTimelineControls(map);
             }
             return map;
         }
