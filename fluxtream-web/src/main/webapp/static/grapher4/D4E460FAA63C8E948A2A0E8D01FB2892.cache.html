@@ -1,10 +1,10 @@
 <html>
 <head><meta charset="UTF-8" /><script>
-var $gwt_version = "2.5.1";
+var $gwt_version = "2.5.0";
 var $wnd = parent;
 var $doc = $wnd.document;
 var $moduleName, $moduleBase;
-var $strongName = 'E95B483B889092971A1C0EB6CC030B56';
+var $strongName = 'D4E460FAA63C8E948A2A0E8D01FB2892';
 var $stats = $wnd.__gwtStatsEvent ? function(a) {return $wnd.__gwtStatsEvent(a);} : null,
 $sessionId = $wnd.__gwtStatsSessionId ? $wnd.__gwtStatsSessionId : null;
 $stats && $stats({moduleName:'grapher2',sessionId:$sessionId,subSystem:'startup',evtGroup:'moduleStartup',millis:(new Date()).getTime(),type:'moduleEvalStart'});
@@ -183,8 +183,7 @@ function com_google_gwt_user_client_ui_Widget_$onDetach__Lcom_google_gwt_user_cl
 
 function com_google_gwt_user_client_ui_Widget_$removeFromParent__Lcom_google_gwt_user_client_ui_Widget_2V(this$static){
   if (!this$static.com_google_gwt_user_client_ui_Widget_parent) {
-    com_google_gwt_user_client_ui_RootPanel_$clinit__V();
-    java_util_HashSet_$contains__Ljava_util_HashSet_2Ljava_lang_Object_2Z(com_google_gwt_user_client_ui_RootPanel_widgetsToDetach, this$static) && com_google_gwt_user_client_ui_RootPanel_detachNow__Lcom_google_gwt_user_client_ui_Widget_2V(this$static);
+    (com_google_gwt_user_client_ui_RootPanel_$clinit__V() , java_util_HashSet_$contains__Ljava_util_HashSet_2Ljava_lang_Object_2Z(com_google_gwt_user_client_ui_RootPanel_widgetsToDetach, this$static)) && com_google_gwt_user_client_ui_RootPanel_detachNow__Lcom_google_gwt_user_client_ui_Widget_2V(this$static);
   }
    else if (this$static.com_google_gwt_user_client_ui_Widget_parent) {
     this$static.com_google_gwt_user_client_ui_Widget_parent.remove__Lcom_google_gwt_user_client_ui_Widget_2Z(this$static);
@@ -594,8 +593,8 @@ function com_google_gwt_core_client_JsonUtils_escapeValue__Ljava_lang_String_2Lj
 
 var com_google_gwt_core_client_JsonUtils_escapeTable, com_google_gwt_core_client_JsonUtils_hasJsonParse;
 com_google_gwt_lang_SeedUtil_defineSeed__IILcom_google_gwt_core_client_JavaScriptObject_2Lcom_google_gwt_core_client_JavaScriptObject_2(34, 1, {});
-function com_google_gwt_core_client_impl_Impl_apply__Ljava_lang_Object_2Ljava_lang_Object_2Ljava_lang_Object_2Ljava_lang_Object_2(jsFunction, thisObj, args){
-  return jsFunction.apply(thisObj, args);
+function com_google_gwt_core_client_impl_Impl_apply__Ljava_lang_Object_2Ljava_lang_Object_2Ljava_lang_Object_2Ljava_lang_Object_2(jsFunction, thisObj, arguments){
+  return jsFunction.apply(thisObj, arguments);
   var _;
 }
 
@@ -627,11 +626,11 @@ function com_google_gwt_core_client_impl_Impl_entry__Lcom_google_gwt_core_client
   ;
 }
 
-function com_google_gwt_core_client_impl_Impl_entry0__Ljava_lang_Object_2Ljava_lang_Object_2Ljava_lang_Object_2Ljava_lang_Object_2(jsFunction, thisObj, args){
+function com_google_gwt_core_client_impl_Impl_entry0__Ljava_lang_Object_2Ljava_lang_Object_2Ljava_lang_Object_2Ljava_lang_Object_2(jsFunction, thisObj, arguments){
   var initialEntry;
   initialEntry = com_google_gwt_core_client_impl_Impl_enter__Z();
   try {
-    return com_google_gwt_core_client_impl_Impl_apply__Ljava_lang_Object_2Ljava_lang_Object_2Ljava_lang_Object_2Ljava_lang_Object_2(jsFunction, thisObj, args);
+    return com_google_gwt_core_client_impl_Impl_apply__Ljava_lang_Object_2Ljava_lang_Object_2Ljava_lang_Object_2Ljava_lang_Object_2(jsFunction, thisObj, arguments);
   }
    finally {
     com_google_gwt_core_client_impl_Impl_exit__ZV(initialEntry);
@@ -709,7 +708,7 @@ function com_google_gwt_core_client_impl_SchedulerImpl_push__Lcom_google_gwt_cor
 }
 
 function com_google_gwt_core_client_impl_SchedulerImpl_runScheduledTasks__Lcom_google_gwt_core_client_JsArray_2Lcom_google_gwt_core_client_JsArray_2Lcom_google_gwt_core_client_JsArray_2(tasks, rescheduled){
-  var i, j, t;
+  var $e0, i, j, t;
   for (i = 0 , j = tasks.length; i < j; ++i) {
     t = tasks[i];
     try {
@@ -1448,7 +1447,7 @@ function com_google_gwt_event_shared_HandlerManager_$addHandler__Lcom_google_gwt
 }
 
 function com_google_gwt_event_shared_HandlerManager_$fireEvent__Lcom_google_gwt_event_shared_HandlerManager_2Lcom_google_gwt_event_shared_GwtEvent_2V(this$static, event){
-  var e, oldSource;
+  var $e0, e, oldSource;
   !event.com_google_gwt_event_shared_GwtEvent_dead || event.revive__V();
   oldSource = event.com_google_web_bindery_event_shared_Event_source;
   com_google_gwt_event_shared_GwtEvent_$overrideSource__Lcom_google_gwt_event_shared_GwtEvent_2Ljava_lang_Object_2V(event, this$static.com_google_gwt_event_shared_HandlerManager_source);
@@ -1515,7 +1514,7 @@ function com_google_web_bindery_event_shared_SimpleEventBus_$doAddNow__Lcom_goog
 }
 
 function com_google_web_bindery_event_shared_SimpleEventBus_$doFire__Lcom_google_web_bindery_event_shared_SimpleEventBus_2Lcom_google_web_bindery_event_shared_Event_2Ljava_lang_Object_2V(this$static, event){
-  var causes, e, handler, handlers, it;
+  var $e0, causes, e, handler, handlers, it;
   if (!event) {
     throw new java_lang_NullPointerException_NullPointerException__Ljava_lang_String_2V($intern_150);
   }
@@ -2892,7 +2891,7 @@ function com_google_gwt_json_client_JSONParser_evaluate__Ljava_lang_String_2ZLco
 
 function com_google_gwt_json_client_JSONParser_parse__Ljava_lang_String_2ZLcom_google_gwt_json_client_JSONValue_2(jsonString){
   com_google_gwt_json_client_JSONParser_$clinit__V();
-  var ex;
+  var $e0, ex;
   if (jsonString == null) {
     throw new java_lang_NullPointerException_NullPointerException__V;
   }
@@ -4266,7 +4265,7 @@ function com_google_gwt_user_client_ui_AttachDetachException_AttachDetachExcepti
 
 function com_google_gwt_user_client_ui_AttachDetachException_tryCommand__Ljava_lang_Iterable_2Lcom_google_gwt_user_client_ui_AttachDetachException$Command_2V(hasWidgets, c){
   com_google_gwt_user_client_ui_AttachDetachException_$clinit__V();
-  var caught, e, w, w$iterator;
+  var $e0, caught, e, w, w$iterator;
   caught = null;
   for (w$iterator = hasWidgets.iterator__Ljava_util_Iterator_2(); w$iterator.hasNext__Z();) {
     w = com_google_gwt_lang_Cast_dynamicCast__Ljava_lang_Object_2ILjava_lang_Object_2(w$iterator.next__Ljava_lang_Object_2(), Q$com_google_gwt_user_client_ui_Widget);
@@ -4441,8 +4440,7 @@ function com_google_gwt_user_client_ui_PopupPanel_$previewNativeEvent__Lcom_goog
     case 256:
     case 128:
       {
-        (nativeEvent.keyCode || 0) & 65535;
-        (nativeEvent.shiftKey?1:0) | (nativeEvent.metaKey?8:0) | (nativeEvent.ctrlKey?2:0) | (nativeEvent.altKey?4:0);
+        ((nativeEvent.keyCode || 0) & 65535 , (nativeEvent.shiftKey?1:0) | (nativeEvent.metaKey?8:0) | (nativeEvent.ctrlKey?2:0) | (nativeEvent.altKey?4:0) , true) || (event.com_google_gwt_user_client_Event$NativePreviewEvent_isCanceled = true);
         return;
       }
 
@@ -4718,7 +4716,7 @@ function com_google_gwt_user_client_ui_RootPanel_get__Ljava_lang_String_2Lcom_go
   }
   if (com_google_gwt_user_client_ui_RootPanel_rootPanels.java_util_AbstractHashMap_size == 0) {
     com_google_gwt_user_client_Window_addCloseHandler__Lcom_google_gwt_event_logical_shared_CloseHandler_2Lcom_google_gwt_event_shared_HandlerRegistration_2(new com_google_gwt_user_client_ui_RootPanel$2_RootPanel$2__V);
-    com_google_gwt_i18n_client_LocaleInfo_$clinit__V();
+    (com_google_gwt_i18n_client_LocaleInfo_$clinit__V() , false) && com_google_gwt_i18n_client_BidiUtils_setDirectionOnElement__Lcom_google_gwt_dom_client_Element_2Lcom_google_gwt_i18n_client_HasDirection$Direction_2V($doc, (com_google_gwt_i18n_client_HasDirection$Direction_$clinit__V() , com_google_gwt_i18n_client_HasDirection$Direction_RTL));
   }
   !elem?(rp = new com_google_gwt_user_client_ui_RootPanel$DefaultRootPanel_RootPanel$DefaultRootPanel__V):(rp = new com_google_gwt_user_client_ui_RootPanel_RootPanel__Lcom_google_gwt_dom_client_Element_2V(elem));
   java_util_AbstractHashMap_$put__Ljava_util_AbstractHashMap_2Ljava_lang_Object_2Ljava_lang_Object_2Ljava_lang_Object_2(com_google_gwt_user_client_ui_RootPanel_rootPanels, id, rp);
@@ -4771,13 +4769,13 @@ _.next__Ljava_lang_Object_2 = function com_google_gwt_user_client_ui_SimplePanel
   return com_google_gwt_user_client_ui_SimplePanel$1_$next__Lcom_google_gwt_user_client_ui_SimplePanel$1_2Lcom_google_gwt_user_client_ui_Widget_2(this);
 }
 ;
+--></script>
+<script><!--
 _.remove__V = function com_google_gwt_user_client_ui_SimplePanel$1_remove__V(){
   !!this.com_google_gwt_user_client_ui_SimplePanel$1_returned && com_google_gwt_user_client_ui_SimplePanel_$remove__Lcom_google_gwt_user_client_ui_SimplePanel_2Lcom_google_gwt_user_client_ui_Widget_2Z(this.com_google_gwt_user_client_ui_SimplePanel$1_this$0, this.com_google_gwt_user_client_ui_SimplePanel$1_returned);
 }
 ;
 _.com_google_gwt_user_client_ui_SimplePanel$1_returned = null;
---></script>
-<script><!--
 _.com_google_gwt_user_client_ui_SimplePanel$1_this$0 = null;
 function com_google_gwt_user_client_ui_WidgetCollection_$add__Lcom_google_gwt_user_client_ui_WidgetCollection_2Lcom_google_gwt_user_client_ui_Widget_2V(this$static, w){
   com_google_gwt_user_client_ui_WidgetCollection_$insert__Lcom_google_gwt_user_client_ui_WidgetCollection_2Lcom_google_gwt_user_client_ui_Widget_2IV(this$static, w, this$static.com_google_gwt_user_client_ui_WidgetCollection_size);
@@ -5157,11 +5155,10 @@ function java_lang_Number__1_1parseAndValidateInt__Ljava_lang_String_2IIII(s){
 }
 
 function java_lang_Number__1_1parseAndValidateLong__Ljava_lang_String_2IJ(s){
-  var c, firstTime, head, i, length, maxDigits, minValue, negative, orig, radixPower, toReturn;
+  var c, firstTime, head, i, length, maxDigits, maxValue, negative, radixPower, toReturn;
   if (s == null) {
     throw new java_lang_NumberFormatException_NumberFormatException__Ljava_lang_String_2V($intern_37);
   }
-  orig = s;
   length = s.length;
   negative = length > 0 && s.charCodeAt(0) == 45;
   if (negative) {
@@ -5169,14 +5166,14 @@ function java_lang_Number__1_1parseAndValidateLong__Ljava_lang_String_2IJ(s){
     --length;
   }
   if (length == 0) {
-    throw new java_lang_NumberFormatException_NumberFormatException__Ljava_lang_String_2V($intern_370 + orig + $intern_113);
+    throw new java_lang_NumberFormatException_NumberFormatException__Ljava_lang_String_2V($intern_370 + s + $intern_113);
   }
   while (s.length > 0 && s.charCodeAt(0) == 48) {
     s = java_lang_String_$substring__Ljava_lang_String_2ILjava_lang_String_2(s, 1);
     --length;
   }
   if (length > (java_lang_Number$_1_1ParseLong_$clinit__V() , java_lang_Number$_1_1ParseLong_maxLengthForRadix)[10]) {
-    throw new java_lang_NumberFormatException_NumberFormatException__Ljava_lang_String_2V($intern_370 + orig + $intern_113);
+    throw new java_lang_NumberFormatException_NumberFormatException__Ljava_lang_String_2V($intern_370 + s + $intern_113);
   }
   for (i = 0; i < length; ++i) {
     c = s.charCodeAt(i);
@@ -5189,16 +5186,16 @@ function java_lang_Number__1_1parseAndValidateLong__Ljava_lang_String_2IJ(s){
     if (c >= 65 && c < 65) {
       continue;
     }
-    throw new java_lang_NumberFormatException_NumberFormatException__Ljava_lang_String_2V($intern_370 + orig + $intern_113);
+    throw new java_lang_NumberFormatException_NumberFormatException__Ljava_lang_String_2V($intern_370 + s + $intern_113);
   }
   toReturn = P0_longLit;
   maxDigits = java_lang_Number$_1_1ParseLong_maxDigitsForRadix[10];
   radixPower = com_google_gwt_lang_LongLib_fromInt__ILcom_google_gwt_lang_LongLibBase$LongEmul_2(java_lang_Number$_1_1ParseLong_maxDigitsRadixPower[10]);
-  minValue = com_google_gwt_lang_LongLib_neg__Lcom_google_gwt_lang_LongLibBase$LongEmul_2Lcom_google_gwt_lang_LongLibBase$LongEmul_2(java_lang_Number$_1_1ParseLong_maxValueForRadix[10]);
+  maxValue = java_lang_Number$_1_1ParseLong_maxValueForRadix[10];
   firstTime = true;
   head = length % maxDigits;
   if (head > 0) {
-    toReturn = com_google_gwt_lang_LongLib_fromInt__ILcom_google_gwt_lang_LongLibBase$LongEmul_2(-java_lang_Number__1_1parseInt__Ljava_lang_String_2II(s.substr(0, head - 0), 10));
+    toReturn = com_google_gwt_lang_LongLib_fromInt__ILcom_google_gwt_lang_LongLibBase$LongEmul_2(java_lang_Number__1_1parseInt__Ljava_lang_String_2II(s.substr(0, head - 0), 10));
     s = java_lang_String_$substring__Ljava_lang_String_2ILjava_lang_String_2(s, head);
     length -= head;
     firstTime = false;
@@ -5211,22 +5208,17 @@ function java_lang_Number__1_1parseAndValidateLong__Ljava_lang_String_2IJ(s){
       firstTime = false;
     }
      else {
-      if (!com_google_gwt_lang_LongLib_gte__Lcom_google_gwt_lang_LongLibBase$LongEmul_2Lcom_google_gwt_lang_LongLibBase$LongEmul_2Z(toReturn, minValue)) {
+      if (com_google_gwt_lang_LongLib_gt__Lcom_google_gwt_lang_LongLibBase$LongEmul_2Lcom_google_gwt_lang_LongLibBase$LongEmul_2Z(toReturn, maxValue)) {
         throw new java_lang_NumberFormatException_NumberFormatException__Ljava_lang_String_2V(s);
       }
       toReturn = com_google_gwt_lang_LongLib_mul__Lcom_google_gwt_lang_LongLibBase$LongEmul_2Lcom_google_gwt_lang_LongLibBase$LongEmul_2Lcom_google_gwt_lang_LongLibBase$LongEmul_2(toReturn, radixPower);
     }
-    toReturn = com_google_gwt_lang_LongLib_sub__Lcom_google_gwt_lang_LongLibBase$LongEmul_2Lcom_google_gwt_lang_LongLibBase$LongEmul_2Lcom_google_gwt_lang_LongLibBase$LongEmul_2(toReturn, com_google_gwt_lang_LongLib_fromInt__ILcom_google_gwt_lang_LongLibBase$LongEmul_2(head));
+    toReturn = com_google_gwt_lang_LongLib_add__Lcom_google_gwt_lang_LongLibBase$LongEmul_2Lcom_google_gwt_lang_LongLibBase$LongEmul_2Lcom_google_gwt_lang_LongLibBase$LongEmul_2(toReturn, com_google_gwt_lang_LongLib_fromInt__ILcom_google_gwt_lang_LongLibBase$LongEmul_2(head));
   }
-  if (com_google_gwt_lang_LongLib_gt__Lcom_google_gwt_lang_LongLibBase$LongEmul_2Lcom_google_gwt_lang_LongLibBase$LongEmul_2Z(toReturn, P0_longLit)) {
-    throw new java_lang_NumberFormatException_NumberFormatException__Ljava_lang_String_2V($intern_370 + orig + $intern_113);
+  if (com_google_gwt_lang_LongLib_lt__Lcom_google_gwt_lang_LongLibBase$LongEmul_2Lcom_google_gwt_lang_LongLibBase$LongEmul_2Z(toReturn, P0_longLit)) {
+    throw new java_lang_NumberFormatException_NumberFormatException__Ljava_lang_String_2V($intern_370 + s + $intern_113);
   }
-  if (!negative) {
-    toReturn = com_google_gwt_lang_LongLib_neg__Lcom_google_gwt_lang_LongLibBase$LongEmul_2Lcom_google_gwt_lang_LongLibBase$LongEmul_2(toReturn);
-    if (com_google_gwt_lang_LongLib_lt__Lcom_google_gwt_lang_LongLibBase$LongEmul_2Lcom_google_gwt_lang_LongLibBase$LongEmul_2Z(toReturn, P0_longLit)) {
-      throw new java_lang_NumberFormatException_NumberFormatException__Ljava_lang_String_2V($intern_370 + orig + $intern_113);
-    }
-  }
+  negative && (toReturn = com_google_gwt_lang_LongLib_neg__Lcom_google_gwt_lang_LongLibBase$LongEmul_2Lcom_google_gwt_lang_LongLibBase$LongEmul_2(toReturn));
   return toReturn;
 }
 
@@ -5874,10 +5866,7 @@ function java_util_AbstractMap_$implFindEntry__Ljava_util_AbstractMap_2Ljava_lan
     entry = iter.java_util_AbstractHashMap$EntrySetIterator_last = com_google_gwt_lang_Cast_dynamicCast__Ljava_lang_Object_2ILjava_lang_Object_2(java_util_AbstractList$IteratorImpl_$next__Ljava_util_AbstractList$IteratorImpl_2Ljava_lang_Object_2(iter.java_util_AbstractHashMap$EntrySetIterator_iter), Q$java_util_Map$Entry);
     k = entry.getKey__Ljava_lang_Object_2();
     if (k == null) {
-      if (remove) {
-        entry = new java_util_MapEntryImpl_MapEntryImpl__Ljava_lang_Object_2Ljava_lang_Object_2V(entry.getKey__Ljava_lang_Object_2(), entry.getValue__Ljava_lang_Object_2());
-        java_util_AbstractHashMap$EntrySetIterator_$remove__Ljava_util_AbstractHashMap$EntrySetIterator_2V(iter);
-      }
+      remove && java_util_AbstractHashMap$EntrySetIterator_$remove__Ljava_util_AbstractHashMap$EntrySetIterator_2V(iter);
       return entry;
     }
   }
@@ -8700,6 +8689,17 @@ _.setCursorPosition__Ljava_lang_Double_2Ljava_lang_Integer_2V = function org_bod
   org_bodytrack_client_GraphAxis_$setCursorPosition__Lorg_bodytrack_client_GraphAxis_2Ljava_lang_Double_2Ljava_lang_Integer_2V(this, position, eventId);
 }
 ;
+_.setMaxRange__DDV = function org_bodytrack_client_GraphAxis_setMaxRange__DDV(min, max){
+  var eventId;
+  this.org_bodytrack_client_GraphAxis_minRange = min;
+  this.org_bodytrack_client_GraphAxis_maxRange = max;
+  this.org_bodytrack_client_GraphAxis_hasMinRange = this.org_bodytrack_client_GraphAxis_hasMaxRange = true;
+  org_bodytrack_client_GraphAxis_$clampToRange__Lorg_bodytrack_client_GraphAxis_2V(this);
+  eventId = (org_bodytrack_client_SequenceNumber_$clinit__V() , org_bodytrack_client_SequenceNumber_INSTANCE.org_bodytrack_client_SequenceNumber_id == 1610612733 && (org_bodytrack_client_SequenceNumber_INSTANCE.org_bodytrack_client_SequenceNumber_id = 0) , ++org_bodytrack_client_SequenceNumber_INSTANCE.org_bodytrack_client_SequenceNumber_id);
+  org_bodytrack_client_GraphAxis_$publishAxisChangeEvent__Lorg_bodytrack_client_GraphAxis_2IV(this, eventId);
+  this.paint__IV(eventId);
+}
+;
 _.setSize__IIIV = function org_bodytrack_client_GraphAxis_setSize__IIIV(widthInPixels, heightInPixels, newPaintEventId){
   var org_bodytrack_client_GrapherCanvas_$setSize__Lorg_bodytrack_client_GrapherCanvas_2IIV_nativeElement_0;
   if (null.nullMethod() != widthInPixels || null.nullMethod() != heightInPixels) {
@@ -8945,14 +8945,14 @@ _.closestTick__DD = function org_bodytrack_client_GraphAxis$TickGenerator_closes
 _.org_bodytrack_client_GraphAxis$TickGenerator_currentTick = 0;
 _.org_bodytrack_client_GraphAxis$TickGenerator_offset = 0;
 _.org_bodytrack_client_GraphAxis$TickGenerator_tickSize = 0;
+--></script>
+<script><!--
 function org_bodytrack_client_GrapherCanvas_$clinit__V(){
   org_bodytrack_client_GrapherCanvas_$clinit__V = nullMethod;
   org_bodytrack_client_GrapherCanvas_DEFAULT_1COLOR = (org_bodytrack_client_ColorUtils_$clinit__V() , org_bodytrack_client_ColorUtils_BLACK);
   org_bodytrack_client_GrapherCanvas_instances = new org_bodytrack_client_InstanceController_InstanceController__Lorg_bodytrack_client_InstanceController$InstanceProducer_2V(new org_bodytrack_client_GrapherCanvas$1_GrapherCanvas$1__V);
 }
 
---></script>
-<script><!--
 function org_bodytrack_client_GrapherCanvas_$drawLineSegment__Lorg_bodytrack_client_GrapherCanvas_2DDDDLcom_google_gwt_canvas_client_Canvas_2(this$static, x1, y1, x2, y2){
   com_google_gwt_canvas_dom_client_Context2d_$moveTo__Lcom_google_gwt_canvas_dom_client_Context2d_2DDV(null.nullField.getContext($intern_120), x1, y1);
   com_google_gwt_canvas_dom_client_Context2d_$lineTo__Lcom_google_gwt_canvas_dom_client_Context2d_2DDV(null.nullField.getContext($intern_120), x2, y2);
@@ -9254,14 +9254,14 @@ _.afterRender__Lorg_bodytrack_client_GrapherCanvas_2Lorg_bodytrack_client_Bounde
   org_bodytrack_client_GrapherCanvas_$setFillStyle__Lorg_bodytrack_client_GrapherCanvas_2Lcom_google_gwt_canvas_dom_client_FillStrokeStyle_2Lcom_google_gwt_canvas_client_Canvas_2(canvas, org_bodytrack_client_RenderingStrategy_DEFAULT_1FILL_1COLOR);
 }
 ;
+--></script>
+<script><!--
 _.beforeRender__Lorg_bodytrack_client_GrapherCanvas_2Lorg_bodytrack_client_BoundedDrawingBox_2ZV = function org_bodytrack_client_MidnightLineRenderingStrategy_beforeRender__Lorg_bodytrack_client_GrapherCanvas_2Lorg_bodytrack_client_BoundedDrawingBox_2ZV(canvas, drawing, isAnyPointHighlighted){
   null.nullField.getContext($intern_120).lineWidth = 0.5;
   org_bodytrack_client_GrapherCanvas_$setStrokeStyle__Lorg_bodytrack_client_GrapherCanvas_2Lcom_google_gwt_canvas_dom_client_FillStrokeStyle_2Lcom_google_gwt_canvas_client_Canvas_2(canvas, org_bodytrack_client_MidnightLineRenderingStrategy_STROKE_1COLOR);
   org_bodytrack_client_BoundedDrawingBox_$beginClippedPath__Lorg_bodytrack_client_BoundedDrawingBox_2V(drawing);
 }
 ;
---></script>
-<script><!--
 _.render__Lorg_bodytrack_client_BoundedDrawingBox_2Lorg_bodytrack_client_GraphAxis_2Lorg_bodytrack_client_GraphAxis_2V = function org_bodytrack_client_MidnightLineRenderingStrategy_render__Lorg_bodytrack_client_BoundedDrawingBox_2Lorg_bodytrack_client_GraphAxis_2Lorg_bodytrack_client_GraphAxis_2V(drawing, xAxis, yAxis){
   var firstDay, midnight, xMax, xMin, yBottom, yTop, org_bodytrack_client_MidnightLineRenderingStrategy_getNextDay__DD_timeDate_0, org_bodytrack_client_MidnightLineRenderingStrategy_drawVerticalLine__Lorg_bodytrack_client_BoundedDrawingBox_2Lorg_bodytrack_client_GraphAxis_2DDDV_x_0;
   if (!org_bodytrack_client_MidnightLineRenderingStrategy_shouldDrawMidnightLines__Lorg_bodytrack_client_GraphAxis_2Z(xAxis))
@@ -9408,6 +9408,10 @@ function org_bodytrack_client_NativeInterface_setUpJavaScriptWrappers__V(){
           return null;
         else 
           return value.doubleValue__D();
+      }
+      ;
+      this.setMaxRange = function(min, max){
+        this.__backingAxis.setMaxRange__DDV(min, max);
       }
       ;
       this.id = __getNextID();
@@ -9799,12 +9803,12 @@ function org_bodytrack_client_PhotoGetter_$setCount__Lorg_bodytrack_client_Photo
   this$static.count = count;
 }
 
+--></script>
+<script><!--
 function org_bodytrack_client_PhotoGetter_buildDummyPhotoGetter__ILorg_bodytrack_client_PhotoDescription_2Lorg_bodytrack_client_PhotoGetter_2(userId, desc){
   return org_bodytrack_client_PhotoGetter_buildPhotoGetter__IIZDILjava_lang_String_2_3Lorg_bodytrack_client_Dynamic_2Lorg_bodytrack_client_PhotoSeriesPlot$PhotoAlertable_2Lorg_bodytrack_client_PhotoGetter_2(userId, org_bodytrack_client_PhotoDescription_$getId__Lorg_bodytrack_client_PhotoDescription_2I(desc), true, org_bodytrack_client_PhotoDescription_$getBeginDate__Lorg_bodytrack_client_PhotoDescription_2D(desc), org_bodytrack_client_PhotoDescription_$getCount__Lorg_bodytrack_client_PhotoDescription_2I(desc), desc.url, desc.thumbnails, null);
 }
 
---></script>
-<script><!--
 function org_bodytrack_client_PhotoGetter_buildPhotoGetter__IIZDILjava_lang_String_2_3Lorg_bodytrack_client_Dynamic_2Lorg_bodytrack_client_PhotoSeriesPlot$PhotoAlertable_2Lorg_bodytrack_client_PhotoGetter_2(userId, imageId, isDummy, time, count, url, thumbnailInfos, callback){
   var getter = {};
   getter.userId = userId;
@@ -10075,6 +10079,8 @@ com_google_gwt_lang_SeedUtil_defineSeed__IILcom_google_gwt_core_client_JavaScrip
 _.doCursorClick__V = function org_bodytrack_client_PhotoSeriesPlot_doCursorClick__V(){
 }
 ;
+--></script>
+<script><!--
 _.getRenderer__Lorg_bodytrack_client_SeriesPlotRenderer_2 = function org_bodytrack_client_PhotoSeriesPlot_getRenderer__Lorg_bodytrack_client_SeriesPlotRenderer_2(){
   return this.org_bodytrack_client_PhotoSeriesPlot_renderer;
 }
@@ -10083,8 +10089,6 @@ _.highlightIfNear__Lorg_bodytrack_client_Vector2_2Z = function org_bodytrack_cli
   return false;
 }
 ;
---></script>
-<script><!--
 _.onClick__Lorg_bodytrack_client_Vector2_2V = function org_bodytrack_client_PhotoSeriesPlot_onClick__Lorg_bodytrack_client_Vector2_2V(pos){
   var closestImage;
   closestImage = org_bodytrack_client_PhotoSeriesPlot_$getVisibleImageAt__Lorg_bodytrack_client_PhotoSeriesPlot_2Lorg_bodytrack_client_Vector2_2Lorg_bodytrack_client_PhotoGetter_2(this, pos);
@@ -10387,6 +10391,8 @@ function org_bodytrack_client_RenderingStrategy_$clinit__V(){
 }
 
 var org_bodytrack_client_RenderingStrategy_DEFAULT_1FILL_1COLOR, org_bodytrack_client_RenderingStrategy_DEFAULT_1STROKE_1COLOR;
+--></script>
+<script><!--
 function org_bodytrack_client_SequenceNumber_$clinit__V(){
   org_bodytrack_client_SequenceNumber_$clinit__V = nullMethod;
   org_bodytrack_client_SequenceNumber_INSTANCE = new org_bodytrack_client_SequenceNumber_SequenceNumber__V;
@@ -10395,8 +10401,6 @@ function org_bodytrack_client_SequenceNumber_$clinit__V(){
 function org_bodytrack_client_SequenceNumber_SequenceNumber__V(){
 }
 
---></script>
-<script><!--
 function org_bodytrack_client_SequenceNumber_getNextThrottled__I(){
   org_bodytrack_client_SequenceNumber_$clinit__V();
   var now;
@@ -10637,12 +10641,12 @@ function org_bodytrack_client_SeriesPlotContainer$2_SeriesPlotContainer$2__Lorg_
 }
 
 com_google_gwt_lang_SeedUtil_defineSeed__IILcom_google_gwt_core_client_JavaScriptObject_2Lcom_google_gwt_core_client_JavaScriptObject_2(319, 1, makeCastMap([Q$com_google_gwt_event_dom_client_MouseUpHandler, Q$com_google_gwt_event_shared_EventHandler]), org_bodytrack_client_SeriesPlotContainer$2_SeriesPlotContainer$2__Lorg_bodytrack_client_SeriesPlotContainer_2V);
+--></script>
+<script><!--
 _.onMouseUp__Lcom_google_gwt_event_dom_client_MouseUpEvent_2V = function org_bodytrack_client_SeriesPlotContainer$2_onMouseUp__Lcom_google_gwt_event_dom_client_MouseUpEvent_2V(event){
   org_bodytrack_client_SeriesPlotContainer_$handleMouseUpEvent__Lorg_bodytrack_client_SeriesPlotContainer_2Lcom_google_gwt_event_dom_client_MouseUpEvent_2V(this.org_bodytrack_client_SeriesPlotContainer$2_this$0, event);
 }
 ;
---></script>
-<script><!--
 _.org_bodytrack_client_SeriesPlotContainer$2_this$0 = null;
 function org_bodytrack_client_SeriesPlotContainer$3_SeriesPlotContainer$3__Lorg_bodytrack_client_SeriesPlotContainer_2V(this$0){
   this.org_bodytrack_client_SeriesPlotContainer$3_this$0 = this$0;
@@ -11175,8 +11179,8 @@ function org_bodytrack_client_TimeGraphAxis_TimeGraphAxis__Ljava_lang_String_2DD
   org_bodytrack_client_GraphAxis_GraphAxis__Ljava_lang_String_2DDLorg_bodytrack_client_Basis_2DZV.call(this, divName, min, max, basis, width, isXAxis);
   this.org_bodytrack_client_TimeGraphAxis_secondsInMonth = com_google_gwt_lang_LongLib_fromDouble__DLcom_google_gwt_lang_LongLibBase$LongEmul_2(Math.round(2629743.8333333335));
   this.org_bodytrack_client_TimeGraphAxis_timeTickSizes = com_google_gwt_lang_Array_initValues__Ljava_lang_Class_2Lcom_google_gwt_core_client_JavaScriptObject_2ILcom_google_gwt_lang_Array_2Lcom_google_gwt_lang_Array_2(com_google_gwt_lang_ClassLiteralHolder__13_13D_1classLit, makeCastMap([Q$java_io_Serializable]), Q$double_$1, [com_google_gwt_lang_Array_initValues__Ljava_lang_Class_2Lcom_google_gwt_core_client_JavaScriptObject_2ILcom_google_gwt_lang_Array_2Lcom_google_gwt_lang_Array_2(com_google_gwt_lang_ClassLiteralHolder__13D_1classLit, makeCastMap([Q$double_$1, Q$java_io_Serializable]), -1, [1, 5, 15, 30]), com_google_gwt_lang_Array_initValues__Ljava_lang_Class_2Lcom_google_gwt_core_client_JavaScriptObject_2ILcom_google_gwt_lang_Array_2Lcom_google_gwt_lang_Array_2(com_google_gwt_lang_ClassLiteralHolder__13D_1classLit, makeCastMap([Q$double_$1, Q$java_io_Serializable]), -1, [60, 300, 900, 1800]), com_google_gwt_lang_Array_initValues__Ljava_lang_Class_2Lcom_google_gwt_core_client_JavaScriptObject_2ILcom_google_gwt_lang_Array_2Lcom_google_gwt_lang_Array_2(com_google_gwt_lang_ClassLiteralHolder__13D_1classLit, makeCastMap([Q$double_$1, Q$java_io_Serializable]), -1, [3600, 10800, 21600, 43200]), com_google_gwt_lang_Array_initValues__Ljava_lang_Class_2Lcom_google_gwt_core_client_JavaScriptObject_2ILcom_google_gwt_lang_Array_2Lcom_google_gwt_lang_Array_2(com_google_gwt_lang_ClassLiteralHolder__13D_1classLit, makeCastMap([Q$double_$1, Q$java_io_Serializable]), -1, [86400]), com_google_gwt_lang_Array_initValues__Ljava_lang_Class_2Lcom_google_gwt_core_client_JavaScriptObject_2ILcom_google_gwt_lang_Array_2Lcom_google_gwt_lang_Array_2(com_google_gwt_lang_ClassLiteralHolder__13D_1classLit, makeCastMap([Q$double_$1, Q$java_io_Serializable]), -1, [604800]), com_google_gwt_lang_Array_initValues__Ljava_lang_Class_2Lcom_google_gwt_core_client_JavaScriptObject_2ILcom_google_gwt_lang_Array_2Lcom_google_gwt_lang_Array_2(com_google_gwt_lang_ClassLiteralHolder__13D_1classLit, makeCastMap([Q$double_$1, Q$java_io_Serializable]), -1, [com_google_gwt_lang_LongLib_toDouble__Lcom_google_gwt_lang_LongLibBase$LongEmul_2D(this.org_bodytrack_client_TimeGraphAxis_secondsInMonth), com_google_gwt_lang_LongLib_toDouble__Lcom_google_gwt_lang_LongLibBase$LongEmul_2D(com_google_gwt_lang_LongLib_mul__Lcom_google_gwt_lang_LongLibBase$LongEmul_2Lcom_google_gwt_lang_LongLibBase$LongEmul_2Lcom_google_gwt_lang_LongLibBase$LongEmul_2(this.org_bodytrack_client_TimeGraphAxis_secondsInMonth, P3_longLit)), com_google_gwt_lang_LongLib_toDouble__Lcom_google_gwt_lang_LongLibBase$LongEmul_2D(com_google_gwt_lang_LongLib_mul__Lcom_google_gwt_lang_LongLibBase$LongEmul_2Lcom_google_gwt_lang_LongLibBase$LongEmul_2Lcom_google_gwt_lang_LongLibBase$LongEmul_2(this.org_bodytrack_client_TimeGraphAxis_secondsInMonth, P6_longLit))]), com_google_gwt_lang_Array_initValues__Ljava_lang_Class_2Lcom_google_gwt_core_client_JavaScriptObject_2ILcom_google_gwt_lang_Array_2Lcom_google_gwt_lang_Array_2(com_google_gwt_lang_ClassLiteralHolder__13D_1classLit, makeCastMap([Q$double_$1, Q$java_io_Serializable]), -1, [31556926])]);
-  this.org_bodytrack_client_GraphAxis_minRange = -2147483640;
-  this.org_bodytrack_client_GraphAxis_maxRange = 2147483640;
+  this.org_bodytrack_client_GraphAxis_minRange = -21474836400;
+  this.org_bodytrack_client_GraphAxis_maxRange = 21474836400;
   this.org_bodytrack_client_GraphAxis_hasMinRange = this.org_bodytrack_client_GraphAxis_hasMaxRange = true;
   this.org_bodytrack_client_TimeGraphAxis_timeZoneMap = new org_bodytrack_client_BrowserTimeZoneMap_BrowserTimeZoneMap__V;
 }
@@ -11408,7 +11412,7 @@ function org_bodytrack_client_ValueRenderingStrategy_$drawValue__Lorg_bodytrack_
 
 function org_bodytrack_client_ValueRenderingStrategy_ValueRenderingStrategy__Lorg_bodytrack_client_StyleDescription$StyleType_2Ljava_lang_Double_2V(styleType, highlightLineWidth){
   org_bodytrack_client_ValueRenderingStrategy_$clinit__V();
-  var numberFormatStr, tempFont;
+  var $e0, numberFormatStr, tempFont;
   org_bodytrack_client_BaseDataSeriesPlotRenderingStrategy_BaseDataSeriesPlotRenderingStrategy__Lorg_bodytrack_client_StyleDescription$StyleType_2Ljava_lang_Double_2V.call(this, styleType, highlightLineWidth);
   this.org_bodytrack_client_ValueRenderingStrategy_numberFormat = org_bodytrack_client_ValueRenderingStrategy_DEFAULT_1VALUE_1FORMAT;
   tempFont = com_google_gwt_lang_Cast_dynamicCast__Ljava_lang_Object_2ILjava_lang_Object_2(styleType[$intern_490], Q$java_lang_String);

@@ -211,16 +211,26 @@ a.paginationLink {
     display: block;
 }
 
-.application.dormant {
-    display: none;
+.application.dormant { //hacky way of fixing comment display bug
+    position:absolute;
+    left: -300%;
+    right: 200%;
+    top: 0px;
+    bottom:0px;
+    //display: none;
 }
 
 .tab.active {
     display: block;
 }
 
-.tab.dormant {
-    display: none;
+.tab.dormant {        //hacky way of fixing comment display bug
+    position:absolute;
+    left: -300%;
+    right: 200%;
+    top: 0px;
+    bottom:0px;
+    //display: none;
 }
 
 .fullwidth {
