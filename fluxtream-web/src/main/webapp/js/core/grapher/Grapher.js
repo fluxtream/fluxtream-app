@@ -707,16 +707,71 @@ define(["core/grapher/BTCore"], function(BTCore) {
     }
 
     Grapher.prototype.removeChannel = function(channel){
+        var deviceName;
+        var channelName;
+        var channelElementId = null;
         var firstPeriod = channel.indexOf(".");
-        var deviceName = channel.substring(0,firstPeriod);
-        var channelName = channel.substring(firstPeriod + 1);
-
-        var channelElement = $("#" + this.grapherId +"_timeline_channel_" + deviceName + "_" + channelName);
-        if (channelElement.length != 0){
-            var channelElementId = channelElement.parent().attr("id");
-            this.plotContainersMap[channelElementId].removePlot(this.plotsMap[channelElementId]);
-            $(channelElement.parent()).remove();
+        if (firstPeriod > 0){
+            deviceName = channel.substring(0,firstPeriod);
+            channelName = channel.substring(firstPeriod + 1);
         }
+        else{
+            channelElementId = channel;
+        }
+
+        if (channelElementId == null){
+            var channelElement = $("#" + this.grapherId +"_timeline_channel_" + deviceName + "_" + channelName);
+            if (channelElement.length != 0){
+                channelElementId = channelElement.parent().attr("id");
+            }
+
+        }
+        if (channelElementId != null){
+            this.plotContainersMap[channelElementId].removePlot(this.plotsMap[channelElementId]);
+            $("#" + channelElementId).remove();
+            delete this.channelsMap[channelElementId];
+        }
+    }
+
+    Grapher.prototype.hasChannel = function(channelName){
+        for (var member in this.channelsMap){
+            if (this.channelsMap[member].device_name + "." + this.channelsMap[member].channel_name == channelName)
+                return true;
+        }
+        return false;
+    }
+
+    Grapher.prototype.doCursorClick = function(plot){
+        if (plot.indexOf)
+            plot = this.getPlot(plot);
+        if (plot != null)
+            plot.doCursorClick();
+    }
+
+    Grapher.prototype.getPlot = function(channel){
+        var deviceName;
+        var channelName;
+        var channelElementId = null;
+        var firstPeriod = channel.indexOf(".");
+        if (firstPeriod > 0){
+            deviceName = channel.substring(0,firstPeriod);
+            channelName = channel.substring(firstPeriod + 1);
+        }
+        else{
+            channelElementId = channel;
+        }
+
+        if (channelElementId == null){
+            var channelElement = $("#" + this.grapherId +"_timeline_channel_" + deviceName + "_" + channelName);
+            if (channelElement.length != 0){
+                channelElementId = channelElement.parent().attr("id");
+            }
+
+        }
+        if (channelElementId == null)
+            return null
+        return this.plotsMap[channelElementId];
+
     }
 
     // Add new channel to target
@@ -741,6 +796,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
             if (channel == null)
                 return;
             var channel = grapher.sourcesMap[channel.id];
+            console.log(channel);
         }
 
         App.loadMustacheTemplate("core/grapher/timelineTemplates.html","channelTemplate",function(template){
@@ -890,9 +946,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     event.preventDefault();
                     if (!grapher.showDeleteBtn)
                         return;
-                    var channelElement = $(this).parents("._timeline_channel").parent();
-                    plotContainer.removePlot(plot);
-                    $(channelElement).remove();
+                    grapher.removeChannel(channelElementId);
                 });
 
             // Drag to resize
@@ -1652,7 +1706,15 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 "min" : view["v2"]["x_axis"]["min"],
                 "max" : view["v2"]["x_axis"]["max"]
             });
-            grapher.dateAxis.addAxisChangeListener(function() {
+            grapher.cursorString = null;
+            grapher.prevCursorPos = null;
+            grapher.dateAxis.addAxisChangeListener(function(event) {
+                if (event.cursorPosition != grapher.prevCursorPos){
+                    grapher.prevCursorPos = event.cursorPosition;
+                    grapher.cursorString = event.cursorPositionString;
+                    grapher.clickPointString = null;
+                }
+                updateDataPointDisplay(grapher);
                 var center = (grapher.dateAxis.getMin() + grapher.dateAxis.getMax()) / 2.0;
                 var utcOffsetHrs = new Date(center * 1000).getTimezoneOffset() / -60;
                 // 60 mins/hour, and offset is backwards of the convention
@@ -2082,11 +2144,30 @@ define(["core/grapher/BTCore"], function(BTCore) {
     function dataPointListener(grapher, pointObj, sourceInfo) {
         if (pointObj) {
             App.loadMustacheTemplate("core/grapher/timelineTemplates.html","dataPointValueLabel",function (template){
-                $("#" + grapher.grapherId + "_timeline_dataPointValueLabel").html(template.render(pointObj));
+                if (sourceInfo.actionName == "highlight")
+                    grapher.pointString = template.render(pointObj);
+                else if (sourceInfo.actionName == "click")
+                    grapher.clickPointString = template.render(pointObj);
+                updateDataPointDisplay(grapher);
             });
         } else {
-            $("#" + grapher.grapherId + "_timeline_dataPointValueLabel").html("");
+            grapher.pointString = null;
+            updateDataPointDisplay(grapher);
         }
+    }
+
+    function updateDataPointDisplay(grapher){
+        var stringToUse = "";
+        if (grapher.pointString != null){
+            stringToUse = grapher.pointString;
+        }
+        else if (grapher.clickPointString != null){
+            stringToUse = grapher.clickPointString
+        }
+        else if (grapher.cursorString != null){
+            stringToUse = grapher.cursorString;
+        }
+        $("#" + grapher.grapherId + "_timeline_dataPointValueLabel").html(stringToUse);
     }
 
     function loadLogrecMetadata(logrecId, callbacks) {
@@ -2847,6 +2928,24 @@ define(["core/grapher/BTCore"], function(BTCore) {
             grapher.dateAxis.setRange(start, end);
             repaintAllPlots(grapher);
         });
+    }
+
+    Grapher.prototype.getRange = function(){
+        return {min:this.dateAxis.getMin(), max:this.dateAxis.getMax()};
+    }
+
+    Grapher.prototype.getCenter = function(){
+        var range = this.getRange();
+        return (range.min + range.max) / 2;
+    }
+
+    Grapher.prototype.setTimeCursorPosition = function(position){
+        this.dateAxis.setCursorPosition(position);
+        repaintAllPlots(this);
+    }
+
+    Grapher.prototype.getTimeCursorPosition = function(){
+        return this.dateAxis.getCursorPosition();
     }
 
     function repaintAllPlots(grapher) {

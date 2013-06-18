@@ -4,8 +4,24 @@ define(["core/Tab","core/grapher/Grapher","core/FlxState"], function(Tab,Grapher
     var currentView = null;
 
     var grapher = null;
+    var pointLoad = null;
+    var currentPointLoad = null;
+    var cursorPositionToSet = null;
+    var channelToAdd = null;
 
     grapherTab.render = function(params){
+        if (params.rebuildURL){
+            params.rebuildURL = false;
+            var append = "";
+            if (currentView != null){
+                append = "/view/" + currentView;
+            }
+            App.renderApp("bodytrack","grapher" + append,params);
+            return;
+        }
+        console.log(params);
+        cursorPositionToSet = params.cursorPos;
+        channelToAdd = params.channelAdd;
         tbounds = params.tbounds;
         this.getTemplate("text!applications/bodytrack/tabs/grapher/grapher.html", "grapher", function() {
             var sourceName = null;
@@ -46,6 +62,20 @@ define(["core/Tab","core/grapher/Grapher","core/FlxState"], function(Tab,Grapher
     }
 
     function onSourceLoad(){
+        if (channelToAdd != null)
+            if (!grapher.hasChannel(channelToAdd))
+                grapher.addChannel(channelToAdd);
+        if (tbounds != null)
+            grapher.setRange(tbounds.start/1000,tbounds.end/1000);
+        if (cursorPositionToSet != null){
+            grapher.setTimeCursorPosition(cursorPositionToSet);
+        }
+        if (channelToAdd != null)
+            grapher.doCursorClick(channelToAdd);
+        onPointLoad();
+    }
+
+    function onPointLoad(){
         if (viewLoad != null){
             if (currentView != viewLoad){
                 var view = viewLoad;
@@ -55,10 +85,8 @@ define(["core/Tab","core/grapher/Grapher","core/FlxState"], function(Tab,Grapher
             }
             viewLoad = null;
         }
-        if (tbounds != null){
-            grapher.setRange(tbounds.start/1000,tbounds.end/1000);
-            tbounds = null;
-        }
+        if (grapher.getTimeCursorPosition() == null)
+            grapher.setTimeCursorPosition(grapher.getCenter());
 
     }
 

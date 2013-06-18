@@ -16,7 +16,10 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
         return true;
     }
 
+    var targetTime = null;
+
     function render(params) {
+        targetTime = params.tabParam;
         params.setTabParam(null);
         digest = params.digest;
         connectorEnabled = params.connectorEnabled;
@@ -73,6 +76,9 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
             for (var connectorName in connectorEnabled){
                 connectorToggled(connectorName,null,connectorEnabled[connectorName]);
             }
+            if (targetTime != null){
+                grapher.setTimeCursorPosition(targetTime / 1000);
+            }
             return;
         }
         grapher = new Grapher($("#timelineTabContainer"), {onLoadActions: [function() {
@@ -89,6 +95,9 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
                     state = onAxisChanged(state);
                 });
             });
+            if (targetTime == null)
+                targetTime = (Calendar.timeRange.start + Calendar.timeRange.end) / 2;
+            grapher.setTimeCursorPosition(targetTime / 1000);
         }]});
     }
 
