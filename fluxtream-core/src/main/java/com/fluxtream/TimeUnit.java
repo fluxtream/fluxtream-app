@@ -2,7 +2,7 @@ package com.fluxtream;
 
 public enum TimeUnit {
 
-	DAY((byte)1), WEEK((byte)2), MONTH((byte)4), YEAR((byte)8);
+	DAY, WEEK, MONTH, YEAR;
 
     public static TimeUnit fromValue(String s) {
 		for (TimeUnit timeUnit : values()) {
@@ -11,15 +11,5 @@ public enum TimeUnit {
 		}
 		return null;
 	}
-
-    private final byte bitPattern;
-
-    public byte bitPattern() {
-        return bitPattern;
-    }
-
-    TimeUnit(byte bitpattern) {
-        this.bitPattern = bitpattern;
-    }
 
 }

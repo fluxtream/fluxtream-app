@@ -36,8 +36,6 @@ public class VisitedCity extends AbstractLocalTimeFacet implements Comparable<Vi
 
     public long count;
 
-    public Byte mainCityBitPattern;
-
     public transient int daysInferred;
 
     private transient DateTime dateTime;
