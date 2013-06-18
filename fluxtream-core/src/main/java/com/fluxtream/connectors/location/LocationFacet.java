@@ -38,7 +38,7 @@ public class LocationFacet extends AbstractFacet implements Comparable<LocationF
     }
 
     public static enum Source {
-		OTHER, USER, GOOGLE_LATITUDE, GEO_IP_DB, IP_TO_LOCATION, OPEN_PATH, RUNKEEPER, NONE, FLICKR
+		OTHER, USER, GOOGLE_LATITUDE, GEO_IP_DB, IP_TO_LOCATION, OPEN_PATH, RUNKEEPER, NONE, FLICKR, MOVES
 	}
 	
 	public Source source = Source.GOOGLE_LATITUDE;
@@ -82,6 +82,11 @@ public class LocationFacet extends AbstractFacet implements Comparable<LocationF
     @Type(type="yes_no")
     @Index(name="processed_index")
     public Boolean processed = false;
+
+    @Index(name="date")
+    public String date;
+    @Index(name="localTime")
+    public Boolean isLocalTime = false;
 
     /**
      * serves as a backreference to the resource that originated in this coordinate,

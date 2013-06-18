@@ -12,6 +12,12 @@ import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 @ObjectTypeSpec(name = "place", value = 2, extractor=MovesFacetExtractor.class, parallel=true, prettyname = "Places")
 public class MovesPlaceFacet extends MovesMoveFacet  {
 
+    public long placeId;
+    public String name;
+    public String type;
+    public String foursquareId;
+    public float latitude, longitude;
+
     public MovesPlaceFacet() {}
 
     public MovesPlaceFacet(long apiKeyId) {

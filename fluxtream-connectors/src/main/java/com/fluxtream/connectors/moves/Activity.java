@@ -10,11 +10,15 @@ import javax.persistence.Embeddable;
 @Embeddable
 public class Activity {
 
+    String activityId;
     public String activity;
     public String date;
-    public int startMinute;
-    public int endMinute;
+    public String startTimeStorage, endTimeStorage;
+    public long start, end;
     public int distance;
     public int steps;
 
+    public String getActivityId() {
+        return activityId;
+    }
 }
