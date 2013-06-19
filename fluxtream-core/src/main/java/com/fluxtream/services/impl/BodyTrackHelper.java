@@ -617,8 +617,8 @@ public class BodyTrackHelper {
         }
     }
 
-    private class SourcesResponse {
-        ArrayList<Source> sources;
+    public class SourcesResponse {
+        public ArrayList<Source> sources;
 
         public SourcesResponse(ChannelInfoResponse infoResponse, CoachingBuddy coachee){
             sources = new ArrayList<Source>();
@@ -655,7 +655,7 @@ public class BodyTrackHelper {
     }
 
     public static class SourceInfo{
-        Source info;
+        public Source info;
 
         public SourceInfo(ChannelInfoResponse infoResponse, String deviceName){
             info = new Source();
@@ -690,23 +690,23 @@ public class BodyTrackHelper {
     }
 
     public static class Source{
-        String name;
-        ArrayList<Channel> channels;
-        Double min_time;
-        Double max_time;
+        public String name;
+        public ArrayList<Channel> channels;
+        public Double min_time;
+        public Double max_time;
     }
 
     public static class Channel{
-        String type;
-        ChannelStyle builtin_default_style;
-        ChannelStyle style;
-        double max;
-        double min;
-        Double min_time;
-        Double max_time;
-        String name;
-        String objectTypeName;
-        String time_type;
+        public String type;
+        public ChannelStyle builtin_default_style;
+        public ChannelStyle style;
+        public double max;
+        public double min;
+        public Double min_time;
+        public Double max_time;
+        public String name;
+        public String objectTypeName;
+        public String time_type;
 
         public Channel(){
             // time_type defaults to gmt.  It can be overridden to "local" for channels that only know local time
@@ -732,16 +732,16 @@ public class BodyTrackHelper {
     }
 
     public static class ViewChannelData extends Channel{
-        Integer channel_height;
-        String channel_name;
-        String device_name;
+        public Integer channel_height;
+        public String channel_name;
+        public String device_name;
     }
 
 
     public static class ChannelStyle{
-        HighlightStyling highlight;
-        CommentStyling comments;
-        ArrayList<Style> styles;
+        public HighlightStyling highlight;
+        public CommentStyling comments;
+        public ArrayList<Style> styles;
 
         public static ChannelStyle getDefaultChannelStyle(String name){
             ChannelStyle style = new ChannelStyle();
@@ -765,27 +765,27 @@ public class BodyTrackHelper {
     }
 
     public static class CommentStyling{
-        Boolean show;
-        Integer verticalMargin;
-        ArrayList<Style> styles;
+        public Boolean show;
+        public Integer verticalMargin;
+        public ArrayList<Style> styles;
     }
 
     public static class HighlightStyling{
-        Integer lineWidth;
-        ArrayList<Style> styles;
+        public Integer lineWidth;
+        public ArrayList<Style> styles;
     }
 
     public static class Style{
-        String type;
-        Integer lineWidth;
-        String color;
-        String fillColor;
-        Integer marginWidth;
-        String numberFormat;
-        Integer verticalOffset;
-        Integer radius;
-        Boolean fill;
-        Boolean show;
+        public String type;
+        public Integer lineWidth;
+        public String color;
+        public String fillColor;
+        public Integer marginWidth;
+        public String numberFormat;
+        public Integer verticalOffset;
+        public Integer radius;
+        public Boolean fill;
+        public Boolean show;
     }
 
     public static final class DataStoreExecutionResult implements BodyTrackUploadResult {
