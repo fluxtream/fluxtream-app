@@ -107,9 +107,30 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 newDataSet[0] = gpsData[i];
             }
             else{
-                if (gpsData[i].start < gpsData[min].start)
-                    array.splice(min,0,gpsData[i])
-
+                var startTime = gpsData[i].start;
+                if (startTime < newDataSet[min].start)
+                    newDataSet.splice(min,0,gpsData[i])
+                else if (startTime > newDataSet[max].start){
+                    newDataSet.push(gpsData[i]);
+                }
+                else{
+                    while (Math.abs(min-max) > 1){
+                        var mid = Math.floor((min + max) / 2);
+                        var midTime = newDataSet[mid].start;
+                        if (startTime > midTime)
+                            min = mid;
+                        else if (startTime < midTime)
+                            max = mid;
+                        else{
+                            min = max = mid;
+                            if (min > 0)
+                                min--;
+                            else
+                                max++;
+                        }
+                    }
+                    newDataSet.splice(max,0,gpsData[i]);
+                }
             }
             /*var j = 0;
             for (j = 0; j < newDataSet.length && newDataSet[j].start < gpsData[i].start; j++);
@@ -124,6 +145,11 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             }*/
 
         }
+
+        for (var i = 1, li = newDataSet.length; i < li; i++){
+            console.log(newDataSet[i].start - newDataSet[i-1].start);
+        }
+
         return newDataSet;
     }
 
@@ -818,7 +844,6 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         else{
             map.dateMarker.setPosition(newPosition);
         }
-        console.log(newPosition);
 
     }
 
