@@ -319,7 +319,7 @@ public class BodyTrackHelper {
         }
     }
 
-    public String getSourceInfo(final Long uid, final String deviceName) {
+    public SourceInfo getSourceInfoObject(final Long uid, final String deviceName){
         try{
             if (uid == null)
                 throw new IllegalArgumentException();
@@ -368,11 +368,15 @@ public class BodyTrackHelper {
 
             SourceInfo response = new SourceInfo(infoResponse,deviceName);
 
-            return gson.toJson(response);
+            return response;
         }
         catch(Exception e){
-            return gson.toJson(new SourcesResponse(null, null));
+            return new SourceInfo(null, null);
         }
+    }
+
+    public String getSourceInfo(final Long uid, final String deviceName) {
+        return gson.toJson(getSourceInfoObject(uid,deviceName));
     }
 
     public void setDefaultStyle(final Long uid, final String deviceName, final String channelName, final ChannelStyle style) {
