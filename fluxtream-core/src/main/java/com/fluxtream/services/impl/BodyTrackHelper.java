@@ -654,7 +654,7 @@ public class BodyTrackHelper {
         }
     }
 
-    private static class SourceInfo{
+    public static class SourceInfo{
         Source info;
 
         public SourceInfo(ChannelInfoResponse infoResponse, String deviceName){
@@ -689,14 +689,14 @@ public class BodyTrackHelper {
 
     }
 
-    private static class Source{
+    public static class Source{
         String name;
         ArrayList<Channel> channels;
         Double min_time;
         Double max_time;
     }
 
-    private static class Channel{
+    public static class Channel{
         String type;
         ChannelStyle builtin_default_style;
         ChannelStyle style;
@@ -731,14 +731,14 @@ public class BodyTrackHelper {
         }
     }
 
-    private static class ViewChannelData extends Channel{
+    public static class ViewChannelData extends Channel{
         Integer channel_height;
         String channel_name;
         String device_name;
     }
 
 
-    private static class ChannelStyle{
+    public static class ChannelStyle{
         HighlightStyling highlight;
         CommentStyling comments;
         ArrayList<Style> styles;
@@ -764,18 +764,18 @@ public class BodyTrackHelper {
 
     }
 
-    private static class CommentStyling{
+    public static class CommentStyling{
         Boolean show;
         Integer verticalMargin;
         ArrayList<Style> styles;
     }
 
-    private static class HighlightStyling{
+    public static class HighlightStyling{
         Integer lineWidth;
         ArrayList<Style> styles;
     }
 
-    private static class Style{
+    public static class Style{
         String type;
         Integer lineWidth;
         String color;
@@ -788,7 +788,7 @@ public class BodyTrackHelper {
         Boolean show;
     }
 
-    private static final class DataStoreExecutionResult implements BodyTrackUploadResult {
+    public static final class DataStoreExecutionResult implements BodyTrackUploadResult {
         private final int statusCode;
         private final String response;
 
