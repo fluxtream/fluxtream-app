@@ -526,12 +526,13 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
 
     function highlightTimespan(map, start,end,gpsDataSet){
         function highlight(map,gpsDataSet,start,end){
-            if (gpsDataSet.gpsTimestamps.length == 0)
+            if (gpsDataSet.gpsTimestamps.length == 0 || (gpsDataSet.highlightTimespan != null && gpsDataSet.highlightTimespan.start == start && gpsDataSet.highlightTimespan.end == end))
                 return;
             if (gpsDataSet.highlightSection != null){
                 gpsDataSet.highlightSection.setMap(null);
                 gpsDataSet.highlightSection = null;
             }
+            gpsDataSet.highlightTimespan = {start:start,end:end};
             if (start <= gpsDataSet.gpsTimestamps[0] && end >= gpsDataSet.gpsTimestamps[gpsDataSet.gpsTimestamps.length - 1]){
                 gpsDataSet.gpsLine.setOptions({strokeColor: gpsDataSet.color});
                 return;
