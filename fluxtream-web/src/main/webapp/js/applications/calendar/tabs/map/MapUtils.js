@@ -550,17 +550,43 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     function getFirstIndexAfter(gpsDataSet, time){
-        var endIndex;
-        for (endIndex = 0; endIndex < gpsDataSet.gpsTimestamps.length && gpsDataSet.gpsTimestamps[endIndex] < time; endIndex++);
-        return endIndex;
+        var min = 0;
+        var max = gpsDataSet.gpsTimestamps.length - 1;
+
+        while (Math.abs(min - max) > 1){//when we have two points next to each other then we know we have a mach and can proceed to the next step
+            var mid = Math.floor((min + max) / 2);
+            var midTime = gpsDataSet.gpsTimestamps[mid];
+            if (time < midTime){
+                max = mid;
+            }
+            else if (time > midTime){
+                min = mid;
+            }
+            else{//we have an exact match!
+                min = max = mid;
+            }
+        }
+        return max;
     }
 
     function getFirstIndexBefore(gpsDataSet, time){
-        if (time <= gpsDataSet.gpsTimestamps[0])
-            return -1;
-        var endIndex;
-        for (endIndex = 1; endIndex < gpsDataSet.gpsTimestamps.length && gpsDataSet.gpsTimestamps[endIndex] < time; endIndex++);
-        return endIndex - 1;
+        var min = 0;
+        var max = gpsDataSet.gpsTimestamps.length - 1;
+
+        while (Math.abs(min - max) > 1){//when we have two points next to each other then we know we have a mach and can proceed to the next step
+            var mid = Math.floor((min + max) / 2);
+            var midTime = gpsDataSet.gpsTimestamps[mid];
+            if (time < midTime){
+                max = mid;
+            }
+            else if (time > midTime){
+                min = mid;
+            }
+            else{//we have an exact match!
+                min = max = mid;
+            }
+        }
+        return min;
     }
 
     function createPolyLineSegment(map, gpsDataSet, start, end, options){
