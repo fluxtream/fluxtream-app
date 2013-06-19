@@ -54,6 +54,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             strokeColor: newGPSDataSet.color});
         addToGPSBounds(map, new google.maps.LatLng(minLat,minLng));
         addToGPSBounds(map, new google.maps.LatLng(maxLat,maxLng));
+        refreshMarkerPosition(map);
     }
 
     function addToGPSBounds(map, point){
@@ -144,10 +145,6 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 newDataSet.push(gpsData[i]);
             }*/
 
-        }
-
-        for (var i = 1, li = newDataSet.length; i < li; i++){
-            console.log(newDataSet[i].start - newDataSet[i-1].start);
         }
 
         return newDataSet;
@@ -416,7 +413,14 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 map.infoWindowShown();
             }
             if (map.dateAxis != null){
-                map.dateAxis.setCursorPosition(item.start/1000);
+                var targetTime = item.start/1000;
+                map.dateAxis.setCursorPosition(targetTime);
+                var minTime = map.dateAxis.getMin();
+                var maxTime = map.dateAxis.getMax();
+                if (targetTime < minTime || targetTime > maxTime){
+                   var offset = (maxTime - minTime) / 2;
+                   map.dateAxis.setRange(targetTime - offset,targetTime + offset);
+                }
             }
         });
 
@@ -828,7 +832,9 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
 
         map.dateAxis.addAxisChangeListener(function(event){
             updateCursorMarkerPosition(map,event.cursorPosition);
+            updateDateAxisHighlighting(map,event.min,event.max);
         });
+        refreshMarkerPosition(map);
     }
 
     function updateCursorMarkerPosition(map,time){
@@ -844,7 +850,16 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         else{
             map.dateMarker.setPosition(newPosition);
         }
+    }
 
+    function updateDateAxisHighlighting(map,min,max){
+        map.highlightTimespan(min*1000,max*1000);
+    }
+
+    function refreshMarkerPosition(map){
+        if (map.dateAxis == null)
+            return;
+        updateCursorMarkerPosition(map,map.dateAxis.getCursorPosition());
     }
 
     function fixZooming(map,zoomLevel,isPreserved){
@@ -906,7 +921,10 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                     }
                     for (var dataset in map.gpsData){
                         map.gpsData[dataset].gpsLine.setMap(null);
+                        map.gpsData[dataset].highlightSection.setMap(null);
                     }
+                    map.dateMarker.setap(null);
+                    map.dateMarker = null;
                 }
                 map.currentHighlightedLine = null;
                 map.highlightSection = null;
