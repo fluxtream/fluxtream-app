@@ -184,7 +184,7 @@ public class BodyTrackHelper {
          }
      }
 
-    public String fetchTile(Long uid, String deviceNickname, String channelName, int level, long offset){
+    public GetTileResponse fetchTileObject(Long uid, String deviceNickname, String channelName, int level, long offset){
         try{
             if (uid == null)
                 throw new IllegalArgumentException();
@@ -198,11 +198,15 @@ public class BodyTrackHelper {
                 tileResponse = GetTileResponse.getEmptyTile(level,offset);
             }//TODO:several fields are missing still and should be implemented
 
-            return gson.toJson(tileResponse);
+            return tileResponse;
         }
         catch(Exception e){
-            return gson.toJson(GetTileResponse.getEmptyTile(level,offset));
+            return GetTileResponse.getEmptyTile(level,offset);
         }
+    }
+
+    public String fetchTile(Long uid, String deviceNickname, String channelName, int level, long offset){
+        return gson.toJson(fetchTileObject(uid,deviceNickname,channelName,level,offset));
     }
 
     public String listSources(Long uid, CoachingBuddy coachee){
@@ -549,12 +553,12 @@ public class BodyTrackHelper {
         double max;
     }
 
-    private static class GetTileResponse{
-        Object[][] data;
-        String[] fields;
-        int level;
-        long offset;
-        int sample_width;
+    public static class GetTileResponse{
+        public Object[][] data;
+        public String[] fields;
+        public int level;
+        public long offset;
+        public int sample_width;
 
         public static GetTileResponse getEmptyTile(int level, long offset){
             GetTileResponse tileResponse = new GetTileResponse();
