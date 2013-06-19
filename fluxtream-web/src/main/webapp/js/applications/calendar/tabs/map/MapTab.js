@@ -28,7 +28,7 @@ define(["core/Tab",
             }
             else
                 lastTimestamp = params.digest.generationTimestamp;
-            setup(params.digest,params.calendarState,params.connectorEnabled,params.doneLoading);
+            setup(params.digest,params.calendarState,params.connectorEnabled,params.doneLoading,params.digest.tbounds);
         });
         $(window).resize();
     }
@@ -43,7 +43,7 @@ define(["core/Tab",
         }
     });
 
-    function setup(digest, calendarState,connectorEnabled,doneLoading) {
+    function setup(digest, calendarState,connectorEnabled,doneLoading, tbounds) {
         digestData  = digest;
         App.fullHeight();
         $("#mapFit").unbind("click");
@@ -52,9 +52,9 @@ define(["core/Tab",
         var addressToUse = {latitude:0,longitude:0};
         if (digest.addresses.ADDRESS_HOME != null && digest.addresses.ADDRESS_HOME.length != 0)
             addressToUse = digest.addresses.ADDRESS_HOME[0];
-
+        var maxTimeBounds = {min:tbounds.start / 1000, max:tbounds.end / 1000};
         if (map == null){//make new map
-            map = MapUtils.newMap(new google.maps.LatLng(addressToUse.latitude,addressToUse.longitude),16,"the_map",false);
+            map = MapUtils.newMap(new google.maps.LatLng(addressToUse.latitude,addressToUse.longitude),16,"the_map",false,maxTimeBounds);
             map.infoWindowShown = function(){
                 $("#the_map").find(".flx-photo").click(function(event){
                     App.makeModal(photoCarouselHTML);
@@ -67,6 +67,7 @@ define(["core/Tab",
                 bounds = map.getBounds();
             }
             map.reset();
+            map.setMaxTimeBounds(maxTimeBounds);
         }
         $("#mapFit").click(function(){
             map.fitBounds(map.gpsBounds);
