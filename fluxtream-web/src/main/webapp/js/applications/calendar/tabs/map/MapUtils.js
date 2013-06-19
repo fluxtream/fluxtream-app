@@ -921,10 +921,13 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                     }
                     for (var dataset in map.gpsData){
                         map.gpsData[dataset].gpsLine.setMap(null);
-                        map.gpsData[dataset].highlightSection.setMap(null);
+                        if (map.gpsData[dataset].highlightSection != null)
+                            map.gpsData[dataset].highlightSection.setMap(null);
                     }
-                    map.dateMarker.setap(null);
-                    map.dateMarker = null;
+                    if (map.dateMarker != null){
+                        map.dateMarker.setMap(null);
+                        map.dateMarker = null;
+                    }
                 }
                 map.currentHighlightedLine = null;
                 map.highlightSection = null;
