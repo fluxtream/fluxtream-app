@@ -590,41 +590,35 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         if (time >= gpsData.gpsTimestamps[gpsData.gpsTimestamps.length - 1])
             return gpsData.gpsAccuracies[gpsData.gpsAccuracies.length - 1];
 
-        var endIndex;
-        for (endIndex = 1; endIndex < gpsData.gpsTimestamps.length && gpsData.gpsTimestamps[endIndex] < time; endIndex++);
-        var startIndex = endIndex - 1;
-        var percentThrough = (time - gpsData.gpsTimestamps[startIndex]) / (gpsData.gpsTimestamps[endIndex] - gpsData.gpsTimestamps[startIndex]);
+        var min = 0;
+        var max = gpsData.gpsTimestamps.length - 1;
+
+        while (Math.abs(min - max) > 1){//when we have two points next to each other then we know we have a mach and can proceed to the next step
+            var mid = Math.floor((min + max) / 2);
+            var midTime = gpsData.gpsTimestamps[mid];
+            if (time < midTime){
+                max = mid;
+            }
+            else if (time > midTime){
+                min = mid;
+            }
+            else{//we have an exact match!
+                min = max = mid;
+                if (min > 0)
+                    min--;
+                else
+                    max++;
+            }
+
+        }
+
+        /*var endIndex;
+        for (endIndex = 1; endIndex < gpsData.gpsTimestamps.length && gpsData.gpsTsimestamps[endIndex] < time; endIndex++);
+        var startIndex = endIndex - 1;*/
+        var percentThrough = (time - gpsData.gpsTimestamps[min]) / (gpsData.gpsTimestamps[max] - gpsData.gpsTimestamps[min]);
         if (isNaN(percentThrough))
-            return gpsData.gpsAccuracies[startIndex];
-        return (gpsData.gpsAccuracies[endIndex] - gpsData.gpsAccuracies[startIndex]) * percentThrough + gpsData.gpsAccuracies[startIndex];
-    }
-
-    function getLatLngOnGPSLine(map, time, gpsDataSet){
-        if (gpsDataSet == null)
-            gpsDataSet = map.primaryGPSData;
-        if (gpsDataSet == null)
-            return null;
-
-        if (gpsDataSet.gpsTimestamps.length == 0)
-            return null;
-        if (time <= gpsDataSet.gpsTimestamps[0])
-            return gpsDataSet.gpsPositions[0];
-        if (time >= gpsDataSet.gpsTimestamps[gpsDataSet.gpsTimestamps.length - 1])
-            return gpsDataSet.gpsPositions[gpsDataSet.gpsPositions.length-1];
-        var endIndex;
-        for (endIndex = 1; endIndex < gpsDataSet.gpsTimestamps.length && gpsDataSet.gpsTimestamps[endIndex] < time; endIndex++);
-        var startIndex = endIndex - 1;
-        var percentThrough = (time - gpsDataSet.gpsTimestamps[startIndex]) / (gpsDataSet.gpsTimestamps[endIndex] - gpsDataSet.gpsTimestamps[startIndex]);
-
-        var projection = map.getProjection();
-        var startPoint = projection.fromLatLngToPoint(gpsDataSet.gpsPositions[startIndex]);
-        var endPoint = projection.fromLatLngToPoint(gpsDataSet.gpsPositions[endIndex]);
-
-        var x = (endPoint.x - startPoint.x) * percentThrough + startPoint.x;
-        var y = (endPoint.y - startPoint.y) * percentThrough + startPoint.y;
-        var latlng = projection.fromPointToLatLng(new google.maps.Point(x,y));
-        return new google.maps.LatLng(latlng.lat(),latlng.lng());
-
+            return gpsData.gpsAccuracies[min];
+        return (gpsData.gpsAccuracies[max] - gpsData.gpsAccuracies[min]) * percentThrough + gpsData.gpsAccuracies[min];
     }
 
     function zoomOnTimespan(map, start,end){
@@ -841,14 +835,24 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         if (map.primaryGPSData == null)
             return;
         var newPosition = getPointForTimeOnLine(map,map.primaryGPSData,time*1000,false);
+        var newAccuracy = getGPSAccuracy(map.primaryGPSData,time*1000);
         if (map.dateMarker == null){
             map.dateMarker = new google.maps.Marker({
                 map: map,
                 position: newPosition
             });
+            map.dateAccuracyCircle = new google.maps.Circle({center:newPosition,
+                map:map,
+                radius:newAccuracy,
+                fillColor:"red",
+                fillOpacity:0.5,
+                strokeOpacity:0,
+                clickable:false});
         }
         else{
             map.dateMarker.setPosition(newPosition);
+            map.dateAccuracyCircle.setCenter(newPosition);
+            map.dateAccuracyCircle.setRadius(newAccuracy);
         }
     }
 
@@ -927,6 +931,8 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                     if (map.dateMarker != null){
                         map.dateMarker.setMap(null);
                         map.dateMarker = null;
+                        map.dateAccuracyCircle.setMap(null);
+                        map.dateAccuracyCircle = null;
                     }
                 }
                 map.currentHighlightedLine = null;
@@ -950,7 +956,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             map.addGPSData = function(gpsData,config,clickable){addGPSData(map,gpsData, config,clickable)};
             map.addData = function(connectorData, connectorInfoId,clickable){return addData(map,connectorData, connectorInfoId,clickable)};
             map.addAddresses = function(addresses,clickable){addAddresses(map,addresses,clickable)}
-            map.getLatLngOnGPSLine = function(time,gpsDataSet){return getLatLngOnGPSLine(map,time,gpsDataSet)};
+            map.getLatLngOnGPSLine = function(time,gpsDataSet){return getPointForTimeOnLine(map,gpsDataSet,time,false);};
             map.createPolyLineSegment = function(gpsDataSet, start,end,options){return createPolyLineSegment(map, gpsDataSet,start,end,options)};
             map.getFirstIndexAfter = function(gpsDataSet, time){return getFirstIndexAfter(gpsDataSet,time)};
             map.getFirstIndexBefore = function(gpsDataSet, time){return getFirstIndexBefore(gpsDataSet,time)};
