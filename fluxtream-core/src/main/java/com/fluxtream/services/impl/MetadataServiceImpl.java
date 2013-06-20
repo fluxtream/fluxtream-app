@@ -17,7 +17,6 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import com.fluxtream.Configuration;
-import com.fluxtream.TimeUnit;
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.connectors.vos.AbstractFacetVO;
@@ -115,16 +114,6 @@ public class MetadataServiceImpl implements MetadataService {
     }
 
     @Override
-    public void resetWeekMainCity(final long guestId, final int year, final int week) {
-        //TODO: implement this
-    }
-
-    @Override
-    public void resetMonthMainCity(final long guestId, final int year, final int month) {
-        //TODO: implement this
-    }
-
-    @Override
     public void setDayMainCity(final long guestId, final float latitude, final float longitude, final String date) {
         final City closestCity = getClosestCity(latitude, longitude);
         setDayMainCity(guestId, date, closestCity);
@@ -137,55 +126,18 @@ public class MetadataServiceImpl implements MetadataService {
     }
 
     private void setDayMainCity(final long guestId, final String date, final City closestCity) {
-        clearMainCities(guestId, Arrays.asList(date), TimeUnit.DAY);
+        clearMainCities(guestId, Arrays.asList(date));
         final DateTime dateTime = formatter.withZone(DateTimeZone.forID(closestCity.geo_timezone)).parseDateTime(date);
-        setMainCity(guestId, closestCity, dateTime.getMillis(), dateTime.getMillis() + DateTimeConstants.MILLIS_PER_DAY - 1, TimeUnit.DAY, date);
+        setMainCity(guestId, closestCity, dateTime.getMillis(), dateTime.getMillis() + DateTimeConstants.MILLIS_PER_DAY - 1, date);
     }
 
-    @Override
-    public void setWeekMainCity(final long guestId, final float latitude, final float longitude, final int year, final int week) {
-        final City closestCity = getClosestCity(latitude, longitude);
-        setWeekMainCity(guestId, year, week, closestCity);
-    }
-
-    @Override
-    public void setWeekMainCity(final long guestId, final long visitedCityId, final int year, final int week) {
-        final VisitedCity visitedCity = em.find(VisitedCity.class, visitedCityId);
-        setWeekMainCity(guestId, year, week, visitedCity.city);
-    }
-
-    private void setWeekMainCity(final long guestId, final int year, final int week, final City closestCity) {
-        final TreeSet<String> dates = getDatesForWeek(year, week);
-        clearMainCities(guestId, dates, TimeUnit.WEEK);
-        setMainCity(guestId, closestCity, dates, TimeUnit.WEEK);
-    }
-
-    @Override
-    public void setMonthMainCity(final long guestId, final float latitude, final float longitude, final int year, final int month) {
-        final City closestCity = getClosestCity(latitude, longitude);
-        setMonthMainCity(guestId, year, month, closestCity);
-    }
-
-    @Override
-    public void setMonthMainCity(final long guestId, final long visitedCityId, final int year, final int month) {
-        final VisitedCity visitedCity = em.find(VisitedCity.class, visitedCityId);
-        setMonthMainCity(guestId, year, month, visitedCity.city);
-    }
-
-    private void setMonthMainCity(final long guestId, final int year, final int month, final City closestCity) {
-        final TreeSet<String> dates = getDatesForMonth(year, month);
-        clearMainCities(guestId, dates, TimeUnit.MONTH);
-        setMainCity(guestId, closestCity, dates, TimeUnit.MONTH);
-    }
-
-    private void clearMainCities(final long guestId, final Collection<String> dates, final TimeUnit timeUnit) {
+    private void clearMainCities(final long guestId, final Collection<String> dates) {
         TypedQuery<VisitedCity> query = em.createQuery("SELECT facet FROM " +
                                                        JPAUtils.getEntityName(VisitedCity.class) +
-                                                       " facet WHERE facet.guestId=:guestId AND facet.locationSource=:source AND facet.mainCityBitPattern!=null AND facet.mainCityBitPattern>:bitPattern AND facet.date IN :dates" +
+                                                       " facet WHERE facet.guestId=:guestId AND facet.locationSource=:source  AND facet.date IN :dates" +
                                                        " ORDER BY facet.start", VisitedCity.class);
         query.setParameter("guestId", guestId);
         query.setParameter("source", LocationFacet.Source.USER);
-        query.setParameter("bitPattern", timeUnit.bitPattern());
         query.setParameter("dates", dates);
         final List<VisitedCity> resultList = query.getResultList();
         for (VisitedCity city : resultList) {
@@ -193,18 +145,8 @@ public class MetadataServiceImpl implements MetadataService {
         }
     }
 
-    private void setMainCity(final long guestId, final City city, final TreeSet<String> dates, final TimeUnit timeUnit) {
-        for (String date : dates) {
-            long start = formatter.withZone(DateTimeZone.forID(city.geo_timezone)).parseDateTime(date).getMillis();
-            long end = start + DateTimeConstants.MILLIS_PER_DAY-1;
-            setMainCity(guestId, city, start, end, timeUnit, date);
-        }
-    }
-
     @Transactional(readOnly=false)
-    private void setMainCity(final long guestId, final City city,
-                             final long start, final long end,
-                             TimeUnit timeUnit, final String timePeriod) {
+    private void setMainCity(final long guestId, final City city, final long start, final long end, final String timePeriod) {
         VisitedCity visitedCity = new VisitedCity();
         visitedCity.guestId = guestId;
         visitedCity.date = timePeriod;
@@ -212,7 +154,6 @@ public class MetadataServiceImpl implements MetadataService {
         visitedCity.city = city;
         visitedCity.start = start;
         visitedCity.end = end;
-        visitedCity.mainCityBitPattern = timeUnit.bitPattern();
         visitedCity.count = 1;
         visitedCity.startTimeStorage = AbstractLocalTimeFacet.timeStorageFormat.withZone(DateTimeZone.forID(city.geo_timezone)).print(start);
         visitedCity.endTimeStorage = AbstractLocalTimeFacet.timeStorageFormat.withZone(DateTimeZone.forID(city.geo_timezone)).print(end);
@@ -226,14 +167,14 @@ public class MetadataServiceImpl implements MetadataService {
         List<VisitedCity> cities = getVisitedCitiesForDate(guestId, date);
         VisitedCity previousInferredCity = null, nextInferredCity = null;
         if (cities.size()==0) {
-            previousInferredCity = searchCityBefore(guestId, date, TimeUnit.DAY);
-            nextInferredCity = searchCityAfter(guestId, date, TimeUnit.DAY);
+            previousInferredCity = searchCityBeforeDate(guestId, date);
+            nextInferredCity = searchCityAfterDate(guestId, date);
             if (previousInferredCity==null&&nextInferredCity==null) {
                 DayMetadata info = new DayMetadata(date);
                 return info;
             }
         }
-        final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities, previousInferredCity, nextInferredCity, TimeUnit.DAY);
+        final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities, previousInferredCity, nextInferredCity);
         DayMetadata info = new DayMetadata(cities, consensusVisitedCity, previousInferredCity, nextInferredCity, date);
         return info;
 	}
@@ -251,16 +192,16 @@ public class MetadataServiceImpl implements MetadataService {
         List<VisitedCity> cities = getVisitedCitiesForDates(guestId, dates);
         VisitedCity previousInferredCity = null, nextInferredCity = null;
         if (cities.size()==0) {
-            previousInferredCity = searchCityBefore(guestId, dates.first(), TimeUnit.WEEK);
-            nextInferredCity = searchCityAfter(guestId, dates.last(), TimeUnit.DAY);
+            previousInferredCity = searchCityBeforeDate(guestId, dates.first());
+            nextInferredCity = searchCityAfterDate(guestId, dates.last());
             if (previousInferredCity==null&&nextInferredCity==null) {
                 WeekMetadata info = new WeekMetadata(year, week);
                 return info;
             }
         }
-        final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities, previousInferredCity, nextInferredCity, TimeUnit.WEEK);
+        final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities, previousInferredCity, nextInferredCity);
         final List<VisitedCity> consensusCities = getConsensusCities(guestId, dates);
-        WeekMetadata info = new WeekMetadata(consensusCities, consensusVisitedCity, previousInferredCity, nextInferredCity, year, week);
+        WeekMetadata info = new WeekMetadata(consensusCities, consensusVisitedCity, previousInferredCity, nextInferredCity);
         return info;
     }
 
@@ -277,8 +218,11 @@ public class MetadataServiceImpl implements MetadataService {
             final DayMetadata dayMetadata = getDayMetadata(guestId, date);
             final VisitedCity consensusVisitedCity = dayMetadata.consensusVisitedCity;
             // Explicitely set the date on this visitedCity to enable time boundaries checking
-            consensusVisitedCity.setDate(date);
-            consensusCities.add(consensusVisitedCity);
+            VisitedCity copy = new VisitedCity(consensusVisitedCity);
+            copy.setDate(date);
+            copy.start = copy.getDayStart();
+            copy.end = copy.getDayEnd();
+            consensusCities.add(copy);
         }
         return consensusCities;
     }
@@ -289,14 +233,14 @@ public class MetadataServiceImpl implements MetadataService {
         List<VisitedCity> cities = getVisitedCitiesForDates(guestId, dates);
         VisitedCity previousInferredCity = null, nextInferredCity = null;
         if (cities.size()==0) {
-            previousInferredCity = searchCityBefore(guestId, dates.first(), TimeUnit.MONTH);
-            nextInferredCity = searchCityAfter(guestId, dates.last(), TimeUnit.MONTH);
+            previousInferredCity = searchCityBeforeDate(guestId, dates.first());
+            nextInferredCity = searchCityAfterDate(guestId, dates.last());
             if (previousInferredCity==null||nextInferredCity==null) {
                 MonthMetadata info = new MonthMetadata(year, month);
                 return info;
             }
         }
-        final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities, previousInferredCity, nextInferredCity, TimeUnit.MONTH);
+        final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities, previousInferredCity, nextInferredCity);
         final List<VisitedCity> consensusCities = getConsensusCities(guestId, dates);
         MonthMetadata info = new MonthMetadata(consensusCities, consensusVisitedCity, previousInferredCity, nextInferredCity, year, month);
         return info;
@@ -335,9 +279,7 @@ public class MetadataServiceImpl implements MetadataService {
     }
 
     private List<VisitedCity> getVisitedCitiesForDates(final long guestId, final TreeSet<String> dates) {
-        TypedQuery<VisitedCity> query = em.createQuery("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class)
-                                                       + " facet WHERE facet.guestId=:guestId AND facet.date IN :dates"
-                                                       + " ORDER BY facet.start", VisitedCity.class);
+        TypedQuery<VisitedCity> query = em.createQuery("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class) + " facet WHERE facet.guestId=:guestId AND facet.date IN :dates" + " ORDER BY facet.start", VisitedCity.class);
         query.setParameter("guestId", guestId);
         query.setParameter("dates", dates);
         List<VisitedCity> cities = query.getResultList();
@@ -347,17 +289,14 @@ public class MetadataServiceImpl implements MetadataService {
     /**
      * Get only the consensus city. Return user's preference if it has been set, otherwise return
      * the city where the user has spent the most time.
+     *
      * @param cities
      * @return
      */
-    private VisitedCity getConsensusVisitedCity(final List<VisitedCity> cities,
-                                                final VisitedCity previousInferredCity,
-                                                final VisitedCity nextInferredCity,
-                                                final TimeUnit timeUnit) {
+    private VisitedCity getConsensusVisitedCity(final List<VisitedCity> cities, final VisitedCity previousInferredCity, final VisitedCity nextInferredCity) {
 
         for (VisitedCity city : cities)
-            if (city.locationSource== LocationFacet.Source.USER &&
-                (city.mainCityBitPattern&timeUnit.bitPattern())>=timeUnit.bitPattern())
+            if (city.locationSource== LocationFacet.Source.USER)
                 return city;
 
         if (previousInferredCity!=null&&nextInferredCity!=null) {
@@ -408,6 +347,21 @@ public class MetadataServiceImpl implements MetadataService {
         return getVisitedCity(guestId, instant, query);
     }
 
+    private VisitedCity searchCity(final String queryString, final long guestId, final String date) {
+        final TypedQuery<VisitedCity> query = em.createQuery(queryString, VisitedCity.class);
+        return getVisitedCity(guestId, date, query);
+    }
+
+    private VisitedCity getVisitedCity(final long guestId, final String date, final TypedQuery<VisitedCity> query) {
+        query.setMaxResults(1);
+        query.setParameter(1, guestId);
+        query.setParameter(2, date);
+        final List<VisitedCity> cities = query.getResultList();
+        if (cities.size()>0)
+            return cities.get(0);
+        return null;
+    }
+
     private VisitedCity getVisitedCity(final long guestId, final long instant, final TypedQuery<VisitedCity> query) {
         query.setMaxResults(1);
         query.setParameter(1, guestId);
@@ -418,28 +372,24 @@ public class MetadataServiceImpl implements MetadataService {
         return null;
     }
 
-    private VisitedCity searchCityBefore(final long guestId, final String date, TimeUnit timeUnit) {
-        VisitedCity visitedCity = searchCity("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class) + " facet WHERE facet.guestId=? AND facet.start<? ORDER BY facet.start DESC", guestId, date);
+    private VisitedCity searchCityBeforeDate(final long guestId, final String date) {
+        VisitedCity visitedCity = searchCity("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class) + " facet WHERE facet.guestId=? AND facet.date<? ORDER BY facet.start DESC", guestId, date);
         if (visitedCity!=null) {
-            visitedCity = getConsensusVisitedCity(getVisitedCitiesForDate(guestId, visitedCity.date), null, null, timeUnit);
+            final List<VisitedCity> visitedCitiesForDate = getVisitedCitiesForDate(guestId, visitedCity.date);
+            visitedCity = getConsensusVisitedCity(visitedCitiesForDate, null, null);
             visitedCity.daysInferred = daysBetween(date, visitedCity);
         }
         return visitedCity;
     }
 
-    private VisitedCity searchCityAfter(final long guestId, final String date, TimeUnit timeUnit) {
-        VisitedCity visitedCity = searchCity("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class) + " facet WHERE facet.guestId=? AND facet.start>? ORDER BY facet.start", guestId, date);
+    private VisitedCity searchCityAfterDate(final long guestId, final String date) {
+        VisitedCity visitedCity = searchCity("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class) + " facet WHERE facet.guestId=? AND facet.date>? ORDER BY facet.start", guestId, date);
         if (visitedCity!=null) {
-            visitedCity = getConsensusVisitedCity(getVisitedCitiesForDate(guestId, visitedCity.date), null, null, timeUnit);
+            final List<VisitedCity> visitedCitiesForDate = getVisitedCitiesForDate(guestId, visitedCity.date);
+            visitedCity = getConsensusVisitedCity(visitedCitiesForDate, null, null);
             visitedCity.daysInferred = daysBetween(date, visitedCity);
         }
         return visitedCity;
-    }
-
-    private VisitedCity searchCity(final String queryString, final long guestId, final String date) {
-        long time = formatter.withZoneUTC().parseDateTime(date).getMillis();
-        final TypedQuery<VisitedCity> query = em.createQuery(queryString, VisitedCity.class);
-        return getVisitedCity(guestId, time, query);
     }
 
     @Override

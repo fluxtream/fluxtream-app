@@ -60,9 +60,6 @@ import com.google.gson.Gson;
 import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
 import com.luckycatlabs.sunrisesunset.dto.Location;
 import org.codehaus.plexus.util.ExceptionUtils;
-import org.joda.time.DateTimeZone;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -346,7 +343,7 @@ public class CalendarDataStore {
     private void setMetadata(final DigestModel digest, final AbstractTimespanMetadata dayMetadata) {
         digest.metadata.mainCity = new VisitedCityModel(dayMetadata.consensusVisitedCity, env);
         List<VisitedCityModel> cityModels = new ArrayList<VisitedCityModel>();
-        TreeSet<VisitedCity> orderedCities = new TreeSet<VisitedCity>(dayMetadata.cities);
+        TreeSet<VisitedCity> orderedCities = new TreeSet<VisitedCity>(dayMetadata.getCities());
         final Iterator<VisitedCity> cityIterator = orderedCities.iterator();
         while (cityIterator.hasNext()) {
             VisitedCity city = cityIterator.next();
@@ -430,7 +427,7 @@ public class CalendarDataStore {
 	@SuppressWarnings("rawtypes")
 	private void setCachedData(DigestModel digest, List<ApiKey> userKeys,
 			GuestSettings settings, List<ApiKey> apiKeySelection,
-			AbstractTimespanMetadata dayMetadata)
+			AbstractTimespanMetadata timespanMetadata)
             throws InstantiationException, IllegalAccessException, ClassNotFoundException, OutsideTimeBoundariesException
     {
 		for (ApiKey apiKey : userKeys) {
@@ -440,22 +437,20 @@ public class CalendarDataStore {
                 for (ObjectType objectType : objectTypes) {
                     Collection<AbstractFacetVO<AbstractFacet>> facetCollection = null;
                     if (objectType.isDateBased())
-                        facetCollection = getFacetVos(toDates(dayMetadata.start,
-                                                              dayMetadata.end,
-                                                              dayMetadata.getTimeInterval().getMainTimeZone()),
+                        facetCollection = getFacetVos(toDates(timespanMetadata),
                                                       settings,
                                                       connector,
                                                       objectType,
-                                                      dayMetadata.getTimeInterval());
+                                                      timespanMetadata.getTimeInterval());
                     else
-                        facetCollection = getFacetVos(dayMetadata, settings, connector, objectType);
+                        facetCollection = getFacetVos(timespanMetadata, settings, connector, objectType);
 
                     setFilterInfo(digest, apiKeySelection, apiKey,
                                   connector, objectType, facetCollection);
                 }
             }
             else {
-                Collection<AbstractFacetVO<AbstractFacet>> facetCollection = getFacetVos(dayMetadata, settings,
+                Collection<AbstractFacetVO<AbstractFacet>> facetCollection = getFacetVos(timespanMetadata, settings,
                                                                                          connector, null);
                 setFilterInfo(digest, apiKeySelection, apiKey,
                               connector, null, facetCollection);
@@ -463,16 +458,11 @@ public class CalendarDataStore {
 		}
 	}
 
-    private static DateTimeFormatter simpleDateFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
-
-    private List<String> toDates(final long start, final long end, TimeZone timeZoneAtFirstDay) {
-        Calendar calendar = Calendar.getInstance();
+    private List<String> toDates(final AbstractTimespanMetadata timespanMetadata) {
+        final List<VisitedCity> cities = timespanMetadata.getCities();
         List<String> dates = new ArrayList<String>();
-        calendar.setTimeInMillis(start);
-        long current = start;
-        for(current=start; current<end; current+=86400000) {
-            dates.add(simpleDateFormatter.withZone(DateTimeZone.forTimeZone(timeZoneAtFirstDay)).print(current));
-            current+=86400000;
+        for (VisitedCity city : cities) {
+            dates.add(city.date);
         }
         return dates;
     }
@@ -537,7 +527,7 @@ public class CalendarDataStore {
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
-	private Collection<AbstractFacetVO<AbstractFacet>> getFacetVos(AbstractTimespanMetadata dayMetadata,
+	private Collection<AbstractFacetVO<AbstractFacet>> getFacetVos(AbstractTimespanMetadata timespanMetadata,
                                                                    GuestSettings settings, Connector connector,
                                                                    ObjectType objectType)
             throws InstantiationException, IllegalAccessException, ClassNotFoundException, OutsideTimeBoundariesException
@@ -545,8 +535,8 @@ public class CalendarDataStore {
         List<AbstractFacet> objectTypeFacets = calendarDataHelper.getFacets(
 				connector,
 				objectType,
-				dayMetadata);
-        return getAbstractFacetVOs(settings, objectTypeFacets, dayMetadata.getTimeInterval());
+				timespanMetadata);
+        return getAbstractFacetVOs(settings, objectTypeFacets, timespanMetadata.getTimeInterval());
 	}
 
 	private void setCurrentAddress(DigestModel digest, long guestId, long start) {

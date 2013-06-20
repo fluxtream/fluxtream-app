@@ -1,11 +1,12 @@
 package com.fluxtream.metadata;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import com.fluxtream.TimeUnit;
 import com.fluxtream.domain.metadata.VisitedCity;
 import com.fluxtream.utils.TimeUtils;
 import org.joda.time.DateTimeConstants;
-import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 
 /**
@@ -23,26 +24,17 @@ public class WeekMetadata extends AbstractTimespanMetadata {
     }
 
     public WeekMetadata(final List<VisitedCity> cities, final VisitedCity consensusVisitedCity,
-                        VisitedCity previousInferredCity, VisitedCity nextInferredCity,
-                        final int year, final int week) {
+                        VisitedCity previousInferredCity, VisitedCity nextInferredCity) {
         super(cities, consensusVisitedCity, previousInferredCity, nextInferredCity);
-        this.start = getStartOfWeek(consensusVisitedCity.city.geo_timezone, year, week);
-        this.end = getEndOfWeek(consensusVisitedCity.city.geo_timezone, year, week);
-    }
+        Collections.sort(cities, new Comparator<VisitedCity>() {
+            @Override
+            public int compare(final VisitedCity o1, final VisitedCity o2) {
+                return (int)(o1.start - o2.start);
+            }
+        });
 
-    public static long getEndOfWeek(final String timeZone, final int year, final int week) {
-        final LocalDate beginningOfWeek = TimeUtils.getBeginningOfWeek(year, week);
-        final LocalDate endOfWeek = beginningOfWeek.plusDays(7);
-        final DateTimeZone consensusTimezone = DateTimeZone.forID(timeZone);
-        long t = endOfWeek.toDateTimeAtStartOfDay(consensusTimezone).getMillis() + DateTimeConstants.MILLIS_PER_DAY;
-        return t;
-    }
-
-    public static long getStartOfWeek(final String timeZone, final int year, final int week) {
-        final LocalDate beginningOfWeek = TimeUtils.getBeginningOfWeek(year, week);
-        final DateTimeZone consensusTimezone = DateTimeZone.forID(timeZone);
-        long t = beginningOfWeek.toDateTimeAtStartOfDay(consensusTimezone).getMillis();
-        return t;
+        this.start = cities.get(0).getDayStart();
+        this.end = cities.get(cities.size()-1).getDayEnd();
     }
 
     @Override

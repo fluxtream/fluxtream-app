@@ -36,8 +36,6 @@ public class VisitedCity extends AbstractLocalTimeFacet implements Comparable<Vi
 
     public long count;
 
-    public Byte mainCityBitPattern;
-
     public transient int daysInferred;
 
     private transient DateTime dateTime;
@@ -49,6 +47,24 @@ public class VisitedCity extends AbstractLocalTimeFacet implements Comparable<Vi
     public City city;
 
     public VisitedCity() {}
+
+    public VisitedCity(final VisitedCity otherCity) {
+        this.setId(otherCity.getId());
+        this.locationSource = otherCity.locationSource;
+        this.timeUpdated = otherCity.timeUpdated;
+        this.api = otherCity.api;
+        this.apiKeyId = otherCity.apiKeyId;
+        this.date = otherCity.date;
+        this.start = otherCity.start;
+        this.end = otherCity.end;
+        this.startTimeStorage = otherCity.startTimeStorage;
+        this.endTimeStorage = otherCity.endTimeStorage;
+        this.sunrise = otherCity.sunrise;
+        this.sunset = otherCity.sunset;
+        this.city = otherCity.city;
+        this.count = otherCity.count;
+        this.daysInferred = otherCity.daysInferred;
+    }
 
     public VisitedCity(long apiKeyId) {
         super(apiKeyId);

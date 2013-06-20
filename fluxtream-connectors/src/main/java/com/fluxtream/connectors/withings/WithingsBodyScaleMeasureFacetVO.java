@@ -31,6 +31,7 @@ public class WithingsBodyScaleMeasureFacetVO extends
 	@Override
 	public void fromFacet(WithingsBodyScaleMeasureFacet facet,
 			TimeInterval timeInterval, GuestSettings settings) throws OutsideTimeBoundariesException {
+        this.start = facet.start;
 		long elapsed = timeInterval.getStart()
 				- TimeUtils.fromMidnight(facet.measureTime, timeInterval.getTimeZone(facet.measureTime));
 		daysAgo = (int) (elapsed / (24 * 3600000));

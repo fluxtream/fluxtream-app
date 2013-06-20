@@ -44,36 +44,6 @@ public class MetadataController {
         return new StatusModel(true, "OK");
     }
 
-    @POST
-    @Path(value="/mainCity/week/{year}/{week}")
-    @Produces({ MediaType.APPLICATION_JSON } )
-    public StatusModel setWeekMainCity(@FormParam("latitude") float latitude,
-                                       @FormParam("longitude") float longitude,
-                                       @PathParam("year") int year,
-                                       @PathParam("week") int week) {
-        final long guestId = AuthHelper.getGuestId();
-        StringBuilder sb = new StringBuilder("module=API component=calendarController action=setWeekMainCity")
-                .append(" guestId=").append(guestId);
-        logger.info(sb.toString());
-        metadataService.setWeekMainCity(guestId, latitude, longitude, year, week);
-        return new StatusModel(true, "OK");
-    }
-
-    @POST
-    @Path(value="/mainCity/month/{year}/{month}")
-    @Produces({ MediaType.APPLICATION_JSON } )
-    public StatusModel setMonthMainCity(@FormParam("latitude") float latitude,
-                                        @FormParam("longitude") float longitude,
-                                        @PathParam("year") int year,
-                                        @PathParam("month") int month) {
-        final long guestId = AuthHelper.getGuestId();
-        StringBuilder sb = new StringBuilder("module=API component=calendarController action=setMonthMainCity")
-                .append(" guestId=").append(guestId);
-        logger.info(sb.toString());
-        metadataService.setMonthMainCity(guestId, latitude, longitude, year, month);
-        return new StatusModel(true, "OK");
-    }
-
     @DELETE
     @Path(value="/mainCity/date/{date}")
     @Produces({ MediaType.APPLICATION_JSON } )
@@ -83,32 +53,6 @@ public class MetadataController {
                 .append(" guestId=").append(guestId);
         logger.info(sb.toString());
         metadataService.resetDayMainCity(guestId, date);
-        return new StatusModel(true, "OK");
-    }
-
-    @DELETE
-    @Path(value="/mainCity/week/{year}/{week}")
-    @Produces({ MediaType.APPLICATION_JSON } )
-    public StatusModel resetWeekMainCity(@PathParam("year") int year,
-                                         @PathParam("week") int week) {
-        final long guestId = AuthHelper.getGuestId();
-        StringBuilder sb = new StringBuilder("module=API component=calendarController action=resetWeekMainCity")
-                .append(" guestId=").append(guestId);
-        logger.info(sb.toString());
-        metadataService.resetWeekMainCity(guestId, year, week);
-        return new StatusModel(true, "OK");
-    }
-
-    @DELETE
-    @Path(value="/mainCity/month/{year}/{month}")
-    @Produces({ MediaType.APPLICATION_JSON } )
-    public StatusModel resetMonthMainCity(@PathParam("year") int year,
-                                          @PathParam("month") int month) {
-        final long guestId = AuthHelper.getGuestId();
-        StringBuilder sb = new StringBuilder("module=API component=calendarController action=resetMonthMainCity")
-                .append(" guestId=").append(guestId);
-        logger.info(sb.toString());
-        metadataService.resetMonthMainCity(guestId, year, month);
         return new StatusModel(true, "OK");
     }
 
@@ -124,34 +68,5 @@ public class MetadataController {
         metadataService.setDayMainCity(guestId, visitedCityId, date);
         return new StatusModel(true, "OK");
     }
-
-    @POST
-    @Path(value="/mainCity/{visitedCityId}/week/{year}/{week}")
-    @Produces({ MediaType.APPLICATION_JSON } )
-    public StatusModel setWeekMainCity(@PathParam("visitedCityId") long visitedCityId,
-                                       @PathParam("year") int year,
-                                       @PathParam("week") int week) {
-        final long guestId = AuthHelper.getGuestId();
-        StringBuilder sb = new StringBuilder("module=API component=calendarController action=setWeekMainCity")
-                .append(" guestId=").append(guestId);
-        logger.info(sb.toString());
-        metadataService.setWeekMainCity(guestId, visitedCityId, year, week);
-        return new StatusModel(true, "OK");
-    }
-
-    @POST
-    @Path(value="/mainCity/{visitedCityId}/month/{year}/{month}")
-    @Produces({ MediaType.APPLICATION_JSON } )
-    public StatusModel setMonthMainCity(@PathParam("visitedCityId") long visitedCityId,
-                                        @PathParam("year") int year,
-                                        @PathParam("month") int month) {
-        final long guestId = AuthHelper.getGuestId();
-        StringBuilder sb = new StringBuilder("module=API component=calendarController action=setMonthMainCity")
-                .append(" guestId=").append(guestId);
-        logger.info(sb.toString());
-        metadataService.setMonthMainCity(guestId, visitedCityId, year, month);
-        return new StatusModel(true, "OK");
-    }
-
 
 }
