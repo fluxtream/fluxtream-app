@@ -21,7 +21,8 @@ import org.springframework.stereotype.Component;
  * Time: 16:50
  */
 @Component
-@Updater(prettyName = "Moves", value = 144, objectTypes = {LocationFacet.class}, extractor = MovesFacetExtractor.class)
+@Updater(prettyName = "Moves", value = 144, objectTypes = {LocationFacet.class, MovesMoveFacet.class, MovesPlaceFacet.class},
+         extractor = MovesFacetExtractor.class)
 public class MovesUpdater extends AbstractUpdater {
 
     final static String host = "https://api.moves-app.com/api/v1";

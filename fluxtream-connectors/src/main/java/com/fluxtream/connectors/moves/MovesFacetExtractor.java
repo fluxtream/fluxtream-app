@@ -39,17 +39,20 @@ public class MovesFacetExtractor extends AbstractFacetExtractor {
 
     @Override
     public List<AbstractFacet> extractFacets(final ApiData apiData, final ObjectType objectType) throws Exception {
-        JSONArray jsonArray = JSONArray.fromObject(apiData.json);
         List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
+        if (objectType.getName().equals("location"))
+            return facets;
+        JSONArray jsonArray = JSONArray.fromObject(apiData.json);
         for (int i=0; i<jsonArray.size(); i++) {
             JSONObject dayFacetData = jsonArray.getJSONObject(i);
             String date = dayFacetData.getString("date");
             JSONArray segments = dayFacetData.getJSONArray("segments");
             for (int j=0; j<segments.size(); j++) {
                 JSONObject segment = segments.getJSONObject(j);
-                if (segment.getString("type").equals("move")) {
+                if (segment.getString("type").equals("move")&&objectType.getName().equals("move")) {
                     facets.add(extractMove(date, segment));
-                } else if (segment.getString("type").equals("place")) {
+                } else if (segment.getString("type").equals("place")&&
+                           objectType.getName().equals("place")) {
                     facets.add(extractPlace(date, segment));
                 }
             }
@@ -58,7 +61,7 @@ public class MovesFacetExtractor extends AbstractFacetExtractor {
     }
 
     private MovesPlaceFacet extractPlace(final String date, final JSONObject segment) {
-        MovesPlaceFacet facet = new MovesPlaceFacet();
+        MovesPlaceFacet facet = new MovesPlaceFacet(updateInfo.apiKey.getId());
         extractMoveData(date, segment, facet);
         extractPlaceData(segment, facet);
         return facet;
@@ -79,7 +82,7 @@ public class MovesFacetExtractor extends AbstractFacetExtractor {
     }
 
     private MovesMoveFacet extractMove(final String date, final JSONObject segment) {
-        MovesMoveFacet facet = new MovesMoveFacet();
+        MovesMoveFacet facet = new MovesMoveFacet(updateInfo.apiKey.getId());
         extractMoveData(date, segment, facet);
         return facet;
     }

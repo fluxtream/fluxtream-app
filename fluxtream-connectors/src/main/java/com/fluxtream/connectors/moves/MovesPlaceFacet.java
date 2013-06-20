@@ -10,7 +10,7 @@ import com.fluxtream.connectors.location.LocationFacet;
  * Time: 23:28
  */
 @Entity(name="Facet_MovesPlace")
-@ObjectTypeSpec(name = "place", value = 2, extractor=MovesFacetExtractor.class, parallel=true, prettyname = "Places",
+@ObjectTypeSpec(name = "place", value = 2, extractor=MovesFacetExtractor.class, parallel=false, prettyname = "Places",
                 locationFacetSource = LocationFacet.Source.MOVES)
 public class MovesPlaceFacet extends MovesFacet  {
 

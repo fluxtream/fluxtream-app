@@ -15,7 +15,6 @@ public class RunKeeperFitnessActivityFacetVO extends AbstractTimedFacetVO<RunKee
 
     double averageHeartRate = 0d;
     public double total_distance;
-    public DurationModel duration;
     public double total_climb;
     public String activityType;
 
