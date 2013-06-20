@@ -201,7 +201,7 @@ public class MetadataServiceImpl implements MetadataService {
         }
         final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities, previousInferredCity, nextInferredCity);
         final List<VisitedCity> consensusCities = getConsensusCities(guestId, dates);
-        WeekMetadata info = new WeekMetadata(consensusCities, consensusVisitedCity, previousInferredCity, nextInferredCity, year, week);
+        WeekMetadata info = new WeekMetadata(consensusCities, consensusVisitedCity, previousInferredCity, nextInferredCity);
         return info;
     }
 

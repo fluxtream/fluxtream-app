@@ -541,7 +541,7 @@ define(
                 if (city.dayStart<=facet.start && facet.start<city.dayEnd)
                     return city;
             }
-            console.log("WARNING: facet isn't within metadata time boundaries")
+            console.log("WARNING: facet isn't within metadata time boundaries: " + new Date(facet.start))
             console.log(facet);
             return null;
         }

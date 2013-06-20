@@ -54,13 +54,11 @@ public class CalendarDataHelper {
     }
 
 	public List<AbstractFacet> getFacets(Connector connector,
-			ObjectType objectType, AbstractTimespanMetadata dayMetadata) {
+			ObjectType objectType, AbstractTimespanMetadata timespanMetadata) {
 		List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
 		try {
             if (AuthHelper.isViewingGranted(connector.getName(), coachingService))
-                facets = apiDataService.getApiDataFacets(
-                        guestService.getApiKey(AuthHelper.getVieweeId(), connector), objectType,
-                        dayMetadata.getTimeInterval());
+                facets = apiDataService.getApiDataFacets(guestService.getApiKey(AuthHelper.getVieweeId(), connector), objectType, timespanMetadata.getTimeInterval());
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}

@@ -430,7 +430,7 @@ public class CalendarDataStore {
 	@SuppressWarnings("rawtypes")
 	private void setCachedData(DigestModel digest, List<ApiKey> userKeys,
 			GuestSettings settings, List<ApiKey> apiKeySelection,
-			AbstractTimespanMetadata dayMetadata)
+			AbstractTimespanMetadata timespanMetadata)
             throws InstantiationException, IllegalAccessException, ClassNotFoundException, OutsideTimeBoundariesException
     {
 		for (ApiKey apiKey : userKeys) {
@@ -440,22 +440,22 @@ public class CalendarDataStore {
                 for (ObjectType objectType : objectTypes) {
                     Collection<AbstractFacetVO<AbstractFacet>> facetCollection = null;
                     if (objectType.isDateBased())
-                        facetCollection = getFacetVos(toDates(dayMetadata.start,
-                                                              dayMetadata.end,
-                                                              dayMetadata.getTimeInterval().getMainTimeZone()),
+                        facetCollection = getFacetVos(toDates(timespanMetadata.start,
+                                                              timespanMetadata.end,
+                                                              timespanMetadata.getTimeInterval().getMainTimeZone()),
                                                       settings,
                                                       connector,
                                                       objectType,
-                                                      dayMetadata.getTimeInterval());
+                                                      timespanMetadata.getTimeInterval());
                     else
-                        facetCollection = getFacetVos(dayMetadata, settings, connector, objectType);
+                        facetCollection = getFacetVos(timespanMetadata, settings, connector, objectType);
 
                     setFilterInfo(digest, apiKeySelection, apiKey,
                                   connector, objectType, facetCollection);
                 }
             }
             else {
-                Collection<AbstractFacetVO<AbstractFacet>> facetCollection = getFacetVos(dayMetadata, settings,
+                Collection<AbstractFacetVO<AbstractFacet>> facetCollection = getFacetVos(timespanMetadata, settings,
                                                                                          connector, null);
                 setFilterInfo(digest, apiKeySelection, apiKey,
                               connector, null, facetCollection);
@@ -537,7 +537,7 @@ public class CalendarDataStore {
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
-	private Collection<AbstractFacetVO<AbstractFacet>> getFacetVos(AbstractTimespanMetadata dayMetadata,
+	private Collection<AbstractFacetVO<AbstractFacet>> getFacetVos(AbstractTimespanMetadata timespanMetadata,
                                                                    GuestSettings settings, Connector connector,
                                                                    ObjectType objectType)
             throws InstantiationException, IllegalAccessException, ClassNotFoundException, OutsideTimeBoundariesException
@@ -545,8 +545,8 @@ public class CalendarDataStore {
         List<AbstractFacet> objectTypeFacets = calendarDataHelper.getFacets(
 				connector,
 				objectType,
-				dayMetadata);
-        return getAbstractFacetVOs(settings, objectTypeFacets, dayMetadata.getTimeInterval());
+				timespanMetadata);
+        return getAbstractFacetVOs(settings, objectTypeFacets, timespanMetadata.getTimeInterval());
 	}
 
 	private void setCurrentAddress(DigestModel digest, long guestId, long start) {
