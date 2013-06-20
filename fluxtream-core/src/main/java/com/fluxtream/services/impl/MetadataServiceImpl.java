@@ -220,6 +220,8 @@ public class MetadataServiceImpl implements MetadataService {
             // Explicitely set the date on this visitedCity to enable time boundaries checking
             VisitedCity copy = new VisitedCity(consensusVisitedCity);
             copy.setDate(date);
+            copy.start = copy.getDayStart();
+            copy.end = copy.getDayEnd();
             consensusCities.add(copy);
         }
         return consensusCities;
