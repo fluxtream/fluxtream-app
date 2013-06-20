@@ -1,6 +1,7 @@
 package com.fluxtream.connectors.moves;
 
 import javax.persistence.Entity;
+import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.connectors.location.LocationFacet;
 
@@ -20,10 +21,13 @@ public class MovesPlaceFacet extends MovesFacet  {
     public String foursquareId;
     public float latitude, longitude;
 
-    public MovesPlaceFacet() {}
+    public MovesPlaceFacet() {
+        this.api = Connector.getConnector("moves").value();
+    }
 
     public MovesPlaceFacet(long apiKeyId) {
         super(apiKeyId);
+        this.api = Connector.getConnector("moves").value();
     }
 
     @Override

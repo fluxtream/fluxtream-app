@@ -11,7 +11,7 @@ import javax.persistence.Embeddable;
 
 public class MovesActivity {
 
-    String activityId;
+    String activityURI;
     public String activity;
     public String date;
     public String startTimeStorage, endTimeStorage;
@@ -19,7 +19,7 @@ public class MovesActivity {
     public int distance;
     public Integer steps;
 
-    public String getActivityId() {
-        return activityId;
+    public String getActivityURI() {
+        return activityURI;
     }
 }

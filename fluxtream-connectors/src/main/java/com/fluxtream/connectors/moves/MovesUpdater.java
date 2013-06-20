@@ -98,8 +98,8 @@ public class MovesUpdater extends AbstractUpdater {
 
     @Override
     protected void updateConnectorData(final UpdateInfo updateInfo) throws Exception {
-        String lastDate = guestService.getApiKeyAttribute(updateInfo.apiKey, "lastDate");
-        updateConnectorDataSince(updateInfo, lastDate);
+        //String lastDate = guestService.getApiKeyAttribute(updateInfo.apiKey, "lastDate");
+        //updateConnectorDataSince(updateInfo, lastDate);
     }
 
 

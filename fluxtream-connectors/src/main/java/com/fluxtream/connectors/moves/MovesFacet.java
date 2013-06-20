@@ -6,6 +6,7 @@ import javax.persistence.ElementCollection;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.MappedSuperclass;
+import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.AbstractLocalTimeFacet;
 
 /**
@@ -22,10 +23,13 @@ public class MovesFacet extends AbstractLocalTimeFacet {
     )
     public List<MovesActivity> activities;
 
-    public MovesFacet() {}
+    public MovesFacet() {
+        this.api = Connector.getConnector("moves").value();
+    }
 
     public MovesFacet(long apiKeyId) {
         super(apiKeyId);
+        this.api = Connector.getConnector("moves").value();
     }
 
     @Override

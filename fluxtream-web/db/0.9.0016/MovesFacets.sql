@@ -63,6 +63,7 @@ CREATE TABLE `Facet_MovesPlace` (
 CREATE TABLE `MovesActivity` (
   `ActivityID` bigint(20) NOT NULL,
   `activity` varchar(255) DEFAULT NULL,
+  `activityURI` varchar(255) DEFAULT NULL,
   `date` varchar(255) DEFAULT NULL,
   `distance` int(11) NOT NULL,
   `end` bigint(20) NOT NULL,
@@ -75,4 +76,3 @@ CREATE TABLE `MovesActivity` (
   CONSTRAINT `FK51B7E3D1738B879` FOREIGN KEY (`ActivityID`) REFERENCES `Facet_MovesPlace` (`id`),
   CONSTRAINT `FK51B7E3D1185495D1` FOREIGN KEY (`ActivityID`) REFERENCES `Facet_MovesMove` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-

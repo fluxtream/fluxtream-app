@@ -107,7 +107,7 @@ public class MovesFacetExtractor extends AbstractFacetExtractor {
         for (int i=0; i<activities.size(); i++) {
             JSONObject activityData = activities.getJSONObject(i);
             MovesActivity activity = new MovesActivity();
-            activity.activityId = UUID.randomUUID().toString();
+            activity.activityURI = UUID.randomUUID().toString();
             activity.activity = activityData.getString("activity");
             final DateTime startTime = timeStorageFormat.withZoneUTC().parseDateTime(activityData.getString("startTime"));
             final DateTime endTime = timeStorageFormat.withZoneUTC().parseDateTime(activityData.getString("endTime"));
@@ -118,7 +118,8 @@ public class MovesFacetExtractor extends AbstractFacetExtractor {
             if (activityData.has("steps"))
                 activity.steps = activityData.getInt("steps");
             activity.distance = activityData.getInt("distance");
-            extractTrackPoints(date, activity.activityId, activityData);
+            extractTrackPoints(date, activity.activityURI, activityData);
+            facet.activities.add(activity);
         }
     }
 
