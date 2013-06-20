@@ -412,16 +412,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             if (map.infoWindowShown != null){
                 map.infoWindowShown();
             }
-            if (map.dateAxis != null){
-                var targetTime = item.start/1000;
-                map.dateAxis.setCursorPosition(targetTime);
-                var minTime = map.dateAxis.getMin();
-                var maxTime = map.dateAxis.getMax();
-                if (targetTime < minTime || targetTime > maxTime){
-                   var offset = (maxTime - minTime) / 2;
-                   map.dateAxis.setRange(targetTime - offset,targetTime + offset);
-                }
-            }
+            moveDateAxisCursor(map,item.start);
         });
 
     }
@@ -839,7 +830,8 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         if (map.dateMarker == null){
             map.dateMarker = new google.maps.Marker({
                 map: map,
-                position: newPosition
+                position: newPosition,
+                clickable:true
             });
             map.dateAccuracyCircle = new google.maps.Circle({center:newPosition,
                 map:map,
@@ -848,6 +840,10 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 fillOpacity:0.5,
                 strokeOpacity:0,
                 clickable:false});
+            google.maps.event.addListener(map.dateMarker, "click", function(){
+                centerDateAxisOnCursor(map);
+            });
+
         }
         else{
             map.dateMarker.setPosition(newPosition);
@@ -855,6 +851,32 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             map.dateAccuracyCircle.setRadius(newAccuracy);
         }
     }
+
+    function moveDateAxisCursor(map,time){
+        if (map.dateAxis != null){
+            var targetTime = time/1000;
+            map.dateAxis.setCursorPosition(targetTime);
+            var minTime = map.dateAxis.getMin();
+            var maxTime = map.dateAxis.getMax();
+            if (targetTime < minTime || targetTime > maxTime){
+                centerDateAxisOnCursor(map);
+            }
+        }
+    }
+
+    function centerDateAxisOnCursor(map){
+        if (map.dateAxis != null){
+            var targetTime = map.dateAxis.getCursorPosition();
+            if (targetTime != null){
+                var minTime = map.dateAxis.getMin();
+                var maxTime = map.dateAxis.getMax();
+                var offset = (maxTime - minTime) / 2;
+                map.dateAxis.setRange(targetTime - offset,targetTime + offset);
+            }
+        }
+
+    }
+
 
     function updateDateAxisHighlighting(map,min,max){
         map.highlightTimespan(min*1000,max*1000);
