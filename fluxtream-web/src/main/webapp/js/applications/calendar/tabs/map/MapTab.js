@@ -49,12 +49,9 @@ define(["core/Tab",
         $("#mapFit").unbind("click");
 
         var bounds = null;
-        var addressToUse = {latitude:0,longitude:0};
-        if (digest.addresses.ADDRESS_HOME != null && digest.addresses.ADDRESS_HOME.length != 0)
-            addressToUse = digest.addresses.ADDRESS_HOME[0];
 
         if (map == null){//make new map
-            map = MapUtils.newMap(new google.maps.LatLng(addressToUse.latitude,addressToUse.longitude),16,"the_map",false);
+            map = MapUtils.newMap(new google.maps.LatLng(digest.metadata.mainCity.latitude,digest.metadata.mainCity.longitude),14,"the_map",false);
             map.infoWindowShown = function(){
                 $("#the_map").find(".flx-photo").click(function(event){
                     App.makeModal(photoCarouselHTML);
@@ -77,8 +74,8 @@ define(["core/Tab",
                 map.fitBounds(bounds,map.isPreserveViewChecked());
             }
             else{
-                map.setCenter(new google.maps.LatLng(addressToUse.latitude,addressToUse.longitude));
-                map.setZoom(16);
+                map.setCenter(new google.maps.LatLng(digest.metadata.mainCity.latitude,digest.metadata.mainCity.longitude));
+                map.setZoom(14);
             }
             map.preserveViewCheckboxChanged = function(){
                 preserveView = map.isPreserveViewChecked();

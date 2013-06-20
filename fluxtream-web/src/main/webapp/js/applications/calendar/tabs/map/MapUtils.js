@@ -54,8 +54,6 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             strokeColor: newGPSDataSet.color});
         addToGPSBounds(map, new google.maps.LatLng(minLat,minLng));
         addToGPSBounds(map, new google.maps.LatLng(maxLat,maxLng));
-
-        map.noGPSDiv.css("display","none");
     }
 
     function addToGPSBounds(map, point){
@@ -334,7 +332,6 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             var bounds = marker.getBounds();
             addToGPSBounds(map, bounds.getNorthEast());
             addToGPSBounds(map, bounds.getSouthWest());
-            map.noGPSDiv.css("display","none");
             return marker;
         }
     }
@@ -734,16 +731,6 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         }
     }
 
-    function showNoGPSDisplay(map){
-        if (map.noGPSDiv == null){
-            map.noGPSDiv = $("<div id='nogeolocation' style='background:white;'>No Geolocation Data Available</div>");
-            map.controls[google.maps.ControlPosition.TOP].push(map.noGPSDiv[0]);
-        }
-        else{
-            map.noGPSDiv.css("display","block");
-        }
-    }
-
     function fixZooming(map,zoomLevel,isPreserved){
         if (!map.isFullyInitialized()){
             $.doTimeout(100,function(){
@@ -805,7 +792,6 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                         map.gpsData[dataset].gpsLine.setMap(null);
                     }
                 }
-                showNoGPSDisplay(map);
                 map.currentHighlightedLine = null;
                 map.highlightSection = null;
                 map.connectorSelected = null;
