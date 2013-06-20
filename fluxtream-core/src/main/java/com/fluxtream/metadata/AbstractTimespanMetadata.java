@@ -1,5 +1,7 @@
 package com.fluxtream.metadata;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.TimeZone;
 import com.fluxtream.OutsideTimeBoundariesException;
@@ -28,10 +30,24 @@ public abstract class AbstractTimespanMetadata {
     public VisitedCity nextInferredCity;
     public VisitedCity previousInferredCity;
 
-    public List<VisitedCity> cities;
+    private List<VisitedCity> cities;
 
     protected static final DateTimeFormatter formatter = DateTimeFormat
             .forPattern("yyyy-MM-dd");
+
+    public List<VisitedCity> getCities() {
+        Collections.sort(cities, new Comparator<VisitedCity>() {
+            @Override
+            public int compare(final VisitedCity o1, final VisitedCity o2) {
+                return (int)(o1.start - o2.start);
+            }
+        });
+        return cities;
+    }
+
+    public void setCities(final List<VisitedCity> cities) {
+        this.cities = cities;
+    }
 
     protected class TimespanTimeInterval implements TimeInterval {
 
@@ -53,7 +69,7 @@ public abstract class AbstractTimespanMetadata {
         public TimeZone getTimeZone(final long time) throws OutsideTimeBoundariesException {
             if (getTimeUnit()==TimeUnit.DAY)
                 return getMainTimeZone();
-            for (VisitedCity city : cities) {
+            for (VisitedCity city : getCities()) {
                 long dayStart = city.getDayStart();
                 long dayEnd = city.getDayEnd();
                 if (dayStart<time&&dayEnd>time)
@@ -67,7 +83,7 @@ public abstract class AbstractTimespanMetadata {
     public AbstractTimespanMetadata() {}
 
     AbstractTimespanMetadata(List<VisitedCity> cities, VisitedCity consensusVisitedCity, VisitedCity previousInferredCity, VisitedCity nextInferredCity) {
-        this.cities = cities;
+        this.setCities(cities);
         this.consensusVisitedCity = consensusVisitedCity;
         this.nextInferredCity = nextInferredCity;
         this.previousInferredCity = previousInferredCity;

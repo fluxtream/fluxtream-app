@@ -60,9 +60,6 @@ import com.google.gson.Gson;
 import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
 import com.luckycatlabs.sunrisesunset.dto.Location;
 import org.codehaus.plexus.util.ExceptionUtils;
-import org.joda.time.DateTimeZone;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -346,7 +343,7 @@ public class CalendarDataStore {
     private void setMetadata(final DigestModel digest, final AbstractTimespanMetadata dayMetadata) {
         digest.metadata.mainCity = new VisitedCityModel(dayMetadata.consensusVisitedCity, env);
         List<VisitedCityModel> cityModels = new ArrayList<VisitedCityModel>();
-        TreeSet<VisitedCity> orderedCities = new TreeSet<VisitedCity>(dayMetadata.cities);
+        TreeSet<VisitedCity> orderedCities = new TreeSet<VisitedCity>(dayMetadata.getCities());
         final Iterator<VisitedCity> cityIterator = orderedCities.iterator();
         while (cityIterator.hasNext()) {
             VisitedCity city = cityIterator.next();
@@ -440,9 +437,7 @@ public class CalendarDataStore {
                 for (ObjectType objectType : objectTypes) {
                     Collection<AbstractFacetVO<AbstractFacet>> facetCollection = null;
                     if (objectType.isDateBased())
-                        facetCollection = getFacetVos(toDates(timespanMetadata.start,
-                                                              timespanMetadata.end,
-                                                              timespanMetadata.getTimeInterval().getMainTimeZone()),
+                        facetCollection = getFacetVos(toDates(timespanMetadata),
                                                       settings,
                                                       connector,
                                                       objectType,
@@ -463,16 +458,11 @@ public class CalendarDataStore {
 		}
 	}
 
-    private static DateTimeFormatter simpleDateFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
-
-    private List<String> toDates(final long start, final long end, TimeZone timeZoneAtFirstDay) {
-        Calendar calendar = Calendar.getInstance();
+    private List<String> toDates(final AbstractTimespanMetadata timespanMetadata) {
+        final List<VisitedCity> cities = timespanMetadata.getCities();
         List<String> dates = new ArrayList<String>();
-        calendar.setTimeInMillis(start);
-        long current = start;
-        for(current=start; current<end; current+=86400000) {
-            dates.add(simpleDateFormatter.withZone(DateTimeZone.forTimeZone(timeZoneAtFirstDay)).print(current));
-            current+=86400000;
+        for (VisitedCity city : cities) {
+            dates.add(city.date);
         }
         return dates;
     }
