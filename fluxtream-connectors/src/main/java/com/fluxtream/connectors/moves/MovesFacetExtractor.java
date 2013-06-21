@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.TimeZone;
 import java.util.UUID;
 import com.fluxtream.ApiData;
+import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.domain.AbstractFacet;
@@ -126,6 +127,7 @@ public class MovesFacetExtractor extends AbstractFacetExtractor {
         List<LocationFacet> locationFacets = new ArrayList<LocationFacet>();
         // timeZone is computed based on first location for each batch of trackPoints
         TimeZone timeZone = null;
+        Connector connector = Connector.getConnector("moves");
         for (int i=0; i<trackPoints.size(); i++) {
             JSONObject trackPoint = trackPoints.getJSONObject(i);
             LocationFacet locationFacet = new LocationFacet(updateInfo.apiKey.getId());
@@ -135,6 +137,7 @@ public class MovesFacetExtractor extends AbstractFacetExtractor {
                 timeZone = metadataService.getTimeZone(locationFacet.latitude, locationFacet.longitude);
             final DateTime time = timeStorageFormat.withZone(DateTimeZone.forTimeZone(timeZone)).parseDateTime(trackPoint.getString("time"));
             locationFacet.timestampMs = time.getMillis();
+            locationFacet.api = connector.value();
             locationFacet.start = locationFacet.timestampMs;
             locationFacet.end = locationFacet.timestampMs;
             locationFacet.source = LocationFacet.Source.MOVES;
