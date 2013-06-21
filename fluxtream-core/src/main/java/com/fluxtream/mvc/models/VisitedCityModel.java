@@ -35,6 +35,7 @@ public class VisitedCityModel {
     long count;
     int daysInferred;
     int tzOffset;
+    double longitude, latitude;
 
     static final DateTimeFormatter fmt = DateTimeFormat.forPattern("MMM dd, HH:mm' 'a");
     private static final DateTimeFormatter formatter = DateTimeFormat
@@ -83,7 +84,8 @@ public class VisitedCityModel {
         this.dayStart = formatter.withZone(DateTimeZone.forTimeZone(tz)).parseDateTime(this.date).getMillis();
         this.dayEnd = dayStart + DateTimeConstants.MILLIS_PER_DAY;
         tzOffset = tz.getOffset(dayStart);
-
+        this.latitude = city.geo_latitude;
+        this.longitude = city.geo_longitude;
     }
 
 }
