@@ -601,9 +601,9 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
-                <div class="flx-tTime">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}}-{{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</div>
+                <div class="flx-tTime">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}}-{{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}&nbsp;<a class="mapLink" href="#" itemid="{{id}}" >{{#hasPosition}}<i class="icon-map-marker">{{/hasPosition}}</i></a></div>
                 <div class="flx-data">
-                    {{placeId}}
+                    {{name}}
                 </div>
                 {{#activities}}
                 <div class="flx-data">

@@ -95,10 +95,10 @@ public class MovesFacetExtractor extends AbstractFacetExtractor {
         facet.endTimeStorage = AbstractLocalTimeFacet.timeStorageFormat.print(endTime);
         facet.start = startTime.getMillis();
         facet.end = endTime.getMillis();
-        extractActivities(date, segment, facet);
+        extractActivities(segment, facet);
     }
 
-    private void extractActivities(final String date, final JSONObject segment, final MovesFacet facet) {
+    private void extractActivities(final JSONObject segment, final MovesFacet facet) {
         if (!segment.has("activities"))
             return;
         final JSONArray activities = segment.getJSONArray("activities");
@@ -116,12 +116,12 @@ public class MovesFacetExtractor extends AbstractFacetExtractor {
             if (activityData.has("steps"))
                 activity.steps = activityData.getInt("steps");
             activity.distance = activityData.getInt("distance");
-            extractTrackPoints(date, activity.activityURI, activityData);
+            extractTrackPoints(activity.activityURI, activityData);
             facet.addActivity(activity);
         }
     }
 
-    private void extractTrackPoints(final String date, final String activityId, final JSONObject activityData) {
+    private void extractTrackPoints(final String activityId, final JSONObject activityData) {
         final JSONArray trackPoints = activityData.getJSONArray("trackPoints");
         List<LocationFacet> locationFacets = new ArrayList<LocationFacet>();
         // timeZone is computed based on first location for each batch of trackPoints
