@@ -202,7 +202,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 break;
         }
         var marker = new google.maps.Marker({map:map, position:new google.maps.LatLng(address.latitude,address.longitude), icon:icon});
-        map.markerList.push(marker);
+        map.addressMarkerList.push(marker);
         marker.showCircle = function(){
             if (marker.circle != null)
                 return;
@@ -684,9 +684,6 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     function hideData(map,connectorId){
-        if (connectorId == "google_latitude"){
-            map.hideGPSData();
-        }
         if (!map.hasData(connectorId))
             return;
         if (map.connectorSelected == connectorId){
@@ -696,14 +693,18 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         for (var i = 0; i < map.markers[connectorId].length; i++){
             map.markers[connectorId][i].setMap(null);
         }
-        if (map.gpsData[connectorId] != null)
+        if (map.gpsData[connectorId] != null){
             map.gpsData[connectorId].gpsLine.setMap(null);
+            if (map.gpsData[connectorId].highlightSection != null)
+                map.gpsData[connectorId].highlightSection.setMap(null);
+            if (map.gpsData[connectorId].dateMarker != null){
+                map.gpsData[connectorId].dateMarker.setMap(null);
+                map.gpsData[connectorId].dateMarker.circle.setMap(null);
+            }
+        }
     }
 
     function showData(map,connectorId){
-        if (connectorId == "google_latitude"){
-            map.showGPSData();
-        }
         if (!map.hasData(connectorId))
             return;
         for (var i = 0; i < map.markers[connectorId].length; i++){
@@ -711,8 +712,15 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             if (map.selectedMarker == map.markers[connectorId][i])
                 map.selectedMarker.showCircle();
         }
-        if (map.gpsData[connectorId] != null)
+        if (map.gpsData[connectorId] != null){
             map.gpsData[connectorId].gpsLine.setMap(map);
+            if (map.gpsData[connectorId].highlightSection != null)
+                map.gpsData[connectorId].highlightSection.setMap(map);
+            if (map.gpsData[connectorId].dateMarker != null){
+                map.gpsData[connectorId].dateMarker.setMap(map);
+                map.gpsData[connectorId].dateMarker.circle.setMap(map);
+            }
+        }
     }
 
     function hasData(map,connectorId){
@@ -727,22 +735,6 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
 
     function isFullyInitialized(map){
         return map.getProjection() != null;
-    }
-
-    function hideGPSData(map){
-        map.gpsLine.setMap(null);
-        if (map.currentHighlightedLine != null)
-            map.currentHighlightedLine.setMap(null);
-        if (map.highlightSection != null)
-            map.highlightSection.setMap(null);
-    }
-
-    function showGPSData(map){
-        map.gpsLine.setMap(map);
-        if (map.currentHighlightedLine != null)
-            map.currentHighlightedLine.setMap(map);
-        if (map.highlightSection != null)
-            map.highlightSection.setMap(map);
     }
 
     function createMapPositionControls(map){
@@ -823,32 +815,33 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     function updateCursorMarkerPosition(map,time){
-        if (map.primaryGPSData == null)
-            return;
-        var newPosition = getPointForTimeOnLine(map,map.primaryGPSData,time*1000,false);
-        var newAccuracy = getGPSAccuracy(map.primaryGPSData,time*1000);
-        if (map.dateMarker == null){
-            map.dateMarker = new google.maps.Marker({
-                map: map,
-                position: newPosition,
-                clickable:true
-            });
-            map.dateAccuracyCircle = new google.maps.Circle({center:newPosition,
-                map:map,
-                radius:newAccuracy,
-                fillColor:"red",
-                fillOpacity:0.5,
-                strokeOpacity:0,
-                clickable:false});
-            google.maps.event.addListener(map.dateMarker, "click", function(){
-                centerDateAxisOnCursor(map);
-            });
+        for (var member in map.gpsData){
+            var dataSource = map.gpsData[member];
+            var newPosition = getPointForTimeOnLine(map,dataSource,time*1000,false);
+            var newAccuracy = getGPSAccuracy(dataSource,time*1000);
+            if (dataSource.dateMarker == null){
+                dataSource.dateMarker = new google.maps.Marker({
+                    map: dataSource.gpsLine.getMap(),
+                    position: newPosition,
+                    clickable:true
+                });
+                dataSource.dateMarker.circle = new google.maps.Circle({center:newPosition,
+                    map:dataSource.gpsLine.getMap(),
+                    radius:newAccuracy,
+                    fillColor:"red",
+                    fillOpacity:0.5,
+                    strokeOpacity:0,
+                    clickable:false});
+                google.maps.event.addListener(dataSource.dateMarker, "click", function(){
+                    centerDateAxisOnCursor(map);
+                });
 
-        }
-        else{
-            map.dateMarker.setPosition(newPosition);
-            map.dateAccuracyCircle.setCenter(newPosition);
-            map.dateAccuracyCircle.setRadius(newAccuracy);
+            }
+            else{
+                dataSource.dateMarker.setPosition(newPosition);
+                dataSource.dateMarker.circle.setCenter(newPosition);
+                dataSource.dateMarker.circle.setRadius(newAccuracy);
+            }
         }
     }
 
@@ -938,6 +931,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                                 map.currentHighlightedLine.setMap(null);
                                 map.currentHighlightedLine = null
                             }
+                            map.selectedMarker = null;
                         }
                     });
                 }
@@ -945,16 +939,18 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                     for (var i = 0, li = map.markerList.length; i < li; i++){
                         map.markerList[i].setMap(null);
                     }
+                    for (var i = 0, li = map.addressMarkerList.length; i < li; i++){
+                        map.addressMarkerList[i].setMap(null);
+                    }
                     for (var dataset in map.gpsData){
                         map.gpsData[dataset].gpsLine.setMap(null);
                         if (map.gpsData[dataset].highlightSection != null)
                             map.gpsData[dataset].highlightSection.setMap(null);
-                    }
-                    if (map.dateMarker != null){
-                        map.dateMarker.setMap(null);
-                        map.dateMarker = null;
-                        map.dateAccuracyCircle.setMap(null);
-                        map.dateAccuracyCircle = null;
+                        if (map.gpsData[dataset].dateMarker != null){
+                            map.gpsData[dataset].dateMarker.setMap(null);
+                            map.gpsData[dataset].dateMarker.circle.setMap(null);
+
+                        }
                     }
                 }
                 map.currentHighlightedLine = null;
@@ -964,6 +960,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
 
                 map.markers = {};
                 map.markerList = [];
+                map.addressMarkerList = [];
 
                 map.gpsBounds = null;
 
@@ -987,8 +984,6 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             map.showData = function(connectorId){showData(map,connectorId)};
             map.hideData = function(connectorId){hideData(map,connectorId)};
             map.hasData = function(connectorId){return hasData(map,connectorId)};
-            map.showGPSData = function(){showGPSData(map)};
-            map.hideGPSData = function(){hideGPSData(map)};
             map.addItem = function(item,clickable){return addItemToMap(map,item,clickable)};
             map.zoomOnPoint = function(point){zoomOnPoint(map,point)};
             map.zoomOnMarker = function(marker){zoomOnMarker(map,marker)};
