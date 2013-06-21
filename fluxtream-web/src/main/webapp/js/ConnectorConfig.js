@@ -358,15 +358,23 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
             device_name:"FluxtreamCapture",
             filterLabel: "FluxtreamCap",
             color: "rgb(204, 204, 204)",
-            mapicon :"/" + FLX_RELEASE_NUMBER + "/images/mapicons/fluxcap.png",
-            mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
             facets: {
                 photo:{
                     list:true,
                     photos: true,
                     map: true,
                     gps: false,
-                    clock: ClockConfig.SOCIAL_CATEGORY
+                    clock: ClockConfig.SOCIAL_CATEGORY,
+                    mapicon :"/" + FLX_RELEASE_NUMBER + "/images/mapicons/fluxcap.png",
+                    mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
+                },
+                location:{
+                    list:false,
+                    photos:false,
+                    map:true,
+                    gps: true,
+                    mapicon : new google.maps.MarkerImage("/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",null,null,new google.maps.Point(5,5),null),
+                    mapshadow: null
                 }
             }
         }
