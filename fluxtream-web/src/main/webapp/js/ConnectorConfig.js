@@ -369,6 +369,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                     mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
                 },
                 location:{
+                    color: "rgb(30, 30, 30)",
                     list:false,
                     photos:false,
                     map:true,
