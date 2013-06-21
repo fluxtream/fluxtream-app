@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TimeZone;
 import com.fluxtream.ApiData;
+import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.domain.AbstractFacet;
@@ -72,6 +73,7 @@ public class RunKeeperFitnessActivityExtractor extends AbstractFacetExtractor {
                 locationFacet.end = locationFacet.timestampMs;
                 locationFacet.source = LocationFacet.Source.RUNKEEPER;
                 locationFacet.apiKeyId = apiData.updateInfo.apiKey.getId();
+                locationFacet.api = Connector.getConnector("runkeeper").value();
                 locationFacet.uri = uri;
 
                 locationFacets.add(locationFacet);
