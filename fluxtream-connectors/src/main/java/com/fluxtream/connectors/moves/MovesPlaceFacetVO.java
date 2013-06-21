@@ -20,7 +20,7 @@ public class MovesPlaceFacetVO extends AbstractMovesFacetVO<MovesPlaceFacet> {
     @Override
     protected void fromFacet(final MovesPlaceFacet facet, final TimeInterval timeInterval, final GuestSettings settings)
             throws OutsideTimeBoundariesException {
-        super.fromFacet(facet, timeInterval, settings);
+        super.fromFacetBase(facet, timeInterval, settings);
         this.placeId = facet.placeId;
         this.name = facet.name;
         this.type = facet.type;

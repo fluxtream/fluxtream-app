@@ -102,8 +102,6 @@ public class MovesFacetExtractor extends AbstractFacetExtractor {
         if (!segment.has("activities"))
             return;
         final JSONArray activities = segment.getJSONArray("activities");
-        if (activities.size()>0)
-            facet.activities = new ArrayList<MovesActivity>();
         for (int i=0; i<activities.size(); i++) {
             JSONObject activityData = activities.getJSONObject(i);
             MovesActivity activity = new MovesActivity();
@@ -119,7 +117,7 @@ public class MovesFacetExtractor extends AbstractFacetExtractor {
                 activity.steps = activityData.getInt("steps");
             activity.distance = activityData.getInt("distance");
             extractTrackPoints(date, activity.activityURI, activityData);
-            facet.activities.add(activity);
+            facet.addActivity(activity);
         }
     }
 

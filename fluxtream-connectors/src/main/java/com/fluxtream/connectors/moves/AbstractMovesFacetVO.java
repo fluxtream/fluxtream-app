@@ -19,12 +19,12 @@ public abstract class AbstractMovesFacetVO<T extends MovesFacet> extends Abstrac
 
     List<MovesActivityVO> activities = new ArrayList<MovesActivityVO>();
 
-    protected void fromFacet(final MovesFacet facet, final TimeInterval timeInterval, final GuestSettings settings) throws OutsideTimeBoundariesException {
+    protected void fromFacetBase(final MovesFacet facet, final TimeInterval timeInterval, final GuestSettings settings) throws OutsideTimeBoundariesException {
         TimeZone timeZone = timeInterval.getTimeZone(facet.start);
         this.startMinute = toMinuteOfDay(new Date(facet.start), timeZone);
         this.endMinute = toMinuteOfDay(new Date(facet.end), timeZone);
         this.duration = new DurationModel((int)(facet.end-facet.start)/1000);
-        for (MovesActivity activity : facet.activities)
+        for (MovesActivity activity : facet.getActivities())
             activities.add(new MovesActivityVO(activity, timeZone));
     }
 

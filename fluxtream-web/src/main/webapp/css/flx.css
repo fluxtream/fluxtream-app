@@ -43,8 +43,17 @@
 .flx-sourceFilters4 a.quantifiedmind {
   border-bottom-color: #ff6633;
 }
+.flx-sourceFilters4 a.runkeeper {
+  border-bottom-color: #1875bb;
+}
+.flx-sourceFilters4 a.evernote {
+  border-bottom-color: #71b438;
+}
+.flx-sourceFilters4 a.moves {
+  border-bottom-color: #244dbb;
+}
 .flx-deviceIcon {
-  background-size: 44px 1634px;
+  background-size: 44px 1678px;
   width: 42px;
   height: 42px;
   background-repeat: no-repeat;
@@ -119,7 +128,7 @@
   background-position: 0 -1048px;
 }
 .flx-deviceIcon.fitbit-weight {
-  background-position: 0 -1171px;
+  background-position: 0 -1173px;
 }
 .flx-deviceIcon.fitbit-steps {
   background-position: 0 -1090px;
@@ -158,7 +167,13 @@
   background-position: 0 -1534px;
 }
 .flx-deviceIcon.fluxtream {
-  background-position: 0 -1590px;
+  background-position: 0 -1588px;
+}
+.flx-deviceIcon.moves-place {
+  background-position: 0 -1633px;
+}
+.flx-deviceIcon.moves-move {
+  background-position: 0 -1633px;
 }
 .flx-listItem .flx-box.twitter {
   border-left-color: #9233ef;
@@ -202,6 +217,9 @@
 }
 .flx-listItem .flx-box.evernote {
   border-left-color: #71b438;
+}
+.flx-listItem .flx-box.moves {
+  border-left-color: #244dbb;
 }
 ::selection {
   background: #ffff9e;

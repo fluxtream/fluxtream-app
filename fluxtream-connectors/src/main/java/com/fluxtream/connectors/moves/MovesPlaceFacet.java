@@ -1,6 +1,12 @@
 package com.fluxtream.connectors.moves;
 
+import java.util.ArrayList;
+import java.util.List;
+import javax.persistence.CollectionTable;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.connectors.location.LocationFacet;
@@ -21,6 +27,14 @@ public class MovesPlaceFacet extends MovesFacet  {
     public String foursquareId;
     public float latitude, longitude;
 
+    @ElementCollection(fetch= FetchType.EAGER)
+    @CollectionTable(
+            name = "MovesPlaceActivity",
+            joinColumns = @JoinColumn(name="ActivityID")
+    )
+    public List<MovesActivity> activities;
+
+
     public MovesPlaceFacet() {
         this.api = Connector.getConnector("moves").value();
     }
@@ -34,5 +48,17 @@ public class MovesPlaceFacet extends MovesFacet  {
     protected void makeFullTextIndexable() {
         if (name!=null)
             fullTextDescription = name;
+    }
+
+    @Override
+    void addActivity(final MovesActivity activity) {
+        if (activities==null)
+            activities = new ArrayList<MovesActivity>();
+        activities.add(activity);
+    }
+
+    @Override
+    List<MovesActivity> getActivities() {
+        return activities;
     }
 }

@@ -578,6 +578,43 @@
         </div>
     </div>
 </template>
+<template id="moves-move">
+    <div class="flx-box moves-move" style="border-left-color:{{color}}">
+        <span class="flx-deviceIcon moves-move"></span>
+        <div class="facetDetails">
+            {{#facets}}
+            <div class="facetDetails">
+                <div class="flx-tTime">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}}-{{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</div>
+                {{#activities}}
+                <div class="flx-data">
+                    {{activity}}
+                </div>
+                {{/activities}}
+            </div>
+            {{/facets}}
+        </div>
+    </div>
+</template>
+<template id="moves-place">
+    <div class="flx-box moves-place" style="border-left-color:{{color}}">
+        <span class="flx-deviceIcon moves-place"></span>
+        <div class="facetDetails">
+            {{#facets}}
+            <div class="facetDetails">
+                <div class="flx-tTime">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}}-{{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</div>
+                <div class="flx-data">
+                    {{placeId}}
+                </div>
+                {{#activities}}
+                <div class="flx-data">
+                    {{activity}}
+                </div>
+                {{/activities}}
+            </div>
+            {{/facets}}
+        </div>
+    </div>
+</template>
 <template id="fluxtream_capture-photo">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon fluxtream"></span>

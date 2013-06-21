@@ -370,7 +370,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
         },
         moves:{
             filterLabel: "Moves",
-            color: "rgb(204, 204, 204)",
+            color: "rgb(36, 77, 187)",
             mapicon :"/" + FLX_RELEASE_NUMBER + "/images/mapicons/glasses.png",
             mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
             facets: {
