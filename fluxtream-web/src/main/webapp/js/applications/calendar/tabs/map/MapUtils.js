@@ -512,11 +512,50 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         if (marker.clickable && marker.item != null){
             addClickListenerForMarker(map,marker,marker.item);
         }
-        map.markerList.push(marker);
+
+        marker.time = time;
+
+        //add to marker list in order
+
+        var min = 0;
+        var max = map.markerList.length - 1;
+        if (min > max){
+            map.markerList.push(marker);
+        }
+        else if (marker.time <= map.markerList[min].time){
+            map.markerList.splice(min,0,marker);
+        }
+        else if (marker.time >= map.markerList[max].time){
+            map.markerList.push(marker);
+        }
+        else{
+            while (Math.abs(max - min) > 1){
+                var mid = Math.floor((max + min) / 2);
+                var midTime = map.markerList[mid].time;
+                if (marker.time < midTime){
+                    max = mid;
+                }
+                else if (marker.time > midTime){
+                    min = mid;
+                }
+                else{
+                    min = max = mid;
+                    if (min > 0)
+                        min--;
+                    else
+                        max++;
+                }
+            }
+            map.markerList.splice(max,0,marker);
+        }
     }
+
+    var emptyCircle = new google.maps.MarkerImage("/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",null,null,new google.maps.Point(5,5),null);
 
     function highlightTimespan(map, start,end,gpsDataSet){
         function highlight(map,gpsDataSet,start,end){
+            if (gpsDataSet.oldHighlightSection != null && gpsDataSet.oldHighlightSection.start == start && gpsDataSet.oldHighlightSection.end == end)
+                return;
             if (gpsDataSet.gpsTimestamps.length == 0)
                 return;
             if (gpsDataSet.highlightSection != null){
@@ -525,10 +564,22 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             }
             if (start <= gpsDataSet.gpsTimestamps[0] && end >= gpsDataSet.gpsTimestamps[gpsDataSet.gpsTimestamps.length - 1]){
                 gpsDataSet.gpsLine.setOptions({strokeColor: gpsDataSet.color});
-                return;
             }
-            gpsDataSet.gpsLine.setOptions({strokeColor: $.xcolor.opacity(gpsDataSet.color, 'lightgrey', 0.69).getCSS()});
-            gpsDataSet.highlightSection = map.createPolyLineSegment(gpsDataSet, start, end, {strokeColor:gpsDataSet.color, zIndex: 99});
+            else{
+                gpsDataSet.gpsLine.setOptions({strokeColor: $.xcolor.opacity(gpsDataSet.color, 'lightgrey', 0.69).getCSS()});
+                gpsDataSet.highlightSection = map.createPolyLineSegment(gpsDataSet, start, end, {strokeColor:gpsDataSet.color, zIndex: 99});
+            }
+            for (var i = 0, li = map.markerList.length; i < li; i++){
+                var marker = map.markerList[i];
+                var config = App.getFacetConfig(marker.item.type);
+                if (marker.time < start || marker.time > end){
+                    marker.setIcon(config.greymapicon == null ? emptyCircle : config.greymapicon);
+                }
+                else{
+                    marker.setIcon(config.mapicon);
+                }
+            }
+            gpsDataSet.oldHighlightSection = {start:start,end:end};
         }
         if (gpsDataSet != null){
             highlight(map, gpsDataSet,start,end);
