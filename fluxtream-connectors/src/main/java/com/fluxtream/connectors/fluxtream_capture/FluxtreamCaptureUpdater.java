@@ -22,7 +22,7 @@ import com.fluxtream.services.impl.BodyTrackHelper;
 @Component
 @Updater(prettyName = "FluxtreamCapture",
          value = 42,                                                // hat tip to Douglas Adams :-)
-         objectTypes = {FluxtreamCapturePhotoFacet.class},
+         objectTypes = {FluxtreamCapturePhotoFacet.class, LocationFacet.class},
          defaultChannels = {"FluxtreamCapture.photo"})
 public class FluxtreamCaptureUpdater extends AbstractUpdater {
 
