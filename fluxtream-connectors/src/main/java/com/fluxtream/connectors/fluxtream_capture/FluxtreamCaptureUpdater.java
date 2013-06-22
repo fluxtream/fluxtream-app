@@ -215,6 +215,7 @@ public class FluxtreamCaptureUpdater extends AbstractUpdater {
                     // Process location
                     LocationFacet locationFacet = new LocationFacet(updateInfo.apiKey.getId());
                     locationFacet.source=LocationFacet.Source.FLUXTREAM_CAPTURE;
+                    locationFacet.api = updateInfo.apiKey.getConnector().value();
                     locationFacet.start = locationFacet.end = locationFacet.timestampMs = (long)(thisTime*1000.0);
                     locationFacet.latitude = latitude;
                     locationFacet.longitude = longitude;
