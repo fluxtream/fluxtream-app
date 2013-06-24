@@ -202,7 +202,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 break;
         }
         var marker = new google.maps.Marker({map:map, position:new google.maps.LatLng(address.latitude,address.longitude), icon:icon});
-        map.markerList.push(marker);
+        map.addressMarkerList.push(marker);
         marker.showCircle = function(){
             if (marker.circle != null)
                 return;
@@ -412,16 +412,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             if (map.infoWindowShown != null){
                 map.infoWindowShown();
             }
-            if (map.dateAxis != null){
-                var targetTime = item.start/1000;
-                map.dateAxis.setCursorPosition(targetTime);
-                var minTime = map.dateAxis.getMin();
-                var maxTime = map.dateAxis.getMax();
-                if (targetTime < minTime || targetTime > maxTime){
-                   var offset = (maxTime - minTime) / 2;
-                   map.dateAxis.setRange(targetTime - offset,targetTime + offset);
-                }
-            }
+            moveDateAxisCursor(map,item.start);
         });
 
     }
@@ -521,24 +512,74 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         if (marker.clickable && marker.item != null){
             addClickListenerForMarker(map,marker,marker.item);
         }
-        map.markerList.push(marker);
+
+        marker.time = time;
+
+        //add to marker list in order
+
+        var min = 0;
+        var max = map.markerList.length - 1;
+        if (min > max){
+            map.markerList.push(marker);
+        }
+        else if (marker.time <= map.markerList[min].time){
+            map.markerList.splice(min,0,marker);
+        }
+        else if (marker.time >= map.markerList[max].time){
+            map.markerList.push(marker);
+        }
+        else{
+            while (Math.abs(max - min) > 1){
+                var mid = Math.floor((max + min) / 2);
+                var midTime = map.markerList[mid].time;
+                if (marker.time < midTime){
+                    max = mid;
+                }
+                else if (marker.time > midTime){
+                    min = mid;
+                }
+                else{
+                    min = max = mid;
+                    if (min > 0)
+                        min--;
+                    else
+                        max++;
+                }
+            }
+            map.markerList.splice(max,0,marker);
+        }
     }
+
+    var emptyCircle = new google.maps.MarkerImage("/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",null,null,new google.maps.Point(5,5),null);
 
     function highlightTimespan(map, start,end,gpsDataSet){
         function highlight(map,gpsDataSet,start,end){
-            if (gpsDataSet.gpsTimestamps.length == 0 || (gpsDataSet.highlightTimespan != null && gpsDataSet.highlightTimespan.start == start && gpsDataSet.highlightTimespan.end == end))
+            if (gpsDataSet.oldHighlightSection != null && gpsDataSet.oldHighlightSection.start == start && gpsDataSet.oldHighlightSection.end == end)
+                return;
+            if (gpsDataSet.gpsTimestamps.length == 0)
                 return;
             if (gpsDataSet.highlightSection != null){
                 gpsDataSet.highlightSection.setMap(null);
                 gpsDataSet.highlightSection = null;
             }
-            gpsDataSet.highlightTimespan = {start:start,end:end};
             if (start <= gpsDataSet.gpsTimestamps[0] && end >= gpsDataSet.gpsTimestamps[gpsDataSet.gpsTimestamps.length - 1]){
                 gpsDataSet.gpsLine.setOptions({strokeColor: gpsDataSet.color});
-                return;
             }
-            gpsDataSet.gpsLine.setOptions({strokeColor: $.xcolor.opacity(gpsDataSet.color, 'lightgrey', 0.69).getCSS()});
-            gpsDataSet.highlightSection = map.createPolyLineSegment(gpsDataSet, start, end, {strokeColor:gpsDataSet.color, zIndex: 99});
+            else{
+                gpsDataSet.gpsLine.setOptions({strokeColor: $.xcolor.opacity(gpsDataSet.color, 'lightgrey', 0.69).getCSS()});
+                gpsDataSet.highlightSection = map.createPolyLineSegment(gpsDataSet, start, end, {strokeColor:gpsDataSet.color, zIndex: 99});
+            }
+            for (var i = 0, li = map.markerList.length; i < li; i++){
+                var marker = map.markerList[i];
+                var config = App.getFacetConfig(marker.item.type);
+                if (marker.time < start || marker.time > end){
+                    marker.setIcon(config.greymapicon == null ? emptyCircle : config.greymapicon);
+                }
+                else{
+                    marker.setIcon(config.mapicon);
+                }
+            }
+            gpsDataSet.oldHighlightSection = {start:start,end:end};
         }
         if (gpsDataSet != null){
             highlight(map, gpsDataSet,start,end);
@@ -551,43 +592,17 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     function getFirstIndexAfter(gpsDataSet, time){
-        var min = 0;
-        var max = gpsDataSet.gpsTimestamps.length - 1;
-
-        while (Math.abs(min - max) > 1){//when we have two points next to each other then we know we have a mach and can proceed to the next step
-            var mid = Math.floor((min + max) / 2);
-            var midTime = gpsDataSet.gpsTimestamps[mid];
-            if (time < midTime){
-                max = mid;
-            }
-            else if (time > midTime){
-                min = mid;
-            }
-            else{//we have an exact match!
-                min = max = mid;
-            }
-        }
-        return max;
+        var endIndex;
+        for (endIndex = 0; endIndex < gpsDataSet.gpsTimestamps.length && gpsDataSet.gpsTimestamps[endIndex] < time; endIndex++);
+        return endIndex;
     }
 
     function getFirstIndexBefore(gpsDataSet, time){
-        var min = 0;
-        var max = gpsDataSet.gpsTimestamps.length - 1;
-
-        while (Math.abs(min - max) > 1){//when we have two points next to each other then we know we have a mach and can proceed to the next step
-            var mid = Math.floor((min + max) / 2);
-            var midTime = gpsDataSet.gpsTimestamps[mid];
-            if (time < midTime){
-                max = mid;
-            }
-            else if (time > midTime){
-                min = mid;
-            }
-            else{//we have an exact match!
-                min = max = mid;
-            }
-        }
-        return min;
+        if (time <= gpsDataSet.gpsTimestamps[0])
+            return -1;
+        var endIndex;
+        for (endIndex = 1; endIndex < gpsDataSet.gpsTimestamps.length && gpsDataSet.gpsTimestamps[endIndex] < time; endIndex++);
+        return endIndex - 1;
     }
 
     function createPolyLineSegment(map, gpsDataSet, start, end, options){
@@ -720,9 +735,6 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     function hideData(map,connectorId){
-        if (connectorId == "google_latitude"){
-            map.hideGPSData();
-        }
         if (!map.hasData(connectorId))
             return;
         if (map.connectorSelected == connectorId){
@@ -732,14 +744,18 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         for (var i = 0; i < map.markers[connectorId].length; i++){
             map.markers[connectorId][i].setMap(null);
         }
-        if (map.gpsData[connectorId] != null)
+        if (map.gpsData[connectorId] != null){
             map.gpsData[connectorId].gpsLine.setMap(null);
+            if (map.gpsData[connectorId].highlightSection != null)
+                map.gpsData[connectorId].highlightSection.setMap(null);
+            if (map.gpsData[connectorId].dateMarker != null){
+                map.gpsData[connectorId].dateMarker.setMap(null);
+                map.gpsData[connectorId].dateMarker.circle.setMap(null);
+            }
+        }
     }
 
     function showData(map,connectorId){
-        if (connectorId == "google_latitude"){
-            map.showGPSData();
-        }
         if (!map.hasData(connectorId))
             return;
         for (var i = 0; i < map.markers[connectorId].length; i++){
@@ -747,8 +763,15 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             if (map.selectedMarker == map.markers[connectorId][i])
                 map.selectedMarker.showCircle();
         }
-        if (map.gpsData[connectorId] != null)
+        if (map.gpsData[connectorId] != null){
             map.gpsData[connectorId].gpsLine.setMap(map);
+            if (map.gpsData[connectorId].highlightSection != null)
+                map.gpsData[connectorId].highlightSection.setMap(map);
+            if (map.gpsData[connectorId].dateMarker != null){
+                map.gpsData[connectorId].dateMarker.setMap(map);
+                map.gpsData[connectorId].dateMarker.circle.setMap(map);
+            }
+        }
     }
 
     function hasData(map,connectorId){
@@ -763,22 +786,6 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
 
     function isFullyInitialized(map){
         return map.getProjection() != null;
-    }
-
-    function hideGPSData(map){
-        map.gpsLine.setMap(null);
-        if (map.currentHighlightedLine != null)
-            map.currentHighlightedLine.setMap(null);
-        if (map.highlightSection != null)
-            map.highlightSection.setMap(null);
-    }
-
-    function showGPSData(map){
-        map.gpsLine.setMap(map);
-        if (map.currentHighlightedLine != null)
-            map.currentHighlightedLine.setMap(map);
-        if (map.highlightSection != null)
-            map.highlightSection.setMap(map);
     }
 
     function createMapPositionControls(map){
@@ -859,29 +866,61 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     function updateCursorMarkerPosition(map,time){
-        if (map.primaryGPSData == null)
-            return;
-        var newPosition = getPointForTimeOnLine(map,map.primaryGPSData,time*1000,false);
-        var newAccuracy = getGPSAccuracy(map.primaryGPSData,time*1000);
-        if (map.dateMarker == null){
-            map.dateMarker = new google.maps.Marker({
-                map: map,
-                position: newPosition
-            });
-            map.dateAccuracyCircle = new google.maps.Circle({center:newPosition,
-                map:map,
-                radius:newAccuracy,
-                fillColor:"red",
-                fillOpacity:0.5,
-                strokeOpacity:0,
-                clickable:false});
-        }
-        else{
-            map.dateMarker.setPosition(newPosition);
-            map.dateAccuracyCircle.setCenter(newPosition);
-            map.dateAccuracyCircle.setRadius(newAccuracy);
+        for (var member in map.gpsData){
+            var dataSource = map.gpsData[member];
+            var newPosition = getPointForTimeOnLine(map,dataSource,time*1000,false);
+            var newAccuracy = getGPSAccuracy(dataSource,time*1000);
+            if (dataSource.dateMarker == null){
+                dataSource.dateMarker = new google.maps.Marker({
+                    map: dataSource.gpsLine.getMap(),
+                    position: newPosition,
+                    clickable:true
+                });
+                dataSource.dateMarker.circle = new google.maps.Circle({center:newPosition,
+                    map:dataSource.gpsLine.getMap(),
+                    radius:newAccuracy,
+                    fillColor:"red",
+                    fillOpacity:0.5,
+                    strokeOpacity:0,
+                    clickable:false});
+                google.maps.event.addListener(dataSource.dateMarker, "click", function(){
+                    centerDateAxisOnCursor(map);
+                });
+
+            }
+            else{
+                dataSource.dateMarker.setPosition(newPosition);
+                dataSource.dateMarker.circle.setCenter(newPosition);
+                dataSource.dateMarker.circle.setRadius(newAccuracy);
+            }
         }
     }
+
+    function moveDateAxisCursor(map,time){
+        if (map.dateAxis != null){
+            var targetTime = time/1000;
+            map.dateAxis.setCursorPosition(targetTime);
+            var minTime = map.dateAxis.getMin();
+            var maxTime = map.dateAxis.getMax();
+            if (targetTime < minTime || targetTime > maxTime){
+                centerDateAxisOnCursor(map);
+            }
+        }
+    }
+
+    function centerDateAxisOnCursor(map){
+        if (map.dateAxis != null){
+            var targetTime = map.dateAxis.getCursorPosition();
+            if (targetTime != null){
+                var minTime = map.dateAxis.getMin();
+                var maxTime = map.dateAxis.getMax();
+                var offset = (maxTime - minTime) / 2;
+                map.dateAxis.setRange(targetTime - offset,targetTime + offset);
+            }
+        }
+
+    }
+
 
     function updateDateAxisHighlighting(map,min,max){
         map.highlightTimespan(min*1000,max*1000);
@@ -943,6 +982,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                                 map.currentHighlightedLine.setMap(null);
                                 map.currentHighlightedLine = null
                             }
+                            map.selectedMarker = null;
                         }
                     });
                 }
@@ -950,16 +990,18 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                     for (var i = 0, li = map.markerList.length; i < li; i++){
                         map.markerList[i].setMap(null);
                     }
+                    for (var i = 0, li = map.addressMarkerList.length; i < li; i++){
+                        map.addressMarkerList[i].setMap(null);
+                    }
                     for (var dataset in map.gpsData){
                         map.gpsData[dataset].gpsLine.setMap(null);
                         if (map.gpsData[dataset].highlightSection != null)
                             map.gpsData[dataset].highlightSection.setMap(null);
-                    }
-                    if (map.dateMarker != null){
-                        map.dateMarker.setMap(null);
-                        map.dateMarker = null;
-                        map.dateAccuracyCircle.setMap(null);
-                        map.dateAccuracyCircle = null;
+                        if (map.gpsData[dataset].dateMarker != null){
+                            map.gpsData[dataset].dateMarker.setMap(null);
+                            map.gpsData[dataset].dateMarker.circle.setMap(null);
+
+                        }
                     }
                 }
                 map.currentHighlightedLine = null;
@@ -969,6 +1011,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
 
                 map.markers = {};
                 map.markerList = [];
+                map.addressMarkerList = [];
 
                 map.gpsBounds = null;
 
@@ -992,8 +1035,6 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             map.showData = function(connectorId){showData(map,connectorId)};
             map.hideData = function(connectorId){hideData(map,connectorId)};
             map.hasData = function(connectorId){return hasData(map,connectorId)};
-            map.showGPSData = function(){showGPSData(map)};
-            map.hideGPSData = function(){hideGPSData(map)};
             map.addItem = function(item,clickable){return addItemToMap(map,item,clickable)};
             map.zoomOnPoint = function(point){zoomOnPoint(map,point)};
             map.zoomOnMarker = function(marker){zoomOnMarker(map,marker)};

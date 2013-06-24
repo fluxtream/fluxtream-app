@@ -63,6 +63,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
                         }
 
                     }
+
                     for (var j = 0; j <= items.length; j++){
                         if (j == items.length){
                             items[j] = item;
