@@ -38,7 +38,7 @@ public class LocationFacet extends AbstractFacet implements Comparable<LocationF
     }
 
     public static enum Source {
-		OTHER, USER, GOOGLE_LATITUDE, GEO_IP_DB, IP_TO_LOCATION, OPEN_PATH, RUNKEEPER, NONE
+		OTHER, USER, GOOGLE_LATITUDE, GEO_IP_DB, IP_TO_LOCATION, OPEN_PATH, RUNKEEPER, FLUXTREAM_CAPTURE, NONE
 	}
 	
 	public Source source = Source.GOOGLE_LATITUDE;

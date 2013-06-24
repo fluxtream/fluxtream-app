@@ -491,6 +491,9 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                             case "RUNKEEPER":
                                 newFacet[member] = "Runkeeper";
                                 break;
+                            case "FLUXTREAM_CAPTURE":
+                                newFacet[member] = "Fluxtream Capture";
+                                break;
                             case "OTHER":
                                 newFacet[member] = "IP lookup";
                                 break;
