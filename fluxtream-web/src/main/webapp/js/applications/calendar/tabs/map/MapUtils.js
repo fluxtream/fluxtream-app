@@ -150,32 +150,6 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         return newDataSet;
     }
 
-    function addAlternativeGPSData(map, gpsData,connectorInfoId,clickable){
-        var config = App.getFacetConfig(connectorInfoId);
-        if (!(config.map && config.gps))
-            return;
-        map.markers[connectorInfoId] = [];
-        gpsData = filterGPSData(gpsData);
-        var dataPoints = [];
-        for (var i = 0, li = gpsData.length; i < li; i++){
-            dataPoints.push(new google.maps.LatLng(gpsData[i].position[0],gpsData[i].position[1]));
-            map.markers[connectorInfoId][i] = new google.maps.Marker({
-                map:map,
-                position:dataPoints[i],
-                icon:config.mapicon,
-                shadow:config.mapshadow,
-                clickable:clickable
-            });
-            map.enhanceMarkerWithItem(map.markers[connectorInfoId][i],gpsData[i]);
-        }
-        map.polylines[connectorInfoId] = new google.maps.Polyline({
-            map:map,
-            path:dataPoints,
-            clickable:false,
-            strokeColor:config.color
-        })
-    }
-
     function addData(map,connectorData, connectorInfoId, clickable){
         if (!isDisplayable(connectorInfoId))
             return false;
@@ -514,6 +488,8 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         }
 
         marker.time = time;
+        var config = App.getFacetConfig(marker.item.type);
+        marker.config = config;
 
         //add to marker list in order
 
@@ -569,16 +545,6 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 gpsDataSet.gpsLine.setOptions({strokeColor: $.xcolor.opacity(gpsDataSet.color, 'lightgrey', 0.69).getCSS()});
                 gpsDataSet.highlightSection = map.createPolyLineSegment(gpsDataSet, start, end, {strokeColor:gpsDataSet.color, zIndex: 99});
             }
-            for (var i = 0, li = map.markerList.length; i < li; i++){
-                var marker = map.markerList[i];
-                var config = App.getFacetConfig(marker.item.type);
-                if (marker.time < start || marker.time > end){
-                    marker.setIcon(config.greymapicon == null ? emptyCircle : config.greymapicon);
-                }
-                else{
-                    marker.setIcon(config.mapicon);
-                }
-            }
             gpsDataSet.oldHighlightSection = {start:start,end:end};
         }
         if (gpsDataSet != null){
@@ -589,6 +555,75 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 highlight(map, map.gpsData[objectType],start,end);
             }
         }
+
+        if ((map.oldHighlightSection != null && map.oldHighlightSection.start == start && map.oldHighlightSection.end == end) || map.markerList.length == 0)
+            return;
+
+        function binarySearchOnMarkerList(time,below){
+            var min = 0;
+            var max = map.markerList.length - 1;
+            if (time <= map.markerList[min].time)
+                return min;
+            if (time >= map.markerList[max].time)
+                return max;
+
+            while (Math.abs(max - min) > 1){
+                var mid = Math.floor((min + max) / 2);
+                var midTime = map.markerList[mid].time;
+                if (midTime < time){
+                    min = mid;
+                }
+                else if (midTime > time){
+                    max = mid;
+                }
+                else{
+                    min = max = mid;
+                }
+            }
+            if (below)
+                return min;
+            else
+                return max;
+        }
+
+        var oldMin = 0;
+        var oldMax = map.markerList.length - 1;
+        if (map.oldHighlightSection != null){
+            oldMin = map.oldHighlightSection.min;
+            oldMax = map.oldHighlightSection.max;
+
+        }
+
+        var newMin = binarySearchOnMarkerList(start,false);
+        var newMax = binarySearchOnMarkerList(end,true);
+
+        for (var i = Math.min(oldMin,newMin), li = Math.max(oldMin,newMin); i <= li; i++){
+            var marker = map.markerList[i];
+            var wasHighlighted = oldMin <= i && i <= oldMax;
+            var shouldBeHighlighted = newMin <= i && i <= newMax;
+            if (wasHighlighted != shouldBeHighlighted){
+                if (shouldBeHighlighted){
+                    marker.setIcon(marker.config.mapicon);
+                }
+                else{
+                    marker.setIcon(marker.config.greymapicon == null ? emptyCircle : config.greymapicon);
+                }
+            }
+        }
+        for (var i = Math.min(oldMax,newMax), li = Math.max(oldMax,newMax); i <= li; i++){
+            var marker = map.markerList[i];
+            var wasHighlighted = oldMin <= i && i <= oldMax;
+            var shouldBeHighlighted = newMin <= i && i <= newMax;
+            if (wasHighlighted != shouldBeHighlighted){
+                if (shouldBeHighlighted){
+                    marker.setIcon(marker.config.mapicon);
+                }
+                else{
+                    marker.setIcon(marker.config.greymapicon == null ? emptyCircle : config.greymapicon);
+                }
+            }
+        }
+        map.oldHighlightSection = {start:start,end:end,min:newMin,max:newMax};
     }
 
     function getFirstIndexAfter(gpsDataSet, time){
@@ -860,7 +895,17 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
 
         map.dateAxis.addAxisChangeListener(function(event){
             updateCursorMarkerPosition(map,event.cursorPosition);
-            updateDateAxisHighlighting(map,event.min,event.max);
+            if (map.markerList.length > 5500){//we should delay so the axis doesn't become locked up
+                $.doTimeout("MapDateAxisChange");//cancel previous doTimeout
+                $.doTimeout('MapDateAxisChange', 500, function() {//schedule a new one
+                    updateDateAxisHighlighting(map,event.min,event.max);
+                });
+            }
+            else{
+                updateDateAxisHighlighting(map,event.min,event.max);
+
+            }
+
         });
         refreshMarkerPosition(map);
     }
@@ -868,6 +913,9 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     function updateCursorMarkerPosition(map,time){
         for (var member in map.gpsData){
             var dataSource = map.gpsData[member];
+            if (dataSource.cursorPos == time)
+                return;
+            dataSource.cursorPos = time;
             var newPosition = getPointForTimeOnLine(map,dataSource,time*1000,false);
             var newAccuracy = getGPSAccuracy(dataSource,time*1000);
             if (dataSource.dateMarker == null){
@@ -1017,6 +1065,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
 
                 map.gpsData = {};
                 map.primaryGPSData = null;
+                map.oldHighlightSection = null;
 
             }
 
