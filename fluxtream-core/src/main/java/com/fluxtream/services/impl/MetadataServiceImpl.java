@@ -23,6 +23,7 @@ import com.fluxtream.connectors.vos.AbstractFacetVO;
 import com.fluxtream.domain.AbstractLocalTimeFacet;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.metadata.City;
+import com.fluxtream.domain.metadata.FoursquareVenue;
 import com.fluxtream.domain.metadata.VisitedCity;
 import com.fluxtream.domain.metadata.WeatherInfo;
 import com.fluxtream.metadata.DayMetadata;
@@ -31,10 +32,13 @@ import com.fluxtream.metadata.WeekMetadata;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.NotificationsService;
+import com.fluxtream.utils.HttpUtils;
 import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.TimeUtils;
 import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
 import com.luckycatlabs.sunrisesunset.dto.Location;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import org.apache.http.HttpException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
@@ -579,6 +583,60 @@ public class MetadataServiceImpl implements MetadataService {
             lastLocationResourceMatchingAnchor = locationResource;
         }
         em.flush();
+    }
+
+    @Override
+    public FoursquareVenue getFoursquareVenue(final String venueId) {
+        final TypedQuery<FoursquareVenue> query = em.createQuery("SELECT facet FROM FoursquareVenue WHERE foursquareId=:venueId", FoursquareVenue.class);
+        query.setParameter("venueId", venueId);
+        final List<FoursquareVenue> resultList = query.getResultList();
+        if (resultList.size()>0)
+            return resultList.get(0);
+        else {
+            String url = String.format("https://api.foursquare.com/v2/venues/%s?client_id=%s&client_secret=%s&v=20130624", venueId,
+                                       env.get("foursquare.client.id"), env.get("foursquare.client.secret"));
+            try {
+                final String fetched = HttpUtils.fetch(url);
+                JSONObject json = JSONObject.fromObject(fetched);
+                if (!json.has("meta"))
+                    throw new Exception("no meta information");
+                JSONObject meta = json.getJSONObject("meta");
+                final int code = meta.getInt("code");
+                if (!(code ==200))
+                    throw new Exception("error code is " + code);
+                JSONObject response = json.getJSONObject("response");
+
+                // we only use the primary category and flatten its information in the venue
+                JSONArray categories = response.getJSONArray("categories");
+                FoursquareVenue venue = new FoursquareVenue();
+
+                String venueName = response.getString("name");
+                String canonicalUrl = response.getString("canonicalUrl");
+                venue.name = venueName;
+                venue.canonicalUrl = canonicalUrl;
+                venue.foursquareId = venueId;
+
+                for(int i=0; i<categories.size(); i++) {
+                    JSONObject categoryInfo = categories.getJSONObject(i);
+                    if (categoryInfo.has("primary")&&categoryInfo.getBoolean("primary")) {
+                        if (categoryInfo.has("id"))
+                            venue.categoryFoursquareId = categoryInfo.getString("id");
+                        if (categoryInfo.has("name"))
+                            venue.categoryName = categoryInfo.getString("name");
+                        if (categoryInfo.has("shortName"))
+                            venue.categoryShortName = categoryInfo.getString("shortName");
+                        if (categoryInfo.has("icon"))
+                            venue.categoryIconUrl = categoryInfo.getString("icon");
+                    }
+                }
+                em.persist(venue);
+                return venue;
+            }
+            catch (Exception e) {
+                logger.warn("action=getFoursquareVenue venueId=" + venueId + " message=" + e.getMessage());
+            }
+        }
+        return null;
     }
 
     private void storeCityInfo(final LocationFacet locationResource, String date, final City city, final long start, final int count) {
