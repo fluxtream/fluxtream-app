@@ -944,6 +944,46 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         }
     }
 
+    function updateMarkerHighlighting(map,time){
+        function binarySearchOnMarkerList(time,below){
+            var min = 0;
+            var max = map.markerList.length - 1;
+            if (time <= map.markerList[min].time)
+                return min;
+            if (time >= map.markerList[max].time)
+                return max;
+
+            while (Math.abs(max - min) > 1){
+                var mid = Math.floor((min + max) / 2);
+                var midTime = map.markerList[mid].time;
+                if (midTime < time){
+                    min = mid;
+                }
+                else if (midTime > time){
+                    max = mid;
+                }
+                else{
+                    min = max = mid;
+                }
+            }
+            if (below)
+                return min;
+            else
+                return max;
+        }
+
+        var minTime = time - map.dateAxis.getScale() * 5;
+        var maxTIme = time + map.dateAxis.getScale() * 5;
+
+        var minIndex = binarySearchOnMarkerList(map,time - map.dateAxis.getScale() * 5,false);
+        var maxIndex = binarySearchOnMarkerList(map,time + map.dateAxis.getScale() * 5, true);
+
+        for (var i = 0, li = map.markerList.length; i < li; i++){
+
+        }
+
+    }
+
     function moveDateAxisCursor(map,time){
         if (map.dateAxis != null){
             var targetTime = time/1000;
