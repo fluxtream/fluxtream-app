@@ -24,10 +24,11 @@ public abstract class MovesFacet extends AbstractLocalTimeFacet {
 
     abstract void addActivity(MovesActivity activity);
 
+    abstract void removeActivity(final MovesActivity movesActivity);
+
     abstract List<MovesActivity> getActivities();
 
     @Override
     protected void makeFullTextIndexable() {
     }
-
 }

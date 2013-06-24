@@ -331,12 +331,14 @@ public class ApiDataServiceImpl implements ApiDataService {
 	@Transactional(readOnly = false)
 	private List<AbstractFacet> extractFacets(ApiData apiData, int objectTypes,
 			UpdateInfo updateInfo) throws Exception {
+        List<AbstractFacet> newFacets = new ArrayList<AbstractFacet>();
 		AbstractFacetExtractor facetExtractor = apiData.updateInfo.apiKey
 				.getConnector().extractor(objectTypes, beanFactory);
+        if (facetExtractor==null)
+            return newFacets;
 		facetExtractor.setUpdateInfo(updateInfo);
 		List<ObjectType> connectorTypes = ObjectType.getObjectTypes(
 				apiData.updateInfo.apiKey.getConnector(), objectTypes);
-		List<AbstractFacet> newFacets = new ArrayList<AbstractFacet>();
 		if (connectorTypes != null) {
 			for (ObjectType objectType : connectorTypes) {
 				List<AbstractFacet> facets = facetExtractor.extractFacets(
