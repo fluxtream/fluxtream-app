@@ -481,7 +481,7 @@
 </template>
 <template id="google_latitude-location">
     <div class="flx-box" style="border-left-color:{{color}}">
-        <span class="flx-deviceIcon latitude" style="background-size:100% 100%;"></span>
+        <span class="flx-deviceIcon latitude"></span>
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
@@ -583,6 +583,23 @@
                 <div class="flx-data">
                     <span photoId="{{id}}" class="flx-photo" style="background:url('{{photo42}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
                     <span class="flx-description">{{description}}</span>
+                </div>
+            </div>
+            {{/facets}}
+        </div>
+    </div>
+</template>
+
+<template id="fluxtream_capture-location">
+    <div class="flx-box" style="border-left-color:{{color}}">
+        <span class="flx-deviceIcon fluxtream"></span>
+        <div class="facetDetails">
+            {{#facets}}
+            <div class="facetDetails">
+                {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
+                <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
+                <div class="flx-data">
+                    <span class="flx-description">Source: {{source}}<br>Accuracy: {{accuracy}}m</span>
                 </div>
             </div>
             {{/facets}}
