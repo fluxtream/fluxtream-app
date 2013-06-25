@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.TimeZone;
 import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.domain.metadata.City;
+import com.fluxtream.domain.metadata.FoursquareVenue;
 import com.fluxtream.domain.metadata.WeatherInfo;
 import com.fluxtream.metadata.DayMetadata;
 import com.fluxtream.metadata.MonthMetadata;
@@ -48,4 +49,6 @@ public interface MetadataService {
     public void rebuildMetadata(String username);
 
     public void updateLocationMetadata(long guestId, List<LocationFacet> locationResources);
+
+    public FoursquareVenue getFoursquareVenue(String venueId);
 }

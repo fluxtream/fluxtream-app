@@ -341,11 +341,16 @@ public class MovesUpdater extends AbstractUpdater {
             needsUpdating = true;
             place.type = placeData.getString("type");
         }
+        if (placeData.has("name")&&
+            !place.name.equals(placeData.getString("name"))) {
+            needsUpdating = true;
+            place.name = placeData.getString("name");
+        }
+
         // if the place wasn't identified previously, store its fourquare info now
         if (!previousPlaceType.equals("foursquare")&&
             place.type.equals("foursquare")){
             System.out.println("storing foursquare info");
-            place.name = placeData.getString("name");
             place.foursquareId = placeData.getString("foursquareId");
         }
         JSONObject locationData = placeData.getJSONObject("location");
@@ -399,10 +404,13 @@ public class MovesUpdater extends AbstractUpdater {
         if (placeData.has("id"))
             facet.placeId = placeData.getLong("id");
         facet.type = placeData.getString("type");
-        if (facet.type.equals("foursquare")){
+        if (placeData.has("name"))
             facet.name = placeData.getString("name");
-            facet.foursquareId = placeData.getString("foursquareId");
+        else {
+            // ask google
         }
+        if (facet.type.equals("foursquare"))
+            facet.foursquareId = placeData.getString("foursquareId");
         JSONObject locationData = placeData.getJSONObject("location");
         facet.latitude = (float) locationData.getDouble("lat");
         facet.longitude = (float) locationData.getDouble("lon");
@@ -418,8 +426,6 @@ public class MovesUpdater extends AbstractUpdater {
         facet.date = date;
         final DateTime startTime = timeStorageFormat.withZoneUTC().parseDateTime(segment.getString("startTime"));
         final DateTime endTime = timeStorageFormat.withZoneUTC().parseDateTime(segment.getString("endTime"));
-        facet.startTimeStorage = AbstractLocalTimeFacet.timeStorageFormat.print(startTime);
-        facet.endTimeStorage = AbstractLocalTimeFacet.timeStorageFormat.print(endTime);
         facet.start = startTime.getMillis();
         facet.end = endTime.getMillis();
         extractActivities(segment, facet, updateInfo);

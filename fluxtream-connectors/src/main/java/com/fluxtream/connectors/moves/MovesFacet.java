@@ -3,7 +3,8 @@ package com.fluxtream.connectors.moves;
 import java.util.List;
 import javax.persistence.MappedSuperclass;
 import com.fluxtream.connectors.Connector;
-import com.fluxtream.domain.AbstractLocalTimeFacet;
+import com.fluxtream.domain.AbstractFacet;
+import org.hibernate.annotations.Index;
 
 /**
  * User: candide
@@ -11,7 +12,10 @@ import com.fluxtream.domain.AbstractLocalTimeFacet;
  * Time: 14:46
  */
 @MappedSuperclass
-public abstract class MovesFacet extends AbstractLocalTimeFacet {
+public abstract class MovesFacet extends AbstractFacet {
+
+    @Index(name = "date")
+    public String date;
 
     public MovesFacet() {
         this.api = Connector.getConnector("moves").value();

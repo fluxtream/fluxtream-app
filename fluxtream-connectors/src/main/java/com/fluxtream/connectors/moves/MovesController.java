@@ -57,7 +57,7 @@ public class MovesController {
 
     @RequestMapping(value="swapToken")
     public String swapToken(HttpServletRequest request) throws IOException {
-        final String errorMessage = request.getParameter("errorMessage");
+        final String errorMessage = request.getParameter("error");
         final Guest guest = AuthHelper.getGuest();
         if (errorMessage!=null) {
             notificationsService.addNotification(guest.getId(),
