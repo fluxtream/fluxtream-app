@@ -1,0 +1,19 @@
+#!/bin/bash
+mvn install:install-file  -Dfile=gdata-core-1.0.jar -DgroupId=gdata -DartifactId=core -Dversion=1.0 -Dpackaging=jar
+mvn install:install-file  -Dfile=linkedin-j-1.0.jar -DgroupId=com.linkedin -DartifactId=linkedin-j -Dversion=1.0 -Dpackaging=jar
+mvn install:install-file  -Dfile=newrelic-api-2.15.jar -DgroupId=com.newrelic -DartifactId=newrelic-api -Dversion=2.15 -Dpackaging=jar
+mvn install:install-file  -Dfile=restfb-1.6.6.jar -DgroupId=com.restfb -DartifactId=restfb -Dversion=1.6.6 -Dpackaging=jar
+mvn install:install-file  -Dfile=client-1.0.jar -DgroupId=gdata -DartifactId=client -Dversion=1.0 -Dpackaging=jar
+mvn install:install-file  -Dfile=contacts-3.0.jar -DgroupId=gdata -DartifactId=contacts -Dversion=3.0 -Dpackaging=jar
+mvn install:install-file  -Dfile=contacts-meta-3.0.jar -DgroupId=gdata -DartifactId=contacts-meta -Dversion=3.0 -Dpackaging=jar
+mvn install:install-file  -Dfile=core-1.0.jar -DgroupId=gdata -DartifactId=client -Dversion=1.0 -Dpackaging=jar
+mvn install:install-file  -Dfile=media-1.0.jar -DgroupId=gdata -DartifactId=media -Dversion=1.0 -Dpackaging=jar
+mvn install:install-file  -Dfile=photos-2.0.jar -DgroupId=gdata -DartifactId=photos -Dversion=2.0 -Dpackaging=jar
+mvn install:install-file  -Dfile=photos-meta-2.0.jar -DgroupId=gdata -DartifactId=photos-meta -Dversion=2.0 -Dpackaging=jar
+mvn install:install-file  -Dfile=collect-1.0.jar -DgroupId=google -DartifactId=collect -Dversion=1.0 -Dpackaging=jar
+mvn install:install-file  -Dfile=gdata-calendar-2.0.jar -DgroupId=google -DartifactId=gdata-calendar -Dversion=2.0 -Dpackaging=jar
+mvn install:install-file  -Dfile=gson-1.6.jar -DgroupId=google -DartifactId=gson -Dversion=1.6 -Dpackaging=jar
+mvn install:install-file  -Dfile=client-1.0.jar -DgroupId=gdata -DartifactId=client -Dversion=1.0 -Dpackaging=jar
+mvn install:install-file  -Dfile=activation-1.0.2.jar -DgroupId=javax.activation -DartifactId=activation -Dversion=1.0.2 -Dpackaging=jar
+mvn install:install-file  -Dfile=jstl-1.2.jar -DgroupId=javax.servlet.jstl -DartifactId=jstl -Dversion=1.2 -Dpackaging=jar
+mvn install:install-file  -Dfile=SunriseSunsetCalculator-1.0-SNAPSHOT.jar -DgroupId=com.luckycatlabs.sotoo -DartifactId=SunriseSunsetCalculator -Dversion=1.0-SNAPSHOT -Dpackaging=jar
