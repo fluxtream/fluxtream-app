@@ -6,6 +6,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
     var needDigestReload = false;
     var currentCityPool;
+    var foursquareVenueTemplate;
 
     Calendar.currentTabName = Builder.tabs["date"][0];
     Calendar.currentTab = null;
@@ -284,6 +285,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             });
         });
         loadTemplate("fluxtream-address");
+        loadTemplate("foursquare-venue");
         for (var connectorId in digest.cachedData){
             $.each(digest.cachedData[connectorId], function(i, connector) {
                 connector.getDetails = function(array,showDate){
@@ -563,19 +565,39 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         }
 
         // retrieve foursquare venues asynchronously
+        var foursquareVenueIds = [];
         for (var i=0; i<params.facets.length; i++) {
             if (facets[i].type=="moves-place") {
-                var type = facets[i].type;
-                if (type==="foursquare")
-                    getFoursquareVenue(facets[i].foursquareId);
+                var placeType = facets[i].placeType;
+                if (placeType==="foursquare")  {
+                    foursquareVenueIds.push(facets[i].foursquareId);
+                }
             }
         }
 
+        foursquareVenueTemplate = digest.detailsTemplates["foursquare-venue"];
+
+        setTimeout(function(){getFoursquareVenues(foursquareVenueIds);}, 100);
         return digest.detailsTemplates[data.type].render(params);
     }
 
-    function getFoursquareVenue(foursquareId) {
-        console.log("we should get the foursquare venue for foursquareId " + foursquareId);
+    function getFoursquareVenues(foursquareVenueIds) {
+        for (var i=0; i<foursquareVenueIds.length; i++) {
+            console.log("getting the foursquare venue for foursquareId " + foursquareVenueIds[i]);
+            $.ajax({
+                url: "/api/metadata/foursquare/venue/" + foursquareVenueIds[i],
+                success: function(response) {
+                    var html = foursquareVenueTemplate.render(response);
+                    var foursquareVenueDiv = $("#foursquare-venue-"+response.foursquareId);
+                    foursquareVenueDiv.replaceWith(html);
+                    foursquareVenueDiv = $("#foursquare-venue-"+response.foursquareId);
+                    var icon = foursquareVenueDiv.closest(".moves-place").find(".flx-deviceIcon");
+                    icon.css("background-image","url(" + response.categoryIconUrlPrefix + "bg_32" + response.categoryIconUrlSuffix + ")");
+                    icon.css("background-position", "7px 0px");
+                    icon.css("background-size", "32px 32px");
+                }
+            });
+        }
     }
 
     var topLevelDomains = ["aero","asia","biz","cat","com","coop","info", "int", "jobs", "mobi",

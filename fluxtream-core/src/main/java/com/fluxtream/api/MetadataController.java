@@ -7,7 +7,9 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.domain.metadata.FoursquareVenue;
@@ -74,8 +76,17 @@ public class MetadataController {
     @GET
     @Path(value="/foursquare/venue/{venueId}")
     @Produces({ MediaType.APPLICATION_JSON } )
-    public FoursquareVenue getFoursquareVenue(@PathParam("venueId") String venueId) {
-        return metadataService.getFoursquareVenue(venueId);
+    public Response getFoursquareVenue(@PathParam("venueId") String venueId) {
+        // this doesn't seem to have any effect, i.e. the cache-control header is alwasy set to no-cache
+        // needs invistigating...
+        CacheControl cc = new CacheControl();
+        // cache for a month
+        cc.setNoCache(false);
+        cc.setMaxAge(86400*31);
+        final FoursquareVenue foursquareVenue = metadataService.getFoursquareVenue(venueId);
+        Response.ResponseBuilder builder = Response.ok(foursquareVenue);
+        builder.cacheControl(cc);
+        return builder.build();
     }
 
 }

@@ -14,7 +14,7 @@ public class MovesPlaceFacetVO extends AbstractMovesFacetVO<MovesPlaceFacet> {
 
     public Long placeId;
     public String name;
-    public String type;
+    public String placeType;
     public String foursquareId;
     public float[] position = new float[2];
 
@@ -23,13 +23,13 @@ public class MovesPlaceFacetVO extends AbstractMovesFacetVO<MovesPlaceFacet> {
             throws OutsideTimeBoundariesException {
         super.fromFacetBase(facet, timeInterval, settings);
         this.placeId = facet.placeId;
-        this.type = facet.type;
-        if (type==null||type.equals("unknown"))
+        this.placeType = facet.type;
+        if (placeType==null||placeType.equals("unknown"))
             this.name = "Unknown Place";
-        else if (type.equals("foursquare")||type.equals("user"))
+        else if (placeType.equals("foursquare")||placeType.equals("user"))
             this.name = StringUtils.capitalize(facet.name);
-        else if (type.equals("school")||type.equals("home")||type.equals("work"))
-            this.name = StringUtils.capitalize(facet.type);
+        else if (placeType.equals("school")||placeType.equals("home")||placeType.equals("work"))
+            this.name = StringUtils.capitalize(placeType);
         this.foursquareId = facet.foursquareId;
         this.position[0] = facet.latitude;
         this.position[1] = facet.longitude;

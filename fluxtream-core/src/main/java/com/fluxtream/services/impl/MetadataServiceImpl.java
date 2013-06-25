@@ -586,8 +586,9 @@ public class MetadataServiceImpl implements MetadataService {
     }
 
     @Override
+    @Transactional(readOnly=false)
     public FoursquareVenue getFoursquareVenue(final String venueId) {
-        final TypedQuery<FoursquareVenue> query = em.createQuery("SELECT facet FROM FoursquareVenue WHERE foursquareId=:venueId", FoursquareVenue.class);
+        final TypedQuery<FoursquareVenue> query = em.createQuery("SELECT venue FROM FoursquareVenue venue WHERE venue.foursquareId=:venueId", FoursquareVenue.class);
         query.setParameter("venueId", venueId);
         final List<FoursquareVenue> resultList = query.getResultList();
         if (resultList.size()>0)
@@ -602,12 +603,21 @@ public class MetadataServiceImpl implements MetadataService {
                     throw new Exception("no meta information");
                 JSONObject meta = json.getJSONObject("meta");
                 final int code = meta.getInt("code");
-                if (!(code ==200))
+                if (code!=200)
                     throw new Exception("error code is " + code);
-                JSONObject response = json.getJSONObject("response");
+                JSONObject responseWrapper = json.getJSONObject("response");
+                JSONObject response = responseWrapper.getJSONObject("venue");
 
                 // we only use the primary category and flatten its information in the venue
-                JSONArray categories = response.getJSONArray("categories");
+                final Object categoriesObject = response.get("categories");
+                JSONArray categories = null;
+                if (categoriesObject instanceof JSONArray)
+                    categories = (JSONArray) categoriesObject;
+                else {
+                    categories = new JSONArray();
+                    JSONObject categoriesJson = (JSONObject)categoriesObject;
+                    categories.add(categoriesJson);
+                }
                 FoursquareVenue venue = new FoursquareVenue();
 
                 String venueName = response.getString("name");
@@ -625,8 +635,11 @@ public class MetadataServiceImpl implements MetadataService {
                             venue.categoryName = categoryInfo.getString("name");
                         if (categoryInfo.has("shortName"))
                             venue.categoryShortName = categoryInfo.getString("shortName");
-                        if (categoryInfo.has("icon"))
-                            venue.categoryIconUrl = categoryInfo.getString("icon");
+                        if (categoryInfo.has("icon")) {
+                            JSONObject iconJson = categoryInfo.getJSONObject("icon");
+                            venue.categoryIconUrlPrefix = iconJson.getString("prefix");
+                            venue.categoryIconUrlSuffix = iconJson.getString("suffix");
+                        }
                     }
                 }
                 em.persist(venue);

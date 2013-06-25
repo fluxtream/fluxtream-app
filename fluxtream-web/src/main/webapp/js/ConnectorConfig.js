@@ -381,7 +381,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                     clock: ClockConfig.OUTSIDE_CATEGORY
                 },
                 "move":{
-                    mapicon: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/moves-move.png",
+                    mapicon: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",
                     list:true,
                     map: true,
                     clock: ClockConfig.OUTSIDE_CATEGORY

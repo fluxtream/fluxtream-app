@@ -597,22 +597,25 @@
 </template>
 <template id="moves-place">
     <div class="flx-box moves-place" style="border-left-color:{{color}}">
-        <span class="flx-deviceIcon moves-place"></span>
+        {{#facets}}
+        <span class="flx-deviceIcon moves-place {{placeType}}"></span>
         <div class="facetDetails">
-            {{#facets}}
             <div class="facetDetails">
+                <div id="foursquare-venue-{{foursquareId}}" style="display:none"/>
                 <div class="flx-tTime">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}}-{{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}&nbsp;<a class="mapLink" href="#" itemid="{{id}}" >{{#hasPosition}}<i class="icon-map-marker">{{/hasPosition}}</i></a></div>
+                {{^foursquareId}}
                 <div class="flx-data">
                     {{name}}
                 </div>
+                {{/foursquareId}}
                 {{#activities}}
                 <div class="flx-data">
                     {{activity}}
                 </div>
                 {{/activities}}
             </div>
-            {{/facets}}
         </div>
+        {{/facets}}
     </div>
 </template>
 <template id="fluxtream_capture-photo">
@@ -632,6 +635,11 @@
             </div>
             {{/facets}}
         </div>
+    </div>
+</template>
+<template id="foursquare-venue">
+    <div id="foursquare-venue-{{foursquareId}}">
+        <div>{{name}}</div>
     </div>
 </template>
 

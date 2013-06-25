@@ -16,7 +16,8 @@ public class FoursquareVenue extends AbstractEntity {
     public String foursquareId;
     public String name;
     public String canonicalUrl;
-    public String categoryIconUrl;
+    public String categoryIconUrlPrefix;
+    public String categoryIconUrlSuffix;
     public String categoryName;
     public String categoryFoursquareId;
     public String categoryShortName;
