@@ -310,6 +310,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                     shadow:itemConfig.mapshadow,
                     clickable:clickable
                 });
+                decorateMarker(marker, item);
                 marker.gpsData = gpsDataToUse;
                 map.enhanceMarkerWithItem(marker,item);
                 var bounds = marker.getBounds();
@@ -330,12 +331,29 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 shadow:itemConfig.mapshadow,
                 clickable:clickable
             });
+            decorateMarker(marker, item);
             map.enhanceMarkerWithItem(marker,item);
             var bounds = marker.getBounds();
             addToGPSBounds(map, bounds.getNorthEast());
             addToGPSBounds(map, bounds.getSouthWest());
             map.noGPSDiv.css("display","none");
             return marker;
+        }
+    }
+
+    function decorateMarker(marker, item) {
+        if (item.type==="moves-place") {
+            if (item.placeType==="foursquare") {
+                $.ajax({
+                    url: "/api/metadata/foursquare/venue/" + item.foursquareId,
+                    success: function(response) {
+                        var iconUrl = response.categoryIconUrlPrefix + "bg_32" + response.categoryIconUrlSuffix;
+                        marker.setIcon(iconUrl);
+                    }
+                });
+            } else {
+                marker.setIcon("/images/moves/" + item.placeType + ".png");
+            }
         }
     }
 

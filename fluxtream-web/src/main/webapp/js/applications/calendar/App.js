@@ -583,7 +583,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
     function getFoursquareVenues(foursquareVenueIds) {
         for (var i=0; i<foursquareVenueIds.length; i++) {
-            console.log("getting the foursquare venue for foursquareId " + foursquareVenueIds[i]);
             $.ajax({
                 url: "/api/metadata/foursquare/venue/" + foursquareVenueIds[i],
                 success: function(response) {
