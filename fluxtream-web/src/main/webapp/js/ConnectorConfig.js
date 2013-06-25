@@ -198,27 +198,27 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
         bodymedia:{
             device_name:"BodyMedia",
             color: "rgb(160, 67, 175)",
-            mapicon: "http://maps.google.com/mapfiles/marker.png",
-            mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
+            mapicon: null,
+            mapshadow: null,
             facets: {
                 burn:{
                     list: true,
                     photos: false,
-                    map: true,
+                    map: false,
                     gps: false,
                     clock: null
                 },
                 sleep:{
                     list: true,
                     photos: false,
-                    map: true,
+                    map: false,
                     gps: false,
                     clock: null
                 },
                 steps:{
                     list: true,
                     photos: false,
-                    map: true,
+                    map: false,
                     gps: false,
                     clock: null
                 }
