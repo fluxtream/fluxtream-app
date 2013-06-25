@@ -591,7 +591,6 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         if (map.oldHighlightSection != null){
             oldMin = map.oldHighlightSection.min;
             oldMax = map.oldHighlightSection.max;
-
         }
 
         var newMin = binarySearchOnMarkerList(start,false);
@@ -602,11 +601,16 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             var wasHighlighted = oldMin <= i && i <= oldMax;
             var shouldBeHighlighted = newMin <= i && i <= newMax;
             if (wasHighlighted != shouldBeHighlighted){
+                marker.grey = !shouldBeHighlighted;
                 if (shouldBeHighlighted){
-                    marker.setIcon(marker.config.mapicon);
+                    if (marker.highlight)
+                        marker.setIcon(marker.config.highlightmapicon == null ? "http://maps.google.com/mapfiles/marker.png" : config.highlightmapicon);
+                    else
+                        marker.setIcon(marker.config.mapicon);
                 }
                 else{
-                    marker.setIcon(marker.config.greymapicon == null ? emptyCircle : config.greymapicon);
+                    if (!marker.highlight)
+                        marker.setIcon(marker.config.greymapicon == null ? emptyCircle : config.greymapicon);
                 }
             }
         }
@@ -615,11 +619,16 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             var wasHighlighted = oldMin <= i && i <= oldMax;
             var shouldBeHighlighted = newMin <= i && i <= newMax;
             if (wasHighlighted != shouldBeHighlighted){
+                marker.grey = !shouldBeHighlighted;
                 if (shouldBeHighlighted){
-                    marker.setIcon(marker.config.mapicon);
+                    if (marker.highlight)
+                        marker.setIcon(marker.config.highlightmapicon == null ? "http://maps.google.com/mapfiles/marker.png" : config.highlightmapicon);
+                    else
+                        marker.setIcon(marker.config.mapicon);
                 }
                 else{
-                    marker.setIcon(marker.config.greymapicon == null ? emptyCircle : config.greymapicon);
+                    if (!marker.highlight)
+                        marker.setIcon(marker.config.greymapicon == null ? emptyCircle : config.greymapicon);
                 }
             }
         }
@@ -895,6 +904,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
 
         map.dateAxis.addAxisChangeListener(function(event){
             updateCursorMarkerPosition(map,event.cursorPosition);
+            updateMarkerHighlighting(map,event.cursorPosition);
             if (map.markerList.length > 5500){//we should delay so the axis doesn't become locked up
                 $.doTimeout("MapDateAxisChange");//cancel previous doTimeout
                 $.doTimeout('MapDateAxisChange', 500, function() {//schedule a new one
@@ -945,6 +955,8 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     function updateMarkerHighlighting(map,time){
+        var start = (time - map.dateAxis.getScale() * 5) * 1000;
+        var end = (time + map.dateAxis.getScale() * 5) * 1000;
         function binarySearchOnMarkerList(time,below){
             var min = 0;
             var max = map.markerList.length - 1;
@@ -972,15 +984,53 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 return max;
         }
 
-        var minTime = time - map.dateAxis.getScale() * 5;
-        var maxTIme = time + map.dateAxis.getScale() * 5;
-
-        var minIndex = binarySearchOnMarkerList(map,time - map.dateAxis.getScale() * 5,false);
-        var maxIndex = binarySearchOnMarkerList(map,time + map.dateAxis.getScale() * 5, true);
-
-        for (var i = 0, li = map.markerList.length; i < li; i++){
-
+        var oldMin = 0;
+        var oldMax = map.markerList.length - 1;
+        if (map.oldMarkerHighlight != null){
+            oldMin = map.oldMarkerHighlight.min;
+            oldMax = map.oldMarkerHighlight.max;
         }
+
+        var newMin = binarySearchOnMarkerList(start,false);
+        var newMax = binarySearchOnMarkerList(end,true);
+
+        for (var i = Math.min(oldMin,newMin), li = Math.max(oldMin,newMin); i <= li; i++){
+            var marker = map.markerList[i];
+            var wasHighlighted = oldMin <= i && i <= oldMax;
+            var shouldBeHighlighted = newMin <= i && i <= newMax;
+            if (wasHighlighted != shouldBeHighlighted){
+                marker.highlight = shouldBeHighlighted;
+                if (shouldBeHighlighted){
+                    marker.setIcon(marker.config.highlightmapicon == null ? "http://maps.google.com/mapfiles/marker.png" : config.highlightmapicon);
+                }
+                else{
+                    if (!marker.grey)
+                        marker.setIcon(marker.config.mapicon);
+                    else
+                        marker.setIcon(marker.config.greymapicon == null ? emptyCircle : config.greymapicon);
+
+                }
+            }
+        }
+        for (var i = Math.min(oldMax,newMax), li = Math.max(oldMax,newMax); i <= li; i++){
+            var marker = map.markerList[i];
+            var wasHighlighted = oldMin <= i && i <= oldMax;
+            var shouldBeHighlighted = newMin <= i && i <= newMax;
+            if (wasHighlighted != shouldBeHighlighted){
+                marker.highlight = shouldBeHighlighted;
+                if (shouldBeHighlighted){
+                    marker.setIcon(marker.config.highlightmapicon == null ? "http://maps.google.com/mapfiles/marker.png" : config.highlightmapicon);
+                }
+                else{
+                    if (!marker.grey)
+                        marker.setIcon(marker.config.mapicon);
+                    else
+                        marker.setIcon(marker.config.greymapicon == null ? emptyCircle : config.greymapicon);
+
+                }
+            }
+        }
+        map.oldMarkerHighlight = {start:start,end:end,min:newMin,max:newMax};
 
     }
 
@@ -1018,6 +1068,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         if (map.dateAxis == null)
             return;
         updateCursorMarkerPosition(map,map.dateAxis.getCursorPosition());
+        updateMarkerHighlighting(map,map.dateAxis.getCursorPosition());
     }
 
     function fixZooming(map,zoomLevel,isPreserved){
