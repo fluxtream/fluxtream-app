@@ -184,7 +184,7 @@ public class BodyTrackHelper {
          }
      }
 
-    public String fetchTile(Long uid, String deviceNickname, String channelName, int level, long offset){
+    public GetTileResponse fetchTileObject(Long uid, String deviceNickname, String channelName, int level, long offset){
         try{
             if (uid == null)
                 throw new IllegalArgumentException();
@@ -198,11 +198,15 @@ public class BodyTrackHelper {
                 tileResponse = GetTileResponse.getEmptyTile(level,offset);
             }//TODO:several fields are missing still and should be implemented
 
-            return gson.toJson(tileResponse);
+            return tileResponse;
         }
         catch(Exception e){
-            return gson.toJson(GetTileResponse.getEmptyTile(level,offset));
+            return GetTileResponse.getEmptyTile(level,offset);
         }
+    }
+
+    public String fetchTile(Long uid, String deviceNickname, String channelName, int level, long offset){
+        return gson.toJson(fetchTileObject(uid,deviceNickname,channelName,level,offset));
     }
 
     public String listSources(Long uid, CoachingBuddy coachee){
@@ -319,7 +323,7 @@ public class BodyTrackHelper {
         }
     }
 
-    public String getSourceInfo(final Long uid, final String deviceName) {
+    public SourceInfo getSourceInfoObject(final Long uid, final String deviceName){
         try{
             if (uid == null)
                 throw new IllegalArgumentException();
@@ -368,11 +372,15 @@ public class BodyTrackHelper {
 
             SourceInfo response = new SourceInfo(infoResponse,deviceName);
 
-            return gson.toJson(response);
+            return response;
         }
         catch(Exception e){
-            return gson.toJson(new SourcesResponse(null, null));
+            return new SourceInfo(null, null);
         }
+    }
+
+    public String getSourceInfo(final Long uid, final String deviceName) {
+        return gson.toJson(getSourceInfoObject(uid,deviceName));
     }
 
     public void setDefaultStyle(final Long uid, final String deviceName, final String channelName, final ChannelStyle style) {
@@ -545,12 +553,12 @@ public class BodyTrackHelper {
         double max;
     }
 
-    private static class GetTileResponse{
-        Object[][] data;
-        String[] fields;
-        int level;
-        long offset;
-        int sample_width;
+    public static class GetTileResponse{
+        public Object[][] data;
+        public String[] fields;
+        public int level;
+        public long offset;
+        public int sample_width;
 
         public static GetTileResponse getEmptyTile(int level, long offset){
             GetTileResponse tileResponse = new GetTileResponse();
@@ -613,8 +621,8 @@ public class BodyTrackHelper {
         }
     }
 
-    private class SourcesResponse {
-        ArrayList<Source> sources;
+    public class SourcesResponse {
+        public ArrayList<Source> sources;
 
         public SourcesResponse(ChannelInfoResponse infoResponse, CoachingBuddy coachee){
             sources = new ArrayList<Source>();
@@ -650,8 +658,8 @@ public class BodyTrackHelper {
         }
     }
 
-    private static class SourceInfo{
-        Source info;
+    public static class SourceInfo{
+        public Source info;
 
         public SourceInfo(ChannelInfoResponse infoResponse, String deviceName){
             info = new Source();
@@ -685,24 +693,24 @@ public class BodyTrackHelper {
 
     }
 
-    private static class Source{
-        String name;
-        ArrayList<Channel> channels;
-        Double min_time;
-        Double max_time;
+    public static class Source{
+        public String name;
+        public ArrayList<Channel> channels;
+        public Double min_time;
+        public Double max_time;
     }
 
-    private static class Channel{
-        String type;
-        ChannelStyle builtin_default_style;
-        ChannelStyle style;
-        double max;
-        double min;
-        Double min_time;
-        Double max_time;
-        String name;
-        String objectTypeName;
-        String time_type;
+    public static class Channel{
+        public String type;
+        public ChannelStyle builtin_default_style;
+        public ChannelStyle style;
+        public double max;
+        public double min;
+        public Double min_time;
+        public Double max_time;
+        public String name;
+        public String objectTypeName;
+        public String time_type;
 
         public Channel(){
             // time_type defaults to gmt.  It can be overridden to "local" for channels that only know local time
@@ -727,17 +735,17 @@ public class BodyTrackHelper {
         }
     }
 
-    private static class ViewChannelData extends Channel{
-        Integer channel_height;
-        String channel_name;
-        String device_name;
+    public static class ViewChannelData extends Channel{
+        public Integer channel_height;
+        public String channel_name;
+        public String device_name;
     }
 
 
-    private static class ChannelStyle{
-        HighlightStyling highlight;
-        CommentStyling comments;
-        ArrayList<Style> styles;
+    public static class ChannelStyle{
+        public HighlightStyling highlight;
+        public CommentStyling comments;
+        public ArrayList<Style> styles;
 
         public static ChannelStyle getDefaultChannelStyle(String name){
             ChannelStyle style = new ChannelStyle();
@@ -760,31 +768,31 @@ public class BodyTrackHelper {
 
     }
 
-    private static class CommentStyling{
-        Boolean show;
-        Integer verticalMargin;
-        ArrayList<Style> styles;
+    public static class CommentStyling{
+        public Boolean show;
+        public Integer verticalMargin;
+        public ArrayList<Style> styles;
     }
 
-    private static class HighlightStyling{
-        Integer lineWidth;
-        ArrayList<Style> styles;
+    public static class HighlightStyling{
+        public Integer lineWidth;
+        public ArrayList<Style> styles;
     }
 
-    private static class Style{
-        String type;
-        Integer lineWidth;
-        String color;
-        String fillColor;
-        Integer marginWidth;
-        String numberFormat;
-        Integer verticalOffset;
-        Integer radius;
-        Boolean fill;
-        Boolean show;
+    public static class Style{
+        public String type;
+        public Integer lineWidth;
+        public String color;
+        public String fillColor;
+        public Integer marginWidth;
+        public String numberFormat;
+        public Integer verticalOffset;
+        public Integer radius;
+        public Boolean fill;
+        public Boolean show;
     }
 
-    private static final class DataStoreExecutionResult implements BodyTrackUploadResult {
+    public static final class DataStoreExecutionResult implements BodyTrackUploadResult {
         private final int statusCode;
         private final String response;
 

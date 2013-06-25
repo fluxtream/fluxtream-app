@@ -609,9 +609,6 @@ public class ApiDataServiceImpl implements ApiDataService {
             else if(locationResource.source==LocationFacet.Source.RUNKEEPER) {
                 locationResource.api=Connector.getConnector("runkeeper").value();
             }
-            else {
-                locationResource.api=0;// This happens when GuestServiceImpl CheckIn function uses ip lookup
-            }
 
             // Put updateDayMetadata in a try/catch block because we don't want to fail update or
             // fail to persist this datapoint due to some problem in the timezone detection, etc.
