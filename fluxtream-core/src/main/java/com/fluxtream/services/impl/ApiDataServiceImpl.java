@@ -288,12 +288,12 @@ public class ApiDataServiceImpl implements ApiDataService {
 
     @Override
     public AbstractFacet getOldestApiDataFacet(ApiKey apiKey, ObjectType objectType){
-        return jpaDao.getOldestFacet(apiKey,objectType);
+        return jpaDao.getOldestFacet(apiKey, objectType);
     }
 
     @Override
     public AbstractFacet getLatestApiDataFacet(ApiKey apiKey, ObjectType objectType){
-        return jpaDao.getLatestFacet(apiKey,objectType);
+        return jpaDao.getLatestFacet(apiKey, objectType);
     }
 
     @Override
@@ -557,87 +557,58 @@ public class ApiDataServiceImpl implements ApiDataService {
 		}
 	}
 
+    // addGuestLocation persists the location and adds it to the visited cities
+    // table.  The persistence does duplicate detection by checking for locations matching the time, source,
+    // and apiKeyId.  In the case of a duplicate the new locationFacet is not persisted.
     @Override
     @Transactional(readOnly = false)
     public void addGuestLocations(final long guestId, List<LocationFacet> locationResources) {
         for (LocationFacet locationResource : locationResources) {
             locationResource.guestId = guestId;
-            // setting the processed flag to false
-            // will make it recognizable for a separate background task to pick it up and update daymetadata,
-            // which takes time
-            locationResource.processed = false;
-            em.persist(locationResource);
-            //
-            processLocation(locationResource);
+            persistLocation(locationResource);
         }
         metadataService.updateLocationMetadata(guestId, locationResources);
     }
+
+    // addGuestLocations persists a list of locations and adds them to the visited cities
+    // table.  The persistence does duplicate detection by checking for locations matching the time, source,
+    // and apiKeyId.  In the case of a duplicate the new locationFacet is not persisted.
 
     @Override
     @Transactional(readOnly = false)
     public void addGuestLocation(final long guestId, LocationFacet locationResource) {
         locationResource.guestId = guestId;
-        // setting the processed flag to false
-        // will make it recognizable for a separate background task to pick it up and update daymetadata,
-        // which takes time
-        locationResource.processed = false;
-        em.persist(locationResource);
-        processLocation(locationResource);
+        persistLocation(locationResource);
         List<LocationFacet> locationResources = new ArrayList<LocationFacet>();
         locationResources.add(locationResource);
         metadataService.updateLocationMetadata(guestId, locationResources);
     }
 
     @Transactional(readOnly = false)
-    public void processLocation(LocationFacet locationResource) {
+    public void persistLocation(LocationFacet locationResource) {
         // Create query to check for duplicate
-        Query query = em.createQuery("SELECT e FROM Facet_Location e WHERE e.guestId=? AND e.start=? AND e.processed=true");
+        Query query = em.createQuery("SELECT e FROM Facet_Location e WHERE e.guestId=? AND e.start=? AND e.source=? AND e.apiKeyId=?");
         query.setParameter(1, locationResource.guestId);
 		query.setParameter(2, locationResource.timestampMs);
+        query.setParameter(3, locationResource.source);
+        query.setParameter(4, locationResource.apiKeyId);
 		@SuppressWarnings("rawtypes")
 		List existing = query.getResultList();
-        // Only update Day metadata and persist if this location datapoint is not yet present in the DB table
+        // Only persist if this location datapoint is not yet present in the DB table
 		if (existing.size()==0) {
-            // Fill in guestId, timeUpdated, and source.  These were removed in commit
-            // 2c8539c76acbbcd2576458c9ea0144d910a5d836 and location data tables using versions between
-            // there and here will have all location data assigned to guestId=0.  Connectors updated with
-            // those versions need to be removed and re-added or they will have data gaps
-            locationResource.timeUpdated=System.currentTimeMillis();
-            if(locationResource.source==LocationFacet.Source.GOOGLE_LATITUDE) {
-                locationResource.api=Connector.getConnector("google_latitude").value();
-            }
-            else if(locationResource.source==LocationFacet.Source.RUNKEEPER) {
-                locationResource.api=Connector.getConnector("runkeeper").value();
-            }
-
-            // Put updateDayMetadata in a try/catch block because we don't want to fail update or
-            // fail to persist this datapoint due to some problem in the timezone detection, etc.
-
-            //try {
-            //    metadataService.updateLocationMetadata(locationResource);
-            //} catch(Throwable e) {
-            //    StringBuilder sb = new StringBuilder("module=updateQueue component=apiDataServiceImpl action=addGuestLocation")
-            //                        .append(" latitude=").append(locationResource.latitude)
-            //                        .append(" longitude=").append(locationResource.longitude)
-            //                        .append(" guestId=").append(locationResource.guestId)
-            //                        .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
-            //    logger.warn(sb.toString());
-            //}
-
-            // make location datapoint "legit"
-            locationResource.processed = true;
-            // Persist the location
-            // avoid persisting a facet that was just deleted (as a result of an interrupted update for example)
-            if (em.find(LocationFacet.class, locationResource.getId())!=null)
-                em.merge(locationResource);
-        } else {
-            locationResource = em.merge(locationResource);
-            em.remove(locationResource);
+            // This is a new location, persist it
+            em.persist(locationResource);
+       } else {
+            // This is a duplicate location, ignore and print a message.
+            // TODO: consider what we should do if the new one differs from the
+            // stored location.  Should we do a merge?
             StringBuilder sb = new StringBuilder("module=updateQueue component=apiDataServiceImpl action=addGuestLocation")
+                    .append(" guestId=").append(locationResource.guestId)
+                    .append(" source=").append(locationResource.source.toString())
+                    .append(" apiKeyId=").append(locationResource.apiKeyId)
                     .append(" latitude=").append(locationResource.latitude)
                     .append(" longitude=").append(locationResource.longitude)
-                    .append(" guestId=").append(locationResource.guestId)
-                    .append(" message=\"deleted duplicate locationFacet\"");
+                    .append(" message=\"ignoring duplicate locationFacet\"");
             logger.info(sb.toString());
         }
     }

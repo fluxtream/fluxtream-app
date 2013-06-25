@@ -6,7 +6,9 @@ import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.math.BigDecimal;
 import org.joda.time.DateTime;
@@ -90,6 +92,7 @@ public class FluxtreamCaptureUpdater extends AbstractUpdater {
         long startOffset = DatastoreTile.unixtime_at_level_to_offset(start,level);
         long endOffset = DatastoreTile.unixtime_at_level_to_offset(end,level);
         double currentTime = start;
+        List<LocationFacet> locationList = new ArrayList<LocationFacet>();;
 
         try {
             //  Loop from start to end, fetching tiles at each offset which falls between start and end
@@ -221,8 +224,18 @@ public class FluxtreamCaptureUpdater extends AbstractUpdater {
                     locationFacet.longitude = longitude;
                     locationFacet.accuracy = accuracy;
 
-                    apiDataService.addGuestLocation(uid, locationFacet);
+                    // Push the new location facet onto the list.  The list will get batch processed either when it
+                    // gets beyond a certain length or when the try block exists, either through normal completion or
+                    // through catching an exception
+                    locationList.add(locationFacet);
                     currentTime=thisTime;
+                }
+                // Check if we should process the location list yet.  Only process if we have >= 100 points.
+                // If we exit the loop with fewer than that, the call in the finally block will take care of the
+                // rest.
+                if(locationList.size()>=100) {
+                    apiDataService.addGuestLocations(uid, locationList);
+                    locationList.clear();
                 }
             }
         }
@@ -238,6 +251,10 @@ public class FluxtreamCaptureUpdater extends AbstractUpdater {
            throw e;
         }
         finally {
+            // Process any remaining facets in locationList
+            if(locationList.size()>0) {
+                apiDataService.addGuestLocations(uid, locationList);
+            }
             // Update the stored value that controls when we will start updating next time
             updateStartTime(updateInfo,"Latitude",currentTime);
         }
