@@ -429,6 +429,10 @@ public class GuestServiceImpl implements GuestService {
         locationFacet.end = time;
         locationFacet.guestId = guestId;
 
+        // Set both api and apiKeyId fields to zero since this location is not coming from a connector
+        locationFacet.api = 0;
+        locationFacet.apiKeyId = 0L;
+
         Location ipLocation = null;
         try {
     		ipLocation = geoIpLookupService.getLocation(ipAddress);

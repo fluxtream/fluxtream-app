@@ -47,7 +47,14 @@ define(["core/FlxState"], function(FlxState) {
 	Application.prototype.renderState = function(state) {
 	};
 
-    Application.prototype.navigateState = function(state) {
+    Application.prototype.getParams = function(){
+        return this.params;
+    }
+
+    Application.prototype.navigateState = function(state,params) {
+        this.params = params;
+        if (this.params == null)
+            this.params = {};
         var url = "app/" + this.name;
         if (state) {
             url += "/" + state;
