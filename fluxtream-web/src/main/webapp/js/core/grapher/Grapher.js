@@ -2291,13 +2291,6 @@ define(["core/grapher/BTCore"], function(BTCore) {
                         });
                     }
 
-                    /*
-                    // TODO: do I need this?
-                    if (typeof data === 'string') {
-                        data = JSON.parse(data);
-                    }
-                    */
-
                     // treat undefined or null comment as an empty comment
                     if (typeof photoMetadata['comment'] === 'undefined' || photoMetadata['comment'] == null) {
                         photoMetadata['comment'] = '';
@@ -2328,8 +2321,10 @@ define(["core/grapher/BTCore"], function(BTCore) {
                                 theImage.attr("src",highResImageUrl);
                                 if (photoOrientation <= 4) {
                                     theImage.width(imageWidth).height(imageHeight);
+                                    theImage.css("max-width", imageWidth).css("max-height", imageHeight);
                                 } else {
                                     theImage.width(imageHeight).height(imageWidth);
+                                    theImage.css("max-width", imageHeight).css("max-height", imageWidth);
                                 }
                                 theImage.removeClass("_timeline_photo_dialog_image_orientation_1");
                                 theImage.addClass(highResOrientationCssClass);
@@ -2342,16 +2337,22 @@ define(["core/grapher/BTCore"], function(BTCore) {
 
                                 theImage.attr("src", mediumResImageUrl);
 
+                                var originalWidth = theImage.width();
+                                var originalHeight = theImage.height();
                                 var imageHeight = 300;
                                 var imageWidth = 300;
-                                var imageAspectRatio = (photoOrientation <= 4 ) ? theImage.width() / theImage.height() : theImage.height() / theImage.width();
+                                var imageAspectRatio = (photoOrientation <= 4 ) ? originalWidth / originalHeight : originalHeight / originalWidth;
                                 if (imageAspectRatio > 1) {
                                     imageHeight = Math.round(imageWidth / imageAspectRatio);
                                 } else {
                                     imageWidth = imageAspectRatio * imageHeight;
                                 }
 
-                                theImage.width(imageWidth).height(imageHeight);
+                                if (originalWidth != 0 && originalHeight != 0 && !isNaN(imageWidth) && !isNaN(imageHeight)) {
+                                    theImage.width(imageWidth).height(imageHeight);
+                                }
+                                theImage.css("max-width", "300").css("max-height", "300");
+
                                 $("._timeline_photo_dialog_photo_table").width(300).height(300);
                                 centerPhotoDialog(grapher);
                                 theImage.removeClass(highResOrientationCssClass);
