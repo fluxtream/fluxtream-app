@@ -122,10 +122,6 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         photoCarouselHTML = PhotoUtils.getCarouselHTML(digest);
 
         doneLoading();
-        //disabled... not sure what the purpose of this is
-		/*for(i=0;i<digest.updateNeeded.length;i++) {
-			getDayInfo(digest.updateNeeded[i], digest);
-		}*/
 	}
 
 	function outsideTimeBoundaries(o) {
@@ -133,15 +129,6 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 			return (o.tbounds.start!=config.start || o.tbounds.end!=config.end);
 		}
 		return (o.start!=config.start || o.end!=config.end);
-	}
-
-	function getDayInfo(connectorName, digest) {
-		$.ajax({ url: "/api/calendar/" + connectorName + "/"+Log.tabState, dataType: "json",
-			success: function(jsonData) {
-				if (!outsideTimeBoundaries(jsonData))
-					updateDataDisplay(jsonData, jsonData.name, digest);
-			}
-		});
 	}
 
 	function fillRegion(center, radius1, radius2, startAngle, endAngle) {
