@@ -25,14 +25,16 @@ public class MovesActivityVO {
 
     public final int startMinute;
     public final int endMinute;
-    public String activity;
+    public String activity, activityCode;
     public int distance;
     public Integer steps;
     public DurationModel duration;
     public TimeOfDayVO startTime, endTime;
+    public final String type = "moves-move-activity";
 
     public MovesActivityVO(MovesActivity activity, TimeZone timeZone){
         this.activity = activityDict.get(activity.activity);
+        this.activityCode = activity.activity;
         this.startMinute = AbstractTimedFacetVO.toMinuteOfDay(new Date(activity.start), timeZone);
         this.endMinute = AbstractTimedFacetVO.toMinuteOfDay(new Date(activity.end), timeZone);
         this.distance = activity.distance;

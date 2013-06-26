@@ -397,13 +397,16 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                     map: true,
                     clock: ClockConfig.OUTSIDE_CATEGORY
                 },
-                location:{
+                "location":{
                     mapicon : new google.maps.MarkerImage("/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",null,null,new google.maps.Point(5,5),null),
                     list: false,
                     photos: false,
                     map: true,
                     gps: true,
                     clock: true //just has to be nonnull, gps data has special treatment
+                },
+                "move-activity":{
+                    mapicon : new google.maps.MarkerImage("/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",null,null,new google.maps.Point(5,5),null)
                 }
             }
         }
