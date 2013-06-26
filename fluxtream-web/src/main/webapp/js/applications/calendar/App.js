@@ -302,6 +302,48 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 connector.shouldGroup = function(facet){
                     return shouldFacetsGroup(this,facet);
                 };
+                if (connectorId === "moves-move"){
+                    $.each(connector.activities, function(i, facet) {
+                        facet.getDetails = function(array,showDate){
+                            if (typeof(array) == "boolean"){
+                                showDate = array;
+                                array = null;
+                            }
+                            if (array == null)
+                                array = [this];
+                            return buildDetails(digest,array,showDate);
+                        };
+                        facet.shouldGroup = function(facet){
+                            return shouldFacetsGroup(this,facet);
+                        };
+
+                        if (facet.start == undefined){
+                            if (facet.date != undefined && facet.date != null){
+                                var dateParts = facet.date.split("-");
+                                var year = parseInt(dateParts[0]);
+                                var month = parseInt(dateParts[1]) - 1;
+                                var day = parseInt(dateParts[2]);
+                                if (facet.startTime != null){
+                                    var hours = parseInt(facet.startTime.hours);
+                                    var minutes = parseInt(facet.startTime.minutes);
+                                    if (facet.startTime.ampm == "pm")
+                                        hours += 12;
+                                    facet.start = new Date(year,month,day,hours,minutes,0,0).getTime();
+                                }
+                                if (facet.endTime != null) {
+                                    var hours = parseInt(facet.endTime.hours);
+                                    var minutes = parseInt(facet.endTime.minutes);
+                                    if (facet.endTime.ampm == "pm")
+                                        hours += 12;
+                                    facet.end = new Date(year,month,day,hours,minutes,0,0).getTime();
+                                    if (facet.end < facet.start){
+                                        facet.end = new Date(year,month,day+1,hours,0,0).getTime();
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
             });
             digest.cachedData[connectorId].hasImages = false;
             switch (connectorId){
