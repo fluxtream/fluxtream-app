@@ -689,23 +689,6 @@ define(["core/grapher/BTCore"], function(BTCore) {
         return false;
     }
 
-    Grapher.prototype.toggleDetailsPane = function() {
-        var area = $("#" + this.grapherId + "_timeline_detailsArea");
-        if (area.css("display") === "none") {
-            $("#" + this.grapherId + "_timeline_show_details_btn").addClass("active");
-            area.show();
-        }
-        else {
-            $("#" + this.grapherId + "_timeline_show_details_btn").removeClass("active");
-            area.hide();
-        }
-
-        // call the resize handler to ensure that the grapher gets resized
-        TOOLS.resizeHandler();
-
-        return false;
-    }
-
     Grapher.prototype.removeChannel = function(channel){
         var deviceName;
         var channelName;
@@ -1653,9 +1636,6 @@ define(["core/grapher/BTCore"], function(BTCore) {
             $("#" + grapher.grapherId + "_timeline_add_channels_btn").unbind('click')
                 .click(function(){grapher.toggleAddChannelsPane(); return false;})
                 .removeClass("disabled");
-            $("#" + grapher.grapherId + "_timeline_show_details_btn").unbind('click')
-                .click(function(){grapher.toggleDetailsPane(); return false;})
-                .removeClass("disabled");
 
             grapher.dateAxis.setRange(view["v2"]["x_axis"]["min"],
                 view["v2"]["x_axis"]["max"]);
@@ -1683,9 +1663,6 @@ define(["core/grapher/BTCore"], function(BTCore) {
             $("#" + grapher.grapherId + "_timeline_save_view_btn").removeClass("disabled");
             $("#" + grapher.grapherId + "_timeline_add_channels_btn").unbind('click')
                 .click(function(){grapher.toggleAddChannelsPane(); return false;})
-                .removeClass("disabled");
-            $("#" + grapher.grapherId + "_timeline_show_details_btn").unbind('click')
-                .click(function(){grapher.toggleDetailsPane(); return false;})
                 .removeClass("disabled");
 
             // Show/hide add channels pane
