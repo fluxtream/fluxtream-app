@@ -400,6 +400,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         var accuracy = (marker.item != null  && marker.item.position != null) ? marker.item.accuracy : getGPSAccuracy(gpsDataToUse,time);
         if (accuracy == null)
             accuracy = 0;
+        marker.accuracy = accuracy;
         marker.showCircle = function(){
             if (marker.circle != null)
                 return;
@@ -412,7 +413,10 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                                                    clickable:false});
         }
         marker.getBounds = function(){
-            return new google.maps.Circle({center:marker.getPosition(),radius:accuracy}).getBounds();
+            if (accuracy > 0)
+                return new google.maps.Circle({center:marker.getPosition(),radius:accuracy}).getBounds();
+            else
+                return new google.maps.LatLngBounds(marker.getPosition(),marker.getPosition());
         }
         marker.hideCircle = function(){
             if (marker.circle == null)
@@ -643,7 +647,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     function zoomOnMarker(map,marker){
-        if (marker.circle == null)
+        if (marker.accuracy == 0)
             zoomOnPoint(map,marker.getPosition());
         else
             map.fitBounds(marker.circle.getBounds());
