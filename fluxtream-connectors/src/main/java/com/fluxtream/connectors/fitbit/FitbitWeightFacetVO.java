@@ -21,6 +21,7 @@ public class FitbitWeightFacetVO extends AbstractInstantFacetVO<FitbitWeightFace
         if (facet.start==facet.end) {
             Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
             c.setTimeInMillis(facet.start);
+            this.start = c.getTimeInMillis();
             this.startMinute = c.get(Calendar.HOUR_OF_DAY)*60+c.get(Calendar.MINUTE);
         } else
             this.startMinute = DateTimeConstants.MINUTES_PER_DAY/2;

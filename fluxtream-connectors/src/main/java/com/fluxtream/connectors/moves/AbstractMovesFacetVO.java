@@ -25,7 +25,7 @@ public abstract class AbstractMovesFacetVO<T extends MovesFacet> extends Abstrac
         this.endMinute = toMinuteOfDay(new Date(facet.end), timeZone);
         this.duration = new DurationModel((int)(facet.end-facet.start)/1000);
         for (MovesActivity activity : facet.getActivities())
-            activities.add(new MovesActivityVO(activity, timeZone));
+            activities.add(new MovesActivityVO(activity, timeZone, settings));
     }
 
 }
