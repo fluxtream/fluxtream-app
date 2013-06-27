@@ -39,6 +39,7 @@ public class MovesUpdater extends AbstractUpdater {
 
     final static String host = "https://api.moves-app.com/api/v1";
     public static DateTimeFormatter dateFormat = DateTimeFormat.forPattern("yyyyMMdd");
+    public static DateTimeFormatter dateStorageFormat = DateTimeFormat.forPattern("yyyy-MM-dd");
     public static DateTimeFormatter timeStorageFormat = DateTimeFormat.forPattern("yyyyMMdd'T'HHmmss'Z'");
 
     @Autowired
@@ -90,14 +91,16 @@ public class MovesUpdater extends AbstractUpdater {
     private String fetchStorylineForDate(final UpdateInfo updateInfo, final String date, final boolean withTrackpoints) throws Exception {
         long then = System.currentTimeMillis();
         String fetched = null;
+        String compactDate = toCompactDateFormat(date);
+        String fetchUrl = "not set yet";
         try {
             String accessToken = controller.getAccessToken(updateInfo.apiKey);
-            String fetchUrl = String.format(host + "/user/storyline/daily/%s?trackPoints=%s&access_token=%s",
-                                            date, withTrackpoints, accessToken);
+            fetchUrl = String.format(host + "/user/storyline/daily/%s?trackPoints=%s&access_token=%s",
+                                            compactDate, withTrackpoints, accessToken);
             fetched = HttpUtils.fetch(fetchUrl);
             countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, fetchUrl);
         } catch (Exception e) {
-            countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, date, Utils.stackTrace(e));
+            countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, fetchUrl, Utils.stackTrace(e));
         }
         return fetched;
     }
@@ -110,20 +113,33 @@ public class MovesUpdater extends AbstractUpdater {
         if (then.isAfter(todaysTime))
             throw new IllegalArgumentException("fromDate is after today");
         while (!today.equals(fromDate)) {
-            dates.add(fromDate);
+            dates.add(toStorageFormat(fromDate));
             then = dateFormat.withZoneUTC().parseDateTime(fromDate);
             String date = dateFormat.withZoneUTC().print(then.plusDays(1));
             fromDate = date;
         }
-        dates.add(today);
+        dates.add(toStorageFormat(today));
         return dates;
+    }
+
+    private static String toStorageFormat(String date) {
+        DateTime then = dateFormat.withZoneUTC().parseDateTime(date);
+        String storageDate = dateStorageFormat.withZoneUTC().print(then);
+        return storageDate;
+    }
+
+    private String toCompactDateFormat(final String date) {
+        DateTime then = dateStorageFormat.withZoneUTC().parseDateTime(date);
+        String compactDate = dateFormat.withZoneUTC().print(then);
+        return compactDate;
     }
 
     @Override
     protected void updateConnectorData(final UpdateInfo updateInfo) throws Exception {
-        //// if lastDate is today, it means that we probably already have partial data, so
-        //// let's be parcimonious
-        //String lastDate = guestService.getApiKeyAttribute(updateInfo.apiKey, "lastDate");
+        // if lastDate is today, it means that we probably already have partial data, so
+        // let's be parcimonious
+        String lastDate = guestService.getApiKeyAttribute(updateInfo.apiKey, "lastDate");
+        System.out.println("move's lastDate: " + lastDate);
         //TimeZone guestTimezone = metadataService.getCurrentTimeZone(updateInfo.getGuestId());
         //String today = dateFormat.withZone(DateTimeZone.forTimeZone(guestTimezone)).print(System.currentTimeMillis());
         //final List<String> datesSince = getDatesSince(lastDate);
@@ -149,11 +165,11 @@ public class MovesUpdater extends AbstractUpdater {
     }
 
     private List<String> getDatesBefore(String date, int nDays) {
-        DateTime initialDate = dateFormat.withZoneUTC().parseDateTime(date);
+        DateTime initialDate = dateStorageFormat.withZoneUTC().parseDateTime(date);
         List<String> dates = new ArrayList<String>();
         for (int i=0; i<nDays; i++) {
             initialDate = initialDate.minusDays(1);
-            String nextDate = dateFormat.withZoneUTC().print(initialDate);
+            String nextDate = dateStorageFormat.withZoneUTC().print(initialDate);
             dates.add(nextDate);
         }
         return dates;
@@ -379,13 +395,14 @@ public class MovesUpdater extends AbstractUpdater {
         for (int i=0; i<jsonArray.size(); i++) {
             JSONObject dayFacetData = jsonArray.getJSONObject(i);
             String date = dayFacetData.getString("date");
+            String dateStorage = toStorageFormat(date);
             JSONArray segments = dayFacetData.getJSONArray("segments");
             for (int j=0; j<segments.size(); j++) {
                 JSONObject segment = segments.getJSONObject(j);
                 if (segment.getString("type").equals("move")) {
-                    facets.add(extractMove(date, segment, updateInfo));
+                    facets.add(extractMove(dateStorage, segment, updateInfo));
                 } else if (segment.getString("type").equals("place")) {
-                    facets.add(extractPlace(date, segment, updateInfo));
+                    facets.add(extractPlace(dateStorage, segment, updateInfo));
                 }
             }
         }
@@ -452,6 +469,7 @@ public class MovesUpdater extends AbstractUpdater {
         activity.endTimeStorage = AbstractLocalTimeFacet.timeStorageFormat.print(endTime);
         activity.start = startTime.getMillis();
         activity.end = endTime.getMillis();
+        activity.date = dateStorageFormat.withZoneUTC().print(startTime);
         if (activityData.has("steps"))
             activity.steps = activityData.getInt("steps");
         activity.distance = activityData.getInt("distance");
