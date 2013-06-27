@@ -49,7 +49,10 @@ public class MovesActivityVO {
         this.steps = activity.steps;
         this.startTime = new TimeOfDayVO(this.startMinute, true);
         this.endTime = new TimeOfDayVO(this.endMinute, true);
-        this.duration = new DurationModel((int)(activity.end-activity.start));
+        // The args for creating a DurationModel are in seconds.
+        // The units of start and end are milliseconds, so divide by 1000 to
+        // calculate the duration in seconds to pass to the Duration Model.
+        this.duration = new DurationModel((int)((activity.end-activity.start)/1000));
     }
 
     private void getImperialdistance(final MovesActivity activity) {
