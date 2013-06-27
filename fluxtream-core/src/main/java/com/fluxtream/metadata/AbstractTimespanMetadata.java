@@ -78,6 +78,16 @@ public abstract class AbstractTimespanMetadata {
             throw new OutsideTimeBoundariesException();
         }
 
+        @Override
+        public TimeZone getTimeZone(final String date) throws OutsideTimeBoundariesException {
+            if (getTimeUnit()==TimeUnit.DAY)
+                return getMainTimeZone();
+            for (VisitedCity city : getCities()) {
+                if (city.date.equals(date))
+                    return TimeZone.getTimeZone(city.city.geo_timezone);
+            }
+            throw new OutsideTimeBoundariesException();
+        }
     }
 
     public AbstractTimespanMetadata() {}
