@@ -873,33 +873,91 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         }
     }
 
+    /*
+
+     */
+
     function createTimelineControls(map,maxBounds){
-        var control = $("<div id='mapDateAxis' class='timeAxis'></div>");
+        var control = $('<div class="timeControlContainer"><div id="mapDateAxis" class="timeAxis"></div><div class="flx-channel-navigation map-date-nav" style="text-align:center">' +
+        '<div class="btn-toolbar">' +
+                   '<div class="btn-group">' +
+                       '<a id="map_zoomIn_button" href="#" class="btn"> <i class="icon-zoom-in"></i> </a>' +
+                       '<a id="map_zoomOut_button" href="#" class="btn"> <i class="icon-zoom-out"></i> </a>' +
+                   '</div>' +
+                       '<div class="btn-group">' +
+                                  '<a id="map_gotoBeginning_button" href="#" class="btn"> <i class="icon-fast-backward"></i> </a>' +
+                                      '<a id="map_gotoBack_button" href="#" class="btn"> <i class="icon-step-backward"></i> </a>' +
+        '<a id="map_gotoForward_button" href="#" class="btn"> <i class="icon-step-forward"></i> </a>' +
+        '<a id="map_gotoEnd_button" href="#" class="btn"> <i class="icon-fast-forward"></i> </a>' +
+        '</div>' +
+        '</div>' +
+        '</div></div>');
         map.controls[google.maps.ControlPosition.TOP].push(control[0]);
 
-        createDateAxis(map,"mapDateAxis",maxBounds);
+        map.setMaxTimeBounds(maxBounds);
+
+        createDateAxis(map,"mapDateAxis");
+
+        control.find("#map_zoomIn_button").click(function(event){
+            var zoom = map.dateAxis.getMax() - map.dateAxis.getMin();
+            var zoomChange = ((zoom / 1.4) - zoom) / 2;
+            map.dateAxis.setRange(map.dateAxis.getMin() - zoomChange, map.dateAxis.getMax() + zoomChange);
+            event.preventDefault();
+        });
+        control.find("#map_zoomOut_button").click(function(event){
+            var zoom = map.dateAxis.getMax() - map.dateAxis.getMin();
+            var zoomChange = ((zoom * 1.4) - zoom) / 2;
+            map.dateAxis.setRange(map.dateAxis.getMin() - zoomChange, map.dateAxis.getMax() + zoomChange);
+            event.preventDefault();
+        });
+        control.find("#map_gotoBeginning_button").click(function(event){
+            var panAmount = map.maxBounds.min - map.dateAxis.getMin();
+            map.dateAxis.setRange(map.dateAxis.getMin() + panAmount, map.dateAxis.getMax() + panAmount);
+            event.preventDefault();
+        });
+        control.find("#map_gotoBack_button").click(function(event){
+            var panAmount = map.dateAxis.getMin() - map.dateAxis.getMax();
+            var maxPanAmount = map.maxBounds.min - map.dateAxis.getMin();
+            if (panAmount < maxPanAmount)
+                panAmount = maxPanAmount;
+            map.dateAxis.setRange(map.dateAxis.getMin() + panAmount, map.dateAxis.getMax() + panAmount);
+            event.preventDefault();
+        });
+        control.find("#map_gotoForward_button").click(function(event){
+            var panAmount = map.dateAxis.getMax() - map.dateAxis.getMin();
+            var maxPanAmount = map.maxBounds.max - map.dateAxis.getMax();
+            if (panAmount > maxPanAmount)
+                panAmount = maxPanAmount;
+            map.dateAxis.setRange(map.dateAxis.getMin() + panAmount, map.dateAxis.getMax() + panAmount);
+            event.preventDefault();
+        });
+        control.find("#map_gotoEnd_button").click(function(event){
+            var panAmount = map.maxBounds.max - map.dateAxis.getMax();
+            map.dateAxis.setRange(map.dateAxis.getMin() + panAmount, map.dateAxis.getMax() + panAmount);
+            event.preventDefault();
+        });
 
 
     }
 
-    function createDateAxis(map,id,maxBounds){
+    function createDateAxis(map,id){
         if ($("#" + id).length == 0){
             setTimeout(function(){
-                createDateAxis(map,id,maxBounds);
+                createDateAxis(map,id);
             },10);
             return;
         }
 
         map.dateAxis = new DateAxis(id, "horizontal", {
-            "min" : maxBounds.min,
-            "max" : maxBounds.max
+            "min" : map.maxBounds.min,
+            "max" : map.maxBounds.max
         });
-        map.dateAxis.setCursorPosition(maxBounds.min);
+        map.dateAxis.setCursorPosition(map.maxBounds.min);
         map.dateAxisContainer =  $("#" + id);
         $(window).resize(function(){
             map.dateAxis.setSize(map.dateAxisContainer.width(),map.dateAxisContainer.height(), SequenceNumber.getNext());
         });
-        map.dateAxis.setMaxRange(maxBounds.min,maxBounds.max);
+        map.dateAxis.setMaxRange(map.maxBounds.min,map.maxBounds.max);
         $(window).resize();
 
         map.dateAxis.addAxisChangeListener(function(event){
@@ -958,6 +1016,9 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         var start = (time - map.dateAxis.getScale() * 5) * 1000;
         var end = (time + map.dateAxis.getScale() * 5) * 1000;
         function binarySearchOnMarkerList(time,below){
+            if (map.markerList.length == 0){
+                return null;
+            }
             var min = 0;
             var max = map.markerList.length - 1;
             if (time <= map.markerList[min].time)
@@ -993,6 +1054,10 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
 
         var newMin = binarySearchOnMarkerList(start,false);
         var newMax = binarySearchOnMarkerList(end,true);
+        if (newMin == null){
+            map.oldMarkerHighlight = null;
+            return;
+        }
 
         for (var i = Math.min(oldMin,newMin), li = Math.max(oldMin,newMin); i <= li; i++){
             var marker = map.markerList[i];
@@ -1147,6 +1212,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 map.highlightSection = null;
                 map.connectorSelected = null;
                 map.selectedMarker = null;
+                map.oldMarkerHighlight = null;
 
                 map.markers = {};
                 map.markerList = [];
@@ -1194,6 +1260,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 fixZooming(map,zoomLevel,isPreservedView);
             }
             map.setMaxTimeBounds = function(maxBounds){
+                map.maxBounds = maxBounds;
                 if (map.dateAxis != null){
                     map.dateAxis.setMaxRange(maxBounds.min,maxBounds.max);
                     map.dateAxis.setRange(maxBounds.min,maxBounds.max);
