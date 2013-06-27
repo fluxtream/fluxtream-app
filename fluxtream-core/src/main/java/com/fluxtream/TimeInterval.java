@@ -20,4 +20,12 @@ public interface TimeInterval {
 
     TimeZone getTimeZone(long time) throws OutsideTimeBoundariesException;
 
+    /**
+     * get the timezone for a specific date
+     * @param date in yyyy-mm-dd format
+     * @return
+     * @throws OutsideTimeBoundariesException
+     */
+    TimeZone getTimeZone(String date) throws OutsideTimeBoundariesException;
+
 }

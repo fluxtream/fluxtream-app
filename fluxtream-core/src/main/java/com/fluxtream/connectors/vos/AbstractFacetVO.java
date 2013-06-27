@@ -14,8 +14,6 @@ import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.utils.SecurityUtils;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 
 public abstract class AbstractFacetVO<T extends AbstractFacet> {
 
@@ -25,7 +23,6 @@ public abstract class AbstractFacetVO<T extends AbstractFacet> {
 	public String comment;
     public final SortedSet<String> tags = new TreeSet<String>();
 	public String subType;
-    protected static DateTimeFormatter timeStorageFormat = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
 
 	/**
 	 * Thread-safe cache for vo classes

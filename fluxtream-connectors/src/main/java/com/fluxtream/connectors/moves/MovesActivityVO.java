@@ -31,6 +31,7 @@ public class MovesActivityVO {
     public Integer steps;
     public DurationModel duration;
     public TimeOfDayVO startTime, endTime;
+    public String date;
     public final String type = "moves-move-activity";
 
     public MovesActivityVO(MovesActivity activity, TimeZone timeZone, GuestSettings settings){
@@ -44,6 +45,7 @@ public class MovesActivityVO {
             else
                 getImperialdistance(activity);
         }
+        this.date = activity.date;
         this.steps = activity.steps;
         this.startTime = new TimeOfDayVO(this.startMinute, true);
         this.endTime = new TimeOfDayVO(this.endMinute, true);

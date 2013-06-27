@@ -35,6 +35,11 @@ public class SimpleTimeInterval implements TimeInterval {
         return getMainTimeZone();
     }
 
+    @Override
+    public TimeZone getTimeZone(final String date) throws OutsideTimeBoundariesException {
+        return getMainTimeZone();
+    }
+
     private long start;
     private long end;
     private TimeUnit timeUnit;
