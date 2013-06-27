@@ -286,6 +286,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         });
         loadTemplate("fluxtream-address");
         loadTemplate("foursquare-venue");
+        loadTemplate("moves-move-activity");
         for (var connectorId in digest.cachedData){
             $.each(digest.cachedData[connectorId], function(i, connector) {
                 connector.getDetails = function(array,showDate){
