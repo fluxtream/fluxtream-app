@@ -272,8 +272,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         digest.detailsTemplates = {};
         var templatePath = "applications/calendar/facetTemplates.html";
         function loadTemplate(name) {
-            if (name.indexOf("-location")!=-1)
-                return;
             App.loadMustacheTemplate(templatePath, name, function(template){
                 if (template == null) {
                     console.log("WARNING: no template found for " + name + ".");
