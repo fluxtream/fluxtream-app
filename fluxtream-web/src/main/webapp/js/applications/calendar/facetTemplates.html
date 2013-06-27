@@ -584,6 +584,7 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
+                {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</div>
                 {{#activities}}
                 <div class="flx-data">
@@ -600,20 +601,19 @@
         {{#facets}}
         <span class="flx-deviceIcon moves-place {{placeType}}"></span>
         <div class="facetDetails">
-            <div class="facetDetails">
-                <div id="foursquare-venue-{{foursquareId}}" style="display:none"/>
-                {{^foursquareId}}
-                <div class="flx-data">
-                    {{name}}
-                </div>
-                {{/foursquareId}}
-                <div class="flx-tTime">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}&nbsp;<a class="mapLink" href="#" itemid="{{id}}" >{{#hasPosition}}<i class="icon-map-marker">{{/hasPosition}}</i></a></div>
-                {{#activities}}
-                <div class="flx-data">{{activity}}{{#distance}} ({{distance}}){{/distance}}</div>
-                <div class="flx-tTime">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</div>
-                {{#steps}}{{steps}} steps{{/steps}}
-                {{/activities}}
+            {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
+            <div id="foursquare-venue-{{foursquareId}}" style="display:none"/>
+            {{^foursquareId}}
+            <div class="flx-data">
+                {{name}}
             </div>
+            {{/foursquareId}}
+            <div class="flx-tTime">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}&nbsp;<a class="mapLink" href="#" itemid="{{id}}" >{{#hasPosition}}<i class="icon-map-marker">{{/hasPosition}}</i></a></div>
+            {{#activities}}
+            <div class="flx-data">{{activity}}{{#distance}} ({{distance}}){{/distance}}</div>
+            <div class="flx-tTime">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</div>
+            {{#steps}}{{steps}} steps{{/steps}}
+            {{/activities}}
         </div>
         {{/facets}}
     </div>
