@@ -1,21 +1,18 @@
 package com.fluxtream.connectors.google_calendar;
 
 import java.io.IOException;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-
 import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.controllers.BaseGoogleOAuthController;
+import com.fluxtream.connectors.controllers.ControllerSupport;
 import com.fluxtream.services.GuestService;
 import com.google.gdata.client.authn.oauth.GoogleOAuthHelper;
 import com.google.gdata.client.authn.oauth.OAuthHmacSha1Signer;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
 @RequestMapping(value="/calendar")
@@ -31,16 +28,14 @@ public class GoogleCalendarOAuthController extends BaseGoogleOAuthController {
 	GuestService guestService;
 
 	@RequestMapping(value = "/token")
-	public String getLatitudeToken(HttpServletRequest request,
-			HttpServletResponse response) throws IOException, ServletException {
+	public String getLatitudeToken(HttpServletRequest request) throws IOException, ServletException {
 		return super.accessToken(request, CALENDAR_TOKEN_SECRET,
-				GOOGLE_CALENDAR_SCOPE, env.get("homeBaseUrl")
+				GOOGLE_CALENDAR_SCOPE, ControllerSupport.getLocationBase(request)
 						+ "calendar/upgradeToken");
 	}
 
 	@RequestMapping(value = "/upgradeToken")
-	public String upgradeToken(HttpServletRequest request,
-			HttpServletResponse response) throws IOException {
+	public String upgradeToken(HttpServletRequest request) throws IOException {
 		return super.authorizeToken(request, CALENDAR_TOKEN_SECRET,
 				Connector.getConnector("GOOGLE_CALENDAR"), null);
 	}

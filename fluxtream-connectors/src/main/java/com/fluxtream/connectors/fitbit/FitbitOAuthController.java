@@ -10,6 +10,7 @@ import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.SignpostOAuthHelper;
+import com.fluxtream.connectors.controllers.ControllerSupport;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.services.ApiDataService;
@@ -57,7 +58,7 @@ public class FitbitOAuthController {
 			OAuthMessageSignerException, OAuthNotAuthorizedException,
 			OAuthExpectationFailedException, OAuthCommunicationException {
 
-		String oauthCallback = env.get("homeBaseUrl") + "fitbit/upgradeToken";
+		String oauthCallback = ControllerSupport.getLocationBase(request) + "fitbit/upgradeToken";
 		if (request.getParameter("guestId") != null)
 			oauthCallback += "?guestId=" + request.getParameter("guestId");
 

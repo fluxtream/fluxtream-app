@@ -290,6 +290,9 @@ public class GuestServiceImpl implements GuestService {
         JPAUtils.execute(em, "notifications.delete.all", guest.getId());
         em.flush();
         JPAUtils.execute(em, "coachingBuddies.delete.all", guest.getId());
+        // delete GrapherView
+        // delete WidgetSettings
+        // delete VisitedCities
     }
 
     @Override

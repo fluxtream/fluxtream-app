@@ -10,4 +10,12 @@ public class ControllerSupport {
 		return "error";
 	}
 
+    public static final String getLocationBase(HttpServletRequest request) {
+        String scheme = request.getScheme();
+        String serverName = request.getServerName();
+        int serverPort = request.getServerPort();
+        String locationBase = String.format("%s%s:%s/", scheme, serverName, serverPort);
+        return locationBase;
+    }
+
 }

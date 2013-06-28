@@ -1,9 +1,6 @@
 package com.fluxtream.connectors.flickr;
 
 
-import static com.fluxtream.utils.HttpUtils.fetch;
-import static com.fluxtream.utils.Utils.hash;
-
 import java.io.IOException;
 import java.io.StringReader;
 import java.security.NoSuchAlgorithmException;
@@ -12,12 +9,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
+import com.fluxtream.Configuration;
 import com.fluxtream.auth.AuthHelper;
+import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.Guest;
+import com.fluxtream.services.GuestService;
 import org.apache.commons.io.IOUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -27,10 +26,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.fluxtream.Configuration;
-import com.fluxtream.connectors.Connector;
-import com.fluxtream.domain.Guest;
-import com.fluxtream.services.GuestService;
+import static com.fluxtream.utils.HttpUtils.fetch;
+import static com.fluxtream.utils.Utils.hash;
 
 @Controller
 @RequestMapping(value="/flickr")
@@ -56,8 +53,7 @@ public class FlickrController {
 	}
 	
 	@RequestMapping(value = "/upgradeToken")
-	public String upgradeToken(HttpServletRequest request,
-			HttpServletResponse response) throws NoSuchAlgorithmException, IOException, DocumentException {
+	public String upgradeToken(HttpServletRequest request) throws NoSuchAlgorithmException, IOException, DocumentException {
 		String api_key = env.get("flickrConsumerKey");
 		String frob = request.getParameter("frob");
 		
@@ -72,8 +68,7 @@ public class FlickrController {
 			"?method=flickr.auth.getToken&api_key=" + api_key + "&frob=" + frob + "&api_sig=" + api_sig;
 
 		Guest guest = AuthHelper.getGuest();
-		long guestId = guest.getId();
-		
+
 		String authToken = fetch(getTokenUrl);
 
         StringReader stringReader = new StringReader(authToken);
