@@ -14,7 +14,7 @@ public class ControllerSupport {
         String scheme = request.getScheme();
         String serverName = request.getServerName();
         int serverPort = request.getServerPort();
-        String locationBase = String.format("%s%s:%s/", scheme, serverName, serverPort);
+        String locationBase = String.format("%s://%s:%s/", scheme, serverName, serverPort);
         return locationBase;
     }
 
