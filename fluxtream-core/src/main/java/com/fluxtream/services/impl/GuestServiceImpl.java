@@ -259,26 +259,37 @@ public class GuestServiceImpl implements GuestService {
         Guest guest = getGuestById(id);
         if (guest == null)
             return;
+        JPAUtils.execute(em, "updateWorkerTasks.delete.all", guest.getId());
+        em.remove(guest);
+        em.flush();
         List<ApiKey> apiKeys = getApiKeys(guest.getId());
         for (ApiKey key : apiKeys) {
             if(key!=null && key.getConnector()!=null) {
                 apiDataService.eraseApiData(key);
+                em.flush();
             }
         }
+        em.flush();
         for (ApiKey apiKey : apiKeys) {
             if(apiKey!=null){
                 em.remove(apiKey);
+                em.flush();
             }
         }
+        em.flush();
         JPAUtils.execute(em, "addresses.delete.all", guest.getId());
+        em.flush();
         JPAUtils.execute(em, "notifications.delete.all", guest.getId());
+        em.flush();
         JPAUtils.execute(em, "settings.delete.all", guest.getId());
+        em.flush();
         JPAUtils.execute(em, "context.delete.all", guest.getId());
-        JPAUtils.execute(em, "updateWorkerTasks.delete.all", guest.getId());
+        em.flush();
         JPAUtils.execute(em, "tags.delete.all", guest.getId());
+        em.flush();
         JPAUtils.execute(em, "notifications.delete.all", guest.getId());
+        em.flush();
         JPAUtils.execute(em, "coachingBuddies.delete.all", guest.getId());
-        em.remove(guest);
     }
 
     @Override
