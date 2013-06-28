@@ -115,6 +115,7 @@ public class MetadataServiceImpl implements MetadataService {
             if (visitedCity.locationSource== LocationFacet.Source.USER)
                 em.remove(visitedCity);
         }
+        em.flush();
     }
 
     @Override
@@ -151,6 +152,9 @@ public class MetadataServiceImpl implements MetadataService {
 
     @Transactional(readOnly=false)
     private void setMainCity(final long guestId, final City city, final long start, final long end, final String timePeriod) {
+
+        resetDayMainCity(guestId, timePeriod);
+
         VisitedCity visitedCity = new VisitedCity();
         visitedCity.guestId = guestId;
         visitedCity.date = timePeriod;
