@@ -30,6 +30,23 @@ function setCookie(c_name,value,exdays) {
     document.cookie=c_name + "=" + c_value;
 }
 
+function getCookie(c_name) {
+    var c_value = document.cookie;
+    var c_start = c_value.indexOf(" " + c_name + "=");
+    if (c_start == -1)
+        c_start = c_value.indexOf(c_name + "=");
+    if (c_start == -1)
+        c_value = null;
+    else{
+        c_start = c_value.indexOf("=", c_start) + 1;
+        var c_end = c_value.indexOf(";", c_start);
+        if (c_end == -1)
+            c_end = c_value.length;
+        c_value = unescape(c_value.substring(c_start,c_end));
+    }
+    return c_value;
+}
+
 $(document).ready(function() {
     $('#toggleLoginPanel').click(function() {
         if ($('#login').is(':visible')) {
@@ -64,6 +81,16 @@ $(document).ready(function() {
         currentYear = d.getFullYear();
     setCookie("timeZone", timezone.name(), 1);
     setCookie("date", currentYear + "-" + currentMonth + "-" + currentDate, 1);
+
+    if (getCookie("compatibilityChecked") == null){
+        setCookie("compatibilityChecked",1);//check once a day
+        for (var member in Modernizr){
+            if (Modernizr[member] === false){
+                $("#incompatibleBrowser").modal();
+                break;
+            }
+        }
+    }
 
     if (typeof params["username"] != "undefined"){
         $("#loginFailedModal").modal();

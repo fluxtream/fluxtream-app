@@ -23,6 +23,7 @@
     <!--[if lt IE 9]>
     <!--<script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>-->
     <![endif]-->
+    <script src="/static/js/modernizr-2.6.2-custom1.js"></script>
 
     <!-- For IE 7 and 8 Media Query Support -->
     <script type="text/javascript" src="/${release}/assets-home/js/respond.js"></script>
@@ -220,6 +221,23 @@
     </div>
     <div class="modal-body">
             <strong>Thanks for subscribing!</strong> We'll send you an email when we (re-)open the doors to the website and you'll be among the first to know.
+    </div>
+    <div class="modal-footer">
+        <a href="#" class="btn" data-dismiss="modal">Ok</a>
+    </div>
+</div>
+
+<div class="modal fade hide" id="incompatibleBrowser">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h3>Incompatibility Warning</h3>
+    </div>
+    <div class="modal-body">
+        <div class="alert alert-error">
+            <strong>Your browser isn't fully compatible!</strong> We've determined that your web browser doesn't support all of the features
+            required for the best experience. You can still try to use the website but some features may be broken. We recommend updating to
+            a newer version of your web browser.
+        </div>
     </div>
     <div class="modal-footer">
         <a href="#" class="btn" data-dismiss="modal">Ok</a>

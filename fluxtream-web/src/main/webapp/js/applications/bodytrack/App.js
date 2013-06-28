@@ -29,6 +29,9 @@ define(["core/Application", "core/FlxState", "core/TabInterface"], function(Appl
     BodyTrack.parseState = function(state) {
         var splits = state.split("/");
         var obj = {};
+        var params = this.getParams();
+        for (var member in params)
+            obj[member] = params[member];
         obj.stateParts = splits;
         obj.tabName = splits.shift();
         if (!isValidTabName(obj.tabName)) {

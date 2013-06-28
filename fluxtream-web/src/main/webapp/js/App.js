@@ -181,12 +181,12 @@ define(
 
         $(window).resize();
 
-        function renderApp(appName,state) {
+        function renderApp(appName,state,params) {
             var app = App.apps[appName];
             if (_.isUndefined(state)) {
                 state = FlxState.getState(appName);
             }
-            app.navigateState(state);
+            app.navigateState(state,params);
         }
 
         App.settings = function() {
