@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
+import java.text.DecimalFormat;
 import com.fluxtream.connectors.vos.AbstractTimedFacetVO;
 import com.fluxtream.connectors.vos.TimeOfDayVO;
 import com.fluxtream.domain.GuestSettings;
@@ -58,10 +59,26 @@ public class MovesActivityVO {
     private void getImperialdistance(final MovesActivity activity) {
         double yards = activity.distance / 0.9144;
         double miles = activity.distance * 0.00062137119;
-        if (miles>1)
-            this.distance = miles + " miles";
-        else
-            this.distance = yards + " yards";
+
+        if (miles>1) {
+            DecimalFormat df = new DecimalFormat("0.#");
+            String mstr = df.format(miles);
+            if(mstr.contentEquals("1")) {
+                this.distance = "1 mile";
+            }
+            else {
+                this.distance = mstr + " miles";
+            }
+        }
+        else {
+            int yint = (int)(round(yards));
+            if(yint == 1) {
+                this.distance = "1 yard";
+            }
+            else {
+                this.distance = yint + " yards";
+            }
+        }
     }
 
     private void getMetricDistance(final MovesActivity activity) {
