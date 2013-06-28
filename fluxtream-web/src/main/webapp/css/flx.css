@@ -226,13 +226,15 @@
   background-image: linear-gradient(top, #333333, #222222);
   border: none;
 }
-.navbar .nav > li > a {
+.navbar .nav > li > a,
+.navbar .nav > li > a:focus {
   float: none;
   padding: 9px 10px 11px;
   line-height: 19px;
   color: #999;
   text-decoration: none;
   text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+  outline: none;
 }
 .navbar .nav li.dropdown.open > .dropdown-toggle,
 .navbar .nav li.dropdown.active > .dropdown-toggle,
@@ -240,14 +242,17 @@
   background: inherit;
   color: inherit;
 }
-.navbar .nav > li > a:focus,
 .navbar .nav > li > a:hover {
   background-color: transparent;
   color: #fff;
   text-decoration: none;
 }
-.navbar .nav li.dropdown > a:hover .caret,
 .navbar .nav li.dropdown > a:focus .caret,
+.navbar .nav li.dropdown > a .caret {
+  border-top-color: #999;
+  border-bottom-color: #999;
+}
+.navbar .nav li.dropdown > a:hover .caret,
 .navbar .nav li.dropdown.open > .dropdown-toggle .caret,
 .navbar .nav li.dropdown.active > .dropdown-toggle .caret,
 .navbar .nav li.dropdown.open.active > .dropdown-toggle .caret {
@@ -290,7 +295,7 @@ h6 {
   font-size: 13px;
 }
 ::selection {
-  background: #ffff9e;
+  background: #ffff9b;
 }
 ::-moz-selection {
   background: #ffff9e;
