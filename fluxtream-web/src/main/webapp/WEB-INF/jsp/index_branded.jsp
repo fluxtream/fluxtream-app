@@ -10,8 +10,8 @@
     <meta name="description" content="Landing page,Subscribe">
     <meta name="author" content="">
     <!-- Styles -->
-    <link href="/static/css/bootstrap-2.0.3.min.css" rel="stylesheet">
-    <link href="/static/css/bootstrap-responsive-2.0.3.min.css" rel="stylesheet">
+    <link href="/static/css/bootstrap-2.3.2.min.css" rel="stylesheet">
+    <link href="/static/css/bootstrap-responsive-2.3.2.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/font-awesome.css">
     <link href="/${release}/assets-home/css/style-responsive-red.css" rel="stylesheet">
     <link href="/${release}/assets-home/css/style.css" rel="stylesheet">
@@ -27,7 +27,7 @@
     <!-- For IE 7 and 8 Media Query Support -->
     <script type="text/javascript" src="/${release}/assets-home/js/respond.js"></script>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-    <script src="/static/js/bootstrap-2.0.2.min.js"></script>
+    <script src="/static/js/bootstrap-2.3.2.min.js"></script>
     <script type="text/javascript" src="/${release}/assets-home/js/welcome.js"></script>
 
     <!-- fav icons -->
