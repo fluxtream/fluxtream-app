@@ -216,8 +216,51 @@
 .navbar {
   color: #999;
 }
+.navbar-inner {
+  background-color: #2c2c2c;
+  background-image: -moz-linear-gradient(top, #333333, #222222);
+  background-image: -ms-linear-gradient(top, #333333, #222222);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#333333), to(#222222));
+  background-image: -webkit-linear-gradient(top, #333333, #222222);
+  background-image: -o-linear-gradient(top, #333333, #222222);
+  background-image: linear-gradient(top, #333333, #222222);
+  border: none;
+}
+.navbar {
+  color: #999;
+}
+small {
+  font-size: 100%;
+}
+body {
+  line-height: 18px;
+}
+h3 {
+  font-size: 18px;
+  line-height: 27px;
+}
+h4 {
+  font-size: 14px;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  line-height: inherit;
+}
+.btn {
+  padding: 4px 10px 4px;
+  font-size: 13px;
+  line-height: 18px;
+}
+.btn-group > .btn {
+  font-size: 13px;
+}
 ::selection {
-  background: #ffff9e;
+  background: #ffff9f;
 }
 ::-moz-selection {
   background: #ffff9e;
@@ -227,9 +270,6 @@ img::selection {
 }
 img::-moz-selection {
   background: transparent;
-}
-body {
-  -webkit-tap-highlight-color: #ffff9e;
 }
 @media (max-width: 768px) {
   .flx-widget-typo .big-data-figure {
@@ -412,13 +452,21 @@ a.paginationLink {
   display: block;
 }
 .application.dormant {
-  display: none;
+  position: fixed;
+  top: 0px;
+  margin-top: -1000px;
+  height: 500px;
+  overflow: hidden;
 }
 .tab.active {
   display: block;
 }
 .tab.dormant {
-  display: none;
+  position: fixed;
+  top: 0px;
+  margin-top: -1000px;
+  height: 500px;
+  overflow: hidden;
 }
 .fullwidth {
   width: 100%;
@@ -900,6 +948,7 @@ table .remove i {
 .load-view-subMenu .view-filters {
   text-align: right;
   line-height: 1em;
+  list-style: none;
 }
 .load-view-subMenu .view-filters a {
   color: #07900c;
@@ -938,7 +987,6 @@ table .remove i {
   overflow: hidden;
   height: 100%;
   zoom: 1;
-  border-bottom: 3px solid #dcdcd2;
   background: #eeeee9;
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='lighten(@hd-bg-color,10%)', endColorstr='@hd-bg-color');
   background: -webkit-gradient(linear, left top, left bottom, from(#ffffff), to(#eeeee9));
@@ -947,8 +995,11 @@ table .remove i {
 .flx-channel div {
   float: left;
 }
+.flx-channel .flx-channel-tab {
+  width: 235px;
+}
 .flx-channel .flx-remove-channel {
-  padding: 28px 20px 28px 15px;
+  padding: 0;
   font-size: 20px;
 }
 .flx-channel .flx-remove-channel a {
@@ -959,10 +1010,11 @@ table .remove i {
   text-decoration: none;
 }
 .flx-channel .flx-channel-name {
-  padding: 20px 0 20px;
+  padding: 0;
   overflow: hidden;
   text-shadow: 1px 1px #ffffff;
-  max-width: 130px;
+  width: 180px;
+  max-width: 180px;
 }
 .flx-channel .flx-channel-name h4 {
   font-size: 18px;
@@ -976,8 +1028,28 @@ table .remove i {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.flx-channel .flx-channel-name-nodeletebutton {
+  padding: 0 0 0 5px;
+  overflow: hidden;
+  text-shadow: 1px 1px #ffffff;
+  width: 200px;
+  max-width: 200px;
+}
+.flx-channel .flx-channel-name-nodeletebutton h4 {
+  font-size: 18px;
+  color: #808080;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.flx-channel .flx-channel-name-nodeletebutton p {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .flx-channel .flx-channel-controls {
-  padding: 20px 15px 0;
+  padding: 0;
+  margin: 0;
   list-style-type: none;
 }
 .flx-channel .flx-channel-controls li {
@@ -995,6 +1067,11 @@ table .remove i {
 .flx-channel .flx-channel-controls a:hover {
   color: #666666;
   text-decoration: none;
+}
+.flx-channel .flx-channel-filter {
+  font-size: 8pt;
+  font-style: italic;
+  color: #aaaaaa;
 }
 #dashboardsTab .nav-tabs {
   position: absolute;
