@@ -649,7 +649,22 @@
         </div>
     </div>
 </template>
-
+<template id="moves-location">
+    <div class="flx-box" style="border-left-color:{{color}}">
+        <span class="flx-deviceIcon moves-move"></span>
+        <div class="facetDetails">
+            {{#facets}}
+            <div class="facetDetails">
+                {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
+                <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
+                <div class="flx-data">
+                    <span class="flx-description">Source: {{source}}<br>Accuracy: {{accuracy}}m</span>
+                </div>
+            </div>
+            {{/facets}}
+        </div>
+    </div>
+</template>
 <template id="fluxtream_capture-location">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon fluxtream"></span>

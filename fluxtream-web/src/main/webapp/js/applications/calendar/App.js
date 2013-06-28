@@ -540,6 +540,9 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                             case "FLUXTREAM_CAPTURE":
                                 newFacet[member] = "Fluxtream Capture";
                                 break;
+                            case "MOVES":
+                                newFacet[member] = "Moves";
+                                break;
                             case "OTHER":
                                 newFacet[member] = "IP lookup";
                                 break;
