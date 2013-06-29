@@ -563,11 +563,16 @@ public class ApiDataServiceImpl implements ApiDataService {
     @Override
     @Transactional(readOnly = false)
     public void addGuestLocations(final long guestId, List<LocationFacet> locationResources) {
+        // Only call updateLocationMetadata for the subset of locations which we did not already know about.
+        // Keep track of which locations are new in newLocations.
+        List<LocationFacet> newLocations = new ArrayList<LocationFacet>();
         for (LocationFacet locationResource : locationResources) {
             locationResource.guestId = guestId;
-            persistLocation(locationResource);
+            if(persistLocation(locationResource)) {
+                newLocations.add(locationResource);
+            }
         }
-        metadataService.updateLocationMetadata(guestId, locationResources);
+        metadataService.updateLocationMetadata(guestId, newLocations);
     }
 
     // addGuestLocations persists a list of locations and adds them to the visited cities
@@ -578,15 +583,19 @@ public class ApiDataServiceImpl implements ApiDataService {
     @Transactional(readOnly = false)
     public void addGuestLocation(final long guestId, LocationFacet locationResource) {
         locationResource.guestId = guestId;
-        persistLocation(locationResource);
-        List<LocationFacet> locationResources = new ArrayList<LocationFacet>();
-        locationResources.add(locationResource);
-        metadataService.updateLocationMetadata(guestId, locationResources);
+        // Persist the location and find out if it is new or not.  Only call updateLocationMetadata
+        // if we did not already know about this location
+        if(persistLocation(locationResource)) {
+            List<LocationFacet> locationResources = new ArrayList<LocationFacet>();
+            locationResources.add(locationResource);
+            metadataService.updateLocationMetadata(guestId, locationResources);
+        }
     }
 
     @Transactional(readOnly = false)
-    public void persistLocation(LocationFacet locationResource) {
-        // Create query to check for duplicate
+    public boolean persistLocation(LocationFacet locationResource) {
+        // Create query to check for duplicate, return true if this is a new
+        // location; false otherwise
         Query query = em.createQuery("SELECT e FROM Facet_Location e WHERE e.guestId=? AND e.start=? AND e.source=? AND e.apiKeyId=?");
         query.setParameter(1, locationResource.guestId);
 		query.setParameter(2, locationResource.timestampMs);
@@ -598,6 +607,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 		if (existing.size()==0) {
             // This is a new location, persist it
             em.persist(locationResource);
+            return true;
        } else {
             // This is a duplicate location, ignore and print a message.
             // TODO: consider what we should do if the new one differs from the
@@ -610,6 +620,7 @@ public class ApiDataServiceImpl implements ApiDataService {
                     .append(" longitude=").append(locationResource.longitude)
                     .append(" message=\"ignoring duplicate locationFacet\"");
             logger.info(sb.toString());
+            return false;
         }
     }
 
