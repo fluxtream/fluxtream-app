@@ -1,6 +1,5 @@
 package com.fluxtream.domain;
 
-import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
@@ -50,14 +49,18 @@ public class ConnectorInfo extends AbstractEntity {
     String apiKeyAttributeKeys;
 
     @Type(type = "yes_no")
-    public boolean supportsFileUpload = true;
+    public boolean supportsFileUpload = false;
+
+    @Type(type = "yes_no")
+    public boolean supportsSync = true;
 
     public ConnectorInfo() {
 	}
 
 	public ConnectorInfo(String name, String imageUrl, String text,
 			String connectUrl, Connector api, int count, boolean enabled,
-            boolean supportsFileUpload, List<String> apiKeyAttributeKeys) {
+            boolean supportsFileUpload, boolean supportsSync,
+            String[] apiKeyAttributeKeys) {
 		this.connectUrl = connectUrl;
 		this.image = imageUrl;
 		this.name = name;
@@ -67,7 +70,9 @@ public class ConnectorInfo extends AbstractEntity {
 		this.connectorName = api.getName();
 		this.enabled = enabled;
         this.supportsFileUpload = supportsFileUpload;
-        this.apiKeyAttributeKeys = StringUtils.join(apiKeyAttributeKeys, ",");
+        this.supportsSync = supportsSync;
+        if (apiKeyAttributeKeys!=null)
+            this.apiKeyAttributeKeys = StringUtils.join(apiKeyAttributeKeys, ",");
     }
 
 	public boolean equals(Object o) {

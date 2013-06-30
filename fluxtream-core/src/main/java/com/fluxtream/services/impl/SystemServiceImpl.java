@@ -13,6 +13,7 @@ import com.fluxtream.domain.ConnectorInfo;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.SystemService;
 import com.fluxtream.utils.JPAUtils;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Scope("singleton")
 @Transactional(readOnly=true)
 public class SystemServiceImpl implements SystemService {
+
+    static final Logger logger = Logger.getLogger(SystemServiceImpl.class);
 
     @Autowired
     ConnectorUpdateService connectorUpdateService;
@@ -40,7 +43,7 @@ public class SystemServiceImpl implements SystemService {
     }
 
     @Override
-	public List<ConnectorInfo> getConnectors() {
+	public List<ConnectorInfo> getConnectors() throws Exception {
 		List<ConnectorInfo> all = JPAUtils.find(em, ConnectorInfo.class,
 				"connectors.all", (Object[]) null);
 		if (all.size() == 0) {
@@ -62,105 +65,145 @@ public class SystemServiceImpl implements SystemService {
         return connectorInfo;
     }
 
-    private void initializeConnectorList() {
+    private void initializeConnectorList() throws Exception {
 		ResourceBundle res = ResourceBundle.getBundle("messages/connectors");
         int order = 0;
-        final ConnectorInfo latitudeConnectorInfo = new ConnectorInfo("Google Latitude",
+        final String connectorName = "Google Latitude";
+        String[] latitudeKeys = checkKeysExist(connectorName, Arrays.asList("", ""));
+        final ConnectorInfo latitudeConnectorInfo = new ConnectorInfo(connectorName,
                                                                       "/images/connectors/connector-google_latitude.jpg",
                                                                       res.getString("google_latitude"),
                                                                       "/google/oauth2/token?scope=https://www.googleapis.com/auth/latitude.all.best",
-                                                                      Connector.getConnector("google_latitude"), order++, true,
-                                                                      false, Arrays.asList(""));
+                                                                      Connector.getConnector("google_latitude"), order++, latitudeKeys!=null,
+                                                                      false, true, latitudeKeys);
         latitudeConnectorInfo.supportsRenewTokens = true;
         latitudeConnectorInfo.renewTokensUrlTemplate = "google/oauth2/%s/token?scope=https://www.googleapis.com/auth/latitude.all.best";
         em.persist(latitudeConnectorInfo);
-        em.persist(new ConnectorInfo("Fitbit",
+        final String fitbit = "Fitbit";
+        String[] fitbitKeys = checkKeysExist(fitbit, Arrays.asList("", ""));
+        em.persist(new ConnectorInfo(fitbit,
                                      "/images/connectors/connector-fitbit.jpg",
                                      res.getString("fitbit"), "/fitbit/token",
-                                     Connector.getConnector("fitbit"), order++, true,
-                                     false, Arrays.asList("")));
-        final ConnectorInfo bodymediaConnectorInfo = new ConnectorInfo("BodyMedia",
+                                     Connector.getConnector("fitbit"), order++, fitbitKeys!=null,
+                                     false, true, fitbitKeys));
+        final String bodyMedia = "BodyMedia";
+        String[] bodymediaKeys = checkKeysExist(bodyMedia, Arrays.asList("", ""));
+        final ConnectorInfo bodymediaConnectorInfo = new ConnectorInfo(bodyMedia,
                                                                        "/images/connectors/connector-bodymedia.jpg",
                                                                        res.getString("bodymedia"),
                                                                        "/bodymedia/token",
-                                                                       Connector.getConnector("bodymedia"), order++, true,
-                                                                       false, Arrays.asList(""));
+                                                                       Connector.getConnector("bodymedia"), order++, bodymediaKeys!=null,
+                                                                       false, true, bodymediaKeys);
         bodymediaConnectorInfo.supportsRenewTokens = true;
         bodymediaConnectorInfo.renewTokensUrlTemplate = "bodymedia/token?apiKeyId=%s";
         em.persist(bodymediaConnectorInfo);
-        em.persist(new ConnectorInfo("Withings",
+
+        final String withings = "Withings";
+        String[] withingsKeys = checkKeysExist(withings, Arrays.asList("", ""));
+        em.persist(new ConnectorInfo(withings,
                                      "/images/connectors/connector-withings.jpg",
                                      res.getString("withings"),
                                      "ajax:/withings/enterCredentials",
-                                     Connector.getConnector("withings"), order++, true,
-                                     false, Arrays.asList("")));
-        em.persist(new ConnectorInfo("Zeo",
+                                     Connector.getConnector("withings"), order++, withingsKeys!=null,
+                                     false, true, withingsKeys));
+
+        final String zeo = "Zeo";
+        String[] zeoKeys = checkKeysExist(zeo, Arrays.asList("", ""));
+        em.persist(new ConnectorInfo(zeo,
                                      "/images/connectors/connector-zeo.jpg",
                                      res.getString("zeo"),
                                      "ajax:/zeo/enterCredentials",
-                                     Connector.getConnector("zeo"), order++, true,
-                                     false, Arrays.asList("")));
-        em.persist(new ConnectorInfo("Mymee",
+                                     Connector.getConnector("zeo"), order++, zeoKeys!=null,
+                                     false, true, zeoKeys));
+        final String mymee = "Mymee";
+        String[] mymeeKeys = checkKeysExist(mymee, Arrays.asList("", ""));
+        em.persist(new ConnectorInfo(mymee,
                                      "/images/connectors/connector-mymee.jpg",
                                      res.getString("mymee"),
                                      "ajax:/mymee/enterFetchURL",
-                                     Connector.getConnector("mymee"), order++, true,
-                                     false, Arrays.asList("")));
-        em.persist(new ConnectorInfo("QuantifiedMind",
+                                     Connector.getConnector("mymee"), order++, mymeeKeys!=null,
+                                     false, true, mymeeKeys));
+        final String quantifiedMind = "QuantifiedMind";
+        String[] quantifiedMindKeys = checkKeysExist(quantifiedMind, Arrays.asList("", ""));
+        em.persist(new ConnectorInfo(quantifiedMind,
                                      "/images/connectors/connector-quantifiedmind.jpg",
                                      res.getString("quantifiedmind"),
                                      "ajax:/quantifiedmind/getTokenDialog",
-                                     Connector.getConnector("quantifiedmind"), order++, true,
-                                     false, Arrays.asList("")));
-        // Interfacing with Picasa has been so problematic we've decided to just disable it.  Do so by simply commenting
-        // it out.  We'll keep the supporting classes around in case we change our minds.
-        //em.persist(new ConnectorInfo("Picasa",
-        //                             "/images/connectors/connector-picasa.jpg",
-        //                             res.getString("picasa"),
-        //                             "/picasa/token",
-        //                             Connector.getConnector("picasa"), order++, true));
-        em.persist(new ConnectorInfo("Flickr",
+                                     Connector.getConnector("quantifiedmind"), order++, quantifiedMindKeys!=null,
+                                     false, true, quantifiedMindKeys));
+        final String flickr = "Flickr";
+        String[] flickrKeys = checkKeysExist(flickr, Arrays.asList("", ""));
+        em.persist(new ConnectorInfo(flickr,
                                      "/images/connectors/connector-flickr.jpg",
                                      res.getString("flickr"),
                                      "/flickr/token",
-                                     Connector.getConnector("flickr"), order++, true,
-                                     false, Arrays.asList("")));
-        em.persist(new ConnectorInfo("Google Calendar",
+                                     Connector.getConnector("flickr"), order++, flickrKeys!=null,
+                                     false, true, flickrKeys));
+        final String googleCalendar = "Google Calendar";
+        String[] googleCalendarKeys = checkKeysExist(googleCalendar, Arrays.asList("", ""));
+        em.persist(new ConnectorInfo(googleCalendar,
                                      "/images/connectors/connector-google_calendar.jpg",
                                      res.getString("google_calendar"),
                                      "/calendar/token",
-                                     Connector.getConnector("google_calendar"), order++, true,
-                                     false, Arrays.asList("")));
-        em.persist(new ConnectorInfo("Last fm",
+                                     Connector.getConnector("google_calendar"), order++, googleCalendarKeys!=null,
+                                     false, true, googleCalendarKeys));
+        final String lastFm = "Last fm";
+        String[] lastFmKeys = checkKeysExist(lastFm, Arrays.asList("", ""));
+        em.persist(new ConnectorInfo(lastFm,
                                      "/images/connectors/connector-lastfm.jpg",
                                      res.getString("lastfm"),
                                      "/lastfm/token",
-                                     Connector.getConnector("lastfm"), order++, true,
-                                     false, Arrays.asList("")));
-        em.persist(new ConnectorInfo("Twitter",
+                                     Connector.getConnector("lastfm"), order++, lastFmKeys!=null,
+                                     false, true, lastFmKeys));
+        final String twitter = "Twitter";
+        String[] twitterKeys = checkKeysExist(twitter, Arrays.asList("", ""));
+        em.persist(new ConnectorInfo(twitter,
                                      "/images/connectors/connector-twitter.jpg",
                                      res.getString("twitter"), "/twitter/token",
-                                     Connector.getConnector("twitter"), order++, true,
-                                     false, Arrays.asList("")));
-        em.persist(new ConnectorInfo("Github",
+                                     Connector.getConnector("twitter"), order++, twitterKeys!=null,
+                                     false, true, twitterKeys));
+        final String github = "Github";
+        String[] githubKeys = checkKeysExist(github, Arrays.asList("", ""));
+        em.persist(new ConnectorInfo(github,
                                      "/images/connectors/connector-github.jpg",
                                      res.getString("github"),
                                      singlyAuthorizeUrl("github"),
-                                     Connector.getConnector("github"), order++, true,
-                                     false, Arrays.asList("")));
-        em.persist(new ConnectorInfo("Fluxtream Capture",
+                                     Connector.getConnector("github"), order++, githubKeys!=null,
+                                     false, true, githubKeys));
+        final String fluxtreamCapture = "Fluxtream Capture";
+        String[] fluxtreamCaptureKeys = checkKeysExist(fluxtreamCapture, Arrays.asList("", ""));
+        em.persist(new ConnectorInfo(fluxtreamCapture,
                                      "/images/connectors/connector-fluxtream_capture.png",
                                      res.getString("fluxtream_capture"),
                                      "ajax:/fluxtream_capture/about",
-                                     Connector.getConnector("fluxtream_capture"), order++, true,
-                                     false, Arrays.asList("")));
-        em.persist(new ConnectorInfo("RunKeeper",
+                                     Connector.getConnector("fluxtream_capture"), order++, fluxtreamCaptureKeys!=null,
+                                     false, true, fluxtreamCaptureKeys));
+        String[] runkeeperKeys = checkKeysExist("Runkeeper", Arrays.asList("", ""));
+        final String runKeeper = "RunKeeper";
+        em.persist(new ConnectorInfo(runKeeper,
                                      "/images/connectors/connector-runkeeper.jpg",
                                      res.getString("runkeeper"),
                                      "/runkeeper/token",
-                                     Connector.getConnector("runkeeper"), order, true,
-                                     false, Arrays.asList("")));
+                                     Connector.getConnector("runkeeper"), order, runkeeperKeys!=null,
+                                     false, true, runkeeperKeys));
 	}
+
+    private String[] checkKeysExist(String connectorName, List<String> keys) {
+        String[] checkedKeys = new String[keys.size()];
+        int i=0;
+        for (String key : keys) {
+            String value = env.get(key);
+            if (value==null) {
+                logger.info("Couldn't find key " + key + " \"" + key + "\" while populating the connector table thus disabling the " + connectorName + " connector");
+                return null;
+            } else if (value.equals("xxx")) {
+                logger.info("No value specified " + key + " \"" + key + "\" while populating the connector table thus disabling the " + connectorName + " connector");
+            } else {
+                checkedKeys[i++] = key;
+            }
+        }
+        return checkedKeys;
+    }
 
     private String singlyAuthorizeUrl(final String service) {
         return (new StringBuilder("https://api.singly.com/oauth/authorize?client_id=")
