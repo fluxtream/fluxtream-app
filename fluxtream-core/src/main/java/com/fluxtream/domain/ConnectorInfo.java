@@ -1,13 +1,13 @@
 package com.fluxtream.domain;
 
+import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-
-import org.hibernate.annotations.Type;
-
 import com.fluxtream.connectors.Connector;
+import org.apache.commons.lang.StringUtils;
+import org.hibernate.annotations.Type;
 
 @Entity(name = "Connector")
 // @Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
@@ -46,11 +46,18 @@ public class ConnectorInfo extends AbstractEntity {
     public int api;
     public String renewTokensUrlTemplate;
 
+    @Lob
+    String apiKeyAttributeKeys;
+
+    @Type(type = "yes_no")
+    public boolean supportsFileUpload = true;
+
     public ConnectorInfo() {
 	}
 
 	public ConnectorInfo(String name, String imageUrl, String text,
-			String connectUrl, Connector api, int count, boolean enabled) {
+			String connectUrl, Connector api, int count, boolean enabled,
+            boolean supportsFileUpload, List<String> apiKeyAttributeKeys) {
 		this.connectUrl = connectUrl;
 		this.image = imageUrl;
 		this.name = name;
@@ -59,7 +66,9 @@ public class ConnectorInfo extends AbstractEntity {
 		this.count = count;
 		this.connectorName = api.getName();
 		this.enabled = enabled;
-	}
+        this.supportsFileUpload = supportsFileUpload;
+        this.apiKeyAttributeKeys = StringUtils.join(apiKeyAttributeKeys, ",");
+    }
 
 	public boolean equals(Object o) {
 		ConnectorInfo c = (ConnectorInfo) o;

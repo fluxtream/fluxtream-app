@@ -1,5 +1,6 @@
 package com.fluxtream.services.impl;
 
+import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -68,19 +69,22 @@ public class SystemServiceImpl implements SystemService {
                                                                       "/images/connectors/connector-google_latitude.jpg",
                                                                       res.getString("google_latitude"),
                                                                       "/google/oauth2/token?scope=https://www.googleapis.com/auth/latitude.all.best",
-                                                                      Connector.getConnector("google_latitude"), order++, true);
+                                                                      Connector.getConnector("google_latitude"), order++, true,
+                                                                      false, Arrays.asList(""));
         latitudeConnectorInfo.supportsRenewTokens = true;
         latitudeConnectorInfo.renewTokensUrlTemplate = "google/oauth2/%s/token?scope=https://www.googleapis.com/auth/latitude.all.best";
         em.persist(latitudeConnectorInfo);
         em.persist(new ConnectorInfo("Fitbit",
                                      "/images/connectors/connector-fitbit.jpg",
                                      res.getString("fitbit"), "/fitbit/token",
-                                     Connector.getConnector("fitbit"), order++, true));
+                                     Connector.getConnector("fitbit"), order++, true,
+                                     false, Arrays.asList("")));
         final ConnectorInfo bodymediaConnectorInfo = new ConnectorInfo("BodyMedia",
                                                                        "/images/connectors/connector-bodymedia.jpg",
                                                                        res.getString("bodymedia"),
                                                                        "/bodymedia/token",
-                                                                       Connector.getConnector("bodymedia"), order++, true);
+                                                                       Connector.getConnector("bodymedia"), order++, true,
+                                                                       false, Arrays.asList(""));
         bodymediaConnectorInfo.supportsRenewTokens = true;
         bodymediaConnectorInfo.renewTokensUrlTemplate = "bodymedia/token?apiKeyId=%s";
         em.persist(bodymediaConnectorInfo);
@@ -88,22 +92,26 @@ public class SystemServiceImpl implements SystemService {
                                      "/images/connectors/connector-withings.jpg",
                                      res.getString("withings"),
                                      "ajax:/withings/enterCredentials",
-                                     Connector.getConnector("withings"), order++, true));
+                                     Connector.getConnector("withings"), order++, true,
+                                     false, Arrays.asList("")));
         em.persist(new ConnectorInfo("Zeo",
                                      "/images/connectors/connector-zeo.jpg",
                                      res.getString("zeo"),
                                      "ajax:/zeo/enterCredentials",
-                                     Connector.getConnector("zeo"), order++, true));
+                                     Connector.getConnector("zeo"), order++, true,
+                                     false, Arrays.asList("")));
         em.persist(new ConnectorInfo("Mymee",
                                      "/images/connectors/connector-mymee.jpg",
                                      res.getString("mymee"),
                                      "ajax:/mymee/enterFetchURL",
-                                     Connector.getConnector("mymee"), order++, true));
+                                     Connector.getConnector("mymee"), order++, true,
+                                     false, Arrays.asList("")));
         em.persist(new ConnectorInfo("QuantifiedMind",
                                      "/images/connectors/connector-quantifiedmind.jpg",
                                      res.getString("quantifiedmind"),
                                      "ajax:/quantifiedmind/getTokenDialog",
-                                     Connector.getConnector("quantifiedmind"), order++, true));
+                                     Connector.getConnector("quantifiedmind"), order++, true,
+                                     false, Arrays.asList("")));
         // Interfacing with Picasa has been so problematic we've decided to just disable it.  Do so by simply commenting
         // it out.  We'll keep the supporting classes around in case we change our minds.
         //em.persist(new ConnectorInfo("Picasa",
@@ -115,36 +123,43 @@ public class SystemServiceImpl implements SystemService {
                                      "/images/connectors/connector-flickr.jpg",
                                      res.getString("flickr"),
                                      "/flickr/token",
-                                     Connector.getConnector("flickr"), order++, true));
+                                     Connector.getConnector("flickr"), order++, true,
+                                     false, Arrays.asList("")));
         em.persist(new ConnectorInfo("Google Calendar",
                                      "/images/connectors/connector-google_calendar.jpg",
                                      res.getString("google_calendar"),
                                      "/calendar/token",
-                                     Connector.getConnector("google_calendar"), order++, true));
+                                     Connector.getConnector("google_calendar"), order++, true,
+                                     false, Arrays.asList("")));
         em.persist(new ConnectorInfo("Last fm",
                                      "/images/connectors/connector-lastfm.jpg",
                                      res.getString("lastfm"),
                                      "/lastfm/token",
-                                     Connector.getConnector("lastfm"), order++, true));
+                                     Connector.getConnector("lastfm"), order++, true,
+                                     false, Arrays.asList("")));
         em.persist(new ConnectorInfo("Twitter",
                                      "/images/connectors/connector-twitter.jpg",
                                      res.getString("twitter"), "/twitter/token",
-                                     Connector.getConnector("twitter"), order++, true));
+                                     Connector.getConnector("twitter"), order++, true,
+                                     false, Arrays.asList("")));
         em.persist(new ConnectorInfo("Github",
                                      "/images/connectors/connector-github.jpg",
                                      res.getString("github"),
                                      singlyAuthorizeUrl("github"),
-                                     Connector.getConnector("github"), order++, true));
+                                     Connector.getConnector("github"), order++, true,
+                                     false, Arrays.asList("")));
         em.persist(new ConnectorInfo("Fluxtream Capture",
                                      "/images/connectors/connector-fluxtream_capture.png",
                                      res.getString("fluxtream_capture"),
                                      "ajax:/fluxtream_capture/about",
-                                     Connector.getConnector("fluxtream_capture"), order++, true));
+                                     Connector.getConnector("fluxtream_capture"), order++, true,
+                                     false, Arrays.asList("")));
         em.persist(new ConnectorInfo("RunKeeper",
                                      "/images/connectors/connector-runkeeper.jpg",
                                      res.getString("runkeeper"),
                                      "/runkeeper/token",
-                                     Connector.getConnector("runkeeper"), order, true));
+                                     Connector.getConnector("runkeeper"), order, true,
+                                     false, Arrays.asList("")));
 	}
 
     private String singlyAuthorizeUrl(final String service) {
