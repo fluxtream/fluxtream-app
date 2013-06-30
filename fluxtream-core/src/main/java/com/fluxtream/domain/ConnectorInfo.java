@@ -57,6 +57,11 @@ public class ConnectorInfo extends AbstractEntity {
     public ConnectorInfo() {
 	}
 
+    public String[] getApiKeyAttributesKeys() {
+        final String[] keys = StringUtils.split(apiKeyAttributeKeys, ",");
+        return keys;
+    }
+
 	public ConnectorInfo(String name, String imageUrl, String text,
 			String connectUrl, Connector api, int count, boolean enabled,
             boolean supportsFileUpload, boolean supportsSync,
