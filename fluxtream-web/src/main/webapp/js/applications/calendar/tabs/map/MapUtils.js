@@ -122,11 +122,36 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         return newDataSet;
     }
 
-    function addData(map,connectorData, connectorInfoId, clickable){
+    function addData(map, connectorData, connectorInfoId, clickable){
         if (!isDisplayable(connectorInfoId))
             return false;
+        /*if (connectorInfoId === "moves-move"){ //temporarily disabled - doesn't work TODO: fix it
+            colorMovesGPSData(map,map.gpsData["moves-location"],connectorData);
+            return true;
+        }*/
         map.markers[connectorInfoId] = addItemsToMap(map,connectorData,clickable);
         return map.markers[connectorInfoId] != null;
+    }
+
+    function colorMovesGPSData(map,gpsData,connectorData){
+        for (var i = 0; i < connectorData.length; i++){
+            for (var j = 0; j < connectorData[i].activities.length; j++){
+                var activity = connectorData[i].activities[j];
+                var color;
+                switch(activity.activityCode){
+                    case "wlk":
+                        color = "#00FF00";
+                        break;
+                    case "cyc":
+                        color = "#0000FF";
+                        break;
+                    default:
+                        color = "#888888";
+                }
+                map.createPolyLineSegment(gpsData,activity.start,activity.end,{strokeColor:color,zIndex:100});
+            }
+        }
+        console.log(arguments);
     }
 
     function addAddresses(map,addressesData,clickable){

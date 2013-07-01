@@ -398,6 +398,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                     clock: ClockConfig.OUTSIDE_CATEGORY
                 },
                 "location":{
+                    color: "#000",
                     mapicon : new google.maps.MarkerImage("/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",null,null,new google.maps.Point(5,5),null),
                     list: false,
                     photos: false,
