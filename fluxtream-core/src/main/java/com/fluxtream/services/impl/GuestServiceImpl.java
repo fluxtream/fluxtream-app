@@ -140,6 +140,7 @@ public class GuestServiceImpl implements GuestService {
 	}
 
     @Override
+    @Transactional(readOnly=false)
     public ApiKey createApiKey(final long guestId, final Connector connector) {
         final ConnectorInfo connectorInfo = systemService.getConnectorInfo(connector.getName());
         if (!connectorInfo.enabled)
@@ -147,13 +148,13 @@ public class GuestServiceImpl implements GuestService {
         ApiKey apiKey = new ApiKey();
         apiKey.setGuestId(guestId);
         apiKey.setConnector(connector);
+        em.persist(apiKey);
         final String[] apiKeyAttributesKeys = connectorInfo.getApiKeyAttributesKeys();
         for (String key : apiKeyAttributesKeys) {
             if (env.get(key)==null)
                 throw new RuntimeException("No value was found for key :" + key + ". Cannot create apiKey");
             setApiKeyAttribute(apiKey, key, env.get(key));
         }
-        em.persist(apiKey);
         return apiKey;
     }
 
