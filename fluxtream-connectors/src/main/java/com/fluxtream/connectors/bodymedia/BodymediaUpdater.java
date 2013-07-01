@@ -98,7 +98,7 @@ public class BodymediaUpdater extends AbstractUpdater {
             }
 
             OAuthConsumer consumer = setupConsumer(updateInfo.apiKey);
-            String api_key = env.get("bodymediaConsumerKey");
+            String api_key = guestService.getApiKeyAttribute(updateInfo.apiKey, "bodymediaConsumerKey");
             String startDate = getUserRegistrationDate(updateInfo, api_key, consumer);
             DateTime start = formatter.parseDateTime(startDate);
 
@@ -159,8 +159,8 @@ public class BodymediaUpdater extends AbstractUpdater {
     }
 
     OAuthConsumer setupConsumer(ApiKey apiKey) {
-        String api_key = env.get("bodymediaConsumerKey");
-        String bodymediaConsumerSecret = env.get("bodymediaConsumerSecret");
+        String api_key = guestService.getApiKeyAttribute(apiKey, "bodymediaConsumerKey");
+        String bodymediaConsumerSecret = guestService.getApiKeyAttribute(apiKey, "bodymediaConsumerSecret");
 
         OAuthConsumer consumer = new CommonsHttpOAuthConsumer(api_key, bodymediaConsumerSecret);
 
@@ -200,7 +200,7 @@ public class BodymediaUpdater extends AbstractUpdater {
         if(facet == null)
         {
             OAuthConsumer consumer = setupConsumer(updateInfo.apiKey);
-            String api_key = env.get("bodymediaConsumerKey");
+            String api_key = guestService.getApiKeyAttribute(updateInfo.apiKey, "bodymediaConsumerKey");
             startDate = getUserRegistrationDate(updateInfo, api_key, consumer);
         }
         else
@@ -239,7 +239,7 @@ public class BodymediaUpdater extends AbstractUpdater {
 
     public List<TimezoneMapElt> getTimezoneMap(UpdateInfo updateInfo) throws Exception {
             OAuthConsumer consumer = setupConsumer(updateInfo.apiKey);
-            String api_key = env.get("bodymediaConsumerKey");
+            String api_key = guestService.getApiKeyAttribute(updateInfo.apiKey, "bodymediaConsumerKey");
             JSONArray timezoneMapJson = getUserTimezoneHistory(updateInfo, api_key, consumer);
             List<TimezoneMapElt> ret= new ArrayList<TimezoneMapElt>();
 

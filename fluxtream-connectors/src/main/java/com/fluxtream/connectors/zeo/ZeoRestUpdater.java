@@ -66,7 +66,7 @@ public class ZeoRestUpdater extends AbstractUpdater {
 	}
 
 	private void getBulkSleepRecordsSinceDate(UpdateInfo updateInfo, DateTime d) throws Exception {
-		String zeoApiKey = env.get("zeoApiKey");
+		String zeoApiKey = guestService.getApiKeyAttribute(updateInfo.apiKey, "zeoApiKey");
 		long then = System.currentTimeMillis();
 		String baseUrl = "http://api.myzeo.com:8080/zeows/api/v1/json/sleeperService/";
 

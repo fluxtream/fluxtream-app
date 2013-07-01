@@ -29,8 +29,8 @@ public abstract class AbstractGoogleOAuthUpdater extends AbstractUpdater {
 	protected GoogleOAuthParameters getOAuthParameters(ApiKey apiKey) {
 		GoogleOAuthParameters oauthParameters = new GoogleOAuthParameters();
 		
-		String consumerKey = env.get("googleConsumerKey");
-		String consumerSecret = env.get("googleConsumerSecret");
+		String consumerKey = guestService.getApiKeyAttribute(apiKey, "googleConsumerKey");
+		String consumerSecret = guestService.getApiKeyAttribute(apiKey, "googleConsumerSecret");
 		
 		oauthParameters.setOAuthConsumerKey(consumerKey);
 		oauthParameters.setOAuthConsumerSecret(consumerSecret);
@@ -42,9 +42,9 @@ public abstract class AbstractGoogleOAuthUpdater extends AbstractUpdater {
 	protected HttpTransport getTransport(ApiKey apiKey) {
 		HttpTransport transport = GoogleTransport.create();
         OAuthParameters authorizer = new OAuthParameters();
-        authorizer.consumerKey = env.get("googleConsumerKey");
+        authorizer.consumerKey = guestService.getApiKeyAttribute(apiKey, "googleConsumerKey");
         OAuthHmacSigner signer = new OAuthHmacSigner();
-        signer.clientSharedSecret = env.get("googleConsumerSecret");
+        signer.clientSharedSecret = guestService.getApiKeyAttribute(apiKey, "googleConsumerSecret");
         signer.tokenSharedSecret = getTokenSecret(apiKey);
         authorizer.signer = signer;
         authorizer.token = getAccessToken(apiKey);

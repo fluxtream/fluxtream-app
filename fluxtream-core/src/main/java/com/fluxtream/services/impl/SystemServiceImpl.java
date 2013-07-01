@@ -1,5 +1,6 @@
 package com.fluxtream.services.impl;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
@@ -68,9 +69,18 @@ public class SystemServiceImpl implements SystemService {
     private void initializeConnectorList() throws Exception {
 		ResourceBundle res = ResourceBundle.getBundle("messages/connectors");
         int order = 0;
-        final String connectorName = "Google Latitude";
-        String[] latitudeKeys = checkKeysExist(connectorName, Arrays.asList("", ""));
-        final ConnectorInfo latitudeConnectorInfo = new ConnectorInfo(connectorName,
+        //final String moves = "Moves";
+        //String[] movesKeys = checkKeysExist(moves, Arrays.asList("moves.client.id", "moves.client.secret", "foursquare.client.id", "foursquare.client.secret"));
+        //final ConnectorInfo movesConnectorInfo = new ConnectorInfo(moves,
+        //                                                           "/images/connectors/connector-moves.jpg",
+        //                                                           res.getString("moves"),
+        //                                                           "/moves/oauth2/token",
+        //                                                           Connector.getConnector("moves"), order++, movesKeys!=null,
+        //                                                           false, true, movesKeys);
+        //em.persist(movesConnectorInfo);
+        final String latitude = "Google Latitude";
+        String[] latitudeKeys = checkKeysExist(latitude, Arrays.asList("google.client.id", "google.client.secret", "google_latitudeApiKey"));
+        final ConnectorInfo latitudeConnectorInfo = new ConnectorInfo(latitude,
                                                                       "/images/connectors/connector-google_latitude.jpg",
                                                                       res.getString("google_latitude"),
                                                                       "/google/oauth2/token?scope=https://www.googleapis.com/auth/latitude.all.best",
@@ -80,14 +90,14 @@ public class SystemServiceImpl implements SystemService {
         latitudeConnectorInfo.renewTokensUrlTemplate = "google/oauth2/%s/token?scope=https://www.googleapis.com/auth/latitude.all.best";
         em.persist(latitudeConnectorInfo);
         final String fitbit = "Fitbit";
-        String[] fitbitKeys = checkKeysExist(fitbit, Arrays.asList("", ""));
+        String[] fitbitKeys = checkKeysExist(fitbit, Arrays.asList("fitbitConsumerKey", "fitbitConsumerSecret"));
         em.persist(new ConnectorInfo(fitbit,
                                      "/images/connectors/connector-fitbit.jpg",
                                      res.getString("fitbit"), "/fitbit/token",
                                      Connector.getConnector("fitbit"), order++, fitbitKeys!=null,
                                      false, true, fitbitKeys));
         final String bodyMedia = "BodyMedia";
-        String[] bodymediaKeys = checkKeysExist(bodyMedia, Arrays.asList("", ""));
+        String[] bodymediaKeys = checkKeysExist(bodyMedia, Arrays.asList("bodymediaConsumerKey", "bodymediaConsumerSecret"));
         final ConnectorInfo bodymediaConnectorInfo = new ConnectorInfo(bodyMedia,
                                                                        "/images/connectors/connector-bodymedia.jpg",
                                                                        res.getString("bodymedia"),
@@ -99,7 +109,7 @@ public class SystemServiceImpl implements SystemService {
         em.persist(bodymediaConnectorInfo);
 
         final String withings = "Withings";
-        String[] withingsKeys = checkKeysExist(withings, Arrays.asList("", ""));
+        String[] withingsKeys = checkKeysExist(withings, Arrays.asList("withingsConsumerKey", "withingsConsumerSecret", "withings.publickey"));
         em.persist(new ConnectorInfo(withings,
                                      "/images/connectors/connector-withings.jpg",
                                      res.getString("withings"),
@@ -108,7 +118,7 @@ public class SystemServiceImpl implements SystemService {
                                      false, true, withingsKeys));
 
         final String zeo = "Zeo";
-        String[] zeoKeys = checkKeysExist(zeo, Arrays.asList("", ""));
+        String[] zeoKeys = checkKeysExist(zeo, Arrays.asList("zeoConsumerKey", "zeoConsumerSecret", "zeoApiKey"));
         em.persist(new ConnectorInfo(zeo,
                                      "/images/connectors/connector-zeo.jpg",
                                      res.getString("zeo"),
@@ -116,7 +126,7 @@ public class SystemServiceImpl implements SystemService {
                                      Connector.getConnector("zeo"), order++, zeoKeys!=null,
                                      false, true, zeoKeys));
         final String mymee = "Mymee";
-        String[] mymeeKeys = checkKeysExist(mymee, Arrays.asList("", ""));
+        String[] mymeeKeys = checkKeysExist(mymee, new ArrayList<String>());
         em.persist(new ConnectorInfo(mymee,
                                      "/images/connectors/connector-mymee.jpg",
                                      res.getString("mymee"),
@@ -124,7 +134,7 @@ public class SystemServiceImpl implements SystemService {
                                      Connector.getConnector("mymee"), order++, mymeeKeys!=null,
                                      false, true, mymeeKeys));
         final String quantifiedMind = "QuantifiedMind";
-        String[] quantifiedMindKeys = checkKeysExist(quantifiedMind, Arrays.asList("", ""));
+        String[] quantifiedMindKeys = checkKeysExist(quantifiedMind, new ArrayList<String>());
         em.persist(new ConnectorInfo(quantifiedMind,
                                      "/images/connectors/connector-quantifiedmind.jpg",
                                      res.getString("quantifiedmind"),
@@ -132,7 +142,7 @@ public class SystemServiceImpl implements SystemService {
                                      Connector.getConnector("quantifiedmind"), order++, quantifiedMindKeys!=null,
                                      false, true, quantifiedMindKeys));
         final String flickr = "Flickr";
-        String[] flickrKeys = checkKeysExist(flickr, Arrays.asList("", ""));
+        String[] flickrKeys = checkKeysExist(flickr, Arrays.asList("flickrConsumerKey", "flickrConsumerSecret"));
         em.persist(new ConnectorInfo(flickr,
                                      "/images/connectors/connector-flickr.jpg",
                                      res.getString("flickr"),
@@ -140,7 +150,7 @@ public class SystemServiceImpl implements SystemService {
                                      Connector.getConnector("flickr"), order++, flickrKeys!=null,
                                      false, true, flickrKeys));
         final String googleCalendar = "Google Calendar";
-        String[] googleCalendarKeys = checkKeysExist(googleCalendar, Arrays.asList("", ""));
+        String[] googleCalendarKeys = checkKeysExist(googleCalendar, Arrays.asList("googleConsumerKey", "googleConsumerSecret"));
         em.persist(new ConnectorInfo(googleCalendar,
                                      "/images/connectors/connector-google_calendar.jpg",
                                      res.getString("google_calendar"),
@@ -148,7 +158,7 @@ public class SystemServiceImpl implements SystemService {
                                      Connector.getConnector("google_calendar"), order++, googleCalendarKeys!=null,
                                      false, true, googleCalendarKeys));
         final String lastFm = "Last fm";
-        String[] lastFmKeys = checkKeysExist(lastFm, Arrays.asList("", ""));
+        String[] lastFmKeys = checkKeysExist(lastFm, Arrays.asList("lastfmConsumerKey", "lastfmConsumerSecret"));
         em.persist(new ConnectorInfo(lastFm,
                                      "/images/connectors/connector-lastfm.jpg",
                                      res.getString("lastfm"),
@@ -156,14 +166,14 @@ public class SystemServiceImpl implements SystemService {
                                      Connector.getConnector("lastfm"), order++, lastFmKeys!=null,
                                      false, true, lastFmKeys));
         final String twitter = "Twitter";
-        String[] twitterKeys = checkKeysExist(twitter, Arrays.asList("", ""));
+        String[] twitterKeys = checkKeysExist(twitter, Arrays.asList("twitterConsumerKey", "twitterConsumerSecret"));
         em.persist(new ConnectorInfo(twitter,
                                      "/images/connectors/connector-twitter.jpg",
                                      res.getString("twitter"), "/twitter/token",
                                      Connector.getConnector("twitter"), order++, twitterKeys!=null,
                                      false, true, twitterKeys));
         final String github = "Github";
-        String[] githubKeys = checkKeysExist(github, Arrays.asList("", ""));
+        String[] githubKeys = checkKeysExist(github, Arrays.asList("singly.client.id", "singly.client.secret"));
         em.persist(new ConnectorInfo(github,
                                      "/images/connectors/connector-github.jpg",
                                      res.getString("github"),
@@ -171,14 +181,14 @@ public class SystemServiceImpl implements SystemService {
                                      Connector.getConnector("github"), order++, githubKeys!=null,
                                      false, true, githubKeys));
         final String fluxtreamCapture = "Fluxtream Capture";
-        String[] fluxtreamCaptureKeys = checkKeysExist(fluxtreamCapture, Arrays.asList("", ""));
+        String[] fluxtreamCaptureKeys = checkKeysExist(fluxtreamCapture, new ArrayList<String>());
         em.persist(new ConnectorInfo(fluxtreamCapture,
                                      "/images/connectors/connector-fluxtream_capture.png",
                                      res.getString("fluxtream_capture"),
                                      "ajax:/fluxtream_capture/about",
                                      Connector.getConnector("fluxtream_capture"), order++, fluxtreamCaptureKeys!=null,
                                      false, true, fluxtreamCaptureKeys));
-        String[] runkeeperKeys = checkKeysExist("Runkeeper", Arrays.asList("", ""));
+        String[] runkeeperKeys = checkKeysExist("Runkeeper", Arrays.asList("runkeeperConsumerKey", "runkeeperConsumerSecret"));
         final String runKeeper = "RunKeeper";
         em.persist(new ConnectorInfo(runKeeper,
                                      "/images/connectors/connector-runkeeper.jpg",
