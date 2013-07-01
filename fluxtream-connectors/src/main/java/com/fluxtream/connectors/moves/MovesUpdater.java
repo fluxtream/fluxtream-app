@@ -547,13 +547,23 @@ public class MovesUpdater extends AbstractUpdater {
                 //}
             } else {
                 needsUpdate = true; // adding an activityURI means an update is needed
-                movesActivity.activityURI = UUID.randomUUID().toString();
+                // Generate a URI of the form '{wlk,cyc,trp}/UUID'.  The activity field must be set before calling createActivityURI
+                movesActivity.activityURI = createActivityURI(movesActivity);
                 extractTrackPoints(movesActivity.activityURI, activityData, updateInfo);
             }
         }
         return needsUpdate;
     }
 
+    private String createActivityURI(final MovesActivity movesActivity) {
+        // Generate a URI of the form '{wlk,cyc,trp}/UUID'.  The activity field must be set before calling createActivityURI
+        if(movesActivity.activity!=null) {
+            return(movesActivity.activity + "/" + UUID.randomUUID().toString());
+        }
+        else {
+            return null;
+        }
+    }
     private void addMissingActivities(final UpdateInfo updateInfo,
                                       final List<MovesActivity> movesActivities,
                                       final JSONArray activities,
@@ -742,8 +752,10 @@ public class MovesUpdater extends AbstractUpdater {
 
     private MovesActivity extractActivity(final String date, final UpdateInfo updateInfo, final JSONObject activityData) {
         MovesActivity activity = new MovesActivity();
-        activity.activityURI = UUID.randomUUID().toString();
         activity.activity = activityData.getString("activity");
+        // Generate a URI of the form '{wlk,cyc,trp}/UUID'.  The activity field must be set before calling createActivityURI
+        activity.activityURI = createActivityURI(activity);
+
         final DateTime startTime = timeStorageFormat.withZoneUTC().parseDateTime(activityData.getString("startTime"));
         final DateTime endTime = timeStorageFormat.withZoneUTC().parseDateTime(activityData.getString("endTime"));
 
@@ -780,9 +792,11 @@ public class MovesUpdater extends AbstractUpdater {
             LocationFacet locationFacet = new LocationFacet(updateInfo.apiKey.getId());
             locationFacet.latitude = (float) trackPoint.getDouble("lat");
             locationFacet.longitude = (float) trackPoint.getDouble("lon");
-            if (timeZone==null)
-                timeZone = metadataService.getTimeZone(locationFacet.latitude, locationFacet.longitude);
-            final DateTime time = timeStorageFormat.withZone(DateTimeZone.forTimeZone(timeZone)).parseDateTime(trackPoint.getString("time"));
+            // The two lines below would calculate the timezone if we cared, but the
+            // timestamps from Moves are already in GMT, so don't mess with the timezone
+            //if (timeZone==null)
+            //    timeZone = metadataService.getTimeZone(locationFacet.latitude, locationFacet.longitude);
+            final DateTime time = timeStorageFormat.withZoneUTC().parseDateTime(trackPoint.getString("time"));
             locationFacet.timestampMs = time.getMillis();
             locationFacet.api = connector.value();
             locationFacet.start = locationFacet.timestampMs;
