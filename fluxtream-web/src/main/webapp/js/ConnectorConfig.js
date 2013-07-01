@@ -399,6 +399,10 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                 },
                 "location":{
                     color: "#000",
+                    wlkColor: "#23ee70",
+                    trpColor: "#8f8f8d",
+                    cycColor: "#68abef",
+                    runColor: "#e674ec",
                     mapicon : new google.maps.MarkerImage("/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",null,null,new google.maps.Point(5,5),null),
                     list: false,
                     photos: false,

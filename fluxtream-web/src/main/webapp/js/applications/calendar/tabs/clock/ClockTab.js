@@ -292,6 +292,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                     return config.MOVES_WALKING_COLOR;
                 case "trp":
                     return config.MOVES_TRANSPORT_COLOR;
+                case "run":
+                    return config.MOVES_RUNNING_COLOR;
                 default:
                     return "#000000";
             }

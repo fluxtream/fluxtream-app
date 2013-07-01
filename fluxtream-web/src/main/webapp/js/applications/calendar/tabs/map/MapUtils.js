@@ -14,6 +14,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         newGPSDataSet.gpsPositions = [];
         newGPSDataSet.gpsTimestamps = [];
         newGPSDataSet.gpsAccuracies = [];
+        newGPSDataSet.gpsLines = []
         if (gpsData.length == 0)
             return;
         map.markers[gpsData[0].type] = [];
@@ -22,13 +23,16 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         var minLng = 180; //initialized to the largest valid longitude
         var maxLng = -180; //initialized to the smallest valid longitude
         gpsData = filterGPSData(gpsData);
+        var currentLinePoints = [];
+        var currentType = null;
         for (var i = 0; i < gpsData.length; i++){
             var lat = gpsData[i].position[0];
             var lng = gpsData[i].position[1];
-            newGPSDataSet.gpsPositions.push(new google.maps.LatLng(lat,lng));
+            var newPoint = new google.maps.LatLng(lat,lng);
+            newGPSDataSet.gpsPositions.push(newPoint);
             try {
             map.markers[gpsData[i].type].push(new google.maps.Marker({map:map,
-                                                                    position:newGPSDataSet.gpsPositions[newGPSDataSet.gpsPositions.length-1],
+                                                                    position:newPoint,
                                                                    icon:config.mapicon,
                                                                    shadow:config.mapshadow,
                                                                    clickable:clickable}));
@@ -45,17 +49,39 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             if (bounds.getNorthEast().lng() > maxLng)
                 maxLng = bounds.getNorthEast().lng();
             } catch (e) {}
+
+            currentLinePoints.push(newPoint);
+            if (gpsData[i].uri != null){
+                var parts = gpsData[i].uri.split("/");
+                if (parts.length == 2){
+                    if (currentType != parts[0]){
+                        if (currentType != null){
+                            newGPSDataSet.gpsLines.push({
+                                line: new google.maps.Polyline({
+                                    map:map,
+                                    path:currentLinePoints,
+                                    clickable:false,
+                                    strokeColor: config[currentType + "Color"]}),
+                                highlight:null,
+                                color: config[currentType + "Color"]
+                            });
+                            currentLinePoints = [newPoint];
+                        }
+                        currentType = parts[0];
+                    }
+                }
+            }
         }
-        newGPSDataSet.gpsLines = []
-        newGPSDataSet.gpsLines[0] = {
+        var colorToUse = currentType == null ? config.color : config[currentType + "Color"];
+        newGPSDataSet.gpsLines.push({
             line: new google.maps.Polyline({
                 map:map,
-                path:newGPSDataSet.gpsPositions,
+                path:currentLinePoints,
                 clickable:false,
-                strokeColor: config.color}),
+                strokeColor: colorToUse}),
             highlight:null,
-            color: config.color
-        };
+            color: colorToUse
+        });
         addToGPSBounds(map, new google.maps.LatLng(minLat,minLng));
         addToGPSBounds(map, new google.maps.LatLng(maxLat,maxLng));
 

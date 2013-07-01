@@ -18,6 +18,7 @@ define([], function() {
                 MOVES_CYCLING_COLOR: "#68abef",
                 MOVES_WALKING_COLOR: "#23ee70",
                 MOVES_TRANSPORT_COLOR: "#8f8f8d",
+                MOVES_RUNNING_COLOR: "#e674ec",
 				locationHistory: null,
 				traveling: false,
 				CLOCK_CENTER : [ edgeWidth / 2, edgeWidth / 2 ],
