@@ -41,6 +41,12 @@ public abstract class AbstractMovesFacetVO<T extends MovesFacet> extends Abstrac
         long dateStart = facetLocalDate.toDateTimeAtStartOfDay(dateTimeZone).getMillis();
         long dateEnd = dateStart + DateTimeConstants.MILLIS_PER_DAY;
 
+        // First check to see if this facet is entirely outside the time bounds of this date
+        // If so, throw an exception so this facet isn't returned
+        if(facet.end<dateStart || facet.start>dateEnd) {
+            throw new OutsideTimeBoundariesException();
+        }
+
         // Check if crosses leading midnight
         if(facet.start<dateStart) {
             this.start = dateStart;

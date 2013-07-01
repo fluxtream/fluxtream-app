@@ -71,8 +71,13 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
                 case "latestData":
                 case "lastSync":
                     var formatted = App.formatDate(data[member],true);
+                    formatted = "Present";
                     if (formatted == "Present")
                         formatted = member == "lastSync" ? "Never" : "No Data";
+                    else if (member == "latestData"){
+                        var state = App.apps.calendar.toState("clock","date",new Date(data[member]));
+                        params.latestDataCalendarState = state.tabName + "/" + state.tabState;
+                    }
                     params[member] = formatted;
                     break;
             }

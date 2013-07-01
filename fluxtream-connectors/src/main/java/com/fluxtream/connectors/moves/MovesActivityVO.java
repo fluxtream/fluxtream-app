@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
 import java.text.DecimalFormat;
+import com.fluxtream.OutsideTimeBoundariesException;
 import com.fluxtream.connectors.vos.AbstractTimedFacetVO;
 import com.fluxtream.connectors.vos.TimeOfDayVO;
 import com.fluxtream.domain.GuestSettings;
@@ -37,7 +38,7 @@ public class MovesActivityVO {
 
     public MovesActivityVO(MovesActivity activity, TimeZone timeZone,
                            long dateStart, long dateEnd,
-                           GuestSettings settings){
+                           GuestSettings settings) throws OutsideTimeBoundariesException {
         this.activity = activityDict.get(activity.activity);
         this.activityCode = activity.activity;
         this.date = activity.date;
@@ -47,6 +48,14 @@ public class MovesActivityVO {
         long truncEndMilli = activity.end;
         boolean timeTruncated = false;
 
+        // First check to see if this facet is entirely outside the time bounds of this date
+        // If so, throw an exception so this facet isn't returned
+        if(activity.end<dateStart || activity.start>dateEnd) {
+            throw new OutsideTimeBoundariesException();
+        }
+
+        // We know this facet overlaps the time bounds of date, check if it needs
+        // to be truncated.
         if(activity.start<dateStart){
             truncStartMilli = dateStart;
             timeTruncated=true;

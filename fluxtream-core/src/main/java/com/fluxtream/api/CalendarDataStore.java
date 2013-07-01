@@ -521,10 +521,16 @@ public class CalendarDataStore {
                 AbstractFacetVO<AbstractFacet> facetVO = AbstractFacetVO
                         .getFacetVOClass(abstractFacet).newInstance();
                 try {
-                facetVO.extractValues(abstractFacet,
-                                      timeInterval, settings);
-                } catch(OutsideTimeBoundariesException e) {e.printStackTrace();}
-                facetCollection.add(facetVO);
+                    facetVO.extractValues(abstractFacet,
+                                        timeInterval, settings);
+                    facetCollection.add(facetVO);
+                } catch(OutsideTimeBoundariesException e) {
+                    // OutsideTimeBoundariesException can legitimately happen in the case that the timezone
+                    // for a date differs from the date used by a given service to return the data.
+                    // Don't print a stack trace.
+                    //e.printStackTrace();
+                }
+
             }
         }
         return facetCollection;
