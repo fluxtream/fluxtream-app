@@ -458,12 +458,17 @@ public class CalendarDataStore {
 	}
 
     private List<String> toDates(final AbstractTimespanMetadata timespanMetadata) {
-        final List<VisitedCity> cities = timespanMetadata.getCities();
-        List<String> dates = new ArrayList<String>();
-        for (VisitedCity city : cities) {
-            dates.add(city.date);
-        }
-        return dates;
+        return(timespanMetadata.getDateList());
+
+        // The above was added by Anne on 6/29/13.  The original version was below, but it assumed that
+        // the cities array contains entries corresponding exactly to the first and last day of the week.
+        // That assumption does not appear to be true.
+        //final List<VisitedCity> cities = timespanMetadata.getCities();
+        //List<String> dates = new ArrayList<String>();
+        //for (VisitedCity city : cities) {
+        //    dates.add(city.date);
+        //}
+        //return dates;
     }
 
     @SuppressWarnings("rawtypes")

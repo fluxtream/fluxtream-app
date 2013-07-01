@@ -7,6 +7,7 @@ import com.fluxtream.TimeUnit;
 import com.fluxtream.domain.metadata.VisitedCity;
 import org.joda.time.DateMidnight;
 import org.joda.time.DateTimeConstants;
+import org.joda.time.DateTimeZone;
 
 public class DayMetadata extends AbstractTimespanMetadata {
 
@@ -24,18 +25,40 @@ public class DayMetadata extends AbstractTimespanMetadata {
         DateMidnight dateMidnight = new DateMidnight(timeForDate);
         start = dateMidnight.getMillis();
         end = start + DateTimeConstants.MILLIS_PER_DAY;
+        this.startDate = this.endDate = this.date = forDate;
     }
 
     public DayMetadata(List<VisitedCity> cities, VisitedCity consensusVisitedCity,
                        VisitedCity previousInferredCity, VisitedCity nextInferredCity,
                        String date) {
         super(cities, consensusVisitedCity, previousInferredCity, nextInferredCity);
-        long forDateTime = getTimeForDate(consensusVisitedCity, date);
-        end = forDateTime + DateTimeConstants.MILLIS_PER_DAY;
+        this.start = getStartTimeForDate(consensusVisitedCity, date);
+        this.end = start + DateTimeConstants.MILLIS_PER_DAY;
+        this.startDate = this.endDate = this.date = date;
     }
 
 	public Calendar getStartCalendar() {
-		Calendar c = Calendar.getInstance(TimeZone.getTimeZone(this.consensusVisitedCity.city.geo_timezone));
+        TimeZone tz = null;
+
+        if(this.consensusVisitedCity!=null && this.consensusVisitedCity.city!=null) {
+            // Note that there are strings in the geo_timezone column
+            // of the cities table which cause getTimeZone to throw an exception
+            try {
+                tz=TimeZone.getTimeZone(this.consensusVisitedCity.city.geo_timezone);
+            }
+            catch (Exception e) {
+                System.out.println("Failed to parse timezone for " + consensusVisitedCity.city.geo_timezone + ", using UTC");
+            }
+        }
+        else {
+            System.out.println("Invalid consensusVisitedCity, using UTC");
+        }
+
+        if(tz==null) {
+            tz = TimeZone.getTimeZone("GMT");
+        }
+
+		Calendar c = Calendar.getInstance(tz);
 		c.setTimeInMillis(start);
 		return c;
 	}

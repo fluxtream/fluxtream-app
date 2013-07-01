@@ -35,25 +35,52 @@ public class MovesActivityVO {
     public String date;
     public final String type = "moves-move-activity";
 
-    public MovesActivityVO(MovesActivity activity, TimeZone timeZone, GuestSettings settings){
+    public MovesActivityVO(MovesActivity activity, TimeZone timeZone,
+                           long dateStart, long dateEnd,
+                           GuestSettings settings){
         this.activity = activityDict.get(activity.activity);
         this.activityCode = activity.activity;
-        this.startMinute = AbstractTimedFacetVO.toMinuteOfDay(new Date(activity.start), timeZone);
-        this.endMinute = AbstractTimedFacetVO.toMinuteOfDay(new Date(activity.end), timeZone);
-        if (activity.distance>0) {
+        this.date = activity.date;
+
+        // Potentially trucate to fit within the date
+        long truncStartMilli = activity.start;
+        long truncEndMilli = activity.end;
+        boolean timeTruncated = false;
+
+        if(activity.start<dateStart){
+            truncStartMilli = dateStart;
+            timeTruncated=true;
+        }
+
+        if(activity.end>=dateEnd) {
+            truncEndMilli = dateEnd-1;
+            timeTruncated=true;
+        }
+
+        // Calculate start/end Minute and Time based on truncated millisecond time
+        this.startMinute = AbstractTimedFacetVO.toMinuteOfDay(new Date(truncStartMilli), timeZone);
+        this.endMinute = AbstractTimedFacetVO.toMinuteOfDay(new Date(truncEndMilli), timeZone);
+
+        this.startTime = new TimeOfDayVO(this.startMinute, true);
+        this.endTime = new TimeOfDayVO(this.endMinute, true);
+
+        // The args for creating a DurationModel are in seconds.
+        // The units of start and end are milliseconds, so divide by 1000 to
+        // calculate the duration in seconds to pass to the Duration Model.
+        this.duration = new DurationModel((int)((truncEndMilli-truncStartMilli)/1000));
+
+        // Note that the distance isn't going to be accurate here if we've done truncation
+        // In that case, skip distance and steps for now
+        if (activity.distance>0 && !timeTruncated) {
             if (settings.distanceMeasureUnit==GuestSettings.DistanceMeasureUnit.SI)
                 getMetricDistance(activity);
             else
                 getImperialdistance(activity);
         }
-        this.date = activity.date;
-        this.steps = activity.steps;
-        this.startTime = new TimeOfDayVO(this.startMinute, true);
-        this.endTime = new TimeOfDayVO(this.endMinute, true);
-        // The args for creating a DurationModel are in seconds.
-        // The units of start and end are milliseconds, so divide by 1000 to
-        // calculate the duration in seconds to pass to the Duration Model.
-        this.duration = new DurationModel((int)((activity.end-activity.start)/1000));
+        if(activity.steps!=null && !timeTruncated) {
+            this.steps = activity.steps;
+        }
+
     }
 
     private void getImperialdistance(final MovesActivity activity) {

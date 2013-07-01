@@ -17,7 +17,7 @@ import com.fluxtream.connectors.location.LocationFacet;
  */
 @Entity(name="Facet_MovesMove")
 @ObjectTypeSpec(name = "move", value = 1, parallel=false, prettyname = "Moves",
-        locationFacetSource = LocationFacet.Source.MOVES)
+        locationFacetSource = LocationFacet.Source.MOVES, isDateBased = true)
 public class MovesMoveFacet extends MovesFacet {
 
     @ElementCollection(fetch= FetchType.EAGER)

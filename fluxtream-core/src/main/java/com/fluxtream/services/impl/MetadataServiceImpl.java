@@ -209,7 +209,8 @@ public class MetadataServiceImpl implements MetadataService {
         }
         final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities, previousInferredCity, nextInferredCity);
         final List<VisitedCity> consensusCities = getConsensusCities(guestId, dates);
-        WeekMetadata info = new WeekMetadata(consensusCities, consensusVisitedCity, previousInferredCity, nextInferredCity);
+        WeekMetadata info = new WeekMetadata(year, week,
+                                             consensusCities, consensusVisitedCity, previousInferredCity, nextInferredCity);
         return info;
     }
 
@@ -541,7 +542,7 @@ public class MetadataServiceImpl implements MetadataService {
     @Override
     @Transactional(readOnly=false)
     public void updateLocationMetadata(final long guestId, final List<LocationFacet> locationResources) {
-        if (locationResources.size()==0)
+        if (locationResources == null || locationResources.size()==0)
             return;
         System.out.println("processing " + locationResources.size() + " location datapoints...");
         // sort the location data in ascending time order
