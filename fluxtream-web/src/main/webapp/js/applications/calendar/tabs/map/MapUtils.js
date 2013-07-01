@@ -10,7 +10,6 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         if (map.primaryGPSData == null){
             map.primaryGPSData = newGPSDataSet;
         }
-        newGPSDataSet.color = config.color;
 
         newGPSDataSet.gpsPositions = [];
         newGPSDataSet.gpsTimestamps = [];
@@ -47,11 +46,16 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 maxLng = bounds.getNorthEast().lng();
             } catch (e) {}
         }
-        newGPSDataSet.gpsLine = new google.maps.Polyline({
-            map:map,
-            path:newGPSDataSet.gpsPositions,
-            clickable:false,
-            strokeColor: newGPSDataSet.color});
+        newGPSDataSet.gpsLines = []
+        newGPSDataSet.gpsLines[0] = {
+            line: new google.maps.Polyline({
+                map:map,
+                path:newGPSDataSet.gpsPositions,
+                clickable:false,
+                strokeColor: config.color}),
+            highlight:null,
+            color: config.color
+        };
         addToGPSBounds(map, new google.maps.LatLng(minLat,minLng));
         addToGPSBounds(map, new google.maps.LatLng(maxLat,maxLng));
 
@@ -116,32 +120,6 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
 
         }
         return newDataSet;
-    }
-
-    function addAlternativeGPSData(map, gpsData,connectorInfoId,clickable){
-        var config = App.getFacetConfig(connectorInfoId);
-        if (!(config.map && config.gps))
-            return;
-        map.markers[connectorInfoId] = [];
-        gpsData = filterGPSData(gpsData);
-        var dataPoints = [];
-        for (var i = 0, li = gpsData.length; i < li; i++){
-            dataPoints.push(new google.maps.LatLng(gpsData[i].position[0],gpsData[i].position[1]));
-            map.markers[connectorInfoId][i] = new google.maps.Marker({
-                map:map,
-                position:dataPoints[i],
-                icon:config.mapicon,
-                shadow:config.mapshadow,
-                clickable:clickable
-            });
-            map.enhanceMarkerWithItem(map.markers[connectorInfoId][i],gpsData[i]);
-        }
-        map.polylines[connectorInfoId] = new google.maps.Polyline({
-            map:map,
-            path:dataPoints,
-            clickable:false,
-            strokeColor:config.color
-        })
     }
 
     function addData(map,connectorData, connectorInfoId, clickable){
@@ -469,7 +447,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 }
                 map.currentHighlightedLine = map.createPolyLineSegment(this.gpsData, this.item != null ? this.item.start : start, this.item != null ? this.item.end : end, {strokeColor:strokeColor, zIndex: 100});
                 marker.line = map.currentHighlightedLine;
-                if (this.gpsData.gpsLine.getMap() == null)
+                if (this.gpsData.gpsLines[0].getMap() == null)
                     map.currentHighlightedLine.setMap(null);
             }
         }
@@ -488,10 +466,10 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 gpsDataSet.highlightSection = null;
             }
             if (start <= gpsDataSet.gpsTimestamps[0] && end >= gpsDataSet.gpsTimestamps[gpsDataSet.gpsTimestamps.length - 1]){
-                gpsDataSet.gpsLine.setOptions({strokeColor: gpsDataSet.color});
+                gpsDataSet.gpsLines[0].setOptions({strokeColor: gpsDataSet.gpsLines[0].color});
                 return;
             }
-            gpsDataSet.gpsLine.setOptions({strokeColor: $.xcolor.opacity(gpsDataSet.color, 'lightgrey', 0.69).getCSS()});
+            gpsDataSet.gpsLines[0].setOptions({strokeColor: $.xcolor.opacity(gpsDataSet.gpsLines[0].color, 'lightgrey', 0.69).getCSS()});
             gpsDataSet.highlightSection = map.createPolyLineSegment(gpsDataSet, start, end, {strokeColor:gpsDataSet.color, zIndex: 99});
         }
         if (gpsDataSet != null){
@@ -654,9 +632,6 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     function hideData(map,connectorId){
-        if (connectorId == "google_latitude"){
-            map.hideGPSData();
-        }
         if (!map.hasData(connectorId))
             return;
         if (map.connectorSelected == connectorId){
@@ -667,13 +642,11 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             map.markers[connectorId][i].setMap(null);
         }
         if (map.gpsData[connectorId] != null)
-            map.gpsData[connectorId].gpsLine.setMap(null);
+            for (var i = 0, li = map.gpsData[connectorId].gpsLines.length; i < li; i++)
+                map.gpsData[connectorId][i].gpsLines.setMap(null);
     }
 
     function showData(map,connectorId){
-        if (connectorId == "google_latitude"){
-            map.showGPSData();
-        }
         if (!map.hasData(connectorId))
             return;
         for (var i = 0; i < map.markers[connectorId].length; i++){
@@ -682,7 +655,8 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 map.selectedMarker.showCircle();
         }
         if (map.gpsData[connectorId] != null)
-            map.gpsData[connectorId].gpsLine.setMap(map);
+            for (var i = 0, li = map.gpsData[connectorId].gpsLines.length; i < li; i++)
+                map.gpsData[connectorId][i].gpsLines.setMap(map);
     }
 
     function hasData(map,connectorId){
@@ -697,22 +671,6 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
 
     function isFullyInitialized(map){
         return map.getProjection() != null;
-    }
-
-    function hideGPSData(map){
-        map.gpsLine.setMap(null);
-        if (map.currentHighlightedLine != null)
-            map.currentHighlightedLine.setMap(null);
-        if (map.highlightSection != null)
-            map.highlightSection.setMap(null);
-    }
-
-    function showGPSData(map){
-        map.gpsLine.setMap(map);
-        if (map.currentHighlightedLine != null)
-            map.currentHighlightedLine.setMap(map);
-        if (map.highlightSection != null)
-            map.highlightSection.setMap(map);
     }
 
     function createMapPositionControls(map){
@@ -824,7 +782,8 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                         map.markerList[i].setMap(null);
                     }
                     for (var dataset in map.gpsData){
-                        map.gpsData[dataset].gpsLine.setMap(null);
+                        for (var i = 0, li = map.gpsData[dataset].gpsLines.length; i < li; i++)
+                            map.gpsData[dataset][i].gpsLines.setMap(null);
                     }
                 }
                 showNoGPSDisplay(map);
@@ -858,8 +817,6 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             map.showData = function(connectorId){showData(map,connectorId)};
             map.hideData = function(connectorId){hideData(map,connectorId)};
             map.hasData = function(connectorId){return hasData(map,connectorId)};
-            map.showGPSData = function(){showGPSData(map)};
-            map.hideGPSData = function(){hideGPSData(map)};
             map.addItem = function(item,clickable){return addItemToMap(map,item,clickable)};
             map.zoomOnPoint = function(point){zoomOnPoint(map,point)};
             map.zoomOnMarker = function(marker){zoomOnMarker(map,marker)};
