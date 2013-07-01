@@ -142,7 +142,7 @@ public class SystemServiceImpl implements SystemService {
                                      Connector.getConnector("quantifiedmind"), order++, quantifiedMindKeys!=null,
                                      false, true, quantifiedMindKeys));
         final String flickr = "Flickr";
-        String[] flickrKeys = checkKeysExist(flickr, Arrays.asList("flickrConsumerKey", "flickrConsumerSecret"));
+        String[] flickrKeys = checkKeysExist(flickr, Arrays.asList("flickrConsumerKey", "flickrConsumerSecret", "flickr.validRedirectURL"));
         em.persist(new ConnectorInfo(flickr,
                                      "/images/connectors/connector-flickr.jpg",
                                      res.getString("flickr"),

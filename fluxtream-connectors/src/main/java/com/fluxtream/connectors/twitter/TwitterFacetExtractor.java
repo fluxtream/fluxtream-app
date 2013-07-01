@@ -87,7 +87,10 @@ public class TwitterFacetExtractor extends AbstractFacetExtractor {
 					twitterDirectMessageFacet.recipientProfileImageUrl = recipient.getString("profile_image_url");
 					twitterDirectMessageFacet.recipientScreenName = twitterItem.getString("recipient_screen_name");
 					twitterDirectMessageFacet.twitterId = twitterItem.getLong("id");
-					twitterDirectMessageFacet.sent = (byte) (this.updateInfo.getContext("sent").equals("1") ? 1 : 0);
+                    if (this.updateInfo.getContext("sent")==null)
+                        twitterDirectMessageFacet.sent = (byte) 0;
+                    else
+                        twitterDirectMessageFacet.sent = (byte) (this.updateInfo.getContext("sent").equals("1") ? 1 : 0);
 					facets.add(twitterDirectMessageFacet);
 					break;
                 }
