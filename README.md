@@ -3,23 +3,16 @@ Read me First
 
 Fluxtream is based on Spring(-MVC) 3.1, Spring Security 3.1 and JPA for the persistence. We use Jersey (JAX-WS) for exposing the REST API
 
-This is a maven project with 5 sub-modules.
+This is a maven project with 3 sub-modules.
 
 * fluxtream-core: mainly domain classes, persistence, services and support classes for the other modules (e.g. connectors)
-* core-webapp: the web API (with Rest-WS annotations), base oauth classes and helper classes
-* fluxtream-connectors: lots of them - but for all but the 10 connectors that are actually enabled, there is little more than basic authentication (sometimes even nothing)
-* fluxtream-web: a new web application that we are starting to work on, based on twitter bootstrap
-
-Build requirements
-------------------
-
-* you will need maven 3.x.x (`sudo apt-get install maven`)
-* for interactive development, we use Eclipse Indigo with EE support (/WTP)
+* fluxtream-connectors: lots of them - but not all are up-to-date.  Contact us at info@fluxtream.org for current info on connector status.
+* fluxtream-web: the main web application, based on twitter bootstrap
 
 Build instructions
 ------------------
 
-[Build instructions are available elsewhere](https://github.com/fluxtream/fluxtream-app/wiki).
+[Build instructions are available at the Fluxtream wiki](https://github.com/fluxtream/fluxtream-app/wiki).
 
 Copyright and license
 ---------------------
