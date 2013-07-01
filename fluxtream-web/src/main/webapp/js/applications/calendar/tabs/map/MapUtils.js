@@ -447,7 +447,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 }
                 map.currentHighlightedLine = map.createPolyLineSegment(this.gpsData, this.item != null ? this.item.start : start, this.item != null ? this.item.end : end, {strokeColor:strokeColor, zIndex: 100});
                 marker.line = map.currentHighlightedLine;
-                if (this.gpsData.gpsLines[0].getMap() == null)
+                if (this.gpsData.gpsLines[0].line.getMap() == null)
                     map.currentHighlightedLine.setMap(null);
             }
         }
@@ -466,10 +466,10 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 gpsDataSet.highlightSection = null;
             }
             if (start <= gpsDataSet.gpsTimestamps[0] && end >= gpsDataSet.gpsTimestamps[gpsDataSet.gpsTimestamps.length - 1]){
-                gpsDataSet.gpsLines[0].setOptions({strokeColor: gpsDataSet.gpsLines[0].color});
+                gpsDataSet.gpsLines[0].line.setOptions({strokeColor: gpsDataSet.gpsLines[0].color});
                 return;
             }
-            gpsDataSet.gpsLines[0].setOptions({strokeColor: $.xcolor.opacity(gpsDataSet.gpsLines[0].color, 'lightgrey', 0.69).getCSS()});
+            gpsDataSet.gpsLines[0].line.setOptions({strokeColor: $.xcolor.opacity(gpsDataSet.gpsLines[0].color, 'lightgrey', 0.69).getCSS()});
             gpsDataSet.highlightSection = map.createPolyLineSegment(gpsDataSet, start, end, {strokeColor:gpsDataSet.color, zIndex: 99});
         }
         if (gpsDataSet != null){
@@ -643,7 +643,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         }
         if (map.gpsData[connectorId] != null)
             for (var i = 0, li = map.gpsData[connectorId].gpsLines.length; i < li; i++)
-                map.gpsData[connectorId][i].gpsLines.setMap(null);
+                map.gpsData[connectorId].gpsLines[i].line.setMap(null);
     }
 
     function showData(map,connectorId){
@@ -656,7 +656,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         }
         if (map.gpsData[connectorId] != null)
             for (var i = 0, li = map.gpsData[connectorId].gpsLines.length; i < li; i++)
-                map.gpsData[connectorId][i].gpsLines.setMap(map);
+                map.gpsData[connectorId].gpsLines[i].line.setMap(map);
     }
 
     function hasData(map,connectorId){
@@ -783,7 +783,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                     }
                     for (var dataset in map.gpsData){
                         for (var i = 0, li = map.gpsData[dataset].gpsLines.length; i < li; i++)
-                            map.gpsData[dataset][i].gpsLines.setMap(null);
+                            map.gpsData[dataset].gpsLines[i].line.setMap(null);
                     }
                 }
                 showNoGPSDisplay(map);
