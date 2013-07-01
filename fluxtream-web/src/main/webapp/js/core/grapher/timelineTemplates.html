@@ -21,7 +21,6 @@
             </ul>
         </div>
       <a href="#" class="btn disabled" id="{{grapherId}}_timeline_add_channels_btn">Add Channels</a>
-      <a href="#" class="btn disabled" id="{{grapherId}}_timeline_show_details_btn">Show Details</a>
     </span>
             <div id="{{grapherId}}_timeline_view_dialog"></div>
 
@@ -72,9 +71,6 @@
                                 </table>
                             </div>
                         </div>
-                    </td>
-                    <td id="{{grapherId}}_timeline_detailsArea" class="_timeline_pane">
-                        <div class="_timeline_pane_title">Details</div>
                     </td>
                 </tr>
             </table>
@@ -470,7 +466,7 @@
         <table border="0" cellpadding="0" cellspacing="0" class="_timeline_photo_dialog_photo_table">
           <tr valign="middle">
             <td align="center">
-              <img id="_timeline_photo_dialog_image" src="{{photoUrl}}">
+              <img id="_timeline_photo_dialog_image" src="{{photoUrl}}" style="max-width: 300px; max-height: 300px;">
             </td>
           </tr>
         </table>
