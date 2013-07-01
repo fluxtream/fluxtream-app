@@ -69,11 +69,39 @@ public class SupportController {
 			mav.addObject("release", env.get("release"));
 			return mav;
 		}
-		PostmarkMailSender sender = new PostmarkMailSender(
-				env.get("postmarkApiKey"));
 		SimpleMailMessage message = new SimpleMailMessage();
 		message.setTo(email);
-		message.setFrom("support@fluxtream.com");
+
+        // Retrieve postmark properties.  Keys postmarkApiKey and postmarkSendAddress should be set
+        // in common.properties
+        String postmarkSendAddress = env.get("postmarkSendAddress");
+        String postmarkApiKey = env.get("postmarkApiKey");
+
+        // Process postmarkSendAddress
+        if(postmarkSendAddress==null) {
+            postmarkSendAddress = "support@fluxtream.com";
+            logger.warn("component=support_controller action=sendResetRequest" +
+                                    " guestId=" + guest.getId() +
+                                    " message=\"**** PLEASE SET postmarkSendAddress IN common.properties; defaulting to support@fluxtream.com\"");
+        }
+		message.setFrom(postmarkSendAddress);
+
+        // Process postmarkApiKey
+        if(postmarkApiKey==null) {
+            logger.error("component=support_controller action=sendResetRequest" +
+                                    " guestId=" + guest.getId() +
+                                    " message=\"**** PLEASE SET postmarkApiKey IN common.properties.  Cannot send reset email without it.\"");
+            ModelAndView mav = new ModelAndView("support/serverConfigError");
+          	mav.addObject("release", env.get("release"));
+            mav.addObject("userMessage", "We are not able to send email for resetting your password");
+            mav.addObject("adminMessage", "Please set up the following keys in common.properties to enable email sending: postmarkApiKey and postmarkSendAddress");
+          	return mav;
+        }
+        PostmarkMailSender sender = new PostmarkMailSender(
+      				env.get("postmarkApiKey"));
+
+
+
 		message.setSubject("Fluxtream Reset password request");
 		Map<String, String> vars = new HashMap<String, String>();
 		ResetPasswordToken pToken = guestService.createToken(guest.getId());
