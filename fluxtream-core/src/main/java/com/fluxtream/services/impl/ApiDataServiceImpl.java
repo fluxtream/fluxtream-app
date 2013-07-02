@@ -9,6 +9,7 @@ import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 import javax.sql.DataSource;
 import com.fluxtream.ApiData;
 import com.fluxtream.Configuration;
@@ -33,7 +34,6 @@ import com.fluxtream.services.BodyTrackStorageService;
 import com.fluxtream.services.EventListenerService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
-//import com.fluxtream.thirdparty.helpers.WWOHelper;
 import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.Utils;
 import net.sf.json.JSONObject;
@@ -51,6 +51,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+//import com.fluxtream.thirdparty.helpers.WWOHelper;
 
 @Service
 @Component
@@ -272,11 +274,6 @@ public class ApiDataServiceImpl implements ApiDataService {
     }
 
     @Override
-    public <T> List<T> getApiDataFacets(final ApiKey apiKey, final ObjectType objectType, final List<String> dates, final Class<T> clazz) {
-        return (List<T>) jpaDao.getFacetsByDates(apiKey, objectType, dates);
-    }
-
-    @Override
     public List<AbstractFacet> getApiDataFacets(ApiKey apiKey, ObjectType objectType, TimeInterval timeInterval) {
         return getApiDataFacets(apiKey, objectType, timeInterval, (TagFilter)null);
     }
@@ -287,14 +284,6 @@ public class ApiDataServiceImpl implements ApiDataService {
                                                 final TimeInterval timeInterval,
                                                 @Nullable final TagFilter tagFilter) {
         return jpaDao.getFacetsBetween(apiKey, objectType, timeInterval, tagFilter);
-    }
-
-    @Override
-    public <T> List<T> getApiDataFacets(ApiKey apiKey,
-                                        ObjectType objectType,
-                                        TimeInterval timeInterval,
-                                        Class<T> clazz) {
-        return (List<T>)jpaDao.getFacetsBetween(apiKey, objectType, timeInterval);
     }
 
     @Override
@@ -647,6 +636,47 @@ public class ApiDataServiceImpl implements ApiDataService {
                     .append(" message=\"deleted duplicate locationFacet\"");
             logger.info(sb.toString());
         }
+    }
+
+    @Override
+    @Transactional(readOnly=false)
+    public void setComment(final String connectorName, final String objectTypeName, final long guestId, final long facetId,
+                           final String comment) {
+        final AbstractFacet facet = getFacet(connectorName, objectTypeName, facetId);
+        if (facet==null)
+            throw new RuntimeException("No such facet (connectorName: " + connectorName + ", objectTypeName: " + objectTypeName + ", guestId: " + guestId + ", facetId: " + facetId);
+        if (facet.guestId!=guestId)
+            throw new RuntimeException("Facet doesn't have the expected guestId (expected: " + guestId + ", actual: " + facet.guestId + ")");
+        facet.comment = comment;
+        em.persist(facet);
+    }
+
+    private AbstractFacet getFacet(final String connectorName, final String objectTypeName, final long facetId) {
+        final Connector connector = Connector.getConnector(connectorName);
+        Class<? extends AbstractFacet> facetClass = connector.facetClass();
+        if (objectTypeName!=null) {
+            final ObjectType objectType = ObjectType.getObjectType(connector, objectTypeName);
+            facetClass = objectType.facetClass();
+        }
+
+        final TypedQuery<AbstractFacet> query = em.createQuery("SELECT facet FROM " + facetClass.getName() + " facet WHERE id=?", AbstractFacet.class);
+        query.setParameter(1, facetId);
+        final List<AbstractFacet> resultList = query.getResultList();
+        if (resultList.size()>0)
+            return resultList.get(0);
+        else return null;
+    }
+
+    @Override
+    @Transactional(readOnly=false)
+    public void deleteComment(final String connectorName, final String objectTypeName, final long guestId, final long facetId) {
+        final AbstractFacet facet = getFacet(connectorName, objectTypeName, facetId);
+        if (facet==null)
+            throw new RuntimeException("No such facet (connectorName: " + connectorName + ", objectTypeName: " + objectTypeName + ", guestId: " + guestId + ", facetId: " + facetId);
+        if (facet.guestId!=guestId)
+            throw new RuntimeException("Facet doesn't have the expected guestId (expected: " + guestId + ", actual: " + facet.guestId + ")");
+        facet.comment = null;
+        em.persist(facet);
     }
 
     @Transactional(readOnly = false)

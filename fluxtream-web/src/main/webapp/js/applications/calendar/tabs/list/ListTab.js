@@ -231,6 +231,71 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
             $(".calendar-map-tab").click();
             return false;
         });
+        $(".facet-edit a").click(function(evt) {
+            var target = $(evt.target);
+            var facetDetails = target.parent().parent();
+            var hasComment = facetDetails.find(".facet-comment-text").length>0;
+            var commentText;
+            if (hasComment) {
+                commentText = facetDetails.find(".facet-comment-text").html();
+                facetDetails.find(".facet-comment-text").remove();
+                console.log("commentText: " + commentText);
+            }
+            var commentDiv =     '<div class="facet-comment" style="margin-bottom:5px">'+
+                 '<textarea placeholder="type a comment..." rows="3"></textarea>' +
+                 '<button class="btn btn-small save disabled" type="button"><i class="icon icon-save"/> Save</button>&nbsp;' +
+                 '<button class="btn btn-small cancel disabled" type="button"><i class="icon icon-undo"/> Cancel</button>&nbsp;' +
+                 '<button class="btn btn-link delete" type="button"><i class="icon icon-trash"/> Delete</button>' +
+            '</div>';
+            var id = target.parent().attr("id");
+            facetDetails.append(commentDiv);
+            console.log("id: " + id);
+            var facetType = id.split("::")[0];
+            var facetId = id.split("::")[1];
+            var textarea = facetDetails.find("textarea");
+            if (hasComment) {
+                textarea.val(commentText);
+            }
+            var cancelButton = facetDetails.find(".cancel");
+            var saveButton = facetDetails.find(".save");
+            var deleteButton = facetDetails.find(".delete");
+            textarea.focus();
+            var originalComment = textarea.val();
+            textarea.keyup(function(){
+                console.log("keyup, original comment is \"" + originalComment + "\"");
+                if (originalComment==textarea.val()) {
+                    cancelButton.addClass("disabled");
+                    saveButton.addClass("disabled");
+                } else {
+                    cancelButton.removeClass("disabled");
+                    saveButton.removeClass("disabled");
+                }
+            });
+            saveButton.click(function() {
+                $.ajax({
+                    url: "/api/comments/" + facetType + "/" + facetId,
+                    data: {comment: textarea.val()},
+                    type: "POST",
+                    success: function() {
+                        var commentText = textarea.val();
+                        facetDetails.find(".facet-comment").replaceWith('<div class="facet-comment-text">' + commentText + '</div>');
+                    }
+                });
+            });
+            cancelButton.click(function() {
+                facetDetails.find(".facet-comment").replaceWith('<div class="facet-comment-text">' + originalComment + '</div>');
+            });
+            deleteButton.click(function() {
+                $.ajax({
+                    url: "/api/comments/" + facetType + "/" + facetId,
+                    data: {comment: textarea.val()},
+                    type: "DELETE",
+                    success: function() {
+                        facetDetails.find(".facet-comment").remove();
+                    }
+                });
+            });
+        });
     }
 
     function paginationClickCallback(event){
