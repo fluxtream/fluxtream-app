@@ -24,6 +24,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         var maxLng = -180; //initialized to the smallest valid longitude
         gpsData = filterGPSData(gpsData);
         var currentLinePoints = [];
+        var lastSectionEnd = 0;
         var currentType = null;
         for (var i = 0; i < gpsData.length; i++){
             var lat = gpsData[i].position[0];
@@ -63,8 +64,11 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                                     clickable:false,
                                     strokeColor: config[currentType + "Color"]}),
                                 highlight:null,
-                                color: config[currentType + "Color"]
+                                color: config[currentType + "Color"],
+                                start: lastSectionEnd,
+                                end: newGPSDataSet.gpsPositions.length
                             });
+                            lastSectionEnd = newGPSDataSet.gpsPositions.length;
                             currentLinePoints = [newPoint];
                         }
                         currentType = parts[0];
@@ -80,7 +84,9 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 clickable:false,
                 strokeColor: colorToUse}),
             highlight:null,
-            color: colorToUse
+            color: colorToUse,
+            start: lastSectionEnd,
+            end: newGPSDataSet.gpsPositions.length
         });
         addToGPSBounds(map, new google.maps.LatLng(minLat,minLng));
         addToGPSBounds(map, new google.maps.LatLng(maxLat,maxLng));
@@ -521,7 +527,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 return;
             }
             gpsDataSet.gpsLines[0].line.setOptions({strokeColor: $.xcolor.opacity(gpsDataSet.gpsLines[0].color, 'lightgrey', 0.69).getCSS()});
-            gpsDataSet.highlightSection = map.createPolyLineSegment(gpsDataSet, start, end, {strokeColor:gpsDataSet.color, zIndex: 99});
+            gpsDataSet.highlightSection = map.createPolyLineSegment(gpsDataSet, start, end, {strokeColor:gpsDataSet.gpsLines[0].color, zIndex: 99});
         }
         if (gpsDataSet != null){
             highlight(map, gpsDataSet,start,end);
