@@ -581,6 +581,12 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                         newFacet[member] = data[member];
                         newFacet.hasPosition = true;
                         break;
+                    case "uri":
+                        var parts = data[member].split("/");
+                        if (parts.length == 2){
+                            params.iconClass = "-activity " + parts[0];
+                        }
+                        break;
                     default:
                         newFacet[member] = data[member];
                 }
