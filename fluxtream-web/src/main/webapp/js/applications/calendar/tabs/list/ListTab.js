@@ -249,7 +249,6 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
             '</div>';
             var id = target.parent().attr("id");
             facetDetails.append(commentDiv);
-            console.log("id: " + id);
             var facetType = id.split("::")[0];
             var facetId = id.split("::")[1];
             var textarea = facetDetails.find("textarea");
@@ -262,7 +261,6 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
             textarea.focus();
             var originalComment = textarea.val();
             textarea.keyup(function(){
-                console.log("keyup, original comment is \"" + originalComment + "\"");
                 if (originalComment==textarea.val()) {
                     cancelButton.addClass("disabled");
                     saveButton.addClass("disabled");
