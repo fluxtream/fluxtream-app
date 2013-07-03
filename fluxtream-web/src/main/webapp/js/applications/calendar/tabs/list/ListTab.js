@@ -1,4 +1,4 @@
-define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Tab, PhotoUtils) {
+define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils", "applications/calendar/App"], function(Tab, PhotoUtils, Calendar) {
 
     var listTab = new Tab("calendar", "list", "Candide Kemmler", "icon-list", true);
 
@@ -231,6 +231,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
             $(".calendar-map-tab").click();
             return false;
         });
+        $(".facet-edit a").click(Calendar.commentEdit);
     }
 
     function paginationClickCallback(event){
