@@ -157,33 +157,8 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     function addData(map, connectorData, connectorInfoId, clickable){
         if (!isDisplayable(connectorInfoId))
             return false;
-        /*if (connectorInfoId === "moves-move"){ //temporarily disabled - doesn't work TODO: fix it
-            colorMovesGPSData(map,map.gpsData["moves-location"],connectorData);
-            return true;
-        }*/
         map.markers[connectorInfoId] = addItemsToMap(map,connectorData,clickable);
         return map.markers[connectorInfoId] != null;
-    }
-
-    function colorMovesGPSData(map,gpsData,connectorData){
-        for (var i = 0; i < connectorData.length; i++){
-            for (var j = 0; j < connectorData[i].activities.length; j++){
-                var activity = connectorData[i].activities[j];
-                var color;
-                switch(activity.activityCode){
-                    case "wlk":
-                        color = "#00FF00";
-                        break;
-                    case "cyc":
-                        color = "#0000FF";
-                        break;
-                    default:
-                        color = "#888888";
-                }
-                map.createPolyLineSegment(gpsData,activity.start,activity.end,{strokeColor:color,zIndex:100});
-            }
-        }
-        console.log(arguments);
     }
 
     function addAddresses(map,addressesData,clickable){
@@ -518,16 +493,28 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         function highlight(map,gpsDataSet,start,end){
             if (gpsDataSet.gpsTimestamps.length == 0)
                 return;
-            if (gpsDataSet.highlightSection != null){
-                gpsDataSet.highlightSection.setMap(null);
-                gpsDataSet.highlightSection = null;
+            var startIndex = map.getFirstIndexAfter(gpsDataSet,start);
+            var endIndex = map.getFirstIndexBefore(gpsDataSet,end);
+
+            for (var i = 0; i < gpsDataSet.gpsLines.length; i++){
+                var gpsLine = gpsDataSet.gpsLines[i];
+                if (gpsLine.highlight != null){
+                    gpsLine.highlight.setMap(null);
+                    gpsLine.highlight = null;
+                }
+
+                if (startIndex <= gpsLine.start && endIndex >= gpsLine.end){
+                    gpsLine.line.setOptions({strokeColor: gpsLine.color});
+                    continue;
+                }
+                gpsLine.line.setOptions({strokeColor: $.xcolor.opacity(gpsLine.color, 'lightgrey', 0.69).getCSS()});
+
+                if (startIndex >= gpsLine.end || endIndex <= gpsLine.start)
+                    continue;
+                var startTime = startIndex <= gpsLine.start ? gpsDataSet.gpsTimestamps[startIndex] : start;
+                var endTime = endIndex >= gpsLine.end ? gpsDataSet.gpsTimestamps[endIndex] : end;
+                gpsLine.highlight = map.createPolyLineSegment(gpsDataSet, startTime, endTime, {strokeColor:gpsLine.color, zIndex: 99});
             }
-            if (start <= gpsDataSet.gpsTimestamps[0] && end >= gpsDataSet.gpsTimestamps[gpsDataSet.gpsTimestamps.length - 1]){
-                gpsDataSet.gpsLines[0].line.setOptions({strokeColor: gpsDataSet.gpsLines[0].color});
-                return;
-            }
-            gpsDataSet.gpsLines[0].line.setOptions({strokeColor: $.xcolor.opacity(gpsDataSet.gpsLines[0].color, 'lightgrey', 0.69).getCSS()});
-            gpsDataSet.highlightSection = map.createPolyLineSegment(gpsDataSet, start, end, {strokeColor:gpsDataSet.gpsLines[0].color, zIndex: 99});
         }
         if (gpsDataSet != null){
             highlight(map, gpsDataSet,start,end);
@@ -839,8 +826,13 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                         map.markerList[i].setMap(null);
                     }
                     for (var dataset in map.gpsData){
-                        for (var i = 0, li = map.gpsData[dataset].gpsLines.length; i < li; i++)
+                        for (var i = 0, li = map.gpsData[dataset].gpsLines.length; i < li; i++){
                             map.gpsData[dataset].gpsLines[i].line.setMap(null);
+                            if (map.gpsData[dataset].gpsLines[i].highlight != null)
+                                map.gpsData[dataset].gpsLines[i].highlight.setMap(null);
+
+                        }
+
                     }
                 }
                 showNoGPSDisplay(map);
