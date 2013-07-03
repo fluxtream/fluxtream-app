@@ -66,9 +66,9 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                                 highlight:null,
                                 color: config[currentType + "Color"],
                                 start: lastSectionEnd,
-                                end: newGPSDataSet.gpsPositions.length
+                                end: newGPSDataSet.gpsPositions.length - 1
                             });
-                            lastSectionEnd = newGPSDataSet.gpsPositions.length;
+                            lastSectionEnd = newGPSDataSet.gpsPositions.length - 1;
                             currentLinePoints = [newPoint];
                         }
                         currentType = parts[0];
@@ -86,7 +86,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             highlight:null,
             color: colorToUse,
             start: lastSectionEnd,
-            end: newGPSDataSet.gpsPositions.length
+            end: newGPSDataSet.gpsPositions.length - 1
         });
         addToGPSBounds(map, new google.maps.LatLng(minLat,minLng));
         addToGPSBounds(map, new google.maps.LatLng(maxLat,maxLng));
@@ -511,8 +511,8 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
 
                 if (startIndex >= gpsLine.end || endIndex <= gpsLine.start)
                     continue;
-                var startTime = startIndex <= gpsLine.start ? gpsDataSet.gpsTimestamps[startIndex] : start;
-                var endTime = endIndex >= gpsLine.end ? gpsDataSet.gpsTimestamps[endIndex] : end;
+                var startTime = startIndex <= gpsLine.start ? gpsDataSet.gpsTimestamps[gpsLine.start] : start;
+                var endTime = endIndex >= gpsLine.end ? gpsDataSet.gpsTimestamps[gpsLine.end] : end;
                 gpsLine.highlight = map.createPolyLineSegment(gpsDataSet, startTime, endTime, {strokeColor:gpsLine.color, zIndex: 99});
             }
         }
