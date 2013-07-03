@@ -32,23 +32,23 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             var newPoint = new google.maps.LatLng(lat,lng);
             newGPSDataSet.gpsPositions.push(newPoint);
             try {
-            map.markers[gpsData[i].type].push(new google.maps.Marker({map:map,
-                                                                    position:newPoint,
-                                                                   icon:config.mapicon,
-                                                                   shadow:config.mapshadow,
-                                                                   clickable:clickable}));
-            newGPSDataSet.gpsTimestamps.push(gpsData[i].start);
-            newGPSDataSet.gpsAccuracies.push(gpsData[i].accuracy);
-            map.enhanceMarkerWithItem(map.markers[gpsData[i].type][map.markers[gpsData[i].type].length-1],gpsData[i]);
-            var bounds = map.markers[gpsData[i].type][map.markers[gpsData[i].type].length-1].getBounds();
-            if (bounds.getSouthWest().lat() < minLat)
-                minLat = bounds.getSouthWest().lat();
-            if (bounds.getNorthEast().lat() > maxLat)
-                maxLat = bounds.getNorthEast().lat();
-            if (bounds.getSouthWest().lng() < minLng)
-                minLng = bounds.getSouthWest().lng();
-            if (bounds.getNorthEast().lng() > maxLng)
-                maxLng = bounds.getNorthEast().lng();
+                map.markers[gpsData[i].type].push(new google.maps.Marker({map:map,
+                    position:newPoint,
+                    icon:config.mapicon,
+                    shadow:config.mapshadow,
+                    clickable:clickable}));
+                newGPSDataSet.gpsTimestamps.push(gpsData[i].start);
+                newGPSDataSet.gpsAccuracies.push(gpsData[i].accuracy);
+                map.enhanceMarkerWithItem(map.markers[gpsData[i].type][map.markers[gpsData[i].type].length-1],gpsData[i]);
+                var bounds = map.markers[gpsData[i].type][map.markers[gpsData[i].type].length-1].getBounds();
+                if (bounds.getSouthWest().lat() < minLat)
+                    minLat = bounds.getSouthWest().lat();
+                if (bounds.getNorthEast().lat() > maxLat)
+                    maxLat = bounds.getNorthEast().lat();
+                if (bounds.getSouthWest().lng() < minLng)
+                    minLng = bounds.getSouthWest().lng();
+                if (bounds.getNorthEast().lng() > maxLng)
+                    maxLng = bounds.getNorthEast().lng();
             } catch (e) {}
 
             currentLinePoints.push(newPoint);
@@ -66,9 +66,9 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                                 highlight:null,
                                 color: config[currentType + "Color"],
                                 start: lastSectionEnd,
-                                end: newGPSDataSet.gpsPositions.length
+                                end: newGPSDataSet.gpsPositions.length - 1
                             });
-                            lastSectionEnd = newGPSDataSet.gpsPositions.length;
+                            lastSectionEnd = newGPSDataSet.gpsPositions.length - 1;
                             currentLinePoints = [newPoint];
                         }
                         currentType = parts[0];
@@ -86,7 +86,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             highlight:null,
             color: colorToUse,
             start: lastSectionEnd,
-            end: newGPSDataSet.gpsPositions.length
+            end: newGPSDataSet.gpsPositions.length - 1
         });
         addToGPSBounds(map, new google.maps.LatLng(minLat,minLng));
         addToGPSBounds(map, new google.maps.LatLng(maxLat,maxLng));
@@ -170,16 +170,16 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 }
             }
             /*var j = 0;
-            for (j = 0; j < newDataSet.length && newDataSet[j].start < gpsData[i].start; j++);
-            if (j < newDataSet.length){
-                for (var k = newDataSet.length; k > j; k--){
-                    newDataSet[k] = newDataSet[k-1];
-                }
-                newDataSet[j] = gpsData[i];
-            }
-            else{
-                newDataSet.push(gpsData[i]);
-            }   */
+             for (j = 0; j < newDataSet.length && newDataSet[j].start < gpsData[i].start; j++);
+             if (j < newDataSet.length){
+             for (var k = newDataSet.length; k > j; k--){
+             newDataSet[k] = newDataSet[k-1];
+             }
+             newDataSet[j] = gpsData[i];
+             }
+             else{
+             newDataSet.push(gpsData[i]);
+             }   */
 
         }
         return newDataSet;
@@ -216,12 +216,12 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             if (marker.circle != null)
                 return;
             marker.circle = new google.maps.Circle({center:marker.getPosition(),
-                                                       map:map,
-                                                       radius:address.radius,
-                                                       fillColor:"green",
-                                                       fillOpacity:0.5,
-                                                       strokeOpacity:0,
-                                                       clickable:false});
+                map:map,
+                radius:address.radius,
+                fillColor:"green",
+                fillOpacity:0.5,
+                strokeOpacity:0,
+                clickable:false});
         }
         marker.hideCircle = function(){
             if (marker.circle == null)
@@ -307,7 +307,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
 
         //var endIndex;
         //for (endIndex = 1; endIndex < gpsData.gpsTimestamps.length && gpsData.gpsTimestamps[endIndex] < time; endIndex++);
-       // var startIndex = endIndex - 1;
+        // var startIndex = endIndex - 1;
         var percentThrough = (time - gpsData.gpsTimestamps[min]) / (gpsData.gpsTimestamps[max] - gpsData.gpsTimestamps[min]);
 
         var projection = map.getProjection();
@@ -472,12 +472,12 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             if (marker.circle != null)
                 return;
             marker.circle = new google.maps.Circle({center:marker.getPosition(),
-                                                   map:map,
-                                                   radius:accuracy,
-                                                   fillColor:"red",
-                                                   fillOpacity:0.5,
-                                                   strokeOpacity:0,
-                                                   clickable:false});
+                map:map,
+                radius:accuracy,
+                fillColor:"red",
+                fillOpacity:0.5,
+                strokeOpacity:0,
+                clickable:false});
         }
         marker.getBounds = function(){
             if (accuracy > 0)
@@ -609,8 +609,8 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
 
                 if (startIndex >= gpsLine.end || endIndex <= gpsLine.start)
                     continue;
-                var startTime = startIndex <= gpsLine.start ? gpsDataSet.gpsTimestamps[startIndex] : start;
-                var endTime = endIndex >= gpsLine.end ? gpsDataSet.gpsTimestamps[endIndex] : end;
+                var startTime = startIndex <= gpsLine.start ? gpsDataSet.gpsTimestamps[gpsLine.start] : start;
+                var endTime = endIndex >= gpsLine.end ? gpsDataSet.gpsTimestamps[gpsLine.end] : end;
                 gpsLine.highlight = map.createPolyLineSegment(gpsDataSet, startTime, endTime, {strokeColor:gpsLine.color, zIndex: 99});
             }
             gpsDataSet.oldHighlightSection = {start:start,end:end};
@@ -767,8 +767,8 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         }
 
         /*var endIndex;
-        for (endIndex = 1; endIndex < gpsData.gpsTimestamps.length && gpsData.gpsTsimestamps[endIndex] < time; endIndex++);
-        var startIndex = endIndex - 1;*/
+         for (endIndex = 1; endIndex < gpsData.gpsTimestamps.length && gpsData.gpsTsimestamps[endIndex] < time; endIndex++);
+         var startIndex = endIndex - 1;*/
         var percentThrough = (time - gpsData.gpsTimestamps[min]) / (gpsData.gpsTimestamps[max] - gpsData.gpsTimestamps[min]);
         if (isNaN(percentThrough))
             return gpsData.gpsAccuracies[min];
@@ -858,16 +858,16 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         }
         if (map.gpsData[connectorId] != null){
             for (var i = 0, li = map.gpsData[connectorId].gpsLines.length; i < li; i++){
-                map.gpsData[connectorId].gpsLines[i].line.setMap(map);
+                map.gpsData[connectorId].gpsLines[i].line.setMap(null);
                 if (map.gpsData[connectorId].gpsLines[i].highlight != null)
-                    map.gpsData[connectorId].gpsLines[i].highlight.setMap(map);
+                    map.gpsData[connectorId].gpsLines[i].highlight.setMap(null);
             }
             if (map.gpsData[connectorId].dateMarker != null){
-                map.gpsData[connectorId].dateMarker.setMap(map);
-                map.gpsData[connectorId].dateMarker.circle.setMap(map);
+                map.gpsData[connectorId].dateMarker.setMap(null);
+                map.gpsData[connectorId].dateMarker.circle.setMap(null);
             }
         }
-        
+
     }
 
     function showData(map,connectorId){
@@ -952,19 +952,19 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
 
     function createTimelineControls(map,maxBounds){
         var control = $('<div class="timeControlContainer"><div id="mapDateAxis" class="timeAxis"></div><div class="flx-channel-navigation map-date-nav" style="text-align:center">' +
-        '<div class="btn-toolbar">' +
-                   '<div class="btn-group">' +
-                       '<a id="map_zoomIn_button" href="#" class="btn"> <i class="icon-zoom-in"></i> </a>' +
-                       '<a id="map_zoomOut_button" href="#" class="btn"> <i class="icon-zoom-out"></i> </a>' +
-                   '</div>' +
-                       '<div class="btn-group">' +
-                                  '<a id="map_gotoBeginning_button" href="#" class="btn"> <i class="icon-fast-backward"></i> </a>' +
-                                      '<a id="map_gotoBack_button" href="#" class="btn"> <i class="icon-step-backward"></i> </a>' +
-        '<a id="map_gotoForward_button" href="#" class="btn"> <i class="icon-step-forward"></i> </a>' +
-        '<a id="map_gotoEnd_button" href="#" class="btn"> <i class="icon-fast-forward"></i> </a>' +
-        '</div>' +
-        '</div>' +
-        '</div></div>');
+                        '<div class="btn-toolbar">' +
+                        '<div class="btn-group">' +
+                        '<a id="map_zoomIn_button" href="#" class="btn"> <i class="icon-zoom-in"></i> </a>' +
+                        '<a id="map_zoomOut_button" href="#" class="btn"> <i class="icon-zoom-out"></i> </a>' +
+                        '</div>' +
+                        '<div class="btn-group">' +
+                        '<a id="map_gotoBeginning_button" href="#" class="btn"> <i class="icon-fast-backward"></i> </a>' +
+                        '<a id="map_gotoBack_button" href="#" class="btn"> <i class="icon-step-backward"></i> </a>' +
+                        '<a id="map_gotoForward_button" href="#" class="btn"> <i class="icon-step-forward"></i> </a>' +
+                        '<a id="map_gotoEnd_button" href="#" class="btn"> <i class="icon-fast-forward"></i> </a>' +
+                        '</div>' +
+                        '</div>' +
+                        '</div></div>');
         map.controls[google.maps.ControlPosition.TOP].push(control[0]);
 
         map.setMaxTimeBounds(maxBounds);
@@ -1061,12 +1061,12 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             var newAccuracy = getGPSAccuracy(dataSource,time*1000);
             if (dataSource.dateMarker == null){
                 dataSource.dateMarker = new google.maps.Marker({
-                    map: dataSource.gpsLine.getMap(),
+                    map: dataSource.gpsLines[0].line.getMap(),
                     position: newPosition,
                     clickable:true
                 });
                 dataSource.dateMarker.circle = new google.maps.Circle({center:newPosition,
-                    map:dataSource.gpsLine.getMap(),
+                    map:dataSource.gpsLines[0].line.getMap(),
                     radius:newAccuracy,
                     fillColor:"red",
                     fillOpacity:0.5,
@@ -1278,7 +1278,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                             if (map.gpsData[dataset].dateMarker != null){
                                 map.gpsData[dataset].dateMarker.setMap(null);
                                 map.gpsData[dataset].dateMarker.circle.setMap(null);
-    
+
                             }
                         }
                     }
