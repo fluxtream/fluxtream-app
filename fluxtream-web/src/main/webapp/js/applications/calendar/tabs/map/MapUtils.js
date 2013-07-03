@@ -2,6 +2,35 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     var config = Config.getConfig();
     google.maps.visualRefresh = true;
 
+    function getSplittingStrategy(splittingStrategyDesc){
+        var strategyName = splittingStrategyDesc.substring(0,splittingStrategyDesc.indexOf("("));
+        var params = splittingStrategyDesc.substring(splittingStrategyDesc.indexOf("(") + 1,splittingStrategyDesc.lastIndexOf(")")).split(",");
+        for (var i = 0; i < params.length; i++){
+            if (params[i] === ""){
+                params.splice(i--,1);
+            }
+        }
+
+        switch (strategyName){
+            case "flatCutoff":
+            {
+                var cutoff = parseFloat(params[0]);
+                return function(prevFacet,currentFacet){
+                    return prevFacet != null && currentFacet.start - prevFacet.start > cutoff;
+                }
+            }
+            case "uriEquality":
+            {
+                return function(prevFacet,currentFacet){
+                    return prevFacet != null && prevFacet.uri !== currentFacet.uri;
+                }
+            }
+            default:
+                return function(){return false;};
+        }
+    }
+
+
     function addGPSData(map,gpsData, config, clickable){
         if (!(config.map && config.gps))
             return;
@@ -26,7 +55,8 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         var currentLinePoints = [];
         var lastSectionEnd = 0;
         var currentType = null;
-        var lastPointTime = null;
+
+        var splittingStrategy = getSplittingStrategy(config.gpsSplittingStrategy);
 
         function endLineSection(disjoint){
             var colorToUse = currentType == null ? config.color : config[currentType + "Color"];
@@ -78,11 +108,6 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             var doEndLine = false;
             var disjointSplit = false;
 
-            if (lastPointTime != null && gpsData[i].start - lastPointTime > Config.getConfig().maxTimeBetweenGPSPoints){
-                doEndLine = true;
-                disjointSplit = true;
-            }
-
             var newType = currentType;
 
 
@@ -100,10 +125,14 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 }
             }
 
+            if (splittingStrategy(gpsData[i-1],gpsData[i])){
+                doEndLine = true;
+                disjointSplit = true;
+            }
+
             if (doEndLine)
                 endLineSection(disjointSplit);
 
-            lastPointTime = gpsData[i].start;
             currentType = newType;
         }
 

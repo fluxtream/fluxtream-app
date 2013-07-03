@@ -437,10 +437,16 @@ define(
             var config = ConnectorConfig[connectorName];
             if (config == null){
                 console.log("WARNING: No config found for connector: " + connectorName);
-                config = ConnectorConfig.default;
+                config = {};
             }
             config = $.extend({}, config);
             config.facets = false;
+
+            for (var member in ConnectorConfig.default){
+                if (typeof config[member] === "undefined")
+                    config[member] = ConnectorConfig.default[member];
+            }
+
             return config;
         };
 
@@ -448,7 +454,7 @@ define(
             var config = ConnectorConfig[App.getFacetConnector(facetName)];
             if (config == null){
                 console.log("WARNING: No config found for Connector: " + App.getFacetConnector(facetName));
-                config = ConnectorConfig.default;
+                config = {};
             }
             var finalConfig = $.extend({},config);
             finalConfig.facets = null;
@@ -462,6 +468,11 @@ define(
                         finalConfig[member] = facet[member];
                     }
                 }
+            }
+
+            for (var member in ConnectorConfig.default){
+                if (typeof finalConfig[member] === "undefined")
+                    finalConfig[member] = ConnectorConfig.default[member];
             }
             return finalConfig;
 
