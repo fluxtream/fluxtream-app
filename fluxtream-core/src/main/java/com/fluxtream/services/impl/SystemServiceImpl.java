@@ -64,6 +64,12 @@ public class SystemServiceImpl implements SystemService {
     private void initializeConnectorList() {
 		ResourceBundle res = ResourceBundle.getBundle("messages/connectors");
         int order = 0;
+        final ConnectorInfo movesConnectorInfo = new ConnectorInfo("Moves",
+                                                                   "/images/connectors/connector-moves.jpg",
+                                                                   res.getString("moves"),
+                                                                   "/moves/oauth2/token",
+                                                                   Connector.getConnector("moves"), order++, true);
+        em.persist(movesConnectorInfo);
         final ConnectorInfo latitudeConnectorInfo = new ConnectorInfo("Google Latitude",
                                                                       "/images/connectors/connector-google_latitude.jpg",
                                                                       res.getString("google_latitude"),
@@ -104,13 +110,6 @@ public class SystemServiceImpl implements SystemService {
                                      res.getString("quantifiedmind"),
                                      "ajax:/quantifiedmind/getTokenDialog",
                                      Connector.getConnector("quantifiedmind"), order++, true));
-        // Interfacing with Picasa has been so problematic we've decided to just disable it.  Do so by simply commenting
-        // it out.  We'll keep the supporting classes around in case we change our minds.
-        //em.persist(new ConnectorInfo("Picasa",
-        //                             "/images/connectors/connector-picasa.jpg",
-        //                             res.getString("picasa"),
-        //                             "/picasa/token",
-        //                             Connector.getConnector("picasa"), order++, true));
         em.persist(new ConnectorInfo("Flickr",
                                      "/images/connectors/connector-flickr.jpg",
                                      res.getString("flickr"),
@@ -134,7 +133,7 @@ public class SystemServiceImpl implements SystemService {
                                      "/images/connectors/connector-github.jpg",
                                      res.getString("github"),
                                      singlyAuthorizeUrl("github"),
-                                     Connector.getConnector("github"), order++, true));
+                                     Connector.getConnector("github"), order++, false));
         em.persist(new ConnectorInfo("Fluxtream Capture",
                                      "/images/connectors/connector-fluxtream_capture.png",
                                      res.getString("fluxtream_capture"),

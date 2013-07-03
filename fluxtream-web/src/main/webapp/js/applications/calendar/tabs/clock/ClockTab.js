@@ -122,10 +122,6 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         photoCarouselHTML = PhotoUtils.getCarouselHTML(digest);
 
         doneLoading();
-        //disabled... not sure what the purpose of this is
-		/*for(i=0;i<digest.updateNeeded.length;i++) {
-			getDayInfo(digest.updateNeeded[i], digest);
-		}*/
 	}
 
 	function outsideTimeBoundaries(o) {
@@ -133,15 +129,6 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 			return (o.tbounds.start!=config.start || o.tbounds.end!=config.end);
 		}
 		return (o.start!=config.start || o.end!=config.end);
-	}
-
-	function getDayInfo(connectorName, digest) {
-		$.ajax({ url: "/api/calendar/" + connectorName + "/"+Log.tabState, dataType: "json",
-			success: function(jsonData) {
-				if (!outsideTimeBoundaries(jsonData))
-					updateDataDisplay(jsonData, jsonData.name, digest);
-			}
-		});
 	}
 
 	function fillRegion(center, radius1, radius2, startAngle, endAngle) {
@@ -211,8 +198,13 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 	}
 
 	function drawTimedData(payload, category) {
-		if ((typeof(payload)!="undefined")&&payload!=null)
-			drawEvents(payload, category.orbit, category.color);
+		if ((typeof(payload)!="undefined")&&payload!=null) {
+            if (typeof(payload.length)!="undefined"&&payload.length>0&&payload[0].type==="moves-move") {
+                for (var i=0; i<payload.length; i++)
+                    drawEvents(payload[i].activities, category.orbit);
+            } else
+    			drawEvents(payload, category.orbit);
+        }
 	}
 
 	function drawEvents(items, orbit) {
@@ -220,7 +212,9 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		for (i = 0; i < items.length; i++) {
 			try {
 				var item = items[i];
-                var color = App.getConnectorConfig(App.getFacetConnector(item.type)).color;
+                var color = getItemColor(item);
+                var strokeWidth = getStrokeWidth(item);
+                var strokeCap = getStrokeCap(item);
 				config.clockCircles.push(
 					function() {
 						var start = item.startMinute;
@@ -231,9 +225,9 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 						var instantaneous = typeof(item.endMinute)=="undefined"||item.endMinute===item.startMinute,
                             span;
 						if (instantaneous)
-							span = paintSpan(paper, start,start+instantWidth, orbit, color, .9);
+							span = paintSpan(paper, start,start+instantWidth, orbit, color, .9, strokeWidth, strokeCap);
 						else{
-							span = paintSpan(paper, start,/*(start<=end?end:1440)*/ end, orbit, color, .9);
+							span = paintSpan(paper, start,/*(start<=end?end:1440)*/ end, orbit, color, .9, strokeWidth, strokeCap);
                         }
 						span.node.item = item;
                         $(span.node).attr("notthide",true);
@@ -272,6 +266,40 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 			}
 		}
 	}
+
+    function getStrokeCap(item) {
+        if (item.type==="moves-place")
+            return "butt";
+        else
+            return "butt";
+    }
+
+    function getStrokeWidth(item) {
+        if (item.type==="moves-move-activity")
+            return config.STROKE_WIDTH/3;
+        else
+            return config.STROKE_WIDTH;
+    }
+
+    function getItemColor(item) {
+        if (item.type==="moves-place")
+            return config.MOVES_PLACE_COLOR;
+        else if (item.type==="moves-move-activity") {
+            switch (item.activityCode) {
+                case "cyc":
+                    return config.MOVES_CYCLING_COLOR;
+                case "wlk":
+                    return config.MOVES_WALKING_COLOR;
+                case "trp":
+                    return config.MOVES_TRANSPORT_COLOR;
+                case "run":
+                    return config.MOVES_RUNNING_COLOR;
+                default:
+                    return "#000000";
+            }
+        } else
+            return App.getConnectorConfig(App.getFacetConnector(item.type)).color;
+    }
 	
 	var ttpdiv = null, lastHoveredEvent, timeout = null, markers = new Array();
 	
@@ -282,6 +310,9 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		var facet = span.item;
 		if (facet.type=="google_latitude-location")
 			return;
+        if (facet.type==="moves-move-activity") {
+            console.log("moves-move-activity");
+        }
         //var target = $(event.target).parent().position();
         var target = {top:0, left: 0}; //hacky fix since the SVG positioning seems to be unreliable on different browsers
         var tip_y = target.top + event.offsetY;
@@ -543,11 +574,12 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		return [ x, y ];
 	}
 	
-	function paintSpan(paper, startTime, endTime, radius, color, opacity) {
+	function paintSpan(paper, startTime, endTime, radius, color, opacity, strokeWidth, strokeCap) {
 		var coords = arc(config.CLOCK_CENTER, radius, startTime / config.RATIO + config.START_AT, endTime
 				/ config.RATIO + config.START_AT),
 		path = paper.path(coords);
-		path.attr("stroke-width", config.STROKE_WIDTH);
+        path.attr("stroke-linecap", strokeCap);
+		path.attr("stroke-width", strokeWidth);
 		path.attr("stroke", color);
 		path.attr("opacity", opacity);
 		return path;
@@ -678,7 +710,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                     color = config.OUTSIDE_CATEGORY.color;
                     break;
             }
-            var span = paintSpan(paper, start,(start<=end?end:1440), config.AT_HOME_CATEGORY.orbit, color, 1, config);
+            var span = paintSpan(paper, start,(start<=end?end:1440), config.AT_HOME_CATEGORY.orbit, color, 1, config.STROKE_WIDTH, "butt");
             span.node.item = timeSegment;
             $(span.node).attr("notthide",true);
             $(span.node).css("cursor", "pointer");

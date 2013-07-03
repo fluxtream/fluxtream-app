@@ -7,14 +7,13 @@ import java.util.Hashtable;
 import java.util.SortedSet;
 import java.util.TimeZone;
 import java.util.TreeSet;
+import com.fluxtream.OutsideTimeBoundariesException;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.utils.SecurityUtils;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 
 public abstract class AbstractFacetVO<T extends AbstractFacet> {
 
@@ -24,7 +23,6 @@ public abstract class AbstractFacetVO<T extends AbstractFacet> {
 	public String comment;
     public final SortedSet<String> tags = new TreeSet<String>();
 	public String subType;
-    protected static DateTimeFormatter timeStorageFormat = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
 
 	/**
 	 * Thread-safe cache for vo classes
@@ -37,7 +35,7 @@ public abstract class AbstractFacetVO<T extends AbstractFacet> {
         objectTypeNames = new Hashtable<Class<? extends AbstractFacet>, String>();
 	}
 
-	public void extractValues(T facet, TimeInterval timeInterval, GuestSettings settings) {
+	public void extractValues(T facet, TimeInterval timeInterval, GuestSettings settings) throws OutsideTimeBoundariesException {
 		getType(facet);
 		this.id = facet.getId();
 		if (facet.comment!=null&&!facet.comment.equals("")) {
@@ -89,7 +87,7 @@ public abstract class AbstractFacetVO<T extends AbstractFacet> {
 		return null;
 	}
 
-	protected abstract void fromFacet(T facet, TimeInterval timeInterval, GuestSettings settings);
+	protected abstract void fromFacet(T facet, TimeInterval timeInterval, GuestSettings settings) throws OutsideTimeBoundariesException;
 
 	public static int toMinuteOfDay(java.util.Date date, TimeZone tz) {
 		if (date == null)

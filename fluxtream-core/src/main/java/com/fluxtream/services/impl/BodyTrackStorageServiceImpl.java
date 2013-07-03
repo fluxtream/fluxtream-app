@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 import com.fluxtream.Configuration;
+import com.fluxtream.SimpleTimeInterval;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.TimeUnit;
 import com.fluxtream.connectors.Connector;
@@ -237,7 +238,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 	public void storeInitialHistory(ApiKey apiKey) {
         logger.info("module=updateQueue component=bodytrackStorageService action=storeInitialHistory" +
                     " guestId=" + apiKey.getGuestId() + " connector=" + apiKey.getConnector().getName());
-		TimeInterval timeInterval = new TimeInterval(0,
+		TimeInterval timeInterval = new SimpleTimeInterval(0,
 				System.currentTimeMillis(), TimeUnit.DAY, TimeZone.getDefault());
 		List<AbstractFacet> facets = apiDataService.getApiDataFacets(apiKey, null, timeInterval);
 		storeApiData(apiKey.getGuestId(), facets);

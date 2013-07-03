@@ -27,8 +27,7 @@ public class PicasaPhotoFacetVO extends AbstractPhotoFacetVO<PicasaPhotoFacet> {
 	public void fromFacet(PicasaPhotoFacet facet, TimeInterval timeInterval,
 			GuestSettings settings) {
         start = facet.start;
-		startMinute = toMinuteOfDay(new Date(facet.start),
-				timeInterval.timeZone);
+		startMinute = toMinuteOfDay(new Date(facet.start), timeInterval.getMainTimeZone());
 		thumbnailUrl = facet.thumbnailUrl;
 		photoUrl = facet.photoUrl;
 		description = facet.title;

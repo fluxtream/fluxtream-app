@@ -1,31 +1,50 @@
 package com.fluxtream.services.impl;
 
+import java.awt.geom.Point2D;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
-import java.util.NavigableSet;
 import java.util.TimeZone;
+import java.util.TreeSet;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 import com.fluxtream.Configuration;
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.connectors.vos.AbstractFacetVO;
+import com.fluxtream.domain.AbstractLocalTimeFacet;
+import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.metadata.City;
-import com.fluxtream.domain.metadata.DayMetadataFacet;
-import com.fluxtream.domain.metadata.DayMetadataFacet.TravelType;
-import com.fluxtream.domain.metadata.DayMetadataFacet.VisitedCity;
+import com.fluxtream.domain.metadata.FoursquareVenue;
+import com.fluxtream.domain.metadata.VisitedCity;
 import com.fluxtream.domain.metadata.WeatherInfo;
+import com.fluxtream.metadata.DayMetadata;
+import com.fluxtream.metadata.MonthMetadata;
+import com.fluxtream.metadata.WeekMetadata;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.NotificationsService;
-//import com.fluxtream.thirdparty.helpers.WWOHelper;
+import com.fluxtream.utils.HttpUtils;
 import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.TimeUtils;
-import org.apache.commons.httpclient.HttpException;
-import com.fluxtream.aspects.FlxLogger;
+import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
+import com.luckycatlabs.sunrisesunset.dto.Location;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.apache.http.HttpException;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeConstants;
 import org.joda.time.DateTimeZone;
+import org.joda.time.Days;
+import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,12 +52,18 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+//import com.fluxtream.thirdparty.helpers.WWOHelper;
+
 @Service
 @Component
 @Transactional(readOnly=true)
 public class MetadataServiceImpl implements MetadataService {
 
-	FlxLogger logger = FlxLogger.getLogger(MetadataServiceImpl.class);
+    FlxLogger logger = FlxLogger.getLogger(MetadataServiceImpl.class);
+
+    // threshold range in meters to consider successive location points to be in the same city
+    // without checking
+    private static final float CITY_RANGE = 1000.f;
 
 	@Autowired
 	Configuration env;
@@ -55,9 +80,6 @@ public class MetadataServiceImpl implements MetadataService {
     //@Autowired
     //WWOHelper wwoHelper;
 
-    @Autowired
-    ServicesHelper servicesHelper;
-
     private static final DateTimeFormatter formatter = DateTimeFormat
             .forPattern("yyyy-MM-dd");
 
@@ -70,8 +92,7 @@ public class MetadataServiceImpl implements MetadataService {
 
 	@Override
 	public TimeZone getCurrentTimeZone(long guestId) {
-		LocationFacet lastLocation = getLastLocation(guestId,
-                                                     System.currentTimeMillis());
+		LocationFacet lastLocation = getLastLocation(guestId, System.currentTimeMillis());
 		if (lastLocation != null) {
 			TimeZone timeZone = getTimeZone(lastLocation.latitude,
 					lastLocation.longitude);
@@ -83,138 +104,307 @@ public class MetadataServiceImpl implements MetadataService {
 	@Override
 	@Transactional(readOnly = false)
 	public void setTimeZone(long guestId, String date, String timeZone) {
-		DayMetadataFacet context = getDayMetadata(guestId, date, true);
-		servicesHelper.setTimeZone(context, timeZone);
-		em.merge(context);
-	}
-
-	@Override
-	public void setTraveling(long guestId, String date, TravelType travelType) {
-		DayMetadataFacet info = getDayMetadata(guestId, date, false);
-		if (info == null)
-			return;
-		info.travelType = travelType;
-		em.merge(info);
-	}
-
-	@Override
-	public void addTimeSpentAtHome(long guestId, long startTime, long endTime) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	@Transactional(readOnly = false)
-	public DayMetadataFacet getDayMetadata(long guestId, String date,
-			boolean create) {
-		DayMetadataFacet info = JPAUtils.findUnique(em, DayMetadataFacet.class,
-                                                    "context.byDate", guestId, date);
-		if (info != null)
-			return info;
-		else if (create)
-			info = copyNextDailyContextualInfo(guestId, date);
-		if (info != null)
-			return info;
-		else {
-			info = new DayMetadataFacet(-1);
-			info.date = date;
-            // let's assume UTC by default
-            info.timeZone = TimeZone.getTimeZone("UTC").getID();
-            final DateTimeFormatter utcDateFormatter = formatter.withZone(DateTimeZone.forID(info.timeZone));
-            final long l = utcDateFormatter.parseMillis(date);
-            final long fromMidnight = TimeUtils.fromMidnight(l, TimeZone.getTimeZone("UTC"));
-            final long toMidnight = TimeUtils.toMidnight(l, TimeZone.getTimeZone("UTC"));
-            info.start = fromMidnight;
-            info.end = toMidnight;
-			info.guestId = guestId;
-			return info;
-		}
+        logger.warn("component=metadata action=setTimeZone message=attempt to set timezone");
 	}
 
     @Override
-    public List<DayMetadataFacet> getAllDayMetadata(final long guestId) {
-        return JPAUtils.find(em, DayMetadataFacet.class,"context.all",guestId);
+    @Transactional(readOnly = false)
+    public void resetDayMainCity(final long guestId, final String date) {
+        final List<VisitedCity> visitedCities = getVisitedCitiesForDate(guestId, date);
+        for (VisitedCity visitedCity : visitedCities) {
+            if (visitedCity.locationSource== LocationFacet.Source.USER)
+                em.remove(visitedCity);
+        }
+        em.flush();
     }
 
-    @Transactional(readOnly = false)
-	public DayMetadataFacet copyNextDailyContextualInfo(long guestId,
-			String date) {
-		DayMetadataFacet next = getNextExistingDayMetadata(guestId, date);
-		DayMetadataFacet info = new DayMetadataFacet(-1);
-		info.guestId = guestId;
-		info.date = date;
+    @Override
+    public void setDayMainCity(final long guestId, final float latitude, final float longitude, final String date) {
+        final City closestCity = getClosestCity(latitude, longitude);
+        setDayMainCity(guestId, date, closestCity);
+    }
 
-		if (next == null) {
-			return null;
-		} else {
-			City mainCity = getMainCity(guestId, next);
-			if (mainCity != null) {
-				servicesHelper.addCity(info, mainCity);
-				servicesHelper.setTimeZone(info, next.timeZone);
-				TimeZone tz = TimeZone.getTimeZone(next.timeZone);
-				List<WeatherInfo> weatherInfo = getWeatherInfo(
-						mainCity.geo_latitude, mainCity.geo_longitude, date,
-                        AbstractFacetVO.toMinuteOfDay(new Date(info.start), tz),
-                        AbstractFacetVO.toMinuteOfDay(new Date(info.end), tz));
-				setWeatherInfo(info, weatherInfo);
-			}
-			servicesHelper.setTimeZone(info, next.timeZone);
-		}
-		em.persist(info);
-		return info;
+    @Override
+    public void setDayMainCity(final long guestId, final long visitedCityId, final String date) {
+        final VisitedCity visitedCity = em.find(VisitedCity.class, visitedCityId);
+        setDayMainCity(guestId, date, visitedCity.city);
+    }
+
+    private void setDayMainCity(final long guestId, final String date, final City closestCity) {
+        clearMainCities(guestId, Arrays.asList(date));
+        final DateTime dateTime = formatter.withZone(DateTimeZone.forID(closestCity.geo_timezone)).parseDateTime(date);
+        setMainCity(guestId, closestCity, dateTime.getMillis(), dateTime.getMillis() + DateTimeConstants.MILLIS_PER_DAY - 1, date);
+    }
+
+    private void clearMainCities(final long guestId, final Collection<String> dates) {
+        TypedQuery<VisitedCity> query = em.createQuery("SELECT facet FROM " +
+                                                       JPAUtils.getEntityName(VisitedCity.class) +
+                                                       " facet WHERE facet.guestId=:guestId AND facet.locationSource=:source  AND facet.date IN :dates" +
+                                                       " ORDER BY facet.start", VisitedCity.class);
+        query.setParameter("guestId", guestId);
+        query.setParameter("source", LocationFacet.Source.USER);
+        query.setParameter("dates", dates);
+        final List<VisitedCity> resultList = query.getResultList();
+        for (VisitedCity city : resultList) {
+            em.remove(city);
+        }
+    }
+
+    @Transactional(readOnly=false)
+    private void setMainCity(final long guestId, final City city, final long start, final long end, final String timePeriod) {
+
+        resetDayMainCity(guestId, timePeriod);
+
+        VisitedCity visitedCity = new VisitedCity();
+        visitedCity.guestId = guestId;
+        visitedCity.date = timePeriod;
+        visitedCity.locationSource = LocationFacet.Source.USER;
+        visitedCity.city = city;
+        visitedCity.start = start;
+        visitedCity.end = end;
+        visitedCity.count = 1;
+        visitedCity.startTimeStorage = AbstractLocalTimeFacet.timeStorageFormat.withZone(DateTimeZone.forID(city.geo_timezone)).print(start);
+        visitedCity.endTimeStorage = AbstractLocalTimeFacet.timeStorageFormat.withZone(DateTimeZone.forID(city.geo_timezone)).print(end);
+        em.persist(visitedCity);
+    }
+
+    @Override
+	public DayMetadata getDayMetadata(long guestId, String date) {
+        // get visited cities for a specific date . If we don't have any data for that date,
+        // retrieve cities for the first date for which we do have data
+        List<VisitedCity> cities = getVisitedCitiesForDate(guestId, date);
+        VisitedCity previousInferredCity = null, nextInferredCity = null;
+        if (cities.size()==0) {
+            previousInferredCity = searchCityBeforeDate(guestId, date);
+            nextInferredCity = searchCityAfterDate(guestId, date);
+            if (previousInferredCity==null&&nextInferredCity==null) {
+                DayMetadata info = new DayMetadata(date);
+                return info;
+            }
+        }
+        final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities, previousInferredCity, nextInferredCity);
+        DayMetadata info = new DayMetadata(cities, consensusVisitedCity, previousInferredCity, nextInferredCity, date);
+        return info;
 	}
 
-	private DayMetadataFacet getNextExistingDayMetadata(long guestId,
-			String todaysDate) {
-		// TODO: not totally accurate, since we are ignoring the timezone
-		// of todaysDate, but should work in most cases
-		long start = formatter.parseMillis(todaysDate);
-		DayMetadataFacet next = JPAUtils.findUnique(em, DayMetadataFacet.class,
-				"context.day.next", guestId, start);
-		if (next == null)
-			next = JPAUtils.findUnique(em, DayMetadataFacet.class,
-					"context.day.oldest", guestId);
-		return next;
-	}
+    private int daysBetween(String date, VisitedCity vcity) {
+        final DateTime wantedDate = formatter.withZone(DateTimeZone.forID(vcity.city.geo_timezone)).parseDateTime(date);
+        final DateTime availableDate = formatter.withZone(DateTimeZone.forID(vcity.city.geo_timezone)).parseDateTime(vcity.date);
+        final int days = Days.daysBetween(wantedDate, availableDate).getDays();
+        return days;
+    }
 
-	@Override
-	public City getMainCity(long guestId, DayMetadataFacet context) {
-		NavigableSet<VisitedCity> cities = context.getOrderedCities();
-		if (cities.size() == 0) {
-			logger.debug("guestId=" + guestId + " message=no_main_city date=" + context.date);
-			return null;
-		}
-		VisitedCity mostVisited = cities.last();
-        City city = null;
-        if (mostVisited.state!=null)
-            city = JPAUtils.findUnique(em, City.class,
-                                       "city.byNameStateAndCountryCode", mostVisited.name,
-                                       mostVisited.state,
-                                       env.getCountryCode(mostVisited.country));
-        else
-            city = JPAUtils.findUnique(em, City.class,
-                    "city.byNameAndCountryCode", mostVisited.name,
-                    env.getCountryCode(mostVisited.country));
-		return city;
-	}
+    @Override
+    public WeekMetadata getWeekMetadata(final long guestId, final int year, final int week) {
+        TreeSet<String> dates = getDatesForWeek(year, week);
+        List<VisitedCity> cities = getVisitedCitiesForDates(guestId, dates);
+        VisitedCity previousInferredCity = null, nextInferredCity = null;
+        if (cities.size()==0) {
+            previousInferredCity = searchCityBeforeDate(guestId, dates.first());
+            nextInferredCity = searchCityAfterDate(guestId, dates.last());
+            if (previousInferredCity==null&&nextInferredCity==null) {
+                WeekMetadata info = new WeekMetadata(year, week);
+                return info;
+            }
+        }
+        final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities, previousInferredCity, nextInferredCity);
+        final List<VisitedCity> consensusCities = getConsensusCities(guestId, dates);
+        WeekMetadata info = new WeekMetadata(year, week,
+                                             consensusCities, consensusVisitedCity, previousInferredCity, nextInferredCity);
+        return info;
+    }
 
-	private void setWeatherInfo(DayMetadataFacet info,
-			List<WeatherInfo> weatherInfo) {
-		if (weatherInfo.size() == 0)
-			return;
+    private List<VisitedCity> getConsensusCities(final long guestId, final TreeSet<String> dates) {
+        List<VisitedCity> consensusCities = new ArrayList<VisitedCity>();
+        Collections.sort(consensusCities,
+            new Comparator<VisitedCity>(){
+                @Override
+                public int compare(final VisitedCity o1, final VisitedCity o2) {
+                    return o1.date.compareTo(o2.date);
+                }
+            });
+        for (String date : dates) {
+            final DayMetadata dayMetadata = getDayMetadata(guestId, date);
+            final VisitedCity consensusVisitedCity = dayMetadata.consensusVisitedCity;
+            // Explicitely set the date on this visitedCity to enable time boundaries checking
+            VisitedCity copy = new VisitedCity(consensusVisitedCity);
+            copy.setDate(date);
+            copy.start = copy.getDayStart();
+            copy.end = copy.getDayEnd();
+            consensusCities.add(copy);
+        }
+        return consensusCities;
+    }
 
-		for (WeatherInfo weather : weatherInfo) {
-			if (weather.tempC < info.minTempC)
-				info.minTempC = weather.tempC;
-			if (weather.tempF < info.minTempF)
-				info.minTempF = weather.tempF;
-			if (weather.tempC > info.maxTempC)
-				info.maxTempC = weather.tempC;
-			if (weather.tempF > info.maxTempF)
-				info.maxTempF = weather.tempF;
-		}
+    @Override
+    public MonthMetadata getMonthMetadata(final long guestId, final int year, final int month) {
+        TreeSet<String> dates = getDatesForMonth(year, month);
+        List<VisitedCity> cities = getVisitedCitiesForDates(guestId, dates);
+        VisitedCity previousInferredCity = null, nextInferredCity = null;
+        if (cities.size()==0) {
+            previousInferredCity = searchCityBeforeDate(guestId, dates.first());
+            nextInferredCity = searchCityAfterDate(guestId, dates.last());
+            if (previousInferredCity==null||nextInferredCity==null) {
+                MonthMetadata info = new MonthMetadata(year, month);
+                return info;
+            }
+        }
+        final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities, previousInferredCity, nextInferredCity);
+        final List<VisitedCity> consensusCities = getConsensusCities(guestId, dates);
+        MonthMetadata info = new MonthMetadata(consensusCities, consensusVisitedCity, previousInferredCity, nextInferredCity, year, month);
+        return info;
+    }
 
-	}
+    private TreeSet<String> getDatesForWeek(final int year, final int week) {
+        LocalDate weekDay = TimeUtils.getBeginningOfWeek(year, week);
+        final LocalDate nextWeekStart = weekDay.plusWeeks(1);
+        TreeSet<String> dates = new TreeSet<String>();
+        while(weekDay.isBefore(nextWeekStart)) {
+            final String date = formatter.withZoneUTC().print(weekDay);
+            dates.add(date);
+            weekDay = weekDay.plusDays(1);
+        }
+        return dates;
+    }
+
+    private TreeSet<String> getDatesForMonth(final int year, final int month) {
+        LocalDate dayOfMonth = TimeUtils.getBeginningOfMonth(year, month);
+        final LocalDate nextMonthStart = dayOfMonth.plusMonths(1);
+        TreeSet<String> dates = new TreeSet<String>();
+        while(dayOfMonth.isBefore(nextMonthStart)) {
+            final String date = formatter.withZoneUTC().print(dayOfMonth);
+            dates.add(date);
+            dayOfMonth = dayOfMonth.plusDays(1);
+        }
+        return dates;
+    }
+
+    private List<VisitedCity> getVisitedCitiesForDate(final long guestId, final String date) {
+        TypedQuery<VisitedCity> query = em.createQuery("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class) + " facet WHERE facet.guestId=? AND facet.date=?" + " ORDER BY facet.start", VisitedCity.class);
+        query.setParameter(1, guestId);
+        query.setParameter(2, date);
+        final List<VisitedCity> cities = query.getResultList();
+        return cities;
+    }
+
+    private List<VisitedCity> getVisitedCitiesForDates(final long guestId, final TreeSet<String> dates) {
+        TypedQuery<VisitedCity> query = em.createQuery("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class) + " facet WHERE facet.guestId=:guestId AND facet.date IN :dates" + " ORDER BY facet.start", VisitedCity.class);
+        query.setParameter("guestId", guestId);
+        query.setParameter("dates", dates);
+        List<VisitedCity> cities = query.getResultList();
+        return cities;
+    }
+
+    /**
+     * Get only the consensus city. Return user's preference if it has been set, otherwise return
+     * the city where the user has spent the most time.
+     *
+     * @param cities
+     * @return
+     */
+    private VisitedCity getConsensusVisitedCity(final List<VisitedCity> cities, final VisitedCity previousInferredCity, final VisitedCity nextInferredCity) {
+
+        for (VisitedCity city : cities)
+            if (city.locationSource== LocationFacet.Source.USER)
+                return city;
+
+        if (previousInferredCity!=null&&nextInferredCity!=null) {
+            if (Math.abs(previousInferredCity.daysInferred)>Math.abs(nextInferredCity.daysInferred))
+                return nextInferredCity;
+            else
+                return previousInferredCity;
+        } else if (previousInferredCity!=null)
+            return previousInferredCity;
+        else if (nextInferredCity!=null)
+            return nextInferredCity;
+
+        List<VisitedCity> cityList = new ArrayList<VisitedCity>(cities);
+        Collections.sort(cityList, new Comparator<VisitedCity>() {
+            @Override
+            public int compare(final VisitedCity a, final VisitedCity b) {
+                int timeSpentInA = (int) (a.end-a.start+1); //add one if start and end are equal
+                int timeSpentInB = (int) (b.end-b.start+1);
+                return timeSpentInB-timeSpentInA;
+            }
+        });
+
+        if (cityList.size()>0)
+            return cityList.get(0);
+        return null;
+    }
+
+    private String findClosestKnownDateForTime(final long guestId, final long time) {
+        VisitedCity existingCity = searchCityBefore(guestId, time);
+        if (existingCity==null)
+            existingCity = searchCityAfter(guestId, time);
+        if (existingCity!=null) {
+            return existingCity.date;
+        }
+        return formatter.withZoneUTC().print(time);
+    }
+
+    private VisitedCity searchCityBefore(final long guestId, final long instant) {
+        return searchCity("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class) + " facet WHERE facet.guestId=? AND facet.start<? ORDER BY facet.start", guestId, instant);
+    }
+
+    private VisitedCity searchCityAfter(final long guestId, final long instant) {
+        return searchCity("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class) + " facet WHERE facet.guestId=? AND facet.start>? ORDER BY facet.start", guestId, instant);
+    }
+
+    private VisitedCity searchCity(final String queryString, final long guestId, final long instant) {
+        final TypedQuery<VisitedCity> query = em.createQuery(queryString, VisitedCity.class);
+        return getVisitedCity(guestId, instant, query);
+    }
+
+    private VisitedCity searchCity(final String queryString, final long guestId, final String date) {
+        final TypedQuery<VisitedCity> query = em.createQuery(queryString, VisitedCity.class);
+        return getVisitedCity(guestId, date, query);
+    }
+
+    private VisitedCity getVisitedCity(final long guestId, final String date, final TypedQuery<VisitedCity> query) {
+        query.setMaxResults(1);
+        query.setParameter(1, guestId);
+        query.setParameter(2, date);
+        final List<VisitedCity> cities = query.getResultList();
+        if (cities.size()>0)
+            return cities.get(0);
+        return null;
+    }
+
+    private VisitedCity getVisitedCity(final long guestId, final long instant, final TypedQuery<VisitedCity> query) {
+        query.setMaxResults(1);
+        query.setParameter(1, guestId);
+        query.setParameter(2, instant);
+        final List<VisitedCity> cities = query.getResultList();
+        if (cities.size()>0)
+            return cities.get(0);
+        return null;
+    }
+
+    private VisitedCity searchCityBeforeDate(final long guestId, final String date) {
+        VisitedCity visitedCity = searchCity("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class) + " facet WHERE facet.guestId=? AND facet.date<? ORDER BY facet.start DESC", guestId, date);
+        if (visitedCity!=null) {
+            final List<VisitedCity> visitedCitiesForDate = getVisitedCitiesForDate(guestId, visitedCity.date);
+            visitedCity = getConsensusVisitedCity(visitedCitiesForDate, null, null);
+            visitedCity.daysInferred = daysBetween(date, visitedCity);
+        }
+        return visitedCity;
+    }
+
+    private VisitedCity searchCityAfterDate(final long guestId, final String date) {
+        VisitedCity visitedCity = searchCity("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class) + " facet WHERE facet.guestId=? AND facet.date>? ORDER BY facet.start", guestId, date);
+        if (visitedCity!=null) {
+            final List<VisitedCity> visitedCitiesForDate = getVisitedCitiesForDate(guestId, visitedCity.date);
+            visitedCity = getConsensusVisitedCity(visitedCitiesForDate, null, null);
+            visitedCity.daysInferred = daysBetween(date, visitedCity);
+        }
+        return visitedCity;
+    }
+
+    @Override
+    public List<DayMetadata> getAllDayMetadata(final long guestId) {
+        return JPAUtils.find(em, DayMetadata.class,"context.all",guestId);
+    }
 
 	@Override
 	public LocationFacet getLastLocation(long guestId, long time) {
@@ -224,59 +414,15 @@ public class MetadataServiceImpl implements MetadataService {
 	}
 
 	@Override
-	public LocationFacet getNextLocation(long guestId, long time) {
-		LocationFacet lastSeen = JPAUtils.findUnique(em, LocationFacet.class,
-				"location.nextSeen", guestId, time);
-		return lastSeen;
-	}
-
-	@Override
-	public DayMetadataFacet getLastDayMetadata(long guestId) {
-		DayMetadataFacet lastDay = JPAUtils.findUnique(em,
-				DayMetadataFacet.class, "context.day.last", guestId);
-		return lastDay;
-	}
-
-	@Override
 	public TimeZone getTimeZone(long guestId, String date) {
-		DayMetadataFacet thatDay = JPAUtils.findUnique(em,
-				DayMetadataFacet.class, "context.byDate", guestId, date);
-		if (thatDay != null)
-			return TimeZone.getTimeZone(thatDay.timeZone);
-		else {
-			logger.info("guestId=" + guestId + " date= " + date + " action=getTimeZone message=returning UTC Timezone");
-			return TimeZone.getTimeZone("UTC"); // Code should never go here!
-		}
+        final DayMetadata dayMetadata = getDayMetadata(guestId, date);
+        return dayMetadata.getTimeInterval().getMainTimeZone();
 	}
 
 	@Override
 	public TimeZone getTimeZone(long guestId, long time) {
-		DayMetadataFacet thatDay = JPAUtils.findUnique(em,
-				DayMetadataFacet.class, "context.day.when", guestId, time, time);
-		if (thatDay != null)
-			return TimeZone.getTimeZone(thatDay.timeZone);
-		else {
-            logger.info("guestId=" + guestId + " time= " + time + " action=getTimeZone message=returning UTC Timezone");
-			return TimeZone.getTimeZone("UTC"); // Code should never go here!
-		}
-	}
-
-	@Override
-	@Transactional(readOnly=false)
-	public void setDayCommentTitle(long guestId, String date, String title) {
-		DayMetadataFacet thatDay = getDayMetadata(guestId,
-				date, true);
-		thatDay.title = title;
-		em.merge(thatDay);
-	}
-
-	@Override
-	@Transactional(readOnly=false)
-	public void setDayCommentBody(long guestId, String date, String body) {
-		DayMetadataFacet thatDay = JPAUtils.findUnique(em,
-				DayMetadataFacet.class, "context.byDate", guestId, date);
-		thatDay.comment = body;
-		em.merge(thatDay);
+        String date = findClosestKnownDateForTime(guestId, time);
+        return getTimeZone(guestId, date);
 	}
 
     @Override
@@ -331,9 +477,7 @@ public class MetadataServiceImpl implements MetadataService {
     public List<WeatherInfo> getWeatherInfo(double latitude, double longitude,
                                             String date, int startMinute, int endMinute) {
         City closestCity = getClosestCity(latitude, longitude);
-        List<WeatherInfo> weather = JPAUtils.find(em, WeatherInfo.class,
-                                                  "weather.byDateAndCity.between", closestCity.geo_name, date,
-                                                  startMinute, endMinute);
+        List<WeatherInfo> weather = JPAUtils.find(em, WeatherInfo.class, "weather.byDateAndCity.between", closestCity.geo_name, date, startMinute, endMinute);
 
         if (weather != null && weather.size() > 0) {
             addIcons(weather);
@@ -352,6 +496,258 @@ public class MetadataServiceImpl implements MetadataService {
             addIcons(weather);
         }
         return weather;
+    }
+
+    @Override
+    public void rebuildMetadata(final String username) {
+        final Guest guest = guestService.getGuest(username);
+        String entityName = JPAUtils.getEntityName(LocationFacet.class);
+        final Query nativeQuery = em.createNativeQuery(String.format("SELECT DISTINCT apiKeyId FROM %s WHERE guestId=%s", entityName, guest.getId()));
+        final List<BigInteger> resultList = nativeQuery.getResultList();
+        for (BigInteger apiKeyId : resultList) {
+            rebuildMetadata(username, apiKeyId.longValue());
+        }
+    }
+
+    private void rebuildMetadata(final String username, long apiKeyId) {
+        final Guest guest = guestService.getGuest(username);
+        String entityName = JPAUtils.getEntityName(LocationFacet.class);
+        int i=0;
+        final Query facetsQuery = em.createQuery(String.format("SELECT facet FROM %s facet WHERE facet.apiKeyId=? ORDER BY facet.start ASC", entityName));
+        facetsQuery.setParameter(1, apiKeyId);
+        while(true) {
+            facetsQuery.setFirstResult(i);
+            facetsQuery.setMaxResults(1000);
+            final List<LocationFacet> locations = facetsQuery.getResultList();
+            System.out.println("retrieved " + locations.size() + " location datapoints (offset is " + i + ")");
+            if (locations.size()==0)
+                break;
+            System.out.println(AbstractLocalTimeFacet.timeStorageFormat.withZoneUTC().print(locations.get(0).start));
+            long then = System.currentTimeMillis();
+            updateLocationMetadata(guest.getId(), locations);
+            long now = System.currentTimeMillis();
+            System.out.println(String.format("updateLocationMetadata took %s ms to complete", (now-then)));
+            i+=locations.size();
+        }
+    }
+
+    /**
+     * We want to have an explicit city "check-in" each time that we know we have been some place.
+     * Thus, as we loop through a batch of new location datapoints, we keep track of the current date
+     * and the current city and when either change we store a new datapoint in the VisitedCity table.
+     * Then, for each date in the
+     * @param guestId
+     * @param locationResources
+     */
+    @Override
+    @Transactional(readOnly=false)
+    public void updateLocationMetadata(final long guestId, final List<LocationFacet> locationResources) {
+        if (locationResources == null || locationResources.size()==0)
+            return;
+        System.out.println("processing " + locationResources.size() + " location datapoints...");
+        // sort the location data in ascending time order
+        Collections.sort(locationResources, new Comparator<LocationFacet>() {
+            @Override
+            public int compare(final LocationFacet o1, final LocationFacet o2) {
+                return o1.start>o2.start?1:-1;
+            }
+        });
+        // local vars: current city and current day
+        String currentDate = "";
+        Point2D.Double anchorLocation = new Point2D.Double(locationResources.get(0).latitude, locationResources.get(0).longitude);
+        City anchorCity = getClosestCity(anchorLocation.x, anchorLocation.y);
+        int count = 0;
+        LocationFacet lastLocationResourceMatchingAnchor=locationResources.get(0);
+        long start = locationResources.get(0).start;
+
+        for (LocationFacet locationResource : locationResources) {
+            City newCity = anchorCity;
+            Point2D.Double location = new Point2D.Double(locationResource.latitude, locationResource.longitude);
+            boolean withinAnchorRange = isWithinRange(location, anchorLocation);
+
+            if (!withinAnchorRange) {
+                anchorLocation = new Point2D.Double(locationResource.latitude, locationResource.longitude);
+                newCity = getClosestCity(locationResource.latitude, locationResource.longitude);
+            }
+
+            String newDate = formatter.withZone(DateTimeZone.forID(newCity.geo_timezone)).print(locationResource.timestampMs);
+            final boolean dateChanged = !newDate.equals(currentDate);
+            final boolean cityChanged = newCity.geo_id!=anchorCity.geo_id;
+            if (dateChanged||cityChanged) {
+                if (count>0)
+                    storeCityInfo(lastLocationResourceMatchingAnchor, currentDate, anchorCity, start, count);
+                anchorCity = newCity;
+                start = locationResource.start;
+                count = 0;
+            }
+            count++;
+            // update count on the last location before we finish
+            if (locationResources.indexOf(locationResource)==locationResources.size()-1)
+                storeCityInfo(locationResource, newDate, newCity, start, count);
+            currentDate = newDate;
+            lastLocationResourceMatchingAnchor = locationResource;
+        }
+        em.flush();
+    }
+
+    @Override
+    @Transactional(readOnly=false)
+    public FoursquareVenue getFoursquareVenue(final String venueId) {
+        final TypedQuery<FoursquareVenue> query = em.createQuery("SELECT venue FROM FoursquareVenue venue WHERE venue.foursquareId=:venueId", FoursquareVenue.class);
+        query.setParameter("venueId", venueId);
+        final List<FoursquareVenue> resultList = query.getResultList();
+        if (resultList.size()>0)
+            return resultList.get(0);
+        else {
+            String url = String.format("https://api.foursquare.com/v2/venues/%s?client_id=%s&client_secret=%s&v=20130624", venueId,
+                                       env.get("foursquare.client.id"), env.get("foursquare.client.secret"));
+            try {
+                final String fetched = HttpUtils.fetch(url);
+                JSONObject json = JSONObject.fromObject(fetched);
+                if (!json.has("meta"))
+                    throw new Exception("no meta information");
+                JSONObject meta = json.getJSONObject("meta");
+                final int code = meta.getInt("code");
+                if (code!=200)
+                    throw new Exception("error code is " + code);
+                JSONObject responseWrapper = json.getJSONObject("response");
+                JSONObject response = responseWrapper.getJSONObject("venue");
+
+                // we only use the primary category and flatten its information in the venue
+                final Object categoriesObject = response.get("categories");
+                JSONArray categories = null;
+                if (categoriesObject instanceof JSONArray)
+                    categories = (JSONArray) categoriesObject;
+                else {
+                    categories = new JSONArray();
+                    JSONObject categoriesJson = (JSONObject)categoriesObject;
+                    categories.add(categoriesJson);
+                }
+                FoursquareVenue venue = new FoursquareVenue();
+
+                String venueName = response.getString("name");
+                String canonicalUrl = response.getString("canonicalUrl");
+                venue.name = venueName;
+                venue.canonicalUrl = canonicalUrl;
+                venue.foursquareId = venueId;
+
+                for(int i=0; i<categories.size(); i++) {
+                    JSONObject categoryInfo = categories.getJSONObject(i);
+                    if (categoryInfo.has("primary")&&categoryInfo.getBoolean("primary")) {
+                        if (categoryInfo.has("id"))
+                            venue.categoryFoursquareId = categoryInfo.getString("id");
+                        if (categoryInfo.has("name"))
+                            venue.categoryName = categoryInfo.getString("name");
+                        if (categoryInfo.has("shortName"))
+                            venue.categoryShortName = categoryInfo.getString("shortName");
+                        if (categoryInfo.has("icon")) {
+                            JSONObject iconJson = categoryInfo.getJSONObject("icon");
+                            venue.categoryIconUrlPrefix = iconJson.getString("prefix");
+                            venue.categoryIconUrlSuffix = iconJson.getString("suffix");
+                        }
+                    }
+                }
+                em.persist(venue);
+                return venue;
+            }
+            catch (Exception e) {
+                logger.warn("action=getFoursquareVenue venueId=" + venueId + " message=" + e.getMessage());
+            }
+        }
+        return null;
+    }
+
+    private void storeCityInfo(final LocationFacet locationResource, String date, final City city, final long start, final int count) {
+        VisitedCity previousRecord = JPAUtils.findUnique(em, VisitedCity.class,
+                                                         "visitedCities.byApiDateAndCity",
+                                                         locationResource.apiKeyId,
+                                                         date,
+                                                         city.geo_id);
+        if (previousRecord==null) {
+            persistCity(locationResource, date, start, count, city);
+        } else {
+            // update start time and end time if necessary
+            if (start<previousRecord.start) {
+                previousRecord.start = start;
+                previousRecord.startTimeStorage = AbstractLocalTimeFacet.timeStorageFormat.withZone(DateTimeZone.forID(city.geo_timezone)).print(start);
+            }
+            if (locationResource.end>previousRecord.end) {
+                previousRecord.end = locationResource.end;
+                previousRecord.endTimeStorage = AbstractLocalTimeFacet.timeStorageFormat.withZone(DateTimeZone.forID(city.geo_timezone)).print(locationResource.end);
+            }
+            // update timeUpdated
+            previousRecord.timeUpdated = System.currentTimeMillis();
+            previousRecord.count += count;
+            em.persist(previousRecord);
+        }
+    }
+
+    private static float getMeterDistance(final Point2D.Double location, final Point2D.Double anchorLocation) {
+        double earthRadius = 3958.75;
+        double dLat = Math.toRadians(anchorLocation.x-location.x);
+        double dLng = Math.toRadians(anchorLocation.y-location.y);
+        double a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                   Math.cos(Math.toRadians(location.x)) * Math.cos(Math.toRadians(anchorLocation.x)) *
+                   Math.sin(dLng/2) * Math.sin(dLng/2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        double dist = earthRadius * c;
+        int meterConversion = 1609;
+        float meters = new Float(dist * meterConversion).floatValue();
+        return meters;
+    }
+
+    private boolean isWithinRange(final Point2D.Double location, final Point2D.Double anchorLocation) {
+        float meters = getMeterDistance(location, anchorLocation);
+        return meters< CITY_RANGE;
+    }
+
+    @Transactional(readOnly=false)
+    private void persistCity(final LocationFacet locationResource, final String date, long start, int count, final City city) {
+        VisitedCity visitedCity = new VisitedCity(locationResource.apiKeyId);
+        visitedCity.guestId = locationResource.guestId;
+        visitedCity.locationSource = locationResource.source;
+        visitedCity.api = locationResource.api;
+        visitedCity.date = date;
+        visitedCity.city = city;
+        visitedCity.count = count;
+        visitedCity.start = start;
+        visitedCity.end = locationResource.end;
+        visitedCity.startTimeStorage = AbstractLocalTimeFacet.timeStorageFormat.withZone(DateTimeZone.forID(city.geo_timezone)).print(start);
+        visitedCity.endTimeStorage = AbstractLocalTimeFacet.timeStorageFormat.withZone(DateTimeZone.forID(city.geo_timezone)).print(locationResource.end);
+        computeSunriseSunset(locationResource, city, visitedCity);
+        em.persist(visitedCity);
+    }
+
+    private void computeSunriseSunset(final LocationFacet locationFacet, final City city, final VisitedCity mdFacet) {
+        Location location = new Location(String.valueOf(locationFacet.latitude), String.valueOf(locationFacet.longitude));
+        final TimeZone timeZone = TimeZone.getTimeZone(city.geo_timezone);
+        SunriseSunsetCalculator calc = new SunriseSunsetCalculator(location, timeZone);
+        Calendar c = Calendar.getInstance(timeZone);
+        c.setTimeInMillis(locationFacet.start);
+        Calendar sunrise = calc.getOfficialSunriseCalendarForDate(c);
+        Calendar sunset = calc.getOfficialSunsetCalendarForDate(c);
+        if (sunrise==null||sunset==null)
+            return;
+        if (sunrise.getTimeInMillis() > sunset.getTimeInMillis()) {
+            Calendar sr = sunrise;
+            Calendar ss = sunset;
+            sunset = sr;
+            sunrise = ss;
+        }
+        mdFacet.sunrise = AbstractFacetVO.toMinuteOfDay(sunrise.getTime(), timeZone);
+        mdFacet.sunset = AbstractFacetVO.toMinuteOfDay(sunset.getTime(),
+                                                         timeZone);
+    }
+
+    private WeatherInfo getWeatherForLocation(final LocationFacet locationFacet, TimeZone tz) {
+        String date = formatter.withZone(DateTimeZone.forTimeZone(tz)).print(locationFacet.start);
+        Calendar c = Calendar.getInstance(tz);
+        c.setTimeInMillis(locationFacet.start);
+        int startMinute = c.get(Calendar.HOUR_OF_DAY)*60+c.get(Calendar.MINUTE);
+        final List<WeatherInfo> weatherInfo = getWeatherInfo(locationFacet.latitude, locationFacet.longitude, date, startMinute, startMinute);
+        if (weatherInfo.size()>0)
+            return weatherInfo.get(0);
+        else return null;
     }
 
     @Transactional(readOnly = false)
@@ -476,6 +872,26 @@ public class MetadataServiceImpl implements MetadataService {
                     break;
             }
         }
+    }
+
+    public static void main(final String[] args) {
+        final DateTime dateTime = formatter.withZone(DateTimeZone.forID("Europe/Brussels")).parseDateTime("2013-06-03");
+        System.out.println(dateTime.getMillis());
+        System.out.println(dateTime.getMillis()+DateTimeConstants.MILLIS_PER_DAY);
+        Point2D.Double p1 = new Point2D.Double(0,0);
+        Point2D.Double p2 = new Point2D.Double(0,0.0089);
+        System.out.println(getMeterDistance(p1, p2));
+        p2 = new Point2D.Double(0.00904,0.00);
+        System.out.println(getMeterDistance(p1, p2));
+        p2 = new Point2D.Double(0.00639, 0.00629);
+        System.out.println(getMeterDistance(p1, p2));
+        p1 = new Point2D.Double(40.0, 0.0);
+        p2 = new Point2D.Double(40, 0.0117647);
+        System.out.println(getMeterDistance(p1, p2));
+        p2 = new Point2D.Double(40.00904, 0.0);
+        System.out.println(getMeterDistance(p1, p2));
+        p2 = new Point2D.Double(40.00639, 0.0083);
+        System.out.println(getMeterDistance(p1, p2));
     }
 
 }

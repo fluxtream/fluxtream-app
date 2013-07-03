@@ -35,10 +35,10 @@
 							<% } %>
 							<br>
 								<form action="sendResetRequest">
-									<input autocorrect="off" autocapitalize="off" ="email" type="text" class="placeholder focushere" style="font-size:0.905em; width:300px; margin-right:10px;" title="Your email address"  value="Your email address"> 
-																
-									<input type="submit"  class="btn primary" value="Reset my Password"></input><br>
-									<a href="/" class="btn floatR">Back to home page &raquo;</a>
+                                    <input autocorrect="off" autocapitalize="off" ="email" type="text" class="placeholder focushere" style="font-size:0.905em; width:300px; margin-right:10px;" name="recover[email]" id="recover_email" title="Your email address"  placeholder="Your email address">
+                           			<input type="submit"  class="btn primary" value="Reset my Password"></input><br>
+                           			<input type="hidden" name="recover[_csrf_token]" value="ebb981ef2ee1ad730d0e676d2af2336c" id="recover__csrf_token" />
+                           			<a href="/" class="btn floatR">Back to home page &raquo;</a>
 								</form>
 
 
@@ -46,7 +46,12 @@
 </section>
 
 <div style="padding-left:20px;">
-<%@ include file="../footer.jsp" %>
+    <% int currentYear = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR); String until = ""; if (currentYear>2011) until = " - " + currentYear; %>
+    <% String release = ""; if (request.getAttribute("release")!=null) release = "Release " + request.getAttribute("release") + "";%>
+    	<div>
+    		<hr/>
+    		<small class="flx-credits">Fluxtream - <%=release %> &copy; 2011<%=until %> <br/>The BodyTrack Team @ CMU CREATE Lab &amp; Candide Kemmler</small>
+    	</div>
 </div>
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js" type="text/javascript"></script>
 <script type="text/javascript" src="/${release}/js/fluxtream.js"></script>

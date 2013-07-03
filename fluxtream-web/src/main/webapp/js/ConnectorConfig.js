@@ -198,27 +198,27 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
         bodymedia:{
             device_name:"BodyMedia",
             color: "rgb(160, 67, 175)",
-            mapicon: "http://maps.google.com/mapfiles/marker.png",
-            mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
+            mapicon: null,
+            mapshadow: null,
             facets: {
                 burn:{
                     list: true,
                     photos: false,
-                    map: true,
+                    map: false,
                     gps: false,
                     clock: null
                 },
                 sleep:{
                     list: true,
                     photos: false,
-                    map: true,
+                    map: false,
                     gps: false,
                     clock: null
                 },
                 steps:{
                     list: true,
                     photos: false,
-                    map: true,
+                    map: false,
                     gps: false,
                     clock: null
                 }
@@ -376,6 +376,42 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                     gps: true,
                     mapicon : new google.maps.MarkerImage("/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",null,null,new google.maps.Point(5,5),null),
                     mapshadow: null
+                }
+            }
+        },
+        moves:{
+            filterLabel: "Moves",
+            color: "rgb(36, 77, 187)",
+            mapicon :"/" + FLX_RELEASE_NUMBER + "/images/mapicons/glasses.png",
+            mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
+            facets: {
+                "place":{
+                    mapicon: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/moves-place.png",
+                    list:true,
+                    map: true,
+                    clock: ClockConfig.OUTSIDE_CATEGORY
+                },
+                "move":{
+                    mapicon: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",
+                    list:true,
+                    map: true,
+                    clock: ClockConfig.OUTSIDE_CATEGORY
+                },
+                "location":{
+                    color: "#000",
+                    wlkColor: "#23ee70",
+                    trpColor: "#8f8f8d",
+                    cycColor: "#68abef",
+                    runColor: "#e674ec",
+                    mapicon : new google.maps.MarkerImage("/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",null,null,new google.maps.Point(5,5),null),
+                    list: false,
+                    photos: false,
+                    map: true,
+                    gps: true,
+                    clock: true //just has to be nonnull, gps data has special treatment
+                },
+                "move-activity":{
+                    mapicon : new google.maps.MarkerImage("/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",null,null,new google.maps.Point(5,5),null)
                 }
             }
         }

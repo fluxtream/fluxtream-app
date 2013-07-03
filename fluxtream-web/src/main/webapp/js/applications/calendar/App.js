@@ -5,6 +5,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 	var Calendar = new Application("calendar", "Candide Kemmler", "icon-calendar");
 
     var needDigestReload = false;
+    var currentCityPool;
+    var foursquareVenueTemplate;
 
     Calendar.currentTabName = Builder.tabs["date"][0];
     Calendar.currentTab = null;
@@ -254,6 +256,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     handleCityInfo(response);
                 } else {
                     $("#mainCity").empty();
+                    $("#visitedCitiesDetails").hide();
                 }
 			},
 			error: function(){
@@ -278,11 +281,12 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         }
         $.each(digest.selectedConnectors, function(i, connector) {
             $.each(connector.facetTypes, function(j, facetType) {
-                console.log("loading facetType: " + facetType);
                 loadTemplate(facetType);
             });
         });
         loadTemplate("fluxtream-address");
+        loadTemplate("foursquare-venue");
+        loadTemplate("moves-move-activity");
         for (var connectorId in digest.cachedData){
             $.each(digest.cachedData[connectorId], function(i, connector) {
                 connector.getDetails = function(array,showDate){
@@ -297,6 +301,48 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 connector.shouldGroup = function(facet){
                     return shouldFacetsGroup(this,facet);
                 };
+                if (connectorId === "moves-move"){
+                    $.each(connector.activities, function(i, facet) {
+                        facet.getDetails = function(array,showDate){
+                            if (typeof(array) == "boolean"){
+                                showDate = array;
+                                array = null;
+                            }
+                            if (array == null)
+                                array = [this];
+                            return buildDetails(digest,array,showDate);
+                        };
+                        facet.shouldGroup = function(facet){
+                            return shouldFacetsGroup(this,facet);
+                        };
+
+                        if (facet.start == undefined){
+                            if (facet.date != undefined && facet.date != null){
+                                var dateParts = facet.date.split("-");
+                                var year = parseInt(dateParts[0]);
+                                var month = parseInt(dateParts[1]) - 1;
+                                var day = parseInt(dateParts[2]);
+                                if (facet.startTime != null){
+                                    var hours = parseInt(facet.startTime.hours);
+                                    var minutes = parseInt(facet.startTime.minutes);
+                                    if (facet.startTime.ampm == "pm")
+                                        hours += 12;
+                                    facet.start = new Date(year,month,day,hours,minutes,0,0).getTime();
+                                }
+                                if (facet.endTime != null) {
+                                    var hours = parseInt(facet.endTime.hours);
+                                    var minutes = parseInt(facet.endTime.minutes);
+                                    if (facet.endTime.ampm == "pm")
+                                        hours += 12;
+                                    facet.end = new Date(year,month,day,hours,minutes,0,0).getTime();
+                                    if (facet.end < facet.start){
+                                        facet.end = new Date(year,month,day+1,hours,0,0).getTime();
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
             });
             digest.cachedData[connectorId].hasImages = false;
             switch (connectorId){
@@ -494,6 +540,9 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                             case "FLUXTREAM_CAPTURE":
                                 newFacet[member] = "Fluxtream Capture";
                                 break;
+                            case "MOVES":
+                                newFacet[member] = "Moves";
+                                break;
                             case "OTHER":
                                 newFacet[member] = "IP lookup";
                                 break;
@@ -532,12 +581,19 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                         newFacet[member] = data[member];
                         newFacet.hasPosition = true;
                         break;
+                    case "uri":
+                        var parts = data[member].split("/");
+                        if (parts.length == 2){
+                            params.iconClass = "-activity " + parts[0];
+                        }
+                        break;
                     default:
                         newFacet[member] = data[member];
                 }
             }
             if (showDate){
-                newFacet.displayDate = App.formatDate(data.start + digest.timeZoneOffset,false,true);
+                var facetCity = App.getFacetCity(data, digest.metadata.cities);
+                newFacet.displayDate = App.formatDate(data.start + facetCity.tzOffset,false,true);
             }
         }
 
@@ -562,32 +618,64 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 }
             }
         }
+
+        // retrieve foursquare venues asynchronously
+        var foursquareVenueIds = [];
+        for (var i=0; i<params.facets.length; i++) {
+            if (facets[i].type=="moves-place") {
+                var placeType = facets[i].placeType;
+                if (placeType==="foursquare")  {
+                    foursquareVenueIds.push(facets[i].foursquareId);
+                }
+            }
+        }
+
+        foursquareVenueTemplate = digest.detailsTemplates["foursquare-venue"];
+
+        setTimeout(function(){getFoursquareVenues(foursquareVenueIds);}, 100);
         return digest.detailsTemplates[data.type].render(params);
     }
 
+    function getFoursquareVenues(foursquareVenueIds) {
+        for (var i=0; i<foursquareVenueIds.length; i++) {
+            $.ajax({
+                url: "/api/metadata/foursquare/venue/" + foursquareVenueIds[i],
+                success: function(response) {
+                    var html = foursquareVenueTemplate.render(response);
+                    var foursquareVenueDiv = $("#foursquare-venue-"+response.foursquareId);
+                    foursquareVenueDiv.replaceWith(html);
+                    foursquareVenueDiv = $("#foursquare-venue-"+response.foursquareId);
+                    var icon = foursquareVenueDiv.closest(".moves-place").find(".flx-deviceIcon");
+                    icon.css("background-image","url(" + response.categoryIconUrlPrefix + "bg_32" + response.categoryIconUrlSuffix + ")");
+                    icon.css("background-position", "7px 0px");
+                    icon.css("background-size", "32px 32px");
+                }
+            });
+        }
+    }
 
-           var topLevelDomains = ["aero","asia","biz","cat","com","coop","info", "int", "jobs", "mobi",
-                           "museum", "name", "net", "org", "pro", "tel", "travel", "xxx", "edu",
-                           "edu", "gov", "mil", "ac", "ad", "ae", "af", "ag", "ai", "al", "am",
-                           "am", "an", "aq", "ar", "as", "at", "au", "aw", "ax", "az", "ba", "bb",
-                           "be", "bf", "bg", "bh", "bi", "bj", "bm", "bn" , "bo", "br", "bs", "bt",
-                           "bv", "bw", "by", "bz", "ca", "cc", "cd", "cf", "cg", "ch", "ci", "ck",
-                           "cl", "cm", "cn", "co", "cr", "cs", "cu", "cv", "cx", "cy", "cz", "dd",
-                           "de", "dj", "dk", "dm", "do", "dz", "ec", "ee", "eg", "eh", "er", "es", "et",
-                           "eu", "fi", "fj", "fk", "fm", "fo", "fr", "ga", "gb", "gd", "ge", "gf", "gg",
-                           "gh", "gi", "gl", "gm", "gn", "gp", "gq", "gr", "gs", "gt", "gu", "gw", "gy",
-                           "hk", "hm", "hn", "hr", "ht", "hu", "id", "ie", "il", "im", "in", "io", "iq",
-                           "iq", "ir", "is", "it", "je", "jm", "jo", "jp", "ke", "kg", "kh", "ki", "km",
-                           "kn", "kp", "kr", "kw", "ky", "kz", "la", "lb", "lc", "li", "lk", "lr", "ls",
-                           "lt", "lu", "lv", "ly", "ma", "mc", "md", "me", "mg", "mh", "mk", "ml", "mm",
-                           "mn", "mo", "mp", "mq", "mr", "ms", "mt", "mu", "mv", "mw", "mx", "my", "mz",
-                           "na", "nc", "ne", "nf", "ng", "ni", "nl", "no", "np", "nr", "nu", "nz", "om",
-                           "pa", "pe", "pf", "pg", "ph", "pk", "pl", "pm", "pn", "pr", "ps", "pt", "pw",
-                           "py", "qa", "re", "ro", "rs", "ru", "rw", "sa", "sb", "sc", "sd", "se", "sg",
-                           "sh", "si", "sj", "sk", "sl", "sm", "sn", "so", "sr", "ss", "st", "su", "sv",
-                           "sy", "sz", "tc", "td", "tf", "tg", "th", "tj", "tk", "tl", "tm", "tn", "to",
-                           "tp", "tr", "tt", "tv", "tw", "tz", "ua", "uk", "us", "uy", "uz", "va", "vc",
-                           "ve", "vg", "vi", "vn", "vu", "wf", "ws", "ye", "yt", "yu", "za", "zm", "zw"]
+    var topLevelDomains = ["aero","asia","biz","cat","com","coop","info", "int", "jobs", "mobi",
+                   "museum", "name", "net", "org", "pro", "tel", "travel", "xxx", "edu",
+                   "edu", "gov", "mil", "ac", "ad", "ae", "af", "ag", "ai", "al", "am",
+                   "am", "an", "aq", "ar", "as", "at", "au", "aw", "ax", "az", "ba", "bb",
+                   "be", "bf", "bg", "bh", "bi", "bj", "bm", "bn" , "bo", "br", "bs", "bt",
+                   "bv", "bw", "by", "bz", "ca", "cc", "cd", "cf", "cg", "ch", "ci", "ck",
+                   "cl", "cm", "cn", "co", "cr", "cs", "cu", "cv", "cx", "cy", "cz", "dd",
+                   "de", "dj", "dk", "dm", "do", "dz", "ec", "ee", "eg", "eh", "er", "es", "et",
+                   "eu", "fi", "fj", "fk", "fm", "fo", "fr", "ga", "gb", "gd", "ge", "gf", "gg",
+                   "gh", "gi", "gl", "gm", "gn", "gp", "gq", "gr", "gs", "gt", "gu", "gw", "gy",
+                   "hk", "hm", "hn", "hr", "ht", "hu", "id", "ie", "il", "im", "in", "io", "iq",
+                   "iq", "ir", "is", "it", "je", "jm", "jo", "jp", "ke", "kg", "kh", "ki", "km",
+                   "kn", "kp", "kr", "kw", "ky", "kz", "la", "lb", "lc", "li", "lk", "lr", "ls",
+                   "lt", "lu", "lv", "ly", "ma", "mc", "md", "me", "mg", "mh", "mk", "ml", "mm",
+                   "mn", "mo", "mp", "mq", "mr", "ms", "mt", "mu", "mv", "mw", "mx", "my", "mz",
+                   "na", "nc", "ne", "nf", "ng", "ni", "nl", "no", "np", "nr", "nu", "nz", "om",
+                   "pa", "pe", "pf", "pg", "ph", "pk", "pl", "pm", "pn", "pr", "ps", "pt", "pw",
+                   "py", "qa", "re", "ro", "rs", "ru", "rw", "sa", "sb", "sc", "sd", "se", "sg",
+                   "sh", "si", "sj", "sk", "sl", "sm", "sn", "so", "sr", "ss", "st", "su", "sv",
+                   "sy", "sz", "tc", "td", "tf", "tg", "th", "tj", "tk", "tl", "tm", "tn", "to",
+                   "tp", "tr", "tt", "tv", "tw", "tz", "ua", "uk", "us", "uy", "uz", "va", "vc",
+                   "ve", "vg", "vi", "vn", "vu", "wf", "ws", "ye", "yt", "yu", "za", "zm", "zw"]
 
     var uriRegex = "\\b(http://|ftp://)?[A-z0-9\\-.]+[.](" + topLevelDomains.join("|") + ")(/[/A-z0-9#@_\\-&?=.]+\\b|\\b)";
     var twitterNameRegex = "@[A-Za-z0-9_]+";
@@ -621,10 +709,246 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
     function handleCityInfo(digestInfo) {
         $("#mainCity").empty();
-        if (digestInfo.cities&&digestInfo.cities.length>0) {
-            $("#mainCity").html(cityLabel(digestInfo.cities[0]) +
-                                temperaturesLabel(digestInfo))
+        if (digestInfo.metadata.mainCity) {
+           $("#mainCity").html(cityLabel(digestInfo.metadata.mainCity) +
+                               temperaturesLabel(digestInfo))
+            if (digestInfo.metadata.previousInferredCity!=null||
+                digestInfo.metadata.nextInferredCity!=null)
+                $("#mainCity").addClass("guessed");
+            else
+                $("#mainCity").removeClass("guessed");
         }
+        $("#visitedCitiesDetails").show();
+        $("#visitedCitiesDetails").off("click");
+        $("#visitedCitiesDetails").on("click", function(){
+            showVisitedCities(digestInfo.metadata);
+        });
+    }
+
+    function showVisitedCities(metadata) {
+        var cities = [];
+        for(var i=0; i<metadata.cities.length;i++)
+            cities.push(metadata.cities[i]);
+        var timeUnit = metadata.timeUnit;
+        var mainCity = metadata.mainCity;
+        var cityData = [];
+        if (typeof(metadata.previousInferredCity)!="undefined") {
+            cities.push(metadata.previousInferredCity);
+        }
+        if (typeof(metadata.nextInferredCity)!="undefined") {
+            cities.push(metadata.nextInferredCity);
+        }
+        for (var i=0; i<cities.length; i++) {
+            var cityInfo = {};
+            cityInfo.visitedCityId = cities[i].visitedCityId;
+            cityInfo.count = cities[i].count;
+            cityInfo.isUser = cities[i].source=="USER";
+            cityInfo.source = toPrettySource(cities[i].source);
+            cityInfo.description = cities[i].description;
+            cityInfo.timezone = cities[i].shortTimezone;
+            cityInfo.startMinute = cities[i].startMinute;
+            cityInfo.endMinute = cities[i].endMinute;
+            cityInfo.daysInferred = cities[i].daysInferred;
+            if (cities[i].daysInferred!=0) {
+                var dayOrDays = Math.abs(cities[i].daysInferred)==1?"day":"days";
+                cityInfo.when = (cities[i].daysInferred<0)
+                    ? Math.abs(cities[i].daysInferred) + " " + dayOrDays + " ago"
+                    : cities[i].daysInferred + " " + dayOrDays + " later";
+            }
+            if (timeUnit=="DAY") {
+                var minutes = cities[i].startMinute%60;
+                minutes = minutes<10?"0"+minutes:""+minutes;
+                cityInfo.firstSeenHere = Math.floor(cities[i].startMinute/60)+"h"+minutes;
+                minutes = cities[i].endMinute%60;
+                minutes = minutes<10?"0"+minutes:""+minutes;
+                cityInfo.lastSeenHere = Math.floor(cities[i].endMinute/60)+"h"+minutes;
+            } else {
+                cityInfo.firstSeenHere = cities[i].startTime;
+                cityInfo.lastSeenHere = cities[i].endTime;
+            }
+            cityData[cityData.length] = cityInfo;
+        }
+        for (var i=0; i<cityData.length; i++) {
+            if (cityData[i].startMinute==metadata.mainCity.startMinute&&
+                cityData[i].endMinute==metadata.mainCity.endMinute&&
+                cityData[i].source==toPrettySource(metadata.mainCity.source)&&
+                cityData[i].daysInferred==metadata.mainCity.daysInferred)
+            cityData[i].consensus = true;
+        }
+        var mainCityMessage;
+        var guessed = false;
+        if (metadata.previousInferredCity!=null||metadata.nextInferredCity!=null) {
+            guessed = true;
+            mainCityMessage = "Based on past/future location data, we guessed the you were in <b>" + cityLabel(mainCity) + "</b>";
+        } else if (mainCity.source!="USER")
+            mainCityMessage="We detected that you were in <b>" + cityLabel(mainCity) + "</b>";
+        else
+            mainCityMessage="You have indicated that you were in <b>" + cityLabel(mainCity) + "</b>";
+        switch (timeUnit) {
+            case "DAY":
+                mainCityMessage += " today.<br>";
+                break;
+            case "WEEK":
+                mainCityMessage += " this week.<br>";
+                break;
+            case "MONTH":
+                mainCityMessage += " this month.<br>";
+                break;
+        }
+        var changeMainCityMessage;
+        if (cities.length>0)
+            changeMainCityMessage="You can choose an alternate city in the list below.<br><br>";
+
+        else {
+            changeMainCityMessage="You can change it by entering a city name below.<br><br>";
+        }
+
+        App.loadMustacheTemplate("applications/calendar/facetTemplates.html","visitedCities-details",function(template){
+
+            bindCitySearch(template.render(
+                {
+                    cities:cityData,
+                    guessed:guessed,
+                    mainCityMessage:mainCityMessage,
+                    changeMainCityMessage:changeMainCityMessage
+                }), timeUnit);
+
+        });
+    }
+
+    function toPrettySource(source) {
+        source = source.replace(/_/g, ' ');
+        source = source.toLowerCase().replace(/^.|\s\S/g, function(a) { return a.toUpperCase(); });
+        return source;
+    }
+
+    function bindCitySearch(html, timeUnit) {
+        App.makeModal(html);
+
+        $("#mainCitySearch").off("click");
+        $("#mainCitySearch").on("click", function(){
+            var cityName = $("#mainCityInput").val();
+            $("#mainCitySelect").attr("disabled","disabled");
+            $("#mainCitySearch").attr("disabled","disabled");
+            $("#mainCityInput").attr("disabled","disabled");
+            App.geocoder.geocode({"address":cityName},function(results,status){
+                var options = $("#mainCitySelect").children();
+                for (var i = 1; i < options.length; i++)
+                    $(options[i]).remove();
+                if (status == google.maps.GeocoderStatus.OK) {
+                    if (results.length>0) {
+                        $("#selectMainCity").removeClass("disabled");
+                        $("#selectMainCity").addClass("enabled");
+                        $("#selectMainCity").click(function(){
+                            selectMainCity(timeUnit);
+                        });
+                    }
+                    for (var i = 0; i < results.length; i++){
+                        $("#mainCitySelect").append('<option>' + results[i].formatted_address + '</option>')
+                    }
+                    currentCityPool = results;
+                    $("#mainCitySelect")[0].selectedIndex = 1;
+                }
+                else{
+                    $("#mainCitySelect")[0].selectedIndex = 0;
+                    $("#selectMainCity").removeClass("enabled");
+                    $("#selectMainCity").addClass("disabled");
+                    currentCityPool = [];
+                }
+                $("#mainCitySelect").removeAttr("disabled");
+                $("#mainCitySearch").removeAttr("disabled");
+                $("#mainCityInput").removeAttr("disabled");
+            });
+        });
+        $("#mainCityInput").off("keyup");
+        $("#mainCityInput").on("keyup", function(event){
+            event.preventDefault();
+            if (event.keyCode == 13)
+                $("#mainCitySearch").click();
+            else{
+                var options = $("#mainCitySelect").children();
+                for (var i = 1; i < options.length; i++)
+                    $(options[i]).remove();
+                currentCityPool = [];
+            }
+        });
+        $(".selectVisitedCity").click(function(evt){selectVisitedCity(evt);});
+
+    }
+
+    function selectVisitedCity(evt) {
+        var state = App.state.getState("calendar");
+        state = state.substring(state.indexOf("/"));
+        if ($(evt.target).hasClass("undo")) {
+            removeMainVisitedCity("/api/metadata/mainCity"+state);
+        } else {
+            var visitedCityId = evt.target.id.substring("visitedCity-".length);
+            console.log("user selected visitedCity " + visitedCityId);
+            postMainVisitedCity("/api/metadata/mainCity/"+visitedCityId+state);
+        }
+    }
+
+    function selectMainCity(timeUnit) {
+        var selectedIndex = $("#mainCitySelect")[0].selectedIndex-1;
+        var selectedCity = currentCityPool[selectedIndex];
+        if(typeof(selectedCity.geometry)!="undefined"&&
+           typeof(selectedCity.geometry.location)!="undefined"&&
+           typeof(selectedCity.geometry.location.jb)!="undefined") {
+            var latitude = selectedCity.geometry.location.jb;
+            var longitude = selectedCity.geometry.location.kb;
+            var state = App.state.getState("calendar");
+            state = state.substring(state.indexOf("/"));
+            console.log("coords: " + latitude + ", " + longitude + " (" + timeUnit + ")");
+            postMainCity("/api/metadata/mainCity"+state, {"latitude":latitude,"longitude":longitude});
+        } else {
+            console.log("no city (" + timeUnit + ")");
+        }
+    }
+
+
+    function removeMainVisitedCity(url) {
+       $.ajax({
+           url: url,
+           type: "DELETE",
+           success: function(status) {
+               console.log(status);
+               $("#visitedCitiesDialog").modal('hide');
+               App.activeApp.renderState(App.state.getState(App.activeApp.name),true);//force refresh of the current app state
+           }
+       })
+    }
+
+    function postMainCity(url, data) {
+       $.ajax({
+           url: url,
+           type: "POST",
+           data: data,
+           success: function(status) {
+               console.log(status);
+               $("#visitedCitiesDialog").modal('hide');
+               App.activeApp.renderState(App.state.getState(App.activeApp.name),true);//force refresh of the current app state
+           }
+       })
+    }
+
+    function postMainVisitedCity(url) {
+       $.ajax({
+           url: url,
+           type: "POST",
+           success: function(status) {
+               console.log(status);
+               $("#visitedCitiesDialog").modal('hide');
+               App.activeApp.renderState(App.state.getState(App.activeApp.name),true);//force refresh of the current app state
+           }
+       })
+    }
+
+    function cityLabel(cityInfo) {
+       var s = "";
+       s += cityInfo.name;
+       if (cityInfo.country=="US"||cityInfo.country=="USA") s += ", " + cityInfo.state;
+       s += ", " + cityInfo.country + " (" + cityInfo.timezone + ")";
+       return s;
     }
 
     function ephemerisLabel(digestInfo) {
@@ -639,35 +963,27 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     }
 
     function temperaturesLabel(digestInfo) {
-        if (digestInfo.maxTempC == -10000) {
+        if (digestInfo.metadata.maxTempC == -10000) {
             return "";
         }
         else if (digestInfo.settings.temperatureUnit != "CELSIUS") {
             return ephemerisLabel(digestInfo) + "<i class=\"flx-pict-temp\">&nbsp;</i>"
                        + "<span class=\"ephemeris\" style=\"font-weight:normal;\">&nbsp;"
-                       + digestInfo.minTempF
+                       + digestInfo.metadata.minTempF
                        + " / "
-                       + digestInfo.maxTempF
+                       + digestInfo.metadata.maxTempF
                        + "&deg;F"
                 + "</span>";
         }
         else {
             return ephemerisLabel(digestInfo) + "<i class=\"flx-pict-temp\">&nbsp;</i>"
                        + "<span class=\"ephemeris\" style=\"font-weight:normal;\">&nbsp;"
-                       + digestInfo.minTempC
+                       + digestInfo.metadata.minTempC
                        + " / "
-                       + digestInfo.maxTempC
+                       + digestInfo.metadata.maxTempC
                        + "&deg;C"
                 + "</span>";
         }
-    }
-
-    function cityLabel(cityInfo) {
-        var s = "";
-        s += cityInfo.name;
-        if (cityInfo.state) s += ", " + cityInfo.state;
-        s += ", " + cityInfo.country;
-        return s;
     }
 
     Calendar.toState = function(tabName, timeUnit, date) {

@@ -10,11 +10,11 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         if (map.primaryGPSData == null){
             map.primaryGPSData = newGPSDataSet;
         }
-        newGPSDataSet.color = config.color;
 
         newGPSDataSet.gpsPositions = [];
         newGPSDataSet.gpsTimestamps = [];
         newGPSDataSet.gpsAccuracies = [];
+        newGPSDataSet.gpsLines = []
         if (gpsData.length == 0)
             return;
         map.markers[gpsData[0].type] = [];
@@ -23,13 +23,17 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         var minLng = 180; //initialized to the largest valid longitude
         var maxLng = -180; //initialized to the smallest valid longitude
         gpsData = filterGPSData(gpsData);
+        var currentLinePoints = [];
+        var lastSectionEnd = 0;
+        var currentType = null;
         for (var i = 0; i < gpsData.length; i++){
             var lat = gpsData[i].position[0];
             var lng = gpsData[i].position[1];
-            newGPSDataSet.gpsPositions.push(new google.maps.LatLng(lat,lng));
+            var newPoint = new google.maps.LatLng(lat,lng);
+            newGPSDataSet.gpsPositions.push(newPoint);
             try {
             map.markers[gpsData[i].type].push(new google.maps.Marker({map:map,
-                                                                    position:newGPSDataSet.gpsPositions[newGPSDataSet.gpsPositions.length-1],
+                                                                    position:newPoint,
                                                                    icon:config.mapicon,
                                                                    shadow:config.mapshadow,
                                                                    clickable:clickable}));
@@ -46,12 +50,44 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             if (bounds.getNorthEast().lng() > maxLng)
                 maxLng = bounds.getNorthEast().lng();
             } catch (e) {}
+
+            currentLinePoints.push(newPoint);
+            if (gpsData[i].uri != null){
+                var parts = gpsData[i].uri.split("/");
+                if (parts.length == 2){
+                    if (currentType != parts[0]){
+                        if (currentType != null){
+                            newGPSDataSet.gpsLines.push({
+                                line: new google.maps.Polyline({
+                                    map:map,
+                                    path:currentLinePoints,
+                                    clickable:false,
+                                    strokeColor: config[currentType + "Color"]}),
+                                highlight:null,
+                                color: config[currentType + "Color"],
+                                start: lastSectionEnd,
+                                end: newGPSDataSet.gpsPositions.length
+                            });
+                            lastSectionEnd = newGPSDataSet.gpsPositions.length;
+                            currentLinePoints = [newPoint];
+                        }
+                        currentType = parts[0];
+                    }
+                }
+            }
         }
-        newGPSDataSet.gpsLine = new google.maps.Polyline({
-            map:map,
-            path:newGPSDataSet.gpsPositions,
-            clickable:false,
-            strokeColor: newGPSDataSet.color});
+        var colorToUse = currentType == null ? config.color : config[currentType + "Color"];
+        newGPSDataSet.gpsLines.push({
+            line: new google.maps.Polyline({
+                map:map,
+                path:currentLinePoints,
+                clickable:false,
+                strokeColor: colorToUse}),
+            highlight:null,
+            color: colorToUse,
+            start: lastSectionEnd,
+            end: newGPSDataSet.gpsPositions.length
+        });
         addToGPSBounds(map, new google.maps.LatLng(minLat,minLng));
         addToGPSBounds(map, new google.maps.LatLng(maxLat,maxLng));
         refreshMarkerPosition(map);
@@ -143,14 +179,13 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             }
             else{
                 newDataSet.push(gpsData[i]);
-            }*/
+            }   */
 
         }
-
         return newDataSet;
     }
 
-    function addData(map,connectorData, connectorInfoId, clickable){
+    function addData(map, connectorData, connectorInfoId, clickable){
         if (!isDisplayable(connectorInfoId))
             return false;
         map.markers[connectorInfoId] = addItemsToMap(map,connectorData,clickable);
@@ -342,6 +377,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                     shadow:itemConfig.mapshadow,
                     clickable:clickable
                 });
+                decorateMarker(marker, item);
                 marker.gpsData = gpsDataToUse;
                 map.enhanceMarkerWithItem(marker,item);
                 var bounds = marker.getBounds();
@@ -362,11 +398,28 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 shadow:itemConfig.mapshadow,
                 clickable:clickable
             });
+            decorateMarker(marker, item);
             map.enhanceMarkerWithItem(marker,item);
             var bounds = marker.getBounds();
             addToGPSBounds(map, bounds.getNorthEast());
             addToGPSBounds(map, bounds.getSouthWest());
             return marker;
+        }
+    }
+
+    function decorateMarker(marker, item) {
+        if (item.type==="moves-place") {
+            if (item.placeType==="foursquare") {
+                $.ajax({
+                    url: "/api/metadata/foursquare/venue/" + item.foursquareId,
+                    success: function(response) {
+                        var iconUrl = response.categoryIconUrlPrefix + "bg_32" + response.categoryIconUrlSuffix;
+                        marker.setIcon(iconUrl);
+                    }
+                });
+            } else {
+                marker.setIcon("/images/moves/" + item.placeType + ".png");
+            }
         }
     }
 
@@ -414,6 +467,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         var accuracy = (marker.item != null  && marker.item.position != null) ? marker.item.accuracy : getGPSAccuracy(gpsDataToUse,time);
         if (accuracy == null)
             accuracy = 0;
+        marker.accuracy = accuracy;
         marker.showCircle = function(){
             if (marker.circle != null)
                 return;
@@ -426,7 +480,10 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                                                    clickable:false});
         }
         marker.getBounds = function(){
-            return new google.maps.Circle({center:marker.getPosition(),radius:accuracy}).getBounds();
+            if (accuracy > 0)
+                return new google.maps.Circle({center:marker.getPosition(),radius:accuracy}).getBounds();
+            else
+                return new google.maps.LatLngBounds(marker.getPosition(),marker.getPosition());
         }
         marker.hideCircle = function(){
             if (marker.circle == null)
@@ -479,7 +536,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 }
                 map.currentHighlightedLine = map.createPolyLineSegment(this.gpsData, this.item != null ? this.item.start : start, this.item != null ? this.item.end : end, {strokeColor:strokeColor, zIndex: 100});
                 marker.line = map.currentHighlightedLine;
-                if (this.gpsData.gpsLine.getMap() == null)
+                if (this.gpsData.gpsLines[0].line.getMap() == null)
                     map.currentHighlightedLine.setMap(null);
             }
         }
@@ -534,16 +591,27 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 return;
             if (gpsDataSet.gpsTimestamps.length == 0)
                 return;
-            if (gpsDataSet.highlightSection != null){
-                gpsDataSet.highlightSection.setMap(null);
-                gpsDataSet.highlightSection = null;
-            }
-            if (start <= gpsDataSet.gpsTimestamps[0] && end >= gpsDataSet.gpsTimestamps[gpsDataSet.gpsTimestamps.length - 1]){
-                gpsDataSet.gpsLine.setOptions({strokeColor: gpsDataSet.color});
-            }
-            else{
-                gpsDataSet.gpsLine.setOptions({strokeColor: $.xcolor.opacity(gpsDataSet.color, 'lightgrey', 0.69).getCSS()});
-                gpsDataSet.highlightSection = map.createPolyLineSegment(gpsDataSet, start, end, {strokeColor:gpsDataSet.color, zIndex: 99});
+            var startIndex = map.getFirstIndexAfter(gpsDataSet,start);
+            var endIndex = map.getFirstIndexBefore(gpsDataSet,end);
+
+            for (var i = 0; i < gpsDataSet.gpsLines.length; i++){
+                var gpsLine = gpsDataSet.gpsLines[i];
+                if (gpsLine.highlight != null){
+                    gpsLine.highlight.setMap(null);
+                    gpsLine.highlight = null;
+                }
+
+                if (startIndex <= gpsLine.start && endIndex >= gpsLine.end){
+                    gpsLine.line.setOptions({strokeColor: gpsLine.color});
+                    continue;
+                }
+                gpsLine.line.setOptions({strokeColor: $.xcolor.opacity(gpsLine.color, 'lightgrey', 0.69).getCSS()});
+
+                if (startIndex >= gpsLine.end || endIndex <= gpsLine.start)
+                    continue;
+                var startTime = startIndex <= gpsLine.start ? gpsDataSet.gpsTimestamps[startIndex] : start;
+                var endTime = endIndex >= gpsLine.end ? gpsDataSet.gpsTimestamps[endIndex] : end;
+                gpsLine.highlight = map.createPolyLineSegment(gpsDataSet, startTime, endTime, {strokeColor:gpsLine.color, zIndex: 99});
             }
             gpsDataSet.oldHighlightSection = {start:start,end:end};
         }
@@ -772,7 +840,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     function zoomOnMarker(map,marker){
-        if (marker.circle == null)
+        if (marker.accuracy == 0)
             zoomOnPoint(map,marker.getPosition());
         else
             map.fitBounds(marker.circle.getBounds());
@@ -789,14 +857,17 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             map.markers[connectorId][i].setMap(null);
         }
         if (map.gpsData[connectorId] != null){
-            map.gpsData[connectorId].gpsLine.setMap(null);
-            if (map.gpsData[connectorId].highlightSection != null)
-                map.gpsData[connectorId].highlightSection.setMap(null);
+            for (var i = 0, li = map.gpsData[connectorId].gpsLines.length; i < li; i++){
+                map.gpsData[connectorId].gpsLines[i].line.setMap(map);
+                if (map.gpsData[connectorId].gpsLines[i].highlight != null)
+                    map.gpsData[connectorId].gpsLines[i].highlight.setMap(map);
+            }
             if (map.gpsData[connectorId].dateMarker != null){
-                map.gpsData[connectorId].dateMarker.setMap(null);
-                map.gpsData[connectorId].dateMarker.circle.setMap(null);
+                map.gpsData[connectorId].dateMarker.setMap(map);
+                map.gpsData[connectorId].dateMarker.circle.setMap(map);
             }
         }
+        
     }
 
     function showData(map,connectorId){
@@ -808,9 +879,11 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 map.selectedMarker.showCircle();
         }
         if (map.gpsData[connectorId] != null){
-            map.gpsData[connectorId].gpsLine.setMap(map);
-            if (map.gpsData[connectorId].highlightSection != null)
-                map.gpsData[connectorId].highlightSection.setMap(map);
+            for (var i = 0, li = map.gpsData[connectorId].gpsLines.length; i < li; i++){
+                map.gpsData[connectorId].gpsLines[i].line.setMap(map);
+                if (map.gpsData[connectorId].gpsLines[i].highlight != null)
+                    map.gpsData[connectorId].gpsLines[i].highlight.setMap(map);
+            }
             if (map.gpsData[connectorId].dateMarker != null){
                 map.gpsData[connectorId].dateMarker.setMap(map);
                 map.gpsData[connectorId].dateMarker.circle.setMap(map);
@@ -1198,13 +1271,15 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                         map.addressMarkerList[i].setMap(null);
                     }
                     for (var dataset in map.gpsData){
-                        map.gpsData[dataset].gpsLine.setMap(null);
-                        if (map.gpsData[dataset].highlightSection != null)
-                            map.gpsData[dataset].highlightSection.setMap(null);
-                        if (map.gpsData[dataset].dateMarker != null){
-                            map.gpsData[dataset].dateMarker.setMap(null);
-                            map.gpsData[dataset].dateMarker.circle.setMap(null);
-
+                        for (var i = 0, li = map.gpsData[dataset].gpsLines.length; i < li; i++){
+                            map.gpsData[dataset].gpsLines[i].line.setMap(null);
+                            if (map.gpsData[dataset].gpsLines[i].highlight != null)
+                                map.gpsData[dataset].gpsLines[i].highlight.setMap(null);
+                            if (map.gpsData[dataset].dateMarker != null){
+                                map.gpsData[dataset].dateMarker.setMap(null);
+                                map.gpsData[dataset].dateMarker.circle.setMap(null);
+    
+                            }
                         }
                     }
                 }

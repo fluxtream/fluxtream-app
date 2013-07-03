@@ -11,8 +11,7 @@ public class ToodledoTaskFacetVO extends AbstractInstantFacetVO<ToodledoTaskFace
 	@Override
 	protected void fromFacet(ToodledoTaskFacet facet,
 			TimeInterval timeInterval, GuestSettings settings) {
-		startMinute = toMinuteOfDay(new Date(facet.start),
-				timeInterval.timeZone);
+		startMinute = toMinuteOfDay(new Date(facet.start), timeInterval.getMainTimeZone());
 		description = facet.title;
 	}
 

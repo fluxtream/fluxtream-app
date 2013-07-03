@@ -14,7 +14,9 @@ public class JPAUtils {
 
     public static String getEntityName(Class<? extends AbstractFacet> facetClass) {
         try {
-            return facetClass.getAnnotation(Entity.class).name();
+            final Entity annotation = facetClass.getAnnotation(Entity.class);
+            final String name = annotation.name();
+            return name;
         } catch (Throwable t) {
             final String message = "Could not get Facet class for connector for " + facetClass.getName();
             throw new RuntimeException(message);

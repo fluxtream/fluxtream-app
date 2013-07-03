@@ -3,6 +3,7 @@ package com.fluxtream.connectors.google_latitude;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.Connector.UpdateStrategyType;
 import com.fluxtream.connectors.annotations.JsonFacetCollection;
 import com.fluxtream.connectors.annotations.Updater;
@@ -75,8 +76,9 @@ public class GoogleLatitudeUpdater extends AbstractGoogleOAuthUpdater {
                 locationResource.apiKeyId = updateInfo.apiKey.getId();
 				locationResource.start = locationResource.timestampMs;
 				locationResource.end = locationResource.timestampMs;
-                locationResource.processed = false;
                 locationResource.source = LocationFacet.Source.GOOGLE_LATITUDE;
+                locationResource.apiKeyId = updateInfo.apiKey.getId();
+                locationResource.api= updateInfo.apiKey.getConnector().value();
 
 				storedLocations.add(locationResource);
 			}

@@ -8,6 +8,7 @@ import java.util.TimeZone;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.fluxtream.SimpleTimeInterval;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.aspects.FlxLogger;
 import org.joda.time.format.DateTimeFormat;
@@ -57,7 +58,7 @@ public class SearchController {
 
 		List<AbstractFacetVO<? extends AbstractFacet>> facetVos = new ArrayList<AbstractFacetVO<? extends AbstractFacet>>();
 		TimeZone currentTimeZone = metadataService.getCurrentTimeZone(guestId);
-		TimeInterval timeInterval = new TimeInterval(new Date().getTime(),
+		TimeInterval timeInterval = new SimpleTimeInterval(new Date().getTime(),
 				System.currentTimeMillis(), TimeUnit.DAY, currentTimeZone);
 		
 		for (AbstractFacet facet : facets) {

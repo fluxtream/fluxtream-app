@@ -74,7 +74,9 @@
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
                 <div class="flx-data">
-                    <span style="background:url('{{imgUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
+                    <span style="display:block; float:left; margin:0 10px 0 0">
+                        <img src="{{imgUrl}}" height=42>
+                    </span>
                     <span class="flx-description">{{description}}</span>
                 </div>
             </div>
@@ -91,7 +93,9 @@
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
                 <div class="flx-data">
-                    <span style="background:url('{{imgUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
+                    <span style="display:block; float:left; margin:0 10px 0 0">
+                        <img src="{{imgUrl}}" height=42>
+                    </span>
                     <span class="flx-description">{{description}}</span>
                 </div>
             </div>
@@ -242,7 +246,9 @@
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
                 <div class="flx-data">
-                    <span photoId="{{id}}" class="flx-photo" style="background:url('{{photo42}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
+                    <span photoId="{{id}}" class="flx-photo" style="display:block; float:left; margin:0 10px 0 0">
+                        <img src="{{photo42}}" height=42>
+                    </span>
                     <span class="flx-description">{{description}}</span>
                 </div>
             </div>
@@ -572,6 +578,62 @@
         </div>
     </div>
 </template>
+<template id="moves-move">
+    <div class="flx-box moves-move" style="border-left-color:{{color}}">
+        <span class="flx-deviceIcon moves-move"></span>
+        <div class="facetDetails">
+            {{#facets}}
+            <div class="facetDetails">
+                {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
+                <div class="flx-tTime">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</div>
+                {{#activities}}
+                <div class="flx-data">
+                    {{activity}}
+                </div>
+                {{/activities}}
+            </div>
+            {{/facets}}
+        </div>
+    </div>
+</template>
+<template id="moves-place">
+    <div class="flx-box moves-place" style="border-left-color:{{color}}">
+        {{#facets}}
+        <div style="margin-bottom:1em;">
+            <span class="flx-deviceIcon moves-place {{placeType}}"></span>
+            <div class="facetDetails">
+                <div class="facetDetails">
+                    {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
+                    <div id="foursquare-venue-{{foursquareId}}" {{^foursquareId}}style="display:none;"{{/foursquareId}}>Getting venue name...</div>
+                    {{^foursquareId}}
+                    <div class="flx-data">
+                        {{name}}
+                    </div>
+                    {{/foursquareId}}
+                    <div class="flx-tTime">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}&nbsp;<a class="mapLink" href="#" itemid="{{id}}" >{{#hasPosition}}<i class="icon-map-marker">{{/hasPosition}}</i></a></div>
+                    {{#activities}}
+                    <div class="flx-data">{{activity}}{{#distance}} ({{distance}}){{/distance}}</div>
+                    <div class="flx-tTime">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</div>
+                    {{#steps}}{{steps}} steps{{/steps}}
+                    {{/activities}}
+                </div>
+            </div>
+        </div>
+        {{/facets}}
+    </div>
+</template>
+<template id="moves-move-activity">
+    <div class="flx-box moves-move-activity" style="border-left-color:{{color}}">
+        {{#facets}}
+        <span class="flx-deviceIcon moves-move-activity {{activityCode}}"></span>
+        <div class="facetDetails">
+            <div class="flx-data">{{activity}}{{#distance}} ({{distance}}){{/distance}}</div>
+            <div class="flx-tTime">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</div>
+            {{#steps}}{{steps}} steps{{/steps}}
+        </div>
+        {{/facets}}
+    </div>
+</template>
 <template id="fluxtream_capture-photo">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon fluxtream"></span>
@@ -581,7 +643,9 @@
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
                 <div class="flx-data">
-                    <span photoId="{{id}}" class="flx-photo" style="background:url('{{photo42}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
+                    <span photoId="{{id}}" class="flx-photo" style="display:block; float:left; margin:0 10px 0 0">
+                        <img src="{{photo42}}" height=42>
+                    </span>
                     <span class="flx-description">{{description}}</span>
                 </div>
             </div>
@@ -589,7 +653,22 @@
         </div>
     </div>
 </template>
-
+<template id="moves-location">
+    <div class="flx-box" style="border-left-color:{{color}}">
+        <span class="flx-deviceIcon moves-move{{iconClass}}"></span>
+        <div class="facetDetails">
+            {{#facets}}
+            <div class="facetDetails">
+                {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
+                <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
+                <div class="flx-data">
+                    <span class="flx-description">Source: {{source}}<br>Accuracy: {{accuracy}}m</span>
+                </div>
+            </div>
+            {{/facets}}
+        </div>
+    </div>
+</template>
 <template id="fluxtream_capture-location">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon fluxtream"></span>
@@ -605,4 +684,97 @@
             {{/facets}}
         </div>
     </div>
+</template>
+<template id="foursquare-venue">
+    <div id="foursquare-venue-{{foursquareId}}">
+        <div>{{name}}</div>
+    </div>
+</template>
+
+<template id="visitedCities-details">
+
+    <div id="visitedCitiesDialog" class="modal hide fade" style="width: 680px">
+
+        <div class="modal-header">
+            <a class="close" data-dismiss="modal">&times;</a>
+            <h3>Visited Cities</h3>
+        </div>
+
+        <div class="modal-body">
+
+            <div>{{{mainCityMessage}}}</div>
+
+            <div>{{{changeMainCityMessage}}}</div>
+            <span>Not seeing the right city? <a class="enabled" href="javascript:$('#addCityForm').show()">Add it here</a></span>
+            <br><br>
+            <form id="addCityForm" class="form-horizontal" style="display:none" action="javascript:void(0);">
+                <fieldset>
+                    <div class="control-group">
+                        <label class="control-label">City Name</label>
+                        <div class="controls">
+                            <input id="mainCityInput" type="text" class="input-xlarge span3">&nbsp;<a id="mainCitySearch" class="btn">Search</a>
+                            <br>
+                            <br>
+                            <select id="mainCitySelect" disabled class="input-xlarge">
+                                <option style="display: none;">Select a city</option>
+                            </select>&nbsp;&nbsp;&nbsp;<a id="selectMainCity" href="#" class="disabled">select</a>
+                        </div>
+                    </div>
+                </fieldset>
+            </form>
+            {{#guessed}}
+            <table class="table">
+                <tr>
+                    <th>City</th>
+                    <th>Time Zone</th>
+                    <th>Source</th>
+                    <th>When</th>
+                    <th>&nbsp;</th>
+                </tr>
+                {{#cities}}
+                <tr class="guessed">
+                    <td>{{#consensus}}<span class="icon-hand-right" style="width:32px"></span>{{/consensus}}{{description}}</td>
+                    <td>{{timezone}}</td>
+                    <td>{{source}}</td>
+                    <td>{{when}}</td>
+                    {{^consensus}}<td><a href="#" class="selectVisitedCity enabled" id="visitedCity-{{visitedCityId}}">select</a></td>{{/consensus}}
+                    {{#consensus}}<td>&nbsp;</td>{{/consensus}}
+                </tr>
+                {{/cities}}
+            </table>
+            {{/guessed}}
+            {{^guessed}}
+            <table class="table">
+                <tr>
+                    <th>City</th>
+                    <th>Time Zone</th>
+                    <th>From</th>
+                    <th>Until</th>
+                    <th>Count</th>
+                    <th>Source</th>
+                    <th>&nbsp;</th>
+                </tr>
+                {{#cities}}
+                <tr>
+                    <td>{{#consensus}}<span class="icon-hand-right" style="width:32px"></span>{{/consensus}} {{description}}</td>
+                    <td>{{timezone}}</td>
+                    <td>{{firstSeenHere}}</td>
+                    <td>{{lastSeenHere}}</td>
+                    <td>{{count}}</td>
+                    <td>{{source}}</td>
+                    {{#isUser}}<td><a href="#" class="selectVisitedCity enabled undo" id="visitedCity-{{visitedCityId}}">reset</a></td>{{/isUser}}
+                    {{^isUser}}
+                        {{^consensus}}<td><a href="#" class="selectVisitedCity enabled" id="visitedCity-{{visitedCityId}}">select</a></td>{{/consensus}}
+                        {{#consensus}}<td>&nbsp;</td>{{/consensus}}
+                    {{/isUser}}
+                </tr>
+                {{/cities}}
+            </table>
+            {{/guessed}}
+        </div>
+        <div class="modal-footer">
+            <a class="btn" data-dismiss="modal">Close</a>
+        </div>
+    </div>
+
 </template>

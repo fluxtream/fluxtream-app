@@ -92,7 +92,10 @@ public interface ApiDataService {
 
     public void persistExistingFacet(final AbstractFacet facet);
 
-    @Transactional(readOnly = false)
+    // addGuestLocation(s) persists the location or list of locations and adds them to the visited cities
+    // table.  The persistence does duplicate detection by checking for locations matching the time, source,
+    // and apiKeyId.  In the case of a duplicate the new locationFacet is not persisted.
+    void addGuestLocation(long guestId, LocationFacet locationResource);
     void addGuestLocations(long guestId, List<LocationFacet> locationResources);
 
     void deleteStaleData() throws ClassNotFoundException;
@@ -140,8 +143,5 @@ public interface ApiDataService {
 	public void cacheEmptyData(UpdateInfo updateInfo, long fromMidnight,
 			long toMidnight);
 
-    void addGuestLocation(long guestId, LocationFacet locationResource);
-
-    void processLocation(LocationFacet locationResource);
 
 }

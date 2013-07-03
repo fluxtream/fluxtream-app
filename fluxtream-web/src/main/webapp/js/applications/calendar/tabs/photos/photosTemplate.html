@@ -33,7 +33,7 @@ top: 50px">
 <template id="thumbnailGroup">
     <hr>
     <div>
-        {{date}}
+        <div style="margin-bottom:15px"><a href="javascript:App.activeApp.renderState('{{state}}');">{{date}}, {{city}} ({{timezone}})</a></div>
     </div>
     <div class='thumbnailGroup'>
         {{#photos}}

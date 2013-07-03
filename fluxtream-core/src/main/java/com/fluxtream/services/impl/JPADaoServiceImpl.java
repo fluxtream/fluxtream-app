@@ -96,6 +96,13 @@ public class JPADaoServiceImpl implements JPADaoService {
         return (Long) singleResult;
 	}
 
+    @Override
+    public long executeCount(String queryString) {
+        Query countQuery = em.createQuery(queryString);
+        Object singleResult = countQuery.getSingleResult();
+        return (Long) singleResult;
+    }
+
 	@Override
 	@Transactional(readOnly=false)
 	public void persist(Object o) {

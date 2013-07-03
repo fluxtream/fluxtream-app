@@ -25,4 +25,9 @@ public class TimeOfDayVO {
         }
     }
 
+    public static void main(final String[] args) {
+        TimeOfDayVO o = new TimeOfDayVO(950, true);
+        System.out.println(o);
+    }
+
 }

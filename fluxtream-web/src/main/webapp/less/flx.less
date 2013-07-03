@@ -876,3 +876,19 @@ table .remove { text-align:center;
 #coachesDropdown {
   float: left;
 }
+
+a.disabled {
+  pointer-events: none;
+  cursor: default;
+  color: @grey;
+}
+
+a.enabled {
+  pointer-events: auto;
+  cursor: hand;
+  color: @link-blue;
+}
+
+.guessed {
+  font-style: italic;
+}
