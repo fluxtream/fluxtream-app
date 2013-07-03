@@ -3,7 +3,8 @@ define([], function() {
         getConfig : function(){
               return {
                   flatAccuracyCutoff:200,
-                  stdAccuracyCutoff:1
+                  stdAccuracyCutoff:1,
+                  maxTimeBetweenGPSPoints: 3600000 //one hour
               };
         }
     };

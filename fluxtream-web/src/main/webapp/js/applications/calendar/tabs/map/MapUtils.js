@@ -26,6 +26,30 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         var currentLinePoints = [];
         var lastSectionEnd = 0;
         var currentType = null;
+        var lastPointTime = null;
+
+        function endLineSection(disjoint){
+            var colorToUse = currentType == null ? config.color : config[currentType + "Color"];
+            if (disjoint){
+                currentLinePoints.splice(currentLinePoints.length - 1, 1);
+            }
+            var newEnd = lastSectionEnd = newGPSDataSet.gpsPositions.length - (disjoint ? 2 : 1);
+            newGPSDataSet.gpsLines.push({
+                line: new google.maps.Polyline({
+                    map:map,
+                    path:currentLinePoints,
+                    clickable:false,
+                    strokeColor: colorToUse}),
+                highlight:null,
+                color: colorToUse,
+                start: lastSectionEnd,
+                end: newEnd
+            });
+
+            lastSectionEnd = newEnd;
+            currentLinePoints = [newGPSDataSet.gpsPositions[newGPSDataSet.gpsPositions.length - 1]];
+        }
+
         for (var i = 0; i < gpsData.length; i++){
             var lat = gpsData[i].position[0];
             var lng = gpsData[i].position[1];
@@ -51,43 +75,40 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 maxLng = bounds.getNorthEast().lng();
             } catch (e) {}
 
+            var doEndLine = false;
+            var disjointSplit = false;
+
+            if (lastPointTime != null && gpsData[i].start - lastPointTime > Config.getConfig().maxTimeBetweenGPSPoints){
+                doEndLine = true;
+                disjointSplit = true;
+            }
+
+            var newType = currentType;
+
+
+
             currentLinePoints.push(newPoint);
             if (gpsData[i].uri != null){
                 var parts = gpsData[i].uri.split("/");
                 if (parts.length == 2){
-                    if (currentType != parts[0]){
+                    var newType = parts[0];
+                    if (currentType != newType){
                         if (currentType != null){
-                            newGPSDataSet.gpsLines.push({
-                                line: new google.maps.Polyline({
-                                    map:map,
-                                    path:currentLinePoints,
-                                    clickable:false,
-                                    strokeColor: config[currentType + "Color"]}),
-                                highlight:null,
-                                color: config[currentType + "Color"],
-                                start: lastSectionEnd,
-                                end: newGPSDataSet.gpsPositions.length - 1
-                            });
-                            lastSectionEnd = newGPSDataSet.gpsPositions.length - 1;
-                            currentLinePoints = [newPoint];
+                            doEndLine = true;
                         }
-                        currentType = parts[0];
                     }
                 }
             }
+
+            if (doEndLine)
+                endLineSection(disjointSplit);
+
+            lastPointTime = gpsData[i].start;
+            currentType = newType;
         }
-        var colorToUse = currentType == null ? config.color : config[currentType + "Color"];
-        newGPSDataSet.gpsLines.push({
-            line: new google.maps.Polyline({
-                map:map,
-                path:currentLinePoints,
-                clickable:false,
-                strokeColor: colorToUse}),
-            highlight:null,
-            color: colorToUse,
-            start: lastSectionEnd,
-            end: newGPSDataSet.gpsPositions.length - 1
-        });
+
+        endLineSection();
+
         addToGPSBounds(map, new google.maps.LatLng(minLat,minLng));
         addToGPSBounds(map, new google.maps.LatLng(maxLat,maxLng));
 
