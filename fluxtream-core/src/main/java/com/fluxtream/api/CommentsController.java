@@ -28,6 +28,13 @@ public class CommentsController {
     @Autowired
     ApiDataService apiDataService;
 
+    /**
+     * Set a facet's comment field
+     * @param facetType the facet's type as formatted in the digest, i.e. connector name + (optional) "-" + object type name
+     * @param facetId the id in the facet table
+     * @param comment the text to set the facet's comment to
+     * @return
+     */
     @POST
     @Path("/{facetType}/{facetId}")
     @Produces({MediaType.APPLICATION_JSON})
@@ -51,6 +58,12 @@ public class CommentsController {
         return new StatusModel(true, "Comment was set");
     }
 
+    /**
+     * Set a facet's comment field to null
+     * @param facetType the facet's type as formatted in the digest, i.e. connector name + (optional) "-" + object type name
+     * @param facetId the id in the facet table
+     * @return
+     */
     @DELETE
     @Path("/{facetType}/{facetId}")
     @Produces({MediaType.APPLICATION_JSON})
