@@ -752,7 +752,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         var target = $(evt.target);
         var facetDetails = target.parent().parent();
         if (facetDetails.find(".facet-comment").length > 0){
-            console.log("comment already opened");
+            facetDetails.find(".cancel").click();
             return;
         }
         var id = target.parent().attr("id");
