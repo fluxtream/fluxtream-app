@@ -1,4 +1,4 @@
-define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils", "applications/calendar/App"], function(Tab, PhotoUtils, Calendar) {
+define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Tab, PhotoUtils) {
 
     var listTab = new Tab("calendar", "list", "Candide Kemmler", "icon-list", true);
 
@@ -9,11 +9,12 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils", "application
     function render(params) {
         setTabParam = params.setTabParam;
         this.getTemplate("text!applications/calendar/tabs/list/list.html", "list", function() {
-            if (lastTimestamp == params.digest.generationTimestamp && !params.forceReload){
+            //TODO: implement comment refreshing algorithm so the entire list tab doesn't have to be refreshed every time
+           /* if (lastTimestamp == params.digest.generationTimestamp && !params.forceReload){        //disabled for now to force refreshing of comments
                 params.doneLoading();
                 return;
             }
-            else
+            else   */
                 lastTimestamp = params.digest.generationTimestamp;
             setup(params.digest,params.connectorEnabled,0,params.doneLoading);
         });
@@ -27,6 +28,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils", "application
     var currentPage = 0;
     var photoCarouselHTML;
     var timeZoneOffset;
+    var dgst;
 
     var templates;
 
@@ -34,6 +36,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils", "application
 
     function setup(digest,connectorEnabled,page,doneLoading){
         App.loadAllMustacheTemplates("applications/calendar/tabs/list/listTemplates.html",function(listTemplates){
+            dgst = digest;
             templates = listTemplates;
             timeZoneOffset = digest.timeZoneOffset;
             list = $("#list");
@@ -231,7 +234,10 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils", "application
             $(".calendar-map-tab").click();
             return false;
         });
-        $(".facet-edit a").click(Calendar.commentEdit);
+        $(".facet-edit a").click(function(event){
+            event.digest = dgst;
+            App.apps.calendar.commentEdit(event);
+        });
     }
 
     function paginationClickCallback(event){

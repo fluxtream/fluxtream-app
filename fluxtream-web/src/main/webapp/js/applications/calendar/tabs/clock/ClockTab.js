@@ -465,7 +465,10 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 
             var commentEdit =  ttpdiv.find(".facet-edit a");
 
-            commentEdit.click(App.apps.calendar.commentEdit);
+            commentEdit.click(function(event){
+                event.digest = dgst;
+                App.apps.calendar.commentEdit(event);
+            });
             commentEdit.css("display","none");
             ttpdiv.find("#tooltipEditComment").click(function(){
                 event.preventDefault();

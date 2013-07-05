@@ -367,6 +367,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             event.updateHTML = function(html){
                 updateFacetDetailsHTML(map,html);
             }
+            event.digest = map.digest;
             App.apps.calendar.commentEdit(event);
         });
         map.infoWindow.setContent(details[0]);
@@ -785,19 +786,20 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     return {
         isDisplayable: isDisplayable,
         filterGPSData: filterGPSData,
-        newMap: function(center,zoom,divId,hideControls,mapTypeId ){ //creates and returns a google map with extended functionality
+        newMap: function(center,zoom,divId,hideControls,digest){ //creates and returns a google map with extended functionality
             var options = {
                 zoom : zoom,
                 center: center,
                 scrollwheel : true,
                 streetViewControl : false,
-                mapTypeId : mapTypeId != null ? mapTypeId : google.maps.MapTypeId.ROADMAP
+                mapTypeId : google.maps.MapTypeId.ROADMAP
             };
             if (hideControls){
                 options.disableDefaultUI = true;
             }
             var map = new google.maps.Map(document.getElementById(divId),options);
-            map.reset = function(){
+            map.reset = function(digest){
+                map.digest = digest;
                 if (map.infoWindow == null){//brand new map, initialize
                     map.infoWindow = new google.maps.InfoWindow();
                     google.maps.event.addListener(map.infoWindow,"closeclick",function(){
@@ -834,7 +836,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
 
             }
 
-            map.reset();
+            map.reset(digest);
 
 
             map.addGPSData = function(gpsData,config,clickable){addGPSData(map,gpsData, config,clickable)};

@@ -559,6 +559,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 }
             }
         }
+        console.log(params);
         return digest.detailsTemplates[data.type].render(params);
     }
 
@@ -754,12 +755,22 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             console.log("comment already opened");
             return;
         }
-        var hasComment = facetDetails.find(".facet-comment-text").length>0;
-        var commentText;
+        var id = target.parent().attr("id");
+        var facetType = id.split("::")[0];
+        var facetId = id.split("::")[1];
+        var facet = {};
+        var cachedData = evt.digest.cachedData[facetType];
+        for (var i = 0, li = cachedData.length; i < li; i++){
+            if (cachedData[i].id == facetId){
+                facet = cachedData[i];
+                break;
+            }
+        }
+
+        var hasComment = facet.comment != null;
         if (hasComment) {
-            commentText = facetDetails.find(".facet-comment-text").html();
             facetDetails.find(".facet-comment-text").remove();
-            console.log("commentText: " + commentText);
+            console.log("commentText: " + facet.comment);
         }
         var commentDiv =     '<div class="facet-comment" style="margin-bottom:5px">'+
                              '<textarea placeholder="type a comment..." rows="3"></textarea>' +
@@ -767,13 +778,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                              '<button class="btn btn-small cancel disabled" type="button"><i class="icon icon-undo"/> Cancel</button>&nbsp;' +
                              '<button class="btn btn-link delete" type="button"><i class="icon icon-trash"/> Delete</button>' +
                              '</div>';
-        var id = target.parent().attr("id");
         facetDetails.append(commentDiv);
-        var facetType = id.split("::")[0];
-        var facetId = id.split("::")[1];
         var textarea = facetDetails.find("textarea");
         if (hasComment) {
-            textarea.val(commentText);
+            textarea.val(facet.comment);
         }
         var cancelButton = facetDetails.find(".cancel");
         var saveButton = facetDetails.find(".save");
@@ -796,8 +804,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 data: {comment: textarea.val()},
                 type: "POST",
                 success: function() {
-                    var commentText = textarea.val();
-                    facetDetails.find(".facet-comment").replaceWith('<div class="facet-comment-text">' + commentText + '</div>');
+                    facet.comment = textarea.val();
+                    facetDetails.find(".facet-comment").replaceWith('<div class="facet-comment-text">' + facet.comment + '</div>');
                     evt.updateHTML(facetDetails.parent().parent()[0]);
                 }
             });
@@ -816,6 +824,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 success: function() {
                     facetDetails.find(".facet-comment").remove();
                     evt.updateHTML(facetDetails.parent().parent()[0]);
+                    delete facet.comment;
                 }
             });
         });

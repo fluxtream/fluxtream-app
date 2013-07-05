@@ -54,7 +54,7 @@ define(["core/Tab",
             addressToUse = digest.addresses.ADDRESS_HOME[0];
 
         if (map == null){//make new map
-            map = MapUtils.newMap(new google.maps.LatLng(addressToUse.latitude,addressToUse.longitude),16,"the_map",false);
+            map = MapUtils.newMap(new google.maps.LatLng(addressToUse.latitude,addressToUse.longitude),16,"the_map",false,digest);
             map.infoWindowShown = function(){
                 $("#the_map").find(".flx-photo").click(function(event){
                     App.makeModal(photoCarouselHTML);
@@ -66,7 +66,7 @@ define(["core/Tab",
             if (map.isPreserveViewChecked()){
                 bounds = map.getBounds();
             }
-            map.reset();
+            map.reset(digest);
         }
         $("#mapFit").click(function(){
             map.fitBounds(map.gpsBounds);
