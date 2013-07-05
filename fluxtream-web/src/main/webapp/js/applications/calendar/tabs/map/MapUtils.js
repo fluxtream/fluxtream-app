@@ -345,11 +345,10 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             if (map.selectedMarker != null)
                 map.selectedMarker.hideCircle();
             map.selectedMarker = marker;
-            var details = $(item.getDetails(true));
-            details.find(".mapLink").remove();
-            details.css("width","300px");
-            map.infoWindow.setContent(details[0]);
+            updateFacetDetailsHTML(map,item.getDetails(true));
             map.infoWindow.open(map,marker);
+
+
             marker.doHighlighting();
             marker.showCircle();
             if (map.infoWindowShown != null){
@@ -357,6 +356,20 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             }
         });
 
+    }
+
+    function updateFacetDetailsHTML(map,html){
+        var details = $(html);
+        details.find(".mapLink").remove();
+        details.css("width","300px");
+        details.find(".facet-edit").unbind("click");
+        details.find(".facet-edit").click(function(event){
+            event.updateHTML = function(html){
+                updateFacetDetailsHTML(map,html);
+            }
+            App.apps.calendar.commentEdit(event);
+        });
+        map.infoWindow.setContent(details[0]);
     }
 
     function enhanceMarkerWithItem(map,marker,item){

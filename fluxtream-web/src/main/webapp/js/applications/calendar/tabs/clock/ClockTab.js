@@ -304,10 +304,10 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         var contents = facet.getDetails();
 
         showToolTip(tip_x,tip_y,offsetX,offsetY,contents,event.minuteOfDay,$(event.target).attr("stroke"),$(event.target).parent().parent(),
-                    markers[0] == null ? null : markers[0].getPosition(),App.getFacetConfig(facet.type).device_name,App.getFacetConfig(facet.type).channel_name,facet);
+                    markers[0] == null ? null : markers[0].getPosition(),App.getFacetConfig(facet.type).device_name,App.getFacetConfig(facet.type).channel_name,facet,false);
 	}
 
-    function showToolTip(x,y, offX, offY,contents,minute,color,parent,gpsPos,sourceName, channelName,facet){
+    function showToolTip(x,y, offX, offY,contents,minute,color,parent,gpsPos,sourceName, channelName,facet,locationInfo){
         var weatherInfo = getWeatherData(minute);
         var weatherIcon;
         if (solarInfo != null && (minute < solarInfo.sunrise || minute > solarInfo.sunset)){//night
@@ -352,7 +352,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                 time: App.formatMinuteOfDay(minute)[0],
                 ampm: App.formatMinuteOfDay(minute)[1],
                 tooltipData:contents,
-                showBodyTrackLinks: sourceName != null
+                showBodyTrackLinks: sourceName != null,
+                showCommentEdit: locationInfo != null
             }));
             console.log(gpsPos)
             ttpdiv.css("position","absolute");
@@ -461,6 +462,15 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                     tbounds: dgst.tbounds
                 });
             });
+
+            var commentEdit =  ttpdiv.find(".facet-edit a");
+
+            commentEdit.click(App.apps.calendar.commentEdit);
+            commentEdit.css("display","none");
+            ttpdiv.find("#tooltipEditComment").click(function(){
+                event.preventDefault();
+                commentEdit.click();
+            });
        });
 
     }
@@ -497,7 +507,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                 map.zoomOnTimespan(span.item.start,span.item.end);
         }
         showToolTip(tip_x,tip_y,offsetX,offsetY,span.item.address == null ? "You were out" : "You were at " + span.item.address.address,event.minuteOfDay,$(event.target).attr("stroke"),$(event.target).parent().parent(),
-                    markers[0] == null ? null : markers[0].getPosition());
+                    markers[0] == null ? null : markers[0].getPosition(),null,true);
     }
 	
 	function hideEventInfo() {

@@ -745,8 +745,15 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     }
 
     Calendar.commentEdit = function(evt) {
+        if (evt.updateHTML == null){
+            evt.updateHTML = function(){};
+        }
         var target = $(evt.target);
         var facetDetails = target.parent().parent();
+        if (facetDetails.find(".facet-comment").length > 0){
+            console.log("comment already opened");
+            return;
+        }
         var hasComment = facetDetails.find(".facet-comment-text").length>0;
         var commentText;
         if (hasComment) {
@@ -782,7 +789,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 saveButton.removeClass("disabled");
             }
         });
-        saveButton.click(function() {
+        saveButton.click(function(event) {
+            event.stopPropagation();
             $.ajax({
                 url: "/api/comments/" + facetType + "/" + facetId,
                 data: {comment: textarea.val()},
@@ -790,22 +798,28 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 success: function() {
                     var commentText = textarea.val();
                     facetDetails.find(".facet-comment").replaceWith('<div class="facet-comment-text">' + commentText + '</div>');
+                    evt.updateHTML(facetDetails.parent().parent()[0]);
                 }
             });
         });
-        cancelButton.click(function() {
+        cancelButton.click(function(event) {
+            event.stopPropagation();
             facetDetails.find(".facet-comment").replaceWith('<div class="facet-comment-text">' + originalComment + '</div>');
+            evt.updateHTML(facetDetails.parent().parent()[0]);
         });
-        deleteButton.click(function() {
+        deleteButton.click(function(event) {
+            event.stopPropagation();
             $.ajax({
                 url: "/api/comments/" + facetType + "/" + facetId,
                 data: {comment: textarea.val()},
                 type: "DELETE",
                 success: function() {
                     facetDetails.find(".facet-comment").remove();
+                    evt.updateHTML(facetDetails.parent().parent()[0]);
                 }
             });
         });
+        evt.updateHTML(facetDetails.parent().parent()[0]);
     };
 
 	return Calendar;
