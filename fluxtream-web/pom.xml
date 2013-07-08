@@ -18,45 +18,38 @@
 		</resources>
         <plugins>
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>1.2.1</version>
+                <groupId>com.github.mcheely</groupId>
+                <artifactId>requirejs-maven-plugin</artifactId>
+                <version>2.0.0</version>
                 <executions>
                     <execution>
-                        <id>js</id>
-                        <goals><goal>exec</goal></goals>
-                        <configuration>
-                            <executable>java</executable>
-                            <arguments>
-                                <argument>-Xss10m</argument>
-                                <argument>-classpath</argument>
-                                <!--argument>${project.build.directory}/dependency/requirejs/build/lib/rhino/js.jar${path.separator}${project.build.directory}/dependency/requirejs/build/lib/closure/compiler.jar</argument -->
-                                <argument>${basedir}${file.separator}lib${file.separator}js.jar</argument>
-                                <argument>org.mozilla.javascript.tools.shell.Main</argument>
-                                <argument>r.js</argument>
-                                <argument>-o</argument>
-                                <argument>baseUrl=src/main/webapp/js/</argument>
-                                <argument>name=main</argument>
-                                <argument>out=${project.build.directory}/ROOT/js/main.js</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <phase>generate-resources</phase>
                         <goals>
-                            <goal>exec</goal>
+                            <goal>optimize</goal>
                         </goals>
-                        <configuration>
-                            <executable>java</executable>
-                            <arguments>
-                                <argument>-classpath</argument>
-                                <argument>${basedir}/../fluxtream-core/target/classes:${basedir}/lib/commons-io-2.0.1.jar</argument>
-                                <argument>com.fluxtream.maven.GetLastGitCommit</argument>
-                                <argument>${release}</argument>
-                            </arguments>
-                        </configuration>
                     </execution>
                 </executions>
+                <configuration>
+                    <!-- path to optimizer json config file -->
+                    <configFile>
+                        ${basedir}/src/main/app.build.js
+                    </configFile>
+                    <!-- optional path to optimizer executable -->
+                         <optimizerFile>
+                             ${basedir}/src/main/r.js
+                         </optimizerFile>
+                    <!--
+                    Whether or not to process configFile with maven filters.
+                    If you use this option, some options in your configFile
+                    must resolve to absolute paths (see below)
+                    -->
+                    <filterConfig>
+                        true
+                    </filterConfig>
+                    <!-- Skip requirejs optimization if true -->
+                    <skip>
+                        false
+                    </skip>
+                </configuration>
             </plugin>
         </plugins>
 		<finalName>ROOT</finalName>

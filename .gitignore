@@ -45,3 +45,4 @@ node_modules
 
 .idea/
 fluxtream-web/src/main/resources/*.local
+fluxtream-web/src/main/webapp/optimized
