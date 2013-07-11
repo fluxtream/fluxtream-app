@@ -30,6 +30,7 @@ public class VisitedCityModel {
     public long visitedCityId;
     int startMinute, endMinute;
     String date;
+    String dateWithTimezone;
     String startTime, endTime;
     long dayStart, dayEnd;
     long count;
@@ -86,6 +87,8 @@ public class VisitedCityModel {
         tzOffset = tz.getOffset(dayStart);
         this.latitude = city.geo_latitude;
         this.longitude = city.geo_longitude;
+
+        this.dateWithTimezone = this.date + " " + this.shortTimezone;
     }
 
 }

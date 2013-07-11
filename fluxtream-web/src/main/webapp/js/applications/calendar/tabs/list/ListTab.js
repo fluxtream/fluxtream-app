@@ -157,10 +157,10 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
                         continue;
                     if (currentArray.length == 0){
                         currentArray = [item.facet];
-                        currentDate = facetCity.date;
+                        currentDate = facetCity.dateWithTimezone;
                         currentCity = facetCity;
                     }
-                    else if (currentArray[0].shouldGroup(item.facet) && facetCity.date == currentDate)
+                    else if (currentArray[0].shouldGroup(item.facet) && facetCity.dateWithTimezone == currentDate)
                         currentArray[currentArray.length] = item.facet;
                     else {
                         if (currentDate != prevDate) {
@@ -169,7 +169,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
                         }
                         list.append(templates.item.render({item:currentArray[0].getDetails(currentArray)}));
                         currentArray = [item.facet];
-                        currentDate = facetCity.date;
+                        currentDate = facetCity.dateWithTimezone;
                         currentCity = facetCity;
                     }
                }
