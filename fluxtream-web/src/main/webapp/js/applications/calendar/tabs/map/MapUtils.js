@@ -2,6 +2,35 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     var config = Config.getConfig();
     google.maps.visualRefresh = true;
 
+    function getSplittingStrategy(splittingStrategyDesc){
+        var strategyName = splittingStrategyDesc.substring(0,splittingStrategyDesc.indexOf("("));
+        var params = splittingStrategyDesc.substring(splittingStrategyDesc.indexOf("(") + 1,splittingStrategyDesc.lastIndexOf(")")).split(",");
+        for (var i = 0; i < params.length; i++){
+            if (params[i] === ""){
+                params.splice(i--,1);
+            }
+        }
+
+        switch (strategyName){
+            case "flatCutoff":
+            {
+                var cutoff = parseFloat(params[0]);
+                return function(prevFacet,currentFacet){
+                    return prevFacet != null && currentFacet.start - prevFacet.start > cutoff;
+                }
+            }
+            case "uriEquality":
+            {
+                return function(prevFacet,currentFacet){
+                    return prevFacet != null && prevFacet.uri !== currentFacet.uri;
+                }
+            }
+            default:
+                return function(){return false;};
+        }
+    }
+
+
     function addGPSData(map,gpsData, config, clickable){
         if (!(config.map && config.gps))
             return;
@@ -26,6 +55,31 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         var currentLinePoints = [];
         var lastSectionEnd = 0;
         var currentType = null;
+
+        var splittingStrategy = getSplittingStrategy(config.gpsSplittingStrategy);
+
+        function endLineSection(disjoint){
+            var colorToUse = currentType == null ? config.color : config[currentType + "Color"];
+            if (disjoint){
+                currentLinePoints.splice(currentLinePoints.length - 1, 1);
+            }
+            var newEnd = lastSectionEnd = newGPSDataSet.gpsPositions.length - (disjoint ? 2 : 1);
+            newGPSDataSet.gpsLines.push({
+                line: new google.maps.Polyline({
+                    map:map,
+                    path:currentLinePoints,
+                    clickable:false,
+                    strokeColor: colorToUse}),
+                highlight:null,
+                color: colorToUse,
+                start: lastSectionEnd,
+                end: newEnd
+            });
+
+            lastSectionEnd = newEnd;
+            currentLinePoints = [newGPSDataSet.gpsPositions[newGPSDataSet.gpsPositions.length - 1]];
+        }
+
         for (var i = 0; i < gpsData.length; i++){
             var lat = gpsData[i].position[0];
             var lng = gpsData[i].position[1];
@@ -51,43 +105,39 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                     maxLng = bounds.getNorthEast().lng();
             } catch (e) {}
 
+            var doEndLine = false;
+            var disjointSplit = false;
+
+            var newType = currentType;
+
+
+
             currentLinePoints.push(newPoint);
             if (gpsData[i].uri != null){
                 var parts = gpsData[i].uri.split("/");
                 if (parts.length == 2){
-                    if (currentType != parts[0]){
+                    var newType = parts[0];
+                    if (currentType != newType){
                         if (currentType != null){
-                            newGPSDataSet.gpsLines.push({
-                                line: new google.maps.Polyline({
-                                    map:map,
-                                    path:currentLinePoints,
-                                    clickable:false,
-                                    strokeColor: config[currentType + "Color"]}),
-                                highlight:null,
-                                color: config[currentType + "Color"],
-                                start: lastSectionEnd,
-                                end: newGPSDataSet.gpsPositions.length - 1
-                            });
-                            lastSectionEnd = newGPSDataSet.gpsPositions.length - 1;
-                            currentLinePoints = [newPoint];
+                            doEndLine = true;
                         }
-                        currentType = parts[0];
                     }
                 }
             }
+
+            if (splittingStrategy(gpsData[i-1],gpsData[i])){
+                doEndLine = true;
+                disjointSplit = true;
+            }
+
+            if (doEndLine)
+                endLineSection(disjointSplit);
+
+            currentType = newType;
         }
-        var colorToUse = currentType == null ? config.color : config[currentType + "Color"];
-        newGPSDataSet.gpsLines.push({
-            line: new google.maps.Polyline({
-                map:map,
-                path:currentLinePoints,
-                clickable:false,
-                strokeColor: colorToUse}),
-            highlight:null,
-            color: colorToUse,
-            start: lastSectionEnd,
-            end: newGPSDataSet.gpsPositions.length - 1
-        });
+
+        endLineSection();
+
         addToGPSBounds(map, new google.maps.LatLng(minLat,minLng));
         addToGPSBounds(map, new google.maps.LatLng(maxLat,maxLng));
         refreshMarkerPosition(map);
@@ -169,17 +219,6 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                     newDataSet.splice(max,0,gpsData[i]);
                 }
             }
-            /*var j = 0;
-             for (j = 0; j < newDataSet.length && newDataSet[j].start < gpsData[i].start; j++);
-             if (j < newDataSet.length){
-             for (var k = newDataSet.length; k > j; k--){
-             newDataSet[k] = newDataSet[k-1];
-             }
-             newDataSet[j] = gpsData[i];
-             }
-             else{
-             newDataSet.push(gpsData[i]);
-             }   */
 
         }
         return newDataSet;

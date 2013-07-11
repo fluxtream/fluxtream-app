@@ -8,6 +8,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
             color: "",
             mapicon: "http://maps.google.com/mapfiles/marker.png",
             mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
+            gpsSplittingStrategy: "flatCutoff(3600000)",
             facets: {}
         },
         fitbit:{
@@ -135,6 +136,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                     photos: false,
                     map: true,
                     gps: true,
+                    gpsSplittingStrategy: "uriEquality()",
                     clock: true //just has to be nonnull, gps data has special treatment
                 }
             }
@@ -408,6 +410,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                     photos: false,
                     map: true,
                     gps: true,
+                    gpsSplittingStrategy: "uriEquality()",
                     clock: true //just has to be nonnull, gps data has special treatment
                 },
                 "move-activity":{
