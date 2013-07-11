@@ -322,6 +322,8 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     function getPointForTimeOnLine(map,gpsData,time,allowNull){
+        if (gpsData == null)
+            gpsData = map.primaryGPSData;
         return getPointForItemOnLine(map,gpsData,{start:time},allowNull);
     }
 
@@ -545,8 +547,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         }
 
         marker.time = time;
-        var config = App.getFacetConfig(marker.item.type);
-        marker.config = config;
+        marker.config = marker.item != null ? App.getFacetConfig(marker.item.type) : {};
 
         //add to marker list in order
 
