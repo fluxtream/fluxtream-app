@@ -991,63 +991,53 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
      */
 
     function createTimelineControls(map,maxBounds){
-        var control = $('<div class="timeControlContainer"><div id="mapDateAxis" class="timeAxis"></div><div class="flx-channel-navigation map-date-nav" style="text-align:center">' +
-                        '<div class="btn-toolbar">' +
-                        '<div class="btn-group">' +
-                        '<a id="map_zoomIn_button" href="#" class="btn"> <i class="icon-zoom-in"></i> </a>' +
-                        '<a id="map_zoomOut_button" href="#" class="btn"> <i class="icon-zoom-out"></i> </a>' +
-                        '</div>' +
-                        '<div class="btn-group">' +
-                        '<a id="map_gotoBeginning_button" href="#" class="btn"> <i class="icon-fast-backward"></i> </a>' +
-                        '<a id="map_gotoBack_button" href="#" class="btn"> <i class="icon-step-backward"></i> </a>' +
-                        '<a id="map_gotoForward_button" href="#" class="btn"> <i class="icon-step-forward"></i> </a>' +
-                        '<a id="map_gotoEnd_button" href="#" class="btn"> <i class="icon-fast-forward"></i> </a>' +
-                        '</div>' +
-                        '</div>' +
-                        '</div></div>');
-        map.controls[google.maps.ControlPosition.TOP].push(control[0]);
+        App.loadMustacheTemplate("applications/calendar/tabs/map/mapTemplates.html","timeControls",function(template){
+            var control = $(template.render());
+            map.controls[google.maps.ControlPosition.TOP].push(control[0]);
 
-        map.setMaxTimeBounds(maxBounds);
+            map.setMaxTimeBounds(maxBounds);
 
-        createDateAxis(map,"mapDateAxis");
+            createDateAxis(map,"mapDateAxis");
 
-        control.find("#map_zoomIn_button").click(function(event){
-            var zoom = map.dateAxis.getMax() - map.dateAxis.getMin();
-            var zoomChange = ((zoom / 1.4) - zoom) / 2;
-            map.dateAxis.setRange(map.dateAxis.getMin() - zoomChange, map.dateAxis.getMax() + zoomChange);
-            event.preventDefault();
-        });
-        control.find("#map_zoomOut_button").click(function(event){
-            var zoom = map.dateAxis.getMax() - map.dateAxis.getMin();
-            var zoomChange = ((zoom * 1.4) - zoom) / 2;
-            map.dateAxis.setRange(map.dateAxis.getMin() - zoomChange, map.dateAxis.getMax() + zoomChange);
-            event.preventDefault();
-        });
-        control.find("#map_gotoBeginning_button").click(function(event){
-            var panAmount = map.maxBounds.min - map.dateAxis.getMin();
-            map.dateAxis.setRange(map.dateAxis.getMin() + panAmount, map.dateAxis.getMax() + panAmount);
-            event.preventDefault();
-        });
-        control.find("#map_gotoBack_button").click(function(event){
-            var panAmount = map.dateAxis.getMin() - map.dateAxis.getMax();
-            var maxPanAmount = map.maxBounds.min - map.dateAxis.getMin();
-            if (panAmount < maxPanAmount)
-                panAmount = maxPanAmount;
-            map.dateAxis.setRange(map.dateAxis.getMin() + panAmount, map.dateAxis.getMax() + panAmount);
-            event.preventDefault();
-        });
-        control.find("#map_gotoForward_button").click(function(event){
-            var panAmount = map.dateAxis.getMax() - map.dateAxis.getMin();
-            var maxPanAmount = map.maxBounds.max - map.dateAxis.getMax();
-            if (panAmount > maxPanAmount)
-                panAmount = maxPanAmount;
-            map.dateAxis.setRange(map.dateAxis.getMin() + panAmount, map.dateAxis.getMax() + panAmount);
-            event.preventDefault();
-        });
-        control.find("#map_gotoEnd_button").click(function(event){
-            var panAmount = map.maxBounds.max - map.dateAxis.getMax();
-            map.dateAxis.setRange(map.dateAxis.getMin() + panAmount, map.dateAxis.getMax() + panAmount);
-            event.preventDefault();
+            control.find("#map_zoomIn_button").click(function(event){
+                var zoom = map.dateAxis.getMax() - map.dateAxis.getMin();
+                var zoomChange = ((zoom / 1.4) - zoom) / 2;
+                map.dateAxis.setRange(map.dateAxis.getMin() - zoomChange, map.dateAxis.getMax() + zoomChange);
+                event.preventDefault();
+            });
+            control.find("#map_zoomOut_button").click(function(event){
+                var zoom = map.dateAxis.getMax() - map.dateAxis.getMin();
+                var zoomChange = ((zoom * 1.4) - zoom) / 2;
+                map.dateAxis.setRange(map.dateAxis.getMin() - zoomChange, map.dateAxis.getMax() + zoomChange);
+                event.preventDefault();
+            });
+            control.find("#map_gotoBeginning_button").click(function(event){
+                var panAmount = map.maxBounds.min - map.dateAxis.getMin();
+                map.dateAxis.setRange(map.dateAxis.getMin() + panAmount, map.dateAxis.getMax() + panAmount);
+                event.preventDefault();
+            });
+            control.find("#map_gotoBack_button").click(function(event){
+                var panAmount = map.dateAxis.getMin() - map.dateAxis.getMax();
+                var maxPanAmount = map.maxBounds.min - map.dateAxis.getMin();
+                if (panAmount < maxPanAmount)
+                    panAmount = maxPanAmount;
+                map.dateAxis.setRange(map.dateAxis.getMin() + panAmount, map.dateAxis.getMax() + panAmount);
+                event.preventDefault();
+            });
+            control.find("#map_gotoForward_button").click(function(event){
+                var panAmount = map.dateAxis.getMax() - map.dateAxis.getMin();
+                var maxPanAmount = map.maxBounds.max - map.dateAxis.getMax();
+                if (panAmount > maxPanAmount)
+                    panAmount = maxPanAmount;
+                map.dateAxis.setRange(map.dateAxis.getMin() + panAmount, map.dateAxis.getMax() + panAmount);
+                event.preventDefault();
+            });
+            control.find("#map_gotoEnd_button").click(function(event){
+                var panAmount = map.maxBounds.max - map.dateAxis.getMax();
+                map.dateAxis.setRange(map.dateAxis.getMin() + panAmount, map.dateAxis.getMax() + panAmount);
+                event.preventDefault();
+            });
+
         });
 
 
