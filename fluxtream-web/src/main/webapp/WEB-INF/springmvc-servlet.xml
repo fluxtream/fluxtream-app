@@ -19,20 +19,20 @@
 		</property>
 	</bean>
 
-    <mvc:resources mapping="/${release}/js/**" location="/optimized/js/" cache-period="31556926" />
-    <mvc:resources mapping="/${release}/less/**" location="/optimized/less/" cache-period="31556926" />
-    <mvc:resources mapping="/${release}/css/**" location="/optimized/css/" cache-period="31556926" />
-    <mvc:resources mapping="/${release}/assets-home/**" location="/optimized/assets-home/" cache-period="31556926" />
-    <mvc:resources mapping="/css/**" location="/optimized/css/" cache-period="31556926" />
-    <mvc:resources mapping="/static/css/**" location="/optimized/static/css/" cache-period="31556926" />
-    <mvc:resources mapping="/static/font/**" location="/optimized/static/font/" cache-period="31556926" />
-    <mvc:resources mapping="/static/grapher4/**" location="/optimized/static/grapher4/" cache-period="31556926" />
-    <mvc:resources mapping="/static/jasmine/**" location="/optimized/static/jasmine/" cache-period="31556926" />
-    <mvc:resources mapping="/static/js/**" location="/optimized/static/js/" cache-period="31556926" />
-    <mvc:resources mapping="/static/tiny_mce-3.5b1/**" location="/optimized/static/tiny_mce-3.5b1/" cache-period="31556926" />
+    <mvc:resources mapping="/${release}/js/**" location="/js/" cache-period="31556926" />
+    <mvc:resources mapping="/${release}/less/**" location="/less/" cache-period="31556926" />
+    <mvc:resources mapping="/${release}/css/**" location="/css/" cache-period="31556926" />
+    <mvc:resources mapping="/${release}/assets-home/**" location="/assets-home/" cache-period="31556926" />
+    <mvc:resources mapping="/css/**" location="/css/" cache-period="31556926" />
+    <mvc:resources mapping="/static/css/**" location="/static/css/" cache-period="31556926" />
+    <mvc:resources mapping="/static/font/**" location="/static/font/" cache-period="31556926" />
+    <mvc:resources mapping="/static/grapher4/**" location="/static/grapher4/" cache-period="31556926" />
+    <mvc:resources mapping="/static/jasmine/**" location="/static/jasmine/" cache-period="31556926" />
+    <mvc:resources mapping="/static/js/**" location="/static/js/" cache-period="31556926" />
+    <mvc:resources mapping="/static/tiny_mce-3.5b1/**" location="/static/tiny_mce-3.5b1/" cache-period="31556926" />
 
-    <mvc:resources mapping="/widgets.json" location="/optimized/widgets/widgets.json" cache-period="31556926"/>
-    <mvc:resources mapping="/widgets/**" location="/optimized/widgets/" cache-period="31556926"/>
+    <mvc:resources mapping="/widgets.json" location="/widgets/widgets.json" cache-period="31556926"/>
+    <mvc:resources mapping="/widgets/**" location="/widgets/" cache-period="31556926"/>
 
 	<bean id="viewResolver"
 		class="org.springframework.web.servlet.view.UrlBasedViewResolver">
