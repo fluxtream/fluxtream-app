@@ -63,7 +63,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             if (disjoint){
                 currentLinePoints.splice(currentLinePoints.length - 1, 1);
             }
-            var newEnd = lastSectionEnd = newGPSDataSet.gpsPositions.length - (disjoint ? 2 : 1);
+            var newEnd = newGPSDataSet.gpsPositions.length - (disjoint ? 2 : 1);
             newGPSDataSet.gpsLines.push({
                 line: new google.maps.Polyline({
                     map:map,
