@@ -658,7 +658,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                     continue;
                 var startTime = startIndex <= gpsLine.start ? gpsDataSet.gpsTimestamps[gpsLine.start] : start;
                 var endTime = endIndex >= gpsLine.end ? gpsDataSet.gpsTimestamps[gpsLine.end] : end;
-                gpsLine.highlight = map.createPolyLineSegment(gpsDataSet, startTime, endTime, {strokeColor:gpsLine.color, zIndex: 99});
+                gpsLine.highlight = map.createPolyLineSegment(gpsDataSet, startTime, endTime, {map: gpsLine.line.getMap(), strokeColor:gpsLine.color, zIndex: 99});
             }
             gpsDataSet.oldHighlightSection = {start:start,end:end};
         }
@@ -765,7 +765,8 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     function createPolyLineSegment(map, gpsDataSet, start, end, options){
-        options.map = map;
+        if (typeof options.map === "undefined")
+            options.map = map;
         var newPoints = new Array();
         newPoints[0] = map.getLatLngOnGPSLine(start,gpsDataSet);
         if (newPoints[0] == null)
