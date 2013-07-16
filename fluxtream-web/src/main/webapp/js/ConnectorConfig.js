@@ -132,6 +132,8 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                 },
                 location:{
                     mapicon : new google.maps.MarkerImage("/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",null,null,new google.maps.Point(5,5),null),
+                    greymapicon : new google.maps.MarkerImage("/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",null,null,new google.maps.Point(5,5),null),
+                    highlightmapicon : new google.maps.MarkerImage("/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",null,null,new google.maps.Point(5,5),null),
                     list: false,
                     photos: false,
                     map: true,
@@ -185,7 +187,9 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
         },
         google_latitude:{
             color: "rgb(92, 174, 92)",
-            mapicon : new google.maps.MarkerImage("https://www.google.com/latitude/apps/static/red_measle.png",null,null,new google.maps.Point(5,5),null),
+            mapicon : new google.maps.MarkerImage("/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",null,null,new google.maps.Point(5,5),null),
+            greymapicon : new google.maps.MarkerImage("/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",null,null,new google.maps.Point(5,5),null),
+            highlightmapicon : new google.maps.MarkerImage("/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",null,null,new google.maps.Point(5,5),null),
             mapshadow: null,
             facets:{
                 location:{
@@ -299,7 +303,9 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
         },
         openpath:{
             color: "",
-            mapicon : new google.maps.MarkerImage("https://www.google.com/latitude/apps/static/red_measle.png",null,null,new google.maps.Point(5,5),null),
+            mapicon : new google.maps.MarkerImage("/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",null,null,new google.maps.Point(5,5),null),
+            greymapicon : new google.maps.MarkerImage("/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",null,null,new google.maps.Point(5,5),null),
+            highlightmapicon : new google.maps.MarkerImage("/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",null,null,new google.maps.Point(5,5),null),
             mapshadow: null,
             facets: {
                 location:{
@@ -377,6 +383,8 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                     map:true,
                     gps: true,
                     mapicon : new google.maps.MarkerImage("/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",null,null,new google.maps.Point(5,5),null),
+                    greymapicon : new google.maps.MarkerImage("/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",null,null,new google.maps.Point(5,5),null),
+                    highlightmapicon : new google.maps.MarkerImage("/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",null,null,new google.maps.Point(5,5),null),
                     mapshadow: null
                 }
             }
@@ -406,6 +414,8 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                     cycColor: "#68abef",
                     runColor: "#e674ec",
                     mapicon : new google.maps.MarkerImage("/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",null,null,new google.maps.Point(5,5),null),
+                    greymapicon : new google.maps.MarkerImage("/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",null,null,new google.maps.Point(5,5),null),
+                    highlightmapicon : new google.maps.MarkerImage("/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",null,null,new google.maps.Point(5,5),null),
                     list: false,
                     photos: false,
                     map: true,

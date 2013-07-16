@@ -418,7 +418,6 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                     shadow:itemConfig.mapshadow,
                     clickable:clickable
                 });
-                decorateMarker(marker, item);
                 marker.gpsData = gpsDataToUse;
                 map.enhanceMarkerWithItem(marker,item);
                 var bounds = marker.getBounds();
@@ -439,7 +438,6 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 shadow:itemConfig.mapshadow,
                 clickable:clickable
             });
-            decorateMarker(marker, item);
             map.enhanceMarkerWithItem(marker,item);
             var bounds = marker.getBounds();
             addToGPSBounds(map, bounds.getNorthEast());
@@ -449,17 +447,18 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     function decorateMarker(marker, item) {
-        if (item.type==="moves-place") {
+        if (item != null && item.type==="moves-place") {
             if (item.placeType==="foursquare") {
                 $.ajax({
                     url: "/api/metadata/foursquare/venue/" + item.foursquareId,
                     success: function(response) {
-                        var iconUrl = response.categoryIconUrlPrefix + "bg_32" + response.categoryIconUrlSuffix;
-                        marker.setIcon(iconUrl);
+                        marker.config.mapicon = response.categoryIconUrlPrefix + "bg_32" + response.categoryIconUrlSuffix;
+                        marker.setIcon(marker.config.mapicon);
                     }
                 });
             } else {
-                marker.setIcon("/images/moves/" + item.placeType + ".png");
+                marker.config.mapicon = "/images/moves/" + item.placeType + ".png";
+                marker.setIcon(marker.config.mapicon);
             }
         }
     }
@@ -586,7 +585,15 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         }
 
         marker.time = time;
-        marker.config = marker.item != null ? App.getFacetConfig(marker.item.type) : {};
+        var itemConfig = App.getFacetConfig(marker.item.type);
+        marker.config = marker.item != null ? {
+            mapicon: itemConfig.mapicon,
+            highlightmapicon: itemConfig.highlightmapicon,
+            greymapicon: itemConfig.greymapicon
+
+        } : {};
+
+        decorateMarker(marker, marker.item);
 
         //add to marker list in order
 
@@ -712,13 +719,13 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 marker.grey = !shouldBeHighlighted;
                 if (shouldBeHighlighted){
                     if (marker.highlight)
-                        marker.setIcon(marker.config.highlightmapicon == null ? "http://maps.google.com/mapfiles/marker.png" : config.highlightmapicon);
+                        marker.setIcon(marker.config.highlightmapicon == null ? "http://maps.google.com/mapfiles/marker.png" : marker.config.highlightmapicon);
                     else
                         marker.setIcon(marker.config.mapicon);
                 }
                 else{
                     if (!marker.highlight)
-                        marker.setIcon(marker.config.greymapicon == null ? emptyCircle : config.greymapicon);
+                        marker.setIcon(marker.config.greymapicon == null ? emptyCircle : marker.config.greymapicon);
                 }
             }
         }
@@ -730,13 +737,13 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 marker.grey = !shouldBeHighlighted;
                 if (shouldBeHighlighted){
                     if (marker.highlight)
-                        marker.setIcon(marker.config.highlightmapicon == null ? "http://maps.google.com/mapfiles/marker.png" : config.highlightmapicon);
+                        marker.setIcon(marker.config.highlightmapicon == null ? "http://maps.google.com/mapfiles/marker.png" : marker.config.highlightmapicon);
                     else
                         marker.setIcon(marker.config.mapicon);
                 }
                 else{
                     if (!marker.highlight)
-                        marker.setIcon(marker.config.greymapicon == null ? emptyCircle : config.greymapicon);
+                        marker.setIcon(marker.config.greymapicon == null ? emptyCircle : marker.config.greymapicon);
                 }
             }
         }
@@ -1169,7 +1176,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             if (wasHighlighted != shouldBeHighlighted){
                 marker.highlight = shouldBeHighlighted;
                 if (shouldBeHighlighted){
-                    marker.setIcon(marker.config.highlightmapicon == null ? "http://maps.google.com/mapfiles/marker.png" : config.highlightmapicon);
+                    marker.setIcon(marker.config.highlightmapicon == null ? "http://maps.google.com/mapfiles/marker.png" : marker.config.highlightmapicon);
                 }
                 else{
                     if (!marker.grey)
@@ -1187,7 +1194,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             if (wasHighlighted != shouldBeHighlighted){
                 marker.highlight = shouldBeHighlighted;
                 if (shouldBeHighlighted){
-                    marker.setIcon(marker.config.highlightmapicon == null ? "http://maps.google.com/mapfiles/marker.png" : config.highlightmapicon);
+                    marker.setIcon(marker.config.highlightmapicon == null ? "http://maps.google.com/mapfiles/marker.png" : marker.config.highlightmapicon);
                 }
                 else{
                     if (!marker.grey)
