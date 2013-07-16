@@ -244,7 +244,7 @@ public class MetadataServiceImpl implements MetadataService {
         if (cities.size()==0) {
             previousInferredCity = searchCityBeforeDate(guestId, dates.first());
             nextInferredCity = searchCityAfterDate(guestId, dates.last());
-            if (previousInferredCity==null||nextInferredCity==null) {
+            if (previousInferredCity==null && nextInferredCity==null) {
                 MonthMetadata info = new MonthMetadata(year, month);
                 return info;
             }
