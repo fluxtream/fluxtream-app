@@ -34,8 +34,6 @@
             <groupId>org.imgscalr</groupId>
             <artifactId>imgscalr-lib</artifactId>
             <version>4.2</version>
-            <type>jar</type>
-            <scope>compile</scope>
         </dependency>
         <dependency>
         	<groupId>com.drewnoakes</groupId>
@@ -46,6 +44,7 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.8.2</version>
+			<scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.sun.jersey.contribs</groupId>

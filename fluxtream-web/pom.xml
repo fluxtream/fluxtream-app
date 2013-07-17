@@ -7,7 +7,6 @@
 		<version>1.0</version>
 	</parent>
 	<artifactId>fluxtream-web</artifactId>
-    <version>1.0</version>
 	<packaging>war</packaging>
 	<build>
 		<resources>
@@ -65,12 +64,12 @@
 		<dependency>
 			<groupId>com.fluxtream</groupId>
 			<artifactId>fluxtream-core</artifactId>
-			<version>1.0</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.fluxtream</groupId>
 			<artifactId>fluxtream-connectors</artifactId>
-			<version>1.0</version>
+			<version>${project.version}</version>
 		</dependency>
         </dependencies>
     <properties>
