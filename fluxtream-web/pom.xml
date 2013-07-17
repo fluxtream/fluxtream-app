@@ -32,9 +32,9 @@
                             <includePluginDependencies>true</includePluginDependencies>
                             <mainClass>org.mozilla.javascript.tools.shell.Main</mainClass>
                             <arguments>
-                                <argument>r.js</argument>
+                                <argument>${basedir}/r.js</argument>
                                 <argument>-o</argument>
-                                <argument>baseUrl=src/main/webapp/js/</argument>
+                                <argument>baseUrl=${basedir}/src/main/webapp/js/</argument>
                                 <argument>name=main</argument>
                                 <argument>out=${project.build.directory}/ROOT/js/main.js</argument>
                             </arguments>
