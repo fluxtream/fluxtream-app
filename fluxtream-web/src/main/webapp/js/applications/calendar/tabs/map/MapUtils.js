@@ -475,6 +475,8 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             });
             details.find(".mapLink").remove();
             details.css("width","300px");
+            details.css("overflow-y","auto");
+            details.css("max-height","200px");
             details.trigger("contentchange",details[0]);
             map.infoWindow.open(map,marker);
             marker.doHighlighting();
