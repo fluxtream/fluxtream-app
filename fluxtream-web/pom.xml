@@ -23,15 +23,15 @@
                 <executions>
                     <execution>
                         <id>js</id>
-                        <goals><goal>exec</goal></goals>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <phase>package</phase>
                         <configuration>
-                            <executable>java</executable>
+                            <includeProjectDependencies>false</includeProjectDependencies>
+                            <includePluginDependencies>true</includePluginDependencies>
+                            <mainClass>org.mozilla.javascript.tools.shell.Main</mainClass>
                             <arguments>
-                                <argument>-Xss10m</argument>
-                                <argument>-classpath</argument>
-                                <!--argument>${project.build.directory}/dependency/requirejs/build/lib/rhino/js.jar${path.separator}${project.build.directory}/dependency/requirejs/build/lib/closure/compiler.jar</argument -->
-                                <argument>${basedir}${file.separator}lib${file.separator}js.jar</argument>
-                                <argument>org.mozilla.javascript.tools.shell.Main</argument>
                                 <argument>r.js</argument>
                                 <argument>-o</argument>
                                 <argument>baseUrl=src/main/webapp/js/</argument>
@@ -43,19 +43,29 @@
                     <execution>
                         <phase>generate-resources</phase>
                         <goals>
-                            <goal>exec</goal>
+                            <goal>java</goal>
                         </goals>
                         <configuration>
-                            <executable>java</executable>
+                            <includePluginDependencies>true</includePluginDependencies>
+                            <mainClass>com.fluxtream.maven.GetLastGitCommit</mainClass>
                             <arguments>
-                                <argument>-classpath</argument>
-                                <argument>${basedir}/../fluxtream-core/target/classes${path.separator}${basedir}/lib/commons-io-2.0.1.jar</argument>
-                                <argument>com.fluxtream.maven.GetLastGitCommit</argument>
-                                <argument>${release}</argument>
+                               <argument>${release}</argument>
                             </arguments>
                         </configuration>
-                    </execution>
+                   </execution>
                 </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.mozilla</groupId>
+                        <artifactId>rhino</artifactId>
+                        <version>1.7R4</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>commons-io</groupId>
+                        <artifactId>commons-io</artifactId>
+                        <version>2.0.1</version>
+                    </dependency>
+                </dependencies>
             </plugin>
         </plugins>
 		<finalName>ROOT</finalName>
@@ -71,7 +81,7 @@
 			<artifactId>fluxtream-connectors</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-        </dependencies>
+    </dependencies>
     <properties>
         <release>0.9.0015</release>
     </properties>
