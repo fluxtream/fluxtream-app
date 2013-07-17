@@ -180,7 +180,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
                         currentArray[currentArray.length] = item.facet;
                     else {
                         if (currentDate != prevDate) {
-                            list.append(templates.date.render({date:App.prettyDateFormat(currentDate),city:currentCity.name,timezone:currentCity.shortTimezone,state:"list/date/"+currentDate}));
+                            list.append(templates.date.render({date:App.prettyDateFormat(currentDate),city:currentCity.name,timezone:currentCity.shortTimezone,state:"list/date/"+currentDate.split(" ")[0]}));
                             prevDate = currentDate;
                         }
                         appendItems(currentArray,list);
@@ -195,7 +195,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
             if (currentDate != prevDate) {
                 facetCity = App.getFacetCity(item.facet, cities);
                 if (facetCity!=null) {
-                    list.append(templates.date.render({date:App.prettyDateFormat(currentDate),city:currentCity.name,timezone:facetCity.shortTimezone,state:"list/date/"+currentDate}));
+                    list.append(templates.date.render({date:App.prettyDateFormat(currentDate),city:currentCity.name,timezone:facetCity.shortTimezone,state:"list/date/"+currentDate.split(" ")[0]}));
                 }
             }
             if (facetCity!=null)
