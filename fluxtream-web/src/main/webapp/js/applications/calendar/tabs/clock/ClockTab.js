@@ -538,7 +538,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             else
                 map.zoomOnTimespan(span.item.start,span.item.end);
         }
-        showToolTip(tip_x,tip_y,offsetX,offsetY,span.item.address == null ? "You were out" : "You were at " + span.item.address.address,event.minuteOfDay,$(event.target).attr("stroke"),$(event.target).parent().parent(),
+        showToolTip(tip_x,tip_y,offsetX,offsetY,span.item.address == null ? $("<span>You were out</span>") : $("<span>You were at " + span.item.address.address + "</span>"),event.minuteOfDay,$(event.target).attr("stroke"),$(event.target).parent().parent(),
                     markers[0] == null ? null : markers[0].getPosition());
     }
 	
