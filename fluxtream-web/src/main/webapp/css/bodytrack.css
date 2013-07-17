@@ -373,7 +373,9 @@
 ._timeline_dateAxisLabelRegion {
     min-width: 400px;
     height: 20px;
-    padding: 0;
+    margin-top:-20px;
+    padding-left: 180px;
+    padding-right: 60px;
     z-index: 1;
 }
 
