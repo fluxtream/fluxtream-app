@@ -152,7 +152,13 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
             list.append(content);
             details.on("contentchange",function(){
                 content.html(details.outerHTML());
+                content.find(".mapLink").click(function(event){
+                    setTabParam($(event.delegateTarget).attr("itemid"));
+                    $(".calendar-map-tab").click();
+                    return false;
+                });
             });
+            details.trigger("contentchange");
         }
 
         for (var i = 0; i < items.length; i++){
@@ -204,11 +210,6 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
                 App.carousel($(event.delegateTarget).attr("photoId"));
             });
         }
-        $(".mapLink").click(function(event){
-            setTabParam($(event.delegateTarget).attr("itemid"));
-            $(".calendar-map-tab").click();
-            return false;
-        });
     }
 
     function paginationClickCallback(event){

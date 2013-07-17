@@ -471,12 +471,6 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                 App.carousel($(event.delegateTarget).attr("photoId"));
             });
 
-            ttpdiv.find(".mapLink").click(function(event){
-                setTabParam($(event.delegateTarget).attr("itemid"));
-                $(".calendar-map-tab").click();
-                return false;
-            });
-
             ttpdiv.find("#tooltipLoadTimeLine").click(function(event){
                 setTabParam(facet.start);
                 $(".calendar-timeline-tab").click();
@@ -500,8 +494,15 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                     classString += "." + classes[i];
                 }
                 ttpdiv.find(classString).outerHTML(contents.outerHTML());
+                ttpdiv.find(".mapLink").click(function(event){
+                    setTabParam($(event.delegateTarget).attr("itemid"));
+                    $(".calendar-map-tab").click();
+                    return false;
+                });
 
             });
+
+            contents.trigger("contentchange");
        });
 
     }
