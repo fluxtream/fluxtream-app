@@ -50,7 +50,7 @@
                             <executable>java</executable>
                             <arguments>
                                 <argument>-classpath</argument>
-                                <argument>${basedir}/../fluxtream-core/target/classes:${basedir}/lib/commons-io-2.0.1.jar</argument>
+                                <argument>${basedir}/../fluxtream-core/target/classes${path.separator}${basedir}/lib/commons-io-2.0.1.jar</argument>
                                 <argument>com.fluxtream.maven.GetLastGitCommit</argument>
                                 <argument>${release}</argument>
                             </arguments>
