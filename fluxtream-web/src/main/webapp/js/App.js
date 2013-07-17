@@ -558,7 +558,7 @@ define(
         }
 
         App.prettyDateFormat = function(dateString) {
-            var date = new Date(Date.parse(dateString));
+            var date = new Date(Date.parse(dateString) + 1000 * 60 * 60 * 12);   // place it in the middle of the day to help prevent errors
             return date.format("dddd, mmmm d");
         };
 
