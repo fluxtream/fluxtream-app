@@ -168,6 +168,7 @@
         <script src="/static/js/jquery.ba-dotimeout-1.0.0.min.js"></script>
         <script src="/static/js/jquery.masonry-2.1.03.min.js"></script>
     <script src="/static/js/jquery.xcolor-1.8.js"></script>
+    <script src="/static/js/jquery.outerHTML-1.0.0.js"></script>
 	
 	<!--  TODO: validate version numbers for these libs -->
 	<script src="/static/grapher4/grapher2.nocache.js"></script>

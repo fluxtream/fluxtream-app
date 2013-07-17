@@ -145,6 +145,16 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
         var currentArray = [];
         var facetCity;
         var currentCity;
+
+        function appendItems(currentArray,list){
+            var details = currentArray[0].getDetails(currentArray);
+            var content = $(templates.item.render({item:details.outerHTML()}));
+            list.append(content);
+            details.on("contentchange",function(){
+                content.html(details.outerHTML());
+            });
+        }
+
         for (var i = 0; i < items.length; i++){
            var item = items[i];
            if (item.visible){
@@ -167,7 +177,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
                             list.append(templates.date.render({date:App.prettyDateFormat(currentDate),city:currentCity.name,timezone:currentCity.shortTimezone,state:"list/date/"+currentDate}));
                             prevDate = currentDate;
                         }
-                        list.append(templates.item.render({item:currentArray[0].getDetails(currentArray)}));
+                        appendItems(currentArray,list);
                         currentArray = [item.facet];
                         currentDate = facetCity.dateWithTimezone;
                         currentCity = facetCity;
@@ -183,7 +193,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
                 }
             }
             if (facetCity!=null)
-                list.append(templates.item.render({item:currentArray[0].getDetails(currentArray)}));
+                appendItems(currentArray,list);
         }
         if (list.children().length == 0)
             list.append("Sorry, no data to show.");

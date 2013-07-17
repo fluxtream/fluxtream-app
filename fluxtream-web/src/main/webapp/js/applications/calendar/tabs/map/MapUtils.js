@@ -469,10 +469,13 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             if (map.selectedMarker != null)
                 map.selectedMarker.hideCircle();
             map.selectedMarker = marker;
-            var details = $(item.getDetails(true));
+            var details = item.getDetails(true);
+            details.on("contentchange",function(event, content){
+                map.infoWindow.setContent(details[0]);
+            });
             details.find(".mapLink").remove();
             details.css("width","300px");
-            map.infoWindow.setContent(details[0]);
+            details.trigger("contentchange",details[0]);
             map.infoWindow.open(map,marker);
             marker.doHighlighting();
             marker.showCircle();
@@ -585,13 +588,19 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         }
 
         marker.time = time;
-        var itemConfig = App.getFacetConfig(marker.item.type);
-        marker.config = marker.item != null ? {
-            mapicon: itemConfig.mapicon,
-            highlightmapicon: itemConfig.highlightmapicon,
-            greymapicon: itemConfig.greymapicon
+        if (marker.item != null){
+            var itemConfig = App.getFacetConfig(marker.item.type);
+            marker.config =  {
+                mapicon: itemConfig.mapicon,
+                highlightmapicon: itemConfig.highlightmapicon,
+                greymapicon: itemConfig.greymapicon
 
-        } : {};
+            };
+        }
+        else{
+            marker.config = {};
+        }
+
 
         decorateMarker(marker, marker.item);
 

@@ -382,7 +382,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                 color:color,
                 time: App.formatMinuteOfDay(minute)[0],
                 ampm: App.formatMinuteOfDay(minute)[1],
-                tooltipData:contents,
+                tooltipData:contents.outerHTML(),
                 showBodyTrackLinks: sourceName != null
             }));
             console.log(gpsPos)
@@ -491,6 +491,16 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                     channelAdd: sourceName + "." + channelName,
                     tbounds: dgst.tbounds
                 });
+            });
+
+            contents.on("contentchange",function(){
+                var classes = contents.attr("class").split(" ");
+                var classString = "";
+                for (var i = 0, li = classes.length; i < li; i++){
+                    classString += "." + classes[i];
+                }
+                ttpdiv.find(classString).outerHTML(contents.outerHTML());
+
             });
        });
 

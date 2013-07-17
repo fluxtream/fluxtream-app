@@ -631,24 +631,25 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         }
 
         foursquareVenueTemplate = digest.detailsTemplates["foursquare-venue"];
-
-        setTimeout(function(){getFoursquareVenues(foursquareVenueIds);}, 100);
-        return digest.detailsTemplates[data.type].render(params);
+        var details = $(digest.detailsTemplates[data.type].render(params));
+        setTimeout(function(){getFoursquareVenues(details,foursquareVenueIds);}, 100);
+        return details;
     }
 
-    function getFoursquareVenues(foursquareVenueIds) {
+    function getFoursquareVenues(details,foursquareVenueIds) {
         for (var i=0; i<foursquareVenueIds.length; i++) {
             $.ajax({
                 url: "/api/metadata/foursquare/venue/" + foursquareVenueIds[i],
                 success: function(response) {
                     var html = foursquareVenueTemplate.render(response);
-                    var foursquareVenueDiv = $("#foursquare-venue-"+response.foursquareId);
+                    var foursquareVenueDiv = details.find("#foursquare-venue-"+response.foursquareId);
                     foursquareVenueDiv.replaceWith(html);
-                    foursquareVenueDiv = $("#foursquare-venue-"+response.foursquareId);
+                    foursquareVenueDiv = details.find("#foursquare-venue-"+response.foursquareId);
                     var icon = foursquareVenueDiv.closest(".moves-place").find(".flx-deviceIcon");
                     icon.css("background-image","url(" + response.categoryIconUrlPrefix + "bg_32" + response.categoryIconUrlSuffix + ")");
                     icon.css("background-position", "7px 0px");
                     icon.css("background-size", "32px 32px");
+                    details.trigger("contentchange");
                 }
             });
         }
