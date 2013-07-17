@@ -484,7 +484,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             if (map.infoWindowShown != null){
                 map.infoWindowShown();
             }
-            moveDateAxisCursor(map,item.start);
+            moveDateAxisCursor(map,marker.time);
         });
 
     }
