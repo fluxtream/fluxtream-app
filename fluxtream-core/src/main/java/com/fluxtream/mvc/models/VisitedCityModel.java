@@ -8,6 +8,7 @@ import com.fluxtream.domain.metadata.City;
 import com.fluxtream.domain.metadata.VisitedCity;
 import org.apache.commons.lang.WordUtils;
 import org.codehaus.plexus.util.StringUtils;
+import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
@@ -73,16 +74,16 @@ public class VisitedCityModel {
         this.endMinute = c.get(Calendar.HOUR_OF_DAY)*60 + c.get(Calendar.MINUTE);
         this.count = vcity.count;
 
-        TimeZone tz = TimeZone.getTimeZone(vcity.city.geo_timezone);
-        timezone = tz.getDisplayName(true, TimeZone.LONG);
-        shortTimezone = tz.getDisplayName(true, TimeZone.SHORT);
+        DateTimeZone tz = DateTimeZone.forID(vcity.city.geo_timezone);
+        timezone = tz.getName(DateTime.parse(this.date).getMillis());
+        shortTimezone = tz.getShortName(DateTime.parse(this.date).getMillis());
 
         Calendar calendar = DatatypeConverter.parseDateTime(vcity.startTimeStorage);
         this.startTime = StringUtils.capitalise(fmt.print(calendar.getTimeInMillis()).toLowerCase());
         calendar = DatatypeConverter.parseDateTime(vcity.endTimeStorage);
         this.endTime = StringUtils.capitalise(fmt.print(calendar.getTimeInMillis()).toLowerCase());
 
-        this.dayStart = formatter.withZone(DateTimeZone.forTimeZone(tz)).parseDateTime(this.date).getMillis();
+        this.dayStart = formatter.withZone(tz).parseDateTime(this.date).getMillis();
         this.dayEnd = dayStart + DateTimeConstants.MILLIS_PER_DAY;
         tzOffset = tz.getOffset(dayStart);
         this.latitude = city.geo_latitude;
