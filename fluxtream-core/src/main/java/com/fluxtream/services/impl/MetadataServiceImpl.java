@@ -255,7 +255,7 @@ public class MetadataServiceImpl implements MetadataService {
         return info;
     }
 
-    private TreeSet<String> getDatesForWeek(final int year, final int week) {
+    public TreeSet<String> getDatesForWeek(final int year, final int week) {
         LocalDate weekDay = TimeUtils.getBeginningOfWeek(year, week);
         final LocalDate nextWeekStart = weekDay.plusWeeks(1);
         TreeSet<String> dates = new TreeSet<String>();
@@ -267,7 +267,7 @@ public class MetadataServiceImpl implements MetadataService {
         return dates;
     }
 
-    private TreeSet<String> getDatesForMonth(final int year, final int month) {
+    public TreeSet<String> getDatesForMonth(final int year, final int month) {
         LocalDate dayOfMonth = TimeUtils.getBeginningOfMonth(year, month);
         final LocalDate nextMonthStart = dayOfMonth.plusMonths(1);
         TreeSet<String> dates = new TreeSet<String>();

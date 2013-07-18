@@ -126,7 +126,7 @@ public class CalendarDataStore {
                 filter = "";
             }
 
-            setMetadata(digest, weekMetadata);
+            setMetadata(digest, weekMetadata,metadataService.getDatesForWeek(year,week).toArray(new String[]{}));
 
             digest.tbounds = getStartEndResponseBoundaries(weekMetadata.start,
                                                            weekMetadata.end);
@@ -197,7 +197,7 @@ public class CalendarDataStore {
                 filter = "";
             }
 
-            setMetadata(digest, monthMetadata);
+            setMetadata(digest, monthMetadata,metadataService.getDatesForMonth(year,month).toArray(new String[]{}));
 
             digest.tbounds = getStartEndResponseBoundaries(monthMetadata.start,
                                                            monthMetadata.end);
@@ -298,7 +298,7 @@ public class CalendarDataStore {
             digest.tbounds = getStartEndResponseBoundaries(dayMetadata.start,
                     dayMetadata.end);
 
-            setMetadata(digest, dayMetadata);
+            setMetadata(digest, dayMetadata, new String[]{date});
 
             if (digest.metadata.mainCity!=null)
                 setSolarInfo(digest, dayMetadata.consensusVisitedCity.city, guestId, dayMetadata);
@@ -339,11 +339,12 @@ public class CalendarDataStore {
         }
 	}
 
-    private void setMetadata(final DigestModel digest, final AbstractTimespanMetadata dayMetadata) {
-        digest.metadata.mainCity = new VisitedCityModel(dayMetadata.consensusVisitedCity, env);
+    private void setMetadata(final DigestModel digest, final AbstractTimespanMetadata dayMetadata, String[] dates) {
+        digest.metadata.mainCity = new VisitedCityModel(dayMetadata.consensusVisitedCity, env,dates[0]);
         List<VisitedCityModel> cityModels = new ArrayList<VisitedCityModel>();
         TreeSet<VisitedCity> orderedCities = new TreeSet<VisitedCity>(dayMetadata.getCities());
         final Iterator<VisitedCity> cityIterator = orderedCities.iterator();
+        int count = 0;
         while (cityIterator.hasNext()) {
             VisitedCity city = cityIterator.next();
             VisitedCityModel cityModel = new VisitedCityModel(city, env);

@@ -46,9 +46,13 @@ public class VisitedCityModel {
     public DurationModel duration;
 
     public VisitedCityModel(VisitedCity vcity,  Configuration env) {
+        this(vcity,env,vcity.date);
+    }
+
+    public VisitedCityModel(VisitedCity vcity, Configuration env, String date){
         this.visitedCityId = vcity.getId();
         this.daysInferred = vcity.daysInferred;
-        this.date = vcity.date;
+        this.date = date;
         source = vcity.locationSource.toString();
         City city = vcity.city;
         name = city.geo_name;
@@ -90,6 +94,7 @@ public class VisitedCityModel {
         this.longitude = city.geo_longitude;
 
         this.dateWithTimezone = this.date + " " + this.shortTimezone;
+
     }
 
 }

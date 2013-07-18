@@ -2,6 +2,7 @@ package com.fluxtream.services;
 
 import java.util.List;
 import java.util.TimeZone;
+import java.util.TreeSet;
 import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.domain.metadata.City;
 import com.fluxtream.domain.metadata.FoursquareVenue;
@@ -51,4 +52,8 @@ public interface MetadataService {
     public void updateLocationMetadata(long guestId, List<LocationFacet> locationResources);
 
     public FoursquareVenue getFoursquareVenue(String venueId);
+
+    public TreeSet<String> getDatesForWeek(final int year, final int week);
+
+    public TreeSet<String> getDatesForMonth(final int year, final int month);
 }
