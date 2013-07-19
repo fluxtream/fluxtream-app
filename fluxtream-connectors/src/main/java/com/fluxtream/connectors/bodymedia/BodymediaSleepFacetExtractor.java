@@ -101,7 +101,6 @@ public class BodymediaSleepFacetExtractor extends AbstractFacetExtractor
                         JSONObject day = (JSONObject) o;
                         BodymediaSleepFacet sleep = new BodymediaSleepFacet(apiData.updateInfo.apiKey.getId());
                         super.extractCommonFacetData(sleep, apiData);
-                        sleep.date = day.getString("date");
                         sleep.efficiency = day.getDouble("efficiency");
                         sleep.totalLying = day.getInt("totalLying");
                         sleep.totalSleeping = day.getInt("totalSleep");
@@ -126,6 +125,7 @@ public class BodymediaSleepFacetExtractor extends AbstractFacetExtractor
                             // of burn.date according to BodyMedia's idea of what timezone you were in then.
                             // End should, I think, be start + the number of minutes in the minutes array *
                             // the number of milliseconds in a minute.
+                            sleep.date = dateFormatter.print(realDateStart.getMillis());
                             sleep.start = realDateStart.getMillis() - DateTimeConstants.MILLIS_PER_DAY/2;
                             sleep.end = realDateStart.getMillis() + DateTimeConstants.MILLIS_PER_DAY/2;
                         }
