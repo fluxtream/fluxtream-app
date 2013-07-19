@@ -27,7 +27,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
     var currentPage = 0;
     var photoCarouselHTML;
     var templates;
-    var cities;
+    var metadata;
 
     var rendererCount = 0;
 
@@ -40,7 +40,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
             items = [];
             itemGroups = {};
             list.empty();
-            cities = digest.metadata.cities;
+            metadata = digest.metadata;
             var photoCount = 0;
             there:for (var connectorName in digest.cachedData){
                 if (!shouldDisplayInListView(connectorName))
@@ -63,7 +63,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
 
                     }
 
-                    var itemCity = App.getFacetCity(item.facet, cities);
+                    var itemCity = App.getFacetCity(item.facet, metadata);
                     if (itemCity==null)
                         continue;
                     for (var j = 0; j <= items.length; j++){
@@ -71,7 +71,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
                             items[j] = item;
                             break;
                         }
-                        var facetCity = App.getFacetCity(items[j].facet, cities);
+                        var facetCity = App.getFacetCity(items[j].facet, metadata);
                         if (facetCity==null)
                             continue there;
                         if (items[j].facet.start + facetCity.tzOffset > item.facet.start + itemCity.tzOffset || item.facet.start + itemCity.tzOffset == null){
@@ -168,7 +168,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
                    item.facet.id = i;
                visibleCount++;
                if (visibleCount > currentPage * maxPerPage && visibleCount <= (currentPage + 1) * maxPerPage){
-                    facetCity = App.getFacetCity(item.facet, cities);
+                    facetCity = App.getFacetCity(item.facet, metadata);
                     if (facetCity==null)
                         continue;
                     if (currentArray.length == 0){
@@ -193,7 +193,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
         }
         if (currentArray.length != 0){
             if (currentDate != prevDate) {
-                facetCity = App.getFacetCity(item.facet, cities);
+                facetCity = App.getFacetCity(item.facet, metadata);
                 if (facetCity!=null) {
                     list.append(templates.date.render({date:App.prettyDateFormat(currentDate),city:currentCity.name,timezone:facetCity.shortTimezone,state:"list/date/"+currentDate.split(" ")[0]}));
                 }
