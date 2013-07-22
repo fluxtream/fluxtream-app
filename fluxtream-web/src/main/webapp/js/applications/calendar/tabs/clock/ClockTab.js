@@ -488,7 +488,10 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             });
 
             contents.on("contentchange",function(){
-                var classes = contents.attr("class").split(" ");
+                var classString = contents.attr("class");
+                if (classString == null)
+                    classString = "";
+                var classes = classString.split(" ");
                 var classString = "";
                 for (var i = 0, li = classes.length; i < li; i++){
                     classString += "." + classes[i];
