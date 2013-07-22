@@ -72,23 +72,26 @@ define(["core/Tab",
             map.fitBounds(map.gpsBounds);
         });
 
-        showData(connectorEnabled,bounds,function(bounds){
-            if (bounds != null){
-                map.fitBounds(bounds,map.isPreserveViewChecked());
-            }
-            else{
-                map.setCenter(new google.maps.LatLng(digest.metadata.mainCity.latitude,digest.metadata.mainCity.longitude));
-                map.setZoom(14);
-            }
-            map.preserveViewCheckboxChanged = function(){
-                preserveView = map.isPreserveViewChecked();
-            }
-            if (itemToShow != null){
-                map.zoomOnItemAndClick(itemToShow);
-            }
-            doneLoading();
+        map.executeAfterReady(function(){
+            showData(connectorEnabled,bounds,function(bounds){
+                if (bounds != null){
+                    map.fitBounds(bounds,map.isPreserveViewChecked());
+                }
+                else{
+                    map.setCenter(new google.maps.LatLng(digest.metadata.mainCity.latitude,digest.metadata.mainCity.longitude));
+                    map.setZoom(14);
+                }
+                map.preserveViewCheckboxChanged = function(){
+                    preserveView = map.isPreserveViewChecked();
+                }
+                if (itemToShow != null){
+                    map.zoomOnItemAndClick(itemToShow);
+                }
+                doneLoading();
 
+            });
         });
+
 
         photoCarouselHTML = PhotoUtils.getCarouselHTML(digest);
 
@@ -96,10 +99,6 @@ define(["core/Tab",
 	}
 
     function showData(connectorEnabled,bounds,doneLoading){
-        if (!map.isFullyInitialized()){
-            $.doTimeout(100,function(){showData(connectorEnabled,bounds,doneLoading)});
-            return;
-        }
         var digest = digestData;
         if (digest!=null && digest.cachedData!=null &&
             typeof(digest.cachedData["google_latitude-location"])!="undefined"

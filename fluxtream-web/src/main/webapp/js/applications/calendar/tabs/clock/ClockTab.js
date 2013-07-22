@@ -19,6 +19,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
     var connectorEnabled;
     var dgst;
 
+    var tooltipTemplate;
+
 
     var photoCarouselHTML;
     var lastTimestamp = null;
@@ -38,8 +40,11 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             }
             else
                 lastTimestamp = params.digest.generationTimestamp;
-			setup(params.digest, params.timeUnit, params.connectorEnabled, params.doneLoading);
             fetchWeatherData();
+            App.loadMustacheTemplate("applications/calendar/tabs/clock/clockTemplate.html","tooltip",function(template){
+                tooltipTemplate = template;
+                setup(params.digest, params.timeUnit, params.connectorEnabled, params.doneLoading);
+            });
 		});
 	}
 
@@ -319,23 +324,26 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         var tip_x = target.left + event.offsetX;
         var offsetX = config.CLOCK_CENTER[0] - event.offsetX;
         var offsetY = config.CLOCK_CENTER[1] - event.offsetY;
-        markers[0] = map.addItem(span.item,false);
-        if (markers[0] != null){
-            markers[0].doHighlighting();
-            markers[0].showCircle();
-            map.zoomOnMarker(markers[0]);
-            //markers[0].hideMarker();
-           /* markers[1] = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(event.timeTarget),
-                                                icon:markers[0].getIcon(),shadow:markers[0].getShadow(),clickable:false});
-            map.enhanceMarker(markers[1],event.timeTarget);
-            markers[1].showCircle();
-            map.zoomOnMarker(markers[1]); */
-        }
+        map.executeAfterReady(function(){
+            hideEventInfo();
+            markers[0] = map.addItem(span.item,false);
+            if (markers[0] != null){
+                markers[0].doHighlighting();
+                markers[0].showCircle();
+                map.zoomOnMarker(markers[0]);
+                //markers[0].hideMarker();
+                /* markers[1] = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(event.timeTarget),
+                 icon:markers[0].getIcon(),shadow:markers[0].getShadow(),clickable:false});
+                 map.enhanceMarker(markers[1],event.timeTarget);
+                 markers[1].showCircle();
+                 map.zoomOnMarker(markers[1]); */
+            }
 
-        var contents = facet.getDetails();
+            var contents = facet.getDetails();
 
-        showToolTip(tip_x,tip_y,offsetX,offsetY,contents,event.minuteOfDay,$(event.target).attr("stroke"),$(event.target).parent().parent(),
-                    markers[0] == null ? null : markers[0].getPosition(),App.getFacetConfig(facet.type).device_name,App.getFacetConfig(facet.type).channel_name,facet);
+            showToolTip(tip_x,tip_y,offsetX,offsetY,contents,event.minuteOfDay,$(event.target).attr("stroke"),$(event.target).parent().parent(),
+                markers[0] == null ? null : markers[0].getPosition(),App.getFacetConfig(facet.type).device_name,App.getFacetConfig(facet.type).channel_name,facet);
+        });
 	}
 
     function showToolTip(x,y, offX, offY,contents,minute,color,parent,gpsPos,sourceName, channelName,facet){
@@ -366,147 +374,145 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             orientation = "Bottom";
             tailOrientation = "top";
         }
-        App.loadMustacheTemplate("applications/calendar/tabs/clock/clockTemplate.html","tooltip",function(template){
-            ttpdiv = $(template.render({
-                weatherDescription: weatherInfo == null ? "no weather info available" : weatherInfo.weatherDesc,
-                temperature: weatherInfo == null ? "?" : tempratureUnit === "FAHRENHEIT" ? weatherInfo.tempF : weatherInfo.tempC,
-                temperatureUnit: tempratureUnit === "FAHRENHEIT" ? "F" : "C",
-                windSpeed: weatherInfo == null ? "?" : distanceUnit == "SI" ? weatherInfo.windspeedKmph : weatherInfo.windspeedMiles,
-                windSpeedUnit: distanceUnit == "SI" ? "km/h" : "mph",
-                humidity: weatherInfo == null ? "?" : weatherInfo.humidity,
-                precipitation: weatherInfo == null ? "?" : weatherInfo.precipMM,
-                precipitationUnit: "mm",
-                weatherIcon: weatherIcon,
-                orientation:orientation,
-                oppositeOrientation:tailOrientation,
-                color:color,
-                time: App.formatMinuteOfDay(minute)[0],
-                ampm: App.formatMinuteOfDay(minute)[1],
-                tooltipData:contents.outerHTML(),
-                showBodyTrackLinks: sourceName != null
-            }));
-            console.log(gpsPos)
-            ttpdiv.css("position","absolute");
-            ttpdiv.css("zIndex","100");
-            var tail = ttpdiv.find(".flx-toolTipTail-" + orientation);
-            parent.append(ttpdiv);
+        ttpdiv = $(tooltipTemplate.render({
+            weatherDescription: weatherInfo == null ? "no weather info available" : weatherInfo.weatherDesc,
+            temperature: weatherInfo == null ? "?" : tempratureUnit === "FAHRENHEIT" ? weatherInfo.tempF : weatherInfo.tempC,
+            temperatureUnit: tempratureUnit === "FAHRENHEIT" ? "F" : "C",
+            windSpeed: weatherInfo == null ? "?" : distanceUnit == "SI" ? weatherInfo.windspeedKmph : weatherInfo.windspeedMiles,
+            windSpeedUnit: distanceUnit == "SI" ? "km/h" : "mph",
+            humidity: weatherInfo == null ? "?" : weatherInfo.humidity,
+            precipitation: weatherInfo == null ? "?" : weatherInfo.precipMM,
+            precipitationUnit: "mm",
+            weatherIcon: weatherIcon,
+            orientation:orientation,
+            oppositeOrientation:tailOrientation,
+            color:color,
+            time: App.formatMinuteOfDay(minute)[0],
+            ampm: App.formatMinuteOfDay(minute)[1],
+            tooltipData:contents.outerHTML(),
+            showBodyTrackLinks: sourceName != null
+        }));
+        console.log(gpsPos)
+        ttpdiv.css("position","absolute");
+        ttpdiv.css("zIndex","100");
+        var tail = ttpdiv.find(".flx-toolTipTail-" + orientation);
+        parent.append(ttpdiv);
 
-            // WIP: have the map take all the available space when there is no weather info
-            //if (weatherInfo==null) {
-            //    $(".flx-toolTipWeather").hide();
-            //    $(".flx-toolTipLocation").css("width", "400px");
-            //    $("#clockMapContainer").css("width", "400px");
-            //    $("#clockMap").css("width", "400px");
-            //} else {
-            //    $(".flx-toolTipWeather").show();
-            //    $(".flx-toolTipLocation").css("width", "50%");
-            //    $("#clockMapContainer").css("width", "200px");
-            //    $("#clockMap").css("width", "200px");
-            //}
+        // WIP: have the map take all the available space when there is no weather info
+        //if (weatherInfo==null) {
+        //    $(".flx-toolTipWeather").hide();
+        //    $(".flx-toolTipLocation").css("width", "400px");
+        //    $("#clockMapContainer").css("width", "400px");
+        //    $("#clockMap").css("width", "400px");
+        //} else {
+        //    $(".flx-toolTipWeather").show();
+        //    $(".flx-toolTipLocation").css("width", "50%");
+        //    $("#clockMapContainer").css("width", "200px");
+        //    $("#clockMap").css("width", "200px");
+        //}
 
-            var repositionTooltip = function(){
-                var displayX = x;
-                var displayY = y;
+        var repositionTooltip = function(){
+            var displayX = x;
+            var displayY = y;
 
-                if (orientation == "Left" || orientation == "Right"){
-                    displayY += offY - ttpdiv.height()/2;
-                    tail.css("top",ttpdiv.height()/2 - offY - 10);
-                }
-                else{
-                    displayX += offX - ttpdiv.width()/2;
-                    tail.css("left",ttpdiv.width()/2 - offX - 10);
-                }
-                displayY -= 50;
-                switch(orientation){
-                    case "Left":
-                        displayX += 10;
-                        break;
-                    case "Right":
-                        displayX -= 10 + ttpdiv.width();
-                        break;
-                    case "Top":
-                        displayY += 10;
-                        break;
-                    case "Bottom":
-                        displayY -= 10 + ttpdiv.height();
-                        break;
-                }
-
-
-                ttpdiv.css("left",displayX);
-                ttpdiv.css("top",displayY);
-
+            if (orientation == "Left" || orientation == "Right"){
+                displayY += offY - ttpdiv.height()/2;
+                tail.css("top",ttpdiv.height()/2 - offY - 10);
+            }
+            else{
+                displayX += offX - ttpdiv.width()/2;
+                tail.css("left",ttpdiv.width()/2 - offX - 10);
+            }
+            displayY -= 50;
+            switch(orientation){
+                case "Left":
+                    displayX += 10;
+                    break;
+                case "Right":
+                    displayX -= 10 + ttpdiv.width();
+                    break;
+                case "Top":
+                    displayY += 10;
+                    break;
+                case "Bottom":
+                    displayY -= 10 + ttpdiv.height();
+                    break;
             }
 
 
+            ttpdiv.css("left",displayX);
+            ttpdiv.css("top",displayY);
 
-            $("#mapPlaceHolder").append(document.getElementById("clockMap"));
-            var lastSeen = $("#lastSeenLocation");
-            App.geocoder.geocode({'latLng': gpsPos}, function(results,status){
-                if (status == google.maps.GeocoderStatus.OK) {
-                    for (var i = 2; i >= 0; i--){
-                        if (results[i]){
-                            lastSeen.text(results[i].formatted_address);
-                            return;
-                        }
+        }
 
+
+
+        $("#mapPlaceHolder").append(document.getElementById("clockMap"));
+        var lastSeen = $("#lastSeenLocation");
+        App.geocoder.geocode({'latLng': gpsPos}, function(results,status){
+            if (status == google.maps.GeocoderStatus.OK) {
+                for (var i = 2; i >= 0; i--){
+                    if (results[i]){
+                        lastSeen.text(results[i].formatted_address);
+                        return;
                     }
+
                 }
-            });
+            }
+        });
 
+        repositionTooltip();
+
+        ttpdiv.imagesLoaded(function(){
             repositionTooltip();
+        });
 
-            ttpdiv.imagesLoaded(function(){
-                repositionTooltip();
+        $("#tootltipLoadList").click(function(event){
+            event.preventDefault();
+            $(".calendar-list-tab").click();
+        });
+
+
+        ttpdiv.find(".flx-photo").click(function(event){
+            App.makeModal(photoCarouselHTML);
+            App.carousel($(event.delegateTarget).attr("photoId"));
+        });
+
+        ttpdiv.find("#tooltipLoadTimeLine").click(function(event){
+            setTabParam(facet.start);
+            $(".calendar-timeline-tab").click();
+            return false;
+        });
+
+       ttpdiv.find("#tooltipLoadBodyTrack").click(function(event){
+            event.preventDefault();
+            App.renderApp('bodytrack','grapher', {
+                cursorPos: facet.start / 1000,
+                rebuildURL: true,
+                channelAdd: sourceName + "." + channelName,
+                tbounds: dgst.tbounds
             });
+        });
 
-            $("#tootltipLoadList").click(function(event){
-                event.preventDefault();
-                $(".calendar-list-tab").click();
-            });
-
-
-            ttpdiv.find(".flx-photo").click(function(event){
-                App.makeModal(photoCarouselHTML);
-                App.carousel($(event.delegateTarget).attr("photoId"));
-            });
-
-            ttpdiv.find("#tooltipLoadTimeLine").click(function(event){
-                setTabParam(facet.start);
-                $(".calendar-timeline-tab").click();
+        contents.on("contentchange",function(){
+            var classString = contents.attr("class");
+            if (classString == null)
+                classString = "";
+            var classes = classString.split(" ");
+            var classString = "";
+            for (var i = 0, li = classes.length; i < li; i++){
+                classString += "." + classes[i];
+            }
+            ttpdiv.find(classString).outerHTML(contents.outerHTML());
+            ttpdiv.find(".mapLink").click(function(event){
+                setTabParam($(event.delegateTarget).attr("itemid"));
+                $(".calendar-map-tab").click();
                 return false;
             });
 
-           ttpdiv.find("#tooltipLoadBodyTrack").click(function(event){
-                event.preventDefault();
-                App.renderApp('bodytrack','grapher', {
-                    cursorPos: facet.start / 1000,
-                    rebuildURL: true,
-                    channelAdd: sourceName + "." + channelName,
-                    tbounds: dgst.tbounds
-                });
-            });
+        });
 
-            contents.on("contentchange",function(){
-                var classString = contents.attr("class");
-                if (classString == null)
-                    classString = "";
-                var classes = classString.split(" ");
-                var classString = "";
-                for (var i = 0, li = classes.length; i < li; i++){
-                    classString += "." + classes[i];
-                }
-                ttpdiv.find(classString).outerHTML(contents.outerHTML());
-                ttpdiv.find(".mapLink").click(function(event){
-                    setTabParam($(event.delegateTarget).attr("itemid"));
-                    $(".calendar-map-tab").click();
-                    return false;
-                });
-
-            });
-
-            contents.trigger("contentchange");
-       });
+        contents.trigger("contentchange");
 
     }
 
@@ -530,7 +536,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         var offsetX = config.CLOCK_CENTER[0] - event.offsetX;
         var offsetY = config.CLOCK_CENTER[1] - event.offsetY;
 
-        if (map != null){
+        map.executeAfterReady(function(){
+            hideEventInfo();
             map.highlightTimespan(span.item.start,span.item.end);
 
             markers[0] = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(event.timeTarget),clickable:false});
@@ -540,21 +547,23 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                 map.zoomOnMarker(markers[0]);
             else
                 map.zoomOnTimespan(span.item.start,span.item.end);
-        }
-        showToolTip(tip_x,tip_y,offsetX,offsetY,span.item.address == null ? $("<span>You were out</span>") : $("<span>You were at " + span.item.address.address + "</span>"),event.minuteOfDay,$(event.target).attr("stroke"),$(event.target).parent().parent(),
-                    markers[0] == null ? null : markers[0].getPosition());
+            showToolTip(tip_x,tip_y,offsetX,offsetY,span.item.address == null ? $("<span>You were out</span>") : $("<span>You were at " + span.item.address.address + "</span>"),event.minuteOfDay,$(event.target).attr("stroke"),$(event.target).parent().parent(),
+                markers[0] == null ? null : markers[0].getPosition());
+        });
     }
 	
 	function hideEventInfo() {
         if (map != null){
-            hideQTipMap();
-            for (var i = 0; i < markers.length; i++){
-                if (markers[i] != null)
-                    markers[i].setMap(null);
-            }
-            markers = new Array();
-            map.fitBounds(map.gpsBounds);
-            map.highlightTimespan(dayStart,dayEnd);
+            map.executeAfterReady(function(){
+                hideQTipMap();
+                for (var i = 0; i < markers.length; i++){
+                    if (markers[i] != null)
+                        markers[i].setMap(null);
+                }
+                markers = new Array();
+                map.fitBounds(map.gpsBounds);
+                map.highlightTimespan(dayStart,dayEnd);
+            });
         }
         if (ttpdiv != null){
             ttpdiv.remove();

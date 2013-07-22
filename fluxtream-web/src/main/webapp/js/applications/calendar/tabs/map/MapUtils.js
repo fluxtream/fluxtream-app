@@ -1299,54 +1299,54 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             }
             var map = new google.maps.Map(document.getElementById(divId),options);
             map.reset = function(){
-                if (map.infoWindow == null){//brand new map, initialize
-                    map.infoWindow = new google.maps.InfoWindow();
-                    google.maps.event.addListener(map.infoWindow,"closeclick",function(){
-                        if (map.selectedMarker != null){
-                            map.selectedMarker.hideCircle();
-                            if (map.currentHighlightedLine != null){
-                                map.currentHighlightedLine.setMap(null);
-                                map.currentHighlightedLine = null
+                if (this.infoWindow == null){//brand new map, initialize
+                    this.infoWindow = new google.maps.InfoWindow();
+                    google.maps.event.addListener(this.infoWindow,"closeclick",function(){
+                        if (this.selectedMarker != null){
+                            this.selectedMarker.hideCircle();
+                            if (this.currentHighlightedLine != null){
+                                this.currentHighlightedLine.setMap(null);
+                                this.currentHighlightedLine = null
                             }
-                            map.selectedMarker = null;
+                            this.selectedMarker = null;
                         }
                     });
                 }
                 else{//old map, remove everything!
-                    for (var i = 0, li = map.markerList.length; i < li; i++){
-                        map.markerList[i].setMap(null);
+                    for (var i = 0, li = this.markerList.length; i < li; i++){
+                        this.markerList[i].setMap(null);
                     }
-                    for (var i = 0, li = map.addressMarkerList.length; i < li; i++){
-                        map.addressMarkerList[i].setMap(null);
+                    for (var i = 0, li = this.addressMarkerList.length; i < li; i++){
+                        this.addressMarkerList[i].setMap(null);
                     }
-                    for (var dataset in map.gpsData){
-                        for (var i = 0, li = map.gpsData[dataset].gpsLines.length; i < li; i++){
-                            map.gpsData[dataset].gpsLines[i].line.setMap(null);
-                            if (map.gpsData[dataset].gpsLines[i].highlight != null)
-                                map.gpsData[dataset].gpsLines[i].highlight.setMap(null);
-                            if (map.gpsData[dataset].dateMarker != null){
-                                map.gpsData[dataset].dateMarker.setMap(null);
-                                map.gpsData[dataset].dateMarker.circle.setMap(null);
+                    for (var dataset in this.gpsData){
+                        for (var i = 0, li = this.gpsData[dataset].gpsLines.length; i < li; i++){
+                            this.gpsData[dataset].gpsLines[i].line.setMap(null);
+                            if (this.gpsData[dataset].gpsLines[i].highlight != null)
+                                this.gpsData[dataset].gpsLines[i].highlight.setMap(null);
+                            if (this.gpsData[dataset].dateMarker != null){
+                                this.gpsData[dataset].dateMarker.setMap(null);
+                                this.gpsData[dataset].dateMarker.circle.setMap(null);
 
                             }
                         }
                     }
                 }
-                map.currentHighlightedLine = null;
-                map.highlightSection = null;
-                map.connectorSelected = null;
-                map.selectedMarker = null;
-                map.oldMarkerHighlight = null;
+                this.currentHighlightedLine = null;
+                this.connectorSelected = null;
+                this.selectedMarker = null;
+                this.oldMarkerHighlight = null;
+                this.executionQueue = [];
 
-                map.markers = {};
-                map.markerList = [];
-                map.addressMarkerList = [];
+                this.markers = {};
+                this.markerList = [];
+                this.addressMarkerList = [];
 
-                map.gpsBounds = null;
+                this.gpsBounds = null;
 
-                map.gpsData = {};
-                map.primaryGPSData = null;
-                map.oldHighlightSection = null;
+                this.gpsData = {};
+                this.primaryGPSData = null;
+                this.oldHighlightSection = null;
 
             }
 
@@ -1371,6 +1371,12 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             map.enhanceMarker = function(marker,start,end){enhanceMarker(map,marker,start,end)};
             map.enhanceMarkerWithItem = function(marker,item){enhanceMarkerWithItem(map,marker,item)};
             map.isFullyInitialized = function(){return isFullyInitialized(map)};
+            map.executeAfterReady = function(afterready){
+                if (this.executionQueue.length == 0 && this.isFullyInitialized())
+                    afterready();
+                else
+                    this.executionQueue.push(afterready);
+            }
             map.isPreserveViewChecked = function(){return false;}
             map.zoomOnItemAndClick = function(itemId){
                 zoomOnItemAndClick(map,itemId);
@@ -1379,22 +1385,35 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             map.fitBounds = function(bounds,isPreservedView){
                 if (bounds == null)
                     return;
-                map._oldFitBounds(bounds);
+                this._oldFitBounds(bounds);
                 var zoomLevel = map.getZoom();
                 fixZooming(map,zoomLevel,isPreservedView);
             }
             map.setMaxTimeBounds = function(maxBounds){
-                map.maxBounds = maxBounds;
-                if (map.dateAxis != null){
-                    map.dateAxis.setMaxRange(maxBounds.min,maxBounds.max);
-                    map.dateAxis.setRange(maxBounds.min,maxBounds.max);
-                    map.dateAxis.setCursorPosition(maxBounds.min);
+                this.maxBounds = maxBounds;
+                if (this.dateAxis != null){
+                    this.dateAxis.setMaxRange(maxBounds.min,maxBounds.max);
+                    this.dateAxis.setRange(maxBounds.min,maxBounds.max);
+                    this.dateAxis.setCursorPosition(maxBounds.min);
                 }
             }
             if (!hideControls){
                 createMapPositionControls(map);
                 createTimelineControls(map,maxBounds);
             }
+
+            //wait for map to be completely ready and then execute all queued code
+            $.doTimeout(100,function(){
+                if (map.isFullyInitialized()){
+                    var executionQueue = map.executionQueue;
+                    map.executionQueue = [];
+                    for (var i = 0, li = executionQueue.length; i < li; i++){
+                        executionQueue[i]();
+                    }
+                    return false;
+                }
+                return true;
+            });
             return map;
         }
     }
