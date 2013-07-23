@@ -9,6 +9,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
             mapicon: "http://maps.google.com/mapfiles/marker.png",
             mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
             gpsSplittingStrategy: "flatCutoff(3600000)",
+            clockOutline: false,
             facets: {}
         },
         fitbit:{
@@ -394,6 +395,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
             color: "rgb(36, 77, 187)",
             mapicon :"/" + FLX_RELEASE_NUMBER + "/images/mapicons/glasses.png",
             mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
+            clockOutline: true,
             facets: {
                 "place":{
                     mapicon: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/moves-place.png",

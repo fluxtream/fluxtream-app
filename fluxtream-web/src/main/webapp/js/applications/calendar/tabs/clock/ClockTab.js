@@ -220,6 +220,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                 var color = getItemColor(item);
                 var strokeWidth = getStrokeWidth(item);
                 var strokeCap = getStrokeCap(item);
+                var outline = App.getFacetConfig(item.type).clockOutline;
 				config.clockCircles.push(
 					function() {
 						var start = item.startMinute;
@@ -230,9 +231,9 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 						var instantaneous = typeof(item.endMinute)=="undefined"||item.endMinute===item.startMinute,
                             span;
 						if (instantaneous)
-							span = paintSpan(paper, start,start+instantWidth, orbit, color, .9, strokeWidth, strokeCap);
+							span = paintSpan(paper, start,start+instantWidth, orbit, color, .9, strokeWidth, strokeCap,outline);
 						else{
-							span = paintSpan(paper, start,/*(start<=end?end:1440)*/ end, orbit, color, .9, strokeWidth, strokeCap);
+							span = paintSpan(paper, start,/*(start<=end?end:1440)*/ end, orbit, color, .9, strokeWidth, strokeCap,outline);
                         }
 						span.node.item = item;
                         $(span.node).attr("notthide",true);
@@ -597,9 +598,14 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		return [ x, y ];
 	}
 	
-	function paintSpan(paper, startTime, endTime, radius, color, opacity, strokeWidth, strokeCap) {
-		var coords = arc(config.CLOCK_CENTER, radius, startTime / config.RATIO + config.START_AT, endTime
-				/ config.RATIO + config.START_AT),
+	function paintSpan(paper, startTime, endTime, radius, color, opacity, strokeWidth, strokeCap, outline) {
+        if (outline){
+            paintSpan(paper,startTime,endTime,radius,"black",1,strokeWidth,strokeCap,false);
+            strokeWidth -= 1;
+        }
+        //TODO: calculate outline offset based of radius to get a 1px padding reliable
+		var coords = arc(config.CLOCK_CENTER, radius, startTime / config.RATIO + config.START_AT + (outline ? 0.25 : 0), endTime
+				/ config.RATIO + config.START_AT - + (outline ? 0.25 : 0)),
 		path = paper.path(coords);
         path.attr("stroke-linecap", strokeCap);
 		path.attr("stroke-width", strokeWidth);
@@ -733,7 +739,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                     color = config.OUTSIDE_CATEGORY.color;
                     break;
             }
-            var span = paintSpan(paper, start,(start<=end?end:1440), config.AT_HOME_CATEGORY.orbit, color, 1, config.STROKE_WIDTH, "butt");
+            var span = paintSpan(paper, start,(start<=end?end:1440), config.AT_HOME_CATEGORY.orbit, color, 1, config.STROKE_WIDTH, "butt",false);
             span.node.item = timeSegment;
             $(span.node).attr("notthide",true);
             $(span.node).css("cursor", "pointer");
