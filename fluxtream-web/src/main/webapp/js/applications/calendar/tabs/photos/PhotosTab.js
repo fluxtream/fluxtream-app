@@ -103,13 +103,13 @@ define(["core/Tab",
                continue;
            var date = App.formatDate(data[i].start + facetCity.tzOffset,false,true);
            if (currentDate == null){
-               currentDate = facetCity.date;
+               currentDate = facetCity.dateWithTimezone;
                currentCity = facetCity;
            }
-           else if (currentDate != facetCity.date) {
-               $("#photoTab").append(thumbnailGroupTemplate.render({date:App.prettyDateFormat(currentDate),city:currentCity.name,timezone:currentCity.shortTimezone,state:"list/date/"+currentDate,photos:currentGroup}));
+           else if (currentDate != facetCity.dateWithTimezone) {
+               $("#photoTab").append(thumbnailGroupTemplate.render({date:App.prettyDateFormat(currentDate),city:currentCity.name,timezone:currentCity.shortTimezone,state:"photos/date/"+currentDate.split(" ")[0],photos:currentGroup}));
                currentGroup = [];
-               currentDate = facetCity.date;
+               currentDate = facetCity.dateWithTimezone;
                currentCity = facetCity;
            }
             var photoUrl = data[i].photoUrl;
@@ -132,7 +132,7 @@ define(["core/Tab",
             currentGroup[currentGroup.length] = {id:data[i].id,photoUrl:photoUrl};
         }
         if (currentGroup.length != 0){
-            $("#photoTab").append(thumbnailGroupTemplate.render({date:App.prettyDateFormat(currentDate),city:currentCity.name,timezone:currentCity.shortTimezone,state:"list/date/"+currentDate,photos:currentGroup}));
+            $("#photoTab").append(thumbnailGroupTemplate.render({date:App.prettyDateFormat(currentDate),city:currentCity.name,timezone:currentCity.shortTimezone,state:"photos/date/"+currentDate.split(" ")[0],photos:currentGroup}));
         }
         for (var i = 0; i < data.length; i++){
             $("#photo-" + data[i].id).click({i:data[i].id},function(event){
