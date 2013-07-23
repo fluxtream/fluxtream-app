@@ -53,7 +53,7 @@
 
 	<beans:bean id="loginUrlAuthenticationEntryPoint"
 		class="com.fluxtream.auth.FlxLoginUrlAuthenticationEntryPoint">
-		<beans:property name="loginFormUrl" value="/welcome" />
+		<beans:property name="loginFormUrl" value="/welcome?login" />
 	</beans:bean>
 
 	<beans:bean id="authFilter" class="com.fluxtream.auth.FlxAuthFilter">
@@ -68,8 +68,15 @@
 	<beans:bean id="successHandler"
 		class="org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler">
 		<beans:property name="defaultTargetUrl" value="/app" />
-		<beans:property name="alwaysUseDefaultTargetUrl" value="true" />
+		<beans:property name="alwaysUseDefaultTargetUrl" value="false" />
+        <beans:property name="requestCache" ref="requestCache"/>
 	</beans:bean>
+
+    <beans:bean id="requestCache" class="org.springframework.security.web.savedrequest.HttpSessionRequestCache"/>
+    <beans:bean id="requestCacheAwareFilter"
+          class="org.springframework.security.web.savedrequest.RequestCacheAwareFilter">
+        <beans:constructor-arg ref="requestCache"/>
+    </beans:bean>
 
 	<beans:bean id="failureHandler" class="com.fluxtream.auth.FlxAuthFailureHandler">
 		<beans:property name="defaultFailureUrl" value="/welcome" />
