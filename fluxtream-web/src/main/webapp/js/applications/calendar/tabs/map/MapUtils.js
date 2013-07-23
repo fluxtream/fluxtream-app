@@ -452,12 +452,12 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 $.ajax({
                     url: "/api/metadata/foursquare/venue/" + item.foursquareId,
                     success: function(response) {
-                        marker.config.mapicon = response.categoryIconUrlPrefix + "bg_32" + response.categoryIconUrlSuffix;
+                        marker.config.highlightmapicon = marker.config.mapicon = response.categoryIconUrlPrefix + "bg_32" + response.categoryIconUrlSuffix;
                         marker.setIcon(marker.config.mapicon);
                     }
                 });
             } else {
-                marker.config.mapicon = "/images/moves/" + item.placeType + ".png";
+                marker.config.highlightmapicon = marker.config.mapicon = "/images/moves/" + item.placeType + ".png";
                 marker.setIcon(marker.config.mapicon);
             }
         }
