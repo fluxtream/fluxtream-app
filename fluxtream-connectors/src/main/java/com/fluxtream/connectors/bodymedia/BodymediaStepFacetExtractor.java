@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.TimeZone;
 import com.fluxtream.ApiData;
 import com.fluxtream.connectors.ObjectType;
+import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 import com.fluxtream.services.ConnectorUpdateService;
@@ -43,7 +44,8 @@ public class BodymediaStepFacetExtractor extends AbstractFacetExtractor
     MetadataService metadataService;
 
     @Override
-    public List<AbstractFacet> extractFacets(ApiData apiData, ObjectType objectType) throws Exception
+    public List<AbstractFacet> extractFacets(final UpdateInfo updateInfo, final ApiData apiData,
+                                             final ObjectType objectType) throws Exception
     {
 
         logger.info("guestId=" + apiData.updateInfo.getGuestId() +

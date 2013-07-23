@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 import com.fluxtream.ApiData;
 import com.fluxtream.connectors.ObjectType;
+import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.Tag;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
@@ -22,7 +23,7 @@ public class FlickrFacetExtractor extends AbstractFacetExtractor {
 	private static final DateTimeFormatter format = DateTimeFormat
 			.forPattern("yyyy-MM-dd HH:mm:ss").withZone(DateTimeZone.UTC);
 
-	public List<AbstractFacet> extractFacets(ApiData apiData,
+	public List<AbstractFacet> extractFacets(final UpdateInfo updateInfo, final ApiData apiData,
 			ObjectType objectType) {
 		List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
 

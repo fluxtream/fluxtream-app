@@ -344,13 +344,12 @@ public class ApiDataServiceImpl implements ApiDataService {
 			UpdateInfo updateInfo) throws Exception {
 		AbstractFacetExtractor facetExtractor = apiData.updateInfo.apiKey
 				.getConnector().extractor(objectTypes, beanFactory);
-		facetExtractor.setUpdateInfo(updateInfo);
 		List<ObjectType> connectorTypes = ObjectType.getObjectTypes(
 				apiData.updateInfo.apiKey.getConnector(), objectTypes);
 		List<AbstractFacet> newFacets = new ArrayList<AbstractFacet>();
 		if (connectorTypes != null) {
 			for (ObjectType objectType : connectorTypes) {
-				List<AbstractFacet> facets = facetExtractor.extractFacets(
+				List<AbstractFacet> facets = facetExtractor.extractFacets(updateInfo,
 						apiData, objectType);
 				for (AbstractFacet facet : facets) {
 					AbstractFacet newFacet = persistFacet(facet);
@@ -359,7 +358,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 				}
 			}
 		} else {
-			List<AbstractFacet> facets = facetExtractor.extractFacets(apiData,
+			List<AbstractFacet> facets = facetExtractor.extractFacets(updateInfo, apiData,
 					null);
 			for (AbstractFacet facet : facets) {
 				AbstractFacet newFacet = persistFacet(facet);

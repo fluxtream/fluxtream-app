@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TimeZone;
 import com.fluxtream.ApiData;
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
@@ -14,7 +15,6 @@ import com.fluxtream.utils.TimeUtils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
-import com.fluxtream.aspects.FlxLogger;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -44,12 +44,12 @@ public class BodymediaBurnFacetExtractor extends AbstractFacetExtractor
     ConnectorUpdateService connectorUpdateService;
 
     @Override
-    public List<AbstractFacet> extractFacets(ApiData apiData, ObjectType objectType) throws Exception
+    public List<AbstractFacet> extractFacets(final UpdateInfo updateInfo, final ApiData apiData,
+                                             ObjectType objectType) throws Exception
     {
 
         logger.info("guestId=" + apiData.updateInfo.getGuestId() +
-        				" connector=bodymedia action=extractFacets objectType="
-        						+ objectType.getName());
+                    " connector=bodymedia action=extractFacets objectType=" + objectType.getName());
 
         ArrayList<AbstractFacet> facets;
         String name = objectType.getName();
@@ -62,11 +62,6 @@ public class BodymediaBurnFacetExtractor extends AbstractFacetExtractor
             throw new JSONException("Burn extractor called with illegal ObjectType");
         }
         return facets;
-    }
-
-    @Override
-    public void setUpdateInfo(final UpdateInfo updateInfo) {
-        super.setUpdateInfo(updateInfo);
     }
 
     /**

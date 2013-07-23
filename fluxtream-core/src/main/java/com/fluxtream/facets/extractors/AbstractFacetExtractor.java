@@ -15,13 +15,7 @@ public abstract class AbstractFacetExtractor {
     protected final static DateTimeFormatter dateFormatter = DateTimeFormat
             .forPattern("yyyy-MM-dd");
 
-    protected UpdateInfo updateInfo;
-
-	public void setUpdateInfo(UpdateInfo updateInfo) {
-		this.updateInfo = updateInfo;
-	}
-	
-	protected Connector connector() {
+	protected Connector connector(UpdateInfo updateInfo) {
 		return updateInfo.apiKey.getConnector();
 	}
 
@@ -58,6 +52,6 @@ public abstract class AbstractFacetExtractor {
                : String.valueOf(i);
     }
 
-	public abstract List<AbstractFacet> extractFacets(ApiData apiData,
+	public abstract List<AbstractFacet> extractFacets(UpdateInfo updateInfo, ApiData apiData,
 			ObjectType objectType) throws Exception;
 }

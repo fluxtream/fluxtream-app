@@ -6,6 +6,7 @@ import java.util.TimeZone;
 import com.fluxtream.ApiData;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.location.LocationFacet;
+import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 import com.fluxtream.services.ApiDataService;
@@ -34,7 +35,7 @@ public class RunKeeperFitnessActivityExtractor extends AbstractFacetExtractor {
     ApiDataService apiDataService;
 
     @Override
-    public List<AbstractFacet> extractFacets(final ApiData apiData, final ObjectType objectType) throws Exception {
+    public List<AbstractFacet> extractFacets(final UpdateInfo updateInfo, final ApiData apiData, final ObjectType objectType) throws Exception {
         List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
         JSONObject jsonObject = JSONObject.fromObject(apiData.json);
 
