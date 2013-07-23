@@ -161,13 +161,21 @@ public class AppController {
 		return mav;
 	}
 
+    @RequestMapping(value = "/checkIn")
+    public ModelAndView checkIn(HttpServletRequest request, HttpServletResponse response)
+            throws IOException, NoSuchAlgorithmException {
+        if (!hasTimezoneCookie(request)|| AuthHelper.getGuest()==null)
+            return new ModelAndView("redirect:/welcome");
+        long guestId = AuthHelper.getGuestId();
+        checkIn(request, guestId);
+        return new ModelAndView("redirect:/app");
+    }
+
 	@RequestMapping(value = { "/app*", "/app/**" })
 	public ModelAndView welcomeHome(HttpServletRequest request, HttpServletResponse response)
 			throws IOException, NoSuchAlgorithmException {
 		if (!hasTimezoneCookie(request)|| AuthHelper.getGuest()==null)
 			return new ModelAndView("redirect:/welcome");
-		long guestId = AuthHelper.getGuestId();
-		checkIn(request, guestId);
         SavedRequest savedRequest =
                 new HttpSessionRequestCache().getRequest(request, response);
         if (savedRequest!=null) {
@@ -205,8 +213,8 @@ public class AppController {
         return "redirect:/app";
     }
 
-        private void checkIn(HttpServletRequest request, long guestId)
-			throws IOException {
+    private void checkIn(HttpServletRequest request, long guestId)
+        throws IOException {
 		String remoteAddr = request.getHeader("X-Forwarded-For");
 		if (remoteAddr == null)
 			remoteAddr = request.getRemoteAddr();
