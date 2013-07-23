@@ -603,9 +603,12 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             paintSpan(paper,startTime,endTime,radius,"black",1,strokeWidth,strokeCap,false);
             strokeWidth -= 1;
         }
-        //TODO: calculate outline offset based of radius to get a 1px padding reliable
-		var coords = arc(config.CLOCK_CENTER, radius, startTime / config.RATIO + config.START_AT + (outline ? 0.25 : 0), endTime
-				/ config.RATIO + config.START_AT - + (outline ? 0.25 : 0)),
+        var degreesPerPixel = 360 / (Math.PI * 2 * radius);
+        var start = startTime / config.RATIO + config.START_AT + (outline ? (degreesPerPixel * 0.5) : 0);
+        var end =  endTime / config.RATIO + config.START_AT - (outline ? (degreesPerPixel * 0.5) : 0);
+        if (end < start)
+            end = start;
+		var coords = arc(config.CLOCK_CENTER, radius, start, end),
 		path = paper.path(coords);
         path.attr("stroke-linecap", strokeCap);
 		path.attr("stroke-width", strokeWidth);
