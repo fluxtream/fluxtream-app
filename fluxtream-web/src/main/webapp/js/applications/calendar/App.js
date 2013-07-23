@@ -592,7 +592,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 }
             }
             if (showDate){
-                var facetCity = App.getFacetCity(data, digest.metadata.cities);
+                var facetCity = App.getFacetCity(data, digest.metadata);
                 newFacet.displayDate = App.formatDate(data.start + facetCity.tzOffset,false,true);
             }
         }
