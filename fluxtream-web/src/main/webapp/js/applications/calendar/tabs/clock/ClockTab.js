@@ -573,8 +573,6 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 	}
 
 	function arc(center, radius, startAngle, endAngle) {
-		if (endAngle - startAngle < 2 && endAngle - startAngle >= 0)
-			endAngle += 1;
 		var angle = startAngle,
 			coords = toCoords(center, radius, angle),
 			path = "M " + coords[0] + " " + coords[1];
