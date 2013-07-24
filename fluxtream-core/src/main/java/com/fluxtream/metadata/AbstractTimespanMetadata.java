@@ -1,16 +1,14 @@
 package com.fluxtream.metadata;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.TimeZone;
-import java.util.TreeSet;
 import com.fluxtream.OutsideTimeBoundariesException;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.TimeUnit;
 import com.fluxtream.domain.metadata.VisitedCity;
-import com.fluxtream.utils.TimeUtils;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
@@ -22,11 +20,6 @@ import org.joda.time.format.DateTimeFormatter;
  * Time: 10:39
  */
 public abstract class AbstractTimespanMetadata {
-
-    public float maxTempC = -10000,
-            maxTempF = -10000,
-            minTempC = 10000,
-            minTempF = 10000;
 
     public long start, end;
 

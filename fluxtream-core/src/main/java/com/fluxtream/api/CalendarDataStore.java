@@ -36,6 +36,7 @@ import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.domain.Notification;
 import com.fluxtream.domain.metadata.City;
 import com.fluxtream.domain.metadata.VisitedCity;
+import com.fluxtream.domain.metadata.WeatherInfo;
 import com.fluxtream.metadata.AbstractTimespanMetadata;
 import com.fluxtream.metadata.DayMetadata;
 import com.fluxtream.metadata.MonthMetadata;
@@ -50,6 +51,7 @@ import com.fluxtream.mvc.models.SolarInfoModel;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.mvc.models.TimeBoundariesModel;
 import com.fluxtream.mvc.models.VisitedCityModel;
+import com.fluxtream.mvc.models.WeatherModel;
 import com.fluxtream.services.CoachingService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
@@ -141,7 +143,6 @@ public class CalendarDataStore {
             setCachedData(digest, allApiKeys, settings, apiKeySelection,
                           weekMetadata);
 
-            copyMetadata(digest, weekMetadata);
             setNotifications(digest, AuthHelper.getGuestId());
             setCurrentAddress(digest, guestId, weekMetadata.start);
             digest.settings = new SettingsModel(settings,guest);
@@ -212,7 +213,6 @@ public class CalendarDataStore {
             setCachedData(digest, allApiKeys, settings, apiKeySelection,
                           monthMetadata);
 
-            copyMetadata(digest, monthMetadata);
             setNotifications(digest, AuthHelper.getGuestId());
             setCurrentAddress(digest, guestId, monthMetadata.start);
             digest.settings = new SettingsModel(settings, guest);
@@ -242,22 +242,45 @@ public class CalendarDataStore {
     @GET
     @Path("/weather/date/{date}")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String getWeatherDataForADay(@PathParam("date") String date) {
+    public WeatherModel getWeatherDataForADay(@PathParam("date") String date) {
 
         Guest guest = AuthHelper.getGuest();
         long guestId = guest.getId();
 
+        GuestSettings settings = settingsService.getSettings(guestId);
+
         DayMetadata dayMetadata = metadataService.getDayMetadata(guestId, date);
-        DigestModel digest = new DigestModel(TimeUnit.DAY, dayMetadata, env);
-        digest.tbounds = getStartEndResponseBoundaries(dayMetadata.start, dayMetadata.end);
+        WeatherModel model = new WeatherModel(settings.temperatureUnit);
+        model.tbounds = getStartEndResponseBoundaries(dayMetadata.start, dayMetadata.end);
 
         City city = dayMetadata.consensusVisitedCity.city;
         if (city != null){
-            digest.hourlyWeatherData = metadataService.getWeatherInfo(city.geo_latitude,city.geo_longitude, date, 0, 24 * 60);
-            Collections.sort(digest.hourlyWeatherData);
+            final List<WeatherInfo> weatherInfo = metadataService.getWeatherInfo(city.geo_latitude, city.geo_longitude, date, 0, 24 * 60);
+            Collections.sort(weatherInfo);
+            model.hourlyWeatherData = weatherInfo;
+            setMinMaxTemperatures(model, weatherInfo);
+            model.solarInfo = getSolarInfo(city.geo_latitude, city.geo_longitude, dayMetadata);
         }
 
-        return gson.toJson(digest);
+        return model;
+    }
+
+    public void setMinMaxTemperatures(WeatherModel info,
+                                      List<WeatherInfo> weatherInfo) {
+        if (weatherInfo.size() == 0)
+            return;
+
+        for (WeatherInfo weather : weatherInfo) {
+            if (weather.tempC < info.minTempC)
+                info.minTempC = weather.tempC;
+            if (weather.tempF < info.minTempF)
+                info.minTempF = weather.tempF;
+            if (weather.tempC > info.maxTempC)
+                info.maxTempC = weather.tempC;
+            if (weather.tempF > info.maxTempF)
+                info.maxTempF = weather.tempF;
+        }
+
     }
 
 	@GET
@@ -313,7 +336,6 @@ public class CalendarDataStore {
             setCachedData(digest, allApiKeys, settings, apiKeySelection,
                     dayMetadata);
 
-            copyMetadata(digest, dayMetadata);
             setNotifications(digest, AuthHelper.getGuestId());
             setCurrentAddress(digest, guestId, dayMetadata.start);
             digest.settings = new SettingsModel(settings,guest);
@@ -543,10 +565,7 @@ public class CalendarDataStore {
                                                                    ObjectType objectType)
             throws InstantiationException, IllegalAccessException, ClassNotFoundException, OutsideTimeBoundariesException
     {
-        List<AbstractFacet> objectTypeFacets = calendarDataHelper.getFacets(
-				connector,
-				objectType,
-				timespanMetadata);
+        List<AbstractFacet> objectTypeFacets = calendarDataHelper.getFacets(connector, objectType, timespanMetadata);
         return getAbstractFacetVOs(settings, objectTypeFacets, timespanMetadata.getTimeInterval());
 	}
 
@@ -571,13 +590,6 @@ public class CalendarDataStore {
 		}
 	}
 
-	private void copyMetadata(DigestModel digest, AbstractTimespanMetadata md) {
-		digest.metadata.minTempC = md.minTempC;
-		digest.metadata.minTempF = md.minTempF;
-		digest.metadata.maxTempC = md.maxTempC;
-		digest.metadata.maxTempF = md.maxTempF;
-    }
-
     private List<ConnectorDigestModel> connectorInfos(long guestId, List<ApiKey> apis){
         List<ConnectorDigestModel> connectors = new ArrayList<ConnectorDigestModel>();
         for (ApiKey apiKey : apis){
@@ -598,14 +610,6 @@ public class CalendarDataStore {
         }
         return  connectors;
     }
-
-	private List<String> connectorNames(List<ApiKey> apis) {
-		List<String> connectorNames = new ArrayList<String>();
-        for (ApiKey apiKey : apis) {
-            connectorNames.add(apiKey.getConnector().getName());
-        }
-		return connectorNames;
-	}
 
 	private List<ApiKey> getApiKeySelection(long guestId, String filter, CoachingBuddy coachee) {
 		List<ApiKey> userKeys = guestService.getApiKeys(guestId);
@@ -648,14 +652,14 @@ public class CalendarDataStore {
 	private void setSolarInfo(DigestModel digest, City city, long guestId,
 			DayMetadata dayMetadata) {
         if (city != null) {
-            digest.solarInfo = getSolarInfo(city.geo_latitude,
+            digest.metadata.solarInfo = getSolarInfo(city.geo_latitude,
                                             city.geo_longitude, dayMetadata);
         }
         else {
             List<GuestAddress> addresses = settingsService.getAllAddressesForDate(guestId,dayMetadata.start);
             GuestAddress guestAddress = addresses.size() == 0 ? null : addresses.get(0);
             if (guestAddress != null) {
-                digest.solarInfo = getSolarInfo(guestAddress.latitude,
+                digest.metadata.solarInfo = getSolarInfo(guestAddress.latitude,
                                                 guestAddress.longitude, dayMetadata);
             }
         }
