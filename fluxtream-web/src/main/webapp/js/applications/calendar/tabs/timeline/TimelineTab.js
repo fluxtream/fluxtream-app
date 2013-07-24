@@ -47,10 +47,20 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
      */
     function onAxisChanged(prevState) {
         var timeUnit = grapher.getCurrentTimeUnit();
-        var center = (grapher.dateAxis.getMin() + grapher.dateAxis.getMax()) / 2.0;
+        var cursor = grapher.getTimeCursorPosition();
+        var minTime = grapher.dateAxis.getMin();
+        var maxTime = grapher.dateAxis.getMax();
+        var center;
+        var dateChangeInertia;
+        if (cursor >= minTime && cursor <= maxTime){//cursor is in the bounds, use it
+            center = cursor;
+            dateChangeInertia = 0;//no need for inertia with cursor
+        }
+        else{
+            center = (minTime + maxTime) / 2.0;
+            dateChangeInertia = 24 * 3600 * 1000 / 12;
+        }
         var date = new Date(center * 1000);
-
-        var dateChangeInertia = 24 * 3600 * 1000 / 12;
         var dateEarly = new Date(center * 1000 - dateChangeInertia);
         var dateLate = new Date(center * 1000 + dateChangeInertia);
 
