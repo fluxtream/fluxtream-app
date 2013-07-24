@@ -54,11 +54,12 @@ class UpdateWorker implements Runnable {
         StringBuilder sb = new StringBuilder("module=updateQueue component=worker action=start")
                 .append(" guestId=").append(task.getGuestId())
                 .append(" connector=").append(task.connectorName)
-                .append(" objectType=").append(task.objectTypes);
+                .append(" objectType=").append(task.objectTypes)
+                .append(" apiKeyId=").append(task.apiKeyId);
 		logger.info(sb.toString());
 
 		Connector connector = Connector.getConnector(task.connectorName);
-		ApiKey apiKey = guestService.getApiKey(task.guestId, connector);
+		ApiKey apiKey = guestService.getApiKey(task.apiKeyId);
 		AbstractUpdater updater = connectorUpdateService.getUpdater(connector);
 
 		switch (task.updateType) {
