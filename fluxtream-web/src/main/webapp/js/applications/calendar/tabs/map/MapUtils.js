@@ -452,12 +452,20 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 $.ajax({
                     url: "/api/metadata/foursquare/venue/" + item.foursquareId,
                     success: function(response) {
-                        marker.config.highlightmapicon = marker.config.mapicon = response.categoryIconUrlPrefix + "bg_32" + response.categoryIconUrlSuffix;
+                        marker.config.mapicon = {
+                            url: response.categoryIconUrlPrefix + "bg_32" + response.categoryIconUrlSuffix,
+                            size: new google.maps.Size(32,32)
+                        };
+                        marker.resyncIcons(true);
                         marker.setIcon(marker.config.mapicon);
                     }
                 });
             } else {
-                marker.config.highlightmapicon = marker.config.mapicon = "/images/moves/" + item.placeType + ".png";
+                marker.config.mapicon = {
+                    url: "/images/moves/" + item.placeType + ".png",
+                    size: new google.maps.Size(32,37)
+                };
+                marker.resyncIcons(true);
                 marker.setIcon(marker.config.mapicon);
             }
         }
@@ -585,19 +593,35 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                     map.currentHighlightedLine.setMap(null);
             }
         }
+        var itemConfig = App.getFacetConfig(marker.item.type);
+
+        marker.resyncIcons = function(force){
+            if (itemConfig.highlightmapicon == null || force){
+                if (this.config.mapicon != null && this.config.mapicon.url != null && this.config.mapicon.size != null){
+                    var newSize = new google.maps.Size(this.config.mapicon.size.width * 1.5,this.config.mapicon.size.height * 1.5);
+                    this.config.highlightmapicon = {
+                        url: this.config.mapicon.url,
+                        size: newSize,
+                        scaledSize: newSize
+                    }
+                }
+
+            }
+        }
+
         if (marker.clickable && marker.item != null){
             addClickListenerForMarker(map,marker,marker.item);
         }
 
         marker.time = time;
         if (marker.item != null){
-            var itemConfig = App.getFacetConfig(marker.item.type);
+
             marker.config =  {
                 mapicon: itemConfig.mapicon,
                 highlightmapicon: itemConfig.highlightmapicon != null ? itemConfig.highlightmapicon : itemConfig.mapicon,
                 greymapicon: itemConfig.greymapicon != null ? itemConfig.greymapicon : emptyCircle
-
             };
+            marker.resyncIcons();
         }
         else{
             marker.config = {};
@@ -641,7 +665,10 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         }
     }
 
-    var emptyCircle = new google.maps.MarkerImage("/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",null,null,new google.maps.Point(5,5),null);
+    var emptyCircle = {
+        url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",
+        anchor: google.maps.Point(5,5)
+    };
 
     function highlightTimespan(map, start,end,gpsDataSet){
         function highlight(map,gpsDataSet,start,end){
