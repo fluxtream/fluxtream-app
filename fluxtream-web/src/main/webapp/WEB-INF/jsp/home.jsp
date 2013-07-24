@@ -20,9 +20,9 @@
 <meta name="description" content="">
 <meta name="author" content="">
 
-<link rel="stylesheet" href="/static/css/bootstrap-2.0.3.min.css">
+<link rel="stylesheet" href="/static/css/bootstrap-2.3.2.min.css">
 <link rel="stylesheet"
-      href="/static/css/bootstrap-responsive-2.0.3.min.css">
+      href="/static/css/bootstrap-responsive-2.3.2.min.css">
 <g:compress>
 	<link rel="stylesheet" href="/css/flx.css">
 	<link rel="stylesheet" href="/css/bodytrack.css">
@@ -148,7 +148,7 @@
     <% if (tracker) { try{%>
         <jsp:include page="tracker.jsp" />
     <%} catch(Throwable t){} } %>
-    <script src="/static/js/bootstrap-2.0.2.min.js"></script>
+    <script src="/static/js/bootstrap-2.3.2.min.js"></script>
 		<script src="/static/js/jquery-ui-1.8.18.custom.min.js"></script>
 		<script src="/static/js/jquery.ui.sortable-1.8.2-bt-1.0.0.js"></script>
 		<script src="/static/tiny_mce-3.5b1/jquery.tinymce.js"></script>

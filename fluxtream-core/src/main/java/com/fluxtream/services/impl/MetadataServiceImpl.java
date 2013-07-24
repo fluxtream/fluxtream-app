@@ -36,16 +36,13 @@ import com.fluxtream.thirdparty.helpers.WWOHelper;
 import com.fluxtream.utils.HttpUtils;
 import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.TimeUtils;
-import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
-import com.luckycatlabs.sunrisesunset.dto.Location;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-import org.apache.http.HttpException;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeConstants;
+import org.apache.commons.httpclient.HttpException;
+import com.fluxtream.aspects.FlxLogger;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Days;
 import org.joda.time.LocalDate;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeConstants;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +50,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-//import com.fluxtream.thirdparty.helpers.WWOHelper;
+import net.sf.json.JSONObject;
+import net.sf.json.JSONArray;
+import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
+import com.luckycatlabs.sunrisesunset.dto.Location;
 
 @Service
 @Component
@@ -186,7 +186,7 @@ public class MetadataServiceImpl implements MetadataService {
         final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities, previousInferredCity, nextInferredCity);
         DayMetadata info = new DayMetadata(cities, consensusVisitedCity, previousInferredCity, nextInferredCity, date);
         return info;
-	}
+    }
 
     private int daysBetween(String date, VisitedCity vcity) {
         final DateTime wantedDate = formatter.withZone(DateTimeZone.forID(vcity.city.geo_timezone)).parseDateTime(date);

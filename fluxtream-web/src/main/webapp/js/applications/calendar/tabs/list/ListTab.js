@@ -9,11 +9,12 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
     function render(params) {
         setTabParam = params.setTabParam;
         this.getTemplate("text!applications/calendar/tabs/list/list.html", "list", function() {
-            if (lastTimestamp == params.digest.generationTimestamp && !params.forceReload){
+            //TODO: implement comment refreshing algorithm so the entire list tab doesn't have to be refreshed every time
+           /* if (lastTimestamp == params.digest.generationTimestamp && !params.forceReload){        //disabled for now to force refreshing of comments
                 params.doneLoading();
                 return;
             }
-            else
+            else   */
                 lastTimestamp = params.digest.generationTimestamp;
             setup(params.digest,params.connectorEnabled,0,params.doneLoading);
         });
@@ -26,6 +27,8 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
     var maxPerPage = 200;
     var currentPage = 0;
     var photoCarouselHTML;
+    var dgst;
+
     var templates;
     var metadata;
 
@@ -33,6 +36,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
 
     function setup(digest,connectorEnabled,page,doneLoading){
         App.loadAllMustacheTemplates("applications/calendar/tabs/list/listTemplates.html",function(listTemplates){
+            dgst = digest;
             templates = listTemplates;
             list = $("#list");
             pagination = $("#pagination");
@@ -210,6 +214,15 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
                 App.carousel($(event.delegateTarget).attr("photoId"));
             });
         }
+        $(".mapLink").click(function(event){
+            setTabParam($(event.delegateTarget).attr("itemid"));
+            $(".calendar-map-tab").click();
+            return false;
+        });
+        $(".facet-edit a").click(function(event){
+            event.digest = dgst;
+            App.apps.calendar.commentEdit(event);
+        });
     }
 
     function paginationClickCallback(event){

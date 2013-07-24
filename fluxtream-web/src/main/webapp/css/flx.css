@@ -268,6 +268,116 @@
 .flx-listItem .flx-box.moves {
   border-left-color: #244dbb;
 }
+.navbar-inner {
+  background-color: #2c2c2c;
+  background-image: -moz-linear-gradient(top, #333333, #222222);
+  background-image: -ms-linear-gradient(top, #333333, #222222);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#333333), to(#222222));
+  background-image: -webkit-linear-gradient(top, #333333, #222222);
+  background-image: -o-linear-gradient(top, #333333, #222222);
+  background-image: linear-gradient(top, #333333, #222222);
+  border: none;
+}
+.navbar {
+  color: #999;
+}
+.navbar-inner {
+  background-color: #2c2c2c;
+  background-image: -moz-linear-gradient(top, #333333, #222222);
+  background-image: -ms-linear-gradient(top, #333333, #222222);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#333333), to(#222222));
+  background-image: -webkit-linear-gradient(top, #333333, #222222);
+  background-image: -o-linear-gradient(top, #333333, #222222);
+  background-image: linear-gradient(top, #333333, #222222);
+  border: none;
+}
+.navbar .nav > li > a,
+.navbar .nav > li > a:focus {
+  float: none;
+  padding: 9px 10px 11px;
+  line-height: 19px;
+  color: #999;
+  text-decoration: none;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+  outline: none;
+}
+.navbar .nav li.dropdown.open > .dropdown-toggle,
+.navbar .nav li.dropdown.active > .dropdown-toggle,
+.navbar .nav li.dropdown.open.active > .dropdown-toggle {
+  background: inherit;
+  color: inherit;
+}
+.navbar .nav > li > a:hover {
+  background-color: transparent;
+  color: #fff;
+  text-decoration: none;
+}
+.navbar .nav li.dropdown > a:focus .caret,
+.navbar .nav li.dropdown > a .caret {
+  border-top-color: #999;
+  border-bottom-color: #999;
+}
+.navbar .nav li.dropdown > a:hover .caret,
+.navbar .nav li.dropdown.open > .dropdown-toggle .caret,
+.navbar .nav li.dropdown.active > .dropdown-toggle .caret,
+.navbar .nav li.dropdown.open.active > .dropdown-toggle .caret {
+  border-top-color: #fff;
+  border-bottom-color: #fff;
+}
+.navbar .divider-vertical {
+  background-color: #222;
+  border-right: 1px solid #333;
+  border-left: none;
+}
+small {
+  font-size: 100%;
+}
+body {
+  line-height: 18px;
+}
+h3 {
+  font-size: 18px;
+  line-height: 27px;
+}
+h4 {
+  font-size: 14px;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  line-height: inherit;
+}
+.btn {
+  padding: 4px 10px 4px;
+  font-size: 13px;
+  line-height: 18px;
+}
+.btn-group > .btn {
+  font-size: 13px;
+}
+.icon-white,
+.nav-pills > .active > a > [class^="icon-"],
+.nav-pills > .active > a > [class*=" icon-"],
+.nav-list > .active > a > [class^="icon-"],
+.nav-list > .active > a > [class*=" icon-"],
+.navbar-inverse .nav > .active > a > [class^="icon-"],
+.navbar-inverse .nav > .active > a > [class*=" icon-"],
+.dropdown-menu > li > a:hover > [class^="icon-"],
+.dropdown-menu > li > a:focus > [class^="icon-"],
+.dropdown-menu > li > a:hover > [class*=" icon-"],
+.dropdown-menu > li > a:focus > [class*=" icon-"],
+.dropdown-menu > .active > a > [class^="icon-"],
+.dropdown-menu > .active > a > [class*=" icon-"],
+.dropdown-submenu:hover > a > [class^="icon-"],
+.dropdown-submenu:focus > a > [class^="icon-"],
+.dropdown-submenu:hover > a > [class*=" icon-"],
+.dropdown-submenu:focus > a > [class*=" icon-"] {
+  background-image: none;
+}
 ::selection {
   background: #ffff9e;
 }
@@ -1121,6 +1231,16 @@ table .remove i {
 }
 .facetDetails.many {
   margin-bottom: 10px;
+}
+.facet-comment-text {
+  margin-top: 10px;
+  font-style: italic;
+  color: gray;
+}
+.facet-comment textarea {
+  width: 90%;
+  margin-top: 10px;
+  background-color: lightyellow;
 }
 .dashboard-list-item {
   overflow: hidden;

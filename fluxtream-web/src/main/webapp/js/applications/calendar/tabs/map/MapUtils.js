@@ -477,9 +477,15 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             if (map.selectedMarker != null)
                 map.selectedMarker.hideCircle();
             map.selectedMarker = marker;
+            var details = $(item.getDetails(true));
+            details.find(".mapLink").remove();
             var details = item.getDetails(true);
             details.on("contentchange",function(event, content){
                 map.infoWindow.setContent(details[0]);
+                details.find(".facet-edit a").click(function(event){
+                    event.digest = map.digest;
+                    App.apps.calendar.commentEdit(event);
+                });
             });
             details.find(".mapLink").remove();
             details.css("width","300px");
@@ -593,7 +599,12 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                     map.currentHighlightedLine.setMap(null);
             }
         }
-        var itemConfig = App.getFacetConfig(marker.item.type);
+        var itemConfig;
+        if (marker.item != null)
+            itemConfig = App.getFacetConfig(marker.item.type);
+        else
+            itemConfig = {};
+
 
         marker.resyncIcons = function(force){
             if (itemConfig.highlightmapicon == null || force){
@@ -1313,27 +1324,27 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     return {
         isDisplayable: isDisplayable,
         filterGPSData: filterGPSData,
-        newMap: function(center,zoom,divId,hideControls,maxBounds,mapTypeId){ //creates and returns a google map with extended functionality
+        newMap: function(center,zoom,divId,hideControls,maxBounds ){ //creates and returns a google map with extended functionality
             var options = {
                 zoom : zoom,
                 center: center,
                 scrollwheel : true,
                 streetViewControl : false,
-                mapTypeId : mapTypeId != null ? mapTypeId : google.maps.MapTypeId.ROADMAP
+                mapTypeId : google.maps.MapTypeId.ROADMAP
             };
             if (hideControls){
                 options.disableDefaultUI = true;
             }
             var map = new google.maps.Map(document.getElementById(divId),options);
             map.reset = function(){
-                if (this.infoWindow == null){//brand new map, initialize
-                    this.infoWindow = new google.maps.InfoWindow();
-                    google.maps.event.addListener(this.infoWindow,"closeclick",function(){
-                        if (this.selectedMarker != null){
-                            this.selectedMarker.hideCircle();
-                            if (this.currentHighlightedLine != null){
-                                this.currentHighlightedLine.setMap(null);
-                                this.currentHighlightedLine = null
+                if (map.infoWindow == null){//brand new map, initialize
+                    map.infoWindow = new google.maps.InfoWindow();
+                    google.maps.event.addListener(map.infoWindow,"closeclick",function(){
+                        if (map.selectedMarker != null){
+                            map.selectedMarker.hideCircle();
+                            if (map.currentHighlightedLine != null){
+                                map.currentHighlightedLine.setMap(null);
+                                map.currentHighlightedLine = null
                             }
                             this.selectedMarker = null;
                         }
@@ -1378,6 +1389,10 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             }
 
             map.reset();
+
+            map.setDigest = function(digest){
+                this.digest = digest;
+            }
 
 
             map.addGPSData = function(gpsData,config,clickable){addGPSData(map,gpsData, config,clickable)};
