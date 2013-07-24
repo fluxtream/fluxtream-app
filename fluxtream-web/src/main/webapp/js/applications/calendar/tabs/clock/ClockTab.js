@@ -9,7 +9,6 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 	var paper = null;
 	var config = null;
     var map = null;
-    var hourlyWeatherData = null;
     var solarInfo = null;
     var tempratureUnit = null;
     var distanceUnit = null;

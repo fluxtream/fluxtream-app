@@ -7,12 +7,12 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     var needDigestReload = false;
     var currentCityPool;
     var foursquareVenueTemplate;
-    var weather;
 
     Calendar.currentTabName = Builder.tabs["date"][0];
     Calendar.currentTab = null;
     Calendar.tabState = null;
     Calendar.digest = null;
+    Calendar.weather = null;
     Calendar.timeUnit = "date";
     Calendar.digestTabState = false;
     Calendar.tabParam = null;
@@ -163,7 +163,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
        $.ajax({ url: "/api/calendar/weather/"+Calendar.tabState,
            success: function(response) {
                // we should check that time boundaries are in line with the digest data
-               weather = response;
+               Calendar.weather = response;
                var label = weatherLabel();
                $(".ephemerisWrapper").remove();
                $("#mainCityMetadata").prepend($("<span class='ephemerisWrapper'>" + label + "&nbsp;&nbsp;</span>"));
@@ -966,10 +966,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     }
 
     function ephemerisLabel() {
-        var sunriseH = Math.floor(weather.solarInfo.sunrise/60);
-        var sunriseM = weather.solarInfo.sunrise%60;
-        var sunsetH = Math.floor(weather.solarInfo.sunset/60);
-        var sunsetM = weather.solarInfo.sunset%60;
+        var sunriseH = Math.floor(Calendar.weather.solarInfo.sunrise/60);
+        var sunriseM = Calendar.weather.solarInfo.sunrise%60;
+        var sunsetH = Math.floor(Calendar.weather.solarInfo.sunset/60);
+        var sunsetM = Calendar.weather.solarInfo.sunset%60;
         if (sunriseM<10) sunriseM = "0" + sunriseM;
         if (sunsetM<10) sunsetM = "0" + sunsetM;
         return "<span class=\"ephemeris\"><i class=\"flx-pict-sun\">&nbsp;</i><span>" + sunriseH + ":" + sunriseM + " am"+
@@ -977,21 +977,21 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     }
 
     function weatherLabel() {
-        if (weather.temperatureUnit != "CELSIUS") {
+        if (Calendar.weather.temperatureUnit != "CELSIUS") {
             return ephemerisLabel() + "<i class=\"flx-pict-temp\">&nbsp;</i>"
                        + "<span class=\"ephemeris\" style=\"font-weight:normal;\">&nbsp;"
-                       + weather.minTempF
+                       + Calendar.weather.minTempF
                        + " / "
-                       + weather.maxTempF
+                       + Calendar.weather.maxTempF
                        + "&deg;F"
                 + "</span>";
         }
         else {
             return ephemerisLabel() + "<i class=\"flx-pict-temp\">&nbsp;</i>"
                        + "<span class=\"ephemeris\" style=\"font-weight:normal;\">&nbsp;"
-                       + weather.minTempC
+                       + Calendar.weather.minTempC
                        + " / "
-                       + weather.maxTempC
+                       + Calendar.weather.maxTempC
                        + "&deg;C"
                 + "</span>";
         }
