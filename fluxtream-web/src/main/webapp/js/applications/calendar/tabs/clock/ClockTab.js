@@ -4,7 +4,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         "applications/calendar/App",
         "applications/calendar/tabs/map/MapUtils",
         "App",
-        "applications/calendar/tabs/photos/PhotoUtils"], function(DrawingUtils, Config, Tab, Log, MapUtils, App, PhotoUtils) {
+        "applications/calendar/tabs/photos/PhotoUtils"], function(DrawingUtils, Config, Tab, Calendar, MapUtils, App, PhotoUtils) {
 	
 	var paper = null;
 	var config = null;
@@ -40,7 +40,6 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             }
             else
                 lastTimestamp = params.digest.generationTimestamp;
-            fetchWeatherData();
             App.loadMustacheTemplate("applications/calendar/tabs/clock/clockTemplate.html","tooltip",function(template){
                 tooltipTemplate = template;
                 setup(params.digest, params.timeUnit, params.connectorEnabled, params.doneLoading);
@@ -48,21 +47,11 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		});
 	}
 
-    function fetchWeatherData() {
-        $.ajax({ url: "/api/calendar/weather/"+Log.tabState, dataType: "json",
-            success: function(digest) {
-                if (!outsideTimeBoundaries(digest)) {
-                    hourlyWeatherData = digest.hourlyWeatherData;
-                }
-            }
-        });
-    }
-
     function setup(digest, timeUnit, cEn, doneLoading) {
         dgst = digest;
         selectedConnectors = digest.selectedConnectors;
         connectorEnabled = cEn;
-        solarInfo = digest.solarInfo;
+        solarInfo = digest.metadata.solarInfo;
         tempratureUnit = digest.settings.temperatureUnit;
         distanceUnit = digest.settings.distanceUnit;
         dayStart = digest.tbounds.start;
@@ -117,7 +106,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		drawingUtils.paintCircle(paper, config.MIND_CATEGORY.orbit, "#ffffff", 1);
 		drawingUtils.paintCircle(paper, config.SOCIAL_CATEGORY.orbit, "#ffffff", 1);
 		drawingUtils.paintCircle(paper, config.MEDIA_CATEGORY.orbit, "#ffffff", 1);
-		paintSolarInfo(digest.solarInfo);
+		paintSolarInfo(digest.metadata.solarInfo);
 		for(var objectTypeName in digest.cachedData) {
 			if (digest.cachedData[objectTypeName]==null||typeof(digest.cachedData[objectTypeName])=="undefined")
 				continue;
@@ -127,13 +116,6 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         photoCarouselHTML = PhotoUtils.getCarouselHTML(digest);
 
         doneLoading();
-	}
-
-	function outsideTimeBoundaries(o) {
-		if (typeof(o.tbounds)!="undefined") {
-			return (o.tbounds.start!=config.start || o.tbounds.end!=config.end);
-		}
-		return (o.start!=config.start || o.end!=config.end);
 	}
 
 	function fillRegion(center, radius1, radius2, startAngle, endAngle) {
@@ -517,13 +499,12 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 
     }
 
-    //hourlyWeatherData
     function getWeatherData(minuteOfDay){
-        if (hourlyWeatherData == null)
+        if (Calendar.weather.hourlyWeatherData == null)
             return null;
         var i;
-        for (i = 0; i < hourlyWeatherData.length - 1 && hourlyWeatherData[i].minuteOfDay < minuteOfDay; i++);
-        var weatherInfo = hourlyWeatherData[i];
+        for (i = 0; i < Calendar.weather.hourlyWeatherData.length - 1 && Calendar.weather.hourlyWeatherData[i].minuteOfDay < minuteOfDay; i++);
+        var weatherInfo = Calendar.weather.hourlyWeatherData[i];
         return weatherInfo;
     }
 
@@ -676,7 +657,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
     }
 
 	function locationBreakdown(positions, digest) {
-        if (!Log.connectorEnabled["clock"]["google_latitude"])
+        if (!Calendar.connectorEnabled["clock"]["google_latitude"])
             return;
         var collections = [];
         var currentCollection = null;

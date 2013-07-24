@@ -9,13 +9,11 @@ import java.util.Map;
 import java.util.Set;
 import com.fluxtream.Configuration;
 import com.fluxtream.TimeUnit;
-import com.fluxtream.domain.metadata.WeatherInfo;
 import com.fluxtream.metadata.AbstractTimespanMetadata;
 
 public class DigestModel {
 
 	public TimeBoundariesModel tbounds;
-	public SolarInfoModel solarInfo;
 	public int nApis;
 	public boolean hasPictures;
 	public List<NotificationModel> notifications;
@@ -24,7 +22,6 @@ public class DigestModel {
 	public Set<String> haveDataConnectors = new HashSet<String>();
 	public Set<String> haveNoDataConnectors = new HashSet<String>();
 	public List<ConnectorDigestModel> selectedConnectors = new ArrayList<ConnectorDigestModel>();
-    public List<WeatherInfo> hourlyWeatherData = null;
     public List<GuestModel> coachees;
     public long generationTimestamp;
 
@@ -41,6 +38,8 @@ public class DigestModel {
 
     public class Metadata {
 
+        public SolarInfoModel solarInfo;
+
         Metadata(String timeUnit, VisitedCityModel previousInferredCity, VisitedCityModel nextInferredCity) {
             this.timeUnit = timeUnit;
             this.previousInferredCity = previousInferredCity;
@@ -52,8 +51,6 @@ public class DigestModel {
         public VisitedCityModel previousInferredCity;
         public VisitedCityModel nextInferredCity;
         public VisitedCityModel mainCity;
-        public float minTempC, maxTempC;
-        public float minTempF, maxTempF;
     }
 
 	@SuppressWarnings("rawtypes")

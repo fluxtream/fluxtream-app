@@ -7,6 +7,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     var needDigestReload = false;
     var currentCityPool;
     var foursquareVenueTemplate;
+    var weather;
 
     Calendar.currentTabName = Builder.tabs["date"][0];
     Calendar.currentTab = null;
@@ -158,6 +159,18 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         });
     }
 
+    function fetchWeatherData() {
+       $.ajax({ url: "/api/calendar/weather/"+Calendar.tabState,
+           success: function(response) {
+               // we should check that time boundaries are in line with the digest data
+               weather = response;
+               var label = weatherLabel();
+               $(".ephemerisWrapper").remove();
+               $("#mainCityMetadata").prepend($("<span class='ephemerisWrapper'>" + label + "&nbsp;&nbsp;</span>"));
+           }
+       });
+    }
+
     function setDocumentTitle() {
         document.title = "Fluxtream Calendar | " + $("#currentTimespanLabel").text().trim() + " (" + Calendar.currentTabName + ")";
     }
@@ -254,6 +267,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 Builder.handleNotifications(response);
                 if (Calendar.timeUnit==="date") {
                     handleCityInfo(response);
+                    fetchWeatherData();
                 } else {
                     $("#mainCity").empty();
                     $("#visitedCitiesDetails").hide();
@@ -711,8 +725,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     function handleCityInfo(digestInfo) {
         $("#mainCity").empty();
         if (digestInfo.metadata.mainCity) {
-           $("#mainCity").html(cityLabel(digestInfo.metadata.mainCity) +
-                               temperaturesLabel(digestInfo))
+           $("#mainCity").html(cityLabel(digestInfo.metadata.mainCity))
             if (digestInfo.metadata.previousInferredCity!=null||
                 digestInfo.metadata.nextInferredCity!=null)
                 $("#mainCity").addClass("guessed");
@@ -952,36 +965,33 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
        return s;
     }
 
-    function ephemerisLabel(digestInfo) {
-        var sunriseH = Math.floor(digestInfo.solarInfo.sunrise/60);
-        var sunriseM = digestInfo.solarInfo.sunrise%60;
-        var sunsetH = Math.floor(digestInfo.solarInfo.sunset/60);
-        var sunsetM = digestInfo.solarInfo.sunset%60;
+    function ephemerisLabel() {
+        var sunriseH = Math.floor(weather.solarInfo.sunrise/60);
+        var sunriseM = weather.solarInfo.sunrise%60;
+        var sunsetH = Math.floor(weather.solarInfo.sunset/60);
+        var sunsetM = weather.solarInfo.sunset%60;
         if (sunriseM<10) sunriseM = "0" + sunriseM;
         if (sunsetM<10) sunsetM = "0" + sunsetM;
         return "<span class=\"ephemeris\"><i class=\"flx-pict-sun\">&nbsp;</i><span>" + sunriseH + ":" + sunriseM + " am"+
                "</span>&nbsp;<i class=\"flx-pict-moon\">&nbsp;</i><span>" + sunsetH + ":" + sunsetM + " pm</span></span>";
     }
 
-    function temperaturesLabel(digestInfo) {
-        if (digestInfo.metadata.maxTempC == -10000) {
-            return "";
-        }
-        else if (digestInfo.settings.temperatureUnit != "CELSIUS") {
-            return ephemerisLabel(digestInfo) + "<i class=\"flx-pict-temp\">&nbsp;</i>"
+    function weatherLabel() {
+        if (weather.temperatureUnit != "CELSIUS") {
+            return ephemerisLabel() + "<i class=\"flx-pict-temp\">&nbsp;</i>"
                        + "<span class=\"ephemeris\" style=\"font-weight:normal;\">&nbsp;"
-                       + digestInfo.metadata.minTempF
+                       + weather.minTempF
                        + " / "
-                       + digestInfo.metadata.maxTempF
+                       + weather.maxTempF
                        + "&deg;F"
                 + "</span>";
         }
         else {
-            return ephemerisLabel(digestInfo) + "<i class=\"flx-pict-temp\">&nbsp;</i>"
+            return ephemerisLabel() + "<i class=\"flx-pict-temp\">&nbsp;</i>"
                        + "<span class=\"ephemeris\" style=\"font-weight:normal;\">&nbsp;"
-                       + digestInfo.metadata.minTempC
+                       + weather.minTempC
                        + " / "
-                       + digestInfo.metadata.maxTempC
+                       + weather.maxTempC
                        + "&deg;C"
                 + "</span>";
         }

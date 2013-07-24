@@ -32,6 +32,7 @@ import com.fluxtream.metadata.WeekMetadata;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.NotificationsService;
+import com.fluxtream.thirdparty.helpers.WWOHelper;
 import com.fluxtream.utils.HttpUtils;
 import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.TimeUtils;
@@ -77,8 +78,8 @@ public class MetadataServiceImpl implements MetadataService {
 	@Autowired
 	NotificationsService notificationsService;
 
-    //@Autowired
-    //WWOHelper wwoHelper;
+    @Autowired
+    WWOHelper wwoHelper;
 
     private static final DateTimeFormatter formatter = DateTimeFormat
             .forPattern("yyyy-MM-dd");
@@ -753,13 +754,13 @@ public class MetadataServiceImpl implements MetadataService {
     @Transactional(readOnly = false)
     private void fetchWeatherInfo(double latitude, double longitude,
                                   String city, String date) throws HttpException, IOException {
-        //List<WeatherInfo> weatherInfo = wwoHelper.getWeatherInfo(latitude,
-        //                                                         longitude, date);
-        //for (WeatherInfo info : weatherInfo) {
-        //    info.city = city;
-        //    info.fdate = date;
-        //    em.persist(info);
-        //}
+        List<WeatherInfo> weatherInfo = wwoHelper.getWeatherInfo(latitude,
+                                                                 longitude, date);
+        for (WeatherInfo info : weatherInfo) {
+            info.city = city;
+            info.fdate = date;
+            em.persist(info);
+        }
     }
 
     private void addIcons(List<WeatherInfo> weather){
