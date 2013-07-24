@@ -63,7 +63,7 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
         if (state.tabState != prevTabState
                 && stateEarly.tabState != prevTabState
                 && stateLate.tabState != prevTabState) {
-            Calendar.changeTabState(state, false);
+            Calendar.changeTabState(state, true);
             Calendar.timespanInited = false; // Need to be ready to refresh the date display if user hits back button
             return state;
         }
