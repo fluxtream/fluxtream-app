@@ -150,6 +150,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 Calendar.timeRange.start = response.start;
                 Calendar.timeRange.end = response.end;
                 updateTimespan(response.currentTimespanLabel);
+                Calendar.timeRange.updated = true;
                 stopLoading(doneLoadingId);
             },
             error: handleError("failed to fetch timespan label!")
