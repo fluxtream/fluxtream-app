@@ -17,7 +17,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     Calendar.digestTabState = false;
     Calendar.tabParam = null;
     Calendar.connectorEnabled = {"default":{}};
-    Calendar.timespanInited = false;
+    Calendar.timespanState = null;
+
+   Calendar.dateAxisCursorPosition = null;
+
     Calendar.timeRange = {
         updated: true,
         start: null,
@@ -40,8 +43,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 		_.bindAll(this);
     };
 
-    function updateTimespan(currentTimespan) {
-        Calendar.timespanInited = true;
+    function updateTimespan(currentTimespan,currentState) {
+        Calendar.timespanState = currentState;
         document.title = "Fluxtream Calendar | " + currentTimespan + " (" + Calendar.currentTabName + ")";
         $("#currentTimespanLabel span").html(currentTimespan);
     }
@@ -79,9 +82,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
            type: "GET",
            data: params,
            success: function(response) {
+               Calendar.dateAxisCursorPosition = null;
                Calendar.timeRange.start = response.start;
                Calendar.timeRange.end = response.end;
-               updateTimespan(response.currentTimespanLabel);
+               updateTimespan(response.currentTimespanLabel,params);
                Calendar.timeRange.updated = true;
                Calendar.navigateState(Calendar.currentTabName + "/" + response.state);
                // TODO: Change visible date in the datepicker to Sunday
@@ -150,9 +154,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             type: "GET",
             data: {state: state.tabState},
             success: function(response) {
+                Calendar.dateAxisCursorPosition = null;
                 Calendar.timeRange.start = response.start;
                 Calendar.timeRange.end = response.end;
-                updateTimespan(response.currentTimespanLabel);
+                updateTimespan(response.currentTimespanLabel,state.tabState);
                 Calendar.timeRange.updated = true;
                 stopLoading(doneLoadingId);
             },
@@ -180,7 +185,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         startLoading();
         if (typeof state == "string")
             state = Calendar.parseState(state);
-        if (!Calendar.timespanInited) {
+        if (Calendar.timespanState !== state.tabState) {
             // NOTE: when loading a URL like /app/calendar/date/2012-12-25 directly,
             // the FlxState routes invoke renderState() directly instead of going
             // through fetchState. That bypasses the timespan label fetching, so we
@@ -206,7 +211,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         }
         // Next time the page loads, won't accidentally believe that the timespan in the
         // title and calendar bar has already been initialized
-        Calendar.timespanInited = false;
+        //Calendar.timespanInited = false;
 	};
 
     Calendar.setTabParam = function(tabParam){
