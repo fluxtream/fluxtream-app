@@ -1087,9 +1087,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     }
 
     Calendar.commentEdit = function(evt) {
-        if (evt.updateHTML == null){
-            evt.updateHTML = function(){};
-        }
         var target = $(evt.target);
         var facetDetails = target.parent().parent();
         if (facetDetails.find(".facet-comment").length > 0){
@@ -1120,6 +1117,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                              '<button class="btn btn-link delete" type="button"><i class="icon icon-trash"/> Delete</button>' +
                              '</div>';
         facetDetails.append(commentDiv);
+        facetDetails.trigger("contentchange");
         var textarea = facetDetails.find("textarea");
         if (hasComment) {
             textarea.val(facet.comment);
@@ -1147,14 +1145,14 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 success: function() {
                     facet.comment = textarea.val();
                     facetDetails.find(".facet-comment").replaceWith('<div class="facet-comment-text">' + facet.comment + '</div>');
-                    evt.updateHTML(facetDetails.parent().parent()[0]);
+                    facetDetails.trigger("contentchange");
                 }
             });
         });
         cancelButton.click(function(event) {
             event.stopPropagation();
             facetDetails.find(".facet-comment").replaceWith('<div class="facet-comment-text">' + originalComment + '</div>');
-            evt.updateHTML(facetDetails.parent().parent()[0]);
+            facetDetails.trigger("contentchange");
         });
         deleteButton.click(function(event) {
             event.stopPropagation();
@@ -1164,12 +1162,11 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 type: "DELETE",
                 success: function() {
                     facetDetails.find(".facet-comment").remove();
-                    evt.updateHTML(facetDetails.parent().parent()[0]);
+                    facetDetails.trigger("contentchange");
                     delete facet.comment;
                 }
             });
         });
-        evt.updateHTML(facetDetails.parent().parent()[0]);
     };
 
 	return Calendar;

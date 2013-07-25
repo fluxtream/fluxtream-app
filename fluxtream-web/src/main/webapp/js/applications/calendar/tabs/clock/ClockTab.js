@@ -487,7 +487,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                 classString += "." + classes[i];
             }
             ttpdiv.find(classString).outerHTML(contents.outerHTML());
-            ttpdiv.find(".mapLink").click(function(event){
+            ttpdiv.find(".mapLink").unbind('click').click(function(event){
                 setTabParam($(event.delegateTarget).attr("itemid"));
                 $(".calendar-map-tab").click();
                 return false;
@@ -495,12 +495,12 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 
             var commentEdit =  ttpdiv.find(".facet-edit a");
 
-            commentEdit.click(function(event){
+            commentEdit.unbind('click').click(function(event){
                 event.digest = dgst;
                 App.apps.calendar.commentEdit(event);
             });
             commentEdit.css("display","none");
-            ttpdiv.find("#tooltipEditComment").click(function(){
+            ttpdiv.find("#tooltipEditComment").unbind('click').click(function(){
                 event.preventDefault();
                 commentEdit.click();
             });

@@ -482,7 +482,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             var details = item.getDetails(true);
             details.on("contentchange",function(event, content){
                 map.infoWindow.setContent(details[0]);
-                details.find(".facet-edit a").click(function(event){
+                details.find(".facet-edit a").unbind('click').click(function(event){
                     event.digest = map.digest;
                     App.apps.calendar.commentEdit(event);
                 });
