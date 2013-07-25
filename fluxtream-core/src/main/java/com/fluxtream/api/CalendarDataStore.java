@@ -255,7 +255,7 @@ public class CalendarDataStore {
 
         City city = dayMetadata.consensusVisitedCity.city;
         if (city != null){
-            final List<WeatherInfo> weatherInfo = metadataService.getWeatherInfo(city.geo_latitude, city.geo_longitude, date, 0, 24 * 60);
+            final List<WeatherInfo> weatherInfo = metadataService.getWeatherInfo(city.geo_latitude, city.geo_longitude, date);
             Collections.sort(weatherInfo);
             model.hourlyWeatherData = weatherInfo;
             setMinMaxTemperatures(model, weatherInfo);
