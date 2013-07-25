@@ -972,19 +972,19 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         var sunsetM = Calendar.weather.solarInfo.sunset%60;
         if (sunriseM<10) sunriseM = "0" + sunriseM;
         if (sunsetM<10) sunsetM = "0" + sunsetM;
-        return "<span class=\"ephemeris\"><i class=\"flx-pict-sun\">&nbsp;</i><span>" + sunriseH + ":" + sunriseM + " am"+
-               "</span>&nbsp;<i class=\"flx-pict-moon\">&nbsp;</i><span>" + sunsetH + ":" + sunsetM + " pm</span></span>";
+        return "<span class=\"ephemeris\"><span title='Sunrise'><i class=\"flx-pict-sun\">&nbsp;</i><span>" + sunriseH + ":" + sunriseM + " am"+
+               "</span></span>&nbsp;<span title='Sunset'><i class=\"flx-pict-moon\">&nbsp;</i><span>" + sunsetH + ":" + sunsetM + " pm</span></span></span>";
     }
 
     function weatherLabel() {
         function getFahrenheitTemps() {
             if (Calendar.weather.minTempF==null) return "";
-            var FahrenheitTemps = "<i class=\"flx-pict-temp\">&nbsp;</i>"
+            var FahrenheitTemps = "<span title='Temperature Min / Max'><i class=\"flx-pict-temp\">&nbsp;</i>"
                                       + "<span class=\"ephemeris\" style=\"font-weight:normal;\">&nbsp;"
                                       + Calendar.weather.minTempF
                                       + " / "
                                       + Calendar.weather.maxTempF
-                + "&deg;F";
+                + "&deg;F</span>";
             return FahrenheitTemps;
         }
 
