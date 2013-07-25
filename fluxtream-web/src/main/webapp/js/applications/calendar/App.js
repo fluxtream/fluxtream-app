@@ -153,6 +153,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 Calendar.timeRange.start = response.start;
                 Calendar.timeRange.end = response.end;
                 updateTimespan(response.currentTimespanLabel);
+                Calendar.timeRange.updated = true;
                 stopLoading(doneLoadingId);
             },
             error: handleError("failed to fetch timespan label!")
@@ -203,6 +204,9 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             updateDatepicker(state);
             fetchCalendar(state);
         }
+        // Next time the page loads, won't accidentally believe that the timespan in the
+        // title and calendar bar has already been initialized
+        Calendar.timespanInited = false;
 	};
 
     Calendar.setTabParam = function(tabParam){
