@@ -6,6 +6,7 @@
 %>
 <%
     Boolean tracker = (Boolean)request.getAttribute("tracker");
+    Boolean useMinifiedJs = (Boolean)request.getAttribute("useMinifiedJs");
     List<Guest> coachees = (List<Guest>)request.getAttribute("coachees");
 %><!DOCTYPE html>
 <html lang="en">
@@ -173,6 +174,11 @@
 	<!--  TODO: validate version numbers for these libs -->
 	<script src="/static/grapher4/grapher2.nocache.js"></script>
 
-    <script data-main="/${release}/js/main.js" src="/static/js/require-1.0.3.js"></script>
+    <!-- switch to main-built for the compiled versino to be laoded -->
+    <% if (useMinifiedJs) { %>
+	<script data-main="/${release}/js/main-built.js" src="/static/js/require-1.0.3.js"></script>
+    <% } else { %>
+    <script data-main="/${release}/js/main.js" src="/static/js/require-1.0.3.js"></script>-
+    <% } %>
 </body>
 </html>
