@@ -180,7 +180,7 @@ public class SystemServiceImpl implements SystemService {
                                      "/images/connectors/connector-github.jpg",
                                      res.getString("github"),
                                      singlyAuthorizeUrl("github"),
-                                     Connector.getConnector("github"), order++, githubKeys!=null,
+                                     Connector.getConnector("github"), order++, false,
                                      false, true, githubKeys));
         final String fluxtreamCapture = "Fluxtream Capture";
         String[] fluxtreamCaptureKeys = checkKeysExist(fluxtreamCapture, new ArrayList<String>());
