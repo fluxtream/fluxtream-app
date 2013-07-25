@@ -4,12 +4,11 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         "applications/calendar/App",
         "applications/calendar/tabs/map/MapUtils",
         "App",
-        "applications/calendar/tabs/photos/PhotoUtils"], function(DrawingUtils, Config, Tab, Log, MapUtils, App, PhotoUtils) {
+        "applications/calendar/tabs/photos/PhotoUtils"], function(DrawingUtils, Config, Tab, Calendar, MapUtils, App, PhotoUtils) {
 	
 	var paper = null;
 	var config = null;
     var map = null;
-    var hourlyWeatherData = null;
     var solarInfo = null;
     var tempratureUnit = null;
     var distanceUnit = null;
@@ -40,7 +39,6 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             }
             else
                 lastTimestamp = params.digest.generationTimestamp;
-            fetchWeatherData();
             App.loadMustacheTemplate("applications/calendar/tabs/clock/clockTemplate.html","tooltip",function(template){
                 tooltipTemplate = template;
                 setup(params.digest, params.timeUnit, params.connectorEnabled, params.doneLoading);
@@ -48,21 +46,11 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		});
 	}
 
-    function fetchWeatherData() {
-        $.ajax({ url: "/api/calendar/weather/"+Log.tabState, dataType: "json",
-            success: function(digest) {
-                if (!outsideTimeBoundaries(digest)) {
-                    hourlyWeatherData = digest.hourlyWeatherData;
-                }
-            }
-        });
-    }
-
     function setup(digest, timeUnit, cEn, doneLoading) {
         dgst = digest;
         selectedConnectors = digest.selectedConnectors;
         connectorEnabled = cEn;
-        solarInfo = digest.solarInfo;
+        solarInfo = digest.metadata.solarInfo;
         tempratureUnit = digest.settings.temperatureUnit;
         distanceUnit = digest.settings.distanceUnit;
         dayStart = digest.tbounds.start;
@@ -117,7 +105,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		drawingUtils.paintCircle(paper, config.MIND_CATEGORY.orbit, "#ffffff", 1);
 		drawingUtils.paintCircle(paper, config.SOCIAL_CATEGORY.orbit, "#ffffff", 1);
 		drawingUtils.paintCircle(paper, config.MEDIA_CATEGORY.orbit, "#ffffff", 1);
-		paintSolarInfo(digest.solarInfo);
+		paintSolarInfo(digest.metadata.solarInfo);
 		for(var objectTypeName in digest.cachedData) {
 			if (digest.cachedData[objectTypeName]==null||typeof(digest.cachedData[objectTypeName])=="undefined")
 				continue;
@@ -127,13 +115,6 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         photoCarouselHTML = PhotoUtils.getCarouselHTML(digest);
 
         doneLoading();
-	}
-
-	function outsideTimeBoundaries(o) {
-		if (typeof(o.tbounds)!="undefined") {
-			return (o.tbounds.start!=config.start || o.tbounds.end!=config.end);
-		}
-		return (o.start!=config.start || o.end!=config.end);
 	}
 
 	function fillRegion(center, radius1, radius2, startAngle, endAngle) {
@@ -220,6 +201,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                 var color = getItemColor(item);
                 var strokeWidth = getStrokeWidth(item);
                 var strokeCap = getStrokeCap(item);
+                var outline = App.getFacetConfig(item.type).clockOutline;
 				config.clockCircles.push(
 					function() {
 						var start = item.startMinute;
@@ -230,9 +212,9 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 						var instantaneous = typeof(item.endMinute)=="undefined"||item.endMinute===item.startMinute,
                             span;
 						if (instantaneous)
-							span = paintSpan(paper, start,start+instantWidth, orbit, color, .9, strokeWidth, strokeCap);
+							span = paintSpan(paper, start,start+instantWidth, orbit, color, .9, strokeWidth, strokeCap,outline);
 						else{
-							span = paintSpan(paper, start,/*(start<=end?end:1440)*/ end, orbit, color, .9, strokeWidth, strokeCap);
+							span = paintSpan(paper, start,/*(start<=end?end:1440)*/ end, orbit, color, .9, strokeWidth, strokeCap,outline);
                         }
 						span.node.item = item;
                         $(span.node).attr("notthide",true);
@@ -342,11 +324,11 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             var contents = facet.getDetails();
 
             showToolTip(tip_x,tip_y,offsetX,offsetY,contents,event.minuteOfDay,$(event.target).attr("stroke"),$(event.target).parent().parent(),
-                markers[0] == null ? null : markers[0].getPosition(),App.getFacetConfig(facet.type).device_name,App.getFacetConfig(facet.type).channel_name,facet);
+                markers[0] == null ? null : markers[0].getPosition(),App.getFacetConfig(facet.type).device_name,App.getFacetConfig(facet.type).channel_name,facet,false);
         });
 	}
 
-    function showToolTip(x,y, offX, offY,contents,minute,color,parent,gpsPos,sourceName, channelName,facet){
+    function showToolTip(x,y, offX, offY,contents,minute,color,parent,gpsPos,sourceName, channelName,facet,locationInfo){
         var weatherInfo = getWeatherData(minute);
         var weatherIcon;
         if (solarInfo != null && (minute < solarInfo.sunrise || minute > solarInfo.sunset)){//night
@@ -390,7 +372,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             time: App.formatMinuteOfDay(minute)[0],
             ampm: App.formatMinuteOfDay(minute)[1],
             tooltipData:contents.outerHTML(),
-            showBodyTrackLinks: sourceName != null
+            showBodyTrackLinks: sourceName != null,
+            showCommentEdit: locationInfo != null
         }));
         console.log(gpsPos)
         ttpdiv.css("position","absolute");
@@ -504,25 +487,52 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                 classString += "." + classes[i];
             }
             ttpdiv.find(classString).outerHTML(contents.outerHTML());
-            ttpdiv.find(".mapLink").click(function(event){
+            ttpdiv.find(".mapLink").unbind('click').click(function(event){
                 setTabParam($(event.delegateTarget).attr("itemid"));
                 $(".calendar-map-tab").click();
                 return false;
             });
 
+            var commentEdit =  ttpdiv.find(".facet-edit a");
+
+            commentEdit.unbind('click').click(function(event){
+                event.digest = dgst;
+                App.apps.calendar.commentEdit(event);
+            });
+            commentEdit.css("display","none");
+            ttpdiv.find("#tooltipEditComment").unbind('click').click(function(){
+                event.preventDefault();
+                commentEdit.click();
+            });
+
+        });
+
+       ttpdiv.find("#tooltipLoadBodyTrack").click(function(event){
+            event.preventDefault();
+            App.renderApp('bodytrack','grapher', {
+                cursorPos: facet.start / 1000,
+                rebuildURL: true,
+                channelAdd: sourceName + "." + channelName,
+                tbounds: dgst.tbounds
+            });
         });
 
         contents.trigger("contentchange");
 
     }
 
-    //hourlyWeatherData
     function getWeatherData(minuteOfDay){
-        if (hourlyWeatherData == null)
+        if (Calendar.weather == null || Calendar.weather.hourlyWeatherData == null)
             return null;
         var i;
-        for (i = 0; i < hourlyWeatherData.length - 1 && hourlyWeatherData[i].minuteOfDay < minuteOfDay; i++);
-        var weatherInfo = hourlyWeatherData[i];
+        var wwoMinuteOfDay = minuteOfDay/60*100;
+        for (i = 0; i < Calendar.weather.hourlyWeatherData.length; i++) {
+            if(Calendar.weather.hourlyWeatherData[i].minuteOfDay > wwoMinuteOfDay) {
+                break;
+            }
+        }
+        if (i>0) i -= 1;
+        var weatherInfo = Calendar.weather.hourlyWeatherData[i];
         return weatherInfo;
     }
 
@@ -548,7 +558,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             else
                 map.zoomOnTimespan(span.item.start,span.item.end);
             showToolTip(tip_x,tip_y,offsetX,offsetY,span.item.address == null ? $("<span>You were out</span>") : $("<span>You were at " + span.item.address.address + "</span>"),event.minuteOfDay,$(event.target).attr("stroke"),$(event.target).parent().parent(),
-                markers[0] == null ? null : markers[0].getPosition());
+                markers[0] == null ? null : markers[0].getPosition(), true);
         });
     }
 	
@@ -572,8 +582,6 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 	}
 
 	function arc(center, radius, startAngle, endAngle) {
-		if (endAngle - startAngle < 2 && endAngle - startAngle >= 0)
-			endAngle += 1;
 		var angle = startAngle,
 			coords = toCoords(center, radius, angle),
 			path = "M " + coords[0] + " " + coords[1];
@@ -597,9 +605,17 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		return [ x, y ];
 	}
 	
-	function paintSpan(paper, startTime, endTime, radius, color, opacity, strokeWidth, strokeCap) {
-		var coords = arc(config.CLOCK_CENTER, radius, startTime / config.RATIO + config.START_AT, endTime
-				/ config.RATIO + config.START_AT),
+	function paintSpan(paper, startTime, endTime, radius, color, opacity, strokeWidth, strokeCap, outline) {
+        if (outline){
+            paintSpan(paper,startTime,endTime,radius,"black",1,strokeWidth,strokeCap,false);
+            strokeWidth -= 1;
+        }
+        var degreesPerPixel = 360 / (Math.PI * 2 * radius);
+        var start = startTime / config.RATIO + config.START_AT + (outline ? (degreesPerPixel * 0.5) : 0);
+        var end =  endTime / config.RATIO + config.START_AT - (outline ? (degreesPerPixel * 0.5) : 0);
+        if (end < start)
+            end = start;
+		var coords = arc(config.CLOCK_CENTER, radius, start, end),
 		path = paper.path(coords);
         path.attr("stroke-linecap", strokeCap);
 		path.attr("stroke-width", strokeWidth);
@@ -667,7 +683,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
     }
 
 	function locationBreakdown(positions, digest) {
-        if (!Log.connectorEnabled["clock"]["google_latitude"])
+        if (!Calendar.connectorEnabled["clock"]["google_latitude"])
             return;
         var collections = [];
         var currentCollection = null;
@@ -733,7 +749,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                     color = config.OUTSIDE_CATEGORY.color;
                     break;
             }
-            var span = paintSpan(paper, start,(start<=end?end:1440), config.AT_HOME_CATEGORY.orbit, color, 1, config.STROKE_WIDTH, "butt");
+            var span = paintSpan(paper, start,(start<=end?end:1440), config.AT_HOME_CATEGORY.orbit, color, 1, config.STROKE_WIDTH, "butt",false);
             span.node.item = timeSegment;
             $(span.node).attr("notthide",true);
             $(span.node).css("cursor", "pointer");

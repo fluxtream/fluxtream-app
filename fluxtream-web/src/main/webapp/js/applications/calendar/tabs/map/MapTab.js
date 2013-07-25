@@ -68,6 +68,7 @@ define(["core/Tab",
             map.reset();
             map.setMaxTimeBounds(maxTimeBounds);
         }
+        map.setDigest(digest);
         $("#mapFit").click(function(){
             map.fitBounds(map.gpsBounds);
         });

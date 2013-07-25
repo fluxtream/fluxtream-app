@@ -564,6 +564,7 @@ define(
         }
 
         App.prettyDateFormat = function(dateString) {
+            dateString = dateString.split(" ")[0];
             var date = new Date(Date.parse(dateString) + 1000 * 60 * 60 * 12);   // place it in the middle of the day to help prevent errors
             return date.format("dddd, mmmm d");
         };
@@ -680,6 +681,18 @@ define(
             return year + "-" + (month < 9 ? "0" : "") + (month + 1) + "-" + (date < 9 ? "0" : "") + date;
         }
 
+        //This is a hack to force enable dropdown on all specified elements since bootstrap doesn't seem to be doing it on its own
+        function globalClickHandler(event){
+            for (var target = event.target; target != null; target = target.parentElement){
+                if ($(target).attr("data-toggle") == "dropdown"){
+                    $(target).dropdown("toggle");
+                    break;
+                }
+            }
+        }
+
+        $(document).bind("click",globalClickHandler);
+
         App.addHideTooltipListener = function(hideFunction) {
             var onEvent = function(event){ //hides the tooltip if an element clicked on or any of its parents has the notthide property
                 for (var target = event.target; target != null; target=target.parentElement){
@@ -688,7 +701,7 @@ define(
                 }
                 hideFunction();
             };
-            $(document).unbind("click").unbind("touchend").bind("touchend",onEvent).bind("click", onEvent);
+            $(document).unbind("click").unbind("touchend").bind("touchend",onEvent).bind("click",globalClickHandler).bind("click", onEvent);
         }
 
         App.search = function() {

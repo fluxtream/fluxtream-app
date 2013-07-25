@@ -14,8 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 public interface ApiDataService {
 
-    //public EntityManager getEntityManager();
-
 	public void cacheApiDataObject(UpdateInfo updateInfo, long start, long end,
 			AbstractFacet payload) throws Exception;
 
@@ -34,16 +32,12 @@ public interface ApiDataService {
     public List<AbstractFacet> getApiDataFacets(ApiKey apiKey,
                                                 ObjectType objectType, List<String> dates);
 
-    public <T> List<T> getApiDataFacets(ApiKey apiKey, ObjectType objectType, List<String> dates, Class<T> clazz);
-
     public List<AbstractFacet> getApiDataFacets(ApiKey apiKey, ObjectType objectType, TimeInterval timeInterval);
 
     public List<AbstractFacet> getApiDataFacets(ApiKey apiKey,
                                                 ObjectType objectType,
                                                 TimeInterval timeInterval,
                                                 @Nullable TagFilter tagFilter);
-
-    public <T> List<T> getApiDataFacets(ApiKey apiKey, ObjectType objectType, TimeInterval timeInterval, Class<T> clazz);
 
     public AbstractFacet getOldestApiDataFacet(ApiKey apiKey, ObjectType objectType);
     public AbstractFacet getLatestApiDataFacet(ApiKey apiKey, ObjectType objectType);
@@ -103,6 +97,9 @@ public interface ApiDataService {
     @Transactional(readOnly = false)
     void cleanupStaleData() throws ClassNotFoundException, Exception;
 
+    @Transactional(readOnly=false)
+    void setComment(String connectorName, String objectTypeName, long guestId, long facetId, String comment);
+
     // Pass this to createOrReadModifyWrite
     public interface FacetModifier<T extends AbstractFacet> {
         // Override this with your code to either modify or create
@@ -143,5 +140,7 @@ public interface ApiDataService {
 	public void cacheEmptyData(UpdateInfo updateInfo, long fromMidnight,
 			long toMidnight);
 
+
+    void deleteComment(String connectorName, String objectTypeName, long guestId, long facetId);
 
 }

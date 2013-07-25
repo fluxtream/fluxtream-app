@@ -70,7 +70,6 @@ public class AppController {
 		String release = env.get("release");
 		if (release != null)
 			mav.addObject("release", release);
-		String targetEnvironment = env.get("environment");
 		mav.addObject("tracker", hasTracker(request));
 		return mav;
 	}
@@ -85,10 +84,7 @@ public class AppController {
     @RequestMapping(value = { "/snippets" })
     public ModelAndView snippets(HttpServletRequest request) {
 
-        long guestId = AuthHelper.getGuestId();
-
         ModelAndView mav = new ModelAndView("snippets");
-        String targetEnvironment = env.get("environment");
         mav.addObject("tracker", hasTracker(request));
         if (request.getSession(false) == null)
             return mav;
@@ -132,7 +128,6 @@ public class AppController {
 		long guestId = AuthHelper.getGuestId();
 
 		ModelAndView mav = new ModelAndView("redirect:main");
-		String targetEnvironment = env.get("environment");
         mav.addObject("tracker", hasTracker(request));
 		if (request.getSession(false) == null)
 			return mav;
@@ -150,6 +145,7 @@ public class AppController {
 		String release = env.get("release");
 		request.setAttribute("guestName", guest.getGuestName());
         request.setAttribute("coachees", coachingService.getCoachees(guestId));
+        request.setAttribute("useMinifiedJs", Boolean.valueOf(env.get("useMinifiedJs")));
 
 		if (SecurityUtils.isDemoUser())
 			request.setAttribute("demo", true);

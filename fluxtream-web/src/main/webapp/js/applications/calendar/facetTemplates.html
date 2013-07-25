@@ -4,12 +4,14 @@
        <div class="facetDetails">
            {{#facets}}
            <div class="facetDetails{{manyFacets}}">
+               <div class="facet-edit" id="{{type}}::{{id}}" ><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
                <div class="flx-data">
                    <span style="background:url('{{profileImageUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
                    <span class="flx-description"><span><a href="https://twitter.com/{{userName}}">@{{userName}}</a></span> {{{description}}}</span>
                </div>
+               {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
            </div>
            {{/facets}}
        </div>
@@ -21,12 +23,14 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails{{manyFacets}}">
+                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
                 <div class="flx-data">
                     <span style="background:url('{{profileImageUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
                     <span class="flx-description"><span><a href="https://twitter.com/{{userName}}">@{{userName}}</a></span> {{{description}}}</span>
                 </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
             {{/facets}}
         </div>
@@ -38,12 +42,14 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails{{manyFacets}}">
+                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
                 <div class="flx-data">
                     <span style="background:url('{{profileImageUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
                     <span class="flx-description"><span><a href="https://twitter.com/{{userName}}">@{{userName}}</a></span> {{{description}}}</span>
                 </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
             {{/facets}}
         </div>
@@ -55,11 +61,13 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
+                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
                 <div class="flx-data">
                     <span class="flx-description">{{description}}</span>
                 </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
             {{/facets}}
         </div>
@@ -71,6 +79,7 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails{{manyFacets}}">
+                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
                 <div class="flx-data">
@@ -79,6 +88,7 @@
                     </span>
                     <span class="flx-description">{{description}}</span>
                 </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
             {{/facets}}
         </div>
@@ -90,6 +100,7 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails{{manyFacets}}">
+                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
                 <div class="flx-data">
@@ -98,6 +109,7 @@
                     </span>
                     <span class="flx-description">{{description}}</span>
                 </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
             {{/facets}}
         </div>
@@ -109,6 +121,7 @@
         <div class="facetDetails">
             <span class="flx-text">{{#facets}}</span>
             <div class="facetDetails">
+                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-data">
                     <span class="flx-steps">
@@ -124,6 +137,7 @@
                         <span class="flx-dataLabel">kcal</span>
                     </span>
                 </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
             {{/facets}}
         </div>
@@ -135,6 +149,7 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
+                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} <span class="flx-dataLabel">-</span> {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</div>
                 <div class="flx-data">
@@ -151,6 +166,7 @@
                         <span class="flx-text">{{total_climb}} <span class="flx-dataLabel">m</span></span>
                     </div>{{/showClimb}}
                 </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
             {{/facets}}
         </div>
@@ -162,11 +178,13 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
+                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
                 <div class="flx-data">
                     <span class="flx-description">{{description}}</span>
                 </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
             {{/facets}}
         </div>
@@ -178,6 +196,7 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
+                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-data">
                     <div>
@@ -193,6 +212,7 @@
                     <span class="flx-dataLabel">Awake</span>
                     <span class="flx-text">{{minutesAwake.hours}} hours {{minutesAwake.minutes}} minutes</span>
                 </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
             {{/facets}}
         </div>
@@ -204,6 +224,7 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
+                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}}</div>
                 <div class="flx-data">
@@ -214,6 +235,7 @@
                     <span class="flx-dataLabel">BMI</span>
                     <span class="flx-text">{{bmi}}</span>
                 </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
             {{/facets}}
         </div>
@@ -225,6 +247,7 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails{{manyFacets}}">
+                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
                 <div class="flx-data">
@@ -232,6 +255,7 @@
                     <img class="flx-photo" photoId="{{id}}" src="{{photo42}}" style="max-height:42px">
                     <span class="flx-description">{{description}}</span>
                 </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
             {{/facets}}
         </div>
@@ -243,6 +267,7 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails{{manyFacets}}">
+                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
                 <div class="flx-data">
@@ -251,6 +276,7 @@
                     </span>
                     <span class="flx-description">{{description}}</span>
                 </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
             {{/facets}}
         </div>
@@ -262,11 +288,13 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
+                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
                 <div class="flx-data">
                     <span class="flx-description">{{description}}</span>
                 </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
             {{/facets}}
         </div>
@@ -278,6 +306,7 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
+                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-data">
                     <div>
@@ -296,7 +325,8 @@
                     <span class="flx-text">{{minutesAwake.hours}} hours {{minutesAwake.minutes}} minutes</span>
                 </div>
                 <br/>
-                <img src="https://mysleep.myzeo.com/graphservlet/Hypnogram?t=n&s={{s}}&e={{e}}&d={{sleepGraph}}"/>
+                <!--<img src="https://mysleep.myzeo.com/graphservlet/Hypnogram?t=n&s={{s}}&e={{e}}&d={{sleepGraph}}"/>-->
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
             {{/facets}}
         </div>
@@ -308,12 +338,14 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
+                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-data">
                     <span class="flx-dataLabel">You burned</span>
                     <span class="flx-text">{{_totalCalories}}</span>
                     <span class="flx-dataLabel">kcal</span>
                 </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
             {{/facets}}
         </div>
@@ -325,6 +357,7 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
+                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-data">
                     <span class="flx-dataLabel">You were lying </span>
@@ -340,6 +373,7 @@
                     <span class="flx-text">{{totalSleeping.minutes}}</span>
                     <span class="flx-dataLabel">minutes</span>
                 </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
             {{/facets}}
         </div>
@@ -351,6 +385,7 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
+                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-data">
                     <span class="flx-steps">
@@ -358,6 +393,7 @@
                         <span class="flx-text">{{_totalSteps}}</span>
                     </span>
                 </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
             {{/facets}}
         </div>
@@ -369,11 +405,13 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
+                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
                 <div class="flx-data">
                     <span class="flx-description">{{description}}</span>
                 </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
             {{/facets}}
         </div>
@@ -385,6 +423,7 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
+                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime">{{time}}  <span class="flx-dataLabel">{{ampm}}</span></div>
                 <div class="flx-data">
@@ -397,6 +436,7 @@
                     <span class="flx-dataLabel">Pulse:</span>
                     <span class="flx-text">{{pulse}} bpm</span>
                 </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
             {{/facets}}
         </div>
@@ -408,12 +448,14 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
+                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime">{{time}}  <span class="flx-dataLabel">{{ampm}}</span></div>
                 <div class="flx-data">
                     <span class="flx-dataLabel">Pulse:</span>
                     <span class="flx-text">{{pulse}} bpm</span>
                 </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
             {{/facets}}
         </div>
@@ -425,6 +467,7 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
+                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime">{{time}}  <span class="flx-dataLabel">{{ampm}}</span></div>
                 <div class="flx-data">
@@ -432,58 +475,29 @@
                     <span class="flx-text">{{description}}</span>
                     <span class="flx-miniGraph"></span>
                 </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
             {{/facets}}
         </div>
     </div>
 </template>
-<template id="toodledo-task">
+<template id="runkeeper-location">
     <div class="flx-box" style="border-left-color:{{color}}">
-        <span class="flx-deviceIcon toodledo"></span>
+        <span class="flx-deviceIcon latitude" style="background-size:100% 100%;"></span>
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
+                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
                 <div class="flx-data">
-                    <span class="flx-description">{{description}}</span>
+                    <span class="flx-description">Source: {{source}}<br>Accuracy: {{accuracy}}m</span>
                 </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
             {{/facets}}
         </div>
     </div>
-</template>
-<template id="toodledo-goal">
-    <div class="flx-box" style="border-left-color:{{color}}">
-        <span class="flx-deviceIcon toodledo" style="background-size:100% 100%;"></span>
-        <div class="facetDetails">
-            {{#facets}}
-            <div class="facetDetails">
-                {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
-                <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
-                <div class="flx-data">
-                    <span class="flx-description">{{description}}</span>
-                </div>
-            </div>
-            {{/facets}}
-        </div>
-    </div>
-    <template id="runkeeper-location">
-        <div class="flx-box" style="border-left-color:{{color}}">
-            <span class="flx-deviceIcon latitude" style="background-size:100% 100%;"></span>
-            <div class="facetDetails">
-                {{#facets}}
-                <div class="facetDetails">
-                    {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
-                    <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
-                    <div class="flx-data">
-                        <span class="flx-description">Source: {{source}}<br>Accuracy: {{accuracy}}m</span>
-                    </div>
-                </div>
-                {{/facets}}
-            </div>
-        </div>
-    </template>
 </template>
 <template id="google_latitude-location">
     <div class="flx-box" style="border-left-color:{{color}}">
@@ -491,27 +505,13 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
+                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
                 <div class="flx-data">
                     <span class="flx-description">Source: {{source}}<br>Accuracy: {{accuracy}}m</span>
                 </div>
-            </div>
-            {{/facets}}
-        </div>
-    </div>
-</template>
-<template id="openpath-location">
-    <div class="flx-box" style="border-left-color:{{color}}">
-        <span class="flx-deviceIcon latitude" style="background-size:100% 100%;"></span>
-        <div class="facetDetails">
-            {{#facets}}
-            <div class="facetDetails">
-                {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
-                <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
-                <div class="flx-data">
-                    <span class="flx-description">{{description}}</span>
-                </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
             {{/facets}}
         </div>
@@ -531,6 +531,7 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
+                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
                 <div class="flx-data">
@@ -539,6 +540,7 @@
                     <span class="flx-dataLabel">Score</span>
                     <span class="flx-text">{{result_value}}</span>
                 </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
             {{/facets}}
         </div>
@@ -550,11 +552,13 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
+                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
                 <div class="flx-data">
                     <span class="flx-description">{{description}}</span>
                 </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
             {{/facets}}
         </div>
@@ -566,6 +570,7 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
+                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span>&nbsp;<a class="mapLink" href="#" itemid="{{id}}" >{{#hasPosition}}<i class="icon-map-marker">{{/hasPosition}}</i></a></div>
                 <div class="flx-data">
@@ -573,6 +578,7 @@
                     <span class="flx-description">{{name}} {{amount}}</span>
                     <span class="flx-description">{{note}}</span>
                 </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
             {{/facets}}
         </div>
@@ -584,6 +590,7 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
+                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</div>
                 {{#activities}}
@@ -591,6 +598,7 @@
                     {{activity}}
                 </div>
                 {{/activities}}
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
             {{/facets}}
         </div>
@@ -603,6 +611,7 @@
             <span class="flx-deviceIcon moves-place {{placeType}}"></span>
             <div class="facetDetails">
                 <div class="facetDetails">
+                    <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                     {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                     <div id="foursquare-venue-{{foursquareId}}" {{^foursquareId}}style="display:none;"{{/foursquareId}}>Getting venue name...</div>
                     {{^foursquareId}}
@@ -616,6 +625,7 @@
                     <div class="flx-tTime">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</div>
                     {{#steps}}{{steps}} steps{{/steps}}
                     {{/activities}}
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
                 </div>
             </div>
         </div>
@@ -627,9 +637,12 @@
         {{#facets}}
         <span class="flx-deviceIcon moves-move-activity {{activityCode}}"></span>
         <div class="facetDetails">
+            <div class="facet-edit" id="{{parentType}}::{{parentId}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
             <div class="flx-data">{{activity}}{{#distance}} ({{distance}}){{/distance}}</div>
             <div class="flx-tTime">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</div>
-            {{#steps}}{{steps}} steps{{/steps}}
+            {{#steps}}{{steps}} steps{{/steps}}{{^steps}}<br>{{/steps}}
+            <div class="alert alert-info"><strong>Heads Up!</strong>This facet's comment is linked to moves-move</div>
+            {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
         </div>
         {{/facets}}
     </div>
@@ -640,6 +653,7 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails{{manyFacets}}">
+                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
                 <div class="flx-data">
@@ -648,6 +662,7 @@
                     </span>
                     <span class="flx-description">{{description}}</span>
                 </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
             {{/facets}}
         </div>
@@ -659,11 +674,13 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
+                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
                 <div class="flx-data">
                     <span class="flx-description">Source: {{source}}<br>Accuracy: {{accuracy}}m</span>
                 </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
             {{/facets}}
         </div>
@@ -675,11 +692,13 @@
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
+                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
                 <div class="flx-data">
                     <span class="flx-description">Source: {{source}}<br>Accuracy: {{accuracy}}m</span>
                 </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
             {{/facets}}
         </div>
@@ -690,7 +709,6 @@
         <div>{{name}}</div>
     </div>
 </template>
-
 <template id="visitedCities-details">
 
     <div id="visitedCitiesDialog" class="modal hide fade" style="width: 680px">

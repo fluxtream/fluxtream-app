@@ -6,6 +6,7 @@
 %>
 <%
     Boolean tracker = (Boolean)request.getAttribute("tracker");
+    Boolean useMinifiedJs = (Boolean)request.getAttribute("useMinifiedJs");
     List<Guest> coachees = (List<Guest>)request.getAttribute("coachees");
 %><!DOCTYPE html>
 <html lang="en">
@@ -20,9 +21,9 @@
 <meta name="description" content="">
 <meta name="author" content="">
 
-<link rel="stylesheet" href="/static/css/bootstrap-2.0.3.min.css">
+<link rel="stylesheet" href="/static/css/bootstrap-2.3.2.min.css">
 <link rel="stylesheet"
-      href="/static/css/bootstrap-responsive-2.0.3.min.css">
+      href="/static/css/bootstrap-responsive-2.3.2.min.css">
 <g:compress>
 	<link rel="stylesheet" href="/css/flx.css">
 	<link rel="stylesheet" href="/css/bodytrack.css">
@@ -148,7 +149,7 @@
     <% if (tracker) { try{%>
         <jsp:include page="tracker.jsp" />
     <%} catch(Throwable t){} } %>
-    <script src="/static/js/bootstrap-2.0.2.min.js"></script>
+    <script src="/static/js/bootstrap-2.3.2.min.js"></script>
 		<script src="/static/js/jquery-ui-1.8.18.custom.min.js"></script>
 		<script src="/static/js/jquery.ui.sortable-1.8.2-bt-1.0.0.js"></script>
 		<script src="/static/tiny_mce-3.5b1/jquery.tinymce.js"></script>
@@ -172,7 +173,12 @@
 	
 	<!--  TODO: validate version numbers for these libs -->
 	<script src="/static/grapher4/grapher2.nocache.js"></script>
-	
-	<script data-main="/${release}/js/main.js" src="/static/js/require-1.0.3.js"></script>
+
+    <!-- switch to main-built for the compiled versino to be laoded -->
+    <% if (useMinifiedJs) { %>
+	<script data-main="/${release}/js/main-built.js" src="/static/js/require-1.0.3.js"></script>
+    <% } else { %>
+    <script data-main="/${release}/js/main.js" src="/static/js/require-1.0.3.js"></script>-
+    <% } %>
 </body>
 </html>

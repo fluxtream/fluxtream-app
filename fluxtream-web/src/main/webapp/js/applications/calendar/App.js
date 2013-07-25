@@ -12,6 +12,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     Calendar.currentTab = null;
     Calendar.tabState = null;
     Calendar.digest = null;
+    Calendar.weather = null;
     Calendar.timeUnit = "date";
     Calendar.digestTabState = false;
     Calendar.tabParam = null;
@@ -152,10 +153,23 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 Calendar.timeRange.start = response.start;
                 Calendar.timeRange.end = response.end;
                 updateTimespan(response.currentTimespanLabel);
+                Calendar.timeRange.updated = true;
                 stopLoading(doneLoadingId);
             },
             error: handleError("failed to fetch timespan label!")
         });
+    }
+
+    function fetchWeatherData() {
+       $.ajax({ url: "/api/calendar/weather/"+Calendar.tabState,
+           success: function(response) {
+               // we should check that time boundaries are in line with the digest data
+               Calendar.weather = response;
+               var label = weatherLabel();
+               $(".ephemerisWrapper").remove();
+               $("#mainCityMetadata").prepend($("<span class='ephemerisWrapper'>" + label + "&nbsp;&nbsp;</span>"));
+           }
+       });
     }
 
     function setDocumentTitle() {
@@ -190,6 +204,9 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             updateDatepicker(state);
             fetchCalendar(state);
         }
+        // Next time the page loads, won't accidentally believe that the timespan in the
+        // title and calendar bar has already been initialized
+        Calendar.timespanInited = false;
 	};
 
     Calendar.setTabParam = function(tabParam){
@@ -254,6 +271,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 Builder.handleNotifications(response);
                 if (Calendar.timeUnit==="date") {
                     handleCityInfo(response);
+                    fetchWeatherData();
                 } else {
                     $("#mainCity").empty();
                     $("#visitedCitiesDetails").hide();
@@ -303,6 +321,9 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 };
                 if (connectorId === "moves-move"){
                     $.each(connector.activities, function(i, facet) {
+                        facet.parentType = connector.type;
+                        facet.parentId = connector.id;
+                        facet.comment = connector.comment;
                         facet.getDetails = function(array,showDate){
                             if (typeof(array) == "boolean"){
                                 showDate = array;
@@ -711,8 +732,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     function handleCityInfo(digestInfo) {
         $("#mainCity").empty();
         if (digestInfo.metadata.mainCity) {
-           $("#mainCity").html(cityLabel(digestInfo.metadata.mainCity) +
-                               temperaturesLabel(digestInfo))
+           $("#mainCity").html(cityLabel(digestInfo.metadata.mainCity))
             if (digestInfo.metadata.previousInferredCity!=null||
                 digestInfo.metadata.nextInferredCity!=null)
                 $("#mainCity").addClass("guessed");
@@ -952,38 +972,47 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
        return s;
     }
 
-    function ephemerisLabel(digestInfo) {
-        var sunriseH = Math.floor(digestInfo.solarInfo.sunrise/60);
-        var sunriseM = digestInfo.solarInfo.sunrise%60;
-        var sunsetH = Math.floor(digestInfo.solarInfo.sunset/60);
-        var sunsetM = digestInfo.solarInfo.sunset%60;
+    function ephemerisLabel() {
+        var sunriseH = Math.floor(Calendar.weather.solarInfo.sunrise/60);
+        var sunriseM = Calendar.weather.solarInfo.sunrise%60;
+        var sunsetH = Math.floor(Calendar.weather.solarInfo.sunset/60);
+        var sunsetM = Calendar.weather.solarInfo.sunset%60;
         if (sunriseM<10) sunriseM = "0" + sunriseM;
         if (sunsetM<10) sunsetM = "0" + sunsetM;
-        return "<span class=\"ephemeris\"><i class=\"flx-pict-sun\">&nbsp;</i><span>" + sunriseH + ":" + sunriseM + " am"+
-               "</span>&nbsp;<i class=\"flx-pict-moon\">&nbsp;</i><span>" + sunsetH + ":" + sunsetM + " pm</span></span>";
+        return "<span class=\"ephemeris\"><span title='Sunrise'><i class=\"flx-pict-sun\">&nbsp;</i><span>" + sunriseH + ":" + sunriseM + " am"+
+               "</span></span>&nbsp;<span title='Sunset'><i class=\"flx-pict-moon\">&nbsp;</i><span>" + sunsetH + ":" + sunsetM + " pm</span></span></span>";
     }
 
-    function temperaturesLabel(digestInfo) {
-        if (digestInfo.metadata.maxTempC == -10000) {
-            return "";
+    function weatherLabel() {
+        function getFahrenheitTemps() {
+            if (Calendar.weather.minTempF==null) return "";
+            var FahrenheitTemps = "<span title='Temperature Min / Max'><i class=\"flx-pict-temp\">&nbsp;</i>"
+                                      + "<span class=\"ephemeris\" style=\"font-weight:normal;\">&nbsp;"
+                                      + Calendar.weather.minTempF
+                                      + " / "
+                                      + Calendar.weather.maxTempF
+                + "&deg;F</span>";
+            return FahrenheitTemps;
         }
-        else if (digestInfo.settings.temperatureUnit != "CELSIUS") {
-            return ephemerisLabel(digestInfo) + "<i class=\"flx-pict-temp\">&nbsp;</i>"
+
+        function getCelsiusTemps() {
+            if (Calendar.weather.minTempC==null) return "";
+            return "<i class=\"flx-pict-temp\">&nbsp;</i>"
                        + "<span class=\"ephemeris\" style=\"font-weight:normal;\">&nbsp;"
-                       + digestInfo.metadata.minTempF
+                       + Calendar.weather.minTempC
                        + " / "
-                       + digestInfo.metadata.maxTempF
-                       + "&deg;F"
+                       + Calendar.weather.maxTempC
+                       + "&deg;C"
+                + "</span>";
+        }
+
+        if (Calendar.weather.temperatureUnit != "CELSIUS") {
+            var FahrenheitTemps = getFahrenheitTemps();
+            return ephemerisLabel() + FahrenheitTemps
                 + "</span>";
         }
         else {
-            return ephemerisLabel(digestInfo) + "<i class=\"flx-pict-temp\">&nbsp;</i>"
-                       + "<span class=\"ephemeris\" style=\"font-weight:normal;\">&nbsp;"
-                       + digestInfo.metadata.minTempC
-                       + " / "
-                       + digestInfo.metadata.maxTempC
-                       + "&deg;C"
-                + "</span>";
+            return ephemerisLabel() + getCelsiusTemps();
         }
     }
 
@@ -1063,6 +1092,89 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         }
         $(viewBtnIds[state.timeUnit]).addClass("active");
     }
+
+    Calendar.commentEdit = function(evt) {
+        var target = $(evt.target);
+        var facetDetails = target.parent().parent();
+        if (facetDetails.find(".facet-comment").length > 0){
+            facetDetails.find(".cancel").click();
+            return;
+        }
+        var id = target.parent().attr("id");
+        var facetType = id.split("::")[0];
+        var facetId = id.split("::")[1];
+        var facet = {};
+        var cachedData = evt.digest.cachedData[facetType];
+        for (var i = 0, li = cachedData.length; i < li; i++){
+            if (cachedData[i].id == facetId){
+                facet = cachedData[i];
+                break;
+            }
+        }
+
+        var hasComment = facet.comment != null;
+        if (hasComment) {
+            facetDetails.find(".facet-comment-text").remove();
+            console.log("commentText: " + facet.comment);
+        }
+        var commentDiv =     '<div class="facet-comment" style="margin-bottom:5px">'+
+                             '<textarea placeholder="type a comment..." rows="3"></textarea>' +
+                             '<button class="btn btn-small save disabled" type="button"><i class="icon icon-save"/> Save</button>&nbsp;' +
+                             '<button class="btn btn-small cancel disabled" type="button"><i class="icon icon-undo"/> Cancel</button>&nbsp;' +
+                             '<button class="btn btn-link delete" type="button"><i class="icon icon-trash"/> Delete</button>' +
+                             '</div>';
+        facetDetails.append(commentDiv);
+        facetDetails.trigger("contentchange");
+        var textarea = facetDetails.find("textarea");
+        if (hasComment) {
+            textarea.val(facet.comment);
+        }
+        var cancelButton = facetDetails.find(".cancel");
+        var saveButton = facetDetails.find(".save");
+        var deleteButton = facetDetails.find(".delete");
+        textarea.focus();
+        var originalComment = textarea.val();
+        textarea.keyup(function(){
+            if (originalComment==textarea.val()) {
+                cancelButton.addClass("disabled");
+                saveButton.addClass("disabled");
+            } else {
+                cancelButton.removeClass("disabled");
+                saveButton.removeClass("disabled");
+            }
+        });
+        saveButton.click(function(event) {
+            event.stopPropagation();
+            $.ajax({
+                url: "/api/comments/" + facetType + "/" + facetId,
+                data: {comment: textarea.val()},
+                type: "POST",
+                success: function() {
+                    facet.comment = textarea.val();
+                    facetDetails.find(".facet-comment").replaceWith('<div class="facet-comment-text">' + facet.comment + '</div>');
+                    facetDetails.trigger("contentchange");
+                }
+            });
+        });
+        cancelButton.click(function(event) {
+            event.stopPropagation();
+            facetDetails.find(".facet-comment").replaceWith('<div class="facet-comment-text">' + originalComment + '</div>');
+            facetDetails.trigger("contentchange");
+        });
+        deleteButton.click(function(event) {
+            event.stopPropagation();
+            $.ajax({
+                url: "/api/comments/" + facetType + "/" + facetId,
+                data: {comment: textarea.val()},
+                type: "DELETE",
+                success: function() {
+                    facetDetails.find(".facet-comment").remove();
+                    facetDetails.trigger("contentchange");
+                    delete facet.comment;
+                }
+            });
+        });
+    };
 
 	return Calendar;
 });

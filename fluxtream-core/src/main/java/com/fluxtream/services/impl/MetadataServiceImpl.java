@@ -32,6 +32,7 @@ import com.fluxtream.metadata.WeekMetadata;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.NotificationsService;
+import com.fluxtream.thirdparty.helpers.WWOHelper;
 import com.fluxtream.utils.HttpUtils;
 import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.TimeUtils;
@@ -39,7 +40,6 @@ import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
 import com.luckycatlabs.sunrisesunset.dto.Location;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import org.apache.http.HttpException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.DateTimeZone;
@@ -51,8 +51,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-//import com.fluxtream.thirdparty.helpers.WWOHelper;
 
 @Service
 @Component
@@ -77,8 +75,8 @@ public class MetadataServiceImpl implements MetadataService {
 	@Autowired
 	NotificationsService notificationsService;
 
-    //@Autowired
-    //WWOHelper wwoHelper;
+    @Autowired
+    WWOHelper wwoHelper;
 
     private static final DateTimeFormatter formatter = DateTimeFormat
             .forPattern("yyyy-MM-dd");
@@ -185,7 +183,7 @@ public class MetadataServiceImpl implements MetadataService {
         final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities, previousInferredCity, nextInferredCity);
         DayMetadata info = new DayMetadata(cities, consensusVisitedCity, previousInferredCity, nextInferredCity, date);
         return info;
-	}
+    }
 
     private int daysBetween(String date, VisitedCity vcity) {
         final DateTime wantedDate = formatter.withZone(DateTimeZone.forID(vcity.city.geo_timezone)).parseDateTime(date);
@@ -475,9 +473,9 @@ public class MetadataServiceImpl implements MetadataService {
 
     @Override
     public List<WeatherInfo> getWeatherInfo(double latitude, double longitude,
-                                            String date, int startMinute, int endMinute) {
+                                            String date) {
         City closestCity = getClosestCity(latitude, longitude);
-        List<WeatherInfo> weather = JPAUtils.find(em, WeatherInfo.class, "weather.byDateAndCity.between", closestCity.geo_name, date, startMinute, endMinute);
+        List<WeatherInfo> weather = JPAUtils.find(em, WeatherInfo.class, "weather.byDateAndCity.between", closestCity.geo_name, date);
 
         if (weather != null && weather.size() > 0) {
             addIcons(weather);
@@ -492,7 +490,7 @@ public class MetadataServiceImpl implements MetadataService {
             }
             weather = JPAUtils.find(em, WeatherInfo.class,
                                     "weather.byDateAndCity.between", closestCity.geo_name,
-                                    date, startMinute, endMinute);
+                                    date);
             addIcons(weather);
         }
         return weather;
@@ -739,27 +737,16 @@ public class MetadataServiceImpl implements MetadataService {
                                                          timeZone);
     }
 
-    private WeatherInfo getWeatherForLocation(final LocationFacet locationFacet, TimeZone tz) {
-        String date = formatter.withZone(DateTimeZone.forTimeZone(tz)).print(locationFacet.start);
-        Calendar c = Calendar.getInstance(tz);
-        c.setTimeInMillis(locationFacet.start);
-        int startMinute = c.get(Calendar.HOUR_OF_DAY)*60+c.get(Calendar.MINUTE);
-        final List<WeatherInfo> weatherInfo = getWeatherInfo(locationFacet.latitude, locationFacet.longitude, date, startMinute, startMinute);
-        if (weatherInfo.size()>0)
-            return weatherInfo.get(0);
-        else return null;
-    }
-
     @Transactional(readOnly = false)
     private void fetchWeatherInfo(double latitude, double longitude,
-                                  String city, String date) throws HttpException, IOException {
-        //List<WeatherInfo> weatherInfo = wwoHelper.getWeatherInfo(latitude,
-        //                                                         longitude, date);
-        //for (WeatherInfo info : weatherInfo) {
-        //    info.city = city;
-        //    info.fdate = date;
-        //    em.persist(info);
-        //}
+                                  String city, String date) throws IOException {
+        List<WeatherInfo> weatherInfo = wwoHelper.getWeatherInfo(latitude,
+                                                                 longitude, date);
+        for (WeatherInfo info : weatherInfo) {
+            info.city = city;
+            info.fdate = date;
+            em.persist(info);
+        }
     }
 
     private void addIcons(List<WeatherInfo> weather){

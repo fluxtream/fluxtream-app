@@ -1,4 +1,5 @@
 @import 'connectors.less';
+@import 'bootstrapCustomizations.less';
 
 ::selection         {background: rgb(255,255,158);}
 ::-moz-selection    {background: rgb(255,255,158);}
@@ -10,7 +11,7 @@ img::-moz-selection {background: transparent;}
 
     .flx-widget-typo {
         .big-data-figure { font-size: 2em; }
-        .flx-dashBMisc div { font-size: 14px; text-align: left; }     
+        .flx-dashBMisc div { font-size: 14px; text-align: left; }
     }
 }
 
@@ -584,6 +585,19 @@ table .remove { text-align:center;
 .facetDetails.many {
     margin-bottom: 10px;
 }
+
+.facet-comment-text {
+  margin-top: 10px;
+  font-style: italic;
+  color: gray;
+}
+
+.facet-comment textarea {
+  width:90%;
+  margin-top:10px;
+  background-color: lightyellow;
+}
+
 .dashboard-list-item { overflow:hidden; zoom:1; border: 1px solid @border-color; margin-bottom:-1px; border-left: 0; border-right:0; padding: 10px 10px 10px 15px;
     i {font-size: 16px; line-height:1; padding: 0;}
     .reorder { float: left; width: 60px; opacity:0.3; cursor:pointer;
