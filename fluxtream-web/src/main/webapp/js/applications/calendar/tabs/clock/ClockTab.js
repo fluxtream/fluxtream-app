@@ -3,7 +3,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         "core/Tab",
         "applications/calendar/App",
         "applications/calendar/tabs/map/MapUtils",
-        "App"], function(DrawingUtils, Config, Tab, Log, MapUtils, App) {
+        "App",
+        "applications/calendar/tabs/photos/PhotoUtils"], function(DrawingUtils, Config, Tab, Log, MapUtils, App, PhotoUtils) {
 	
 	var paper = null;
 	var config = null;
@@ -18,12 +19,17 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
     var connectorEnabled;
     var dgst;
 
+
+    var photoCarouselHTML;
     var lastTimestamp = null;
+
+    var setTabParam;
 
     App.addHideTooltipListener(hideEventInfo);
 
 	function render(params) {
-        params.setTabParam(null);
+        setTabParam = params.setTabParam;
+        setTabParam(null);
         hideEventInfo();
         this.getTemplate("text!applications/calendar/tabs/clock/clock.html", "clock", function() {
             if (lastTimestamp == params.digest.generationTimestamp && !params.forceReload){
@@ -112,6 +118,9 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 				continue;
 			updateDataDisplay(digest.cachedData[objectTypeName], objectTypeName, digest);
 		}
+
+        photoCarouselHTML = PhotoUtils.getCarouselHTML(digest);
+
         doneLoading();
         //disabled... not sure what the purpose of this is
 		/*for(i=0;i<digest.updateNeeded.length;i++) {
@@ -295,10 +304,10 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         var contents = facet.getDetails();
 
         showToolTip(tip_x,tip_y,offsetX,offsetY,contents,event.minuteOfDay,$(event.target).attr("stroke"),$(event.target).parent().parent(),
-                    markers[0] == null ? null : markers[0].getPosition(),App.getFacetConfig(facet.type).device_name);
+                    markers[0] == null ? null : markers[0].getPosition(),App.getFacetConfig(facet.type).device_name,App.getFacetConfig(facet.type).channel_name,facet);
 	}
 
-    function showToolTip(x,y, offX, offY,contents,minute,color,parent,gpsPos,sourceName){
+    function showToolTip(x,y, offX, offY,contents,minute,color,parent,gpsPos,sourceName, channelName,facet){
         var weatherInfo = getWeatherData(minute);
         var weatherIcon;
         if (solarInfo != null && (minute < solarInfo.sunrise || minute > solarInfo.sunset)){//night
@@ -424,13 +433,33 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                 event.preventDefault();
                 $(".calendar-list-tab").click();
             });
-            $("#tooltipLoadTimeLine").click(function(event){
-                event.preventDefault();
-                $(".calendar-timeline-tab").click();
+
+
+            ttpdiv.find(".flx-photo").click(function(event){
+                App.makeModal(photoCarouselHTML);
+                App.carousel($(event.delegateTarget).attr("photoId"));
             });
-            $("#tooltipLoadBodyTrack").click(function(event){
+
+            ttpdiv.find(".mapLink").click(function(event){
+                setTabParam($(event.delegateTarget).attr("itemid"));
+                $(".calendar-map-tab").click();
+                return false;
+            });
+
+            ttpdiv.find("#tooltipLoadTimeLine").click(function(event){
+                setTabParam(facet.start);
+                $(".calendar-timeline-tab").click();
+                return false;
+            });
+
+           ttpdiv.find("#tooltipLoadBodyTrack").click(function(event){
                 event.preventDefault();
-                App.renderApp('bodytrack','grapher/source/' + sourceName,{tbounds: {start:dayStart,end:dayEnd}});
+                App.renderApp('bodytrack','grapher', {
+                    cursorPos: facet.start / 1000,
+                    rebuildURL: true,
+                    channelAdd: sourceName + "." + channelName,
+                    tbounds: dgst.tbounds
+                });
             });
        });
 
@@ -654,6 +683,10 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             $(span.node).attr("notthide",true);
             $(span.node).css("cursor", "pointer");
             $(span.node).click(function(event) {
+                if (typeof(event.offsetX) == "undefined"){
+                    event.offsetX = event.originalEvent.layerX;
+                    event.offsetY = event.originalEvent.layerY;
+                }
                 event.timeTarget = getTimestampForPoint(event.offsetX,event.offsetY);
                 if (event.timeTarget < event.target.item.start)
                     event.timeTarget = event.target.item.start;

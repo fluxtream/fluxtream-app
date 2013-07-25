@@ -16,6 +16,8 @@ import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 import com.fluxtream.aspects.FlxLogger;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeConstants;
+import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,7 +58,7 @@ public class BodymediaStepFacetExtractor extends AbstractFacetExtractor
         String name = objectType.getName();
         if(name.equals("steps"))
         {
-            facets = extractStepFacets(apiData);
+            facets = extractStepFacets(updateInfo, apiData);
         }
         else //If the facet to be extracted wasn't a step facet
         {
@@ -65,7 +67,7 @@ public class BodymediaStepFacetExtractor extends AbstractFacetExtractor
         return facets;
     }
 
-    private ArrayList<AbstractFacet> extractStepFacets(final ApiData apiData)
+    private ArrayList<AbstractFacet> extractStepFacets(final UpdateInfo updateInfo, final ApiData apiData)
     {
         ArrayList<AbstractFacet> facets = new ArrayList<AbstractFacet>();
         /* burnJson is a JSONArray that contains a seperate JSONArray and calorie counts for each day
@@ -75,6 +77,13 @@ public class BodymediaStepFacetExtractor extends AbstractFacetExtractor
         if(bodymediaResponse.has("lastSync"))
         {
             DateTime d = form.parseDateTime(bodymediaResponse.getJSONObject("lastSync").getString("dateTime"));
+
+            // Get timezone map from UpdateInfo context
+            TimezoneMap tzMap = (TimezoneMap)updateInfo.getContext("tzMap");
+
+            // Insert lastSync into the updateInfo context so it's accessible to the updater
+            updateInfo.setContext("lastSync", d);
+
             for(Object o : daysArray)
             {
                 if(o instanceof JSONObject)
@@ -89,12 +98,27 @@ public class BodymediaStepFacetExtractor extends AbstractFacetExtractor
 
                     DateTime date = formatter.parseDateTime(day.getString("date"));
                     steps.date = dateFormatter.print(date.getMillis());
-                    TimeZone timeZone = metadataService.getTimeZone(apiData.updateInfo.getGuestId(), date.getMillis());
-                    long fromMidnight = TimeUtils.fromMidnight(date.getMillis(), timeZone);
-                    long toMidnight = TimeUtils.toMidnight(date.getMillis(), timeZone);
-                    steps.start = fromMidnight;
-                    steps.end = toMidnight;
-
+                    if(tzMap!=null)
+                    {
+                        // Create a LocalDate object which just captures the date without any
+                        // timezone assumptions
+                        LocalDate ld = new LocalDate(date.getYear(),date.getMonthOfYear(),date.getDayOfMonth());
+                        // Use tzMap to convert date into a datetime with timezone information
+                        DateTime realDateStart = tzMap.getStartOfDate(ld);
+                        // Set the start and end times for the facet.  The start time is the leading midnight
+                        // of date according to BodyMedia's idea of what timezone you were in then.
+                        // Need to figure out what end should be...
+                        steps.start = realDateStart.getMillis();
+                        int minutesLength = 1440;
+                        steps.end = steps.start + DateTimeConstants.MILLIS_PER_MINUTE * minutesLength;
+                    }
+                    else {
+                        TimeZone timeZone = metadataService.getTimeZone(apiData.updateInfo.getGuestId(), date.getMillis());
+                        long fromMidnight = TimeUtils.fromMidnight(date.getMillis(), timeZone);
+                        long toMidnight = TimeUtils.toMidnight(date.getMillis(), timeZone);
+                        steps.start = fromMidnight;
+                        steps.end = toMidnight;
+                    }
                     facets.add(steps);
                 }
                 else

@@ -52,17 +52,25 @@ public class ZeoRestUpdater extends AbstractUpdater {
 	@Override
 	protected void updateConnectorDataHistory(UpdateInfo updateInfo)
 			throws Exception {
-		getBulkSleepRecordsSinceDate(updateInfo, null);
+        // As of May 30, 2013 Zeo's servers are no longer responding so updating no longer works.
+        // Just skip outat this point to avoid gratuitous errors on accounts which have
+        // Zeo connectors
+
+		//getBulkSleepRecordsSinceDate(updateInfo, null);
 	}
 
 	@Override
 	protected void updateConnectorData(UpdateInfo updateInfo) throws Exception {
-		ZeoSleepStatsFacet lastFacet = jpaDaoService.findOne("zeo.sleep.getNewest",
-                                                        ZeoSleepStatsFacet.class, updateInfo.getGuestId());
+		        // As of May 30, 2013 Zeo's servers are no longer responding so updating no longer works.
+        // Just skip outat this point to avoid gratuitous errors on accounts which have
+        // Zeo connectors
 
-        DateTime date = new DateTime(lastFacet.end);
-
-		getBulkSleepRecordsSinceDate(updateInfo, date);
+		//ZeoSleepStatsFacet lastFacet = jpaDaoService.findOne("zeo.sleep.getNewest",
+        //                                                ZeoSleepStatsFacet.class, updateInfo.getGuestId());
+        //
+        //DateTime date = new DateTime(lastFacet.end);
+        //
+        //getBulkSleepRecordsSinceDate(updateInfo, date);
 	}
 
 	private void getBulkSleepRecordsSinceDate(UpdateInfo updateInfo, DateTime d) throws Exception {

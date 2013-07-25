@@ -76,10 +76,8 @@
                                                         data-toggle="dropdown">Connectors
                                     <i class="icon-random icon-large"></i> <b class="caret"></b></a>
                                     <ul class="dropdown-menu">
-                                        <li><a href="javascript:App.connectors()">Add  <i
-                                                class="icon-plus icon-large" style="float: right;"></i></a></li>
-                                        <li><a href="javascript:App.manageConnectors()">Manage <i
-                                                class="icon-list icon-large" style="float: right;"></i></a></li>
+                                        <li> <a href="javascript:App.connectors()"><i class="icon-plus icon-large pull-right"></i>Add</a></li>
+                                        <li><a href="javascript:App.manageConnectors()"><i class="icon-list icon-large pull-right"></i>Manage</a></li>
                                     </ul></li>
                                 <li class="divider-vertical"></li>
 							<li class="dropdown"><a href="#" class="dropdown-toggle" id="loggedInUser" <%if(AuthHelper.getCoachee()!=null){%>style="text-shadow:0 0 10px white; color:white"<%}%>
@@ -99,9 +97,8 @@
                                     <% } %>
 									<i class="icon-user icon-large"></i> <b class="caret"></b></a>
 								<ul class="dropdown-menu">
-									<li><a href="javascript:App.settings()">Settings <i
-											class="icon-cog icon-large" style="float: right;"></i></a></li>
-                                    <li><a href="javascript:App.addresses()">Addresses <i style="float: right;" class="icon-home icon-large"></i></a></li>
+									<li><a href="javascript:App.settings()"><i class="icon-cog icon-large pull-right"></i>Settings</a></li>
+                                    <li><a href="javascript:App.addresses()"><i class="icon-home icon-large pull-right"></i>Addresses</a></li>
 									<li id="coachingDivider" class="divider"></li><%
                                     if (coachees.size()>0) {
                                         for (Guest guest : coachees) {%>
@@ -109,11 +106,9 @@
                                         <%  } %>
                                     <li><a href="javascript:App.as('self')">View My data</a></li>
                                     <% } %>
-                                    <li><a href="javascript:App.sharingDialog.show()">Sharing... <i
-                                            class="icon-share" style="float: right;"></i></a></li>
+                                    <li><a href="javascript:App.sharingDialog.show()"><i class="icon-share icon-large pull-right"></i>Sharing...</a></li>
                                     <li class="divider"></li>
-									<li><a href="/logout">Logout <i style="float: right"
-											class="icon-off icon-large"></i></a></li>
+									<li><a href="/logout"><i class="icon-off icon-large pull-right"></i>Logout</a></li>
 								</ul></li>
                             </ul>
 					</div>

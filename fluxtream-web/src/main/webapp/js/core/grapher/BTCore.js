@@ -498,15 +498,15 @@ define([], function() {
                        url     : urlPrefix + level + "." + offset + ".json",
                        data    : urlParams,
                        success : function(data, textStatus, jqXHR) {
-                           try {
+                          // try {
                                if (success_callback) {
                                    // we must always send the JSON as a String...
                                    success_callback(typeof data === 'string' ? data : JSON.stringify(data));
                                }
-                           }
-                           catch (ex) {
-                               onerr(jqXHR, "JSON parse error", ex);
-                           }
+                          // }
+                          // catch (ex) {
+                           //    onerr(jqXHR, "JSON parse error", ex);
+                          // }
                        },
                        failure : onerr
                    });
