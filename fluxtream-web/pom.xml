@@ -39,21 +39,19 @@
                 <version>1.2.1</version>
                 <executions>
                     <execution>
+                        <phase>generate-resources</phase>
                         <id>js</id>
                         <goals>
-                            <goal>java</goal>
+                            <goal>exec</goal>
                         </goals>
-                        <phase>package</phase>
                         <configuration>
-                            <includeProjectDependencies>false</includeProjectDependencies>
-                            <includePluginDependencies>true</includePluginDependencies>
-                            <mainClass>org.mozilla.javascript.tools.shell.Main</mainClass>
-                            <arguments>
-                                <argument>${basedir}/r.js</argument>
+                            <executable>node</executable>
+                                <arguments>
+                                <argument>r.js</argument>
                                 <argument>-o</argument>
-                                <argument>baseUrl=${basedir}/src/main/webapp/js/</argument>
                                 <argument>name=main</argument>
-                                <argument>out=${project.build.directory}/ROOT/js/main.js</argument>
+                                <argument>out=src/main/webapp/js/main-built.js</argument>
+                                <argument>baseUrl=src/main/webapp/js/</argument>
                             </arguments>
                         </configuration>
                     </execution>
