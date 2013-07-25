@@ -7,7 +7,6 @@
 		<version>1.0</version>
 	</parent>
 	<artifactId>fluxtream-web</artifactId>
-    <version>1.0</version>
 	<packaging>war</packaging>
 	<build>
 		<resources>
@@ -17,40 +16,57 @@
 			</resource>
 		</resources>
         <plugins>
-        <!--    <plugin>
-                <groupId>com.github.mcheely</groupId>
-                <artifactId>requirejs-maven-plugin</artifactId>
-                <version>2.0.0</version>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.2.1</version>
                 <executions>
                     <execution>
+                        <id>js</id>
                         <goals>
-                            <goal>optimize</goal>
+                            <goal>java</goal>
                         </goals>
+                        <phase>package</phase>
+                        <configuration>
+                            <includeProjectDependencies>false</includeProjectDependencies>
+                            <includePluginDependencies>true</includePluginDependencies>
+                            <mainClass>org.mozilla.javascript.tools.shell.Main</mainClass>
+                            <arguments>
+                                <argument>${basedir}/r.js</argument>
+                                <argument>-o</argument>
+                                <argument>baseUrl=${basedir}/src/main/webapp/js/</argument>
+                                <argument>name=main</argument>
+                                <argument>out=${project.build.directory}/ROOT/js/main.js</argument>
+                            </arguments>
+                        </configuration>
                     </execution>
+                    <execution>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <includePluginDependencies>true</includePluginDependencies>
+                            <mainClass>com.fluxtream.maven.GetLastGitCommit</mainClass>
+                            <arguments>
+                               <argument>${release}</argument>
+                            </arguments>
+                        </configuration>
+                   </execution>
                 </executions>
-                <configuration>
-                     path to optimizer json config file
-                    <configFile>
-                        ${basedir}/src/main/app.build.js
-                    </configFile>
-                     optional path to optimizer executable
-                         <optimizerFile>
-                             ${basedir}/src/main/r.js
-                         </optimizerFile>
-
-                    Whether or not to process configFile with maven filters.
-                    If you use this option, some options in your configFile
-                    must resolve to absolute paths (see below)
-
-                    <filterConfig>
-                        true
-                    </filterConfig>
-                     Skip requirejs optimization if true
-                    <skip>
-                        false
-                    </skip>
-                </configuration>
-            </plugin>  -->
+                <dependencies>
+                    <dependency>
+                        <groupId>org.mozilla</groupId>
+                        <artifactId>rhino</artifactId>
+                        <version>1.7R4</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>commons-io</groupId>
+                        <artifactId>commons-io</artifactId>
+                        <version>2.0.1</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
         </plugins>
 		<finalName>ROOT</finalName>
 	</build>
@@ -58,14 +74,14 @@
 		<dependency>
 			<groupId>com.fluxtream</groupId>
 			<artifactId>fluxtream-core</artifactId>
-			<version>1.0</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.fluxtream</groupId>
 			<artifactId>fluxtream-connectors</artifactId>
-			<version>1.0</version>
+			<version>${project.version}</version>
 		</dependency>
-        </dependencies>
+    </dependencies>
     <properties>
         <release>0.9.0015</release>
     </properties>
