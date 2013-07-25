@@ -637,10 +637,11 @@
         {{#facets}}
         <span class="flx-deviceIcon moves-move-activity {{activityCode}}"></span>
         <div class="facetDetails">
-            <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+            <div class="facet-edit" id="{{parentType}}::{{parentId}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
             <div class="flx-data">{{activity}}{{#distance}} ({{distance}}){{/distance}}</div>
             <div class="flx-tTime">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</div>
-            {{#steps}}{{steps}} steps{{/steps}}
+            {{#steps}}{{steps}} steps{{/steps}}{{^steps}}<br>{{/steps}}
+            <div class="alert alert-info"><strong>Heads Up!</strong>This facet's comment is linked to moves-move</div>
             {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
         </div>
         {{/facets}}

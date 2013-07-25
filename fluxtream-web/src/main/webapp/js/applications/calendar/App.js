@@ -321,6 +321,9 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 };
                 if (connectorId === "moves-move"){
                     $.each(connector.activities, function(i, facet) {
+                        facet.parentType = connector.type;
+                        facet.parentId = connector.id;
+                        facet.comment = connector.comment;
                         facet.getDetails = function(array,showDate){
                             if (typeof(array) == "boolean"){
                                 showDate = array;
