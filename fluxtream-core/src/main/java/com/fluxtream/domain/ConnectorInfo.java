@@ -12,7 +12,9 @@ import org.hibernate.annotations.Type;
 // @Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
 @NamedQueries({
     @NamedQuery(name = "connectors.all", query = "SELECT connector FROM Connector connector ORDER BY connector.count DESC"),
-    @NamedQuery(name = "connector.byName", query = "SELECT connector FROM Connector connector WHERE connectorName=?")
+    @NamedQuery(name = "connector.byName", query = "SELECT connector FROM Connector connector WHERE connectorName=?"),
+    @NamedQuery(name = "connector.deleteAll", query = "DELETE FROM Connector")
+
 })
 public class ConnectorInfo extends AbstractEntity {
 

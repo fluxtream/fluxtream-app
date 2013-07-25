@@ -6,6 +6,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
+import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import com.fluxtream.Configuration;
@@ -15,6 +16,7 @@ import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.SystemService;
 import com.fluxtream.utils.JPAUtils;
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
@@ -204,8 +206,9 @@ public class SystemServiceImpl implements SystemService {
         for (String key : keys) {
             String value = env.get(key);
             if (value==null) {
-                logger.info("Couldn't find key " + key + " \"" + key + "\" while populating the connector table thus disabling the " + connectorName + " connector");
-                return null;
+                logger.info("Couldn't find key " + key + " \"" + key + "\" while populating the connector table thus disabling the " + connectorName + " connector; You need to add that key to the properties files");
+                System.out.println("Couldn't find key \" + key + \" \\\"\" + key + \"\\\" while populating the connector table thus disabling the \" + connectorName + \" connector\"; You need to add that key to the properties files");
+                System.exit(-1);
             } else if (value.equals("xxx")) {
                 logger.info("No value specified " + key + " \"" + key + "\" while populating the connector table thus disabling the " + connectorName + " connector");
             } else {
@@ -232,4 +235,10 @@ public class SystemServiceImpl implements SystemService {
 		return scopedApis.get(scope);
 	}
 
+    @Transactional(readOnly = false)
+    public void resetConnectorList() throws Exception {
+        System.out.println("Resetting connector table");
+        JPAUtils.execute(em,"connector.deleteAll");
+        initializeConnectorList();
+    }
 }
