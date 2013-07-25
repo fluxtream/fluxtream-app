@@ -45,7 +45,7 @@ public interface MetadataService {
                                 double dist);
 
     List<WeatherInfo> getWeatherInfo(double latitude, double longitude,
-                                     String date, int startMinute, int endMinute);
+                                     String date);
 
     public void rebuildMetadata(String username);
 

@@ -525,7 +525,13 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         if (Calendar.weather == null || Calendar.weather.hourlyWeatherData == null)
             return null;
         var i;
-        for (i = 0; i < Calendar.weather.hourlyWeatherData.length - 1 && Calendar.weather.hourlyWeatherData[i].minuteOfDay < minuteOfDay; i++);
+        var wwoMinuteOfDay = minuteOfDay/60*100;
+        for (i = 0; i < Calendar.weather.hourlyWeatherData.length; i++) {
+            if(Calendar.weather.hourlyWeatherData[i].minuteOfDay > wwoMinuteOfDay) {
+                break;
+            }
+        }
+        if (i>0) i -= 1;
         var weatherInfo = Calendar.weather.hourlyWeatherData[i];
         return weatherInfo;
     }
