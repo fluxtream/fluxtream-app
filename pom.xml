@@ -269,16 +269,16 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		<dependency>
-			<groupId>google</groupId>
-			<artifactId>gdata-calendar</artifactId>
-			<version>2.0</version>
-		</dependency>
-		<dependency>
-			<groupId>com.google.api.client</groupId>
-			<artifactId>google-api-client</artifactId>
-			<version>1.1.1-alpha</version>
-		</dependency>
+		<!--<dependency>-->
+			<!--<groupId>google</groupId>-->
+			<!--<artifactId>gdata-calendar</artifactId>-->
+			<!--<version>2.0</version>-->
+		<!--</dependency>-->
+		<!--<dependency>-->
+			<!--<groupId>com.google.api.client</groupId>-->
+			<!--<artifactId>google-api-client</artifactId>-->
+			<!--<version>1.1.1-alpha</version>-->
+		<!--</dependency>-->
 		<dependency>
 			<groupId>xpp3</groupId>
 			<artifactId>xpp3</artifactId>
@@ -310,7 +310,22 @@
 			<artifactId>collect</artifactId>
 			<version>1.0</version>
 		</dependency>
-		<dependency>
+        <dependency>
+            <groupId>com.google.apis</groupId>
+            <artifactId>google-api-services-oauth2</artifactId>
+            <version>v2-rev40-1.15.0-rc</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.apis</groupId>
+            <artifactId>google-api-services-calendar</artifactId>
+            <version>v3-rev52-1.15.0-rc</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.apis</groupId>
+            <artifactId>google-api-services-latitude</artifactId>
+            <version>v1-rev19-1.15.0-rc</version>
+        </dependency>
+        <dependency>
 			<groupId>gdata</groupId>
 			<artifactId>client</artifactId>
 			<version>1.0</version>
@@ -320,31 +335,31 @@
 			<artifactId>core</artifactId>
 			<version>1.0</version>
 		</dependency>
-		<dependency>
-			<groupId>gdata</groupId>
-			<artifactId>contacts</artifactId>
-			<version>3.0</version>
-		</dependency>
-		<dependency>
-			<groupId>gdata</groupId>
-			<artifactId>contacts-meta</artifactId>
-			<version>3.0</version>
-		</dependency>
-		<dependency>
-			<groupId>gdata</groupId>
-			<artifactId>media</artifactId>
-			<version>1.0</version>
-		</dependency>
-		<dependency>
-			<groupId>gdata</groupId>
-			<artifactId>photos</artifactId>
-			<version>2.0</version>
-		</dependency>
-		<dependency>
-			<groupId>gdata</groupId>
-			<artifactId>photos-meta</artifactId>
-			<version>2.0</version>
-		</dependency>
+		<!--<dependency>-->
+			<!--<groupId>gdata</groupId>-->
+			<!--<artifactId>contacts</artifactId>-->
+			<!--<version>3.0</version>-->
+		<!--</dependency>-->
+		<!--<dependency>-->
+			<!--<groupId>gdata</groupId>-->
+			<!--<artifactId>contacts-meta</artifactId>-->
+			<!--<version>3.0</version>-->
+		<!--</dependency>-->
+		<!--<dependency>-->
+			<!--<groupId>gdata</groupId>-->
+			<!--<artifactId>media</artifactId>-->
+			<!--<version>1.0</version>-->
+		<!--</dependency>-->
+		<!--<dependency>-->
+			<!--<groupId>gdata</groupId>-->
+			<!--<artifactId>photos</artifactId>-->
+			<!--<version>2.0</version>-->
+		<!--</dependency>-->
+		<!--<dependency>-->
+			<!--<groupId>gdata</groupId>-->
+			<!--<artifactId>photos-meta</artifactId>-->
+			<!--<version>2.0</version>-->
+		<!--</dependency>-->
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>

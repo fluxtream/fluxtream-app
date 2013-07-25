@@ -36,6 +36,8 @@ public class SystemServiceImpl implements SystemService {
     static {
         scopedApis.put("https://www.googleapis.com/auth/latitude.all.best",
                        Connector.getConnector("google_latitude"));
+        scopedApis.put("https://www.googleapis.com/auth/calendar.readonly",
+                       Connector.getConnector("google_calendar"));
     }
 
     @Override
@@ -118,7 +120,7 @@ public class SystemServiceImpl implements SystemService {
         em.persist(new ConnectorInfo("Google Calendar",
                                      "/images/connectors/connector-google_calendar.jpg",
                                      res.getString("google_calendar"),
-                                     "/calendar/token",
+                                     "/google/oauth2/token?scope=https://www.googleapis.com/auth/calendar.readonly",
                                      Connector.getConnector("google_calendar"), order++, true));
         em.persist(new ConnectorInfo("Last fm",
                                      "/images/connectors/connector-lastfm.jpg",

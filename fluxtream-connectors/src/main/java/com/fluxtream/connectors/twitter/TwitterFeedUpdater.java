@@ -1,24 +1,23 @@
-	package com.fluxtream.connectors.twitter;
+package com.fluxtream.connectors.twitter;
 
-    import java.util.List;
-    import com.fluxtream.connectors.ObjectType;
-    import com.fluxtream.connectors.annotations.JsonFacetCollection;
-    import com.fluxtream.connectors.annotations.Updater;
-    import com.fluxtream.connectors.updaters.AbstractUpdater;
-    import com.fluxtream.connectors.updaters.UpdateInfo;
-    import com.fluxtream.domain.ApiKey;
-    import com.fluxtream.utils.Utils;
-    import net.sf.json.JSONArray;
-    import net.sf.json.JSONObject;
-    import oauth.signpost.OAuthConsumer;
-    import oauth.signpost.commonshttp.CommonsHttpOAuthConsumer;
-    import org.apache.http.HttpResponse;
-    import org.apache.http.client.HttpClient;
-    import org.apache.http.client.ResponseHandler;
-    import org.apache.http.client.methods.HttpGet;
-    import org.apache.http.impl.client.BasicResponseHandler;
-    import com.fluxtream.aspects.FlxLogger;
-    import org.springframework.stereotype.Component;
+import java.util.List;
+import com.fluxtream.aspects.FlxLogger;
+import com.fluxtream.connectors.ObjectType;
+import com.fluxtream.connectors.annotations.JsonFacetCollection;
+import com.fluxtream.connectors.annotations.Updater;
+import com.fluxtream.connectors.updaters.AbstractUpdater;
+import com.fluxtream.connectors.updaters.UpdateInfo;
+import com.fluxtream.domain.ApiKey;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import oauth.signpost.OAuthConsumer;
+import oauth.signpost.commonshttp.CommonsHttpOAuthConsumer;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.BasicResponseHandler;
+import org.springframework.stereotype.Component;
 
 
 @Component
