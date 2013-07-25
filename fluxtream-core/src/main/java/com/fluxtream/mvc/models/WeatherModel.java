@@ -9,8 +9,8 @@ public class WeatherModel {
     public SolarInfoModel solarInfo;
     public List<WeatherInfo> hourlyWeatherData = null;
 	public TimeBoundariesModel tbounds;
-    public float minTempC, maxTempC;
-    public float minTempF, maxTempF;
+    public Integer minTempC, maxTempC;
+    public Integer minTempF, maxTempF;
     public GuestSettings.TemperatureUnit temperatureUnit;
 
     public WeatherModel(final GuestSettings.TemperatureUnit temperatureUnit) {

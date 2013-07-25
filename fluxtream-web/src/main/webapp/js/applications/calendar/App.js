@@ -977,23 +977,35 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     }
 
     function weatherLabel() {
-        if (Calendar.weather.temperatureUnit != "CELSIUS") {
-            return ephemerisLabel() + "<i class=\"flx-pict-temp\">&nbsp;</i>"
-                       + "<span class=\"ephemeris\" style=\"font-weight:normal;\">&nbsp;"
-                       + Calendar.weather.minTempF
-                       + " / "
-                       + Calendar.weather.maxTempF
-                       + "&deg;F"
-                + "</span>";
+        function getFahrenheitTemps() {
+            if (Calendar.weather.minTempF==null) return "";
+            var FahrenheitTemps = "<i class=\"flx-pict-temp\">&nbsp;</i>"
+                                      + "<span class=\"ephemeris\" style=\"font-weight:normal;\">&nbsp;"
+                                      + Calendar.weather.minTempF
+                                      + " / "
+                                      + Calendar.weather.maxTempF
+                + "&deg;F";
+            return FahrenheitTemps;
         }
-        else {
-            return ephemerisLabel() + "<i class=\"flx-pict-temp\">&nbsp;</i>"
+
+        function getCelsiusTemps() {
+            if (Calendar.weather.minTempC==null) return "";
+            return "<i class=\"flx-pict-temp\">&nbsp;</i>"
                        + "<span class=\"ephemeris\" style=\"font-weight:normal;\">&nbsp;"
                        + Calendar.weather.minTempC
                        + " / "
                        + Calendar.weather.maxTempC
                        + "&deg;C"
                 + "</span>";
+        }
+
+        if (Calendar.weather.temperatureUnit != "CELSIUS") {
+            var FahrenheitTemps = getFahrenheitTemps();
+            return ephemerisLabel() + FahrenheitTemps
+                + "</span>";
+        }
+        else {
+            return ephemerisLabel() + getCelsiusTemps();
         }
     }
 

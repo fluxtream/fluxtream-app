@@ -267,10 +267,13 @@ public class CalendarDataStore {
 
     public void setMinMaxTemperatures(WeatherModel info,
                                       List<WeatherInfo> weatherInfo) {
-        info.maxTempC = Integer.MIN_VALUE;
-        info.minTempC = Integer.MAX_VALUE;
         if (weatherInfo.size() == 0)
             return;
+
+        info.maxTempC = Integer.MIN_VALUE;
+        info.minTempC = Integer.MAX_VALUE;
+        info.maxTempF = Integer.MIN_VALUE;
+        info.minTempF = Integer.MAX_VALUE;
 
         for (WeatherInfo weather : weatherInfo) {
             if (weather.tempC < info.minTempC)
@@ -282,7 +285,6 @@ public class CalendarDataStore {
             if (weather.tempF > info.maxTempF)
                 info.maxTempF = weather.tempF;
         }
-
     }
 
 	@GET
