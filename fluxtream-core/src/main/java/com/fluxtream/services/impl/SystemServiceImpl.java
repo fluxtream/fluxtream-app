@@ -6,7 +6,6 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
-import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import com.fluxtream.Configuration;
@@ -16,16 +15,17 @@ import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.SystemService;
 import com.fluxtream.utils.JPAUtils;
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Scope;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Scope("singleton")
 @Transactional(readOnly=true)
-public class SystemServiceImpl implements SystemService {
+public class SystemServiceImpl implements SystemService, ApplicationListener<ContextRefreshedEvent> {
 
     static final Logger logger = Logger.getLogger(SystemServiceImpl.class);
 
@@ -47,8 +47,7 @@ public class SystemServiceImpl implements SystemService {
 
     @Override
 	public List<ConnectorInfo> getConnectors() throws Exception {
-		List<ConnectorInfo> all = JPAUtils.find(em, ConnectorInfo.class,
-				"connectors.all", (Object[]) null);
+		List<ConnectorInfo> all = JPAUtils.find(em, ConnectorInfo.class, "connectors.all", (Object[])null);
 		if (all.size() == 0) {
 			initializeConnectorList();
 			all = JPAUtils.find(em, ConnectorInfo.class, "connectors.all",
@@ -240,5 +239,16 @@ public class SystemServiceImpl implements SystemService {
         System.out.println("Resetting connector table");
         JPAUtils.execute(em,"connector.deleteAll");
         initializeConnectorList();
+    }
+
+    @Override
+    public void onApplicationEvent(final ContextRefreshedEvent event) {
+        System.out.println("ApplicationContext started");
+        try {
+            resetConnectorList();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
