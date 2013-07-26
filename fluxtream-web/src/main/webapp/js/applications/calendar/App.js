@@ -659,7 +659,60 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         foursquareVenueTemplate = digest.detailsTemplates["foursquare-venue"];
         var details = $(digest.detailsTemplates[data.type].render(params));
         setTimeout(function(){getFoursquareVenues(details,foursquareVenueIds);}, 100);
+
+
+        //hide invalid controls
+        var config = App.getFacetConfig(facets[0].type);
+        if (!config.map){
+            details.find(".mapLink").css("display","none");
+        }
+        if (!config.list){
+            details.find(".listLink").css("display","none");
+        }
+        if (!config.clock){
+            details.find(".clockLink").css("display","none");
+        }
+
+
         return details;
+    }
+
+    function switchToAppForFacet(appname,tabname,facetType, facetid){
+        var cachedData = Calendar.digest.cachedData[facetType];
+        var facet = null;
+        for (var i = 0, li = cachedData.length; i < li; i++){
+            if (cachedData[i].id == facetid){
+                facet = cachedData[i];
+                break;
+            }
+        }
+        if (facet == null){
+            console.warn("Couldn't find " + facetType + " " + facetid);
+            return;
+        }
+        App.renderApp(appname,tabname + "/" + Calendar.tabState,{facetToShow:facet});
+    }
+
+    Calendar.rebindDetailsControls = function(details){
+        details.find(".facet-edit a").unbind("click").click(function(event){
+            Calendar.commentEdit(event);
+            return false;
+        });
+        details.find(".mapLink").unbind('click').click(function(event){
+            switchToAppForFacet("calendar","map",$(event.delegateTarget).attr("facettype"),parseInt($(event.delegateTarget).attr("itemid")));
+        });
+        details.find(".clockLink").unbind('click').click(function(event){
+            switchToAppForFacet("calendar","clock",$(event.delegateTarget).attr("facettype"),parseInt($(event.delegateTarget).attr("itemid")));
+        });
+        details.find(".listLink").unbind('click').click(function(event){
+            switchToAppForFacet("calendar","list",$(event.delegateTarget).attr("facettype"),parseInt($(event.delegateTarget).attr("itemid")));
+        });
+        details.find(".timelineLink").unbind('click').click(function(event){
+            switchToAppForFacet("calendar","timeline",$(event.delegateTarget).attr("facettype"),parseInt($(event.delegateTarget).attr("itemid")));
+        });
+        details.find(".bodytrackLink").unbind('click').click(function(event){
+            switchToAppForFacet("bodytrack","grapher",$(event.delegateTarget).attr("facettype"),parseInt($(event.delegateTarget).attr("itemid")));
+        });
     }
 
     function getFoursquareVenues(details,foursquareVenueIds) {
@@ -1109,7 +1162,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         var facetType = id.split("::")[0];
         var facetId = id.split("::")[1];
         var facet = {};
-        var cachedData = evt.digest.cachedData[facetType];
+        var cachedData = this.digest.cachedData[facetType];
         for (var i = 0, li = cachedData.length; i < li; i++){
             if (cachedData[i].id == facetId){
                 facet = cachedData[i];

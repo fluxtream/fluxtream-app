@@ -34,6 +34,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         hideEventInfo();
         this.getTemplate("text!applications/calendar/tabs/clock/clock.html", "clock", function() {
             if (lastTimestamp == params.digest.generationTimestamp && !params.forceReload){
+                displayFacet(params.facetToShow);
                 params.doneLoading();
                 return;
             }
@@ -41,12 +42,27 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                 lastTimestamp = params.digest.generationTimestamp;
             App.loadMustacheTemplate("applications/calendar/tabs/clock/clockTemplate.html","tooltip",function(template){
                 tooltipTemplate = template;
-                setup(params.digest, params.timeUnit, params.connectorEnabled, params.doneLoading);
+                setup(params.digest, params.timeUnit, params.connectorEnabled);
+                displayFacet(params.facetToShow);
+                params.doneLoading();
             });
 		});
 	}
 
-    function setup(digest, timeUnit, cEn, doneLoading) {
+    function displayFacet(facet){
+        console.log(facet);
+        if (facet == null)
+            return;
+
+        var element = $(paper.canvas).find("." + facet.type + "-" + facet.id);
+        if (element.length > 0){
+            element.click();
+        }
+        console.warn("couldn't find span for item!");
+        console.warn(facet);
+    }
+
+    function setup(digest, timeUnit, cEn) {
         dgst = digest;
         selectedConnectors = digest.selectedConnectors;
         connectorEnabled = cEn;
@@ -113,8 +129,6 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		}
 
         photoCarouselHTML = PhotoUtils.getCarouselHTML(digest);
-
-        doneLoading();
 	}
 
 	function fillRegion(center, radius1, radius2, startAngle, endAngle) {
@@ -217,12 +231,20 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 							span = paintSpan(paper, start,/*(start<=end?end:1440)*/ end, orbit, color, .9, strokeWidth, strokeCap,outline);
                         }
 						span.node.item = item;
+                        $(span.node).attr("class", item.type + "-" + item.id);
                         $(span.node).attr("notthide",true);
 						$(span.node).css("cursor", "pointer");
 						$(span.node).click({instantaneous:instantaneous}, function(event) {
                             if (typeof(event.offsetX) == "undefined"){
-                                event.offsetX = event.originalEvent.layerX;
-                                event.offsetY = event.originalEvent.layerY;
+                                if (typeof(event.originalEvent) == "undefined" || typeof(event.originalEvent.layerX) == "undefined"){
+                                    var elementPosition = $(event.delegateTarget).position();
+                                    event.offsetX = elementPosition.left;
+                                    event.offsetY = elementPosition.top;
+                                }
+                                else{
+                                    event.offsetX = event.originalEvent.layerX;
+                                    event.offsetY = event.originalEvent.layerY;
+                                }
                             }
                             if (!event.data.instantaneous)
                                 event.timeTarget = getTimestampForPoint(event.offsetX,event.offsetY);
@@ -487,23 +509,18 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                 classString += "." + classes[i];
             }
             ttpdiv.find(classString).outerHTML(contents.outerHTML());
-            ttpdiv.find(".mapLink").unbind('click').click(function(event){
-                setTabParam($(event.delegateTarget).attr("itemid"));
-                $(".calendar-map-tab").click();
-                return false;
-            });
 
             var commentEdit =  ttpdiv.find(".facet-edit a");
 
-            commentEdit.unbind('click').click(function(event){
-                event.digest = dgst;
-                App.apps.calendar.commentEdit(event);
-            });
+            ttpdiv.find(".clockLink").css("display","none");
+
             commentEdit.css("display","none");
             ttpdiv.find("#tooltipEditComment").unbind('click').click(function(){
                 event.preventDefault();
                 commentEdit.click();
             });
+
+            App.apps.calendar.rebindDetailsControls(ttpdiv);
 
         });
 

@@ -239,7 +239,7 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
         if (App.activeApp.name != "calendar")
             return;
         tabInterface.setRenderParamsFunction(function(){
-            return {
+            return $.extend({
                 digest:digest,
                 timeUnit:Calendar.timeUnit,
                 calendarState:Calendar.tabState,
@@ -247,7 +247,7 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
                 tabParam:Calendar.tabParam,
                 setTabParam:Calendar.setTabParam,
                 doneLoading:Calendar.stopLoading,
-                forceReload: force};
+                forceReload: force}, Calendar.params);
         });
         tabInterface.setActiveTab(Calendar.currentTabName);
         updateCurrentTab(digest, Calendar);

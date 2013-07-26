@@ -6,7 +6,25 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
 
     var setTabParam;
 
+    var currentTimeUnit;
+
     function render(params) {
+        currentTimeUnit = params.timeUnit;
+        var doneLoading = params.doneLoading;
+
+        params.doneLoading = function(){
+            if (params.facetToShow != null){
+                var findResults = $("#list ." + params.facetToShow.type + "-" + params.facetToShow.id);
+                if (findResults.length > 0){
+                    var facetDiv = $(findResults[0]);
+                    var offset = facetDiv.offset();
+                    $("body").scrollTop(offset.top);
+                }
+
+            }
+            doneLoading();
+        }
+        console.log(params);
         setTabParam = params.setTabParam;
         this.getTemplate("text!applications/calendar/tabs/list/list.html", "list", function() {
             //TODO: implement comment refreshing algorithm so the entire list tab doesn't have to be refreshed every time
@@ -152,15 +170,14 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
 
         function appendItems(currentArray,list){
             var details = currentArray[0].getDetails(currentArray);
+            if (currentTimeUnit !== "day")
+                details.find(".clockLink").css('display',"none");
             var content = $(templates.item.render({item:details.outerHTML()}));
             list.append(content);
             details.on("contentchange",function(){
                 content.html(details.outerHTML());
-                content.find(".mapLink").unbind('click').click(function(event){
-                    setTabParam($(event.delegateTarget).attr("itemid"));
-                    $(".calendar-map-tab").click();
-                    return false;
-                });
+                content.find(".listLink").css("display","none");
+                App.apps.calendar.rebindDetailsControls(content);
             });
             details.trigger("contentchange");
         }
@@ -214,15 +231,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
                 App.carousel($(event.delegateTarget).attr("photoId"));
             });
         }
-        $(".mapLink").click(function(event){
-            setTabParam($(event.delegateTarget).attr("itemid"));
-            $(".calendar-map-tab").click();
-            return false;
-        });
-        $(".facet-edit a").click(function(event){
-            event.digest = dgst;
-            App.apps.calendar.commentEdit(event);
-        });
+
     }
 
     function paginationClickCallback(event){
