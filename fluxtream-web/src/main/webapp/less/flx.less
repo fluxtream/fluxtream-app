@@ -52,7 +52,6 @@ img::-moz-selection {background: transparent;}
 body {
     background-image: url('../../images/bg.gif');
     height: 100%;
-    overflow-x: hidden;
     color:@black;
 }
 
@@ -876,8 +875,25 @@ table .remove { text-align:center;
      a.ggleCal { color: @ggleCal; border-bottom-color: @ggleCal; }
  }
 
-#filtersContainer {
+#filterPlaceHolderElement, #filtersContainer {
     margin-top: -17px;
+}
+
+#filtersContainer.floating{
+  margin:0;
+  position:fixed;
+  top:0;
+  z-index: 5;
+  left:0;
+  right:0;
+  ul{
+    padding-left:10px;
+    background:white;
+  }
+}
+
+#filterPlaceHolderElement.hidden{
+  display:none;
 }
 
 .flx-sourceFilters6 { list-style-type: none; 
