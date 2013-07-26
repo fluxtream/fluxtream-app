@@ -1,5 +1,9 @@
 <template id="date">
-    <hr><div style="margin-bottom:15px"><a href="javascript:App.renderApp(App.activeApp.name,'{{state}}');">{{date}}, {{city}} ({{timezone}})</a></div>
+    <div class="dateHeadingGroup">
+        <hr class="priorRuler">
+        <div class="dateHeading placeholder hidden"></div>
+        <div class="dateHeading dateLabel"><a href="javascript:App.renderApp(App.activeApp.name,'{{state}}');">{{date}}, {{city}} ({{timezone}})</a></div>
+    </div>
 </template>
 <template id="item">
     <div class=flx-listItem>{{{item}}}</div>

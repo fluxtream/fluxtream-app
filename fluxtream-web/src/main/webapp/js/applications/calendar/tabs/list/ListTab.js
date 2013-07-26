@@ -142,6 +142,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
     }
 
     function repopulateList(){
+        var dateCounter = 2;
         var currentDate = null;
         var prevDate = null;
         list.empty();
@@ -274,6 +275,45 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
         }
         return false;
     }
+
+    function onScroll(scrollPosition){
+        var listTops = $("#list .dateHeadingGroup");
+        for (var i = 0, li = listTops.length; i < li; i++){
+            var listTop = $(listTops[i]);
+            var hr = listTop.find("hr");
+            var floater = listTop.find(".dateLabel");
+            var placeholder = listTop.find(".placeholder");
+            var beginFloat = hr.offset().top + parseInt(hr.css("marginBottom"));
+            var endFloat = null;
+            if (i < li - 1){
+                var nextListTop = $(listTops[i+1]);
+                var nextHr = nextListTop.find("hr");
+                endFloat = nextHr.offset().top + parseInt(nextHr.css("marginBottom"));
+            }
+            if (scrollPosition < beginFloat){
+                placeholder.addClass("hidden");
+                floater.removeClass("floating");
+                floater.css("marginTop","0px");
+            }
+            else{
+                placeholder.height(floater.height());
+                placeholder.removeClass("hidden");
+                floater.addClass("floating");
+                if (endFloat != null){
+                    var temp = scrollPosition +  floater.height();
+                    var marginAmount = endFloat - temp;
+                    if (marginAmount > 0) marginAmount = 0;
+                    floater.css("marginTop",marginAmount + "px");
+                }
+
+            }
+
+        }
+    }
+
+    $(window).scroll(function(){
+        onScroll($("body").scrollTop() + 41);
+    });
 
     listTab.render = render;
     listTab.connectorToggled = connectorToggled;
