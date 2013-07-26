@@ -669,7 +669,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         if (!config.list){
             details.find(".listLink").css("display","none");
         }
-        if (!config.clock){
+        if (config.clock == null){
             details.find(".clockLink").css("display","none");
         }
 

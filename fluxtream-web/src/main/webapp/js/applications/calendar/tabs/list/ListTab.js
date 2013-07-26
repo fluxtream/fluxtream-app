@@ -171,7 +171,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
 
         function appendItems(currentArray,list){
             var details = currentArray[0].getDetails(currentArray);
-            if (currentTimeUnit !== "day")
+            if (currentTimeUnit !== "date")
                 details.find(".clockLink").css('display',"none");
             var content = $(templates.item.render({item:details.outerHTML()}));
             list.append(content);
