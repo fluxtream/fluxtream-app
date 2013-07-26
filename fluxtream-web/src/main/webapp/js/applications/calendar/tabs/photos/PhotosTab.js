@@ -170,18 +170,18 @@ define(["core/Tab",
         var listTops = $("#photoTab .dateHeadingGroup");
         for (var i = 0, li = listTops.length; i < li; i++){
             var listTop = $(listTops[i]);
-            var hr = listTop.find("hr");
+            var hr = listTop.find(".priorRuler");
             var floater = listTop.find(".dateLabel");
             var placeholder = listTop.find(".placeholder");
-            var beginFloat = hr.offset().top + parseInt(hr.css("marginBottom"));
+            var beginFloat = hr.offset().top + hr.outerHeight() + parseInt(hr.css("marginBottom"));
             if (beginFloat < 0){
                 beginFloat = 0;
             }
             var endFloat = null;
             if (i < li - 1){
                 var nextListTop = $(listTops[i+1]);
-                var nextHr = nextListTop.find("hr");
-                endFloat = nextHr.offset().top + parseInt(nextHr.css("marginBottom"));
+                var nextHr = nextListTop.find(".priorRuler");
+                endFloat = nextHr.offset().top + nextHr.outerHeight() + parseInt(nextHr.css("marginBottom"));
             }
             if (scrollPosition < beginFloat){
                 placeholder.addClass("hidden");
@@ -189,7 +189,6 @@ define(["core/Tab",
                 floater.css("marginTop","0px");
             }
             else{
-                placeholder.height(floater.height());
                 placeholder.removeClass("hidden");
                 floater.addClass("floating");
                 if (endFloat != null){
@@ -200,6 +199,7 @@ define(["core/Tab",
                 }
 
             }
+            placeholder.height(floater.height());
 
         }
     }
