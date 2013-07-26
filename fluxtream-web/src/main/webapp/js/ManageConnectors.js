@@ -1,6 +1,15 @@
-define(["core/grapher/BTCore"],function(BodyTrack) {
+define(["core/grapher/BTCore",
+        "settings/google_calendar"],function(BodyTrack,
+        GoogleCalendarSettingsHandler) {
 
     var connectors;
+
+    /**
+     * list settings handlers here in order for them to be able to be looked up by connectorName
+     */
+    var settingsHandlers = {
+        "google_calendar" : GoogleCalendarSettingsHandler
+    };
 
     function show(){
         $.ajax("/api/connectors/installed",{
@@ -271,14 +280,9 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
     }
 
     function showGeneralSettings(connector) {
-        console.log("we should show general settings: " + connector.connectorName + "-settings");
         App.loadMustacheTemplate("connectorMgmtTemplates.html",connector.connectorName + "-settings",function(template){
-            var settingsHtml = template.render({
-                connectorName:connector.connectorName,
-                name:connector.name
-            });
-            $("#connectorSettingsTab").empty();
-            $("#connectorSettingsTab").append(settingsHtml);
+            var settingsHandler = settingsHandlers[connector.connectorName];
+            settingsHandler.loadSettings(connector.apiKeyId, connector, template);
         });
     }
 

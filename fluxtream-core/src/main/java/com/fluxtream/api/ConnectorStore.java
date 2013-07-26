@@ -78,6 +78,13 @@ public class ConnectorStore {
         gson = gsonBuilder.create();
     }
 
+    @GET
+    @Path("/settings/{apiKeyId}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String getConnectorSettings(@PathParam("apiKeyId") long apiKeyId) {
+        return "{\"message\":\"Hello World! Hahahahahahaha!!!\"}";
+    }
+
     @POST
     @Path("/renew/{apiKeyId}")
     @Produces({MediaType.APPLICATION_JSON})
