@@ -18,7 +18,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
                 if (findResults.length > 0){
                     var facetDiv = $(findResults[0]);
                     var offset = facetDiv.offset();
-                    $("body").scrollTop(offset.top);
+                    $("body").scrollTop(offset.top - 101);
                 }
 
             }
