@@ -284,8 +284,9 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
             var floater = listTop.find(".dateLabel");
             var placeholder = listTop.find(".placeholder");
             var beginFloat = hr.offset().top + parseInt(hr.css("marginBottom"));
-            if (beginFloat < 0)
-                return;
+            if (beginFloat < 0){
+                beginFloat = 0;
+            }
             var endFloat = null;
             if (i < li - 1){
                 var nextListTop = $(listTops[i+1]);
@@ -314,7 +315,10 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
     }
 
     $(window).scroll(function(){
-        onScroll($("body").scrollTop() + 41);
+        if ($("#listTab").parent().hasClass("active"))
+            onScroll($("body").scrollTop() + 41);
+        else
+            onScroll(-100);
     });
 
     listTab.render = render;

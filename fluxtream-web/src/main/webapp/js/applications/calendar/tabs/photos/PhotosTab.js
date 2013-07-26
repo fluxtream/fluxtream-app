@@ -166,6 +166,51 @@ define(["core/Tab",
         return false;
     }
 
+    function onScroll(scrollPosition){
+        var listTops = $("#photoTab .dateHeadingGroup");
+        for (var i = 0, li = listTops.length; i < li; i++){
+            var listTop = $(listTops[i]);
+            var hr = listTop.find("hr");
+            var floater = listTop.find(".dateLabel");
+            var placeholder = listTop.find(".placeholder");
+            var beginFloat = hr.offset().top + parseInt(hr.css("marginBottom"));
+            if (beginFloat < 0){
+                beginFloat = 0;
+            }
+            var endFloat = null;
+            if (i < li - 1){
+                var nextListTop = $(listTops[i+1]);
+                var nextHr = nextListTop.find("hr");
+                endFloat = nextHr.offset().top + parseInt(nextHr.css("marginBottom"));
+            }
+            if (scrollPosition < beginFloat){
+                placeholder.addClass("hidden");
+                floater.removeClass("floating");
+                floater.css("marginTop","0px");
+            }
+            else{
+                placeholder.height(floater.height());
+                placeholder.removeClass("hidden");
+                floater.addClass("floating");
+                if (endFloat != null){
+                    var temp = scrollPosition +  floater.height();
+                    var marginAmount = endFloat - temp;
+                    if (marginAmount > 0) marginAmount = 0;
+                    floater.css("marginTop",marginAmount + "px");
+                }
+
+            }
+
+        }
+    }
+
+    $(window).scroll(function(){
+        if ($("#photoTab").parent().hasClass("active"))
+            onScroll($("body").scrollTop() + 41);
+        else
+            onScroll(-100);;
+    });
+
     var photosTab = new Tab("calendar", "photos", "Candide Kemmler", "icon-camera", true);
     photosTab.render = render;
     photosTab.connectorToggled = connectorToggled;
