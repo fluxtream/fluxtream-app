@@ -150,6 +150,29 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
                 });
             }
         });
+
+        $(window).scroll(function(event){
+            var beginFloat = $("#calendar-app .nav-tabs").offset().top + $("#calendar-app .nav-tabs").height();
+            if (beginFloat < 0){
+                setTimeout(function(){
+                    $(window).scroll();
+                },100);
+            }
+            var scrollTop = $("body").scrollTop();
+            if (scrollTop < beginFloat){
+                $("#filtersContainer").removeClass("floating");
+                $("#filterPlaceHolderElement").addClass("hidden");
+
+            }
+            else{
+                $("#filtersContainer").addClass("floating");
+                $("#filterPlaceHolderElement").removeClass("hidden");
+                $("#filterPlaceHolderElement").width($("#filtersContainer").width());
+                $("#filterPlaceHolderElement").height($("#filtersContainer").height());
+            }
+        });
+
+        $(window).scroll();
     }
 	
 	function timeUnitToURL(timeUnit) {
