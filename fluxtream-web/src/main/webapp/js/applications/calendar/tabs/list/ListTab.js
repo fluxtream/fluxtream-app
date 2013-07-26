@@ -284,6 +284,8 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
             var floater = listTop.find(".dateLabel");
             var placeholder = listTop.find(".placeholder");
             var beginFloat = hr.offset().top + parseInt(hr.css("marginBottom"));
+            if (beginFloat < 0)
+                return;
             var endFloat = null;
             if (i < li - 1){
                 var nextListTop = $(listTops[i+1]);
