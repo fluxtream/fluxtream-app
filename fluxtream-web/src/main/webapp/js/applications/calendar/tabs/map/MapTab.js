@@ -17,6 +17,8 @@ define(["core/Tab",
         params.setTabParam(null);
         this.getTemplate("text!applications/calendar/tabs/map/map.html", "map", function(){
             if (lastTimestamp == params.digest.generationTimestamp && !params.forceReload){
+                if (App.apps.calendar.dateAxisCursorPosition != null)
+                    map.setCursorPosition(App.apps.calendar.dateAxisCursorPosition);
                 $.doTimeout(250,function(){
                     if (itemToShow != null)
                         map.zoomOnItemAndClick(itemToShow);
@@ -47,6 +49,8 @@ define(["core/Tab",
         digestData  = digest;
         App.fullHeight();
         $("#mapFit").unbind("click");
+
+        var cursorPos = App.apps.calendar.dateAxisCursorPosition;
 
         var bounds = null;
 
@@ -88,6 +92,10 @@ define(["core/Tab",
                 if (itemToShow != null){
                     map.zoomOnItemAndClick(itemToShow);
                 }
+
+                if (cursorPos != null)
+                    map.setCursorPosition(cursorPos);
+
                 doneLoading();
 
             });

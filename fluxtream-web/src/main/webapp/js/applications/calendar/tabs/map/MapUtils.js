@@ -998,10 +998,6 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         return false;
     }
 
-    function isFullyInitialized(map){
-        return map.getProjection() != null;
-    }
-
     function createMapPositionControls(map){
         var control = $("<div></div>");
         control.css("background","white");
@@ -1120,7 +1116,10 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         map.dateAxis.setMaxRange(map.maxBounds.min,map.maxBounds.max);
         $(window).resize();
 
+        var oldPosition = null;
         map.dateAxis.addAxisChangeListener(function(event){
+            if (oldPosition != event.cursorPosition)
+                oldPosition = App.apps.calendar.dateAxisCursorPosition = event.cursorPosition;
             updateCursorMarkerPosition(map,event.cursorPosition);
             updateMarkerHighlighting(map,event.cursorPosition);
             if (map.markerList.length > 5500){//we should delay so the axis doesn't become locked up
@@ -1412,7 +1411,13 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             map.zoomOnMarker = function(marker){zoomOnMarker(map,marker)};
             map.enhanceMarker = function(marker,start,end){enhanceMarker(map,marker,start,end)};
             map.enhanceMarkerWithItem = function(marker,item){enhanceMarkerWithItem(map,marker,item)};
-            map.isFullyInitialized = function(){return isFullyInitialized(map)};
+            map.isFullyInitialized = function(){
+                if (map.getProjection() == null)
+                    return false;
+                if (!hideControls && map.dateAxis == null)
+                    return false;
+                return true;
+            };
             map.executeAfterReady = function(afterready){
                 if (this.executionQueue.length == 0 && this.isFullyInitialized())
                     afterready();
@@ -1439,6 +1444,11 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                     this.dateAxis.setCursorPosition(maxBounds.min);
                 }
             }
+
+            map.setCursorPosition = function(position){
+                this.dateAxis.setCursorPosition(position);
+            }
+
             if (!hideControls){
                 createMapPositionControls(map);
                 createTimelineControls(map,maxBounds);

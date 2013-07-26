@@ -426,7 +426,7 @@ a img { text-decoration: none; }
      }
 }
 
-.flx-toolTipTail { position:absolute; width:0; height:0; border:10px solid transparent; }
+.flx-toolTipTail { position:absolute; width:0; height:0; border:10px solid transparent; pointer-events: none; }
 .flx-toolTipTail-Bottom { .flx-toolTipTail; border-top: 10px solid @tTborder; bottom: -24px;}
 .flx-toolTipTail-Top { .flx-toolTipTail; border-bottom: 10px solid @tTborder; top: -24px; }
 .flx-toolTipTail-Right { .flx-toolTipTail; border-left: 10px solid @tTborder; right: -24px; }
@@ -459,7 +459,38 @@ a img { text-decoration: none; }
 //------- MANAGE CONNECTORS
 
 .manageConnectors .modal-body {
-    padding: 0 0px 0 10px;
+    padding: 0px;
+}
+
+
+.manageConnectors .topHeader{
+  height: 52px;
+  width: 738px;
+  background:white;
+  text-align: center;
+  font-weight: bold;
+}
+
+.manageConnectors .topHeader.floating{
+  position:fixed;
+  border-bottom: 1px solid #E0E0E0;
+  border-top: 1px solid #E0E0E0;
+  margin-top: -48px;
+}
+
+.manageConnectors .topHeader div{
+  padding-top: 19.5px;
+  height:52px;
+  vertical-align: top;
+  display:inline-block;
+}
+
+.manageConnectors .placeholder{
+  height: 52px;
+}
+
+.manageConnectors .placeholder.hidden{
+  display:none;
 }
 
 .synchAll { width:100%;background:@hd-bg-color; overflow:hidden; height: 100%;
