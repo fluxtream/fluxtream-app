@@ -60,8 +60,11 @@ public class ConnectorInfo extends AbstractEntity {
 	}
 
     public String[] getApiKeyAttributesKeys() {
-        final String[] keys = StringUtils.split(apiKeyAttributeKeys, ",");
-        return keys;
+        if(apiKeyAttributeKeys!=null) {
+            final String[] keys = StringUtils.split(apiKeyAttributeKeys, ",");
+            return keys;
+        }
+        return null;
     }
 
 	public ConnectorInfo(String name, String imageUrl, String text,
