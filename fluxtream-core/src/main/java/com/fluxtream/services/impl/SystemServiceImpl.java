@@ -2,6 +2,8 @@ package com.fluxtream.services.impl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -10,10 +12,13 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ConnectorInfo;
 import com.fluxtream.services.ConnectorUpdateService;
+import com.fluxtream.services.GuestService;
 import com.fluxtream.services.SystemService;
 import com.fluxtream.utils.JPAUtils;
+import net.sf.json.JSONArray;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
@@ -34,6 +39,10 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
 
 	@Autowired
 	Configuration env;
+
+    @Autowired
+    GuestService guestService;
+
 
 	@PersistenceContext
 	EntityManager em;
@@ -120,12 +129,13 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
 
         final String zeo = "Zeo";
         String[] zeoKeys = checkKeysExist(zeo, Arrays.asList("zeoConsumerKey", "zeoConsumerSecret", "zeoApiKey"));
+        // Zeo no longer supports sync.  The myzeo servers were disabled due to bankruptcy in May/June 2013
         em.persist(new ConnectorInfo(zeo,
                                      "/images/connectors/connector-zeo.jpg",
                                      res.getString("zeo"),
                                      "ajax:/zeo/enterCredentials",
                                      Connector.getConnector("zeo"), order++, zeoKeys!=null,
-                                     false, true, zeoKeys));
+                                     false, false, zeoKeys));
         final String mymee = "Mymee";
         String[] mymeeKeys = checkKeysExist(mymee, new ArrayList<String>());
         em.persist(new ConnectorInfo(mymee,
@@ -202,17 +212,35 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
     private String[] checkKeysExist(String connectorName, List<String> keys) {
         String[] checkedKeys = new String[keys.size()];
         int i=0;
+        boolean fatalMissingKey=false;
+        boolean nonFatalMissingKey=false;
+
         for (String key : keys) {
             String value = env.get(key);
             if (value==null) {
-                logger.info("Couldn't find key " + key + " \"" + key + "\" while populating the connector table thus disabling the " + connectorName + " connector; You need to add that key to the properties files");
-                System.out.println("Couldn't find key \" + key + \" \\\"\" + key + \"\\\" while populating the connector table thus disabling the \" + connectorName + \" connector\"; You need to add that key to the properties files");
-                System.exit(-1);
+                fatalMissingKey=true;
+                String msg = "Couldn't find key \"" + key + "\" while initializing the connector table.  You need to add that key to your properties files.\n" +
+                        "  See fluxtream-web/src/main/resources/samples/oauth.properties for details.";
+                logger.info(msg);
+                System.out.println(msg);
             } else if (value.equals("xxx")) {
-                logger.info("No value specified " + key + " \"" + key + "\" while populating the connector table thus disabling the " + connectorName + " connector");
+                nonFatalMissingKey=true;
+                String msg = "**** Found key \"" + key + "=xxx\" while populating the connector table.  Disabling the " + connectorName + " connector";
+                logger.info(msg);
+                System.out.println(msg);
             } else {
                 checkedKeys[i++] = key;
             }
+        }
+
+        if(fatalMissingKey) {
+            String msg = "***** Exiting execution due to missing configuration keys. See fluxtream-web/src/main/resources/samples/oauth.properties for details.";
+            logger.info(msg);
+            System.out.println(msg);
+            System.exit(-1);
+        }
+        else if(nonFatalMissingKey) {
+            return null;
         }
         return checkedKeys;
     }
@@ -235,17 +263,94 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
 	}
 
     @Transactional(readOnly = false)
-    public void resetConnectorList() throws Exception {
+    public List<ConnectorInfo> resetConnectorList() throws Exception {
         System.out.println("Resetting connector table");
+        // Clear the existing data out of the Connector table
         JPAUtils.execute(em,"connector.deleteAll");
-        initializeConnectorList();
+        // The following call will initialize the Connector table by calling
+        // the initializeConnectorList function and return the result
+        return(getConnectors());
+    }
+
+    public boolean checkConnectorInstanceKeys(List<ConnectorInfo> connectors)
+    {
+        // For each connector type in connectorInfos which is enabled, make sure that all of the existing connector
+        // instances have stored apiKeyAttributeKeys.  This is to support safe migration to version 0.9.0017.
+        // Prior versions relied to continued coherence between the keys in the properties files
+        // in fluxtream-web/src/main/resources and the existing connector instances.  However, that behavior
+        // conflicted with migrating a given machine to a different host name or migrating a given DB to a
+        // different server without breaking sync capability for existing connector instances.
+        //
+        // The new behavior stores the apiKeyAttributeKeys from the properties file in the ApiKeyAttribute
+        // table for each connector instance, which makes it more portable but also incurrs a migration
+        // requirement.  This function checks whether that migration needs to be performed for a given DB
+        // instance
+        JSONArray connectorsArray = new JSONArray();
+        boolean missingKeys=false;
+
+        for (int i = 0; i < connectors.size(); i++) {
+            final ConnectorInfo connectorInfo = connectors.get(i);
+            final Connector api = connectorInfo.getApi();
+            if (api == null) {
+                StringBuilder sb = new StringBuilder("module=SystemServiceImpl component=connectorStore action=checkConnectorInstanceKeys ")
+                        .append("message=\"null connector for " + connectorInfo.getName() + "\"");
+                logger.warn(sb.toString());
+                continue;
+            }
+            if(connectorInfo.enabled==false) {
+                StringBuilder sb = new StringBuilder("module=SystemServiceImpl component=connectorStore action=checkConnectorInstanceKeys ")
+                        .append("message=\"skipping connector instance keys check for disabled connector" + connectorInfo.getName() + "\"");
+                logger.info(sb.toString());
+                continue;
+            }
+            String[] apiKeyAttributeKeys = connectorInfo.getApiKeyAttributesKeys();
+            if(apiKeyAttributeKeys==null) {
+                StringBuilder sb = new StringBuilder("module=SystemServiceImpl component=connectorStore action=checkConnectorInstanceKeys ")
+                        .append("message=\"skipping connector instance keys check for connector" + connectorInfo.getName() + "; does not use keys\"");
+                logger.info(sb.toString());
+                continue;
+            }
+            // This connector type is enabled, find all the instance keys for this connector type
+            List<ApiKey> apiKeys = JPAUtils.find(em, ApiKey.class, "apiKeys.all.byApi", api.value());
+            for(ApiKey apiKey: apiKeys) {
+                StringBuilder sb = new StringBuilder("module=SystemServiceImpl component=connectorStore action=checkConnectorInstanceKeys apiKeyId=" + apiKey.getId())
+                                .append("message=\"checking connector instance keys for connector" + connectorInfo.getName() + "\"");
+
+                logger.info(sb.toString());
+
+                // Iterate over the apiKeyAttributeKeys to check if each is present
+                for(String apiKeyAttributeKey: apiKeyAttributeKeys) {
+                    String apiKeyAttributeValue = guestService.getApiKeyAttribute(apiKey, apiKeyAttributeKey);
+                    if(apiKeyAttributeValue==null) {
+                        missingKeys=true;
+                        String msg = "**** Missing key \"" + apiKeyAttributeKey + "\" for apiKeyId=" + apiKey.getId() + " api=" + api.value()
+                                ;
+                        StringBuilder sb2 = new StringBuilder("module=SystemServiceImpl component=connectorStore action=checkConnectorInstanceKeys apiKeyId=" + apiKey.getId())
+                                                        .append(msg);
+                        logger.info(sb2.toString());
+                        System.out.println(msg);
+                    }
+                }
+            }
+
+        }
+        return missingKeys;
     }
 
     @Override
     public void onApplicationEvent(final ContextRefreshedEvent event) {
         System.out.println("ApplicationContext started");
         try {
-            resetConnectorList();
+            List<ConnectorInfo> connectors = resetConnectorList();
+            boolean missingKeys=checkConnectorInstanceKeys(connectors);
+
+            if(missingKeys) {
+                String msg = "***** Exiting execution due to missing connector instance keys.\n  Check out fluxtream-admin-tools project, build, and execute 'java -jar target/flx-admin-tools.jar 5'";
+                logger.info(msg);
+                System.out.println(msg);
+                System.exit(-1);
+            }
+
         }
         catch (Exception e) {
             e.printStackTrace();
