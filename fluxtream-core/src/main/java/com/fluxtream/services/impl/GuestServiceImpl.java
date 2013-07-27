@@ -150,10 +150,12 @@ public class GuestServiceImpl implements GuestService {
         apiKey.setConnector(connector);
         em.persist(apiKey);
         final String[] apiKeyAttributesKeys = connectorInfo.getApiKeyAttributesKeys();
-        for (String key : apiKeyAttributesKeys) {
-            if (env.get(key)==null)
-                throw new RuntimeException("No value was found for key :" + key + ". Cannot create apiKey");
-            setApiKeyAttribute(apiKey, key, env.get(key));
+        if(apiKeyAttributesKeys!=null) {
+            for (String key : apiKeyAttributesKeys) {
+                if (env.get(key)==null)
+                    throw new RuntimeException("No value was found for key :" + key + ". Cannot create apiKey");
+                setApiKeyAttribute(apiKey, key, env.get(key));
+            }
         }
         return apiKey;
     }
