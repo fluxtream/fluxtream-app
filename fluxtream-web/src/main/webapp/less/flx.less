@@ -52,7 +52,6 @@ img::-moz-selection {background: transparent;}
 body {
     background-image: url('../../images/bg.gif');
     height: 100%;
-    overflow-x: hidden;
     color:@black;
 }
 
@@ -876,8 +875,26 @@ table .remove { text-align:center;
      a.ggleCal { color: @ggleCal; border-bottom-color: @ggleCal; }
  }
 
-#filtersContainer {
-    margin-top: -17px;
+#filterPlaceHolderElement, #filtersContainer {
+  min-height: 18px;
+  margin-top: -17px;
+}
+
+#filtersContainer.floating{
+  margin:0;
+  position:fixed;
+  top:0;
+  z-index: 5;
+  left:0;
+  right:0;
+  ul{
+    padding-left:10px;
+    background:white;
+  }
+}
+
+#filterPlaceHolderElement.hidden{
+  display:none;
 }
 
 .flx-sourceFilters6 { list-style-type: none; 
@@ -936,4 +953,34 @@ a.enabled {
 
 .guessed {
   font-style: italic;
+}
+
+
+
+
+.dateHeading{
+  font-size: 16px;
+}
+
+.priorRuler{
+  margin-bottom: 0;
+}
+
+.dateHeading a{
+  margin-top: 20px;
+  display:block;
+}
+
+.dateHeading hr{
+  margin-bottom: 0;
+}
+
+.dateHeading.floating{
+  position: fixed;
+  top: 41px;
+  background: white;
+  z-index: 2;
+  right: 0;
+  left: 0;
+  padding-left: 10px;
 }
