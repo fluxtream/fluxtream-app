@@ -17,6 +17,8 @@ import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
+import com.fluxtream.connectors.updaters.AbstractUpdater;
+import com.fluxtream.connectors.updaters.SettingsAwareAbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
@@ -35,6 +37,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
@@ -70,6 +73,9 @@ public class ConnectorStore {
     @Autowired
     Configuration env;
 
+    @Autowired
+    BeanFactory beanFactory;
+
     Gson gson;
 
     public ConnectorStore() {
@@ -82,7 +88,18 @@ public class ConnectorStore {
     @Path("/settings/{apiKeyId}")
     @Produces({MediaType.APPLICATION_JSON})
     public String getConnectorSettings(@PathParam("apiKeyId") long apiKeyId) {
-        return "{\"message\":\"Hello World! Hahahahahahaha!!!\"}";
+        final ApiKey apiKey = guestService.getApiKey(apiKeyId);
+        final long guestId = AuthHelper.getGuestId();
+        if (apiKey.getGuestId()!=guestId)
+            throw new RuntimeException("attempt to retrieve ApiKey from another guest!");
+        final Class<? extends AbstractUpdater> updaterClass = apiKey.getConnector().getUpdaterClass();
+        final AbstractUpdater updater = beanFactory.getBean(updaterClass);
+        if (!(updater instanceof SettingsAwareAbstractUpdater))
+            throw new RuntimeException("Updater for " + apiKey.getConnector().getName() + " is not SettingsAware");
+        SettingsAwareAbstractUpdater saUpdater = (SettingsAwareAbstractUpdater) updater;
+        final Object settings = saUpdater.getSettings(apiKey);
+        String json = gson.toJson(settings);
+        return json;
     }
 
     @POST

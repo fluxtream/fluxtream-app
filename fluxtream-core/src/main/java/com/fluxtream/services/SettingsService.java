@@ -1,5 +1,6 @@
 package com.fluxtream.services;
 
+import java.util.List;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.GuestAddress;
 import com.fluxtream.domain.GuestSettings;
@@ -7,7 +8,6 @@ import com.fluxtream.domain.GuestSettings.DistanceMeasureUnit;
 import com.fluxtream.domain.GuestSettings.LengthMeasureUnit;
 import com.fluxtream.domain.GuestSettings.TemperatureUnit;
 import com.fluxtream.domain.GuestSettings.WeightMeasureUnit;
-import java.util.List;
 
 public interface SettingsService {
 
@@ -63,4 +63,8 @@ public interface SettingsService {
     public void setConnectorFilterState(long guestId, String stateJSON);
 
     public String getConnectorFilterState(long guestId);
+
+    public Object getConnectorSettings(long apiKeyId);
+
+    public void setConnectorSettings(long apiKeyId, Object o);
 }

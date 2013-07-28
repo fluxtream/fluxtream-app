@@ -1,21 +1,13 @@
 package com.fluxtream.services.impl;
 
+import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-
-import java.util.ArrayList;
-import java.util.List;
-
+import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ConnectorChannelSet;
 import com.fluxtream.domain.ConnectorFilterState;
-import com.sun.jersey.core.util.StringIgnoreCaseKeyComparator;
-import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import com.fluxtream.Configuration;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.GuestAddress;
 import com.fluxtream.domain.GuestSettings;
@@ -26,6 +18,10 @@ import com.fluxtream.domain.GuestSettings.WeightMeasureUnit;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.SettingsService;
 import com.fluxtream.utils.JPAUtils;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(readOnly=true)
@@ -113,6 +109,21 @@ public class SettingsServiceImpl implements SettingsService {
                                                                "connectorFilterState",
                                                                guestId);
         return filterState == null ? "{}" : filterState.stateJSON;
+    }
+
+    @Override
+    public Object getConnectorSettings(final long apiKeyId) {
+        ApiKey apiKey = guestService.getApiKey(apiKeyId);
+        final Object settings = apiKey.getSettings();
+        return settings;
+    }
+
+    @Override
+    @Transactional(readOnly=false)
+    public void setConnectorSettings(final long apiKeyId, final Object o) {
+        ApiKey apiKey = guestService.getApiKey(apiKeyId);
+        apiKey.setSettings(o);
+        em.persist(apiKey);
     }
 
     @Override
