@@ -136,8 +136,7 @@ define(["core/Tab",
         }
         for (var i = 0; i < data.length; i++){
             $("#photo-" + data[i].id).click({i:data[i].id},function(event){
-                App.makeModal(carouselHTML);
-                App.carousel(event.data.i);
+                PhotoUtils.showCarouselHTML(carouselHTML,event.data.i);
             });
         }
         var groups = $(".thumbnailGroup");

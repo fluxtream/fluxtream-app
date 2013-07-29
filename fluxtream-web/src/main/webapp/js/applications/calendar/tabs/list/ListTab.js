@@ -211,8 +211,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
         var photos = $(".flx-photo");
         for (var i = 0; i < photos.length; i++){
             $(photos[i]).click(function(event){
-                App.makeModal(photoCarouselHTML);
-                App.carousel($(event.delegateTarget).attr("photoId"));
+                PhotoUtils.showCarouselHTML(photoCarouselHTML,$(event.delegateTarget).attr("photoId"));
             });
         }
         $(".mapLink").click(function(event){
@@ -322,9 +321,9 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
             onScroll(-100);
     });
 
-    $(window).resize(function(){
+    /*$(window).resize(function(){
         $(window).scroll();
-    });
+    });*/
 
     listTab.render = render;
     listTab.connectorToggled = connectorToggled;

@@ -457,8 +457,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 
 
         ttpdiv.find(".flx-photo").click(function(event){
-            App.makeModal(photoCarouselHTML);
-            App.carousel($(event.delegateTarget).attr("photoId"));
+            PhotoUtils.showCarouselHTML(photoCarouselHTML,$(event.delegateTarget).attr("photoId"));
         });
 
         ttpdiv.find("#tooltipLoadTimeLine").click(function(event){
