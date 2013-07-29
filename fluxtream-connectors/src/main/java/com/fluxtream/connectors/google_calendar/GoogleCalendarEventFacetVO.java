@@ -13,9 +13,9 @@ import com.fluxtream.domain.GuestSettings;
  */
 public class GoogleCalendarEventFacetVO extends AbstractTimedFacetVO<GoogleCalendarEventFacet> {
 
-    public String title;
     public String summary;
     public String description;
+    public String attendees;
 
     @Override
     protected void fromFacet(final GoogleCalendarEventFacet facet, final TimeInterval timeInterval, final GuestSettings settings) throws OutsideTimeBoundariesException {
@@ -23,7 +23,7 @@ public class GoogleCalendarEventFacetVO extends AbstractTimedFacetVO<GoogleCalen
         endMinute = toMinuteOfDay(new Date(facet.end), timeInterval.getTimeZone(facet.end));
         this.description = facet.description;
         this.summary = facet.summary;
-        this.title = facet.description;
+        this.attendees = facet.attendees;
     }
 
 }
