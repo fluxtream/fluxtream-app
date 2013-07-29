@@ -132,7 +132,21 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
         try {
             final CalendarList list = calendarList.list().execute();
             final List<CalendarListEntry> items = list.getItems();
-            System.out.println(items);
+            for (CalendarListEntry calendarListEntry : items) {
+                final String calendarId = calendarListEntry.getId();
+                CalendarConfig config = settings.getCalendar(calendarId);
+                if (config==null) {
+                    config = new CalendarConfig();
+                    config.id = calendarId;
+                    settings.addCalendarConfig(config);
+                }
+                config.foregroundColor = calendarListEntry.getForegroundColor();
+                config.backgroundColor = calendarListEntry.getBackgroundColor();
+                config.summary = calendarListEntry.getSummary();
+                config.summaryOverride = calendarListEntry.getSummaryOverride();
+                config.description = calendarListEntry.getDescription();
+                config.primary = calendarListEntry.getPrimary()!=null?calendarListEntry.getPrimary():false;
+            }
         }
         catch (IOException e) {
             e.printStackTrace();

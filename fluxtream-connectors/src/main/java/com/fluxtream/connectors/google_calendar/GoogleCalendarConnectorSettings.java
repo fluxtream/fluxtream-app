@@ -1,6 +1,8 @@
 package com.fluxtream.connectors.google_calendar;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * User: candide
@@ -9,6 +11,18 @@ import java.io.Serializable;
  */
 public class GoogleCalendarConnectorSettings implements Serializable {
 
-    public String message = "These are newest Settings";
+    public List<CalendarConfig> calendars = new ArrayList<CalendarConfig>();
+
+    void addCalendarConfig(CalendarConfig config){
+        calendars.add(config);
+    }
+
+    CalendarConfig getCalendar(String id) {
+        for (CalendarConfig calendar : calendars) {
+            if (calendar.id.equals(id))
+                return calendar;
+        }
+        return null;
+    }
 
 }

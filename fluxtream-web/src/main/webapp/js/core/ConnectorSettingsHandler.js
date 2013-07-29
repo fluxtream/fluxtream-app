@@ -30,7 +30,7 @@ define(function() {
 
     function resetSettings(apiKeyId, connector, template) {
         $.ajax({
-            url: "/api/settings/reset/" + apiKeyId,
+            url: "/api/connectors/settings/reset/" + apiKeyId,
             type: "POST",
             success: function(){
                 loadSettings(apiKeyId, connector, template);

@@ -8,7 +8,6 @@ import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.auth.AuthHelper;
@@ -110,15 +109,5 @@ public class SettingsStore {
             return gson.toJson(new StatusModel(false,"Failed to save settings: " + e.getMessage()));
         }
     }
-
-    @POST
-    @Produces({ MediaType.APPLICATION_JSON })
-    @Path("/reset/{apiKeyId}")
-    public String resetConncetorSettings(@PathParam("apiKeyId") long apiKeyId) {
-        settingsService.resetConnectorSettings(apiKeyId);
-        StatusModel status = new StatusModel(true, "connector settings reset!");
-        return gson.toJson(status);
-    }
-
 
 }

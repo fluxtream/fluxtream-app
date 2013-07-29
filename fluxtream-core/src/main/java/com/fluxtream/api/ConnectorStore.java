@@ -17,8 +17,6 @@ import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
-import com.fluxtream.connectors.updaters.AbstractUpdater;
-import com.fluxtream.connectors.updaters.SettingsAwareAbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
@@ -84,6 +82,15 @@ public class ConnectorStore {
         gson = gsonBuilder.create();
     }
 
+    @POST
+    @Produces({ MediaType.APPLICATION_JSON })
+    @Path("/settings/reset/{apiKeyId}")
+    public String resetConnectorSettings(@PathParam("apiKeyId") long apiKeyId) {
+        settingsService.resetConnectorSettings(apiKeyId);
+        StatusModel status = new StatusModel(true, "connector settings reset!");
+        return gson.toJson(status);
+    }
+
     @GET
     @Path("/settings/{apiKeyId}")
     @Produces({MediaType.APPLICATION_JSON})
@@ -92,12 +99,7 @@ public class ConnectorStore {
         final long guestId = AuthHelper.getGuestId();
         if (apiKey.getGuestId()!=guestId)
             throw new RuntimeException("attempt to retrieve ApiKey from another guest!");
-        final Class<? extends AbstractUpdater> updaterClass = apiKey.getConnector().getUpdaterClass();
-        final AbstractUpdater updater = beanFactory.getBean(updaterClass);
-        if (!(updater instanceof SettingsAwareAbstractUpdater))
-            throw new RuntimeException("Updater for " + apiKey.getConnector().getName() + " is not SettingsAware");
-        SettingsAwareAbstractUpdater saUpdater = (SettingsAwareAbstractUpdater) updater;
-        final Object settings = saUpdater.getSettings(apiKey);
+        final Object settings = settingsService.getConnectorSettings(apiKey.getId());
         String json = gson.toJson(settings);
         return json;
     }
