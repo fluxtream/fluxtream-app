@@ -301,6 +301,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
             else{
                 placeholder.removeClass("hidden");
                 floater.addClass("floating");
+                floater.css("top",$("#selectedConnectors").height() + "px");
                 if (endFloat != null){
                     var temp = scrollPosition +  floater.height();
                     var marginAmount = endFloat - temp;
@@ -316,9 +317,13 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
 
     $(window).scroll(function(){
         if ($("#listTab").parent().hasClass("active"))
-            onScroll($("body").scrollTop() + 41);
+            onScroll($("body").scrollTop() + $("#selectedConnectors").height());
         else
             onScroll(-100);
+    });
+
+    $(window).resize(function(){
+        $(window).scroll();
     });
 
     listTab.render = render;

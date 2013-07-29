@@ -191,6 +191,7 @@ define(["core/Tab",
             else{
                 placeholder.removeClass("hidden");
                 floater.addClass("floating");
+                floater.css("top",$("#selectedConnectors").height() + "px");
                 if (endFloat != null){
                     var temp = scrollPosition +  floater.height();
                     var marginAmount = endFloat - temp;
@@ -206,7 +207,7 @@ define(["core/Tab",
 
     $(window).scroll(function(){
         if ($("#photoTab").parent().hasClass("active"))
-            onScroll($("body").scrollTop() + 41);
+            onScroll($("body").scrollTop() + $("#selectedConnectors").height());
         else
             onScroll(-100);;
     });
