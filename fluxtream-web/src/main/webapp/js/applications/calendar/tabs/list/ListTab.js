@@ -24,7 +24,6 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
             }
             doneLoading();
         }
-        console.log(params);
         setTabParam = params.setTabParam;
         this.getTemplate("text!applications/calendar/tabs/list/list.html", "list", function() {
             //TODO: implement comment refreshing algorithm so the entire list tab doesn't have to be refreshed every time

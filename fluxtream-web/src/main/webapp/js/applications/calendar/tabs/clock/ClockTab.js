@@ -58,8 +58,10 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         if (element.length > 0){
             element.click();
         }
-        console.warn("couldn't find span for item!");
-        console.warn(facet);
+        else{
+            console.warn("couldn't find span for item!");
+            console.warn(facet);
+        }
     }
 
     function setup(digest, timeUnit, cEn) {
