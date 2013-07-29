@@ -56,6 +56,7 @@ public class GoogleCalendarEventFacet extends AbstractFacet {
     public boolean isAllDay;
     public int startTimezoneShift;
     public int endTimezoneShift;
+    public String calendarId;
 
     public GoogleCalendarEventFacet() {super();}
 
@@ -97,7 +98,7 @@ public class GoogleCalendarEventFacet extends AbstractFacet {
     public void setOriginalStartTime(final EventDateTime originalStartTime) {
         if (originalStartTime!=null) {
             this.originalStartTime = originalStartTime.getDateTime().getValue();
-            if (this.start==0) this.start = this.originalStartTime;
+            this.start = this.originalStartTime;
         }
     }
 
@@ -112,18 +113,51 @@ public class GoogleCalendarEventFacet extends AbstractFacet {
         StringBuilder sb = new StringBuilder();
         for (EventAttendee attendee : attendees) {
             if (sb.length()>0) sb.append(", ");
-            sb.append(attendee.getDisplayName());
+            sb.append(getAttendeeString(attendee));
         }
         this.attendees = sb.toString();
     }
 
+    private String getAttendeeString(final EventAttendee attendee) {
+        StringBuilder sb = new StringBuilder();
+        if (attendee.getDisplayName()!=null)
+            sb.append(attendee.getDisplayName());
+        if (attendee.getEmail()!=null) {
+            if (sb.length()>0)
+                sb.append(" <").append(attendee.getEmail()).append(">");
+            else
+                sb.append(attendee.getEmail());
+        }
+        return sb.toString();
+    }
+
     public void setCreator(final Event.Creator creator) {
-        if (creator!=null)
-            this.creator = creator.getDisplayName();
+        if (creator!=null) {
+            StringBuilder sb = new StringBuilder();
+            if (creator.getDisplayName()!=null)
+                sb.append(creator.getDisplayName());
+            if (creator.getEmail()!=null) {
+                if (sb.length()>0)
+                    sb.append(" <").append(creator.getEmail()).append(">");
+                else
+                    sb.append(creator.getEmail());
+            }
+            this.creator = sb.toString();
+        }
     }
 
     public void setOrganizer(final Event.Organizer organizer) {
-        if (organizer!=null)
-            this.organizer = organizer.getDisplayName();
+        if (organizer!=null) {
+            StringBuilder sb = new StringBuilder();
+            if (organizer.getDisplayName()!=null)
+                sb.append(organizer.getDisplayName());
+            if (organizer.getEmail()!=null) {
+                if (sb.length()>0)
+                    sb.append(" <").append(organizer.getEmail()).append(">");
+                else
+                    sb.append(organizer.getEmail());
+            }
+            this.organizer = sb.toString();
+        }
     }
 }

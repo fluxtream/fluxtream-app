@@ -433,6 +433,10 @@ define(
             }
         };
 
+        App.getConnectorSettings = function(connectorId) {
+            console.log("getting connector settings: " + connectorId);
+        };
+
         App.getConnectorConfig = function(connectorName){
             var config = ConnectorConfig[connectorName];
             if (config == null){

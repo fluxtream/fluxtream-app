@@ -16,6 +16,8 @@ public class GoogleCalendarEventFacetVO extends AbstractTimedFacetVO<GoogleCalen
     public String summary;
     public String description;
     public String attendees;
+    public long apiKeyId;
+    public String calendarId;
 
     @Override
     protected void fromFacet(final GoogleCalendarEventFacet facet, final TimeInterval timeInterval, final GuestSettings settings) throws OutsideTimeBoundariesException {
@@ -24,6 +26,8 @@ public class GoogleCalendarEventFacetVO extends AbstractTimedFacetVO<GoogleCalen
         this.description = facet.description;
         this.summary = facet.summary;
         this.attendees = facet.attendees;
+        this.apiKeyId = facet.apiKeyId;
+        this.calendarId = facet.calendarId;
     }
 
 }

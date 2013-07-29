@@ -33,6 +33,7 @@ CREATE TABLE `Facet_GoogleCalendarEvent` (
   `isAllDay` bit(1) NOT NULL,
   `startTimezoneShift` int(11) NOT NULL,
   `endTimezoneShift` int(11) NOT NULL,
+  `calendarId` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `isEmpty_index` (`isEmpty`),
   KEY `end_index` (`end`),

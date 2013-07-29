@@ -68,17 +68,17 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
             }
             final Events events = eventsApiCall.execute();
             final List<Event> eventList = events.getItems();
-            storeEvents(updateInfo, eventList);
+            storeEvents(updateInfo, calendarId, eventList);
         } while (pageToken != null);
     }
 
-    private void storeEvents(final UpdateInfo updateInfo, final List<Event> eventList) {
+    private void storeEvents(final UpdateInfo updateInfo, final String calendarId, final List<Event> eventList) {
         for (final Event event : eventList) {
-            createOrUpdateEvent(updateInfo, event);
+            createOrUpdateEvent(updateInfo, calendarId, event);
         }
     }
 
-    private void createOrUpdateEvent(final UpdateInfo updateInfo, final Event event) {
+    private void createOrUpdateEvent(final UpdateInfo updateInfo, final String calendarId, final Event event) {
         final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery("e.apiKeyId=? AND e.googleId=?", updateInfo.apiKey.getId(), event.getId());
         final ApiDataService.FacetModifier<GoogleCalendarEventFacet> facetModifier = new ApiDataService.FacetModifier<GoogleCalendarEventFacet>() {
             @Override
@@ -110,6 +110,7 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
                 facet.setOriginalStartTime(event.getOriginalStartTime());
                 facet.status = event.getStatus();
                 facet.timeUpdated = System.currentTimeMillis();
+                facet.calendarId = calendarId;
                 return facet;
             }
         };

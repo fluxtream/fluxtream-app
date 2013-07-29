@@ -202,6 +202,24 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
         google_calendar:{
             color: "rgb(146, 218, 70)",
             hasGeneralSettings: true,
+            applySettings: function(facet, connectorSettings) {
+                if (typeof(connectorSettings)=="undefined")
+                    console.log("warning: no connector settings");
+                else if (typeof(facet.apiKeyId)=="undefined")
+                    console.log("warning: no apiKeyId associated with this facet: " + facet.type);
+                else if (typeof(connectorSettings[facet.apiKeyId])=="undefined")
+                    console.log("warning: no connector settings are associated with apiKeyId " + facet.apiKeyId);
+                else {
+                    var settings = connectorSettings[facet.apiKeyId];
+                    for (var i=0; i<settings.calendars.length; i++) {
+                        if (settings.calendars[i].id==facet.calendarId) {
+                            var calendarSettings = settings.calendars[i];
+                            console.log("setting facet.color to " + calendarSettings.backgroundColor);
+                            facet.color = calendarSettings.backgroundColor;
+                        }
+                    }
+                }
+            },
             mapicon: {
                 url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/calendar-3.png",
                 size: new google.maps.Size(32,37)

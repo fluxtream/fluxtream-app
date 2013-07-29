@@ -384,8 +384,16 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     break;
             }
 
+            var connectorName = connectorId.split("-")[0];
+            var config = App.getConnectorConfig(connectorName);
+            var applySettings;
+            if (typeof(config.hasGeneralSettings)!="undefined"&&config.hasGeneralSettings){
+                applySettings = config.applySettings;
+            } else applySettings=null;
             for (var i = 0; i < digest.cachedData[connectorId].length; i++){
                 var facet = digest.cachedData[connectorId][i];
+                if (typeof(applySettings)!="undefined"&&applySettings!=null)
+                    applySettings(facet, digest.settings.connectorSettings);
                 if (digest.cachedData[connectorId].hasImages){
                     switch (connectorId){
                         case "picasa-photo":
