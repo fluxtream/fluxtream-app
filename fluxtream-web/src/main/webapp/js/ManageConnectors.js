@@ -287,6 +287,7 @@ define(["core/grapher/BTCore",
                     data:{channels:channelList}
                 })
             });
+            $("#resetSettingsButton").hide();
         });
 
     }
@@ -295,6 +296,7 @@ define(["core/grapher/BTCore",
         App.loadMustacheTemplate("connectorMgmtTemplates.html",connector.connectorName + "-settings",function(template){
             var settingsHandler = settingsHandlers[connector.connectorName];
             settingsHandler.loadSettings(connector.apiKeyId, connector, template);
+            $("#resetSettingsButton").show();
         });
     }
 

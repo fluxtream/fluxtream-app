@@ -5,6 +5,8 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.connectors.updaters.AbstractUpdater;
+import com.fluxtream.connectors.updaters.SettingsAwareAbstractUpdater;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ConnectorChannelSet;
 import com.fluxtream.domain.ConnectorFilterState;
@@ -19,6 +21,7 @@ import com.fluxtream.services.GuestService;
 import com.fluxtream.services.SettingsService;
 import com.fluxtream.utils.JPAUtils;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +38,9 @@ public class SettingsServiceImpl implements SettingsService {
 
 	@PersistenceContext
 	EntityManager em;
+
+    @Autowired
+    BeanFactory beanFactory;
 
 	@Override
 	@Transactional(readOnly = false)
@@ -105,16 +111,21 @@ public class SettingsServiceImpl implements SettingsService {
 
     @Override
     public String getConnectorFilterState(final long guestId) {
-        ConnectorFilterState filterState = JPAUtils.findUnique(em, ConnectorFilterState.class,
-                                                               "connectorFilterState",
-                                                               guestId);
+        ConnectorFilterState filterState = JPAUtils.findUnique(em, ConnectorFilterState.class, "connectorFilterState", guestId);
         return filterState == null ? "{}" : filterState.stateJSON;
     }
 
     @Override
     public Object getConnectorSettings(final long apiKeyId) {
         ApiKey apiKey = guestService.getApiKey(apiKeyId);
-        final Object settings = apiKey.getSettings();
+        final Class<? extends AbstractUpdater> updaterClass = apiKey.getConnector().getUpdaterClass();
+        Object settings = apiKey.getSettings();
+        // create fresh settings if this is a SettingsAware connector and we don't yet have settings for this connector
+        if (settings==null && SettingsAwareAbstractUpdater.class.isAssignableFrom(updaterClass)) {
+            SettingsAwareAbstractUpdater updater = (SettingsAwareAbstractUpdater)beanFactory.getBean(updaterClass);
+            settings = updater.getSettings(apiKey);
+            setConnectorSettings(apiKeyId, settings);
+        }
         return settings;
     }
 
@@ -123,6 +134,14 @@ public class SettingsServiceImpl implements SettingsService {
     public void setConnectorSettings(final long apiKeyId, final Object o) {
         ApiKey apiKey = guestService.getApiKey(apiKeyId);
         apiKey.setSettings(o);
+        em.persist(apiKey);
+    }
+
+    @Override
+    @Transactional(readOnly=false)
+    public void resetConnectorSettings(final long apiKeyId) {
+        ApiKey apiKey = guestService.getApiKey(apiKeyId);
+        apiKey.setSettings(null);
         em.persist(apiKey);
     }
 

@@ -168,4 +168,5 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
         final Calendar calendar = calendarBuilder.build();
         return calendar;
     }
+
 }

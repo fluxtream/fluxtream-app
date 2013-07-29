@@ -1,13 +1,18 @@
 package com.fluxtream.api;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.auth.AuthHelper;
+import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.mvc.models.SettingsModel;
@@ -43,7 +48,14 @@ public class SettingsStore {
         try{
             Guest guest = guestService.getGuestById(AuthHelper.getGuestId());
             GuestSettings settings = settingsService.getSettings(guest.getId());
-            return gson.toJson(new SettingsModel(settings,guest));
+            final List<ApiKey> guestsApiKeys = guestService.getApiKeys(guest.getId());
+            Map<Long,Object> apiKeySettings = new HashMap<Long,Object>();
+            for (ApiKey guestApiKey : guestsApiKeys) {
+                final Object connectorSettings = settingsService.getConnectorSettings(guestApiKey.getId());
+                if (connectorSettings!=null)
+                    apiKeySettings.put(guestApiKey.getId(), connectorSettings);
+            }
+            return gson.toJson(new SettingsModel(settings,apiKeySettings, guest));
         }
         catch (Exception e){
             return gson.toJson(new StatusModel(false,"Failed to get settings: " + e.getMessage()));
@@ -97,6 +109,15 @@ public class SettingsStore {
         catch (Exception e){
             return gson.toJson(new StatusModel(false,"Failed to save settings: " + e.getMessage()));
         }
+    }
+
+    @POST
+    @Produces({ MediaType.APPLICATION_JSON })
+    @Path("/reset/{apiKeyId}")
+    public String resetConncetorSettings(@PathParam("apiKeyId") long apiKeyId) {
+        settingsService.resetConnectorSettings(apiKeyId);
+        StatusModel status = new StatusModel(true, "connector settings reset!");
+        return gson.toJson(status);
     }
 
 

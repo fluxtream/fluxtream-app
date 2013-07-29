@@ -67,4 +67,7 @@ public interface SettingsService {
     public Object getConnectorSettings(long apiKeyId);
 
     public void setConnectorSettings(long apiKeyId, Object o);
+
+    public void resetConnectorSettings(long apiKeyId);
+
 }
