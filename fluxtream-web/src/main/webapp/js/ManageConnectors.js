@@ -118,6 +118,18 @@ define(["core/grapher/BTCore",
             }
             else{
                 App.makeModal(html);
+                $("#modal .modal-body").scroll(function(event){
+                    var scrollTop = $("#modal .modal-body").scrollTop();
+                    $("#modal .modal-body .topHeader").width($("#modal .modal-body table").width())
+                    if (scrollTop < 48){
+                        $("#modal .modal-body .topHeader").removeClass("floating");
+                        $("#modal .modal-body .placeholder").addClass("hidden");
+                    }
+                    else{
+                        $("#modal .modal-body .topHeader").addClass("floating");
+                        $("#modal .modal-body .placeholder").removeClass("hidden");
+                    }
+                });
             }
             bindDialog();
         });

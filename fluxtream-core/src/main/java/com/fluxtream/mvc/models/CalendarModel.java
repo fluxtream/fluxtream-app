@@ -131,12 +131,16 @@ public class CalendarModel {
                 .getMillis();
     }
 
+    private long getMillisAtTrailingMidnight(final LocalDate date){
+        return getMillis(date) + DateTimeConstants.MILLIS_PER_DAY;
+    }
+
     public long getStart() {
         return getMillis(fromDate);
     }
 
     public long getEnd() {
-        return getMillis(getToDate());
+        return getMillisAtTrailingMidnight(getToDate().minusDays(1));
     }
 
     public String toJSONString(final Configuration env) {

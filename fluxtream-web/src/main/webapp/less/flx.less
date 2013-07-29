@@ -52,7 +52,6 @@ img::-moz-selection {background: transparent;}
 body {
     background-image: url('../../images/bg.gif');
     height: 100%;
-    overflow-x: hidden;
     color:@black;
 }
 
@@ -426,7 +425,7 @@ a img { text-decoration: none; }
      }
 }
 
-.flx-toolTipTail { position:absolute; width:0; height:0; border:10px solid transparent; }
+.flx-toolTipTail { position:absolute; width:0; height:0; border:10px solid transparent; pointer-events: none; }
 .flx-toolTipTail-Bottom { .flx-toolTipTail; border-top: 10px solid @tTborder; bottom: -24px;}
 .flx-toolTipTail-Top { .flx-toolTipTail; border-bottom: 10px solid @tTborder; top: -24px; }
 .flx-toolTipTail-Right { .flx-toolTipTail; border-left: 10px solid @tTborder; right: -24px; }
@@ -459,7 +458,38 @@ a img { text-decoration: none; }
 //------- MANAGE CONNECTORS
 
 .manageConnectors .modal-body {
-    padding: 0 0px 0 10px;
+    padding: 0px;
+}
+
+
+.manageConnectors .topHeader{
+  height: 52px;
+  width: 738px;
+  background:white;
+  text-align: center;
+  font-weight: bold;
+}
+
+.manageConnectors .topHeader.floating{
+  position:fixed;
+  border-bottom: 1px solid #E0E0E0;
+  border-top: 1px solid #E0E0E0;
+  margin-top: -48px;
+}
+
+.manageConnectors .topHeader div{
+  padding-top: 19.5px;
+  height:52px;
+  vertical-align: top;
+  display:inline-block;
+}
+
+.manageConnectors .placeholder{
+  height: 52px;
+}
+
+.manageConnectors .placeholder.hidden{
+  display:none;
 }
 
 .synchAll { width:100%;background:@hd-bg-color; overflow:hidden; height: 100%;
@@ -845,8 +875,26 @@ table .remove { text-align:center;
      a.ggleCal { color: @ggleCal; border-bottom-color: @ggleCal; }
  }
 
-#filtersContainer {
-    margin-top: -17px;
+#filterPlaceHolderElement, #filtersContainer {
+  min-height: 18px;
+  margin-top: -17px;
+}
+
+#filtersContainer.floating{
+  margin:0;
+  position:fixed;
+  top:0;
+  z-index: 5;
+  left:0;
+  right:0;
+  ul{
+    padding-left:10px;
+    background:white;
+  }
+}
+
+#filterPlaceHolderElement.hidden{
+  display:none;
 }
 
 .flx-sourceFilters6 { list-style-type: none; 
@@ -905,4 +953,34 @@ a.enabled {
 
 .guessed {
   font-style: italic;
+}
+
+
+
+
+.dateHeading{
+  font-size: 16px;
+}
+
+.priorRuler{
+  margin-bottom: 0;
+}
+
+.dateHeading a{
+  margin-top: 20px;
+  display:block;
+}
+
+.dateHeading hr{
+  margin-bottom: 0;
+}
+
+.dateHeading.floating{
+  position: fixed;
+  top: 41px;
+  background: white;
+  z-index: 2;
+  right: 0;
+  left: 0;
+  padding-left: 10px;
 }

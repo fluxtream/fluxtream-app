@@ -20,6 +20,8 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
 
     function render(params) {
         targetTime = params.tabParam;
+        if (targetTime == null && Calendar.dateAxisCursorPosition != null)
+            targetTime = Calendar.dateAxisCursorPosition * 1000;
         params.setTabParam(null);
         digest = params.digest;
         connectorEnabled = params.connectorEnabled;
@@ -97,7 +99,13 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
                 connectorToggled(connectorName,null,connectorEnabled[connectorName]);
             }
             var state = null;
-            grapher.dateAxis.addAxisChangeListener(function() {
+            grapher.dateAxis.addAxisChangeListener(function(event) {
+                if (event.min <= event.cursorPosition && event.max >= event.cursorPosition){
+                    Calendar.dateAxisCursorPosition = event.cursorPosition;
+                }
+                else{
+                    Calendar.dateAxisCursorPosition = null;
+                }
                 // NOTE: we use $.doTimeout() here to avoid spamming onAxisChanged().
                 // This will fire 100ms after the user stops dragging, since
                 // $.doTimeout() cancels earlier timeouts with the same name.
