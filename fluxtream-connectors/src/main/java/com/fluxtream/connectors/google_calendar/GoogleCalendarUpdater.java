@@ -21,7 +21,7 @@ import com.google.api.services.calendar.model.Events;
 import org.springframework.stereotype.Component;
 
 @Component
-@Updater(prettyName = "Calendar", value = 0, objectTypes={})
+@Updater(prettyName = "Calendar", value = 0, objectTypes={GoogleCalendarEventFacet.class})
 public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
 
     private static final FlxLogger logger = FlxLogger.getLogger(GoogleCalendarUpdater.class);
@@ -109,6 +109,7 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
                 facet.setOrganizer(event.getOrganizer());
                 facet.setOriginalStartTime(event.getOriginalStartTime());
                 facet.status = event.getStatus();
+                facet.timeUpdated = System.currentTimeMillis();
                 return facet;
             }
         };
