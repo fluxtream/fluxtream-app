@@ -10,6 +10,9 @@ define([],function(){
 
     };
 
+    var handleKeyEvent = handleResize;
+
+
     var orientationStyles = ["none",//1
                              "scale(-1,1)",//2
                              "rotate(180deg)",//3
@@ -174,6 +177,7 @@ define([],function(){
             if (defaultImage < 0)
                 defaultImage += widget.find(".photo").length;
             showImage();
+            return false;
         });
 
         widget.find(".carousel-control.right").click(function(){
@@ -181,11 +185,12 @@ define([],function(){
             if (defaultImage >= widget.find(".photo").length)
                 defaultImage -= widget.find(".photo").length;
             showImage();
+            return false;
         });
 
         widget.find("#closePhotoViewer").click(function(){
             widget.remove();
-            handleResize = function(){};
+            handleKeyEvent = handleResize = function(){};
             $("body").removeClass("photoCarouselViewing");
             $("body").scrollTop(oldTop);
             return false;
@@ -194,10 +199,30 @@ define([],function(){
         handleResize = function(){
             doResize(defaultImage);
         }
+
+        handleKeyEvent = function(event){
+            switch (event.keyCode){
+                case 32://space
+                case 39://right
+                    widget.find(".carousel-control.right").click();
+                    break;
+                case 37://left
+                    widget.find(".carousel-control.left").click();
+                    break;
+                case 27://escape
+                    widget.find("#closePhotoViewer").click();
+                    break;
+            }
+            console.log(event.keyCode);
+        }
     }
 
     $(window).resize(function(){
         handleResize();
+    });
+
+    $(window).keydown(function(event){
+        handleKeyEvent(event);
     });
 
 
