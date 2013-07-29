@@ -57,7 +57,7 @@ public class GoogleCalendarEventFacet extends AbstractFacet {
     public int startTimezoneShift;
     public int endTimezoneShift;
 
-    public GoogleCalendarEventFacet() {}
+    public GoogleCalendarEventFacet() {super();}
 
     public GoogleCalendarEventFacet(final Long apiKeyId) {
         super(apiKeyId);
