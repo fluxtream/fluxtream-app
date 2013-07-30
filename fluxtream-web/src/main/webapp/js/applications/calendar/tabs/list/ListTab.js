@@ -302,7 +302,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
                 floater.addClass("floating");
                 floater.css("top",$("#selectedConnectors").height() + "px");
                 if (endFloat != null){
-                    var temp = scrollPosition +  floater.height();
+                    var temp = scrollPosition +  floater.outerHeight();
                     var marginAmount = endFloat - temp;
                     if (marginAmount > 0) marginAmount = 0;
                     floater.css("marginTop",marginAmount + "px");
