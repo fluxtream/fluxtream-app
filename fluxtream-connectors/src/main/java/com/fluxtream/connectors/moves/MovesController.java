@@ -18,6 +18,8 @@ import net.sf.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.apache.log4j.Logger;
+
 
 /**
  * User: candide
@@ -37,6 +39,9 @@ public class MovesController {
     @Autowired
     GuestService guestService;
 
+    static final Logger logger = Logger.getLogger(MovesController.class);
+
+
     @RequestMapping(value = "/token")
     public String getToken() throws IOException, ServletException {
 
@@ -52,6 +57,9 @@ public class MovesController {
     }
 
     private String getRedirectUri() {
+        // TODO: This should be checked against the moves.validRedirectURL property to make
+        // sure that it will work.  Moves only accepts the specific redirect URI's which matches the one
+        // configured for this key.
         return env.get("homeBaseUrl") + "moves/oauth2/swapToken";
     }
 
@@ -86,6 +94,10 @@ public class MovesController {
         }
 
         final String refresh_token = token.getString("refresh_token");
+
+        // Create the entry for this new apiKey in the apiKey table and populate
+        // ApiKeyAttributes with all of the keys fro oauth.properties needed for
+        // subsequent update of this connector instance.
         ApiKey apiKey = guestService.createApiKey(guest.getId(), Connector.getConnector("moves"));
 
         guestService.setApiKeyAttribute(apiKey,
@@ -107,13 +119,30 @@ public class MovesController {
     }
 
     private void refreshToken(final ApiKey apiKey) throws IOException {
+        // Check to see if we are running on a mirrored test instance
+        // and should therefore refrain from swapping tokens lest we
+        // invalidate an existing token instance
+        String disableTokenSwap = env.get("disableTokenSwap");
+        if(disableTokenSwap!=null && disableTokenSwap.equals("true")) {
+            String msg = "**** Skipping refreshToken for moves connector instance because disableTokenSwap is set on this server";
+                                            ;
+            StringBuilder sb2 = new StringBuilder("module=MovesController component=MovesController action=refreshToken apiKeyId=" + apiKey.getId())
+            			    .append(" message=\"").append(msg).append("\"");
+            logger.info(sb2.toString());
+            System.out.println(msg);
+            return;
+        }
+
+        // We're not on a mirrored test server.  Try to swap the expired
+        // access token for a fresh one.  Typically moves access tokens are good for
+        // 180 days from time of issue.
         String swapTokenUrl = "https://api.moves-app.com/oauth/v1/access_token";
 
         final String refreshToken = guestService.getApiKeyAttribute(apiKey, "refreshToken");
         Map<String,String> params = new HashMap<String,String>();
         params.put("refresh_token", refreshToken);
-        params.put("client_id", env.get("google.client.id"));
-        params.put("client_secret", env.get("google.client.secret"));
+        params.put("client_id", guestService.getApiKeyAttribute(apiKey, "moves.client.id"));
+        params.put("client_secret", guestService.getApiKeyAttribute(apiKey, "moves.client.secret"));
         params.put("grant_type", "refresh_token");
 
         String fetched;

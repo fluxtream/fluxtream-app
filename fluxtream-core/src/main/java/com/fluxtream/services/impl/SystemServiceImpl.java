@@ -81,7 +81,7 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         int order = 0;
 
         final String moves = "Moves";
-        String[] movesKeys = checkKeysExist(moves, Arrays.asList("moves.client.id", "moves.client.secret", "foursquare.client.id", "foursquare.client.secret"));
+        String[] movesKeys = checkKeysExist(moves, Arrays.asList("moves.client.id", "moves.client.secret", "moves.validRedirectURL", "foursquare.client.id", "foursquare.client.secret"));
         final ConnectorInfo movesConnectorInfo = new ConnectorInfo(moves,
                                                                    "/images/connectors/connector-moves.jpg",
                                                                    res.getString("moves"),
@@ -315,7 +315,7 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
             List<ApiKey> apiKeys = JPAUtils.find(em, ApiKey.class, "apiKeys.all.byApi", api.value());
             for(ApiKey apiKey: apiKeys) {
                 StringBuilder sb = new StringBuilder("module=SystemServiceImpl component=connectorStore action=checkConnectorInstanceKeys apiKeyId=" + apiKey.getId())
-                                .append("message=\"checking connector instance keys for connector" + connectorInfo.getName() + "\"");
+                                .append(" message=\"checking connector instance keys for connector" + connectorInfo.getName() + "\"");
 
                 logger.info(sb.toString());
 
@@ -327,7 +327,7 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
                         String msg = "**** Missing key \"" + apiKeyAttributeKey + "\" for apiKeyId=" + apiKey.getId() + " api=" + api.value()
                                 ;
                         StringBuilder sb2 = new StringBuilder("module=SystemServiceImpl component=connectorStore action=checkConnectorInstanceKeys apiKeyId=" + apiKey.getId())
-                                                        .append(msg);
+			    .append(" message=\"").append(msg).append("\"");
                         logger.info(sb2.toString());
                         System.out.println(msg);
                     }
