@@ -984,3 +984,55 @@ a.enabled {
   left: 0;
   padding-left: 10px;
 }
+
+#photoViewContainer{
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  bottom:0;
+  background:black;
+  z-index:10000000;
+
+  #closePhotoViewer{
+    position: absolute;
+    top: 0;
+    right: 0;
+    font-size: 100px;
+    line-height: 75px;
+    z-index: 100;
+    margin-top:15px;
+    margin-right:15px;
+    text-decoration: none;
+    color: white;
+    opacity: 0.7;
+  }
+
+  #closePhotoViewer:hover{
+    opacity: 0.85;
+
+  }
+
+  .photoHolder{
+    position:fixed; top:-100000px; left:-100000px; opacity:0;
+
+    .photo{
+      opacity:0; position:fixed;  top:-100000px; left:-100000px;
+    }
+  }
+
+  #photosCarousel, .carousel-inner{
+    height:100%;
+
+    .item{
+      text-align:center;
+      height:100%;
+    }
+  }
+
+
+}
+
+body.photoCarouselViewing{
+  overflow:hidden;
+}
