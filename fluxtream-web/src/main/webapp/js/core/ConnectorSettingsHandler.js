@@ -5,7 +5,8 @@ define(function() {
     }
 
     function loadSettings(apiKeyId, connector, template) {
-        var bindSettings = this.bindSettings;
+        var bindSettingsOverride = this.bindSettings;
+        var handler = this;
         $.ajax({
             url: "/api/connectors/settings/"+apiKeyId,
             success: function(settings) {
@@ -17,11 +18,12 @@ define(function() {
                 var $connectorSettingsTab = $("#connectorSettingsTab");
                 $connectorSettingsTab.empty();
                 $connectorSettingsTab.append(settingsHtml);
-                bindSettings();
+                bindSettingsOverride(settings, apiKeyId);
                 var $resetSettingsButton = $("#resetSettingsButton");
                 $resetSettingsButton.unbind("click");
                 $resetSettingsButton.click(function() {
-                    resetSettings(apiKeyId, connector, template);
+                    console.log("click!");
+                    resetSettings(handler, apiKeyId, connector, template);
                 });
             }
         });
@@ -29,21 +31,37 @@ define(function() {
 
     ConnectorSettingsHandler.prototype.loadSettings = loadSettings;
 
-    function resetSettings(apiKeyId, connector, template) {
+    function resetSettings(handler, apiKeyId, connector, template) {
         $.ajax({
             url: "/api/connectors/settings/reset/" + apiKeyId,
             type: "POST",
             success: function(){
-                loadSettings(apiKeyId, connector, template);
+                handler.loadSettings(apiKeyId, connector, template);
             }
         })
     }
 
-    function bindSettings() {
+    function bindSettings(settings, apiKeyId) {
         console.log("ConnectorSettingsHandler.bindSettings: not yet implemented!")
-    };
+    }
 
     ConnectorSettingsHandler.prototype.bindSettings = bindSettings;
+
+    function saveSettings(apiKeyId, settings) {
+        $.ajax({
+            url: "/api/connectors/settings/" + apiKeyId,
+            type: "post",
+            data: {json : JSON.stringify(settings)},
+            success: function(status){
+                console.log(status);
+                if(!status.result) {
+                    alert("Oops, we could not save your settings:" + status.message);
+                }
+            }
+        });
+    }
+
+    ConnectorSettingsHandler.prototype.saveSettings = saveSettings;
 
     return ConnectorSettingsHandler;
 

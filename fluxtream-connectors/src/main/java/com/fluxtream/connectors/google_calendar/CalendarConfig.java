@@ -15,5 +15,5 @@ public class CalendarConfig implements Serializable {
     public String summary;
     public String summaryOverride;
     public String description;
-    String id;
+    public String id;
 }

@@ -8,6 +8,7 @@ import com.fluxtream.connectors.updaters.SettingsAwareAbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.services.ApiDataService;
+import com.fluxtream.services.JPADaoService;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
@@ -18,13 +19,17 @@ import com.google.api.services.calendar.model.CalendarList;
 import com.google.api.services.calendar.model.CalendarListEntry;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.Events;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-@Updater(prettyName = "Calendar", value = 0, objectTypes={GoogleCalendarEventFacet.class})
+@Updater(prettyName = "Calendar", value = 0, objectTypes={GoogleCalendarEventFacet.class}, settings=GoogleCalendarConnectorSettings.class)
 public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
 
     private static final FlxLogger logger = FlxLogger.getLogger(GoogleCalendarUpdater.class);
+
+    @Autowired
+    JPADaoService jpaDaoService;
 
     @Override
     protected void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception {
@@ -35,8 +40,10 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
     public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
         if (updateInfo.timeInterval==null) {
             logger.info("module=updateQueue component=googleCalendarUpdater action=updateConnectorData message=\"attempt to update connector data with a null timeInterval\"");
-        } else
-            loadHistory(updateInfo, updateInfo.timeInterval.getStart());
+        } else {
+            final String lastUpdate = guestService.getApiKeyAttribute(updateInfo.apiKey, "lastUpdate");
+            loadHistory(updateInfo, Long.valueOf(lastUpdate));
+        }
     }
 
     private void loadHistory(UpdateInfo updateInfo, long from) throws Exception {
@@ -58,6 +65,7 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
     private void loadCalendarHistory(final Calendar calendar, final String calendarId, final UpdateInfo updateInfo, final long from) throws IOException {
         String pageToken = null;
         do {
+            try {
             final Calendar.Events.List eventsApiCall = calendar.events().list(calendarId);
             eventsApiCall.setPageToken(pageToken);
             if (from!=-1)
@@ -65,6 +73,13 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
             final Events events = eventsApiCall.execute();
             final List<Event> eventList = events.getItems();
             storeEvents(updateInfo, calendarId, eventList);
+            pageToken = events.getNextPageToken();
+            } catch (Throwable e) {
+                throw(new RuntimeException(e));
+            } finally {
+                long lastUpdated = jpaDaoService.executeNativeQuery("select max(eventUpdated) from Facet_GoogleCalendarEvent where apiKeyId=" + updateInfo.apiKey.getId());
+                guestService.setApiKeyAttribute(updateInfo.apiKey, "lastUpdated", String.valueOf(lastUpdated));
+            }
         } while (pageToken != null);
     }
 
@@ -112,6 +127,7 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
                 facet.setRecurrence(event.getRecurrence());
                 facet.recurringEventId = event.getRecurringEventId();
                 facet.sequence = event.getSequence();
+                facet.setUpdated(event.getUpdated());
                 return facet;
             }
         };
@@ -120,15 +136,15 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
     }
 
     @Override
-    public Object getSettings(final ApiKey apiKey) {
+    public Object createOrRefreshSettings(final ApiKey apiKey) {
         GoogleCalendarConnectorSettings settings = (GoogleCalendarConnectorSettings)apiKey.getSettings();
         if (settings==null)
             settings = new GoogleCalendarConnectorSettings();
-        updateSettings(apiKey, settings);
+        refreshSettings(apiKey, settings);
         return settings;
     }
 
-    private void updateSettings(final ApiKey apiKey, final GoogleCalendarConnectorSettings settings) {
+    private void refreshSettings(final ApiKey apiKey, final GoogleCalendarConnectorSettings settings) {
         final Calendar calendar = getCalendar(apiKey);
         final Calendar.CalendarList calendarList = calendar.calendarList();
         try {

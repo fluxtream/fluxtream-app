@@ -103,7 +103,13 @@ public class JPADaoServiceImpl implements JPADaoService {
         return (Long) singleResult;
     }
 
-	@Override
+    @Override
+    public long executeNativeQuery(final String queryString) {
+        final Query nativeQuery = em.createNativeQuery(queryString);
+        return ((Number) nativeQuery.getSingleResult()).longValue();
+    }
+
+    @Override
 	@Transactional(readOnly=false)
 	public void persist(Object o) {
 		em.persist(o);

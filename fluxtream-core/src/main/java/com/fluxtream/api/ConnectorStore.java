@@ -99,9 +99,26 @@ public class ConnectorStore {
         final long guestId = AuthHelper.getGuestId();
         if (apiKey.getGuestId()!=guestId)
             throw new RuntimeException("attempt to retrieve ApiKey from another guest!");
-        final Object settings = settingsService.getConnectorSettings(apiKey.getId());
+        final Object settings = settingsService.getConnectorSettings(apiKey.getId(), true);
         String json = gson.toJson(settings);
         return json;
+    }
+
+    @POST
+    @Path("/settings/{apiKeyId}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public StatusModel saveConnectorSettings(@PathParam("apiKeyId") long apiKeyId,
+                                        @FormParam("json") String json) {
+        final ApiKey apiKey = guestService.getApiKey(apiKeyId);
+        final long guestId = AuthHelper.getGuestId();
+        try {
+            if (apiKey.getGuestId()!=guestId)
+                throw new RuntimeException("attempt to retrieve ApiKey from another guest!");
+            settingsService.saveConnectorSettings(apiKey.getId(), json);
+        } catch (Throwable e) {
+            return new StatusModel(false, e.getMessage());
+        }
+        return new StatusModel(true, "saved connector settings");
     }
 
     @POST

@@ -15,6 +15,7 @@ CREATE TABLE `Facet_GoogleCalendarEvent` (
   `calendarId` varchar(255) DEFAULT NULL,
   `colorId` longtext,
   `created` bigint(20) NOT NULL,
+  `eventUpdated` bigint(20) NOT NULL,
   `creatorStorage` longtext,
   `description` longtext,
   `endTimeUnspecified` bit(1) DEFAULT NULL,
@@ -41,6 +42,7 @@ CREATE TABLE `Facet_GoogleCalendarEvent` (
   PRIMARY KEY (`id`),
   KEY `isEmpty_index` (`isEmpty`),
   KEY `end_index` (`end`),
+  KEY `update_index` (`eventUpdated`),
   KEY `start_index` (`start`),
   KEY `api_index` (`api`),
   KEY `objectType_index` (`objectType`),
@@ -48,4 +50,4 @@ CREATE TABLE `Facet_GoogleCalendarEvent` (
   KEY `googleId` (`googleId`),
   KEY `apiKey` (`apiKeyId`),
   KEY `timeUpdated_index` (`timeUpdated`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

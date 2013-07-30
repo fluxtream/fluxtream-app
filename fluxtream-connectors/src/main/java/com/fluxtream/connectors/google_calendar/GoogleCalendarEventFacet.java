@@ -48,6 +48,7 @@ public class GoogleCalendarEventFacet extends AbstractFacet {
     public String summary;
     public long originalStartTime;
     public long created;
+    public long eventUpdated;
     @Lob
     public String creatorStorage;
     @Lob
@@ -147,5 +148,10 @@ public class GoogleCalendarEventFacet extends AbstractFacet {
             }
             this.recurrence = sb.toString();
         }
+    }
+
+    public void setUpdated(final DateTime updated) {
+        if (updated!=null)
+            this.eventUpdated = updated.getValue();
     }
 }

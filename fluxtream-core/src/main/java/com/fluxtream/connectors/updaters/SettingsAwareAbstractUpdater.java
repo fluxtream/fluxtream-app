@@ -9,6 +9,6 @@ import com.fluxtream.domain.ApiKey;
  */
 public abstract class SettingsAwareAbstractUpdater extends AbstractUpdater {
 
-    public abstract Object getSettings(ApiKey apiKey);
+    public abstract Object createOrRefreshSettings(ApiKey apiKey);
 
 }

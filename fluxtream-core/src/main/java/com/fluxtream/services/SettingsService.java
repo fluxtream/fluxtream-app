@@ -33,8 +33,6 @@ public interface SettingsService {
 
     public void setChannelsForConnector(long guestId, Connector connector, String[] channels);
 
-    public void setChannelsForConenctor(long guestId, Connector connector, List<String> channels);
-	
 	public List<GuestAddress> getAllAddressesForDate(long guestId, long date);
 
     public List<GuestAddress> getAllAddresses(long guestId);
@@ -64,9 +62,9 @@ public interface SettingsService {
 
     public String getConnectorFilterState(long guestId);
 
-    public Object getConnectorSettings(long apiKeyId);
+    public Object getConnectorSettings(long apiKeyId, boolean refresh);
 
-    public void setConnectorSettings(long apiKeyId, Object o);
+    public void saveConnectorSettings(long apiKeyId, String json);
 
     public void resetConnectorSettings(long apiKeyId);
 

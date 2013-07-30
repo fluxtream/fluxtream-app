@@ -26,4 +26,6 @@ public interface JPADaoService {
     <T> List<T>  executeQueryWithLimit(String queryString, int i, Class<T> clazz, Object... params);
 
     long executeCount(String queryString);
+
+    long executeNativeQuery(String queryString);
 }
