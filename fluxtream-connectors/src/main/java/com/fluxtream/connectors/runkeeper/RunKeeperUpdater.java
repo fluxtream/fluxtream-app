@@ -91,7 +91,7 @@ public class RunKeeperUpdater  extends AbstractUpdater {
     }
 
     /**
-     * Get the feed of activities in a succint format. Activity info (with gps data etc) is fetched in a separate call
+     * Get the feed of activities in a succint format. MovesActivity info (with gps data etc) is fetched in a separate call
      * (one per activity). We want to limit this feed to those activities that we haven't already stored of course but
      * unfortunately the Runkeeper API call will by default retrieve the entire feed. Optional parameters
      * (<code>noEarlierThan</code>, <code>noLaterThan</code>) are able to limit the dataset, but they will only accept dates specified in

@@ -6,14 +6,25 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
     return {
         default:{
             color: "",
-            mapicon: "http://maps.google.com/mapfiles/marker.png",
-            mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
+            mapicon: {
+                url: "https://mts.googleapis.com/vt/icon/name=icons/spotlight/spotlight-poi.png&scale=1",
+                size: new google.maps.Size(22,40)
+            },
+            mapshadow: {
+                url: "http://maps.google.com/mapfiles/shadow50.png",
+                anchor: new google.maps.Point(11,34)
+            },
+            gpsSplittingStrategy: "flatCutoff(3600000)",
+            clockOutline: false,
             facets: {}
         },
         fitbit:{
             device_name: "Fitbit",
             color: "#21b5cf",
-            mapicon: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/aed-2.png",
+            mapicon: {
+                url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/aed-2.png",
+                size: new google.maps.Size(32,37)
+            },
             mapshadow: null,
             facets:{
                 activity_summary:{
@@ -54,7 +65,10 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
         },
         lastfm:{
             color: "rgb(253, 73, 56)",
-            mapicon: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/music.png",
+            mapicon: {
+                url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/music.png",
+                size: new google.maps.Size(32,37)
+            },
             mapshadow: null,
             facets:{
                 recent_track:{
@@ -76,7 +90,10 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
         withings:{
             device_name:"Withings",
             color: "#16924e",
-            mapicon: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/medicalstore.png",
+            mapicon: {
+                url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/medicalstore.png",
+                size: new google.maps.Size(32,37)
+            },
             mapshadow: null,
             facets:{
                 blood_pressure:{
@@ -107,7 +124,10 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
         },
         picasa:{
             color: "#8c2ebb",
-            mapicon: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/photo.png",
+            mapicon: {
+                url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/photo.png",
+                size: new google.maps.Size(32,37)
+            },
             mapshadow: null,
             facets:{
                 photo:{
@@ -123,25 +143,35 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
             color: "#8c2ebb",
             mapshadow: null,
             facets:{
-                "fitnessActivity":{
-                    mapicon: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/cup.png",
+                fitnessActivity:{
+                    mapicon: {
+                        url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/cup.png",
+                        size: new google.maps.Size(32,37)
+                    },
                     list:true,
                     map: true,
                     clock: ClockConfig.BODY_CATEGORY
                 },
                 location:{
-                    mapicon : new google.maps.MarkerImage("/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",null,null,new google.maps.Point(5,5),null),
+                    mapicon : {
+                        url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",
+                        anchor: new google.maps.Point(5,5)
+                    },
                     list: false,
                     photos: false,
                     map: true,
                     gps: true,
+                    gpsSplittingStrategy: "uriEquality()",
                     clock: true //just has to be nonnull, gps data has special treatment
                 }
             }
         },
         twitter:{
             color: "rgb(146, 51, 239)",
-            mapicon: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/tweet.png",
+            mapicon: {
+                url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/tweet.png",
+                size: new google.maps.Size(32,37)
+            },
             mapshadow: null,
             facets:{
                 tweet:{
@@ -169,7 +199,10 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
         },
         google_calendar:{
             color: "rgb(146, 218, 70)",
-            mapicon: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/calendar-3.png",
+            mapicon: {
+                url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/calendar-3.png",
+                size: new google.maps.Size(32,37)
+            },
             mapshadow: null,
             facets:{
                 entry:{
@@ -183,7 +216,10 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
         },
         google_latitude:{
             color: "rgb(92, 174, 92)",
-            mapicon : new google.maps.MarkerImage("https://www.google.com/latitude/apps/static/red_measle.png",null,null,new google.maps.Point(5,5),null),
+            mapicon : {
+                url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",
+                anchor: new google.maps.Point(5,5)
+            },
             mapshadow: null,
             facets:{
                 location:{
@@ -198,27 +234,27 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
         bodymedia:{
             device_name:"BodyMedia",
             color: "rgb(160, 67, 175)",
-            mapicon: "http://maps.google.com/mapfiles/marker.png",
-            mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
+            mapicon: null,
+            mapshadow: null,
             facets: {
                 burn:{
                     list: true,
                     photos: false,
-                    map: true,
+                    map: false,
                     gps: false,
                     clock: null
                 },
                 sleep:{
                     list: true,
                     photos: false,
-                    map: true,
+                    map: false,
                     gps: false,
                     clock: null
                 },
                 steps:{
                     list: true,
                     photos: false,
-                    map: true,
+                    map: false,
                     gps: false,
                     clock: null
                 }
@@ -226,8 +262,11 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
         },
         flickr:{
             color: "rgb(255, 0, 132)",
-            mapicon: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/photo.png",
-            mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
+            mapicon: {
+                url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/photo.png",
+                size: new google.maps.Size(32,37)
+            },
+            mapshadow: null,
             facets: {
                 photo:{
                     list:true,
@@ -238,10 +277,8 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                 }
             }
         },
-        sms_backup:{
+        sms_backup:{ //TODO: define mapicons
             color: "",
-            mapicon: "http://maps.google.com/mapfiles/marker.png",
-            mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
             facets: {
                 call_log:{
                     list: true,
@@ -262,8 +299,11 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
         zeo:{
             device_name:"Zeo",
             color: "rgb(255, 178, 0)",
-            mapicon :"/" + FLX_RELEASE_NUMBER + "/images/mapicons/zeo.png",
-            mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
+            mapicon : {
+                url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/zeo.png",
+                size: new google.maps.Size(32,37)
+            },
+            mapshadow: null,
             facets: {
                 sleep:{
                     list: true,
@@ -274,10 +314,8 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                 }
             }
         },
-        toodledo:{
+        toodledo:{//TODO: define mapicons
             color: "",
-            mapicon: "http://maps.google.com/mapfiles/marker.png",
-            mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
             facets: {
                 task:{
                     list: true,
@@ -297,7 +335,10 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
         },
         openpath:{
             color: "",
-            mapicon : new google.maps.MarkerImage("https://www.google.com/latitude/apps/static/red_measle.png",null,null,new google.maps.Point(5,5),null),
+            mapicon : {
+                url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",
+                anchor: new google.maps.Point(5,5)
+            },
             mapshadow: null,
             facets: {
                 location:{
@@ -342,8 +383,11 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
             device_name: "Mymee",
             filterLabel: "Mymee",
             color : "rgb(5,5,5)",
-            mapicon :"/" + FLX_RELEASE_NUMBER + "/images/mapicons/mymee.png",
-            mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
+            mapicon: {
+                url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/mymee.png",
+                size: new google.maps.Size(32,37)
+            },
+            mapshadow: null,
             facets : {
                 observation : {
                     list : true,
@@ -358,15 +402,82 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
             device_name:"FluxtreamCapture",
             filterLabel: "FluxtreamCap",
             color: "rgb(204, 204, 204)",
-            mapicon :"/" + FLX_RELEASE_NUMBER + "/images/mapicons/fluxcap.png",
-            mapshadow: new google.maps.MarkerImage("http://maps.google.com/mapfiles/shadow50.png",null,null,new google.maps.Point(11,34),null),
             facets: {
                 photo:{
                     list:true,
                     photos: true,
                     map: true,
                     gps: false,
-                    clock: ClockConfig.SOCIAL_CATEGORY
+                    clock: ClockConfig.SOCIAL_CATEGORY,
+                    mapicon : {
+                        url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/fluxcap.png",
+                        size: new google.maps.Size(32,37)
+                    },
+                    mapshadow: null
+                },
+                location:{
+                    color: "rgb(30, 30, 30)",
+                    list:false,
+                    photos:false,
+                    map:true,
+                    mapicon : {
+                        url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",
+                        anchor: new google.maps.Point(5,5)
+                    },
+                    mapshadow: null
+                }
+            }
+        },
+        moves:{
+            filterLabel: "Moves",
+            color: "rgb(36, 77, 187)",
+            mapicon : {
+                url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/glasses.png",
+                size: new google.maps.Size(32,37)
+            },
+            mapshadow: null,
+            facets: {
+                "place":{
+                    mapicon: {
+                        url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/moves-place.png",
+                        size: new google.maps.Size(32,37)
+                    },
+                    list:true,
+                    map: true,
+                    clock: ClockConfig.OUTSIDE_CATEGORY,
+                    clockOutline: true
+                },
+                "move":{
+                    mapicon : {
+                        url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",
+                        anchor: new google.maps.Point(5,5)
+                    },
+                    list:true,
+                    map: true,
+                    clock: ClockConfig.OUTSIDE_CATEGORY
+                },
+                "location":{
+                    color: "#000",
+                    wlkColor: "#23ee70",
+                    trpColor: "#8f8f8d",
+                    cycColor: "#68abef",
+                    runColor: "#e674ec",
+                    mapicon : {
+                        url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",
+                        anchor: new google.maps.Point(5,5)
+                    },
+                    list: false,
+                    photos: false,
+                    map: true,
+                    gps: true,
+                    gpsSplittingStrategy: "uriEquality()",
+                    clock: true //just has to be nonnull, gps data has special treatment
+                },
+                "move-activity":{
+                    mapicon : {
+                        url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",
+                        anchor: new google.maps.Point(5,5)
+                    }
                 }
             }
         }

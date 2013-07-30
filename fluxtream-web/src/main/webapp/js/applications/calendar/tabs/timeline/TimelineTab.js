@@ -20,6 +20,8 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
 
     function render(params) {
         targetTime = params.tabParam;
+        if (targetTime == null && Calendar.dateAxisCursorPosition != null)
+            targetTime = Calendar.dateAxisCursorPosition * 1000;
         params.setTabParam(null);
         digest = params.digest;
         connectorEnabled = params.connectorEnabled;
@@ -47,10 +49,20 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
      */
     function onAxisChanged(prevState) {
         var timeUnit = grapher.getCurrentTimeUnit();
-        var center = (grapher.dateAxis.getMin() + grapher.dateAxis.getMax()) / 2.0;
+        var cursor = grapher.getTimeCursorPosition();
+        var minTime = grapher.dateAxis.getMin();
+        var maxTime = grapher.dateAxis.getMax();
+        var center;
+        var dateChangeInertia;
+        if (cursor >= minTime && cursor <= maxTime){//cursor is in the bounds, use it
+            center = cursor;
+            dateChangeInertia = 0;//no need for inertia with cursor
+        }
+        else{
+            center = (minTime + maxTime) / 2.0;
+            dateChangeInertia = 24 * 3600 * 1000 / 12;
+        }
         var date = new Date(center * 1000);
-
-        var dateChangeInertia = 24 * 3600 * 1000 / 12;
         var dateEarly = new Date(center * 1000 - dateChangeInertia);
         var dateLate = new Date(center * 1000 + dateChangeInertia);
 
@@ -63,7 +75,8 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
         if (state.tabState != prevTabState
                 && stateEarly.tabState != prevTabState
                 && stateLate.tabState != prevTabState) {
-            Calendar.changeTabState(state,true);
+            Calendar.changeTabState(state, true);
+            Calendar.timespanInited = false; // Need to be ready to refresh the date display if user hits back button
             return state;
         }
 
@@ -86,7 +99,13 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
                 connectorToggled(connectorName,null,connectorEnabled[connectorName]);
             }
             var state = null;
-            grapher.dateAxis.addAxisChangeListener(function() {
+            grapher.dateAxis.addAxisChangeListener(function(event) {
+                if (event.min <= event.cursorPosition && event.max >= event.cursorPosition){
+                    Calendar.dateAxisCursorPosition = event.cursorPosition;
+                }
+                else{
+                    Calendar.dateAxisCursorPosition = null;
+                }
                 // NOTE: we use $.doTimeout() here to avoid spamming onAxisChanged().
                 // This will fire 100ms after the user stops dragging, since
                 // $.doTimeout() cancels earlier timeouts with the same name.

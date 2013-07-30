@@ -48,7 +48,7 @@ public class MyMeePhotoFacetFinderStrategy implements PhotoFacetFinderStrategy {
                                        final TimeInterval timeInterval,
                                        @Nullable final TagFilter tagFilter) {
         if (tagFilter == null) {
-            return (List<AbstractFacet>)JPAUtils.find(em, getFacetClass(apiKey.getConnector(), objectType), "mymee.photo.between", apiKey.getGuestId(), timeInterval.start, timeInterval.end);
+            return (List<AbstractFacet>)JPAUtils.find(em, getFacetClass(apiKey.getConnector(), objectType), "mymee.photo.between", apiKey.getGuestId(), timeInterval.getStart(), timeInterval.getEnd());
         }
 
         final Class<? extends AbstractFacet> facetClass = getFacetClass(apiKey.getConnector(), objectType);
@@ -59,9 +59,9 @@ public class MyMeePhotoFacetFinderStrategy implements PhotoFacetFinderStrategy {
                                 " AND" +
                                 " facet.guestId = " + apiKey.getGuestId() +
                                 " AND" +
-                                " facet.start >= " + timeInterval.start +
+                                " facet.start >= " + timeInterval.getStart() +
                                 " AND" +
-                                " facet.end <= " + timeInterval.end +
+                                " facet.end <= " + timeInterval.getEnd() +
                                 " AND" +
                                 " (" + tagFilter.getWhereClause() + ")";
         final Query query = em.createQuery(queryStr);

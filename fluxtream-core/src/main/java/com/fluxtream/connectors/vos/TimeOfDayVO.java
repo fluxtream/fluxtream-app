@@ -19,10 +19,18 @@ public class TimeOfDayVO {
                 hourOfDay -=12;
                 this.ampm = "pm";
             }
+            else if (hourOfDay == 0){
+                hourOfDay = 12;
+            }
             this.hours = String.valueOf(hourOfDay);
         } else {
             this.hours = String.valueOf(minutes/60);
         }
+    }
+
+    public static void main(final String[] args) {
+        TimeOfDayVO o = new TimeOfDayVO(950, true);
+        System.out.println(o);
     }
 
 }

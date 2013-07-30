@@ -51,7 +51,7 @@ public class BodymediaSleepFacetExtractor extends AbstractFacetExtractor
                                              final ObjectType objectType) throws Exception
     {
 
-        logger.info("guestId=" + apiData.updateInfo.getGuestId() +
+        logger.info("guestId=" + updateInfo.getGuestId() +
         				" connector=bodymedia action=extractFacets objectType="
         						+ objectType.getName());
 
@@ -82,7 +82,7 @@ public class BodymediaSleepFacetExtractor extends AbstractFacetExtractor
         JSONObject bodymediaResponse = JSONObject.fromObject(apiData.json);
         if(bodymediaResponse.has("Failed"))
         {
-            BodymediaSleepFacet sleep = new BodymediaSleepFacet(apiData.updateInfo.apiKey.getId());
+            BodymediaSleepFacet sleep = new BodymediaSleepFacet(updateInfo.apiKey.getId());
             sleep.date = bodymediaResponse.getString("Date");
         }
         else
@@ -103,9 +103,8 @@ public class BodymediaSleepFacetExtractor extends AbstractFacetExtractor
                     if(o instanceof JSONObject)
                     {
                         JSONObject day = (JSONObject) o;
-                        BodymediaSleepFacet sleep = new BodymediaSleepFacet(apiData.updateInfo.apiKey.getId());
+                        BodymediaSleepFacet sleep = new BodymediaSleepFacet(updateInfo.apiKey.getId());
                         super.extractCommonFacetData(sleep, apiData);
-                        sleep.date = day.getString("date");
                         sleep.efficiency = day.getDouble("efficiency");
                         sleep.totalLying = day.getInt("totalLying");
                         sleep.totalSleeping = day.getInt("totalSleep");
@@ -130,12 +129,13 @@ public class BodymediaSleepFacetExtractor extends AbstractFacetExtractor
                             // of burn.date according to BodyMedia's idea of what timezone you were in then.
                             // End should, I think, be start + the number of minutes in the minutes array *
                             // the number of milliseconds in a minute.
+                            sleep.date = dateFormatter.print(realDateStart.getMillis());
                             sleep.start = realDateStart.getMillis() - DateTimeConstants.MILLIS_PER_DAY/2;
                             sleep.end = realDateStart.getMillis() + DateTimeConstants.MILLIS_PER_DAY/2;
                         }
                         else {
                             sleep.date = dateFormatter.print(date.getMillis());
-                            TimeZone timeZone = metadataService.getTimeZone(apiData.updateInfo.getGuestId(), date.getMillis());
+                            TimeZone timeZone = metadataService.getTimeZone(updateInfo.getGuestId(), date.getMillis());
                             long fromNoon = TimeUtils.fromMidnight(date.getMillis(), timeZone) - MILLIS_IN_DAY / 2;
                             long toNoon = TimeUtils.toMidnight(date.getMillis(), timeZone) - MILLIS_IN_DAY / 2;
                             sleep.start = fromNoon;

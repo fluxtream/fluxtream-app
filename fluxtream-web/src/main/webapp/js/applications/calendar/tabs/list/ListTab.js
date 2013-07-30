@@ -9,11 +9,12 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
     function render(params) {
         setTabParam = params.setTabParam;
         this.getTemplate("text!applications/calendar/tabs/list/list.html", "list", function() {
-            if (lastTimestamp == params.digest.generationTimestamp && !params.forceReload){
+            //TODO: implement comment refreshing algorithm so the entire list tab doesn't have to be refreshed every time
+           /* if (lastTimestamp == params.digest.generationTimestamp && !params.forceReload){        //disabled for now to force refreshing of comments
                 params.doneLoading();
                 return;
             }
-            else
+            else   */
                 lastTimestamp = params.digest.generationTimestamp;
             setup(params.digest,params.connectorEnabled,0,params.doneLoading);
         });
@@ -26,24 +27,26 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
     var maxPerPage = 200;
     var currentPage = 0;
     var photoCarouselHTML;
-    var timeZoneOffset;
+    var dgst;
 
     var templates;
+    var metadata;
 
     var rendererCount = 0;
 
     function setup(digest,connectorEnabled,page,doneLoading){
         App.loadAllMustacheTemplates("applications/calendar/tabs/list/listTemplates.html",function(listTemplates){
+            dgst = digest;
             templates = listTemplates;
-            timeZoneOffset = digest.timeZoneOffset;
             list = $("#list");
             pagination = $("#pagination");
             currentPage = page;
             items = [];
             itemGroups = {};
             list.empty();
+            metadata = digest.metadata;
             var photoCount = 0;
-            for (var connectorName in digest.cachedData){
+            there:for (var connectorName in digest.cachedData){
                 if (!shouldDisplayInListView(connectorName))
                     continue;
                 for (var i = 0; i < digest.cachedData[connectorName].length; i++){
@@ -63,12 +66,19 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
                         }
 
                     }
+
+                    var itemCity = App.getFacetCity(item.facet, metadata);
+                    if (itemCity==null)
+                        continue;
                     for (var j = 0; j <= items.length; j++){
                         if (j == items.length){
                             items[j] = item;
                             break;
                         }
-                        if (items[j].facet.start + timeZoneOffset > item.facet.start + timeZoneOffset || item.facet.start + timeZoneOffset == null){
+                        var facetCity = App.getFacetCity(items[j].facet, metadata);
+                        if (facetCity==null)
+                            continue there;
+                        if (items[j].facet.start + facetCity.tzOffset > item.facet.start + itemCity.tzOffset || item.facet.start + itemCity.tzOffset == null){
                             items.splice(j,0,item);
                             break;
                         }
@@ -131,61 +141,31 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
         $("#eventCount").empty().append(totalCount + " event" + (totalCount == 1 ? "" : "s"));
     }
 
-    /*//new design for full loading
     function repopulateList(){
-        list.empty();
-        populateList(++rendererCount,0);
-
-    }
-
-    function populateList(expectedRendererCount, index){
-        if (rendererCount != expectedRendererCount)
-            return;
-        var visibleCount = 0;
-        var currentArray = [];
-        var i = index;
-        for (; i < items.length && visibleCount < maxPerPage; i++){
-            var item = items[i];
-            if (item.visible){
-                if (currentArray.length == 0)
-                    currentArray = [item.facet];
-                else if (currentArray[0].shouldGroup(item.facet))
-                    currentArray[currentArray.length] = item.facet;
-                else{
-                    list.append("<div class=\"flx-listItem\">" + currentArray[0].getDetails(currentArray) + "</div>");
-                    currentArray = [];
-                    i--;
-                    visibleCount++;
-                }
-            }
-        }
-        var newIndex = i;
-        var photos = $(".flx-box.picasa-photo img");
-        for (var i = 0; i < photos.length; i++){
-            $(photos[i]).unbind("click").click({i:i}, function(event){
-                App.makeModal(photoCarouselHTML);
-                App.carousel(event.data.i);
-            });
-        }
-        if (currentArray.length != 0)
-            list.append("<div class=\"flx-listItem\">" + currentArray[0].getDetails(currentArray) + "</div>");
-        if (i == items.length){
-            if (list.children().length == 0)
-                list.append("Sorry, no data to show.");
-        }
-        else{
-            $.doTimeout(1000,function(){
-                populateList(expectedRendererCount,newIndex);
-            });
-        }
-    }*/
-
-    function repopulateList(){
+        var dateCounter = 2;
         var currentDate = null;
         var prevDate = null;
         list.empty();
         var visibleCount = 0;
         var currentArray = [];
+        var facetCity;
+        var currentCity;
+
+        function appendItems(currentArray,list){
+            var details = currentArray[0].getDetails(currentArray);
+            var content = $(templates.item.render({item:details.outerHTML()}));
+            list.append(content);
+            details.on("contentchange",function(){
+                content.html(details.outerHTML());
+                content.find(".mapLink").unbind('click').click(function(event){
+                    setTabParam($(event.delegateTarget).attr("itemid"));
+                    $(".calendar-map-tab").click();
+                    return false;
+                });
+            });
+            details.trigger("contentchange");
+        }
+
         for (var i = 0; i < items.length; i++){
            var item = items[i];
            if (item.visible){
@@ -193,43 +173,55 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
                    item.facet.id = i;
                visibleCount++;
                if (visibleCount > currentPage * maxPerPage && visibleCount <= (currentPage + 1) * maxPerPage){
-                    var facetDate = App.formatDate(item.facet.start  + timeZoneOffset,false,true);
+                    facetCity = App.getFacetCity(item.facet, metadata);
+                    if (facetCity==null)
+                        continue;
                     if (currentArray.length == 0){
                         currentArray = [item.facet];
-                        currentDate = facetDate;
+                        currentDate = facetCity.dateWithTimezone;
+                        currentCity = facetCity;
                     }
-                    else if (currentArray[0].shouldGroup(item.facet) && facetDate == currentDate)
+                    else if (currentArray[0].shouldGroup(item.facet) && facetCity.dateWithTimezone == currentDate)
                         currentArray[currentArray.length] = item.facet;
-                    else{
-                        if (currentDate != prevDate){
-                            list.append(templates.date.render({date:currentDate}));
+                    else {
+                        if (currentDate != prevDate) {
+                            list.append(templates.date.render({date:App.prettyDateFormat(currentDate),city:currentCity.name,timezone:currentCity.shortTimezone,state:"list/date/"+currentDate.split(" ")[0]}));
                             prevDate = currentDate;
                         }
-                        list.append(templates.item.render({item:currentArray[0].getDetails(currentArray)}));
+                        appendItems(currentArray,list);
                         currentArray = [item.facet];
-                        currentDate = facetDate;
+                        currentDate = facetCity.dateWithTimezone;
+                        currentCity = facetCity;
                     }
                }
            }
         }
         if (currentArray.length != 0){
-            if (currentDate != prevDate)
-                list.append(templates.date.render({date:currentDate}));
-            list.append(templates.item.render({item:currentArray[0].getDetails(currentArray)}));
+            if (currentDate != prevDate) {
+                facetCity = App.getFacetCity(item.facet, metadata);
+                if (facetCity!=null) {
+                    list.append(templates.date.render({date:App.prettyDateFormat(currentDate),city:currentCity.name,timezone:facetCity.shortTimezone,state:"list/date/"+currentDate.split(" ")[0]}));
+                }
+            }
+            if (facetCity!=null)
+                appendItems(currentArray,list);
         }
         if (list.children().length == 0)
             list.append("Sorry, no data to show.");
         var photos = $(".flx-photo");
         for (var i = 0; i < photos.length; i++){
             $(photos[i]).click(function(event){
-                App.makeModal(photoCarouselHTML);
-                App.carousel($(event.delegateTarget).attr("photoId"));
+                PhotoUtils.showCarouselHTML(photoCarouselHTML,$(event.delegateTarget).attr("photoId"));
             });
         }
         $(".mapLink").click(function(event){
             setTabParam($(event.delegateTarget).attr("itemid"));
             $(".calendar-map-tab").click();
             return false;
+        });
+        $(".facet-edit a").click(function(event){
+            event.digest = dgst;
+            App.apps.calendar.commentEdit(event);
         });
     }
 
@@ -282,6 +274,56 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
         }
         return false;
     }
+
+    function onScroll(scrollPosition){
+        var listTops = $("#list .dateHeadingGroup");
+        for (var i = 0, li = listTops.length; i < li; i++){
+            var listTop = $(listTops[i]);
+            var hr = listTop.find(".priorRuler");
+            var floater = listTop.find(".dateLabel");
+            var placeholder = listTop.find(".placeholder");
+            var beginFloat = hr.offset().top + hr.outerHeight() + parseInt(hr.css("marginBottom"));
+            if (beginFloat < 0){
+                beginFloat = 0;
+            }
+            var endFloat = null;
+            if (i < li - 1){
+                var nextListTop = $(listTops[i+1]);
+                var nextHr = nextListTop.find(".priorRuler");
+                endFloat = nextHr.offset().top + nextHr.outerHeight() + parseInt(nextHr.css("marginBottom"));
+            }
+            if (scrollPosition < beginFloat){
+                placeholder.addClass("hidden");
+                floater.removeClass("floating");
+                floater.css("marginTop","0px");
+            }
+            else{
+                placeholder.removeClass("hidden");
+                floater.addClass("floating");
+                floater.css("top",$("#selectedConnectors").height() + "px");
+                if (endFloat != null){
+                    var temp = scrollPosition +  floater.height();
+                    var marginAmount = endFloat - temp;
+                    if (marginAmount > 0) marginAmount = 0;
+                    floater.css("marginTop",marginAmount + "px");
+                }
+
+            }
+            placeholder.height(floater.height());
+
+        }
+    }
+
+    $(window).scroll(function(){
+        if ($("#listTab").parent().hasClass("active"))
+            onScroll($("body").scrollTop() + $("#selectedConnectors").height());
+        else
+            onScroll(-100);
+    });
+
+    /*$(window).resize(function(){
+        $(window).scroll();
+    });*/
 
     listTab.render = render;
     listTab.connectorToggled = connectorToggled;

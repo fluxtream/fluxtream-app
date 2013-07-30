@@ -14,8 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 public interface ApiDataService {
 
-    //public EntityManager getEntityManager();
-
 	public void cacheApiDataObject(UpdateInfo updateInfo, long start, long end,
 			AbstractFacet payload) throws Exception;
 
@@ -34,16 +32,12 @@ public interface ApiDataService {
     public List<AbstractFacet> getApiDataFacets(ApiKey apiKey,
                                                 ObjectType objectType, List<String> dates);
 
-    public <T> List<T> getApiDataFacets(ApiKey apiKey, ObjectType objectType, List<String> dates, Class<T> clazz);
-
     public List<AbstractFacet> getApiDataFacets(ApiKey apiKey, ObjectType objectType, TimeInterval timeInterval);
 
     public List<AbstractFacet> getApiDataFacets(ApiKey apiKey,
                                                 ObjectType objectType,
                                                 TimeInterval timeInterval,
                                                 @Nullable TagFilter tagFilter);
-
-    public <T> List<T> getApiDataFacets(ApiKey apiKey, ObjectType objectType, TimeInterval timeInterval, Class<T> clazz);
 
     public AbstractFacet getOldestApiDataFacet(ApiKey apiKey, ObjectType objectType);
     public AbstractFacet getLatestApiDataFacet(ApiKey apiKey, ObjectType objectType);
@@ -92,13 +86,19 @@ public interface ApiDataService {
 
     public void persistExistingFacet(final AbstractFacet facet);
 
-    @Transactional(readOnly = false)
+    // addGuestLocation(s) persists the location or list of locations and adds them to the visited cities
+    // table.  The persistence does duplicate detection by checking for locations matching the time, source,
+    // and apiKeyId.  In the case of a duplicate the new locationFacet is not persisted.
+    void addGuestLocation(long guestId, LocationFacet locationResource);
     void addGuestLocations(long guestId, List<LocationFacet> locationResources);
 
     void deleteStaleData() throws ClassNotFoundException;
 
     @Transactional(readOnly = false)
     void cleanupStaleData() throws ClassNotFoundException, Exception;
+
+    @Transactional(readOnly=false)
+    void setComment(String connectorName, String objectTypeName, long guestId, long facetId, String comment);
 
     // Pass this to createOrReadModifyWrite
     public interface FacetModifier<T extends AbstractFacet> {
@@ -140,8 +140,7 @@ public interface ApiDataService {
 	public void cacheEmptyData(UpdateInfo updateInfo, long fromMidnight,
 			long toMidnight);
 
-    void addGuestLocation(long guestId, LocationFacet locationResource);
 
-    void processLocation(LocationFacet locationResource);
+    void deleteComment(String connectorName, String objectTypeName, long guestId, long facetId);
 
 }

@@ -97,9 +97,7 @@ td.content {
 								<table border="0" cellspacing="0" cellpadding="0" width="500">
 									<tbody>
 										<tr>
-											<td style="padding-left: 42px;"><img width="346"
-												height="33" alt="Fluxtream"
-												src="/${release}/css/header-logo-v3.png">
+											<td style="padding-left: 42px;"><img width="94" height="20" alt="Fluxtream" src="/${release}/images/header-logo-v4.png">
 											</td>
 										</tr>
 									</tbody>
@@ -175,8 +173,9 @@ td.content {
 					<tbody>
 						<tr>
 							<td valign="top">
+                                <% int currentYear = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR); String until = ""; if (currentYear>2011) until = " - " + currentYear; %>
 								<p style="padding-left: 35px;">Fluxtream - All right
-									reserved &copy; 2010 - 2011</p>
+									reserved &copy; 2010<%=until %></p>
 							</td>
 						</tr>
 					</tbody>

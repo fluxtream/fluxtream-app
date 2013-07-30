@@ -5,16 +5,22 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 	var Calendar = new Application("calendar", "Candide Kemmler", "icon-calendar");
 
     var needDigestReload = false;
+    var currentCityPool;
+    var foursquareVenueTemplate;
 
     Calendar.currentTabName = Builder.tabs["date"][0];
     Calendar.currentTab = null;
     Calendar.tabState = null;
     Calendar.digest = null;
+    Calendar.weather = null;
     Calendar.timeUnit = "date";
     Calendar.digestTabState = false;
     Calendar.tabParam = null;
     Calendar.connectorEnabled = {"default":{}};
-    Calendar.timespanInited = false;
+    Calendar.timespanState = null;
+
+   Calendar.dateAxisCursorPosition = null;
+
     Calendar.timeRange = {
         updated: true,
         start: null,
@@ -37,8 +43,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 		_.bindAll(this);
     };
 
-    function updateTimespan(currentTimespan) {
-        Calendar.timespanInited = true;
+    function updateTimespan(currentTimespan,currentState) {
+        Calendar.timespanState = currentState;
         document.title = "Fluxtream Calendar | " + currentTimespan + " (" + Calendar.currentTabName + ")";
         $("#currentTimespanLabel span").html(currentTimespan);
     }
@@ -76,9 +82,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
            type: "GET",
            data: params,
            success: function(response) {
+               Calendar.dateAxisCursorPosition = null;
                Calendar.timeRange.start = response.start;
                Calendar.timeRange.end = response.end;
-               updateTimespan(response.currentTimespanLabel);
+               updateTimespan(response.currentTimespanLabel,params);
                Calendar.timeRange.updated = true;
                Calendar.navigateState(Calendar.currentTabName + "/" + response.state);
                // TODO: Change visible date in the datepicker to Sunday
@@ -147,13 +154,27 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             type: "GET",
             data: {state: state.tabState},
             success: function(response) {
+                Calendar.dateAxisCursorPosition = null;
                 Calendar.timeRange.start = response.start;
                 Calendar.timeRange.end = response.end;
-                updateTimespan(response.currentTimespanLabel);
+                updateTimespan(response.currentTimespanLabel,state.tabState);
+                Calendar.timeRange.updated = true;
                 stopLoading(doneLoadingId);
             },
             error: handleError("failed to fetch timespan label!")
         });
+    }
+
+    function fetchWeatherData() {
+       $.ajax({ url: "/api/calendar/weather/"+Calendar.tabState,
+           success: function(response) {
+               // we should check that time boundaries are in line with the digest data
+               Calendar.weather = response;
+               var label = weatherLabel();
+               $(".ephemerisWrapper").remove();
+               $("#mainCityMetadata").prepend($("<span class='ephemerisWrapper'>" + label + "&nbsp;&nbsp;</span>"));
+           }
+       });
     }
 
     function setDocumentTitle() {
@@ -164,7 +185,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         startLoading();
         if (typeof state == "string")
             state = Calendar.parseState(state);
-        if (!Calendar.timespanInited) {
+        if (Calendar.timespanState !== state.tabState) {
             // NOTE: when loading a URL like /app/calendar/date/2012-12-25 directly,
             // the FlxState routes invoke renderState() directly instead of going
             // through fetchState. That bypasses the timespan label fetching, so we
@@ -188,6 +209,9 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             updateDatepicker(state);
             fetchCalendar(state);
         }
+        // Next time the page loads, won't accidentally believe that the timespan in the
+        // title and calendar bar has already been initialized
+        //Calendar.timespanInited = false;
 	};
 
     Calendar.setTabParam = function(tabParam){
@@ -252,8 +276,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 Builder.handleNotifications(response);
                 if (Calendar.timeUnit==="date") {
                     handleCityInfo(response);
+                    fetchWeatherData();
                 } else {
                     $("#mainCity").empty();
+                    $("#visitedCitiesDetails").hide();
                 }
 			},
 			error: function(){
@@ -278,11 +304,12 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         }
         $.each(digest.selectedConnectors, function(i, connector) {
             $.each(connector.facetTypes, function(j, facetType) {
-                console.log("loading facetType: " + facetType);
                 loadTemplate(facetType);
             });
         });
         loadTemplate("fluxtream-address");
+        loadTemplate("foursquare-venue");
+        loadTemplate("moves-move-activity");
         for (var connectorId in digest.cachedData){
             $.each(digest.cachedData[connectorId], function(i, connector) {
                 connector.getDetails = function(array,showDate){
@@ -297,6 +324,51 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 connector.shouldGroup = function(facet){
                     return shouldFacetsGroup(this,facet);
                 };
+                if (connectorId === "moves-move"){
+                    $.each(connector.activities, function(i, facet) {
+                        facet.parentType = connector.type;
+                        facet.parentId = connector.id;
+                        facet.comment = connector.comment;
+                        facet.getDetails = function(array,showDate){
+                            if (typeof(array) == "boolean"){
+                                showDate = array;
+                                array = null;
+                            }
+                            if (array == null)
+                                array = [this];
+                            return buildDetails(digest,array,showDate);
+                        };
+                        facet.shouldGroup = function(facet){
+                            return shouldFacetsGroup(this,facet);
+                        };
+
+                        if (facet.start == undefined){
+                            if (facet.date != undefined && facet.date != null){
+                                var dateParts = facet.date.split("-");
+                                var year = parseInt(dateParts[0]);
+                                var month = parseInt(dateParts[1]) - 1;
+                                var day = parseInt(dateParts[2]);
+                                if (facet.startTime != null){
+                                    var hours = parseInt(facet.startTime.hours);
+                                    var minutes = parseInt(facet.startTime.minutes);
+                                    if (facet.startTime.ampm == "pm")
+                                        hours += 12;
+                                    facet.start = new Date(year,month,day,hours,minutes,0,0).getTime();
+                                }
+                                if (facet.endTime != null) {
+                                    var hours = parseInt(facet.endTime.hours);
+                                    var minutes = parseInt(facet.endTime.minutes);
+                                    if (facet.endTime.ampm == "pm")
+                                        hours += 12;
+                                    facet.end = new Date(year,month,day,hours,minutes,0,0).getTime();
+                                    if (facet.end < facet.start){
+                                        facet.end = new Date(year,month,day+1,hours,0,0).getTime();
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
             });
             digest.cachedData[connectorId].hasImages = false;
             switch (connectorId){
@@ -491,6 +563,12 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                             case "RUNKEEPER":
                                 newFacet[member] = "Runkeeper";
                                 break;
+                            case "FLUXTREAM_CAPTURE":
+                                newFacet[member] = "Fluxtream Capture";
+                                break;
+                            case "MOVES":
+                                newFacet[member] = "Moves";
+                                break;
                             case "OTHER":
                                 newFacet[member] = "IP lookup";
                                 break;
@@ -529,12 +607,19 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                         newFacet[member] = data[member];
                         newFacet.hasPosition = true;
                         break;
+                    case "uri":
+                        var parts = data[member].split("/");
+                        if (parts.length == 2){
+                            params.iconClass = "-activity " + parts[0];
+                        }
+                        break;
                     default:
                         newFacet[member] = data[member];
                 }
             }
             if (showDate){
-                newFacet.displayDate = App.formatDate(data.start + digest.timeZoneOffset,false,true);
+                var facetCity = App.getFacetCity(data, digest.metadata);
+                newFacet.displayDate = App.formatDate(data.start + facetCity.tzOffset,false,true);
             }
         }
 
@@ -559,32 +644,65 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 }
             }
         }
-        return digest.detailsTemplates[data.type].render(params);
+
+        // retrieve foursquare venues asynchronously
+        var foursquareVenueIds = [];
+        for (var i=0; i<params.facets.length; i++) {
+            if (facets[i].type=="moves-place") {
+                var placeType = facets[i].placeType;
+                if (placeType==="foursquare")  {
+                    foursquareVenueIds.push(facets[i].foursquareId);
+                }
+            }
+        }
+
+        foursquareVenueTemplate = digest.detailsTemplates["foursquare-venue"];
+        var details = $(digest.detailsTemplates[data.type].render(params));
+        setTimeout(function(){getFoursquareVenues(details,foursquareVenueIds);}, 100);
+        return details;
     }
 
+    function getFoursquareVenues(details,foursquareVenueIds) {
+        for (var i=0; i<foursquareVenueIds.length; i++) {
+            $.ajax({
+                url: "/api/metadata/foursquare/venue/" + foursquareVenueIds[i],
+                success: function(response) {
+                    var html = foursquareVenueTemplate.render(response);
+                    var foursquareVenueDiv = details.find("#foursquare-venue-"+response.foursquareId);
+                    foursquareVenueDiv.replaceWith(html);
+                    foursquareVenueDiv = details.find("#foursquare-venue-"+response.foursquareId);
+                    var icon = foursquareVenueDiv.closest(".moves-place").find(".flx-deviceIcon");
+                    icon.css("background-image","url(" + response.categoryIconUrlPrefix + "bg_32" + response.categoryIconUrlSuffix + ")");
+                    icon.css("background-position", "7px 0px");
+                    icon.css("background-size", "32px 32px");
+                    details.trigger("contentchange");
+                }
+            });
+        }
+    }
 
-           var topLevelDomains = ["aero","asia","biz","cat","com","coop","info", "int", "jobs", "mobi",
-                           "museum", "name", "net", "org", "pro", "tel", "travel", "xxx", "edu",
-                           "edu", "gov", "mil", "ac", "ad", "ae", "af", "ag", "ai", "al", "am",
-                           "am", "an", "aq", "ar", "as", "at", "au", "aw", "ax", "az", "ba", "bb",
-                           "be", "bf", "bg", "bh", "bi", "bj", "bm", "bn" , "bo", "br", "bs", "bt",
-                           "bv", "bw", "by", "bz", "ca", "cc", "cd", "cf", "cg", "ch", "ci", "ck",
-                           "cl", "cm", "cn", "co", "cr", "cs", "cu", "cv", "cx", "cy", "cz", "dd",
-                           "de", "dj", "dk", "dm", "do", "dz", "ec", "ee", "eg", "eh", "er", "es", "et",
-                           "eu", "fi", "fj", "fk", "fm", "fo", "fr", "ga", "gb", "gd", "ge", "gf", "gg",
-                           "gh", "gi", "gl", "gm", "gn", "gp", "gq", "gr", "gs", "gt", "gu", "gw", "gy",
-                           "hk", "hm", "hn", "hr", "ht", "hu", "id", "ie", "il", "im", "in", "io", "iq",
-                           "iq", "ir", "is", "it", "je", "jm", "jo", "jp", "ke", "kg", "kh", "ki", "km",
-                           "kn", "kp", "kr", "kw", "ky", "kz", "la", "lb", "lc", "li", "lk", "lr", "ls",
-                           "lt", "lu", "lv", "ly", "ma", "mc", "md", "me", "mg", "mh", "mk", "ml", "mm",
-                           "mn", "mo", "mp", "mq", "mr", "ms", "mt", "mu", "mv", "mw", "mx", "my", "mz",
-                           "na", "nc", "ne", "nf", "ng", "ni", "nl", "no", "np", "nr", "nu", "nz", "om",
-                           "pa", "pe", "pf", "pg", "ph", "pk", "pl", "pm", "pn", "pr", "ps", "pt", "pw",
-                           "py", "qa", "re", "ro", "rs", "ru", "rw", "sa", "sb", "sc", "sd", "se", "sg",
-                           "sh", "si", "sj", "sk", "sl", "sm", "sn", "so", "sr", "ss", "st", "su", "sv",
-                           "sy", "sz", "tc", "td", "tf", "tg", "th", "tj", "tk", "tl", "tm", "tn", "to",
-                           "tp", "tr", "tt", "tv", "tw", "tz", "ua", "uk", "us", "uy", "uz", "va", "vc",
-                           "ve", "vg", "vi", "vn", "vu", "wf", "ws", "ye", "yt", "yu", "za", "zm", "zw"]
+    var topLevelDomains = ["aero","asia","biz","cat","com","coop","info", "int", "jobs", "mobi",
+                   "museum", "name", "net", "org", "pro", "tel", "travel", "xxx", "edu",
+                   "edu", "gov", "mil", "ac", "ad", "ae", "af", "ag", "ai", "al", "am",
+                   "am", "an", "aq", "ar", "as", "at", "au", "aw", "ax", "az", "ba", "bb",
+                   "be", "bf", "bg", "bh", "bi", "bj", "bm", "bn" , "bo", "br", "bs", "bt",
+                   "bv", "bw", "by", "bz", "ca", "cc", "cd", "cf", "cg", "ch", "ci", "ck",
+                   "cl", "cm", "cn", "co", "cr", "cs", "cu", "cv", "cx", "cy", "cz", "dd",
+                   "de", "dj", "dk", "dm", "do", "dz", "ec", "ee", "eg", "eh", "er", "es", "et",
+                   "eu", "fi", "fj", "fk", "fm", "fo", "fr", "ga", "gb", "gd", "ge", "gf", "gg",
+                   "gh", "gi", "gl", "gm", "gn", "gp", "gq", "gr", "gs", "gt", "gu", "gw", "gy",
+                   "hk", "hm", "hn", "hr", "ht", "hu", "id", "ie", "il", "im", "in", "io", "iq",
+                   "iq", "ir", "is", "it", "je", "jm", "jo", "jp", "ke", "kg", "kh", "ki", "km",
+                   "kn", "kp", "kr", "kw", "ky", "kz", "la", "lb", "lc", "li", "lk", "lr", "ls",
+                   "lt", "lu", "lv", "ly", "ma", "mc", "md", "me", "mg", "mh", "mk", "ml", "mm",
+                   "mn", "mo", "mp", "mq", "mr", "ms", "mt", "mu", "mv", "mw", "mx", "my", "mz",
+                   "na", "nc", "ne", "nf", "ng", "ni", "nl", "no", "np", "nr", "nu", "nz", "om",
+                   "pa", "pe", "pf", "pg", "ph", "pk", "pl", "pm", "pn", "pr", "ps", "pt", "pw",
+                   "py", "qa", "re", "ro", "rs", "ru", "rw", "sa", "sb", "sc", "sd", "se", "sg",
+                   "sh", "si", "sj", "sk", "sl", "sm", "sn", "so", "sr", "ss", "st", "su", "sv",
+                   "sy", "sz", "tc", "td", "tf", "tg", "th", "tj", "tk", "tl", "tm", "tn", "to",
+                   "tp", "tr", "tt", "tv", "tw", "tz", "ua", "uk", "us", "uy", "uz", "va", "vc",
+                   "ve", "vg", "vi", "vn", "vu", "wf", "ws", "ye", "yt", "yu", "za", "zm", "zw"]
 
     var uriRegex = "\\b(http://|ftp://)?[A-z0-9\\-.]+[.](" + topLevelDomains.join("|") + ")(/[/A-z0-9#@_\\-&?=.]+\\b|\\b)";
     var twitterNameRegex = "@[A-Za-z0-9_]+";
@@ -618,53 +736,289 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
     function handleCityInfo(digestInfo) {
         $("#mainCity").empty();
-        if (digestInfo.cities&&digestInfo.cities.length>0) {
-            $("#mainCity").html(cityLabel(digestInfo.cities[0]) +
-                                temperaturesLabel(digestInfo))
+        if (digestInfo.metadata.mainCity) {
+           $("#mainCity").html(cityLabel(digestInfo.metadata.mainCity))
+            if (digestInfo.metadata.previousInferredCity!=null||
+                digestInfo.metadata.nextInferredCity!=null)
+                $("#mainCity").addClass("guessed");
+            else
+                $("#mainCity").removeClass("guessed");
         }
+        $("#visitedCitiesDetails").show();
+        $("#visitedCitiesDetails").off("click");
+        $("#visitedCitiesDetails").on("click", function(){
+            showVisitedCities(digestInfo.metadata);
+        });
     }
 
-    function ephemerisLabel(digestInfo) {
-        var sunriseH = Math.floor(digestInfo.solarInfo.sunrise/60);
-        var sunriseM = digestInfo.solarInfo.sunrise%60;
-        var sunsetH = Math.floor(digestInfo.solarInfo.sunset/60);
-        var sunsetM = digestInfo.solarInfo.sunset%60;
-        if (sunriseM<10) sunriseM = "0" + sunriseM;
-        if (sunsetM<10) sunsetM = "0" + sunsetM;
-        return "<span class=\"ephemeris\"><i class=\"flx-pict-sun\">&nbsp;</i><span>" + sunriseH + ":" + sunriseM + " am"+
-               "</span>&nbsp;<i class=\"flx-pict-moon\">&nbsp;</i><span>" + sunsetH + ":" + sunsetM + " pm</span></span>";
-    }
+    function showVisitedCities(metadata) {
+        var cities = [];
+        for(var i=0; i<metadata.cities.length;i++)
+            cities.push(metadata.cities[i]);
+        var timeUnit = metadata.timeUnit;
+        var mainCity = metadata.mainCity;
+        var cityData = [];
+        if (typeof(metadata.previousInferredCity)!="undefined") {
+            cities.push(metadata.previousInferredCity);
+        }
+        if (typeof(metadata.nextInferredCity)!="undefined") {
+            cities.push(metadata.nextInferredCity);
+        }
+        for (var i=0; i<cities.length; i++) {
+            var cityInfo = {};
+            cityInfo.visitedCityId = cities[i].visitedCityId;
+            cityInfo.count = cities[i].count;
+            cityInfo.isUser = cities[i].source=="USER";
+            cityInfo.source = toPrettySource(cities[i].source);
+            cityInfo.description = cities[i].description;
+            cityInfo.timezone = cities[i].shortTimezone;
+            cityInfo.startMinute = cities[i].startMinute;
+            cityInfo.endMinute = cities[i].endMinute;
+            cityInfo.daysInferred = cities[i].daysInferred;
+            if (cities[i].daysInferred!=0) {
+                var dayOrDays = Math.abs(cities[i].daysInferred)==1?"day":"days";
+                cityInfo.when = (cities[i].daysInferred<0)
+                    ? Math.abs(cities[i].daysInferred) + " " + dayOrDays + " ago"
+                    : cities[i].daysInferred + " " + dayOrDays + " later";
+            }
+            if (timeUnit=="DAY") {
+                var minutes = cities[i].startMinute%60;
+                minutes = minutes<10?"0"+minutes:""+minutes;
+                cityInfo.firstSeenHere = Math.floor(cities[i].startMinute/60)+"h"+minutes;
+                minutes = cities[i].endMinute%60;
+                minutes = minutes<10?"0"+minutes:""+minutes;
+                cityInfo.lastSeenHere = Math.floor(cities[i].endMinute/60)+"h"+minutes;
+            } else {
+                cityInfo.firstSeenHere = cities[i].startTime;
+                cityInfo.lastSeenHere = cities[i].endTime;
+            }
+            cityData[cityData.length] = cityInfo;
+        }
+        for (var i=0; i<cityData.length; i++) {
+            if (cityData[i].startMinute==metadata.mainCity.startMinute&&
+                cityData[i].endMinute==metadata.mainCity.endMinute&&
+                cityData[i].source==toPrettySource(metadata.mainCity.source)&&
+                cityData[i].daysInferred==metadata.mainCity.daysInferred)
+            cityData[i].consensus = true;
+        }
+        var mainCityMessage;
+        var guessed = false;
+        if (metadata.previousInferredCity!=null||metadata.nextInferredCity!=null) {
+            guessed = true;
+            mainCityMessage = "Based on past/future location data, we guessed the you were in <b>" + cityLabel(mainCity) + "</b>";
+        } else if (mainCity.source!="USER")
+            mainCityMessage="We detected that you were in <b>" + cityLabel(mainCity) + "</b>";
+        else
+            mainCityMessage="You have indicated that you were in <b>" + cityLabel(mainCity) + "</b>";
+        switch (timeUnit) {
+            case "DAY":
+                mainCityMessage += " today.<br>";
+                break;
+            case "WEEK":
+                mainCityMessage += " this week.<br>";
+                break;
+            case "MONTH":
+                mainCityMessage += " this month.<br>";
+                break;
+        }
+        var changeMainCityMessage;
+        if (cities.length>0)
+            changeMainCityMessage="You can choose an alternate city in the list below.<br><br>";
 
-    function temperaturesLabel(digestInfo) {
-        if (digestInfo.maxTempC == -10000) {
-            return "";
-        }
-        else if (digestInfo.settings.temperatureUnit != "CELSIUS") {
-            return ephemerisLabel(digestInfo) + "<i class=\"flx-pict-temp\">&nbsp;</i>"
-                       + "<span class=\"ephemeris\" style=\"font-weight:normal;\">&nbsp;"
-                       + digestInfo.minTempF
-                       + " / "
-                       + digestInfo.maxTempF
-                       + "&deg;F"
-                + "</span>";
-        }
         else {
-            return ephemerisLabel(digestInfo) + "<i class=\"flx-pict-temp\">&nbsp;</i>"
-                       + "<span class=\"ephemeris\" style=\"font-weight:normal;\">&nbsp;"
-                       + digestInfo.minTempC
-                       + " / "
-                       + digestInfo.maxTempC
-                       + "&deg;C"
-                + "</span>";
+            changeMainCityMessage="You can change it by entering a city name below.<br><br>";
         }
+
+        App.loadMustacheTemplate("applications/calendar/facetTemplates.html","visitedCities-details",function(template){
+
+            bindCitySearch(template.render(
+                {
+                    cities:cityData,
+                    guessed:guessed,
+                    mainCityMessage:mainCityMessage,
+                    changeMainCityMessage:changeMainCityMessage
+                }), timeUnit);
+
+        });
+    }
+
+    function toPrettySource(source) {
+        source = source.replace(/_/g, ' ');
+        source = source.toLowerCase().replace(/^.|\s\S/g, function(a) { return a.toUpperCase(); });
+        return source;
+    }
+
+    function bindCitySearch(html, timeUnit) {
+        App.makeModal(html);
+
+        $("#mainCitySearch").off("click");
+        $("#mainCitySearch").on("click", function(){
+            var cityName = $("#mainCityInput").val();
+            $("#mainCitySelect").attr("disabled","disabled");
+            $("#mainCitySearch").attr("disabled","disabled");
+            $("#mainCityInput").attr("disabled","disabled");
+            App.geocoder.geocode({"address":cityName},function(results,status){
+                var options = $("#mainCitySelect").children();
+                for (var i = 1; i < options.length; i++)
+                    $(options[i]).remove();
+                if (status == google.maps.GeocoderStatus.OK) {
+                    if (results.length>0) {
+                        $("#selectMainCity").removeClass("disabled");
+                        $("#selectMainCity").addClass("enabled");
+                        $("#selectMainCity").click(function(){
+                            selectMainCity(timeUnit);
+                        });
+                    }
+                    for (var i = 0; i < results.length; i++){
+                        $("#mainCitySelect").append('<option>' + results[i].formatted_address + '</option>')
+                    }
+                    currentCityPool = results;
+                    $("#mainCitySelect")[0].selectedIndex = 1;
+                }
+                else{
+                    $("#mainCitySelect")[0].selectedIndex = 0;
+                    $("#selectMainCity").removeClass("enabled");
+                    $("#selectMainCity").addClass("disabled");
+                    currentCityPool = [];
+                }
+                $("#mainCitySelect").removeAttr("disabled");
+                $("#mainCitySearch").removeAttr("disabled");
+                $("#mainCityInput").removeAttr("disabled");
+            });
+        });
+        $("#mainCityInput").off("keyup");
+        $("#mainCityInput").on("keyup", function(event){
+            event.preventDefault();
+            if (event.keyCode == 13)
+                $("#mainCitySearch").click();
+            else{
+                var options = $("#mainCitySelect").children();
+                for (var i = 1; i < options.length; i++)
+                    $(options[i]).remove();
+                currentCityPool = [];
+            }
+        });
+        $(".selectVisitedCity").click(function(evt){selectVisitedCity(evt);});
+
+    }
+
+    function selectVisitedCity(evt) {
+        var state = App.state.getState("calendar");
+        state = state.substring(state.indexOf("/"));
+        if ($(evt.target).hasClass("undo")) {
+            removeMainVisitedCity("/api/metadata/mainCity"+state);
+        } else {
+            var visitedCityId = evt.target.id.substring("visitedCity-".length);
+            console.log("user selected visitedCity " + visitedCityId);
+            postMainVisitedCity("/api/metadata/mainCity/"+visitedCityId+state);
+        }
+    }
+
+    function selectMainCity(timeUnit) {
+        var selectedIndex = $("#mainCitySelect")[0].selectedIndex-1;
+        var selectedCity = currentCityPool[selectedIndex];
+        if(typeof(selectedCity.geometry)!="undefined"&&
+           typeof(selectedCity.geometry.location)!="undefined"&&
+           typeof(selectedCity.geometry.location.jb)!="undefined") {
+            var latitude = selectedCity.geometry.location.jb;
+            var longitude = selectedCity.geometry.location.kb;
+            var state = App.state.getState("calendar");
+            state = state.substring(state.indexOf("/"));
+            console.log("coords: " + latitude + ", " + longitude + " (" + timeUnit + ")");
+            postMainCity("/api/metadata/mainCity"+state, {"latitude":latitude,"longitude":longitude});
+        } else {
+            console.log("no city (" + timeUnit + ")");
+        }
+    }
+
+
+    function removeMainVisitedCity(url) {
+       $.ajax({
+           url: url,
+           type: "DELETE",
+           success: function(status) {
+               console.log(status);
+               $("#visitedCitiesDialog").modal('hide');
+               App.activeApp.renderState(App.state.getState(App.activeApp.name),true);//force refresh of the current app state
+           }
+       })
+    }
+
+    function postMainCity(url, data) {
+       $.ajax({
+           url: url,
+           type: "POST",
+           data: data,
+           success: function(status) {
+               console.log(status);
+               $("#visitedCitiesDialog").modal('hide');
+               App.activeApp.renderState(App.state.getState(App.activeApp.name),true);//force refresh of the current app state
+           }
+       })
+    }
+
+    function postMainVisitedCity(url) {
+       $.ajax({
+           url: url,
+           type: "POST",
+           success: function(status) {
+               console.log(status);
+               $("#visitedCitiesDialog").modal('hide');
+               App.activeApp.renderState(App.state.getState(App.activeApp.name),true);//force refresh of the current app state
+           }
+       })
     }
 
     function cityLabel(cityInfo) {
-        var s = "";
-        s += cityInfo.name;
-        if (cityInfo.state) s += ", " + cityInfo.state;
-        s += ", " + cityInfo.country;
-        return s;
+       var s = "";
+       s += cityInfo.name;
+       if (cityInfo.country=="US"||cityInfo.country=="USA") s += ", " + cityInfo.state;
+       s += ", " + cityInfo.country + " (" + cityInfo.timezone + ")";
+       return s;
+    }
+
+    function ephemerisLabel() {
+        var sunriseH = Math.floor(Calendar.weather.solarInfo.sunrise/60);
+        var sunriseM = Calendar.weather.solarInfo.sunrise%60;
+        var sunsetH = Math.floor(Calendar.weather.solarInfo.sunset/60);
+        var sunsetM = Calendar.weather.solarInfo.sunset%60;
+        if (sunriseM<10) sunriseM = "0" + sunriseM;
+        if (sunsetM<10) sunsetM = "0" + sunsetM;
+        return "<span class=\"ephemeris\"><span title='Sunrise'><i class=\"flx-pict-sun\">&nbsp;</i><span>" + sunriseH + ":" + sunriseM + " am"+
+               "</span></span>&nbsp;<span title='Sunset'><i class=\"flx-pict-moon\">&nbsp;</i><span>" + sunsetH + ":" + sunsetM + " pm</span></span></span>";
+    }
+
+    function weatherLabel() {
+        function getFahrenheitTemps() {
+            if (Calendar.weather.minTempF==null) return "";
+            var FahrenheitTemps = "<span title='Temperature Min / Max'><i class=\"flx-pict-temp\">&nbsp;</i>"
+                                      + "<span class=\"ephemeris\" style=\"font-weight:normal;\">&nbsp;"
+                                      + Calendar.weather.minTempF
+                                      + " / "
+                                      + Calendar.weather.maxTempF
+                + "&deg;F</span>";
+            return FahrenheitTemps;
+        }
+
+        function getCelsiusTemps() {
+            if (Calendar.weather.minTempC==null) return "";
+            return "<i class=\"flx-pict-temp\">&nbsp;</i>"
+                       + "<span class=\"ephemeris\" style=\"font-weight:normal;\">&nbsp;"
+                       + Calendar.weather.minTempC
+                       + " / "
+                       + Calendar.weather.maxTempC
+                       + "&deg;C"
+                + "</span>";
+        }
+
+        if (Calendar.weather.temperatureUnit != "CELSIUS") {
+            var FahrenheitTemps = getFahrenheitTemps();
+            return ephemerisLabel() + FahrenheitTemps
+                + "</span>";
+        }
+        else {
+            return ephemerisLabel() + getCelsiusTemps();
+        }
     }
 
     Calendar.toState = function(tabName, timeUnit, date) {
@@ -743,6 +1097,89 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         }
         $(viewBtnIds[state.timeUnit]).addClass("active");
     }
+
+    Calendar.commentEdit = function(evt) {
+        var target = $(evt.target);
+        var facetDetails = target.parent().parent();
+        if (facetDetails.find(".facet-comment").length > 0){
+            facetDetails.find(".cancel").click();
+            return;
+        }
+        var id = target.parent().attr("id");
+        var facetType = id.split("::")[0];
+        var facetId = id.split("::")[1];
+        var facet = {};
+        var cachedData = evt.digest.cachedData[facetType];
+        for (var i = 0, li = cachedData.length; i < li; i++){
+            if (cachedData[i].id == facetId){
+                facet = cachedData[i];
+                break;
+            }
+        }
+
+        var hasComment = facet.comment != null;
+        if (hasComment) {
+            facetDetails.find(".facet-comment-text").remove();
+            console.log("commentText: " + facet.comment);
+        }
+        var commentDiv =     '<div class="facet-comment" style="margin-bottom:5px">'+
+                             '<textarea placeholder="type a comment..." rows="3"></textarea>' +
+                             '<button class="btn btn-small save disabled" type="button"><i class="icon icon-save"/> Save</button>&nbsp;' +
+                             '<button class="btn btn-small cancel disabled" type="button"><i class="icon icon-undo"/> Cancel</button>&nbsp;' +
+                             '<button class="btn btn-link delete" type="button"><i class="icon icon-trash"/> Delete</button>' +
+                             '</div>';
+        facetDetails.append(commentDiv);
+        facetDetails.trigger("contentchange");
+        var textarea = facetDetails.find("textarea");
+        if (hasComment) {
+            textarea.val(facet.comment);
+        }
+        var cancelButton = facetDetails.find(".cancel");
+        var saveButton = facetDetails.find(".save");
+        var deleteButton = facetDetails.find(".delete");
+        textarea.focus();
+        var originalComment = textarea.val();
+        textarea.keyup(function(){
+            if (originalComment==textarea.val()) {
+                cancelButton.addClass("disabled");
+                saveButton.addClass("disabled");
+            } else {
+                cancelButton.removeClass("disabled");
+                saveButton.removeClass("disabled");
+            }
+        });
+        saveButton.click(function(event) {
+            event.stopPropagation();
+            $.ajax({
+                url: "/api/comments/" + facetType + "/" + facetId,
+                data: {comment: textarea.val()},
+                type: "POST",
+                success: function() {
+                    facet.comment = textarea.val();
+                    facetDetails.find(".facet-comment").replaceWith('<div class="facet-comment-text">' + facet.comment + '</div>');
+                    facetDetails.trigger("contentchange");
+                }
+            });
+        });
+        cancelButton.click(function(event) {
+            event.stopPropagation();
+            facetDetails.find(".facet-comment").replaceWith('<div class="facet-comment-text">' + originalComment + '</div>');
+            facetDetails.trigger("contentchange");
+        });
+        deleteButton.click(function(event) {
+            event.stopPropagation();
+            $.ajax({
+                url: "/api/comments/" + facetType + "/" + facetId,
+                data: {comment: textarea.val()},
+                type: "DELETE",
+                success: function() {
+                    facetDetails.find(".facet-comment").remove();
+                    facetDetails.trigger("contentchange");
+                    delete facet.comment;
+                }
+            });
+        });
+    };
 
 	return Calendar;
 });

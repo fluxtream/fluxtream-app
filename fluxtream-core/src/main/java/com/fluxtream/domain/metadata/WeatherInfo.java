@@ -14,8 +14,7 @@ import com.fluxtream.domain.AbstractEntity;
 @NamedQueries({
 		@NamedQuery(name = "weather.byDateAndCity.between", query = "SELECT weather FROM WeatherInfo " +
 				"weather WHERE weather.city=? AND " +
-				"weather.fdate=? AND " +
-				"weather.minuteOfDay BETWEEN ? AND ?")
+				"weather.fdate=?")
 })
 public class WeatherInfo extends AbstractEntity implements Comparable<WeatherInfo> {
 

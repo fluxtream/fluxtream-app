@@ -1,39 +1,32 @@
 <template id="carousel">
-    <div class="modal fade" id="modal" style="position: fixed;left: 10%;top: 10%;bottom: 10%;width: auto;margin: 0px;right: 10%;">
-        <div class="modal-header">
-            <h3>&nbsp;<a href="#" class="close" data-dismiss="modal">&times;</a></h3>
+    <div id="photoViewContainer">
+        <a id="closePhotoViewer" href="#">&times;</a>
+        <div class="photoHolder">
+            {{#photos}}
+                <img class="photo photo-{{id}}" src="{{photoUrl}}">
+            {{/photos}}
         </div>
-        <div class="modal-body photoModalBody" style="overflow:hidden;position: absolute;left: 0px;right: 0px;max-height: none;
-bottom: 76px;
-top: 50px">
-            <div class="photoHolder" style="position:fixed; top:-100000px; left:-100000px; opacity:0;">
+        <div id="photosCarousel" class="carousel">
+            <div class="carousel-inner">
                 {{#photos}}
-                    <img class="photo-{{id}}" style="opacity:0; position:fixed;  top:-100000px; left:-100000px;" src="{{photoUrl}}">
+                <div id="photo-{{id}}" class="item{{#active}} active{{/active}}" style="overflow:none">
+                    <img onload="$(window).resize();" fullsize="photo-{{id}}" orientation="{{orientation}}" transformations="{{transformations}}" style="display:inline-block; max-height:100%; transform:{{transformations}}; -ms-transform:{{transformations}}; -webkit-transform:{{transformations}}; -o-transform:{{transformations}}" src="{{photoUrl}}">
+                </div>
                 {{/photos}}
             </div>
-            <div id="photosCarousel" style="height:100%" class="carousel">
-                <div class="carousel-inner" style="height:100%">
-                    {{#photos}}
-                    <div id="photo-{{id}}" style="text-align:center;;" class="item{{#active}} active{{/active}}" style="overflow:none">
-                        <img fullsize="photo-{{id}}" orientation="{{orientation}}" transformations="{{transformations}}" style="display:inline-block; max-height:100%; transform:{{transformations}}; -ms-transform:{{transformations}}; -webkit-transform:{{transformations}}; -o-transform:{{transformations}}" src="{{photoUrl}}">
-                    </div>
-                    {{/photos}}
-                </div>
-                {{#includeNav}}
-                <a class="carousel-control left" href="#photosCarousel" data-slide="prev">&lsaquo;</a>
-                <a class="carousel-control right" href="#photosCarousel" data-slide="next">&rsaquo;</a>
-                {{/includeNav}}
-            </div>
-        </div>
-        <div class="modal-footer" style="position: absolute;bottom: 0;left: 0;right: 0;">
-            <button class="btn" onclick="App.closeModal();">Close</button>
+            {{#includeNav}}
+            <a class="carousel-control left" href="#photosCarousel" data-slide="prev">&lsaquo;</a>
+            <a class="carousel-control right" href="#photosCarousel" data-slide="next">&rsaquo;</a>
+            {{/includeNav}}
         </div>
     </div>
 </template>
 <template id="thumbnailGroup">
-    <hr>
-    <div>
-        {{date}}
+    <div class="dateHeadingGroup">
+        <hr class="priorRuler">
+        <div class="dateHeading placeholder hidden"></div>
+        <div class="dateHeading dateLabel"><a href="javascript:App.renderApp(App.activeApp.name,'{{state}}');">{{date}}, {{city}} ({{timezone}})</a>
+            <hr></div>
     </div>
     <div class='thumbnailGroup'>
         {{#photos}}

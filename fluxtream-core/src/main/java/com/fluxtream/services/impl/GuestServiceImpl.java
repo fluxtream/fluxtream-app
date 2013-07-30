@@ -326,6 +326,7 @@ public class GuestServiceImpl implements GuestService {
         em.flush();
         JPAUtils.execute(em, "context.delete.all", guest.getId());
         em.flush();
+        JPAUtils.execute(em, "updateWorkerTasks.delete.all", guest.getId());
         JPAUtils.execute(em, "tags.delete.all", guest.getId());
         em.flush();
         JPAUtils.execute(em, "notifications.delete.all", guest.getId());
@@ -460,6 +461,10 @@ public class GuestServiceImpl implements GuestService {
         locationFacet.start = time;
         locationFacet.end = time;
         locationFacet.guestId = guestId;
+
+        // Set both api and apiKeyId fields to zero since this location is not coming from a connector
+        locationFacet.api = 0;
+        locationFacet.apiKeyId = 0L;
 
         Location ipLocation = null;
         try {

@@ -8,7 +8,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.auth.AuthHelper;
-import com.fluxtream.domain.metadata.DayMetadataFacet;
+import com.fluxtream.metadata.DayMetadata;
 import com.fluxtream.mvc.models.TimeZoneMappingModel;
 import com.fluxtream.mvc.models.TimeZoneSegmentModel;
 import com.fluxtream.services.MetadataService;
@@ -33,12 +33,12 @@ public class TimeZoneStore {
     public String getTimeZoneMapping(){
         TimeZoneMappingModel timeZoneMapping = new TimeZoneMappingModel();
         timeZoneMapping.timeZones = new ArrayList<TimeZoneSegmentModel>();
-        List<DayMetadataFacet> metaData = metadataService.getAllDayMetadata(AuthHelper.getGuestId());
-        for (DayMetadataFacet dayMetadata  : metaData){
+        List<DayMetadata> metaData = metadataService.getAllDayMetadata(AuthHelper.getGuestId());
+        for (DayMetadata dayMetadata  : metaData){
             TimeZoneSegmentModel curTimeZone;
-            if (timeZoneMapping.timeZones.size() == 0 || !timeZoneMapping.timeZones.get(timeZoneMapping.timeZones.size() - 1).name.equals(dayMetadata.timeZone)){
+            if (timeZoneMapping.timeZones.size() == 0 || !timeZoneMapping.timeZones.get(timeZoneMapping.timeZones.size() - 1).name.equals(dayMetadata.getTimeInterval().getMainTimeZone().getID())){
                 curTimeZone = new TimeZoneSegmentModel();
-                curTimeZone.name = dayMetadata.timeZone;
+                curTimeZone.name = dayMetadata.getTimeInterval().getMainTimeZone().getID();
                 curTimeZone.start = dayMetadata.start;
                 curTimeZone.tz = TimeZone.getTimeZone(curTimeZone.name);
                 curTimeZone.start +=  curTimeZone.tz.getOffset(curTimeZone.start);

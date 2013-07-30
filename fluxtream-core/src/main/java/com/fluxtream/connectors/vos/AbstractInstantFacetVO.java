@@ -1,7 +1,9 @@
 package com.fluxtream.connectors.vos;
 
+import com.fluxtream.OutsideTimeBoundariesException;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.domain.AbstractFacet;
+import com.fluxtream.domain.AbstractLocalTimeFacet;
 import com.fluxtream.domain.GuestSettings;
 
 public abstract class AbstractInstantFacetVO<T extends AbstractFacet> extends
@@ -12,10 +14,14 @@ public abstract class AbstractInstantFacetVO<T extends AbstractFacet> extends
     public TimeOfDayVO startTime;
 
 	@Override
-	public void extractValues(T facet, TimeInterval timeInterval, GuestSettings settings) {
+	public void extractValues(T facet, TimeInterval timeInterval, GuestSettings settings) throws OutsideTimeBoundariesException {
+        if (facet instanceof AbstractLocalTimeFacet) {
+            AbstractLocalTimeFacet ltf = (AbstractLocalTimeFacet) facet;
+            this.start = ltf.start - timeInterval.getTimeZone(ltf.date).getOffset(System.currentTimeMillis());
+        } else
+            this.start = facet.start;
 		super.extractValues(facet, timeInterval, settings);
-		this.start = facet.start;
-        this.startTime = new TimeOfDayVO(startMinute, settings.distanceMeasureUnit == GuestSettings.DistanceMeasureUnit.MILES_YARDS);
+        this.startTime = new TimeOfDayVO(startMinute, true);
     }
 	
 	@Override

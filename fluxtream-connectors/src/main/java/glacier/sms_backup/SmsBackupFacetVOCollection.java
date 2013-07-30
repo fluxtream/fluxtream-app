@@ -3,6 +3,7 @@ package glacier.sms_backup;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fluxtream.OutsideTimeBoundariesException;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.vos.AbstractFacetVOCollection;
 import com.fluxtream.domain.GuestSettings;
@@ -15,7 +16,7 @@ public class SmsBackupFacetVOCollection extends AbstractFacetVOCollection {
 	int secondsTalking;
 	
 	@Override
-	public void extractFacets(List facets, TimeInterval timeInterval, GuestSettings settings) {
+	public void extractFacets(List facets, TimeInterval timeInterval, GuestSettings settings) throws OutsideTimeBoundariesException {
 		this.secondsTalking = 0;
 		this.calls = new ArrayList<CallLogEntryFacetVO>();
 		this.texts = new ArrayList<SmsEntryFacetVO>();

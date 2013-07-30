@@ -70,10 +70,10 @@ public class FlickrPhotoFacetVO extends
                         + "_z.jpg";
 		description = facet.title;
 
-        if (facet.longitude != null && !facet.longitude.equals("") && !(facet.latitude.equals("0") && facet.longitude.equals("0"))){
+        if (facet.longitude!=null && facet.latitude!=null){
             position = new float[2];
-            position[0] = Float.parseFloat(facet.latitude);
-            position[1] = Float.parseFloat(facet.longitude);
+            position[0] = facet.latitude;
+            position[1] = facet.longitude;
         }
 	}
 

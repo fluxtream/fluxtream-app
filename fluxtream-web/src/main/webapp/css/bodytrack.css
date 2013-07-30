@@ -332,7 +332,7 @@
 
 ._timeline_gotozoom {
     width: 202px;
-    height: 70px;
+    height: 40px;
     margin-left: 1px;
     border: 1px solid #CCCCCC;
     background: #BCBCBC;
@@ -357,7 +357,7 @@
 
 ._timeline_dateAxisContainer {
     width: auto;
-    height:70px;
+    height:40px;
     margin: 0 53px 0 0px;
     padding: 0;
     border: 1px solid #CCCCCC;
@@ -366,15 +366,16 @@
 
 ._timeline_dateAxis {
     width: auto;
-    height: 70px;
+    height: 40px;
     z-index: 2;
 }
 
 ._timeline_dateAxisLabelRegion {
     min-width: 400px;
     height: 20px;
-    padding: 0;
-    margin-top: -20px;
+    margin-top:-20px;
+    padding-left: 180px;
+    padding-right: 60px;
     z-index: 1;
 }
 

@@ -27,11 +27,7 @@ public @interface Updater {
 	public Class<? extends AbstractUserProfile> userProfile() default AbstractUserProfile.class;
 	
 	public boolean hasFacets() default true;
-	
-	public String[] additionalParameters() default {};
 
     public String[] defaultChannels() default {};
 
-    public boolean isManageable() default true;
-	
 }

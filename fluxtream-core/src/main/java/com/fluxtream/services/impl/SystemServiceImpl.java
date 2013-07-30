@@ -79,15 +79,16 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
     private void initializeConnectorList() throws Exception {
 		ResourceBundle res = ResourceBundle.getBundle("messages/connectors");
         int order = 0;
-        //final String moves = "Moves";
-        //String[] movesKeys = checkKeysExist(moves, Arrays.asList("moves.client.id", "moves.client.secret", "foursquare.client.id", "foursquare.client.secret"));
-        //final ConnectorInfo movesConnectorInfo = new ConnectorInfo(moves,
-        //                                                           "/images/connectors/connector-moves.jpg",
-        //                                                           res.getString("moves"),
-        //                                                           "/moves/oauth2/token",
-        //                                                           Connector.getConnector("moves"), order++, movesKeys!=null,
-        //                                                           false, true, movesKeys);
-        //em.persist(movesConnectorInfo);
+
+        final String moves = "Moves";
+        String[] movesKeys = checkKeysExist(moves, Arrays.asList("moves.client.id", "moves.client.secret", "foursquare.client.id", "foursquare.client.secret"));
+        final ConnectorInfo movesConnectorInfo = new ConnectorInfo(moves,
+                                                                   "/images/connectors/connector-moves.jpg",
+                                                                   res.getString("moves"),
+                                                                   "/moves/oauth2/token",
+                                                                   Connector.getConnector("moves"), order++, movesKeys!=null,
+                                                                   false, true, movesKeys);
+        em.persist(movesConnectorInfo);
         final String latitude = "Google Latitude";
         String[] latitudeKeys = checkKeysExist(latitude, Arrays.asList("google.client.id", "google.client.secret", "google_latitudeApiKey"));
         final ConnectorInfo latitudeConnectorInfo = new ConnectorInfo(latitude,

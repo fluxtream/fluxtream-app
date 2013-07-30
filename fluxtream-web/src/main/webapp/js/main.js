@@ -32,7 +32,8 @@ if (aggressiveLoading) {
 
     //Applications
     require([
-            "applications/calendar/App"
+            "applications/calendar/App",
+            "applications/bodytrack/App"
     ]);
 
     //calendar tabs
@@ -57,5 +58,25 @@ if (aggressiveLoading) {
         "text!applications/calendar/tabs/list/list.html",
         "text!applications/calendar/tabs/map/map.html",
         "text!applications/calendar/tabs/photos/photos.html"
+    ]);
+
+    //bodytrack tabs
+    require([
+        "applications/bodytrack/tabs/grapher/GrapherTab",
+        "applications/bodytrack/tabs/views/ViewsTab"
+    ]);
+
+    //bodytrack tabs' main templates
+    require([
+        "text!applications/bodytrack/tabs/grapher/grapher.html",
+        "text!applications/bodytrack/tabs/views/views.html"
+    ]);
+
+    //widgets
+    require([
+        "../widgets/averageBloodPressure/averageBloodPressure",
+        "../widgets/averageSteps/averageSteps",
+        "../widgets/averageWeight/averageWeight",
+        "../widgets/grapherWidget/grapherWidget",
     ]);
 }

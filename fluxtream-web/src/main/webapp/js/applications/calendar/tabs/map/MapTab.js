@@ -17,6 +17,8 @@ define(["core/Tab",
         params.setTabParam(null);
         this.getTemplate("text!applications/calendar/tabs/map/map.html", "map", function(){
             if (lastTimestamp == params.digest.generationTimestamp && !params.forceReload){
+                if (App.apps.calendar.dateAxisCursorPosition != null)
+                    map.setCursorPosition(App.apps.calendar.dateAxisCursorPosition);
                 $.doTimeout(250,function(){
                     if (itemToShow != null)
                         map.zoomOnItemAndClick(itemToShow);
@@ -28,7 +30,7 @@ define(["core/Tab",
             }
             else
                 lastTimestamp = params.digest.generationTimestamp;
-            setup(params.digest,params.calendarState,params.connectorEnabled,params.doneLoading);
+            setup(params.digest,params.calendarState,params.connectorEnabled,params.doneLoading,params.digest.tbounds);
         });
         $(window).resize();
     }
@@ -43,22 +45,22 @@ define(["core/Tab",
         }
     });
 
-    function setup(digest, calendarState,connectorEnabled,doneLoading) {
+    function setup(digest, calendarState,connectorEnabled,doneLoading, tbounds) {
         digestData  = digest;
         App.fullHeight();
         $("#mapFit").unbind("click");
 
-        var bounds = null;
-        var addressToUse = {latitude:0,longitude:0};
-        if (digest.addresses.ADDRESS_HOME != null && digest.addresses.ADDRESS_HOME.length != 0)
-            addressToUse = digest.addresses.ADDRESS_HOME[0];
+        var cursorPos = App.apps.calendar.dateAxisCursorPosition;
 
+        var bounds = null;
+
+        var maxTimeBounds = {min:tbounds.start / 1000, max:tbounds.end / 1000};
+        
         if (map == null){//make new map
-            map = MapUtils.newMap(new google.maps.LatLng(addressToUse.latitude,addressToUse.longitude),16,"the_map",false);
+            map = MapUtils.newMap(new google.maps.LatLng(digest.metadata.mainCity.latitude,digest.metadata.mainCity.longitude),14,"the_map",false,maxTimeBounds);
             map.infoWindowShown = function(){
                 $("#the_map").find(".flx-photo").click(function(event){
-                    App.makeModal(photoCarouselHTML);
-                    App.carousel($(event.delegateTarget).attr("photoId"));
+                    PhotoUtils.showCarouselHTML(photoCarouselHTML,$(event.delegateTarget).attr("photoId"));
                 });
             }
         }
@@ -67,28 +69,37 @@ define(["core/Tab",
                 bounds = map.getBounds();
             }
             map.reset();
+            map.setMaxTimeBounds(maxTimeBounds);
         }
+        map.setDigest(digest);
         $("#mapFit").click(function(){
             map.fitBounds(map.gpsBounds);
         });
 
-        showData(connectorEnabled,bounds,function(bounds){
-            if (bounds != null){
-                map.fitBounds(bounds,map.isPreserveViewChecked());
-            }
-            else{
-                map.setCenter(new google.maps.LatLng(addressToUse.latitude,addressToUse.longitude));
-                map.setZoom(16);
-            }
-            map.preserveViewCheckboxChanged = function(){
-                preserveView = map.isPreserveViewChecked();
-            }
-            if (itemToShow != null){
-                map.zoomOnItemAndClick(itemToShow);
-            }
-            doneLoading();
+        map.executeAfterReady(function(){
+            showData(connectorEnabled,bounds,function(bounds){
+                if (bounds != null){
+                    map.fitBounds(bounds,map.isPreserveViewChecked());
+                }
+                else{
+                    map.setCenter(new google.maps.LatLng(digest.metadata.mainCity.latitude,digest.metadata.mainCity.longitude));
+                    map.setZoom(14);
+                }
+                map.preserveViewCheckboxChanged = function(){
+                    preserveView = map.isPreserveViewChecked();
+                }
+                if (itemToShow != null){
+                    map.zoomOnItemAndClick(itemToShow);
+                }
 
+                if (cursorPos != null)
+                    map.setCursorPosition(cursorPos);
+
+                doneLoading();
+
+            });
         });
+
 
         photoCarouselHTML = PhotoUtils.getCarouselHTML(digest);
 
@@ -96,10 +107,6 @@ define(["core/Tab",
 	}
 
     function showData(connectorEnabled,bounds,doneLoading){
-        if (!map.isFullyInitialized()){
-            $.doTimeout(100,function(){showData(connectorEnabled,bounds,doneLoading)});
-            return;
-        }
         var digest = digestData;
         if (digest!=null && digest.cachedData!=null &&
             typeof(digest.cachedData["google_latitude-location"])!="undefined"

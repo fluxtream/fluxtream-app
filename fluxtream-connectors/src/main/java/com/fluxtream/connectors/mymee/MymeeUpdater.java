@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Set;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.annotations.Updater;
+import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
@@ -15,6 +16,7 @@ import com.fluxtream.domain.Tag;
 import com.fluxtream.services.ApiDataService.FacetModifier;
 import com.fluxtream.services.ApiDataService.FacetQuery;
 import com.fluxtream.services.GuestService;
+import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.impl.BodyTrackHelper;
 import com.fluxtream.utils.HttpUtils;
 import com.fluxtream.utils.Utils;
@@ -49,6 +51,10 @@ public class MymeeUpdater extends AbstractUpdater {
     @Autowired
     BodyTrackHelper bodytrackHelper;
 
+    @Autowired
+    MetadataService metadataService;
+
+
     final String lollipopStyle = "{\"styles\":[{\"type\":\"line\",\"show\":false,\"lineWidth\":1}," +
                                  "{\"radius\":0,\"fill\":false,\"type\":\"lollipop\",\"show\":true,\"lineWidth\":1}," +
                                  "{\"radius\":2,\"fill\":true,\"type\":\"point\",\"show\":true,\"lineWidth\":1}," +
@@ -62,12 +68,11 @@ public class MymeeUpdater extends AbstractUpdater {
         super();
     }
 
-    // TODO: This load into both the database and datastore.  We should make the caller no longer
-    // load into the datastore.
     @Override
     protected void updateConnectorDataHistory(final UpdateInfo updateInfo) throws Exception {
         // Reset last_seq so that incremental update will pull everything
         guestService.setApiKeyAttribute(updateInfo.apiKey, "last_seq","0");
+        // Flush all of the facets for this connector to the datastore
         updateConnectorData(updateInfo);
     }
 
@@ -109,7 +114,7 @@ public class MymeeUpdater extends AbstractUpdater {
                 break;
             }
 
-            logger.info("MymeeUpdater got changes: " + changes.toString());
+            //logger.info("MymeeUpdater got changes: " + changes.toString());
 
             // Loop over changes
             List<AbstractFacet> newFacets = new ArrayList<AbstractFacet>();
@@ -163,8 +168,8 @@ public class MymeeUpdater extends AbstractUpdater {
             MymeeObservationFacet ret = (MymeeObservationFacet)
                     apiDataService.createOrReadModifyWrite(MymeeObservationFacet.class,
                                                            new FacetQuery(
-                                                                   "e.guestId = ? AND e.mymeeId = ?",
-                                                                   updateInfo.getGuestId(),
+                                                                   "e.apiKeyId = ? AND e.mymeeId = ?",
+                                                                   updateInfo.apiKey.getId(),
                                                                    mymeeId),
                                                            new FacetModifier<MymeeObservationFacet>() {
                         // Throw exception if it turns out we can't make sense of the observation's JSON
@@ -221,6 +226,22 @@ public class MymeeUpdater extends AbstractUpdater {
                                 JSONArray locArray = observation.getJSONArray("loc");
                                 facet.longitude = locArray.getDouble(0);
                                 facet.latitude = locArray.getDouble(1);
+
+                                if(facet.longitude!=null && facet.latitude!=null) {
+                                    // Create a location for updating visited cities list
+                                    LocationFacet locationFacet = new LocationFacet(updateInfo.apiKey.getId());
+                                    locationFacet.guestId = updateInfo.getGuestId();
+                                    locationFacet.source = LocationFacet.Source.MYMEE;
+                                    locationFacet.api = updateInfo.apiKey.getConnector().value();
+                                    locationFacet.start = locationFacet.end = locationFacet.timestampMs = facet.start;
+                                    locationFacet.latitude = facet.latitude.floatValue();
+                                    locationFacet.longitude = facet.longitude.floatValue();
+
+                                     // Process the location facet into visited cities
+                                    List<LocationFacet> locationFacets = new ArrayList<LocationFacet>();
+                                    locationFacets.add(locationFacet);
+                                    metadataService.updateLocationMetadata(updateInfo.getGuestId(), locationFacets);
+                                }
                             } catch (Throwable ignored) {
                                 facet.longitude = facet.latitude = null;
                             }

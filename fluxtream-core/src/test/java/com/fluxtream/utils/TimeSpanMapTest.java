@@ -29,27 +29,27 @@ public class TimeSpanMapTest {
         //assertTrue(segmentMap.size()==1);
         //
         //// let's add a first datapoint
-        //segmentMap.add(new TimespanSegment<TimeZone>("2013-05-21T16:44:00+01:00", "2013-05-21T16:44:00+01:00", TimeZone.getTimeZone("Europe/Brussels")));
+        //segmentMap.add(new TimespanSegment<TimeZone>("2013-05-21T16:44:00+01:00", "2013-05-21T16:44:00+01:00", TimeZone.getMainTimeZone("Europe/Brussels")));
         //assertTrue(segmentMap.size() == 3);
         //
         //// let's add a second one in a different timezone
-        //segmentMap.add(new TimespanSegment<TimeZone>("2013-05-11T12:04:00Z", "2013-05-11T12:04:00Z", TimeZone.getTimeZone("Europe/London")));
+        //segmentMap.add(new TimespanSegment<TimeZone>("2013-05-11T12:04:00Z", "2013-05-11T12:04:00Z", TimeZone.getMainTimeZone("Europe/London")));
         //assertTrue(segmentMap.size() == 5);
         //
         //// now add another datapoint that should be coalesced with the previous one
         //// note that the timezone is not the same city, but they are equivalent in terms of offset
-        //segmentMap.add(new TimespanSegment<TimeZone>("2013-05-11T20:04:00Z", "2013-05-11T20:04:00Z", TimeZone.getTimeZone("Europe/Dublin")));
+        //segmentMap.add(new TimespanSegment<TimeZone>("2013-05-11T20:04:00Z", "2013-05-11T20:04:00Z", TimeZone.getMainTimeZone("Europe/Dublin")));
         //final TimespanSegment<TimeZone> secondSegment = get(segmentMap, 1);
         //assertTrue(segmentMap.size() == 5);
         //assertTrue(secondSegment.duration()==8*3600000);
         //
         //// the next datapoint should not be coalesced
-        //segmentMap.add(new TimespanSegment<TimeZone>("2013-05-12T14:04:00Z", "2013-05-12T14:04:00Z", TimeZone.getTimeZone("Europe/Dublin")));
+        //segmentMap.add(new TimespanSegment<TimeZone>("2013-05-12T14:04:00Z", "2013-05-12T14:04:00Z", TimeZone.getMainTimeZone("Europe/Dublin")));
         //assertTrue(segmentMap.size() == 7);
         //assertTrue(secondSegment.duration() == 2 * 3600000);
         //
         //// let's now add a "real" timespan (not just a datapoint) that should coalesce everything so far in the Dublin/London timezone
-        //segmentMap.add(new TimespanSegment<TimeZone>("2013-05-11T13:33:00Z", "2013-05-12T06:04:00Z", TimeZone.getTimeZone("Europe/Dublin")));
+        //segmentMap.add(new TimespanSegment<TimeZone>("2013-05-11T13:33:00Z", "2013-05-12T06:04:00Z", TimeZone.getMainTimeZone("Europe/Dublin")));
         //assertTrue(segmentMap.size() == 5);
         //final TimespanSegment<TimeZone> firstSegment = get(segmentMap, 1);
         //assertTrue(firstSegment.duration() == 26 * 3600000);
@@ -61,9 +61,9 @@ public class TimeSpanMapTest {
         //assertTrue(segmentMap.size()==1);
         //
         ////add a few segments that should coalesce
-        //segmentMap.add(new TimespanSegment<TimeZone>("2013-05-11T10:00:00Z", "2013-05-11T11:00:00Z", TimeZone.getTimeZone("Europe/Brussels")));
-        //segmentMap.add(new TimespanSegment<TimeZone>("2013-05-11T12:00:00Z", "2013-05-11T13:00:00Z", TimeZone.getTimeZone("Europe/Brussels")));
-        //segmentMap.add(new TimespanSegment<TimeZone>("2013-05-11T14:00:00Z", "2013-05-11T15:00:00Z", TimeZone.getTimeZone("Europe/Brussels")));
+        //segmentMap.add(new TimespanSegment<TimeZone>("2013-05-11T10:00:00Z", "2013-05-11T11:00:00Z", TimeZone.getMainTimeZone("Europe/Brussels")));
+        //segmentMap.add(new TimespanSegment<TimeZone>("2013-05-11T12:00:00Z", "2013-05-11T13:00:00Z", TimeZone.getMainTimeZone("Europe/Brussels")));
+        //segmentMap.add(new TimespanSegment<TimeZone>("2013-05-11T14:00:00Z", "2013-05-11T15:00:00Z", TimeZone.getMainTimeZone("Europe/Brussels")));
         //
         //assertTrue(segmentMap.size()==3);
     }
@@ -74,9 +74,9 @@ public class TimeSpanMapTest {
         //assertTrue(segmentMap.size()==1);
         //
         ////add a few segments that shouldn't coalesce
-        //segmentMap.add(new TimespanSegment<TimeZone>("2013-05-11T10:00:00Z", "2013-05-11T11:00:00Z", TimeZone.getTimeZone("Europe/Brussels")));
-        //segmentMap.add(new TimespanSegment<TimeZone>("2013-05-12T10:00:00Z", "2013-05-12T11:00:00Z", TimeZone.getTimeZone("Europe/Brussels")));
-        //segmentMap.add(new TimespanSegment<TimeZone>("2013-05-13T10:00:00Z", "2013-05-13T11:00:00Z", TimeZone.getTimeZone("Europe/Brussels")));
+        //segmentMap.add(new TimespanSegment<TimeZone>("2013-05-11T10:00:00Z", "2013-05-11T11:00:00Z", TimeZone.getMainTimeZone("Europe/Brussels")));
+        //segmentMap.add(new TimespanSegment<TimeZone>("2013-05-12T10:00:00Z", "2013-05-12T11:00:00Z", TimeZone.getMainTimeZone("Europe/Brussels")));
+        //segmentMap.add(new TimespanSegment<TimeZone>("2013-05-13T10:00:00Z", "2013-05-13T11:00:00Z", TimeZone.getMainTimeZone("Europe/Brussels")));
         //
         //assertTrue(segmentMap.size()==7);
     }
@@ -87,11 +87,11 @@ public class TimeSpanMapTest {
         //assertTrue(segmentMap.size()==1);
         //
         ////add a few segments that shouldn't coalesce
-        //segmentMap.add(new TimespanSegment<TimeZone>("2013-05-11T10:00:00Z", "2013-05-11T11:00:00Z", TimeZone.getTimeZone("Europe/Brussels")));
-        //segmentMap.add(new TimespanSegment<TimeZone>("2013-05-12T10:00:00Z", "2013-05-12T11:00:00Z", TimeZone.getTimeZone("Europe/Brussels")));
-        //segmentMap.add(new TimespanSegment<TimeZone>("2013-05-13T10:00:00Z", "2013-05-13T11:00:00Z", TimeZone.getTimeZone("Europe/Brussels")));
+        //segmentMap.add(new TimespanSegment<TimeZone>("2013-05-11T10:00:00Z", "2013-05-11T11:00:00Z", TimeZone.getMainTimeZone("Europe/Brussels")));
+        //segmentMap.add(new TimespanSegment<TimeZone>("2013-05-12T10:00:00Z", "2013-05-12T11:00:00Z", TimeZone.getMainTimeZone("Europe/Brussels")));
+        //segmentMap.add(new TimespanSegment<TimeZone>("2013-05-13T10:00:00Z", "2013-05-13T11:00:00Z", TimeZone.getMainTimeZone("Europe/Brussels")));
         //
-        //segmentMap.add(new TimespanSegment<TimeZone>("2013-05-11T10:30:00Z", "2013-05-13T11:30:00Z", TimeZone.getTimeZone("Europe/London")));
+        //segmentMap.add(new TimespanSegment<TimeZone>("2013-05-11T10:30:00Z", "2013-05-13T11:30:00Z", TimeZone.getMainTimeZone("Europe/London")));
         //
         //assertTrue(segmentMap.size()==5);
         //final TimespanSegment<TimeZone> segment1 = get(segmentMap, 1);

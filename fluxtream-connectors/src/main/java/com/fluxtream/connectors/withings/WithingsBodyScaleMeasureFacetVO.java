@@ -3,6 +3,7 @@ package com.fluxtream.connectors.withings;
 import java.io.Serializable;
 import java.util.Date;
 
+import com.fluxtream.OutsideTimeBoundariesException;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.vos.AbstractInstantFacetVO;
 import com.fluxtream.domain.GuestSettings;
@@ -29,13 +30,12 @@ public class WithingsBodyScaleMeasureFacetVO extends
 	
 	@Override
 	public void fromFacet(WithingsBodyScaleMeasureFacet facet,
-			TimeInterval timeInterval, GuestSettings settings) {
-		long elapsed = timeInterval.start
-				- TimeUtils.fromMidnight(facet.measureTime,
-						timeInterval.timeZone);
+			TimeInterval timeInterval, GuestSettings settings) throws OutsideTimeBoundariesException {
+        this.start = facet.start;
+		long elapsed = timeInterval.getStart()
+				- TimeUtils.fromMidnight(facet.measureTime, timeInterval.getTimeZone(facet.measureTime));
 		daysAgo = (int) (elapsed / (24 * 3600000));
-		this.startMinute = toMinuteOfDay(new Date(facet.measureTime),
-				timeInterval.timeZone);
+		this.startMinute = toMinuteOfDay(new Date(facet.measureTime), timeInterval.getTimeZone(facet.measureTime));
 		format(facet.weight, settings.weightMeasureUnit);
 		this.description = new StringBuffer().append(weight).append(" ")
 				.append(unitLabel).toString();

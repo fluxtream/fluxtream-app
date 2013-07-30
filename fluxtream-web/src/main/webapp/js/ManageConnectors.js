@@ -73,6 +73,10 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
                     var formatted = App.formatDate(data[member],true);
                     if (formatted == "Present")
                         formatted = member == "lastSync" ? "Never" : "No Data";
+                    else if (member == "latestData"){
+                        var state = App.apps.calendar.toState("clock","date",new Date(data[member]));
+                        params.latestDataCalendarState = state.tabName + "/" + state.tabState;
+                    }
                     params[member] = formatted;
                     break;
             }
@@ -97,6 +101,18 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
             }
             else{
                 App.makeModal(html);
+                $("#modal .modal-body").scroll(function(event){
+                    var scrollTop = $("#modal .modal-body").scrollTop();
+                    $("#modal .modal-body .topHeader").width($("#modal .modal-body table").width())
+                    if (scrollTop < 48){
+                        $("#modal .modal-body .topHeader").removeClass("floating");
+                        $("#modal .modal-body .placeholder").addClass("hidden");
+                    }
+                    else{
+                        $("#modal .modal-body .topHeader").addClass("floating");
+                        $("#modal .modal-body .placeholder").removeClass("hidden");
+                    }
+                });
             }
             bindDialog();
         });

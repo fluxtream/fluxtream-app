@@ -2,11 +2,12 @@ package com.fluxtream.connectors.flickr;
 
 import javax.persistence.Entity;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
+import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.domain.AbstractLocalTimeFacet;
 import org.hibernate.search.annotations.Indexed;
 
 @Entity(name="Facet_FlickrPhoto")
-@ObjectTypeSpec(name = "photo", value = 1, isImageType=true, prettyname = "Photos", isDateBased = true)
+@ObjectTypeSpec(name = "photo", value = 1, isImageType=true, prettyname = "Photos", isDateBased = true, locationFacetSource = LocationFacet.Source.FLICKR)
 @Indexed
 public class FlickrPhotoFacet extends AbstractLocalTimeFacet {
 
@@ -21,8 +22,8 @@ public class FlickrPhotoFacet extends AbstractLocalTimeFacet {
 	public boolean isfamily;
 	public long datetaken;
 	public long dateupload;
-	public String latitude;
-	public String longitude;
+	public Float latitude;
+	public Float longitude;
 	public int accuracy;
 
     public FlickrPhotoFacet() {super();}
