@@ -28,7 +28,7 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
 
     @Override
     protected void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception {
-        loadHistory(updateInfo, 0);
+        loadHistory(updateInfo, -1);
     }
 
     @Override
@@ -60,12 +60,8 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
         do {
             final Calendar.Events.List eventsApiCall = calendar.events().list(calendarId);
             eventsApiCall.setPageToken(pageToken);
-            if (from==0) {
-                eventsApiCall.setTimeMin(new DateTime(from));
-                eventsApiCall.setTimeMax(new DateTime(System.currentTimeMillis()));
-            } else {
+            if (from!=-1)
                 eventsApiCall.setUpdatedMin(new DateTime(from));
-            }
             final Events events = eventsApiCall.execute();
             final List<Event> eventList = events.getItems();
             storeEvents(updateInfo, calendarId, eventList);

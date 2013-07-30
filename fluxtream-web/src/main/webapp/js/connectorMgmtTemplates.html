@@ -314,6 +314,12 @@
 </template>
 <template id="google_calendar-settings">
     <div style="height:300px">
-        These are the google calendar settings
+        <form action="javascript:void(0);">
+        {{#settings}}{{#calendars}}
+        <label class="checkbox">
+            <div class="bullet" style="margin-right:30px; background-color:{{backgroundColor}}"/><input type="checkbox" {{^hidden}}checked=checked{{/hidden}}  value="{{id}}"> {{summary}}
+        </label>
+        {{/calendars}}{{/settings}}
+        </form>
     </div>
 </template>
