@@ -725,6 +725,7 @@ define(
         function carousel(photoId) {
             $(".carousel-inner div.item").removeClass("active");
             $(".carousel-inner #photo-"+photoId).addClass("active");
+            $('.carousel').carousel();
             $("#modal").modal("show");
             $(window).resize();
         }
