@@ -120,12 +120,11 @@ public class GoogleCalendarEventFacet extends AbstractFacet {
 
     public void setAttendees(final List<EventAttendee> attendees) {
         if (attendees==null) return;
-        StringBuilder sb = new StringBuilder("[");
+        StringBuilder sb = new StringBuilder();
         for (EventAttendee attendee : attendees) {
-            if (sb.length()>1) sb.append(",");
+            if (sb.length()>0) sb.append("|");
             sb.append(attendee.toString());
         }
-        sb.append("]");
         attendeesStorage = sb.toString();
     }
 
@@ -143,7 +142,7 @@ public class GoogleCalendarEventFacet extends AbstractFacet {
         if (recurrence!=null&&recurrence.size()>0) {
             StringBuilder sb = new StringBuilder();
             for (String s : recurrence) {
-                if (sb.length()>0) sb.append(",");
+                if (sb.length()>0) sb.append("|");
                 sb.append(s);
             }
             this.recurrence = sb.toString();
