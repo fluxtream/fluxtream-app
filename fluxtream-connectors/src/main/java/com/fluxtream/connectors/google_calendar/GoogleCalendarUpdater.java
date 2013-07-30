@@ -111,6 +111,11 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
                 facet.status = event.getStatus();
                 facet.timeUpdated = System.currentTimeMillis();
                 facet.calendarId = calendarId;
+                facet.transparency = event.getTransparency();
+                facet.visibility = event.getVisibility();
+                facet.setRecurrence(event.getRecurrence());
+                facet.recurringEventId = event.getRecurringEventId();
+                facet.sequence = event.getSequence();
                 return facet;
             }
         };

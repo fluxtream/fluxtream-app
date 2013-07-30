@@ -9,6 +9,7 @@ import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventAttendee;
 import com.google.api.services.calendar.model.EventDateTime;
+import com.google.gson.Gson;
 import org.hibernate.annotations.Index;
 
 /**
@@ -48,15 +49,24 @@ public class GoogleCalendarEventFacet extends AbstractFacet {
     public long originalStartTime;
     public long created;
     @Lob
-    public String attendees;
+    public String creatorStorage;
     @Lob
-    public String creator;
-    @Lob
-    public String organizer;
-    public boolean isAllDay;
+    public String organizerStorage;
     public int startTimezoneShift;
     public int endTimezoneShift;
     public String calendarId;
+
+    public String transparency;
+    public String visibility;
+    public Integer sequence;
+
+    @Lob
+    public String attendeesStorage;
+
+    @Lob
+    public String recurrence;
+
+    static Gson gson;
 
     public GoogleCalendarEventFacet() {super();}
 
@@ -64,6 +74,7 @@ public class GoogleCalendarEventFacet extends AbstractFacet {
         super(apiKeyId);
     }
 
+    public String recurringEventId;
 
     @Override
     protected void makeFullTextIndexable() {
@@ -76,7 +87,6 @@ public class GoogleCalendarEventFacet extends AbstractFacet {
                 this.start = start.getDateTime().getValue();
                 this.startTimezoneShift = start.getDateTime().getTimeZoneShift();
             } else if (start.getDate()!=null) {
-                isAllDay = true;
                 this.start = start.getDate().getValue();
                 this.startTimezoneShift = start.getDate().getTimeZoneShift();
             }
@@ -98,7 +108,7 @@ public class GoogleCalendarEventFacet extends AbstractFacet {
     public void setOriginalStartTime(final EventDateTime originalStartTime) {
         if (originalStartTime!=null) {
             this.originalStartTime = originalStartTime.getDateTime().getValue();
-            this.start = this.originalStartTime;
+            this.start = originalStartTime.getDateTime().getValue();
         }
     }
 
@@ -108,56 +118,34 @@ public class GoogleCalendarEventFacet extends AbstractFacet {
     }
 
     public void setAttendees(final List<EventAttendee> attendees) {
-        if (attendees==null)
-            return;
-        StringBuilder sb = new StringBuilder();
+        if (attendees==null) return;
+        StringBuilder sb = new StringBuilder("[");
         for (EventAttendee attendee : attendees) {
-            if (sb.length()>0) sb.append(", ");
-            sb.append(getAttendeeString(attendee));
+            if (sb.length()>1) sb.append(",");
+            sb.append(attendee.toString());
         }
-        this.attendees = sb.toString();
-    }
-
-    private String getAttendeeString(final EventAttendee attendee) {
-        StringBuilder sb = new StringBuilder();
-        if (attendee.getDisplayName()!=null)
-            sb.append(attendee.getDisplayName());
-        if (attendee.getEmail()!=null) {
-            if (sb.length()>0)
-                sb.append(" <").append(attendee.getEmail()).append(">");
-            else
-                sb.append(attendee.getEmail());
-        }
-        return sb.toString();
+        sb.append("]");
+        attendeesStorage = sb.toString();
     }
 
     public void setCreator(final Event.Creator creator) {
-        if (creator!=null) {
-            StringBuilder sb = new StringBuilder();
-            if (creator.getDisplayName()!=null)
-                sb.append(creator.getDisplayName());
-            if (creator.getEmail()!=null) {
-                if (sb.length()>0)
-                    sb.append(" <").append(creator.getEmail()).append(">");
-                else
-                    sb.append(creator.getEmail());
-            }
-            this.creator = sb.toString();
-        }
+        if (creator!=null)
+            this.creatorStorage = creator.toString();
     }
 
     public void setOrganizer(final Event.Organizer organizer) {
-        if (organizer!=null) {
+        if (organizer!=null)
+            organizerStorage = organizer.toString();
+    }
+
+    public void setRecurrence(final List<String> recurrence) {
+        if (recurrence!=null&&recurrence.size()>0) {
             StringBuilder sb = new StringBuilder();
-            if (organizer.getDisplayName()!=null)
-                sb.append(organizer.getDisplayName());
-            if (organizer.getEmail()!=null) {
-                if (sb.length()>0)
-                    sb.append(" <").append(organizer.getEmail()).append(">");
-                else
-                    sb.append(organizer.getEmail());
+            for (String s : recurrence) {
+                if (sb.length()>0) sb.append(",");
+                sb.append(s);
             }
-            this.organizer = sb.toString();
+            this.recurrence = sb.toString();
         }
     }
 }
