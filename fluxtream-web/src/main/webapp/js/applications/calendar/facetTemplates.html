@@ -350,7 +350,13 @@
             <div class="facetDetails {{type}}-{{id}}">
                 <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
-                <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
+                <div class="flx-tTime"><div class="dropdown"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} <span class="flx-dataLabel">-</span> {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</a><ul id="menu1" class="dropdown-menu" role="menu" aria-labelledby="drop4">
+                    <li role="presentation"><a class="clockLink" notthide="true" facettype="{{type}}" itemid="{{id}}" role="menuitem" tabindex="-1" href="javascript:void(0)">Show in Clock</a></li>
+                    <li role="presentation"><a class="mapLink" facettype="{{type}}" itemid="{{id}}" role="menuitem" tabindex="-1" href="javascript:void(0)">Show on Map</a></li>
+                    <li role="presentation"><a class="listLink" facettype="{{type}}" itemid="{{id}}" role="menuitem" tabindex="-1" href="javascript:void(0)">Show in List</a></li>
+                    <li role="presentation"><a class="timelineLink"  facettype="{{type}}" itemid="{{id}}" role="menuitem" tabindex="-1" href="javascript:void(0)">Show on Timeline</a></li>
+                    <li role="presentation"><a class="bodytrackLink" facettype="{{type}}" itemid="{{id}}" role="menuitem" tabindex="-1" href="javascript:void(0)">Show in Bodytrack</a></li>
+                </ul></div></div>
                 <div class="flx-data">
                     <strong>{{#MISSED}}Missed{{/MISSED}}{{#OUTGOING}}Outgoing{{/OUTGOING}}{{#INCOMING}}Incoming{{/INCOMING}} call {{#OUTGOING}}to{{/OUTGOING}}{{^OUTGOING}}from{{/OUTGOING}} {{personName}} ({{personNumber}})</strong>
                     {{^MISSED}}
