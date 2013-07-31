@@ -22,8 +22,4 @@ public class SmsEntryFacetVO extends AbstractInstantFacetVO<SmsEntryFacet> {
         this.message = sms.message;
 	}
 
-	protected String getSubtype(SmsEntryFacet sms) {
-		return "sms";
-	}
-
 }

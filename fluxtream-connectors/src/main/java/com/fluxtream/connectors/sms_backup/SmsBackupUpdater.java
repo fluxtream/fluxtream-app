@@ -58,18 +58,20 @@ public class SmsBackupUpdater extends AbstractUpdater {
 		String email = updateInfo.apiKey.getAttributeValue("username", env);
 		String password = updateInfo.apiKey.getAttributeValue("password", env);
 
-        ObjectType smsObjectType = ObjectType.getObjectType(connector(), "sms");
-        if (objectTypes.contains(smsObjectType)) {
-            Date since = getStartDate(updateInfo, smsObjectType);
-            retrieveSmsEntriesSince(updateInfo, email, password, since);
-        }
-
         ObjectType callLogObjectType = ObjectType.getObjectType(connector(),
                                                                 "call_log");
         if (objectTypes.contains(callLogObjectType)) {
             Date since = getStartDate(updateInfo, callLogObjectType);
             retrieveCallLogSinceDate(updateInfo, email, password, since);
         }
+
+        ObjectType smsObjectType = ObjectType.getObjectType(connector(), "sms");
+        if (objectTypes.contains(smsObjectType)) {
+            Date since = getStartDate(updateInfo, smsObjectType);
+            retrieveSmsEntriesSince(updateInfo, email, password, since);
+        }
+
+
 
 
 
