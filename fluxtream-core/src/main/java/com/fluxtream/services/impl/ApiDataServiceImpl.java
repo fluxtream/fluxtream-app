@@ -94,7 +94,6 @@ public class ApiDataServiceImpl implements ApiDataService {
 	public void cacheApiDataObject(UpdateInfo updateInfo, long start, long end,
 			AbstractFacet payload) {
 		payload.api = updateInfo.apiKey.getConnector().value();
-		payload.objectType = updateInfo.objectTypes;
 		payload.guestId = updateInfo.apiKey.getGuestId();
 		payload.timeUpdated = System.currentTimeMillis();
 
