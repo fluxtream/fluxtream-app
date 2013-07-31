@@ -153,10 +153,8 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
 
         $(window).scroll(function(event){
             var beginFloat = $("#calendar-app .nav-tabs").offset().top + $("#calendar-app .nav-tabs").height();
-            if (beginFloat < 0){
-                setTimeout(function(){
-                    $(window).scroll();
-                },100);
+            if (beginFloat <= 0){
+                beginFloat = $(window).height() * 5000;
             }
             var scrollTop = $("body").scrollTop();
             if (scrollTop < beginFloat){
