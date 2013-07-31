@@ -1,4 +1,4 @@
-package glacier.sms_backup;
+package com.fluxtream.connectors.sms_backup;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -12,7 +12,10 @@ import javax.mail.MessagingException;
 import javax.mail.Store;
 import javax.mail.search.SentDateTerm;
 
+import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.Utils;
+import oauth.signpost.OAuthConsumer;
+import org.joda.time.DateTime;
 import org.springframework.stereotype.Component;
 
 import com.fluxtream.connectors.Connector;
@@ -46,27 +49,7 @@ public class SmsBackupUpdater extends AbstractUpdater {
 	protected void updateConnectorDataHistory(UpdateInfo updateInfo)
 			throws RateLimitReachedException, Exception {
 
-		List<ObjectType> objectTypes = updateInfo.objectTypes();
-		String email = updateInfo.apiKey.getAttributeValue("username", env);
-		String password = updateInfo.apiKey.getAttributeValue("password", env);
-
-		ObjectType callLogObjectType = ObjectType.getObjectType(connector(),
-				"call_log");
-		if (objectTypes.contains(callLogObjectType)) {
-			// taking care of resetting the data if things went wrong before
-			if (!connectorUpdateService.isHistoryUpdateCompleted(updateInfo.apiKey,
-					callLogObjectType.value()))
-				apiDataService.eraseApiData(updateInfo.apiKey, callLogObjectType.value());
-			retrieveEntireCallLog(updateInfo, email, password);
-		}
-		ObjectType smsObjectType = ObjectType.getObjectType(connector(), "sms");
-		if (objectTypes.contains(smsObjectType)) {
-			// taking care of resetting the data if things went wrong before
-			if (!connectorUpdateService.isHistoryUpdateCompleted(updateInfo.apiKey,
-					callLogObjectType.value()))
-				apiDataService.eraseApiData(updateInfo.apiKey, smsObjectType.value());
-			retrieveAllSmsEntries(updateInfo, email, password);
-		}
+        updateConnectorData(updateInfo);
 	}
 
 	@Override
@@ -75,23 +58,57 @@ public class SmsBackupUpdater extends AbstractUpdater {
 		String email = updateInfo.apiKey.getAttributeValue("username", env);
 		String password = updateInfo.apiKey.getAttributeValue("password", env);
 
-		ObjectType callLogObjectType = ObjectType.getObjectType(connector(),
-				"call_log");
-		if (objectTypes.contains(callLogObjectType)) {
-			ApiUpdate lastSuccessfulUpdate = connectorUpdateService
-					.getLastSuccessfulUpdate(updateInfo.apiKey, callLogObjectType.value());
-			Date since = new Date(lastSuccessfulUpdate.ts);
-			retrieveCallLogSinceDate(updateInfo, email, password, since);
-		}
+        ObjectType smsObjectType = ObjectType.getObjectType(connector(), "sms");
+        if (objectTypes.contains(smsObjectType)) {
+            Date since = getStartDate(updateInfo, smsObjectType);
+            retrieveSmsEntriesSince(updateInfo, email, password, since);
+        }
 
-		ObjectType smsObjectType = ObjectType.getObjectType(connector(), "sms");
-		if (objectTypes.contains(smsObjectType)) {
-			ApiUpdate lastSuccessfulUpdate = connectorUpdateService
-					.getLastSuccessfulUpdate(updateInfo.apiKey, smsObjectType.value());
-			Date since = new Date(lastSuccessfulUpdate.ts);
-			retrieveSmsEntriesSince(updateInfo, email, password, since);
-		}
+        ObjectType callLogObjectType = ObjectType.getObjectType(connector(),
+                                                                "call_log");
+        if (objectTypes.contains(callLogObjectType)) {
+            Date since = getStartDate(updateInfo, callLogObjectType);
+            retrieveCallLogSinceDate(updateInfo, email, password, since);
+        }
+
+
+
 	}
+
+
+    public Date getStartDate(UpdateInfo updateInfo, ObjectType ot) {
+        ApiKey apiKey = updateInfo.apiKey;
+
+        String updateKeyName = "SMSBackup." + ot.getName() + ".updateStartDate";
+        String updateStartDate = guestService.getApiKeyAttribute(apiKey, updateKeyName);
+
+        if(updateStartDate == null) {
+            updateStartDate = "0";
+
+            guestService.setApiKeyAttribute(updateInfo.apiKey, updateKeyName, updateStartDate);
+        }
+        return new Date(Long.parseLong(updateStartDate));
+    }
+
+    private void updateStartDate(UpdateInfo updateInfo, ObjectType ot, long updateProgressTime){
+
+        // Calculate the name of the key in the ApiAttributes table
+        // where the next start of update for this object type is
+        // stored and retrieve the stored value.  This stored value
+        // may potentially be null if something happened to the attributes table
+        String updateKeyName = "SMSBackup." + ot.getName() + ".updateStartDate";
+        long lastUpdateStart = getStartDate(updateInfo,ot).getTime();
+
+        if (updateProgressTime <= lastUpdateStart) return;
+
+
+        guestService.setApiKeyAttribute(updateInfo.apiKey, updateKeyName, "" + updateProgressTime);
+    }
+
+    private void updateStartDate(UpdateInfo updateInfo, ObjectType ot, Date updateProgressTime){
+        updateStartDate(updateInfo,ot,updateProgressTime.getTime());
+    }
+
 
 	private void flushEntries(UpdateInfo updateInfo,
 			List<? extends AbstractFacet> entries) throws Exception {
@@ -99,6 +116,7 @@ public class SmsBackupUpdater extends AbstractUpdater {
 			if (!isDuplicate(updateInfo.getGuestId(), entry))
 				apiDataService.cacheApiDataObject(updateInfo, -1, -1, entry);
 		}
+
 		entries.clear();
 	}
 
@@ -112,16 +130,16 @@ public class SmsBackupUpdater extends AbstractUpdater {
 	private boolean isDuplicateCallLogEntry(long guestId,
 			CallLogEntryFacet entry) {
 		CallLogEntryFacet found = jpaDaoService.findOne(
-				"sms_backup.call_log.byStartEnd", CallLogEntryFacet.class,
-				guestId, entry.start, entry.end);
-		return found != null;
+				"sms_backup.call_log.byEmailId", CallLogEntryFacet.class,
+				guestId, entry.emailId);
+        return found != null;
 	}
 
 	private boolean isDuplicateSmsEntry(long guestId, SmsEntryFacet entry) {
-		SmsEntryFacet found = jpaDaoService.findOne(
-				"sms_backup.sms.byStartEnd", SmsEntryFacet.class, guestId,
-				entry.start, entry.end);
-		return found != null;
+        SmsEntryFacet found = jpaDaoService.findOne(
+				"sms_backup.sms.byEmailId", SmsEntryFacet.class, guestId,
+				entry.emailId);
+        return found != null;
 	}
 
 	static boolean checkAuthorization(GuestService guestService, Long guestId) {
@@ -155,46 +173,12 @@ public class SmsBackupUpdater extends AbstractUpdater {
 			} catch (Exception e) {
 				stillAlive = false;
 			}
-			;
 			if (stillAlive)
 				return store;
 		}
 		store = MailUtils.getGmailImapStore(email, password);
 		stores.put(email, store);
 		return store;
-	}
-
-	List<SmsEntryFacet> retrieveAllSmsEntries(UpdateInfo updateInfo,
-			String email, String password) throws Exception {
-		long then = System.currentTimeMillis();
-		String query = "(initial sms log retrieval)";
-		ObjectType smsObjectType = ObjectType.getObjectType(connector(), "sms");
-		String smsFolderName = guestService.getApiKeyAttribute(updateInfo.apiKey, "smsFolderName");
-		try {
-			Store store = getStore(email, password);
-			Folder folder = store.getDefaultFolder();
-			if (folder == null)
-				throw new Exception("No default folder");
-			folder = folder.getFolder(smsFolderName);
-			if (folder == null)
-				throw new Exception("No Sms Log");
-			Message[] msgs = getMessagesInFolder(folder);
-			List<SmsEntryFacet> smsLog = new ArrayList<SmsEntryFacet>();
-			for (Message message : msgs) {
-				SmsEntryFacet entry = new SmsEntryFacet(message, email, updateInfo.apiKey.getId());
-				smsLog.add(entry);
-				if (smsLog.size() == 20)
-					flushEntries(updateInfo, smsLog);
-			}
-			flushEntries(updateInfo, smsLog);
-			countSuccessfulApiCall(updateInfo.apiKey,
-					smsObjectType.value(), then, query);
-			return smsLog;
-		} catch (Exception ex) {
-			countFailedApiCall(updateInfo.apiKey, smsObjectType.value(),
-					then, query, Utils.stackTrace(ex));
-			throw ex;
-		}
 	}
 
 	List<SmsEntryFacet> retrieveSmsEntriesSince(UpdateInfo updateInfo,
@@ -214,16 +198,21 @@ public class SmsBackupUpdater extends AbstractUpdater {
 			Message[] msgs = getMessagesInFolderSinceDate(folder, date);
 			List<SmsEntryFacet> smsLog = new ArrayList<SmsEntryFacet>();
 			for (Message message : msgs) {
+                date = message.getReceivedDate();
 				SmsEntryFacet entry = new SmsEntryFacet(message, email, updateInfo.apiKey.getId());
 				smsLog.add(entry);
-				if (smsLog.size() == 20)
+				if (smsLog.size() == 20){
 					flushEntries(updateInfo, smsLog);
+                    updateStartDate(updateInfo,smsObjectType,date);
+                }
 			}
 			flushEntries(updateInfo, smsLog);
+            updateStartDate(updateInfo,smsObjectType,date);
 			countSuccessfulApiCall(updateInfo.apiKey,
 					smsObjectType.value(), then, query);
 			return smsLog;
 		} catch (Exception ex) {
+            ex.printStackTrace();
 			countFailedApiCall(updateInfo.apiKey, smsObjectType.value(),
 					then, query, Utils.stackTrace(ex));
 			throw ex;
@@ -248,16 +237,21 @@ public class SmsBackupUpdater extends AbstractUpdater {
 			Message[] msgs = getMessagesInFolderSinceDate(folder, date);
 			List<CallLogEntryFacet> callLog = new ArrayList<CallLogEntryFacet>();
 			for (Message message : msgs) {
+                date = message.getReceivedDate();
 				CallLogEntryFacet entry = new CallLogEntryFacet(message, updateInfo.apiKey.getId());
 				callLog.add(entry);
-				if (callLog.size() == 20)
+				if (callLog.size() == 20){
 					flushEntries(updateInfo, callLog);
+                    updateStartDate(updateInfo,callLogObjectType,date);
+                }
 			}
 			flushEntries(updateInfo, callLog);
+            updateStartDate(updateInfo,callLogObjectType,date);
 			countSuccessfulApiCall(updateInfo.apiKey,
 					callLogObjectType.value(), then, query);
 			return callLog;
 		} catch (Exception ex) {
+            ex.printStackTrace();
 			countFailedApiCall(updateInfo.apiKey,
 					callLogObjectType.value(), then, query, Utils.stackTrace(ex));
 			throw ex;
@@ -292,40 +286,6 @@ public class SmsBackupUpdater extends AbstractUpdater {
 
 		folder.fetch(msgs, fp);
 		return msgs;
-	}
-
-	List<CallLogEntryFacet> retrieveEntireCallLog(UpdateInfo updateInfo,
-			String email, String password) throws Exception {
-		long then = System.currentTimeMillis();
-		String query = "(initial call log retrieval)";
-		ObjectType callLogObjectType = ObjectType.getObjectType(connector(),
-				"call_log");
-		String callLogFolderName = guestService.getApiKeyAttribute(updateInfo.apiKey, "callLogFolderName");
-		try {
-			Store store = getStore(email, password);
-			Folder folder = store.getDefaultFolder();
-			if (folder == null)
-				throw new Exception("No default folder");
-			folder = folder.getFolder(callLogFolderName);
-			if (folder == null)
-				throw new Exception("No Call Log");
-			Message[] msgs = getMessagesInFolder(folder);
-			List<CallLogEntryFacet> callLog = new ArrayList<CallLogEntryFacet>();
-			for (Message message : msgs) {
-				CallLogEntryFacet entry = new CallLogEntryFacet(message, updateInfo.apiKey.getId());
-				callLog.add(entry);
-				if (callLog.size() == 20)
-					flushEntries(updateInfo, callLog);
-			}
-			flushEntries(updateInfo, callLog);
-			countSuccessfulApiCall(updateInfo.apiKey,
-					callLogObjectType.value(), then, query);
-			return callLog;
-		} catch (Exception ex) {
-			countFailedApiCall(updateInfo.apiKey,
-					callLogObjectType.value(), then, query, Utils.stackTrace(ex));
-			throw ex;
-		}
 	}
 
 }

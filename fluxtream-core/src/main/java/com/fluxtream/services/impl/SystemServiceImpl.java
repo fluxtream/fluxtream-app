@@ -143,7 +143,12 @@ public class SystemServiceImpl implements SystemService {
                                      "/images/connectors/connector-runkeeper.jpg",
                                      res.getString("runkeeper"),
                                      "/runkeeper/token",
-                                     Connector.getConnector("runkeeper"), order, true));
+                                     Connector.getConnector("runkeeper"), order++, true));
+        em.persist(new ConnectorInfo("SMS Backup",
+                                     "/images/connectors/connector-sms_backup.jpg",
+                                     res.getString("sms_backup"),
+                                     "ajax:/smsBackup/enterCredentials",
+                                     Connector.getConnector("sms_backup"), order, true));
 	}
 
     private String singlyAuthorizeUrl(final String service) {

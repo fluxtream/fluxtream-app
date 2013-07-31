@@ -1,4 +1,4 @@
-package glacier.sms_backup;
+package com.fluxtream.connectors.sms_backup;
 
 import javax.mail.MessagingException;
 import javax.mail.Store;

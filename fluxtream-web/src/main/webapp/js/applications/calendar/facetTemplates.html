@@ -84,7 +84,7 @@
                 <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
                 <div class="flx-data">
                     <span style="display:block; float:left; margin:0 10px 0 0">
-                        <img src="{{imgUrl}}" height=42>
+                        <img src="{{imgUrl}}" style="max-height:42px;">
                     </span>
                     <span class="flx-description">{{description}}</span>
                 </div>
@@ -105,7 +105,7 @@
                 <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
                 <div class="flx-data">
                     <span style="display:block; float:left; margin:0 10px 0 0">
-                        <img src="{{imgUrl}}" height=42>
+                        <img src="{{imgUrl}}" style="max-height:42px;">
                     </span>
                     <span class="flx-description">{{description}}</span>
                 </div>
@@ -272,7 +272,7 @@
                 <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
                 <div class="flx-data">
                     <span photoId="{{id}}" class="flx-photo" style="display:block; float:left; margin:0 10px 0 0">
-                        <img src="{{photo42}}" height=42>
+                        <img src="{{photo42}}" style="max-height:42px;">
                     </span>
                     <span class="flx-description">{{description}}</span>
                 </div>
@@ -284,15 +284,18 @@
 </template>
 <template id="sms_backup-call_log">
     <div class="flx-box" style="border-left-color:{{color}}">
-        <span class="flx-deviceIcon sms-call-log"></span>
+        <span class="flx-deviceIcon sms_backup-call_log-{{callType}}"></span>
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
                 <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
-                <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
+                <div class="flx-tTime">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}}{{^MISSED}} <span class="flx-dataLabel">-</span> {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}{{/MISSED}}</div>
                 <div class="flx-data">
-                    <span class="flx-description">{{description}}</span>
+                    <strong>{{#MISSED}}Missed{{/MISSED}}{{#OUTGOING}}Outgoing{{/OUTGOING}}{{#INCOMING}}Incoming{{/INCOMING}} call {{#OUTGOING}}to{{/OUTGOING}}{{^OUTGOING}}from{{/OUTGOING}} {{personName}} ({{personNumber}})</strong>
+                    {{^MISSED}}
+                        <br>Call length: {{secondsTalking}}s
+                    {{/MISSED}}
                 </div>
                 {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
@@ -401,7 +404,7 @@
 </template>
 <template id="sms_backup-sms">
     <div class="flx-box" style="border-left-color:{{color}}">
-        <span class="flx-deviceIcon sms"></span>
+        <span class="flx-deviceIcon sms_backup-sms-{{smsType}}"></span>
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails">
@@ -409,7 +412,8 @@
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
                 <div class="flx-data">
-                    <span class="flx-description">{{description}}</span>
+                    <strong>SMS {{#OUTGOING}}to{{/OUTGOING}}{{#INCOMING}}from{{/INCOMING}} {{personName}} ({{personNumber}})</strong>:<br>
+                    {{message}}
                 </div>
                 {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
@@ -658,7 +662,7 @@
                 <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
                 <div class="flx-data">
                     <span photoId="{{id}}" class="flx-photo" style="display:block; float:left; margin:0 10px 0 0">
-                        <img src="{{photo42}}" height=42>
+                        <img src="{{photo42}}" style="max-height:42px;">
                     </span>
                     <span class="flx-description">{{description}}</span>
                 </div>
