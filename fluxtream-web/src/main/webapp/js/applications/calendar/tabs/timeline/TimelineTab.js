@@ -19,7 +19,10 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
     var targetTime = null;
 
     function render(params) {
-        targetTime = params.tabParam;
+        targetTime = null;
+        if (params.facetToShow != null){
+            targetTime = (params.facetToShow.start + (params.facetToShow.end != null ? params.facetToShow.end : params.facetToShow.start)) / 2
+        }
         if (targetTime == null && Calendar.dateAxisCursorPosition != null)
             targetTime = Calendar.dateAxisCursorPosition * 1000;
         params.setTabParam(null);
