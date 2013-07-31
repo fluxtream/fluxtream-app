@@ -24,7 +24,7 @@ import org.joda.time.format.DateTimeFormatter;
 @Indexed
 @NamedQueries( {
        @NamedQuery( name="visitedCities.byApiDateAndCity",
-                    query="SELECT facet from Facet_VisitedCity facet WHERE facet.apiKeyId=? AND facet.date=? AND facet.city.id=?")
+                    query="SELECT facet from Facet_VisitedCity facet WHERE facet.guestId=? AND facet.apiKeyId=? AND facet.date=? AND facet.city.id=? ")
 })
 public class VisitedCity extends AbstractLocalTimeFacet implements Comparable<VisitedCity>{
 

@@ -658,6 +658,7 @@ public class MetadataServiceImpl implements MetadataService {
     private void storeCityInfo(final LocationFacet locationResource, String date, final City city, final long start, final int count) {
         VisitedCity previousRecord = JPAUtils.findUnique(em, VisitedCity.class,
                                                          "visitedCities.byApiDateAndCity",
+                                                         locationResource.guestId,
                                                          locationResource.apiKeyId,
                                                          date,
                                                          city.geo_id);
