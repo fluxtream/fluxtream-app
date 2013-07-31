@@ -60,8 +60,7 @@ define(["core/Tab",
             map = MapUtils.newMap(new google.maps.LatLng(digest.metadata.mainCity.latitude,digest.metadata.mainCity.longitude),14,"the_map",false,maxTimeBounds);
             map.infoWindowShown = function(){
                 $("#the_map").find(".flx-photo").click(function(event){
-                    App.makeModal(photoCarouselHTML);
-                    App.carousel($(event.delegateTarget).attr("photoId"));
+                    PhotoUtils.showCarouselHTML(photoCarouselHTML,$(event.delegateTarget).attr("photoId"));
                 });
             }
         }

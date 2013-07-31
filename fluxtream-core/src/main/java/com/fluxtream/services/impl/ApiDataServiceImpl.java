@@ -458,7 +458,6 @@ public class ApiDataServiceImpl implements ApiDataService {
         T modified = modifier.createOrModify(orig, apiKeyId);
         // createOrModify must return passed argument if it is not null
         assert(orig == null || orig == modified);
-        assert(false);
         assert (modified != null);
         //System.out.println("====== after modify, contained?: " + em.contains(modified));
         if (orig == null) {

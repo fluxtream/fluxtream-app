@@ -1,4 +1,4 @@
-package glacier.sms_backup;
+package com.fluxtream.connectors.sms_backup;
 
 import java.util.ArrayList;
 import java.util.List;

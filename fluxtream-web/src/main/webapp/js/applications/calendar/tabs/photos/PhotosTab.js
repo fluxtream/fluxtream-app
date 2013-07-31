@@ -136,8 +136,7 @@ define(["core/Tab",
         }
         for (var i = 0; i < data.length; i++){
             $("#photo-" + data[i].id).click({i:data[i].id},function(event){
-                App.makeModal(carouselHTML);
-                App.carousel(event.data.i);
+                PhotoUtils.showCarouselHTML(carouselHTML,event.data.i);
             });
         }
         var groups = $(".thumbnailGroup");
@@ -191,8 +190,9 @@ define(["core/Tab",
             else{
                 placeholder.removeClass("hidden");
                 floater.addClass("floating");
+                floater.css("top",$("#selectedConnectors").height() + "px");
                 if (endFloat != null){
-                    var temp = scrollPosition +  floater.height();
+                    var temp = scrollPosition +  floater.outerHeight();
                     var marginAmount = endFloat - temp;
                     if (marginAmount > 0) marginAmount = 0;
                     floater.css("marginTop",marginAmount + "px");
@@ -206,7 +206,7 @@ define(["core/Tab",
 
     $(window).scroll(function(){
         if ($("#photoTab").parent().hasClass("active"))
-            onScroll($("body").scrollTop() + 41);
+            onScroll($("body").scrollTop() + $("#selectedConnectors").height());
         else
             onScroll(-100);;
     });

@@ -227,8 +227,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
         var photos = $(".flx-photo");
         for (var i = 0; i < photos.length; i++){
             $(photos[i]).click(function(event){
-                App.makeModal(photoCarouselHTML);
-                App.carousel($(event.delegateTarget).attr("photoId"));
+                PhotoUtils.showCarouselHTML(photoCarouselHTML,$(event.delegateTarget).attr("photoId"));
             });
         }
 
@@ -309,8 +308,9 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
             else{
                 placeholder.removeClass("hidden");
                 floater.addClass("floating");
+                floater.css("top",$("#selectedConnectors").height() + "px");
                 if (endFloat != null){
-                    var temp = scrollPosition +  floater.height();
+                    var temp = scrollPosition +  floater.outerHeight();
                     var marginAmount = endFloat - temp;
                     if (marginAmount > 0) marginAmount = 0;
                     floater.css("marginTop",marginAmount + "px");
@@ -324,10 +324,14 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
 
     $(window).scroll(function(){
         if ($("#listTab").parent().hasClass("active"))
-            onScroll($("body").scrollTop() + 41);
+            onScroll($("body").scrollTop() + $("#selectedConnectors").height());
         else
             onScroll(-100);
     });
+
+    /*$(window).resize(function(){
+        $(window).scroll();
+    });*/
 
     listTab.render = render;
     listTab.connectorToggled = connectorToggled;

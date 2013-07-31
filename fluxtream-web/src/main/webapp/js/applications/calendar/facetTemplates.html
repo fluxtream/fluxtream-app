@@ -114,7 +114,7 @@
                 </ul></div></div>
                 <div class="flx-data">
                     <span style="display:block; float:left; margin:0 10px 0 0">
-                        <img src="{{imgUrl}}" height=42>
+                        <img src="{{imgUrl}}" style="max-height:42px;">
                     </span>
                     <span class="flx-description">{{description}}</span>
                 </div>
@@ -141,7 +141,7 @@
                 </ul></div></div>
                 <div class="flx-data">
                     <span style="display:block; float:left; margin:0 10px 0 0">
-                        <img src="{{imgUrl}}" height=42>
+                        <img src="{{imgUrl}}" style="max-height:42px;">
                     </span>
                     <span class="flx-description">{{description}}</span>
                 </div>
@@ -332,7 +332,7 @@
                 </ul></div></div>
                 <div class="flx-data">
                     <span photoId="{{id}}" class="flx-photo" style="display:block; float:left; margin:0 10px 0 0">
-                        <img src="{{photo42}}" height=42>
+                        <img src="{{photo42}}" style="max-height:42px;">
                     </span>
                     <span class="flx-description">{{description}}</span>
                 </div>
@@ -344,21 +344,18 @@
 </template>
 <template id="sms_backup-call_log">
     <div class="flx-box" style="border-left-color:{{color}}">
-        <span class="flx-deviceIcon sms-call-log"></span>
+        <span class="flx-deviceIcon sms_backup-call_log-{{callType}}"></span>
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails {{type}}-{{id}}">
                 <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
-                <div class="flx-tTime"><div class="dropdown"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{time}} <span class="flx-dataLabel">{{ampm}}</span></a><ul id="menu1" class="dropdown-menu" role="menu" aria-labelledby="drop4">
-                    <li role="presentation"><a class="clockLink" notthide="true" facettype="{{type}}" itemid="{{id}}" role="menuitem" tabindex="-1" href="javascript:void(0)">Show in Clock</a></li>
-                    <li role="presentation"><a class="mapLink" facettype="{{type}}" itemid="{{id}}" role="menuitem" tabindex="-1" href="javascript:void(0)">Show on Map</a></li>
-                    <li role="presentation"><a class="listLink" facettype="{{type}}" itemid="{{id}}" role="menuitem" tabindex="-1" href="javascript:void(0)">Show in List</a></li>
-                    <li role="presentation"><a class="timelineLink"  facettype="{{type}}" itemid="{{id}}" role="menuitem" tabindex="-1" href="javascript:void(0)">Show on Timeline</a></li>
-                    <li role="presentation"><a class="bodytrackLink" facettype="{{type}}" itemid="{{id}}" role="menuitem" tabindex="-1" href="javascript:void(0)">Show in Bodytrack</a></li>
-                </ul></div></div>
+                <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
                 <div class="flx-data">
-                    <span class="flx-description">{{description}}</span>
+                    <strong>{{#MISSED}}Missed{{/MISSED}}{{#OUTGOING}}Outgoing{{/OUTGOING}}{{#INCOMING}}Incoming{{/INCOMING}} call {{#OUTGOING}}to{{/OUTGOING}}{{^OUTGOING}}from{{/OUTGOING}} {{personName}} ({{personNumber}})</strong>
+                    {{^MISSED}}
+                        <br>Call length: {{secondsTalking}}s
+                    {{/MISSED}}
                 </div>
                 {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
@@ -467,7 +464,7 @@
 </template>
 <template id="sms_backup-sms">
     <div class="flx-box" style="border-left-color:{{color}}">
-        <span class="flx-deviceIcon sms"></span>
+        <span class="flx-deviceIcon sms_backup-sms-{{smsType}}"></span>
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails {{type}}-{{id}}">
@@ -481,7 +478,8 @@
                     <li role="presentation"><a class="bodytrackLink" facettype="{{type}}" itemid="{{id}}" role="menuitem" tabindex="-1" href="javascript:void(0)">Show in Bodytrack</a></li>
                 </ul></div></div>
                 <div class="flx-data">
-                    <span class="flx-description">{{description}}</span>
+                    <strong>SMS {{#OUTGOING}}to{{/OUTGOING}}{{#INCOMING}}from{{/INCOMING}} {{personName}} ({{personNumber}})</strong>:<br>
+                    {{message}}
                 </div>
                 {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
@@ -790,7 +788,7 @@
                 </ul></div></div>
                 <div class="flx-data">
                     <span photoId="{{id}}" class="flx-photo" style="display:block; float:left; margin:0 10px 0 0">
-                        <img src="{{photo42}}" height=42>
+                        <img src="{{photo42}}" style="max-height:42px;">
                     </span>
                     <span class="flx-description">{{description}}</span>
                 </div>

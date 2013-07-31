@@ -462,6 +462,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         switch (facet1.type){
             case "twitter-dm":
                 return facet1.sent == facet2.sent;
+            case "sms_backup-call_log":
+                return facet1.callType == facet2.callType;
+            case "sms_backup-sms":
+                return facet1.smsType == facet2.smsType;
         }
         return true;
     }
@@ -543,7 +547,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             console.log("WARNING: hey, no template found for " + facets[0].type + ".");
             return "";
         }
-        var params = {color:App.getFacetConfig(facets[0].type).color,facets:[],sent:facets[0].sent};
+        var params = {color:App.getFacetConfig(facets[0].type).color,facets:[],sent:facets[0].sent,callType:facets[0].callType,smsType:facets[0].smsType};
         for (var i = 0; i < facets.length; i++){
             var data = facets[i];
             var newFacet = {};
@@ -613,6 +617,11 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                             params.iconClass = "-activity " + parts[0];
                         }
                         break;
+                    case "smsType":
+                    case "callType":
+                        newFacet[data[member]] = true;
+                        newFacet[member] = data[member];
+                        break;
                     default:
                         newFacet[member] = data[member];
                 }
@@ -658,6 +667,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
         foursquareVenueTemplate = digest.detailsTemplates["foursquare-venue"];
         var details = $(digest.detailsTemplates[data.type].render(params));
+        details.find("img");
         setTimeout(function(){getFoursquareVenues(details,foursquareVenueIds);}, 100);
 
 
