@@ -93,9 +93,10 @@ define([],function(){
             var extraTransformations = "";
             var height, width;
             var marginTop;
+            var forceFullSize = container.find(".carousel-inner").hasClass("fullSizeImages");
             if (isSideways(orientation)){
                 if (ratio < cRatio){
-                    if (cHeight < fullSizeImage.width()){
+                    if (forceFullSize || Height < fullSizeImage.width()){
                         width = cHeight;
                         height = cHeight / ratio;
                     }
@@ -107,7 +108,7 @@ define([],function(){
                 }
                 else{
                     var height, width;
-                    if (cWidth < fullSizeImage.height()){
+                    if (forceFullSize || cWidth < fullSizeImage.height()){
                         width = cWidth * ratio;
                         height = cWidth;
                     }
@@ -124,7 +125,7 @@ define([],function(){
             else{
                 if (ratio < cRatio){
                     var height, width;
-                    if (cHeight < fullSizeImage.height()){
+                    if (forceFullSize || cHeight < fullSizeImage.height()){
                         height = cHeight;
                         width = ratio * cHeight;
                     }
@@ -134,7 +135,7 @@ define([],function(){
                     }
                 }
                 else{
-                    if (cWidth < fullSizeImage.width()){
+                    if (forceFullSize || cWidth < fullSizeImage.width()){
                         height = cWidth / ratio;
                         width = cWidth;
                     }
@@ -215,6 +216,14 @@ define([],function(){
             }
             console.log(event.keyCode);
         }
+
+        widget.find(".carousel-inner img").click(function(){
+            if (widget.find(".carousel-inner").hasClass("fullSizeImages"))
+                widget.find(".carousel-inner").removeClass("fullSizeImages");
+            else
+                widget.find(".carousel-inner").addClass("fullSizeImages");
+            handleResize();
+        });
     }
 
     $(window).resize(function(){
