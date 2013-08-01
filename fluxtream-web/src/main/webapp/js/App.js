@@ -549,6 +549,8 @@ define(
 
         //TODO: this needs to be done better
         App.getFacetCity = function(facet, metadata){
+            if (metadata.timeUnit === "DAY")
+                return metadata.mainCity;
             var cities = metadata.cities;
             var time = (facet.start + (facet.end != null ? facet.end : facet.start)) / 2
             for (var i=0; i<cities.length; i++) {
@@ -556,8 +558,6 @@ define(
                 if ((city.dayStart<=time && time<city.dayEnd) || (city.dayStart<=facet.start && facet.start<city.dayEnd))
                     return city;
             }
-            if ((metadata.mainCity.dayStart<=time && time<metadata.mainCity.dayEnd) || (metadata.mainCity.dayStart<=facet.start && facet.start<metadata.mainCity.dayEnd))
-                return metadata.mainCity;
             console.log("WARNING: facet isn't within metadata time boundaries: " + new Date(facet.start))
             console.log(facet);
             return null;
