@@ -478,7 +478,6 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 map.selectedMarker.hideCircle();
             map.selectedMarker = marker;
             var details = $(item.getDetails(true));
-            details.find(".mapLink").remove();
             var details = item.getDetails(true);
             details.on("contentchange",function(event, content){
                 map.infoWindow.setContent(details[0]);

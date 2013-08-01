@@ -170,13 +170,10 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
 
         function appendItems(currentArray,list){
             var details = currentArray[0].getDetails(currentArray);
-            if (currentTimeUnit !== "date")
-                details.find(".clockLink").css('display',"none");
             var content = $(templates.item.render({item:details.outerHTML()}));
             list.append(content);
             details.on("contentchange",function(){
                 content.html(details.outerHTML());
-                content.find(".listLink").css("display","none");
                 App.apps.calendar.rebindDetailsControls(content);
             });
             details.trigger("contentchange");

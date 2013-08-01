@@ -513,8 +513,6 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 
             var commentEdit =  ttpdiv.find(".facet-edit a");
 
-            ttpdiv.find(".clockLink").css("display","none");
-
             commentEdit.css("display","none");
             ttpdiv.find("#tooltipEditComment").unbind('click').click(function(){
                 event.preventDefault();

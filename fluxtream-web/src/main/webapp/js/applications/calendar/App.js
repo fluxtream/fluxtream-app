@@ -673,36 +673,27 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         setTimeout(function(){getFoursquareVenues(details,foursquareVenueIds);}, 100);
 
 
-        //hide invalid controls
-        var config = App.getFacetConfig(facets[0].type);
-        if (!config.map){
-            details.find(".mapLink").css("display","none");
-        }
-        if (!config.list){
-            details.find(".listLink").css("display","none");
-        }
-        if (config.clock == null){
-            details.find(".clockLink").css("display","none");
-        }
-
-
         return details;
     }
 
-    function switchToAppForFacet(appname,tabname,facetType, facetid){
+    function getFacet(facetType, facetId){
         var cachedData = Calendar.digest.cachedData[facetType];
         var facet = null;
         for (var i = 0, li = cachedData.length; i < li; i++){
-            if (cachedData[i].id == facetid){
+            if (cachedData[i].id == facetId){
                 facet = cachedData[i];
                 break;
             }
         }
         if (facet == null){
             console.warn("Couldn't find " + facetType + " " + facetid);
-            return;
         }
-        App.renderApp(appname,tabname + "/" + Calendar.tabState,{facetToShow:facet});
+        return facet;
+
+    }
+
+    function switchToAppForFacet(appname,tabname,facetType, facetId){
+        App.renderApp(appname,tabname + "/" + Calendar.tabState,{facetToShow:getFacet(facetType,facetId)});
     }
 
     var activePopup = null;
@@ -726,6 +717,20 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             '<li><a class="timelineLink" href="javascript:void(0)">Show on Timeline</a></li>' +
                 '<li><a class="bodytrackLink" href="javascript:void(0)">Show in Bodytrack</a></li>' +
             '</ul>');
+
+            var config = App.getFacetConfig(facetType);
+            if (!config.map || Calendar.currentTabName === "map"){
+                popup.find(".mapLink").css("display","none");
+            }
+            if (!config.list || Calendar.currentTabName === "list"){
+                popup.find(".listLink").css("display","none");
+            }
+            if (config.clock == null || Calendar.timeUnit !== "date" || Calendar.currentTabName === "clock"){
+                popup.find(".clockLink").css("display","none");
+            }
+            if (Calendar.currentTabName === "timeline"){
+                popup.find(".timelineLink").css("display","none");
+            }
 
             popup.css("position","absolute");
             $("body").append(popup);
@@ -757,7 +762,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 activePopup.remove();
 
             activePopup = popup;
-            console.log("blah");
             return false;
         });
     }
