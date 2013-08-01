@@ -227,11 +227,10 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 						//if (start>end) { start = 0; }
 						var instantaneous = typeof(item.endMinute)=="undefined"||item.endMinute===item.startMinute,
                             span;
-						if (instantaneous)
-							span = paintSpan(paper, start,start+instantWidth, orbit, color, .9, strokeWidth, strokeCap,outline);
-						else{
-							span = paintSpan(paper, start,/*(start<=end?end:1440)*/ end, orbit, color, .9, strokeWidth, strokeCap,outline);
+						if (instantaneous){
+                            end = start+instantWidth;
                         }
+                        span = paintSpan(paper, start,/*(start<=end?end:1440)*/ end, orbit, color, .9, strokeWidth, strokeCap,outline);
 						span.node.item = item;
                         $(span.node).attr("class", item.type + "-" + item.id);
                         $(span.node).attr("notthide",true);
@@ -239,9 +238,10 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 						$(span.node).click({instantaneous:instantaneous}, function(event) {
                             if (typeof(event.offsetX) == "undefined"){
                                 if (typeof(event.originalEvent) == "undefined" || typeof(event.originalEvent.layerX) == "undefined"){
-                                    var elementPosition = $(event.delegateTarget).position();
-                                    event.offsetX = elementPosition.left;
-                                    event.offsetY = elementPosition.top;
+                                    var middleTime = (start + end) / 2;
+                                    var elementPosition = toCoords(config.CLOCK_CENTER,orbit,middleTime / config.RATIO + config.START_AT)
+                                    event.offsetX = elementPosition[0];
+                                    event.offsetY = elementPosition[1];
                                 }
                                 else{
                                     event.offsetX = event.originalEvent.layerX;
