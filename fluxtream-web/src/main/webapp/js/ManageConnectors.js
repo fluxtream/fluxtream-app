@@ -79,6 +79,9 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
                     }
                     params[member] = formatted;
                     break;
+                case "supportsFileUpload":
+                    params[member] = true;
+                    break;
             }
         }
         return params;
