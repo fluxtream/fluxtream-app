@@ -64,7 +64,7 @@ public class GoogleLatitudeUpdater extends AbstractGoogleOAuthUpdater {
 			throws Exception {
         String accessToken = oAuth2Helper.getAccessToken(updateInfo.apiKey);
 		HttpTransport transport = this.getTransport(updateInfo.apiKey);
-		String key = env.get("google_latitudeApiKey");
+		String key = guestService.getApiKeyAttribute(updateInfo.apiKey, "google_latitudeApiKey");
 		List<LocationFacet> locationList = executeList(updateInfo, transport,
 				key, 1000, from, to, accessToken);
 		if (locationList != null && locationList.size() > 0) {

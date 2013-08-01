@@ -7,6 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.fluxtream.auth.AuthHelper;
+import com.fluxtream.connectors.controllers.ControllerSupport;
 import com.fluxtream.domain.ApiKey;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.OAuthProvider;
@@ -41,10 +42,11 @@ public class TwitterOAuthController {
 	private static final String TWITTER_OAUTH_PROVIDER = "twitterOAuthProvider";
 	
 	@RequestMapping(value = "/token")
-	public String getToken(HttpServletRequest request,
-			HttpServletResponse response) throws IOException, ServletException, OAuthMessageSignerException, OAuthNotAuthorizedException, OAuthExpectationFailedException, OAuthCommunicationException {
-		
-		String oauthCallback = env.get("homeBaseUrl")
+	public String getToken(HttpServletRequest request)
+            throws IOException, ServletException, OAuthMessageSignerException,
+                   OAuthNotAuthorizedException, OAuthExpectationFailedException, OAuthCommunicationException
+    {
+		String oauthCallback = ControllerSupport.getLocationBase(request)
 		+ "twitter/upgradeToken";
 		if (request.getParameter("guestId")!=null)
 			oauthCallback += "?guestId=" + request.getParameter("guestId");

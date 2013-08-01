@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 import com.fluxtream.Configuration;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.connectors.controllers.ControllerSupport;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.services.GuestService;
@@ -39,13 +40,22 @@ public class RunKeeperController {
     @RequestMapping(value = "/token")
     public String getRunkeeperToken(HttpServletRequest request) throws IOException, ServletException {
 
-        OAuthService service = getOAuthService();
+        OAuthService service = getOAuthService(request);
         request.getSession().setAttribute(RUNKEEPER_SERVICE, service);
 
         // Obtain the Authorization URL
         String authorizationUrl = service.getAuthorizationUrl(EMPTY_TOKEN);
 
         return "redirect:" + authorizationUrl;
+    }
+
+    public OAuthService getOAuthService(HttpServletRequest request) {
+        return new ServiceBuilder()
+                .provider(RunKeeperApi.class)
+                .apiKey(getConsumerKey())
+                .apiSecret(getConsumerSecret())
+                .callback(ControllerSupport.getLocationBase(request) + "runkeeper/upgradeToken")
+                .build();
     }
 
     public OAuthService getOAuthService() {

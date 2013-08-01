@@ -35,6 +35,22 @@ public class GoogleOAuth2Helper {
     }
 
     private void refreshToken(final ApiKey apiKey) throws IOException {
+        // Check to see if we are running on a mirrored test instance
+        // and should therefore refrain from swapping tokens lest we
+        // invalidate an existing token instance
+        String disableTokenSwap = env.get("disableTokenSwap");
+        if(disableTokenSwap!=null && disableTokenSwap.equals("true")) {
+            String msg = "**** Skipping refreshToken for google latitude connector instance because disableTokenSwap is set on this server";
+                                            ;
+            StringBuilder sb2 = new StringBuilder("module=GoogleOAuth2Helper component=GoogleOAuth2Helper action=replaceToken apiKeyId=" + apiKey.getId())
+            			    .append(" message=\"").append(msg).append("\"");
+            logger.info(sb2.toString());
+            System.out.println(msg);
+            return;
+        }
+
+        // We're not on a mirrored test server.  Try to swap the expired
+        // access token for a fresh one.
         String swapTokenUrl = "https://accounts.google.com/o/oauth2/token";
 
         final String refreshToken = guestService.getApiKeyAttribute(apiKey, "refreshToken");

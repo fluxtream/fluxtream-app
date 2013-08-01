@@ -190,8 +190,8 @@ public class BodymediaUpdater extends AbstractUpdater {
     }
 
     OAuthConsumer setupConsumer(ApiKey apiKey) {
-        String api_key = env.get("bodymediaConsumerKey");
-        String bodymediaConsumerSecret = env.get("bodymediaConsumerSecret");
+        String api_key = guestService.getApiKeyAttribute(apiKey, "bodymediaConsumerKey");
+        String bodymediaConsumerSecret = guestService.getApiKeyAttribute(apiKey, "bodymediaConsumerSecret");
 
         OAuthConsumer consumer = new CommonsHttpOAuthConsumer(api_key, bodymediaConsumerSecret);
 
@@ -238,7 +238,7 @@ public class BodymediaUpdater extends AbstractUpdater {
 
         if(updateStartDate == null) {
             OAuthConsumer consumer = setupConsumer(updateInfo.apiKey);
-            String api_key = env.get("bodymediaConsumerKey");
+            String api_key = guestService.getApiKeyAttribute(updateInfo.apiKey, "bodymediaConsumerKey");
             updateStartDate = getUserRegistrationDate(updateInfo, api_key, consumer);
 
             // This is a hack to deal with backward compatibility with systems containing data
@@ -297,7 +297,7 @@ public class BodymediaUpdater extends AbstractUpdater {
 
     public TimezoneMap getTimezoneMap(UpdateInfo updateInfo) throws Exception {
             OAuthConsumer consumer = setupConsumer(updateInfo.apiKey);
-            String api_key = env.get("bodymediaConsumerKey");
+            String api_key = guestService.getApiKeyAttribute(updateInfo.apiKey, "bodymediaConsumerKey");
             JSONArray timezoneMapJson = getUserTimezoneHistory(updateInfo, api_key, consumer);
             TimezoneMap ret= new TimezoneMap();
 

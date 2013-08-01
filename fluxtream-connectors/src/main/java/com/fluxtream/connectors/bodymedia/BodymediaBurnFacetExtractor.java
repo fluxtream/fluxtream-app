@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TimeZone;
 import com.fluxtream.ApiData;
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
@@ -14,7 +15,6 @@ import com.fluxtream.utils.TimeUtils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
-import com.fluxtream.aspects.FlxLogger;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.format.DateTimeFormat;
@@ -47,18 +47,18 @@ public class BodymediaBurnFacetExtractor extends AbstractFacetExtractor
     ConnectorUpdateService connectorUpdateService;
 
     @Override
-    public List<AbstractFacet> extractFacets(ApiData apiData, ObjectType objectType) throws Exception
+    public List<AbstractFacet> extractFacets(final UpdateInfo updateInfo, final ApiData apiData,
+                                             ObjectType objectType) throws Exception
     {
 
         logger.info("guestId=" + apiData.updateInfo.getGuestId() +
-        				" connector=bodymedia action=extractFacets objectType="
-        						+ objectType.getName());
+                    " connector=bodymedia action=extractFacets objectType=" + objectType.getName());
 
         ArrayList<AbstractFacet> facets;
         String name = objectType.getName();
         if(name.equals("burn"))
         {
-            facets = extractBurnFacets(apiData);
+            facets = extractBurnFacets(updateInfo,apiData);
         }
         else //If the facet to be extracted wasn't a burn facet
         {
@@ -67,17 +67,12 @@ public class BodymediaBurnFacetExtractor extends AbstractFacetExtractor
         return facets;
     }
 
-    @Override
-    public void setUpdateInfo(final UpdateInfo updateInfo) {
-        super.setUpdateInfo(updateInfo);
-    }
-
     /**
      * Extracts facets for each day from the data returned by the api.
      * @param apiData The data returned by the Burn api
      * @return A list of facets for each day provided by the apiData
      */
-    private ArrayList<AbstractFacet> extractBurnFacets(ApiData apiData)
+    private ArrayList<AbstractFacet> extractBurnFacets(final UpdateInfo updateInfo, ApiData apiData)
     {
         ArrayList<AbstractFacet> facets = new ArrayList<AbstractFacet>();
         /* burnJson is a JSONArray that contains a seperate JSONArray and calorie counts for each day

@@ -8,16 +8,14 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
-import com.fluxtream.connectors.updaters.RateLimitReachedException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
+import com.fluxtream.domain.ApiKey;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.JPADaoService;
 import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.Utils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -40,7 +38,6 @@ public class FlickrUpdater extends AbstractUpdater {
 	GuestService guestService;
 
 	private static final int ITEMS_PER_PAGE = 20;
-	private static final DateTimeFormatter dateFormat = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
 
     @Autowired
     JPADaoService jpaDaoService;
@@ -49,8 +46,8 @@ public class FlickrUpdater extends AbstractUpdater {
 		super();
 	}
 
-	String sign(Map<String, String> parameters) throws NoSuchAlgorithmException {
-		String toSign = env.get("flickrConsumerSecret");
+	String sign(ApiKey apiKey, Map<String, String> parameters) throws NoSuchAlgorithmException {
+		String toSign = guestService.getApiKeyAttribute(apiKey, "flickrConsumerSecret");
 		SortedSet<String> eachKey = new TreeSet<String>(parameters.keySet());
 		for (String key : eachKey)
 			toSign += key + parameters.get(key);
@@ -60,7 +57,7 @@ public class FlickrUpdater extends AbstractUpdater {
 
 	@Override
 	protected void updateConnectorDataHistory(UpdateInfo updateInfo)
-			throws RateLimitReachedException, Exception {
+			throws Exception {
 		// taking care of resetting the data if things went wrong before
 		if (!connectorUpdateService.isHistoryUpdateCompleted( updateInfo.apiKey, -1))
 			apiDataService.eraseApiData(updateInfo.apiKey, -1);
@@ -126,7 +123,7 @@ public class FlickrUpdater extends AbstractUpdater {
 			long to, int page) throws Exception {
 		long then = System.currentTimeMillis();
 
-		String api_key = env.get("flickrConsumerKey");
+		String api_key = guestService.getApiKeyAttribute(updateInfo.apiKey, "flickrConsumerKey");
 		String nsid = guestService.getApiKeyAttribute(
 				updateInfo.apiKey, "nsid");
 		String token = guestService.getApiKeyAttribute(
@@ -149,7 +146,7 @@ public class FlickrUpdater extends AbstractUpdater {
 		params.put("min_upload_date", startDate);
 		params.put("max_upload_date", endDate);
 
-		String api_sig = sign(params);
+		String api_sig = sign(updateInfo.apiKey, params);
 
         String searchPhotosUrl = "http://api.flickr.com/services/rest/" +
                                  "?method=flickr.people.getPhotos&api_key=" + api_key +

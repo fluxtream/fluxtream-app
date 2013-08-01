@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 import com.fluxtream.ApiData;
 import com.fluxtream.connectors.ObjectType;
+import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.AbstractLocalTimeFacet;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
@@ -23,8 +24,8 @@ public class FitbitActivityFacetExtractor extends AbstractFacetExtractor {
 	FlxLogger logger = FlxLogger.getLogger(FitbitActivityFacetExtractor.class);
     public static DateTimeFormatter dateFormat = DateTimeFormat.forPattern("yyyy-MM-dd");
 
-	public List<AbstractFacet> extractFacets(ApiData apiData,
-			ObjectType objectType) {
+	public List<AbstractFacet> extractFacets(final UpdateInfo updateInfo, final ApiData apiData,
+			final ObjectType objectType) {
 		List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
 		JSONObject fitbitResponse = JSONObject.fromObject(apiData.json);
 

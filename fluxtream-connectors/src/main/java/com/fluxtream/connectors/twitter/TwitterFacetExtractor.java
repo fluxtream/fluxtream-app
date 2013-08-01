@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import com.fluxtream.connectors.updaters.UpdateInfo;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
@@ -21,7 +22,7 @@ public class TwitterFacetExtractor extends AbstractFacetExtractor {
 	
 	private static final DateTimeFormatter format = DateTimeFormat.forPattern("EEE MMM d HH:mm:ss Z yyyy");
 	
-	public List<AbstractFacet> extractFacets(ApiData apiData, ObjectType objectType) {
+	public List<AbstractFacet> extractFacets(final UpdateInfo updateInfo, final ApiData apiData, final ObjectType objectType) {
 		List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
 
 		JSONArray feed = JSONArray.fromObject(apiData.json);
@@ -87,7 +88,10 @@ public class TwitterFacetExtractor extends AbstractFacetExtractor {
 					twitterDirectMessageFacet.recipientProfileImageUrl = recipient.getString("profile_image_url");
 					twitterDirectMessageFacet.recipientScreenName = twitterItem.getString("recipient_screen_name");
 					twitterDirectMessageFacet.twitterId = twitterItem.getLong("id");
-					twitterDirectMessageFacet.sent = (byte) (this.updateInfo.getContext("sent").equals("1") ? 1 : 0);
+                    if (updateInfo.getContext("sent")==null)
+                        twitterDirectMessageFacet.sent = (byte) 0;
+                    else
+                        twitterDirectMessageFacet.sent = (byte) (updateInfo.getContext("sent").equals("1") ? 1 : 0);
 					facets.add(twitterDirectMessageFacet);
 					break;
                 }

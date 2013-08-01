@@ -2,18 +2,16 @@ package com.fluxtream.connectors.lastfm;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import com.fluxtream.ApiData;
 import com.fluxtream.connectors.ObjectType;
+import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 import com.fluxtream.services.JPADaoService;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class LastFmFacetExtractor extends AbstractFacetExtractor {
@@ -21,12 +19,12 @@ public class LastFmFacetExtractor extends AbstractFacetExtractor {
 	@Autowired
 	JPADaoService jpaDaoService;
 
-	public List<AbstractFacet> extractFacets(ApiData apiData,
+	public List<AbstractFacet> extractFacets(UpdateInfo updateInfo, ApiData apiData,
 			ObjectType objectType) {
 		List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
 
 		try {
-			if (objectType == ObjectType.getObjectType(connector(),
+			if (objectType == ObjectType.getObjectType(connector(updateInfo),
 					"recent_track")) {
 				extractLastfmRecentTracks(apiData, facets);
 			}

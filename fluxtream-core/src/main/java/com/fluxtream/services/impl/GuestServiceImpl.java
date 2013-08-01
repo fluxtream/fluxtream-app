@@ -21,12 +21,14 @@ import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.domain.AbstractUserProfile;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ApiKeyAttribute;
+import com.fluxtream.domain.ConnectorInfo;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.ResetPasswordToken;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
+import com.fluxtream.services.SystemService;
 import com.fluxtream.utils.HttpUtils;
 import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.RandomString;
@@ -78,6 +80,9 @@ public class GuestServiceImpl implements GuestService {
 
     @Autowired
     BeanFactory beanFactory;
+
+    @Autowired
+    SystemService systemService;
 
 	LookupService geoIpLookupService;
 
@@ -135,11 +140,23 @@ public class GuestServiceImpl implements GuestService {
 	}
 
     @Override
+    @Transactional(readOnly=false)
     public ApiKey createApiKey(final long guestId, final Connector connector) {
+        final ConnectorInfo connectorInfo = systemService.getConnectorInfo(connector.getName());
+        if (!connectorInfo.enabled)
+            throw new RuntimeException("This connector is not enabled!");
         ApiKey apiKey = new ApiKey();
         apiKey.setGuestId(guestId);
         apiKey.setConnector(connector);
         em.persist(apiKey);
+        final String[] apiKeyAttributesKeys = connectorInfo.getApiKeyAttributesKeys();
+        if(apiKeyAttributesKeys!=null) {
+            for (String key : apiKeyAttributesKeys) {
+                if (env.get(key)==null)
+                    throw new RuntimeException("No value was found for key :" + key + ". Cannot create apiKey");
+                setApiKeyAttribute(apiKey, key, env.get(key));
+            }
+        }
         return apiKey;
     }
 
@@ -283,25 +300,41 @@ public class GuestServiceImpl implements GuestService {
         Guest guest = getGuestById(id);
         if (guest == null)
             return;
+        JPAUtils.execute(em, "updateWorkerTasks.delete.all", guest.getId());
+        em.remove(guest);
+        em.flush();
         List<ApiKey> apiKeys = getApiKeys(guest.getId());
         for (ApiKey key : apiKeys) {
             if(key!=null && key.getConnector()!=null) {
                 apiDataService.eraseApiData(key);
+                em.flush();
             }
         }
+        em.flush();
         for (ApiKey apiKey : apiKeys) {
             if(apiKey!=null){
                 em.remove(apiKey);
+                em.flush();
             }
         }
+        em.flush();
         JPAUtils.execute(em, "addresses.delete.all", guest.getId());
+        em.flush();
         JPAUtils.execute(em, "notifications.delete.all", guest.getId());
+        em.flush();
         JPAUtils.execute(em, "settings.delete.all", guest.getId());
+        em.flush();
+        JPAUtils.execute(em, "context.delete.all", guest.getId());
+        em.flush();
         JPAUtils.execute(em, "updateWorkerTasks.delete.all", guest.getId());
         JPAUtils.execute(em, "tags.delete.all", guest.getId());
+        em.flush();
         JPAUtils.execute(em, "notifications.delete.all", guest.getId());
+        em.flush();
         JPAUtils.execute(em, "coachingBuddies.delete.all", guest.getId());
-        em.remove(guest);
+        // delete GrapherView
+        // delete WidgetSettings
+        // delete VisitedCities
     }
 
     @Override

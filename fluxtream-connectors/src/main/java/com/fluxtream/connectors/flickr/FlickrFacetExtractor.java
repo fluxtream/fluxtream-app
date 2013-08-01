@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 import com.fluxtream.ApiData;
 import com.fluxtream.connectors.ObjectType;
+import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.Tag;
@@ -28,7 +29,8 @@ public class FlickrFacetExtractor extends AbstractFacetExtractor {
     @Autowired
     MetadataService metadataService;
 
-	public List<AbstractFacet> extractFacets(ApiData apiData,
+	public List<AbstractFacet> extractFacets(final UpdateInfo updateInfo, final ApiData apiData,
+
 			ObjectType objectType) {
 		List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
 
@@ -81,7 +83,7 @@ public class FlickrFacetExtractor extends AbstractFacetExtractor {
                     if (latitude!=0 && longitude!=0) {
                         facet.latitude = latitude;
                         facet.longitude = longitude;
-                        addLocation(locationResources, facet, dateTime);
+                        addLocation(updateInfo, locationResources, facet, dateTime);
                     }
                 }
                 facets.add(facet);
@@ -94,7 +96,8 @@ public class FlickrFacetExtractor extends AbstractFacetExtractor {
 		return facets;
 	}
 
-    private void addLocation(final List<LocationFacet> locationResources, final FlickrPhotoFacet facet, final DateTime dateTime) {
+    private void addLocation(final UpdateInfo updateInfo, final List<LocationFacet> locationResources, 
+			     final FlickrPhotoFacet facet, final DateTime dateTime) {
         LocationFacet locationResource = new LocationFacet();
         locationResource.guestId = facet.guestId;
         locationResource.latitude = facet.latitude;

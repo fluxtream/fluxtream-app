@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import com.fluxtream.connectors.updaters.UpdateInfo;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
@@ -17,7 +18,8 @@ import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 @Component
 class InstagramFacetExtractor extends AbstractFacetExtractor {
 	
-	public List<AbstractFacet> extractFacets(ApiData apiData, ObjectType objectType) {
+	public List<AbstractFacet> extractFacets(final UpdateInfo updateInfo, final ApiData apiData,
+                                             final ObjectType objectType) {
 		List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
 
 		JSONObject feed = JSONObject.fromObject(apiData.json);

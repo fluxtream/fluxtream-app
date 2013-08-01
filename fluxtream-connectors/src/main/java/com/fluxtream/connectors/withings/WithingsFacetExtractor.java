@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 import com.fluxtream.ApiData;
 import com.fluxtream.connectors.ObjectType;
+import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 import net.sf.json.JSONArray;
@@ -23,7 +24,7 @@ public class WithingsFacetExtractor extends AbstractFacetExtractor {
 	private static final int SYSTOLIC_BLOOD_PRESSURE = 10;
 	private static final int HEART_PULSE = 11;
 			
-	public List<AbstractFacet> extractFacets(ApiData apiData, ObjectType objectType) {
+	public List<AbstractFacet> extractFacets(final UpdateInfo updateInfo, final ApiData apiData, ObjectType objectType) {
 		List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
 		JSONObject bodyScaleResponse = JSONObject.fromObject(apiData.json);
 		
@@ -47,7 +48,7 @@ public class WithingsFacetExtractor extends AbstractFacetExtractor {
 			facet.start = date;
 			facet.end = date;
 			super.extractCommonFacetData(facet, apiData);
-			facet.objectType = ObjectType.getObjectType(connector(), "weight").value();
+			facet.objectType = ObjectType.getObjectType(connector(updateInfo), "weight").value();
 			
 			@SuppressWarnings("rawtypes")
 			Iterator measuresIterator = measures.iterator();
@@ -89,11 +90,11 @@ public class WithingsFacetExtractor extends AbstractFacetExtractor {
 				}
 			}
 			if (hasVitals) {
-                if (objectType.equals(ObjectType.getObjectType(connector(), "blood_pressure"))&&
+                if (objectType.equals(ObjectType.getObjectType(connector(updateInfo), "blood_pressure"))&&
                     (facet.systolic>0||facet.diastolic>0)) {
 					WithingsBPMMeasureFacet bpmFacet = new WithingsBPMMeasureFacet(apiData.updateInfo.apiKey.getId());
 					super.extractCommonFacetData(bpmFacet, apiData);
-					bpmFacet.objectType = ObjectType.getObjectType(connector(), "blood_pressure").value();
+					bpmFacet.objectType = ObjectType.getObjectType(connector(updateInfo), "blood_pressure").value();
 					bpmFacet.measureTime = date;
 					bpmFacet.start = date;
 					bpmFacet.end = date;
@@ -102,7 +103,7 @@ public class WithingsFacetExtractor extends AbstractFacetExtractor {
 					bpmFacet.heartPulse = facet.heartPulse;
 					facets.add(bpmFacet);
 				} else {
-                    final ObjectType heartPulse = ObjectType.getObjectType(connector(), "heart_pulse");
+                    final ObjectType heartPulse = ObjectType.getObjectType(connector(updateInfo), "heart_pulse");
                     if (objectType.equals(heartPulse)&&facet.systolic==0&&facet.diastolic==0) {
                         WithingsHeartPulseMeasureFacet hpFacet = new WithingsHeartPulseMeasureFacet(apiData.updateInfo.apiKey.getId());
                         super.extractCommonFacetData(hpFacet, apiData);
@@ -114,7 +115,7 @@ public class WithingsFacetExtractor extends AbstractFacetExtractor {
                     }
                 }
 			} else {
-                if (objectType.equals(ObjectType.getObjectType(connector(), "weight")))
+                if (objectType.equals(ObjectType.getObjectType(connector(updateInfo), "weight")))
 					facets.add(facet);
 			}
 		}

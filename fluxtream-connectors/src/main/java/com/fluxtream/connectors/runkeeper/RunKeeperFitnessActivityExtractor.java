@@ -7,6 +7,7 @@ import com.fluxtream.ApiData;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.location.LocationFacet;
+import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 import com.fluxtream.services.ApiDataService;
@@ -35,11 +36,11 @@ public class RunKeeperFitnessActivityExtractor extends AbstractFacetExtractor {
     ApiDataService apiDataService;
 
     @Override
-    public List<AbstractFacet> extractFacets(final ApiData apiData, final ObjectType objectType) throws Exception {
+    public List<AbstractFacet> extractFacets(final UpdateInfo updateInfo, final ApiData apiData, final ObjectType objectType) throws Exception {
         List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
         JSONObject jsonObject = JSONObject.fromObject(apiData.json);
 
-        RunKeeperFitnessActivityFacet facet = new RunKeeperFitnessActivityFacet(apiData.updateInfo.apiKey.getId());
+        RunKeeperFitnessActivityFacet facet = new RunKeeperFitnessActivityFacet(updateInfo.apiKey.getId());
 
         super.extractCommonFacetData(facet, apiData);
 
@@ -72,7 +73,7 @@ public class RunKeeperFitnessActivityExtractor extends AbstractFacetExtractor {
                 locationFacet.start = locationFacet.timestampMs;
                 locationFacet.end = locationFacet.timestampMs;
                 locationFacet.source = LocationFacet.Source.RUNKEEPER;
-                locationFacet.apiKeyId = apiData.updateInfo.apiKey.getId();
+                locationFacet.apiKeyId = updateInfo.apiKey.getId();
                 locationFacet.api = Connector.getConnector("runkeeper").value();
                 locationFacet.uri = uri;
 

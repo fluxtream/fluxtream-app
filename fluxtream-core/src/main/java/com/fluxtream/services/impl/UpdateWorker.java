@@ -62,6 +62,9 @@ class UpdateWorker implements Runnable {
 		ApiKey apiKey = guestService.getApiKey(task.apiKeyId);
 		AbstractUpdater updater = connectorUpdateService.getUpdater(connector);
 
+        // TODO: check if this connector type is enabled and supportsSync before calling update.
+        // If it is disabled and/or does not support sync, don't try to update it.
+
 		switch (task.updateType) {
 		case INITIAL_HISTORY_UPDATE:
 			updateDataHistory(connector, apiKey, updater);
@@ -95,6 +98,9 @@ class UpdateWorker implements Runnable {
     private void pushTriggeredUpdate(Connector connector, ApiKey apiKey,
 			AbstractUpdater updater) {
 		try {
+            // TODO: check if this connector type is enabled and supportsSync before calling update.
+            // If it is disabled and/or does not support sync, don't try to update it.
+
             logger.info("module=updateQueue component=worker action=pushTriggeredUpdate " +
                         "connector=" + connector.getName() + " guestId=" + apiKey.getGuestId());
 			UpdateInfo updateInfo = UpdateInfo.pushTriggeredUpdateInfo(apiKey,
@@ -114,6 +120,8 @@ class UpdateWorker implements Runnable {
 	private void updateDataHistory(Connector connector, ApiKey apiKey,
 			AbstractUpdater updater) {
         try {
+            // TODO: check if this connector type is enabled and supportsSync before calling update.
+            // If it is disabled and/or does not support sync, don't try to update it.
             logger.info("module=updateQueue component=worker action=updateDataHistory " +
                         "connector=" + connector.getName() + " guestId=" + apiKey.getGuestId());
             UpdateInfo updateInfo = UpdateInfo.initialHistoryUpdateInfo(apiKey,
@@ -134,6 +142,8 @@ class UpdateWorker implements Runnable {
     private void updateData(final Connector connector, final ApiKey apiKey, final AbstractUpdater updater) {
         try
         {
+            // TODO: check if this connector type is enabled and supportsSync before calling update.
+            // If it is disabled and/or does not support sync, don't try to update it.
             logger.info("module=updateQueue component=worker action=\"updateData (incremental update)\"" +
                         " connector=" + connector.getName() + " guestId=" + apiKey.getGuestId());
             UpdateInfo updateInfo = UpdateInfo.IncrementalUpdateInfo(apiKey, task.objectTypes);

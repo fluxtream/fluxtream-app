@@ -323,12 +323,12 @@ public class ApiDataServiceImpl implements ApiDataService {
 				.getConnector().extractor(objectTypes, beanFactory);
         if (facetExtractor==null)
             return newFacets;
-		facetExtractor.setUpdateInfo(updateInfo);
+
 		List<ObjectType> connectorTypes = ObjectType.getObjectTypes(
 				apiData.updateInfo.apiKey.getConnector(), objectTypes);
 		if (connectorTypes != null) {
 			for (ObjectType objectType : connectorTypes) {
-				List<AbstractFacet> facets = facetExtractor.extractFacets(
+				List<AbstractFacet> facets = facetExtractor.extractFacets(updateInfo,
 						apiData, objectType);
 				for (AbstractFacet facet : facets) {
 					AbstractFacet newFacet = persistFacet(facet);
@@ -337,7 +337,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 				}
 			}
 		} else {
-			List<AbstractFacet> facets = facetExtractor.extractFacets(apiData,
+			List<AbstractFacet> facets = facetExtractor.extractFacets(updateInfo, apiData,
 					null);
 			for (AbstractFacet facet : facets) {
 				AbstractFacet newFacet = persistFacet(facet);
