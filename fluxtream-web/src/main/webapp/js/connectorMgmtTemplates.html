@@ -34,7 +34,8 @@
                                     <img src="{{release}}/images/syncing.gif" width="35" height="35" alt="load">
                                 </span>
                                 {{/syncing}}
-                                <br/><a id="syncNow-{{connectorName}}" title="sync now" href="#" {{#syncing}}style="display:none;"{{/syncing}}><i class="icon-refresh"></i></a>
+                                <br/>{{#supportsSync}}<a id="syncNow-{{connectorName}}" title="sync now" href="#" {{#syncing}}style="display:none;"{{/syncing}}><i class="icon-refresh"></i></a> {{/supportsSync}}
+                                {{#supportsFileUpload}}<a id="upload-{{connectorName}}" title="upload data" href="#"><i class="icon-upload"></i></a> {{/supportsFileUpload}}
                             </td>
                             <td class="connectors" style="width: 158px; background:inherit; vertical-align: middle; width: 158px">
                                 <img src="{{image}}" width=158 height=89 alt="{{connectorName}}">
@@ -83,7 +84,8 @@
                                                             <img src="{{release}}/images/syncing.gif" width="35" height="35" alt="load">
                                                         </span>
                                 {{/syncing}}
-                                <br/><a id="syncNow-{{connectorName}}" title="sync now" href="#" {{#syncing}}style="display:none;"{{/syncing}}><i class="icon-refresh"></i></a>
+                                <br/>{{#supportsSync}}<a id="syncNow-{{connectorName}}" title="sync now" href="#" {{#syncing}}style="display:none;"{{/syncing}}><i class="icon-refresh"></i></a>{{/supportsSync}}
+                                {{#supportsFileUpload}}<a id="upload-{{connectorName}}" title="upload data" href="#"><i class="icon-upload"></i></a> {{/supportsFileUpload}}
                             </td>
                             <td class="connectors" style="background:inherit; vertical-align: middle; width: 158px">
                                 <img src="{{image}}" width=158 height=89 alt="{{connectorName}}">
@@ -122,7 +124,8 @@
                                                             <img src="{{release}}/images/syncing.gif" width="35" height="35" alt="load">
                                                         </span>
         {{/syncing}}
-        <br/><a id="syncNow-{{connectorName}}" title="sync now" href="#" {{#syncing}}style="display:none;"{{/syncing}}><i class="icon-refresh"></i></a>
+        <br/>{{#supportsSync}}<a id="syncNow-{{connectorName}}" title="sync now" href="#" {{#syncing}}style="display:none;"{{/syncing}}><i class="icon-refresh"></i></a>{{/supportsSync}}
+        {{#supportsFileUpload}}<a id="upload-{{connectorName}}" title="upload data" href="#"><i class="icon-upload"></i></a> {{/supportsFileUpload}}
     </td>
     <td class="connectors" style="background:inherit; vertical-align: middle; width: 158px" nocompare="true">
     </td>

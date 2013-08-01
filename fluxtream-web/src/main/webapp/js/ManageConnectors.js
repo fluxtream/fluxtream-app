@@ -85,6 +85,7 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
     }
 
     function dataLoaded(data,update){
+        console.log(data);
         connectors = data;
         App.loadMustacheTemplate("connectorMgmtTemplates.html","manageConnectors",function(template){
             var params = [];
@@ -158,6 +159,12 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
             $.ajax("/api/sync/" + connector.connectorName,{
                 type:"POST"
             });
+        });
+        var uploadBtn = $("#upload-" + connector.connectorName);
+        uploadBtn.click(function(event){
+            event.preventDefault();
+            //TODO: implement file upload
+            console.error("file upload not implemented");
         });
         var viewDataBtn = $("#viewUpdates-" + connector.connectorName);
         // remove previously bound handler
@@ -266,8 +273,7 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
         var lastSync = $("#lastSync-" + connectorName);
         lastSync.html("Now synchronizing");
         var syncNowBtn = $("#syncNow-" + connectorName);
-        var disabledBtn = $("<span>" + syncNowBtn.html() + "</span>");
-        syncNowBtn.replaceWith(disabledBtn);
+        syncNowBtn.css("display","none");
     }
 
     function setAllToSyncing(){
