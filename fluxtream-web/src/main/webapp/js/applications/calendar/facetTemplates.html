@@ -63,11 +63,22 @@
             <div class="facetDetails">
                 <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
-                <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
+                {{^isAllDay}}<div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>{{/isAllDay}}
+                {{#isAllDay}}<div class="allDayEvent">All-Day</div>{{/isAllDay}}
                 <div class="flx-data">
                     <div class="bullet" style="background-color:{{color}};color:{{color}}"></div>
-                    <span class="flx-description">{{summary}}</span>
-                    <span class="flx-description">{{attendees}}</span>
+                    <span class="flx-description"><a href="javascript:void(0);" onclick="App.expandCollapse(this);" class="expandcollapse"><i class="icon-expand-alt"></i></a>{{summary}}</span>
+                </div>
+                <div class="flx-finedetails flx-collapsed">
+                    <div class="flx-data">
+                        <span class="flx-dataLabel">Location:</span>
+                        {{#location}}<span class="flx-description" style="margin-left:30px">{{location}}</span>{{/location}}
+                        {{#organizer}}<span class="flx-dataLabel">Organizer:</span>
+                        <span class="flx-description" style="margin-left:30px">{{#displayName}}{{displayName}}{{/displayName}} {{email}}</span>{{/organizer}}
+                        <span class="flx-dataLabel">Attendees:</span>
+                        <span class="flx-description" style="margin-left:30px">{{#attendees}}{{#displayName}}{{displayName}}{{/displayName}} {{email}} <span class="{{responseStatus}}"/>{{/attendees}}
+                        </span>
+                    </div>
                 </div>
                 {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>

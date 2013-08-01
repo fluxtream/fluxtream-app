@@ -185,6 +185,10 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 
 	function drawTimedData(payload, category) {
 		if ((typeof(payload)!="undefined")&&payload!=null) {
+            if (typeof(payload[0])=="undefined") {
+                console.log("warning: null payload");
+                return;
+            }
             if (typeof(payload.length)!="undefined"&&payload.length>0&&payload[0].type==="moves-move") {
                 for (var i=0; i<payload.length; i++)
                     drawEvents(payload[i].activities, category.orbit);

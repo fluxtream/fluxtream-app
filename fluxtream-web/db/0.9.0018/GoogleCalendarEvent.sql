@@ -39,6 +39,7 @@ CREATE TABLE `Facet_GoogleCalendarEvent` (
   `summary` longtext,
   `transparency` varchar(255) DEFAULT NULL,
   `visibility` varchar(255) DEFAULT NULL,
+  `allDayEvent` bit(1) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `isEmpty_index` (`isEmpty`),
   KEY `end_index` (`end`),

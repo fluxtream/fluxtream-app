@@ -386,14 +386,22 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
             var connectorName = connectorId.split("-")[0];
             var config = App.getConnectorConfig(connectorName);
-            var applySettings;
-            if (typeof(config.hasGeneralSettings)!="undefined"&&config.hasGeneralSettings){
-                applySettings = config.applySettings;
-            } else applySettings=null;
+            var hasGeneralSettings = false;
+            if (typeof(config.hasGeneralSettings)!="undefined"&&config.hasGeneralSettings)
+                hasGeneralSettings = true;
             for (var i = 0; i < digest.cachedData[connectorId].length; i++){
                 var facet = digest.cachedData[connectorId][i];
-                if (typeof(applySettings)!="undefined"&&applySettings!=null)
-                    applySettings(facet, digest.settings.connectorSettings);
+                if (hasGeneralSettings)
+                    config.applySettings(facet, digest.settings.connectorSettings);
+                if (typeof(config.isFilteredOut)!="undefined"&&config.isFilteredOut!=null) {
+                    var filteredOut = config.isFilteredOut(facet, digest.settings.connectorSettings);
+                    if (filteredOut) {
+                        facet.filteredOut=true;
+                        delete digest.cachedData[connectorId][i];
+                        delete facet;
+                        continue;
+                    }
+                }
                 if (digest.cachedData[connectorId].hasImages){
                     switch (connectorId){
                         case "picasa-photo":
@@ -551,6 +559,13 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             console.log("WARNING: hey, no template found for " + facets[0].type + ".");
             return "";
         }
+        //var allFacets = facets;
+        //facets = [];
+        //for (var i = 0; i < allFacets.length; i++){
+        //    if (typeof(allFacets[i].filteredOut)!="undefined"&&allFacets[i].filteredOut)
+        //        continue;
+        //    facets.push(allFacets[i]);
+        //}
         var params = {color:App.getFacetConfig(facets[0].type).color,facets:[],sent:facets[0].sent};
         for (var i = 0; i < facets.length; i++){
             var data = facets[i];

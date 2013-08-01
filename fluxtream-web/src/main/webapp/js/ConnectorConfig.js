@@ -214,11 +214,19 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                     for (var i=0; i<settings.calendars.length; i++) {
                         if (settings.calendars[i].id==facet.calendarId) {
                             var calendarSettings = settings.calendars[i];
-                            console.log("setting facet.color to " + calendarSettings.backgroundColor);
                             facet.color = calendarSettings.backgroundColor;
                         }
                     }
                 }
+            },
+            isFilteredOut: function(facet, connectorSettings) {
+                var settings = connectorSettings[facet.apiKeyId];
+                for (var i=0; i<settings.calendars.length; i++) {
+                    if (settings.calendars[i].id==facet.calendarId&&settings.calendars[i].hidden) {
+                        return true;
+                    }
+                }
+                return false;
             },
             mapicon: {
                 url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/calendar-3.png",

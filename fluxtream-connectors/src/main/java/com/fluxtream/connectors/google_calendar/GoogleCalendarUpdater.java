@@ -66,14 +66,18 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
         String pageToken = null;
         do {
             try {
-            final Calendar.Events.List eventsApiCall = calendar.events().list(calendarId);
-            eventsApiCall.setPageToken(pageToken);
-            if (from!=-1)
-                eventsApiCall.setUpdatedMin(new DateTime(from));
-            final Events events = eventsApiCall.execute();
-            final List<Event> eventList = events.getItems();
-            storeEvents(updateInfo, calendarId, eventList);
-            pageToken = events.getNextPageToken();
+                final Calendar.Events.List eventsApiCall = calendar.events().list(calendarId);
+                eventsApiCall.setPageToken(pageToken);
+                eventsApiCall.setShowHiddenInvitations(true);
+                eventsApiCall.setSingleEvents(true);
+                final String uriTemplate = eventsApiCall.getUriTemplate();
+                if (from!=-1) {
+                    eventsApiCall.setUpdatedMin(new DateTime(from));
+                }
+                final Events events = eventsApiCall.execute();
+                final List<Event> eventList = events.getItems();
+                storeEvents(updateInfo, calendarId, eventList);
+                pageToken = events.getNextPageToken();
             } catch (Throwable e) {
                 throw(new RuntimeException(e));
             } finally {
@@ -90,7 +94,10 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
     }
 
     private void createOrUpdateEvent(final UpdateInfo updateInfo, final String calendarId, final Event event) {
-        final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery("e.apiKeyId=? AND e.googleId=?", updateInfo.apiKey.getId(), event.getId());
+        if (event.getStatus().equalsIgnoreCase("cancelled"))
+            return;
+        final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery("e.apiKeyId=? AND e.googleId=? AND e.calendarId=?",
+                                                                                   updateInfo.apiKey.getId(), event.getId(), calendarId);
         final ApiDataService.FacetModifier<GoogleCalendarEventFacet> facetModifier = new ApiDataService.FacetModifier<GoogleCalendarEventFacet>() {
             @Override
             public GoogleCalendarEventFacet createOrModify(GoogleCalendarEventFacet facet, final Long apiKeyId) {

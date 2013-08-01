@@ -61,6 +61,8 @@ public class GoogleCalendarEventFacet extends AbstractFacet {
     public String visibility;
     public Integer sequence;
 
+    public boolean allDayEvent;
+
     @Lob
     public String attendeesStorage;
 
@@ -88,6 +90,7 @@ public class GoogleCalendarEventFacet extends AbstractFacet {
                 this.start = start.getDateTime().getValue();
                 this.startTimezoneShift = start.getDateTime().getTimeZoneShift();
             } else if (start.getDate()!=null) {
+                this.allDayEvent = true;
                 this.start = start.getDate().getValue();
                 this.startTimezoneShift = start.getDate().getTimeZoneShift();
             }
@@ -100,6 +103,7 @@ public class GoogleCalendarEventFacet extends AbstractFacet {
                 this.end = end.getDateTime().getValue();
                 this.endTimezoneShift = end.getDateTime().getTimeZoneShift();
             } else if (end.getDate()!=null) {
+                this.allDayEvent = true;
                 this.end = end.getDate().getValue();
                 this.endTimezoneShift = end.getDate().getTimeZoneShift();
             }
@@ -108,8 +112,14 @@ public class GoogleCalendarEventFacet extends AbstractFacet {
 
     public void setOriginalStartTime(final EventDateTime originalStartTime) {
         if (originalStartTime!=null) {
-            this.originalStartTime = originalStartTime.getDateTime().getValue();
-            this.start = originalStartTime.getDateTime().getValue();
+            if (originalStartTime.getDateTime()!=null) {
+                this.originalStartTime = originalStartTime.getDateTime().getValue();
+                this.start = originalStartTime.getDateTime().getValue();
+            } else if (originalStartTime.getDate()!=null) {
+                this.allDayEvent = true;
+                this.originalStartTime = originalStartTime.getDate().getValue();
+                this.start = originalStartTime.getDate().getValue();
+            }
         }
     }
 

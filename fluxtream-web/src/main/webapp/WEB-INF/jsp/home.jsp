@@ -35,7 +35,7 @@
 	<link rel="stylesheet" href="/static/css/tagedit/css/jquery.tagedit.css">
 </g:compress>
 
-<link rel="stylesheet" href="/static/css/font-awesome.css">
+<link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css" rel="stylesheet">
 
 <script
 	src="https://maps-api-ssl.google.com/maps/api/js?libraries=geometry&v=3&sensor=false"
