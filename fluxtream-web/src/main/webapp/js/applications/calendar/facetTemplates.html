@@ -620,23 +620,21 @@
         <div style="margin-bottom:1em;">
             <span class="flx-deviceIcon moves-place {{placeType}}"></span>
             <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
-                <div class="facetDetails">
-                    <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
-                    {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
-                    <div id="foursquare-venue-{{foursquareId}}" {{^foursquareId}}style="display:none;"{{/foursquareId}}>Getting venue name...</div>
-                    {{^foursquareId}}
-                    <div class="flx-data">
-                        {{name}}
-                    </div>
-                    {{/foursquareId}}
-                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} <span class="flx-dataLabel">-</span> {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</a></div>
-                    {{#activities}}
-                    <div class="flx-data">{{activity}}{{#distance}} ({{distance}}){{/distance}}</div>
-                    <div class="flx-tTime">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</div>
-                    {{#steps}}{{steps}} steps{{/steps}}
-                    {{/activities}}
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+                {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
+                <div id="foursquare-venue-{{foursquareId}}" {{^foursquareId}}style="display:none;"{{/foursquareId}}>Getting venue name...</div>
+                {{^foursquareId}}
+                <div class="flx-data">
+                    {{name}}
                 </div>
+                {{/foursquareId}}
+                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} <span class="flx-dataLabel">-</span> {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</a></div>
+                {{#activities}}
+                <div class="flx-data">{{activity}}{{#distance}} ({{distance}}){{/distance}}</div>
+                <div class="flx-tTime">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</div>
+                {{#steps}}{{steps}} steps{{/steps}}
+                {{/activities}}
+            {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
         </div>
         {{/facets}}

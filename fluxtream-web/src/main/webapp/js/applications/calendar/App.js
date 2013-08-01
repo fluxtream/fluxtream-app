@@ -715,6 +715,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             for (element = $(event.delegateTarget); !element.hasClass("facetDetails"); element = element.parent());
             var facetType = element.attr("facettype");
             var itemId = parseInt(element.attr('itemid'));
+            if (isNaN(itemId) || facetType == null)
+                console.warn("couldn't find facet information for item");
             var popup = $('<ul id="menu1" class="dropdown-menu">' +
                               '<li><a class="clockLink" notthide="true" href="javascript:void(0)">Show in Clock</a></li>' +
             '<li><a class="mapLink" href="javascript:void(0)">Show on Map</a></li>' +
