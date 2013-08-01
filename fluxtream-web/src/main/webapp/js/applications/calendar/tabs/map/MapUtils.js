@@ -934,7 +934,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     function zoomOnMarker(map,marker){
-        if (marker.accuracy == 0)
+        if (marker.accuracy == 0 || marker.circle == null)
             zoomOnPoint(map,marker.getPosition());
         else
             map.fitBounds(marker.circle.getBounds());
