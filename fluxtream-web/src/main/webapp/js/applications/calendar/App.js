@@ -328,6 +328,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     $.each(connector.activities, function(i, facet) {
                         facet.parentType = connector.type;
                         facet.parentId = connector.id;
+                        facet.parentStartTime = connector.startTime;
+                        facet.parentEndTime = connector.endTime;
                         facet.comment = connector.comment;
                         facet.getDetails = function(array,showDate){
                             if (typeof(array) == "boolean"){
@@ -544,7 +546,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         if (facets.length == 0)
             return"";
         if (digest.detailsTemplates[facets[0].type] == null){
-            console.log("WARNING: hey, no template found for " + facets[0].type + ".");
+            console.warn("hey, no template found for " + facets[0].type + ".");
             return $("");
         }
         var params = {color:App.getFacetConfig(facets[0].type).color,facets:[],sent:facets[0].sent,callType:facets[0].callType,smsType:facets[0].smsType};
@@ -1241,10 +1243,12 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         var commentDiv =     '<div class="facet-comment" style="margin-bottom:5px">'+
                              '<textarea placeholder="type a comment..." rows="3"></textarea>' +
                              '<button class="btn btn-small save disabled" type="button"><i class="icon icon-save"/> Save</button>&nbsp;' +
-                             '<button class="btn btn-small cancel disabled" type="button"><i class="icon icon-undo"/> Cancel</button>&nbsp;' +
+                             '<button class="btn btn-small cancel" type="button"><i class="icon icon-undo"/> Cancel</button>&nbsp;' +
                              '<button class="btn btn-link delete" type="button"><i class="icon icon-trash"/> Delete</button>' +
                              '</div>';
         facetDetails.append(commentDiv);
+        var commentWarning = facetDetails.find(".commentWarning");
+        commentWarning.removeClass("hidden");
         facetDetails.trigger("contentchange");
         var textarea = facetDetails.find("textarea");
         if (hasComment) {
@@ -1257,10 +1261,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         var originalComment = textarea.val();
         textarea.keyup(function(){
             if (originalComment==textarea.val()) {
-                cancelButton.addClass("disabled");
                 saveButton.addClass("disabled");
             } else {
-                cancelButton.removeClass("disabled");
                 saveButton.removeClass("disabled");
             }
         });
@@ -1273,6 +1275,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 success: function() {
                     facet.comment = textarea.val();
                     facetDetails.find(".facet-comment").replaceWith('<div class="facet-comment-text">' + facet.comment + '</div>');
+                    commentWarning.addClass("hidden");
                     facetDetails.trigger("contentchange");
                 }
             });
@@ -1280,6 +1283,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         cancelButton.click(function(event) {
             event.stopPropagation();
             facetDetails.find(".facet-comment").replaceWith('<div class="facet-comment-text">' + originalComment + '</div>');
+            commentWarning.addClass("hidden");
             facetDetails.trigger("contentchange");
         });
         deleteButton.click(function(event) {
@@ -1290,6 +1294,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 type: "DELETE",
                 success: function() {
                     facetDetails.find(".facet-comment").remove();
+                    commentWarning.addClass("hidden");
                     facetDetails.trigger("contentchange");
                     delete facet.comment;
                 }

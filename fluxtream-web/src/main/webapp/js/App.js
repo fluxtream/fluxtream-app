@@ -688,6 +688,10 @@ define(
                     $(target).dropdown("toggle");
                     break;
                 }
+                else if ($(target).attr("data-toggle") == "collapse"){
+                    $($(target).attr("data-target")).addClass("collapse");
+                    $($(target).attr("data-target")).collapse("toggle");
+                }
             }
         }
 
