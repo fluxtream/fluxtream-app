@@ -1227,9 +1227,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             facetDetails.find(".cancel").click();
             return;
         }
-        var id = target.parent().attr("id");
-        var facetType = id.split("::")[0];
-        var facetId = id.split("::")[1];
+        var facetType = facetDetails.attr("facettype");
+        var facetId = facetDetails.attr("itemid");
         var facet = {};
         var cachedData = this.digest.cachedData[facetType];
         for (var i = 0, li = cachedData.length; i < li; i++){
