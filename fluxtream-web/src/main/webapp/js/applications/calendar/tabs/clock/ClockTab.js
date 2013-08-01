@@ -221,7 +221,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 				config.clockCircles.push(
 					function() {
 						var start = item.startMinute;
-						var end = item.endMinute, instantWidth = 2;
+						var end = item.endMinute, instantWidth = 4;
 						if (orbit===config.BODY_CATEGORY.orbit)
 							instantWidth=18;
 						//if (start>end) { start = 0; }
