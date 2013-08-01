@@ -105,7 +105,7 @@ public class SyncController {
     @Produces({MediaType.APPLICATION_JSON})
     public String updateAllConnectors(){
         try {
-            final List<ScheduleResult> scheduleResults = connectorUpdateService.updateAllConnectors(AuthHelper.getGuestId());
+            final List<ScheduleResult> scheduleResults = connectorUpdateService.updateAllConnectors(AuthHelper.getGuestId(), true);
             StatusModel statusModel = new StatusModel(true, "successfully added update worker tasks to the queue (see details)");
             statusModel.payload = scheduleResults;
             return gson.toJson(scheduleResults);

@@ -9,6 +9,7 @@ import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.JPADaoService;
+import com.fluxtream.services.SettingsService;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
@@ -19,6 +20,7 @@ import com.google.api.services.calendar.model.CalendarList;
 import com.google.api.services.calendar.model.CalendarListEntry;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.Events;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -31,6 +33,9 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
     @Autowired
     JPADaoService jpaDaoService;
 
+    @Autowired
+    SettingsService settingsService;
+
     @Override
     protected void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception {
         loadHistory(updateInfo, -1);
@@ -38,47 +43,56 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
 
     @Override
     public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
-        if (updateInfo.timeInterval==null) {
-            logger.info("module=updateQueue component=googleCalendarUpdater action=updateConnectorData message=\"attempt to update connector data with a null timeInterval\"");
-        } else {
-            final String lastUpdate = guestService.getApiKeyAttribute(updateInfo.apiKey, "lastUpdate");
-            loadHistory(updateInfo, Long.valueOf(lastUpdate));
-        }
+        final String lastUpdate = guestService.getApiKeyAttribute(updateInfo.apiKey, "lastUpdated");
+        loadHistory(updateInfo, Long.valueOf(lastUpdate));
     }
 
     private void loadHistory(UpdateInfo updateInfo, long from) throws Exception {
         Calendar calendar = getCalendar(updateInfo.apiKey);
-        final Calendar.CalendarList calendarList = calendar.calendarList();
-        try {
-            final CalendarList list = calendarList.list().execute();
-            final List<CalendarListEntry> items = list.getItems();
+        String pageToken = null;
+        settingsService.getConnectorSettings(updateInfo.apiKey.getId(), true);
+        do {
+            final long then = System.currentTimeMillis();
+            final Calendar.CalendarList.List list = calendar.calendarList().list().setPageToken(pageToken);
+            final String query = list.getUriTemplate();
+            CalendarList calendarList = null;
+            try {
+                calendarList = list.execute();
+                countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, query);
+            } catch (Exception e) {
+                countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, query, ExceptionUtils.getStackTrace(e));
+            }
+            if (calendarList==null) throw new Exception("Could not get calendar list, apiKeyId=" + updateInfo.apiKey.getId());
+            List<CalendarListEntry> items = calendarList.getItems();
             for (CalendarListEntry item : items) {
                 final String calendarId = item.getId();
-                loadCalendarHistory(calendar, calendarId, updateInfo, from);
+                loadCalendarHistory(calendar, item, updateInfo, from);
             }
-        }
-        catch (IOException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        }
+            pageToken = calendarList.getNextPageToken();
+        } while (pageToken != null);
     }
 
-    private void loadCalendarHistory(final Calendar calendar, final String calendarId, final UpdateInfo updateInfo, final long from) throws IOException {
+    private void loadCalendarHistory(final Calendar calendar, final CalendarListEntry calendarEntry, final UpdateInfo updateInfo, final long from) throws IOException {
         String pageToken = null;
         do {
+            long then = System.currentTimeMillis();
+            final Calendar.Events.List eventsApiCall = calendar.events().list(calendarEntry.getId());
+            final String uriTemplate = eventsApiCall.getUriTemplate();
             try {
-                final Calendar.Events.List eventsApiCall = calendar.events().list(calendarId);
                 eventsApiCall.setPageToken(pageToken);
                 eventsApiCall.setShowHiddenInvitations(true);
                 eventsApiCall.setSingleEvents(true);
-                final String uriTemplate = eventsApiCall.getUriTemplate();
+                eventsApiCall.setTimeMax(new DateTime(System.currentTimeMillis()));
                 if (from!=-1) {
                     eventsApiCall.setUpdatedMin(new DateTime(from));
                 }
                 final Events events = eventsApiCall.execute();
+                countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, uriTemplate);
                 final List<Event> eventList = events.getItems();
-                storeEvents(updateInfo, calendarId, eventList);
+                storeEvents(updateInfo, calendarEntry, eventList);
                 pageToken = events.getNextPageToken();
             } catch (Throwable e) {
+                countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, uriTemplate, ExceptionUtils.getStackTrace(e));
                 throw(new RuntimeException(e));
             } finally {
                 long lastUpdated = jpaDaoService.executeNativeQuery("select max(eventUpdated) from Facet_GoogleCalendarEvent where apiKeyId=" + updateInfo.apiKey.getId());
@@ -87,17 +101,23 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
         } while (pageToken != null);
     }
 
-    private void storeEvents(final UpdateInfo updateInfo, final String calendarId, final List<Event> eventList) {
+    private void storeEvents(final UpdateInfo updateInfo, final CalendarListEntry calendarEntry, final List<Event> eventList) {
         for (final Event event : eventList) {
-            createOrUpdateEvent(updateInfo, calendarId, event);
+            createOrUpdateEvent(updateInfo, calendarEntry, event);
         }
     }
 
-    private void createOrUpdateEvent(final UpdateInfo updateInfo, final String calendarId, final Event event) {
-        if (event.getStatus().equalsIgnoreCase("cancelled"))
+    private void createOrUpdateEvent(final UpdateInfo updateInfo, final CalendarListEntry calendarEntry, final Event event) {
+        if (event.getStatus().equalsIgnoreCase("cancelled")) {
+            final int deleted = jpaDaoService.execute(String.format("DELETE FROM Facet_GoogleCalendarEvent facet WHERE " +
+                                                                    "facet.apiKeyId=%s AND facet.googleId='%s'",
+                                                                    updateInfo.apiKey.getId(), event.getId()));
+            System.out.println("deleted " + deleted + " calendar entry");
+            guestService.setApiKeyAttribute(updateInfo.apiKey, "lastUpdated", String.valueOf(event.getUpdated().getValue()));
             return;
+        }
         final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery("e.apiKeyId=? AND e.googleId=? AND e.calendarId=?",
-                                                                                   updateInfo.apiKey.getId(), event.getId(), calendarId);
+                                                                                   updateInfo.apiKey.getId(), event.getId(), calendarEntry.getId());
         final ApiDataService.FacetModifier<GoogleCalendarEventFacet> facetModifier = new ApiDataService.FacetModifier<GoogleCalendarEventFacet>() {
             @Override
             public GoogleCalendarEventFacet createOrModify(GoogleCalendarEventFacet facet, final Long apiKeyId) {
@@ -106,6 +126,7 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
                     facet.googleId = event.getId();
                     facet.guestId = updateInfo.apiKey.getGuestId();
                     facet.api = updateInfo.apiKey.getConnector().value();
+                    facet.calendarId = calendarEntry.getId();
                 }
                 facet.summary = event.getSummary();
                 facet.setCreated(event.getCreated());
@@ -128,7 +149,6 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
                 facet.setOriginalStartTime(event.getOriginalStartTime());
                 facet.status = event.getStatus();
                 facet.timeUpdated = System.currentTimeMillis();
-                facet.calendarId = calendarId;
                 facet.transparency = event.getTransparency();
                 facet.visibility = event.getVisibility();
                 facet.setRecurrence(event.getRecurrence());
@@ -154,8 +174,17 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
     private void refreshSettings(final ApiKey apiKey, final GoogleCalendarConnectorSettings settings) {
         final Calendar calendar = getCalendar(apiKey);
         final Calendar.CalendarList calendarList = calendar.calendarList();
+        final long then = System.currentTimeMillis();
         try {
-            final CalendarList list = calendarList.list().execute();
+            final Calendar.CalendarList.List calendarListCall = calendarList.list();
+            final String uriTemplate = calendarListCall.getUriTemplate();
+            CalendarList list = null;
+            try {
+                list = calendarListCall.execute();
+                countSuccessfulApiCall(apiKey, 0xffffff, then, uriTemplate);
+            } catch (Throwable t) {
+                countFailedApiCall(apiKey, 0xffffff, then, uriTemplate, ExceptionUtils.getStackTrace(t));
+            }
             final List<CalendarListEntry> items = list.getItems();
             for (CalendarListEntry calendarListEntry : items) {
                 final String calendarId = calendarListEntry.getId();
@@ -174,7 +203,7 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
             }
         }
         catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 

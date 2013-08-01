@@ -41,6 +41,7 @@ public class GoogleCalendarEventFacetVO extends AbstractTimedFacetVO<GoogleCalen
                 String[] attendees = facet.attendeesStorage.split("\\|");
                 for (String attendee : attendees) {
                     final EventAttendee eventAttendee = jacksonFactory.fromString(attendee, EventAttendee.class);
+                    eventAttendee.put("attendeeStatusClass", toCssClass(eventAttendee.getResponseStatus()));
                     this.attendees.add(eventAttendee);
                 }
             }
@@ -52,7 +53,8 @@ public class GoogleCalendarEventFacetVO extends AbstractTimedFacetVO<GoogleCalen
             this.summary = facet.summary;
             this.apiKeyId = facet.apiKeyId;
             this.calendarId = facet.calendarId;
-            this.location = facet.location;
+            if (facet.location!=null)
+                this.location = facet.location.equals("")?null:facet.location;
             this.recurringEvent = facet.recurringEventId!=null;
             this.isAllDay = facet.allDayEvent;
         }
@@ -61,4 +63,15 @@ public class GoogleCalendarEventFacetVO extends AbstractTimedFacetVO<GoogleCalen
         }
     }
 
+    private Object toCssClass(final String responseStatus) {
+        if (responseStatus.equalsIgnoreCase("accepted"))
+            return "icon-ok";
+        else if (responseStatus.equalsIgnoreCase("needsAction"))
+            return "icon-warning-sign";
+        else if (responseStatus.equalsIgnoreCase("tentative"))
+            return "icon-question";
+        else if (responseStatus.equalsIgnoreCase("declined"))
+            return "icon-ban-circle";
+        return "";
+    }
 }
