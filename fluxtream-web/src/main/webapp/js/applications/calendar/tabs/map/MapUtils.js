@@ -482,10 +482,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             var details = item.getDetails(true);
             details.on("contentchange",function(event, content){
                 map.infoWindow.setContent(details[0]);
-                details.find(".facet-edit a").unbind('click').click(function(event){
-                    event.digest = map.digest;
-                    App.apps.calendar.commentEdit(event);
-                });
+                App.apps.calendar.rebindDetailsControls(details);
             });
             details.find(".mapLink").remove();
             details.css("width","300px");
@@ -937,7 +934,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     }
 
     function zoomOnMarker(map,marker){
-        if (marker.accuracy == 0)
+        if (marker.accuracy == 0 || marker.circle == null)
             zoomOnPoint(map,marker.getPosition());
         else
             map.fitBounds(marker.circle.getBounds());
@@ -1308,10 +1305,10 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             map.setZoom(map.getZoom()+1);
     }
 
-    function zoomOnItemAndClick(map,itemId){
+    function zoomOnItemAndClick(map,item){
         var targetMarker = null;
         for (var i = 0, li = map.markerList.length; i < li && targetMarker == null; i++){
-            if (map.markerList[i].item != null && map.markerList[i].item.id == itemId)
+            if (map.markerList[i].item != null && map.markerList[i].item.id == item.id)
                 targetMarker = map.markerList[i];
         }
         if (targetMarker != null){
@@ -1425,8 +1422,8 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                     this.executionQueue.push(afterready);
             }
             map.isPreserveViewChecked = function(){return false;}
-            map.zoomOnItemAndClick = function(itemId){
-                zoomOnItemAndClick(map,itemId);
+            map.zoomOnItemAndClick = function(item){
+                zoomOnItemAndClick(map,item);
             }
             map._oldFitBounds = map.fitBounds;
             map.fitBounds = function(bounds,isPreservedView){

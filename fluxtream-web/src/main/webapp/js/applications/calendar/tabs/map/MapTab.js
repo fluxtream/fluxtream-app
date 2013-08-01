@@ -13,7 +13,7 @@ define(["core/Tab",
     var itemToShow = null;
 
     function render(params) {
-        itemToShow = params.tabParam;
+        itemToShow = params.facetToShow;
         params.setTabParam(null);
         this.getTemplate("text!applications/calendar/tabs/map/map.html", "map", function(){
             if (lastTimestamp == params.digest.generationTimestamp && !params.forceReload){

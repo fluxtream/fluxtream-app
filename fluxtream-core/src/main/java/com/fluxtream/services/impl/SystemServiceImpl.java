@@ -138,13 +138,12 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
                                      Connector.getConnector("zeo"), order++, zeoKeys!=null,
                                      false, false, zeoKeys));
         final String mymee = "Mymee";
-        String[] mymeeKeys = checkKeysExist(mymee, new ArrayList<String>());
         em.persist(new ConnectorInfo(mymee,
                                      "/images/connectors/connector-mymee.jpg",
                                      res.getString("mymee"),
                                      "ajax:/mymee/enterFetchURL",
-                                     Connector.getConnector("mymee"), order++, mymeeKeys!=null,
-                                     false, true, mymeeKeys));
+                                     Connector.getConnector("mymee"), order++, true,
+                                     false, true, null));
         final String quantifiedMind = "QuantifiedMind";
         String[] quantifiedMindKeys = checkKeysExist(quantifiedMind, new ArrayList<String>());
         em.persist(new ConnectorInfo(quantifiedMind,
@@ -206,8 +205,14 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
                                      "/images/connectors/connector-runkeeper.jpg",
                                      res.getString("runkeeper"),
                                      "/runkeeper/token",
-                                     Connector.getConnector("runkeeper"), order, runkeeperKeys!=null,
+                                     Connector.getConnector("runkeeper"), order++, runkeeperKeys!=null,
                                      false, true, runkeeperKeys));
+        em.persist(new ConnectorInfo("SMS Backup",
+                                     "/images/connectors/connector-sms_backup.jpg",
+                                     res.getString("sms_backup"),
+                                     "ajax:/smsBackup/enterCredentials",
+                                     Connector.getConnector("sms_backup"), order++, true,
+				     false,true,null));
 	}
 
     private String[] checkKeysExist(String connectorName, List<String> keys) {
