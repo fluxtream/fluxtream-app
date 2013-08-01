@@ -1,6 +1,8 @@
 package com.fluxtream.connectors.moves;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.ServletException;
@@ -8,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import com.fluxtream.Configuration;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.connectors.controllers.ControllerSupport;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.Notification;
@@ -43,10 +46,21 @@ public class MovesController {
 
 
     @RequestMapping(value = "/token")
-    public String getToken() throws IOException, ServletException {
+    public String getToken(HttpServletRequest request) throws IOException, ServletException {
 
         String redirectUri = getRedirectUri();
 
+        // Check that the redirectUri is going to work
+        final String validRedirectUrl = env.get("moves.validRedirectURL");
+        if (!validRedirectUrl.startsWith(ControllerSupport.getLocationBase(request))) {
+            final long guestId = AuthHelper.getGuestId();
+            final String validRedirectBase = getBaseURL(validRedirectUrl);
+            notificationsService.addNotification(guestId, Notification.Type.WARNING, "Adding a Moves connector only works when logged in through " + validRedirectBase +
+            ".  You are logged in through " + ControllerSupport.getLocationBase(request) + ".<br>Please re-login via the supported URL or inform your Fluxtream administrator that the moves.validRedirectURL setting does not match your needs.");
+            return "redirect:/app";
+        }
+
+        // Here we know that the redirectUri will work
         String approvalPageUrl = String.format("https://api.moves-app.com/oauth/v1/authorize?" +
                                                "redirect_uri=%s&" +
                                                "response_type=code&client_id=%s&" +
@@ -54,6 +68,20 @@ public class MovesController {
                                                redirectUri, env.get("moves.client.id"));
 
         return "redirect:" + approvalPageUrl;
+    }
+
+    public static String getBaseURL(String url) {
+        try {
+            URI uri = new URI(url);
+            StringBuilder rootURI = new StringBuilder(uri.getScheme()).append("://").append(uri.getHost());
+            if(uri.getPort()!=-1) {
+                rootURI.append(":" + uri.getPort());
+            }
+            return (rootURI.toString());
+        }
+        catch (URISyntaxException e) {
+            return null;
+        }
     }
 
     private String getRedirectUri() {
