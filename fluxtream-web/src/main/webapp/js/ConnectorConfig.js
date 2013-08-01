@@ -278,7 +278,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
             }
         },
         sms_backup:{ //TODO: define mapicons
-            color: "",
+            color: "rgb(51,102,153)",
             facets: {
                 call_log:{
                     list: true,
