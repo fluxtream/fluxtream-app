@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.TimeZone;
 import com.fluxtream.ApiData;
 import com.fluxtream.connectors.ObjectType;
+import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 import com.fluxtream.services.ConnectorUpdateService;
@@ -45,10 +46,12 @@ public class BodymediaSleepFacetExtractor extends AbstractFacetExtractor
     MetadataService metadataService;
 
     @Override
-    public List<AbstractFacet> extractFacets(ApiData apiData, ObjectType objectType) throws Exception
+    public List<AbstractFacet> extractFacets(final UpdateInfo updateInfo,
+                                             final ApiData apiData,
+                                             final ObjectType objectType) throws Exception
     {
 
-        logger.info("guestId=" + apiData.updateInfo.getGuestId() +
+        logger.info("guestId=" + updateInfo.getGuestId() +
         				" connector=bodymedia action=extractFacets objectType="
         						+ objectType.getName());
 
@@ -56,7 +59,7 @@ public class BodymediaSleepFacetExtractor extends AbstractFacetExtractor
         String name = objectType.getName();
         if(name.equals("sleep"))
         {
-            facets = extractSleepFacets(apiData);
+            facets = extractSleepFacets(updateInfo, apiData);
         }
         else //If the facet to be extracted wasn't a step facet
         {
@@ -70,7 +73,8 @@ public class BodymediaSleepFacetExtractor extends AbstractFacetExtractor
      * @param apiData The data returned by bodymedia
      * @return a list containing a single BodymediaSleepFacet for the current day
      */
-    private ArrayList<AbstractFacet> extractSleepFacets(final ApiData apiData)
+    private ArrayList<AbstractFacet> extractSleepFacets(final UpdateInfo updateInfo,
+							final ApiData apiData)
     {
         ArrayList<AbstractFacet> facets = new ArrayList<AbstractFacet>();
         /* burnJson is a JSONArray that contains a seperate JSONArray and calorie counts for each day
@@ -78,7 +82,7 @@ public class BodymediaSleepFacetExtractor extends AbstractFacetExtractor
         JSONObject bodymediaResponse = JSONObject.fromObject(apiData.json);
         if(bodymediaResponse.has("Failed"))
         {
-            BodymediaSleepFacet sleep = new BodymediaSleepFacet(apiData.updateInfo.apiKey.getId());
+            BodymediaSleepFacet sleep = new BodymediaSleepFacet(updateInfo.apiKey.getId());
             sleep.date = bodymediaResponse.getString("Date");
         }
         else
@@ -99,7 +103,7 @@ public class BodymediaSleepFacetExtractor extends AbstractFacetExtractor
                     if(o instanceof JSONObject)
                     {
                         JSONObject day = (JSONObject) o;
-                        BodymediaSleepFacet sleep = new BodymediaSleepFacet(apiData.updateInfo.apiKey.getId());
+                        BodymediaSleepFacet sleep = new BodymediaSleepFacet(updateInfo.apiKey.getId());
                         super.extractCommonFacetData(sleep, apiData);
                         sleep.efficiency = day.getDouble("efficiency");
                         sleep.totalLying = day.getInt("totalLying");
@@ -131,7 +135,7 @@ public class BodymediaSleepFacetExtractor extends AbstractFacetExtractor
                         }
                         else {
                             sleep.date = dateFormatter.print(date.getMillis());
-                            TimeZone timeZone = metadataService.getTimeZone(apiData.updateInfo.getGuestId(), date.getMillis());
+                            TimeZone timeZone = metadataService.getTimeZone(updateInfo.getGuestId(), date.getMillis());
                             long fromNoon = TimeUtils.fromMidnight(date.getMillis(), timeZone) - MILLIS_IN_DAY / 2;
                             long toNoon = TimeUtils.toMidnight(date.getMillis(), timeZone) - MILLIS_IN_DAY / 2;
                             sleep.start = fromNoon;

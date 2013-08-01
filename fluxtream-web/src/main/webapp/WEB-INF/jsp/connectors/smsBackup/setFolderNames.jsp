@@ -39,6 +39,6 @@
 	<% } %>
 	</tr>
 	<tr>
-	<td colspan="2"><button onclick="submitSmsBackupFolderNames()">Send</button></td>
+	<td colspan="2"><button onclick="Connectors.submitSmsBackupFolderNames()">Send</button></td>
 	</tr>
 </table>

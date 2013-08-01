@@ -7,7 +7,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import com.fluxtream.Configuration;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
@@ -44,8 +43,7 @@ public class WithingsConnectorController {
     ConnectorUpdateService connectorUpdateService;
 
     @RequestMapping(value = "/chooseWithingsUser")
-    public ModelAndView chooseWithingsUser( HttpServletRequest request,
-                                            HttpServletResponse response) throws UnsupportedEncodingException {
+    public ModelAndView chooseWithingsUser(HttpServletRequest request) throws UnsupportedEncodingException {
         String publickey = request.getParameter("chosenUser");
         List<UsersListResponseUser> withingsUsers = (List<UsersListResponseUser>) request.getSession()
                 .getAttribute("scaleUsers");
@@ -73,14 +71,8 @@ public class WithingsConnectorController {
         return mav;
     }
 
-    @RequestMapping(value = "/notify")
-    public String notifyMeasurement(HttpServletRequest request, HttpServletResponse response) {
-        return null;
-    }
-
     @RequestMapping(value = "/enterCredentials")
-    public ModelAndView signin(
-            HttpServletRequest request) {
+    public ModelAndView signin() {
         ModelAndView mav = new ModelAndView("connectors/withings/enterCredentials");
         return mav;
     }
@@ -95,8 +87,8 @@ public class WithingsConnectorController {
     }
 
     @RequestMapping(value="/setupWithings")
-    public String setupWithings(HttpServletRequest request, HttpServletResponse response)
-            throws NoSuchAlgorithmException, HttpException, IOException
+    public String setupWithings(HttpServletRequest request)
+            throws NoSuchAlgorithmException, IOException
     {
         String email = request.getParameter("username");
         String password = request.getParameter("password");
@@ -156,7 +148,7 @@ public class WithingsConnectorController {
 
     public String hash(String toHash) throws NoSuchAlgorithmException {
         byte[] uniqueKey = toHash.getBytes();
-        byte[] hash = null;
+        byte[] hash;
         hash = MessageDigest.getInstance("MD5").digest(uniqueKey);
         StringBuilder hashString = new StringBuilder();
         for (int i = 0; i < hash.length; i++) {

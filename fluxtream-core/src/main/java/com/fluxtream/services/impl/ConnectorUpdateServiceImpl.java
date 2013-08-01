@@ -88,6 +88,8 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     @Override
     public List<ScheduleResult> updateConnector(final ApiKey apiKey, boolean force){
         List<ScheduleResult> scheduleResults = new ArrayList<ScheduleResult>();
+        // TODO: check if this connector type is enabled and supportsSync before calling update.
+        // If it is disabled and/or does not support sync, don't try to update it.
 
         // if forcing an update (sync now), we actually want to flush the update requests
         // that have stacked up in the queue

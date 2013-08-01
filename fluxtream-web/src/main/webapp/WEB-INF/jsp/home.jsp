@@ -178,7 +178,7 @@
     <% if (useMinifiedJs) { %>
 	<script data-main="/${release}/js/main-built.js" src="/static/js/require-1.0.3.js"></script>
     <% } else { %>
-    <script data-main="/${release}/js/main.js" src="/static/js/require-1.0.3.js"></script>-
+    <script data-main="/${release}/js/main.js" src="/static/js/require-1.0.3.js"></script>
     <% } %>
 </body>
 </html>

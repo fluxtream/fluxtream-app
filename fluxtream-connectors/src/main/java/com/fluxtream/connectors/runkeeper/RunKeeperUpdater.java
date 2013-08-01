@@ -48,8 +48,8 @@ public class RunKeeperUpdater  extends AbstractUpdater {
 
     private void updateData(final UpdateInfo updateInfo, final long since) throws Exception {
         String url = DEFAULT_ENDPOINT+"/user?oauth_token=";
-        final String accessToken = updateInfo.apiKey.getAttributeValue("accessToken", env);
-        final Token token = new Token(accessToken, env.get("runkeeperConsumerSecret"));
+        final String accessToken = guestService.getApiKeyAttribute(updateInfo.apiKey, "accessToken");
+        final Token token = new Token(accessToken, guestService.getApiKeyAttribute(updateInfo.apiKey, "runkeeperConsumerSecret"));
         final String userEndpoint = url + accessToken;
         OAuthRequest request = new OAuthRequest(Verb.GET, userEndpoint);
         request.addHeader("Accept", "application/vnd.com.runkeeper.User+json");

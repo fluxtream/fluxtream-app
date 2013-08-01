@@ -328,6 +328,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     $.each(connector.activities, function(i, facet) {
                         facet.parentType = connector.type;
                         facet.parentId = connector.id;
+                        facet.parentStartTime = connector.startTime;
+                        facet.parentEndTime = connector.endTime;
                         facet.comment = connector.comment;
                         facet.getDetails = function(array,showDate){
                             if (typeof(array) == "boolean"){
@@ -478,6 +480,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         switch (facet1.type){
             case "twitter-dm":
                 return facet1.sent == facet2.sent;
+            case "sms_backup-call_log":
+                return facet1.callType == facet2.callType;
+            case "sms_backup-sms":
+                return facet1.smsType == facet2.smsType;
         }
         return true;
     }
@@ -556,16 +562,9 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         if (facets.length == 0)
             return"";
         if (digest.detailsTemplates[facets[0].type] == null){
-            console.log("WARNING: hey, no template found for " + facets[0].type + ".");
-            return "";
+            console.warn("hey, no template found for " + facets[0].type + ".");
+            return $("");
         }
-        //var allFacets = facets;
-        //facets = [];
-        //for (var i = 0; i < allFacets.length; i++){
-        //    if (typeof(allFacets[i].filteredOut)!="undefined"&&allFacets[i].filteredOut)
-        //        continue;
-        //    facets.push(allFacets[i]);
-        //}
         var params = {color:App.getFacetConfig(facets[0].type).color,facets:[],sent:facets[0].sent};
         for (var i = 0; i < facets.length; i++){
             var data = facets[i];
@@ -636,6 +635,11 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                             params.iconClass = "-activity " + parts[0];
                         }
                         break;
+                    case "smsType":
+                    case "callType":
+                        newFacet[data[member]] = true;
+                        newFacet[member] = data[member];
+                        break;
                     default:
                         newFacet[member] = data[member];
                 }
@@ -681,9 +685,118 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
         foursquareVenueTemplate = digest.detailsTemplates["foursquare-venue"];
         var details = $(digest.detailsTemplates[data.type].render(params));
+        details.find("img");
         setTimeout(function(){getFoursquareVenues(details,foursquareVenueIds);}, 100);
         return details;
     }
+
+    function getFacet(facetType, facetId){
+        var cachedData = Calendar.digest.cachedData[facetType];
+        var facet = null;
+        for (var i = 0, li = cachedData.length; i < li; i++){
+            if (cachedData[i].id == facetId){
+                facet = cachedData[i];
+                break;
+            }
+        }
+        if (facet == null){
+            console.warn("Couldn't find " + facetType + " " + facetid);
+        }
+        return facet;
+
+    }
+
+    function switchToAppForFacet(appname,tabname,facetType, facetId){
+        App.renderApp(appname,tabname + "/" + Calendar.tabState,{facetToShow:getFacet(facetType,facetId)});
+    }
+
+    var activePopup = null;
+
+    Calendar.rebindDetailsControls = function(details){
+        details.find(".facet-edit a").unbind("click").click(function(event){
+            Calendar.commentEdit(event);
+            return false;
+        });
+        details.find(".timedropdown").unbind('click').click(function(event){
+            var element;
+            for (element = $(event.delegateTarget); !element.hasClass("facetDetails"); element = element.parent());
+            var facetType = element.attr("facettype");
+            var itemId = parseInt(element.attr('itemid'));
+            if (isNaN(itemId) || facetType == null)
+                console.warn("couldn't find facet information for item");
+            var popup = $('<ul id="menu1" class="dropdown-menu">' +
+                              '<li><a class="clockLink" notthide="true" href="javascript:void(0)">Show in Clock</a></li>' +
+            '<li><a class="mapLink" href="javascript:void(0)">Show on Map</a></li>' +
+                '<li><a class="listLink" href="javascript:void(0)">Show in List</a></li>' +
+            '<li><a class="timelineLink" href="javascript:void(0)">Show on Timeline</a></li>' +
+                '<li><a class="bodytrackLink" href="javascript:void(0)">Show in Bodytrack</a></li>' +
+            '</ul>');
+
+            var config = App.getFacetConfig(facetType);
+            if (!config.map || Calendar.currentTabName === "map"){
+                popup.find(".mapLink").css("display","none");
+            }
+            if (!config.list || Calendar.currentTabName === "list"){
+                popup.find(".listLink").css("display","none");
+            }
+            if (config.clock == null || Calendar.timeUnit !== "date" || Calendar.currentTabName === "clock"){
+                popup.find(".clockLink").css("display","none");
+            }
+            if (Calendar.currentTabName === "timeline"){
+                popup.find(".timelineLink").css("display","none");
+            }
+
+            popup.css("position","absolute");
+            $("body").append(popup);
+
+            var target = $(event.delegateTarget);
+
+            var offset = target.offset();
+            popup.css("top",offset.top + target.height());
+            popup.css("left",offset.left);
+            popup.css("display","inline-block");
+
+            popup.find(".mapLink").unbind('click').click(function(event){
+                switchToAppForFacet("calendar","map",facetType,itemId);
+            });
+            popup.find(".clockLink").unbind('click').click(function(event){
+                switchToAppForFacet("calendar","clock",facetType,itemId);
+            });
+            popup.find(".listLink").unbind('click').click(function(event){
+                switchToAppForFacet("calendar","list",facetType,itemId);
+            });
+            popup.find(".timelineLink").unbind('click').click(function(event){
+                switchToAppForFacet("calendar","timeline",facetType,itemId);
+            });
+            popup.find(".bodytrackLink").unbind('click').click(function(event){
+                switchToAppForFacet("bodytrack","grapher",facetType,itemId);
+            });
+
+            if (activePopup != null)
+                activePopup.remove();
+
+            activePopup = popup;
+            return false;
+        });
+    }
+
+   $("body").mousedown(function(event){
+       if (activePopup != null){
+           var top = $("body");
+           for (var cur = $(event.target); cur[0] != activePopup[0] && cur[0] != top[0]; cur = cur.parent());
+           if (cur[0] == top[0]){
+               activePopup.remove();
+               activePopup = null;
+           }
+       }
+   });
+
+    $("body").click(function(){
+        if (activePopup != null){
+            activePopup.remove();
+            activePopup = null;
+        }
+    });
 
     function getFoursquareVenues(details,foursquareVenueIds) {
         for (var i=0; i<foursquareVenueIds.length; i++) {
@@ -1128,11 +1241,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             facetDetails.find(".cancel").click();
             return;
         }
-        var id = target.parent().attr("id");
-        var facetType = id.split("::")[0];
-        var facetId = id.split("::")[1];
+        var facetType = facetDetails.attr("facettype");
+        var facetId = facetDetails.attr("itemid");
         var facet = {};
-        var cachedData = evt.digest.cachedData[facetType];
+        var cachedData = this.digest.cachedData[facetType];
         for (var i = 0, li = cachedData.length; i < li; i++){
             if (cachedData[i].id == facetId){
                 facet = cachedData[i];
@@ -1148,10 +1260,12 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         var commentDiv =     '<div class="facet-comment" style="margin-bottom:5px">'+
                              '<textarea placeholder="type a comment..." rows="3"></textarea>' +
                              '<button class="btn btn-small save disabled" type="button"><i class="icon icon-save"/> Save</button>&nbsp;' +
-                             '<button class="btn btn-small cancel disabled" type="button"><i class="icon icon-undo"/> Cancel</button>&nbsp;' +
+                             '<button class="btn btn-small cancel" type="button"><i class="icon icon-undo"/> Cancel</button>&nbsp;' +
                              '<button class="btn btn-link delete" type="button"><i class="icon icon-trash"/> Delete</button>' +
                              '</div>';
         facetDetails.append(commentDiv);
+        var commentWarning = facetDetails.find(".commentWarning");
+        commentWarning.removeClass("hidden");
         facetDetails.trigger("contentchange");
         var textarea = facetDetails.find("textarea");
         if (hasComment) {
@@ -1164,10 +1278,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         var originalComment = textarea.val();
         textarea.keyup(function(){
             if (originalComment==textarea.val()) {
-                cancelButton.addClass("disabled");
                 saveButton.addClass("disabled");
             } else {
-                cancelButton.removeClass("disabled");
                 saveButton.removeClass("disabled");
             }
         });
@@ -1180,6 +1292,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 success: function() {
                     facet.comment = textarea.val();
                     facetDetails.find(".facet-comment").replaceWith('<div class="facet-comment-text">' + facet.comment + '</div>');
+                    commentWarning.addClass("hidden");
                     facetDetails.trigger("contentchange");
                 }
             });
@@ -1187,6 +1300,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         cancelButton.click(function(event) {
             event.stopPropagation();
             facetDetails.find(".facet-comment").replaceWith('<div class="facet-comment-text">' + originalComment + '</div>');
+            commentWarning.addClass("hidden");
             facetDetails.trigger("contentchange");
         });
         deleteButton.click(function(event) {
@@ -1197,6 +1311,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 type: "DELETE",
                 success: function() {
                     facetDetails.find(".facet-comment").remove();
+                    commentWarning.addClass("hidden");
                     facetDetails.trigger("contentchange");
                     delete facet.comment;
                 }

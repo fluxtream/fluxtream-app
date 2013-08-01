@@ -94,7 +94,6 @@ public class ApiDataServiceImpl implements ApiDataService {
 	public void cacheApiDataObject(UpdateInfo updateInfo, long start, long end,
 			AbstractFacet payload) {
 		payload.api = updateInfo.apiKey.getConnector().value();
-		payload.objectType = updateInfo.objectTypes;
 		payload.guestId = updateInfo.apiKey.getGuestId();
 		payload.timeUpdated = System.currentTimeMillis();
 
@@ -324,12 +323,12 @@ public class ApiDataServiceImpl implements ApiDataService {
 				.getConnector().extractor(objectTypes, beanFactory);
         if (facetExtractor==null)
             return newFacets;
-		facetExtractor.setUpdateInfo(updateInfo);
+
 		List<ObjectType> connectorTypes = ObjectType.getObjectTypes(
 				apiData.updateInfo.apiKey.getConnector(), objectTypes);
 		if (connectorTypes != null) {
 			for (ObjectType objectType : connectorTypes) {
-				List<AbstractFacet> facets = facetExtractor.extractFacets(
+				List<AbstractFacet> facets = facetExtractor.extractFacets(updateInfo,
 						apiData, objectType);
 				for (AbstractFacet facet : facets) {
 					AbstractFacet newFacet = persistFacet(facet);
@@ -338,7 +337,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 				}
 			}
 		} else {
-			List<AbstractFacet> facets = facetExtractor.extractFacets(apiData,
+			List<AbstractFacet> facets = facetExtractor.extractFacets(updateInfo, apiData,
 					null);
 			for (AbstractFacet facet : facets) {
 				AbstractFacet newFacet = persistFacet(facet);
@@ -458,7 +457,6 @@ public class ApiDataServiceImpl implements ApiDataService {
         T modified = modifier.createOrModify(orig, apiKeyId);
         // createOrModify must return passed argument if it is not null
         assert(orig == null || orig == modified);
-        assert(false);
         assert (modified != null);
         //System.out.println("====== after modify, contained?: " + em.contains(modified));
         if (orig == null) {

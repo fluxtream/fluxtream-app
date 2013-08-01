@@ -76,7 +76,7 @@ public class LastFmUpdater extends AbstractUpdater {
     }
 
     private JSONObject getTracks(UpdateInfo updateInfo, long from, long to, int page, String tracksType) throws Exception {
-        String api_key = env.get("lastfmConsumerKey");
+        String api_key = guestService.getApiKeyAttribute(updateInfo.apiKey, "lastfmConsumerKey");
         String username = updateInfo.apiKey.getAttributeValue("username", env);
         long then = System.currentTimeMillis();
 

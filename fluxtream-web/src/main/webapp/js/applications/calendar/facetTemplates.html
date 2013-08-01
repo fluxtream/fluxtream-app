@@ -3,10 +3,10 @@
         <span class="flx-deviceIcon twitter-tweet"></span>
        <div class="facetDetails">
            {{#facets}}
-           <div class="facetDetails{{manyFacets}}">
-               <div class="facet-edit" id="{{type}}::{{id}}" ><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+           <div class="facetDetails{{manyFacets}} {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+               <div class="facet-edit" ><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
-               <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
+               <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{time}} <span class="flx-dataLabel">{{ampm}}</span></a></div>
                <div class="flx-data">
                    <span style="background:url('{{profileImageUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
                    <span class="flx-description"><span><a href="https://twitter.com/{{userName}}">@{{userName}}</a></span> {{{description}}}</span>
@@ -22,10 +22,10 @@
         <span class="flx-deviceIcon twitter-mention"></span>
         <div class="facetDetails">
             {{#facets}}
-            <div class="facetDetails{{manyFacets}}">
-                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+            <div class="facetDetails{{manyFacets}} {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
-                <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
+                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{time}} <span class="flx-dataLabel">{{ampm}}</span></a></div>
                 <div class="flx-data">
                     <span style="background:url('{{profileImageUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
                     <span class="flx-description"><span><a href="https://twitter.com/{{userName}}">@{{userName}}</a></span> {{{description}}}</span>
@@ -41,10 +41,10 @@
         <span class="flx-deviceIcon twitter-dm{{^sent}}-in{{/sent}}{{#sent}}-out{{/sent}}"></span>
         <div class="facetDetails">
             {{#facets}}
-            <div class="facetDetails{{manyFacets}}">
-                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+            <div class="facetDetails{{manyFacets}} {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
-                <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
+                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{time}} <span class="flx-dataLabel">{{ampm}}</span></a></div>
                 <div class="flx-data">
                     <span style="background:url('{{profileImageUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
                     <span class="flx-description"><span><a href="https://twitter.com/{{userName}}">@{{userName}}</a></span> {{{description}}}</span>
@@ -60,11 +60,12 @@
         <span class="flx-deviceIcon calendar"></span>
         <div class="facetDetails">
             {{#facets}}
-            <div class="facetDetails">
-                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 {{^isAllDay}}<div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>{{/isAllDay}}
                 {{#isAllDay}}<div class="allDayEvent">All-Day</div>{{/isAllDay}}
+                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{time}} <span class="flx-dataLabel">{{ampm}}</span></a></div>
                 <div class="flx-data">
                     <div class="bullet" style="background-color:{{color}};color:{{color}}"></div>
                     <span class="flx-description"><a href="javascript:void(0);" onclick="App.expandCollapse(this);" class="expandcollapse"><i class="icon-expand-alt"></i></a>{{summary}}</span>
@@ -91,13 +92,13 @@
         <span class="flx-deviceIcon lastfm"></span>
         <div class="facetDetails">
             {{#facets}}
-            <div class="facetDetails{{manyFacets}}">
-                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+            <div class="facetDetails{{manyFacets}} {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
-                <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
+                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{time}} <span class="flx-dataLabel">{{ampm}}</span></a></div>
                 <div class="flx-data">
                     <span style="display:block; float:left; margin:0 10px 0 0">
-                        <img src="{{imgUrl}}" height=42>
+                        <img src="{{imgUrl}}" style="max-height:42px;">
                     </span>
                     <span class="flx-description">{{description}}</span>
                 </div>
@@ -112,13 +113,13 @@
         <span class="flx-deviceIcon lastfm"></span>
         <div class="facetDetails">
             {{#facets}}
-            <div class="facetDetails{{manyFacets}}">
-                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+            <div class="facetDetails{{manyFacets}} {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
-                <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
+                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{time}} <span class="flx-dataLabel">{{ampm}}</span></a></div>
                 <div class="flx-data">
                     <span style="display:block; float:left; margin:0 10px 0 0">
-                        <img src="{{imgUrl}}" height=42>
+                        <img src="{{imgUrl}}" style="max-height:42px;">
                     </span>
                     <span class="flx-description">{{description}}</span>
                 </div>
@@ -133,8 +134,8 @@
         <span class="flx-deviceIcon fitbit-steps"></span>
         <div class="facetDetails">
             <span class="flx-text">{{#facets}}</span>
-            <div class="facetDetails">
-                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-data">
                     <span class="flx-steps">
@@ -161,10 +162,16 @@
         <span class="flx-deviceIcon runkeeper-fitnessActivity"></span>
         <div class="facetDetails">
             {{#facets}}
-            <div class="facetDetails">
-                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
-                <div class="flx-tTime">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} <span class="flx-dataLabel">-</span> {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</div>
+                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} <span class="flx-dataLabel">-</span> {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</a><ul id="menu1" class="dropdown-menu" role="menu" aria-labelledby="drop4">
+                <li><a class="clockLink" notthide="true" facettype="{{type}}" itemid="{{id}}" href="javascript:void(0)">Show in Clock</a></li>
+                <li><a class="mapLink" facettype="{{type}}" itemid="{{id}}" href="javascript:void(0)">Show on Map</a></li>
+                <li><a class="listLink" facettype="{{type}}" itemid="{{id}}" href="javascript:void(0)">Show in List</a></li>
+                <li><a class="timelineLink"  facettype="{{type}}" itemid="{{id}}" href="javascript:void(0)">Show on Timeline</a></li>
+                <li><a class="bodytrackLink" facettype="{{type}}" itemid="{{id}}" href="javascript:void(0)">Show in Bodytrack</a></li>
+            </ul></div></div>
                 <div class="flx-data">
                     <div>
                         <span class="flx-dataLabel">{{activityType}}</span>
@@ -190,10 +197,10 @@
         <span class="flx-deviceIcon fitbit"></span>
         <div class="facetDetails">
             {{#facets}}
-            <div class="facetDetails">
-                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
-                <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
+                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{time}} <span class="flx-dataLabel">{{ampm}}</span></a></div>
                 <div class="flx-data">
                     <span class="flx-description">{{description}}</span>
                 </div>
@@ -208,8 +215,8 @@
         <span class="flx-deviceIcon fitbit-sleep"></span>
         <div class="facetDetails">
             {{#facets}}
-            <div class="facetDetails">
-                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-data">
                     <div>
@@ -236,8 +243,8 @@
         <span class="flx-deviceIcon fitbit-weight"></span>
         <div class="facetDetails">
             {{#facets}}
-            <div class="facetDetails">
-                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}}</div>
                 <div class="flx-data">
@@ -247,6 +254,10 @@
                 <div class="flx-data">
                     <span class="flx-dataLabel">BMI</span>
                     <span class="flx-text">{{bmi}}</span>
+                </div>
+                <div class="flx-data">
+                    <span class="flx-dataLabel">Fat %</span>
+                    <span class="flx-text">{{fat}}</span>
                 </div>
                 {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
@@ -259,10 +270,10 @@
         <span class="flx-deviceIcon picasa"></span>
         <div class="facetDetails">
             {{#facets}}
-            <div class="facetDetails{{manyFacets}}">
-                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+            <div class="facetDetails{{manyFacets}} {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
-                <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
+                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{time}} <span class="flx-dataLabel">{{ampm}}</span></a></div>
                 <div class="flx-data">
                     <!--<span class="flx-photo" style="background:url('{{photoUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>-->
                     <img class="flx-photo" photoId="{{id}}" src="{{photo42}}" style="max-height:42px">
@@ -279,13 +290,13 @@
         <span class="flx-deviceIcon flickr-photo"></span>
         <div class="facetDetails">
             {{#facets}}
-            <div class="facetDetails{{manyFacets}}">
-                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+            <div class="facetDetails{{manyFacets}} {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
-                <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
+                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{time}} <span class="flx-dataLabel">{{ampm}}</span></a></div>
                 <div class="flx-data">
-                    <span photoId="{{id}}" class="flx-photo" style="display:block; float:left; margin:0 10px 0 0">
-                        <img src="{{photo42}}" height=42>
+                    <span photoId="{{id}}" class="flx-photo" style="display:block; cursor:pointer; float:left; margin:0 10px 0 0">
+                        <img src="{{photo42}}" style="max-height:42px;">
                     </span>
                     <span class="flx-description">{{description}}</span>
                 </div>
@@ -297,15 +308,18 @@
 </template>
 <template id="sms_backup-call_log">
     <div class="flx-box" style="border-left-color:{{color}}">
-        <span class="flx-deviceIcon sms-call-log"></span>
+        <span class="flx-deviceIcon sms_backup-call_log-{{callType}}"></span>
         <div class="facetDetails">
             {{#facets}}
-            <div class="facetDetails">
-                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
-                <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
+                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} <span class="flx-dataLabel">-</span> {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</a></div>
                 <div class="flx-data">
-                    <span class="flx-description">{{description}}</span>
+                    <strong>{{#MISSED}}Missed{{/MISSED}}{{#OUTGOING}}Outgoing{{/OUTGOING}}{{#INCOMING}}Incoming{{/INCOMING}} call {{#OUTGOING}}to{{/OUTGOING}}{{^OUTGOING}}from{{/OUTGOING}} {{personName}} ({{personNumber}})</strong>
+                    {{^MISSED}}
+                        <br>Call length: {{secondsTalking}}s
+                    {{/MISSED}}
                 </div>
                 {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
@@ -318,8 +332,8 @@
         <span class="flx-deviceIcon zeo"></span>
         <div class="facetDetails">
             {{#facets}}
-            <div class="facetDetails">
-                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-data">
                     <div>
@@ -350,8 +364,8 @@
         <span class="flx-deviceIcon bm-burn"></span>
         <div class="facetDetails">
             {{#facets}}
-            <div class="facetDetails">
-                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-data">
                     <span class="flx-dataLabel">You burned</span>
@@ -369,8 +383,8 @@
         <span class="flx-deviceIcon bm-sleep"></span>
         <div class="facetDetails">
             {{#facets}}
-            <div class="facetDetails">
-                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-data">
                     <span class="flx-dataLabel">You were lying </span>
@@ -397,8 +411,8 @@
         <span class="flx-deviceIcon bm-steps"></span>
         <div class="facetDetails">
             {{#facets}}
-            <div class="facetDetails">
-                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-data">
                     <span class="flx-steps">
@@ -414,15 +428,16 @@
 </template>
 <template id="sms_backup-sms">
     <div class="flx-box" style="border-left-color:{{color}}">
-        <span class="flx-deviceIcon sms"></span>
+        <span class="flx-deviceIcon sms_backup-sms-{{smsType}}"></span>
         <div class="facetDetails">
             {{#facets}}
-            <div class="facetDetails">
-                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
-                <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
+                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{time}} <span class="flx-dataLabel">{{ampm}}</span></a></div>
                 <div class="flx-data">
-                    <span class="flx-description">{{description}}</span>
+                    <strong>SMS {{#OUTGOING}}to{{/OUTGOING}}{{#INCOMING}}from{{/INCOMING}} {{personName}} ({{personNumber}})</strong>:<br>
+                    {{message}}
                 </div>
                 {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
@@ -435,10 +450,10 @@
         <span class="flx-deviceIcon withings-blood_pressure"></span>
         <div class="facetDetails">
             {{#facets}}
-            <div class="facetDetails">
-                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
-                <div class="flx-tTime">{{time}}  <span class="flx-dataLabel">{{ampm}}</span></div>
+                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{time}} <span class="flx-dataLabel">{{ampm}}</span></a></div>
                 <div class="flx-data">
                     <span class="flx-dataLabel">Systolic:</span>
                     <span class="flx-text">{{systolic}} mmHg</span>
@@ -460,10 +475,10 @@
         <span class="flx-deviceIcon withings-heart_pulse"></span>
         <div class="facetDetails">
             {{#facets}}
-            <div class="facetDetails">
-                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
-                <div class="flx-tTime">{{time}}  <span class="flx-dataLabel">{{ampm}}</span></div>
+                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{time}} <span class="flx-dataLabel">{{ampm}}</span></a></div>
                 <div class="flx-data">
                     <span class="flx-dataLabel">Pulse:</span>
                     <span class="flx-text">{{pulse}} bpm</span>
@@ -479,10 +494,10 @@
         <span class="flx-deviceIcon withings"></span>
         <div class="facetDetails">
             {{#facets}}
-            <div class="facetDetails">
-                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
-                <div class="flx-tTime">{{time}}  <span class="flx-dataLabel">{{ampm}}</span></div>
+                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{time}} <span class="flx-dataLabel">{{ampm}}</span></a></div>
                 <div class="flx-data">
                     <span class="flx-dataLabel">You weigh</span>
                     <span class="flx-text">{{description}}</span>
@@ -499,10 +514,10 @@
         <span class="flx-deviceIcon latitude" style="background-size:100% 100%;"></span>
         <div class="facetDetails">
             {{#facets}}
-            <div class="facetDetails">
-                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
-                <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
+                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{time}} <span class="flx-dataLabel">{{ampm}}</span></a></div>
                 <div class="flx-data">
                     <span class="flx-description">Source: {{source}}<br>Accuracy: {{accuracy}}m</span>
                 </div>
@@ -517,10 +532,10 @@
         <span class="flx-deviceIcon latitude"></span>
         <div class="facetDetails">
             {{#facets}}
-            <div class="facetDetails">
-                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
-                <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
+                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{time}} <span class="flx-dataLabel">{{ampm}}</span></a></div>
                 <div class="flx-data">
                     <span class="flx-description">Source: {{source}}<br>Accuracy: {{accuracy}}m</span>
                 </div>
@@ -543,10 +558,10 @@
         <span class="flx-deviceIcon quantifiedmind"></span>
         <div class="facetDetails">
             {{#facets}}
-            <div class="facetDetails">
-                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
-                <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span></div>
+                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{time}} <span class="flx-dataLabel">{{ampm}}</span></a></div>
                 <div class="flx-data">
                     <span class="flx-dataLabel">Test</span>
                     <span class="flx-text">{{test_name}}</span>
@@ -564,10 +579,10 @@
         <span class="flx-deviceIcon github-push"></span>
         <div class="facetDetails">
             {{#facets}}
-            <div class="facetDetails">
-                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
-                <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
+                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{time}} <span class="flx-dataLabel">{{ampm}}</span></a></div>
                 <div class="flx-data">
                     <span class="flx-description">{{description}}</span>
                 </div>
@@ -582,10 +597,10 @@
         <span class="flx-deviceIcon mymee-observation"></span>
         <div class="facetDetails">
             {{#facets}}
-            <div class="facetDetails">
-                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
-                <div class="flx-tTime">{{time}} <span class="flx-dataLabel">{{ampm}}</span>&nbsp;<a class="mapLink" href="#" itemid="{{id}}" >{{#hasPosition}}<i class="icon-map-marker">{{/hasPosition}}</i></a></div>
+                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{time}} <span class="flx-dataLabel">{{ampm}}</span></a></div>
                 <div class="flx-data">
                     {{#photoUrl}}<img photoId="{{id}}" class="flx-photo" src="{{photo42}}" style="max-height:42px; float:left;  margin:0 10px 0 0; cursor:pointer">{{/photoUrl}}
                     <span class="flx-description">{{name}} {{amount}}</span>
@@ -602,8 +617,8 @@
         <span class="flx-deviceIcon moves-move"></span>
         <div class="facetDetails">
             {{#facets}}
-            <div class="facetDetails">
-                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</div>
                 {{#activities}}
@@ -622,24 +637,22 @@
         {{#facets}}
         <div style="margin-bottom:1em;">
             <span class="flx-deviceIcon moves-place {{placeType}}"></span>
-            <div class="facetDetails">
-                <div class="facetDetails">
-                    <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
-                    {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
-                    <div id="foursquare-venue-{{foursquareId}}" {{^foursquareId}}style="display:none;"{{/foursquareId}}>Getting venue name...</div>
-                    {{^foursquareId}}
-                    <div class="flx-data">
-                        {{name}}
-                    </div>
-                    {{/foursquareId}}
-                    <div class="flx-tTime">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}&nbsp;<a class="mapLink" href="#" itemid="{{id}}" >{{#hasPosition}}<i class="icon-map-marker">{{/hasPosition}}</i></a></div>
-                    {{#activities}}
-                    <div class="flx-data">{{activity}}{{#distance}} ({{distance}}){{/distance}}</div>
-                    <div class="flx-tTime">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</div>
-                    {{#steps}}{{steps}} steps{{/steps}}
-                    {{/activities}}
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+                {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
+                <div id="foursquare-venue-{{foursquareId}}" {{^foursquareId}}style="display:none;"{{/foursquareId}}>Getting venue name...</div>
+                {{^foursquareId}}
+                <div class="flx-data">
+                    {{name}}
                 </div>
+                {{/foursquareId}}
+                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} <span class="flx-dataLabel">-</span> {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</a></div>
+                {{#activities}}
+                <div class="flx-data">{{activity}}{{#distance}} ({{distance}}){{/distance}}</div>
+                <div class="flx-tTime">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</div>
+                {{#steps}}{{steps}} steps{{/steps}}
+                {{/activities}}
+            {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
         </div>
         {{/facets}}
@@ -649,12 +662,12 @@
     <div class="flx-box moves-move-activity" style="border-left-color:{{color}}">
         {{#facets}}
         <span class="flx-deviceIcon moves-move-activity {{activityCode}}"></span>
-        <div class="facetDetails">
-            <div class="facet-edit" id="{{parentType}}::{{parentId}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+        <div class="facetDetails {{parentType}}-{{parentId}}" facettype="{{parentType}}" itemid="{{parentId}}">
+            <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
             <div class="flx-data">{{activity}}{{#distance}} ({{distance}}){{/distance}}</div>
             <div class="flx-tTime">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</div>
             {{#steps}}{{steps}} steps{{/steps}}{{^steps}}<br>{{/steps}}
-            <div class="alert alert-info"><strong>Heads Up!</strong>This facet's comment is linked to moves-move</div>
+            <div class="commentWarning hidden"><strong>Heads Up!</strong> This facet's comment is for moves data spanning {{#parentStartTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/parentStartTime}} - {{#parentEndTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/parentEndTime}}</div>
             {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
         </div>
         {{/facets}}
@@ -665,13 +678,13 @@
         <span class="flx-deviceIcon fluxtream"></span>
         <div class="facetDetails">
             {{#facets}}
-            <div class="facetDetails{{manyFacets}}">
-                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+            <div class="facetDetails{{manyFacets}} {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
-                <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
+                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{time}} <span class="flx-dataLabel">{{ampm}}</span></a></div>
                 <div class="flx-data">
                     <span photoId="{{id}}" class="flx-photo" style="display:block; float:left; margin:0 10px 0 0">
-                        <img src="{{photo42}}" height=42>
+                        <img src="{{photo42}}" style="max-height:42px;">
                     </span>
                     <span class="flx-description">{{description}}</span>
                 </div>
@@ -686,10 +699,10 @@
         <span class="flx-deviceIcon moves-move{{iconClass}}"></span>
         <div class="facetDetails">
             {{#facets}}
-            <div class="facetDetails">
-                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
-                <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
+                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{time}} <span class="flx-dataLabel">{{ampm}}</span></a></div>
                 <div class="flx-data">
                     <span class="flx-description">Source: {{source}}<br>Accuracy: {{accuracy}}m</span>
                 </div>
@@ -704,10 +717,10 @@
         <span class="flx-deviceIcon fluxtream"></span>
         <div class="facetDetails">
             {{#facets}}
-            <div class="facetDetails">
-                <div class="facet-edit" id="{{type}}::{{id}}"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
-                <div class="flx-tTime">{{time}} <span>{{ampm}}</span></div>
+                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{time}} <span class="flx-dataLabel">{{ampm}}</span></a></div>
                 <div class="flx-data">
                     <span class="flx-description">Source: {{source}}<br>Accuracy: {{accuracy}}m</span>
                 </div>

@@ -7,6 +7,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.connectors.controllers.ControllerSupport;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
@@ -22,6 +23,7 @@ import oauth.signpost.exception.OAuthMessageSignerException;
 import oauth.signpost.exception.OAuthNotAuthorizedException;
 import oauth.signpost.http.HttpParameters;
 import org.apache.http.client.HttpClient;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,6 +38,8 @@ public class BodymediaController {
 	@Autowired
 	Configuration env;
 
+    static final Logger logger = Logger.getLogger(BodymediaController.class);
+
 	private static final String BODYMEDIA_OAUTH_CONSUMER = "bodymediaOAuthConsumer";
 	private static final String BODYMEDIA_OAUTH_PROVIDER = "bodymediaOAuthProvider";
 
@@ -44,7 +48,7 @@ public class BodymediaController {
 			OAuthMessageSignerException, OAuthNotAuthorizedException,
 			OAuthExpectationFailedException, OAuthCommunicationException {
 
-		String oauthCallback = env.get("homeBaseUrl") + "bodymedia/upgradeToken";
+		String oauthCallback = ControllerSupport.getLocationBase(request) + "bodymedia/upgradeToken";
 		if (request.getParameter("guestId") != null)
 			oauthCallback += "?guestId=" + request.getParameter("guestId");
         if (request.getParameter("apiKeyId") != null)
@@ -121,6 +125,22 @@ public class BodymediaController {
 
     public void replaceToken(UpdateInfo updateInfo) throws OAuthExpectationFailedException, OAuthMessageSignerException,
                                                            OAuthCommunicationException, OAuthNotAuthorizedException {
+        // Check to see if we are running on a mirrored test instance
+        // and should therefore refrain from swapping tokens lest we
+        // invalidate an existing token instance
+        String disableTokenSwap = env.get("disableTokenSwap");
+        if(disableTokenSwap!=null && disableTokenSwap.equals("true")) {
+            String msg = "**** Skipping refreshToken for bodymedia connector instance because disableTokenSwap is set on this server";
+                                            ;
+            StringBuilder sb2 = new StringBuilder("module=BodymediaController component=BodymediaController action=replaceToken apiKeyId=" + updateInfo.apiKey.getId())
+            			    .append(" message=\"").append(msg).append("\"");
+            logger.info(sb2.toString());
+            System.out.println(msg);
+            return;
+        }
+
+        // We're not on a mirrored test server.  Try to swap the expired
+        // access token for a fresh one.
         String apiKey = guestService.getApiKeyAttribute(updateInfo.apiKey, "api_key");
 
         // The api_key attribute will be the same as the env.get("bodymediaConsumerKey"), so

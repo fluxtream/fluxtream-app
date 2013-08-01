@@ -82,6 +82,11 @@ $(document).ready(function() {
     setCookie("timeZone", timezone.name(), 1);
     setCookie("date", currentYear + "-" + currentMonth + "-" + currentDate, 1);
 
+    if (typeof params["login"] != "undefined"){
+        $('#login').slideDown();
+        $('#f_username').focus();
+    }
+
     if (getCookie("compatibilityChecked") == null){
         setCookie("compatibilityChecked",1);//check once a day
         for (var member in Modernizr){

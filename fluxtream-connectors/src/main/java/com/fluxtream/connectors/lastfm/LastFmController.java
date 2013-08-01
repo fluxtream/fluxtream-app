@@ -1,30 +1,26 @@
 package com.fluxtream.connectors.lastfm;
 
-import static com.fluxtream.utils.Utils.hash;
-
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.fluxtream.Configuration;
 import com.fluxtream.auth.AuthHelper;
+import com.fluxtream.connectors.Connector;
+import com.fluxtream.connectors.controllers.ControllerSupport;
 import com.fluxtream.domain.ApiKey;
-import org.apache.commons.httpclient.HttpException;
+import com.fluxtream.domain.Guest;
+import com.fluxtream.services.GuestService;
+import com.fluxtream.utils.HttpUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.fluxtream.Configuration;
-import com.fluxtream.connectors.Connector;
-import com.fluxtream.domain.Guest;
-import com.fluxtream.services.GuestService;
-import com.fluxtream.utils.HttpUtils;
+import static com.fluxtream.utils.Utils.hash;
 
 @Controller
 @RequestMapping(value = "/lastfm")
@@ -37,10 +33,9 @@ public class LastFmController {
 	Configuration env;
 
 	@RequestMapping(value = "/token")
-	public String getToken(HttpServletRequest request,
-			HttpServletResponse response) throws IOException, ServletException {
+	public String getToken(HttpServletRequest request) throws IOException, ServletException {
 
-		String oauthCallback = env.get("homeBaseUrl")
+		String oauthCallback = ControllerSupport.getLocationBase(request)
 				+ "lastfm/upgradeToken";
 		if (request.getParameter("guestId") != null)
 			oauthCallback += "?guestId=" + request.getParameter("guestId");
@@ -52,9 +47,8 @@ public class LastFmController {
 	}
 
 	@RequestMapping(value = "/upgradeToken")
-	public String upgradeToken(HttpServletRequest request,
-			HttpServletResponse response) throws NoSuchAlgorithmException,
-			HttpException, IOException {
+	public String upgradeToken(HttpServletRequest request) throws NoSuchAlgorithmException,
+			IOException {
 
 		String token = request.getParameter("token");
 		String api_key = env.get("lastfmConsumerKey");

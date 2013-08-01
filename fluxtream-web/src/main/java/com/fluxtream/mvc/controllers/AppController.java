@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import com.fluxtream.Configuration;
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.ApiKey;
@@ -18,11 +20,12 @@ import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.NotificationsService;
 import com.fluxtream.utils.SecurityUtils;
-import com.fluxtream.aspects.FlxLogger;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
+import org.springframework.security.web.savedrequest.SavedRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -154,14 +157,28 @@ public class AppController {
 		return mav;
 	}
 
+    @RequestMapping(value = "/checkIn")
+    public ModelAndView checkIn(HttpServletRequest request, HttpServletResponse response)
+            throws IOException, NoSuchAlgorithmException {
+        if (!hasTimezoneCookie(request)|| AuthHelper.getGuest()==null)
+            return new ModelAndView("redirect:/welcome");
+        long guestId = AuthHelper.getGuestId();
+        checkIn(request, guestId);
+        return new ModelAndView("redirect:/app");
+    }
+
 	@RequestMapping(value = { "/app*", "/app/**" })
-	public ModelAndView welcomeHome(HttpServletRequest request)
+	public ModelAndView welcomeHome(HttpServletRequest request, HttpServletResponse response)
 			throws IOException, NoSuchAlgorithmException {
 		if (!hasTimezoneCookie(request)|| AuthHelper.getGuest()==null)
 			return new ModelAndView("redirect:/welcome");
-		long guestId = AuthHelper.getGuestId();
-		checkIn(request, guestId);
-		return home(request);
+        SavedRequest savedRequest =
+                new HttpSessionRequestCache().getRequest(request, response);
+        if (savedRequest!=null) {
+            final String redirectUrl = savedRequest.getRedirectUrl();
+            return new ModelAndView(redirectUrl);
+        }
+        return home(request);
 	}
 
     @RequestMapping(value = "/app/tokenRenewed/{connectorName}")
@@ -192,8 +209,8 @@ public class AppController {
         return "redirect:/app";
     }
 
-        private void checkIn(HttpServletRequest request, long guestId)
-			throws IOException {
+    private void checkIn(HttpServletRequest request, long guestId)
+        throws IOException {
 		String remoteAddr = request.getHeader("X-Forwarded-For");
 		if (remoteAddr == null)
 			remoteAddr = request.getRemoteAddr();

@@ -1,4 +1,4 @@
-package glacier.sms_backup;
+package com.fluxtream.connectors.sms_backup;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -29,12 +29,12 @@ import com.ibm.icu.util.StringTokenizer;
 @ObjectTypeSpec(name = "call_log", value = 1, parallel=true, prettyname = "Call Log")
 //@Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
 @NamedQueries({
-		@NamedQuery(name = "sms_backup.call_log.byStartEnd", query = "SELECT facet FROM Facet_CallLog facet WHERE facet.guestId=? AND facet.start=? AND facet.end=?"),
-		@NamedQuery(name = "sms_backup.call_log.deleteAll", query = "DELETE FROM Facet_CallLog facet WHERE facet.guestId=?"),
-		@NamedQuery(name = "sms_backup.call_log.between", query = "SELECT facet FROM Facet_CallLog facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=?")
+		@NamedQuery(name = "sms_backup.call_log.byEmailId", query = "SELECT facet FROM Facet_CallLog facet WHERE facet.apiKeyId=? AND facet.emailId=?")
 })
 @Indexed
 public class CallLogEntryFacet extends AbstractFacet implements Serializable {
+
+    public CallLogEntryFacet() { super(); }
 
 	public CallLogEntryFacet(long apiKeyId) { super(apiKeyId); }
 	
@@ -48,47 +48,57 @@ public class CallLogEntryFacet extends AbstractFacet implements Serializable {
 			String callLine = lines.get(1);
 			StringTokenizer st = new StringTokenizer(timeLine);
 			String secsString = st.nextToken();
-			System.out.print(".");
 			seconds = Integer.parseInt(secsString.substring(0,secsString.length()-1));
 			st = new StringTokenizer(callLine);
 			if (callLine.indexOf("outgoing call")!=-1) {
-				type = CallType.OUTGOING;
+                callType = CallType.OUTGOING;
 			} else if (callLine.indexOf("incoming call")!=-1) {
-				type = CallType.INCOMING;
+                callType = CallType.INCOMING;
 			}
 			personNumber = st.nextToken();
-			switch(type) {
-			case OUTGOING:
-				Address[] recipients = message.getRecipients(RecipientType.TO);
-				personName = ((InternetAddress)recipients[0]).getPersonal();
-				break;
-			case INCOMING:
-				Address[] senders = message.getFrom();
-				personName = ((InternetAddress)senders[0]).getPersonal();
+			switch(callType) {
+                case OUTGOING:
+                    Address[] recipients = message.getRecipients(RecipientType.TO);
+                    if (recipients != null && recipients.length > 0)
+                        personName = ((InternetAddress)recipients[0]).getPersonal();
+                    else
+                        personName = message.getSubject().substring(10);//read the name from the subject line
+                    break;
+                case INCOMING:
+                    Address[] senders = message.getFrom();
+                    if (senders != null && senders.length > 0)
+                        personName = ((InternetAddress)senders[0]).getPersonal();
+                    else
+                        personName = message.getSubject().substring(10);//read the name from the subject line
 			}
 		} else if (lines.size()==1) {
 			String callLine = lines.get(0);
 			StringTokenizer st = new StringTokenizer(callLine);
 			personNumber = st.nextToken();
-			type = CallType.MISSED;
+            callType = CallType.MISSED;
 			Address[] senders = message.getFrom();
-			personName = ((InternetAddress)senders[0]).getPersonal();
+            if (senders != null && senders.length > 0)
+			    personName = ((InternetAddress)senders[0]).getPersonal();
+            else
+                personName = message.getSubject().substring(10);//read the name from the subject line
 		}
 		date = message.getReceivedDate();
 		this.start = date.getTime();
 		this.end = date.getTime() + seconds*1000;
+        this.emailId = message.getHeader("Message-ID")[0];
 	}
 	
 	public static enum CallType {
 		INCOMING, OUTGOING, MISSED
 	}
 	
-	public CallType type;
+	public CallType callType;
 
 	public String personName;
 	public String personNumber;
 	public int seconds;
 	public Date date;
+    public String emailId;
 	transient public int startMinute;
 	transient public int endMinute;
 	public void setTimeZone(TimeZone tz) {
@@ -99,7 +109,7 @@ public class CallLogEntryFacet extends AbstractFacet implements Serializable {
 	
 	public String toString() {
 		String s = date.toString();
-		switch(type) {
+		switch(callType) {
 		case OUTGOING:
 			s += ": called " + personName + " (" + personNumber + ")";
 			break;

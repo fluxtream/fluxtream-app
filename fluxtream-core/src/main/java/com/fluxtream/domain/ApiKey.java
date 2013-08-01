@@ -28,8 +28,10 @@ import org.springframework.util.SerializationUtils;
 			query="SELECT apiKey FROM ApiKey apiKey WHERE apiKey.guestId=?"),
 	@NamedQuery( name="apiKey.count.byApi",
 			query="SELECT COUNT(apiKey) FROM ApiKey apiKey WHERE apiKey.api=?"),
-	@NamedQuery( name="apiKey.byApi",
-			query="SELECT apiKey FROM ApiKey apiKey WHERE apiKey.guestId=? AND apiKey.api=? ORDER BY apiKey.id DESC"),
+    @NamedQuery( name="apiKey.byApi",
+   			query="SELECT apiKey FROM ApiKey apiKey WHERE apiKey.guestId=? AND apiKey.api=? ORDER BY apiKey.id DESC"),
+    @NamedQuery( name="apiKeys.all.byApi",
+   			query="SELECT apiKey FROM ApiKey apiKey WHERE apiKey.api=?"),
 	@NamedQuery( name="apiKey.byAttribute",
 			query="SELECT apiKey FROM ApiKey apiKey JOIN apiKey.attributes attr WHERE attr.attributeKey=? AND attr.attributeValue=?")
 })

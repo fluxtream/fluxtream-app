@@ -5,15 +5,19 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import com.fluxtream.connectors.updaters.RateLimitReachedException;
 import com.fluxtream.domain.ApiKey;
+import com.fluxtream.services.GuestService;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.basic.DefaultOAuthConsumer;
-import oauth.signpost.http.HttpParameters;
 import org.apache.commons.io.IOUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class SignpostOAuthHelper extends ApiClientSupport {
-	
+
+    @Autowired
+    GuestService guestService;
+
 	public final String makeRestCall(ApiKey apiKey,
 			int objectTypes, String urlString) throws RateLimitReachedException {
 
@@ -26,7 +30,7 @@ public class SignpostOAuthHelper extends ApiClientSupport {
 			HttpURLConnection request = (HttpURLConnection) url.openConnection();
 			
 			OAuthConsumer consumer = new DefaultOAuthConsumer(
-					getConsumerKey(apiKey.getConnector()), getConsumerSecret(apiKey.getConnector()));
+					getConsumerKey(apiKey), getConsumerSecret(apiKey));
 	
 			consumer.setTokenWithSecret(
 					apiKey.getAttributeValue("accessToken", env),
@@ -62,22 +66,13 @@ public class SignpostOAuthHelper extends ApiClientSupport {
 		}
 	}
 
-	private void addAdditionalParameters(OAuthConsumer consumer, ApiKey apiKey,
-			String[] additionalParameters) {
-		for (String additionalParameterName : additionalParameters) {
-			HttpParameters additionalParameter = new HttpParameters();
-			additionalParameter.put(additionalParameterName, apiKey.getAttributeValue(additionalParameterName, env));
-			consumer.setAdditionalParameters(additionalParameter);
-		}
-	}
-
-	private String getConsumerSecret(Connector connector) {
-		String consumerSecret = env.get(connector.getName() + "ConsumerSecret");
+	private String getConsumerSecret(ApiKey apiKey) {
+		String consumerSecret = guestService.getApiKeyAttribute(apiKey, apiKey.getConnector().getName() + "ConsumerSecret");
 		return consumerSecret == null ? "" : consumerSecret;
 	}
 
-	private String getConsumerKey(Connector connector) {
-		String consumerKey = env.get(connector.getName() + "ConsumerKey");
+	private String getConsumerKey(ApiKey apiKey) {
+		String consumerKey = guestService.getApiKeyAttribute(apiKey, apiKey.getConnector().getName() + "ConsumerKey");
 		return consumerKey == null ? "" : consumerKey;
 	}
 

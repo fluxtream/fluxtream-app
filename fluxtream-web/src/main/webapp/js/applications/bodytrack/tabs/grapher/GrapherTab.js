@@ -19,9 +19,9 @@ define(["core/Tab","core/grapher/Grapher","core/FlxState"], function(Tab,Grapher
             App.renderApp("bodytrack","grapher" + append,params);
             return;
         }
-        console.log(params);
-        cursorPositionToSet = params.cursorPos;
-        channelToAdd = params.channelAdd;
+        if (params.facetToShow != null){
+            cursorPositionToSet = (params.facetToShow.start + (params.facetToShow.end != null ? params.facetToShow.end : params.facetToShow.start)) / 2;
+        }
         tbounds = params.tbounds;
         this.getTemplate("text!applications/bodytrack/tabs/grapher/grapher.html", "grapher", function() {
             var sourceName = null;

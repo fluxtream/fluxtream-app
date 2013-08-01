@@ -153,10 +153,8 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
 
         $(window).scroll(function(event){
             var beginFloat = $("#calendar-app .nav-tabs").offset().top + $("#calendar-app .nav-tabs").height();
-            if (beginFloat < 0){
-                setTimeout(function(){
-                    $(window).scroll();
-                },100);
+            if (beginFloat <= 0){
+                beginFloat = $(window).height() * 5000;
             }
             var scrollTop = $("body").scrollTop();
             if (scrollTop < beginFloat){
@@ -262,7 +260,7 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
         if (App.activeApp.name != "calendar")
             return;
         tabInterface.setRenderParamsFunction(function(){
-            return {
+            return $.extend({
                 digest:digest,
                 timeUnit:Calendar.timeUnit,
                 calendarState:Calendar.tabState,
@@ -270,7 +268,7 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
                 tabParam:Calendar.tabParam,
                 setTabParam:Calendar.setTabParam,
                 doneLoading:Calendar.stopLoading,
-                forceReload: force};
+                forceReload: force}, Calendar.params);
         });
         tabInterface.setActiveTab(Calendar.currentTabName);
         updateCurrentTab(digest, Calendar);

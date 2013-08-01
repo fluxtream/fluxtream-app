@@ -68,12 +68,11 @@ public class MymeeUpdater extends AbstractUpdater {
         super();
     }
 
-    // TODO: This load into both the database and datastore.  We should make the caller no longer
-    // load into the datastore.
     @Override
     protected void updateConnectorDataHistory(final UpdateInfo updateInfo) throws Exception {
         // Reset last_seq so that incremental update will pull everything
         guestService.setApiKeyAttribute(updateInfo.apiKey, "last_seq","0");
+        // Flush all of the facets for this connector to the datastore
         updateConnectorData(updateInfo);
     }
 
@@ -169,8 +168,8 @@ public class MymeeUpdater extends AbstractUpdater {
             MymeeObservationFacet ret = (MymeeObservationFacet)
                     apiDataService.createOrReadModifyWrite(MymeeObservationFacet.class,
                                                            new FacetQuery(
-                                                                   "e.guestId = ? AND e.mymeeId = ?",
-                                                                   updateInfo.getGuestId(),
+                                                                   "e.apiKeyId = ? AND e.mymeeId = ?",
+                                                                   updateInfo.apiKey.getId(),
                                                                    mymeeId),
                                                            new FacetModifier<MymeeObservationFacet>() {
                         // Throw exception if it turns out we can't make sense of the observation's JSON

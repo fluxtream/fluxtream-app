@@ -6,7 +6,24 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
 
     var setTabParam;
 
+    var currentTimeUnit;
+
     function render(params) {
+        currentTimeUnit = params.timeUnit;
+        var doneLoading = params.doneLoading;
+
+        params.doneLoading = function(){
+            if (params.facetToShow != null){
+                var findResults = $("#list ." + params.facetToShow.type + "-" + params.facetToShow.id);
+                if (findResults.length > 0){
+                    var facetDiv = $(findResults[0]);
+                    var offset = facetDiv.offset();
+                    $("body").scrollTop(offset.top - 101);
+                }
+
+            }
+            doneLoading();
+        }
         setTabParam = params.setTabParam;
         this.getTemplate("text!applications/calendar/tabs/list/list.html", "list", function() {
             //TODO: implement comment refreshing algorithm so the entire list tab doesn't have to be refreshed every time
@@ -161,11 +178,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
             list.append(content);
             details.on("contentchange",function(){
                 content.html(details.outerHTML());
-                content.find(".mapLink").unbind('click').click(function(event){
-                    setTabParam($(event.delegateTarget).attr("itemid"));
-                    $(".calendar-map-tab").click();
-                    return false;
-                });
+                App.apps.calendar.rebindDetailsControls(content);
             });
             details.trigger("contentchange");
         }
@@ -218,15 +231,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
                 PhotoUtils.showCarouselHTML(photoCarouselHTML,$(event.delegateTarget).attr("photoId"));
             });
         }
-        $(".mapLink").click(function(event){
-            setTabParam($(event.delegateTarget).attr("itemid"));
-            $(".calendar-map-tab").click();
-            return false;
-        });
-        $(".facet-edit a").click(function(event){
-            event.digest = dgst;
-            App.apps.calendar.commentEdit(event);
-        });
+
     }
 
     function paginationClickCallback(event){
@@ -306,7 +311,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
                 floater.addClass("floating");
                 floater.css("top",$("#selectedConnectors").height() + "px");
                 if (endFloat != null){
-                    var temp = scrollPosition +  floater.height();
+                    var temp = scrollPosition +  floater.outerHeight();
                     var marginAmount = endFloat - temp;
                     if (marginAmount > 0) marginAmount = 0;
                     floater.css("marginTop",marginAmount + "px");

@@ -1,4 +1,4 @@
-package glacier.sms_backup;
+package com.fluxtream.connectors.sms_backup;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -6,6 +6,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
+import javax.mail.Address;
 import javax.mail.Message;
 import javax.mail.Message.RecipientType;
 import javax.mail.MessagingException;
@@ -25,61 +26,88 @@ import com.fluxtream.domain.AbstractFacet;
 @Entity(name="Facet_SmsEntry")
 @ObjectTypeSpec(name = "sms", value = 2, parallel=true, prettyname = "Text Messages")
 @NamedQueries({
-		@NamedQuery(name = "sms_backup.sms.byStartEnd", query = "SELECT facet FROM Facet_SmsEntry facet WHERE facet.guestId=? AND facet.start=? AND facet.end=?"),
-		@NamedQuery(name = "sms_backup.sms.deleteAll", query = "DELETE FROM Facet_SmsEntry facet WHERE facet.guestId=?"),
-		@NamedQuery(name = "sms_backup.sms.between", query = "SELECT facet FROM Facet_SmsEntry facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=?")
+		@NamedQuery(name = "sms_backup.sms.byEmailId", query = "SELECT facet FROM Facet_SmsEntry facet WHERE facet.apiKeyId=? AND facet.emailId=?")
 })
 @Indexed
 public class SmsEntryFacet extends AbstractFacet implements Serializable {
 
 	private static final String UNKNOWN = "Unknown";
 
+    public SmsEntryFacet(){super();}
+
 	public SmsEntryFacet(Message message, String username, long apiKeyId)
 		throws MessagingException, IOException
 	{
         super(apiKeyId);
-        InternetAddress from = (InternetAddress) message.getFrom()[0];
-		String fromAddress = from.getAddress();
+        InternetAddress[] senders = (InternetAddress[]) message.getFrom();
+        InternetAddress[] recipients = (InternetAddress[]) message.getRecipients(RecipientType.TO);
+        String fromAddress, toAddress;
+        boolean senderMissing = false, recipientsMissing = false;
+        if (senders != null && senders.length > 0){
+            fromAddress = senders[0].getAddress();
+        }
+        else{
+            fromAddress = message.getSubject().substring(9);
+            senderMissing = true;
+        }
+        if (recipients != null && recipients.length > 0){
+            toAddress =  recipients[0].getAddress();
+        }
+        else{
+            toAddress = message.getSubject().substring(9);
+            recipientsMissing = true;
+        }
 		if (fromAddress.startsWith(username)) {
-			type = SmsType.OUTGOING;
-			InternetAddress to = (InternetAddress) message.getRecipients(RecipientType.TO)[0];
-			String toAddress = to.getAddress();
-			if (toAddress.indexOf("unknown.email")!=-1) {
-				personName = UNKNOWN;
-				personNumber = toAddress.substring(0, toAddress.indexOf("@"));
-			} else {
-				personName = to.getPersonal();
-			}
-		} else {
-			type = SmsType.INCOMING;
-			if (fromAddress.indexOf("unknown.email")!=-1) {
-				personName = UNKNOWN;
+			smsType = SmsType.OUTGOING;
+            if (recipientsMissing){
+                personName = toAddress;
+                personNumber = message.getHeader("X-smssync-address")[0];
+            }
+            else if (toAddress.indexOf("unknown.email")!=-1) {
+                personName = recipients[0].getPersonal();
+                personNumber = toAddress.substring(0, toAddress.indexOf("@"));
+            }
+            else {
+                personName = recipients[0].getPersonal();
+                personNumber = message.getHeader("X-smssync-address")[0];
+            }
+        }else {
+			smsType = SmsType.INCOMING;
+            if (senderMissing){
+                personName = fromAddress;
+                personNumber = message.getHeader("X-smssync-address")[0];
+            }
+            else if (fromAddress.indexOf("unknown.email")!=-1) {
+				personName = senders[0].getPersonal();
 				personNumber = fromAddress.substring(0, fromAddress.indexOf("@"));
-			} else {
-				personName = from.getPersonal();
+			}
+            else {
+				personName = senders[0].getPersonal();
+                personNumber = message.getHeader("X-smssync-address")[0];
 			}
 		}
-		System.out.print("-");
 		dateReceived = message.getReceivedDate();
 		this.start = dateReceived.getTime();
 		this.end = dateReceived.getTime();
 		Object content = message.getContent();
 		if (content instanceof String)
 			this.message = (String) message.getContent();
-		else if (content instanceof MimeMultipart) {
+		else if (content instanceof MimeMultipart) {//TODO: this is an MMS and needs to be handled properly
 			String contentType = ((MimeMultipart) content).getContentType();
 			this.message = "message of type " + contentType;
 		}
+        this.emailId = message.getHeader("Message-ID")[0];
 	}
 
 	public static enum SmsType {
 		INCOMING, OUTGOING
 	}
 
-	SmsType type;
+	SmsType smsType;
 
 	public String personName;
 	public String personNumber;
+    public String emailId;
 	@Lob
 	public String message;
 	public Date dateReceived;
@@ -92,7 +120,7 @@ public class SmsEntryFacet extends AbstractFacet implements Serializable {
 
 	public String toString() {
 		String s = "Sms ";
-		switch(type) {
+		switch(smsType) {
 		case INCOMING:
 			s += "from " + (personName.equals(UNKNOWN)?personNumber:personName) + ": " + message;
 			break;

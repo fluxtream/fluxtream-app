@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.TimeZone;
 import com.fluxtream.ApiData;
 import com.fluxtream.connectors.ObjectType;
+import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 import com.fluxtream.services.MetadataService;
@@ -22,7 +23,7 @@ public class ZeoSleepStatsFacetExtractor extends AbstractFacetExtractor {
     @Autowired
 	MetadataService metadataService;
 
-	public List<AbstractFacet> extractFacets(ApiData apiData,
+	public List<AbstractFacet> extractFacets(final UpdateInfo updateInfo, final ApiData apiData,
 			ObjectType objectType) {
 		List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
 
