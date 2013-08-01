@@ -26,9 +26,7 @@ import com.fluxtream.domain.AbstractFacet;
 @Entity(name="Facet_SmsEntry")
 @ObjectTypeSpec(name = "sms", value = 2, parallel=true, prettyname = "Text Messages")
 @NamedQueries({
-		@NamedQuery(name = "sms_backup.sms.byEmailId", query = "SELECT facet FROM Facet_SmsEntry facet WHERE facet.guestId=? AND facet.emailId=\"?\""),
-		@NamedQuery(name = "sms_backup.sms.deleteAll", query = "DELETE FROM Facet_SmsEntry facet WHERE facet.guestId=?"),
-		@NamedQuery(name = "sms_backup.sms.between", query = "SELECT facet FROM Facet_SmsEntry facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=?")
+		@NamedQuery(name = "sms_backup.sms.byEmailId", query = "SELECT facet FROM Facet_SmsEntry facet WHERE facet.apiKeyId=? AND facet.emailId=?")
 })
 @Indexed
 public class SmsEntryFacet extends AbstractFacet implements Serializable {

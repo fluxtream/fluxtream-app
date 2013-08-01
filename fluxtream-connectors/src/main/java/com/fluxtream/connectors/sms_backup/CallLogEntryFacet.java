@@ -29,9 +29,7 @@ import com.ibm.icu.util.StringTokenizer;
 @ObjectTypeSpec(name = "call_log", value = 1, parallel=true, prettyname = "Call Log")
 //@Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
 @NamedQueries({
-		@NamedQuery(name = "sms_backup.call_log.byEmailId", query = "SELECT facet FROM Facet_CallLog facet WHERE facet.guestId=? AND facet.emailId=\"?\""),
-		@NamedQuery(name = "sms_backup.call_log.deleteAll", query = "DELETE FROM Facet_CallLog facet WHERE facet.guestId=?"),
-		@NamedQuery(name = "sms_backup.call_log.between", query = "SELECT facet FROM Facet_CallLog facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=?")
+		@NamedQuery(name = "sms_backup.call_log.byEmailId", query = "SELECT facet FROM Facet_CallLog facet WHERE facet.apiKeyId=? AND facet.emailId=?")
 })
 @Indexed
 public class CallLogEntryFacet extends AbstractFacet implements Serializable {

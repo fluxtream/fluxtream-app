@@ -133,13 +133,13 @@ public class SmsBackupUpdater extends AbstractUpdater {
 			CallLogEntryFacet entry) {
 		CallLogEntryFacet found = jpaDaoService.findOne(
 				"sms_backup.call_log.byEmailId", CallLogEntryFacet.class,
-				guestId, entry.emailId);
+				entry.apiKeyId, entry.emailId);
         return found != null;
 	}
 
 	private boolean isDuplicateSmsEntry(long guestId, SmsEntryFacet entry) {
         SmsEntryFacet found = jpaDaoService.findOne(
-				"sms_backup.sms.byEmailId", SmsEntryFacet.class, guestId,
+				"sms_backup.sms.byEmailId", SmsEntryFacet.class, entry.apiKeyId,
 				entry.emailId);
         return found != null;
 	}
