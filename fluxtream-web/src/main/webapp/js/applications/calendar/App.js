@@ -703,27 +703,78 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         App.renderApp(appname,tabname + "/" + Calendar.tabState,{facetToShow:facet});
     }
 
+    var activePopup = null;
+
     Calendar.rebindDetailsControls = function(details){
         details.find(".facet-edit a").unbind("click").click(function(event){
             Calendar.commentEdit(event);
             return false;
         });
-        details.find(".mapLink").unbind('click').click(function(event){
-            switchToAppForFacet("calendar","map",$(event.delegateTarget).attr("facettype"),parseInt($(event.delegateTarget).attr("itemid")));
-        });
-        details.find(".clockLink").unbind('click').click(function(event){
-            switchToAppForFacet("calendar","clock",$(event.delegateTarget).attr("facettype"),parseInt($(event.delegateTarget).attr("itemid")));
-        });
-        details.find(".listLink").unbind('click').click(function(event){
-            switchToAppForFacet("calendar","list",$(event.delegateTarget).attr("facettype"),parseInt($(event.delegateTarget).attr("itemid")));
-        });
-        details.find(".timelineLink").unbind('click').click(function(event){
-            switchToAppForFacet("calendar","timeline",$(event.delegateTarget).attr("facettype"),parseInt($(event.delegateTarget).attr("itemid")));
-        });
-        details.find(".bodytrackLink").unbind('click').click(function(event){
-            switchToAppForFacet("bodytrack","grapher",$(event.delegateTarget).attr("facettype"),parseInt($(event.delegateTarget).attr("itemid")));
+        details.find(".timedropdown").unbind('click').click(function(event){
+            var element;
+            for (element = $(event.delegateTarget); !element.hasClass("facetDetails"); element = element.parent());
+            var facetType = element.attr("facettype");
+            var itemId = parseInt(element.attr('itemid'));
+            var popup = $('<ul id="menu1" class="dropdown-menu">' +
+                              '<li><a class="clockLink" notthide="true" href="javascript:void(0)">Show in Clock</a></li>' +
+            '<li><a class="mapLink" href="javascript:void(0)">Show on Map</a></li>' +
+                '<li><a class="listLink" href="javascript:void(0)">Show in List</a></li>' +
+            '<li><a class="timelineLink" href="javascript:void(0)">Show on Timeline</a></li>' +
+                '<li><a class="bodytrackLink" href="javascript:void(0)">Show in Bodytrack</a></li>' +
+            '</ul>');
+
+            popup.css("position","absolute");
+            $("body").append(popup);
+
+            var target = $(event.delegateTarget);
+
+            var offset = target.offset();
+            popup.css("top",offset.top + target.height());
+            popup.css("left",offset.left);
+            popup.css("display","inline-block");
+
+            popup.find(".mapLink").unbind('click').click(function(event){
+                switchToAppForFacet("calendar","map",facetType,itemId);
+            });
+            popup.find(".clockLink").unbind('click').click(function(event){
+                switchToAppForFacet("calendar","clock",facetType,itemId);
+            });
+            popup.find(".listLink").unbind('click').click(function(event){
+                switchToAppForFacet("calendar","list",facetType,itemId);
+            });
+            popup.find(".timelineLink").unbind('click').click(function(event){
+                switchToAppForFacet("calendar","timeline",facetType,itemId);
+            });
+            popup.find(".bodytrackLink").unbind('click').click(function(event){
+                switchToAppForFacet("bodytrack","grapher",facetType,itemId);
+            });
+
+            if (activePopup != null)
+                activePopup.remove();
+
+            activePopup = popup;
+            console.log("blah");
+            return false;
         });
     }
+
+   $("body").mousedown(function(event){
+       if (activePopup != null){
+           var top = $("body");
+           for (var cur = $(event.target); cur[0] != activePopup[0] && cur[0] != top[0]; cur = cur.parent());
+           if (cur[0] == top[0]){
+               activePopup.remove();
+               activePopup = null;
+           }
+       }
+   });
+
+    $("body").click(function(){
+        if (activePopup != null){
+            activePopup.remove();
+            activePopup = null;
+        }
+    });
 
     function getFoursquareVenues(details,foursquareVenueIds) {
         for (var i=0; i<foursquareVenueIds.length; i++) {
