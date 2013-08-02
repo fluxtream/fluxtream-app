@@ -39,18 +39,6 @@ public class JPADaoServiceImpl implements JPADaoService {
 	}
 
     @Override
-    public <T> List<T> executeQuery(String queryString, Class<T> clazz, Object... params) {
-        TypedQuery<T> query = em.createQuery(queryString, clazz);
-        int i=1;
-        if (params!=null) {
-            for (Object param : params) {
-                query.setParameter(i++, param);
-            }
-        }
-        return query.getResultList();
-    }
-
-    @Override
     public <T> List<T> executeQueryWithLimit(final String queryString, final int limit, final Class<T> clazz, Object... params) {
         TypedQuery<T> query = em.createQuery(queryString, clazz);
         int i=1;
@@ -96,17 +84,19 @@ public class JPADaoServiceImpl implements JPADaoService {
         return (Long) singleResult;
 	}
 
-    @Override
-    public long executeCount(String queryString) {
-        Query countQuery = em.createQuery(queryString);
-        Object singleResult = countQuery.getSingleResult();
-        return (Long) singleResult;
-    }
-
-    @Override
+   @Override
     public long executeNativeQuery(final String queryString) {
         final Query nativeQuery = em.createNativeQuery(queryString);
         return ((Number) nativeQuery.getSingleResult()).longValue();
+    }
+
+    @Override
+    public List executeNativeQuery(final String s, Object... params) {
+        final Query query = em.createNativeQuery(s);
+        int i=1;
+        for (Object param : params)
+            query.setParameter(i++, param);
+        return query.getResultList();
     }
 
     @Override

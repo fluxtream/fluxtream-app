@@ -2,8 +2,6 @@ package com.fluxtream.services.impl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -166,9 +164,6 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
                                      "/images/connectors/connector-google_calendar.jpg",
                                      res.getString("google_calendar"),
                                      "/google/oauth2/token?scope=https://www.googleapis.com/auth/calendar.readonly",
-                                     Connector.getConnector("google_calendar"), order++, true));
-        em.persist(new ConnectorInfo("Last fm",
-                                     "/calendar/token",
                                      Connector.getConnector("google_calendar"), order++, googleCalendarKeys!=null,
                                      false, true, googleCalendarKeys));
         final String lastFm = "Last fm";

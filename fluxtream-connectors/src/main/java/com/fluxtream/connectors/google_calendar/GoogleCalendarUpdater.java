@@ -50,7 +50,9 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
     private void loadHistory(UpdateInfo updateInfo, long from) throws Exception {
         Calendar calendar = getCalendar(updateInfo.apiKey);
         String pageToken = null;
+        long apiKeyId = updateInfo.apiKey.getId();
         settingsService.getConnectorSettings(updateInfo.apiKey.getId(), true);
+        List<String> existingCalendarIds = getExistingCalendarIds(apiKeyId);
         do {
             final long then = System.currentTimeMillis();
             final Calendar.CalendarList.List list = calendar.calendarList().list().setPageToken(pageToken);
@@ -65,11 +67,25 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
             if (calendarList==null) throw new Exception("Could not get calendar list, apiKeyId=" + updateInfo.apiKey.getId());
             List<CalendarListEntry> items = calendarList.getItems();
             for (CalendarListEntry item : items) {
-                final String calendarId = item.getId();
+                existingCalendarIds.remove(item.getId());
                 loadCalendarHistory(calendar, item, updateInfo, from);
             }
             pageToken = calendarList.getNextPageToken();
         } while (pageToken != null);
+        deleteCalendars(apiKeyId, existingCalendarIds);
+    }
+
+    private void deleteCalendars(final long apiKeyId, final List<String> existingCalendarIds) {
+        for (String existingCalendarId : existingCalendarIds) {
+            final String deleteQuery = "DELETE FROM Facet_GoogleCalendarEvent WHERE apiKeyId=" + apiKeyId + " AND calendarId='" + existingCalendarId + "'";
+            final long deleted = jpaDaoService.execute(deleteQuery);
+            System.out.println("deleted " + deleted + " events from calendar '" + existingCalendarId + "'");
+        }
+    }
+
+    private List<String> getExistingCalendarIds(long apiKeyId) {
+        List<String> l = (List<String>) jpaDaoService.executeNativeQuery("SELECT distinct calendarId from Facet_GoogleCalendarEvent WHERE apiKeyId=?", apiKeyId);
+        return l;
     }
 
     private void loadCalendarHistory(final Calendar calendar, final CalendarListEntry calendarEntry, final UpdateInfo updateInfo, final long from) throws IOException {
@@ -109,11 +125,12 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
 
     private void createOrUpdateEvent(final UpdateInfo updateInfo, final CalendarListEntry calendarEntry, final Event event) {
         if (event.getStatus().equalsIgnoreCase("cancelled")) {
+            System.out.println("event " + event.getSummary() + "/" + event.getDescription() + " was canceled");
             final int deleted = jpaDaoService.execute(String.format("DELETE FROM Facet_GoogleCalendarEvent facet WHERE " +
                                                                     "facet.apiKeyId=%s AND facet.googleId='%s'",
                                                                     updateInfo.apiKey.getId(), event.getId()));
             System.out.println("deleted " + deleted + " calendar entry");
-            guestService.setApiKeyAttribute(updateInfo.apiKey, "lastUpdated", String.valueOf(event.getUpdated().getValue()));
+            //guestService.setApiKeyAttribute(updateInfo.apiKey, "lastUpdated", String.valueOf(event.getUpdated().getValue()));
             return;
         }
         final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery("e.apiKeyId=? AND e.googleId=? AND e.calendarId=?",
