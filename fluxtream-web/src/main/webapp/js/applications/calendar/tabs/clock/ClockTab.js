@@ -218,6 +218,14 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                 var strokeWidth = getStrokeWidth(item);
                 var strokeCap = getStrokeCap(item);
                 var outline = App.getFacetConfig(item.type).clockOutline;
+                var dayStart = dgst.metadata.mainCity.dayStart;
+                var dayEnd = dgst.metadata.mainCity.dayEnd;
+                if (item.start <= dayStart)
+                    item.startMinute = 0;
+                if (item.end >= dayEnd)
+                    item.endMinute = 1440;
+                while (item.endMinute > 1440)
+                    item.endMinute -= 1440;
 				config.clockCircles.push(
 					function() {
 						var start = item.startMinute;
