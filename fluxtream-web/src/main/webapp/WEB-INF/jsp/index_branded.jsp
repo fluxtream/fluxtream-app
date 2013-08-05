@@ -12,7 +12,7 @@
     <!-- Styles -->
     <link href="/static/css/bootstrap-2.3.2.min.css" rel="stylesheet">
     <link href="/static/css/bootstrap-responsive-2.3.2.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/font-awesome.css">
+    <link rel="stylesheet" href="/static/css/font-awesome-3.2.1.css">
     <link href="/${release}/assets-home/css/style-responsive-red.css" rel="stylesheet">
     <link href="/${release}/assets-home/css/style.css" rel="stylesheet">
     <!-- Google Web Font-->

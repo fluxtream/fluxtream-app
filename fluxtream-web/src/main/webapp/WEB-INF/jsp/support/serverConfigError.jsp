@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="/static/css/bootstrap-2.0.3.min.css">
 <link rel="stylesheet"
       href="/static/css/bootstrap-responsive-2.0.3.min.css">
-<link rel="stylesheet" href="/static/css/font-awesome.css">
+<link rel="stylesheet" href="/static/css/font-awesome-3.2.1.css">
 
 <link rel="shortcut icon" href="/favicon.ico">
 

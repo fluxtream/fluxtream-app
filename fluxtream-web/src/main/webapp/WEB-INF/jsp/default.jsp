@@ -12,7 +12,7 @@
     <!-- Styles -->
     <link href="/static/css/bootstrap-2.0.3.min.css" rel="stylesheet">
     <link href="/static/css/bootstrap-responsive-2.0.3.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/font-awesome.css">
+    <link rel="stylesheet" href="/static/css/font-awesome-3.2.1.css">
     <link href="/${release}/assets-home/css/style-responsive-default.css" rel="stylesheet">
     <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
