@@ -208,7 +208,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
                             var curContainer = $(templates.itemContainer.render({}));
                             list.append(curContainer);
                         }
-                        appendItems(currentArray,curContainer.find(".allDayContainer"),curContainer.find("normalContainer"));
+                        appendItems(currentArray,curContainer.find(".allDayContainer"),curContainer.find(".normalContainer"));
                         currentArray = [item.facet];
                         currentDate = facetCity.dateWithTimezone;
                         currentCity = facetCity;
