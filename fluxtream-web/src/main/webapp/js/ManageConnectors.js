@@ -268,7 +268,7 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
         syncLED.removeClass("syncLED-no");
         syncLED.addClass("syncLED-waiting");
         syncLED.html("<span class=\"syncLED-waiting\">" +
-                     "<img src=\"/images/syncing.gif\" alt=\"load\">" +
+                     "<i class=\"icon-refresh icon-spin\" style=\"font-size:30px\"></i>" +
                      "</span>");
         var lastSync = $("#lastSync-" + connectorName);
         lastSync.html("Now synchronizing");

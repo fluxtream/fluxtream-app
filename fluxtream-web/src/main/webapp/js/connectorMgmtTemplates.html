@@ -31,7 +31,7 @@
                                 <span id="syncLED-{{connectorName}}" title="{{auditTrail}}" class="syncLED-{{^errors}}yes{{/errors}}{{#errors}}no{{/errors}}" {{#syncing}}style="display:none;"{{/syncing}}></span>
                                 {{#syncing}}
                                 <span class="syncLED-waiting">
-                                    <img src="{{release}}/images/syncing.gif" width="35" height="35" alt="load">
+                                    <i class="icon-refresh icon-spin" style="font-size:30px"></i>
                                 </span>
                                 {{/syncing}}
                                 <br/>{{#supportsSync}}<a id="syncNow-{{connectorName}}" title="sync now" href="#" {{#syncing}}style="display:none;"{{/syncing}}><i class="icon-refresh"></i></a> {{/supportsSync}}
@@ -81,7 +81,7 @@
                                 <span id="syncLED-{{connectorName}}" title="{{auditTrail}}" class="syncLED-{{^errors}}yes{{/errors}}{{#errors}}no{{/errors}}" {{#syncing}}style="display:none;"{{/syncing}}></span>
                                 {{#syncing}}
                                                         <span class="syncLED-waiting">
-                                                            <img src="{{release}}/images/syncing.gif" width="35" height="35" alt="load">
+                                                            <i class="icon-refresh icon-spin" style="font-size:30px"></i>
                                                         </span>
                                 {{/syncing}}
                                 <br/>{{#supportsSync}}<a id="syncNow-{{connectorName}}" title="sync now" href="#" {{#syncing}}style="display:none;"{{/syncing}}><i class="icon-refresh"></i></a>{{/supportsSync}}
@@ -121,7 +121,7 @@
         <span id="syncLED-{{connectorName}}" title="{{auditTrail}}" class="syncLED-{{^errors}}yes{{/errors}}{{#errors}}no{{/errors}}" {{#syncing}}style="display:none;"{{/syncing}}></span>
         {{#syncing}}
                                                         <span class="syncLED-waiting">
-                                                            <img src="{{release}}/images/syncing.gif" width="35" height="35" alt="load">
+                                                            <i class="icon-refresh icon-spin" style="font-size:30px"></i>
                                                         </span>
         {{/syncing}}
         <br/>{{#supportsSync}}<a id="syncNow-{{connectorName}}" title="sync now" href="#" {{#syncing}}style="display:none;"{{/syncing}}><i class="icon-refresh"></i></a>{{/supportsSync}}
