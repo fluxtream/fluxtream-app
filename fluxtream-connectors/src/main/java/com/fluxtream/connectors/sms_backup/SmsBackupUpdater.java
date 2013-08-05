@@ -1,20 +1,30 @@
 package com.fluxtream.connectors.sms_backup;
 
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ConcurrentMap;
 
+import javax.mail.Address;
 import javax.mail.FetchProfile;
 import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Store;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMultipart;
 import javax.mail.search.SentDateTerm;
 
+import com.fluxtream.domain.Tag;
+import com.fluxtream.services.ApiDataService;
+import com.fluxtream.services.ApiDataService.FacetQuery;
+import com.fluxtream.services.ApiDataService.FacetModifier;
 import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.Utils;
+import com.ibm.icu.util.StringTokenizer;
 import oauth.signpost.OAuthConsumer;
+import org.apache.commons.io.IOUtils;
 import org.joda.time.DateTime;
 import org.springframework.stereotype.Component;
 
@@ -54,27 +64,18 @@ public class SmsBackupUpdater extends AbstractUpdater {
 
 	@Override
 	public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
-		List<ObjectType> objectTypes = updateInfo.objectTypes();
-		String email = updateInfo.apiKey.getAttributeValue("username", env);
-		String password = updateInfo.apiKey.getAttributeValue("password", env);
+        String email = updateInfo.apiKey.getAttributeValue("username", env);
+        String password = updateInfo.apiKey.getAttributeValue("password", env);
+        for (ObjectType type : updateInfo.objectTypes()){
+            Date since = getStartDate(updateInfo, type);
+            if (type.name().equals("call_log")){
+                retrieveCallLogSinceDate(updateInfo, email, password, since);
+            }
+            else if (type.name().equals("sms")){
+                retrieveSmsEntriesSince(updateInfo, email, password, since);
 
-        ObjectType callLogObjectType = ObjectType.getObjectType(connector(),
-                                                                "call_log");
-        if (objectTypes.contains(callLogObjectType)) {
-            Date since = getStartDate(updateInfo, callLogObjectType);
-            retrieveCallLogSinceDate(updateInfo, email, password, since);
+            }
         }
-
-        ObjectType smsObjectType = ObjectType.getObjectType(connector(), "sms");
-        if (objectTypes.contains(smsObjectType)) {
-            Date since = getStartDate(updateInfo, smsObjectType);
-            retrieveSmsEntriesSince(updateInfo, email, password, since);
-        }
-
-
-
-
-
 	}
 
 
@@ -93,6 +94,7 @@ public class SmsBackupUpdater extends AbstractUpdater {
     }
 
     private void updateStartDate(UpdateInfo updateInfo, ObjectType ot, long updateProgressTime){
+        updateProgressTime -= 1; //incase we didn't pull 2 facets that occured at the same exact time
 
         // Calculate the name of the key in the ApiAttributes table
         // where the next start of update for this object type is
@@ -112,36 +114,170 @@ public class SmsBackupUpdater extends AbstractUpdater {
     }
 
 
-	private void flushEntries(UpdateInfo updateInfo,
-			List<? extends AbstractFacet> entries) throws Exception {
-		for (AbstractFacet entry : entries) {
-			if (!isDuplicate(updateInfo.getGuestId(), entry))
-				apiDataService.cacheApiDataObject(updateInfo, -1, -1, entry);
-		}
+	private void flushEntry(final UpdateInfo updateInfo, final String username, final Message message, Class type) throws Exception {
+        final String emailId = message.getHeader("Message-ID")[0] + message.getHeader("X-smssync-id")[0];
+        if (type == SmsEntryFacet.class){
+            apiDataService.createOrReadModifyWrite(SmsEntryFacet.class,
+                                                   new FacetQuery(
+                                                           "e.apiKeyId = ? AND e.emailId = ?",
+                                                           updateInfo.apiKey.getId(),
+                                                           emailId),
+                                                   new FacetModifier<SmsEntryFacet>() {
+                                                       // Throw exception if it turns out we can't make sense of the observation's JSON
+                                                       // This will abort the transaction
+                                                       @Override
+                                                       public SmsEntryFacet createOrModify(SmsEntryFacet facet, Long apiKeyId) {
+                                                           if (facet == null) {
+                                                               facet = new SmsEntryFacet(updateInfo.apiKey.getId());
+                                                               facet.emailId = emailId;
+                                                               facet.guestId = updateInfo.apiKey.getGuestId();
+                                                               facet.api = updateInfo.apiKey.getConnector().value();
+                                                           }
 
-		entries.clear();
-	}
+                                                           facet.timeUpdated = System.currentTimeMillis();
 
-	private boolean isDuplicate(long guestId, AbstractFacet entry) {
-		if (entry instanceof SmsEntryFacet)
-			return isDuplicateSmsEntry(guestId, (SmsEntryFacet) entry);
-		else
-			return isDuplicateCallLogEntry(guestId, (CallLogEntryFacet) entry);
-	}
+                                                           try{
+                                                               InternetAddress[] senders = (InternetAddress[]) message.getFrom();
+                                                               InternetAddress[] recipients = (InternetAddress[]) message.getRecipients(Message.RecipientType.TO);
+                                                               String fromAddress, toAddress;
+                                                               boolean senderMissing = false, recipientsMissing = false;
+                                                               if (senders != null && senders.length > 0){
+                                                                   fromAddress = senders[0].getAddress();
+                                                               }
+                                                               else{
+                                                                   fromAddress = message.getSubject().substring(9);
+                                                                   senderMissing = true;
+                                                               }
+                                                               if (recipients != null && recipients.length > 0){
+                                                                   toAddress =  recipients[0].getAddress();
+                                                               }
+                                                               else{
+                                                                   toAddress = message.getSubject().substring(9);
+                                                                   recipientsMissing = true;
+                                                               }
+                                                               if (fromAddress.startsWith(username)) {
+                                                                   facet.smsType = SmsEntryFacet.SmsType.OUTGOING;
+                                                                   if (recipientsMissing){
+                                                                       facet.personName = toAddress;
+                                                                       facet.personNumber = message.getHeader("X-smssync-address")[0];
+                                                                   }
+                                                                   else if (toAddress.indexOf("unknown.email")!=-1) {
+                                                                       facet.personName = recipients[0].getPersonal();
+                                                                       facet.personNumber = toAddress.substring(0, toAddress.indexOf("@"));
+                                                                   }
+                                                                   else {
+                                                                       facet.personName = recipients[0].getPersonal();
+                                                                       facet.personNumber = message.getHeader("X-smssync-address")[0];
+                                                                   }
+                                                               }else {
+                                                                   facet.smsType = SmsEntryFacet.SmsType.INCOMING;
+                                                                   if (senderMissing){
+                                                                       facet.personName = fromAddress;
+                                                                       facet.personNumber = message.getHeader("X-smssync-address")[0];
+                                                                   }
+                                                                   else if (fromAddress.indexOf("unknown.email")!=-1) {
+                                                                       facet.personName = senders[0].getPersonal();
+                                                                       facet.personNumber = fromAddress.substring(0, fromAddress.indexOf("@"));
+                                                                   }
+                                                                   else {
+                                                                       facet.personName = senders[0].getPersonal();
+                                                                       facet.personNumber = message.getHeader("X-smssync-address")[0];
+                                                                   }
+                                                               }
+                                                               facet.dateReceived = message.getReceivedDate();
+                                                               facet.start = facet.dateReceived.getTime();
+                                                               facet.end = facet.dateReceived.getTime();
+                                                               Object content = message.getContent();
+                                                               if (content instanceof String)
+                                                                   facet.message = (String) message.getContent();
+                                                               else if (content instanceof MimeMultipart) {//TODO: this is an MMS and needs to be handled properly
+                                                                   String contentType = ((MimeMultipart) content).getContentType();
+                                                                   facet.message = "message of type " + contentType;
+                                                               }
+                                                           }  catch(Exception e){
+                                                               e.printStackTrace();
+                                                               return null;
+                                                           }
+                                                           return facet;
+                                                       }
+                                                   }, updateInfo.apiKey.getId());
 
-	private boolean isDuplicateCallLogEntry(long guestId,
-			CallLogEntryFacet entry) {
-		CallLogEntryFacet found = jpaDaoService.findOne(
-				"sms_backup.call_log.byEmailId", CallLogEntryFacet.class,
-				entry.apiKeyId, entry.emailId);
-        return found != null;
-	}
+        }
+        else if (type == CallLogEntryFacet.class){
+            apiDataService.createOrReadModifyWrite(CallLogEntryFacet.class,
+                                                   new FacetQuery(
+                                                           "e.apiKeyId = ? AND e.emailId = ?",
+                                                           updateInfo.apiKey.getId(),
+                                                           emailId),
+                                                   new FacetModifier<CallLogEntryFacet>() {
+                                                       // Throw exception if it turns out we can't make sense of the observation's JSON
+                                                       // This will abort the transaction
+                                                       @Override
+                                                       public CallLogEntryFacet createOrModify(CallLogEntryFacet facet, Long apiKeyId) {
+                                                           if (facet == null) {
+                                                               facet = new CallLogEntryFacet(updateInfo.apiKey.getId());
+                                                               facet.emailId = emailId;
+                                                               facet.guestId = updateInfo.apiKey.getGuestId();
+                                                               facet.api = updateInfo.apiKey.getConnector().value();
+                                                           }
 
-	private boolean isDuplicateSmsEntry(long guestId, SmsEntryFacet entry) {
-        SmsEntryFacet found = jpaDaoService.findOne(
-				"sms_backup.sms.byEmailId", SmsEntryFacet.class, entry.apiKeyId,
-				entry.emailId);
-        return found != null;
+                                                           facet.timeUpdated = System.currentTimeMillis();
+
+                                                           try{
+                                                               List<String> lines = IOUtils.readLines(new StringReader((String)message.getContent()));
+                                                               if (lines.size()==2) {
+                                                                   String timeLine = lines.get(0);
+                                                                   String callLine = lines.get(1);
+                                                                   StringTokenizer st = new StringTokenizer(timeLine);
+                                                                   String secsString = st.nextToken();
+                                                                   facet.seconds = Integer.parseInt(secsString.substring(0,secsString.length()-1));
+                                                                   st = new StringTokenizer(callLine);
+                                                                   if (callLine.indexOf("outgoing call")!=-1) {
+                                                                       facet.callType = CallLogEntryFacet.CallType.OUTGOING;
+                                                                   } else if (callLine.indexOf("incoming call")!=-1) {
+                                                                       facet.callType = CallLogEntryFacet.CallType.INCOMING;
+                                                                   }
+                                                                   facet.personNumber = st.nextToken();
+                                                                   switch(facet.callType) {
+                                                                       case OUTGOING:
+                                                                           Address[] recipients = message.getRecipients(Message.RecipientType.TO);
+                                                                           if (recipients != null && recipients.length > 0)
+                                                                               facet.personName = ((InternetAddress)recipients[0]).getPersonal();
+                                                                           else
+                                                                               facet.personName = message.getSubject().substring(10);//read the name from the subject line
+                                                                           break;
+                                                                       case INCOMING:
+                                                                           Address[] senders = message.getFrom();
+                                                                           if (senders != null && senders.length > 0)
+                                                                               facet.personName = ((InternetAddress)senders[0]).getPersonal();
+                                                                           else
+                                                                               facet.personName = message.getSubject().substring(10);//read the name from the subject line
+                                                                   }
+                                                               } else if (lines.size()==1) {
+                                                                   String callLine = lines.get(0);
+                                                                   StringTokenizer st = new StringTokenizer(callLine);
+                                                                   facet.personNumber = st.nextToken();
+                                                                   facet.callType = CallLogEntryFacet.CallType.MISSED;
+                                                                   Address[] senders = message.getFrom();
+                                                                   if (senders != null && senders.length > 0)
+                                                                       facet.personName = ((InternetAddress)senders[0]).getPersonal();
+                                                                   else
+                                                                       facet.personName = message.getSubject().substring(10);//read the name from the subject line
+                                                               }
+                                                               facet.date = message.getReceivedDate();
+                                                               facet.start = facet.date.getTime();
+                                                               facet.end = facet.date.getTime() + facet.seconds*1000;
+                                                           }
+                                                           catch (Exception e){
+                                                               e.printStackTrace();
+                                                               return null;
+                                                           }
+
+                                                           return facet;
+                                                       }
+                                                   }, updateInfo.apiKey.getId());
+
+        }
 	}
 
 	static boolean checkAuthorization(GuestService guestService, Long guestId) {
@@ -183,7 +319,7 @@ public class SmsBackupUpdater extends AbstractUpdater {
 		return store;
 	}
 
-	List<SmsEntryFacet> retrieveSmsEntriesSince(UpdateInfo updateInfo,
+	void retrieveSmsEntriesSince(UpdateInfo updateInfo,
 			String email, String password, Date date) throws Exception {
 		long then = System.currentTimeMillis();
 		String query = "(incremental sms log retrieval)";
@@ -198,21 +334,14 @@ public class SmsBackupUpdater extends AbstractUpdater {
 			if (folder == null)
 				throw new Exception("No Sms Log");
 			Message[] msgs = getMessagesInFolderSinceDate(folder, date);
-			List<SmsEntryFacet> smsLog = new ArrayList<SmsEntryFacet>();
 			for (Message message : msgs) {
                 date = message.getReceivedDate();
-				SmsEntryFacet entry = new SmsEntryFacet(message, email, updateInfo.apiKey.getId());
-				smsLog.add(entry);
-				if (smsLog.size() == 20){
-					flushEntries(updateInfo, smsLog);
-                    updateStartDate(updateInfo,smsObjectType,date);
-                }
+                flushEntry(updateInfo, email, message, SmsEntryFacet.class);
+                updateStartDate(updateInfo,smsObjectType,date);
 			}
-			flushEntries(updateInfo, smsLog);
-            updateStartDate(updateInfo,smsObjectType,date);
 			countSuccessfulApiCall(updateInfo.apiKey,
 					smsObjectType.value(), then, query);
-			return smsLog;
+			return;
 		} catch (Exception ex) {
             ex.printStackTrace();
 			countFailedApiCall(updateInfo.apiKey, smsObjectType.value(),
@@ -221,7 +350,7 @@ public class SmsBackupUpdater extends AbstractUpdater {
 		}
 	}
 
-	List<CallLogEntryFacet> retrieveCallLogSinceDate(UpdateInfo updateInfo,
+	void retrieveCallLogSinceDate(UpdateInfo updateInfo,
 			String email, String password, Date date) throws Exception {
 		long then = System.currentTimeMillis();
 		String query = "(incremental call log retrieval)";
@@ -237,21 +366,14 @@ public class SmsBackupUpdater extends AbstractUpdater {
 			if (folder == null)
 				throw new Exception("No Call Log");
 			Message[] msgs = getMessagesInFolderSinceDate(folder, date);
-			List<CallLogEntryFacet> callLog = new ArrayList<CallLogEntryFacet>();
 			for (Message message : msgs) {
                 date = message.getReceivedDate();
-				CallLogEntryFacet entry = new CallLogEntryFacet(message, updateInfo.apiKey.getId());
-				callLog.add(entry);
-				if (callLog.size() == 20){
-					flushEntries(updateInfo, callLog);
-                    updateStartDate(updateInfo,callLogObjectType,date);
-                }
+                flushEntry(updateInfo, email, message, CallLogEntryFacet.class);
+                updateStartDate(updateInfo,callLogObjectType,date);
 			}
-			flushEntries(updateInfo, callLog);
-            updateStartDate(updateInfo,callLogObjectType,date);
 			countSuccessfulApiCall(updateInfo.apiKey,
 					callLogObjectType.value(), then, query);
-			return callLog;
+			return;
 		} catch (Exception ex) {
             ex.printStackTrace();
 			countFailedApiCall(updateInfo.apiKey,
