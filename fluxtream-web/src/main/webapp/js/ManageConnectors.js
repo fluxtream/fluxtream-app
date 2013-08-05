@@ -88,9 +88,6 @@ define(["core/grapher/BTCore",
                     }
                     params[member] = formatted;
                     break;
-                case "supportsFileUpload":
-                    params[member] = true;
-                    break;
             }
         }
         var config = App.getConnectorConfig(data.connectorName);
