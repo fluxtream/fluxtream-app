@@ -10,6 +10,8 @@ public class BodymediaBurnFacetVO extends AbstractInstantFacetVO<BodymediaBurnFa
     public int estimatedCalories = 0;
     public int predictedCalories = 0;
 
+    public boolean allDay = true;
+
     public String burnJson;
 
     @Override

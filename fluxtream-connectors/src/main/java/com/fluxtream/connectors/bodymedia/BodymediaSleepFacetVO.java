@@ -12,6 +12,8 @@ public class BodymediaSleepFacetVO extends AbstractTimedFacetVO<BodymediaSleepFa
     DurationModel totalSleeping;
     String sleepJson;
 
+    public boolean allDay = true;
+
     @Override
     protected void fromFacet(final BodymediaSleepFacet facet, final TimeInterval timeInterval, final GuestSettings settings) {
         this.efficiency = facet.efficiency;
