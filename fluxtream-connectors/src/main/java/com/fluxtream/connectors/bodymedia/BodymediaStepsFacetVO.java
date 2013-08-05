@@ -9,6 +9,8 @@ public class BodymediaStepsFacetVO extends AbstractInstantFacetVO<BodymediaSteps
 
     public int totalSteps;
 
+    public boolean allDay = true;
+
     public String stepsJson;
 
     @Override

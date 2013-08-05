@@ -168,10 +168,15 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
         var facetCity;
         var currentCity;
 
-        function appendItems(currentArray,list){
+        function appendItems(currentArray,allDay,normal){
             var details = currentArray[0].getDetails(currentArray);
             var content = $(templates.item.render({item:details.outerHTML()}));
-            list.append(content);
+            if (currentArray[0].allDay){
+                allDay.append(content);
+            }
+            else{
+                normal.append(content);
+            }
             details.on("contentchange",function(){
                 content.html(details.outerHTML());
                 App.apps.calendar.rebindDetailsControls(content);
@@ -200,8 +205,10 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
                         if (currentDate != prevDate) {
                             list.append(templates.date.render({date:App.prettyDateFormat(currentDate),city:currentCity.name,timezone:currentCity.shortTimezone,state:"list/date/"+currentDate.split(" ")[0]}));
                             prevDate = currentDate;
+                            var curContainer = $(templates.itemContainer.render({}));
+                            list.append(curContainer);
                         }
-                        appendItems(currentArray,list);
+                        appendItems(currentArray,curContainer.find(".allDayContainer"),curContainer.find("normalContainer"));
                         currentArray = [item.facet];
                         currentDate = facetCity.dateWithTimezone;
                         currentCity = facetCity;
@@ -214,10 +221,13 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
                 facetCity = App.getFacetCity(item.facet, metadata);
                 if (facetCity!=null) {
                     list.append(templates.date.render({date:App.prettyDateFormat(currentDate),city:currentCity.name,timezone:facetCity.shortTimezone,state:"list/date/"+currentDate.split(" ")[0]}));
+                    var curContainer = $(templates.itemContainer.render({}));
+                    list.append(curContainer);
                 }
             }
-            if (facetCity!=null)
-                appendItems(currentArray,list);
+            if (facetCity!=null){
+                appendItems(currentArray,curContainer.find(".allDayContainer"),curContainer.find(".normalContainer"));
+            }
         }
         if (list.children().length == 0)
             list.append("Sorry, no data to show.");
