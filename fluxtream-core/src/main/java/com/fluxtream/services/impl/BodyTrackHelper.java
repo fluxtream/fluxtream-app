@@ -278,8 +278,19 @@ public class BodyTrackHelper {
                 }
             }
 
+            Source s = new Source();
+            s.name = "sms_backup";
+            s.channels = new ArrayList<Channel>();
+            Channel c = new Channel();
+            c.name = "call_log";
+            s.channels.add(c);
+
+
+
             // create the respone
             response = new SourcesResponse(infoResponse, coachee);
+
+            response.sources.add(s);
 
             // add the All photos block to the response
             if (!photoChannelTimeRanges.isEmpty()) {
@@ -559,6 +570,7 @@ public class BodyTrackHelper {
         public int level;
         public long offset;
         public int sample_width;
+        public String type = "value";
 
         public static GetTileResponse getEmptyTile(int level, long offset){
             GetTileResponse tileResponse = new GetTileResponse();

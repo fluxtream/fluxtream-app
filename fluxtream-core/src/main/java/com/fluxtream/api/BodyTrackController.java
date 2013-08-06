@@ -609,6 +609,92 @@ public class BodyTrackController {
     }
 
     @GET
+    @Path("/timespans/{UID}/{ConnectorName}.{ObjectTypeName}/{Level}.{Offset}.json")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String fetchTimespanTile(@PathParam("UID") Long uid,
+                                 @PathParam("ConnectorName") String connectorName,
+                                 @PathParam("ObjectTypeName") String objectTypeName,
+                                 @PathParam("Level") int level,
+                                 @PathParam("Offset") long offset) {
+        try{
+            long loggedInUserId = AuthHelper.getGuestId();
+            boolean accessAllowed = checkForPermissionAccess(uid);
+            CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
+
+            if (!accessAllowed && coachee==null) {
+                uid = null;
+            }
+
+            if (uid == null) {
+                return gson.toJson(new StatusModel(false, "Invalid User ID (null)"));
+            }
+
+            List<ApiKey> keys = guestService.getApiKeys(uid);
+            ApiKey api = null;
+            ObjectType objectType = null;
+
+            mainloop: for (ApiKey key : keys){
+                Connector connector = key.getConnector();
+                if (connector.getName().equals(connectorName)){
+                    for (ObjectType ot : connector.objectTypes()){
+                        if (ot.getName().equals(objectTypeName)){
+                            objectType = ot;
+                            api = key;
+                            break mainloop;
+                        }
+                    }
+                }
+            }
+
+            if (api == null) {
+                return gson.toJson(new StatusModel(false, "Invalid Channel (null)"));
+            }
+
+
+            final long startTimeMillis = (long)(LevelOffsetHelper.offsetAtLevelToUnixTime(level, offset) * 1000);
+            final long endTimeMillis = (long)(LevelOffsetHelper.offsetAtLevelToUnixTime(level, offset + 1) * 1000);
+
+            final TimeInterval timeInterval = new SimpleTimeInterval(startTimeMillis, endTimeMillis, TimeUnit.DAY, TimeZone.getTimeZone("UTC"));
+
+            List<AbstractFacet> facets = apiDataService.getApiDataFacets(api,objectType,timeInterval);
+
+            TimespanTileResponse response = new TimespanTileResponse();
+
+            for (AbstractFacet facet : facets){
+                response.addTimespan(facet);
+            }
+
+            return gson.toJson(response);
+
+        }
+        catch (Exception e) {
+            LOG.error("BodyTrackController.fetchTimespanTile(): Exception while trying to fetch timespans: ", e);
+            return gson.toJson(new StatusModel(false, "Access Denied"));
+        }
+
+    }
+
+    private class TimespanTileResponse{
+        class TimespanTile{
+            double start;
+            double end;
+
+            TimespanTile(AbstractFacet facet){
+                start = facet.start / 1000.0;
+                end = facet.end / 1000.0;
+            }
+        }
+
+        ArrayList<TimespanTile> data = new ArrayList<TimespanTile>();
+        String type = "timespan";
+
+        void addTimespan(AbstractFacet facet){
+            data.add(new TimespanTile(facet));
+        }
+    }
+
+
+    @GET
     @Path("/photos/{UID}/{ConnectorPrettyName}.{ObjectTypeName}/{Level}.{Offset}.json")
     @Produces({MediaType.APPLICATION_JSON})
     public String fetchPhotoTile(@PathParam("UID") Long uid,

@@ -851,7 +851,14 @@ define(["core/grapher/BTCore"], function(BTCore) {
             }*/
 
             var plot = null;
-            if (("photo" == channel['type']) || "photo" == channel["channel_name"] || "photos" == channel["channel_name"]) {
+            if (channel["channel_name"] == "call_log"){
+                var objectTypeOrChannelName = (typeof channel["object_type_name"] === 'undefined' ? channel["channel_name"] : channel["object_type_name"]);
+                plot = new TimespanSeriesPlot(timespanDatasource(App.getUID(), channel["device_name"], objectTypeOrChannelName), grapher.dateAxis,
+                    yAxis,
+                {"style": channel["style"], "localDisplay": channel["time_type"] == "local"});
+
+            }
+            else if (("photo" == channel['type']) || "photo" == channel["channel_name"] || "photos" == channel["channel_name"]) {
                 var tags = [];
                 var matchingStrategy = "any";
                 var photoStyle = channel['style'];
