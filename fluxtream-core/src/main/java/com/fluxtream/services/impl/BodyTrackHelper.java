@@ -278,6 +278,11 @@ public class BodyTrackHelper {
                 }
             }
 
+
+
+            // create the respone
+            response = new SourcesResponse(infoResponse, coachee);
+
             Source s = new Source();
             s.name = "sms_backup";
             s.channels = new ArrayList<Channel>();
@@ -285,10 +290,14 @@ public class BodyTrackHelper {
             c.name = "call_log";
             s.channels.add(c);
 
+            response.sources.add(s);
 
-
-            // create the respone
-            response = new SourcesResponse(infoResponse, coachee);
+            s = new Source();
+            s.name = "moves";
+            s.channels = new ArrayList<Channel>();
+            c = new Channel();
+            c.name = "data";
+            s.channels.add(c);
 
             response.sources.add(s);
 
