@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS `Facet_SmsEntry`;
 CREATE TABLE `Facet_SmsEntry` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `api` int(11) NOT NULL,
@@ -28,6 +29,7 @@ CREATE TABLE `Facet_SmsEntry` (
   KEY `timeUpdated_index` (`timeUpdated`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+DROP TABLE IF EXISTS `Facet_CallLog`;
 CREATE TABLE `Facet_CallLog` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `api` int(11) NOT NULL,
