@@ -45,6 +45,7 @@ import com.fluxtream.domain.Tag;
 import com.fluxtream.domain.TagFilter;
 import com.fluxtream.images.ImageOrientation;
 import com.fluxtream.mvc.models.StatusModel;
+import com.fluxtream.mvc.models.TimespanModel;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.BodyTrackStorageService;
 import com.fluxtream.services.CoachingService;
@@ -67,9 +68,12 @@ import org.jetbrains.annotations.Nullable;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
+import com.fluxtream.connectors.timespanResponders.AbstractTimespanResponder;
 
 @Path("/bodytrack")
 @Component("RESTBodytrackController")
@@ -108,7 +112,8 @@ public class BodyTrackController {
 
     @Autowired JsonResponseHelper jsonResponseHelper;
 
-	@POST
+
+    @POST
 	@Path("/uploadHistory")
 	@Produces({ MediaType.APPLICATION_JSON })
 	public String loadHistory(@QueryParam("username") String username,
@@ -633,16 +638,11 @@ public class BodyTrackController {
             ApiKey api = null;
             ObjectType objectType = null;
 
-            mainloop: for (ApiKey key : keys){
+            for (ApiKey key : keys){
                 Connector connector = key.getConnector();
                 if (connector.getName().equals(connectorName)){
-                    for (ObjectType ot : connector.objectTypes()){
-                        if (ot.getName().equals(objectTypeName)){
-                            objectType = ot;
-                            api = key;
-                            break mainloop;
-                        }
-                    }
+                    api = key;
+                    break;
                 }
             }
 
@@ -654,16 +654,7 @@ public class BodyTrackController {
             final long startTimeMillis = (long)(LevelOffsetHelper.offsetAtLevelToUnixTime(level, offset) * 1000);
             final long endTimeMillis = (long)(LevelOffsetHelper.offsetAtLevelToUnixTime(level, offset + 1) * 1000);
 
-            final TimeInterval timeInterval = new SimpleTimeInterval(startTimeMillis, endTimeMillis, TimeUnit.DAY, TimeZone.getTimeZone("UTC"));
-
-            List<AbstractFacet> facets = apiDataService.getApiDataFacets(api,objectType,timeInterval);
-
-            TimespanTileResponse response = new TimespanTileResponse();
-
-            for (AbstractFacet facet : facets){
-                response.addTimespan(facet);
-            }
-
+            TimespanTileResponse response = new TimespanTileResponse(api.getConnector().getTimespanResponder().getTimespans(startTimeMillis,endTimeMillis,api,objectTypeName,apiDataService));
             return gson.toJson(response);
 
         }
@@ -675,21 +666,12 @@ public class BodyTrackController {
     }
 
     private class TimespanTileResponse{
-        class TimespanTile{
-            double start;
-            double end;
 
-            TimespanTile(AbstractFacet facet){
-                start = facet.start / 1000.0;
-                end = facet.end / 1000.0;
-            }
-        }
-
-        ArrayList<TimespanTile> data = new ArrayList<TimespanTile>();
+        List<TimespanModel> data = new ArrayList<TimespanModel>();
         String type = "timespan";
 
-        void addTimespan(AbstractFacet facet){
-            data.add(new TimespanTile(facet));
+        public TimespanTileResponse(List<TimespanModel> data){
+            this.data = data;
         }
     }
 

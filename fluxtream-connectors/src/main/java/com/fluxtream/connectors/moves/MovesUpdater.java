@@ -33,7 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Time: 16:50
  */
 @Component
-@Updater(prettyName = "Moves", value = 144, objectTypes = {LocationFacet.class, MovesMoveFacet.class, MovesPlaceFacet.class})
+@Updater(prettyName = "Moves", value = 144, objectTypes = {LocationFacet.class, MovesMoveFacet.class, MovesPlaceFacet.class}, timespanResponder = MovesTimespanResponder.class)
 public class MovesUpdater extends AbstractUpdater {
     static FlxLogger logger = FlxLogger.getLogger(AbstractUpdater.class);
 

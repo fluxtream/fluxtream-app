@@ -848,10 +848,55 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 ($("#_timeline_channels ._timeline_channel").length == 0)) {
                 max_time = channel["max_time"];
                 grapher.dateAxis.setRange(max_time - 86400.0, max_time);
-            }*/
+            }
+
+             "#e9e9e9",
+             MOVES_CYCLING_COLOR: "#68abef",
+             MOVES_WALKING_COLOR: "#23ee70",
+             MOVES_TRANSPORT_COLOR: "#8f8f8d",
+             MOVES_RUNNING_COLOR: "#e674ec"*/
 
             var plot = null;
-            if (channel["channel_name"] == "call_log"){
+            if (channel["device_name"] == "moves" && channel["channel_name"] == "data"){
+                var objectTypeOrChannelName = (typeof channel["object_type_name"] === 'undefined' ? channel["channel_name"] : channel["object_type_name"]);
+                plot = new TimespanSeriesPlot(timespanDatasource(App.getUID(), channel["device_name"], objectTypeOrChannelName), grapher.dateAxis,
+                    yAxis,
+                    {"style": {
+                        timespanStyles:{
+                            default:{
+                                borderColor: "blue",
+                                borderWidth: 0,
+                                fillColor: "#e9e9e9",
+                                top:0,
+                                bottom: 1
+                            },
+                            values:{
+                                wlk:{
+                                    fillColor:"#23ee70",
+                                    top:0.25,
+                                    bottom:0.75
+                                },
+                                run:{
+                                    fillColor:"#e674ec",
+                                    top:0.25,
+                                    bottom:0.75
+                                },
+                                cyc:{
+                                    fillColor:"#68abef",
+                                    top:0.25,
+                                    bottom:0.75
+                                },
+                                trp:{
+                                    fillColor:"#8f8f8d",
+                                    top:0.25,
+                                    bottom:0.75
+                                }
+                            }
+                        }
+                    }, "localDisplay": channel["time_type"] == "local"});
+
+            }
+            else if (channel["channel_name"] == "call_log"){
                 var objectTypeOrChannelName = (typeof channel["object_type_name"] === 'undefined' ? channel["channel_name"] : channel["object_type_name"]);
                 plot = new TimespanSeriesPlot(timespanDatasource(App.getUID(), channel["device_name"], objectTypeOrChannelName), grapher.dateAxis,
                     yAxis,
@@ -859,10 +904,10 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     timespanStyles:{
                         default:{
                             borderColor: "blue",
-                            borderWidth: 5,
-                            fillColor: "orange",
-                            top:0.25,
-                            bottom: 0.50
+                            borderWidth: 0,
+                            fillColor: "green",
+                            top:0,
+                            bottom: 1
                         },
                         values:{}
                     }

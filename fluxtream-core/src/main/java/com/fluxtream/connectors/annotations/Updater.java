@@ -6,6 +6,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import com.fluxtream.connectors.Connector.UpdateStrategyType;
+import com.fluxtream.connectors.timespanResponders.AbstractTimespanResponder;
+import com.fluxtream.connectors.timespanResponders.DefaultTimespanResponder;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.AbstractUserProfile;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
@@ -29,5 +31,7 @@ public @interface Updater {
 	public boolean hasFacets() default true;
 
     public String[] defaultChannels() default {};
+
+    public Class<? extends AbstractTimespanResponder> timespanResponder() default DefaultTimespanResponder.class;
 
 }

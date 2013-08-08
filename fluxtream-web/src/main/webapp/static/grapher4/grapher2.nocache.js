@@ -1,5 +1,5 @@
 function grapher2(){
-  var $intern_0 = '', $intern_36 = '" for "gwt:onLoadErrorFn"', $intern_34 = '" for "gwt:onPropertyErrorFn"', $intern_21 = '"><\/script>', $intern_10 = '#', $intern_68 = '.cache.html', $intern_12 = '/', $intern_24 = '//', $intern_64 = '1691762184FBD117FA3A1069D6F39CDE', $intern_66 = '39CD3B9557F7DE3698C725DB79517078', $intern_67 = ':', $intern_65 = ':1', $intern_28 = '::', $intern_76 = '<script defer="defer">grapher2.onInjectionDone(\'grapher2\')<\/script>', $intern_20 = '<script id="', $intern_31 = '=', $intern_11 = '?', $intern_33 = 'Bad handler "', $intern_44 = 'DEBUG', $intern_75 = 'DOMContentLoaded', $intern_47 = 'ERROR', $intern_48 = 'FATAL', $intern_45 = 'INFO', $intern_49 = 'OFF', $intern_22 = 'SCRIPT', $intern_43 = 'TRACE', $intern_46 = 'WARN', $intern_42 = '[\\?&]log_level=([^&#]*)', $intern_19 = '__gwt_marker_grapher2', $intern_23 = 'base', $intern_15 = 'baseUrl', $intern_4 = 'begin', $intern_3 = 'bootstrap', $intern_14 = 'clear.cache.gif', $intern_30 = 'content', $intern_9 = 'end', $intern_58 = 'gecko', $intern_59 = 'gecko1_8', $intern_1 = 'grapher2', $intern_17 = 'grapher2.nocache.js', $intern_27 = 'grapher2::', $intern_5 = 'gwt.codesvr=', $intern_6 = 'gwt.hosted=', $intern_7 = 'gwt.hybrid', $intern_35 = 'gwt:onLoadErrorFn', $intern_32 = 'gwt:onPropertyErrorFn', $intern_29 = 'gwt:property', $intern_69 = 'gwt_standard.css', $intern_74 = 'head', $intern_62 = 'hosted.html?grapher2', $intern_73 = 'href', $intern_57 = 'ie6', $intern_56 = 'ie8', $intern_55 = 'ie9', $intern_37 = 'iframe', $intern_13 = 'img', $intern_38 = "javascript:''", $intern_70 = 'link', $intern_61 = 'loadExternalRefs', $intern_41 = 'log_level', $intern_25 = 'meta', $intern_40 = 'moduleRequested', $intern_8 = 'moduleStartup', $intern_54 = 'msie', $intern_26 = 'name', $intern_51 = 'opera', $intern_39 = 'position:absolute;width:0;height:0;border:none', $intern_71 = 'rel', $intern_53 = 'safari', $intern_16 = 'script', $intern_63 = 'selectingPermutation', $intern_2 = 'startup', $intern_72 = 'stylesheet', $intern_18 = 'undefined', $intern_60 = 'unknown', $intern_50 = 'user.agent', $intern_52 = 'webkit';
+  var $intern_0 = '', $intern_36 = '" for "gwt:onLoadErrorFn"', $intern_34 = '" for "gwt:onPropertyErrorFn"', $intern_21 = '"><\/script>', $intern_10 = '#', $intern_62 = '.cache.html', $intern_12 = '/', $intern_24 = '//', $intern_55 = '1E9C5C3E649A0996A4AFB1889C9B8EAA', $intern_56 = '505F93358009BB24B86614D50839F94D', $intern_57 = '5B9BCF22A3BC70B0CB7B5C0C7A817539', $intern_58 = '8A1365645A653269507CD14345FABC40', $intern_61 = ':', $intern_28 = '::', $intern_70 = '<script defer="defer">grapher2.onInjectionDone(\'grapher2\')<\/script>', $intern_20 = '<script id="', $intern_31 = '=', $intern_11 = '?', $intern_59 = 'A6658F62F109758166C52C0028C04F6A', $intern_33 = 'Bad handler "', $intern_60 = 'CF376A02B2EAD1CD1181868D760B7484', $intern_69 = 'DOMContentLoaded', $intern_22 = 'SCRIPT', $intern_19 = '__gwt_marker_grapher2', $intern_23 = 'base', $intern_15 = 'baseUrl', $intern_4 = 'begin', $intern_3 = 'bootstrap', $intern_14 = 'clear.cache.gif', $intern_30 = 'content', $intern_9 = 'end', $intern_49 = 'gecko', $intern_50 = 'gecko1_8', $intern_1 = 'grapher2', $intern_17 = 'grapher2.nocache.js', $intern_27 = 'grapher2::', $intern_5 = 'gwt.codesvr=', $intern_6 = 'gwt.hosted=', $intern_7 = 'gwt.hybrid', $intern_35 = 'gwt:onLoadErrorFn', $intern_32 = 'gwt:onPropertyErrorFn', $intern_29 = 'gwt:property', $intern_63 = 'gwt_standard.css', $intern_68 = 'head', $intern_53 = 'hosted.html?grapher2', $intern_67 = 'href', $intern_48 = 'ie6', $intern_47 = 'ie8', $intern_46 = 'ie9', $intern_37 = 'iframe', $intern_13 = 'img', $intern_38 = "javascript:''", $intern_64 = 'link', $intern_52 = 'loadExternalRefs', $intern_25 = 'meta', $intern_40 = 'moduleRequested', $intern_8 = 'moduleStartup', $intern_45 = 'msie', $intern_26 = 'name', $intern_42 = 'opera', $intern_39 = 'position:absolute;width:0;height:0;border:none', $intern_65 = 'rel', $intern_44 = 'safari', $intern_16 = 'script', $intern_54 = 'selectingPermutation', $intern_2 = 'startup', $intern_66 = 'stylesheet', $intern_18 = 'undefined', $intern_51 = 'unknown', $intern_41 = 'user.agent', $intern_43 = 'webkit';
   var $wnd = window, $doc = document, $stats = $wnd.__gwtStatsEvent?function(a){
     return $wnd.__gwtStatsEvent(a);
   }
@@ -187,10 +187,6 @@ function grapher2(){
     }
   }
 
-  function __gwt_isKnownPropertyValue(propName, propValue){
-    return propValue in values[propName];
-  }
-
   function __gwt_getMetaProperty(name){
     var value = metaProps[name];
     return value == null?null:value;
@@ -235,78 +231,47 @@ function grapher2(){
   }
 
   providers[$intern_41] = function(){
-    var log_level;
-    if (log_level == null) {
-      var regex = new RegExp($intern_42);
-      var results = regex.exec(location.search);
-      if (results != null) {
-        log_level = results[1];
-      }
-    }
-    if (log_level == null) {
-      log_level = __gwt_getMetaProperty($intern_41);
-    }
-    if (!__gwt_isKnownPropertyValue($intern_41, log_level)) {
-      var levels = [$intern_43, $intern_44, $intern_45, $intern_46, $intern_47, $intern_48, $intern_49];
-      var possibleLevel = null;
-      var foundRequestedLevel = false;
-      for (i in levels) {
-        foundRequestedLevel |= log_level == levels[i];
-        if (__gwt_isKnownPropertyValue($intern_41, levels[i])) {
-          possibleLevel = levels[i];
-        }
-        if (i == levels.length - 1 || foundRequestedLevel && possibleLevel != null) {
-          log_level = possibleLevel;
-          break;
-        }
-      }
-    }
-    return log_level;
-  }
-  ;
-  values[$intern_41] = {DEBUG:0, OFF:1};
-  providers[$intern_50] = function(){
     var ua = navigator.userAgent.toLowerCase();
     var makeVersion = function(result){
       return parseInt(result[1]) * 1000 + parseInt(result[2]);
     }
     ;
     if (function(){
-      return ua.indexOf($intern_51) != -1;
+      return ua.indexOf($intern_42) != -1;
     }
     ())
-      return $intern_51;
+      return $intern_42;
     if (function(){
-      return ua.indexOf($intern_52) != -1;
+      return ua.indexOf($intern_43) != -1;
     }
     ())
-      return $intern_53;
+      return $intern_44;
     if (function(){
-      return ua.indexOf($intern_54) != -1 && $doc.documentMode >= 9;
+      return ua.indexOf($intern_45) != -1 && $doc.documentMode >= 9;
     }
     ())
-      return $intern_55;
+      return $intern_46;
     if (function(){
-      return ua.indexOf($intern_54) != -1 && $doc.documentMode >= 8;
+      return ua.indexOf($intern_45) != -1 && $doc.documentMode >= 8;
     }
     ())
-      return $intern_56;
+      return $intern_47;
     if (function(){
       var result = /msie ([0-9]+)\.([0-9]+)/.exec(ua);
       if (result && result.length == 3)
         return makeVersion(result) >= 6000;
     }
     ())
-      return $intern_57;
+      return $intern_48;
     if (function(){
-      return ua.indexOf($intern_58) != -1;
+      return ua.indexOf($intern_49) != -1;
     }
     ())
-      return $intern_59;
-    return $intern_60;
+      return $intern_50;
+    return $intern_51;
   }
   ;
-  values[$intern_50] = {gecko1_8:0, ie6:1, ie8:2, ie9:3, opera:4, safari:5};
+  values[$intern_41] = {gecko1_8:0, ie6:1, ie8:2, ie9:3, opera:4, safari:5};
   grapher2.onScriptLoad = function(){
     if (frameInjected) {
       loadDone = true;
@@ -316,7 +281,7 @@ function grapher2(){
   ;
   grapher2.onInjectionDone = function(){
     scriptsDone = true;
-    $stats && $stats({moduleName:$intern_1, sessionId:$sessionId, subSystem:$intern_2, evtGroup:$intern_61, millis:(new Date).getTime(), type:$intern_9});
+    $stats && $stats({moduleName:$intern_1, sessionId:$sessionId, subSystem:$intern_2, evtGroup:$intern_52, millis:(new Date).getTime(), type:$intern_9});
     maybeStartModule();
   }
   ;
@@ -329,27 +294,25 @@ function grapher2(){
       $wnd.location.reload();
       return;
     }
-    initialHtml = $intern_62;
+    initialHtml = $intern_53;
     strongName = $intern_0;
   }
-  $stats && $stats({moduleName:$intern_1, sessionId:$sessionId, subSystem:$intern_2, evtGroup:$intern_3, millis:(new Date).getTime(), type:$intern_63});
+  $stats && $stats({moduleName:$intern_1, sessionId:$sessionId, subSystem:$intern_2, evtGroup:$intern_3, millis:(new Date).getTime(), type:$intern_54});
   if (!isHostedMode()) {
     try {
-      unflattenKeylistIntoAnswers([$intern_44, $intern_59], $intern_64);
-      unflattenKeylistIntoAnswers([$intern_49, $intern_59], $intern_64);
-      unflattenKeylistIntoAnswers([$intern_44, $intern_59], $intern_64 + $intern_65);
-      unflattenKeylistIntoAnswers([$intern_49, $intern_59], $intern_64 + $intern_65);
-      unflattenKeylistIntoAnswers([$intern_44, $intern_53], $intern_66);
-      unflattenKeylistIntoAnswers([$intern_49, $intern_53], $intern_66);
-      unflattenKeylistIntoAnswers([$intern_44, $intern_53], $intern_66 + $intern_65);
-      unflattenKeylistIntoAnswers([$intern_49, $intern_53], $intern_66 + $intern_65);
-      strongName = answers[computePropValue($intern_41)][computePropValue($intern_50)];
-      var idx = strongName.indexOf($intern_67);
+      unflattenKeylistIntoAnswers([$intern_47], $intern_55);
+      unflattenKeylistIntoAnswers([$intern_48], $intern_56);
+      unflattenKeylistIntoAnswers([$intern_50], $intern_57);
+      unflattenKeylistIntoAnswers([$intern_46], $intern_58);
+      unflattenKeylistIntoAnswers([$intern_44], $intern_59);
+      unflattenKeylistIntoAnswers([$intern_42], $intern_60);
+      strongName = answers[computePropValue($intern_41)];
+      var idx = strongName.indexOf($intern_61);
       if (idx != -1) {
         softPermutationId = Number(strongName.substring(idx + 1));
         strongName = strongName.substring(0, idx);
       }
-      initialHtml = strongName + $intern_68;
+      initialHtml = strongName + $intern_62;
     }
      catch (e) {
       return;
@@ -359,16 +322,16 @@ function grapher2(){
   function onBodyDone(){
     if (!bodyDone) {
       bodyDone = true;
-      if (!__gwt_stylesLoaded[$intern_69]) {
-        var l = $doc.createElement($intern_70);
-        __gwt_stylesLoaded[$intern_69] = l;
-        l.setAttribute($intern_71, $intern_72);
-        l.setAttribute($intern_73, base + $intern_69);
-        $doc.getElementsByTagName($intern_74)[0].appendChild(l);
+      if (!__gwt_stylesLoaded[$intern_63]) {
+        var l = $doc.createElement($intern_64);
+        __gwt_stylesLoaded[$intern_63] = l;
+        l.setAttribute($intern_65, $intern_66);
+        l.setAttribute($intern_67, base + $intern_63);
+        $doc.getElementsByTagName($intern_68)[0].appendChild(l);
       }
       maybeStartModule();
       if ($doc.removeEventListener) {
-        $doc.removeEventListener($intern_75, onBodyDone, false);
+        $doc.removeEventListener($intern_69, onBodyDone, false);
       }
       if (onBodyDoneTimerId) {
         clearInterval(onBodyDoneTimerId);
@@ -377,7 +340,7 @@ function grapher2(){
   }
 
   if ($doc.addEventListener) {
-    $doc.addEventListener($intern_75, function(){
+    $doc.addEventListener($intern_69, function(){
       maybeInjectFrame();
       onBodyDone();
     }
@@ -391,8 +354,8 @@ function grapher2(){
   }
   , 50);
   $stats && $stats({moduleName:$intern_1, sessionId:$sessionId, subSystem:$intern_2, evtGroup:$intern_3, millis:(new Date).getTime(), type:$intern_9});
-  $stats && $stats({moduleName:$intern_1, sessionId:$sessionId, subSystem:$intern_2, evtGroup:$intern_61, millis:(new Date).getTime(), type:$intern_4});
-  $doc.write($intern_76);
+  $stats && $stats({moduleName:$intern_1, sessionId:$sessionId, subSystem:$intern_2, evtGroup:$intern_52, millis:(new Date).getTime(), type:$intern_4});
+  $doc.write($intern_70);
 }
 
 grapher2();
