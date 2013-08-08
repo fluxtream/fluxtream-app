@@ -63,8 +63,8 @@
             <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
                 <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
-                {{^isAllDay}}<div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{time}} <span class="flx-dataLabel">{{ampm}}</span></a></div>{{/isAllDay}}
-                {{#isAllDay}}<div class="allDayEvent">All-Day</div>{{/isAllDay}}
+                {{^allDay}}<div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{time}} <span class="flx-dataLabel">{{ampm}}</span></a></div>{{/allDay}}
+                {{#allDay}}<div class="allDayEvent">All-Day</div>{{/allDay}}
                 <div class="flx-data">
                     <div class="bullet" style="background-color:{{color}};color:{{color}}"></div>
                     <span class="flx-description"><a href="javascript:void(0);" onclick="App.expandCollapse(this);" class="expandcollapse"><i class="icon-expand-alt"></i></a>{{summary}}</span>
@@ -73,6 +73,7 @@
                     <div class="flx-data">
                         <span class="flx-dataLabel">Location:</span>
                         {{#location}}<span class="flx-description" style="margin-left:30px">{{location}}</span>{{/location}}
+                        {{#hangoutLink}}<a href="{{hangoutLink}}">Hangout Link</a>{{/hangoutLink}}
                         {{#organizer}}<span class="flx-dataLabel">Organizer:</span>
                         <span class="flx-description" style="margin-left:30px">{{#displayName}}{{displayName}}{{/displayName}} {{email}}</span>{{/organizer}}
                         <span class="flx-dataLabel">Attendees:</span>

@@ -28,7 +28,8 @@ public class GoogleCalendarEventFacetVO extends AbstractTimedFacetVO<GoogleCalen
     public Event.Organizer organizer;
     public String location;
     public boolean recurringEvent;
-    public boolean isAllDay;
+    public boolean allDay;
+    public String hangoutLink;
 
     @Override
     protected void fromFacet(final GoogleCalendarEventFacet facet, final TimeInterval timeInterval, final GuestSettings settings) throws OutsideTimeBoundariesException {
@@ -56,7 +57,8 @@ public class GoogleCalendarEventFacetVO extends AbstractTimedFacetVO<GoogleCalen
             if (facet.location!=null)
                 this.location = facet.location.equals("")?null:facet.location;
             this.recurringEvent = facet.recurringEventId!=null;
-            this.isAllDay = facet.allDayEvent;
+            this.allDay = facet.allDayEvent;
+            this.hangoutLink = facet.hangoutLink;
         }
         catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.

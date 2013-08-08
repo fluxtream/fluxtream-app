@@ -38,16 +38,15 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
 
     @Override
     protected void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception {
-        loadHistory(updateInfo, -1);
+        loadHistory(updateInfo, false);
     }
 
     @Override
     public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
-        final String lastUpdate = guestService.getApiKeyAttribute(updateInfo.apiKey, "lastUpdated");
-        loadHistory(updateInfo, Long.valueOf(lastUpdate));
+        loadHistory(updateInfo, true);
     }
 
-    private void loadHistory(UpdateInfo updateInfo, long from) throws Exception {
+    private void loadHistory(UpdateInfo updateInfo, boolean incremental) throws Exception {
         Calendar calendar = getCalendar(updateInfo.apiKey);
         String pageToken = null;
         long apiKeyId = updateInfo.apiKey.getId();
@@ -68,7 +67,7 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
             List<CalendarListEntry> items = calendarList.getItems();
             for (CalendarListEntry item : items) {
                 existingCalendarIds.remove(item.getId());
-                loadCalendarHistory(calendar, item, updateInfo, from);
+                loadCalendarHistory(calendar, item, updateInfo, incremental);
             }
             pageToken = calendarList.getNextPageToken();
         } while (pageToken != null);
@@ -88,8 +87,11 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
         return l;
     }
 
-    private void loadCalendarHistory(final Calendar calendar, final CalendarListEntry calendarEntry, final UpdateInfo updateInfo, final long from) throws IOException {
+    private void loadCalendarHistory(final Calendar calendar, final CalendarListEntry calendarEntry, final UpdateInfo updateInfo, final boolean incremental) throws IOException {
         String pageToken = null;
+        final String queryString = "select max(start) from Facet_GoogleCalendarEvent where apiKeyId=" + updateInfo.apiKey.getId() + " and calendarId='" + calendarEntry.getId() + "'";
+        System.out.println(queryString);
+        Long from = jpaDaoService.executeNativeQuery(queryString);
         do {
             long then = System.currentTimeMillis();
             final Calendar.Events.List eventsApiCall = calendar.events().list(calendarEntry.getId());
@@ -99,8 +101,8 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
                 eventsApiCall.setShowHiddenInvitations(true);
                 eventsApiCall.setSingleEvents(true);
                 eventsApiCall.setTimeMax(new DateTime(System.currentTimeMillis()));
-                if (from!=-1) {
-                    eventsApiCall.setUpdatedMin(new DateTime(from));
+                if (from!=null&&incremental) {
+                    eventsApiCall.setTimeMin(new DateTime(from));
                 }
                 final Events events = eventsApiCall.execute();
                 countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, uriTemplate);
@@ -110,9 +112,6 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
             } catch (Throwable e) {
                 countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, uriTemplate, ExceptionUtils.getStackTrace(e));
                 throw(new RuntimeException(e));
-            } finally {
-                long lastUpdated = jpaDaoService.executeNativeQuery("select max(eventUpdated) from Facet_GoogleCalendarEvent where apiKeyId=" + updateInfo.apiKey.getId());
-                guestService.setApiKeyAttribute(updateInfo.apiKey, "lastUpdated", String.valueOf(lastUpdated));
             }
         } while (pageToken != null);
     }
@@ -130,7 +129,6 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
                                                                     "facet.apiKeyId=%s AND facet.googleId='%s'",
                                                                     updateInfo.apiKey.getId(), event.getId()));
             System.out.println("deleted " + deleted + " calendar entry");
-            //guestService.setApiKeyAttribute(updateInfo.apiKey, "lastUpdated", String.valueOf(event.getUpdated().getValue()));
             return;
         }
         final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery("e.apiKeyId=? AND e.googleId=? AND e.calendarId=?",

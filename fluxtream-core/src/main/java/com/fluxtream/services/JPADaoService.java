@@ -23,7 +23,7 @@ public interface JPADaoService {
 
     <T> List<T>  executeQueryWithLimit(String queryString, int i, Class<T> clazz, Object... params);
 
-    long executeNativeQuery(String queryString);
+    Long executeNativeQuery(String queryString);
 
     List executeNativeQuery(String s, Object... params);
 }
