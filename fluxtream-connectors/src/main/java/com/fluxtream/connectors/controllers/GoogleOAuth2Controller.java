@@ -7,6 +7,7 @@ import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import com.fluxtream.Configuration;
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.OAuth2Helper;
@@ -26,6 +27,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping(value = "/google/oauth2")
 public class GoogleOAuth2Controller {
+
+    FlxLogger logger = FlxLogger.getLogger(GoogleOAuth2Controller.class);
 
 	@Autowired
 	Configuration env;
@@ -98,7 +101,7 @@ public class GoogleOAuth2Controller {
                     .append("<p>Obviously, something went wrong.</p>")
                     .append("<p>You'll have to surf to your ")
                     .append("<a target='_new'  href='https://accounts.google.com/b/0/IssuedAuthSubTokens'>token mgmt page at Google's</a> ")
-                    .append("and hit \"Revoke Access\" next to \"fluxtream — Google Latitude\"</p>")
+                    .append("and hit \"Revoke Access\" next to \"fluxtream — ").append(getGooglePrettyName(scopedApi)).append("\"</p>")
                     .append("<p>Then please, add the Google Latitude connector again.</p>")
                     .append("<p>We apologize for the inconvenience</p>").toString();
             notificationsService.addNotification(guest.getId(),
@@ -132,5 +135,16 @@ public class GoogleOAuth2Controller {
             return "redirect:/app/tokenRenewed/"+scopedApi.getName();
         }
         return "redirect:/app/from/"+scopedApi.getName();
+    }
+
+    private Object getGooglePrettyName(final Connector scopedApi) {
+        if (scopedApi.getName().equals("google_latitude"))
+            return "Latitude";
+        else if (scopedApi.getName().equals("google_calendar"))
+            return "Google Calendar (or Google Agenda)";
+        else {
+            logger.warn("Please check Google's pretty name for API " + scopedApi.getName() + " (see GoogleOAuth2Controller.java)");
+            return scopedApi.prettyName();
+        }
     }
 }

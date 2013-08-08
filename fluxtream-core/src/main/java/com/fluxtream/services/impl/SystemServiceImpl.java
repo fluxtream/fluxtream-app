@@ -50,6 +50,8 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
     static {
         scopedApis.put("https://www.googleapis.com/auth/latitude.all.best",
                        Connector.getConnector("google_latitude"));
+        scopedApis.put("https://www.googleapis.com/auth/calendar.readonly",
+                       Connector.getConnector("google_calendar"));
     }
 
     @Override
