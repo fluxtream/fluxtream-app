@@ -895,6 +895,14 @@ define(["core/grapher/BTCore"], function(BTCore) {
                         }
                     }, "localDisplay": channel["time_type"] == "local"});
 
+                plot.addDataPointListener(function(pointObj, sourceInfo){
+                    var timespanObject = sourceInfo.info;
+                    $.ajax("/api/connectors/" + timespanObject.objectType + "/data?start=" + timespanObject.start * 1000 + "&end=" + timespanObject.end * 1000 + "&value=" + encodeURIComponent(timespanObject.value),{
+                        success: function(facets){
+                            console.log(facets);
+                        }
+                    });
+                });
             }
             else if (channel["channel_name"] == "call_log"){
                 var objectTypeOrChannelName = (typeof channel["object_type_name"] === 'undefined' ? channel["channel_name"] : channel["object_type_name"]);
@@ -912,6 +920,14 @@ define(["core/grapher/BTCore"], function(BTCore) {
                         values:{}
                     }
                 }, "localDisplay": channel["time_type"] == "local"});
+                plot.addDataPointListener(function(pointObj, sourceInfo){
+                    var timespanObject = sourceInfo.info;
+                    $.ajax("/api/connectors/" + timespanObject.objectType + "/data?start=" + timespanObject.start * 1000 + "&end=" + timespanObject.end * 1000 + "&value=" + encodeURIComponent(timespanObject.value),{
+                        success: function(facets){
+                            console.log(facets);
+                        }
+                    });
+                });
 
             }
             else if (("photo" == channel['type']) || "photo" == channel["channel_name"] || "photos" == channel["channel_name"]) {

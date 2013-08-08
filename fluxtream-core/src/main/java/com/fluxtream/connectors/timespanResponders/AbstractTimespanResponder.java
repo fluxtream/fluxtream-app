@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.ObjectType;
+import com.fluxtream.connectors.vos.AbstractFacetVO;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.mvc.models.TimespanModel;
 import com.fluxtream.services.ApiDataService;
 import org.joda.time.DateTime;
@@ -37,6 +39,25 @@ public abstract class AbstractTimespanResponder {
         //}
     }
 
+    protected List<AbstractFacetVO<AbstractFacet>> getFacetVOsForFacets(List<AbstractFacet> facets,TimeInterval timeInterval, GuestSettings guestSettings){
+        List<AbstractFacetVO<AbstractFacet>> facetVOs = new ArrayList<AbstractFacetVO<AbstractFacet>>();
+
+        for (AbstractFacet facet : facets){
+            try{
+                AbstractFacetVO<AbstractFacet> facetVO = AbstractFacetVO.getFacetVOClass(facet).newInstance();
+                facetVO.extractValues(facet,timeInterval,guestSettings);
+                facetVOs.add(facetVO);
+            }
+            catch (Exception e){
+                e.printStackTrace();
+
+            }
+        }
+        return facetVOs;
+    }
+
 
     public abstract List<TimespanModel> getTimespans(long startMillis, long endMillis, ApiKey apiKey, String channelName, ApiDataService apiDataService);
+
+    public abstract List<AbstractFacetVO<AbstractFacet>> getFacetVOs(ApiDataService apiDataService, GuestSettings guestSettings, ApiKey apiKey, String objectTypeName,long start,long end,String value);
 }
