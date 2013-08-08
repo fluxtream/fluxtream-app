@@ -88,10 +88,27 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
     }
 
     private void loadCalendarHistory(final Calendar calendar, final CalendarListEntry calendarEntry, final UpdateInfo updateInfo, final boolean incremental) throws IOException {
+        if (incremental) {
+            // first update existing events
+            String queryString = "select max(eventUpdated) from Facet_GoogleCalendarEvent where apiKeyId=" + updateInfo.apiKey.getId() + " and calendarId='" + calendarEntry.getId() + "'";
+            Long since = jpaDaoService.executeNativeQuery(queryString);
+            if (since!=null)
+                updateCalendarEvents(calendar, calendarEntry, updateInfo, since);
+            // now fetch new events
+            queryString = "select max(start) from Facet_GoogleCalendarEvent where apiKeyId=" + updateInfo.apiKey.getId() + " and calendarId='" + calendarEntry.getId() + "'";
+            since = jpaDaoService.executeNativeQuery(queryString);
+            if (since!=null)
+                loadCalendarEvents(calendar, calendarEntry, updateInfo, since);
+        } else {
+            loadCalendarEvents(calendar, calendarEntry, updateInfo, null);
+        }
+    }
+
+    private void updateCalendarEvents(final Calendar calendar,
+                                    final CalendarListEntry calendarEntry,
+                                    final UpdateInfo updateInfo,
+                                    final long since) throws IOException {
         String pageToken = null;
-        final String queryString = "select max(start) from Facet_GoogleCalendarEvent where apiKeyId=" + updateInfo.apiKey.getId() + " and calendarId='" + calendarEntry.getId() + "'";
-        System.out.println(queryString);
-        Long from = jpaDaoService.executeNativeQuery(queryString);
         do {
             long then = System.currentTimeMillis();
             final Calendar.Events.List eventsApiCall = calendar.events().list(calendarEntry.getId());
@@ -101,9 +118,35 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
                 eventsApiCall.setShowHiddenInvitations(true);
                 eventsApiCall.setSingleEvents(true);
                 eventsApiCall.setTimeMax(new DateTime(System.currentTimeMillis()));
-                if (from!=null&&incremental) {
-                    eventsApiCall.setTimeMin(new DateTime(from));
-                }
+                eventsApiCall.setUpdatedMin(new DateTime(since));
+                final Events events = eventsApiCall.execute();
+                countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, uriTemplate);
+                final List<Event> eventList = events.getItems();
+                storeEvents(updateInfo, calendarEntry, eventList);
+                pageToken = events.getNextPageToken();
+            } catch (Throwable e) {
+                countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, uriTemplate, ExceptionUtils.getStackTrace(e));
+                throw(new RuntimeException(e));
+            }
+        } while (pageToken != null);
+    }
+
+    private void loadCalendarEvents(final Calendar calendar,
+                                    final CalendarListEntry calendarEntry,
+                                    final UpdateInfo updateInfo,
+                                    final Long since) throws IOException {
+        String pageToken = null;
+        do {
+            long then = System.currentTimeMillis();
+            final Calendar.Events.List eventsApiCall = calendar.events().list(calendarEntry.getId());
+            final String uriTemplate = eventsApiCall.getUriTemplate();
+            try {
+                eventsApiCall.setPageToken(pageToken);
+                eventsApiCall.setShowHiddenInvitations(true);
+                eventsApiCall.setSingleEvents(true);
+                eventsApiCall.setTimeMax(new DateTime(System.currentTimeMillis()));
+                if (since!=null)
+                    eventsApiCall.setTimeMin(new DateTime(since));
                 final Events events = eventsApiCall.execute();
                 countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, uriTemplate);
                 final List<Event> eventList = events.getItems();
