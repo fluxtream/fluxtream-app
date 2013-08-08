@@ -31,7 +31,7 @@
                                 <span id="syncLED-{{connectorName}}" title="{{auditTrail}}" class="syncLED-{{^errors}}yes{{/errors}}{{#errors}}no{{/errors}}" {{#syncing}}style="display:none;"{{/syncing}}></span>
                                 {{#syncing}}
                                 <span class="syncLED-waiting">
-                                    <img src="{{release}}/images/syncing.gif" width="35" height="35" alt="load">
+                                    <i class="icon-refresh icon-spin" style="font-size:30px"></i>
                                 </span>
                                 {{/syncing}}
                                 <br/>{{#supportsSync}}<a id="syncNow-{{connectorName}}" title="sync now" href="#" {{#syncing}}style="display:none;"{{/syncing}}><i class="icon-refresh"></i></a> {{/supportsSync}}
@@ -81,7 +81,7 @@
                                 <span id="syncLED-{{connectorName}}" title="{{auditTrail}}" class="syncLED-{{^errors}}yes{{/errors}}{{#errors}}no{{/errors}}" {{#syncing}}style="display:none;"{{/syncing}}></span>
                                 {{#syncing}}
                                                         <span class="syncLED-waiting">
-                                                            <img src="{{release}}/images/syncing.gif" width="35" height="35" alt="load">
+                                                            <i class="icon-refresh icon-spin" style="font-size:30px"></i>
                                                         </span>
                                 {{/syncing}}
                                 <br/>{{#supportsSync}}<a id="syncNow-{{connectorName}}" title="sync now" href="#" {{#syncing}}style="display:none;"{{/syncing}}><i class="icon-refresh"></i></a>{{/supportsSync}}
@@ -116,43 +116,43 @@
                         </tr>
 </template>
 <template id="connectorSingleRowNoImage">
-                            <tr id="connector-{{connectorName}}" {{#syncing}}class="nowSynchro"{{/syncing}}>
-                            <td class="syncStatus" style="background:inherit">
-                                <span id="syncLED-{{connectorName}}" title="{{auditTrail}}" class="syncLED-{{^errors}}yes{{/errors}}{{#errors}}no{{/errors}}" {{#syncing}}style="display:none;"{{/syncing}}></span>
-                                {{#syncing}}
-                                                                                <span class="syncLED-waiting">
-                                                                                    <img src="{{release}}/images/syncing.gif" width="35" height="35" alt="load">
-                                                                                </span>
-                                {{/syncing}}
-                                <br/>{{#supportsSync}}<a id="syncNow-{{connectorName}}" title="sync now" href="#" {{#syncing}}style="display:none;"{{/syncing}}><i class="icon-refresh"></i></a>{{/supportsSync}}
-                                {{#supportsFileUpload}}<a id="upload-{{connectorName}}" title="upload data" href="#"><i class="icon-arrow-up"></i></a> {{/supportsFileUpload}}
-                            </td>
-                            <td class="connectors" style="background:inherit; vertical-align: middle; width: 158px" nocompare="true">
-                            </td>
-                            <td class="desc" style="background:inherit">
-                                <p style=""><b>{{name}}</b></p><br/>
-                                {{#hasSettings}}<a href="#" id="settings-{{connectorName}}">Settings <i class="icon-cog"></i></a>{{/hasSettings}}
-                            </td>
-                            <td class="lastSync" style="background:inherit">
-                                <p id="lastSync-{{connectorName}}" {{#syncing}}style="display:none;"{{/syncing}}>{{lastSync}}</p>
-                                {{#syncing}}
-                                <p>Now synchronizing</p>
-                                {{/syncing}}
-                                <a href="#" id="viewUpdates-{{connectorName}}">View Updates <i class="icon-table"></i></a><br/>
-                            </td>
-                            <td class="latestData" style="background:inherit">
-                                <p>{{latestData}}</p>
-                                <a {{^latestDataCalendarState}}style="display:none;"{{/latestDataCalendarState}} href="javascript:App.renderApp('calendar','{{latestDataCalendarState}}');App.closeModal();">Calendar</a>
-                                <!-- <a href="javascript:App.renderApp('bodytrack','/grapher/source/{{name}}'); App.closeModal();" id="viewData-{{connectorName}}">View graph <i class="icon-bar-chart"></i></a><br/> -->
-                            </td>
-                            <td class="renew" style="background:inherit">
-                                {{#supportsRenewToken}}<a id="renew-{{connectorName}}" href="#"><i class="icon-resize-small icon-large" style="padding-top:18px"></i></a>{{/supportsRenewToken}}
-                                {{^supportsRenewToken}}<br></be><p></p>{{/supportsRenewToken}}
-                            </td>
-                            <td class="remove" style="background:inherit">
-                                <a {{#sticky}}style="display:none;"{{/sticky}} id="remove-{{connectorName}}" href="#"><i class="icon-trash"></i></a>
-                            </td>
-                            </tr>
+    <tr id="connector-{{connectorName}}" {{#syncing}}class="nowSynchro"{{/syncing}}>
+    <td class="syncStatus" style="background:inherit">
+        <span id="syncLED-{{connectorName}}" title="{{auditTrail}}" class="syncLED-{{^errors}}yes{{/errors}}{{#errors}}no{{/errors}}" {{#syncing}}style="display:none;"{{/syncing}}></span>
+        {{#syncing}}
+                                                        <span class="syncLED-waiting">
+                                                            <i class="icon-refresh icon-spin" style="font-size:30px"></i>
+                                                        </span>
+        {{/syncing}}
+        <br/>{{#supportsSync}}<a id="syncNow-{{connectorName}}" title="sync now" href="#" {{#syncing}}style="display:none;"{{/syncing}}><i class="icon-refresh"></i></a>{{/supportsSync}}
+        {{#supportsFileUpload}}<a id="upload-{{connectorName}}" title="upload data" href="#"><i class="icon-arrow-up"></i></a> {{/supportsFileUpload}}
+    </td>
+    <td class="connectors" style="background:inherit; vertical-align: middle; width: 158px" nocompare="true">
+    </td>
+    <td class="desc" style="background:inherit">
+        <p style=""><b>{{name}}</b></p><br/>
+        <a href="#" id="settings-{{connectorName}}">Settings <i class="icon-cog"></i></a>
+    </td>
+    <td class="lastSync" style="background:inherit">
+        <p id="lastSync-{{connectorName}}" {{#syncing}}style="display:none;"{{/syncing}}>{{lastSync}}</p>
+        {{#syncing}}
+        <p>Now synchronizing</p>
+        {{/syncing}}
+        <a href="#" id="viewUpdates-{{connectorName}}">View Updates <i class="icon-table"></i></a><br/>
+    </td>
+    <td class="latestData" style="background:inherit">
+        <p>{{latestData}}</p>
+        <a {{^latestDataCalendarState}}style="display:none;"{{/latestDataCalendarState}} href="javascript:App.renderApp('calendar','{{latestDataCalendarState}}');App.closeModal();">Calendar</a>
+        <!-- <a href="javascript:App.renderApp('bodytrack','/grapher/source/{{name}}'); App.closeModal();" id="viewData-{{connectorName}}">View graph <i class="icon-bar-chart"></i></a><br/> -->
+    </td>
+    <td class="renew" style="background:inherit">
+        {{#supportsRenewToken}}<a id="renew-{{connectorName}}" href="#"><i class="icon-resize-small icon-large" style="padding-top:18px"></i></a>{{/supportsRenewToken}}
+        {{^supportsRenewToken}}<br></be><p></p>{{/supportsRenewToken}}
+    </td>
+    <td class="remove" style="background:inherit">
+        <a {{#sticky}}style="display:none;"{{/sticky}} id="remove-{{connectorName}}" href="#"><i class="icon-trash"></i></a>
+    </td>
+    </tr>
 </template>
 <template id="deleteConnectorConfirm">
     <div class="modal fade" id="deleteConnectorConfirm">

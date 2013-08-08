@@ -35,7 +35,7 @@
 	<link rel="stylesheet" href="/static/css/tagedit/css/jquery.tagedit.css">
 </g:compress>
 
-<link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/font-awesome-3.2.1.css">
 
 <script
 	src="https://maps-api-ssl.google.com/maps/api/js?libraries=geometry&v=3&sensor=false"
@@ -125,11 +125,6 @@
 			<!-- here is where fluxtream apps go -->
 
 		</div>
-
-
-		<div id="loading" style="display: none; min-height: 250px">
-            <img style="border: none" src="/${release}/images/loading.gif" />
-        </div>
 
     </div>
 

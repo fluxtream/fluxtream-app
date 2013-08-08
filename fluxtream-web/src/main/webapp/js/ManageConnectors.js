@@ -83,7 +83,7 @@ define(["core/grapher/BTCore",
                     if (formatted == "Present")
                         formatted = member == "lastSync" ? "Never" : "No Data";
                     else if (member == "latestData"){
-                        var state = App.apps.calendar.toState("clock","date",new Date(data[member]));
+                        var state = App.apps.calendar.toState(App.apps.calendar.currentTabName,"date",new Date(data[member]));
                         params.latestDataCalendarState = state.tabName + "/" + state.tabState;
                     }
                     params[member] = formatted;
@@ -332,7 +332,7 @@ define(["core/grapher/BTCore",
         syncLED.removeClass("syncLED-no");
         syncLED.addClass("syncLED-waiting");
         syncLED.html("<span class=\"syncLED-waiting\">" +
-                     "<img src=\"/images/syncing.gif\" alt=\"load\">" +
+                     "<i class=\"icon-refresh icon-spin\" style=\"font-size:30px\"></i>" +
                      "</span>");
         var lastSync = $("#lastSync-" + connectorName);
         lastSync.html("Now synchronizing");

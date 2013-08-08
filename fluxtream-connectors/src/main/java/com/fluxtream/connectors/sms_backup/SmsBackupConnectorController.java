@@ -105,9 +105,7 @@ public class SmsBackupConnectorController {
 				smsFolderName);
 		guestService.setApiKeyAttribute(apiKey, "callLogFolderName",
 				callLogFolderName);
-		connectorUpdateService.scheduleUpdate(apiKey, 3,
-				UpdateType.INITIAL_HISTORY_UPDATE,
-				System.currentTimeMillis());
+		connectorUpdateService.updateConnector(apiKey,false);
 		return mav;
 	}
 }
