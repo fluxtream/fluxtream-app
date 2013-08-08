@@ -864,30 +864,34 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     {"style": {
                         timespanStyles:{
                             default:{
-                                borderColor: "blue",
-                                borderWidth: 0,
+                                borderWidth: 2,
                                 fillColor: "#e9e9e9",
+                                borderColor: $.xcolor.darken("#e9e9e9").getColor(),
                                 top:0,
                                 bottom: 1
                             },
                             values:{
                                 wlk:{
                                     fillColor:"#23ee70",
+                                    borderColor: $.xcolor.darken("#23ee70").getColor(),
                                     top:0.25,
                                     bottom:0.75
                                 },
                                 run:{
                                     fillColor:"#e674ec",
+                                    borderColor: $.xcolor.darken("#e674ec").getColor(),
                                     top:0.25,
                                     bottom:0.75
                                 },
                                 cyc:{
                                     fillColor:"#68abef",
+                                    borderColor: $.xcolor.darken("#68abef").getColor(),
                                     top:0.25,
                                     bottom:0.75
                                 },
                                 trp:{
                                     fillColor:"#8f8f8d",
+                                    borderColor: $.xcolor.darken("#8f8f8d").getColor(),
                                     top:0.25,
                                     bottom:0.75
                                 }
@@ -911,9 +915,9 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 {"style": {
                     timespanStyles:{
                         default:{
-                            borderColor: "blue",
-                            borderWidth: 0,
                             fillColor: "green",
+                            borderWidth: 2,
+                            borderColor: $.xcolor.darken("green").getColor(),
                             top:0,
                             bottom: 1
                         },
