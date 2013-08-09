@@ -18,6 +18,7 @@ import com.fluxtream.connectors.updaters.UpdateInfo.UpdateType;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ApiNotification;
 import com.fluxtream.domain.ApiUpdate;
+import com.fluxtream.domain.ConnectorInfo;
 import com.fluxtream.domain.UpdateWorkerTask;
 import com.fluxtream.domain.UpdateWorkerTask.Status;
 import com.fluxtream.services.ApiDataService;
@@ -153,6 +154,9 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     private void scheduleObjectTypeUpdate(final ApiKey apiKey, int objectTypes,
                                           List<ScheduleResult> scheduleResults,
                                           UpdateType updateType) {
+        final ConnectorInfo connectorInfo = systemService.getConnectorInfo(apiKey.getConnector().getName());
+        if (!connectorInfo.supportsSync)
+            return;
         UpdateWorkerTask updateWorkerTask = getUpdateWorkerTask(apiKey, objectTypes);
         if (updateWorkerTask != null)
             scheduleResults.add(new ScheduleResult(apiKey.getId(), apiKey.getConnector().getName(),
@@ -202,6 +206,9 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
         List<ScheduleResult> scheduleResults = new ArrayList<ScheduleResult>();
         final List<ApiKey> connectors = guestService.getApiKeys(guestId);
         for (ApiKey key : connectors) {
+            final ConnectorInfo connectorInfo = systemService.getConnectorInfo(key.getConnector().getName());
+            if (!connectorInfo.supportsSync)
+                continue;
             if (key!=null && key.getConnector()!=null) {
                 List<ScheduleResult> updateRes = updateConnector(key, false);
                 scheduleResults.addAll(updateRes);

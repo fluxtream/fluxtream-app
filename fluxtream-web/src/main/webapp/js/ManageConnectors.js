@@ -85,7 +85,6 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
     }
 
     function dataLoaded(data,update){
-        console.log(data);
         connectors = data;
         App.loadMustacheTemplate("connectorMgmtTemplates.html","manageConnectors",function(template){
             var params = [];
@@ -160,11 +159,14 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
                 type:"POST"
             });
         });
-        var uploadBtn = $("#upload-" + connector.connectorName);
+        var uploadBtn = $(".upload-" + connector.connectorName);
+        uploadBtn.off("click");
         uploadBtn.click(function(event){
+            event.stopImmediatePropagation();
             event.preventDefault();
-            //TODO: implement file upload
-            console.error("file upload not implemented");
+            App.loadMustacheTemplate("connectorMgmtTemplates.html","uploadDialog",function(template){
+                handleSubmitForm(template, connector);
+            });
         });
         var viewDataBtn = $("#viewUpdates-" + connector.connectorName);
         // remove previously bound handler
@@ -257,6 +259,38 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
             }
         });
     }
+
+    function handleSubmitForm(template, connector) {
+        console.log("handleSubmitForm");
+        //var html = template.render(connector);
+        App.makeModal("<div>haha</div>");
+        //var submitFileUploadForm = $("#submitFileUploadForm");
+        //submitFileUploadForm.click(function(event){
+        //    event.stopImmediatePropagation();
+        //    var formData = new FormData($("#fileUploadForm")[0]);
+        //    $.ajax({
+        //        url: "/upload/",
+        //        method: "POST",
+        //        data: formData,
+        //        success: function(response){
+        //            var status;
+        //            try { status = JSON.parse(response); }
+        //            catch(err) { alert("Couldn't upload data:" + err); }
+        //            if (status.result==="OK") {
+        //                $("#modal").modal("hide");
+        //                App.activeApp.renderState(App.state.getState(App.activeApp.name),true);
+        //            }
+        //            else {
+        //                if (typeof(status.stackTrace)!="undefined")
+        //                    console.log(status.stackTrace);
+        //                alert("Could upload data: " + status.message);
+        //            }
+        //        }
+        //    })
+        //    console.log("we should send this file now...");
+        //});
+    }
+
 
     function setToSyncing(connectorName){
         var row = $("#connector-" + connectorName);

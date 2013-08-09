@@ -2,8 +2,6 @@ package com.fluxtream.services.impl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -94,10 +92,10 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         final ConnectorInfo latitudeConnectorInfo = new ConnectorInfo(latitude,
                                                                       "/images/connectors/connector-google_latitude.jpg",
                                                                       res.getString("google_latitude"),
-                                                                      "/google/oauth2/token?scope=https://www.googleapis.com/auth/latitude.all.best",
+                                                                      "upload:google_latitude",
                                                                       Connector.getConnector("google_latitude"), order++, latitudeKeys!=null,
-                                                                      false, true, latitudeKeys);
-        latitudeConnectorInfo.supportsRenewTokens = true;
+                                                                      true, false, latitudeKeys);
+        latitudeConnectorInfo.supportsRenewTokens = false;
         latitudeConnectorInfo.renewTokensUrlTemplate = "google/oauth2/%s/token?scope=https://www.googleapis.com/auth/latitude.all.best";
         em.persist(latitudeConnectorInfo);
         final String fitbit = "Fitbit";

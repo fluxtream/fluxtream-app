@@ -311,7 +311,8 @@ define(
             dialog.addClass("hide");
             $("body").append(dialog);
             dialog.modal();
-            dialog.on("hidden",function(){
+            dialog.on("hidden",function(event){
+                event.stopImmediatePropagation();
                 dialog.remove();
             });
             var backdrops = $(".modal-backdrop");
@@ -499,14 +500,34 @@ define(
 
         App.addConnector = function(url) {
             if (startsWith(url, "ajax:")) {
-                var savedConnectorContent = $(".addConnectorsMain").html();
                 $.ajax({
-                           url : url.substring(5),
-                           success : function(html) {
-                               $(".addConnectorsMain").html(html);
-                               $(".focushere").focus();
-                           }
-                       });
+                   url : url.substring(5),
+                   success : function(html) {
+                       $(".addConnectorsMain").html(html);
+                       $(".focushere").focus();
+                   }
+                });
+            } else if (startsWith(url, "upload:")) {
+                var connectorName = url.substring(7);
+                $.ajax({
+                    url : "/upload/addConnector",
+                    type: "POST",
+                    data: {connectorName : connectorName},
+                    success : function(response) {
+                        var status;
+                        try { status = JSON.parse(response); }
+                        catch(err) { alert("Couldn't add upload-only connector:" + err); }
+                        if (status.result==="OK") {
+                            $("#modal").modal("hide");
+                            App.activeApp.renderState(App.state.getState(App.activeApp.name),true);
+                        }
+                        else {
+                            if (typeof(status.stackTrace)!="undefined")
+                                console.log(status.stackTrace);
+                            alert("Could not add upload-only connector: " + status.message);
+                        }
+                    }
+                });
             } else {
                 var loading = $("#loading").clone().show();
                 $(".addConnectorsMain").empty();
@@ -705,7 +726,7 @@ define(
                 hideFunction();
             };
             $(document).unbind("click").unbind("touchend").bind("touchend",onEvent).bind("click",globalClickHandler).bind("click", onEvent);
-        }
+        };
 
         App.search = function() {
             $(".application").load("/search/0?q=" + $(".search-query").val());
@@ -715,11 +736,11 @@ define(
 
         App.getLastDayOfMonth = function(year,month){
             return monthEndDays[month] + ((month == 1 && App.isLeapYear(year)) ? 1 : 0);
-        }
+        };
 
         App.isLeapYear = function(year){
             return (year % 400 == 0) || (year % 100 != 0 && year % 4 == 0);
-        }
+        };
 
         function carousel(photoId) {
             $(".carousel-inner div.item").removeClass("active");

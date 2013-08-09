@@ -35,7 +35,7 @@
                                 </span>
                                 {{/syncing}}
                                 <br/>{{#supportsSync}}<a id="syncNow-{{connectorName}}" title="sync now" href="#" {{#syncing}}style="display:none;"{{/syncing}}><i class="icon-refresh"></i></a> {{/supportsSync}}
-                                {{#supportsFileUpload}}<a id="upload-{{connectorName}}" title="upload data" href="#"><i class="icon-arrow-up"></i></a> {{/supportsFileUpload}}
+                                {{#supportsFileUpload}}<a class="upload-{{connectorName}}" id="{{connectorName}}-{{apiKeyId}}" title="upload data" href="#"><i class="icon-arrow-up"></i></a> {{/supportsFileUpload}}
                             </td>
                             <td class="connectors" style="width: 158px; background:inherit; vertical-align: middle; width: 158px">
                                 <img src="{{image}}" width=158 height=89 alt="{{connectorName}}">
@@ -85,7 +85,7 @@
                                                         </span>
                                 {{/syncing}}
                                 <br/>{{#supportsSync}}<a id="syncNow-{{connectorName}}" title="sync now" href="#" {{#syncing}}style="display:none;"{{/syncing}}><i class="icon-refresh"></i></a>{{/supportsSync}}
-                                {{#supportsFileUpload}}<a id="upload-{{connectorName}}" title="upload data" href="#"><i class="icon-arrow-up"></i></a> {{/supportsFileUpload}}
+                                {{#supportsFileUpload}}<a class="upload-{{connectorName}}" id="{{connectorName}}-{{apiKeyId}}" title="upload data" href="#"><i class="icon-arrow-up"></i></a> {{/supportsFileUpload}}
                             </td>
                             <td class="connectors" style="background:inherit; vertical-align: middle; width: 158px">
                                 <img src="{{image}}" width=158 height=89 alt="{{connectorName}}">
@@ -125,7 +125,7 @@
                                                         </span>
         {{/syncing}}
         <br/>{{#supportsSync}}<a id="syncNow-{{connectorName}}" title="sync now" href="#" {{#syncing}}style="display:none;"{{/syncing}}><i class="icon-refresh"></i></a>{{/supportsSync}}
-        {{#supportsFileUpload}}<a id="upload-{{connectorName}}" title="upload data" href="#"><i class="icon-arrow-up"></i></a> {{/supportsFileUpload}}
+        {{#supportsFileUpload}}<a class="upload-{{connectorName}}" id="{{connectorName}}-{{apiKeyId}}" title="upload data" href="#"><i class="icon-arrow-up"></i></a> {{/supportsFileUpload}}
     </td>
     <td class="connectors" style="background:inherit; vertical-align: middle; width: 158px" nocompare="true">
     </td>
@@ -209,7 +209,7 @@
                             <a  href="javascript:App.addConnector('{{connectUrl}}')">
                                 <img src="{{image}}" alt="" width=158 Height=89>
                             </a>
-                            <p>{{text}}</p>
+                            <p>{{{text}}}</p>
                         </div>
                         {{/connectors}}
                     </div>
@@ -304,5 +304,32 @@
         <div class="modal-footer">
             <button class="btn" onclick="$('#{{connectorName}}SettingsDialog').modal('hide')">Close</button>
         </div>
+    </div>
+</template>
+<template id="uploadDialog">
+    <div class="modal" id="uploadModal" class="modal hide fade">
+        <!--<div class="modal-header">-->
+            <!--<button type="button" class="close" data-dismiss="modal">&times;</button>-->
+            <!--<h3 id="myModalLabel">Upload {{prettyName}} Data File</h3>-->
+        <!--</div>-->
+        <!--<div class="modal-body">-->
+            <!--<form class="form-horizontal" id="fileUploadForm" action="javascript:void(0)">-->
+                <!--<div class="control-group">-->
+                    <!--<label class="control-label" for="file">File</label>-->
+                    <!--<div class="controls">-->
+                        <!--<input type="hidden" name="connectorName" value="${connector.name}">-->
+                        <!--<input type="file" name="file" id="file">-->
+                    <!--<span class="help-inline">-->
+                        <!--{{{uploadMessage}}}-->
+                    <!--</span>-->
+                    <!--</div>-->
+                <!--</div>-->
+                <!--<div class="control-group">-->
+                    <!--<div class="controls">-->
+                        <!--<a href="#" id="submitFileUploadForm" class="btn btn-primary">Upload</a>-->
+                    <!--</div>-->
+                <!--</div>-->
+            <!--</form>-->
+        <!--</div>-->
     </div>
 </template>

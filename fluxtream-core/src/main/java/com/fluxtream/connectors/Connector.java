@@ -360,6 +360,10 @@ public class Connector {
         return this.updateStrategyType;
     }
 
+    public String getPrettyName() {
+        return prettyName();
+    }
+
     public String prettyName() {
         return prettyName;
     }

@@ -3,6 +3,7 @@ package com.fluxtream.api;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.ResourceBundle;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -99,6 +100,7 @@ public class ConnectorStore {
         // If no guest is logged in, return empty array
         if(guest==null)
             return "[]";
+        ResourceBundle res = ResourceBundle.getBundle("messages/connectors");
         try {
             List<ConnectorInfo> connectors =  sysService.getConnectors();
             JSONArray connectorsArray = new JSONArray();
@@ -148,6 +150,12 @@ public class ConnectorStore {
                     connectorJson.accumulate("supportsRenewToken", connector.supportsRenewTokens);
                     connectorJson.accumulate("supportsSync", connector.supportsSync);
                     connectorJson.accumulate("supportsFileUpload", connector.supportsFileUpload);
+                    connectorJson.accumulate("prettyName", conn.prettyName());
+                    final String uploadMessageKey = conn.getName() + ".upload";
+                    if (res.containsKey(uploadMessageKey)) {
+                        final String uploadMessage = res.getString(uploadMessageKey);
+                        connectorJson.accumulate("uploadMessage", uploadMessage);
+                    }
                     connectorsArray.add(connectorJson);
                 }
             }
