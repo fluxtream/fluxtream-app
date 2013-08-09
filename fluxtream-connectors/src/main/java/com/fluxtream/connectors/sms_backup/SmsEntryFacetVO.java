@@ -16,7 +16,7 @@ public class SmsEntryFacetVO extends AbstractInstantFacetVO<SmsEntryFacet> {
 	
 	@Override
 	public void fromFacet(SmsEntryFacet sms, TimeInterval timeInterval, GuestSettings settings) {
-		this.startMinute = new DateTime(sms.dateReceived).getMinuteOfDay();
+		this.startMinute = toMinuteOfDay(sms.dateReceived, timeInterval.getMainTimeZone());
 		this.personName = sms.personName;
         this.smsType = sms.smsType.toString();
         this.personNumber = sms.personNumber;
