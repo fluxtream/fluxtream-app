@@ -162,7 +162,6 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
         var uploadBtn = $(".upload-" + connector.connectorName);
         uploadBtn.off("click");
         uploadBtn.click(function(event){
-            event.stopImmediatePropagation();
             event.preventDefault();
             App.loadMustacheTemplate("connectorMgmtTemplates.html","uploadDialog",function(template){
                 handleSubmitForm(template, connector);
@@ -262,33 +261,33 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
 
     function handleSubmitForm(template, connector) {
         console.log("handleSubmitForm");
-        //var html = template.render(connector);
-        App.makeModal("<div>haha</div>");
-        //var submitFileUploadForm = $("#submitFileUploadForm");
-        //submitFileUploadForm.click(function(event){
-        //    event.stopImmediatePropagation();
-        //    var formData = new FormData($("#fileUploadForm")[0]);
-        //    $.ajax({
-        //        url: "/upload/",
-        //        method: "POST",
-        //        data: formData,
-        //        success: function(response){
-        //            var status;
-        //            try { status = JSON.parse(response); }
-        //            catch(err) { alert("Couldn't upload data:" + err); }
-        //            if (status.result==="OK") {
-        //                $("#modal").modal("hide");
-        //                App.activeApp.renderState(App.state.getState(App.activeApp.name),true);
-        //            }
-        //            else {
-        //                if (typeof(status.stackTrace)!="undefined")
-        //                    console.log(status.stackTrace);
-        //                alert("Could upload data: " + status.message);
-        //            }
-        //        }
-        //    })
-        //    console.log("we should send this file now...");
-        //});
+        var html = template.render(connector);
+        var submitFileUploadForm = $("#submitFileUploadForm");
+        submitFileUploadForm.click(function(event){
+            event.stopImmediatePropagation();
+            var formData = new FormData($("#fileUploadForm")[0]);
+            $.ajax({
+                url: "/upload/",
+                method: "POST",
+                data: formData,
+                success: function(response){
+                    var status;
+                    try { status = JSON.parse(response); }
+                    catch(err) { alert("Couldn't upload data:" + err); }
+                    if (status.result==="OK") {
+                        $("#modal").modal("hide");
+                        App.activeApp.renderState(App.state.getState(App.activeApp.name),true);
+                    }
+                    else {
+                        if (typeof(status.stackTrace)!="undefined")
+                            console.log(status.stackTrace);
+                        alert("Could upload data: " + status.message);
+                    }
+                }
+            })
+            console.log("we should send this file now...");
+        });
+        App.makeModal(html);
     }
 
 

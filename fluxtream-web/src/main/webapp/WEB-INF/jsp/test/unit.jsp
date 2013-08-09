@@ -12,7 +12,7 @@
         window.FLX_RELEASE_NUMBER = "${release}";
     </script>
     <script src="https://maps-api-ssl.google.com/maps/api/js?libraries=geometry&v=3&sensor=false"></script>
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
     <script src="${pageContext.request.contextPath}/static/js/hogan-2.0.0.js"></script>
     <script src="${pageContext.request.contextPath}/static/js/underscore-1.3.3-min.js"></script>
     <script src="${pageContext.request.contextPath}/static/js/backbone-1.0.0-custom.1-min.js"></script>

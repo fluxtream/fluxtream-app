@@ -54,11 +54,11 @@
         </script>
 
         <script
-                src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+                src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
         <script>
                 window.jQuery
                                 || document
-                                                .write('<script src="/static/js/jquery-1.7.1.min.js"><\/script>')
+                                                .write('<script src="/static/js/jquery-1.10.2.min.js"><\/script>')
         </script>
     <script src="/static/js/bootstrap-2.0.2.min.js"></script>
 </body>
