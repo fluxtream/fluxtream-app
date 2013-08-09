@@ -33,7 +33,6 @@
 		href="/static/css/jquery-colorPicker/jquery.colorPicker.css">
 	<link rel="stylesheet" href="/static/css/msdropdown/dd.css">
 	<link rel="stylesheet" href="/static/css/tagedit/css/jquery.tagedit.css">
-    <link rel="stylesheet" href="/static/css/emoji.css">
 </g:compress>
 
 <link rel="stylesheet" href="/static/css/font-awesome-3.2.1.css">
@@ -164,7 +163,6 @@
 		<script src="/static/js/backbone-1.0.0-custom.1-min.js"></script>
         <script src="/static/js/jquery.ba-dotimeout-1.0.0.min.js"></script>
         <script src="/static/js/jquery.masonry-2.1.03.min.js"></script>
-    <script src="/static/js/emoji.js"></script>
     <script src="/static/js/jquery.xcolor-1.8.js"></script>
     <script src="/static/js/jquery.outerHTML-1.0.0.js"></script>
 	

@@ -595,7 +595,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                         break;
                     case "description":
                         if (data.type == "twitter-dm" || data.type == "twitter-mention" || data.type == "twitter-tweet"){
-                            newFacet[member] = parseTwitter(emoji.parseEmoji(data[member]));
+                            newFacet[member] = parseTwitter(data[member]);
                         }
                         else{
                             newFacet[member] = data[member];
@@ -626,7 +626,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                         break;
                     case "message":
                         if (data.type == "sms_backup-sms"){
-                            newFacet[member] = emoji.parseEmoji(data[member]);
+                            newFacet[member] = data[member];
                         }
                         else{
                             newFacet[member] = data[member];
