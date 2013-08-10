@@ -694,17 +694,21 @@ define(
             }
         }
 
-        $(document).bind("click",globalClickHandler);
+        var hideFunctions = [];
+
+        var onEvent = function(event){ //hides the tooltip if an element clicked on or any of its parents has the notthide property
+            for (var target = event.target; target != null; target=target.parentElement){
+                if ($(target).attr("notthide") != null)
+                    return;
+            }
+            for (var i = 0, li = hideFunctions.length; i < li; i++)
+                hideFunctions[i]();
+        };
+
+        $(document).bind("touchend",onEvent).bind("click",globalClickHandler).bind("mousedown", onEvent);
 
         App.addHideTooltipListener = function(hideFunction) {
-            var onEvent = function(event){ //hides the tooltip if an element clicked on or any of its parents has the notthide property
-                for (var target = event.target; target != null; target=target.parentElement){
-                    if ($(target).attr("notthide") != null)
-                        return;
-                }
-                hideFunction();
-            };
-            $(document).unbind("click").unbind("touchend").bind("touchend",onEvent).bind("click",globalClickHandler).bind("click", onEvent);
+            hideFunctions.push(hideFunction);
         }
 
         App.search = function() {
@@ -757,6 +761,33 @@ define(
                 row.push(array[i]);
             }
             return rows;
+        }
+
+        App.toPolar = function(center, x, y){
+            x -= center[0];
+            y -= center[1];
+            var r = Math.sqrt(x * x + y * y);
+            var theta;
+            if (x == 0){
+                if (y > 0)
+                    theta = Math.PI / 2;
+                else
+                    theta = 3 * Math.PI / 2;
+            }
+            else if (y == 0){
+                if (x > 0)
+                    theta = 0;
+                else
+                    theta = Math.PI;
+            }
+            else if (x > 0)
+                theta = Math.atan(y/x);
+            else
+                theta = Math.PI + Math.atan(y/x);
+            theta *= 180 / Math.PI;
+            if (theta < 0)
+                theta += 360;
+            return [r,theta];
         }
 
 

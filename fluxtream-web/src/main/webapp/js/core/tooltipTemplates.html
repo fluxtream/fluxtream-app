@@ -1,0 +1,9 @@
+<template id="tooltip-plain">
+    <div class="flx-clockToolTipContainer" notthide="true">
+        <div class="flx-toolTipBody strongBorder-{{orientation}}" style="border-color:{{color}}"> <!-- JS : Append strongBorder class with -Top, -Left, -Right, Bottom according to toolTip position / Append the right color class to override default -->
+            <span class="flx-toolTipTail-{{orientation}}" style="border-{{oppositeOrientation}}-color:{{color}}"></span> <!-- JS : Append class with -Top, -Left or -Right to change tail direction + define top/bottom/right/left arguments in the style attribute to give the tail it's position -->
+            <div class="flx-toolTipContext">
+            </div>
+        </div>
+    </div>
+</template>

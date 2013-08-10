@@ -1,4 +1,4 @@
-define(["core/grapher/BTCore"], function(BTCore) {
+define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core/Tooltip"], function(BTCore,ListUtils,Tooltip) {
 
     var Grapher = function(parentElement, options) {
         if (options == null) options = {};
@@ -899,14 +899,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                         }
                     }, "localDisplay": channel["time_type"] == "local"});
 
-                plot.addDataPointListener(function(pointObj, sourceInfo){
-                    var timespanObject = sourceInfo.info;
-                    $.ajax("/api/connectors/" + timespanObject.objectType + "/data?start=" + timespanObject.start * 1000 + "&end=" + timespanObject.end * 1000 + "&value=" + encodeURIComponent(timespanObject.value),{
-                        success: function(facets){
-                            console.log(facets);
-                        }
-                    });
-                });
+                plot.addDataPointListener(timespanDataPointListener(grapher,plot));
             }
             else if (channel["channel_name"] == "call_log"){
                 var objectTypeOrChannelName = (typeof channel["object_type_name"] === 'undefined' ? channel["channel_name"] : channel["object_type_name"]);
@@ -924,14 +917,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                         values:{}
                     }
                 }, "localDisplay": channel["time_type"] == "local"});
-                plot.addDataPointListener(function(pointObj, sourceInfo){
-                    var timespanObject = sourceInfo.info;
-                    $.ajax("/api/connectors/" + timespanObject.objectType + "/data?start=" + timespanObject.start * 1000 + "&end=" + timespanObject.end * 1000 + "&value=" + encodeURIComponent(timespanObject.value),{
-                        success: function(facets){
-                            console.log(facets);
-                        }
-                    });
-                });
+                plot.addDataPointListener(timespanDataPointListener(grapher,plot));
 
             }
             else if (("photo" == channel['type']) || "photo" == channel["channel_name"] || "photos" == channel["channel_name"]) {
@@ -987,6 +973,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
             }
 
             var plotContainer = new PlotContainer(plotElementId, false, [plot]);
+            plot.plotContainer = plotContainer;
 
             grapher.channelsMap[channelElementId] = channel;
             grapher.plotsMap[channelElementId] = plot;
@@ -2238,6 +2225,30 @@ define(["core/grapher/BTCore"], function(BTCore) {
 
             TOOLS.loadJson(url, {}, callbacks);
         }
+    }
+
+    function timespanDataPointListener(grapher,plot){
+        var mainContentContainer = $("#" + grapher.grapherId + "_timeline_mainContentArea");
+
+        return function (pointObj, sourceInfo){
+            var timespanObject = sourceInfo.info.timespanInfo;
+            $.ajax("/api/connectors/" + timespanObject.objectType + "/data?start=" + timespanObject.start * 1000 + "&end=" + timespanObject.end * 1000 + "&value=" + encodeURIComponent(timespanObject.value),{
+                success: function(facets){
+
+                    var plotContainer = $("#" + plot.plotContainer.getPlaceholder());
+                    var position = sourceInfo.info.position;
+                    var mainContentPosition = mainContentContainer.offset();
+                    var plotOffset = plotContainer.offset();
+                    var positionRelativeToMainContentArea = {
+                        x: plotOffset.left - mainContentPosition.left + position.x,
+                        y: plotOffset.top - mainContentPosition.top + position.y
+
+                    }
+
+                    Tooltip.createTooltip(mainContentContainer,positionRelativeToMainContentArea,ListUtils.buildList(facets),sourceInfo.info.color);
+                }
+            });
+        };
     }
 
     function photoDataPointListener(grapher, channel, channelElementId) {
