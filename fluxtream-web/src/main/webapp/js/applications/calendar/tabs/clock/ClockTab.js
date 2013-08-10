@@ -438,7 +438,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                 displayX += offX - ttpdiv.width()/2;
                 tail.css("left",ttpdiv.width()/2 - offX - 10);
             }
-            displayY -= parseInt(ttpdiv.css("marginTop"));
+
             switch(orientation){
                 case "Left":
                     displayX += 10;

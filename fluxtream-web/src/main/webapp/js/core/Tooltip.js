@@ -53,7 +53,6 @@ define(function(){
 
             var tooltipWidth = tooltip.width();
             var tooltipHeight = tooltip.height();
-            var tooltipMargin = parseInt(tooltip.css("marginTop"));
 
             //positioning
             if (orientation == "Top" || orientation == "Bottom"){
@@ -74,24 +73,24 @@ define(function(){
                 tail.css("left", (tooltipWidth - tail.outerWidth()) / 2 + tailOffset);
 
                 if (orientation == "Top"){
-                    tooltip.css("top",(position.y - tooltipMargin + tail.outerHeight()/ 2));
+                    tooltip.css("top",(position.y + tail.outerHeight()/ 2));
                 }
                 else{
-                    tooltip.css("top",(position.y - tooltipMargin - tail.outerHeight()/ 2 - tooltipHeight));
+                    tooltip.css("top",(position.y - tail.outerHeight()/ 2 - tooltipHeight));
                 }
             }
             else{
                 var tailOffset = 0;
                 if (position.y < tooltipHeight / 2){
-                    tooltip.css("top", -tooltipMargin);
+                    tooltip.css("top", "0px");
                     tailOffset = position.y - tooltipHeight / 2;
                 }
                 else if (containerHeight - position.y < tooltipHeight / 2){
-                    tooltip.css("top",containerHeight - tooltipHeight - tooltipMargin);
+                    tooltip.css("top",containerHeight - tooltipHeight);
                     tailOffset = position.y - containerHeight + tooltipHeight / 2;
                 }
                 else{
-                    tooltip.css("top",position.y - tooltipHeight / 2 - tooltipMargin);
+                    tooltip.css("top",position.y - tooltipHeight / 2);
                 }
 
                 tail.css("top", (tooltipHeight - tail.outerHeight()) / 2 + tailOffset);
