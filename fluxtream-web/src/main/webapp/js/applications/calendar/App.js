@@ -18,6 +18,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     Calendar.tabParam = null;
     Calendar.connectorEnabled = {"default":{}};
     Calendar.timespanState = null;
+    Calendar.detailsTemplates = {};
 
    Calendar.dateAxisCursorPosition = null;
 
@@ -303,7 +304,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 }
                 if (array == null)
                     array = [this];
-                return buildDetails(Calendar.digest,array,showDate);
+                return buildDetails(array,showDate);
             };
             facet.shouldGroup = function(facet){
                 return shouldFacetsGroup(this,facet);
@@ -380,7 +381,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                         }
                         if (array == null)
                             array = [this];
-                        return buildDetails(Calendar.digest,array,showDate);
+                        return buildDetails(array,showDate);
                     };
                     subfacet.shouldGroup = function(facet){
                         return shouldFacetsGroup(this,facet);
@@ -419,14 +420,18 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     }
 
     function enhanceDigest(digest){
-        digest.detailsTemplates = {};
+        digest.getCitiesList = function(){
+            if (digest.timeUnit === "DAY")
+                return [digest.metadata.mainCity];
+            return digest.metadata.cities;
+        }
         var templatePath = "applications/calendar/facetTemplates.html";
         function loadTemplate(name) {
             App.loadMustacheTemplate(templatePath, name, function(template){
                 if (template == null) {
                     console.log("WARNING: no template found for " + name + ".");
                 }
-                digest.detailsTemplates[name] = template;
+                Calendar.detailsTemplates[name] = template;
             });
         }
         $.each(digest.selectedConnectors, function(i, connector) {
@@ -518,7 +523,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     }
 
     function buildAddressDetails(digest, address){
-        if (digest.detailsTemplates["fluxtream-address"] == null){
+        if (Calendar.detailsTemplates["fluxtream-address"] == null){
             console.log("WARNING: no template found for fluxtream-address.");
             return "";
         }
@@ -544,13 +549,13 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     params[member] = address[member];
             }
         }
-        return digest.detailsTemplates["fluxtream-address"].render(params);
+        return Calendar.detailsTemplates["fluxtream-address"].render(params);
     }
 
-    function buildDetails(digest,facets,showDate){ //TODO: make this work without a digest
+    function buildDetails(facets,showDate){
         if (facets.length == 0)
             return"";
-        if (digest.detailsTemplates[facets[0].type] == null){
+        if (Calendar.detailsTemplates[facets[0].type] == null){
             console.warn("hey, no template found for " + facets[0].type + ".");
             return $("");
         }
@@ -634,7 +639,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 }
             }
             if (showDate){
-                var facetCity = App.getFacetCity(data, digest.metadata);
+                var facetCity = App.getFacetCity(data, Calendar.digest.getCitiesList());
                 newFacet.displayDate = App.formatDate(data.start + facetCity.tzOffset,false,true);
             }
         }
@@ -672,8 +677,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             }
         }
 
-        foursquareVenueTemplate = digest.detailsTemplates["foursquare-venue"];
-        var details = $(digest.detailsTemplates[data.type].render(params));
+        foursquareVenueTemplate = Calendar.detailsTemplates["foursquare-venue"];
+        var details = $(Calendar.detailsTemplates[data.type].render(params));
         details.find("img");
         setTimeout(function(){getFoursquareVenues(details,foursquareVenueIds);}, 100);
 

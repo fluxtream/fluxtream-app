@@ -547,19 +547,16 @@ define(
         };
 
 
-        App.getFacetCity = function(facet, metadata){
-            if (metadata.timeUnit === "DAY")
-                return metadata.mainCity;
-            var cities = metadata.cities;
+        App.getFacetCity = function(facet, citiesList){
             var time = (facet.start + (facet.end != null ? facet.end : facet.start)) / 2
-            for (var i=0; i<cities.length; i++) {
-                var city = cities[i];
+            if (time < citiesList[0].dayStart)
+                return citiesList[0];
+            for (var i= 0, li = citiesList.length; i < li; i++) {
+                var city = citiesList[i];
                 if ((city.dayStart<=time && time<city.dayEnd) || (city.dayStart<=facet.start && facet.start<city.dayEnd))
                     return city;
             }
-            console.log("WARNING: facet isn't within metadata time boundaries: " + new Date(facet.start))
-            console.log(facet);
-            return null;
+            return citiesList[citiesList.length-1];
         }
 
         App.prettyDateFormat = function(dateString) {

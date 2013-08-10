@@ -46,7 +46,6 @@ define(["core/Tab", "applications/calendar/tabs/list/ListUtils"], function(Tab, 
     var dgst;
 
     var templates;
-    var metadata;
 
     var rendererCount = 0;
 
@@ -60,7 +59,6 @@ define(["core/Tab", "applications/calendar/tabs/list/ListUtils"], function(Tab, 
             items = [];
             itemGroups = {};
             list.empty();
-            metadata = digest.metadata;
             var photoCount = 0;
             there:for (var connectorName in digest.cachedData){
                 if (!shouldDisplayInListView(connectorName))
@@ -81,7 +79,7 @@ define(["core/Tab", "applications/calendar/tabs/list/ListUtils"], function(Tab, 
 
                     }
 
-                    var itemCity = App.getFacetCity(item.facet, metadata);
+                    var itemCity = App.getFacetCity(item.facet, digest.getCitiesList());
                     if (itemCity==null)
                         continue;
                     for (var j = 0; j <= items.length; j++){
@@ -89,7 +87,7 @@ define(["core/Tab", "applications/calendar/tabs/list/ListUtils"], function(Tab, 
                             items[j] = item;
                             break;
                         }
-                        var facetCity = App.getFacetCity(items[j].facet, metadata);
+                        var facetCity = App.getFacetCity(items[j].facet, digest.getCitiesList());
                         if (facetCity==null)
                             continue there;
                         if (items[j].facet.start + facetCity.tzOffset > item.facet.start + itemCity.tzOffset || item.facet.start + itemCity.tzOffset == null){

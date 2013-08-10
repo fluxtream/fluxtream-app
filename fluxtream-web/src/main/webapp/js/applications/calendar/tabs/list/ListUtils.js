@@ -33,7 +33,7 @@ define(["applications/calendar/tabs/photos/PhotoUtils"],function(PhotoUtils){
 
             for (var i = 0, li = facets.length; i < li; i++){
                 var facet = facets[i];
-                var facetCity = App.getFacetCity(facet, App.apps.calendar.digest.metadata);
+                var facetCity = App.getFacetCity(facet, App.apps.calendar.digest.getCitiesList());
                 if (facetCity==null)
                     continue;
                 if (currentArray.length == 0){
