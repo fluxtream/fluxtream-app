@@ -9,7 +9,7 @@
         <div id="photosCarousel" class="carousel">
             <div class="carousel-inner">
                 {{#photos}}
-                <div id="photo-{{id}}" class="item{{#active}} active{{/active}}" style="overflow:none">
+                <div id="photo-{{id}}" photoId="{{id}}" class="item{{#active}} active{{/active}}" style="overflow:none">
                     <img onload="$(window).resize();" fullsize="photo-{{id}}" orientation="{{orientation}}" transformations="{{transformations}}" style="display:inline-block; max-height:100%; transform:{{transformations}}; -ms-transform:{{transformations}}; -webkit-transform:{{transformations}}; -o-transform:{{transformations}}" src="{{photoUrl}}">
                 </div>
                 {{/photos}}

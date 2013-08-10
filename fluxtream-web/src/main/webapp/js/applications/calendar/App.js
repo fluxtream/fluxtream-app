@@ -367,7 +367,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
             if (facet.type === "moves-move"){
                 for (var j = 0, lj = facet.activities.length; j < lj; j++){
-                    var subfacet = facet[j];
+                    var subfacet = facet.activities[j];
                     subfacet.parentType = facet.type;
                     subfacet.parentId = facet.id;
                     subfacet.parentStartTime = facet.startTime;

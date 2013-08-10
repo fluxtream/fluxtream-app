@@ -487,11 +487,6 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             $(".calendar-list-tab").click();
         });
 
-
-        ttpdiv.find(".flx-photo").click(function(event){
-            PhotoUtils.showCarouselHTML(photoCarouselHTML,$(event.delegateTarget).attr("photoId"));
-        });
-
         ttpdiv.find("#tooltipLoadTimeLine").click(function(event){
             setTabParam(facet.start);
             $(".calendar-timeline-tab").click();
@@ -528,6 +523,10 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             });
 
             App.apps.calendar.rebindDetailsControls(ttpdiv);
+
+            ttpdiv.find(".flx-photo").click(function(event){
+                PhotoUtils.showCarouselHTML(photoCarouselHTML,$(event.delegateTarget).attr("photoId"));
+            });
 
         });
 

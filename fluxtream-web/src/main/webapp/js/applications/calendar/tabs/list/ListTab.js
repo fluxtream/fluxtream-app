@@ -68,8 +68,6 @@ define(["core/Tab", "applications/calendar/tabs/list/ListUtils"], function(Tab, 
                 for (var i = 0; i < digest.cachedData[connectorName].length; i++){
                     var item = {};
                     item.facet = digest.cachedData[connectorName][i];
-                    if (item.facet.hasPhoto)
-                        item.facet.id = photoCount++;
                     item.visible = true;
                     var found = false;
                     for (var j = 0; j < digest.selectedConnectors.length; j++){
@@ -162,8 +160,6 @@ define(["core/Tab", "applications/calendar/tabs/list/ListUtils"], function(Tab, 
         for (var i = 0; i < items.length; i++){
            var item = items[i];
            if (item.visible){
-               if (item.facet != null && item.facet.hasPhoto)
-                   item.facet.id = i;
                visibleCount++;
                if (visibleCount > currentPage * maxPerPage && visibleCount <= (currentPage + 1) * maxPerPage){
                    facetsToShow.push(item.facet);
