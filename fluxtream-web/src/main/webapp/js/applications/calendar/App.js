@@ -291,6 +291,133 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 		});
 	}
 
+    Calendar.processFacets = function(facets){  //TODO: make this work without digest
+        if (facets == null || facets.length == 0 || facets[0].getDetails != null)
+            return;
+        for (var i = 0, li = facets.length; i < li; i++){
+            var facet = facets[i];
+            facet.getDetails = function(array,showDate){
+                if (typeof(array) == "boolean"){
+                    showDate = array;
+                    array = null;
+                }
+                if (array == null)
+                    array = [this];
+                return buildDetails(Calendar.digest,array,showDate);
+            };
+            facet.shouldGroup = function(facet){
+                return shouldFacetsGroup(this,facet);
+            };
+            switch (facet.type){
+                case "picasa-photo":
+                case "flickr-photo":
+                case "fluxtream_capture-photo":
+                    facet.hasImage = true;
+                    break;
+                case "mymee-observation":
+                    facet.hasImage = facet.photoUrl != null;
+                    break;
+            }
+            if (facet.hasImage) {
+                var photo42 = facet.photoUrl;
+                if (typeof(facet.thumbnailUrl)!="undefined")
+                    photo42 = facet.thumbnailUrl;
+                if (facet.thumbnailUrls != null){
+                    var bestMatch = -1;
+                    var bestMatchAmmount = 0;
+                    for (var j in facet.thumbnailSizes){
+                        var size = facet.thumbnailSizes[j];
+                        var matchAmmount = (size.width - 42) * (size.width - 42) + (size.height - 42) * (size.height - 42);
+                        if (bestMatch == -1 || matchAmmount < bestMatchAmmount){
+                            bestMatchAmmount = matchAmmount;
+                            bestMatch = j;
+                        }
+                    }
+                    if (bestMatch != -1){
+                        photo42 = facet.thumbnailUrls[bestMatch];
+                    }
+                }
+                facet.photo42 = photo42;
+            }
+            if (facet.start == undefined){
+                if (facet.date != undefined && facet.date != null){
+                    var dateParts = facet.date.split("-");
+                    var year = parseInt(dateParts[0]);
+                    var month = parseInt(dateParts[1]) - 1;
+                    var day = parseInt(dateParts[2]);
+                    if (facet.startTime != null){
+                        var hours = parseInt(facet.startTime.hours);
+                        var minutes = parseInt(facet.startTime.minutes);
+                        if (facet.startTime.ampm == "pm")
+                            hours += 12;
+                        facet.start = new Date(year,month,day,hours,minutes,0,0).getTime();
+                    }
+                    if (facet.endTime != null) {
+                        var hours = parseInt(facet.endTime.hours);
+                        var minutes = parseInt(facet.endTime.minutes);
+                        if (facet.endTime.ampm == "pm")
+                            hours += 12;
+                        facet.end = new Date(year,month,day,hours,minutes,0,0).getTime();
+                        if (facet.end < facet.start){
+                            facet.end = new Date(year,month,day+1,hours,0,0).getTime();
+                        }
+                    }
+                }
+            }
+
+            if (facet.type === "moves-move"){
+                for (var j = 0, lj = facet.activities.length; j < lj; j++){
+                    var subfacet = facet[j];
+                    subfacet.parentType = facet.type;
+                    subfacet.parentId = facet.id;
+                    subfacet.parentStartTime = facet.startTime;
+                    subfacet.parentEndTime = facet.endTime;
+                    subfacet.comment = facet.comment;
+                    subfacet.getDetails = function(array,showDate){
+                        if (typeof(array) == "boolean"){
+                            showDate = array;
+                            array = null;
+                        }
+                        if (array == null)
+                            array = [this];
+                        return buildDetails(Calendar.digest,array,showDate);
+                    };
+                    subfacet.shouldGroup = function(facet){
+                        return shouldFacetsGroup(this,facet);
+                    };
+
+                    if (subfacet.start == undefined){
+                        if (subfacet.date != undefined && subfacet.date != null){
+                            var dateParts = subfacet.date.split("-");
+                            var year = parseInt(dateParts[0]);
+                            var month = parseInt(dateParts[1]) - 1;
+                            var day = parseInt(dateParts[2]);
+                            if (subfacet.startTime != null){
+                                var hours = parseInt(subfacet.startTime.hours);
+                                var minutes = parseInt(subfacet.startTime.minutes);
+                                if (subfacet.startTime.ampm == "pm")
+                                    hours += 12;
+                                subfacet.start = new Date(year,month,day,hours,minutes,0,0).getTime();
+                            }
+                            if (subfacet.endTime != null) {
+                                var hours = parseInt(subfacet.endTime.hours);
+                                var minutes = parseInt(subfacet.endTime.minutes);
+                                if (subfacet.endTime.ampm == "pm")
+                                    hours += 12;
+                                subfacet.end = new Date(year,month,day,hours,minutes,0,0).getTime();
+                                if (subfacet.end < subfacet.start){
+                                    subfacet.end = new Date(year,month,day+1,hours,0,0).getTime();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+        }
+
+    }
+
     function enhanceDigest(digest){
         digest.detailsTemplates = {};
         var templatePath = "applications/calendar/facetTemplates.html";
@@ -311,67 +438,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         loadTemplate("foursquare-venue");
         loadTemplate("moves-move-activity");
         for (var connectorId in digest.cachedData){
-            $.each(digest.cachedData[connectorId], function(i, connector) {
-                connector.getDetails = function(array,showDate){
-                    if (typeof(array) == "boolean"){
-                        showDate = array;
-                        array = null;
-                    }
-                    if (array == null)
-                        array = [this];
-                    return buildDetails(digest,array,showDate);
-                };
-                connector.shouldGroup = function(facet){
-                    return shouldFacetsGroup(this,facet);
-                };
-                if (connectorId === "moves-move"){
-                    $.each(connector.activities, function(i, facet) {
-                        facet.parentType = connector.type;
-                        facet.parentId = connector.id;
-                        facet.parentStartTime = connector.startTime;
-                        facet.parentEndTime = connector.endTime;
-                        facet.comment = connector.comment;
-                        facet.getDetails = function(array,showDate){
-                            if (typeof(array) == "boolean"){
-                                showDate = array;
-                                array = null;
-                            }
-                            if (array == null)
-                                array = [this];
-                            return buildDetails(digest,array,showDate);
-                        };
-                        facet.shouldGroup = function(facet){
-                            return shouldFacetsGroup(this,facet);
-                        };
-
-                        if (facet.start == undefined){
-                            if (facet.date != undefined && facet.date != null){
-                                var dateParts = facet.date.split("-");
-                                var year = parseInt(dateParts[0]);
-                                var month = parseInt(dateParts[1]) - 1;
-                                var day = parseInt(dateParts[2]);
-                                if (facet.startTime != null){
-                                    var hours = parseInt(facet.startTime.hours);
-                                    var minutes = parseInt(facet.startTime.minutes);
-                                    if (facet.startTime.ampm == "pm")
-                                        hours += 12;
-                                    facet.start = new Date(year,month,day,hours,minutes,0,0).getTime();
-                                }
-                                if (facet.endTime != null) {
-                                    var hours = parseInt(facet.endTime.hours);
-                                    var minutes = parseInt(facet.endTime.minutes);
-                                    if (facet.endTime.ampm == "pm")
-                                        hours += 12;
-                                    facet.end = new Date(year,month,day,hours,minutes,0,0).getTime();
-                                    if (facet.end < facet.start){
-                                        facet.end = new Date(year,month,day+1,hours,0,0).getTime();
-                                    }
-                                }
-                            }
-                        }
-                    });
-                }
-            });
+            Calendar.processFacets(digest.cachedData[connectorId]);
             digest.cachedData[connectorId].hasImages = false;
             switch (connectorId){
                 case "picasa-photo":
@@ -381,71 +448,9 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     break;
                 case "mymee-observation":
                     for (var i = 0; i < digest.cachedData[connectorId].length && !digest.cachedData[connectorId].hasImages; i++){
-                        digest.cachedData[connectorId].hasImages = digest.cachedData[connectorId][i].photoUrl != null;
+                        digest.cachedData[connectorId].hasImages = digest.cachedData[connectorId][i].hasImage;
                     }
                     break;
-            }
-
-            for (var i = 0; i < digest.cachedData[connectorId].length; i++){
-                var facet = digest.cachedData[connectorId][i];
-                if (digest.cachedData[connectorId].hasImages){
-                    switch (connectorId){
-                        case "picasa-photo":
-                        case "flickr-photo":
-                        case "fluxtream_capture-photo":
-                            facet.hasImage = true;
-                            break;
-                        case "mymee-observation":
-                            facet.hasImage = facet.photoUrl != null;
-                            break;
-                    }
-                    if (facet.hasImage) {
-                        var photo42 = facet.photoUrl;
-                        if (typeof(facet.thumbnailUrl)!="undefined")
-                            photo42 = facet.thumbnailUrl;
-                        if (facet.thumbnailUrls != null){
-                            var bestMatch = -1;
-                            var bestMatchAmmount = 0;
-                            for (var j in facet.thumbnailSizes){
-                                var size = facet.thumbnailSizes[j];
-                                var matchAmmount = (size.width - 42) * (size.width - 42) + (size.height - 42) * (size.height - 42);
-                                if (bestMatch == -1 || matchAmmount < bestMatchAmmount){
-                                    bestMatchAmmount = matchAmmount;
-                                    bestMatch = j;
-                                }
-                            }
-                            if (bestMatch != -1){
-                                photo42 = digest.cachedData[connectorId][i].thumbnailUrls[bestMatch];
-                            }
-                        }
-                        facet.photo42 = photo42;
-                    }
-                }
-                if (facet.start == undefined){
-                    if (facet.date != undefined && facet.date != null){
-                        var dateParts = facet.date.split("-");
-                        var year = parseInt(dateParts[0]);
-                        var month = parseInt(dateParts[1]) - 1;
-                        var day = parseInt(dateParts[2]);
-                        if (facet.startTime != null){
-                            var hours = parseInt(facet.startTime.hours);
-                            var minutes = parseInt(facet.startTime.minutes);
-                            if (facet.startTime.ampm == "pm")
-                                hours += 12;
-                            facet.start = new Date(year,month,day,hours,minutes,0,0).getTime();
-                        }
-                        if (facet.endTime != null) {
-                            var hours = parseInt(facet.endTime.hours);
-                            var minutes = parseInt(facet.endTime.minutes);
-                            if (facet.endTime.ampm == "pm")
-                                hours += 12;
-                            facet.end = new Date(year,month,day,hours,minutes,0,0).getTime();
-                            if (facet.end < facet.start){
-                                facet.end = new Date(year,month,day+1,hours,0,0).getTime();
-                            }
-                        }
-                    }
-                }
             }
         }
 
@@ -542,7 +547,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         return digest.detailsTemplates["fluxtream-address"].render(params);
     }
 
-    function buildDetails(digest,facets,showDate){
+    function buildDetails(digest,facets,showDate){ //TODO: make this work without a digest
         if (facets.length == 0)
             return"";
         if (digest.detailsTemplates[facets[0].type] == null){

@@ -23,7 +23,7 @@ define([],function(){
                              "rotate(270deg)"//8
     ];
 
-    function getCarouselHTML(digest,connectorNames){
+    function getCarouselHTML(digest,connectorNames){  //TODO: make this work without a digest
         if (connectorNames == null){//if the parameter is discluded, show all images
             connectorNames = [];
             for (connectorName in digest.cachedData){
