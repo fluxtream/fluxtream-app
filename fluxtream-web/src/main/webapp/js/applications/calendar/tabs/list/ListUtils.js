@@ -5,24 +5,25 @@ define(["applications/calendar/tabs/photos/PhotoUtils"],function(PhotoUtils){
         templates = listTemplates;
     });
 
-    function appendItems(currentArray,allDay,normal){
-        var details = currentArray[0].getDetails(currentArray);
-        var content = $(templates.item.render({item:details.outerHTML()}));
-        if (currentArray[0].allDay){
-            allDay.append(content);
-        }
-        else{
-            normal.append(content);
-        }
-        details.on("contentchange",function(){
-            content.html(details.outerHTML());
-            App.apps.calendar.rebindDetailsControls(content);
-        });
-        details.trigger("contentchange");
-    }
-
     return {
         buildList: function(facets,citiesList){ //TODO: make this not depend on digest
+
+            function appendItems(currentArray,allDay,normal){
+                var details = currentArray[0].getDetails(currentArray);
+                var content = $(templates.item.render({item:details.outerHTML()}));
+                if (currentArray[0].allDay){
+                    allDay.append(content);
+                }
+                else{
+                    normal.append(content);
+                }
+                details.on("contentchange",function(){
+                    content.html(details.outerHTML());
+                    App.apps.calendar.rebindDetailsControls(content,facets);
+                });
+                details.trigger("contentchange");
+            }
+
             App.apps.calendar.processFacets(facets);//ensure we can build details
 
             var currentArray = [];

@@ -481,7 +481,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             var details = item.getDetails(true);
             details.on("contentchange",function(event, content){
                 map.infoWindow.setContent(details[0]);
-                App.apps.calendar.rebindDetailsControls(details);
+                App.apps.calendar.rebindDetailsControls(details,[item]);
             });
             details.find(".mapLink").remove();
             details.css("width","300px");

@@ -708,24 +708,41 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
     }
 
-    function switchToAppForFacet(appname,tabname,facetType, facetId){
-        App.renderApp(appname,tabname + "/" + Calendar.tabState,{facetToShow:getFacet(facetType,facetId)});
+    function switchToAppForFacet(appname,tabname,facet){
+        App.renderApp(appname,tabname + "/" + Calendar.tabState,{facetToShow:facet});
     }
 
     var activePopup = null;
 
-    Calendar.rebindDetailsControls = function(details){
+    Calendar.rebindDetailsControls = function(details,facetList){
+        function getFacet(facetType,facetId){
+            try{
+                for (var i = 0, li = facetList.length; i < li; i++){
+                    if (facetList[i].type === facetType && facetList[i].id === facetId)
+                        return facetList[i];
+                }
+                var facets = facetList[facetType];
+                for (var i = 0, li = facets.length; i < li; i++){
+                    if (facets[i].id === facetId)
+                        return facets[i];
+                }
+            } catch (e){}
+            console.warn("Couldn't find " + facetType + " with id " + facetId);
+            return null;
+        }
+
         details.find(".facet-edit a").unbind("click").click(function(event){
-            Calendar.commentEdit(event);
+            var facetType = $(event.delegateTarget).parent().parent().attr("facettype");
+            var facetId = parseInt($(event.delegateTarget).parent().parent().attr("itemid"));
+            Calendar.commentEdit(event,getFacet(facetType,facetId));
             return false;
         });
         details.find(".timedropdown").unbind('click').click(function(event){
             var element;
             for (element = $(event.delegateTarget); !element.hasClass("facetDetails"); element = element.parent());
-            var facetType = element.attr("facettype");
-            var itemId = parseInt(element.attr('itemid'));
-            if (isNaN(itemId) || facetType == null)
-                console.warn("couldn't find facet information for item");
+
+            var facet = getFacet(element.attr("facettype"),parseInt(element.attr('itemid')));
+
             var popup = $('<ul id="menu1" class="dropdown-menu">' +
                               '<li><a class="clockLink" notthide="true" href="javascript:void(0)">Show in Clock</a></li>' +
             '<li><a class="mapLink" href="javascript:void(0)">Show on Map</a></li>' +
@@ -734,7 +751,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 '<li><a class="bodytrackLink" href="javascript:void(0)">Show in Bodytrack</a></li>' +
             '</ul>');
 
-            var config = App.getFacetConfig(facetType);
+            var config = App.getFacetConfig(facet.type);
             if (!config.map || Calendar.currentTabName === "map"){
                 popup.find(".mapLink").css("display","none");
             }
@@ -759,19 +776,19 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             popup.css("display","inline-block");
 
             popup.find(".mapLink").unbind('click').click(function(event){
-                switchToAppForFacet("calendar","map",facetType,itemId);
+                switchToAppForFacet("calendar","map",facet);
             });
             popup.find(".clockLink").unbind('click').click(function(event){
-                switchToAppForFacet("calendar","clock",facetType,itemId);
+                switchToAppForFacet("calendar","clock",facet);
             });
             popup.find(".listLink").unbind('click').click(function(event){
-                switchToAppForFacet("calendar","list",facetType,itemId);
+                switchToAppForFacet("calendar","list",facet);
             });
             popup.find(".timelineLink").unbind('click').click(function(event){
-                switchToAppForFacet("calendar","timeline",facetType,itemId);
+                switchToAppForFacet("calendar","timeline",facet);
             });
             popup.find(".bodytrackLink").unbind('click').click(function(event){
-                switchToAppForFacet("bodytrack","grapher",facetType,itemId);
+                switchToAppForFacet("bodytrack","grapher",facet);
             });
 
             if (activePopup != null)
@@ -1236,23 +1253,14 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         $(viewBtnIds[state.timeUnit]).addClass("active");
     }
 
-    Calendar.commentEdit = function(evt) {
+    Calendar.commentEdit = function(evt,facet) {
         var target = $(evt.target);
         var facetDetails = target.parent().parent();
         if (facetDetails.find(".facet-comment").length > 0){
             facetDetails.find(".cancel").click();
             return;
         }
-        var facetType = facetDetails.attr("facettype");
-        var facetId = facetDetails.attr("itemid");
-        var facet = {};
-        var cachedData = this.digest.cachedData[facetType];
-        for (var i = 0, li = cachedData.length; i < li; i++){
-            if (cachedData[i].id == facetId){
-                facet = cachedData[i];
-                break;
-            }
-        }
+        facet = facet;
 
         var hasComment = facet.comment != null;
         if (hasComment) {
@@ -1288,7 +1296,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         saveButton.click(function(event) {
             event.stopPropagation();
             $.ajax({
-                url: "/api/comments/" + facetType + "/" + facetId,
+                url: "/api/comments/" + facet.type + "/" + facet.id,
                 data: {comment: textarea.val()},
                 type: "POST",
                 success: function() {
@@ -1308,7 +1316,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         deleteButton.click(function(event) {
             event.stopPropagation();
             $.ajax({
-                url: "/api/comments/" + facetType + "/" + facetId,
+                url: "/api/comments/" + facet.type + "/" + facet.id,
                 data: {comment: textarea.val()},
                 type: "DELETE",
                 success: function() {

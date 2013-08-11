@@ -522,7 +522,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                 commentEdit.click();
             });
 
-            App.apps.calendar.rebindDetailsControls(ttpdiv);
+            App.apps.calendar.rebindDetailsControls(ttpdiv,dgst.cachedData);
 
             ttpdiv.find(".flx-photo").click(function(event){
                 PhotoUtils.showCarouselHTML(photoCarouselHTML,$(event.delegateTarget).attr("photoId"));
