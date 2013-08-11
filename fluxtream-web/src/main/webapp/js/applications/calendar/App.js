@@ -709,7 +709,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     }
 
     function switchToAppForFacet(appname,tabname,facet){
-        App.renderApp(appname,tabname + "/" + Calendar.tabState,{facetToShow:facet});
+        App.renderApp(appname,tabname + "/" + getTabState(),{facetToShow:facet});
     }
 
     var activePopup = null;
@@ -1243,6 +1243,13 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             FlxState.saveState("calendar", Calendar.toStateURL(state));
         }
     };
+
+    function getTabState(){
+        if (Calendar.tabState != null)
+            return Calendar.tabState;
+        else
+            return "date/" + App.formatDateAsDatePicker(new Date());
+    }
 
     var viewBtnIds = {date:"#dayViewBtn",week:"#weekViewBtn",month:"#monthViewBtn",year:"#yearViewBtn"};
 
