@@ -2234,18 +2234,21 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
             var timespanObject = sourceInfo.info.timespanInfo;
             $.ajax("/api/connectors/" + timespanObject.objectType + "/data?start=" + timespanObject.start * 1000 + "&end=" + timespanObject.end * 1000 + "&value=" + encodeURIComponent(timespanObject.value),{
                 success: function(facets){
+                    $.ajax("/api/metadata/cities?start=" + timespanObject.start * 1000 + "&end=" + timespanObject.end * 1000,{
+                        success: function(cities){
+                            var plotContainer = $("#" + plot.plotContainer.getPlaceholder());
+                            var position = sourceInfo.info.position;
+                            var mainContentPosition = mainContentContainer.offset();
+                            var plotOffset = plotContainer.offset();
+                            var positionRelativeToMainContentArea = {
+                                x: plotOffset.left - mainContentPosition.left + position.x,
+                                y: plotOffset.top - mainContentPosition.top + position.y
 
-                    var plotContainer = $("#" + plot.plotContainer.getPlaceholder());
-                    var position = sourceInfo.info.position;
-                    var mainContentPosition = mainContentContainer.offset();
-                    var plotOffset = plotContainer.offset();
-                    var positionRelativeToMainContentArea = {
-                        x: plotOffset.left - mainContentPosition.left + position.x,
-                        y: plotOffset.top - mainContentPosition.top + position.y
+                            }
 
-                    }
-
-                    Tooltip.createTooltip(mainContentContainer,positionRelativeToMainContentArea,ListUtils.buildList(facets),sourceInfo.info.color);
+                            Tooltip.createTooltip(mainContentContainer,positionRelativeToMainContentArea,ListUtils.buildList(facets,cities),sourceInfo.info.color);
+                        }
+                    });
                 }
             });
         };

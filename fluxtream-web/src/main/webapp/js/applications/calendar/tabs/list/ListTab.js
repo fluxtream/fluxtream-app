@@ -165,7 +165,7 @@ define(["core/Tab", "applications/calendar/tabs/list/ListUtils"], function(Tab, 
            }
         }
 
-        list.empty().append(ListUtils.buildList(facetsToShow));
+        list.empty().append(ListUtils.buildList(facetsToShow,digest.getCitiesList()));
 
 
 

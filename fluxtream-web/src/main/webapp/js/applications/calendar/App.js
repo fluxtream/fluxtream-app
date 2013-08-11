@@ -20,6 +20,12 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     Calendar.timespanState = null;
     Calendar.detailsTemplates = {};
 
+    App.loadAllMustacheTemplates("applications/calendar/facetTemplates.html",function(templates){
+        for (var templateId in templates){
+            Calendar.detailsTemplates[templateId] = templates[templateId];
+        }
+    });
+
    Calendar.dateAxisCursorPosition = null;
 
     Calendar.timeRange = {

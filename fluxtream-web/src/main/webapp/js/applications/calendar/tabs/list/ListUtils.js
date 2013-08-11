@@ -22,7 +22,7 @@ define(["applications/calendar/tabs/photos/PhotoUtils"],function(PhotoUtils){
     }
 
     return {
-        buildList: function(facets){ //TODO: make this not depend on digest
+        buildList: function(facets,citiesList){ //TODO: make this not depend on digest
             App.apps.calendar.processFacets(facets);//ensure we can build details
 
             var currentArray = [];
@@ -33,7 +33,7 @@ define(["applications/calendar/tabs/photos/PhotoUtils"],function(PhotoUtils){
 
             for (var i = 0, li = facets.length; i < li; i++){
                 var facet = facets[i];
-                var facetCity = App.getFacetCity(facet, App.apps.calendar.digest.getCitiesList());
+                var facetCity = App.getFacetCity(facet, citiesList);
                 if (facetCity==null)
                     continue;
                 if (currentArray.length == 0){
