@@ -709,7 +709,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     }
 
     function switchToAppForFacet(appname,tabname,facet){
-        App.renderApp(appname,tabname + "/" + getTabState(),{facetToShow:facet});
+
+        App.renderApp(appname,tabname + (appname === "calendar" ? "/" + getTabState() : ""),{facetToShow:facet});
     }
 
     var activePopup = null;
