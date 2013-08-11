@@ -753,17 +753,20 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             '</ul>');
 
             var config = App.getFacetConfig(facet.type);
-            if (!config.map || Calendar.currentTabName === "map"){
+            if (!config.map || (App.activeApp.name === "calendar" && Calendar.currentTabName === "map")){
                 popup.find(".mapLink").css("display","none");
             }
-            if (!config.list || Calendar.currentTabName === "list"){
+            if (!config.list || (App.activeApp.name === "calendar" && Calendar.currentTabName === "list")){
                 popup.find(".listLink").css("display","none");
             }
-            if (config.clock == null || Calendar.timeUnit !== "date" || Calendar.currentTabName === "clock"){
+            if (config.clock == null || (Calendar.timeUnit != null && Calendar.timeUnit !== "date") || (App.activeApp.name === "calendar" && Calendar.currentTabName === "clock")){
                 popup.find(".clockLink").css("display","none");
             }
-            if (Calendar.currentTabName === "timeline"){
+            if ((App.activeApp.name === "calendar" && Calendar.currentTabName === "timeline")){
                 popup.find(".timelineLink").css("display","none");
+            }
+            if (App.activeApp.name === "bodytrack"){
+                popup.find(".bodytrackLink").css("display","none");
             }
 
             popup.css("position","absolute");
