@@ -6,7 +6,7 @@ define(["applications/calendar/tabs/photos/PhotoUtils"],function(PhotoUtils){
     });
 
     return {
-        buildList: function(facets,citiesList){ //TODO: make this not depend on digest
+        buildList: function(facets,citiesList){
 
             function appendItems(currentArray,allDay,normal){
                 var details = currentArray[0].getDetails(currentArray);

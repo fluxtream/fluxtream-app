@@ -298,7 +298,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 		});
 	}
 
-    Calendar.processFacets = function(facets){  //TODO: make this work without digest
+    Calendar.processFacets = function(facets){
         if (facets == null || facets.length == 0 || facets[0].getDetails != null)
             return;
         for (var i = 0, li = facets.length; i < li; i++){
