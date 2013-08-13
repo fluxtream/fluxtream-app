@@ -313,11 +313,12 @@
             <h3 id="myModalLabel">Upload {{prettyName}} Data File</h3>
         </div>
         <div class="modal-body">
-            <form class="form-horizontal" id="fileUploadForm" action="javascript:void(0)">
+            <form class="form-horizontal" id="fileUploadForm" action="javascript:void(0)"
+                  enctype="multipart/form-data">
                 <div class="control-group">
                     <label class="control-label" for="file">File</label>
                     <div class="controls">
-                        <input type="hidden" name="connectorName" value="${connector.name}">
+                        <input type="hidden" name="apiKeyId" value="{{connector.apiKeyId}}">
                         <input type="file" name="file" id="file">
                     <span class="help-inline">
                         {{{uploadMessage}}}

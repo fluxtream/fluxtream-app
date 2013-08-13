@@ -4,12 +4,13 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Iterator;
-import java.util.ResourceBundle;
 import java.util.UUID;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.connectors.FileUploadSupport;
+import com.fluxtream.connectors.updaters.AbstractUpdater;
+import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.Notification;
 import com.fluxtream.mvc.models.StatusModel;
@@ -17,9 +18,12 @@ import com.fluxtream.services.GuestService;
 import com.fluxtream.services.NotificationsService;
 import com.google.gson.Gson;
 import org.apache.commons.io.IOUtils;
+import org.codehaus.plexus.util.ExceptionUtils;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -43,16 +47,13 @@ public class UploadController {
     @Autowired
     GuestService guestService;
 
-    @RequestMapping(value = "/form/{connectorName}")
-    public String uploadForm(@PathVariable("connectorName") String connectorName,
-                             HttpServletRequest request) {
-        final Connector connector = Connector.getConnector(connectorName);
-        ResourceBundle res = ResourceBundle.getBundle("messages/connectors");
-        String message = res.getString(connectorName + ".upload");
-        request.setAttribute("message", message);
-        request.setAttribute("connector", connector);
-        return "upload";
-    }
+    @Autowired
+    @Qualifier("FileUploadWorker")
+    ThreadPoolTaskExecutor executor;
+
+    @Autowired
+    BeanFactory beanFactory;
+
 
     @RequestMapping(value = "/addConnector", method = RequestMethod.POST)
     public void addUploadConnector(@RequestParam("connectorName") String connectorName,
@@ -70,22 +71,58 @@ public class UploadController {
     }
 
     @RequestMapping("/")
-    public void upload(MultipartHttpServletRequest request, @RequestParam("connectorName") String connectorName) throws IOException {
-
-        System.out.println(connectorName);
+    public void upload(MultipartHttpServletRequest request,
+                       HttpServletResponse response,
+                       @RequestParam("apiKeyId") long apiKeyId) throws IOException {
         try {
             Iterator<String> itr =  request.getFileNames();
 
             MultipartFile mpf = request.getFile(itr.next());
-            System.out.println(mpf.getOriginalFilename() +" uploaded!");
+            final String originalFilename = mpf.getOriginalFilename();
+            System.out.println(originalFilename +" uploaded!");
 
-            final String randomFilename = UUID.randomUUID().toString();
-            File f = File.createTempFile(randomFilename, "unknown");
+            final String randomFilename = UUID.randomUUID().toString() + "-";
+            final File f = File.createTempFile(randomFilename, ".unknown");
 
             IOUtils.copy(mpf.getInputStream(), new FileOutputStream(f));
 
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
+            final long guestId = AuthHelper.getGuestId();
+            final ApiKey apiKey = guestService.getApiKey(apiKeyId);
+            if (apiKey.getGuestId()!=guestId)
+                throw new RuntimeException("Attempt to upload file associated to another user's " +
+                                           "ApiKey! apiKeyId=" + apiKeyId +
+                                           ", guestId="  + AuthHelper.getGuestId());
+
+
+            final Connector connector = apiKey.getConnector();
+            executor.execute( new Runnable() {
+
+                @Override
+                public void run() {
+                    final AbstractUpdater bean = beanFactory.getBean(connector.getUpdaterClass());
+                    FileUploadSupport handler = (FileUploadSupport) bean;
+                    try {
+                        handler.importFile(apiKey, f);
+                    }
+                    catch (Exception e) {
+                        e.printStackTrace();
+                        notificationsService.addNotification(guestId, Notification.Type.ERROR,
+                                                             "There was a problem importing your " + connector.prettyName() + " data.<br>" +
+                                                             "Please check the type and format of your file.",
+                                                             ExceptionUtils.getStackTrace(e));
+                    }
+                }
+            });
+            notificationsService.addNotification(guestId, Notification.Type.INFO,
+                                                 "We are busy importing your " + connector.prettyName() + " data.<br>" +
+                                                 "You should be able to see it shortly.");
+
+            final String json = gson.toJson(new StatusModel(true, "File was successfully uploaded: " + originalFilename));
+            response.getWriter().write(json);
+
+        } catch (Throwable e) {
+            final String json = gson.toJson(new StatusModel(false, "Couldn't parse your file: " + ExceptionUtils.getStackTrace(e)));
+            response.getWriter().write(json);
             e.printStackTrace();
         }
     }

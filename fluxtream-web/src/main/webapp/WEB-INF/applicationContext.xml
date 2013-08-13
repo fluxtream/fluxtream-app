@@ -24,6 +24,9 @@
     <task:executor id="AsyncWorker" pool-size="5-25"
                    rejection-policy="CALLER_RUNS" queue-capacity="100"/>
 
+    <task:executor id="FileUploadWorker" pool-size="5-25"
+                   rejection-policy="CALLER_RUNS" queue-capacity="100"/>
+
 	<task:executor id="updateWorkersExecutor" pool-size="5-25"
 		rejection-policy="CALLER_RUNS" queue-capacity="100" />
 

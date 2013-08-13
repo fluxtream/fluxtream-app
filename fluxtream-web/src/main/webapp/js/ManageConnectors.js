@@ -260,9 +260,10 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
     }
 
     function handleSubmitForm(template, connector) {
-        console.log("handleSubmitForm");
-        var html = template.render(connector);
+        var html = template.render({connector:connector});
+        App.makeModal(html);
         var submitFileUploadForm = $("#submitFileUploadForm");
+        console.log(submitFileUploadForm);
         submitFileUploadForm.click(function(event){
             event.stopImmediatePropagation();
             var formData = new FormData($("#fileUploadForm")[0]);
@@ -270,12 +271,14 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
                 url: "/upload/",
                 method: "POST",
                 data: formData,
+                processData: false,
+                contentType: false,
                 success: function(response){
                     var status;
                     try { status = JSON.parse(response); }
                     catch(err) { alert("Couldn't upload data:" + err); }
                     if (status.result==="OK") {
-                        $("#modal").modal("hide");
+                        $("#uploadModal").modal("hide");
                         App.activeApp.renderState(App.state.getState(App.activeApp.name),true);
                     }
                     else {
@@ -284,10 +287,9 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
                         alert("Could upload data: " + status.message);
                     }
                 }
-            })
+            });
             console.log("we should send this file now...");
         });
-        App.makeModal(html);
     }
 
 
