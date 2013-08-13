@@ -3,6 +3,7 @@ package com.fluxtream.connectors.sms_backup;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.vos.AbstractTimedFacetVO;
 import com.fluxtream.domain.GuestSettings;
+import org.joda.time.DateTime;
 
 public class CallLogEntryFacetVO extends AbstractTimedFacetVO<CallLogEntryFacet>{
 

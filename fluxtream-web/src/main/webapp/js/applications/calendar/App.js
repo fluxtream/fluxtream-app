@@ -624,6 +624,15 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                         newFacet[data[member]] = true;
                         newFacet[member] = data[member];
                         break;
+                    case "message":
+                        if (data.type == "sms_backup-sms"){
+                            newFacet[member] = data[member];
+                        }
+                        else{
+                            newFacet[member] = data[member];
+                        }
+                        break;
+
                     default:
                         newFacet[member] = data[member];
                 }

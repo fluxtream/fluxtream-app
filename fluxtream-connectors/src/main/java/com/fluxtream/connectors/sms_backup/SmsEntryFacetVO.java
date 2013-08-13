@@ -4,6 +4,7 @@ import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.vos.AbstractInstantFacetVO;
 import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.utils.SecurityUtils;
+import org.joda.time.DateTime;
 
 public class SmsEntryFacetVO extends AbstractInstantFacetVO<SmsEntryFacet> {
 
