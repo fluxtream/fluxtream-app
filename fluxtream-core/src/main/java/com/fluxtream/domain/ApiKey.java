@@ -7,6 +7,7 @@ import java.util.Map;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
@@ -15,6 +16,7 @@ import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.Connector;
 import com.google.gson.annotations.Expose;
 import org.hibernate.annotations.Index;
+import org.springframework.util.SerializationUtils;
 
 @Entity(name="ApiKey")
 @NamedQueries ( {
@@ -48,6 +50,9 @@ public class ApiKey extends AbstractEntity {
 	@OneToMany(mappedBy="apiKey", orphanRemoval = true, fetch=FetchType.EAGER, cascade=CascadeType.ALL)
 	List<ApiKeyAttribute> attributes = new ArrayList<ApiKeyAttribute>();
 
+    @Lob
+    private byte[] settingsStorage;
+
 	public void setGuestId(long guestId) {
 		this.guestId = guestId;
 	}
@@ -56,7 +61,15 @@ public class ApiKey extends AbstractEntity {
 		return guestId;
 	}
 
-	public void setAttribute(ApiKeyAttribute attr) {
+    public void setSettings(Object o) {
+        settingsStorage = SerializationUtils.serialize(o);
+    }
+
+    public Object getSettings() {
+        return SerializationUtils.deserialize(settingsStorage);
+    }
+
+    public void setAttribute(ApiKeyAttribute attr) {
 		attr.apiKey = this;
         List<ApiKeyAttribute> toRemove = new ArrayList<ApiKeyAttribute>();
         for (ApiKeyAttribute attribute : attributes) {
@@ -128,5 +141,4 @@ public class ApiKey extends AbstractEntity {
     public void setConnector(final Connector connector) {
         this.api = connector.value();
     }
-
 }

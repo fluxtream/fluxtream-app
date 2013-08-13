@@ -15,7 +15,7 @@ import com.fluxtream.connectors.annotations.JsonFacetCollection;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.connectors.location.LocationFacetVOCollection;
-import com.fluxtream.connectors.updaters.AbstractGoogleOAuthUpdater;
+import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.services.ApiDataService;
@@ -28,7 +28,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Updater(prettyName = "Latitude", value = 2, objectTypes = { LocationFacet.class }, updateStrategyType = UpdateStrategyType.INCREMENTAL)
 @JsonFacetCollection(LocationFacetVOCollection.class)
-public class GoogleLatitudeUpdater extends AbstractGoogleOAuthUpdater implements FileUploadSupport {
+public class GoogleLatitudeUpdater extends AbstractUpdater implements FileUploadSupport {
 
     @Autowired
     ApiDataService apiDataService;

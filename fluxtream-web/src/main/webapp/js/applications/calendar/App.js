@@ -386,8 +386,24 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     break;
             }
 
+            var connectorName = connectorId.split("-")[0];
+            var config = App.getConnectorConfig(connectorName);
+            var hasGeneralSettings = false;
+            if (typeof(config.hasGeneralSettings)!="undefined"&&config.hasGeneralSettings)
+                hasGeneralSettings = true;
             for (var i = 0; i < digest.cachedData[connectorId].length; i++){
                 var facet = digest.cachedData[connectorId][i];
+                if (hasGeneralSettings)
+                    config.applySettings(facet, digest.settings.connectorSettings);
+                if (typeof(config.isFilteredOut)!="undefined"&&config.isFilteredOut!=null) {
+                    var filteredOut = config.isFilteredOut(facet, digest.settings.connectorSettings);
+                    if (filteredOut) {
+                        facet.filteredOut=true;
+                        delete digest.cachedData[connectorId][i];
+                        delete facet;
+                        continue;
+                    }
+                }
                 if (digest.cachedData[connectorId].hasImages){
                     switch (connectorId){
                         case "picasa-photo":
@@ -549,7 +565,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             console.warn("hey, no template found for " + facets[0].type + ".");
             return $("");
         }
-        var params = {color:App.getFacetConfig(facets[0].type).color,facets:[],sent:facets[0].sent,callType:facets[0].callType,smsType:facets[0].smsType};
+        var params = {color:App.getFacetConfig(facets[0].type).color,facets:[],sent:facets[0].sent};
         for (var i = 0; i < facets.length; i++){
             var data = facets[i];
             var newFacet = {};
@@ -680,8 +696,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         var details = $(digest.detailsTemplates[data.type].render(params));
         details.find("img");
         setTimeout(function(){getFoursquareVenues(details,foursquareVenueIds);}, 100);
-
-
         return details;
     }
 

@@ -202,7 +202,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
      * to the update queue
      */
     @Override
-    public List<ScheduleResult> updateAllConnectors(final long guestId) {
+    public List<ScheduleResult> updateAllConnectors(final long guestId, boolean force) {
         List<ScheduleResult> scheduleResults = new ArrayList<ScheduleResult>();
         final List<ApiKey> connectors = guestService.getApiKeys(guestId);
         for (ApiKey key : connectors) {
@@ -210,7 +210,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
             if (!connectorInfo.supportsSync)
                 continue;
             if (key!=null && key.getConnector()!=null) {
-                List<ScheduleResult> updateRes = updateConnector(key, false);
+                List<ScheduleResult> updateRes = updateConnector(key, force);
                 scheduleResults.addAll(updateRes);
             }
         }

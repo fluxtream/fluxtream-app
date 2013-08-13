@@ -36,6 +36,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
@@ -71,12 +72,54 @@ public class ConnectorStore {
     @Autowired
     Configuration env;
 
+    @Autowired
+    BeanFactory beanFactory;
+
     Gson gson;
 
     public ConnectorStore() {
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.registerTypeAdapter(UpdateInfo.class, new UpdateInfoSerializer());
         gson = gsonBuilder.create();
+    }
+
+    @POST
+    @Produces({ MediaType.APPLICATION_JSON })
+    @Path("/settings/reset/{apiKeyId}")
+    public String resetConnectorSettings(@PathParam("apiKeyId") long apiKeyId) {
+        settingsService.resetConnectorSettings(apiKeyId);
+        StatusModel status = new StatusModel(true, "connector settings reset!");
+        return gson.toJson(status);
+    }
+
+    @GET
+    @Path("/settings/{apiKeyId}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String getConnectorSettings(@PathParam("apiKeyId") long apiKeyId) {
+        final ApiKey apiKey = guestService.getApiKey(apiKeyId);
+        final long guestId = AuthHelper.getGuestId();
+        if (apiKey.getGuestId()!=guestId)
+            throw new RuntimeException("attempt to retrieve ApiKey from another guest!");
+        final Object settings = settingsService.getConnectorSettings(apiKey.getId(), true);
+        String json = gson.toJson(settings);
+        return json;
+    }
+
+    @POST
+    @Path("/settings/{apiKeyId}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public StatusModel saveConnectorSettings(@PathParam("apiKeyId") long apiKeyId,
+                                        @FormParam("json") String json) {
+        final ApiKey apiKey = guestService.getApiKey(apiKeyId);
+        final long guestId = AuthHelper.getGuestId();
+        try {
+            if (apiKey.getGuestId()!=guestId)
+                throw new RuntimeException("attempt to retrieve ApiKey from another guest!");
+            settingsService.saveConnectorSettings(apiKey.getId(), json);
+        } catch (Throwable e) {
+            return new StatusModel(false, e.getMessage());
+        }
+        return new StatusModel(true, "saved connector settings");
     }
 
     @POST

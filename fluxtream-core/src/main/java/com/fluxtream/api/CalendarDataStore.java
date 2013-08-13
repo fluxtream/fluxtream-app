@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.TreeSet;
 import javax.ws.rs.GET;
@@ -140,12 +141,14 @@ public class CalendarDataStore {
             digest.nApis = allApiKeys.size();
             GuestSettings settings = settingsService.getSettings(AuthHelper.getGuestId());
 
-            setCachedData(digest, allApiKeys, settings, apiKeySelection,
+            Map<Long,Object> connectorSettings = new HashMap<Long,Object>();
+
+            setCachedData(digest, allApiKeys, settings, connectorSettings, apiKeySelection,
                           weekMetadata);
 
             setNotifications(digest, AuthHelper.getGuestId());
             setCurrentAddress(digest, guestId, weekMetadata.start);
-            digest.settings = new SettingsModel(settings,guest);
+            digest.settings = new SettingsModel(settings, connectorSettings, guest);
 
             StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getAllConnectorsWeekData")
                     .append(" year=").append(year)
@@ -210,12 +213,13 @@ public class CalendarDataStore {
             digest.nApis = allApiKeys.size();
             GuestSettings settings = settingsService.getSettings(AuthHelper.getGuestId());
 
-            setCachedData(digest, allApiKeys, settings, apiKeySelection,
+            Map<Long,Object> connectorSettings = new HashMap<Long,Object>();
+            setCachedData(digest, allApiKeys, settings, connectorSettings, apiKeySelection,
                           monthMetadata);
 
             setNotifications(digest, AuthHelper.getGuestId());
             setCurrentAddress(digest, guestId, monthMetadata.start);
-            digest.settings = new SettingsModel(settings, guest);
+            digest.settings = new SettingsModel(settings, connectorSettings, guest);
 
             StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getAllConnectorsMonthData")
                     .append(" year=").append(year)
@@ -337,12 +341,13 @@ public class CalendarDataStore {
             digest.nApis = allApiKeys.size();
             GuestSettings settings = settingsService.getSettings(AuthHelper.getGuestId());
 
-            setCachedData(digest, allApiKeys, settings, apiKeySelection,
+            Map<Long,Object> connectorSettings = new HashMap<Long,Object>();
+            setCachedData(digest, allApiKeys, settings, connectorSettings, apiKeySelection,
                     dayMetadata);
 
             setNotifications(digest, AuthHelper.getGuestId());
             setCurrentAddress(digest, guestId, dayMetadata.start);
-            digest.settings = new SettingsModel(settings,guest);
+            digest.settings = new SettingsModel(settings, connectorSettings, guest);
 
             StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getAllConnectorsDayData")
                     .append(" date=").append(date)
@@ -451,14 +456,15 @@ public class CalendarDataStore {
 	}
 
 	@SuppressWarnings("rawtypes")
-	private void setCachedData(DigestModel digest, List<ApiKey> userKeys,
-			GuestSettings settings, List<ApiKey> apiKeySelection,
-			AbstractTimespanMetadata timespanMetadata)
+	private void setCachedData(DigestModel digest, List<ApiKey> userKeys, GuestSettings settings, final Map<Long, Object> connectorSettings, List<ApiKey> apiKeySelection, AbstractTimespanMetadata timespanMetadata)
             throws InstantiationException, IllegalAccessException, ClassNotFoundException, OutsideTimeBoundariesException
     {
 		for (ApiKey apiKey : userKeys) {
 			Connector connector = apiKey.getConnector();
-			ObjectType[] objectTypes = connector.objectTypes();
+            final Object apiKeySettings = settingsService.getConnectorSettings(apiKey.getId(), false);
+            if (apiKeySettings!=null)
+                connectorSettings.put(apiKey.getId(), apiKeySettings);
+            ObjectType[] objectTypes = connector.objectTypes();
             if (objectTypes != null) {
                 for (ObjectType objectType : objectTypes) {
                     Collection<AbstractFacetVO<AbstractFacet>> facetCollection = null;

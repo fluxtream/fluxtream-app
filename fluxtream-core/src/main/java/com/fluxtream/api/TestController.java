@@ -84,7 +84,7 @@ public class TestController {
             response.setStatus(403);
         }
         final Guest guest = guestService.getGuest(username);
-        connectorUpdateService.updateAllConnectors(guest.getId());
+        connectorUpdateService.updateAllConnectors(guest.getId(), true);
         return "updating all connectors for guest " + guest.username;
     }
 

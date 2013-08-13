@@ -216,7 +216,7 @@ public class AppController {
 			remoteAddr = request.getRemoteAddr();
         initializeWithTimeZone(request, guestId);
 		guestService.checkIn(guestId, remoteAddr);
-        connectorUpdateService.updateAllConnectors(guestId);
+        connectorUpdateService.updateAllConnectors(guestId, false);
 	}
 	
 	private boolean hasTimezoneCookie(HttpServletRequest request) {

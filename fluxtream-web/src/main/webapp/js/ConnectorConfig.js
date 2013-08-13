@@ -19,6 +19,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
             facets: {}
         },
         fitbit:{
+            hasTimelineSettings: true,
             device_name: "Fitbit",
             color: "#21b5cf",
             mapicon: {
@@ -88,6 +89,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
             }
         },
         withings:{
+            hasTimelineSettings: true,
             device_name:"Withings",
             color: "#16924e",
             mapicon: {
@@ -199,6 +201,33 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
         },
         google_calendar:{
             color: "rgb(146, 218, 70)",
+            hasGeneralSettings: true,
+            applySettings: function(facet, connectorSettings) {
+                if (typeof(connectorSettings)=="undefined")
+                    console.log("warning: no connector settings");
+                else if (typeof(facet.apiKeyId)=="undefined")
+                    console.log("warning: no apiKeyId associated with this facet: " + facet.type);
+                else if (typeof(connectorSettings[facet.apiKeyId])=="undefined")
+                    console.log("warning: no connector settings are associated with apiKeyId " + facet.apiKeyId);
+                else {
+                    var settings = connectorSettings[facet.apiKeyId];
+                    for (var i=0; i<settings.calendars.length; i++) {
+                        if (settings.calendars[i].id==facet.calendarId) {
+                            var calendarSettings = settings.calendars[i];
+                            facet.color = calendarSettings.backgroundColor;
+                        }
+                    }
+                }
+            },
+            isFilteredOut: function(facet, connectorSettings) {
+                var settings = connectorSettings[facet.apiKeyId];
+                for (var i=0; i<settings.calendars.length; i++) {
+                    if (settings.calendars[i].id==facet.calendarId&&settings.calendars[i].hidden) {
+                        return true;
+                    }
+                }
+                return false;
+            },
             mapicon: {
                 url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/calendar-3.png",
                 size: new google.maps.Size(32,37)
@@ -232,6 +261,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
             }
         },
         bodymedia:{
+            hasTimelineSettings: true,
             device_name:"BodyMedia",
             color: "rgb(160, 67, 175)",
             mapicon: null,
@@ -297,6 +327,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
             }
         },
         zeo:{
+            hasTimelineSettings: true,
             device_name:"Zeo",
             color: "rgb(255, 178, 0)",
             mapicon : {
@@ -351,6 +382,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
             }
         },
         quantifiedmind: {
+            hasTimelineSettings: true,
             filterLabel: "QuantMind",
             color : "rgb(20,20,20)",
             mapicon :new google.maps.MarkerImage("https://www.google.com/latitude/apps/static/red_measle.png",null,null,new google.maps.Point(5,5),null),
@@ -380,6 +412,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
             }
         },
         mymee: {
+            hasTimelineSettings: true,
             device_name: "Mymee",
             filterLabel: "Mymee",
             color : "rgb(5,5,5)",
@@ -399,6 +432,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
             }
         },
         fluxtream_capture:{
+            hasTimelineSettings: true,
             device_name:"FluxtreamCapture",
             filterLabel: "FluxtreamCap",
             color: "rgb(204, 204, 204)",

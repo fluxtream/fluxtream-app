@@ -5,14 +5,12 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.utils.DesEncrypter;
-import com.google.api.client.http.LowLevelHttpRequest;
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang.WordUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
-import com.fluxtream.aspects.FlxLogger;
 import org.springframework.beans.factory.InitializingBean;
 
 public class Configuration implements InitializingBean {
@@ -134,13 +132,6 @@ public class Configuration implements InitializingBean {
     public HttpClient getHttpClient() {
 		DefaultHttpClient client = new DefaultHttpClient();
 		return client;
-	}
-
-	public void setProxyAuthHeaders(LowLevelHttpRequest request) {
-		if (get("proxyUser")==null) return;
-		String credentials = get("proxyUser")+":"+get("proxyPassword");
-		String encodedPassword = new String(Base64.encodeBase64(credentials.getBytes()));
-		request.addHeader("Proxy-Authorization", "Basic " + encodedPassword);
 	}
 
 	@Override

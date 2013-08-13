@@ -34,7 +34,7 @@ public interface ConnectorUpdateService {
      */
     public List<ScheduleResult> updateConnectorObjectType(ApiKey apiKey, int objectTypes, boolean force);
 
-    public List<ScheduleResult> updateAllConnectors(long guestId);
+    public List<ScheduleResult> updateAllConnectors(long guestId, boolean force);
 
     public List<ApiUpdate> getUpdates(ApiKey apiKey, int pageSize, int page);
 

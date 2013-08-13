@@ -3,14 +3,13 @@ package com.fluxtream.updaters.quartz;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.auth.FlxUserDetails;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.utils.Utils;
-import com.fluxtream.aspects.FlxLogger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -42,7 +41,7 @@ public class Producer {
         try {
             List<Guest> guests = guestService.getAllGuests();
             for (Guest g : guests) {
-                connectorUpdateService.updateAllConnectors(g.getId());
+                connectorUpdateService.updateAllConnectors(g.getId(), false);
             }
         }
         catch (Exception e) {

@@ -1,17 +1,13 @@
 package com.fluxtream.connectors.location;
 
 import java.io.Serializable;
-
 import javax.persistence.Entity;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
-import org.hibernate.annotations.Index;
-
 import com.fluxtream.domain.AbstractFacet;
-import com.google.api.client.googleapis.json.JsonCContent;
 import com.google.api.client.util.Key;
+import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
 
 @Entity(name="Facet_Location")
@@ -96,12 +92,6 @@ public class LocationFacet extends AbstractFacet implements Comparable<LocationF
 		LocationFacet lr = (LocationFacet) o;
 		return lr.timestampMs == timestampMs && lr.latitude == this.latitude
 				&& lr.longitude == this.longitude;
-	}
-
-	JsonCContent toContent() {
-		JsonCContent content = new JsonCContent();
-		content.data = this;
-		return content;
 	}
 
 	@Override

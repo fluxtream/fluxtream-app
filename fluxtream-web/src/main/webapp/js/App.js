@@ -229,7 +229,6 @@ define(
                 renderDefault(app);
             });
             FlxState.router.route("app/:name/*state", "app", function(appName, state) {
-                console.log("app route: name=" + appName + ", state=" + state);
                 var app = App.apps[appName];
                 if (_.isUndefined(app)) {
                     console.log("invalid app: " + appName);
@@ -432,6 +431,10 @@ define(
                            }
                        });
             }
+        };
+
+        App.getConnectorSettings = function(connectorId) {
+            console.log("getting connector settings: " + connectorId);
         };
 
         App.getConnectorConfig = function(connectorName){
@@ -741,6 +744,11 @@ define(
         App.isLeapYear = function(year){
             return (year % 400 == 0) || (year % 100 != 0 && year % 4 == 0);
         };
+
+        App.expandCollapse = function(o) {
+            var finedetails = $(o).closest(".facetDetails").find(".flx-finedetails");
+            finedetails.toggleClass("flx-collapsed");
+        }
 
         function carousel(photoId) {
             $(".carousel-inner div.item").removeClass("active");

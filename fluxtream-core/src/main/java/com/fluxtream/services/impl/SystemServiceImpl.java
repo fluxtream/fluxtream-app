@@ -50,6 +50,8 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
     static {
         scopedApis.put("https://www.googleapis.com/auth/latitude.all.best",
                        Connector.getConnector("google_latitude"));
+        scopedApis.put("https://www.googleapis.com/auth/calendar.readonly",
+                       Connector.getConnector("google_calendar"));
     }
 
     @Override
@@ -163,7 +165,7 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         em.persist(new ConnectorInfo(googleCalendar,
                                      "/images/connectors/connector-google_calendar.jpg",
                                      res.getString("google_calendar"),
-                                     "/calendar/token",
+                                     "/google/oauth2/token?scope=https://www.googleapis.com/auth/calendar.readonly",
                                      Connector.getConnector("google_calendar"), order++, googleCalendarKeys!=null,
                                      false, true, googleCalendarKeys));
         final String lastFm = "Last fm";

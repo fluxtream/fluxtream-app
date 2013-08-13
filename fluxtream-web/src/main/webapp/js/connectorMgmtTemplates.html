@@ -42,7 +42,7 @@
                             </td>
                             <td class="desc" style="width: 121px; background:inherit">
                                 <p style=""><b>{{name}}</b></p><br/>
-                                <a href="#" id="settings-{{connectorName}}">Settings <i class="icon-cog"></i></a>
+                                {{#hasSettings}}<a href="#" id="settings-{{connectorName}}">Settings <i class="icon-cog"></i></a>{{/hasSettings}}
                             </td>
                             <td class="lastSync" style="width: 137px; background:inherit">
                                 <p id="lastSync-{{connectorName}}" {{#syncing}}style="display:none;"{{/syncing}}>{{lastSync}}</p>
@@ -92,7 +92,7 @@
                             </td>
                             <td class="desc" style="background:inherit">
                                 <p style=""><b>{{name}}</b></p><br/>
-                                <a href="#" id="settings-{{connectorName}}">Settings <i class="icon-cog"></i></a>
+                                {{#hasSettings}}<a href="#" id="settings-{{connectorName}}">Settings <i class="icon-cog"></i></a>{{/hasSettings}}
                             </td>
                             <td class="lastSync" style="background:inherit">
                                 <p id="lastSync-{{connectorName}}" {{#syncing}}style="display:none;"{{/syncing}}>{{lastSync}}</p>
@@ -209,7 +209,7 @@
                             <a  href="javascript:App.addConnector('{{connectUrl}}')">
                                 <img src="{{image}}" alt="" width=158 Height=89>
                             </a>
-                            <p>{{{text}}}</p>
+                            <p>{{text}}</p>
                         </div>
                         {{/connectors}}
                     </div>
@@ -271,39 +271,59 @@
             <div class="row-fluid">
                 <div class="span3">
                     <ul class="nav nav-list flx-nav-list">
+                        {{#config}}
+                        {{#hasGeneralSettings}}
                         <li>
                             <a href="#" id="generalSettingsLink" style="color:grey">General settings</a>
                         </li>
-                        <li class="active">
+                        {{/hasGeneralSettings}}
+                        {{#hasTimelineSettings}}
+                        <li>
                             <a href="#" id="timelineSettingsLink">Timeline Settings</a>
                         </li>
+                        {{/hasTimelineSettings}}
+                        {{/config}}
                     </ul>
                 </div>
-                <div class="span9 set-device">
-                    <form class="form-inline">
-                        <table class="table flx-channel-table">
-                            <thead>
-                            <tr>
-                                <th>Select</th>
-                                <th>Name</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {{#channelNames}}
-                            <tr>
-                                <td><input type="checkbox" id="{{name}}-checkbox"></td>
-                                <td class="flx-channel-name"><label for="1">{{displayName}}</label></td>
-                            </tr>
-                            {{/channelNames}}
-                            </tbody>
-                        </table>
-                    </form>
+                <div class="span9 set-device" id="connectorSettingsTab">
                 </div>
             </div>
         </div>
         <div class="modal-footer">
+            <button class="btn-link" id="resetSettingsButton">reset these settings</button>
             <button class="btn" onclick="$('#{{connectorName}}SettingsDialog').modal('hide')">Close</button>
         </div>
+    </div>
+</template>
+<template id="channel-settings">
+    <form class="form-inline">
+        <table class="table flx-channel-table">
+            <thead>
+            <tr>
+                <th>Select</th>
+                <th>Name</th>
+            </tr>
+            </thead>
+            <tbody>
+            {{#channelNames}}
+            <tr>
+                <td><input type="checkbox" id="{{name}}-checkbox"></td>
+                <td class="flx-channel-name"><label for="1">{{displayName}}</label></td>
+            </tr>
+            {{/channelNames}}
+            </tbody>
+        </table>
+    </form>
+</template>
+<template id="google_calendar-settings">
+    <div style="height:300px" id="googleCalendarSettings">
+        <form action="javascript:void(0);">
+        {{#settings}}{{#calendars}}
+        <label class="checkbox">
+            <div class="bullet" style="margin-right:30px; background-color:{{backgroundColor}}"/><input type="checkbox" {{^hidden}}checked=checked{{/hidden}}  value="{{id}}"> {{summary}}
+        </label>
+        {{/calendars}}{{/settings}}
+        </form>
     </div>
 </template>
 <template id="uploadDialog">

@@ -2,15 +2,12 @@ package com.fluxtream.api;
 
 import java.io.IOException;
 import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.auth.AuthHelper;
-import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.GuestSettings;
-import com.fluxtream.mvc.models.SettingsModel;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.SettingsService;
@@ -36,19 +33,6 @@ public class SettingsStore {
     SettingsService settingsService;
 
     private final Gson gson = new Gson();
-
-    @GET
-    @Produces({ MediaType.APPLICATION_JSON })
-    public String getSettings() {
-        try{
-            Guest guest = guestService.getGuestById(AuthHelper.getGuestId());
-            GuestSettings settings = settingsService.getSettings(guest.getId());
-            return gson.toJson(new SettingsModel(settings,guest));
-        }
-        catch (Exception e){
-            return gson.toJson(new StatusModel(false,"Failed to get settings: " + e.getMessage()));
-        }
-    }
 
     @POST
     @Produces({ MediaType.APPLICATION_JSON })
@@ -98,6 +82,5 @@ public class SettingsStore {
             return gson.toJson(new StatusModel(false,"Failed to save settings: " + e.getMessage()));
         }
     }
-
 
 }

@@ -16,7 +16,6 @@
 
 package com.fluxtream.connectors.google_latitude;
 
-import com.google.api.client.googleapis.GoogleUrl;
 import com.google.api.client.util.Key;
 
 /**
@@ -24,7 +23,7 @@ import com.google.api.client.util.Key;
  *
  * @author Yaniv Inbar
  */
-public final class LatitudeUrl extends GoogleUrl {
+public final class LatitudeUrl {
 
   @Key
   public String granularity;
@@ -40,7 +39,6 @@ public final class LatitudeUrl extends GoogleUrl {
   
   /** Constructs a new Latitude URL from the given encoded URI. */
   public LatitudeUrl(String encodedUrl) {
-    super(encodedUrl);
   }
 
   private static LatitudeUrl root() {
@@ -49,19 +47,19 @@ public final class LatitudeUrl extends GoogleUrl {
 
   public static LatitudeUrl forCurrentLocation() {
     LatitudeUrl result = root();
-    result.pathParts.add("currentLocation");
+    //result.pathParts.add("currentLocation");
     return result;
   }
 
   public static LatitudeUrl forLocation() {
     LatitudeUrl result = root();
-    result.pathParts.add("location");
+    //result.pathParts.add("location");
     return result;
   }
 
   public static LatitudeUrl forLocation(Long timestampMs) {
     LatitudeUrl result = forLocation();
-    result.pathParts.add(timestampMs.toString());
+    //result.pathParts.add(timestampMs.toString());
     return result;
   }
 }

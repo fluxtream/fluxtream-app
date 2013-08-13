@@ -1,6 +1,15 @@
-define(["core/grapher/BTCore"],function(BodyTrack) {
+define(["core/grapher/BTCore",
+        "settings/google_calendar"],function(BodyTrack,
+        GoogleCalendarSettingsHandler) {
 
     var connectors;
+
+    /**
+     * list settings handlers here in order for them to be able to be looked up by connectorName
+     */
+    var settingsHandlers = {
+        "google_calendar" : GoogleCalendarSettingsHandler
+    };
 
     function show(){
         $.ajax("/api/connectors/installed",{
@@ -81,6 +90,10 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
                     break;
             }
         }
+        var config = App.getConnectorConfig(data.connectorName);
+        var hasTimelineSettings = typeof(config.hasTimelineSettings)!="undefined"&&config.hasTimelineSettings;
+        var hasGeneralSettings = typeof(config.hasGeneralSettings)!="undefined"&&config.hasGeneralSettings;
+        params.hasSettings = hasTimelineSettings||hasGeneralSettings;
         return params;
     }
 
@@ -91,7 +104,11 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
             for (var i = 0; i < data.length; i++){
                 if (!data[i].manageable)
                     continue;
+                var config = App.getConnectorConfig(data[i].connectorName);
+                var hasTimelineSettings = typeof(config.hasTimelineSettings)!="undefined"&&config.hasTimelineSettings;
+                var hasGeneralSettings = typeof(config.hasGeneralSettings)!="undefined"&&config.hasGeneralSettings;
                 params[i] = getConnectorParams(data[i])
+                params[i].hasSettings = hasTimelineSettings||hasGeneralSettings;
             }
             var html = template.render({connectors:params});
             if (update){
@@ -210,37 +227,84 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
             console.log("channelNames");
             console.log(channelNames);
             App.loadMustacheTemplate("connectorMgmtTemplates.html","settings",function(template){
+                var config = App.getConnectorConfig(connector.connectorName);
+                config.hasTimelineSettings = typeof(config.hasTimelineSettings)!="undefined"&&config.hasTimelineSettings;
+                config.hasGeneralSettings = typeof(config.hasGeneralSettings)!="undefined"&&config.hasGeneralSettings
                 App.makeModal(template.render({
                     connectorName:connector.connectorName,
                     name:connector.name,
-                    channelNames:channelNames
+                    config: config
                 }));
-
-                for (var i = 0; i < connector.channels.length; i++){
-                    var name = connector.channels[i];
-                    if (name == "")
-                        break;
-                    var index = name.substring(0,name.indexOf(".")) + name.substring(name.indexOf(".") + 1);
-                    $("#" + index + "-checkbox")[0].checked = true;
+                if (config.hasGeneralSettings) {
+                    $("#generalSettingsLink").click(function(){
+                        showGeneralSettings(connector);
+                        $("#generalSettingsLink").parent().toggleClass("active");
+                        $("#timelineSettingsLink").parent().toggleClass("active");
+                    });
+                    showGeneralSettings(connector);
+                    $("#generalSettingsLink").parent().toggleClass("active");
                 }
-
-                $("#" + connector.connectorName + "SettingsDialog input").click(function(event){
-                    var channelList = "";
-                    for (var i = 0; source != null && i < source.channels.length; i++){
-                        if ($("#" + source.name + source.channels[i].name + "-checkbox")[0].checked){
-                            if (channelList == "")
-                                channelList = source.name + "." + source.channels[i].name;
-                            else
-                                channelList += "," + source.name + "." + source.channels[i].name;
-                        }
+                if (config.hasTimelineSettings) {
+                    $("#timelineSettingsLink").click(function(){
+                        showTimelineSettings(connector, channelNames);
+                        $("#generalSettingsLink").parent().toggleClass("active");
+                        $("#timelineSettingsLink").parent().toggleClass("active");
+                    });
+                    if (!config.hasGeneralSettings) {
+                        showTimelineSettings(connector, channelNames);
+                        $("#timelineSettingsLink").parent().toggleClass("active");
                     }
-                    $.ajax({
-                        url:"/api/connectors/" + connector.name + "/channels",
-                        type:"POST",
-                        data:{channels:channelList}
-                    })
-                });
+                }
             });
+        });
+    }
+
+    function showTimelineSettings(connector, channelNames) {
+        console.log("we should show timeline settings");
+        App.loadMustacheTemplate("connectorMgmtTemplates.html","channel-settings",function(template){
+            var settingsHtml = template.render({
+                connectorName:connector.connectorName,
+                name:connector.name,
+                channelNames: channelNames
+            });
+
+            $("#connectorSettingsTab").empty();
+            $("#connectorSettingsTab").append(settingsHtml);
+
+            for (var i = 0; i < connector.channels.length; i++){
+                var name = connector.channels[i];
+                if (name == "")
+                    break;
+                var index = name.substring(0,name.indexOf(".")) + name.substring(name.indexOf(".") + 1);
+                $("#" + index + "-checkbox")[0].checked = true;
+            }
+
+            $("#" + connector.connectorName + "SettingsDialog input").click(function(event){
+                var channelList = "";
+                for (var i = 0; source != null && i < source.channels.length; i++){
+                    if ($("#" + source.name + source.channels[i].name + "-checkbox")[0].checked){
+                        if (channelList == "")
+                            channelList = source.name + "." + source.channels[i].name;
+                        else
+                            channelList += "," + source.name + "." + source.channels[i].name;
+                    }
+                }
+                $.ajax({
+                    url:"/api/connectors/" + connector.name + "/channels",
+                    type:"POST",
+                    data:{channels:channelList}
+                })
+            });
+            $("#resetSettingsButton").hide();
+        });
+
+    }
+
+    function showGeneralSettings(connector) {
+        App.loadMustacheTemplate("connectorMgmtTemplates.html",connector.connectorName + "-settings",function(template){
+            var settingsHandler = settingsHandlers[connector.connectorName];
+            settingsHandler.loadSettings(connector.apiKeyId, connector, template);
+            $("#resetSettingsButton").show();
         });
     }
 

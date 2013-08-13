@@ -69,6 +69,10 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
                 for (var i = 0; i < digest.cachedData[connectorName].length; i++){
                     var item = {};
                     item.facet = digest.cachedData[connectorName][i];
+                    if (typeof(item.facet)=="undefined") {
+                        console.log("warning: undefined facet for connector " + connectorName);
+                        continue;
+                    }
                     if (item.facet.hasPhoto)
                         item.facet.id = photoCount++;
                     item.visible = true;
