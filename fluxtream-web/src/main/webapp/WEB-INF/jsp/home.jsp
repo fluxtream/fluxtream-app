@@ -154,10 +154,6 @@
 		<script src="/static/js/jquery.dd-2.37.5-uncompressed.js"></script>
 		<script src="/static/js/jquery.tagedit-1.2.1.js"></script>
 		<script src="/static/js/jquery.shorten-1.0.0.js"></script>
-		<script src="/static/js/jquery.jqplot-1.0.0b2.min.js"></script>
-		<script src="/static/js/jqplot-plugins/jqplot.categoryAxisRenderer.min.js"></script>
-		<script src="/static/js/jqplot-plugins/jqplot.pointLabels.min.js"></script>
-		<script src="/static/js/jqplot-plugins/jqplot.barRenderer.min.js"></script>
 		<script src="/static/js/raphael-2.1.0.js"></script>
 		<script src="/static/js/underscore-1.3.3-min.js"></script>
 		<script src="/static/js/backbone-1.0.0-custom.1-min.js"></script>

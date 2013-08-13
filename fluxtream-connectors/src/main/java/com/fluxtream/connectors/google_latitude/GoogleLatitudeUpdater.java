@@ -117,6 +117,7 @@ public class GoogleLatitudeUpdater extends AbstractGoogleOAuthUpdater implements
                 locationFacet.timestampMs = ts;
                 locationFacet.start = ts;
                 locationFacet.end = ts;
+                locationFacet.api = 2;
             } else if (fieldName.equals("accuracy")) {
                 int accuracy = jParser.getIntValue();
                 locationFacet.accuracy = accuracy;
