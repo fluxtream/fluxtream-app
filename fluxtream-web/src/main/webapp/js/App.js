@@ -274,16 +274,16 @@ define(
         }
 
         function fullHeight() {
-            windowHeight = $(window).height();
-            footerHeight = $("#footer").outerHeight();
+            var windowHeight = $(window).height();
+            var footerHeight = $("#footer").height();
             if ($(".fullHeight").length>0) {
                 tabsY = $("#tabs").position().top;
 
                 fHeight = (windowHeight-tabsY-footerHeight);
                 $(".fullHeight").height(fHeight);
             }
-            $("#content").css("min-height",(windowHeight - footerHeight) + "px");
-
+            var contentHeight = (windowHeight - footerHeight);
+            $("#content").css("min-height",contentHeight + "px");
         }
 
         $(window).resize(function() {
