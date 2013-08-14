@@ -162,12 +162,16 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
                                      false, true, flickrKeys));
         final String googleCalendar = "Google Calendar";
         String[] googleCalendarKeys = checkKeysExist(googleCalendar, Arrays.asList("googleConsumerKey", "googleConsumerSecret"));
-        em.persist(new ConnectorInfo(googleCalendar,
-                                     "/images/connectors/connector-google_calendar.jpg",
-                                     res.getString("google_calendar"),
-                                     "/google/oauth2/token?scope=https://www.googleapis.com/auth/calendar.readonly",
-                                     Connector.getConnector("google_calendar"), order++, googleCalendarKeys!=null,
-                                     false, true, googleCalendarKeys));
+        final ConnectorInfo googleCalendarConnectorInfo =
+                new ConnectorInfo(googleCalendar,
+                                  "/images/connectors/connector-google_calendar.jpg",
+                                  res.getString("google_calendar"),
+                                  "/google/oauth2/token?scope=https://www.googleapis.com/auth/calendar.readonly",
+                                  Connector.getConnector("google_calendar"),
+                                  order++, googleCalendarKeys != null, false, true, googleCalendarKeys);
+        googleCalendarConnectorInfo.supportsRenewTokens = true;
+        googleCalendarConnectorInfo.renewTokensUrlTemplate = "google/oauth2/%s/token";
+        em.persist(googleCalendarConnectorInfo);
         final String lastFm = "Last fm";
         String[] lastFmKeys = checkKeysExist(lastFm, Arrays.asList("lastfmConsumerKey", "lastfmConsumerSecret"));
         em.persist(new ConnectorInfo(lastFm,

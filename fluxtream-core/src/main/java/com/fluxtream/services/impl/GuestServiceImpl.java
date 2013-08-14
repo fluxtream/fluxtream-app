@@ -414,7 +414,14 @@ public class GuestServiceImpl implements GuestService {
 		return null;
 	}
 
-	@Override
+    @Override
+    @Transactional(readOnly=false)
+    public void removeApiKeyAttribute(final ApiKey apiKey, final String key) {
+        apiKey.removeAttribute(key);
+        em.persist(apiKey);
+    }
+
+    @Override
 	public ResetPasswordToken getToken(String token) {
         return JPAUtils.findUnique(em,
                 ResetPasswordToken.class, "passwordToken.byToken", token);

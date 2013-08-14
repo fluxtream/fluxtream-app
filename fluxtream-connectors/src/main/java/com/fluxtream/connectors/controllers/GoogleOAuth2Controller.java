@@ -115,6 +115,11 @@ public class GoogleOAuth2Controller {
         if (isRenewToken) {
             String apiKeyId = (String)request.getSession().getAttribute(APIKEYID_ATTRIBUTE);
             apiKey = guestService.getApiKey(Long.valueOf(apiKeyId));
+            // remove oauth1 keys if upgrading from previous connector version
+            if (guestService.getApiKeyAttribute(apiKey, "googleConsumerKey")!=null)
+                guestService.removeApiKeyAttribute(apiKey, "googleConsumerKey");
+            if (guestService.getApiKeyAttribute(apiKey, "googleConsumerSecret")!=null)
+                guestService.removeApiKeyAttribute(apiKey, "googleConsumerSecret");
         } else
             apiKey = guestService.createApiKey(guest.getId(), scopedApi);
 

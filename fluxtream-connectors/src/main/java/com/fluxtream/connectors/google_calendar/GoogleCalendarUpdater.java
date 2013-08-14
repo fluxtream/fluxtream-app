@@ -7,8 +7,10 @@ import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.SettingsAwareAbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.Notification;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.JPADaoService;
+import com.fluxtream.services.NotificationsService;
 import com.fluxtream.services.SettingsService;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.http.HttpTransport;
@@ -36,14 +38,34 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
     @Autowired
     SettingsService settingsService;
 
+    @Autowired
+    NotificationsService notificationsService;
+
     @Override
     protected void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception {
-        loadHistory(updateInfo, false);
+        // if we're coming from an older install and this user has oauth 1 keys,
+        // suggest renewing the tokens in the manage connectors dialog
+        if (guestService.getApiKeyAttribute(updateInfo.apiKey, "googleConsumerKey")!=null) {
+            sendOauth2UpgradeWarning(updateInfo);
+        } else
+            loadHistory(updateInfo, false);
+    }
+
+    private void sendOauth2UpgradeWarning(final UpdateInfo updateInfo) {
+        notificationsService.addNotification(updateInfo.getGuestId(), Notification.Type.WARNING,
+                                             "Heads Up. This server has recently been upgraded to a version that supports<br>" +
+                                             "oauth 2 with Google APIs. Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
+                                             "head to the Google Calendar updater and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
     }
 
     @Override
     public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
-        loadHistory(updateInfo, true);
+        // if we're coming from an older install and this user has oauth 1 keys,
+        // suggest renewing the tokens in the manage connectors dialog
+        if (guestService.getApiKeyAttribute(updateInfo.apiKey, "googleConsumerKey")!=null) {
+            sendOauth2UpgradeWarning(updateInfo);
+        } else
+            loadHistory(updateInfo, true);
     }
 
     private void loadHistory(UpdateInfo updateInfo, boolean incremental) throws Exception {
