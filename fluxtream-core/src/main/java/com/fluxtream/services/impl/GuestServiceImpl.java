@@ -416,7 +416,8 @@ public class GuestServiceImpl implements GuestService {
 
     @Override
     @Transactional(readOnly=false)
-    public void removeApiKeyAttribute(final ApiKey apiKey, final String key) {
+    public void removeApiKeyAttribute(final long apiKeyId, final String key) {
+        ApiKey apiKey = getApiKey(apiKeyId);
         apiKey.removeAttribute(key);
         em.persist(apiKey);
     }

@@ -64,9 +64,9 @@ public class GoogleLatitudeUpdater extends AbstractUpdater implements FileUpload
     }
 
     private void cleanupOldTokens(final UpdateInfo updateInfo) {
-        guestService.removeApiKeyAttribute(updateInfo.apiKey, "googleConsumerKey");
+        guestService.removeApiKeyAttribute(updateInfo.apiKey.getId(), "googleConsumerKey");
         if (guestService.getApiKeyAttribute(updateInfo.apiKey, "googleConsumerSecret")!=null)
-            guestService.removeApiKeyAttribute(updateInfo.apiKey, "googleConsumerSecret");
+            guestService.removeApiKeyAttribute(updateInfo.apiKey.getId(), "googleConsumerSecret");
     }
 
     @Override

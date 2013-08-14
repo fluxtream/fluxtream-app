@@ -74,5 +74,5 @@ public interface GuestService {
 	public <T extends AbstractUserProfile> T getUserProfile(long guestId,
 			Class<T> clazz);
 
-    public void removeApiKeyAttribute(ApiKey apiKey, String key);
+    public void removeApiKeyAttribute(long apiKeyId, String key);
 }

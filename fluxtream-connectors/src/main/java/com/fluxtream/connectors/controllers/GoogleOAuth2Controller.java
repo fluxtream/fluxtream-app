@@ -14,6 +14,7 @@ import com.fluxtream.connectors.OAuth2Helper;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.Notification;
+import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.NotificationsService;
 import com.fluxtream.services.SystemService;
@@ -41,6 +42,9 @@ public class GoogleOAuth2Controller {
 
     @Autowired
     NotificationsService notificationsService;
+
+    @Autowired
+    ConnectorUpdateService connectorUpdateService;
 
     @Autowired
     OAuth2Helper oAuth2Helper;
@@ -117,9 +121,14 @@ public class GoogleOAuth2Controller {
             apiKey = guestService.getApiKey(Long.valueOf(apiKeyId));
             // remove oauth1 keys if upgrading from previous connector version
             if (guestService.getApiKeyAttribute(apiKey, "googleConsumerKey")!=null)
-                guestService.removeApiKeyAttribute(apiKey, "googleConsumerKey");
+                guestService.removeApiKeyAttribute(apiKey.getId(), "googleConsumerKey");
             if (guestService.getApiKeyAttribute(apiKey, "googleConsumerSecret")!=null)
-                guestService.removeApiKeyAttribute(apiKey, "googleConsumerSecret");
+                guestService.removeApiKeyAttribute(apiKey.getId(), "googleConsumerSecret");
+
+            // now reset the connector to force a full reimport on google calendar
+            if (apiKey.getConnector().getName().equals("google_calendar"))
+               connectorUpdateService.flushUpdateWorkerTasks(apiKey, true);
+
         } else
             apiKey = guestService.createApiKey(guest.getId(), scopedApi);
 

@@ -169,7 +169,7 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
                                   Connector.getConnector("google_calendar"),
                                   order++, googleCalendarKeys != null, false, true, googleCalendarKeys);
         googleCalendarConnectorInfo.supportsRenewTokens = true;
-        googleCalendarConnectorInfo.renewTokensUrlTemplate = "google/oauth2/%s/token";
+        googleCalendarConnectorInfo.renewTokensUrlTemplate = "google/oauth2/%s/token?scope=https://www.googleapis.com/auth/calendar.readonly";
         em.persist(googleCalendarConnectorInfo);
         final String lastFm = "Last fm";
         String[] lastFmKeys = checkKeysExist(lastFm, Arrays.asList("lastfmConsumerKey", "lastfmConsumerSecret"));
