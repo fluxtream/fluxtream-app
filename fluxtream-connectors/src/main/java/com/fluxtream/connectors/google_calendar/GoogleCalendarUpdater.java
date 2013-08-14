@@ -10,7 +10,6 @@ import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Notification;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.JPADaoService;
-import com.fluxtream.services.NotificationsService;
 import com.fluxtream.services.SettingsService;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.http.HttpTransport;
@@ -37,9 +36,6 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
 
     @Autowired
     SettingsService settingsService;
-
-    @Autowired
-    NotificationsService notificationsService;
 
     @Override
     protected void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception {

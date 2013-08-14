@@ -41,7 +41,6 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
     @Autowired
     GuestService guestService;
 
-
 	@PersistenceContext
 	EntityManager em;
 

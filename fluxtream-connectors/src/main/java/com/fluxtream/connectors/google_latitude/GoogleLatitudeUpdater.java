@@ -18,6 +18,7 @@ import com.fluxtream.connectors.location.LocationFacetVOCollection;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.Notification;
 import com.fluxtream.services.ApiDataService;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonParser;
@@ -40,10 +41,33 @@ public class GoogleLatitudeUpdater extends AbstractUpdater implements FileUpload
 	@Override
 	public void updateConnectorDataHistory(UpdateInfo updateInfo)
 			throws Exception {
+        if (guestService.getApiKeyAttribute(updateInfo.apiKey, "googleConsumerKey")!=null) {
+            sendServiceDiscontinuedWarning(updateInfo);
+            cleanupOldTokens(updateInfo);
+        }
 	}
 
-	public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
+    public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
+        if (guestService.getApiKeyAttribute(updateInfo.apiKey, "googleConsumerKey")!=null) {
+            sendServiceDiscontinuedWarning(updateInfo);
+            cleanupOldTokens(updateInfo);
+        }
 	}
+
+    private void sendServiceDiscontinuedWarning(final UpdateInfo updateInfo) {
+        notificationsService.addNotification(updateInfo.getGuestId(), Notification.Type.WARNING,
+                                             "Heads Up. Google recently discontinued support for their Latitude service.<br>" +
+                                             "However, Google Takeout will let you get a backup of your data that you will be able to import in Fluxtream.<br>" +
+                                             "If you choose to do this, please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
+                                             "go to the Google Latitude connector section and click on the upload icon <i class=\"icon-arrow-up\"></i>," +
+                                             "To track your location, we now recommend using the <a target=\"_blank\" href\"http://movesapp.com/\">Moves App<a>.");
+    }
+
+    private void cleanupOldTokens(final UpdateInfo updateInfo) {
+        guestService.removeApiKeyAttribute(updateInfo.apiKey, "googleConsumerKey");
+        if (guestService.getApiKeyAttribute(updateInfo.apiKey, "googleConsumerSecret")!=null)
+            guestService.removeApiKeyAttribute(updateInfo.apiKey, "googleConsumerSecret");
+    }
 
     @Override
     public int importFile(final ApiKey apiKey, final File f) throws Exception {
