@@ -427,7 +427,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
     function enhanceDigest(digest){
         digest.getCitiesList = function(){
-            if (digest.timeUnit === "DAY")
+            if (digest.metadata.timeUnit === "DAY")
                 return [digest.metadata.mainCity];
             return digest.metadata.cities;
         }
