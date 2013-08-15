@@ -14,7 +14,7 @@ public class CallLogEntryFacetVO extends AbstractTimedFacetVO<CallLogEntryFacet>
 	
 	@Override
 	public void fromFacet(CallLogEntryFacet phoneCall, TimeInterval timeInterval, GuestSettings settings) {
-        this.startMinute = new DateTime(phoneCall.date).getMinuteOfDay();
+        this.startMinute = toMinuteOfDay(phoneCall.date, timeInterval.getMainTimeZone());
         this.endMinute = this.startMinute + phoneCall.seconds/60;
         this.secondsTalking = Math.round(phoneCall.seconds);
 

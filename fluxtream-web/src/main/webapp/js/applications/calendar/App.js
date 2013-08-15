@@ -355,14 +355,14 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     if (facet.startTime != null){
                         var hours = parseInt(facet.startTime.hours);
                         var minutes = parseInt(facet.startTime.minutes);
-                        if (facet.startTime.ampm == "pm")
+                        if (facet.startTime.ampm == "pm" && hours > 12)
                             hours += 12;
                         facet.start = new Date(year,month,day,hours,minutes,0,0).getTime();
                     }
                     if (facet.endTime != null) {
                         var hours = parseInt(facet.endTime.hours);
                         var minutes = parseInt(facet.endTime.minutes);
-                        if (facet.endTime.ampm == "pm")
+                        if (facet.endTime.ampm == "pm" && hours > 12)
                             hours += 12;
                         facet.end = new Date(year,month,day,hours,minutes,0,0).getTime();
                         if (facet.end < facet.start){
@@ -402,14 +402,14 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                             if (subfacet.startTime != null){
                                 var hours = parseInt(subfacet.startTime.hours);
                                 var minutes = parseInt(subfacet.startTime.minutes);
-                                if (subfacet.startTime.ampm == "pm")
+                                if (subfacet.startTime.ampm == "pm" && hours > 12)
                                     hours += 12;
                                 subfacet.start = new Date(year,month,day,hours,minutes,0,0).getTime();
                             }
                             if (subfacet.endTime != null) {
                                 var hours = parseInt(subfacet.endTime.hours);
                                 var minutes = parseInt(subfacet.endTime.minutes);
-                                if (subfacet.endTime.ampm == "pm")
+                                if (subfacet.endTime.ampm == "pm" && hours > 12)
                                     hours += 12;
                                 subfacet.end = new Date(year,month,day,hours,minutes,0,0).getTime();
                                 if (subfacet.end < subfacet.start){
