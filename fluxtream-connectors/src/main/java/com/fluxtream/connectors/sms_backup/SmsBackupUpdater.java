@@ -44,7 +44,8 @@ import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 
 @Component
 @Updater(prettyName = "SMS Backup", value = 6, objectTypes = {
-		CallLogEntryFacet.class, SmsEntryFacet.class })
+		CallLogEntryFacet.class, SmsEntryFacet.class },
+         defaultChannels = {"sms_backup.call_log"})
 @JsonFacetCollection(SmsBackupFacetVOCollection.class)
 public class SmsBackupUpdater extends AbstractUpdater {
 
