@@ -15,9 +15,11 @@ public class TimeOfDayVO {
         if (this.minutes.length()==1) this.minutes = "0" + this.minutes;
         if (ampm) {
             int hourOfDay = minutes/60;
-            if (hourOfDay>=13) {
-                hourOfDay -=12;
+            if (hourOfDay >= 12){
                 this.ampm = "pm";
+                if (hourOfDay>=13) {
+                    hourOfDay -=12;
+                }
             }
             else if (hourOfDay == 0){
                 hourOfDay = 12;
