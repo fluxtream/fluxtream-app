@@ -172,7 +172,7 @@ define(["core/Tab",
             var hr = listTop.find(".priorRuler");
             var floater = listTop.find(".dateLabel");
             var placeholder = listTop.find(".placeholder");
-            var beginFloat = hr.offset().top + hr.outerHeight() + parseInt(hr.css("marginBottom"));
+            var beginFloat = hr.offset().top + hr.outerHeight(false) + parseInt(hr.css("marginBottom"));
             if (beginFloat < 0){
                 beginFloat = 0;
             }
@@ -180,7 +180,7 @@ define(["core/Tab",
             if (i < li - 1){
                 var nextListTop = $(listTops[i+1]);
                 var nextHr = nextListTop.find(".priorRuler");
-                endFloat = nextHr.offset().top + nextHr.outerHeight() + parseInt(nextHr.css("marginBottom"));
+                endFloat = nextHr.offset().top + nextHr.outerHeight(false) + parseInt(nextHr.css("marginBottom"));
             }
             if (scrollPosition < beginFloat){
                 placeholder.addClass("hidden");
@@ -192,7 +192,7 @@ define(["core/Tab",
                 floater.addClass("floating");
                 floater.css("top",$("#selectedConnectors").height() + "px");
                 if (endFloat != null){
-                    var temp = scrollPosition +  floater.outerHeight();
+                    var temp = scrollPosition +  floater.outerHeight(false);
                     var marginAmount = endFloat - temp;
                     if (marginAmount > 0) marginAmount = 0;
                     floater.css("marginTop",marginAmount + "px");

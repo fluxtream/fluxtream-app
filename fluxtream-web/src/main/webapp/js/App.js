@@ -274,7 +274,7 @@ define(
 
         function fullHeight() {
             var windowHeight = $(window).height();
-            var footerHeight = $("#footer").height();
+            var footerHeight = $("#footer").outerHeight(false);
             if ($(".fullHeight").length>0) {
                 tabsY = $("#tabs").position().top;
 
