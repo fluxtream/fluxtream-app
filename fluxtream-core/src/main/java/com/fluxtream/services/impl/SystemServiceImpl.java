@@ -160,7 +160,7 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
                                      Connector.getConnector("flickr"), order++, flickrKeys!=null,
                                      false, true, flickrKeys));
         final String googleCalendar = "Google Calendar";
-        String[] googleCalendarKeys = checkKeysExist(googleCalendar, Arrays.asList("googleConsumerKey", "googleConsumerSecret"));
+        String[] googleCalendarKeys = checkKeysExist(googleCalendar, Arrays.asList("google.client.id", "google.client.secret"));
         final ConnectorInfo googleCalendarConnectorInfo =
                 new ConnectorInfo(googleCalendar,
                                   "/images/connectors/connector-google_calendar.jpg",
