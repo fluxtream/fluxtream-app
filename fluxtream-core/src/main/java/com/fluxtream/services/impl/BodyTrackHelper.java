@@ -18,9 +18,12 @@ import javax.persistence.PersistenceContext;
 import com.fluxtream.Configuration;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.aspects.FlxLogger;
+import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.ChannelMapping;
 import com.fluxtream.domain.CoachingBuddy;
 import com.fluxtream.domain.GrapherView;
 import com.fluxtream.domain.Tag;
+import com.fluxtream.services.GuestService;
 import com.fluxtream.services.PhotoService;
 import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.Utils;
@@ -68,6 +71,9 @@ public class BodyTrackHelper {
 
     @Autowired
     PhotoService photoService;
+
+    @Autowired
+    GuestService guestService;
 
     // Create a Gson parser which handles ChannelBounds specially to avoid problems with +/- infinity
     Gson gson = new GsonBuilder().registerTypeAdapter(ChannelBounds.class, new ChannelBoundsDeserializer()).create();
@@ -278,28 +284,15 @@ public class BodyTrackHelper {
                 }
             }
 
-
-
             // create the respone
             response = new SourcesResponse(infoResponse, coachee);
 
-            Source s = new Source();
-            s.name = "sms_backup";
-            s.channels = new ArrayList<Channel>();
-            Channel c = new Channel();
-            c.name = "call_log";
-            s.channels.add(c);
-
-            response.sources.add(s);
-
-            s = new Source();
-            s.name = "moves";
-            s.channels = new ArrayList<Channel>();
-            c = new Channel();
-            c.name = "data";
-            s.channels.add(c);
-
-            response.sources.add(s);
+            List<ApiKey> keys = guestService.getApiKeys(uid);
+            for (ApiKey key : keys){
+                Source s = getSourceForApiKey(key);
+                if (s != null)
+                    response.sources.add(s);
+            }
 
             // add the All photos block to the response
             if (!photoChannelTimeRanges.isEmpty()) {
@@ -430,6 +423,23 @@ public class BodyTrackHelper {
         catch (Exception e){
 
         }
+    }
+
+    public Source getSourceForApiKey(ApiKey key){
+        List<ChannelMapping> channelMappings = JPAUtils.find(em, ChannelMapping.class, "channelMapping.byApiKeyID", key.getGuestId(), key.getId());
+        Source s = null;
+        if (channelMappings.size() > 0){
+            s = new Source();
+            s.channels = new ArrayList<Channel>();
+            s.name = key.getConnector().getName();
+            for (ChannelMapping mapping : channelMappings){
+                Channel c = new Channel();
+                s.channels.add(c);
+                c.name =  mapping.channelName;
+                c.type = mapping.channelType.name();
+            }
+        }
+        return s;
     }
 
     @Transactional(readOnly = false)
