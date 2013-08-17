@@ -10,8 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.fluxtream.connectors.annotations.JsonFacetCollection;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.connectors.annotations.Updater;
-import com.fluxtream.connectors.timespanResponders.AbstractTimespanResponder;
-import com.fluxtream.connectors.timespanResponders.DefaultTimespanResponder;
+import com.fluxtream.connectors.bodytrackResponders.AbstractBodytrackResponder;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.vos.AbstractFacetVOCollection;
 import com.fluxtream.domain.AbstractFacet;
@@ -47,7 +46,7 @@ public class Connector {
     private boolean hasFacets;
     private String[] defaultChannels;
     private Class<? extends AbstractUpdater> updaterClass;
-    private Class<? extends AbstractTimespanResponder> timespanResponder;
+    private Class<? extends AbstractBodytrackResponder> bodytrackResponder;
 
     static {
         Connector flxConnector = new Connector();
@@ -185,7 +184,7 @@ public class Connector {
             connectorsByPrettyName.put(connector.prettyName, connector);
         }
 
-        connector.timespanResponder = updaterAnnotation.timespanResponder();
+        connector.bodytrackResponder = updaterAnnotation.bodytrackResponder();
 
     }
 
@@ -402,9 +401,9 @@ public class Connector {
         return null;
     }
 
-    public AbstractTimespanResponder getTimespanResponder(){
+    public AbstractBodytrackResponder getBodytrackResponder(){
         try{
-            return timespanResponder.newInstance();
+            return bodytrackResponder.newInstance();
         }
         catch (Exception e){
             return null;

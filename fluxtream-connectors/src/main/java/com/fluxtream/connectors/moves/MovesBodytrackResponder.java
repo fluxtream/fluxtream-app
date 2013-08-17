@@ -1,7 +1,6 @@
 package com.fluxtream.connectors.moves;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TimeZone;
@@ -10,8 +9,7 @@ import com.fluxtream.TimeInterval;
 import com.fluxtream.TimeUnit;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
-import com.fluxtream.connectors.annotations.ObjectTypeSpec;
-import com.fluxtream.connectors.timespanResponders.AbstractTimespanResponder;
+import com.fluxtream.connectors.bodytrackResponders.AbstractBodytrackResponder;
 import com.fluxtream.connectors.vos.AbstractFacetVO;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
@@ -19,7 +17,7 @@ import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.mvc.models.TimespanModel;
 import com.fluxtream.services.ApiDataService;
 
-public class MovesTimespanResponder extends AbstractTimespanResponder {
+public class MovesBodytrackResponder extends AbstractBodytrackResponder {
     @Override
     public List<TimespanModel> getTimespans(final long startMillis, final long endMillis, final ApiKey apiKey, final String channelName, final ApiDataService apiDataService) {
         List<TimespanModel> items = new ArrayList<TimespanModel>();

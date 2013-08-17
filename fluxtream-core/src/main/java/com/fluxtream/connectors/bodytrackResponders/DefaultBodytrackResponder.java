@@ -1,4 +1,4 @@
-package com.fluxtream.connectors.timespanResponders;
+package com.fluxtream.connectors.bodytrackResponders;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,9 +14,8 @@ import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.mvc.models.TimespanModel;
 import com.fluxtream.services.ApiDataService;
-import org.springframework.beans.factory.annotation.Autowired;
 
-public class DefaultTimespanResponder extends AbstractTimespanResponder {
+public class DefaultBodytrackResponder extends AbstractBodytrackResponder {
     @Override
     public List<TimespanModel> getTimespans(final long startMillis, final long endMillis, ApiKey apiKey, String channelName, ApiDataService apiDataService) {
         ObjectType objectType = null;

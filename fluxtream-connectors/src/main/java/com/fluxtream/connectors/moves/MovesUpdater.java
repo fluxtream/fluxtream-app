@@ -22,7 +22,6 @@ import com.fluxtream.utils.Utils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Time: 16:50
  */
 @Component
-@Updater(prettyName = "Moves", value = 144, objectTypes = {LocationFacet.class, MovesMoveFacet.class, MovesPlaceFacet.class}, timespanResponder = MovesTimespanResponder.class,
+@Updater(prettyName = "Moves", value = 144, objectTypes = {LocationFacet.class, MovesMoveFacet.class, MovesPlaceFacet.class}, bodytrackResponder = MovesBodytrackResponder.class,
          defaultChannels = {"moves.data"})
 public class MovesUpdater extends AbstractUpdater {
     static FlxLogger logger = FlxLogger.getLogger(AbstractUpdater.class);

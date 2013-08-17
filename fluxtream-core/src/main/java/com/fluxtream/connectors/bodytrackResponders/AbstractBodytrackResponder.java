@@ -1,4 +1,4 @@
-package com.fluxtream.connectors.timespanResponders;
+package com.fluxtream.connectors.bodytrackResponders;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,12 +10,10 @@ import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.mvc.models.TimespanModel;
 import com.fluxtream.services.ApiDataService;
-import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.springframework.beans.factory.annotation.Autowired;
 
-public abstract class AbstractTimespanResponder {
+public abstract class AbstractBodytrackResponder {
 
     protected static DateTimeFormatter dateFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
 

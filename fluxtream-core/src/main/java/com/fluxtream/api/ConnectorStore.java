@@ -3,7 +3,6 @@ package com.fluxtream.api;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.TimeZone;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.QueryParam;
@@ -14,16 +13,12 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.Configuration;
-import com.fluxtream.SimpleTimeInterval;
-import com.fluxtream.TimeInterval;
-import com.fluxtream.TimeUnit;
 import com.fluxtream.api.gson.UpdateInfoSerializer;
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.updaters.UpdateInfo;
-import com.fluxtream.connectors.vos.AbstractFacetVO;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ApiUpdate;
@@ -382,7 +377,7 @@ public class ConnectorStore {
         ApiKey apiKey = guestService.getApiKeys(guest.getId(),Connector.getConnector(objectTypeNameParts[0])).get(0);
         Connector connector = apiKey.getConnector();
 
-        return gson.toJson(connector.getTimespanResponder().getFacetVOs(apiDataService, settingsService.getSettings(guest.getId()), apiKey,objectTypeName,start,end,value));
+        return gson.toJson(connector.getBodytrackResponder().getFacetVOs(apiDataService, settingsService.getSettings(guest.getId()), apiKey,objectTypeName,start,end,value));
 
     }
 }

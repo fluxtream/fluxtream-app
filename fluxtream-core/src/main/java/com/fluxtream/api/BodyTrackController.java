@@ -68,12 +68,9 @@ import org.jetbrains.annotations.Nullable;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-
-import com.fluxtream.connectors.timespanResponders.AbstractTimespanResponder;
 
 @Path("/bodytrack")
 @Component("RESTBodytrackController")
@@ -654,7 +651,7 @@ public class BodyTrackController {
             final long startTimeMillis = (long)(LevelOffsetHelper.offsetAtLevelToUnixTime(level, offset) * 1000);
             final long endTimeMillis = (long)(LevelOffsetHelper.offsetAtLevelToUnixTime(level, offset + 1) * 1000);
 
-            TimespanTileResponse response = new TimespanTileResponse(api.getConnector().getTimespanResponder().getTimespans(startTimeMillis,endTimeMillis,api,objectTypeName,apiDataService));
+            TimespanTileResponse response = new TimespanTileResponse(api.getConnector().getBodytrackResponder().getTimespans(startTimeMillis,endTimeMillis,api,objectTypeName,apiDataService));
             return gson.toJson(response);
 
         }
