@@ -23,7 +23,7 @@ public class ChannelMapping extends AbstractEntity {
     @Index(name="guestId")
     public Long guestId = null;
 
-    public Long objectTypeId = null;
+    public Integer objectTypeId = null;
 
     @Index(name="deviceName")
     public String deviceName = null;

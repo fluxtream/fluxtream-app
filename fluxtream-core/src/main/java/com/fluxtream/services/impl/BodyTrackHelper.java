@@ -450,7 +450,7 @@ public class BodyTrackHelper {
         return channelMapping;
     }
 
-    public List<ChannelMapping> getChannelMappings(ApiKey apiKey, Long objectTypeId){
+    public List<ChannelMapping> getChannelMappings(ApiKey apiKey, int objectTypeId){
         return JPAUtils.find(em,ChannelMapping.class,"channelMapping.byApiKeyAndObjectType",apiKey.getGuestId(),apiKey.getId(),objectTypeId);
     }
 

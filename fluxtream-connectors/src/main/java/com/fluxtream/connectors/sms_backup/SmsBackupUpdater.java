@@ -78,7 +78,7 @@ public class SmsBackupUpdater extends AbstractUpdater {
         for (ObjectType type : updateInfo.objectTypes()){
             Date since = getStartDate(updateInfo, type);
             if (type.name().equals("call_log")){
-                List<ChannelMapping> mappings = bodyTrackHelper.getChannelMappings(updateInfo.apiKey, (long) type.value());
+                List<ChannelMapping> mappings = bodyTrackHelper.getChannelMappings(updateInfo.apiKey, type.value());
                 if (mappings.size() == 0){
                     ChannelMapping mapping = new ChannelMapping();
                     mapping.deviceName = "sms_backup";
@@ -87,7 +87,7 @@ public class SmsBackupUpdater extends AbstractUpdater {
                     mapping.channelType = ChannelMapping.ChannelType.timespan;
                     mapping.guestId = updateInfo.getGuestId();
                     mapping.apiKeyId = updateInfo.apiKey.getId();
-                    mapping.objectTypeId = (long) type.value();
+                    mapping.objectTypeId = type.value();
                     bodyTrackHelper.persistChannelMapping(mapping);
                 }
                 retrieveCallLogSinceDate(updateInfo, email, password, since);
