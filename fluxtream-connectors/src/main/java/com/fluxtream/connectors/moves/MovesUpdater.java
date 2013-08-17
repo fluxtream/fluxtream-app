@@ -12,9 +12,11 @@ import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.AbstractLocalTimeFacet;
+import com.fluxtream.domain.ChannelMapping;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.JPADaoService;
 import com.fluxtream.services.MetadataService;
+import com.fluxtream.services.impl.BodyTrackHelper;
 import com.fluxtream.utils.HttpUtils;
 import com.fluxtream.utils.Utils;
 import net.sf.json.JSONArray;
@@ -37,6 +39,9 @@ import org.springframework.transaction.annotation.Transactional;
          defaultChannels = {"moves.data"})
 public class MovesUpdater extends AbstractUpdater {
     static FlxLogger logger = FlxLogger.getLogger(AbstractUpdater.class);
+
+    @Autowired
+    BodyTrackHelper bodyTrackHelper;
 
     final static String host = "https://api.moves-app.com/api/v1";
     final static String updateDateKeyName = "lastDate";
@@ -165,6 +170,18 @@ public class MovesUpdater extends AbstractUpdater {
         // getDatesSince and getDatesBefore both take their arguments and return their list of dates in storage
         // format (yyyy-mm-dd).  The list returned by getDatesSince includes the date passed in (in this case fullUpdateStartDate)
         // but getDatesBefore does not, so fullUpdateStartDate is processed as a full update.
+
+        List<ChannelMapping> mappings = bodyTrackHelper.getChannelMappings(updateInfo.apiKey);
+        if (mappings.size() == 0){
+            ChannelMapping mapping = new ChannelMapping();
+            mapping.deviceName = "moves";
+            mapping.channelName = "data";
+            mapping.timeType = ChannelMapping.TimeType.gmt;
+            mapping.channelType = ChannelMapping.ChannelType.timespan;
+            mapping.guestId = updateInfo.getGuestId();
+            mapping.apiKeyId = updateInfo.apiKey.getId();
+            bodyTrackHelper.persistChannelMapping(mapping);
+        }
         final List<String> fullUpdateDates = getDatesSince(fullUpdateStartDate);
 
         // For the dates that aren't yet completed (fullUpdateStartDate through today), createOrUpdate with trackpoints

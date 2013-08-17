@@ -7,23 +7,38 @@ import org.hibernate.annotations.Index;
 
 @Entity(name="ChannelMapping")
 @NamedQueries({
-      @NamedQuery(name="channelMapping.byApiKeyID",
-                  query="SELECT mapping FROM ChannelMapping mapping WHERE mapping.guestId=? AND mapping.apiKeyId=?")
+      @NamedQuery(name="channelMapping.byApiKey",
+                  query="SELECT mapping FROM ChannelMapping mapping WHERE mapping.guestId=? AND mapping.apiKeyId=?"),
+      @NamedQuery(name="channelMapping.byApiKeyAndObjectType",
+                  query="SELECT mapping FROM ChannelMapping mapping WHERE mapping.guestId=? AND mapping.apiKeyId=? AND mapping.objectTypeId=?"),
+      @NamedQuery(name="channelMapping.byDisplayName",
+                  query="SELECT mapping FROM ChannelMapping mapping WHERE mapping.guestId=? AND mapping.deviceName=? AND mapping.channelName=?"),
+      @NamedQuery(name="channelMapping.all",
+                  query="SELECT mapping FROM ChannelMapping mapping WHERE mapping.guestId=?")
 })
 public class ChannelMapping extends AbstractEntity {
     @Index(name = "apiKey")
-    public Long apiKeyId;
+    public Long apiKeyId = null;
 
     @Index(name="guestId")
-    public Long guestId;
+    public Long guestId = null;
 
-    public Long objectTypeId;
+    public Long objectTypeId = null;
 
-    public String deviceName;
-    public String channelName;
+    @Index(name="deviceName")
+    public String deviceName = null;
+    @Index(name="channelName")
+    public String channelName = null;
 
     public enum ChannelType {data,timespan,photo};
 
-    public ChannelType channelType;
+    public ChannelType channelType = null;
+
+    public enum TimeType {gmt,local};
+
+    public TimeType timeType = null;
+
+    public String internalDeviceName = null;
+    public String internalChannelName = null;
 
 }

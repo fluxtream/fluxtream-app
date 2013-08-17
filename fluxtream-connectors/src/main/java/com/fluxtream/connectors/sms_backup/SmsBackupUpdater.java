@@ -15,17 +15,22 @@ import javax.mail.Store;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.search.SentDateTerm;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 
+import com.fluxtream.domain.ChannelMapping;
 import com.fluxtream.domain.Tag;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.ApiDataService.FacetQuery;
 import com.fluxtream.services.ApiDataService.FacetModifier;
+import com.fluxtream.services.impl.BodyTrackHelper;
 import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.Utils;
 import com.ibm.icu.util.StringTokenizer;
 import oauth.signpost.OAuthConsumer;
 import org.apache.commons.io.IOUtils;
 import org.joda.time.DateTime;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.fluxtream.connectors.Connector;
@@ -49,6 +54,9 @@ import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 @JsonFacetCollection(SmsBackupFacetVOCollection.class)
 public class SmsBackupUpdater extends AbstractUpdater {
 
+    @Autowired
+    BodyTrackHelper bodyTrackHelper;
+
 	// basic cache for email connections
 	static ConcurrentMap<String, Store> stores;
 
@@ -70,6 +78,18 @@ public class SmsBackupUpdater extends AbstractUpdater {
         for (ObjectType type : updateInfo.objectTypes()){
             Date since = getStartDate(updateInfo, type);
             if (type.name().equals("call_log")){
+                List<ChannelMapping> mappings = bodyTrackHelper.getChannelMappings(updateInfo.apiKey, (long) type.value());
+                if (mappings.size() == 0){
+                    ChannelMapping mapping = new ChannelMapping();
+                    mapping.deviceName = "sms_backup";
+                    mapping.channelName = "call_log";
+                    mapping.timeType = ChannelMapping.TimeType.gmt;
+                    mapping.channelType = ChannelMapping.ChannelType.timespan;
+                    mapping.guestId = updateInfo.getGuestId();
+                    mapping.apiKeyId = updateInfo.apiKey.getId();
+                    mapping.objectTypeId = (long) type.value();
+                    bodyTrackHelper.persistChannelMapping(mapping);
+                }
                 retrieveCallLogSinceDate(updateInfo, email, password, since);
             }
             else if (type.name().equals("sms")){
