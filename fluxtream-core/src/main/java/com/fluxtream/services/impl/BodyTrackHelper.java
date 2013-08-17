@@ -18,11 +18,13 @@ import javax.persistence.PersistenceContext;
 import com.fluxtream.Configuration;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.aspects.FlxLogger;
+import com.fluxtream.connectors.bodytrackResponders.AbstractBodytrackResponder;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ChannelMapping;
 import com.fluxtream.domain.CoachingBuddy;
 import com.fluxtream.domain.GrapherView;
 import com.fluxtream.domain.Tag;
+import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.PhotoService;
 import com.fluxtream.utils.JPAUtils;
@@ -74,6 +76,9 @@ public class BodyTrackHelper {
 
     @Autowired
     GuestService guestService;
+
+    @Autowired
+    ApiDataService apiDataService;
 
     // Create a Gson parser which handles ChannelBounds specially to avoid problems with +/- infinity
     Gson gson = new GsonBuilder().registerTypeAdapter(ChannelBounds.class, new ChannelBoundsDeserializer()).create();
@@ -305,33 +310,43 @@ public class BodyTrackHelper {
             response = new SourcesResponse(null, coachee);
 
             for (ChannelMapping mapping : getChannelMappings(guestId)){
-                Source s = response.hasSource(mapping.deviceName);
-                if (s == null){
-                    s = new Source();
-                    response.sources.add(s);
-                    s.name = mapping.deviceName;
-                    s.channels = new ArrayList<Channel>();
+                Source source = response.hasSource(mapping.deviceName);
+                if (source == null){
+                    source = new Source();
+                    response.sources.add(source);
+                    source.name = mapping.deviceName;
+                    source.channels = new ArrayList<Channel>();
+                    source.min_time = Double.MAX_VALUE;
+                    source.max_time = Double.MIN_VALUE;
                 }
-                Channel c = new Channel();
-                c.name = mapping.channelName;
-                c.type = mapping.channelType.name();
-                c.time_type = mapping.timeType.name();
-                s.channels.add(c);
+                Channel channel = new Channel();
+                channel.name = mapping.channelName;
+                channel.type = mapping.channelType.name();
+                channel.time_type = mapping.timeType.name();
+                source.channels.add(channel);
+
+                channel.builtin_default_style = new ChannelStyle();
+                channel.style = channel.builtin_default_style;
+
+                ChannelStyle userStyle = getDefaultStyle(guestId,source.name,channel.name);
+                if (userStyle != null)
+                    channel.style = userStyle;
+
+                if (mapping.apiKeyId != null){
+                    ApiKey api = guestService.getApiKey(mapping.apiKeyId);
+                    AbstractBodytrackResponder.Bounds bounds = api.getConnector().getBodytrackResponder().getBounds(apiDataService,guestService,mapping);
+                    channel.min_time = bounds.min_time;
+                    channel.max_time = bounds.max_time;
+                    channel.min = bounds.min;
+                    channel.max = bounds.max;
+                    source.min_time = Math.min(source.min_time,channel.min_time);
+                    source.max_time = Math.max(source.max_time,channel.max_time);
+                }
             }
 
-            // set default styles if necessary
             for (Source source : response.sources){
-                for (Channel channel : source.channels){
-                    ChannelStyle userStyle = getDefaultStyle(guestId,source.name,channel.name);
-                    if (userStyle != null)
-                        channel.style = userStyle;
-                    // Temporary hack: Until generic support is available for time_type, special case
-                    // devices named 'Zeo', 'Fitbit', or 'Flickr' to use time_type="local"
-                    /*if(source.name.equals("Zeo") || source.name.equals("Fitbit")  || source.name.equals("Flickr")) {
-                        
-                        channel.time_type="local";
-                    }*/
-                }
+                if (source.max_time < source.min_time)
+                    source.min_time = source.max_time = 0.0;
             }
 
             return gson.toJson(response);
