@@ -230,7 +230,7 @@ public class BodyTrackHelper {
             if (guestId == null) {
                 throw new IllegalArgumentException();
             }
-            /*final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("info",new Object[]{"-r",guestId});
+            final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("info",new Object[]{"-r",guestId});
             String result = dataStoreExecutionResult.getResponse();
 
             // TODO: check statusCode in DataStoreExecutionResult
@@ -296,20 +296,6 @@ public class BodyTrackHelper {
             // create the respone
             response = new SourcesResponse(infoResponse, coachee);
 
-            List<ApiKey> keys = guestService.getApiKeys(guestId);
-            for (ApiKey key : keys){
-                Source s = getSourceForApiKey(key);
-                if (s != null)
-                    response.sources.add(s);
-            }
-
-            // add the All photos block to the response
-            if (!photoChannelTimeRanges.isEmpty()) {
-                response.sources.add(allPhotosSource);
-            }*/
-
-            response = new SourcesResponse(null, coachee);
-
             for (ChannelMapping mapping : getChannelMappings(guestId)){
                 Source source = response.hasSource(mapping.deviceName);
                 if (source == null){
@@ -328,6 +314,7 @@ public class BodyTrackHelper {
 
                 channel.builtin_default_style = getDefaultStyle(guestId,source.name,channel.name);
                 channel.style = channel.builtin_default_style;
+                if (channel.style == null) channel.style = new ChannelStyle();
 
                 ChannelStyle userStyle = getDefaultStyle(guestId,source.name,channel.name);
                 if (userStyle != null)
@@ -343,6 +330,11 @@ public class BodyTrackHelper {
                     source.min_time = Math.min(source.min_time,channel.min_time);
                     source.max_time = Math.max(source.max_time,channel.max_time);
                 }
+            }
+
+            // add the All photos block to the response
+            if (!photoChannelTimeRanges.isEmpty()) {
+                response.sources.add(allPhotosSource);
             }
 
             for (Source source : response.sources){
@@ -760,7 +752,7 @@ public class BodyTrackHelper {
 
         public Source hasSource(String deviceName){
             for (Source s : sources){
-                if (s.name == deviceName)
+                if (s.name.equals(deviceName))
                     return s;
             }
             return null;
@@ -805,8 +797,8 @@ public class BodyTrackHelper {
     public static class Source{
         public String name;
         public ArrayList<Channel> channels;
-        public Double min_time;
-        public Double max_time;
+        public Double min_time = 0.0;
+        public Double max_time = 0.0;
     }
 
     public static class Channel{
