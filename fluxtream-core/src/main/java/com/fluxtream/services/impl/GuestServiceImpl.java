@@ -53,6 +53,9 @@ public class GuestServiceImpl implements GuestService {
 
     static FlxLogger logger = FlxLogger.getLogger(GuestServiceImpl.class);
 
+    @Autowired
+    BodyTrackHelper bodyTrackHelper;
+
 	@Autowired
 	Configuration env;
 
@@ -225,6 +228,7 @@ public class GuestServiceImpl implements GuestService {
             em.remove(apiKey);
             em.flush();
             // cleanup the data asynchrously in order not to block the user's flow
+            bodyTrackHelper.deleteChannelMappings(apiKey);
             ApiDataCleanupWorker worker = beanFactory.getBean(ApiDataCleanupWorker.class);
             worker.setApiKey(apiKey);
             executor.execute(worker);

@@ -15,6 +15,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import com.fluxtream.Configuration;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.aspects.FlxLogger;
@@ -325,7 +326,7 @@ public class BodyTrackHelper {
                 channel.time_type = mapping.timeType.name();
                 source.channels.add(channel);
 
-                channel.builtin_default_style = new ChannelStyle();
+                channel.builtin_default_style = getDefaultStyle(guestId,source.name,channel.name);
                 channel.style = channel.builtin_default_style;
 
                 ChannelStyle userStyle = getDefaultStyle(guestId,source.name,channel.name);
@@ -478,6 +479,13 @@ public class BodyTrackHelper {
         return JPAUtils.find(em,ChannelMapping.class,"channelMapping.all",guestId);
     }
 
+    public void deleteChannelMappings(ApiKey apiKey){
+        Query query = em.createNamedQuery("channelMapping.delete");
+        query.setParameter(1,apiKey.getGuestId());
+        query.setParameter(2,apiKey.getId());
+        query.executeUpdate();
+    }
+
     public void persistChannelMapping(ChannelMapping mapping){
         em.persist(mapping);
     }
@@ -498,6 +506,10 @@ public class BodyTrackHelper {
             }
         }
         return s;
+    }
+
+    public void setBuiltinDefaultStyle(final Long guestId, final String deviceName, final String channelName, final ChannelStyle style){
+        setBuiltinDefaultStyle(guestId,deviceName,channelName,gson.toJson(style));
     }
 
     @Transactional(readOnly = false)
@@ -843,6 +855,7 @@ public class BodyTrackHelper {
         public HighlightStyling highlight;
         public CommentStyling comments;
         public ArrayList<Style> styles;
+        public MainTimespanStyle timespanStyles;
 
         public static ChannelStyle getDefaultChannelStyle(String name){
             ChannelStyle style = new ChannelStyle();
@@ -863,6 +876,19 @@ public class BodyTrackHelper {
             return style;
         }
 
+    }
+
+    public static class TimespanStyle{
+        public Integer borderWidth;
+        public String borderColor;
+        public String fillColor;
+        public Double top;
+        public Double bottom;
+    }
+
+    public static class MainTimespanStyle{
+        public TimespanStyle defaultStyle;
+        public Map<String, TimespanStyle> values;
     }
 
     public static class CommentStyling{

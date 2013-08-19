@@ -24,6 +24,9 @@ import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.ApiDataService.FacetQuery;
 import com.fluxtream.services.ApiDataService.FacetModifier;
 import com.fluxtream.services.impl.BodyTrackHelper;
+import com.fluxtream.services.impl.BodyTrackHelper.ChannelStyle;
+import com.fluxtream.services.impl.BodyTrackHelper.MainTimespanStyle;
+import com.fluxtream.services.impl.BodyTrackHelper.TimespanStyle;
 import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.Utils;
 import com.ibm.icu.util.StringTokenizer;
@@ -89,6 +92,18 @@ public class SmsBackupUpdater extends AbstractUpdater {
                     mapping.apiKeyId = updateInfo.apiKey.getId();
                     mapping.objectTypeId = type.value();
                     bodyTrackHelper.persistChannelMapping(mapping);
+
+                    ChannelStyle channelStyle = new ChannelStyle();
+                    channelStyle.timespanStyles = new MainTimespanStyle();
+                    channelStyle.timespanStyles.defaultStyle = new TimespanStyle();
+                    channelStyle.timespanStyles.defaultStyle.fillColor = "green";
+                    channelStyle.timespanStyles.defaultStyle.borderColor = "#006000";
+                    channelStyle.timespanStyles.defaultStyle.borderWidth = 2;
+                    channelStyle.timespanStyles.defaultStyle.top = 0.0;
+                    channelStyle.timespanStyles.defaultStyle.bottom = 1.0;
+
+                    bodyTrackHelper.setBuiltinDefaultStyle(updateInfo.getGuestId(),"sms_backup","call_log",channelStyle);
+
                 }
                 retrieveCallLogSinceDate(updateInfo, email, password, since);
             }

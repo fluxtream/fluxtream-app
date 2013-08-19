@@ -14,7 +14,9 @@ import org.hibernate.annotations.Index;
       @NamedQuery(name="channelMapping.byDisplayName",
                   query="SELECT mapping FROM ChannelMapping mapping WHERE mapping.guestId=? AND mapping.deviceName=? AND mapping.channelName=?"),
       @NamedQuery(name="channelMapping.all",
-                  query="SELECT mapping FROM ChannelMapping mapping WHERE mapping.guestId=?")
+                  query="SELECT mapping FROM ChannelMapping mapping WHERE mapping.guestId=?"),
+      @NamedQuery(name="channelMapping.delete",
+                  query="DELETE FROM ChannelMapping mapping WHERE mapping.guestId=? AND mapping.apiKeyId=?")
 })
 public class ChannelMapping extends AbstractEntity {
     @Index(name = "apiKey")

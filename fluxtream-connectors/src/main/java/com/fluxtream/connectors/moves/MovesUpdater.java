@@ -1,6 +1,7 @@
 package com.fluxtream.connectors.moves;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.UUID;
@@ -17,6 +18,9 @@ import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.JPADaoService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.impl.BodyTrackHelper;
+import com.fluxtream.services.impl.BodyTrackHelper.ChannelStyle;
+import com.fluxtream.services.impl.BodyTrackHelper.MainTimespanStyle;
+import com.fluxtream.services.impl.BodyTrackHelper.TimespanStyle;
 import com.fluxtream.utils.HttpUtils;
 import com.fluxtream.utils.Utils;
 import net.sf.json.JSONArray;
@@ -180,6 +184,46 @@ public class MovesUpdater extends AbstractUpdater {
             mapping.guestId = updateInfo.getGuestId();
             mapping.apiKeyId = updateInfo.apiKey.getId();
             bodyTrackHelper.persistChannelMapping(mapping);
+
+            ChannelStyle channelStyle = new ChannelStyle();
+            channelStyle.timespanStyles = new MainTimespanStyle();
+            channelStyle.timespanStyles.defaultStyle = new TimespanStyle();
+            channelStyle.timespanStyles.defaultStyle.fillColor = "#e9e9e9";
+            channelStyle.timespanStyles.defaultStyle.borderColor = "#c9c9c9";
+            channelStyle.timespanStyles.defaultStyle.borderWidth = 2;
+            channelStyle.timespanStyles.defaultStyle.top = 0.0;
+            channelStyle.timespanStyles.defaultStyle.bottom = 1.0;
+            channelStyle.timespanStyles.values = new HashMap();
+
+            TimespanStyle stylePart = new TimespanStyle();
+            stylePart.top = 0.25;
+            stylePart.bottom = 0.75;
+            stylePart.fillColor = "#23ee70";
+            stylePart.borderColor = "#03ce50";
+            channelStyle.timespanStyles.values.put("wlk",stylePart);
+
+            stylePart = new TimespanStyle();
+            stylePart.top = 0.25;
+            stylePart.bottom = 0.75;
+            stylePart.fillColor = "#e674ec";
+            stylePart.borderColor = "#c654cc";
+            channelStyle.timespanStyles.values.put("run",stylePart);
+
+            stylePart = new TimespanStyle();
+            stylePart.top = 0.25;
+            stylePart.bottom = 0.75;
+            stylePart.fillColor = "#68abef";
+            stylePart.borderColor = "#488bcf";
+            channelStyle.timespanStyles.values.put("cyc",stylePart);
+
+            stylePart = new TimespanStyle();
+            stylePart.top = 0.25;
+            stylePart.bottom = 0.75;
+            stylePart.fillColor = "#8f8f8d";
+            stylePart.borderColor = "#6f6f6d";
+            channelStyle.timespanStyles.values.put("trp",stylePart);
+
+            bodyTrackHelper.setBuiltinDefaultStyle(updateInfo.getGuestId(),"moves","data",channelStyle);
         }
         final List<String> fullUpdateDates = getDatesSince(fullUpdateStartDate);
 
