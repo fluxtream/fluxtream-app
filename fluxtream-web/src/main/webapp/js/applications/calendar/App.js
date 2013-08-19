@@ -275,9 +275,11 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     return;
                 Builder.handleNotifications(response);
                 if (Calendar.timeUnit==="date") {
+                    $(".ephemerisWrapper").show();
                     handleCityInfo(response);
                     fetchWeatherData();
                 } else {
+                    $(".ephemerisWrapper").hide();
                     $("#mainCity").empty();
                     $("#visitedCitiesDetails").hide();
                 }
