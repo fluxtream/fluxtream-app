@@ -131,7 +131,7 @@
     </td>
     <td class="desc" style="background:inherit">
         <p style=""><b>{{name}}</b></p><br/>
-        <a href="#" id="settings-{{connectorName}}">Settings <i class="icon-cog"></i></a>
+        {{#hasSettings}}<a href="#" id="settings-{{connectorName}}">Settings <i class="icon-cog"></i></a>{{/hasSettings}}
     </td>
     <td class="lastSync" style="background:inherit">
         <p id="lastSync-{{connectorName}}" {{#syncing}}style="display:none;"{{/syncing}}>{{lastSync}}</p>
