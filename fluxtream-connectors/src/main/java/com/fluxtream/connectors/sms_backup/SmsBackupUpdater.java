@@ -185,7 +185,7 @@ public class SmsBackupUpdater extends AbstractUpdater {
                                                                    }
                                                                }
                                                                facet.dateReceived = message.getReceivedDate();
-                                                               facet.start = new DateTime(facet.dateReceived).getMillis();
+                                                               facet.start = facet.dateReceived.getTime();
                                                                facet.end = facet.start;
                                                                Object content = message.getContent();
                                                                if (content instanceof String)
@@ -265,7 +265,7 @@ public class SmsBackupUpdater extends AbstractUpdater {
                                                                        facet.personName = message.getSubject().substring(10);//read the name from the subject line
                                                                }
                                                                facet.date = message.getReceivedDate();
-                                                               facet.start = new DateTime(facet.date).getMillis();
+                                                               facet.start = facet.date.getTime();
                                                                facet.end = facet.start + facet.seconds*1000;
                                                            }
                                                            catch (Exception e){
