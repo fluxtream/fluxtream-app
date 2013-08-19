@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -295,6 +296,9 @@ public class BodyTrackHelper {
 
             // create the respone
             response = new SourcesResponse(infoResponse, coachee);
+
+            //TODO: this is a hack to prevent double flickr photo channel showing up
+            response.deleteSource("Flickr");
 
             for (ChannelMapping mapping : getChannelMappings(guestId)){
                 Source source = response.hasSource(mapping.deviceName);
@@ -756,6 +760,15 @@ public class BodyTrackHelper {
                     return s;
             }
             return null;
+        }
+
+        public void deleteSource(String deviceName){
+            for (Iterator<Source> i = sources.iterator(); i.hasNext();){
+                Source s = i.next();
+                if (s.name.equals(deviceName))
+                    i.remove();
+            }
+
         }
     }
 
