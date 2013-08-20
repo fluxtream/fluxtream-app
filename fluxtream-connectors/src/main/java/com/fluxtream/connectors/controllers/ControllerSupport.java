@@ -13,6 +13,9 @@ public class ControllerSupport {
     public static final String getLocationBase(HttpServletRequest request) {
         String scheme = request.getScheme();
         String serverName = request.getServerName();
+        String remoteAddr = request.getHeader("X-Forwarded-For");
+        if (remoteAddr == null)
+            remoteAddr = request.getRemoteAddr();
         int serverPort = request.getServerPort();
         String locationBase = String.format("%s://%s:%s/", scheme, serverName, serverPort);
         return locationBase;

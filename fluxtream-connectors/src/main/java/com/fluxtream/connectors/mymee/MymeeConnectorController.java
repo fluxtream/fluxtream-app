@@ -3,8 +3,8 @@ package com.fluxtream.connectors.mymee;
 import java.io.IOException;
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
-import com.fluxtream.connectors.Connector;
 import com.fluxtream.auth.AuthHelper;
+import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
@@ -56,4 +56,5 @@ public class MymeeConnectorController {
     private void testConnection(final String url) throws IOException {
         HttpUtils.fetch(url);
     }
+
 }

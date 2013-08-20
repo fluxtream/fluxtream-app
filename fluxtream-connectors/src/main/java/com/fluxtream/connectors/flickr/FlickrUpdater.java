@@ -335,4 +335,5 @@ public class FlickrUpdater extends AbstractUpdater {
 
         locationResources.add(locationResource);
     }
+
 }
