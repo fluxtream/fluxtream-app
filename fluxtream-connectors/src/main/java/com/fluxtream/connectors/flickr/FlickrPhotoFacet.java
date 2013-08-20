@@ -22,6 +22,7 @@ public class FlickrPhotoFacet extends AbstractLocalTimeFacet {
 	public boolean isfamily;
 	public long datetaken;
 	public long dateupload;
+    public Long dateupdated;
 	public Float latitude;
 	public Float longitude;
 	public int accuracy;

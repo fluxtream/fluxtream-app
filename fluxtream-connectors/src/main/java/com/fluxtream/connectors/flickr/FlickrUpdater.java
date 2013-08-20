@@ -1,21 +1,30 @@
 package com.fluxtream.connectors.flickr;
 
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import com.fluxtream.connectors.annotations.Updater;
+import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.Tag;
+import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.JPADaoService;
+import com.fluxtream.services.MetadataService;
 import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.Utils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -30,17 +39,22 @@ import static com.fluxtream.utils.Utils.hash;
 @Updater(prettyName = "Flickr",
          value = 11,
          objectTypes = FlickrPhotoFacet.class,
-         extractor = FlickrFacetExtractor.class,
          defaultChannels = {"Flickr.photo"})
 public class FlickrUpdater extends AbstractUpdater {
 
     @Autowired
 	GuestService guestService;
 
-	private static final int ITEMS_PER_PAGE = 20;
+    private static final DateTimeFormatter format = DateTimeFormat
+            .forPattern("yyyy-MM-dd HH:mm:ss").withZone(DateTimeZone.UTC);
+
+	private static final int ITEMS_PER_PAGE = 500;
 
     @Autowired
     JPADaoService jpaDaoService;
+
+    @Autowired
+    MetadataService metadataService;
 
 	public FlickrUpdater() {
 		super();
@@ -61,8 +75,9 @@ public class FlickrUpdater extends AbstractUpdater {
 		// taking care of resetting the data if things went wrong before
 		if (!connectorUpdateService.isHistoryUpdateCompleted( updateInfo.apiKey, -1))
 			apiDataService.eraseApiData(updateInfo.apiKey, -1);
-		int retrievedItems = ITEMS_PER_PAGE;
-		for (int page = 0; retrievedItems == ITEMS_PER_PAGE; page++) {
+        int page = 0, pages;
+		do {
+            page++;
 			JSONObject feed = retrievePhotoHistory(updateInfo, 0,
 					System.currentTimeMillis(), page);
             if (feed.has("stat")) {
@@ -75,92 +90,140 @@ public class FlickrUpdater extends AbstractUpdater {
 			JSONObject photosWrapper = feed.getJSONObject("photos");
 
 			if (photosWrapper != null) {
+                pages = photosWrapper.getInt("pages");
+                page = photosWrapper.getInt("page");
 				JSONArray photos = photosWrapper.getJSONArray("photo");
-				retrievedItems = photos.size();
-				apiDataService.cacheApiDataJSON(updateInfo, feed, -1, -1);
-			} else
+                createOrUpdatePhotos(photos, updateInfo);
+            } else
 				break;
-		}
+		} while (page<pages);
 	}
 
 	@Override
 	public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
-		int retrievedItems = ITEMS_PER_PAGE;
-        long lastUploadTime = getLastUploadTime(updateInfo);
-		for (int page = 0; retrievedItems == ITEMS_PER_PAGE; page++) {
-			JSONObject feed = retrievePhotoHistory(updateInfo,
-					lastUploadTime, System.currentTimeMillis(), page);
-
-            if (!(feed.getString("stat").equalsIgnoreCase("ok"))) {
-                String message = "n/a";
-                if (feed.containsKey("message"))
-                    message = feed.getString("message");
-                throw new Exception("There was an error calling the Flickr API: " + message);
+        Long lastUpdatedTime = getLastUpdatedTime(updateInfo);
+        // taking care of resetting the data if we are coming from a database that
+        // hasn't tracked the updatedate yet
+        if (lastUpdatedTime==null||lastUpdatedTime==0) {
+            apiDataService.eraseApiData(updateInfo.apiKey, -1);
+            updateConnectorDataHistory(updateInfo);
+            return;
+        }
+        int page = 0, pages;
+        do {
+            page++;
+            JSONObject feed = retrieveRecentlyUpdatedPhotos(updateInfo, lastUpdatedTime, page);
+                if (feed.has("stat")) {
+                String stat = feed.getString("stat");
+                if (stat.equalsIgnoreCase("fail")) {
+                    String message = feed.getString("message");
+                    throw new RuntimeException("Could not retrieve flickr recently updated photos: " + message);
+                }
             }
+            JSONObject photosWrapper = feed.getJSONObject("photos");
+            pages = photosWrapper.getInt("pages");
+            page = photosWrapper.getInt("page");
 
-			JSONObject photosWrapper = feed.getJSONObject("photos");
-
-			if (photosWrapper != null) {
-                if (photosWrapper.containsKey("photo")) {
-                    JSONArray photos = photosWrapper.getJSONArray("photo");
-                    retrievedItems = photos.size();
-                    apiDataService.cacheApiDataJSON(updateInfo, feed, -1, -1);
-                } else break;
-			} else
-				break;
-		}
+            if (photosWrapper != null) {
+                JSONArray photos = photosWrapper.getJSONArray("photo");
+                createOrUpdatePhotos(photos, updateInfo);
+            } else
+                break;
+        } while (page<pages);
 	}
+    
+    private void createOrUpdatePhotos(final JSONArray photos, final UpdateInfo updateInfo) {
+        final List<LocationFacet> locationResources = new ArrayList<LocationFacet>();
+        for (int i=0; i<photos.size(); i++) {
+            final JSONObject photo = photos.getJSONObject(i);
+            String flickrId = photo.getString("id");
+            final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery("e.apiKeyId=? AND e.flickrId=?",
+                                                                                       updateInfo.apiKey.getId(), flickrId);
+            final ApiDataService.FacetModifier<FlickrPhotoFacet> facetModifier = new ApiDataService.FacetModifier<FlickrPhotoFacet>() {
+                @Override
+                public FlickrPhotoFacet createOrModify(FlickrPhotoFacet facet, final Long apiKeyId) {
+                    if (facet==null) {
+                        facet = new FlickrPhotoFacet(updateInfo.apiKey.getId());
+                        facet.flickrId = photo.getString("id");
+                        facet.api = updateInfo.apiKey.getConnector().value();
+                        facet.guestId = updateInfo.apiKey.getGuestId();
+                        facet.timeUpdated = System.currentTimeMillis();
+                    }
+                    facet.owner = photo.getString("owner");
+                    facet.secret = photo.getString("secret");
+                    facet.server = photo.getString("server");
+                    facet.farm = photo.getString("farm");
+                    facet.title = photo.getString("title");
+                    final JSONObject descriptionObject = photo.getJSONObject("description");
+                    if (descriptionObject != null) {
+                        facet.comment = descriptionObject.getString("_content");
+                    }
+                    facet.ispublic = Integer.valueOf(photo.getString("ispublic")) == 1;
+                    facet.isfriend = Integer.valueOf(photo.getString("isfriend")) == 1;
+                    facet.isfamily = Integer.valueOf(photo.getString("isfamily")) == 1;
+                    final String datetaken = photo.getString("datetaken");
+                    final DateTime dateTime = format.parseDateTime(datetaken);
+                    facet.startTimeStorage = facet.endTimeStorage = toTimeStorage(dateTime.getYear(), dateTime.getMonthOfYear(),
+                                                                                  dateTime.getDayOfMonth(), dateTime.getHourOfDay(),
+                                                                                  dateTime.getMinuteOfHour(), 0);
+                    facet.date = (new StringBuilder(String.valueOf(dateTime.getYear())).append("-")
+                                          .append(pad(dateTime.getMonthOfYear())).append("-")
+                                          .append(pad(dateTime.getDayOfMonth()))).toString();
+                    facet.datetaken = dateTime.getMillis();
+                    facet.start = dateTime.getMillis();
+                    facet.end = dateTime.getMillis();
+                    facet.dateupload = photo.getLong("dateupload")*1000;
+                    if (photo.has("lastupdate"))
+                        facet.dateupdated = photo.getLong("lastupdate")*1000;
+                    facet.accuracy = photo.getInt("accuracy");
+                    facet.addTags(photo.getString("tags"), Tag.SPACE_DELIMITER);
+                    if (photo.getString("latitude")!=null && photo.getString("longitude")!=null) {
+                        final Float latitude = Float.valueOf(photo.getString("latitude"));
+                        final Float longitude = Float.valueOf(photo.getString("longitude"));
+                        if (latitude!=0 && longitude!=0) {
+                            facet.latitude = latitude;
+                            facet.longitude = longitude;
+                            addLocation(updateInfo, locationResources, facet, dateTime);
+                        }
+                    }
+                    return facet;
+                }
+            };
+            // we could use the resulting value (facet) from this call if we needed to do further processing on it (e.g. passing it on to the datastore)
+            apiDataService.createOrReadModifyWrite(FlickrPhotoFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
+        }
 
-    private long getLastUploadTime(final UpdateInfo updateInfo) {
+        if (locationResources.size()>0)
+            metadataService.updateLocationMetadata(updateInfo.getGuestId(), locationResources);
+    }
+
+    private Long getLastUpdatedTime(final UpdateInfo updateInfo) {
         final String entityName = JPAUtils.getEntityName(FlickrPhotoFacet.class);
-        final List<FlickrPhotoFacet> facets = jpaDaoService.executeQueryWithLimit("SELECT facet from " + entityName + " facet WHERE facet.apiKeyId=? ORDER BY facet.dateupload DESC", 1, FlickrPhotoFacet.class, updateInfo.apiKey.getId());
+        final List<FlickrPhotoFacet> facets = jpaDaoService.executeQueryWithLimit("SELECT facet from " + entityName + " facet WHERE facet.apiKeyId=? ORDER BY facet.dateupdated DESC", 1, FlickrPhotoFacet.class, updateInfo.apiKey.getId());
         if (facets.size()==0)
-            return 0;
-        return facets.get(0).dateupload + 1000;
+            return new Long(0);
+        final Long dateupdated = facets.get(0).dateupdated;
+        if (dateupdated!=null) {
+            return dateupdated + 1000;
+        } else return null;
     }
 
     private JSONObject retrievePhotoHistory(UpdateInfo updateInfo, long from,
 			long to, int page) throws Exception {
 		long then = System.currentTimeMillis();
 
-		String api_key = guestService.getApiKeyAttribute(updateInfo.apiKey, "flickrConsumerKey");
-		String nsid = guestService.getApiKeyAttribute(
-				updateInfo.apiKey, "nsid");
-		String token = guestService.getApiKeyAttribute(
-				updateInfo.apiKey, "token");
-
         // The start/end upload dates should be in the form of a unix timestamp (see http://www.flickr.com/services/api/flickr.people.getPhotos.htm)
 		String startDate = String.valueOf(from / 1000);
 		String endDate = String.valueOf(to / 1000);
 
-		Map<String, String> params = new HashMap<String, String>();
-		params.put("method", "flickr.people.getPhotos");
-        params.put("per_page", String.valueOf(ITEMS_PER_PAGE));
-        params.put("page", String.valueOf(page));
-        params.put("api_key", api_key);
-		params.put("user_id", nsid);
-		params.put("auth_token", token);
-		params.put("format", "json");
-		params.put("nojsoncallback", "1");
-		params.put("extras", "date_upload,date_taken,description,geo,tags");
-		params.put("min_upload_date", startDate);
-		params.put("max_upload_date", endDate);
+        final Map<String, String> otherParams = new HashMap<String, String>();
+        otherParams.put("method", "flickr.people.getPhotos");
+        otherParams.put("min_upload_date", startDate);
+        otherParams.put("max_upload_date", endDate);
 
-		String api_sig = sign(updateInfo.apiKey, params);
+        String searchPhotosUrl = buildFlickrAPIUrl(updateInfo, page, otherParams);
 
-        String searchPhotosUrl = "http://api.flickr.com/services/rest/" +
-                                 "?method=flickr.people.getPhotos&api_key=" + api_key +
-                                 "&per_page=" + ITEMS_PER_PAGE +
-                                 "&page=" + page +
-                                 "&api_key=" + api_key +
-                                 "&user_id=" + nsid +
-                                 "&auth_token=" + token +
-                                 "&format=json&nojsoncallback=1&extras=date_upload,date_taken,description,geo,tags" +
-                                 "&min_upload_date=" + startDate +
-                                 "&max_upload_date=" + endDate +
-                                 "&api_sig=" + api_sig;
-        searchPhotosUrl = searchPhotosUrl.replace(" ", "%20");
-		String photosJson = null;
+		String photosJson;
 		try {
 			photosJson = fetch(searchPhotosUrl);
 			countSuccessfulApiCall(updateInfo.apiKey,
@@ -179,4 +242,97 @@ public class FlickrUpdater extends AbstractUpdater {
 
 		return feed;
 	}
+
+    private JSONObject retrieveRecentlyUpdatedPhotos(UpdateInfo updateInfo, long lastUpdate, int page) throws Exception {
+        long then = System.currentTimeMillis();
+
+        // The start/end upload dates should be in the form of a unix timestamp (see http://www.flickr.com/services/api/flickr.people.getPhotos.htm)
+        String lastupdate= String.valueOf(lastUpdate / 1000);
+
+        final Map<String, String> otherParams = new HashMap<String, String>();
+        otherParams.put("method", "flickr.photos.recentlyUpdated");
+        otherParams.put("min_date", lastupdate);
+
+        String searchPhotosUrl = buildFlickrAPIUrl(updateInfo, page, otherParams);
+
+        String photosJson;
+        try {
+            photosJson = fetch(searchPhotosUrl);
+            countSuccessfulApiCall(updateInfo.apiKey,
+                                   updateInfo.objectTypes, then, searchPhotosUrl);
+        } catch (Exception e) {
+            countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes,
+                               then, searchPhotosUrl, Utils.stackTrace(e));
+            throw e;
+        }
+
+        if (photosJson == null || photosJson.equals(""))
+            throw new Exception(
+                    "empty json string returned from flickr API call");
+
+        JSONObject feed = JSONObject.fromObject(photosJson);
+
+        return feed;
+    }
+
+    private String buildFlickrAPIUrl(final UpdateInfo updateInfo, final int page, final Map<String, String> otherParams) throws NoSuchAlgorithmException {
+        final String api_key = guestService.getApiKeyAttribute(updateInfo.apiKey, "flickrConsumerKey");
+        final String nsid = guestService.getApiKeyAttribute(
+                updateInfo.apiKey, "nsid");
+        final String token = guestService.getApiKeyAttribute(updateInfo.apiKey, "token");
+
+        final Map<String, String> params = new HashMap<String, String>();
+        params.put("api_key", api_key);
+        params.put("user_id", nsid);
+        params.put("auth_token", token);
+        params.put("per_page", String.valueOf(ITEMS_PER_PAGE));
+        params.put("page", String.valueOf(page));
+        params.put("format", "json");
+        params.put("nojsoncallback", "1");
+        params.put("extras", "date_upload,date_taken,description,geo,tags,last_update");
+        params.putAll(otherParams);
+
+        final String api_sig = sign(updateInfo.apiKey, params);
+
+        final StringBuilder urlBuilder = new StringBuilder("http://api.flickr.com/services/rest/?");
+
+        for (Map.Entry<String, String> parameter : params.entrySet())
+            urlBuilder.append(parameter.getKey()).append("=").append(parameter.getValue()).append("&");
+        urlBuilder.append("api_sig=").append(api_sig);
+        String searchPhotosUrl = urlBuilder.toString();
+        searchPhotosUrl = searchPhotosUrl.replace(" ", "%20");
+        return searchPhotosUrl;
+    }
+
+    private static String pad(int i) {
+        return i<10
+               ? (new StringBuilder("0").append(i)).toString()
+               : String.valueOf(i);
+    }
+
+    private String toTimeStorage(int year, int month, int day, int hours,
+                                   int minutes, int seconds) {
+        //yyyy-MM-dd'T'HH:mm:ss.SSS
+        return (new StringBuilder()).append(year)
+                .append("-").append(pad(month)).append("-")
+                .append(pad(day)).append("T").append(pad(hours))
+                .append(":").append(pad(minutes)).append(":")
+                .append(pad(seconds)).append(".000").toString();
+    }
+
+    private void addLocation(final UpdateInfo updateInfo, final List<LocationFacet> locationResources,
+                             final FlickrPhotoFacet facet, final DateTime dateTime) {
+        LocationFacet locationResource = new LocationFacet();
+        locationResource.guestId = facet.guestId;
+        locationResource.latitude = facet.latitude;
+        locationResource.longitude = facet.longitude;
+        locationResource.source = LocationFacet.Source.FLICKR;
+        locationResource.timestampMs = dateTime.getMillis();
+        locationResource.apiKeyId = updateInfo.apiKey.getId();
+        locationResource.start = dateTime.getMillis();
+        locationResource.end = dateTime.getMillis();
+        locationResource.api = updateInfo.apiKey.getConnector().value();
+
+        locationResources.add(locationResource);
+    }
 }
