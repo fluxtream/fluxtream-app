@@ -313,6 +313,8 @@ public class SmsBackupUpdater extends AbstractUpdater {
 			}
 			if (stillAlive)
 				return store;
+            else
+                store.close();
 		}
 		store = MailUtils.getGmailImapStore(email, password);
 		stores.put(email, store);
