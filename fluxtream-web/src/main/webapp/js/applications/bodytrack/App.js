@@ -41,15 +41,22 @@ define(["core/Application", "core/FlxState", "core/TabInterface"], function(Appl
         return obj;
     };
 
+    function getStateString(state){
+        return state.tabName + state.stateParts.join("/");
+    }
+
     BodyTrack.renderDefaultState = function() {
         BodyTrack.navigateState(tabNames[0]);
     };
 
     BodyTrack.renderState = function(state) {
+        if (typeof state == "string")
+            state = BodyTrack.parseState(state);
         tabInterface.setRenderParamsFunction(function(){
             return state;
         });
         document.title = "Fluxtream BodyTrack" + " (" + state.tabName + ")";
+        App.state.saveState("bodytrack",getStateString(state));
         tabInterface.setActiveTab(state.tabName);
     };
 
