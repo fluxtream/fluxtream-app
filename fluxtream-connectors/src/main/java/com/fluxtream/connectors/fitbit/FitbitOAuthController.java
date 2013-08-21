@@ -58,7 +58,7 @@ public class FitbitOAuthController {
 			OAuthMessageSignerException, OAuthNotAuthorizedException,
 			OAuthExpectationFailedException, OAuthCommunicationException {
 
-		String oauthCallback = ControllerSupport.getLocationBase(request) + "fitbit/upgradeToken";
+		String oauthCallback = ControllerSupport.getLocationBase(request, env) + "fitbit/upgradeToken";
 		if (request.getParameter("guestId") != null)
 			oauthCallback += "?guestId=" + request.getParameter("guestId");
 

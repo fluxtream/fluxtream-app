@@ -35,7 +35,7 @@ public class LastFmController {
 	@RequestMapping(value = "/token")
 	public String getToken(HttpServletRequest request) throws IOException, ServletException {
 
-		String oauthCallback = ControllerSupport.getLocationBase(request)
+		String oauthCallback = ControllerSupport.getLocationBase(request, env)
 				+ "lastfm/upgradeToken";
 		if (request.getParameter("guestId") != null)
 			oauthCallback += "?guestId=" + request.getParameter("guestId");

@@ -65,7 +65,7 @@ public class GoogleOAuth2Controller {
 		
 		String scope = request.getParameter("scope");
 		request.getSession().setAttribute("oauth2Scope", scope);
-		String redirectUri = ControllerSupport.getLocationBase(request) + "google/oauth2/swapToken";
+		String redirectUri = ControllerSupport.getLocationBase(request, env) + "google/oauth2/swapToken";
 		String clientId = env.get("google.client.id");
 
 		String authorizeUrl = "https://accounts.google.com/o/oauth2/auth?client_id=" + clientId +
@@ -82,7 +82,7 @@ public class GoogleOAuth2Controller {
 		
 		String swapTokenUrl = "https://accounts.google.com/o/oauth2/token";
 		String code = request.getParameter("code");
-		String redirectUri = ControllerSupport.getLocationBase(request) + "google/oauth2/swapToken";
+		String redirectUri = ControllerSupport.getLocationBase(request, env) + "google/oauth2/swapToken";
 		
 		Map<String,String> params = new HashMap<String,String>();
 		params.put("code", code);

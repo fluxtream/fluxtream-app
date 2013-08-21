@@ -48,7 +48,7 @@ public class BodymediaController {
 			OAuthMessageSignerException, OAuthNotAuthorizedException,
 			OAuthExpectationFailedException, OAuthCommunicationException {
 
-		String oauthCallback = ControllerSupport.getLocationBase(request) + "bodymedia/upgradeToken";
+		String oauthCallback = ControllerSupport.getLocationBase(request, env) + "bodymedia/upgradeToken";
 		if (request.getParameter("guestId") != null)
 			oauthCallback += "?guestId=" + request.getParameter("guestId");
         if (request.getParameter("apiKeyId") != null)

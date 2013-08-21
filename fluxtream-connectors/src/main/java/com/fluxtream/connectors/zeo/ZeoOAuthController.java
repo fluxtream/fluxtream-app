@@ -29,7 +29,7 @@ public class ZeoOAuthController extends BaseOAuthController {
 	@RequestMapping(value = "/token")
 	public String getLatitudeToken(HttpServletRequest request) throws IOException, ServletException {
 		return super.accessToken(request,
-				ZEO_TOKEN_SECRET, null, ControllerSupport.getLocationBase(request)
+				ZEO_TOKEN_SECRET, null, ControllerSupport.getLocationBase(request, env)
 						+ "zeo/upgradeToken");
 	}
 

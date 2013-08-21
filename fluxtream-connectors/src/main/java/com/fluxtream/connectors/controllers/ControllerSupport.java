@@ -1,6 +1,7 @@
 package com.fluxtream.connectors.controllers;
 
 import javax.servlet.http.HttpServletRequest;
+import com.fluxtream.Configuration;
 
 public class ControllerSupport {
 
@@ -10,15 +11,32 @@ public class ControllerSupport {
 		return "error";
 	}
 
-    public static final String getLocationBase(HttpServletRequest request) {
+    /**
+     * WARNING: this method assumes that if there is an x-forwared-host header (as is the case
+     * when using the ProxyPass/ProxyReverse directive with apache, then whatever port this query
+     * was made with gets stripped off
+     * @param request used to figure out our server name and wether this request is forwarded from apache
+     * @param env used to find out wether https needs to be enforced on the returned url
+     * @return the base url for this server
+     */
+    public static final String getLocationBase(HttpServletRequest request, Configuration env) {
         String scheme = request.getScheme();
         String serverName = request.getServerName();
-        String remoteAddr = request.getHeader("X-Forwarded-For");
-        if (remoteAddr == null)
-            remoteAddr = request.getRemoteAddr();
-        int serverPort = request.getServerPort();
-        String locationBase = String.format("%s://%s:%s/", scheme, serverName, serverPort);
-        return locationBase;
+        String forwardedHost = request.getHeader("x-forwarded-host");
+        if (forwardedHost!=null) {
+            boolean forceHttps = env.get("forceHttps")!=null && env.get("forceHttps").equalsIgnoreCase("true");
+            if (forceHttps) {
+                String locationBase = new StringBuilder("https://").append(forwardedHost).append("/").toString();
+                return locationBase;
+            } else {
+                String locationBase = String.format("%s://%s/", scheme, forwardedHost);
+                return locationBase;
+            }
+        } else {
+            int serverPort = request.getServerPort();
+            String locationBase = String.format("%s://%s:%s/", scheme, serverName, serverPort);
+            return locationBase;
+        }
     }
 
 }

@@ -54,7 +54,7 @@ public class RunKeeperController {
                 .provider(RunKeeperApi.class)
                 .apiKey(getConsumerKey())
                 .apiSecret(getConsumerSecret())
-                .callback(ControllerSupport.getLocationBase(request) + "runkeeper/upgradeToken")
+                .callback(ControllerSupport.getLocationBase(request, env) + "runkeeper/upgradeToken")
                 .build();
     }
 

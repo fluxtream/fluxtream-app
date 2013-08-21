@@ -28,7 +28,7 @@ public class QuantifiedMindConnectorController {
 	@RequestMapping(value = "/getTokenDialog")
 	public ModelAndView enterUsername(HttpServletRequest request) {
 		ModelAndView mav = new ModelAndView("connectors/quantifiedmind/getToken");
-        mav.addObject("redirect_url", ControllerSupport.getLocationBase(request) + "quantifiedmind/setToken");
+        mav.addObject("redirect_url", ControllerSupport.getLocationBase(request, env) + "quantifiedmind/setToken");
         return mav;
 	}
 

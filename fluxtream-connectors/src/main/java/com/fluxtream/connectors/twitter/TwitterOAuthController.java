@@ -46,7 +46,7 @@ public class TwitterOAuthController {
             throws IOException, ServletException, OAuthMessageSignerException,
                    OAuthNotAuthorizedException, OAuthExpectationFailedException, OAuthCommunicationException
     {
-		String oauthCallback = ControllerSupport.getLocationBase(request)
+		String oauthCallback = ControllerSupport.getLocationBase(request, env)
 		+ "twitter/upgradeToken";
 		if (request.getParameter("guestId")!=null)
 			oauthCallback += "?guestId=" + request.getParameter("guestId");

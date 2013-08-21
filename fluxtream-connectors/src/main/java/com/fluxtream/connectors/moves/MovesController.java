@@ -52,11 +52,11 @@ public class MovesController {
 
         // Check that the redirectUri is going to work
         final String validRedirectUrl = env.get("moves.validRedirectURL");
-        if (!validRedirectUrl.startsWith(ControllerSupport.getLocationBase(request))) {
+        if (!validRedirectUrl.startsWith(ControllerSupport.getLocationBase(request, env))) {
             final long guestId = AuthHelper.getGuestId();
             final String validRedirectBase = getBaseURL(validRedirectUrl);
             notificationsService.addNotification(guestId, Notification.Type.WARNING, "Adding a Moves connector only works when logged in through " + validRedirectBase +
-            ".  You are logged in through " + ControllerSupport.getLocationBase(request) + ".<br>Please re-login via the supported URL or inform your Fluxtream administrator that the moves.validRedirectURL setting does not match your needs.");
+            ".  You are logged in through " + ControllerSupport.getLocationBase(request, env) + ".<br>Please re-login via the supported URL or inform your Fluxtream administrator that the moves.validRedirectURL setting does not match your needs.");
             return "redirect:/app";
         }
 
