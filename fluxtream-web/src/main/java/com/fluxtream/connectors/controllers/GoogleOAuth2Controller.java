@@ -14,16 +14,19 @@ import com.fluxtream.connectors.OAuth2Helper;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.Notification;
+import com.fluxtream.mvc.controllers.ErrorController;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.NotificationsService;
 import com.fluxtream.services.SystemService;
 import com.fluxtream.utils.HttpUtils;
 import net.sf.json.JSONObject;
+import org.codehaus.plexus.util.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.ModelAndView;
 
 @Controller
 @RequestMapping(value = "/google/oauth2")
@@ -49,7 +52,10 @@ public class GoogleOAuth2Controller {
     @Autowired
     OAuth2Helper oAuth2Helper;
 
-    private final static String APIKEYID_ATTRIBUTE = "google_latitude.apiKeyId";
+    @Autowired
+    ErrorController errorController;
+
+    private final static String APIKEYID_ATTRIBUTE = "google.oauth2.apiKeyId";
 
     @RequestMapping(value = "/{apiKeyId}/token")
     public String renewToken(@PathVariable("apiKeyId") String apiKeyId, HttpServletRequest request) throws IOException, ServletException {
@@ -78,7 +84,7 @@ public class GoogleOAuth2Controller {
 	}
 	
 	@RequestMapping(value = "/swapToken")
-	public String upgradeToken(HttpServletRequest request) throws IOException {
+	public ModelAndView upgradeToken(HttpServletRequest request) throws IOException {
 		
 		String swapTokenUrl = "https://accounts.google.com/o/oauth2/token";
 		String code = request.getParameter("code");
@@ -111,7 +117,7 @@ public class GoogleOAuth2Controller {
             notificationsService.addNotification(guest.getId(),
                                                  Notification.Type.ERROR,
                                                  message);
-            return "redirect:/app";
+            return new ModelAndView("redirect:/app");
         }
         final String refresh_token = token.getString("refresh_token");
         ApiKey apiKey;
@@ -119,6 +125,12 @@ public class GoogleOAuth2Controller {
         if (isRenewToken) {
             String apiKeyId = (String)request.getSession().getAttribute(APIKEYID_ATTRIBUTE);
             apiKey = guestService.getApiKey(Long.valueOf(apiKeyId));
+            if (apiKey==null) {
+                Exception e = new Exception();
+                String stackTrace = ExceptionUtils.getStackTrace(e);
+                String errorMessage = "no apiKey with id '%s'... It looks like you are trying to renew the tokens of a non-existing Connector (/ApiKey)";
+                return errorController.handleError(500, errorMessage, stackTrace);
+            }
             // remove oauth1 keys if upgrading from previous connector version
             if (guestService.getApiKeyAttribute(apiKey, "googleConsumerKey")!=null)
                 guestService.removeApiKeyAttribute(apiKey.getId(), "googleConsumerKey");
@@ -146,9 +158,9 @@ public class GoogleOAuth2Controller {
 
         if (isRenewToken) {
             request.getSession().removeAttribute(APIKEYID_ATTRIBUTE);
-            return "redirect:/app/tokenRenewed/"+scopedApi.getName();
+            return new ModelAndView("redirect:/app/tokenRenewed/"+scopedApi.getName());
         }
-        return "redirect:/app/from/"+scopedApi.getName();
+        return new ModelAndView("redirect:/app/from/"+scopedApi.getName());
     }
 
     private Object getGooglePrettyName(final Connector scopedApi) {
