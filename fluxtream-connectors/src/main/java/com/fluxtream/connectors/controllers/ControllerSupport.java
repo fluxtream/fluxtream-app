@@ -20,23 +20,24 @@ public class ControllerSupport {
      * @return the base url for this server
      */
     public static final String getLocationBase(HttpServletRequest request, Configuration env) {
-        String scheme = request.getScheme();
-        String serverName = request.getServerName();
-        String forwardedHost = request.getHeader("x-forwarded-host");
-        if (forwardedHost!=null) {
-            boolean forceHttps = env.get("forceHttps")!=null && env.get("forceHttps").equalsIgnoreCase("true");
-            if (forceHttps) {
-                String locationBase = new StringBuilder("https://").append(forwardedHost).append("/").toString();
-                return locationBase;
-            } else {
-                String locationBase = String.format("%s://%s/", scheme, forwardedHost);
-                return locationBase;
-            }
-        } else {
-            int serverPort = request.getServerPort();
-            String locationBase = String.format("%s://%s:%s/", scheme, serverName, serverPort);
-            return locationBase;
-        }
+        return env.get("homeBaseUrl");
+        //String scheme = request.getScheme();
+        //String serverName = request.getServerName();
+        //String forwardedHost = request.getHeader("x-forwarded-host");
+        //if (forwardedHost!=null) {
+        //    boolean forceHttps = env.get("forceHttps")!=null && env.get("forceHttps").equalsIgnoreCase("true");
+        //    if (forceHttps) {
+        //        String locationBase = new StringBuilder("https://").append(forwardedHost).append("/").toString();
+        //        return locationBase;
+        //    } else {
+        //        String locationBase = String.format("%s://%s/", scheme, forwardedHost);
+        //        return locationBase;
+        //    }
+        //} else {
+        //    int serverPort = request.getServerPort();
+        //    String locationBase = String.format("%s://%s:%s/", scheme, serverName, serverPort);
+        //    return locationBase;
+        //}
     }
 
 }
