@@ -98,6 +98,6 @@
 		</dependency>
     </dependencies>
     <properties>
-        <release>0.9.0015</release>
+        <release>0.9.0019</release>
     </properties>
 </project>
