@@ -3,7 +3,6 @@ package com.fluxtream.connectors.fitbit;
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import com.fluxtream.Configuration;
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.auth.AuthHelper;
@@ -15,7 +14,6 @@ import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.GuestService;
-import net.sf.json.JSONObject;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.OAuthProvider;
 import oauth.signpost.basic.DefaultOAuthConsumer;
@@ -82,58 +80,8 @@ public class FitbitOAuthController {
 		return "redirect:" + approvalPageUrl;
 	}
 
-	private void fetchUserProfile(ApiKey apiKey, FitbitUserProfile userProfile)
-			throws Exception {
-		logger.info("guestId=" + apiKey.getGuestId() + " action=fitbit.fetchUserProfile "
-				+ "helper=" + signpostHelper + " connector=" + connector()
-				+ " guestId=" + apiKey.getGuestId());
-		String json = signpostHelper.makeRestCall(apiKey,
-				GET_USER_PROFILE_CALL.hashCode(),
-				"http://api.fitbit.com/1/user/-/profile.json");
-
-		JSONObject rootJson = JSONObject.fromObject(json);
-		JSONObject userJson = rootJson.getJSONObject("user");
-
-		if (userJson.has("aboutMe"))
-			userProfile.aboutMe = userJson.getString("aboutMe");
-		if (userJson.has("city"))
-			userProfile.city = userJson.getString("city");
-		if (userJson.has("country"))
-			userProfile.country = userJson.getString("country");
-		if (userJson.has("dateOfBirth"))
-			userProfile.dateOfBirth = userJson.getString("dateOfBirth");
-		if (userJson.has("displayName"))
-			userProfile.displayName = userJson.getString("displayName");
-		if (userJson.has("encodedId"))
-			userProfile.encodedId = userJson.getString("encodedId");
-		if (userJson.has("fullName"))
-			userProfile.fullName = userJson.getString("fullName");
-		if (userJson.has("gender"))
-			userProfile.gender = userJson.getString("gender");
-		if (userJson.has("height"))
-			userProfile.height = userJson.getDouble("height");
-		if (userJson.has("nickname"))
-			userProfile.nickname = userJson.getString("nickname");
-		if (userJson.has("offsetFromUTCMillis"))
-			userProfile.offsetFromUTCMillis = userJson
-					.getLong("offsetFromUTCMillis");
-		if (userJson.has("state"))
-			userProfile.state = userJson.getString("state");
-		if (userJson.has("strideLengthRunning"))
-			userProfile.strideLengthRunning = userJson
-					.getDouble("strideLengthRunning");
-		if (userJson.has("strideLengthWalking"))
-			userProfile.strideLengthWalking = userJson
-					.getDouble("strideLengthWalking");
-		if (userJson.has("timezone"))
-			userProfile.timezone = userJson.getString("timezone");
-		if (userJson.has("weight"))
-			userProfile.weight = userJson.getDouble("weight");
-	}
-
 	@RequestMapping(value = "/upgradeToken")
-	public String upgradeToken(HttpServletRequest request,
-			HttpServletResponse response) throws Exception {
+	public String upgradeToken(HttpServletRequest request) throws Exception {
 		OAuthConsumer consumer = (OAuthConsumer) request.getSession()
 				.getAttribute(FITBIT_OAUTH_CONSUMER);
 		OAuthProvider provider = (OAuthProvider) request.getSession()
@@ -148,10 +96,6 @@ public class FitbitOAuthController {
 				"accessToken", consumer.getToken());
 		guestService.setApiKeyAttribute(apiKey,
 				"tokenSecret", consumer.getTokenSecret());
-
-		FitbitUserProfile userProfile = new FitbitUserProfile();
-		fetchUserProfile(apiKey, userProfile);
-		guestService.saveUserProfile(guest.getId(), userProfile);
 
 		return "redirect:/app/from/" + connector().getName();
 	}
