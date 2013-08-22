@@ -1065,10 +1065,9 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         var selectedIndex = $("#mainCitySelect")[0].selectedIndex-1;
         var selectedCity = currentCityPool[selectedIndex];
         if(typeof(selectedCity.geometry)!="undefined"&&
-           typeof(selectedCity.geometry.location)!="undefined"&&
-           typeof(selectedCity.geometry.location.jb)!="undefined") {
-            var latitude = selectedCity.geometry.location.jb;
-            var longitude = selectedCity.geometry.location.kb;
+            selectedCity.geometry.location!="undefined") {
+            var latitude = selectedCity.geometry.location.lat();
+            var longitude = selectedCity.geometry.location.lng();
             var state = App.state.getState("calendar");
             state = state.substring(state.indexOf("/"));
             console.log("coords: " + latitude + ", " + longitude + " (" + timeUnit + ")");
