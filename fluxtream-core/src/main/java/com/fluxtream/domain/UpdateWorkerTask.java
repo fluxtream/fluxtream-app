@@ -143,6 +143,8 @@ public class UpdateWorkerTask extends AbstractEntity {
 	}
 
     public void addAuditTrailEntry(AuditTrailEntry auditTrailEntry) {
+        //if (auditTrail==null) auditTrail = "";
+        // always reset the audit trail to an empty string to accumulating too much cruft in the database
         if (auditTrail==null) auditTrail = "";
         StringBuilder sb = new StringBuilder(auditTrail);
         sb.append("\\n").append(auditTrailEntry.date.toString());
