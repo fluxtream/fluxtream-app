@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
+import javax.persistence.NonUniqueResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
@@ -437,11 +438,12 @@ public class ApiDataServiceImpl implements ApiDataService {
         // TODO(rsargent): do we need @Transactional again on class?
 
         String tableName=getTableName(facetClass);
-        Query q = em.createQuery("SELECT e FROM " + tableName + " e WHERE " + query.query);
+        final String qlString = "SELECT e FROM " + tableName + " e WHERE " + query.query;
+        Query q = em.createQuery(qlString);
         for (int i = 0; i < query.args.length; i++) {
             q.setParameter(i+1, query.args[i]);
         }
-        T orig;
+        T orig = null;
         try {
             @SuppressWarnings("unchecked")
             T x = orig = (T) q.getSingleResult();
@@ -452,6 +454,8 @@ public class ApiDataServiceImpl implements ApiDataService {
         } catch (javax.persistence.NoResultException ignored) {
             orig = null;
             //System.out.println("====== Didn't find facet;  need to create new one");
+        } catch (NonUniqueResultException nonUnique) {
+            logger.info("WARNING: non unique exception here, query: " + qlString);
         }
 
         T modified = modifier.createOrModify(orig, apiKeyId);

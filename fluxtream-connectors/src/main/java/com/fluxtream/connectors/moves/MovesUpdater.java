@@ -20,7 +20,6 @@ import com.fluxtream.utils.Utils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -315,11 +314,11 @@ public class MovesUpdater extends AbstractUpdater {
             final DateTime startTime = timeStorageFormat.withZoneUTC().parseDateTime(segment.getString("startTime"));
             long start = startTime.getMillis();
 
-            MovesMoveFacet ret = (MovesMoveFacet)
+            MovesMoveFacet ret =
                     apiDataService.createOrReadModifyWrite(MovesMoveFacet.class,
                                                            new ApiDataService.FacetQuery(
-                                                                   "e.guestId = ? AND e.date = ? AND e.start = ?",
-                                                                   updateInfo.getGuestId(),
+                                                                   "e.apiKeyId = ? AND e.date = ? AND e.start = ?",
+                                                                   updateInfo.apiKey.getId(),
                                                                    date,
                                                                    start),
                                                            new ApiDataService.FacetModifier<MovesMoveFacet>() {
@@ -375,11 +374,11 @@ public class MovesUpdater extends AbstractUpdater {
             final DateTime startTime = timeStorageFormat.withZoneUTC().parseDateTime(segment.getString("startTime"));
             long start = startTime.getMillis();
 
-            MovesPlaceFacet ret = (MovesPlaceFacet)
+            MovesPlaceFacet ret =
                     apiDataService.createOrReadModifyWrite(MovesPlaceFacet.class,
                                                            new ApiDataService.FacetQuery(
-                                                                   "e.guestId = ? AND e.date = ? AND e.start = ?",
-                                                                   updateInfo.getGuestId(),
+                                                                   "e.apiKeyId = ? AND e.date = ? AND e.start = ?",
+                                                                   updateInfo.apiKey.getId(),
                                                                    date,
                                                                    start),
                                                            new ApiDataService.FacetModifier<MovesPlaceFacet>() {
