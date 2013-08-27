@@ -98,7 +98,7 @@ public class MovesController {
         if (errorMessage!=null) {
             notificationsService.addNotification(guest.getId(),
                                                  Notification.Type.ERROR,
-                                                 errorMessage);
+                                                 "There was an error while setting you up with the moves service: " + errorMessage);
             return "redirect:/app";
         }
         final String code = request.getParameter("code");

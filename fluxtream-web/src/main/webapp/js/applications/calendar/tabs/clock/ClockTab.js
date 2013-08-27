@@ -50,7 +50,6 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 	}
 
     function displayFacet(facet){
-        console.log(facet);
         if (facet == null)
             return;
 
@@ -224,12 +223,29 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                 var outline = App.getFacetConfig(item.type).clockOutline;
                 var dayStart = dgst.metadata.mainCity.dayStart;
                 var dayEnd = dgst.metadata.mainCity.dayEnd;
-                if (item.start <= dayStart)
-                    item.startMinute = 0;
-                if (item.end >= dayEnd)
-                    item.endMinute = 1440;
-                while (item.endMinute > 1440)
-                    item.endMinute -= 1440;
+
+                if (item.type=="fitbit-sleep") {
+                    console.log("dayStart:" + new Date(dayStart));
+                    console.log("dayEnd:" + new Date(dayEnd));
+                    console.log("item.start:" + new Date(item.start));
+                    console.log("item.end:" + new Date(item.end));
+                    console.log("is item.start less then dayStart: " + (item.start <= dayStart));
+                    console.log("is item.end greater then dayEnd: " + (item.end >= dayEnd));
+                    console.log(item);
+                }
+
+                if (typeof(item.localTime)!="undefined"&&item.localTime) {
+                    if (item.startMinute>item.endMinute)
+                        item.startMinute = 0;
+                } else {
+                    if (item.start <= dayStart)
+                        item.startMinute = 0;
+                    if (item.end >= dayEnd)
+                        item.endMinute = 1440;
+                    while (item.endMinute > 1440)
+                        item.endMinute -= 1440;
+                }
+
 				config.clockCircles.push(
 					function() {
 						var start = item.startMinute;
