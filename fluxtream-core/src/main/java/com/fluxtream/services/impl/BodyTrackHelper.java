@@ -202,7 +202,9 @@ public class BodyTrackHelper {
             if (guestId == null)
                 throw new IllegalArgumentException();
             ChannelMapping mapping = getChannelMapping(guestId, deviceNickname,channelName);
-            final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("gettile", new Object[]{guestId, mapping.internalDeviceName + "." + mapping.internalChannelName, level, offset});
+            String internalDeviceName = mapping != null ? mapping.internalDeviceName : deviceNickname;
+            String internalChannelName = mapping != null ? mapping.internalChannelName : channelName;
+            final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("gettile", new Object[]{guestId, internalDeviceName + "." + internalChannelName, level, offset});
             String result = dataStoreExecutionResult.getResponse();
 
             // TODO: check statusCode in DataStoreExecutionResult
