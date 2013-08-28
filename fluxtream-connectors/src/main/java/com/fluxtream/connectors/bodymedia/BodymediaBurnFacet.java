@@ -19,7 +19,7 @@ import org.joda.time.format.DateTimeFormatter;
  * Stores data from the bodymedia burn api
  */
 @Entity(name="Facet_BodymediaBurn")
-@ObjectTypeSpec(name = "burn", value = 1, prettyname = "Calories Burned", extractor = BodymediaBurnFacetExtractor.class, isDateBased = true)
+@ObjectTypeSpec(name = "burn", value = 1, prettyname = "Calories Burned", isDateBased = true)
 @NamedQueries({
     @NamedQuery(name = "bodymedia.burn.getFailedUpdate", query = "SELECT facet FROM Facet_BodymediaBurn facet WHERE facet.guestId=? AND facet.lastSync=1"),
     @NamedQuery(name = "bodymedia.burn.getDaysPrior", query = "SELECT facet FROM Facet_BodymediaBurn facet WHERE facet.guestId=? AND facet.start<? ORDER BY facet.start DESC"),

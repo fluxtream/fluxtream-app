@@ -10,7 +10,9 @@ import com.fluxtream.connectors.SignpostOAuthHelper;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
+import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
+import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.TimeUtils;
@@ -32,6 +34,7 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeComparator;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.DateTimeZone;
+import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,7 +64,8 @@ public class BodymediaUpdater extends AbstractUpdater {
     private final HashMap<ObjectType, Integer> maxIncrement = new HashMap<ObjectType, Integer>();
 
     private final DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyyMMdd");
-    private final DateTimeFormatter formatter2 = DateTimeFormat.forPattern("yyyy-MM-dd");
+    DateTimeFormatter form = DateTimeFormat.forPattern("yyyyMMdd'T'HHmmssZ");
+    private final DateTimeFormatter dateFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
 
     protected static DateTimeFormatter tzmapFormatter = DateTimeFormat.forPattern("yyyyMMdd'T'HHmmssZ");
 
@@ -118,10 +122,35 @@ public class BodymediaUpdater extends AbstractUpdater {
                 String minutesUrl = "http://api.bodymedia.com/v2/json/" + urlExtension + startPeriod + "/" + endPeriod +
                                     "?api_key=" + updateInfo.apiKey.getAttributeValue("api_key", env);
                 //The following call may fail due to bodymedia's api. That is expected behavior
-                String jsonResponse = signpostHelper.makeRestCall(updateInfo.apiKey, ot.value(), minutesUrl);
-                apiDataService.cacheApiDataJSON(updateInfo, jsonResponse, -1, -1);
-                current = current.plusDays(increment);
+                String json = signpostHelper.makeRestCall(updateInfo.apiKey, ot.value(), minutesUrl);
+                JSONObject bodymediaResponse = JSONObject.fromObject(json);
+                JSONArray daysArray = bodymediaResponse.getJSONArray("days");
+                if(bodymediaResponse.has("lastSync"))
+                {
+                    DateTime d = form.parseDateTime(bodymediaResponse.getJSONObject("lastSync").getString("dateTime"));
 
+                    // Get timezone map from UpdateInfo context
+                    TimezoneMap tzMap = (TimezoneMap)updateInfo.getContext("tzMap");
+
+                    // Insert lastSync into the updateInfo context so it's accessible to the updater
+                    updateInfo.setContext("lastSync", d);
+                    List<AbstractFacet> newFacets = new ArrayList<AbstractFacet>();
+                    for(Object o : daysArray)
+                    {
+                        if(o instanceof JSONObject)
+                        {
+                            if (ot==ObjectType.getObjectType(connector(), "steps"))
+                                newFacets.add(createOrUpdateStepsFacet((JSONObject)o, updateInfo, d, tzMap));
+                            else if (ot==ObjectType.getObjectType(connector(), "burn"))
+                                newFacets.add(createOrUpdateBurnFacet((JSONObject)o, updateInfo, d, tzMap));
+                            else
+                                newFacets.add(createOrUpdateSleepFacet((JSONObject)o, updateInfo, d, tzMap));
+                        }
+                    }
+                    bodyTrackStorageService.storeApiData(updateInfo.getGuestId(), newFacets);
+                }
+
+                current = current.plusDays(increment);
             }
 
             // Update the stored value that controls when we will start updating next time
@@ -142,6 +171,161 @@ public class BodymediaUpdater extends AbstractUpdater {
             throw e;
         }
 
+    }
+
+    private BodymediaSleepFacet createOrUpdateSleepFacet(final JSONObject day, final UpdateInfo updateInfo, final DateTime d, final TimezoneMap tzMap) {
+        final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery("e.apiKeyId=? AND e.date=?",
+                                                                                   updateInfo.apiKey.getId(), day.getString("date"));
+        final ApiDataService.FacetModifier<BodymediaSleepFacet> facetModifier = new ApiDataService.FacetModifier<BodymediaSleepFacet>() {
+            @Override
+            public BodymediaSleepFacet createOrModify(BodymediaSleepFacet facet, final Long apiKeyId) {
+                if (facet == null) {
+                    facet = new BodymediaSleepFacet(updateInfo.apiKey.getId());
+                    facet.date = day.getString("date");
+                    facet.guestId = updateInfo.apiKey.getGuestId();
+                    facet.api = updateInfo.apiKey.getConnector().value();
+                    facet.timeUpdated = System.currentTimeMillis();
+                }
+                facet.efficiency = day.getDouble("efficiency");
+                facet.totalLying = day.getInt("totalLying");
+                facet.totalSleeping = day.getInt("totalSleep");
+                facet.json = day.getString("sleepPeriods");
+                facet.lastSync = d.getMillis();
+
+                //https://developer.bodymedia.com/docs/read/api_reference_v2/Sleep_Service
+                //  sleep data is from noon the previous day to noon the current day,
+                //  so subtract MILLIS_IN_DAY/2 from midnight
+
+                long MILLIS_IN_DAY = 86400000l;
+                DateTime date = formatter.parseDateTime(day.getString("date"));
+
+                if(tzMap!=null)
+                {
+                    // Create a LocalDate object which just captures the date without any
+                    // timezone assumptions
+                    LocalDate ld = new LocalDate(date.getYear(),date.getMonthOfYear(),date.getDayOfMonth());
+                    // Use tzMap to convert date into a datetime with timezone information
+                    DateTime realDateStart = tzMap.getStartOfDate(ld);
+                    // Set the start and end times for the facet.  The start time is the leading midnight
+                    // of burn.date according to BodyMedia's idea of what timezone you were in then.
+                    // End should, I think, be start + the number of minutes in the minutes array *
+                    // the number of milliseconds in a minute.
+                    facet.date = dateFormatter.print(realDateStart.getMillis());
+                    facet.start = realDateStart.getMillis() - DateTimeConstants.MILLIS_PER_DAY/2;
+                    facet.end = realDateStart.getMillis() + DateTimeConstants.MILLIS_PER_DAY/2;
+                }
+                else {
+                    facet.date = dateFormatter.print(date.getMillis());
+                    TimeZone timeZone = metadataService.getTimeZone(updateInfo.getGuestId(), date.getMillis());
+                    long fromNoon = TimeUtils.fromMidnight(date.getMillis(), timeZone) - MILLIS_IN_DAY / 2;
+                    long toNoon = TimeUtils.toMidnight(date.getMillis(), timeZone) - MILLIS_IN_DAY / 2;
+                    facet.start = fromNoon;
+                    facet.end = toNoon;
+                }
+                return facet;
+            }
+        };
+        return apiDataService.createOrReadModifyWrite(BodymediaSleepFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
+    }
+
+    private BodymediaBurnFacet createOrUpdateBurnFacet(final JSONObject day, final UpdateInfo updateInfo, final DateTime d, final TimezoneMap tzMap) {
+        final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery("e.apiKeyId=? AND e.date=?",
+                                                                                   updateInfo.apiKey.getId(), day.getString("date"));
+        final ApiDataService.FacetModifier<BodymediaBurnFacet> facetModifier = new ApiDataService.FacetModifier<BodymediaBurnFacet>() {
+            @Override
+            public BodymediaBurnFacet createOrModify(BodymediaBurnFacet facet, final Long apiKeyId) {
+                if (facet == null) {
+                    facet = new BodymediaBurnFacet(updateInfo.apiKey.getId());
+                    facet.date = day.getString("date");
+                    facet.guestId = updateInfo.apiKey.getGuestId();
+                    facet.api = updateInfo.apiKey.getConnector().value();
+                    facet.timeUpdated = System.currentTimeMillis();
+                }
+                facet.setTotalCalories(day.getInt("totalCalories"));
+                facet.date = day.getString("date");
+                facet.setEstimatedCalories(day.getInt("estimatedCalories"));
+                facet.setPredictedCalories(day.getInt("predictedCalories"));
+                facet.json = day.getString("minutes");
+                facet.lastSync = d.getMillis();
+
+                DateTime date = formatter.parseDateTime(day.getString("date"));
+                facet.date = dateFormatter.print(date.getMillis());
+
+                if(tzMap!=null)
+                {
+                    // Create a LocalDate object which just captures the date without any
+                    // timezone assumptions
+                    LocalDate ld = new LocalDate(date.getYear(),date.getMonthOfYear(),date.getDayOfMonth());
+                    // Use tzMap to convert date into a datetime with timezone information
+                    DateTime realDateStart = tzMap.getStartOfDate(ld);
+                    // Set the start and end times for the facet.  The start time is the leading midnight
+                    // of burn.date according to BodyMedia's idea of what timezone you were in then.
+                    // End should, I think, be start + the number of minutes in the minutes array *
+                    // the number of milliseconds in a minute.
+                    facet.start = realDateStart.getMillis();
+                    int minutesLength = 1440;
+                    facet.end = facet.start + DateTimeConstants.MILLIS_PER_MINUTE * minutesLength;
+                }
+                else {
+                    // This is the old code from Prasanth that uses metadataService, which isn't right
+                    TimeZone timeZone = metadataService.getTimeZone(updateInfo.getGuestId(), date.getMillis());
+                    long fromMidnight = TimeUtils.fromMidnight(date.getMillis(), timeZone);
+                    long toMidnight = TimeUtils.toMidnight(date.getMillis(), timeZone);
+                    //Sets the start and end times for the facet so that it can be uniquely defined
+                    facet.start = fromMidnight;
+                    facet.end = toMidnight;
+                }
+                return facet;
+            }
+        };
+        return apiDataService.createOrReadModifyWrite(BodymediaBurnFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
+    }
+
+    private BodymediaStepsFacet createOrUpdateStepsFacet(final JSONObject day, final UpdateInfo updateInfo, final DateTime d, final TimezoneMap tzMap) {
+        final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery("e.apiKeyId=? AND e.date=?",
+                                                                                   updateInfo.apiKey.getId(), day.getString("date"));
+        final ApiDataService.FacetModifier<BodymediaStepsFacet> facetModifier = new ApiDataService.FacetModifier<BodymediaStepsFacet>() {
+            @Override
+            public BodymediaStepsFacet createOrModify(BodymediaStepsFacet facet, final Long apiKeyId) {
+                if (facet == null) {
+                    facet = new BodymediaStepsFacet(updateInfo.apiKey.getId());
+                    facet.date = day.getString("date");
+                    facet.guestId = updateInfo.apiKey.getGuestId();
+                    facet.api = updateInfo.apiKey.getConnector().value();
+                    facet.timeUpdated = System.currentTimeMillis();
+                }
+                facet.totalSteps = day.getInt("totalSteps");
+                facet.date = day.getString("date");
+                facet.json = day.getString("hours");
+                facet.lastSync = d.getMillis();
+
+                DateTime date = formatter.parseDateTime(day.getString("date"));
+                facet.date = dateFormatter.print(date.getMillis());
+                if(tzMap!=null)
+                {
+                    // Create a LocalDate object which just captures the date without any
+                    // timezone assumptions
+                    LocalDate ld = new LocalDate(date.getYear(),date.getMonthOfYear(),date.getDayOfMonth());
+                    // Use tzMap to convert date into a datetime with timezone information
+                    DateTime realDateStart = tzMap.getStartOfDate(ld);
+                    // Set the start and end times for the facet.  The start time is the leading midnight
+                    // of date according to BodyMedia's idea of what timezone you were in then.
+                    // Need to figure out what end should be...
+                    facet.start = realDateStart.getMillis();
+                    int minutesLength = 1440;
+                    facet.end = facet.start + DateTimeConstants.MILLIS_PER_MINUTE * minutesLength;
+                }
+                else {
+                    TimeZone timeZone = metadataService.getTimeZone(updateInfo.getGuestId(), date.getMillis());
+                    long fromMidnight = TimeUtils.fromMidnight(date.getMillis(), timeZone);
+                    long toMidnight = TimeUtils.toMidnight(date.getMillis(), timeZone);
+                    facet.start = fromMidnight;
+                    facet.end = toMidnight;
+                }
+                return facet;
+            }
+        };
+        return apiDataService.createOrReadModifyWrite(BodymediaStepsFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
     }
 
     // Update the start date for next time.  The parameter the updateProgressDate is the date
@@ -268,31 +452,33 @@ public class BodymediaUpdater extends AbstractUpdater {
         try{
             return formatter.parseDateTime(updateStartDate);
         } catch (IllegalArgumentException e){
-            return formatter2.parseDateTime(updateStartDate);
+            return dateFormatter.parseDateTime(updateStartDate);
         }
     }
 
     public String getUserRegistrationDate(UpdateInfo updateInfo, String api_key, OAuthConsumer consumer) throws Exception {
-        long then = System.currentTimeMillis();
-        String requestUrl = "http://api.bodymedia.com/v2/json/user/info?api_key=" + api_key;
-
-        HttpGet request = new HttpGet(requestUrl);
-        consumer.sign(request);
-        HttpClient client = env.getHttpClient();
-        HttpResponse response = client.execute(request);
-        int statusCode = response.getStatusLine().getStatusCode();
-        if (statusCode == 200) {
-            countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, requestUrl);
-            ResponseHandler<String> responseHandler = new BasicResponseHandler();
-            String json = responseHandler.handleResponse(response);
-            JSONObject userInfo = JSONObject.fromObject(json);
-            return userInfo.getString("registrationDate");
-        }
-        else {
-            final String reasonPhrase = response.getStatusLine().getReasonPhrase();
-            countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, requestUrl, reasonPhrase);
-            throw new Exception("Error: " + statusCode + " Unexpected error trying to get BodyMedia user registration date for guestId="+updateInfo.getGuestId());
-        }
+        // dev only: artificially make history shorter
+        return "20130810";
+        //long then = System.currentTimeMillis();
+        //String requestUrl = "http://api.bodymedia.com/v2/json/user/info?api_key=" + api_key;
+        //
+        //HttpGet request = new HttpGet(requestUrl);
+        //consumer.sign(request);
+        //HttpClient client = env.getHttpClient();
+        //HttpResponse response = client.execute(request);
+        //int statusCode = response.getStatusLine().getStatusCode();
+        //if (statusCode == 200) {
+        //    countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, requestUrl);
+        //    ResponseHandler<String> responseHandler = new BasicResponseHandler();
+        //    String json = responseHandler.handleResponse(response);
+        //    JSONObject userInfo = JSONObject.fromObject(json);
+        //    return userInfo.getString("registrationDate");
+        //}
+        //else {
+        //    final String reasonPhrase = response.getStatusLine().getReasonPhrase();
+        //    countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, requestUrl, reasonPhrase);
+        //    throw new Exception("Error: " + statusCode + " Unexpected error trying to get BodyMedia user registration date for guestId="+updateInfo.getGuestId());
+        //}
     }
 
     public TimezoneMap getTimezoneMap(UpdateInfo updateInfo) throws Exception {

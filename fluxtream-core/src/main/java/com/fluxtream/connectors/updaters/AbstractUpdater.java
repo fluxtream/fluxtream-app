@@ -1,9 +1,11 @@
 package com.fluxtream.connectors.updaters;
 
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.ApiClientSupport;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.dao.FacetDao;
 import com.fluxtream.connectors.updaters.UpdateInfo.UpdateType;
+import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.AbstractUserProfile;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Notification;
@@ -14,7 +16,6 @@ import com.fluxtream.services.GuestService;
 import com.fluxtream.services.JPADaoService;
 import com.fluxtream.services.NotificationsService;
 import com.fluxtream.utils.Utils;
-import com.fluxtream.aspects.FlxLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -56,6 +57,13 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 
     public AbstractUpdater() {
 	}
+
+    protected void extractCommonFacetData(AbstractFacet facet, UpdateInfo updateInfo) {
+        facet.apiKeyId = updateInfo.apiKey.getId();
+        facet.guestId = updateInfo.apiKey.getGuestId();
+        facet.api = updateInfo.apiKey.getConnector().value();
+        facet.timeUpdated = System.currentTimeMillis();
+    }
 
 	@Autowired
 	final protected void setConnectorUpdateService(@Qualifier("connectorUpdateServiceImpl") ConnectorUpdateService ads) {

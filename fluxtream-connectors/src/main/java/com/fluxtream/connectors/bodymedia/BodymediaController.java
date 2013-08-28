@@ -6,13 +6,15 @@ import java.security.NoSuchAlgorithmException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import com.fluxtream.Configuration;
+import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.controllers.ControllerSupport;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
-import com.fluxtream.auth.AuthHelper;
+import com.fluxtream.domain.Notification;
 import com.fluxtream.services.GuestService;
+import com.fluxtream.services.NotificationsService;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.OAuthProvider;
 import oauth.signpost.basic.DefaultOAuthConsumer;
@@ -37,6 +39,9 @@ public class BodymediaController {
 
 	@Autowired
 	Configuration env;
+
+    @Autowired
+    NotificationsService notificationsService;
 
     static final Logger logger = Logger.getLogger(BodymediaController.class);
 
@@ -72,8 +77,19 @@ public class BodymediaController {
 		request.getSession().setAttribute(BODYMEDIA_OAUTH_CONSUMER, consumer);
 		request.getSession().setAttribute(BODYMEDIA_OAUTH_PROVIDER, provider);
 
-		String approvalPageUrl = provider.retrieveRequestToken(consumer,
-				oauthCallback);
+        String approvalPageUrl = null;
+        try {
+            approvalPageUrl = provider.retrieveRequestToken(consumer,
+                    oauthCallback);
+        } catch (Throwable t) {
+            logger.error("Couldn't retrieve BodyMedia request token.");
+            t.printStackTrace();
+            notificationsService.addNotification(AuthHelper.getGuestId(),
+                                                 Notification.Type.ERROR,
+                                                 "Oops. There was an error with the BodyMedia API. " +
+                                                 "Hang tight, we are working on it.");
+            return "redirect:/app/";
+        }
 		
 		System.out.println("the token secret is: " + consumer.getTokenSecret());
 		approvalPageUrl+="&oauth_api=" + apiKey;
