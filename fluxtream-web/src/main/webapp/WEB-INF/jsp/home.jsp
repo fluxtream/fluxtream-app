@@ -28,7 +28,7 @@
 	<link rel="stylesheet" href="/css/flx.css">
 	<link rel="stylesheet" href="/css/bodytrack.css">
 	<link rel="stylesheet" href="/css/datepicker.css">
-	<link rel="stylesheet" href="/static/css/jquery-ui/jquery-ui-1.8.18.custom.css">
+	<link rel="stylesheet" href="/static/css/jquery-ui/jquery-ui-1.10.3.custom.css">
 	<link rel="stylesheet"
 		href="/static/css/jquery-colorPicker/jquery.colorPicker.css">
 	<link rel="stylesheet" href="/static/css/msdropdown/dd.css">
@@ -145,7 +145,7 @@
         <jsp:include page="tracker.jsp" />
     <%} catch(Throwable t){} } %>
     <script src="/static/js/bootstrap-2.3.2.min.js"></script>
-		<script src="/static/js/jquery-ui-1.8.18.custom.min.js"></script>
+		<script src="/static/js/jquery-ui-1.10.3.custom.min.js"></script>
 		<script src="/static/js/jquery.ui.sortable-1.8.2-bt-1.0.0.js"></script>
 		<script src="/static/tiny_mce-3.5b1/jquery.tinymce.js"></script>
 		<script src="/static/js/json2-2011.10.19.js"></script>
