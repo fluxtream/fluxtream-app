@@ -91,39 +91,40 @@ public class MovesUpdater extends AbstractUpdater {
         // The first time we do this there won't be a stored userRegistrationDate yet.  In that case get the
         // registration date from a Moves API call
         if(userRegistrationDate == null) {
-            long currentTime = System.currentTimeMillis();
-            String accessToken = controller.getAccessToken(updateInfo.apiKey);
-            String query = host + "/user/profile?access_token=" + accessToken;
-            try {
-                final String fetched = HttpUtils.fetch(query);
-                countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, currentTime, query);
-                JSONObject json = JSONObject.fromObject(fetched);
-                if (!json.has("profile"))
-                    throw new Exception("no profile");
-                final JSONObject profile = json.getJSONObject("profile");
-                if (!profile.has("firstDate"))
-                    throw new Exception("no firstDate in profile");
-                String compactRegistrationDate = profile.getString("firstDate");
-
-                if(compactRegistrationDate!=null) {
-                    // The format of firstDate returned by the Moves API is compact (yyyymmdd).  Convert to
-                    // the storage format (yyyy-mm-dd) for consistency
-                    userRegistrationDate = toStorageFormat(compactRegistrationDate);
-
-                    // Cache registrationDate so we don't need to do an API call next time
-                    guestService.setApiKeyAttribute(updateInfo.apiKey, userRegistrationKeyName, userRegistrationDate);
-                }
-            } catch (Exception e) {
-                // Couldn't get user registration date
-                StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=MovesUpdater.getUserRegistrationDate")
-                        .append(" message=\"exception while retrieving UserRegistrationDate\" connector=")
-                        .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
-                        .append(updateInfo.apiKey.getGuestId())
-                        .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");;
-                logger.info(sb.toString());
-
-                countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, currentTime, query, Utils.stackTrace(e));
-            }
+            //long currentTime = System.currentTimeMillis();
+            //String accessToken = controller.getAccessToken(updateInfo.apiKey);
+            //String query = host + "/user/profile?access_token=" + accessToken;
+            //try {
+            //    final String fetched = HttpUtils.fetch(query);
+            //    countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, currentTime, query);
+            //    JSONObject json = JSONObject.fromObject(fetched);
+            //    if (!json.has("profile"))
+            //        throw new Exception("no profile");
+            //    final JSONObject profile = json.getJSONObject("profile");
+            //    if (!profile.has("firstDate"))
+            //        throw new Exception("no firstDate in profile");
+            //    String compactRegistrationDate = profile.getString("firstDate");
+            //
+            //    if(compactRegistrationDate!=null) {
+            //        // The format of firstDate returned by the Moves API is compact (yyyymmdd).  Convert to
+            //        // the storage format (yyyy-mm-dd) for consistency
+            //        userRegistrationDate = toStorageFormat(compactRegistrationDate);
+            //
+            //        // Cache registrationDate so we don't need to do an API call next time
+            //        guestService.setApiKeyAttribute(updateInfo.apiKey, userRegistrationKeyName, userRegistrationDate);
+            //    }
+            //} catch (Exception e) {
+            //    // Couldn't get user registration date
+            //    StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=MovesUpdater.getUserRegistrationDate")
+            //            .append(" message=\"exception while retrieving UserRegistrationDate\" connector=")
+            //            .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
+            //            .append(updateInfo.apiKey.getGuestId())
+            //            .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");;
+            //    logger.info(sb.toString());
+            //
+            //    countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, currentTime, query, Utils.stackTrace(e));
+            //}
+            userRegistrationDate = "2013-08-10";
         }
         return userRegistrationDate;
     }
