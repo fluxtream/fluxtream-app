@@ -455,6 +455,8 @@ public class ApiDataServiceImpl implements ApiDataService {
             orig = null;
             //System.out.println("====== Didn't find facet;  need to create new one");
         } catch (NonUniqueResultException nonUnique) {
+            // pretend everything's OK
+            orig = (T) q.getResultList().get(0);
             logger.info("WARNING: non unique exception here, query: " + qlString);
         }
 

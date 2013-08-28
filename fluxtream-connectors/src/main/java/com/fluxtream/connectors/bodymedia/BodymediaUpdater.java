@@ -174,14 +174,15 @@ public class BodymediaUpdater extends AbstractUpdater {
     }
 
     private BodymediaSleepFacet createOrUpdateSleepFacet(final JSONObject day, final UpdateInfo updateInfo, final DateTime d, final TimezoneMap tzMap) {
+        final DateTime date = formatter.parseDateTime(day.getString("date"));
+        final String dateString = dateFormatter.print(date.getMillis());
         final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery("e.apiKeyId=? AND e.date=?",
-                                                                                   updateInfo.apiKey.getId(), day.getString("date"));
+                                                                                   updateInfo.apiKey.getId(), dateString);
         final ApiDataService.FacetModifier<BodymediaSleepFacet> facetModifier = new ApiDataService.FacetModifier<BodymediaSleepFacet>() {
             @Override
             public BodymediaSleepFacet createOrModify(BodymediaSleepFacet facet, final Long apiKeyId) {
                 if (facet == null) {
                     facet = new BodymediaSleepFacet(updateInfo.apiKey.getId());
-                    facet.date = day.getString("date");
                     facet.guestId = updateInfo.apiKey.getGuestId();
                     facet.api = updateInfo.apiKey.getConnector().value();
                     facet.timeUpdated = System.currentTimeMillis();
@@ -191,13 +192,13 @@ public class BodymediaUpdater extends AbstractUpdater {
                 facet.totalSleeping = day.getInt("totalSleep");
                 facet.json = day.getString("sleepPeriods");
                 facet.lastSync = d.getMillis();
+                facet.date = dateString;
 
                 //https://developer.bodymedia.com/docs/read/api_reference_v2/Sleep_Service
                 //  sleep data is from noon the previous day to noon the current day,
                 //  so subtract MILLIS_IN_DAY/2 from midnight
 
                 long MILLIS_IN_DAY = 86400000l;
-                DateTime date = formatter.parseDateTime(day.getString("date"));
 
                 if(tzMap!=null)
                 {
@@ -229,27 +230,26 @@ public class BodymediaUpdater extends AbstractUpdater {
     }
 
     private BodymediaBurnFacet createOrUpdateBurnFacet(final JSONObject day, final UpdateInfo updateInfo, final DateTime d, final TimezoneMap tzMap) {
+        final DateTime date = formatter.parseDateTime(day.getString("date"));
+        final String dateString = dateFormatter.print(date.getMillis());
         final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery("e.apiKeyId=? AND e.date=?",
-                                                                                   updateInfo.apiKey.getId(), day.getString("date"));
+                                                                                   updateInfo.apiKey.getId(), dateString);
         final ApiDataService.FacetModifier<BodymediaBurnFacet> facetModifier = new ApiDataService.FacetModifier<BodymediaBurnFacet>() {
             @Override
             public BodymediaBurnFacet createOrModify(BodymediaBurnFacet facet, final Long apiKeyId) {
                 if (facet == null) {
                     facet = new BodymediaBurnFacet(updateInfo.apiKey.getId());
-                    facet.date = day.getString("date");
                     facet.guestId = updateInfo.apiKey.getGuestId();
                     facet.api = updateInfo.apiKey.getConnector().value();
                     facet.timeUpdated = System.currentTimeMillis();
                 }
                 facet.setTotalCalories(day.getInt("totalCalories"));
-                facet.date = day.getString("date");
                 facet.setEstimatedCalories(day.getInt("estimatedCalories"));
                 facet.setPredictedCalories(day.getInt("predictedCalories"));
                 facet.json = day.getString("minutes");
                 facet.lastSync = d.getMillis();
 
-                DateTime date = formatter.parseDateTime(day.getString("date"));
-                facet.date = dateFormatter.print(date.getMillis());
+                facet.date = dateString;
 
                 if(tzMap!=null)
                 {
@@ -282,25 +282,24 @@ public class BodymediaUpdater extends AbstractUpdater {
     }
 
     private BodymediaStepsFacet createOrUpdateStepsFacet(final JSONObject day, final UpdateInfo updateInfo, final DateTime d, final TimezoneMap tzMap) {
+        final DateTime date = formatter.parseDateTime(day.getString("date"));
+        final String dateString = dateFormatter.print(date.getMillis());
         final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery("e.apiKeyId=? AND e.date=?",
-                                                                                   updateInfo.apiKey.getId(), day.getString("date"));
+                                                                                   updateInfo.apiKey.getId(), dateString);
         final ApiDataService.FacetModifier<BodymediaStepsFacet> facetModifier = new ApiDataService.FacetModifier<BodymediaStepsFacet>() {
             @Override
             public BodymediaStepsFacet createOrModify(BodymediaStepsFacet facet, final Long apiKeyId) {
                 if (facet == null) {
                     facet = new BodymediaStepsFacet(updateInfo.apiKey.getId());
-                    facet.date = day.getString("date");
                     facet.guestId = updateInfo.apiKey.getGuestId();
                     facet.api = updateInfo.apiKey.getConnector().value();
                     facet.timeUpdated = System.currentTimeMillis();
                 }
                 facet.totalSteps = day.getInt("totalSteps");
-                facet.date = day.getString("date");
                 facet.json = day.getString("hours");
                 facet.lastSync = d.getMillis();
 
-                DateTime date = formatter.parseDateTime(day.getString("date"));
-                facet.date = dateFormatter.print(date.getMillis());
+                facet.date = dateString;
                 if(tzMap!=null)
                 {
                     // Create a LocalDate object which just captures the date without any

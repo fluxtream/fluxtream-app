@@ -434,7 +434,7 @@ public class MovesUpdater extends AbstractUpdater {
     private MovesPlaceFacet createOrUpdateMovesPlaceFacet(final String date,final JSONObject segment, final UpdateInfo updateInfo) {
         try {
             final DateTime startTime = timeStorageFormat.withZoneUTC().parseDateTime(segment.getString("startTime"));
-            long start = startTime.getMillis();
+            final long start = startTime.getMillis();
 
             MovesPlaceFacet ret =
                     apiDataService.createOrReadModifyWrite(MovesPlaceFacet.class,
