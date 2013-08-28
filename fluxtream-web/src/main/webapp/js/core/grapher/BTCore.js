@@ -447,6 +447,12 @@ define([], function() {
         return __createDatasource(urlPrefix);
     }
 
+    window.timespanDatasource = function(userId, deviceName, channelName) {
+        var urlPrefix = "/api/bodytrack/timespans/" + userId + "/" + deviceName + "."
+                            + channelName + "/";
+        return __createDatasource(urlPrefix);
+    }
+
     window.photoDatasource = function(userId, deviceName, channelName, tags, matchingStrategy, nsfw) {
         var urlPrefix = "/api/bodytrack/photos/" + userId + "/"+ (deviceName == null ? "All" : deviceName) + "." + channelName + "/";
         var urlParams = {};

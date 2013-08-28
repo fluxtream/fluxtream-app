@@ -18,6 +18,13 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     Calendar.tabParam = null;
     Calendar.connectorEnabled = {"default":{}};
     Calendar.timespanState = null;
+    Calendar.detailsTemplates = {};
+
+    App.loadAllMustacheTemplates("applications/calendar/facetTemplates.html",function(templates){
+        for (var templateId in templates){
+            Calendar.detailsTemplates[templateId] = templates[templateId];
+        }
+    });
 
    Calendar.dateAxisCursorPosition = null;
 
@@ -293,15 +300,146 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 		});
 	}
 
+    Calendar.processFacets = function(facets){
+        if (facets == null || facets.length == 0 || facets[0].getDetails != null)
+            return;
+        for (var i = 0, li = facets.length; i < li; i++){
+            var facet = facets[i];
+            facet.getDetails = function(array,showDate){
+                if (typeof(array) == "boolean"){
+                    showDate = array;
+                    array = null;
+                }
+                if (array == null)
+                    array = [this];
+                return buildDetails(array,showDate);
+            };
+            facet.shouldGroup = function(facet){
+                return shouldFacetsGroup(this,facet);
+            };
+            switch (facet.type){
+                case "picasa-photo":
+                case "flickr-photo":
+                case "fluxtream_capture-photo":
+                    facet.hasImage = true;
+                    break;
+                case "mymee-observation":
+                    facet.hasImage = facet.photoUrl != null;
+                    break;
+            }
+            if (facet.hasImage) {
+                var photo42 = facet.photoUrl;
+                if (typeof(facet.thumbnailUrl)!="undefined")
+                    photo42 = facet.thumbnailUrl;
+                if (facet.thumbnailUrls != null){
+                    var bestMatch = -1;
+                    var bestMatchAmmount = 0;
+                    for (var j in facet.thumbnailSizes){
+                        var size = facet.thumbnailSizes[j];
+                        var matchAmmount = (size.width - 42) * (size.width - 42) + (size.height - 42) * (size.height - 42);
+                        if (bestMatch == -1 || matchAmmount < bestMatchAmmount){
+                            bestMatchAmmount = matchAmmount;
+                            bestMatch = j;
+                        }
+                    }
+                    if (bestMatch != -1){
+                        photo42 = facet.thumbnailUrls[bestMatch];
+                    }
+                }
+                facet.photo42 = photo42;
+            }
+            if (facet.start == undefined){
+                if (facet.date != undefined && facet.date != null){
+                    var dateParts = facet.date.split("-");
+                    var year = parseInt(dateParts[0]);
+                    var month = parseInt(dateParts[1]) - 1;
+                    var day = parseInt(dateParts[2]);
+                    if (facet.startTime != null){
+                        var hours = parseInt(facet.startTime.hours);
+                        var minutes = parseInt(facet.startTime.minutes);
+                        if (facet.startTime.ampm == "pm" && hours < 12)
+                            hours += 12;
+                        facet.start = new Date(year,month,day,hours,minutes,0,0).getTime();
+                    }
+                    if (facet.endTime != null) {
+                        var hours = parseInt(facet.endTime.hours);
+                        var minutes = parseInt(facet.endTime.minutes);
+                        if (facet.endTime.ampm == "pm" && hours < 12)
+                            hours += 12;
+                        facet.end = new Date(year,month,day,hours,minutes,0,0).getTime();
+                        if (facet.end < facet.start){
+                            facet.end = new Date(year,month,day+1,hours,0,0).getTime();
+                        }
+                    }
+                }
+            }
+
+            if (facet.type === "moves-move"){
+                for (var j = 0, lj = facet.activities.length; j < lj; j++){
+                    var subfacet = facet.activities[j];
+                    subfacet.parentType = facet.type;
+                    subfacet.parentId = facet.id;
+                    subfacet.parentStartTime = facet.startTime;
+                    subfacet.parentEndTime = facet.endTime;
+                    subfacet.comment = facet.comment;
+                    subfacet.getDetails = function(array,showDate){
+                        if (typeof(array) == "boolean"){
+                            showDate = array;
+                            array = null;
+                        }
+                        if (array == null)
+                            array = [this];
+                        return buildDetails(array,showDate);
+                    };
+                    subfacet.shouldGroup = function(facet){
+                        return shouldFacetsGroup(this,facet);
+                    };
+
+                    if (subfacet.start == undefined){
+                        if (subfacet.date != undefined && subfacet.date != null){
+                            var dateParts = subfacet.date.split("-");
+                            var year = parseInt(dateParts[0]);
+                            var month = parseInt(dateParts[1]) - 1;
+                            var day = parseInt(dateParts[2]);
+                            if (subfacet.startTime != null){
+                                var hours = parseInt(subfacet.startTime.hours);
+                                var minutes = parseInt(subfacet.startTime.minutes);
+                                if (subfacet.startTime.ampm == "pm" && hours < 12)
+                                    hours += 12;
+                                subfacet.start = new Date(year,month,day,hours,minutes,0,0).getTime();
+                            }
+                            if (subfacet.endTime != null) {
+                                var hours = parseInt(subfacet.endTime.hours);
+                                var minutes = parseInt(subfacet.endTime.minutes);
+                                if (subfacet.endTime.ampm == "pm" && hours < 12)
+                                    hours += 12;
+                                subfacet.end = new Date(year,month,day,hours,minutes,0,0).getTime();
+                                if (subfacet.end < subfacet.start){
+                                    subfacet.end = new Date(year,month,day+1,hours,0,0).getTime();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+        }
+
+    }
+
     function enhanceDigest(digest){
-        digest.detailsTemplates = {};
+        digest.getCitiesList = function(){
+            if (digest.metadata.timeUnit === "DAY")
+                return [digest.metadata.mainCity];
+            return digest.metadata.cities;
+        }
         var templatePath = "applications/calendar/facetTemplates.html";
         function loadTemplate(name) {
             App.loadMustacheTemplate(templatePath, name, function(template){
                 if (template == null) {
                     console.log("WARNING: no template found for " + name + ".");
                 }
-                digest.detailsTemplates[name] = template;
+                Calendar.detailsTemplates[name] = template;
             });
         }
         $.each(digest.selectedConnectors, function(i, connector) {
@@ -313,67 +451,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         loadTemplate("foursquare-venue");
         loadTemplate("moves-move-activity");
         for (var connectorId in digest.cachedData){
-            $.each(digest.cachedData[connectorId], function(i, connector) {
-                connector.getDetails = function(array,showDate){
-                    if (typeof(array) == "boolean"){
-                        showDate = array;
-                        array = null;
-                    }
-                    if (array == null)
-                        array = [this];
-                    return buildDetails(digest,array,showDate);
-                };
-                connector.shouldGroup = function(facet){
-                    return shouldFacetsGroup(this,facet);
-                };
-                if (connectorId === "moves-move"){
-                    $.each(connector.activities, function(i, facet) {
-                        facet.parentType = connector.type;
-                        facet.parentId = connector.id;
-                        facet.parentStartTime = connector.startTime;
-                        facet.parentEndTime = connector.endTime;
-                        facet.comment = connector.comment;
-                        facet.getDetails = function(array,showDate){
-                            if (typeof(array) == "boolean"){
-                                showDate = array;
-                                array = null;
-                            }
-                            if (array == null)
-                                array = [this];
-                            return buildDetails(digest,array,showDate);
-                        };
-                        facet.shouldGroup = function(facet){
-                            return shouldFacetsGroup(this,facet);
-                        };
-
-                        if (facet.start == undefined){
-                            if (facet.date != undefined && facet.date != null){
-                                var dateParts = facet.date.split("-");
-                                var year = parseInt(dateParts[0]);
-                                var month = parseInt(dateParts[1]) - 1;
-                                var day = parseInt(dateParts[2]);
-                                if (facet.startTime != null){
-                                    var hours = parseInt(facet.startTime.hours);
-                                    var minutes = parseInt(facet.startTime.minutes);
-                                    if (facet.startTime.ampm == "pm" && hours > 12)
-                                        hours += 12;
-                                    facet.start = new Date(year,month,day,hours,minutes,0,0).getTime();
-                                }
-                                if (facet.endTime != null) {
-                                    var hours = parseInt(facet.endTime.hours);
-                                    var minutes = parseInt(facet.endTime.minutes);
-                                    if (facet.endTime.ampm == "pm" && hours > 12)
-                                        hours += 12;
-                                    facet.end = new Date(year,month,day,hours,minutes,0,0).getTime();
-                                    if (facet.end < facet.start){
-                                        facet.end = new Date(year,month,day+1,hours,0,0).getTime();
-                                    }
-                                }
-                            }
-                        }
-                    });
-                }
-            });
+            Calendar.processFacets(digest.cachedData[connectorId]);
             digest.cachedData[connectorId].hasImages = false;
             switch (connectorId){
                 case "picasa-photo":
@@ -383,7 +461,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     break;
                 case "mymee-observation":
                     for (var i = 0; i < digest.cachedData[connectorId].length && !digest.cachedData[connectorId].hasImages; i++){
-                        digest.cachedData[connectorId].hasImages = digest.cachedData[connectorId][i].photoUrl != null;
+                        digest.cachedData[connectorId].hasImages = digest.cachedData[connectorId][i].hasImage;
                     }
                     break;
             }
@@ -531,7 +609,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     }
 
     function buildAddressDetails(digest, address){
-        if (digest.detailsTemplates["fluxtream-address"] == null){
+        if (Calendar.detailsTemplates["fluxtream-address"] == null){
             console.log("WARNING: no template found for fluxtream-address.");
             return "";
         }
@@ -557,17 +635,17 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     params[member] = address[member];
             }
         }
-        return digest.detailsTemplates["fluxtream-address"].render(params);
+        return Calendar.detailsTemplates["fluxtream-address"].render(params);
     }
 
-    function buildDetails(digest,facets,showDate){
+    function buildDetails(facets,showDate){
         if (facets.length == 0)
             return"";
-        if (digest.detailsTemplates[facets[0].type] == null){
+        if (Calendar.detailsTemplates[facets[0].type] == null){
             console.warn("hey, no template found for " + facets[0].type + ".");
             return $("");
         }
-        var params = {color:App.getFacetConfig(facets[0].type).color,facets:[],sent:facets[0].sent};
+        var params = {color:App.getFacetConfig(facets[0].type).color,facets:[],sent:facets[0].sent,callType:facets[0].callType,smsType:facets[0].smsType};
         for (var i = 0; i < facets.length; i++){
             var data = facets[i];
             var newFacet = {};
@@ -656,7 +734,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 }
             }
             if (showDate){
-                var facetCity = App.getFacetCity(data, digest.metadata);
+                var facetCity = App.getFacetCity(data, Calendar.digest.getCitiesList());
                 newFacet.displayDate = App.formatDate(data.start + facetCity.tzOffset,false,true);
             }
         }
@@ -694,8 +772,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             }
         }
 
-        foursquareVenueTemplate = digest.detailsTemplates["foursquare-venue"];
-        var details = $(digest.detailsTemplates[data.type].render(params));
+        foursquareVenueTemplate = Calendar.detailsTemplates["foursquare-venue"];
+        var details = $(Calendar.detailsTemplates[data.type].render(params));
         details.find("img");
         setTimeout(function(){getFoursquareVenues(details,foursquareVenueIds);}, 100);
         return details;
@@ -717,24 +795,42 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
     }
 
-    function switchToAppForFacet(appname,tabname,facetType, facetId){
-        App.renderApp(appname,tabname + "/" + Calendar.tabState,{facetToShow:getFacet(facetType,facetId)});
+    function switchToAppForFacet(appname,tabname,facet){
+
+        App.renderApp(appname,tabname + (appname === "calendar" ? "/" + getTabState() : ""),{facetToShow:facet});
     }
 
     var activePopup = null;
 
-    Calendar.rebindDetailsControls = function(details){
+    Calendar.rebindDetailsControls = function(details,facetList){
+        function getFacet(facetType,facetId){
+            try{
+                for (var i = 0, li = facetList.length; i < li; i++){
+                    if (facetList[i].type === facetType && facetList[i].id === facetId)
+                        return facetList[i];
+                }
+                var facets = facetList[facetType];
+                for (var i = 0, li = facets.length; i < li; i++){
+                    if (facets[i].id === facetId)
+                        return facets[i];
+                }
+            } catch (e){}
+            console.warn("Couldn't find " + facetType + " with id " + facetId);
+            return null;
+        }
+
         details.find(".facet-edit a").unbind("click").click(function(event){
-            Calendar.commentEdit(event);
+            var facetType = $(event.delegateTarget).parent().parent().attr("facettype");
+            var facetId = parseInt($(event.delegateTarget).parent().parent().attr("itemid"));
+            Calendar.commentEdit(event,getFacet(facetType,facetId));
             return false;
         });
         details.find(".timedropdown").unbind('click').click(function(event){
             var element;
             for (element = $(event.delegateTarget); !element.hasClass("facetDetails"); element = element.parent());
-            var facetType = element.attr("facettype");
-            var itemId = parseInt(element.attr('itemid'));
-            if (isNaN(itemId) || facetType == null)
-                console.warn("couldn't find facet information for item");
+
+            var facet = getFacet(element.attr("facettype"),parseInt(element.attr('itemid')));
+
             var popup = $('<ul id="menu1" class="dropdown-menu">' +
                               '<li><a class="clockLink" notthide="true" href="javascript:void(0)">Show in Clock</a></li>' +
             '<li><a class="mapLink" href="javascript:void(0)">Show on Map</a></li>' +
@@ -743,18 +839,21 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 '<li><a class="bodytrackLink" href="javascript:void(0)">Show in Bodytrack</a></li>' +
             '</ul>');
 
-            var config = App.getFacetConfig(facetType);
-            if (!config.map || Calendar.currentTabName === "map"){
+            var config = App.getFacetConfig(facet.type);
+            if (!config.map || (App.activeApp.name === "calendar" && Calendar.currentTabName === "map")){
                 popup.find(".mapLink").css("display","none");
             }
-            if (!config.list || Calendar.currentTabName === "list"){
+            if (!config.list || (App.activeApp.name === "calendar" && Calendar.currentTabName === "list")){
                 popup.find(".listLink").css("display","none");
             }
-            if (config.clock == null || Calendar.timeUnit !== "date" || Calendar.currentTabName === "clock"){
+            if (config.clock == null || (Calendar.timeUnit != null && Calendar.timeUnit !== "date") || (App.activeApp.name === "calendar" && Calendar.currentTabName === "clock")){
                 popup.find(".clockLink").css("display","none");
             }
-            if (Calendar.currentTabName === "timeline"){
+            if ((App.activeApp.name === "calendar" && Calendar.currentTabName === "timeline")){
                 popup.find(".timelineLink").css("display","none");
+            }
+            if (App.activeApp.name === "bodytrack"){
+                popup.find(".bodytrackLink").css("display","none");
             }
 
             popup.css("position","absolute");
@@ -768,19 +867,19 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             popup.css("display","inline-block");
 
             popup.find(".mapLink").unbind('click').click(function(event){
-                switchToAppForFacet("calendar","map",facetType,itemId);
+                switchToAppForFacet("calendar","map",facet);
             });
             popup.find(".clockLink").unbind('click').click(function(event){
-                switchToAppForFacet("calendar","clock",facetType,itemId);
+                switchToAppForFacet("calendar","clock",facet);
             });
             popup.find(".listLink").unbind('click').click(function(event){
-                switchToAppForFacet("calendar","list",facetType,itemId);
+                switchToAppForFacet("calendar","list",facet);
             });
             popup.find(".timelineLink").unbind('click').click(function(event){
-                switchToAppForFacet("calendar","timeline",facetType,itemId);
+                switchToAppForFacet("calendar","timeline",facet);
             });
             popup.find(".bodytrackLink").unbind('click').click(function(event){
-                switchToAppForFacet("bodytrack","grapher",facetType,itemId);
+                switchToAppForFacet("bodytrack","grapher",facet);
             });
 
             if (activePopup != null)
@@ -1235,6 +1334,13 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         }
     };
 
+    function getTabState(){
+        if (Calendar.tabState != null)
+            return Calendar.tabState;
+        else
+            return "date/" + App.formatDateAsDatePicker(new Date());
+    }
+
     var viewBtnIds = {date:"#dayViewBtn",week:"#weekViewBtn",month:"#monthViewBtn",year:"#yearViewBtn"};
 
     function updateDisplays(state){
@@ -1244,23 +1350,14 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         $(viewBtnIds[state.timeUnit]).addClass("active");
     }
 
-    Calendar.commentEdit = function(evt) {
+    Calendar.commentEdit = function(evt,facet) {
         var target = $(evt.target);
         var facetDetails = target.parent().parent();
         if (facetDetails.find(".facet-comment").length > 0){
             facetDetails.find(".cancel").click();
             return;
         }
-        var facetType = facetDetails.attr("facettype");
-        var facetId = facetDetails.attr("itemid");
-        var facet = {};
-        var cachedData = this.digest.cachedData[facetType];
-        for (var i = 0, li = cachedData.length; i < li; i++){
-            if (cachedData[i].id == facetId){
-                facet = cachedData[i];
-                break;
-            }
-        }
+        facet = facet;
 
         var hasComment = facet.comment != null;
         if (hasComment) {
@@ -1296,7 +1393,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         saveButton.click(function(event) {
             event.stopPropagation();
             $.ajax({
-                url: "/api/comments/" + facetType + "/" + facetId,
+                url: "/api/comments/" + facet.type + "/" + facet.id,
                 data: {comment: textarea.val()},
                 type: "POST",
                 success: function() {
@@ -1316,7 +1413,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         deleteButton.click(function(event) {
             event.stopPropagation();
             $.ajax({
-                url: "/api/comments/" + facetType + "/" + facetId,
+                url: "/api/comments/" + facet.type + "/" + facet.id,
                 data: {comment: textarea.val()},
                 type: "DELETE",
                 success: function() {

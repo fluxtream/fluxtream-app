@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
@@ -14,9 +15,11 @@ import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Tag;
 import com.fluxtream.services.ApiDataService;
+import com.fluxtream.domain.ChannelMapping;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.JPADaoService;
 import com.fluxtream.services.MetadataService;
+import com.fluxtream.services.impl.BodyTrackHelper;
 import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.Utils;
 import net.sf.json.JSONArray;
@@ -41,6 +44,9 @@ import static com.fluxtream.utils.Utils.hash;
          objectTypes = FlickrPhotoFacet.class,
          defaultChannels = {"Flickr.photo"})
 public class FlickrUpdater extends AbstractUpdater {
+
+    @Autowired
+    BodyTrackHelper bodyTrackHelper;
 
     @Autowired
 	GuestService guestService;
@@ -210,6 +216,20 @@ public class FlickrUpdater extends AbstractUpdater {
 
     private JSONObject retrievePhotoHistory(UpdateInfo updateInfo, long from,
 			long to, int page) throws Exception {
+
+        List<ChannelMapping> mappings = bodyTrackHelper.getChannelMappings(updateInfo.apiKey, ObjectType.getObjectType(updateInfo.apiKey.getConnector(),"photo").value());
+        if (mappings.size() == 0){
+            ChannelMapping mapping = new ChannelMapping();
+            mapping.deviceName = "Flickr";
+            mapping.channelName = "photo";
+            mapping.timeType = ChannelMapping.TimeType.local;
+            mapping.channelType = ChannelMapping.ChannelType.photo;
+            mapping.guestId = updateInfo.getGuestId();
+            mapping.apiKeyId = updateInfo.apiKey.getId();
+            mapping.objectTypeId = ObjectType.getObjectType(updateInfo.apiKey.getConnector(),"photo").value();
+            bodyTrackHelper.persistChannelMapping(mapping);
+        }
+
 		long then = System.currentTimeMillis();
 
         // The start/end upload dates should be in the form of a unix timestamp (see http://www.flickr.com/services/api/flickr.people.getPhotos.htm)

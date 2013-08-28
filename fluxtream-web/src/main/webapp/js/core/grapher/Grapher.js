@@ -1,4 +1,4 @@
-define(["core/grapher/BTCore"], function(BTCore) {
+define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core/Tooltip"], function(BTCore,ListUtils,Tooltip) {
 
     var Grapher = function(parentElement, options) {
         if (options == null) options = {};
@@ -848,10 +848,22 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 ($("#_timeline_channels ._timeline_channel").length == 0)) {
                 max_time = channel["max_time"];
                 grapher.dateAxis.setRange(max_time - 86400.0, max_time);
-            }*/
+            }
+
+             "#e9e9e9",
+             MOVES_CYCLING_COLOR: "#68abef",
+             MOVES_WALKING_COLOR: "#23ee70",
+             MOVES_TRANSPORT_COLOR: "#8f8f8d",
+             MOVES_RUNNING_COLOR: "#e674ec"*/
 
             var plot = null;
-            if (("photo" == channel['type']) || "photo" == channel["channel_name"] || "photos" == channel["channel_name"]) {
+            if ("timespan" == channel["type"]){
+                plot = new TimespanSeriesPlot(timespanDatasource(App.getUID(), channel["device_name"], channel["channel_name"]), grapher.dateAxis,
+                    yAxis,
+                    {"style": channel["style"], "localDisplay": channel["time_type"] == "local"});
+                plot.addDataPointListener(timespanDataPointListener(grapher,plot));
+            }
+            else if (("photo" == channel['type']) || "photo" == channel["channel_name"] || "photos" == channel["channel_name"]) {
                 var tags = [];
                 var matchingStrategy = "any";
                 var photoStyle = channel['style'];
@@ -904,6 +916,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
             }
 
             var plotContainer = new PlotContainer(plotElementId, false, [plot]);
+            plot.plotContainer = plotContainer;
 
             grapher.channelsMap[channelElementId] = channel;
             grapher.plotsMap[channelElementId] = plot;
@@ -2155,6 +2168,33 @@ define(["core/grapher/BTCore"], function(BTCore) {
 
             TOOLS.loadJson(url, {}, callbacks);
         }
+    }
+
+    function timespanDataPointListener(grapher,plot){
+        var mainContentContainer = $("#" + grapher.grapherId + "_timeline_mainContentArea");
+
+        return function (pointObj, sourceInfo){
+            var timespanObject = sourceInfo.info.timespanInfo;
+            $.ajax("/api/connectors/" + timespanObject.objectType + "/data?start=" + timespanObject.start * 1000 + "&end=" + timespanObject.end * 1000 + "&value=" + encodeURIComponent(timespanObject.value),{
+                success: function(facets){
+                    $.ajax("/api/metadata/cities?start=" + timespanObject.start * 1000 + "&end=" + timespanObject.end * 1000,{
+                        success: function(cities){
+                            var plotContainer = $("#" + plot.plotContainer.getPlaceholder());
+                            var position = sourceInfo.info.position;
+                            var mainContentPosition = mainContentContainer.offset();
+                            var plotOffset = plotContainer.offset();
+                            var positionRelativeToMainContentArea = {
+                                x: plotOffset.left - mainContentPosition.left + position.x,
+                                y: plotOffset.top - mainContentPosition.top + position.y
+
+                            }
+
+                            Tooltip.createTooltip(mainContentContainer,positionRelativeToMainContentArea,ListUtils.buildList(facets,cities),sourceInfo.info.color);
+                        }
+                    });
+                }
+            });
+        };
     }
 
     function photoDataPointListener(grapher, channel, channelElementId) {

@@ -212,7 +212,7 @@ public class MetadataServiceImpl implements MetadataService {
         return info;
     }
 
-    private List<VisitedCity> getConsensusCities(final long guestId, final TreeSet<String> dates) {
+    public List<VisitedCity> getConsensusCities(final long guestId, final TreeSet<String> dates) {
         List<VisitedCity> consensusCities = new ArrayList<VisitedCity>();
         Collections.sort(consensusCities,
             new Comparator<VisitedCity>(){
@@ -277,7 +277,7 @@ public class MetadataServiceImpl implements MetadataService {
         return dates;
     }
 
-    private List<VisitedCity> getVisitedCitiesForDate(final long guestId, final String date) {
+    public List<VisitedCity> getVisitedCitiesForDate(final long guestId, final String date) {
         TypedQuery<VisitedCity> query = em.createQuery("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class) + " facet WHERE facet.guestId=? AND facet.date=?" + " ORDER BY facet.start", VisitedCity.class);
         query.setParameter(1, guestId);
         query.setParameter(2, date);
@@ -285,7 +285,7 @@ public class MetadataServiceImpl implements MetadataService {
         return cities;
     }
 
-    private List<VisitedCity> getVisitedCitiesForDates(final long guestId, final TreeSet<String> dates) {
+    public List<VisitedCity> getVisitedCitiesForDates(final long guestId, final TreeSet<String> dates) {
         TypedQuery<VisitedCity> query = em.createQuery("SELECT facet FROM " + JPAUtils.getEntityName(VisitedCity.class) + " facet WHERE facet.guestId=:guestId AND facet.date IN :dates" + " ORDER BY facet.start", VisitedCity.class);
         query.setParameter("guestId", guestId);
         query.setParameter("dates", dates);

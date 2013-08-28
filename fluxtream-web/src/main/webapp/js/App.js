@@ -229,6 +229,7 @@ define(
                 renderDefault(app);
             });
             FlxState.router.route("app/:name/*state", "app", function(appName, state) {
+                console.log("app route: name=" + appName + ", state=" + state);
                 var app = App.apps[appName];
                 if (_.isUndefined(app)) {
                     console.log("invalid app: " + appName);
@@ -571,19 +572,16 @@ define(
         };
 
 
-        App.getFacetCity = function(facet, metadata){
-            if (metadata.timeUnit === "DAY")
-                return metadata.mainCity;
-            var cities = metadata.cities;
+        App.getFacetCity = function(facet, citiesList){
             var time = (facet.start + (facet.end != null ? facet.end : facet.start)) / 2
-            for (var i=0; i<cities.length; i++) {
-                var city = cities[i];
+            if (time < citiesList[0].dayStart)
+                return citiesList[0];
+            for (var i= 0, li = citiesList.length; i < li; i++) {
+                var city = citiesList[i];
                 if ((city.dayStart<=time && time<city.dayEnd) || (city.dayStart<=facet.start && facet.start<city.dayEnd))
                     return city;
             }
-            console.log("WARNING: facet isn't within metadata time boundaries: " + new Date(facet.start))
-            console.log(facet);
-            return null;
+            return citiesList[citiesList.length-1];
         }
 
         App.prettyDateFormat = function(dateString) {
@@ -718,7 +716,18 @@ define(
             }
         }
 
-        $(document).bind("click",globalClickHandler);
+        var hideFunctions = [];
+
+        var onEvent = function(event){ //hides the tooltip if an element clicked on or any of its parents has the notthide property
+            for (var target = event.target; target != null; target=target.parentElement){
+                if ($(target).attr("notthide") != null)
+                    return;
+            }
+            for (var i = 0, li = hideFunctions.length; i < li; i++)
+                hideFunctions[i]();
+        };
+
+        $(document).bind("touchend",onEvent).bind("click",globalClickHandler).bind("mousedown", onEvent);
 
         App.addHideTooltipListener = function(hideFunction) {
             var onEvent = function(event){ //hides the tooltip if an element clicked on or any of its parents has the notthide property
@@ -729,7 +738,7 @@ define(
                 hideFunction();
             };
             $(document).unbind("click").unbind("touchend").bind("touchend",onEvent).bind("click",globalClickHandler).bind("click", onEvent);
-        };
+        }
 
         App.search = function() {
             $(".application").load("/search/0?q=" + $(".search-query").val());
@@ -739,7 +748,7 @@ define(
 
         App.getLastDayOfMonth = function(year,month){
             return monthEndDays[month] + ((month == 1 && App.isLeapYear(year)) ? 1 : 0);
-        };
+        }
 
         App.isLeapYear = function(year){
             return (year % 400 == 0) || (year % 100 != 0 && year % 4 == 0);
@@ -786,6 +795,33 @@ define(
                 row.push(array[i]);
             }
             return rows;
+        }
+
+        App.toPolar = function(center, x, y){
+            x -= center[0];
+            y -= center[1];
+            var r = Math.sqrt(x * x + y * y);
+            var theta;
+            if (x == 0){
+                if (y > 0)
+                    theta = Math.PI / 2;
+                else
+                    theta = 3 * Math.PI / 2;
+            }
+            else if (y == 0){
+                if (x > 0)
+                    theta = 0;
+                else
+                    theta = Math.PI;
+            }
+            else if (x > 0)
+                theta = Math.atan(y/x);
+            else
+                theta = Math.PI + Math.atan(y/x);
+            theta *= 180 / Math.PI;
+            if (theta < 0)
+                theta += 360;
+            return [r,theta];
         }
 
 

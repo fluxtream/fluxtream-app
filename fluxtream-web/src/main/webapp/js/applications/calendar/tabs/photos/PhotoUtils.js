@@ -23,7 +23,7 @@ define([],function(){
                              "rotate(270deg)"//8
     ];
 
-    function getCarouselHTML(digest,connectorNames){
+    function getCarouselHTML(digest,connectorNames){  //TODO: make this work without a digest
         if (connectorNames == null){//if the parameter is discluded, show all images
             connectorNames = [];
             for (connectorName in digest.cachedData){
@@ -53,7 +53,6 @@ define([],function(){
         }
         for (var i = 0; i < data.length; i++){
             data[i].active = i == 0;
-            data[i].id = i;
         }
         return carouselTemplate.render({photos:data,includeNav:data.length > 1});
     }
@@ -72,9 +71,8 @@ define([],function(){
 
     function doResize(imageId){
         var container = $("#photoViewContainer");
-        var images = container.find(".carousel-inner img");
         var photoHolder = container.find(".photoHolder");
-        var image = $(images[imageId]);
+        var image = container.find("#photo-" + imageId).find("img");
         var fullSizeImage = photoHolder.find("." + image.attr("fullsize"));
         var doResize = function(image,fullSizeImage){
             if (fullSizeImage.width() == 0 || fullSizeImage.height() == 0){
@@ -160,31 +158,43 @@ define([],function(){
     }
 
     function showCarouselHTML(html,defaultImage){
-        if (defaultImage == 0)
-            defaultImage = 0;
         var widget = $(html);
+        var items = widget.find(".carousel-inner .item");
+        var photoIdToIndex = {};
+        var indexToPhotoId = [];
+        for (var i = 0, li = items.length; i < li; i++){
+            var photoId = $(items[i]).attr("photoId");
+            photoIdToIndex[photoId] = i;
+            indexToPhotoId[i] = photoId;
+        }
         $("body").append(widget);
         var oldTop = $('body').scrollTop();
         $("body").addClass("photoCarouselViewing");
+
+        if (defaultImage == null)
+            defaultImage = 0;
+        else
+            defaultImage = photoIdToIndex[defaultImage];
+
         function showImage(){
-            doResize(defaultImage);
-            widget.find(".carousel-inner div.item").removeClass("active");
-            widget.find(".carousel-inner #photo-"+defaultImage).addClass("active");
+            doResize(indexToPhotoId[defaultImage]);
+            widget.find(".carousel-inner div.item.active").removeClass("active");
+            widget.find(".carousel-inner #photo-"+indexToPhotoId[defaultImage]).addClass("active");
         }
         showImage();
 
         widget.find(".carousel-control.left").click(function(){
             defaultImage--;
             if (defaultImage < 0)
-                defaultImage += widget.find(".photo").length;
+                defaultImage += indexToPhotoId.length;
             showImage();
             return false;
         });
 
         widget.find(".carousel-control.right").click(function(){
             defaultImage++;
-            if (defaultImage >= widget.find(".photo").length)
-                defaultImage -= widget.find(".photo").length;
+            if (defaultImage >= indexToPhotoId.length)
+                defaultImage -= indexToPhotoId.length;
             showImage();
             return false;
         });
@@ -198,7 +208,7 @@ define([],function(){
         });
 
         handleResize = function(){
-            doResize(defaultImage);
+            doResize(indexToPhotoId[defaultImage]);
         }
 
         handleKeyEvent = function(event){

@@ -391,7 +391,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         }
         weatherIcon = "/" + FLX_RELEASE_NUMBER + "/" + weatherIcon;
         var orientation, tailOrientation;
-        var angle = toPolar([0,0],offX,offY)[1];
+        var angle = App.toPolar([0,0],offX,offY)[1];
         if (angle < 45 || angle > 315){
             orientation = "Left";
             tailOrientation = "right";
@@ -458,7 +458,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                 displayX += offX - ttpdiv.width()/2;
                 tail.css("left",ttpdiv.width()/2 - offX - 10);
             }
-            displayY -= 50;
+
             switch(orientation){
                 case "Left":
                     displayX += 10;
@@ -507,11 +507,6 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             $(".calendar-list-tab").click();
         });
 
-
-        ttpdiv.find(".flx-photo").click(function(event){
-            PhotoUtils.showCarouselHTML(photoCarouselHTML,$(event.delegateTarget).attr("photoId"));
-        });
-
         ttpdiv.find("#tooltipLoadTimeLine").click(function(event){
             setTabParam(facet.start);
             $(".calendar-timeline-tab").click();
@@ -547,7 +542,11 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                 commentEdit.click();
             });
 
-            App.apps.calendar.rebindDetailsControls(ttpdiv);
+            App.apps.calendar.rebindDetailsControls(ttpdiv,dgst.cachedData);
+
+            ttpdiv.find(".flx-photo").click(function(event){
+                PhotoUtils.showCarouselHTML(photoCarouselHTML,$(event.delegateTarget).attr("photoId"));
+            });
 
         });
 
@@ -668,35 +667,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		return path;
 	}
 
-    function toPolar(center, x, y){
-        x -= center[0];
-        y -= center[1];
-        var r = Math.sqrt(x * x + y * y);
-        var theta;
-        if (x == 0){
-            if (y > 0)
-                theta = Math.PI / 2;
-            else
-                theta = 3 * Math.PI / 2;
-        }
-        else if (y == 0){
-            if (x > 0)
-                theta = 0;
-            else
-                theta = Math.PI;
-        }
-        else if (x > 0)
-            theta = Math.atan(y/x);
-        else
-            theta = Math.PI + Math.atan(y/x);
-        theta *= 180 / Math.PI;
-        if (theta < 0)
-            theta += 360;
-        return [r,theta];
-    }
-
     function getTimestampForPoint(x,y){
-        var angleClick = toPolar(config.CLOCK_CENTER,x,y)[1] - config.START_AT;
+        var angleClick = App.toPolar(config.CLOCK_CENTER,x,y)[1] - config.START_AT;
         if (angleClick < 0)
             angleClick += 360;
         return dayStart+angleClick*config.RATIO*60000;

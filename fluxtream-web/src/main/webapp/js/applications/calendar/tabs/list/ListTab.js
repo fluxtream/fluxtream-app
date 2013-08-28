@@ -1,4 +1,4 @@
-define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Tab, PhotoUtils) {
+define(["core/Tab", "applications/calendar/tabs/list/ListUtils"], function(Tab, ListUtils) {
 
     var listTab = new Tab("calendar", "list", "Candide Kemmler", "icon-list", true);
 
@@ -43,11 +43,9 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
     var pagination;
     var maxPerPage = 200;
     var currentPage = 0;
-    var photoCarouselHTML;
     var dgst;
 
     var templates;
-    var metadata;
 
     var rendererCount = 0;
 
@@ -61,7 +59,6 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
             items = [];
             itemGroups = {};
             list.empty();
-            metadata = digest.metadata;
             var photoCount = 0;
             there:for (var connectorName in digest.cachedData){
                 if (!shouldDisplayInListView(connectorName))
@@ -88,7 +85,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
 
                     }
 
-                    var itemCity = App.getFacetCity(item.facet, metadata);
+                    var itemCity = App.getFacetCity(item.facet, digest.getCitiesList());
                     if (itemCity==null)
                         continue;
                     for (var j = 0; j <= items.length; j++){
@@ -96,7 +93,7 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
                             items[j] = item;
                             break;
                         }
-                        var facetCity = App.getFacetCity(items[j].facet, metadata);
+                        var facetCity = App.getFacetCity(items[j].facet, digest.getCitiesList());
                         if (facetCity==null)
                             continue there;
                         if (items[j].facet.start + facetCity.tzOffset > item.facet.start + itemCity.tzOffset || item.facet.start + itemCity.tzOffset == null){
@@ -110,8 +107,6 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
                     itemGroups[item.facet.type][itemGroups[item.facet.type].length] = item;
                 }
             }
-
-            photoCarouselHTML = PhotoUtils.getCarouselHTML(digest);
 
 
             rebuildPagination();
@@ -163,84 +158,22 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
     }
 
     function repopulateList(){
-        var dateCounter = 2;
-        var currentDate = null;
-        var prevDate = null;
-        list.empty();
         var visibleCount = 0;
-        var currentArray = [];
-        var facetCity;
-        var currentCity;
-
-        function appendItems(currentArray,allDay,normal){
-            var details = currentArray[0].getDetails(currentArray);
-            var content = $(templates.item.render({item:details.outerHTML()}));
-            if (currentArray[0].allDay){
-                allDay.append(content);
-            }
-            else{
-                normal.append(content);
-            }
-            details.on("contentchange",function(){
-                content.html(details.outerHTML());
-                App.apps.calendar.rebindDetailsControls(content);
-            });
-            details.trigger("contentchange");
-        }
+        var facetsToShow = [];
 
         for (var i = 0; i < items.length; i++){
            var item = items[i];
            if (item.visible){
-               if (item.facet != null && item.facet.hasPhoto)
-                   item.facet.id = i;
                visibleCount++;
                if (visibleCount > currentPage * maxPerPage && visibleCount <= (currentPage + 1) * maxPerPage){
-                    facetCity = App.getFacetCity(item.facet, metadata);
-                    if (facetCity==null)
-                        continue;
-                    if (currentArray.length == 0){
-                        currentArray = [item.facet];
-                        currentDate = facetCity.dateWithTimezone;
-                        currentCity = facetCity;
-                    }
-                    else if (currentArray[0].shouldGroup(item.facet) && facetCity.dateWithTimezone == currentDate)
-                        currentArray[currentArray.length] = item.facet;
-                    else {
-                        if (currentDate != prevDate) {
-                            list.append(templates.date.render({date:App.prettyDateFormat(currentDate),city:currentCity.name,timezone:currentCity.shortTimezone,state:"list/date/"+currentDate.split(" ")[0]}));
-                            prevDate = currentDate;
-                            var curContainer = $(templates.itemContainer.render({}));
-                            list.append(curContainer);
-                        }
-                        appendItems(currentArray,curContainer.find(".allDayContainer"),curContainer.find(".normalContainer"));
-                        currentArray = [item.facet];
-                        currentDate = facetCity.dateWithTimezone;
-                        currentCity = facetCity;
-                    }
+                   facetsToShow.push(item.facet);
                }
            }
         }
-        if (currentArray.length != 0){
-            if (currentDate != prevDate) {
-                facetCity = App.getFacetCity(item.facet, metadata);
-                if (facetCity!=null) {
-                    list.append(templates.date.render({date:App.prettyDateFormat(currentDate),city:currentCity.name,timezone:facetCity.shortTimezone,state:"list/date/"+currentDate.split(" ")[0]}));
-                    var curContainer = $(templates.itemContainer.render({}));
-                    list.append(curContainer);
-                }
-            }
-            if (facetCity!=null){
-                appendItems(currentArray,curContainer.find(".allDayContainer"),curContainer.find(".normalContainer"));
-            }
-        }
-        if (list.children().length == 0)
-            list.append("Sorry, no data to show.");
-        var photos = $(".flx-photo");
-        for (var i = 0; i < photos.length; i++){
-            $(photos[i]).click(function(event){
-                PhotoUtils.showCarouselHTML(photoCarouselHTML,$(event.delegateTarget).attr("photoId"));
-            });
-        }
+
+        list.empty().append(ListUtils.buildList(facetsToShow,dgst.getCitiesList()));
+
+
 
     }
 

@@ -1,6 +1,7 @@
 package com.fluxtream.connectors.moves;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.UUID;
@@ -12,9 +13,14 @@ import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.AbstractLocalTimeFacet;
+import com.fluxtream.domain.ChannelMapping;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.JPADaoService;
 import com.fluxtream.services.MetadataService;
+import com.fluxtream.services.impl.BodyTrackHelper;
+import com.fluxtream.services.impl.BodyTrackHelper.ChannelStyle;
+import com.fluxtream.services.impl.BodyTrackHelper.MainTimespanStyle;
+import com.fluxtream.services.impl.BodyTrackHelper.TimespanStyle;
 import com.fluxtream.utils.HttpUtils;
 import com.fluxtream.utils.Utils;
 import net.sf.json.JSONArray;
@@ -32,9 +38,13 @@ import org.springframework.transaction.annotation.Transactional;
  * Time: 16:50
  */
 @Component
-@Updater(prettyName = "Moves", value = 144, objectTypes = {LocationFacet.class, MovesMoveFacet.class, MovesPlaceFacet.class})
+@Updater(prettyName = "Moves", value = 144, objectTypes = {LocationFacet.class, MovesMoveFacet.class, MovesPlaceFacet.class}, bodytrackResponder = MovesBodytrackResponder.class,
+         defaultChannels = {"moves.data"})
 public class MovesUpdater extends AbstractUpdater {
     static FlxLogger logger = FlxLogger.getLogger(AbstractUpdater.class);
+
+    @Autowired
+    BodyTrackHelper bodyTrackHelper;
 
     final static String host = "https://api.moves-app.com/api/v1";
     final static String updateDateKeyName = "lastDate";
@@ -163,6 +173,58 @@ public class MovesUpdater extends AbstractUpdater {
         // getDatesSince and getDatesBefore both take their arguments and return their list of dates in storage
         // format (yyyy-mm-dd).  The list returned by getDatesSince includes the date passed in (in this case fullUpdateStartDate)
         // but getDatesBefore does not, so fullUpdateStartDate is processed as a full update.
+
+        List<ChannelMapping> mappings = bodyTrackHelper.getChannelMappings(updateInfo.apiKey);
+        if (mappings.size() == 0){
+            ChannelMapping mapping = new ChannelMapping();
+            mapping.deviceName = "moves";
+            mapping.channelName = "data";
+            mapping.timeType = ChannelMapping.TimeType.gmt;
+            mapping.channelType = ChannelMapping.ChannelType.timespan;
+            mapping.guestId = updateInfo.getGuestId();
+            mapping.apiKeyId = updateInfo.apiKey.getId();
+            bodyTrackHelper.persistChannelMapping(mapping);
+
+            ChannelStyle channelStyle = new ChannelStyle();
+            channelStyle.timespanStyles = new MainTimespanStyle();
+            channelStyle.timespanStyles.defaultStyle = new TimespanStyle();
+            channelStyle.timespanStyles.defaultStyle.fillColor = "#e9e9e9";
+            channelStyle.timespanStyles.defaultStyle.borderColor = "#c9c9c9";
+            channelStyle.timespanStyles.defaultStyle.borderWidth = 2;
+            channelStyle.timespanStyles.defaultStyle.top = 0.0;
+            channelStyle.timespanStyles.defaultStyle.bottom = 1.0;
+            channelStyle.timespanStyles.values = new HashMap();
+
+            TimespanStyle stylePart = new TimespanStyle();
+            stylePart.top = 0.25;
+            stylePart.bottom = 0.75;
+            stylePart.fillColor = "#23ee70";
+            stylePart.borderColor = "#03ce50";
+            channelStyle.timespanStyles.values.put("wlk",stylePart);
+
+            stylePart = new TimespanStyle();
+            stylePart.top = 0.25;
+            stylePart.bottom = 0.75;
+            stylePart.fillColor = "#e674ec";
+            stylePart.borderColor = "#c654cc";
+            channelStyle.timespanStyles.values.put("run",stylePart);
+
+            stylePart = new TimespanStyle();
+            stylePart.top = 0.25;
+            stylePart.bottom = 0.75;
+            stylePart.fillColor = "#68abef";
+            stylePart.borderColor = "#488bcf";
+            channelStyle.timespanStyles.values.put("cyc",stylePart);
+
+            stylePart = new TimespanStyle();
+            stylePart.top = 0.25;
+            stylePart.bottom = 0.75;
+            stylePart.fillColor = "#8f8f8d";
+            stylePart.borderColor = "#6f6f6d";
+            channelStyle.timespanStyles.values.put("trp",stylePart);
+
+            bodyTrackHelper.setBuiltinDefaultStyle(updateInfo.getGuestId(),"moves","data",channelStyle);
+        }
         final List<String> fullUpdateDates = getDatesSince(fullUpdateStartDate);
 
         // For the dates that aren't yet completed (fullUpdateStartDate through today), createOrUpdate with trackpoints

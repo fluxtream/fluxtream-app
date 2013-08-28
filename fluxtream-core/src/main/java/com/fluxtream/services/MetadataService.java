@@ -6,6 +6,7 @@ import java.util.TreeSet;
 import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.domain.metadata.City;
 import com.fluxtream.domain.metadata.FoursquareVenue;
+import com.fluxtream.domain.metadata.VisitedCity;
 import com.fluxtream.domain.metadata.WeatherInfo;
 import com.fluxtream.metadata.DayMetadata;
 import com.fluxtream.metadata.MonthMetadata;
@@ -56,4 +57,6 @@ public interface MetadataService {
     public TreeSet<String> getDatesForWeek(final int year, final int week);
 
     public TreeSet<String> getDatesForMonth(final int year, final int month);
+
+    public List<VisitedCity> getConsensusCities(final long guestId, final TreeSet<String> dates);
 }

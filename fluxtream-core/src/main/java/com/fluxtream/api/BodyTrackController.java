@@ -45,6 +45,7 @@ import com.fluxtream.domain.Tag;
 import com.fluxtream.domain.TagFilter;
 import com.fluxtream.images.ImageOrientation;
 import com.fluxtream.mvc.models.StatusModel;
+import com.fluxtream.mvc.models.TimespanModel;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.BodyTrackStorageService;
 import com.fluxtream.services.CoachingService;
@@ -108,7 +109,8 @@ public class BodyTrackController {
 
     @Autowired JsonResponseHelper jsonResponseHelper;
 
-	@POST
+
+    @POST
 	@Path("/uploadHistory")
 	@Produces({ MediaType.APPLICATION_JSON })
 	public String loadHistory(@QueryParam("username") String username,
@@ -607,6 +609,69 @@ public class BodyTrackController {
             return gson.toJson(new StatusModel(false,"Access Denied"));
         }
     }
+
+    @GET
+    @Path("/timespans/{UID}/{ConnectorName}.{ObjectTypeName}/{Level}.{Offset}.json")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String fetchTimespanTile(@PathParam("UID") Long uid,
+                                 @PathParam("ConnectorName") String connectorName,
+                                 @PathParam("ObjectTypeName") String objectTypeName,
+                                 @PathParam("Level") int level,
+                                 @PathParam("Offset") long offset) {
+        try{
+            long loggedInUserId = AuthHelper.getGuestId();
+            boolean accessAllowed = checkForPermissionAccess(uid);
+            CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
+
+            if (!accessAllowed && coachee==null) {
+                uid = null;
+            }
+
+            if (uid == null) {
+                return gson.toJson(new StatusModel(false, "Invalid User ID (null)"));
+            }
+
+            List<ApiKey> keys = guestService.getApiKeys(uid);
+            ApiKey api = null;
+            ObjectType objectType = null;
+
+            for (ApiKey key : keys){
+                Connector connector = key.getConnector();
+                if (connector.getName().equals(connectorName)){
+                    api = key;
+                    break;
+                }
+            }
+
+            if (api == null) {
+                return gson.toJson(new StatusModel(false, "Invalid Channel (null)"));
+            }
+
+
+            final long startTimeMillis = (long)(LevelOffsetHelper.offsetAtLevelToUnixTime(level, offset) * 1000);
+            final long endTimeMillis = (long)(LevelOffsetHelper.offsetAtLevelToUnixTime(level, offset + 1) * 1000);
+
+            TimespanTileResponse response = new TimespanTileResponse(api.getConnector().getBodytrackResponder().getTimespans(startTimeMillis,endTimeMillis,api,objectTypeName,apiDataService));
+            return gson.toJson(response);
+
+        }
+        catch (Exception e) {
+            LOG.error("BodyTrackController.fetchTimespanTile(): Exception while trying to fetch timespans: ", e);
+            return gson.toJson(new StatusModel(false, "Access Denied"));
+        }
+
+    }
+
+    private class TimespanTileResponse{
+
+        List<TimespanModel> data = new ArrayList<TimespanModel>();
+        String type = "timespan";
+
+        public TimespanTileResponse(List<TimespanModel> data){
+            this.data = data;
+        }
+    }
+
 
     @GET
     @Path("/photos/{UID}/{ConnectorPrettyName}.{ObjectTypeName}/{Level}.{Offset}.json")

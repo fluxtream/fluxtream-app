@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.ResourceBundle;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -414,5 +415,20 @@ public class ConnectorStore {
             result = new StatusModel(false,"Failed to udpate filters state!");
         }
         return gson.toJson(result);
+    }
+
+    @GET
+    @Path("/{objectTypeName}/data")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String getData(@PathParam("objectTypeName") String objectTypeName, @QueryParam("start") long start, @QueryParam("end") long end, @QueryParam("value") String value){
+        Guest guest = AuthHelper.getGuest();
+        if(guest==null)
+            return "[]";
+        String [] objectTypeNameParts = objectTypeName.split("-");
+        ApiKey apiKey = guestService.getApiKeys(guest.getId(),Connector.getConnector(objectTypeNameParts[0])).get(0);
+        Connector connector = apiKey.getConnector();
+
+        return gson.toJson(connector.getBodytrackResponder().getFacetVOs(apiDataService, settingsService.getSettings(guest.getId()), apiKey,objectTypeName,start,end,value));
+
     }
 }

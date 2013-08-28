@@ -5,6 +5,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import com.fluxtream.connectors.Connector.UpdateStrategyType;
+import com.fluxtream.connectors.bodytrackResponders.AbstractBodytrackResponder;
+import com.fluxtream.connectors.bodytrackResponders.DefaultBodytrackResponder;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.AbstractUserProfile;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
@@ -33,5 +35,7 @@ public @interface Updater {
     public String[] defaultChannels() default {};
 
     public Class<? extends Object> settings() default EmptySettings.class;
+
+    public Class<? extends AbstractBodytrackResponder> bodytrackResponder() default DefaultBodytrackResponder.class;
 
 }

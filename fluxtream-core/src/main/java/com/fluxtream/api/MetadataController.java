@@ -1,5 +1,8 @@
 package com.fluxtream.api;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeSet;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -7,14 +10,22 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import com.fluxtream.Configuration;
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.domain.metadata.FoursquareVenue;
+import com.fluxtream.domain.metadata.VisitedCity;
 import com.fluxtream.mvc.models.StatusModel;
+import com.fluxtream.mvc.models.VisitedCityModel;
 import com.fluxtream.services.MetadataService;
+import com.google.gson.Gson;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -29,10 +40,17 @@ import org.springframework.stereotype.Component;
 @Scope("request")
 public class MetadataController {
 
+    protected static DateTimeFormatter dateFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
+
     FlxLogger logger = FlxLogger.getLogger(MetadataController.class);
 
     @Autowired
     MetadataService metadataService;
+
+    @Autowired
+    Configuration env;
+
+    Gson gson = new Gson();
 
     @POST
     @Path(value="/mainCity/date/{date}")
@@ -87,6 +105,26 @@ public class MetadataController {
         Response.ResponseBuilder builder = Response.ok(foursquareVenue);
         builder.cacheControl(cc);
         return builder.build();
+    }
+
+    @GET
+    @Path(value = "/cities")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String getCitiesForRange(@QueryParam("start") long start, @QueryParam("end") long end){
+        TreeSet<String> dates = new TreeSet<String>();
+        DateTime startDate = new DateTime(start);
+        DateTime endDate = new DateTime(end);
+        while (startDate.isBefore(endDate)){
+            dates.add(dateFormatter.print(startDate));
+            startDate = startDate.plusDays(1);
+        }
+        String finalDate = dateFormatter.print(endDate);
+        if (!dates.contains(finalDate)) dates.add(finalDate);
+        List<VisitedCityModel> cities = new ArrayList<VisitedCityModel>();
+        for (VisitedCity city : metadataService.getConsensusCities(AuthHelper.getGuestId(), dates)){
+            cities.add(new VisitedCityModel(city,env));
+        }
+        return gson.toJson(cities);
     }
 
 }
