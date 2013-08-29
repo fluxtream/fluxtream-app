@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
 import com.fluxtream.aspects.FlxLogger;
+import com.fluxtream.connectors.Autonomous;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.SignpostOAuthHelper;
 import com.fluxtream.connectors.annotations.Updater;
@@ -47,7 +48,10 @@ import org.springframework.stereotype.Component;
          objectTypes = {BodymediaBurnFacet.class, BodymediaSleepFacet.class, BodymediaStepsFacet.class},
          hasFacets = true,
          defaultChannels = {"BodyMedia.mets", "BodyMedia.lying"})
-public class BodymediaUpdater extends AbstractUpdater {
+public class BodymediaUpdater extends AbstractUpdater implements Autonomous {
+
+    // TODO: make this configurable
+    private static final int RATE_DELAY = 500;
     static FlxLogger logger = FlxLogger.getLogger(AbstractUpdater.class);
 
     @Autowired
@@ -69,6 +73,8 @@ public class BodymediaUpdater extends AbstractUpdater {
 
     protected static DateTimeFormatter tzmapFormatter = DateTimeFormat.forPattern("yyyyMMdd'T'HHmmssZ");
 
+    private Long timeOfLastCall;
+
     public BodymediaUpdater() {
         super();
         ObjectType burn = ObjectType.getObjectType(connector(), "burn");
@@ -83,9 +89,37 @@ public class BodymediaUpdater extends AbstractUpdater {
     }
 
     public void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception {
+        if (guestService.getApiKey(updateInfo.apiKey.getId())==null) {
+            logger.info("Not updating BodyMedia connector instance with a deleted apiKeyId");
+            return;
+        }
         // There's no difference between the initial history update and the incremental updates, so
         // just call updateConnectorData in either case
         updateConnectorData(updateInfo);
+    }
+
+    public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
+        if (guestService.getApiKey(updateInfo.apiKey.getId())==null) {
+            logger.info("Not updating BodyMedia connector instance with a deleted apiKeyId");
+            return;
+        }
+        // Check if the token has expired, and if so try to exchange it
+        checkAndReplaceOauthToken(updateInfo);
+
+        // Get timezone map for this user
+        TimezoneMap tzMap = getTimezoneMap(updateInfo);
+
+        // Insert tzMap into the updateInfo context so it's accessible to the extractors
+        updateInfo.setContext("tzMap", tzMap);
+
+        for (ObjectType ot : connector().objectTypes()) {
+            // Get the start date either from user registration info or from the stored apiKeyAttributes.
+            // Set the end date to be today + 1 to cover the case of people in timezones which are later
+            // than the timezone of the server where it's already the next day
+            DateTime start = getStartDate(updateInfo, ot);
+            DateTime end = new DateTime().plusDays(1);
+            retrieveHistory(updateInfo, ot, start, end);
+        }
     }
 
     private void checkAndReplaceOauthToken(UpdateInfo updateInfo) throws OAuthExpectationFailedException,
@@ -102,13 +136,13 @@ public class BodymediaUpdater extends AbstractUpdater {
      * starting from the end date. This is so that the most recent information is retrieved first.
      * @param updateInfo The api's info
      * @param ot The ObjectType that represents the facet to be updated
-     * @param urlExtension the request uri used for the api
-     * @param increment the number of days to retrieve at once from bodymedia
      * @param start The earliest date for which the burn history is retrieved. This date is included in the update.
      * @param end The latest date for which the burn history is retrieved. This date is also included in the update.
      * @throws Exception If either storing the data fails or if the rate limit is reached on Bodymedia's api
      */
-    private void retrieveHistory(UpdateInfo updateInfo, ObjectType ot, String urlExtension, int increment, DateTime start, DateTime end) throws Exception {
+    private void retrieveHistory(UpdateInfo updateInfo, ObjectType ot, DateTime start, DateTime end) throws Exception {
+        final String urlExtension = url.get(ot);
+        final int increment = maxIncrement.get(ot);
         DateTimeComparator comparator = DateTimeComparator.getDateOnlyInstance();
         DateTime current = start;
         try {
@@ -117,12 +151,18 @@ public class BodymediaUpdater extends AbstractUpdater {
             //@ loop_invariant date.compareTo(userRegistrationDate) >= 0;
             while (comparator.compare(current, end) < 0)
             {
+                if (guestService.getApiKey(updateInfo.apiKey.getId())==null) {
+                    logger.info("Not updating BodyMedia connector instance with a deleted apiKeyId");
+                    return;
+                }
                 String startPeriod = current.toString(formatter);
                 String endPeriod = current.plusDays(increment - 1).toString(formatter);
                 String minutesUrl = "http://api.bodymedia.com/v2/json/" + urlExtension + startPeriod + "/" + endPeriod +
                                     "?api_key=" + updateInfo.apiKey.getAttributeValue("api_key", env);
                 //The following call may fail due to bodymedia's api. That is expected behavior
+                enforceRateLimits();
                 String json = signpostHelper.makeRestCall(updateInfo.apiKey, ot.value(), minutesUrl);
+                guestService.setApiKeyAttribute(updateInfo.apiKey, "timeOfLastCall", String.valueOf(System.currentTimeMillis()));
                 JSONObject bodymediaResponse = JSONObject.fromObject(json);
                 JSONArray daysArray = bodymediaResponse.getJSONArray("days");
                 if(bodymediaResponse.has("lastSync"))
@@ -171,6 +211,46 @@ public class BodymediaUpdater extends AbstractUpdater {
             throw e;
         }
 
+    }
+
+    /**
+     * make sure that there is at least RATE_DELAY ms between each API call. This works
+     * because Updaters are singletons
+     */
+    private void enforceRateLimits() {
+        long waitTime = getWaitTime();
+        if (waitTime>0) {
+            try { Thread.currentThread().sleep(waitTime); }
+            catch(Throwable e) {
+                e.printStackTrace();
+                throw new RuntimeException("Unexpected error waiting to enforce rate limits.");
+            }
+        }
+        setCallTime();
+    }
+
+    private long getWaitTime() {
+        final long millisSinceLastCall = getMillisSinceLastCall();
+        if (millisSinceLastCall ==-1)
+            return -1;
+        else return RATE_DELAY-millisSinceLastCall;
+    }
+
+    /**
+     * Thread-safely return the time since we last made an API call
+     * @return last time of API call
+     */
+    private synchronized long getMillisSinceLastCall() {
+        if (timeOfLastCall==null)
+            return -1;
+        return System.currentTimeMillis()-timeOfLastCall;
+    }
+
+    /**
+     * Thread-safely save the time; this called each time we make an API call
+     */
+    private synchronized void setCallTime() {
+        timeOfLastCall = System.currentTimeMillis();
     }
 
     private BodymediaSleepFacet createOrUpdateSleepFacet(final JSONObject day, final UpdateInfo updateInfo, final DateTime d, final TimezoneMap tzMap) {
@@ -385,26 +465,6 @@ public class BodymediaUpdater extends AbstractUpdater {
         return consumer;
     }
 
-    public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
-        // Check if the token has expired, and if so try to exchange it
-        checkAndReplaceOauthToken(updateInfo);
-
-        // Get timezone map for this user
-        TimezoneMap tzMap = getTimezoneMap(updateInfo);
-
-        // Insert tzMap into the updateInfo context so it's accessible to the extractors
-        updateInfo.setContext("tzMap", tzMap);
-
-        for (ObjectType ot : updateInfo.objectTypes()) {
-            // Get the start date either from user registration info or from the stored apiKeyAttributes.
-            // Set the end date to be today + 1 to cover the case of people in timezones which are later
-            // than the timezone of the server where it's already the next day
-            DateTime start = getStartDate(updateInfo, ot);
-            DateTime end = new DateTime().plusDays(1);
-            retrieveHistory(updateInfo, ot, url.get(ot), maxIncrement.get(ot), start, end);
-        }
-    }
-
     public DateTime getStartDate(UpdateInfo updateInfo, ObjectType ot) throws Exception
     {
         ApiKey apiKey = updateInfo.apiKey;
@@ -457,27 +517,28 @@ public class BodymediaUpdater extends AbstractUpdater {
 
     public String getUserRegistrationDate(UpdateInfo updateInfo, String api_key, OAuthConsumer consumer) throws Exception {
         // dev only: artificially make history shorter
-        return "20130810";
-        //long then = System.currentTimeMillis();
-        //String requestUrl = "http://api.bodymedia.com/v2/json/user/info?api_key=" + api_key;
-        //
-        //HttpGet request = new HttpGet(requestUrl);
-        //consumer.sign(request);
-        //HttpClient client = env.getHttpClient();
-        //HttpResponse response = client.execute(request);
-        //int statusCode = response.getStatusLine().getStatusCode();
-        //if (statusCode == 200) {
-        //    countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, requestUrl);
-        //    ResponseHandler<String> responseHandler = new BasicResponseHandler();
-        //    String json = responseHandler.handleResponse(response);
-        //    JSONObject userInfo = JSONObject.fromObject(json);
-        //    return userInfo.getString("registrationDate");
-        //}
-        //else {
-        //    final String reasonPhrase = response.getStatusLine().getReasonPhrase();
-        //    countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, requestUrl, reasonPhrase);
-        //    throw new Exception("Error: " + statusCode + " Unexpected error trying to get BodyMedia user registration date for guestId="+updateInfo.getGuestId());
-        //}
+        //return "20130810";
+        long then = System.currentTimeMillis();
+        String requestUrl = "http://api.bodymedia.com/v2/json/user/info?api_key=" + api_key;
+
+        HttpGet request = new HttpGet(requestUrl);
+        consumer.sign(request);
+        HttpClient client = env.getHttpClient();
+        enforceRateLimits();
+        HttpResponse response = client.execute(request);
+        int statusCode = response.getStatusLine().getStatusCode();
+        if (statusCode == 200) {
+            countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, requestUrl);
+            ResponseHandler<String> responseHandler = new BasicResponseHandler();
+            String json = responseHandler.handleResponse(response);
+            JSONObject userInfo = JSONObject.fromObject(json);
+            return userInfo.getString("registrationDate");
+        }
+        else {
+            final String reasonPhrase = response.getStatusLine().getReasonPhrase();
+            countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, requestUrl, reasonPhrase);
+            throw new Exception("Error: " + statusCode + " Unexpected error trying to get BodyMedia user registration date for guestId="+updateInfo.getGuestId());
+        }
     }
 
     public TimezoneMap getTimezoneMap(UpdateInfo updateInfo) throws Exception {
@@ -527,6 +588,7 @@ public class BodymediaUpdater extends AbstractUpdater {
         HttpGet request = new HttpGet(requestUrl);
         consumer.sign(request);
         HttpClient client = env.getHttpClient();
+        enforceRateLimits();
         HttpResponse response = client.execute(request);
         int statusCode = response.getStatusLine().getStatusCode();
         if (statusCode == 200) {
