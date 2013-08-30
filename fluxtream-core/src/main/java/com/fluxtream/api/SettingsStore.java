@@ -2,16 +2,19 @@ package com.fluxtream.api;
 
 import java.io.IOException;
 import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.auth.AuthHelper;
+import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.SettingsService;
 import com.google.gson.Gson;
+import net.sf.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -33,6 +36,18 @@ public class SettingsStore {
     SettingsService settingsService;
 
     private final Gson gson = new Gson();
+
+    @GET
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String getSettings(){
+        final long guestId = AuthHelper.getGuestId();
+        final Guest guest = guestService.getGuestById(guestId);
+        final GuestSettings settings = settingsService.getSettings(guestId);
+        JSONObject jsonObject = JSONObject.fromObject(gson.toJson(settings));
+        jsonObject.put("firstName", guest.firstname);
+        jsonObject.put("lastName", guest.lastname);
+        return jsonObject.toString();
+    }
 
     @POST
     @Produces({ MediaType.APPLICATION_JSON })

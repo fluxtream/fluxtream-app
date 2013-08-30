@@ -63,7 +63,7 @@ define(function() {
                             error:App.closeModal
                         });
                     });
-                    $("#")
+                    $("#settingsTabs").tab();
                 });
             }
         });

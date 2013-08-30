@@ -23,6 +23,8 @@ import org.joda.time.format.DateTimeFormatter;
 @Entity(name="Facet_VisitedCity")
 @Indexed
 @NamedQueries( {
+       @NamedQuery( name="visitedCities.delete.all",
+                    query="DELETE FROM Facet_VisitedCity cities WHERE cities.guestId=? "),
        @NamedQuery( name="visitedCities.byApiDateAndCity",
                     query="SELECT facet from Facet_VisitedCity facet WHERE facet.guestId=? AND facet.apiKeyId=? AND facet.date=? AND facet.city.id=? ")
 })
