@@ -106,6 +106,11 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
                                                                              : UpdateType.INITIAL_HISTORY_UPDATE);
         } else {
             int[] objectTypeValues = apiKey.getConnector().objectTypeValues();
+            final ConnectorInfo connectorInfo = systemService.getConnectorInfo(apiKey.getConnector().getName());
+            if (!connectorInfo.enabled||!connectorInfo.supportsSync) {
+                logger.info("Not updating " + connectorInfo.connectorName);
+                return scheduleResults;
+            }
             for (int objectTypes : objectTypeValues) {
                 scheduleObjectTypeUpdate(apiKey, objectTypes, scheduleResults, historyUpdateCompleted
                                                                                            ? UpdateType.INCREMENTAL_UPDATE
@@ -207,7 +212,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
         final List<ApiKey> connectors = guestService.getApiKeys(guestId);
         for (ApiKey key : connectors) {
             final ConnectorInfo connectorInfo = systemService.getConnectorInfo(key.getConnector().getName());
-            if (!connectorInfo.supportsSync)
+            if (!connectorInfo.supportsSync||!connectorInfo.enabled)
                 continue;
             if (key!=null && key.getConnector()!=null) {
                 List<ScheduleResult> updateRes = updateConnector(key, force);
