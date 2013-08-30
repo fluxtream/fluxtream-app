@@ -299,7 +299,6 @@ public class GuestServiceImpl implements GuestService {
 
     @Override
     @Transactional(readOnly = false)
-    @Secured("ROLE_ADMIN")
     public void eraseGuestInfo(long id) throws Exception {
         Guest guest = getGuestById(id);
         if (guest == null)

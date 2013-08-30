@@ -380,7 +380,19 @@ define(
 
         App.eraseEverything = function() {
             var confirmed = confirm("Are you sure?");
-            //TODO: Woot?! Why is this empty?
+            if (confirmed) {
+                $.ajax({
+                    url: "/api/settings/deleteAccount",
+                    type: "POST",
+                    success: function(status) {
+                        if (status.result=="OK") {
+                            window.location = "/logout";
+                        } else {
+                            alert(status.message);
+                        }
+                    }
+                });
+            }
         };
 
         App.as = function(username) {
@@ -393,13 +405,8 @@ define(
                     } else
                         alert(status.message);
                 }
-            })
+            });
         };
-
-        function glow(element) {
-            element.css("text-shadow", "0 0 10px white")
-                .css("color", "white");
-        }
 
         App.connectors = function() {
             AddConnectors.show();

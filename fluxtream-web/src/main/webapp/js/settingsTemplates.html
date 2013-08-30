@@ -16,6 +16,9 @@
                     <li>
                         <a href="javascript:void(0);" onclick="$(this).tab('show');" data-target="#password-settings" data-toggle="tab">Password</a>
                     </li>
+                    <li>
+                        <a href="javascript:void(0);" onclick="$(this).tab('show');" data-target="#more-settings" data-toggle="tab">More</a>
+                    </li>
                 </ul>
                 <div class="tab-content">
                     <div class="tab-pane active settings-tab" id="general-settings">
@@ -85,6 +88,11 @@
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+                    <div class="tab-pane settings-tab" id="more-settings">
+                        <h3>Delete my account</h3>
+                        <a href="javascript:App.eraseEverything();"
+                           style="font-size: 13px">Erase all my data</a>
                     </div>
                 </div>
             </div>

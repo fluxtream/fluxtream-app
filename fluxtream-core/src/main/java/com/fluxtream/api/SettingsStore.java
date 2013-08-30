@@ -50,6 +50,23 @@ public class SettingsStore {
     }
 
     @POST
+    @Path("/deleteAccount")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public StatusModel eraseEverything() {
+        final long guestId = AuthHelper.getGuestId();
+        try {
+            guestService.eraseGuestInfo(guestId);
+        }
+        catch (Throwable e) {
+            e.printStackTrace();
+            return new StatusModel(false, "There was an unexpected error " +
+                                          "while deleting your account: " + e.getMessage() +
+                                          " - Please contact your administrator");
+        }
+        return new StatusModel(true, "Successfully deleted account");
+    }
+
+    @POST
     @Produces({ MediaType.APPLICATION_JSON })
     public String saveSettings(@FormParam("guest_firstname") String firstName, @FormParam("guest_lastname") String lastName,
                                @FormParam("length_measure_unit") String lengthUnit, @FormParam("distance_measure_unit") String distanceUnit,
