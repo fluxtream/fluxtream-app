@@ -132,6 +132,9 @@
 
     <script>
 		window.FLX_RELEASE_NUMBER = "${release}";
+        <% if (request.getAttribute("tourState")!=null) { %>
+        window.FLX_TOUR_STATE = ${tourState};
+        <% } %>
 	</script>
 
 	<script

@@ -141,7 +141,9 @@ public class AppController {
 			return mav;
 		mav.setViewName("home");
 
-		Guest guest = guestService.getGuestById(guestId);
+        Guest guest = guestService.getGuestById(guestId);
+        final Integer tourState = guest.tourState;
+        mav.addObject("tourState", tourState);
 
 		mav.addObject("fullname", guest.getGuestName());
 

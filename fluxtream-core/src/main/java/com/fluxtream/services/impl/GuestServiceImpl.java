@@ -122,6 +122,7 @@ public class GuestServiceImpl implements GuestService {
 		guest.email = email;
 		guest.firstname = firstname;
 		guest.lastname = lastname;
+        guest.tourState = 0;
 		setPassword(guest, password);
 		em.persist(guest);
 //		createBodyTrackUser()....

@@ -31,6 +31,8 @@ public class Guest extends AbstractEntity {
 	public String email;
 	public String salt;
 
+    public Integer tourState;
+
 	transient List<String> userRoles;
 	String roles = ROLE_USER;
 

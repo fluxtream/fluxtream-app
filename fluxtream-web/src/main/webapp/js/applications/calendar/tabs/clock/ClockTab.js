@@ -64,6 +64,12 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
     }
 
     function setup(digest, timeUnit, cEn) {
+        if (typeof(window.FLX_TOUR_STATE)=="undefined"||
+            window.FLX_TOUR_STATE==-1) {
+            $("#clockTab").show();
+        } else {
+            console.log("we should start the tour now...");
+        }
         dgst = digest;
         selectedConnectors = digest.selectedConnectors;
         connectorEnabled = cEn;
