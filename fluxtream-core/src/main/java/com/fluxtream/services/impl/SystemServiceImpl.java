@@ -186,14 +186,6 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
                                      res.getString("twitter"), "/twitter/token",
                                      Connector.getConnector("twitter"), order++, twitterKeys!=null,
                                      false, true, twitterKeys));
-        final String github = "Github";
-        String[] githubKeys = checkKeysExist(github, Arrays.asList("singly.client.id", "singly.client.secret"));
-        em.persist(new ConnectorInfo(github,
-                                     "/images/connectors/connector-github.jpg",
-                                     res.getString("github"),
-                                     singlyAuthorizeUrl("github"),
-                                     Connector.getConnector("github"), order++, false,
-                                     false, true, githubKeys));
         final String fluxtreamCapture = "Fluxtream Capture";
         String[] fluxtreamCaptureKeys = checkKeysExist(fluxtreamCapture, new ArrayList<String>());
         em.persist(new ConnectorInfo(fluxtreamCapture,
