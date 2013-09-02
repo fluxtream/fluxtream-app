@@ -1,4 +1,4 @@
-package com.fluxtream.connectors.singly.github;
+package glacier.github;
 
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.annotations.Updater;
@@ -55,7 +55,7 @@ public class GithubUpdater extends AbstractUpdater {
         }
         catch (Exception e) {
             countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then,
-                               queryUrl, Utils.stackTrace(e));
+                               queryUrl, Utils.stackTrace(e), null, null);
             throw new Exception("Could not get GitHub Commits (from Singly): "
                                 + e.getMessage() + "\n" + Utils.stackTrace(e));
         }

@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.domain.ApiKey;
+import com.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import net.sf.json.JSONObject;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,8 +58,7 @@ public class FacebookConnectorController {
 	}
 	
 	@RequestMapping(value = "/swapToken")
-	public ModelAndView upgradeToken(HttpServletRequest request,
-			HttpServletResponse response) throws IOException {
+	public ModelAndView upgradeToken(HttpServletRequest request) throws IOException, UnexpectedHttpResponseCodeException {
 		
 		String code = request.getParameter("code");
 		String redirectUri = env.get("facebook.redirect_uri");

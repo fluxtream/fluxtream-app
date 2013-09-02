@@ -1,5 +1,6 @@
 package com.fluxtream.connectors.mymee;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -20,6 +21,7 @@ import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.impl.BodyTrackHelper;
 import com.fluxtream.utils.HttpUtils;
+import com.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import com.fluxtream.utils.Utils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -99,10 +101,14 @@ public class MymeeUpdater extends AbstractUpdater {
                 newLastSeq = json.getLong("last_seq");
                 changes = json.getJSONArray("results");
             }
-            catch (Exception e) {
-                countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes,
-                                   System.currentTimeMillis(),
-                                   URL, Utils.stackTrace(e));
+            catch (UnexpectedHttpResponseCodeException e) {
+                countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, System.currentTimeMillis(), URL,
+                                   Utils.stackTrace(e), e.getHttpResponseCode(), e.getHttpResponseMessage());
+                throw new Exception("Could not get Mymee observations: "
+                                    + e.getMessage() + "\n" + Utils.stackTrace(e));
+            } catch (IOException e) {
+                reportFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, System.currentTimeMillis(), URL,
+                                    Utils.stackTrace(e), "I/O");
                 throw new Exception("Could not get Mymee observations: "
                                     + e.getMessage() + "\n" + Utils.stackTrace(e));
             }
@@ -286,9 +292,13 @@ public class MymeeUpdater extends AbstractUpdater {
         try {
             json = HttpUtils.fetch(queryUrl);
         }
-        catch (Exception e) {
+        catch (UnexpectedHttpResponseCodeException e) {
             countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then,
-                               queryUrl, Utils.stackTrace(e));
+                               queryUrl, Utils.stackTrace(e),
+                               e.getHttpResponseCode(), e.getHttpResponseMessage());
+        } catch (IOException e) {
+            reportFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then,
+                               queryUrl, Utils.stackTrace(e), "I/O");
             throw new Exception("Could not get Mymee observations: "
                                 + e.getMessage() + "\n" + Utils.stackTrace(e));
         }

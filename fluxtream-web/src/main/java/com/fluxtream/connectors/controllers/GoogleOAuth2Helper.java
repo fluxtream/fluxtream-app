@@ -8,6 +8,7 @@ import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.utils.HttpUtils;
+import com.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import net.sf.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -26,7 +27,7 @@ public class GoogleOAuth2Helper {
     Configuration env;
     FlxLogger logger = FlxLogger.getLogger(GoogleOAuth2Helper.class);
 
-    public String getAccessToken(final ApiKey apiKey) throws IOException {
+    public String getAccessToken(final ApiKey apiKey) throws IOException, UnexpectedHttpResponseCodeException {
         final String expiresString = guestService.getApiKeyAttribute(apiKey, "tokenExpires");
         long expires = Long.valueOf(expiresString);
         if (expires<System.currentTimeMillis())
@@ -34,7 +35,7 @@ public class GoogleOAuth2Helper {
         return guestService.getApiKeyAttribute(apiKey, "accessToken");
     }
 
-    private void refreshToken(final ApiKey apiKey) throws IOException {
+    private void refreshToken(final ApiKey apiKey) throws IOException, UnexpectedHttpResponseCodeException {
         // Check to see if we are running on a mirrored test instance
         // and should therefore refrain from swapping tokens lest we
         // invalidate an existing token instance

@@ -18,10 +18,10 @@ import com.fluxtream.services.GuestService;
 import com.fluxtream.services.NotificationsService;
 import com.fluxtream.utils.HttpUtils;
 import net.sf.json.JSONObject;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.apache.log4j.Logger;
 
 
 /**
@@ -92,7 +92,7 @@ public class MovesController {
     }
 
     @RequestMapping(value="swapToken")
-    public String swapToken(HttpServletRequest request) throws IOException {
+    public String swapToken(HttpServletRequest request) throws Exception {
         final String errorMessage = request.getParameter("error");
         final Guest guest = AuthHelper.getGuest();
         if (errorMessage!=null) {
@@ -138,7 +138,7 @@ public class MovesController {
         return "redirect:/app/from/moves";
     }
 
-    String getAccessToken(final ApiKey apiKey) throws IOException {
+    String getAccessToken(final ApiKey apiKey) throws Exception {
         final String expiresString = guestService.getApiKeyAttribute(apiKey, "tokenExpires");
         long expires = Long.valueOf(expiresString);
         if (expires<System.currentTimeMillis())
@@ -146,7 +146,7 @@ public class MovesController {
         return guestService.getApiKeyAttribute(apiKey, "accessToken");
     }
 
-    private void refreshToken(final ApiKey apiKey) throws IOException {
+    private void refreshToken(final ApiKey apiKey) throws Exception {
         // Check to see if we are running on a mirrored test instance
         // and should therefore refrain from swapping tokens lest we
         // invalidate an existing token instance
@@ -176,7 +176,7 @@ public class MovesController {
         String fetched;
         try {
             fetched = HttpUtils.fetch(swapTokenUrl, params);
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw e;
         }
 

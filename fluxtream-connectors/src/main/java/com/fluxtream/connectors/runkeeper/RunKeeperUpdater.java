@@ -77,15 +77,17 @@ public class RunKeeperUpdater  extends AbstractUpdater {
             service.signRequest(token, request);
             long then = System.currentTimeMillis();
             Response response = request.send();
-            if (response.getCode()==200) {
+            final int httpResponseCode = response.getCode();
+            if (httpResponseCode ==200) {
                 countSuccessfulApiCall(updateInfo.apiKey,
                                        updateInfo.objectTypes, then, activityURL);
                 String body = response.getBody();
                 apiDataService.cacheApiDataJSON(updateInfo, body, -1, -1);
             } else {
                 countFailedApiCall(updateInfo.apiKey,
-                                   updateInfo.objectTypes, then, activityURL, "");
-                throw new RuntimeException("Unexpected code: " + response.getCode());
+                                   updateInfo.objectTypes, then, activityURL, "",
+                                   httpResponseCode, response.getBody());
+                throw new RuntimeException("Unexpected code: " + httpResponseCode);
             }
         }
     }
@@ -125,7 +127,8 @@ public class RunKeeperUpdater  extends AbstractUpdater {
         service.signRequest(token, request);
         long then = System.currentTimeMillis();
         Response response = request.send();
-        if (response.getCode()==200) {
+        final int httpResponseCode = response.getCode();
+        if (httpResponseCode ==200) {
             String body = response.getBody();
             JSONObject jsonObject = JSONObject.fromObject(body);
             final JSONArray items = jsonObject.getJSONArray("items");
@@ -142,13 +145,14 @@ public class RunKeeperUpdater  extends AbstractUpdater {
                 activityFeedURL = DEFAULT_ENDPOINT + jsonObject.getString("next");
                 getFitnessActivityFeed(updateInfo, service, token, activityFeedURL, pageSize, activities, since, uriList);
             }
-        } else if (response.getCode()==304) {
+        } else if (httpResponseCode ==304) {
             countSuccessfulApiCall(updateInfo.apiKey,
                                    updateInfo.objectTypes, then, activityFeedURL);
         } else {
             countFailedApiCall(updateInfo.apiKey,
-                               updateInfo.objectTypes, then, activityFeedURL, "");
-            throw new RuntimeException("Unexpected code: " + response.getCode());
+                               updateInfo.objectTypes, then, activityFeedURL, "",
+                               httpResponseCode, response.getBody());
+            throw new RuntimeException("Unexpected code: " + httpResponseCode);
         }
     }
 

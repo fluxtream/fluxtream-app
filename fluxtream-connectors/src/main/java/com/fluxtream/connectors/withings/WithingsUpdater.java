@@ -1,5 +1,6 @@
 package com.fluxtream.connectors.withings;
 
+import java.io.IOException;
 import java.util.List;
 import com.fluxtream.connectors.annotations.JsonFacetCollection;
 import com.fluxtream.connectors.annotations.Updater;
@@ -7,6 +8,7 @@ import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.services.JPADaoService;
 import com.fluxtream.utils.JPAUtils;
+import com.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import com.fluxtream.utils.Utils;
 import net.sf.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +35,7 @@ public class WithingsUpdater extends AbstractUpdater {
     protected void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception {
         // get user info and find out first seen date
         long then = System.currentTimeMillis();
-        String json;
+        String json = "";
 
         String url = "http://wbsapi.withings.net/measure?action=getmeas";
         url += "&userid="
@@ -50,9 +52,14 @@ public class WithingsUpdater extends AbstractUpdater {
                 throw new Exception("Unexpected status code " + jsonObject.getInt("status"));
             countSuccessfulApiCall(updateInfo.apiKey,
                                    updateInfo.objectTypes, then, url);
+        } catch (UnexpectedHttpResponseCodeException e) {
+            countFailedApiCall(updateInfo.apiKey,
+                               updateInfo.objectTypes, then, url, Utils.stackTrace(e),
+                               e.getHttpResponseCode(), e.getHttpResponseMessage());
         } catch (Exception e) {
             countFailedApiCall(updateInfo.apiKey,
-                               updateInfo.objectTypes, then, url, Utils.stackTrace(e));
+                               updateInfo.objectTypes, then, url, Utils.stackTrace(e),
+                               null, null);
             throw e;
         }
         if (!json.equals(""))
@@ -82,9 +89,13 @@ public class WithingsUpdater extends AbstractUpdater {
                 throw new Exception("Unexpected status code " + jsonObject.getInt("status"));
             countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, url);
             apiDataService.cacheApiDataJSON(updateInfo, json, -1, -1);
-        } catch (Exception e) {
+        } catch (UnexpectedHttpResponseCodeException e) {
             countFailedApiCall(updateInfo.apiKey,
-                               updateInfo.objectTypes, then, url, Utils.stackTrace(e));
+                               updateInfo.objectTypes, then, url, Utils.stackTrace(e),
+                               e.getHttpResponseCode(), e.getHttpResponseMessage());
+        } catch (IOException e) {
+            reportFailedApiCall(updateInfo.apiKey,
+                               updateInfo.objectTypes, then, url, Utils.stackTrace(e), "I/O");
             throw e;
         }
     }

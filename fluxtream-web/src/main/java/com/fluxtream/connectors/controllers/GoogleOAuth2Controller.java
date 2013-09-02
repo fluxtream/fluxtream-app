@@ -20,6 +20,7 @@ import com.fluxtream.services.GuestService;
 import com.fluxtream.services.NotificationsService;
 import com.fluxtream.services.SystemService;
 import com.fluxtream.utils.HttpUtils;
+import com.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import net.sf.json.JSONObject;
 import org.codehaus.plexus.util.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,7 +85,7 @@ public class GoogleOAuth2Controller {
 	}
 	
 	@RequestMapping(value = "/swapToken")
-	public ModelAndView upgradeToken(HttpServletRequest request) throws IOException {
+	public ModelAndView upgradeToken(HttpServletRequest request) throws IOException, UnexpectedHttpResponseCodeException {
 		
 		String swapTokenUrl = "https://accounts.google.com/o/oauth2/token";
 		String code = request.getParameter("code");

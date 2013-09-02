@@ -1,4 +1,4 @@
-package com.fluxtream.connectors.singly.github;
+package glacier.github;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -11,6 +11,7 @@ import com.fluxtream.domain.Guest;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.utils.HttpUtils;
+import com.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
@@ -29,7 +30,7 @@ public class GithubConnectorController {
     Configuration env;
 
     @RequestMapping(value = "/callback")
-    public String getToken(HttpServletRequest request) throws IOException {
+    public String getToken(HttpServletRequest request) throws IOException, UnexpectedHttpResponseCodeException {
         String code = request.getParameter("code");
         String error = request.getParameter("error");
 
@@ -63,7 +64,7 @@ public class GithubConnectorController {
         return "redirect:/app/from/github?error=" + error;
     }
 
-    private void getUserLogin(final ApiKey apiKey, final String accessToken) throws IOException {
+    private void getUserLogin(final ApiKey apiKey, final String accessToken) throws IOException, UnexpectedHttpResponseCodeException {
         final String profileJson = HttpUtils.fetch("https://api.singly.com/services/github/self?access_token=" + accessToken);
         JSONArray jsonProfileArray = JSONArray.fromObject(profileJson);
         JSONObject jsonProfile = jsonProfileArray.getJSONObject(0);

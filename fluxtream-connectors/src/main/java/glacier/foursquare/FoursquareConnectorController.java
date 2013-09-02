@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.domain.ApiKey;
+import com.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import net.sf.json.JSONObject;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +54,7 @@ public class FoursquareConnectorController {
 	
 	@RequestMapping(value = "/swapToken")
 	public String upgradeToken(HttpServletRequest request,
-			HttpServletResponse response) throws IOException {
+			HttpServletResponse response) throws IOException, UnexpectedHttpResponseCodeException {
 		
 		String swapTokenUrl = "https://foursquare.com/oauth2/access_token";
 		String code = request.getParameter("code");

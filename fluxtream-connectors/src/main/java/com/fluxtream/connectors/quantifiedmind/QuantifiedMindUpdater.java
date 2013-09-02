@@ -1,5 +1,6 @@
 package com.fluxtream.connectors.quantifiedmind;
 
+import java.io.IOException;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
@@ -7,6 +8,7 @@ import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiUpdate;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.utils.HttpUtils;
+import com.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import com.fluxtream.utils.Utils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -69,10 +71,16 @@ public class QuantifiedMindUpdater extends AbstractUpdater {
                 apiDataService.cacheApiDataJSON(updateInfo, sessionDataJSON, -1, -1);
             } while (partialResult);
         }
-        catch (Exception e) {
+        catch (UnexpectedHttpResponseCodeException e) {
             countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then,
-                               queryUrl, Utils.stackTrace(e));
+                               queryUrl, Utils.stackTrace(e), e.getHttpResponseCode(), e.getHttpResponseMessage());
             throw new Exception("Could not get QuantifiedMind tests: "
+                                + e.getMessage() + "\n" + Utils.stackTrace(e));
+        }
+        catch (IOException e) {
+            reportFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then,
+                               queryUrl, Utils.stackTrace(e), "I/O");
+            throw new Exception("Unexpected error, getting QuantifiedMind tests: "
                                 + e.getMessage() + "\n" + Utils.stackTrace(e));
         }
 

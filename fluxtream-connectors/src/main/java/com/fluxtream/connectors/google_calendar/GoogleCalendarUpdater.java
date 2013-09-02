@@ -78,8 +78,9 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
             try {
                 calendarList = list.execute();
                 countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, query);
-            } catch (Exception e) {
-                countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, query, ExceptionUtils.getStackTrace(e));
+            } catch (IOException e) {
+                countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, query, ExceptionUtils.getStackTrace(e),
+                                   list.getLastStatusCode(), list.getLastStatusMessage());
             }
             if (calendarList==null) throw new Exception("Could not get calendar list, apiKeyId=" + updateInfo.apiKey.getId());
             List<CalendarListEntry> items = calendarList.getItems();
@@ -143,7 +144,8 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
                 storeEvents(updateInfo, calendarEntry, eventList);
                 pageToken = events.getNextPageToken();
             } catch (Throwable e) {
-                countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, uriTemplate, ExceptionUtils.getStackTrace(e));
+                countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, uriTemplate, ExceptionUtils.getStackTrace(e),
+                                   eventsApiCall.getLastStatusCode(), eventsApiCall.getLastStatusMessage());
                 throw(new RuntimeException(e));
             }
         } while (pageToken != null);
@@ -171,7 +173,8 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
                 storeEvents(updateInfo, calendarEntry, eventList);
                 pageToken = events.getNextPageToken();
             } catch (Throwable e) {
-                countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, uriTemplate, ExceptionUtils.getStackTrace(e));
+                countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, uriTemplate, ExceptionUtils.getStackTrace(e),
+                                   eventsApiCall.getLastStatusCode(), eventsApiCall.getLastStatusMessage());
                 throw(new RuntimeException(e));
             }
         } while (pageToken != null);
@@ -259,7 +262,8 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
                 list = calendarListCall.execute();
                 countSuccessfulApiCall(apiKey, 0xffffff, then, uriTemplate);
             } catch (Throwable t) {
-                countFailedApiCall(apiKey, 0xffffff, then, uriTemplate, ExceptionUtils.getStackTrace(t));
+                countFailedApiCall(apiKey, 0xffffff, then, uriTemplate, ExceptionUtils.getStackTrace(t),
+                                   calendarListCall.getLastStatusCode(), calendarListCall.getLastStatusMessage());
             }
             final List<CalendarListEntry> items = list.getItems();
             for (CalendarListEntry calendarListEntry : items) {

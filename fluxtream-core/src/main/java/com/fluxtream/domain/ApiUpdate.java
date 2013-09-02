@@ -51,6 +51,11 @@ public class ApiUpdate extends AbstractEntity {
     @Index(name="apiKeyId")
     public Long apiKeyId;
 
+    @Index(name="httpResponseCode")
+    public Integer httpResponseCode;
+
+    public String reason;
+
     /**
      * Legacy (we need it for the existing user data)
      */

@@ -81,7 +81,7 @@ public class FlickrController {
     }
 
     @RequestMapping(value = "/upgradeToken")
-	public String upgradeToken(HttpServletRequest request) throws NoSuchAlgorithmException, IOException, DocumentException {
+	public String upgradeToken(HttpServletRequest request) throws NoSuchAlgorithmException, DocumentException, IOException {
 		String api_key = env.get("flickrConsumerKey");
 		String frob = request.getParameter("frob");
 		
@@ -97,7 +97,18 @@ public class FlickrController {
 
 		Guest guest = AuthHelper.getGuest();
 
-		String authToken = fetch(getTokenUrl);
+        String authToken = null;
+        try {
+            authToken = fetch(getTokenUrl);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            notificationsService.addNotification(AuthHelper.getGuestId(),
+                                                 Notification.Type.ERROR,
+                                                 "Oops, we could not link your Flickr account<br>" +
+                                                 "Please contact your administrator.");
+            return "redirect:/app";
+        }
 
         StringReader stringReader = new StringReader(authToken);
         StringBuilder sb = new StringBuilder();

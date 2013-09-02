@@ -1,11 +1,9 @@
 package com.fluxtream.connectors.sms_backup;
 
 import java.io.StringReader;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ConcurrentMap;
-
 import javax.mail.Address;
 import javax.mail.FetchProfile;
 import javax.mail.Folder;
@@ -15,27 +13,6 @@ import javax.mail.Store;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.search.SentDateTerm;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-
-import com.fluxtream.domain.ChannelMapping;
-import com.fluxtream.domain.Tag;
-import com.fluxtream.services.ApiDataService;
-import com.fluxtream.services.ApiDataService.FacetQuery;
-import com.fluxtream.services.ApiDataService.FacetModifier;
-import com.fluxtream.services.impl.BodyTrackHelper;
-import com.fluxtream.services.impl.BodyTrackHelper.ChannelStyle;
-import com.fluxtream.services.impl.BodyTrackHelper.MainTimespanStyle;
-import com.fluxtream.services.impl.BodyTrackHelper.TimespanStyle;
-import com.fluxtream.utils.JPAUtils;
-import com.fluxtream.utils.Utils;
-import com.ibm.icu.util.StringTokenizer;
-import oauth.signpost.OAuthConsumer;
-import org.apache.commons.io.IOUtils;
-import org.joda.time.DateTime;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.annotations.JsonFacetCollection;
@@ -43,12 +20,22 @@ import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.RateLimitReachedException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
-import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
-import com.fluxtream.domain.ApiUpdate;
+import com.fluxtream.domain.ChannelMapping;
+import com.fluxtream.services.ApiDataService.FacetModifier;
+import com.fluxtream.services.ApiDataService.FacetQuery;
 import com.fluxtream.services.GuestService;
+import com.fluxtream.services.impl.BodyTrackHelper;
+import com.fluxtream.services.impl.BodyTrackHelper.ChannelStyle;
+import com.fluxtream.services.impl.BodyTrackHelper.MainTimespanStyle;
+import com.fluxtream.services.impl.BodyTrackHelper.TimespanStyle;
 import com.fluxtream.utils.MailUtils;
+import com.fluxtream.utils.Utils;
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
+import com.ibm.icu.util.StringTokenizer;
+import org.apache.commons.io.IOUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 @Updater(prettyName = "SMS Backup", value = 6, objectTypes = {
@@ -380,8 +367,8 @@ public class SmsBackupUpdater extends AbstractUpdater {
 			return;
 		} catch (Exception ex) {
             ex.printStackTrace();
-			countFailedApiCall(updateInfo.apiKey, smsObjectType.value(),
-					then, query, Utils.stackTrace(ex));
+			reportFailedApiCall(updateInfo.apiKey, smsObjectType.value(),
+					then, query, Utils.stackTrace(ex), ex.getMessage());
 			throw ex;
 		}
 	}
@@ -412,8 +399,9 @@ public class SmsBackupUpdater extends AbstractUpdater {
 			return;
 		} catch (Exception ex) {
             ex.printStackTrace();
-			countFailedApiCall(updateInfo.apiKey,
-					callLogObjectType.value(), then, query, Utils.stackTrace(ex));
+			reportFailedApiCall(updateInfo.apiKey,
+					callLogObjectType.value(), then, query, Utils.stackTrace(ex),
+                    ex.getMessage());
 			throw ex;
 		}
 	}

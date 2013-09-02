@@ -1,5 +1,6 @@
 package com.fluxtream.connectors.flickr;
 
+import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,14 +14,15 @@ import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.ChannelMapping;
 import com.fluxtream.domain.Tag;
 import com.fluxtream.services.ApiDataService;
-import com.fluxtream.domain.ChannelMapping;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.JPADaoService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.impl.BodyTrackHelper;
 import com.fluxtream.utils.JPAUtils;
+import com.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import com.fluxtream.utils.Utils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -248,9 +250,14 @@ public class FlickrUpdater extends AbstractUpdater {
 			photosJson = fetch(searchPhotosUrl);
 			countSuccessfulApiCall(updateInfo.apiKey,
 					updateInfo.objectTypes, then, searchPhotosUrl);
-		} catch (Exception e) {
-			countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes,
-					then, searchPhotosUrl, Utils.stackTrace(e));
+        } catch (UnexpectedHttpResponseCodeException e) {
+            countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes,
+                               then, searchPhotosUrl, Utils.stackTrace(e),
+                               e.getHttpResponseCode(), e.getHttpResponseMessage());
+            throw e;
+		} catch (IOException e) {
+			reportFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, searchPhotosUrl,
+                                Utils.stackTrace(e), "I/O");
 			throw e;
 		}
 
@@ -280,9 +287,14 @@ public class FlickrUpdater extends AbstractUpdater {
             photosJson = fetch(searchPhotosUrl);
             countSuccessfulApiCall(updateInfo.apiKey,
                                    updateInfo.objectTypes, then, searchPhotosUrl);
-        } catch (Exception e) {
+        } catch (UnexpectedHttpResponseCodeException e) {
             countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes,
-                               then, searchPhotosUrl, Utils.stackTrace(e));
+                               then, searchPhotosUrl, Utils.stackTrace(e),
+                               e.getHttpResponseCode(), e.getHttpResponseMessage());
+            throw e;
+        } catch (IOException e) {
+            reportFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes,
+                               then, searchPhotosUrl, Utils.stackTrace(e), "I/O");
             throw e;
         }
 

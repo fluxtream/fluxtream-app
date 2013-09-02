@@ -238,7 +238,8 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 		consumer.sign(request);
 		HttpClient client = env.getHttpClient();
 		HttpResponse response = client.execute(request);
-		if (response.getStatusLine().getStatusCode() == 200) {
+        final int statusCode = response.getStatusLine().getStatusCode();
+        if (statusCode == 200) {
 			countSuccessfulApiCall(updateInfo.apiKey,
 					updateInfo.objectTypes, then, requestUrl);
 			ResponseHandler<String> responseHandler = new BasicResponseHandler();
@@ -250,7 +251,8 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 			return statuses.size();
 		} else {
             final String reasonPhrase = response.getStatusLine().getReasonPhrase();
-            countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, requestUrl, reasonPhrase);
+            countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, requestUrl, reasonPhrase,
+                               statusCode, reasonPhrase);
 			throw new Exception("Unexpected error trying to get statuses");
 		}
 	}
@@ -267,7 +269,8 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 		consumer.sign(request);
 		HttpClient client = env.getHttpClient();
 		HttpResponse response = client.execute(request);
-		if (response.getStatusLine().getStatusCode() == 200) {
+        final int statusCode = response.getStatusLine().getStatusCode();
+        if (statusCode == 200) {
 			countSuccessfulApiCall(updateInfo.apiKey,
 					updateInfo.objectTypes, then, requestUrl);
 			ResponseHandler<String> responseHandler = new BasicResponseHandler();
@@ -281,7 +284,8 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 		} else {
             final String reasonPhrase = response.getStatusLine().getReasonPhrase();
 			countFailedApiCall(updateInfo.apiKey,
-					updateInfo.objectTypes, then, requestUrl, reasonPhrase);
+					updateInfo.objectTypes, then, requestUrl, reasonPhrase,
+                    statusCode, reasonPhrase);
 			throw new Exception("Unexpected error trying to get received messages");
 		}
 	}
@@ -298,7 +302,8 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 		consumer.sign(request);
 		HttpClient client = env.getHttpClient();
 		HttpResponse response = client.execute(request);
-		if (response.getStatusLine().getStatusCode() == 200) {
+        final int statusCode = response.getStatusLine().getStatusCode();
+        if (statusCode == 200) {
 			countSuccessfulApiCall(updateInfo.apiKey,
 					updateInfo.objectTypes, then, requestUrl);
 			ResponseHandler<String> responseHandler = new BasicResponseHandler();
@@ -311,7 +316,8 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 			return directMessages.size();
 		} else {
             final String reasonPhrase = response.getStatusLine().getReasonPhrase();
-            countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, requestUrl, reasonPhrase);
+            countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, requestUrl, reasonPhrase,
+                               statusCode, reasonPhrase);
 			throw new Exception("Unexpected error trying to get sent messages");
 		}
 	}
@@ -328,7 +334,8 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 		consumer.sign(request);
 		HttpClient client = env.getHttpClient();
 		HttpResponse response = client.execute(request);
-		if (response.getStatusLine().getStatusCode() == 200) {
+        final int statusCode = response.getStatusLine().getStatusCode();
+        if (statusCode == 200) {
 			countSuccessfulApiCall(updateInfo.apiKey,
 					updateInfo.objectTypes, then, requestUrl);
 			ResponseHandler<String> responseHandler = new BasicResponseHandler();
@@ -341,7 +348,8 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 		} else {
             final String reasonPhrase = response.getStatusLine().getReasonPhrase();
             countFailedApiCall(updateInfo.apiKey,
-                               updateInfo.objectTypes, then, requestUrl, reasonPhrase);
+                               updateInfo.objectTypes, then, requestUrl, reasonPhrase,
+                               statusCode, reasonPhrase);
             Exception exception = new Exception("Unexpected error trying to get mentions: " + reasonPhrase);
 			throw exception;
 		}

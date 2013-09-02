@@ -16,6 +16,7 @@ import com.fluxtream.services.GuestService;
 import com.fluxtream.services.WidgetsService;
 import com.fluxtream.utils.HttpUtils;
 import com.fluxtream.utils.JPAUtils;
+import com.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
@@ -192,6 +193,9 @@ public class WidgetsServiceImpl implements WidgetsService {
         catch (IOException e) {
             throw new RuntimeException("Could not access widgets JSON URL: " + baseURL + "widgets.json");
         }
+        catch (UnexpectedHttpResponseCodeException e) {
+            throw new RuntimeException("Could not access widgets JSON URL: " + baseURL + "widgets.json");
+        }
         try {
             widgetsList = JSONArray.fromObject(widgetListString);
         } catch (Throwable t) {
@@ -204,7 +208,12 @@ public class WidgetsServiceImpl implements WidgetsService {
             for (int i=0; i<widgetsList.size(); i++) {
                 String widgetName = widgetsList.getString(i);
                 widgetUrl = baseURL + "widgets/" + widgetName + "/manifest.json";
-                manifestJSONString = HttpUtils.fetch(widgetUrl);
+                try {
+                    manifestJSONString = HttpUtils.fetch(widgetUrl);
+                }
+                catch (UnexpectedHttpResponseCodeException e) {
+                    e.printStackTrace();
+                }
                 JSONObject manifestJSON = null;
                 try {
                     manifestJSON = JSONObject.fromObject(manifestJSONString);

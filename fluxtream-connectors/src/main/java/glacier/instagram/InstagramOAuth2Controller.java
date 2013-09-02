@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.domain.ApiKey;
+import com.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import net.sf.json.JSONObject;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,8 +55,7 @@ public class InstagramOAuth2Controller {
 	}
 	
 	@RequestMapping(value = "/swapToken")
-	public String upgradeToken(HttpServletRequest request,
-			HttpServletResponse response) throws IOException {
+	public String upgradeToken(HttpServletRequest request) throws IOException, UnexpectedHttpResponseCodeException {
 		
 		String swapTokenUrl = "https://api.instagram.com/oauth/access_token";
 		String code = request.getParameter("code");
@@ -67,9 +67,9 @@ public class InstagramOAuth2Controller {
 		params.put("client_secret", env.get("instagram.client.secret"));
 		params.put("redirect_uri", redirectUri);
 		params.put("grant_type", "authorization_code");
-		
+
 		String fetched = HttpUtils.fetch(swapTokenUrl, params);
-		
+
 		JSONObject token = JSONObject.fromObject(fetched);
 		
 //		String scope = (String) request.getSession().getAttribute("oauth2Scope");

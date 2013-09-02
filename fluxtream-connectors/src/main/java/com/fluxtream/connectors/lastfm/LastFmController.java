@@ -14,8 +14,11 @@ import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.controllers.ControllerSupport;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
+import com.fluxtream.domain.Notification;
 import com.fluxtream.services.GuestService;
+import com.fluxtream.services.NotificationsService;
 import com.fluxtream.utils.HttpUtils;
+import com.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,6 +34,9 @@ public class LastFmController {
 
 	@Autowired
 	Configuration env;
+
+    @Autowired
+    NotificationsService notificationsService;
 
 	@RequestMapping(value = "/token")
 	public String getToken(HttpServletRequest request) throws IOException, ServletException {
@@ -58,10 +64,21 @@ public class LastFmController {
 		Map<String, String> params = toMap("method", "auth.getsession",
 				"format", "json",
 				"token", token, "api_key", api_key, "api_sig", api_sig);
-		String jsonResponse = HttpUtils.fetch(
-				"https://ws.audioscrobbler.com/2.0/", params);
-		
-		String sessionKey = LastfmHelper.getSessionKey(jsonResponse);
+        String jsonResponse;
+        try {
+            jsonResponse = HttpUtils.fetch("https://ws.audioscrobbler.com/2.0/", params);
+        }
+        catch (UnexpectedHttpResponseCodeException e) {
+            e.printStackTrace();
+            notificationsService.addNotification(AuthHelper.getGuestId(), Notification.Type.ERROR,
+                                                 String.format("Oops, we couldn't link your LastFM account (reason: '%s', http code: %s)" +
+                                                               "<br>Please contact your administrator.",
+                                                               e.getHttpResponseMessage(),
+                                                               e.getHttpResponseCode()));
+            return "redirect:/app";
+        }
+
+        String sessionKey = LastfmHelper.getSessionKey(jsonResponse);
 		String username = LastfmHelper.getUsername(jsonResponse);
 		Guest guest = AuthHelper.getGuest();
 

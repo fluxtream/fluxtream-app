@@ -1,4 +1,4 @@
-package com.fluxtream.connectors.singly.github;
+package glacier.github;
 
 import javax.persistence.Entity;
 import javax.persistence.Lob;

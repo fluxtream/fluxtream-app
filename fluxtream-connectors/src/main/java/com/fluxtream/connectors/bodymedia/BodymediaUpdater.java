@@ -527,6 +527,7 @@ public class BodymediaUpdater extends AbstractUpdater implements Autonomous {
         enforceRateLimits();
         HttpResponse response = client.execute(request);
         int statusCode = response.getStatusLine().getStatusCode();
+        final String reasonPhrase = response.getStatusLine().getReasonPhrase();
         if (statusCode == 200) {
             countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, requestUrl);
             ResponseHandler<String> responseHandler = new BasicResponseHandler();
@@ -535,8 +536,7 @@ public class BodymediaUpdater extends AbstractUpdater implements Autonomous {
             return userInfo.getString("registrationDate");
         }
         else {
-            final String reasonPhrase = response.getStatusLine().getReasonPhrase();
-            countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, requestUrl, reasonPhrase);
+            countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, requestUrl, reasonPhrase, statusCode, reasonPhrase);
             throw new Exception("Error: " + statusCode + " Unexpected error trying to get BodyMedia user registration date for guestId="+updateInfo.getGuestId());
         }
     }
@@ -590,7 +590,8 @@ public class BodymediaUpdater extends AbstractUpdater implements Autonomous {
         HttpClient client = env.getHttpClient();
         enforceRateLimits();
         HttpResponse response = client.execute(request);
-        int statusCode = response.getStatusLine().getStatusCode();
+        final int statusCode = response.getStatusLine().getStatusCode();
+        final String reasonPhrase = response.getStatusLine().getReasonPhrase();
         if (statusCode == 200) {
             countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, requestUrl);
             ResponseHandler<String> responseHandler = new BasicResponseHandler();
@@ -599,7 +600,7 @@ public class BodymediaUpdater extends AbstractUpdater implements Autonomous {
             return userInfo.getJSONArray("timezones");
         }
         else {
-            countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, requestUrl, "");
+            countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, requestUrl, "", statusCode, reasonPhrase);
             throw new Exception("Error: " + statusCode + " Unexpected error trying to bodymedia timezone for user " + updateInfo.apiKey.getGuestId());
         }
     }

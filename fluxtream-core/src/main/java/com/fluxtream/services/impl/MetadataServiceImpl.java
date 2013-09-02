@@ -36,6 +36,7 @@ import com.fluxtream.thirdparty.helpers.WWOHelper;
 import com.fluxtream.utils.HttpUtils;
 import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.TimeUtils;
+import com.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
 import com.luckycatlabs.sunrisesunset.dto.Location;
 import net.sf.json.JSONArray;
@@ -741,8 +742,16 @@ public class MetadataServiceImpl implements MetadataService {
     @Transactional(readOnly = false)
     private void fetchWeatherInfo(double latitude, double longitude,
                                   String city, String date) throws IOException {
-        List<WeatherInfo> weatherInfo = wwoHelper.getWeatherInfo(latitude,
-                                                                 longitude, date);
+        List<WeatherInfo> weatherInfo = null;
+        try {
+            weatherInfo = wwoHelper.getWeatherInfo(latitude,
+                                                   longitude, date);
+        }
+        catch (UnexpectedHttpResponseCodeException e) {
+            logger.warn(String.format("Weather Info service down? http code is %s, message: '%s'",
+                                      e.getHttpResponseCode(),
+                                      e.getHttpResponseMessage()));
+        }
         for (WeatherInfo info : weatherInfo) {
             info.city = city;
             info.fdate = date;

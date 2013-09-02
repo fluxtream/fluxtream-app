@@ -9,6 +9,7 @@ import com.fluxtream.domain.ApiKey;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.utils.HttpUtils;
+import com.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -53,7 +54,7 @@ public class MymeeConnectorController {
 		}
 	}
 
-    private void testConnection(final String url) throws IOException {
+    private void testConnection(final String url) throws IOException, UnexpectedHttpResponseCodeException {
         HttpUtils.fetch(url);
     }
 

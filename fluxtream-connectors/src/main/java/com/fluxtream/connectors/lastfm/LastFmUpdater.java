@@ -1,11 +1,13 @@
 package com.fluxtream.connectors.lastfm;
 
+import java.io.IOException;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.annotations.JsonFacetCollection;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.services.JPADaoService;
+import com.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import com.fluxtream.utils.Utils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -88,8 +90,12 @@ public class LastFmUpdater extends AbstractUpdater {
             JSONObject result = JSONObject.fromObject(tracksJson);
             return result;
         }
-        catch (Exception e) {
-            countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, query, Utils.stackTrace(e));
+        catch (UnexpectedHttpResponseCodeException e) {
+            countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, query, Utils.stackTrace(e),
+                               e.getHttpResponseCode(), e.getHttpResponseMessage());
+            throw e;
+        } catch (IOException e) {
+            reportFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, query, Utils.stackTrace(e), "I/O");
             throw e;
         }
     }

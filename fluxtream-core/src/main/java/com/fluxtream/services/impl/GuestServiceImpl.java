@@ -33,6 +33,7 @@ import com.fluxtream.utils.HttpUtils;
 import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.RandomString;
 import com.fluxtream.utils.SecurityUtils;
+import com.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import com.maxmind.geoip.Location;
 import com.maxmind.geoip.LookupService;
 import net.sf.json.JSONObject;
@@ -505,10 +506,17 @@ public class GuestServiceImpl implements GuestService {
             }
 		} else if (env.get("ip2location.apiKey")!=null) {
             String ip2locationKey = env.get("ip2location.apiKey");
-			String jsonString = HttpUtils.fetch(
-					"http://api.ipinfodb.com/v3/ip-city/?key=" + ip2locationKey
-							+ "&ip=" + ipAddress + "&format=json");
-			JSONObject json = JSONObject.fromObject(jsonString);
+            String jsonString;
+            try {
+                jsonString = HttpUtils.fetch("http://api.ipinfodb.com/v3/ip-city/?key=" + ip2locationKey + "&ip=" + ipAddress + "&format=json");
+            }
+            catch (UnexpectedHttpResponseCodeException e) {
+                // simply log the error and don't persist anything to the guest location table
+                logger.warn(String.format("ip2location http error; code is %s, message is '%s'", e.getHttpResponseCode(),
+                                          e.getHttpResponseMessage()));
+                return;
+            }
+            JSONObject json = JSONObject.fromObject(jsonString);
 			String latitude = json.getString("latitude");
 			String longitude = json.getString("longitude");
             locationFacet.latitude = Float.valueOf(latitude);

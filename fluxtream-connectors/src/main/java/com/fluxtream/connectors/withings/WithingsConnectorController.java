@@ -15,8 +15,8 @@ import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
+import com.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import com.google.gson.Gson;
-import org.apache.commons.httpclient.HttpException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
@@ -109,8 +109,8 @@ public class WithingsConnectorController {
             request.getSession(true).setAttribute("scaleUsers", scaleUsers);
             request.setAttribute("scaleUsers", scaleUsers);
         }
-        catch (RuntimeException re) {
-            int code = Integer.valueOf(re.getMessage());
+        catch (UnexpectedHttpResponseCodeException e) {
+            int code = Integer.valueOf(e.getHttpResponseCode());
             switch (code) {
                 case 264:
                     request.setAttribute("errorMessage", "The email address provided is either unknown or invalid");
@@ -129,8 +129,7 @@ public class WithingsConnectorController {
     }
 
     public List<UsersListResponseUser> getScaleUsers(String email,
-                                                     String password) throws NoSuchAlgorithmException, HttpException,
-                                                                             IOException {
+                                                     String password) throws NoSuchAlgorithmException, IOException, UnexpectedHttpResponseCodeException {
         String passwordHash = hash(password);
         String onceJson = fetch(WBSAPI_ONCE_ACTION_GET);
         WithingsOnceResponse once = new Gson().fromJson(onceJson,

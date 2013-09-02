@@ -16,6 +16,7 @@ import com.fluxtream.services.GuestService;
 import com.fluxtream.services.JPADaoService;
 import com.fluxtream.services.NotificationsService;
 import com.fluxtream.utils.Utils;
+import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -214,21 +215,40 @@ public abstract class AbstractUpdater extends ApiClientSupport {
                 .append(" guestId=").append(apiKey.getGuestId())
                 .append(" query=").append(query);
         logger.info(sb.toString());
-		connectorUpdateService.addApiUpdate(apiKey, objectTypes, then, System.currentTimeMillis() - then, query, true);
+		connectorUpdateService.addApiUpdate(apiKey, objectTypes, then, System.currentTimeMillis() - then, query,
+                                            true, null, null);
 	}
 
 	final protected void countFailedApiCall(ApiKey apiKey, int objectTypes,
-			long then, String query, String stackTrace) {
+			long then, String query, String stackTrace,
+            Integer httpResponseCode, String reason) {
         StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=countFailedApiCall")
                 .append(" connector=" + connector().getName())
                 .append(" objectTypes=" + objectTypes)
                 .append(" apiKeyId=").append(apiKey.getId())
                 .append(" guestId=").append(apiKey.getGuestId())
                 .append(" query=").append(query)
+                .append(" httpResponseCode=").append(httpResponseCode)
+                .append(" reason=").append(reason)
                 .append(" stackTrace=<![CDATA[").append(stackTrace).append("]]>");
         logger.info(sb.toString());
-		connectorUpdateService.addApiUpdate(apiKey, objectTypes, then, System.currentTimeMillis() - then, query, false);
+		connectorUpdateService.addApiUpdate(apiKey, objectTypes, then, System.currentTimeMillis() - then, query,
+                                            false, httpResponseCode, reason);
 	}
+
+    final protected void reportFailedApiCall(ApiKey apiKey, int objectTypes,
+                                            long then, String query, String stackTrace, String reason) {
+        StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=countFailedApiCall")
+                .append(" connector=" + connector().getName())
+                .append(" objectTypes=" + objectTypes)
+                .append(" apiKeyId=").append(apiKey.getId())
+                .append(" guestId=").append(apiKey.getGuestId())
+                .append(" time=").append(ISODateTimeFormat.basicDateTimeNoMillis().print(then))
+                .append(" query=").append(query)
+                .append(" reason=").append(reason)
+                .append(" stackTrace=<![CDATA[").append(stackTrace).append("]]>");
+        logger.info(sb.toString());
+    }
 
     /**
      * Performs and incremental update of the connector

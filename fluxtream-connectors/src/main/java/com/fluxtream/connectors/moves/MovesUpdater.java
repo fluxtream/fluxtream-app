@@ -1,5 +1,6 @@
 package com.fluxtream.connectors.moves;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +23,7 @@ import com.fluxtream.services.impl.BodyTrackHelper.ChannelStyle;
 import com.fluxtream.services.impl.BodyTrackHelper.MainTimespanStyle;
 import com.fluxtream.services.impl.BodyTrackHelper.TimespanStyle;
 import com.fluxtream.utils.HttpUtils;
+import com.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import com.fluxtream.utils.Utils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -113,7 +115,7 @@ public class MovesUpdater extends AbstractUpdater {
                     // Cache registrationDate so we don't need to do an API call next time
                     guestService.setApiKeyAttribute(updateInfo.apiKey, userRegistrationKeyName, userRegistrationDate);
                 }
-            } catch (Exception e) {
+            } catch (UnexpectedHttpResponseCodeException e) {
                 // Couldn't get user registration date
                 StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=MovesUpdater.getUserRegistrationDate")
                         .append(" message=\"exception while retrieving UserRegistrationDate\" connector=")
@@ -122,7 +124,18 @@ public class MovesUpdater extends AbstractUpdater {
                         .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");;
                 logger.info(sb.toString());
 
-                countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, currentTime, query, Utils.stackTrace(e));
+                countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, currentTime, query, Utils.stackTrace(e),
+                                   e.getHttpResponseCode(), e.getHttpResponseMessage());
+            } catch (IOException e) {
+                // Couldn't get user registration date
+                StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=MovesUpdater.getUserRegistrationDate")
+                        .append(" message=\"exception while retrieving UserRegistrationDate\" connector=")
+                        .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
+                        .append(updateInfo.apiKey.getGuestId())
+                        .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");;
+                logger.info(sb.toString());
+
+                reportFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, currentTime, query, Utils.stackTrace(e), "I/O");
             }
             // dev-only: artificially set the registration time
             userRegistrationDate = "2013-08-10";
@@ -257,8 +270,11 @@ public class MovesUpdater extends AbstractUpdater {
                                             compactDate, withTrackpoints, accessToken);
             fetched = HttpUtils.fetch(fetchUrl);
             countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, fetchUrl);
-        } catch (Exception e) {
-            countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, fetchUrl, Utils.stackTrace(e));
+        } catch (UnexpectedHttpResponseCodeException e) {
+            countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, fetchUrl, Utils.stackTrace(e),
+                               e.getHttpResponseCode(), e.getHttpResponseMessage());
+        } catch (IOException e) {
+            reportFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, fetchUrl, Utils.stackTrace(e), "I/O");
         }
         return fetched;
     }

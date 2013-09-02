@@ -1,4 +1,4 @@
-package com.fluxtream.connectors.singly.github;
+package glacier.github;
 
 import java.util.ArrayList;
 import java.util.List;

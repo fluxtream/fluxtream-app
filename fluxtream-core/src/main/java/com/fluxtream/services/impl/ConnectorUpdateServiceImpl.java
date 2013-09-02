@@ -416,7 +416,8 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
 
     @Override
     @Transactional(readOnly = false)
-    public void addApiUpdate(final ApiKey apiKey, int objectTypes, long ts, long elapsed, String query, boolean success) {
+    public void addApiUpdate(final ApiKey apiKey, int objectTypes, long ts, long elapsed, String query,
+                             boolean success, Integer httpResponseCode, String reason) {
         ApiUpdate updt = new ApiUpdate();
         updt.guestId = apiKey.getGuestId();
         updt.api = apiKey.getConnector().value();
@@ -426,6 +427,8 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
         updt.objectTypes = objectTypes;
         updt.elapsed = elapsed;
         updt.success = success;
+        updt.httpResponseCode = httpResponseCode;
+        updt.reason = reason;
         em.persist(updt);
     }
 
