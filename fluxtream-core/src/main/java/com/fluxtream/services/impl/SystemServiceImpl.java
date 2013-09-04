@@ -119,7 +119,7 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         em.persist(bodymediaConnectorInfo);
 
         final String withings = "Withings";
-        String[] withingsKeys = checkKeysExist(withings, Arrays.asList("withingsConsumerKey", "withingsConsumerSecret", "withings.publickey"));
+        String[] withingsKeys = checkKeysExist(withings, Arrays.<String>asList());
         em.persist(new ConnectorInfo(withings,
                                      "/images/connectors/connector-withings.jpg",
                                      res.getString("withings"),
