@@ -64,12 +64,6 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
     }
 
     function setup(digest, timeUnit, cEn) {
-        if (typeof(window.FLX_TOUR_STATE)=="undefined"||
-            window.FLX_TOUR_STATE==-1) {
-            $("#clockTab").show();
-        } else {
-            console.log("we should start the tour now...");
-        }
         dgst = digest;
         selectedConnectors = digest.selectedConnectors;
         connectorEnabled = cEn;
@@ -208,6 +202,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		if ((typeof(payload)!="undefined")&&payload!=null) {
             if (typeof(payload[0])=="undefined") {
                 console.log("warning: null payload");
+                $("#clockTab").hide();
                 return;
             }
             if (typeof(payload.length)!="undefined"&&payload.length>0&&payload[0].type==="moves-move") {
@@ -215,6 +210,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                     drawEvents(payload[i].activities, category.orbit);
             } else
     			drawEvents(payload, category.orbit);
+            $("#clockTab").show();
         }
 	}
 

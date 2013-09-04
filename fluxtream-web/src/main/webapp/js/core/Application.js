@@ -1,9 +1,10 @@
 define(["core/FlxState"], function(FlxState) {
 	
-	function Application(name, author, icon) {
+	function Application(name, author, icon, prettyName) {
 		this.name = name;
 		this.author = author;
 		this.icon = icon;
+        this.prettyName = prettyName;
 	}
 	
 	Application.prototype.destroy = function() {

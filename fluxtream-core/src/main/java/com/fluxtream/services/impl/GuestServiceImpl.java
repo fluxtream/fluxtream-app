@@ -28,6 +28,7 @@ import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
+import com.fluxtream.services.SettingsService;
 import com.fluxtream.services.SystemService;
 import com.fluxtream.utils.HttpUtils;
 import com.fluxtream.utils.JPAUtils;
@@ -88,6 +89,9 @@ public class GuestServiceImpl implements GuestService {
     @Autowired
     SystemService systemService;
 
+    @Autowired
+    SettingsService settingsService;
+
 	LookupService geoIpLookupService;
 
 	private final RandomString randomString = new RandomString(64);
@@ -122,10 +126,9 @@ public class GuestServiceImpl implements GuestService {
 		guest.email = email;
 		guest.firstname = firstname;
 		guest.lastname = lastname;
-        guest.tourState = 0;
 		setPassword(guest, password);
 		em.persist(guest);
-//		createBodyTrackUser()....
+
 		return guest;
 	}
 

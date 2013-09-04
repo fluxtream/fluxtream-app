@@ -262,13 +262,11 @@ define(
                 var app = App.apps[appName],
                     button = $("<button/>", {
                         id: app.name + "MenuButton",
-                        class: "btn appMenuBtn"
+                        class: "btn appMenuBtn",
+                        text: app.prettyName
                     }).click(function(event) {
                         App.renderApp(app.name);
-                    }),
-                    buttonLink = $("<i/>", {
-                        class: app.icon + " icon-large"
-                    }).appendTo(button);
+                    });
                 $("#apps-menu").append(button);
             });
         }
@@ -764,6 +762,75 @@ define(
         App.expandCollapse = function(o) {
             var finedetails = $(o).closest(".facetDetails").find(".flx-finedetails");
             finedetails.toggleClass("flx-collapsed");
+        }
+
+        App.setMessageDisplayCounters = function (messageDisplayCounters, nApis) {
+            App.messageDisplayCounters = messageDisplayCounters;
+            console.log("setting message display counters");
+            if (nApis==0) {
+                $("#connectorsDropdownToggle").popover({
+                    container: "body",
+                    placement: "bottom",
+                    title: "Click here to add your first Connector!",
+                    content: "Connectors lets Fluxtream link up your data",
+                    animation: true
+                });
+                $("#connectorsDropdownToggle").popover("show");
+            }
+            var messages = [
+                {
+                    element     : "bodytrackMenuButton",
+                    title       : "This is the Timeline Application",
+                    content     : "It lets you explore your data in a zoomable timeline, load and save different views,...",
+                    placement   : "bottom"
+                },{
+                    element     : "calendarMenuButton",
+                    title       : "This is the Calendar application",
+                    content     : "This app gives you different aggregated views of your data: as a clock, a list, a map " +
+                                  "or a photo gallery. It also provides a timeline, but it only shows the default channels " +
+                                  "for each connector and doesn't let you load and save views like the timeline app.",
+                    placement   : "bottom"
+                }
+            ];
+            for (var i=0; i<messages.length; i++) {
+                bindPopover(messages[i].element, messages[i].title, messages[i].content, messages[i].placement);
+            }
+        };
+
+        function bindPopover(element, title, content, placement){
+            if (typeof(App.messageDisplayCounters[element])=="undefined"||
+                App.messageDisplayCounters[element]<3) {
+                var popover = $("#"+element).popover({
+                    container: "body",
+                    placement: placement,
+                    trigger: "hover",
+                    title: title,
+                    content: content,
+                    animation: true
+                });
+                popover.on("hidden", function(e){
+                    var element = e.target.id;
+                    incrementMessageDisplay(element);
+                    if (App.messageDisplayCounters[element]==2) {
+                        $("#"+element).unbind();
+                        $("#"+element).popover("destroy");
+                    }
+                });
+            }
+        }
+
+        function incrementMessageDisplay(messageName){
+            $.ajax({
+                url: "/api/settings/"+messageName+"/increment",
+                method: "POST",
+                success: function(status){
+                    if (status.result=="OK") {
+                        var count =parseInt(status.payload,10);
+                        App.messageDisplayCounters[messageName] = count;
+                    } else
+                        console.log("Couldn't increment message display for " + messageName)
+                }
+            });
         }
 
         function carousel(photoId) {

@@ -2,7 +2,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         "ConnectorConfig", "core/DateUtils", "core/StringUtils"],
        function(Application, FlxState, Builder, Datepicker, ConnectorConfig, DateUtils, StringUtils) {
 
-	var Calendar = new Application("calendar", "Candide Kemmler", "icon-calendar");
+	var Calendar = new Application("calendar", "Candide Kemmler", "icon-calendar", "Calendar App");
 
     var needDigestReload = false;
     var currentCityPool;
@@ -428,6 +428,9 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     }
 
     function enhanceDigest(digest){
+        if (typeof(digest.settings.messageDisplayCounters)!="undefined") {
+            App.setMessageDisplayCounters(digest.settings.messageDisplayCounters, digest.nApis);
+        }
         digest.getCitiesList = function(){
             if (digest.metadata.timeUnit === "DAY")
                 return [digest.metadata.mainCity];
@@ -985,10 +988,13 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         if (digestInfo.metadata.mainCity) {
            $("#mainCity").html(cityLabel(digestInfo.metadata.mainCity))
             if (digestInfo.metadata.previousInferredCity!=null||
-                digestInfo.metadata.nextInferredCity!=null)
+                digestInfo.metadata.nextInferredCity!=null) {
+                $("#visitedCitiesDetails").html("Wrong city? You can fix it!");
                 $("#mainCity").addClass("guessed");
-            else
+            } else {
+                $("#visitedCitiesDetails").html("More cities visited that day...");
                 $("#mainCity").removeClass("guessed");
+            }
         }
         $("#visitedCitiesDetails").show();
         $("#visitedCitiesDetails").off("click");
@@ -1155,7 +1161,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             removeMainVisitedCity("/api/metadata/mainCity"+state);
         } else {
             var visitedCityId = evt.target.id.substring("visitedCity-".length);
-            console.log("user selected visitedCity " + visitedCityId);
             postMainVisitedCity("/api/metadata/mainCity/"+visitedCityId+state);
         }
     }
@@ -1169,7 +1174,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             var longitude = selectedCity.geometry.location.lng();
             var state = App.state.getState("calendar");
             state = state.substring(state.indexOf("/"));
-            console.log("coords: " + latitude + ", " + longitude + " (" + timeUnit + ")");
             postMainCity("/api/metadata/mainCity"+state, {"latitude":latitude,"longitude":longitude});
         } else {
             console.log("no city (" + timeUnit + ")");
@@ -1182,7 +1186,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
            url: url,
            type: "DELETE",
            success: function(status) {
-               console.log(status);
                $("#visitedCitiesDialog").modal('hide');
                App.activeApp.renderState(App.state.getState(App.activeApp.name),true);//force refresh of the current app state
            }
@@ -1195,7 +1198,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
            type: "POST",
            data: data,
            success: function(status) {
-               console.log(status);
                $("#visitedCitiesDialog").modal('hide');
                App.activeApp.renderState(App.state.getState(App.activeApp.name),true);//force refresh of the current app state
            }
@@ -1207,7 +1209,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
            url: url,
            type: "POST",
            success: function(status) {
-               console.log(status);
                $("#visitedCitiesDialog").modal('hide');
                App.activeApp.renderState(App.state.getState(App.activeApp.name),true);//force refresh of the current app state
            }
@@ -1362,7 +1363,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         var hasComment = facet.comment != null;
         if (hasComment) {
             facetDetails.find(".facet-comment-text").remove();
-            console.log("commentText: " + facet.comment);
         }
         var commentDiv =     '<div class="facet-comment" style="margin-bottom:5px">'+
                              '<textarea placeholder="type a comment..." rows="3"></textarea>' +

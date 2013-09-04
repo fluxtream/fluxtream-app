@@ -5,6 +5,7 @@ import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.auth.AuthHelper;
@@ -47,6 +48,23 @@ public class SettingsStore {
         jsonObject.put("firstName", guest.firstname);
         jsonObject.put("lastName", guest.lastname);
         return jsonObject.toString();
+    }
+
+    @POST
+    @Path("/{messageName}/increment")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public StatusModel incrementCounter(@PathParam("messageName") String messageName) {
+        final long guestId = AuthHelper.getGuestId();
+        try {
+            final int count = settingsService.incrementDisplayCounter(guestId, messageName);
+            StatusModel status = new StatusModel(true, String.format("incremented message '%s' to %s", messageName, count));
+            status.payload = count;
+            return status;
+        }
+        catch (Throwable e) {
+            e.printStackTrace();
+            return new StatusModel(false, String.format("Could not increment counter for message '%s'", messageName));
+        }
     }
 
     @POST

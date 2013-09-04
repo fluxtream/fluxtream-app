@@ -20,6 +20,7 @@ define(function() {
     function dataLoaded(data){
         App.loadMustacheTemplate("connectorMgmtTemplates.html","addConnectors",function(template){
             var html = template.render(data);
+            $("#connectorsDropdownToggle").popover("destroy");
             App.makeModal(html);
             bindDialog();
         });

@@ -13,6 +13,8 @@ public interface SettingsService {
 
 	public GuestSettings getSettings(long guestId);
 
+    public int incrementDisplayCounter(long guestId, String messageName);
+
 	public void setFirstname(long guestId, String firstname);
 
 	public void setLastname(long guestId, String lastname);

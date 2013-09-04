@@ -1,6 +1,6 @@
 define(["core/Application", "core/FlxState", "core/TabInterface"], function(Application, FlxState, TabInterface) {
 
-    var BodyTrack = new Application("bodytrack", "Candide Kemmler", "icon-bookmark");
+    var BodyTrack = new Application("bodytrack", "Candide Kemmler", "icon-bookmark", "Timeline App");
 
 
     var grapher;

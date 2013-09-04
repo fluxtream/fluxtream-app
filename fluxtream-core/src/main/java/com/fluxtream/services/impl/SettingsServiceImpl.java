@@ -60,12 +60,26 @@ public class SettingsServiceImpl implements SettingsService {
         else {
             settings = new GuestSettings();
             settings.guestId = guestId;
+            settings.createMessageDisplayCounters();
             em.persist(settings);
             return settings;
         }
 	}
 
-	@Override
+    @Override
+    @Transactional(readOnly=false)
+    public int incrementDisplayCounter(final long guestId, final String messageName) {
+        GuestSettings settings = JPAUtils.findUnique(em, GuestSettings.class,
+                                                     "settings.byGuestId", guestId);
+        final Integer count = settings.getMessageDisplayCounter(messageName);
+        int incremented = count==null? 1 : count+1;
+        if (count==null) settings.setMessageDisplayCounter(messageName, incremented);
+        else settings.setMessageDisplayCounter(messageName, incremented);
+        em.persist(settings);
+        return incremented;
+    }
+
+    @Override
 	@Transactional(readOnly = false)
 	public void setFirstname(long guestId, String firstname) {
 		Guest guest = guestService.getGuestById(guestId);

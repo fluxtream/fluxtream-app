@@ -9,6 +9,7 @@ public class SettingsModel {
 	String firstName, lastName, temperatureUnit, distanceUnit, weightMeasureUnit, lengthMeasureUnit;
 
     public Map<Long,Object> connectorSettings;
+    public Map<String,Integer> messageDisplayCounters;
 
 	public SettingsModel(GuestSettings settings, Map<Long,Object> connectorSettings, Guest guest) {
         this.firstName = guest.firstname;
@@ -18,6 +19,7 @@ public class SettingsModel {
         this.weightMeasureUnit = settings.weightMeasureUnit.name();
         this.lengthMeasureUnit = settings.lengthMeasureUnit.name();
         this.connectorSettings = connectorSettings;
+        this.messageDisplayCounters = settings.getMessageDisplayCounters();
 	}
 	
 }

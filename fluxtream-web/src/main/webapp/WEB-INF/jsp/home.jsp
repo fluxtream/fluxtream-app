@@ -3,11 +3,20 @@
 	uri="http://granule.com/tags" prefix="g"
 %><%@ page import="java.util.List"
 %><%@ page import="com.fluxtream.domain.Guest"
-%>
-<%
+%><%
     Boolean tracker = (Boolean)request.getAttribute("tracker");
     Boolean useMinifiedJs = (Boolean)request.getAttribute("useMinifiedJs");
     List<Guest> coachees = (List<Guest>)request.getAttribute("coachees");
+    String vieweeFullname = (String)request.getAttribute("fullname");
+    if (AuthHelper.getCoachee()!=null) {
+        for (Guest coachee : coachees) {
+            if (coachee.getId()==AuthHelper.getCoachee().guestId) {
+                vieweeFullname = coachee.username;
+                break;
+            }
+        }
+    }
+    request.setAttribute("vieweeFullname", vieweeFullname);
 %><!DOCTYPE html>
 <html lang="en">
 <head>
@@ -73,30 +82,16 @@
                             </ul>
                             <ul class="nav pull-right">
                                 <li class="divider-vertical"></li>
-                                <li class="dropdown"><a href="#" class="dropdown-toggle"
+                                <li class="dropdown" id="connectorsDropdownToggle" data-container="body"><a href="#" class="dropdown-toggle"
                                                         data-toggle="dropdown">Connectors
                                     <i class="icon-random icon-large"></i> <b class="caret"></b></a>
                                     <ul class="dropdown-menu">
-                                        <li> <a href="javascript:App.connectors()"><i class="icon-plus icon-large pull-right"></i>Add</a></li>
-                                        <li><a href="javascript:App.manageConnectors()"><i class="icon-list icon-large pull-right"></i>Manage</a></li>
+                                        <li><a href="javascript:App.connectors()"><i class="mainmenu-icon icon-plus icon-large pull-right"></i>Add</a></li>
+                                        <li><a href="javascript:App.manageConnectors()"><i class="mainmenu-icon icon-list icon-large pull-right"></i>Manage</a></li>
                                     </ul></li>
                                 <li class="divider-vertical"></li>
 							<li class="dropdown"><a href="#" class="dropdown-toggle" id="loggedInUser" <%if(AuthHelper.getCoachee()!=null){%>style="text-shadow:0 0 10px white; color:white"<%}%>
-								data-toggle="dropdown" self="<%=request.getAttribute("fullname")%>">
-                                    <%if (AuthHelper.getCoachee()==null) {%>
-                                        <%=request.getAttribute("fullname")%>
-                                    <% } else {
-                                        String coacheeUsername = null;
-                                        for (Guest coachee : coachees) {
-                                            if (coachee.getId()==AuthHelper.getCoachee().guestId) {
-                                                coacheeUsername = coachee.username;
-                                                break;
-                                            }
-                                        }
-                                    %>
-                                        * <%=coacheeUsername%>
-                                    <% } %>
-									<i class="icon-user icon-large"></i> <b class="caret"></b></a>
+								data-toggle="dropdown" self="<%=request.getAttribute("fullname")%>">${vieweeFullname}<i class="icon-user icon-large"></i> <b class="caret"></b></a>
 								<ul class="dropdown-menu">
 									<li><a href="javascript:App.settings()"><i class="mainmenu-icon icon-cog icon-large pull-right"></i>Settings</a></li>
                                     <%--<li><a href="javascript:App.addresses()"><i class="mainmenu-icon icon-home icon-large pull-right"></i>Addresses</a></li>--%>
@@ -107,7 +102,7 @@
                                         <%  } %>
                                     <li><a href="javascript:App.as('self')">View My data</a></li>
                                     <% } %>
-                                    <li><a href="javascript:App.sharingDialog.show()"><i class="mainmenu-icon icon-share icon-large pull-right"></i>Sharing...</a></li>
+                                    <li><a href="javascript:App.sharingDialog.show()"><i class="mainmenu-icon icon-share icon-large pull-right"></i>Share your data...</a></li>
                                     <li class="divider"></li>
 									<li><a href="/logout"><i class="mainmenu-icon icon-off icon-large pull-right"></i>Logout</a></li>
 								</ul></li>
@@ -130,13 +125,6 @@
 
     <jsp:include page="footer.jsp" />
 
-    <script>
-		window.FLX_RELEASE_NUMBER = "${release}";
-        <% if (request.getAttribute("tourState")!=null) { %>
-        window.FLX_TOUR_STATE = ${tourState};
-        <% } %>
-	</script>
-
 	<script
 		src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 	<script>
@@ -148,23 +136,27 @@
         <jsp:include page="tracker.jsp" />
     <%} catch(Throwable t){} } %>
     <script src="/static/js/bootstrap-2.3.2.min.js"></script>
-		<script src="/static/js/jquery-ui-1.10.3.custom.min.js"></script>
-		<script src="/static/js/jquery.ui.sortable-1.8.2-bt-1.0.0.js"></script>
-		<script src="/static/tiny_mce-3.5b1/jquery.tinymce.js"></script>
-		<script src="/static/js/json2-2011.10.19.js"></script>
-		<script src="/static/js/jquery.autoGrowInput-1.0.0.js"></script>
-		<script src="/static/js/jquery.colorPicker-2012.01.27.js"></script>
-		<script src="/static/js/jquery.dd-2.37.5-uncompressed.js"></script>
-		<script src="/static/js/jquery.tagedit-1.2.1.js"></script>
-		<script src="/static/js/jquery.shorten-1.0.0.js"></script>
-		<script src="/static/js/raphael-2.1.0.js"></script>
-		<script src="/static/js/underscore-1.3.3-min.js"></script>
-		<script src="/static/js/backbone-1.0.0-custom.1-min.js"></script>
-        <script src="/static/js/jquery.ba-dotimeout-1.0.0.min.js"></script>
-        <script src="/static/js/jquery.masonry-2.1.03.min.js"></script>
+    <script src="/static/js/jquery-ui-1.10.3.custom.min.js"></script>
+    <script src="/static/js/jquery.ui.sortable-1.8.2-bt-1.0.0.js"></script>
+    <script src="/static/tiny_mce-3.5b1/jquery.tinymce.js"></script>
+    <script src="/static/js/json2-2011.10.19.js"></script>
+    <script src="/static/js/jquery.autoGrowInput-1.0.0.js"></script>
+    <script src="/static/js/jquery.colorPicker-2012.01.27.js"></script>
+    <script src="/static/js/jquery.dd-2.37.5-uncompressed.js"></script>
+    <script src="/static/js/jquery.tagedit-1.2.1.js"></script>
+    <script src="/static/js/jquery.shorten-1.0.0.js"></script>
+    <script src="/static/js/raphael-2.1.0.js"></script>
+    <script src="/static/js/underscore-1.3.3-min.js"></script>
+    <script src="/static/js/backbone-1.0.0-custom.1-min.js"></script>
+    <script src="/static/js/jquery.ba-dotimeout-1.0.0.min.js"></script>
+    <script src="/static/js/jquery.masonry-2.1.03.min.js"></script>
     <script src="/static/js/jquery.xcolor-1.8.js"></script>
     <script src="/static/js/jquery.outerHTML-1.0.0.js"></script>
-	
+
+    <script>
+        window.FLX_RELEASE_NUMBER = "${release}";
+    </script>
+
 	<!--  TODO: validate version numbers for these libs -->
 	<script src="/static/grapher4/grapher2.nocache.js"></script>
 
