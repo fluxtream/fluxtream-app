@@ -297,8 +297,9 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
         var markerArray = new Array();
         for (var i = 0; i < items.length; i++){
             var marker = addItemToMap(map,items[i],clickable);
-            if (marker != null)
+            if (marker != null){
                 markerArray[markerArray.length] = marker;
+            }
         }
         if (markerArray.length == 0)
             markerArray = null;
@@ -1443,6 +1444,9 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
 
             map.setCursorPosition = function(position){
                 this.dateAxis.setCursorPosition(position);
+            }
+            map.hasAnyData = function(){
+                return this.markerList.length > 0;
             }
 
             if (!hideControls){

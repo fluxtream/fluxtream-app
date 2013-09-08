@@ -95,6 +95,8 @@ define(["core/Tab",
                 if (cursorPos != null)
                     map.setCursorPosition(cursorPos);
 
+                $("#mapwrapper .noDataOverlay").css("display", map.hasAnyData() ? "none" : "block");
+
                 doneLoading();
 
             });
