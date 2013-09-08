@@ -130,6 +130,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		}
 
         photoCarouselHTML = PhotoUtils.getCarouselHTML(digest);
+        var hasData = $(paper.canvas).find(".facet").length != 0;
+        $("#clockTab .noDataOverlay").css("display", hasData ? "none" : "block");
 	}
 
 	function fillRegion(center, radius1, radius2, startAngle, endAngle) {
@@ -202,7 +204,6 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		if ((typeof(payload)!="undefined")&&payload!=null) {
             if (typeof(payload[0])=="undefined") {
                 console.log("warning: null payload");
-                $("#clockTab").hide();
                 return;
             }
             if (typeof(payload.length)!="undefined"&&payload.length>0&&payload[0].type==="moves-move") {
@@ -210,7 +211,6 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                     drawEvents(payload[i].activities, category.orbit);
             } else
     			drawEvents(payload, category.orbit);
-            $("#clockTab").show();
         }
 	}
 
@@ -262,7 +262,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                         }
                         span = paintSpan(paper, start,/*(start<=end?end:1440)*/ end, orbit, color, .9, strokeWidth, strokeCap,outline);
 						span.node.item = item;
-                        $(span.node).attr("class", item.type + "-" + item.id);
+                        $(span.node).attr("class", item.type + "-" + item.id + " facet");
                         $(span.node).attr("notthide",true);
 						$(span.node).css("cursor", "pointer");
 						$(span.node).click({instantaneous:instantaneous}, function(event) {
