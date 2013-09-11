@@ -6,12 +6,12 @@ import java.util.List;
 import java.util.ResourceBundle;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.Configuration;
 import com.fluxtream.api.gson.UpdateInfoSerializer;
@@ -19,6 +19,7 @@ import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
+import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
@@ -157,6 +158,9 @@ public class ConnectorStore {
                     continue;
                 }
                 if (!guestService.hasApiKey(guest.getId(), api)) {
+                    connectors.remove(i--);
+                }
+                if (!api.getUpdaterClass().getAnnotation(Updater.class).hasFacets()) {
                     connectors.remove(i--);
                 }
                 else {

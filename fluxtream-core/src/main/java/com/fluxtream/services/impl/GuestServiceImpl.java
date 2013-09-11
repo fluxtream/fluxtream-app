@@ -38,6 +38,9 @@ import com.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import com.maxmind.geoip.Location;
 import com.maxmind.geoip.LookupService;
 import net.sf.json.JSONObject;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -116,16 +119,18 @@ public class GuestServiceImpl implements GuestService {
 
 	@Transactional(readOnly = false)
 	public Guest createGuest(String username, String firstname,
-			String lastname, String password, String email) throws Exception {
+			String lastname, String password, String email,
+            int registrationMethod) throws UsernameAlreadyTakenException, ExistingEmailException {
 		if (loadUserByUsername(username) != null)
-			throw new Exception("Username already taken");
+			throw new UsernameAlreadyTakenException(username + " is already taken");
 		if (loadUserByEmail(email) != null)
-			throw new Exception("Email already taken");
+			throw new ExistingEmailException(email + " is already used");
 		Guest guest = new Guest();
 		guest.username = username;
 		guest.email = email;
 		guest.firstname = firstname;
 		guest.lastname = lastname;
+        guest.registrationMethod = registrationMethod;
 		setPassword(guest, password);
 		em.persist(guest);
 
@@ -308,6 +313,9 @@ public class GuestServiceImpl implements GuestService {
         Guest guest = getGuestById(id);
         if (guest == null)
             return;
+        if (guest.registrationMethod==Guest.REGISTRATION_METHOD_FACEBOOK) {
+            revokeFacebookPermissions(guest);
+        }
         JPAUtils.execute(em, "updateWorkerTasks.delete.all", guest.getId());
         em.remove(guest);
         em.flush();
@@ -340,9 +348,30 @@ public class GuestServiceImpl implements GuestService {
         JPAUtils.execute(em, "notifications.delete.all", guest.getId());
         em.flush();
         JPAUtils.execute(em, "coachingBuddies.delete.all", guest.getId());
+
         // delete GrapherView
         // delete WidgetSettings
         // delete VisitedCities
+    }
+
+    private void revokeFacebookPermissions(final Guest guest) {
+        ApiKey facebookApiKey = getApiKey(guest.getId(), Connector.getConnector("facebook"));
+        final String meString = getApiKeyAttribute(facebookApiKey, "me");
+        final String accessToken = getApiKeyAttribute(facebookApiKey, "accessToken");
+        JSONObject meJSON = JSONObject.fromObject(meString);
+        String id = meJSON.getString("id");
+        HttpClient client = new DefaultHttpClient();
+        try {
+            final String uri = String.format("https://graph.facebook.com/%s/permissions?access_token=%s", id, accessToken);
+            HttpDelete delete = new HttpDelete(uri);
+            client.execute(delete);
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+        finally {
+            client.getConnectionManager().shutdown();
+        }
     }
 
     @Override
@@ -428,6 +457,15 @@ public class GuestServiceImpl implements GuestService {
         ApiKey apiKey = getApiKey(apiKeyId);
         apiKey.removeAttribute(key);
         em.persist(apiKey);
+    }
+
+    @Override
+    @Transactional(readOnly=false)
+    public void setAutoLoginToken(final long guestId, final String s) {
+        Guest guest = getGuestById(guestId);
+        guest.autoLoginToken = s;
+        guest.autoLoginTokenTimestamp = System.currentTimeMillis();
+        em.persist(guest);
     }
 
     @Override

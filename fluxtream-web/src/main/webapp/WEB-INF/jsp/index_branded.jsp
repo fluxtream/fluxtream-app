@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <%
     Boolean tracker = (Boolean)request.getAttribute("tracker");
+    Boolean supportsFBLogin = (Boolean)request.getAttribute("supportsFBLogin");
 %>
 <html lang="en">
 <head>
@@ -35,7 +36,62 @@
     <link rel="shortcut icon" href="/favicon.ico">
 </head>
 <body>
+<div id="fb-root"></div>
+<% if (supportsFBLogin) { %><script>
+    window.fbAsyncInit = function() {
+        FB.init({
+            appId      : '${facebookAppId}', // App ID
+            channelUrl : '//the-upgrade.org/channel.html', // Channel File
+            status     : true, // check login status
+            cookie     : true, // enable cookies to allow the server to access the session
+            xfbml      : true  // parse XFBML
+        });
+    };
 
+    // Load the SDK asynchronously
+    (function(d){
+        var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
+        if (d.getElementById(id)) {return;}
+        js = d.createElement('script'); js.id = id; js.async = true;
+        js.src = "//connect.facebook.net/en_US/all.js";
+        ref.parentNode.insertBefore(js, ref);
+    }(document));
+
+    // Here we run a very simple test of the Graph API after login is successful.
+    // This testAPI() function is only called in those cases.
+    function getIn(loginResponse) {
+        console.log("access_token: " + loginResponse.authResponse.accessToken);
+        console.log('Welcome!  Fetching your information.... ');
+        $.ajax({
+            url: "/api/facebook/login?access_token=" +loginResponse.authResponse.accessToken,
+            type: "POST",
+            success: function(status) {
+                if (status.result==="OK") {
+                    location = "/signIn?autoLoginToken="+status.payload;
+                } else {
+                    alert(status.message);
+                }
+            },
+            error: function($, textStatus) {
+                alert("there was an error while logging you in with facebook: " + textStatus);
+            }
+        });
+    }
+
+    function fbLogin() {
+        FB.getLoginStatus(function(response) {
+            if (response.status === 'connected') {
+                getIn(response);
+            } else if (response.status === 'not_authorized') {
+                FB.login(function(loginResponse){
+                    if (loginResponse.authResponse) {
+                        getIn(loginResponse);
+                    }
+                });
+            }
+        });
+    }
+</script><% } %>
 <div id="login" style="display:none;">
     <div class="cont cf">
 
@@ -70,6 +126,10 @@
     <div class="background"></div>
 
     <div class="wrapper">
+        <% if (supportsFBLogin) { %>
+        <a role="button" style="cursor:pointer" id="fbLogin" onclick="fbLogin();"></a>
+        <% } %>
+
         <div id="login-collapse">
             <div class="cont">
                 <a href="#" id="toggleLoginPanel"><span>Login</span></a>
@@ -84,7 +144,7 @@
         
         <a role="button" style="cursor:pointer" id="registerShow" class="regLink">Register</a>
 
-        
+
         <!-- end register modal -->
         
         <div class="page-title-wrapper">
@@ -97,12 +157,6 @@
         </div><!-- end .page-title-wrapper -->
 
     </div><!-- end .wrapper -->
-    <div class="customer-card">
-        <p><a href="http://www.flickr.com/people/25506891@N06/" target="_blank">Photo credit</a></p>
-        <h2><a href="http://creativecommons.org/licenses/by-nc-sa/2.0/deed.en" target="_blank">Nasos Zovo</a></h2>
-
-
-    </div>
 </div><!-- end #intro -->
 
 <div class="container">

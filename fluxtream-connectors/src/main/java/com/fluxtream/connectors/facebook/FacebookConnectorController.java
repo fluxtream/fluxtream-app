@@ -1,4 +1,4 @@
-package glacier.facebook;
+package com.fluxtream.connectors.facebook;
 
 import java.io.IOException;
 import java.util.HashMap;

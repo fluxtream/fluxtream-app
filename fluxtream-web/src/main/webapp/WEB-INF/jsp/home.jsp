@@ -16,6 +16,7 @@
             }
         }
     }
+    String avatarImage = (String) request.getAttribute("avatarImage");
     request.setAttribute("vieweeFullname", vieweeFullname);
 %><!DOCTYPE html>
 <html lang="en">
@@ -45,6 +46,7 @@
 </g:compress>
 
 <link rel="stylesheet" href="/static/css/font-awesome-3.2.1.css">
+<link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
 
 <script
 	src="https://maps-api-ssl.google.com/maps/api/js?libraries=geometry&v=3&sensor=false"
@@ -76,22 +78,23 @@
 								<%--class="search-query" placeholder="Search">--%>
 						<%--</form>--%>
 
-                            <ul class="nav">
+                            <ul class="nav" style="margin-top:4px">
                             <li><div class="btn-group" id="apps-menu"
                                      data-toggle="buttons-radio"></div></li>
                             </ul>
                             <ul class="nav pull-right">
                                 <li class="divider-vertical"></li>
-                                <li class="dropdown" id="connectorsDropdownToggle" data-container="body"><a href="#" class="dropdown-toggle"
+                                <li class="dropdown" id="connectorsDropdownToggle" style="margin-top:3px" data-container="body">
+                                    <a href="#" class="dropdown-toggle" onclick="$('#connectorsDropdownToggle').popover('destroy');"
                                                         data-toggle="dropdown">Connectors
                                     <i class="icon-random icon-large"></i> <b class="caret"></b></a>
                                     <ul class="dropdown-menu">
                                         <li><a href="javascript:App.connectors()"><i class="mainmenu-icon icon-plus icon-large pull-right"></i>Add</a></li>
-                                        <li><a href="javascript:App.manageConnectors()"><i class="mainmenu-icon icon-list icon-large pull-right"></i>Manage</a></li>
+                                        <li id="manageConnectorsMenuItem"><a href="javascript:App.manageConnectors()"><i class="mainmenu-icon icon-list icon-large pull-right"></i>Manage</a></li>
                                     </ul></li>
                                 <li class="divider-vertical"></li>
-							<li class="dropdown"><a href="#" class="dropdown-toggle" id="loggedInUser" <%if(AuthHelper.getCoachee()!=null){%>style="text-shadow:0 0 10px white; color:white"<%}%>
-								data-toggle="dropdown" self="<%=request.getAttribute("fullname")%>">${vieweeFullname}<i class="icon-user icon-large"></i> <b class="caret"></b></a>
+							<li class="dropdown"><a href="#" class="dropdown-toggle" onclick="$('#connectorsDropdownToggle').popover('destroy');" id="loggedInUser" <%if(AuthHelper.getCoachee()!=null){%>style="text-shadow:0 0 10px white; color:white"<%}%>
+								data-toggle="dropdown" self="<%=request.getAttribute("fullname")%>">${vieweeFullname}<span id="profileIcon">&nbsp;</span> <b id="profileIconCaret" class="caret"></b></a>
 								<ul class="dropdown-menu">
 									<li><a href="javascript:App.settings()"><i class="mainmenu-icon icon-cog icon-large pull-right"></i>Settings</a></li>
                                     <%--<li><a href="javascript:App.addresses()"><i class="mainmenu-icon icon-home icon-large pull-right"></i>Addresses</a></li>--%>

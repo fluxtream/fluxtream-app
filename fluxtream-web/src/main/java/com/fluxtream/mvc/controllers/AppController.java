@@ -60,6 +60,9 @@ public class AppController {
     @Autowired
 	BeanFactory beanFactory;
 
+    @Autowired
+    ErrorController errorController;
+
 	@RequestMapping(value = { "", "/", "/welcome" })
 	public ModelAndView index(HttpServletRequest request) {
 		Authentication auth = SecurityContextHolder.getContext()
@@ -73,7 +76,12 @@ public class AppController {
 		String release = env.get("release");
 		if (release != null)
 			mav.addObject("release", release);
-		mav.addObject("tracker", hasTracker(request));
+        if (env.get("facebook.appId")!=null) {
+            mav.addObject("facebookAppId", env.get("facebook.appId"));
+            mav.addObject("supportsFBLogin", true);
+        } else
+            mav.addObject("supportsFBLogin", false);
+        mav.addObject("tracker", hasTracker(request));
 		return mav;
 	}
 
@@ -158,7 +166,7 @@ public class AppController {
 	}
 
     @RequestMapping(value = "/checkIn")
-    public ModelAndView checkIn(HttpServletRequest request, HttpServletResponse response)
+    public ModelAndView checkIn(HttpServletRequest request)
             throws IOException, NoSuchAlgorithmException {
         if (!hasTimezoneCookie(request)|| AuthHelper.getGuest()==null)
             return new ModelAndView("redirect:/welcome");

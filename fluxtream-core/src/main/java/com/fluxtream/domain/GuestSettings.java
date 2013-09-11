@@ -26,6 +26,7 @@ public class GuestSettings extends AbstractEntity {
 
     public void createMessageDisplayCounters() {
         messageDisplayCounters = new HashMap<String,Integer>();
+        saveMessageDisplayCounters();
     }
 
     public Map<String, Integer> getMessageDisplayCounters() {

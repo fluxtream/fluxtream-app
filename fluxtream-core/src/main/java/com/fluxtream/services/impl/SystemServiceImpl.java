@@ -79,6 +79,15 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
 		ResourceBundle res = ResourceBundle.getBundle("messages/connectors");
         int order = 0;
 
+        final String facebook = "Facebook";
+        String[] facebookKeys = checkKeysExist(facebook, Arrays.asList("facebook.appId", "facebook.appSecret"));
+        final ConnectorInfo facebookConnectorInfo = new ConnectorInfo(facebook,
+                                                                   "/images/connectors/connector-facebook.jpg",
+                                                                   res.getString("facebook"),
+                                                                   "/facebook/token",
+                                                                   Connector.getConnector("facebook"), order++, facebookKeys!=null,
+                                                                   false, true, facebookKeys);
+        em.persist(facebookConnectorInfo);
         final String moves = "Moves";
         String[] movesKeys = checkKeysExist(moves, Arrays.asList("moves.client.id", "moves.client.secret", "moves.validRedirectURL", "foursquare.client.id", "foursquare.client.secret"));
         final ConnectorInfo movesConnectorInfo = new ConnectorInfo(moves,

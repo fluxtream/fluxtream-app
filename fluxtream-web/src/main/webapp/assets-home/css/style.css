@@ -38,7 +38,7 @@ a .bd {font-size: 10px; text-decoration: none;}
 #login p.sysInfo {padding-top: 4px; font-size: 14px;}
 
 #login-collapse {text-align:center;text-shadow:0 0 0; }
-#login-collapse a {position:relative;top:-4px;float:right;background:#56A4DB;color:#fff;padding:8px 20px;display:block;margin-right:225px;
+#login-collapse a {position:relative;top:-4px;float:right;background:#56A4DB;color:#fff;padding:8px 20px;display:block;margin-right:15px;
     -webkit-border-radius:4px; -moz-border-radius:4px; border-radius:4px;}
 #login-collapse a span {border-bottom:1px solid rgba(255,255,255,.3); border-bottom: 0;}
 #login-collapse a:hover span {border-color:rgba(255,255,255,.8);}
@@ -294,4 +294,19 @@ h3{ font-size:16px; font-family: 'Droid Serif', serif; line-height:26px; font-we
 @media (min-width: 1600px) { 
     .logo { top:116px; left:-50px;}
 
+}
+
+.regLink { float: right; margin-right: 20px; margin-top: 3px;font-weight: bold; font-family: inherit;text-shadow: 0 1px 1px rgb(85, 85, 85); color: #fff; }
+.regLink:hover { text-shadow: 0 3px 3px rgb(85, 85, 85); color: #fff; }
+
+#fbLogin {
+    float: right; margin-right: 20px; margin-top: 3px;
+    background-image: url(/static/images/facebook_signin.png);
+    width: 150px; height: 22px;
+}
+#fbLogin:hover {
+    background-position: 0 46px;
+}
+#fbLogin:active {
+    background-position: 0 22px;
 }

@@ -16,6 +16,8 @@ import org.hibernate.annotations.Index;
 			query="SELECT guest FROM Guest guest WHERE guest.email=?"),
 	@NamedQuery( name="guest.byUsername",
 			query="SELECT guest FROM Guest guest WHERE guest.username=?"),
+    @NamedQuery( name="guest.byAutoLoginToken",
+                 query="SELECT guest FROM Guest guest WHERE guest.autoLoginToken=?"),
 	@NamedQuery( name="guests.all",
 			query="SELECT guest FROM Guest guest")
 })
@@ -24,12 +26,18 @@ public class Guest extends AbstractEntity {
 	public static final String ROLE_USER = "ROLE_USER";
 	public static final String ROLE_ADMIN = "ROLE_ADMIN";
 
+    public static final int REGISTRATION_METHOD_FORM = 0;
+    public static final int REGISTRATION_METHOD_FACEBOOK = 1;
+
 	@Index(name="username_index")
 	public String username;
 	public String firstname, lastname, password;
 	@Index(name="email_index")
 	public String email;
 	public String salt;
+    public String autoLoginToken;
+    public Long autoLoginTokenTimestamp;
+    public int registrationMethod;
 
 	transient List<String> userRoles;
 	String roles = ROLE_USER;

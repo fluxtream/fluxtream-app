@@ -2,10 +2,10 @@ package com.fluxtream.utils;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -31,24 +31,22 @@ public class Utils {
 // 		
 // 		return "YOUR CONTENT COULD NOT BE VERIFIED FOR CODE INJECTION";
 // 	}
-	
-	public static final String replaceLinks(String s) {
-		StringBuffer result = new StringBuffer();
-        String [] parts = s.split("\\s");
+    private static final char[] symbols = new char[36];
 
-        // Attempt to convert each item into an URL.
-        for( String item : parts ) try {
-            URL url = new URL(item);
-            // If possible then replace with anchor...
-            result.append("<a href=\"" + url + "\" target=\"_new\">"+ url + "</a> " );    
-        } catch (MalformedURLException e) {
-            // If there was an URL that was not it!...
-            result.append( item + " " );
-        }
+    static {
+        for (int idx = 0; idx < 10; ++idx)
+            symbols[idx] = (char) ('0' + idx);
+        for (int idx = 10; idx < 36; ++idx)
+            symbols[idx] = (char) ('a' + idx - 10);
+    }
 
-        return result.toString();
-	}
-	
+    private static SecureRandom random = new SecureRandom();
+
+    public static String generateSecureRandomString()
+    {
+        return new BigInteger(200, random).toString(32);
+    }
+
 	public static final Map<String,String> parseParameters(String s){
 		StringTokenizer st = new StringTokenizer(s, "=&"); 
 		Map<String,String> result = new HashMap<String,String>();

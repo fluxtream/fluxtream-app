@@ -1,4 +1,4 @@
-package glacier.facebook;
+package com.fluxtream.connectors.facebook;
 
 import org.springframework.stereotype.Component;
 
@@ -11,7 +11,7 @@ import com.fluxtream.connectors.updaters.UpdateInfo;
  */
 
 @Component
-@Updater(prettyName = "Facebook", value = 30, objectTypes ={})
+@Updater(prettyName = "Facebook", value = 30, hasFacets=false, objectTypes ={})
 public class FacebookUpdater extends AbstractUpdater {
 
 	public FacebookUpdater() {
@@ -20,7 +20,6 @@ public class FacebookUpdater extends AbstractUpdater {
 
     @Override
     protected void updateConnectorDataHistory(final UpdateInfo updateInfo) throws Exception {
-        throw new RuntimeException("Not Yet Implemented");
     }
 
 	@Override

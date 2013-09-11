@@ -768,10 +768,10 @@ define(
             finedetails.toggleClass("flx-collapsed");
         }
 
-        App.setMessageDisplayCounters = function (messageDisplayCounters, nApis) {
+        App.setupBeginnersFriendlyUI = function (messageDisplayCounters, nApis) {
             App.messageDisplayCounters = messageDisplayCounters;
-            console.log("setting message display counters");
             if (nApis==0) {
+                $("#manageConnectorsMenuItem").addClass("disabled");
                 $("#connectorsDropdownToggle").popover({
                     container: "body",
                     placement: "bottom",
@@ -780,6 +780,8 @@ define(
                     animation: true
                 });
                 $("#connectorsDropdownToggle").popover("show");
+            } else {
+                $("#manageConnectorsMenuItem").removeClass("disabled");
             }
             var messages = [
                 {

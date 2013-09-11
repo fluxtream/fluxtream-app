@@ -26,7 +26,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         }
     });
 
-   Calendar.dateAxisCursorPosition = null;
+    Calendar.dateAxisCursorPosition = null;
 
     Calendar.timeRange = {
         updated: true,
@@ -429,7 +429,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
     function enhanceDigest(digest){
         if (typeof(digest.settings.messageDisplayCounters)!="undefined") {
-            App.setMessageDisplayCounters(digest.settings.messageDisplayCounters, digest.nApis);
+            App.setupBeginnersFriendlyUI(digest.settings.messageDisplayCounters, digest.nApis);
         }
         digest.getCitiesList = function(){
             if (digest.metadata.timeUnit === "DAY")

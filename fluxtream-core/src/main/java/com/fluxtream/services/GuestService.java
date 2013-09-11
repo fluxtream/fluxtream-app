@@ -7,6 +7,8 @@ import com.fluxtream.domain.AbstractUserProfile;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.ResetPasswordToken;
+import com.fluxtream.services.impl.ExistingEmailException;
+import com.fluxtream.services.impl.UsernameAlreadyTakenException;
 
 public interface GuestService {
 	public void addRole(long guestId, String role);
@@ -16,7 +18,8 @@ public interface GuestService {
 	public List<Guest> getAllGuests();
 	
 	public Guest createGuest(String username, String firstname,
-			String lastname, String password, String email) throws Exception;
+			String lastname, String password, String email,
+            int registrationMethod) throws UsernameAlreadyTakenException, ExistingEmailException;
 
 	public void eraseGuestInfo(String username) throws Exception;
 
@@ -75,4 +78,6 @@ public interface GuestService {
 			Class<T> clazz);
 
     public void removeApiKeyAttribute(long apiKeyId, String key);
+
+    public void setAutoLoginToken(long guestId, String s);
 }

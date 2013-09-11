@@ -8,7 +8,24 @@ require(['App', 'Connectors'], function(App, Connectors) {
 	document.body.style.KhtmlUserSelect = "none";
 	document.body.unselectable = "on";
 	App.initialize();
+    setAvatarImage();
 });
+
+function setAvatarImage() {
+    $.ajax({
+        url: "/api/guest/avatarImage",
+        success: function(result) {
+            if (result.type!="none") {
+                $("#profileIcon").replaceWith("<img src=\"" + result.url + "\" style=\"display:inline;width:27px\" width=27 height=27>");
+                $("#profileIconCaret").css("margin-top", "10px");
+            } else
+                $("#profileIcon").replaceWith("<i class=\"icon-user icon-large\"></i>");
+        },
+        error: function() {
+            $("#profileIcon").replaceWith("<i class=\"icon-user icon-large\"></i>");
+        }
+    });
+}
 
 
 //below are require statements for all dynamically required files.
