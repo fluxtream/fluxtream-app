@@ -46,6 +46,15 @@
             cookie     : true, // enable cookies to allow the server to access the session
             xfbml      : true  // parse XFBML
         });
+
+        $(document).ready(function(){
+            FB.getLoginStatus(function(response) {
+                console.log("status:" + response.status);
+                if (response.status === 'not_authorized') {
+                    noPostingPopover();
+                }
+            });
+        });
     };
 
     // Load the SDK asynchronously
@@ -56,6 +65,18 @@
         js.src = "//connect.facebook.net/en_US/all.js";
         ref.parentNode.insertBefore(js, ref);
     }(document));
+
+    function noPostingPopover() {
+        $("#fbLogin").popover({
+            container: "body",
+            placement: "bottom",
+            trigger: "hover",
+            html: true,
+            title: "Don't worry:",
+            content: "We will <strong>NEVER</strong> post on your behalf!!!",
+            animation: true
+        });
+    }
 
     // Here we run a very simple test of the Graph API after login is successful.
     // This testAPI() function is only called in those cases.

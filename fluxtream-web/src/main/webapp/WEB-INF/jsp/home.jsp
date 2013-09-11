@@ -16,7 +16,6 @@
             }
         }
     }
-    String avatarImage = (String) request.getAttribute("avatarImage");
     request.setAttribute("vieweeFullname", vieweeFullname);
 %><!DOCTYPE html>
 <html lang="en">
