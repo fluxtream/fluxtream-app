@@ -2,13 +2,15 @@ package com.fluxtream.connectors.runkeeper;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TimeZone;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
-import com.fluxtream.domain.ApiKey;
+import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.JPADaoService;
+import com.fluxtream.services.MetadataService;
 import com.fluxtream.utils.JPAUtils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -41,9 +43,30 @@ public class RunKeeperUpdater  extends AbstractUpdater {
     @Autowired
     JPADaoService jpaDaoService;
 
+    final DateTimeFormatter timeFormatter = DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss");
+
+    @Autowired
+    MetadataService metadataService;
+
     @Override
     protected void updateConnectorDataHistory(final UpdateInfo updateInfo) throws Exception {
         updateData(updateInfo, 0);
+    }
+
+    @Override
+    protected void updateConnectorData(final UpdateInfo updateInfo) throws Exception {
+        final String entityName = JPAUtils.getEntityName(RunKeeperFitnessActivityFacet.class);
+        final List<RunKeeperFitnessActivityFacet> newest = jpaDaoService.executeQueryWithLimit(
+                "SELECT facet from " + entityName + " facet WHERE facet.apiKeyId=? ORDER BY facet.start DESC",
+                1,
+                RunKeeperFitnessActivityFacet.class, updateInfo.apiKey.getId());
+        long lastUpdated = 0;
+        if (newest.size()>0)
+            lastUpdated = newest.get(0).end;
+        else
+            throw new Exception("Unexpected Error: no existing facets with an incremental update");
+        System.out.println("Runkeeper's was last updated" + timeFormatter.print(lastUpdated));
+        updateData(updateInfo, lastUpdated);
     }
 
     private void updateData(final UpdateInfo updateInfo, final long since) throws Exception {
@@ -62,8 +85,7 @@ public class RunKeeperUpdater  extends AbstractUpdater {
         List<String> activities = new ArrayList<String>();
         String activityFeedURL = DEFAULT_ENDPOINT + fitnessActivities;
 
-        final List<String> uriList = getActivityUriList(updateInfo.apiKey);
-        getFitnessActivityFeed(updateInfo, service, token, activityFeedURL, 25, activities, since, uriList);
+        getFitnessActivityFeed(updateInfo, service, token, activityFeedURL, 25, activities, since);
         getFitnessActivities(updateInfo, service, token, activities);
     }
 
@@ -82,7 +104,8 @@ public class RunKeeperUpdater  extends AbstractUpdater {
                 countSuccessfulApiCall(updateInfo.apiKey,
                                        updateInfo.objectTypes, then, activityURL);
                 String body = response.getBody();
-                apiDataService.cacheApiDataJSON(updateInfo, body, -1, -1);
+                JSONObject jsonObject = JSONObject.fromObject(body);
+                createOrUpdateActivity(jsonObject, updateInfo);
             } else {
                 countFailedApiCall(updateInfo.apiKey,
                                    updateInfo.objectTypes, then, activityURL, "",
@@ -92,8 +115,94 @@ public class RunKeeperUpdater  extends AbstractUpdater {
         }
     }
 
+    private void createOrUpdateActivity(final JSONObject jsonObject, final UpdateInfo updateInfo) {
+        final String uri = jsonObject.getString("uri");
+        final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery("e.apiKeyId=? AND e.uri=?",
+                                                                                   updateInfo.apiKey.getId(), uri);
+        final ApiDataService.FacetModifier<RunKeeperFitnessActivityFacet> facetModifier = new ApiDataService.FacetModifier<RunKeeperFitnessActivityFacet>() {
+            @Override
+            public RunKeeperFitnessActivityFacet createOrModify(RunKeeperFitnessActivityFacet facet, final Long apiKeyId) {
+                if (facet==null) {
+                    facet = new RunKeeperFitnessActivityFacet(updateInfo.apiKey.getId());
+                    facet.uri = uri;
+                    facet.api = updateInfo.apiKey.getConnector().value();
+                    facet.guestId = updateInfo.apiKey.getGuestId();
+                    facet.timeUpdated = System.currentTimeMillis();
+                }
+                boolean startTimeSet = false;
+                if (jsonObject.has("path")) {
+                    final JSONArray path = jsonObject.getJSONArray("path");
+                    List<LocationFacet> locationFacets = new ArrayList<LocationFacet>();
+                    for (int i=0; i<path.size(); i++) {
+                        JSONObject pathElement = path.getJSONObject(i);
+                        LocationFacet locationFacet = new LocationFacet(updateInfo.apiKey.getId());
+                        locationFacet.latitude = (float) pathElement.getDouble("latitude");
+                        locationFacet.longitude = (float) pathElement.getDouble("longitude");
+                        if (!startTimeSet) {
+                            // we need to know the user's location in order to figure out
+                            // his timezone
+                            final String start_time = jsonObject.getString("start_time");
+                            final TimeZone timeZone = metadataService.getTimeZone(locationFacet.latitude, locationFacet.longitude);
+                            facet.start = timeFormatter.withZone(DateTimeZone.forTimeZone(timeZone)).parseMillis(start_time);
+                            facet.timeZone = timeZone.getID();
+                            final int duration = jsonObject.getInt("duration");
+                            facet.end = facet.start + duration*1000;
+                            facet.duration = duration;
+                            startTimeSet = true;
+                        }
+                        locationFacet.altitude = (int) pathElement.getDouble("altitude");
+                        final long millisIncrement = (long)(pathElement.getDouble("timestamp") * 1000d);
+                        locationFacet.timestampMs = facet.start + millisIncrement;
+                        locationFacet.start = locationFacet.timestampMs;
+                        locationFacet.end = locationFacet.timestampMs;
+                        locationFacet.source = LocationFacet.Source.RUNKEEPER;
+                        locationFacet.apiKeyId = updateInfo.apiKey.getId();
+                        locationFacet.api = Connector.getConnector("runkeeper").value();
+                        locationFacet.uri = uri;
+
+                        locationFacets.add(locationFacet);
+                    }
+                    apiDataService.addGuestLocations(updateInfo.getGuestId(), locationFacets);
+                } else {
+                    //TODO: abort elegantly if we don't have gps data as we are unable to figure out time
+                    //in this case
+                    return null;
+                }
+
+                facet.userID = jsonObject.getString("userID");
+                facet.duration = jsonObject.getInt("duration");
+                facet.type = jsonObject.getString("type");
+                facet.equipment = jsonObject.getString("equipment");
+                facet.total_distance = jsonObject.getDouble("total_distance");
+                facet.is_live = jsonObject.getBoolean("is_live");
+                facet.comments = jsonObject.getString("comments");
+                facet.uri = uri;
+                if (jsonObject.has("total_climb"))
+                    facet.total_climb = jsonObject.getDouble("total_climb");
+
+
+                if (jsonObject.has("heart_rate")) {
+                    final JSONArray heart_rateArray = jsonObject.getJSONArray("heart_rate");
+                    HeartRateMeasure heartRateMeasure = new HeartRateMeasure();
+                    facet.heart_rate = new ArrayList<HeartRateMeasure>(heart_rateArray.size());
+                    for (int i=0; i<heart_rateArray.size(); i++) {
+                        final JSONObject heartRateTuple = heart_rateArray.getJSONObject(i);
+                        heartRateMeasure.timestamp = heartRateTuple.getDouble("timestamp");
+                        heartRateMeasure.heartRate = heartRateTuple.getDouble("heart_rate");
+                        facet.heart_rate.add(heartRateMeasure);
+                    }
+                }
+                if (jsonObject.has("calories")) {
+                    // ignore calories for now
+                }
+                return facet;
+            }
+        };
+        apiDataService.createOrReadModifyWrite(RunKeeperFitnessActivityFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
+    }
+
     /**
-     * Get the feed of activities in a succint format. MovesActivity info (with gps data etc) is fetched in a separate call
+     * Get the feed of activities in a succint format. FitnessActivity info (with gps data etc) is fetched in a separate call
      * (one per activity). We want to limit this feed to those activities that we haven't already stored of course but
      * unfortunately the Runkeeper API call will by default retrieve the entire feed. Optional parameters
      * (<code>noEarlierThan</code>, <code>noLaterThan</code>) are able to limit the dataset, but they will only accept dates specified in
@@ -108,9 +217,10 @@ public class RunKeeperUpdater  extends AbstractUpdater {
      * @param pageSize
      * @param activities
      * @param since
-     * @param uriList
      */
-    private void getFitnessActivityFeed(final UpdateInfo updateInfo, final OAuthService service, final Token token, String activityFeedURL, final int pageSize, List<String> activities, long since, final List<String> uriList) {
+    private void getFitnessActivityFeed(final UpdateInfo updateInfo, final OAuthService service,
+                                        final Token token, String activityFeedURL, final int pageSize,
+                                        List<String> activities, long since) {
         OAuthRequest request = new OAuthRequest(Verb.GET, activityFeedURL);
         request.addQuerystringParameter("pageSize", String.valueOf(pageSize));
         request.addQuerystringParameter("oauth_token", token.getToken());
@@ -135,7 +245,7 @@ public class RunKeeperUpdater  extends AbstractUpdater {
             for(int i=0; i<items.size(); i++) {
                 JSONObject item = items.getJSONObject(i);
                 final String uri = item.getString("uri");
-                if (uriList.contains(uri))
+                if (activityIsAlreadyStored(updateInfo, uri))
                     continue;
                 activities.add(uri);
             }
@@ -143,7 +253,7 @@ public class RunKeeperUpdater  extends AbstractUpdater {
                                    updateInfo.objectTypes, then, activityFeedURL);
             if (jsonObject.has("next")) {
                 activityFeedURL = DEFAULT_ENDPOINT + jsonObject.getString("next");
-                getFitnessActivityFeed(updateInfo, service, token, activityFeedURL, pageSize, activities, since, uriList);
+                getFitnessActivityFeed(updateInfo, service, token, activityFeedURL, pageSize, activities, since);
             }
         } else if (httpResponseCode ==304) {
             countSuccessfulApiCall(updateInfo.apiKey,
@@ -156,31 +266,14 @@ public class RunKeeperUpdater  extends AbstractUpdater {
         }
     }
 
-    /**
-     * retrieve the 25 last activity uris that we already have in store
-     * @param apiKey
-     * @return a list of activity uris
-     */
-    protected List<String> getActivityUriList(ApiKey apiKey) {
+    private boolean activityIsAlreadyStored(final UpdateInfo updateInfo, final String uri) {
         final String entityName = JPAUtils.getEntityName(RunKeeperFitnessActivityFacet.class);
-        final List<RunKeeperFitnessActivityFacet> facets = jpaDaoService.executeQueryWithLimit("SELECT facet from " + entityName + " facet WHERE facet.apiKeyId=? ORDER BY facet.start DESC", 25, RunKeeperFitnessActivityFacet.class, apiKey.getId());
-        List<String> uris = new ArrayList<String>();
-        for (RunKeeperFitnessActivityFacet facet : facets) {
-            uris.add(facet.uri);
-        }
-        return uris;
-    }
-
-    @Override
-    protected void updateConnectorData(final UpdateInfo updateInfo) throws Exception {
-        final String entityName = JPAUtils.getEntityName(RunKeeperFitnessActivityFacet.class);
-        final List<RunKeeperFitnessActivityFacet> newest = jpaDaoService.executeQueryWithLimit("SELECT facet from " + entityName + " facet WHERE facet.apiKeyId=? ORDER BY facet.start DESC", 1, RunKeeperFitnessActivityFacet.class, updateInfo.apiKey.getId());
-        long lastUpdated = 0;
-        if (newest.size()>0)
-            lastUpdated = newest.get(0).end;
-        else
-            throw new Exception("Unexpected Error: no existing facets with an incremental update");
-        updateData(updateInfo, lastUpdated);
+        final List<RunKeeperFitnessActivityFacet> facets =
+                jpaDaoService.executeQueryWithLimit(String.format("SELECT facet from %s facet WHERE facet.apiKeyId=? AND facet.uri=?", entityName),
+                                                    1,
+                                                    RunKeeperFitnessActivityFacet.class,
+                                                    updateInfo.apiKey.getId(), uri);
+        return facets.size()>0;
     }
 
 }

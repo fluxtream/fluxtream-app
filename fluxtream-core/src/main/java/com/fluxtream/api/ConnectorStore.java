@@ -19,7 +19,6 @@ import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
-import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
@@ -157,10 +156,7 @@ public class ConnectorStore {
                     logger.warn("message=\"null connector for " + connectorInfo.getName() + "\"");
                     continue;
                 }
-                if (!guestService.hasApiKey(guest.getId(), api)) {
-                    connectors.remove(i--);
-                }
-                if (!api.getUpdaterClass().getAnnotation(Updater.class).hasFacets()) {
+                if (!guestService.hasApiKey(guest.getId(), api)||api.getName().equals("facebook")/*HACK*/) {
                     connectors.remove(i--);
                 }
                 else {
@@ -233,7 +229,7 @@ public class ConnectorStore {
             List<ConnectorInfo> allConnectors =  sysService.getConnectors();
             List<ConnectorInfo> connectors = new ArrayList<ConnectorInfo>();
             for (ConnectorInfo connector : allConnectors) {
-                if (connector.enabled)
+                if (connector.enabled&&!connector.connectorName.equals("facebook"))
                     connectors.add(connector);
             }
             for (int i = 0; i < connectors.size(); i++){

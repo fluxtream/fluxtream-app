@@ -16,10 +16,13 @@ function setAvatarImage() {
         url: "/api/guest/avatarImage",
         success: function(result) {
             if (result.type!="none") {
-                $("#profileIcon").replaceWith("<img src=\"" + result.url + "\" style=\"display:inline;width:27px\" width=27 height=27>");
+                $("#profileIcon").replaceWith("<img src=\"" + result.url + "\" style=\"display:inline;width:27px;margin: 0 1px 0 4px;\" width=27 height=27>");
                 $("#profileIconCaret").css("margin-top", "10px");
-            } else
+                $("#connectorsDropdownToggle").css("margin-top", "3px");
+                $("#appsMenuWrapper").css("margin-top", "4px");
+            } else {
                 $("#profileIcon").replaceWith("<i class=\"icon-user icon-large\"></i>");
+            }
         },
         error: function() {
             $("#profileIcon").replaceWith("<i class=\"icon-user icon-large\"></i>");

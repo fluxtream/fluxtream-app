@@ -48,7 +48,7 @@ public class ErrorController {
     }
 
 
-                                    @RequestMapping(value = "/error/{code}.html")
+    @RequestMapping(value = "/error/{code}.html")
 	public ModelAndView handleError(@PathVariable("code") int code,
 			HttpServletRequest request) {
 		ModelAndView mav = new ModelAndView("error");

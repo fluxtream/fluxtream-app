@@ -15,7 +15,7 @@ import com.fluxtream.domain.AbstractFacet;
  * @author Candide Kemmler (candide@fluxtream.com)
  */
 @Entity(name="Facet_RunKeeperFitnessActivity")
-@ObjectTypeSpec(name = "fitnessActivity", value = 1, extractor=RunKeeperFitnessActivityExtractor.class,
+@ObjectTypeSpec(name = "fitnessActivity", value = 1,
                 prettyname = "Fitness MovesActivity", isDateBased = false, locationFacetSource = LocationFacet.Source.RUNKEEPER)
     public class RunKeeperFitnessActivityFacet extends AbstractFacet {
 

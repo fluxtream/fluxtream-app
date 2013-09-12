@@ -77,13 +77,13 @@
 								<%--class="search-query" placeholder="Search">--%>
 						<%--</form>--%>
 
-                            <ul class="nav" style="margin-top:4px">
+                            <ul class="nav" id="appsMenuWrapper">
                             <li><div class="btn-group" id="apps-menu"
                                      data-toggle="buttons-radio"></div></li>
                             </ul>
                             <ul class="nav pull-right">
                                 <li class="divider-vertical"></li>
-                                <li class="dropdown" id="connectorsDropdownToggle" style="margin-top:3px" data-container="body">
+                                <li class="dropdown" id="connectorsDropdownToggle" data-container="body">
                                     <a href="#" class="dropdown-toggle" onclick="$('#connectorsDropdownToggle').popover('destroy');"
                                                         data-toggle="dropdown">Connectors
                                     <i class="icon-random icon-large"></i> <b class="caret"></b></a>
