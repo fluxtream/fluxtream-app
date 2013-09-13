@@ -52,7 +52,7 @@ CREATE TABLE `ApiKey` (
   PRIMARY KEY (`id`),
   KEY `api_index` (`api`),
   KEY `guestId_index` (`guestId`)
-) ENGINE=MyISAM AUTO_INCREMENT=88 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -69,7 +69,7 @@ CREATE TABLE `ApiKeyAttribute` (
   `apiKey_id` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `FK63B21617FB39AB73` (`apiKey_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=55980 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -120,7 +120,7 @@ CREATE TABLE `ApiUpdates` (
   KEY `success` (`success`),
   KEY `apiKeyId` (`apiKeyId`),
   KEY `httpResponseCode` (`httpResponseCode`)
-) ENGINE=MyISAM AUTO_INCREMENT=2188600 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -146,7 +146,7 @@ CREATE TABLE `ChannelMapping` (
   KEY `deviceName` (`deviceName`(191)),
   KEY `guestId` (`guestId`),
   KEY `apiKey` (`apiKeyId`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -166,7 +166,7 @@ CREATE TABLE `ChannelStyle` (
   KEY `guestId` (`guestId`),
   KEY `channelName` (`channelName`(250)),
   KEY `deviceName` (`deviceName`(250))
-) ENGINE=MyISAM AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -213,7 +213,7 @@ CREATE TABLE `Connector` (
   `supportsFileUpload` char(1) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'N',
   `apiKeyAttributeKeys` longtext COLLATE utf8mb4_unicode_ci,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=2528 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -247,7 +247,7 @@ CREATE TABLE `ConnectorFilterState` (
   `stateJSON` longtext COLLATE utf8mb4_unicode_ci,
   PRIMARY KEY (`id`),
   KEY `guestId` (`guestId`)
-) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -292,7 +292,7 @@ CREATE TABLE `ContextualInfo` (
   KEY `travelType_index` (`travelType`),
   KEY `timeUpdated_index` (`timeUpdated`),
   KEY `apiKey` (`apiKeyId`)
-) ENGINE=MyISAM AUTO_INCREMENT=1237 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -311,7 +311,7 @@ CREATE TABLE `Dashboard` (
   `widgetNames` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `guestId` (`guestId`)
-) ENGINE=MyISAM AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -378,7 +378,7 @@ CREATE TABLE `Facet_BodymediaBurn` (
   KEY `timeUpdated_index` (`timeUpdated`),
   KEY `apiKey` (`apiKeyId`),
   KEY `date` (`date`(250))
-) ENGINE=MyISAM AUTO_INCREMENT=2554 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -417,7 +417,7 @@ CREATE TABLE `Facet_BodymediaSleep` (
   KEY `timeUpdated_index` (`timeUpdated`),
   KEY `apiKey` (`apiKeyId`),
   KEY `date` (`date`(250))
-) ENGINE=MyISAM AUTO_INCREMENT=1122 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -453,7 +453,7 @@ CREATE TABLE `Facet_BodymediaSteps` (
   KEY `guestId_index` (`guestId`),
   KEY `timeUpdated_index` (`timeUpdated`),
   KEY `apiKey` (`apiKeyId`)
-) ENGINE=MyISAM AUTO_INCREMENT=1796 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -499,7 +499,7 @@ CREATE TABLE `Facet_CalendarEventEntry` (
   KEY `guestId_index` (`guestId`),
   KEY `timeUpdated_index` (`timeUpdated`),
   KEY `apiKey` (`apiKeyId`)
-) ENGINE=MyISAM AUTO_INCREMENT=335 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -592,7 +592,7 @@ CREATE TABLE `Facet_FitbitActivity` (
   KEY `timeUpdated_index` (`timeUpdated`),
   KEY `apiKey` (`apiKeyId`),
   KEY `date` (`date`(250))
-) ENGINE=MyISAM AUTO_INCREMENT=6215 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -682,7 +682,7 @@ CREATE TABLE `Facet_FitbitSleep` (
   KEY `timeUpdated_index` (`timeUpdated`),
   KEY `apiKey` (`apiKeyId`),
   KEY `date` (`date`(250))
-) ENGINE=MyISAM AUTO_INCREMENT=5440 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -721,7 +721,7 @@ CREATE TABLE `Facet_FitbitWeight` (
   KEY `timeUpdated_index` (`timeUpdated`),
   KEY `apiKey` (`apiKeyId`),
   KEY `date` (`date`(191))
-) ENGINE=InnoDB AUTO_INCREMENT=4227 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -772,7 +772,7 @@ CREATE TABLE `Facet_FlickrPhoto` (
   KEY `timeUpdated_index` (`timeUpdated`),
   KEY `apiKey` (`apiKeyId`),
   KEY `date` (`date`(250))
-) ENGINE=MyISAM AUTO_INCREMENT=9604 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -828,7 +828,7 @@ CREATE TABLE `Facet_FluxtreamCapturePhoto` (
   KEY `timeUpdated_index` (`timeUpdated`),
   KEY `hash_index` (`hash`),
   KEY `apiKeyId` (`apiKeyId`)
-) ENGINE=MyISAM AUTO_INCREMENT=876 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1054,7 +1054,7 @@ CREATE TABLE `Facet_LastFmRecentTrack` (
   KEY `guestId_index` (`guestId`),
   KEY `timeUpdated_index` (`timeUpdated`),
   KEY `apiKey` (`apiKeyId`)
-) ENGINE=MyISAM AUTO_INCREMENT=63307 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1109,7 +1109,7 @@ CREATE TABLE `Facet_Location` (
   KEY `uri` (`uri`(250)),
   KEY `apiKey` (`apiKeyId`),
   KEY `processed_index` (`processed`)
-) ENGINE=MyISAM AUTO_INCREMENT=2855838 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1143,7 +1143,7 @@ CREATE TABLE `Facet_MovesMove` (
   KEY `apiKey` (`apiKeyId`),
   KEY `timeUpdated_index` (`timeUpdated`),
   KEY `date` (`date`(191))
-) ENGINE=InnoDB AUTO_INCREMENT=2250 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1183,7 +1183,7 @@ CREATE TABLE `Facet_MovesPlace` (
   KEY `apiKey` (`apiKeyId`),
   KEY `timeUpdated_index` (`timeUpdated`),
   KEY `date` (`date`(191))
-) ENGINE=InnoDB AUTO_INCREMENT=2531 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1345,7 +1345,7 @@ CREATE TABLE `Facet_RunKeeperFitnessActivity` (
   KEY `guestId_index` (`guestId`),
   KEY `timeUpdated_index` (`timeUpdated`),
   KEY `apiKey` (`apiKeyId`)
-) ENGINE=InnoDB AUTO_INCREMENT=455 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1521,7 +1521,7 @@ CREATE TABLE `Facet_Tweet` (
   KEY `guestId_index` (`guestId`),
   KEY `timeUpdated_index` (`timeUpdated`),
   KEY `apiKey` (`apiKeyId`)
-) ENGINE=MyISAM AUTO_INCREMENT=1746 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1602,7 +1602,7 @@ CREATE TABLE `Facet_TwitterMention` (
   KEY `guestId_index` (`guestId`),
   KEY `timeUpdated_index` (`timeUpdated`),
   KEY `apiKey` (`apiKeyId`)
-) ENGINE=MyISAM AUTO_INCREMENT=612 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1645,7 +1645,7 @@ CREATE TABLE `Facet_VisitedCity` (
   KEY `timeUpdated_index` (`timeUpdated`),
   KEY `FK68B7FCEDE76FB50E` (`city_geo_id`),
   KEY `date` (`date`(250))
-) ENGINE=MyISAM AUTO_INCREMENT=6179 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1681,7 +1681,7 @@ CREATE TABLE `Facet_WithingsBPMMeasure` (
   KEY `guestId_index` (`guestId`),
   KEY `timeUpdated_index` (`timeUpdated`),
   KEY `apiKey` (`apiKeyId`)
-) ENGINE=MyISAM AUTO_INCREMENT=2489 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1719,7 +1719,7 @@ CREATE TABLE `Facet_WithingsBodyScaleMeasure` (
   KEY `guestId_index` (`guestId`),
   KEY `timeUpdated_index` (`timeUpdated`),
   KEY `apiKey` (`apiKeyId`)
-) ENGINE=MyISAM AUTO_INCREMENT=3325 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1752,7 +1752,7 @@ CREATE TABLE `Facet_WithingsHeartPulseMeasure` (
   KEY `guestId_index` (`guestId`),
   KEY `apiKey` (`apiKeyId`),
   KEY `timeUpdated_index` (`timeUpdated`)
-) ENGINE=InnoDB AUTO_INCREMENT=206 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1798,7 +1798,7 @@ CREATE TABLE `Facet_ZeoSleepStats` (
   KEY `timeUpdated_index` (`timeUpdated`),
   KEY `apiKey` (`apiKeyId`),
   KEY `date` (`date`(250))
-) ENGINE=MyISAM AUTO_INCREMENT=2116 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1829,7 +1829,7 @@ CREATE TABLE `FitbitUserProfile` (
   `timezone` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `weight` double NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1884,7 +1884,7 @@ CREATE TABLE `FoursquareVenue` (
   `categoryIconUrlSuffix` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `foursquareId` (`foursquareId`(191))
-) ENGINE=InnoDB AUTO_INCREMENT=89 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1903,7 +1903,7 @@ CREATE TABLE `GrapherView` (
   PRIMARY KEY (`id`),
   KEY `name` (`name`(250)),
   KEY `guestId` (`guestId`)
-) ENGINE=MyISAM AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1929,7 +1929,7 @@ CREATE TABLE `Guest` (
   PRIMARY KEY (`id`),
   KEY `email_index` (`email`(250)),
   KEY `username_index` (`username`(250))
-) ENGINE=MyISAM AUTO_INCREMENT=31 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1996,7 +1996,7 @@ CREATE TABLE `Notifications` (
   `stackTrace` longtext COLLATE utf8mb4_unicode_ci,
   PRIMARY KEY (`id`),
   KEY `guestId_index` (`guestId`)
-) ENGINE=MyISAM AUTO_INCREMENT=110 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2031,7 +2031,7 @@ CREATE TABLE `Settings` (
   `weightMeasureUnit` int(11) DEFAULT NULL,
   `messageDisplayCountersStorage` mediumtext COLLATE utf8mb4_unicode_ci,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2066,7 +2066,7 @@ CREATE TABLE `Tags` (
   `name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `name` (`name`(191))
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2099,7 +2099,7 @@ CREATE TABLE `UpdateWorkerTask` (
   KEY `guestId_index` (`guestId`),
   KEY `objectTypes_index` (`objectTypes`),
   KEY `retries_index` (`retries`)
-) ENGINE=MyISAM AUTO_INCREMENT=1756755 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2134,7 +2134,7 @@ CREATE TABLE `WeatherInfo` (
   KEY `city_index` (`city`(250)),
   KEY `fdate_index` (`fdate`(250)),
   KEY `minuteOfDay_index` (`minuteOfDay`)
-) ENGINE=MyISAM AUTO_INCREMENT=77102 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2154,7 +2154,7 @@ CREATE TABLE `WidgetSettings` (
   KEY `widgetName` (`widgetName`(250)),
   KEY `dashboardId` (`dashboardId`),
   KEY `guest_index` (`guestId`)
-) ENGINE=MyISAM AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
