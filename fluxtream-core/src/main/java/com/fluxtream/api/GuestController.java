@@ -107,7 +107,7 @@ public class GuestController {
         JSONObject meJSON = JSONObject.fromObject(meString);
         final String facebookId = meJSON.getString("id");
         try {
-            String avatarURL = String.format("http://graph.facebook.com/%s/picture?type=small&redirect=false", facebookId);
+            String avatarURL = String.format("http://graph.facebook.com/%s/picture?type=small&redirect=false&return_ssl_resources=true", facebookId);
             String jsonString = HttpUtils.fetch(avatarURL);
             JSONObject json = JSONObject.fromObject(jsonString);
             if (json.has("data")) {
