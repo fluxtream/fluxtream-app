@@ -98,7 +98,7 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
                                                                    false, true, movesKeys);
         em.persist(movesConnectorInfo);
         final String latitude = "Google Latitude";
-        String[] latitudeKeys = checkKeysExist(latitude, Arrays.asList("google.client.id", "google.client.secret", "google_latitudeApiKey"));
+        String[] latitudeKeys = checkKeysExist(latitude, Arrays.asList("google.client.id", "google.client.secret"));
         final ConnectorInfo latitudeConnectorInfo = new ConnectorInfo(latitude,
                                                                       "/images/connectors/connector-google_latitude.jpg",
                                                                       res.getString("google_latitude"),
