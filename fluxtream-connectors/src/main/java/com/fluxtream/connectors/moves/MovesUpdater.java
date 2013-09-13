@@ -137,8 +137,6 @@ public class MovesUpdater extends AbstractUpdater {
 
                 reportFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, currentTime, query, Utils.stackTrace(e), "I/O");
             }
-            // dev-only: artificially set the registration time
-            userRegistrationDate = "2013-08-10";
         }
         return userRegistrationDate;
     }
