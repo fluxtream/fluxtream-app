@@ -73,21 +73,6 @@
                         </table>
                     </div>
                     <div class="tab-pane settings-tab" id="password-settings">
-                        <h3>Change Your Password</h3>
-                        <table>
-                            <tbody>
-                                <tr>
-                                    <td style="width:120px"><label for="password1">New Password</label></td>
-                                    <td><input name="password1" id="password1" type="password"/></td>
-                                    <td><span id="setPasswordError" class="help-inline error"
-                                        style="display:none; color:rgb(192, 86, 92)"></span></td>
-                                </tr>
-                                <tr>
-                                    <td style="width:120px"><label for="password2">New Password 2&nbsp;&nbsp;&nbsp;</label></td>
-                                    <td><input name="password2" id="password2" type="password"/></td>
-                                </tr>
-                            </tbody>
-                        </table>
                     </div>
                     <div class="tab-pane settings-tab" id="more-settings">
                         <h3>Delete my account</h3>
@@ -102,6 +87,55 @@
             <button class="btn" onclick="App.closeModal()">Close</button>
         </div>
     </div>
+</template>
+<template id="resetPassword">
+    <h3>Change Your Password</h3>
+    <table>
+        <tbody>
+        <tr>
+            <td style="width:120px"><label for="currentPassword">Current Password</label></td>
+            <td><input name="currentPassword" placeholder="************" id="currentPassword" type="password"/></td>
+            <td><span id="setPasswordError" class="help-inline error"
+                      style="display:none; color:rgb(192, 86, 92)"></span></td>
+        </tr>
+        <tr>
+            <td style="width:120px"><label for="password1">New Password</label></td>
+            <td><input name="password1" id="password1" placeholder="************" type="password"/></td>
+        </tr>
+        <tr>
+            <td style="width:120px"><label for="password2">New Password 2&nbsp;&nbsp;&nbsp;</label></td>
+            <td><input name="password2" id="password2" placeholder="************" type="password"/></td>
+        </tr>
+        </tbody>
+    </table>
+</template>
+<template id="setPassword">
+    <h3>Set Your Password</h3>
+    <table>
+        <tbody>
+        <tr>
+            <td colspan="3">
+                <div class="alert alert-info">To use the Fluxtream Capture app, you need to set a password. In addition
+                    to logging in with Facebook, you will then also be able to do so with your username and password.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td style="width:120px"><label>Your username</label></td>
+            <td><span class="input uneditable-input" id="username-uneditable"></span></td>
+        </tr>
+        <tr>
+            <td style="width:120px"><label for="password1">New Password</label></td>
+            <td><input name="password1" id="password1" placeholder="************" type="password"/></td>
+            <td><span id="setPasswordError" class="help-inline error"
+                      style="display:none; color:rgb(192, 86, 92)"></span></td>
+        </tr>
+        <tr>
+            <td style="width:120px"><label for="password2">New Password 2&nbsp;&nbsp;&nbsp;</label></td>
+            <td><input name="password2" id="password2" placeholder="************" type="password"/></td>
+        </tr>
+        </tbody>
+    </table>
 </template>
 <template id="sharingDialog">
     <div id="sharingModal" class="modal fade hide in">

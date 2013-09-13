@@ -47,6 +47,8 @@ public class SettingsStore {
         JSONObject jsonObject = JSONObject.fromObject(gson.toJson(settings));
         jsonObject.put("firstName", guest.firstname);
         jsonObject.put("lastName", guest.lastname);
+        jsonObject.put("registrationMethod", guest.registrationMethod.name());
+        jsonObject.put("username", guest.username);
         return jsonObject.toString();
     }
 
@@ -84,12 +86,16 @@ public class SettingsStore {
         return new StatusModel(true, "Successfully deleted account");
     }
 
+
+
     @POST
     @Produces({ MediaType.APPLICATION_JSON })
     public String saveSettings(@FormParam("guest_firstname") String firstName, @FormParam("guest_lastname") String lastName,
                                @FormParam("length_measure_unit") String lengthUnit, @FormParam("distance_measure_unit") String distanceUnit,
                                @FormParam("weight_measure_unit") String weightUnit, @FormParam("temperature_unit") String temperatureUnit,
-                               @FormParam("password1") String password1, @FormParam("password2") String password2) throws IOException {
+                               @FormParam("currentPassword") String currentPassword,
+                               @FormParam("password1") String password1, @FormParam("password2") String password2)
+            throws IOException {
         try{
             GuestSettings.LengthMeasureUnit lngUnt = Enum.valueOf(
                     GuestSettings.LengthMeasureUnit.class, lengthUnit);
@@ -100,28 +106,33 @@ public class SettingsStore {
             GuestSettings.TemperatureUnit tempUnt = Enum.valueOf(
                     GuestSettings.TemperatureUnit.class, temperatureUnit);
 
-            long guestId = AuthHelper.getGuestId();
+            Guest guest = AuthHelper.getGuest();
 
-            settingsService.setLengthMeasureUnit(guestId, lngUnt);
-            settingsService.setDistanceMeasureUnit(guestId, dstUnt);
-            settingsService.setWeightMeasureUnit(guestId, whtUnt);
-            settingsService.setTemperatureUnit(guestId, tempUnt);
+            settingsService.setLengthMeasureUnit(guest.getId(), lngUnt);
+            settingsService.setDistanceMeasureUnit(guest.getId(), dstUnt);
+            settingsService.setWeightMeasureUnit(guest.getId(), whtUnt);
+            settingsService.setTemperatureUnit(guest.getId(), tempUnt);
 
-            settingsService.setFirstname(guestId, firstName);
-            settingsService.setLastname(guestId, lastName);
+            settingsService.setFirstname(guest.getId(), firstName);
+            settingsService.setLastname(guest.getId(), lastName);
 
-            if (password1.length()==0&&password2.length()>0)
+            if (currentPassword!=null) {
+                boolean passwordMatched = guestService.checkPassword(guest.getId(), currentPassword);
+                if (!passwordMatched) {
+                    return gson.toJson(new StatusModel(false, "Wrong Password"));
+                }
+            }
+
+            if (password1.length()==0 || password2.length()==0)
                 return gson.toJson(new StatusModel(false, "Please fill in both password fields"));
-            else if (password2.length()==0&&password1.length()>0)
-                return gson.toJson(new StatusModel(false, "Password verification is required"));
-            else if (!(password1.length()==0&&password2.length()==0)) {
+            else {
                 if (!password1.equals(password2)) {
                     return gson.toJson(new StatusModel(false, "Passwords don't match"));
                 }
                 if (password1.length()<8) {
                     return gson.toJson(new StatusModel(false, "Your password should be at least 8 characters long"));
                 } else {
-                    guestService.setPassword(guestId, password1);
+                    guestService.setPassword(guest.getId(), password1);
                 }
             }
 

@@ -16,8 +16,7 @@
             }
         }
     }
-    request.setAttribute("vieweeFullname", vieweeFullname);
-%><!DOCTYPE html>
+    request.setAttribute("vieweeFullname", vieweeFullname);%><!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">

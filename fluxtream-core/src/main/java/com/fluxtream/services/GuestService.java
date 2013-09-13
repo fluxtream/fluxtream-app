@@ -19,7 +19,7 @@ public interface GuestService {
 	
 	public Guest createGuest(String username, String firstname,
 			String lastname, String password, String email,
-            int registrationMethod) throws UsernameAlreadyTakenException, ExistingEmailException;
+            Guest.RegistrationMethod registrationMethod) throws UsernameAlreadyTakenException, ExistingEmailException;
 
 	public void eraseGuestInfo(String username) throws Exception;
 
@@ -80,4 +80,6 @@ public interface GuestService {
     public void removeApiKeyAttribute(long apiKeyId, String key);
 
     public void setAutoLoginToken(long guestId, String s);
+
+    public boolean checkPassword(long guestId, String currentPassword);
 }

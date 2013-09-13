@@ -74,8 +74,9 @@ public class GuestController {
         Guest guest = AuthHelper.getGuest();
         JSONObject json = new JSONObject();
         String type = "none";
-        String url = null;
-        if (guest.registrationMethod == Guest.REGISTRATION_METHOD_FACEBOOK) {
+        String url;
+        if (guest.registrationMethod == Guest.RegistrationMethod.REGISTRATION_METHOD_FACEBOOK||
+            guest.registrationMethod == Guest.RegistrationMethod.REGISTRATION_METHOD_FACEBOOK_WITH_PASSWORD) {
             url = getFacebookAvatarImageURL(guest);
             if (url!=null)
                 type = "facebook";
@@ -229,7 +230,7 @@ public class GuestController {
                                                      ExistingEmailException {
 		try {
 			guestService.createGuest(username, firstname, lastname, password,
-					email, Guest.REGISTRATION_METHOD_FORM);
+					email, Guest.RegistrationMethod.REGISTRATION_METHOD_FORM);
 			StatusModel result = new StatusModel(true, "User " + username
 					+ " was successfully created");
 			return gson.toJson(result);

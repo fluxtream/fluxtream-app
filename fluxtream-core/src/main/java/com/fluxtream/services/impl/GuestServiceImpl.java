@@ -120,7 +120,7 @@ public class GuestServiceImpl implements GuestService {
 	@Transactional(readOnly = false)
 	public Guest createGuest(String username, String firstname,
 			String lastname, String password, String email,
-            int registrationMethod) throws UsernameAlreadyTakenException, ExistingEmailException {
+            Guest.RegistrationMethod registrationMethod) throws UsernameAlreadyTakenException, ExistingEmailException {
 		if (loadUserByUsername(username) != null)
 			throw new UsernameAlreadyTakenException(username + " is already taken");
 		if (loadUserByEmail(email) != null)
@@ -141,6 +141,8 @@ public class GuestServiceImpl implements GuestService {
 		ShaPasswordEncoder passwordEncoder = new ShaPasswordEncoder();
 		String salt = randomString.nextString();
 		guest.salt = salt;
+        if (guest.registrationMethod == Guest.RegistrationMethod.REGISTRATION_METHOD_FACEBOOK)
+            guest.registrationMethod = Guest.RegistrationMethod.REGISTRATION_METHOD_FACEBOOK_WITH_PASSWORD;
 		guest.password = passwordEncoder.encodePassword(password, salt);
 	}
 
@@ -313,7 +315,7 @@ public class GuestServiceImpl implements GuestService {
         Guest guest = getGuestById(id);
         if (guest == null)
             return;
-        if (guest.registrationMethod==Guest.REGISTRATION_METHOD_FACEBOOK) {
+        if (guest.registrationMethod==Guest.RegistrationMethod.REGISTRATION_METHOD_FACEBOOK) {
             revokeFacebookPermissions(guest);
         }
         JPAUtils.execute(em, "updateWorkerTasks.delete.all", guest.getId());
@@ -466,6 +468,14 @@ public class GuestServiceImpl implements GuestService {
         guest.autoLoginToken = s;
         guest.autoLoginTokenTimestamp = System.currentTimeMillis();
         em.persist(guest);
+    }
+
+    @Override
+    public boolean checkPassword(final long guestId, final String currentPassword) {
+        Guest guest = getGuestById(guestId);
+        ShaPasswordEncoder passwordEncoder = new ShaPasswordEncoder();
+        String password = passwordEncoder.encodePassword(currentPassword, guest.salt);
+        return password.equals(guest.password);
     }
 
     @Override

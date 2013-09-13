@@ -85,7 +85,7 @@ public class RegisterController {
 		
 		if (errors.size()==0&&required.size()==0) {
 			logger.info("action=register success=true username="+username + " email=" + email);
-            final Guest guest = guestService.createGuest(username, firstname, lastname, password, email, Guest.REGISTRATION_METHOD_FORM);
+            final Guest guest = guestService.createGuest(username, firstname, lastname, password, email, Guest.RegistrationMethod.REGISTRATION_METHOD_FORM);
             final String autoLoginToken = generateSecureRandomString();
             guestService.setAutoLoginToken(guest.getId(), autoLoginToken);
 			request.setAttribute("autoLoginToken", autoLoginToken);

@@ -26,8 +26,9 @@ public class Guest extends AbstractEntity {
 	public static final String ROLE_USER = "ROLE_USER";
 	public static final String ROLE_ADMIN = "ROLE_ADMIN";
 
-    public static final int REGISTRATION_METHOD_FORM = 0;
-    public static final int REGISTRATION_METHOD_FACEBOOK = 1;
+    public enum RegistrationMethod {
+        REGISTRATION_METHOD_FORM, REGISTRATION_METHOD_FACEBOOK, REGISTRATION_METHOD_FACEBOOK_WITH_PASSWORD;
+    }
 
 	@Index(name="username_index")
 	public String username;
@@ -37,7 +38,7 @@ public class Guest extends AbstractEntity {
 	public String salt;
     public String autoLoginToken;
     public Long autoLoginTokenTimestamp;
-    public int registrationMethod;
+    public RegistrationMethod registrationMethod;
 
 	transient List<String> userRoles;
 	String roles = ROLE_USER;

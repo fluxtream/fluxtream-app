@@ -68,7 +68,7 @@ public class FacebookLoginController {
                 guest = guestService.createGuest(user.getUsername(), firstname!=null?firstname:"",
                                                  lastname!=null?lastname:"",
                                                  generateSecureRandomString(), user.getEmail(),
-                                                 Guest.REGISTRATION_METHOD_FACEBOOK);
+                                                 Guest.RegistrationMethod.REGISTRATION_METHOD_FACEBOOK);
                 final ApiKey apiKey = guestService.createApiKey(guest.getId(), Connector.getConnector("facebook"));
 
                 guestService.setApiKeyAttribute(apiKey, "accessToken", accessToken.getAccessToken());
