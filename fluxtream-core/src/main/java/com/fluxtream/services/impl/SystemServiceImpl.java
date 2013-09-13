@@ -137,7 +137,7 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
                                      false, true, withingsKeys));
 
         final String zeo = "Zeo";
-        String[] zeoKeys = checkKeysExist(zeo, Arrays.asList("zeoConsumerKey", "zeoConsumerSecret", "zeoApiKey"));
+        String[] zeoKeys = checkKeysExist(zeo, new ArrayList<String>());
         // Zeo no longer supports sync.  The myzeo servers were disabled due to bankruptcy in May/June 2013
         em.persist(new ConnectorInfo(zeo,
                                      "/images/connectors/connector-zeo.jpg",
