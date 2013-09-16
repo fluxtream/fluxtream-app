@@ -264,6 +264,8 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
             } catch (Throwable t) {
                 countFailedApiCall(apiKey, 0xffffff, then, uriTemplate, ExceptionUtils.getStackTrace(t),
                                    calendarListCall.getLastStatusCode(), calendarListCall.getLastStatusMessage());
+                t.printStackTrace();
+                throw new RuntimeException("Can't refresh calendar list");
             }
             final List<CalendarListEntry> items = list.getItems();
             for (CalendarListEntry calendarListEntry : items) {

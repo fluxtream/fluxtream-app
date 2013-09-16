@@ -22,6 +22,7 @@ import com.fluxtream.mvc.models.DurationModel;
 public abstract class AbstractMovesFacetVO<T extends MovesFacet> extends AbstractTimedFacetVO<T> {
 
     List<MovesActivityVO> activities = new ArrayList<MovesActivityVO>();
+    public boolean hasActivities = false;
 
     protected void fromFacetBase(final MovesFacet facet, final TimeInterval timeInterval, final GuestSettings settings) throws OutsideTimeBoundariesException {
         // In case this is an endcap facet, meaning it either crosses the leading or trailing midnight of a day,
@@ -80,6 +81,7 @@ public abstract class AbstractMovesFacetVO<T extends MovesFacet> extends Abstrac
                                                    dateStart, dateEnd, settings));
             }
         }
+        hasActivities = facet.getActivities().size()>0;
     }
 
 }
