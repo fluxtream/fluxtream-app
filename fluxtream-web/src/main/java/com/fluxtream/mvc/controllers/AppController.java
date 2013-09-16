@@ -3,6 +3,9 @@ package com.fluxtream.mvc.controllers;
 import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -13,6 +16,7 @@ import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.Notification.Type;
+import com.fluxtream.mvc.models.admin.ConnectorInstanceModelFactory;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.CoachingService;
 import com.fluxtream.services.ConnectorUpdateService;
@@ -22,6 +26,7 @@ import com.fluxtream.services.NotificationsService;
 import com.fluxtream.utils.SecurityUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
@@ -63,27 +68,60 @@ public class AppController {
     @Autowired
     ErrorController errorController;
 
-	@RequestMapping(value = { "", "/", "/welcome" })
-	public ModelAndView index(HttpServletRequest request) {
-		Authentication auth = SecurityContextHolder.getContext()
-				.getAuthentication();
-		if (auth != null && auth.isAuthenticated())
-			return new ModelAndView("redirect:/app");
+    @Autowired
+    ConnectorInstanceModelFactory connectorInstanceModelFactory;
+
+    @RequestMapping(value = { "", "/", "/welcome" })
+    public ModelAndView index(HttpServletRequest request) {
+        Authentication auth = SecurityContextHolder.getContext()
+                .getAuthentication();
+        if (auth != null && auth.isAuthenticated())
+            return new ModelAndView("redirect:/app");
         String indexPageName = "default";
         if (env.get("homepage.name")!=null)
             indexPageName = env.get("homepage.name");
-		ModelAndView mav = new ModelAndView(indexPageName);
-		String release = env.get("release");
-		if (release != null)
-			mav.addObject("release", release);
+        ModelAndView mav = new ModelAndView(indexPageName);
+        String release = env.get("release");
+        if (release != null)
+            mav.addObject("release", release);
         if (env.get("facebook.appId")!=null) {
             mav.addObject("facebookAppId", env.get("facebook.appId"));
             mav.addObject("supportsFBLogin", true);
         } else
             mav.addObject("supportsFBLogin", false);
         mav.addObject("tracker", hasTracker(request));
-		return mav;
-	}
+        return mav;
+    }
+
+    @Secured({ "ROLE_ADMIN" })
+    @RequestMapping(value = { "/admin" })
+    public ModelAndView admin() {
+        ModelAndView mav = new ModelAndView("admin/index");
+        final List<Guest> allGuests = guestService.getAllGuests();
+        mav.addObject("allGuests", allGuests);
+        return mav;
+    }
+
+    @Secured({ "ROLE_ADMIN" })
+    @RequestMapping(value = { "/admin/{username}" })
+    public ModelAndView showUserApiKeys(@PathVariable("username") String username) {
+        ModelAndView mav = admin();
+        mav.addObject("subview", "guestDetails");
+        final Guest guest = guestService.getGuest(username);
+        final List<ApiKey> apiKeys = guestService.getApiKeys(guest.getId());
+        mav.addObject("username", username);
+        mav.addObject("connectorInstanceModels", getConnectorInstanceModels(apiKeys));
+        return mav;
+    }
+
+    private Object getConnectorInstanceModels(final List<ApiKey> apiKeys) {
+        Map<Long, Map<String,Object>> connectorInstanceModels = new HashMap<Long, Map<String,Object>>();
+        for (ApiKey key : apiKeys) {
+            final Map<String, Object> connectorInstanceModel = connectorInstanceModelFactory.createConnectorInstanceModel(key);
+            connectorInstanceModels.put(key.getId(), connectorInstanceModel);
+        }
+        return connectorInstanceModels;
+    }
 
     private boolean hasTracker(HttpServletRequest request) {
         String trackerPath = request.getSession().getServletContext().getRealPath("/WEB-INF/jsp/tracker.jsp");

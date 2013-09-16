@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
@@ -218,7 +219,14 @@ public class GuestServiceImpl implements GuestService {
 		return apiKey;
 	}
 
-	@Transactional(readOnly = false)
+    @Override
+    public Map<String, String> getApiKeyAttributes(final long apiKeyId) {
+        ApiKey apiKey = em.find(ApiKey.class, apiKeyId);
+        final Map<String, String> attributes = apiKey.getAttributes(env);
+        return attributes;
+    }
+
+    @Transactional(readOnly = false)
 	@Override
 	public void removeApiKey(long apiKeyId) {
 		ApiKey apiKey = em.find(ApiKey.class, apiKeyId);

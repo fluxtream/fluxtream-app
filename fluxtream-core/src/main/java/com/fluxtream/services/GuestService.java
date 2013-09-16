@@ -2,6 +2,7 @@ package com.fluxtream.services;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.AbstractUserProfile;
 import com.fluxtream.domain.ApiKey;
@@ -41,6 +42,8 @@ public interface GuestService {
 
 	public ApiKey setApiKeyAttribute(ApiKey apiKey, String key,
 			String value);
+
+    public Map<String, String> getApiKeyAttributes(long apiKeyId);
 
 	public String getApiKeyAttribute(ApiKey apiKey, String key);
 

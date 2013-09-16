@@ -27,7 +27,6 @@ public class ApiClientSupport {
 		if (rateLimitString.endsWith("/user")) {
 			numberOfUpdates = connectorUpdateService
 					.getNumberOfUpdatesSince(guestId, connector.value(), then);
-
         } else {
 			numberOfUpdates = connectorUpdateService
 					.getTotalNumberOfUpdatesSince(connector, then);
