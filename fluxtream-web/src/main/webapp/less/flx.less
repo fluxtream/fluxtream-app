@@ -54,6 +54,7 @@ body {
     height: 100%;
     color:@black;
     font-family: 'Roboto', sans-serif;
+    background-color: #f5f5f5;
 }
 
 html {
@@ -312,7 +313,7 @@ a img { text-decoration: none; }
 .flx-floater { overflow: hidden; height: 100%; zoom:1; }
 
 
-.flx-widget { margin-bottom : 20px; max-height: 300px; min-height:300px !important; overflow:hidden;
+.flx-widget { background-color: #fff; margin-bottom : 20px; max-height: 300px; min-height:300px !important; overflow:hidden;
     border : 1px solid @border-color; border-left:0; border-right:0; border-top:0;
     header { padding: 4px 9px; background : @hd-bg-color;  .flx-clearfix; border-bottom: 1px solid @border-color; color: @grey;
         .flx-widget-controls { .flx-floatR; font-size: 18px; padding-top:3px;
@@ -686,7 +687,7 @@ table .remove { text-align:center;
 
 //---------LIST 
 
-.flx-listItem .flx-box { overflow: hidden; height: 100%; padding: 15px 15px; border: 1px solid lighten(@black, 70%); border-left-width: 5px; margin-bottom:5px; max-width: 693px; border-radius : 3px;
+.flx-listItem .flx-box { background-color:#fff; overflow: hidden; height: 100%; padding: 15px 15px; border: 1px solid lighten(@black, 70%); border-left-width: 5px; margin-bottom:5px; max-width: 693px; border-radius : 3px;
      .flx-data { clear:left; max-width: 300px; padding-left: 0px;}
      .flx-deviceIcon, .flx-tTime, .flx-tRange { .flx-floatL }
      .flx-tTime { padding: 0 13px 0 0px; min-width:62px; height: 22px; font-size: 15px;
@@ -932,6 +933,10 @@ footer { color: gray; }
 }
 
 // candide
+
+#selectedConnectors {
+  background-color: #fff;
+}
 
 #sharedConnectors {
   min-height: 200px;
