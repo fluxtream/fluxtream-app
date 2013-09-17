@@ -65,7 +65,7 @@
             <a class="dropdown-toggle" data-toggle="dropdown" href="#">&lt;Please choose a Guest&gt;</a>
             <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
                 <%if (allGuests!=null) {for (Guest guest : allGuests){ %>
-                <li><a href="/admin/<%=guest.username%>"><%=guest.username%> (<%=guest.getGuestName()%>)</a></li>
+                <li><a href="/admin/<%=guest.getId()%>"><%=guest.username%> (<%=guest.getGuestName()%>)</a></li>
                     <%} } else {%>
                 <li>No guests</li>
                 <% } %>

@@ -103,13 +103,13 @@ public class AppController {
     }
 
     @Secured({ "ROLE_ADMIN" })
-    @RequestMapping(value = { "/admin/{username}" })
-    public ModelAndView showUserApiKeys(@PathVariable("username") String username) {
+    @RequestMapping(value = { "/admin/{guestId}" })
+    public ModelAndView showUserApiKeys(@PathVariable("guestId") long guestId) {
         ModelAndView mav = admin();
         mav.addObject("subview", "guestDetails");
-        final Guest guest = guestService.getGuest(username);
+        final Guest guest = guestService.getGuestById(guestId);
         final List<ApiKey> apiKeys = guestService.getApiKeys(guest.getId());
-        mav.addObject("username", username);
+        mav.addObject("username", guest.username);
         mav.addObject("connectorInstanceModels", getConnectorInstanceModels(apiKeys));
         return mav;
     }
