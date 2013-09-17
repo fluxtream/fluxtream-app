@@ -1,10 +1,12 @@
 package com.fluxtream.mvc.models.admin;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.UpdateWorkerTask;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,11 +40,32 @@ public class ConnectorInstanceModelFactory {
         if (rateLimitString == null)
             rateLimitString = (String) env.connectors.getProperty("rateLimit");
         model.put("rateLimitSpecs", rateLimitString);
+        final String auditTrail = checkForErrors(apiKey);
+        model.put("errors", auditTrail!=null);
+        model.put("auditTrail", auditTrail!=null?auditTrail:"");
         int quota = Integer.valueOf(rateLimitString.split("/")[0]);
         long numberOfUpdates = getNumberOfUpdatesOverSpecifiedTimePeriod(apiKey.getGuestId(), connector, rateLimitString,
                                                                          model);
         model.put("isOverQuota", numberOfUpdates >= quota);
         return model;
+    }
+
+    private String checkForErrors(ApiKey apiKey) {
+        Collection<UpdateWorkerTask> update = connectorUpdateService.getLastFinishedUpdateTasks(apiKey);
+        if (update.size() < 1) {
+            return null;
+        }
+        for (UpdateWorkerTask workerTask : update) {
+            if (workerTask == null || workerTask.status != UpdateWorkerTask.Status.DONE) {
+                if (workerTask.auditTrail != null) {
+                    return workerTask.auditTrail;
+                }
+                else {
+                    return "no audit trail";
+                }
+            }
+        }
+        return null;
     }
 
     private long getNumberOfUpdatesOverSpecifiedTimePeriod(final long guestId, final Connector connector, final String rateLimitString, final Map<String, Object> model) {
@@ -60,4 +83,6 @@ public class ConnectorInstanceModelFactory {
         }
         return numberOfUpdates;
     }
+
+
 }

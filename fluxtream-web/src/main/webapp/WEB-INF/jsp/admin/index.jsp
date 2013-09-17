@@ -54,7 +54,7 @@
                         class="icon-bar"></span> <span class="icon-bar"></span>
                 </a>
                 <a class="brand" href="javascript:App.renderApp(App.state.defaultApp)"><img
-                        src="../${release}/images/header-logo-v4.png" width=94 height=20/></a>
+                        src="/${release}/images/header-logo-v4.png" width=94 height=20/></a>
             </div>
         </div>
     </div>
