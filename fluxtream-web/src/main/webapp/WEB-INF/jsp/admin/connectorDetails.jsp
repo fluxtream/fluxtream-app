@@ -2,7 +2,7 @@
 %><%@ page import="java.util.Map"
 %><%@ page import="com.fluxtream.domain.ApiUpdate"
 %>
-<%@ page import="org.joda.time.format.ISODateTimeFormat" %>
+<%@ page import="org.joda.time.format.DateTimeFormat" %>
 <%
     String username = (String) request.getAttribute("username");
     Map<String,Object> connectorInstanceModel = (Map<String,Object>) request.getAttribute("connectorInstanceModel");
@@ -18,7 +18,7 @@
 <table class="table">
     <thead>
     <tr>
-        <th>Time</th>
+        <th style="min-width:200px">Time</th>
         <th>Query</th>
         <th>Http Response Code</th>
         <th>Reason</th>
@@ -27,7 +27,7 @@
     <tbody>
     <% for (ApiUpdate call : lastUpdates) {
         String successOrError = call.success?"success":"error";
-        final String time = ISODateTimeFormat.basicDateTime().print(call.ts);
+        final String time = DateTimeFormat.mediumDateTime().print(call.ts);
     %>
     <tr class="<%=successOrError%>">
         <td><%=time%></td>
