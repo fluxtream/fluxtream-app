@@ -1,6 +1,8 @@
 package com.fluxtream.auth;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import com.fluxtream.Configuration;
 import com.fluxtream.aspects.FlxLogger;
@@ -11,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -42,7 +45,8 @@ public class FlxAuthFilter extends UsernamePasswordAuthenticationFilter {
                     throw new RuntimeException("Token is too old!");
                 }
                 final FlxUserDetails details = new FlxUserDetails(one);
-                final UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(details, one.password, Arrays.asList(new SimpleGrantedAuthority("ROLE_USER")));
+                final UsernamePasswordAuthenticationToken authRequest =
+                        new UsernamePasswordAuthenticationToken(details, one.password, getAuthorities(one));
                 authRequest.setDetails(details);
                 jpaDaoService.execute("UPDATE Guest SET autoLoginToken=null WHERE autoLoginToken='" + autoLoginToken + "'");
                 return authRequest;
@@ -53,7 +57,15 @@ public class FlxAuthFilter extends UsernamePasswordAuthenticationFilter {
 		return authentication;
 	}
 
-	@Override
+    private Collection<? extends GrantedAuthority> getAuthorities(final Guest one) {
+        final List<String> userRoles = one.getUserRoles();
+        List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
+        for (String userRole : userRoles)
+            authorities.add(new SimpleGrantedAuthority(userRole));
+        return authorities;
+    }
+
+    @Override
 	protected String obtainPassword(HttpServletRequest request) {
 		return request.getParameter("f_password");
 	}
