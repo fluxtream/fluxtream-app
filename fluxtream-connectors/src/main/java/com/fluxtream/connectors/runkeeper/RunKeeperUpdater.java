@@ -14,6 +14,7 @@ import com.fluxtream.services.MetadataService;
 import com.fluxtream.utils.JPAUtils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.codehaus.plexus.util.ExceptionUtils;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
@@ -79,14 +80,25 @@ public class RunKeeperUpdater  extends AbstractUpdater {
         final OAuthService service = runKeeperController.getOAuthService();
         service.signRequest(token, request);
         Response response = request.send();
-        String body = response.getBody();
-        JSONObject jsonObject = JSONObject.fromObject(body);
-        String fitnessActivities = jsonObject.getString("fitness_activities");
-        List<String> activities = new ArrayList<String>();
-        String activityFeedURL = DEFAULT_ENDPOINT + fitnessActivities;
+        final int httpResponseCode = response.getCode();
+        long then = System.currentTimeMillis();
+        if (httpResponseCode==200) {
+            String body = response.getBody();
+            JSONObject jsonObject = JSONObject.fromObject(body);
+            String fitnessActivities = jsonObject.getString("fitness_activities");
+            List<String> activities = new ArrayList<String>();
+            String activityFeedURL = DEFAULT_ENDPOINT + fitnessActivities;
+            countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, request.getCompleteUrl());
 
-        getFitnessActivityFeed(updateInfo, service, token, activityFeedURL, 25, activities, since);
-        getFitnessActivities(updateInfo, service, token, activities);
+            getFitnessActivityFeed(updateInfo, service, token, activityFeedURL, 25, activities, since);
+            getFitnessActivities(updateInfo, service, token, activities);
+        } else {
+            final RuntimeException e = new RuntimeException("Unexpected response code retrieving RK user object: " + response.getCode());
+            countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then,
+                               request.getCompleteUrl(), ExceptionUtils.getStackTrace(e),
+                               httpResponseCode, response.getBody());
+            throw e;
+        }
     }
 
     private void getFitnessActivities(final UpdateInfo updateInfo, final OAuthService service,
@@ -108,7 +120,7 @@ public class RunKeeperUpdater  extends AbstractUpdater {
                 createOrUpdateActivity(jsonObject, updateInfo);
             } else {
                 countFailedApiCall(updateInfo.apiKey,
-                                   updateInfo.objectTypes, then, activityURL, "",
+                                   updateInfo.objectTypes, then, activityURL, ExceptionUtils.getStackTrace(new Exception()),
                                    httpResponseCode, response.getBody());
                 throw new RuntimeException("Unexpected code: " + httpResponseCode);
             }
@@ -260,7 +272,7 @@ public class RunKeeperUpdater  extends AbstractUpdater {
                                    updateInfo.objectTypes, then, activityFeedURL);
         } else {
             countFailedApiCall(updateInfo.apiKey,
-                               updateInfo.objectTypes, then, activityFeedURL, "",
+                               updateInfo.objectTypes, then, activityFeedURL, ExceptionUtils.getStackTrace(new Exception()),
                                httpResponseCode, response.getBody());
             throw new RuntimeException("Unexpected code: " + httpResponseCode);
         }
