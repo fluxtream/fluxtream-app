@@ -4,73 +4,76 @@
             <a class="close" data-dismiss="modal">&times;</a>
             <h3>Settings</h3>
         </div>
-        <form id="settingsForm" action="/api/settings" method="POST" style="margin:0">
             <div class="modal-body">
                 <ul id="settingsTabs" data-tabs="settingsTabs" class="nav nav-tabs">
-                    <li class="active">
+                    <li class="active" id="generalSettings">
                         <a href="javascript:void(0);" onclick="$(this).tab('show');" data-target="#general-settings" data-toggle="tab">General Settings</a>
                     </li>
-                    <li>
+                    <li id="unitsSettings">
                         <a href="javascript:void(0);" onclick="$(this).tab('show');" data-target="#units-settings" data-toggle="tab">Units</a>
                     </li>
-                    <li>
+                    <li id="passwordSettings">
                         <a href="javascript:void(0);" onclick="$(this).tab('show');" data-target="#password-settings" data-toggle="tab">Password</a>
                     </li>
-                    <li>
+                    <li id="moreSettings">
                         <a href="javascript:void(0);" onclick="$(this).tab('show');" data-target="#more-settings" data-toggle="tab">More</a>
                     </li>
                 </ul>
                 <div class="tab-content">
                     <div class="tab-pane active settings-tab" id="general-settings">
                         <h3>Your Personal Details</h3>
-                        <table>
-                            <tbody>
-                                <tr>
-                                    <td><label for="guest_firstname">First name</label></td>
-                                    <td><input type="text" name="guest_firstname" id="guest_firstname"></td>
-                                </tr>
-                                <tr>
-                                    <td><label for="guest_lastname">Last name</label></td>
-                                    <td><input type="text" name="guest_lastname" id="guest_lastname"></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <form id="generalSettingsForm" action="javascript:void(0)" style="margin:0">
+                            <table>
+                                <tbody>
+                                    <tr>
+                                        <td><label for="guest_firstname">First name</label></td>
+                                        <td><input type="text" name="guest_firstname" id="guest_firstname"></td>
+                                    </tr>
+                                    <tr>
+                                        <td><label for="guest_lastname">Last name</label></td>
+                                        <td><input type="text" name="guest_lastname" id="guest_lastname"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </form>
                     </div>
                     <div class="tab-pane settings-tab" id="units-settings">
                         <h3>Units of measure Preferences</h3>
-                        <table>
-                            <tbody>
-                                <tr>
-                                    <td><label for="length_measure_unit">Length Measure</label></td>
-                                    <td><select name="length_measure_unit" id="length_measure_unit">
-                                        <option value="SI">Cm</option>
-                                        <option value="FEET_INCHES">Feet/Inches</option>
-                                    </select></td>
-                                </tr>
-                                <tr>
-                                    <td><label for="distance_measure_unit">Distance Measure</label></td>
-                                    <td><select name="distance_measure_unit" id="distance_measure_unit">
-                                        <option value="SI">Km</option>
-                                        <option value="MILES_YARDS">Miles/Yards</option>
-                                    </select></td>
-                                </tr>
-                                <tr>
-                                    <td><label for="weight_measure_unit">Weight Measure</label></td>
-                                    <td><select name="weight_measure_unit" id="weight_measure_unit">
-                                        <option value="SI">Kg/Grams</option>
-                                        <option value="STONES">Stones</option>
-                                        <option value="POUNDS">Pounds</option>
-                                    </select></td>
-                                </tr>
-                                <tr>
-                                    <td><label for="temperature_unit">Temperatures</label></td>
-                                    <td><select name="temperature_unit" id="temperature_unit">
-                                        <option value="CELSIUS">Celsius</option>
-                                        <option value="FAHRENHEIT">Fahrenheit</option>
-                                    </select></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <form id="unitsSettingsForm" action="javascript:void(0)" style="margin:0">
+                            <table>
+                                <tbody>
+                                    <tr>
+                                        <td><label for="length_measure_unit">Length Measure</label></td>
+                                        <td><select name="length_measure_unit" id="length_measure_unit">
+                                            <option value="SI">Cm</option>
+                                            <option value="FEET_INCHES">Feet/Inches</option>
+                                        </select></td>
+                                    </tr>
+                                    <tr>
+                                        <td><label for="distance_measure_unit">Distance Measure</label></td>
+                                        <td><select name="distance_measure_unit" id="distance_measure_unit">
+                                            <option value="SI">Km</option>
+                                            <option value="MILES_YARDS">Miles/Yards</option>
+                                        </select></td>
+                                    </tr>
+                                    <tr>
+                                        <td><label for="weight_measure_unit">Weight Measure</label></td>
+                                        <td><select name="weight_measure_unit" id="weight_measure_unit">
+                                            <option value="SI">Kg/Grams</option>
+                                            <option value="STONES">Stones</option>
+                                            <option value="POUNDS">Pounds</option>
+                                        </select></td>
+                                    </tr>
+                                    <tr>
+                                        <td><label for="temperature_unit">Temperatures</label></td>
+                                        <td><select name="temperature_unit" id="temperature_unit">
+                                            <option value="CELSIUS">Celsius</option>
+                                            <option value="FAHRENHEIT">Fahrenheit</option>
+                                        </select></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </form>
                     </div>
                     <div class="tab-pane settings-tab" id="password-settings">
                     </div>
@@ -90,52 +93,56 @@
 </template>
 <template id="resetPassword">
     <h3>Change Your Password</h3>
-    <table>
-        <tbody>
-        <tr>
-            <td style="width:120px"><label for="currentPassword">Current Password</label></td>
-            <td><input name="currentPassword" placeholder="************" id="currentPassword" type="password"/></td>
-            <td><span id="setPasswordError" class="help-inline error"
-                      style="display:none; color:rgb(192, 86, 92)"></span></td>
-        </tr>
-        <tr>
-            <td style="width:120px"><label for="password1">New Password</label></td>
-            <td><input name="password1" id="password1" placeholder="************" type="password"/></td>
-        </tr>
-        <tr>
-            <td style="width:120px"><label for="password2">New Password 2&nbsp;&nbsp;&nbsp;</label></td>
-            <td><input name="password2" id="password2" placeholder="************" type="password"/></td>
-        </tr>
-        </tbody>
-    </table>
+    <form id="passwordSettingsForm" action="javascript:void(0)" style="margin:0">
+        <table>
+            <tbody>
+            <tr>
+                <td style="width:120px"><label for="currentPassword">Current Password</label></td>
+                <td><input name="currentPassword" placeholder="************" id="currentPassword" type="password"/></td>
+                <td><span id="setPasswordError" class="help-inline error"
+                          style="display:none; color:rgb(192, 86, 92)"></span></td>
+            </tr>
+            <tr>
+                <td style="width:120px"><label for="password1">New Password</label></td>
+                <td><input name="password1" id="password1" placeholder="************" type="password"/></td>
+            </tr>
+            <tr>
+                <td style="width:120px"><label for="password2">New Password 2&nbsp;&nbsp;&nbsp;</label></td>
+                <td><input name="password2" id="password2" placeholder="************" type="password"/></td>
+            </tr>
+            </tbody>
+        </table>
+    </form>
 </template>
 <template id="setPassword">
     <h3>Set Your Password</h3>
-    <table>
-        <tbody>
-        <tr>
-            <td colspan="3">
-                <div class="alert alert-info">To use the Fluxtream Capture app, you need to set a password. In addition
-                    to logging in with Facebook, you will then also be able to do so with your username and password.
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td style="width:120px"><label>Your username</label></td>
-            <td><span class="input uneditable-input" id="username-uneditable"></span></td>
-        </tr>
-        <tr>
-            <td style="width:120px"><label for="password1">New Password</label></td>
-            <td><input name="password1" id="password1" placeholder="************" type="password"/></td>
-            <td><span id="setPasswordError" class="help-inline error"
-                      style="display:none; color:rgb(192, 86, 92)"></span></td>
-        </tr>
-        <tr>
-            <td style="width:120px"><label for="password2">New Password 2&nbsp;&nbsp;&nbsp;</label></td>
-            <td><input name="password2" id="password2" placeholder="************" type="password"/></td>
-        </tr>
-        </tbody>
-    </table>
+    <form id="passwordSettingsForm" action="javascript:void(0)" style="margin:0">
+        <table>
+            <tbody>
+            <tr>
+                <td colspan="3">
+                    <div class="alert alert-info">To use the Fluxtream Capture app, you need to set a password. In addition
+                        to logging in with Facebook, you will then also be able to do so with your username and password.
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td style="width:120px"><label>Your username</label></td>
+                <td><span class="input uneditable-input" id="username-uneditable"></span></td>
+            </tr>
+            <tr>
+                <td style="width:120px"><label for="password1">New Password</label></td>
+                <td><input name="password1" id="password1" placeholder="************" type="password"/></td>
+                <td><span id="setPasswordError" class="help-inline error"
+                          style="display:none; color:rgb(192, 86, 92)"></span></td>
+            </tr>
+            <tr>
+                <td style="width:120px"><label for="password2">New Password 2&nbsp;&nbsp;&nbsp;</label></td>
+                <td><input name="password2" id="password2" placeholder="************" type="password"/></td>
+            </tr>
+            </tbody>
+        </table>
+    </form>
 </template>
 <template id="sharingDialog">
     <div id="sharingModal" class="modal fade hide in">

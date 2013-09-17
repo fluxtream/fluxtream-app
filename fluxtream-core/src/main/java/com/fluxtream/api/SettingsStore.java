@@ -86,17 +86,33 @@ public class SettingsStore {
         return new StatusModel(true, "Successfully deleted account");
     }
 
+    @POST
+    @Path("/general")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String saveSettings(@FormParam("guest_firstname") String firstName, @FormParam("guest_lastname") String lastName) {
+        try {
+            Guest guest = AuthHelper.getGuest();
+
+            settingsService.setFirstname(guest.getId(), firstName);
+            settingsService.setLastname(guest.getId(), lastName);
+
+            StatusModel status = new StatusModel(true, "settings updated!");
+            return gson.toJson(status);
+        }
+        catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Failed to save settings: " + e.getMessage()));
+        }
+    }
 
 
     @POST
+    @Path("/units")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String saveSettings(@FormParam("guest_firstname") String firstName, @FormParam("guest_lastname") String lastName,
-                               @FormParam("length_measure_unit") String lengthUnit, @FormParam("distance_measure_unit") String distanceUnit,
-                               @FormParam("weight_measure_unit") String weightUnit, @FormParam("temperature_unit") String temperatureUnit,
-                               @FormParam("currentPassword") String currentPassword,
-                               @FormParam("password1") String password1, @FormParam("password2") String password2)
-            throws IOException {
+    public String saveSettings(@FormParam("length_measure_unit") String lengthUnit, @FormParam("distance_measure_unit") String distanceUnit,
+                               @FormParam("weight_measure_unit") String weightUnit, @FormParam("temperature_unit") String temperatureUnit) {
         try{
+
+            Guest guest = AuthHelper.getGuest();
             GuestSettings.LengthMeasureUnit lngUnt = Enum.valueOf(
                     GuestSettings.LengthMeasureUnit.class, lengthUnit);
             GuestSettings.DistanceMeasureUnit dstUnt = Enum.valueOf(
@@ -105,16 +121,27 @@ public class SettingsStore {
                     GuestSettings.WeightMeasureUnit.class, weightUnit);
             GuestSettings.TemperatureUnit tempUnt = Enum.valueOf(
                     GuestSettings.TemperatureUnit.class, temperatureUnit);
-
-            Guest guest = AuthHelper.getGuest();
-
             settingsService.setLengthMeasureUnit(guest.getId(), lngUnt);
             settingsService.setDistanceMeasureUnit(guest.getId(), dstUnt);
             settingsService.setWeightMeasureUnit(guest.getId(), whtUnt);
             settingsService.setTemperatureUnit(guest.getId(), tempUnt);
 
-            settingsService.setFirstname(guest.getId(), firstName);
-            settingsService.setLastname(guest.getId(), lastName);
+            StatusModel status = new StatusModel(true, "settings updated!");
+            return gson.toJson(status);
+        }
+        catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Failed to save settings: " + e.getMessage()));
+        }
+    }
+
+    @POST
+    @Path("/password")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String saveSettings(@FormParam("currentPassword") String currentPassword,
+                               @FormParam("password1") String password1, @FormParam("password2") String password2)
+            throws IOException {
+        try{
+            Guest guest = AuthHelper.getGuest();
 
             if (currentPassword!=null) {
                 boolean passwordMatched = guestService.checkPassword(guest.getId(), currentPassword);

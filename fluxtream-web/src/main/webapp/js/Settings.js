@@ -54,32 +54,83 @@ define(function() {
         }
         $("#saveSettingsBtn").click(function(event){
             event.preventDefault();
-            var formData = $("#settingsForm").serializeArray();
-            var submitdata = {};
-            for (var i = 0; i < formData.length; i++) {
-                submitdata[formData[i].name] = formData[i].value;
+            var settingsId = $("ul#settingsTabs li.active").attr("id");
+            switch (settingsId) {
+                case "generalSettings":
+                    saveGeneralSettings(settings);
+                    break;
+                case "passwordSettings":
+                    savePasswordSettings();
+                    break;
+                case "unitsSettings":
+                    saveUnitsSettings();
+                    break;
             }
-            $("#setPasswordError").hide();
-            $.ajax("/api/settings",{
-                type:"POST",
-                data:submitdata,
-                success:function(status) {
-                    if (status.result=="OK"){
-                        App.closeModal();
-                        var nameDisplay = $("#loggedInUser");
-                        var newNameEncoded = App.htmlEscape($("#guest_firstname").val() + " " + $("#guest_lastname").val());
-                        var oldNameEncoded = App.htmlEscape(settings.firstName + " " + settings.lastName);
-                        nameDisplay.html(nameDisplay.html().replace(oldNameEncoded,newNameEncoded));
-                    }
-                    else {
-                        $("#setPasswordError").show();
-                        $("#setPasswordError").html(status.message);
-                    }
-                },
-                error:App.closeModal
-            });
         });
         $("#settingsTabs").tab();
+    }
+
+    function saveGeneralSettings(settings) {
+        var formData = $("#generalSettingsForm").serializeArray();
+        var submitdata = {};
+        for (var i = 0; i < formData.length; i++) {
+            submitdata[formData[i].name] = formData[i].value;
+        }
+        $.ajax("/api/settings/general",{
+            type:"POST",
+            data:submitdata,
+            success:function(status) {
+                if (status.result=="OK"){
+                    App.closeModal();
+                    var nameDisplay = $("#loggedInUser");
+                    var newNameEncoded = App.htmlEscape($("#guest_firstname").val() + " " + $("#guest_lastname").val());
+                    var oldNameEncoded = App.htmlEscape(settings.firstName + " " + settings.lastName);
+                    nameDisplay.html(nameDisplay.html().replace(oldNameEncoded, newNameEncoded));
+                }
+            },
+            error:App.closeModal
+        });
+    }
+
+    function savePasswordSettings() {
+        var formData = $("#passwordSettingsForm").serializeArray();
+        var submitdata = {};
+        for (var i = 0; i < formData.length; i++) {
+            submitdata[formData[i].name] = formData[i].value;
+        }
+        $("#setPasswordError").hide();
+        $.ajax("/api/settings/password",{
+            type:"POST",
+            data:submitdata,
+            success:function(status) {
+                if (status.result=="OK"){
+                    App.closeModal();
+                }
+                else {
+                    $("#setPasswordError").show();
+                    $("#setPasswordError").html(status.message);
+                }
+            },
+            error:App.closeModal
+        });
+    }
+
+    function saveUnitsSettings() {
+        var formData = $("#unitsSettingsForm").serializeArray();
+        var submitdata = {};
+        for (var i = 0; i < formData.length; i++) {
+            submitdata[formData[i].name] = formData[i].value;
+        }
+        $.ajax("/api/settings/units",{
+            type:"POST",
+            data:submitdata,
+            success:function(status) {
+                if (status.result=="OK"){
+                    App.closeModal();
+                }
+            },
+            error:App.closeModal
+        });
     }
 
     var Settings = {};
