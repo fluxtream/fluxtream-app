@@ -146,7 +146,8 @@ public class UpdateWorkerTask extends AbstractEntity {
         //if (auditTrail==null) auditTrail = "";
         // always reset the audit trail to an empty string to accumulating too much cruft in the database
         if (auditTrail==null) auditTrail = "";
-        StringBuilder sb = new StringBuilder(auditTrail);
+        //StringBuilder sb = new StringBuilder(auditTrail);
+        StringBuilder sb = new StringBuilder();
         sb.append("\\n").append(auditTrailEntry.date.toString());
         if (auditTrailEntry.serverUUID!=null) {
             sb.append(" - claimed by " + auditTrailEntry.serverUUID);

@@ -216,7 +216,7 @@ public abstract class AbstractUpdater extends ApiClientSupport {
                 .append(" query=").append(query);
         logger.info(sb.toString());
 		connectorUpdateService.addApiUpdate(apiKey, objectTypes, then, System.currentTimeMillis() - then, query,
-                                            true, null, null);
+                                            true, 200, null);
 	}
 
 	final protected void countFailedApiCall(ApiKey apiKey, int objectTypes,

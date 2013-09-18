@@ -86,7 +86,7 @@ public class WithingsUpdater extends AbstractUpdater {
             json = fetch(url);
             JSONObject jsonObject = JSONObject.fromObject(json);
             if (jsonObject.getInt("status")!=0)
-                throw new Exception("Unexpected status code " + jsonObject.getInt("status"));
+                throw new UnexpectedHttpResponseCodeException(jsonObject.getInt("status"), "Unexpected status code: " + jsonObject.getInt("status"));
             countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, url);
             apiDataService.cacheApiDataJSON(updateInfo, json, -1, -1);
         } catch (UnexpectedHttpResponseCodeException e) {
