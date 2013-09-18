@@ -144,6 +144,9 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
                 storeEvents(updateInfo, calendarEntry, eventList);
                 pageToken = events.getNextPageToken();
             } catch (Throwable e) {
+                logger.warn("updateCalendarEvents unexpected httpCode=" +
+                            eventsApiCall.getLastStatusCode() + " reason=" +
+                            eventsApiCall.getLastStatusMessage() + " message=" + e.getMessage());
                 countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, uriTemplate, ExceptionUtils.getStackTrace(e),
                                    eventsApiCall.getLastStatusCode(), eventsApiCall.getLastStatusMessage());
                 throw(new RuntimeException(e));

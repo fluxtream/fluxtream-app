@@ -283,6 +283,8 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 			return directMessages.size();
 		} else {
             final String reasonPhrase = response.getStatusLine().getReasonPhrase();
+            logger.warn("getReceivedDirectMessages reason=" +
+                        reasonPhrase + " httpCode=" + response.getStatusLine().getStatusCode());
 			countFailedApiCall(updateInfo.apiKey,
 					updateInfo.objectTypes, then, requestUrl, reasonPhrase,
                     statusCode, reasonPhrase);
