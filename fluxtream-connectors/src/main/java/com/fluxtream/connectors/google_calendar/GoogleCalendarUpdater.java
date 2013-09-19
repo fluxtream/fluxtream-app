@@ -22,6 +22,7 @@ import com.google.api.services.calendar.model.CalendarListEntry;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.Events;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.joda.time.DateTimeConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -124,9 +125,13 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
     }
 
     private void updateCalendarEvents(final Calendar calendar,
-                                    final CalendarListEntry calendarEntry,
-                                    final UpdateInfo updateInfo,
-                                    final long since) throws IOException {
+                                      final CalendarListEntry calendarEntry,
+                                      final UpdateInfo updateInfo,
+                                      long since) throws IOException {
+        // this is very strange: if since isn't constrained (here to max 20 days in the past), then we get an error:
+        // "The requested minimum modification time lies too far in the past" - so apparently this means that no
+        // event modified prior to 20 days in the past will get updated in our database :(
+        since = Math.max(since, System.currentTimeMillis()-20* DateTimeConstants.MILLIS_PER_DAY);
         String pageToken = null;
         do {
             long then = System.currentTimeMillis();
