@@ -214,7 +214,7 @@
 
                     <div class="media dividerHoriTop">
                         <div class="img">
-                            <div class="footericon img"><a href="https://twitter.com/_Fluxtream"><i class="icon-twitter-sign"></i></a></div>
+                            <div class="footericon img"><a href="https://twitter.com/fluxtream"><i class="icon-twitter-sign"></i></a></div>
                         </div>
                         <div class="bd">
                             <p>For more details leading up to our launch <br/>follow us on Twitter</p>
@@ -251,8 +251,6 @@
                 </div>
             </div>
         </div>
-
-
     </div><!--end row-->
 
     <div class="row" id="footer">
@@ -266,7 +264,7 @@
 
         <!--
               <h4>For more details leading up to our launch <br/>follow us on twitter</h4>
-              <div class="footericon"><a href="https://twitter.com/_Fluxtream"><i class="icon-twitter-sign"></i></a></div>
+              <div class="footericon"><a href="https://twitter.com/fluxtream"><i class="icon-twitter-sign"></i></a></div>
         -->
         <div class="span6" >
             <p style="text-align:right;"> The BodyTrack Team @ CMU CREATE Lab &amp; Candide Kemmler.<br>&copy; 2012 - All rights reserved.</p>
