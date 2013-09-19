@@ -31,6 +31,7 @@ import org.springframework.stereotype.Component;
 public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
 
     private static final FlxLogger logger = FlxLogger.getLogger(GoogleCalendarUpdater.class);
+    private final String LAST_TIME_WE_CHECKED_FOR_UPDATED_EVENTS_ATT = "lastTimeWeCheckedForUpdatedEvents";
 
     @Autowired
     JPADaoService jpaDaoService;
@@ -44,8 +45,10 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
         // suggest renewing the tokens in the manage connectors dialog
         if (guestService.getApiKeyAttribute(updateInfo.apiKey, "googleConsumerKey")!=null) {
             sendOauth2UpgradeWarning(updateInfo);
-        } else
+        } else {
             loadHistory(updateInfo, false);
+            guestService.setApiKeyAttribute(updateInfo.apiKey, LAST_TIME_WE_CHECKED_FOR_UPDATED_EVENTS_ATT, String.valueOf(System.currentTimeMillis()));
+        }
     }
 
     private void sendOauth2UpgradeWarning(final UpdateInfo updateInfo) {
@@ -61,8 +64,9 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
         // suggest renewing the tokens in the manage connectors dialog
         if (guestService.getApiKeyAttribute(updateInfo.apiKey, "googleConsumerKey")!=null) {
             sendOauth2UpgradeWarning(updateInfo);
-        } else
+        } else {
             loadHistory(updateInfo, true);
+        }
     }
 
     private void loadHistory(UpdateInfo updateInfo, boolean incremental) throws Exception {
@@ -110,12 +114,18 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
     private void loadCalendarHistory(final Calendar calendar, final CalendarListEntry calendarEntry, final UpdateInfo updateInfo, final boolean incremental) throws IOException {
         if (incremental) {
             // first update existing events
-            String queryString = "select max(eventUpdated) from Facet_GoogleCalendarEvent where apiKeyId=" + updateInfo.apiKey.getId() + " and calendarId='" + calendarEntry.getId() + "'";
-            Long since = jpaDaoService.executeNativeQuery(queryString);
-            if (since!=null)
-                updateCalendarEvents(calendar, calendarEntry, updateInfo, since);
+            // retrieve the last time we checked for updated events; if that attribute is null because the user had added the
+            // connector prior to this commit, we look up to the maximum allowed number of days in the past (20)
+            final String lastTimeString = guestService.getApiKeyAttribute(updateInfo.apiKey, LAST_TIME_WE_CHECKED_FOR_UPDATED_EVENTS_ATT);
+            Long since;
+            if (lastTimeString==null)
+                since = System.currentTimeMillis()-20*DateTimeConstants.MILLIS_PER_DAY;
+            else
+                since = Long.valueOf(lastTimeString);
+            updateCalendarEvents(calendar, calendarEntry, updateInfo, since);
+            guestService.setApiKeyAttribute(updateInfo.apiKey, LAST_TIME_WE_CHECKED_FOR_UPDATED_EVENTS_ATT, String.valueOf(System.currentTimeMillis()));
             // now fetch new events
-            queryString = "select max(start) from Facet_GoogleCalendarEvent where apiKeyId=" + updateInfo.apiKey.getId() + " and calendarId='" + calendarEntry.getId() + "'";
+            String queryString = "select max(start) from Facet_GoogleCalendarEvent where apiKeyId=" + updateInfo.apiKey.getId() + " and calendarId='" + calendarEntry.getId() + "'";
             since = jpaDaoService.executeNativeQuery(queryString);
             if (since!=null)
                 loadCalendarEvents(calendar, calendarEntry, updateInfo, since);
@@ -128,9 +138,9 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
                                       final CalendarListEntry calendarEntry,
                                       final UpdateInfo updateInfo,
                                       long since) throws IOException {
-        // this is very strange: if since isn't constrained (here to max 20 days in the past), then we get an error:
-        // "The requested minimum modification time lies too far in the past" - so apparently this means that no
-        // event modified prior to 20 days in the past will get updated in our database :(
+        // In the unlikely case where the server was down or disconnected more than 20 days and thus wasn't able to
+        // check for updated items during this period, we need to constrain the updatedMin parameter to a maximum
+        // of 20 days in the past, at the risk of getting an error from Google
         since = Math.max(since, System.currentTimeMillis()-20* DateTimeConstants.MILLIS_PER_DAY);
         String pageToken = null;
         do {
