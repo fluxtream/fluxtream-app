@@ -209,6 +209,7 @@ public class Connector {
         objectType.prettyname = ots.prettyname();
         objectType.isImageType = ots.isImageType();
         objectType.isDateBased = ots.isDateBased();
+        objectType.isMixedType = ots.isMixedType();
         if (ots.extractor() != null && ots.extractor()!=AbstractFacetExtractor.class) {
             connector.addObjectTypeExtractorClass(
                     objectType.value, ots.extractor(),

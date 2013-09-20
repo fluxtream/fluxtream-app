@@ -262,6 +262,11 @@ public class ApiDataServiceImpl implements ApiDataService {
     }
 
     @Override
+    public List<AbstractFacet> getApiDataFacets(final ApiKey apiKey, final ObjectType objectType, final String startDate, final String endDate) {
+        return jpaDao.getFacetsBetweenDates(apiKey, objectType, startDate, endDate);
+    }
+
+    @Override
     public List<AbstractFacet> getApiDataFacets(ApiKey apiKey, ObjectType objectType, TimeInterval timeInterval) {
         return getApiDataFacets(apiKey, objectType, timeInterval, (TagFilter)null);
     }

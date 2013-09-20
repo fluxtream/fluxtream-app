@@ -1,12 +1,14 @@
 package com.fluxtream.connectors.dao;
 
 import java.lang.reflect.Method;
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.persistence.TemporalType;
 import javax.persistence.TypedQuery;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.aspects.FlxLogger;
@@ -22,6 +24,9 @@ import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.utils.JPAUtils;
 import org.jetbrains.annotations.Nullable;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.Cacheable;
@@ -63,6 +68,29 @@ public class JPAFacetDao implements FacetDao {
         return facets;
     }
 
+    @Override
+    public List<AbstractFacet> getFacetsBetweenDates(final ApiKey apiKey, final ObjectType objectType, final String startDateString, final String endDateString) {
+        ArrayList<AbstractFacet> facets = new ArrayList<AbstractFacet>();
+        if (!apiKey.getConnector().hasFacets()) return facets;
+        Class<? extends AbstractFacet> facetClass = getFacetClass(apiKey.getConnector(), objectType);
+        final String facetName = getEntityName(facetClass);
+        String queryString = "SELECT facet FROM " + facetName + " facet WHERE facet.apiKeyId=:apiKeyId AND NOT(facet.endDate<:startDate) AND NOT(facet.startDate>:endDate)";
+        final TypedQuery<? extends AbstractFacet> query = em.createQuery(queryString, AbstractFacet.class);
+        query.setParameter("apiKeyId", apiKey.getId());
+        final DateTimeFormatter formatter = DateTimeFormat
+                .forPattern("yyyy-MM-dd");
+        final DateTime time = formatter.withZoneUTC().parseDateTime(startDateString);
+        Date startDate = new Date(time.getMillis());
+        final DateTime time2 = formatter.withZoneUTC().parseDateTime(endDateString);
+        Date endDate = new Date(time2.getMillis());
+        query.setParameter("startDate", startDate, TemporalType.DATE);
+        query.setParameter("endDate", endDate, TemporalType.DATE);
+        List<? extends AbstractFacet> found = query.getResultList();
+        if (found!=null)
+            facets.addAll(found);
+        return facets;
+    }
+
     @Cacheable("facetClasses")
     private String getEntityName(Class<? extends AbstractFacet> facetClass) {
         try {
@@ -96,7 +124,8 @@ public class JPAFacetDao implements FacetDao {
             if (!apiKey.getConnector().hasFacets()) return new ArrayList<AbstractFacet>();
             Class<? extends AbstractFacet> facetClass = getFacetClass(apiKey.getConnector(), objectType);
             final String facetName = getEntityName(facetClass);
-            final String additionalWhereClause = (tagFilter == null) ? "" : " AND (" + tagFilter.getWhereClause() + ")";
+            String additionalWhereClause = (tagFilter == null) ? "" : " AND (" + tagFilter.getWhereClause() + ")";
+            if (objectType.isMixedType()) additionalWhereClause += " AND facet.allDayEvent=false ";
             String queryString = "SELECT facet FROM " + facetName  + " facet WHERE facet.apiKeyId=? AND facet.end>=? AND facet.start<=?" + additionalWhereClause;
             final TypedQuery<AbstractFacet> query = em.createQuery(queryString, AbstractFacet.class);
             query.setParameter(1, apiKey.getId());

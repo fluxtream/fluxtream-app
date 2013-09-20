@@ -6,6 +6,7 @@ import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.domain.AbstractFacet;
+import com.fluxtream.domain.ApiKey;
 import com.fluxtream.metadata.AbstractTimespanMetadata;
 import com.fluxtream.metadata.DayMetadata;
 import com.fluxtream.mvc.models.TimeBoundariesModel;
@@ -65,4 +66,17 @@ public class CalendarDataHelper {
 		return facets;
 	}
 
+    public List<AbstractFacet> getFacets(final Connector connector, final ObjectType objectType, final String startDate, final String endDate) {
+        List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
+        try {
+            if (AuthHelper.isViewingGranted(connector.getName(), coachingService)) {
+                final ApiKey apiKey = guestService.getApiKey(AuthHelper.getVieweeId(), connector);
+                facets = apiDataService.getApiDataFacets(apiKey, objectType,
+                        startDate, endDate);
+            }
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+        return facets;
+    }
 }

@@ -11,6 +11,7 @@ import com.fluxtream.domain.GuestSettings;
 import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventAttendee;
+import org.joda.time.DateTimeConstants;
 
 /**
  * User: candide
@@ -34,8 +35,14 @@ public class GoogleCalendarEventFacetVO extends AbstractTimedFacetVO<GoogleCalen
     @Override
     protected void fromFacet(final GoogleCalendarEventFacet facet, final TimeInterval timeInterval, final GuestSettings settings) throws OutsideTimeBoundariesException {
         try {
-            startMinute = toMinuteOfDay(new Date(facet.start), timeInterval.getTimeZone(facet.start));
-            endMinute = toMinuteOfDay(new Date(facet.end), timeInterval.getTimeZone(facet.end));
+            this.allDay = facet.allDayEvent;
+            if (this.allDay) {
+                this.startMinute = 0;
+                this.endMinute = DateTimeConstants.SECONDS_PER_DAY;
+            } else {
+                startMinute = toMinuteOfDay(new Date(facet.start), timeInterval.getTimeZone(facet.start));
+                endMinute = toMinuteOfDay(new Date(facet.end), timeInterval.getTimeZone(facet.end));
+            }
             JacksonFactory jacksonFactory = new JacksonFactory();
             if (facet.attendeesStorage!=null) {
                 this.attendees = new ArrayList<EventAttendee>();
@@ -57,7 +64,6 @@ public class GoogleCalendarEventFacetVO extends AbstractTimedFacetVO<GoogleCalen
             if (facet.location!=null)
                 this.location = facet.location.equals("")?null:facet.location;
             this.recurringEvent = facet.recurringEventId!=null;
-            this.allDay = facet.allDayEvent;
             this.hangoutLink = facet.hangoutLink;
         }
         catch (IOException e) {

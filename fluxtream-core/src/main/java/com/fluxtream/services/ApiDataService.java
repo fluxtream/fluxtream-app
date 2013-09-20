@@ -100,6 +100,8 @@ public interface ApiDataService {
     @Transactional(readOnly=false)
     void setComment(String connectorName, String objectTypeName, long guestId, long facetId, String comment);
 
+    public List<AbstractFacet> getApiDataFacets(ApiKey apiKey, ObjectType objectType, String startDate, String endDate);
+
     // Pass this to createOrReadModifyWrite
     public interface FacetModifier<T extends AbstractFacet> {
         // Override this with your code to either modify or create

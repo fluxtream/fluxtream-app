@@ -1,5 +1,6 @@
 package com.fluxtream.connectors.google_calendar;
 
+import java.sql.Date;
 import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.Lob;
@@ -11,6 +12,7 @@ import com.google.api.services.calendar.model.EventAttendee;
 import com.google.api.services.calendar.model.EventDateTime;
 import com.google.gson.Gson;
 import org.hibernate.annotations.Index;
+import org.joda.time.DateTimeConstants;
 
 /**
  * User: candide
@@ -18,7 +20,7 @@ import org.hibernate.annotations.Index;
  * Time: 16:24
  */
 @Entity(name="Facet_GoogleCalendarEvent")
-@ObjectTypeSpec(name = "entry", value = 1, prettyname = "Event")
+@ObjectTypeSpec(name = "entry", value = 1, prettyname = "Event", isMixedType = true)
 public class GoogleCalendarEventFacet extends AbstractFacet {
 
     @Index(name="googleId")
@@ -61,6 +63,9 @@ public class GoogleCalendarEventFacet extends AbstractFacet {
     public String visibility;
     public Integer sequence;
 
+    public Date startDate;
+    public Date endDate;
+
     public boolean allDayEvent;
 
     @Lob
@@ -91,6 +96,7 @@ public class GoogleCalendarEventFacet extends AbstractFacet {
                 this.startTimezoneShift = start.getDateTime().getTimeZoneShift();
             } else if (start.getDate()!=null) {
                 this.allDayEvent = true;
+                this.startDate = new Date(start.getDate().getValue());
                 this.start = start.getDate().getValue();
                 this.startTimezoneShift = start.getDate().getTimeZoneShift();
             }
@@ -104,6 +110,7 @@ public class GoogleCalendarEventFacet extends AbstractFacet {
                 this.endTimezoneShift = end.getDateTime().getTimeZoneShift();
             } else if (end.getDate()!=null) {
                 this.allDayEvent = true;
+                this.endDate = new Date(end.getDate().getValue()- DateTimeConstants.MILLIS_PER_DAY);
                 this.end = end.getDate().getValue();
                 this.endTimezoneShift = end.getDate().getTimeZoneShift();
             }

@@ -22,5 +22,5 @@ public @interface ObjectTypeSpec {
     boolean isDateBased() default false;
     public Class<? extends PhotoFacetFinderStrategy> photoFacetFinderStrategy() default DefaultPhotoFacetFinderStrategy.class;
     public LocationFacet.Source locationFacetSource() default LocationFacet.Source.NONE;
-
+    public boolean isMixedType() default false;
 }

@@ -65,6 +65,7 @@ public class ObjectType {
 	String name;
 	String prettyname;
     boolean isDateBased;
+    boolean isMixedType;
 	
 	public static List<ObjectType> getObjectTypes(Connector connector, int objectTypes) {
 		List<ObjectType> connectorTypes = connectorObjectTypes.get(connector);
@@ -154,9 +155,16 @@ public class ObjectType {
         int result = name != null ? name.hashCode() : 0;
         result = 31 * result + (prettyname != null ? prettyname.hashCode() : 0);
         result = 31 * result + (isDateBased ? 1 : 0);
+        result = 31 * result + (isMixedType ? 1 : 0);
         result = 31 * result + value;
         result = 31 * result + (isImageType ? 1 : 0);
         result = 31 * result + (facetClass != null ? facetClass.hashCode() : 0);
         return result;
     }
+
+    public boolean isMixedType() {
+        return isMixedType;
+    }
+
+
 }

@@ -468,7 +468,11 @@ public class CalendarDataStore {
             if (objectTypes != null) {
                 for (ObjectType objectType : objectTypes) {
                     Collection<AbstractFacetVO<AbstractFacet>> facetCollection = null;
-                    if (objectType.isDateBased())
+                    if (objectType.isMixedType()) {
+                        facetCollection = getFacetVos(timespanMetadata, settings, connector, objectType);
+                        facetCollection.addAll(getFacetVOs(firstDate(timespanMetadata), lastDate(timespanMetadata), settings, connector, objectType, timespanMetadata.getTimeInterval()));
+                    }
+                    else if (objectType.isDateBased())
                         facetCollection = getFacetVos(toDates(timespanMetadata),
                                                       settings,
                                                       connector,
@@ -489,6 +493,15 @@ public class CalendarDataStore {
             }
 		}
 	}
+
+    private String firstDate(final AbstractTimespanMetadata timespanMetadata) {
+        return(timespanMetadata.getDateList().get(0));
+    }
+
+    private String lastDate(final AbstractTimespanMetadata timespanMetadata) {
+        final List<String> dateList = timespanMetadata.getDateList();
+        return(dateList.get(dateList.size() - 1));
+    }
 
     private List<String> toDates(final AbstractTimespanMetadata timespanMetadata) {
         return(timespanMetadata.getDateList());
@@ -527,6 +540,14 @@ public class CalendarDataStore {
 			digest.cachedData.put(sb.toString(), facetCollection);
 		}
 	}
+
+    private Collection<AbstractFacetVO<AbstractFacet>> getFacetVOs(final String startDate, final String endDate, final GuestSettings settings, final Connector connector, final ObjectType objectType, final TimeInterval timeInterval) throws ClassNotFoundException, OutsideTimeBoundariesException, InstantiationException, IllegalAccessException {
+        List<AbstractFacet> objectTypeFacets = calendarDataHelper.getFacets(
+                connector,
+                objectType,
+                startDate, endDate);
+        return getAbstractFacetVOs(settings, objectTypeFacets, timeInterval);
+    }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
     private Collection<AbstractFacetVO<AbstractFacet>> getFacetVos(List<String> dates,
