@@ -80,6 +80,7 @@ public class FacebookLoginController {
             } else {
                 final String message = "Facebook auto-login success!";
                 return getStatusModel(guest, autoLoginToken, message);
+
             }
         } catch(ExistingEmailException e) {
             return new StatusModel(false, "We already have a user under this email address.");
