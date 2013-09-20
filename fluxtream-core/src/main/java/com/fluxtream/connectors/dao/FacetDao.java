@@ -4,6 +4,7 @@ import java.util.List;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.domain.AbstractFacet;
+import com.fluxtream.domain.AbstractRepeatableFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.TagFilter;
 import org.jetbrains.annotations.Nullable;
@@ -12,7 +13,7 @@ public interface FacetDao {
 
     public List<AbstractFacet> getFacetsByDates(ApiKey apiKey, ObjectType objectType, List<String> dates);
 
-    public List<AbstractFacet> getFacetsBetweenDates(ApiKey apiKey, ObjectType objectType, String startDate, String endDate);
+    public List<AbstractRepeatableFacet> getFacetsBetweenDates(ApiKey apiKey, ObjectType objectType, String startDate, String endDate);
 
     public List<AbstractFacet> getFacetsBetween(ApiKey apiKey, ObjectType objectType, TimeInterval timeInterval);
 

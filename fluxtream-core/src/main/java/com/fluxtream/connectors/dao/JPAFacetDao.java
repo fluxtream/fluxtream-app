@@ -17,6 +17,7 @@ import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.domain.AbstractFacet;
+import com.fluxtream.domain.AbstractRepeatableFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.TagFilter;
 import com.fluxtream.domain.metadata.VisitedCity;
@@ -69,10 +70,10 @@ public class JPAFacetDao implements FacetDao {
     }
 
     @Override
-    public List<AbstractFacet> getFacetsBetweenDates(final ApiKey apiKey, final ObjectType objectType, final String startDateString, final String endDateString) {
-        ArrayList<AbstractFacet> facets = new ArrayList<AbstractFacet>();
+    public List<AbstractRepeatableFacet> getFacetsBetweenDates(final ApiKey apiKey, final ObjectType objectType, final String startDateString, final String endDateString) {
+        ArrayList<AbstractRepeatableFacet> facets = new ArrayList<AbstractRepeatableFacet>();
         if (!apiKey.getConnector().hasFacets()) return facets;
-        Class<? extends AbstractFacet> facetClass = getFacetClass(apiKey.getConnector(), objectType);
+        Class<? extends AbstractRepeatableFacet> facetClass = (Class<? extends AbstractRepeatableFacet>)getFacetClass(apiKey.getConnector(), objectType);
         final String facetName = getEntityName(facetClass);
         String queryString = "SELECT facet FROM " + facetName + " facet WHERE facet.apiKeyId=:apiKeyId AND NOT(facet.endDate<:startDate) AND NOT(facet.startDate>:endDate)";
         final TypedQuery<? extends AbstractFacet> query = em.createQuery(queryString, AbstractFacet.class);
@@ -85,7 +86,7 @@ public class JPAFacetDao implements FacetDao {
         Date endDate = new Date(time2.getMillis());
         query.setParameter("startDate", startDate, TemporalType.DATE);
         query.setParameter("endDate", endDate, TemporalType.DATE);
-        List<? extends AbstractFacet> found = query.getResultList();
+        List<? extends AbstractRepeatableFacet> found = (List<? extends AbstractRepeatableFacet>)query.getResultList();
         if (found!=null)
             facets.addAll(found);
         return facets;

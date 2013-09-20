@@ -6,6 +6,7 @@ import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
+import com.fluxtream.domain.AbstractRepeatableFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.TagFilter;
 import net.sf.json.JSONObject;
@@ -100,7 +101,7 @@ public interface ApiDataService {
     @Transactional(readOnly=false)
     void setComment(String connectorName, String objectTypeName, long guestId, long facetId, String comment);
 
-    public List<AbstractFacet> getApiDataFacets(ApiKey apiKey, ObjectType objectType, String startDate, String endDate);
+    public List<AbstractRepeatableFacet> getApiDataFacets(ApiKey apiKey, ObjectType objectType, String startDate, String endDate);
 
     // Pass this to createOrReadModifyWrite
     public interface FacetModifier<T extends AbstractFacet> {

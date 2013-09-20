@@ -22,6 +22,7 @@ import com.fluxtream.connectors.dao.FacetDao;
 import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
+import com.fluxtream.domain.AbstractRepeatableFacet;
 import com.fluxtream.domain.AbstractUserProfile;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Tag;
@@ -262,7 +263,7 @@ public class ApiDataServiceImpl implements ApiDataService {
     }
 
     @Override
-    public List<AbstractFacet> getApiDataFacets(final ApiKey apiKey, final ObjectType objectType, final String startDate, final String endDate) {
+    public List<AbstractRepeatableFacet> getApiDataFacets(final ApiKey apiKey, final ObjectType objectType, final String startDate, final String endDate) {
         return jpaDao.getFacetsBetweenDates(apiKey, objectType, startDate, endDate);
     }
 

@@ -27,8 +27,10 @@ import com.fluxtream.auth.CoachRevokedException;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.vos.AbstractFacetVO;
+import com.fluxtream.connectors.vos.AbstractTimedFacetVO;
 import com.fluxtream.connectors.vos.ImageVOCollection;
 import com.fluxtream.domain.AbstractFacet;
+import com.fluxtream.domain.AbstractRepeatableFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.CoachingBuddy;
 import com.fluxtream.domain.Guest;
@@ -63,6 +65,11 @@ import com.google.gson.Gson;
 import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
 import com.luckycatlabs.sunrisesunset.dto.Location;
 import org.codehaus.plexus.util.ExceptionUtils;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeConstants;
+import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -94,6 +101,9 @@ public class CalendarDataStore {
 
     @Autowired
     Configuration env;
+
+    protected static final DateTimeFormatter formatter = DateTimeFormat
+            .forPattern("yyyy-MM-dd");
 
 	Gson gson = new Gson();
 
@@ -470,7 +480,7 @@ public class CalendarDataStore {
                     Collection<AbstractFacetVO<AbstractFacet>> facetCollection = null;
                     if (objectType.isMixedType()) {
                         facetCollection = getFacetVos(timespanMetadata, settings, connector, objectType);
-                        facetCollection.addAll(getFacetVOs(firstDate(timespanMetadata), lastDate(timespanMetadata), settings, connector, objectType, timespanMetadata.getTimeInterval()));
+                        facetCollection.addAll(getFacetVOs(timespanMetadata, settings, connector, objectType, timespanMetadata.getTimeInterval()));
                     }
                     else if (objectType.isDateBased())
                         facetCollection = getFacetVos(toDates(timespanMetadata),
@@ -541,12 +551,15 @@ public class CalendarDataStore {
 		}
 	}
 
-    private Collection<AbstractFacetVO<AbstractFacet>> getFacetVOs(final String startDate, final String endDate, final GuestSettings settings, final Connector connector, final ObjectType objectType, final TimeInterval timeInterval) throws ClassNotFoundException, OutsideTimeBoundariesException, InstantiationException, IllegalAccessException {
-        List<AbstractFacet> objectTypeFacets = calendarDataHelper.getFacets(
+    private Collection<AbstractFacetVO<AbstractFacet>> getFacetVOs(AbstractTimespanMetadata timespanMetadata,
+                                                                   final GuestSettings settings, final Connector connector,
+                                                                   final ObjectType objectType, final TimeInterval timeInterval)
+            throws ClassNotFoundException, OutsideTimeBoundariesException, InstantiationException, IllegalAccessException {
+        List<AbstractRepeatableFacet> objectTypeFacets = calendarDataHelper.getFacets(
                 connector,
                 objectType,
-                startDate, endDate);
-        return getAbstractFacetVOs(settings, objectTypeFacets, timeInterval);
+                firstDate(timespanMetadata), lastDate(timespanMetadata));
+        return expandToFacetVOs(settings, timespanMetadata, objectTypeFacets, timeInterval);
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -562,6 +575,39 @@ public class CalendarDataStore {
                 objectType,
                 dates);
         return getAbstractFacetVOs(settings, objectTypeFacets, timeInterval);
+    }
+
+    private Collection<AbstractFacetVO<AbstractFacet>> expandToFacetVOs(final GuestSettings settings, final AbstractTimespanMetadata timespanMetadata, final List<AbstractRepeatableFacet> objectTypeFacets, TimeInterval timeInterval)
+            throws InstantiationException, IllegalAccessException, ClassNotFoundException, OutsideTimeBoundariesException
+    {
+        Collection<AbstractFacetVO<AbstractFacet>> facetCollection = new ArrayList<AbstractFacetVO<AbstractFacet>>();
+        final List<String> timespanDates = timespanMetadata.getDateList();
+        if (objectTypeFacets != null) {
+            for (AbstractRepeatableFacet abstractFacet : objectTypeFacets) {
+                final List<String> repeatedDates = abstractFacet.getRepeatedDates();
+                for (String repeatedDate : repeatedDates) {
+                    if (!timespanDates.contains(repeatedDate))
+                        continue;
+                    final TimeZone timeZone = timeInterval.getTimeZone(repeatedDate);
+                    AbstractTimedFacetVO<AbstractFacet> facetVO = (AbstractTimedFacetVO<AbstractFacet>)AbstractFacetVO
+                            .getFacetVOClass((AbstractFacet)abstractFacet).newInstance();
+                    try {
+                        facetVO.extractValues(abstractFacet, timeInterval, settings);
+                        final DateTime startTime = formatter.withZone(DateTimeZone.forTimeZone(timeZone)).parseDateTime(repeatedDate);
+                        facetVO.start = startTime.getMillis();
+                        facetVO.end = startTime.getMillis() + DateTimeConstants.MILLIS_PER_DAY;
+                        facetCollection.add(facetVO);
+                    } catch(OutsideTimeBoundariesException e) {
+                        // OutsideTimeBoundariesException can legitimately happen in the case that the timezone
+                        // for a date differs from the date used by a given service to return the data.
+                        // Don't print a stack trace.
+                        //e.printStackTrace();
+                    }
+                }
+
+            }
+        }
+        return facetCollection;
     }
 
     private Collection<AbstractFacetVO<AbstractFacet>> getAbstractFacetVOs(final GuestSettings settings,

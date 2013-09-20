@@ -5,7 +5,7 @@ import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.Lob;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
-import com.fluxtream.domain.AbstractFacet;
+import com.fluxtream.domain.AbstractRepeatableFacet;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventAttendee;
@@ -21,7 +21,7 @@ import org.joda.time.DateTimeConstants;
  */
 @Entity(name="Facet_GoogleCalendarEvent")
 @ObjectTypeSpec(name = "entry", value = 1, prettyname = "Event", isMixedType = true)
-public class GoogleCalendarEventFacet extends AbstractFacet {
+public class GoogleCalendarEventFacet extends AbstractRepeatableFacet {
 
     @Index(name="googleId")
     public String googleId;
@@ -62,11 +62,6 @@ public class GoogleCalendarEventFacet extends AbstractFacet {
     public String transparency;
     public String visibility;
     public Integer sequence;
-
-    public Date startDate;
-    public Date endDate;
-
-    public boolean allDayEvent;
 
     @Lob
     public String attendeesStorage;
