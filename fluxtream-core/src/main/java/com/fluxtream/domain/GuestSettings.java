@@ -8,6 +8,7 @@ import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.PostLoad;
+import com.fluxtream.Configuration;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
@@ -20,6 +21,8 @@ import org.codehaus.jackson.type.TypeReference;
 		query = "DELETE FROM Settings settings WHERE settings.guestId=?")
 })
 public class GuestSettings extends AbstractEntity {
+
+    public transient Configuration config;
 
 	public GuestSettings() {
 	}

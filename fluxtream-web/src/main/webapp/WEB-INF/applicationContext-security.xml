@@ -29,6 +29,7 @@
     <http pattern="/api/test/**" security="none" />
     <http pattern="/api/ping" security="none" />
     <http pattern="/api/facebook/login*" security="none" />
+    <http pattern="/openGraph/**" security="none" />
 
     <http access-denied-page="/accessDenied" entry-point-ref="loginUrlAuthenticationEntryPoint"
 		use-expressions="true" create-session="ifRequired">

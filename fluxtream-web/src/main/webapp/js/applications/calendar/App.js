@@ -1351,6 +1351,13 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         $(viewBtnIds[state.timeUnit]).addClass("active");
     }
 
+    Calendar.fbShare = function(ogLink) {
+        window.open(
+            'https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(ogLink),
+            'facebook-share-dialog',
+            'width=626,height=436');
+    };
+
     Calendar.commentEdit = function(evt,facet) {
         var target = $(evt.target);
         var facetDetails = target.parent().parent();
@@ -1369,6 +1376,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                              '<button class="btn btn-small save disabled" type="button"><i class="icon icon-save"/> Save</button>&nbsp;' +
                              '<button class="btn btn-small cancel" type="button"><i class="icon icon-undo"/> Cancel</button>&nbsp;' +
                              '<button class="btn btn-link delete" type="button"><i class="icon icon-trash"/> Delete</button>' +
+                             '<button class="btn btn-link fbShare" onclick="App.apps[\'calendar\'].fbShare(\'' + facet.ogLink + '\');" type="button">Share on Facebook</button>' +
                              '</div>';
         facetDetails.append(commentDiv);
         var commentWarning = facetDetails.find(".commentWarning");

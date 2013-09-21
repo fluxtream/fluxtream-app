@@ -55,6 +55,7 @@ public class SettingsServiceImpl implements SettingsService {
 		GuestSettings settings = JPAUtils.findUnique(em, GuestSettings.class,
 				"settings.byGuestId", guestId);
         if (settings != null) {
+            settings.config = env;
             return settings;
         }
         else {
@@ -62,6 +63,7 @@ public class SettingsServiceImpl implements SettingsService {
             settings.guestId = guestId;
             settings.createMessageDisplayCounters();
             em.persist(settings);
+            settings.config = env;
             return settings;
         }
 	}

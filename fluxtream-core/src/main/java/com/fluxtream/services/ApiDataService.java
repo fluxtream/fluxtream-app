@@ -5,15 +5,19 @@ import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.connectors.updaters.UpdateInfo;
+import com.fluxtream.connectors.vos.AbstractFacetVO;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.AbstractRepeatableFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.TagFilter;
+import com.fluxtream.metadata.AbstractTimespanMetadata;
 import net.sf.json.JSONObject;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.transaction.annotation.Transactional;
 
 public interface ApiDataService {
+
+    public AbstractFacetVO<AbstractFacet> getFacet(int api, int objectType, long facetId);
 
 	public void cacheApiDataObject(UpdateInfo updateInfo, long start, long end,
 			AbstractFacet payload) throws Exception;

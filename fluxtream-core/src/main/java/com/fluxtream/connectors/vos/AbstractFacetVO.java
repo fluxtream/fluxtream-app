@@ -23,6 +23,7 @@ public abstract class AbstractFacetVO<T extends AbstractFacet> {
 	public String comment;
     public final SortedSet<String> tags = new TreeSet<String>();
 	public String subType;
+    public String ogLink;
 
 	/**
 	 * Thread-safe cache for vo classes
@@ -53,6 +54,8 @@ public abstract class AbstractFacetVO<T extends AbstractFacet> {
             }
         }
         fromFacet(facet, timeInterval, settings);
+        ogLink = String.format("%sopenGraph/%s/%s/%s.html", settings.config.get("homeBaseUrl"),
+                               facet.api, facet.objectType, String.valueOf(id));
 	}
 
     /**

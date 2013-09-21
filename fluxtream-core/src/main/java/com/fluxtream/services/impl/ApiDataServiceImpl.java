@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
@@ -21,22 +22,27 @@ import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.dao.FacetDao;
 import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.connectors.updaters.UpdateInfo;
+import com.fluxtream.connectors.vos.AbstractFacetVO;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.AbstractRepeatableFacet;
 import com.fluxtream.domain.AbstractUserProfile;
 import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.domain.Tag;
 import com.fluxtream.domain.TagFilter;
 import com.fluxtream.events.DataReceivedEvent;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
+import com.fluxtream.metadata.DayMetadata;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.BodyTrackStorageService;
 import com.fluxtream.services.EventListenerService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
+import com.fluxtream.services.SettingsService;
 import com.fluxtream.utils.JPAUtils;
 import net.sf.json.JSONObject;
 import org.jetbrains.annotations.Nullable;
+import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.BeanFactory;
@@ -88,8 +94,30 @@ public class ApiDataServiceImpl implements ApiDataService {
     @Qualifier("AsyncWorker")
     ThreadPoolTaskExecutor executor;
 
-    private static final DateTimeFormatter formatter = DateTimeFormat
-            .forPattern("yyyy-MM-dd");
+    @Autowired
+    SettingsService settingsService;
+
+    DateTimeFormatter dateFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
+
+    @Override
+    public AbstractFacetVO<AbstractFacet> getFacet(final int api, final int objectType, final long facetId) {
+        Connector connector = Connector.fromValue(api);
+        final ObjectType ot = ObjectType.getObjectType(connector, objectType);
+        final AbstractFacet facet = em.find(ot.facetClass(), facetId);
+        final GuestSettings guestSettings = settingsService.getSettings(facet.guestId);
+        final TimeZone timeZone = metadataService.getTimeZone(facet.guestId, facet.start);
+        final String date = dateFormatter.withZone(DateTimeZone.forTimeZone(timeZone)).print(facet.start);
+        final DayMetadata dayMetadata = metadataService.getDayMetadata(facet.guestId, date);
+        try {
+            final AbstractFacetVO<AbstractFacet> vo = AbstractFacetVO.getFacetVOClass((AbstractFacet)facet).newInstance();
+            vo.extractValues(facet, dayMetadata.getTimeInterval(), guestSettings);
+            return vo;
+        }
+        catch (Exception e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            return null;
+        }
+    }
 
     @Override
 	@Transactional(readOnly = false)
