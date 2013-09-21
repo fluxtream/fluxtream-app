@@ -1376,9 +1376,14 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                              '<button class="btn btn-small save disabled" type="button"><i class="icon icon-save"/> Save</button>&nbsp;' +
                              '<button class="btn btn-small cancel" type="button"><i class="icon icon-undo"/> Cancel</button>&nbsp;' +
                              '<button class="btn btn-link delete" type="button"><i class="icon icon-trash"/> Delete</button>' +
-                             '<button class="btn btn-link fbShare" onclick="App.apps[\'calendar\'].fbShare(\'' + facet.ogLink + '\');" type="button">Share on Facebook</button>' +
                              '</div>';
         facetDetails.append(commentDiv);
+        if (typeof(facet.ogLink)!="undefined") {
+            var sharingDiv =    '<div>' +
+                                '<button class="btn btn-link fbShare" onclick="App.apps[\'calendar\'].fbShare(\'' + facet.ogLink + '\');" type="button">Share on Facebook</button>' +
+                                '</div>'
+            facetDetails.append(sharingDiv);
+        }
         var commentWarning = facetDetails.find(".commentWarning");
         commentWarning.removeClass("hidden");
         facetDetails.trigger("contentchange");

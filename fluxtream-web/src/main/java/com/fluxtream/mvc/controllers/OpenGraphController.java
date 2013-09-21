@@ -1,5 +1,7 @@
 package com.fluxtream.mvc.controllers;
 
+import com.fluxtream.connectors.Connector;
+import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.vos.AbstractFacetVO;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.services.ApiDataService;
@@ -26,7 +28,9 @@ public class OpenGraphController {
                               @PathVariable("objectType") int objectType,
                               @PathVariable("facetId") int facetId) {
         final AbstractFacetVO<AbstractFacet> facet = apiDataService.getFacet(api, objectType, facetId);
-        ModelAndView mav = new ModelAndView("openGraph/facet");
+        final Connector connector = Connector.fromValue(facet.api);
+        String facetName = String.format("%s.%s", connector.getName(), ObjectType.getObjectType(connector, facet.objectType));
+        ModelAndView mav = new ModelAndView("openGraph/" + facetName);
         mav.addObject("facet", facet);
         return mav;
     }

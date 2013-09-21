@@ -4,7 +4,7 @@
         uri="http://granule.com/tags" prefix="g"%><!DOCTYPE html>
 <html prefix="og: http://ogp.me/ns#">
 <head>
-    <title>The Rock (1996)</title>
+    <title>Lastfm song</title>
     <meta property="og:title" content="The Rock" />
     <meta property="og:type" content="video.movie" />
     <meta property="og:url" content="http://www.imdb.com/title/tt0117500/" />

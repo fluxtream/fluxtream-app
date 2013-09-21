@@ -1,15 +1,19 @@
 package com.fluxtream.connectors.vos;
 
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Hashtable;
+import java.util.ResourceBundle;
 import java.util.SortedSet;
 import java.util.TimeZone;
 import java.util.TreeSet;
 import com.fluxtream.OutsideTimeBoundariesException;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.GuestSettings;
@@ -25,6 +29,9 @@ public abstract class AbstractFacetVO<T extends AbstractFacet> {
 	public String subType;
     public String ogLink;
 
+    public transient int api;
+    public transient int objectType;
+
 	/**
 	 * Thread-safe cache for vo classes
 	 */
@@ -39,6 +46,8 @@ public abstract class AbstractFacetVO<T extends AbstractFacet> {
 	public void extractValues(T facet, TimeInterval timeInterval, GuestSettings settings) throws OutsideTimeBoundariesException {
 		getType(facet);
 		this.id = facet.getId();
+        this.api = facet.api;
+        this.objectType = facet.objectType;
 		if (facet.comment!=null&&!facet.comment.equals("")) {
 			if (SecurityUtils.isDemoUser())
 				this.comment = "***demo - comment hidden***";
@@ -54,8 +63,14 @@ public abstract class AbstractFacetVO<T extends AbstractFacet> {
             }
         }
         fromFacet(facet, timeInterval, settings);
-        ogLink = String.format("%sopenGraph/%s/%s/%s.html", settings.config.get("homeBaseUrl"),
-                               facet.api, facet.objectType, String.valueOf(id));
+        ResourceBundle res = ResourceBundle.getBundle("facetSharing");
+        final ArrayList<String> openGraphSharableFacets = new ArrayList(Arrays.asList(res.getString("opengraph").split(",")));
+        final Connector connector = Connector.fromValue(facet.api);
+        String facetName = String.format("%s.%s", connector.getName(), ObjectType.getObjectType(connector, facet.objectType));
+        if (openGraphSharableFacets.contains(facetName)) {
+            ogLink = String.format("%sopenGraph/%s/%s/%s.html", settings.config.get("homeBaseUrl"),
+                                   facet.api, facet.objectType, String.valueOf(id));
+        }
 	}
 
     /**
