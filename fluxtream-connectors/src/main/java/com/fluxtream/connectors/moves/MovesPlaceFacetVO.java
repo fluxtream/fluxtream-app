@@ -35,4 +35,9 @@ public class MovesPlaceFacetVO extends AbstractMovesFacetVO<MovesPlaceFacet> {
         this.position[1] = facet.longitude;
     }
 
+    @Override
+    protected boolean isShareable(final MovesPlaceFacet facet) {
+        return facet.foursquareId!=null;
+    }
+
 }

@@ -5,6 +5,7 @@ import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.vos.AbstractFacetVO;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.services.ApiDataService;
+import com.fluxtream.services.MetadataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,6 +24,9 @@ public class OpenGraphController {
     @Autowired
     ApiDataService apiDataService;
 
+    @Autowired
+    MetadataService metadataService;
+
     @RequestMapping("/{api}/{objectType}/{facetId}.html")
     public ModelAndView index(@PathVariable("api") int api,
                               @PathVariable("objectType") int objectType,
@@ -32,6 +36,7 @@ public class OpenGraphController {
         String facetName = String.format("%s.%s", connector.getName(), ObjectType.getObjectType(connector, facet.objectType));
         ModelAndView mav = new ModelAndView("openGraph/" + facetName);
         mav.addObject("facet", facet);
+        mav.addObject("metadataService", metadataService);
         return mav;
     }
 }

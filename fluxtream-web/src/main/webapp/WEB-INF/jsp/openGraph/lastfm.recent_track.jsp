@@ -9,7 +9,6 @@
 <html prefix="og: http://ogp.me/ns#">
 <head>
     <title>Lastfm song</title>
-    <meta property="og:site_name" content="The Upgrade"/>
     <meta property="og:type" content="music.song" />
     <% if (facetVO.description!=null) { %>
     <meta property="og:title" content="<%=facetVO.description%>" />

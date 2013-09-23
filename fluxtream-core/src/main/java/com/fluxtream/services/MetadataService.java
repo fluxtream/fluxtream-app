@@ -11,6 +11,8 @@ import com.fluxtream.domain.metadata.WeatherInfo;
 import com.fluxtream.metadata.DayMetadata;
 import com.fluxtream.metadata.MonthMetadata;
 import com.fluxtream.metadata.WeekMetadata;
+import net.sf.json.JSONObject;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface MetadataService {
 
@@ -59,4 +61,7 @@ public interface MetadataService {
     public TreeSet<String> getDatesForMonth(final int year, final int month);
 
     public List<VisitedCity> getConsensusCities(final long guestId, final TreeSet<String> dates);
+
+    @Transactional(readOnly=false)
+    JSONObject getFoursquareVenueJSON(String venueId);
 }

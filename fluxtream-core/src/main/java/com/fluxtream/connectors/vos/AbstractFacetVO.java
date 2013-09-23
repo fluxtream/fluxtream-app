@@ -67,11 +67,15 @@ public abstract class AbstractFacetVO<T extends AbstractFacet> {
         final ArrayList<String> openGraphSharableFacets = new ArrayList(Arrays.asList(res.getString("opengraph").split(",")));
         final Connector connector = Connector.fromValue(facet.api);
         String facetName = String.format("%s.%s", connector.getName(), ObjectType.getObjectType(connector, facet.objectType));
-        if (openGraphSharableFacets.contains(facetName)) {
+        if (openGraphSharableFacets.contains(facetName)&&isShareable(facet)) {
             ogLink = String.format("%sopenGraph/%s/%s/%s.html", settings.config.get("homeBaseUrl"),
                                    facet.api, facet.objectType, String.valueOf(id));
         }
 	}
+
+    protected boolean isShareable(T facet) {
+        return true;
+    }
 
     /**
      * Returns a copy of this VO's set of tags. Assumes {@link #extractValues} has already been called. Guaranteed to

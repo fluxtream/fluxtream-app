@@ -591,6 +591,22 @@ public class MetadataServiceImpl implements MetadataService {
 
     @Override
     @Transactional(readOnly=false)
+    public JSONObject getFoursquareVenueJSON(final String venueId) {
+        String url = String.format("https://api.foursquare.com/v2/venues/%s?client_id=%s&client_secret=%s&v=20130624", venueId,
+                                   env.get("foursquare.client.id"), env.get("foursquare.client.secret"));
+        try {
+            final String fetched = HttpUtils.fetch(url);
+            JSONObject json = JSONObject.fromObject(fetched);
+            return json;
+        }
+        catch (Exception e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            return null;
+        }
+    }
+
+        @Override
+    @Transactional(readOnly=false)
     public FoursquareVenue getFoursquareVenue(final String venueId) {
         final TypedQuery<FoursquareVenue> query = em.createQuery("SELECT venue FROM FoursquareVenue venue WHERE venue.foursquareId=:venueId", FoursquareVenue.class);
         query.setParameter("venueId", venueId);
