@@ -56,6 +56,7 @@ public class LastFmFacetExtractor extends AbstractFacetExtractor {
 			super.extractCommonFacetData(facet, apiData);
 
 			JSONObject it = tracks.getJSONObject(i);
+
 			if (!it.containsKey("artist"))
 				continue;
 			if (!it.getJSONObject("artist").containsKey("#text")) {
@@ -97,9 +98,14 @@ public class LastFmFacetExtractor extends AbstractFacetExtractor {
 				}
 			}
 
+            if (it.containsKey("url"))
+                facet.url = it.getString("url");
+            if (it.containsKey("mbid"))
+                facet.mbid = it.getString("mbid");
+
 			LastFmRecentTrackFacet duplicate = jpaDaoService.findOne("lastfm.recent_track.byStartEnd",
 					LastFmRecentTrackFacet.class,
-					apiData.updateInfo.getGuestId(), date, date);
+					apiData.updateInfo.apiKey.getId(), date, date);
 			if (duplicate==null)
 				facets.add(facet);
 		}

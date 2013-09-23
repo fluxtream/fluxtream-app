@@ -38,10 +38,8 @@ public class LastFmUpdater extends AbstractUpdater {
     @Override
     protected void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception {
         final ObjectType recent_track = ObjectType.getObjectType(connector(), "recent_track");
-        // restarting from scratch if an error occured
         if (updateInfo.objectTypes().contains(recent_track)) {
-            apiDataService.eraseApiData(updateInfo.apiKey, recent_track.value());
-            retrieveTracks(updateInfo, 0, "recenttracks", 0);
+            retrieveTracks(updateInfo, 0, "recenttracks");
         }
     }
 
@@ -52,29 +50,32 @@ public class LastFmUpdater extends AbstractUpdater {
         }
     }
 
-    private void retrieveTracks(final UpdateInfo updateInfo, final long fromTime, final String tracksType, final int page) throws Exception {
-        JSONObject tracks = getTracks(updateInfo, fromTime, System.currentTimeMillis(), page, tracksType);
-        JSONObject tracksObject = tracks.getJSONObject(tracksType);
-        if (tracksObject.containsKey("track") && (tracksObject.get("track") instanceof JSONArray
+    private void retrieveTracks(final UpdateInfo updateInfo, final long fromTime, final String tracksType) throws Exception {
+        int page =  0;
+        do {
+            JSONObject tracks = getTracks(updateInfo, fromTime, System.currentTimeMillis(), page, tracksType);
+            JSONObject tracksObject = tracks.getJSONObject(tracksType);
+            if (tracksObject.containsKey("track") && (tracksObject.get("track") instanceof JSONArray
                 || tracksObject.get("track") instanceof JSONObject))
-            apiDataService.cacheApiDataJSON(updateInfo, tracks, -1, -1);
-        else
-            return;
-        final JSONObject metadata = tracksObject.getJSONObject("@attr");
-        final int currentPage = Integer.valueOf(metadata.getString("page"));
-        final int totalPages = Integer.valueOf(metadata.getString("totalPages"));
-        if (totalPages-1 == currentPage)
-            return;
-        retrieveTracks(updateInfo, fromTime, tracksType, currentPage+1);
+                apiDataService.cacheApiDataJSON(updateInfo, tracks, -1, -1);
+            else
+                return;
+            final JSONObject metadata = tracksObject.getJSONObject("@attr");
+            final int currentPage = Integer.valueOf(metadata.getString("page"));
+            final int totalPages = Integer.valueOf(metadata.getString("totalPages"));
+            if (totalPages-1 == currentPage)
+                break;
+            page++;
+        } while  (true);
     }
 
     private void retrieveRecentTracks(UpdateInfo updateInfo) throws Exception {
-        LastFmRecentTrackFacet lastRetrievedTrack = jpaDaoService.findOne("lastfm.recent_track.newest", LastFmRecentTrackFacet.class, updateInfo.getGuestId());
+        LastFmRecentTrackFacet lastRetrievedTrack = jpaDaoService.findOne("lastfm.recent_track.newest", LastFmRecentTrackFacet.class, updateInfo.apiKey.getId());
         long fromTime = 0;
         if (lastRetrievedTrack != null) {
             fromTime = lastRetrievedTrack.time;
         }
-        retrieveTracks(updateInfo, fromTime, "recenttracks", 0);
+        retrieveTracks(updateInfo, fromTime, "recenttracks");
     }
 
     private JSONObject getTracks(UpdateInfo updateInfo, long from, long to, int page, String tracksType) throws Exception {
@@ -99,4 +100,5 @@ public class LastFmUpdater extends AbstractUpdater {
             throw e;
         }
     }
+
 }

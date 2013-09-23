@@ -24,7 +24,7 @@
     <meta property="og:description" content="<%=facetVO.comment%>"/>
     <% }
         if (facetVO.description!=null) { %>
-    <meta property="og:audio:title" content="<%=facetVO.description%>"/>
+    <meta property="og:audio:title" content="<%=facetVO.title%>"/>
     <% }
         if (facetVO.artist!=null) { %>
     <meta property="og:audio:artist" content="<%=facetVO.artist%>"/>

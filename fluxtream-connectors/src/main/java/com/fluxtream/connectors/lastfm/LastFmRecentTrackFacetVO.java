@@ -13,6 +13,7 @@ public class LastFmRecentTrackFacetVO extends AbstractInstantFacetVO<LastFmRecen
 	public String album_mbid;
 	public String artist_mbid;
 	public String url;
+    public String title;
 	public String[] imgUrls;
 	
 	@Override
@@ -26,6 +27,7 @@ public class LastFmRecentTrackFacetVO extends AbstractInstantFacetVO<LastFmRecen
 		if (facet.imgUrls!=null) {
 			this.imgUrls = facet.imgUrls.split(",");
 		}
+        this.title = facet.name;
 		description = facet.artist + ": " + facet.name;
 	}
 
