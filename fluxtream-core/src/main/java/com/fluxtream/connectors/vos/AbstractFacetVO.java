@@ -1,6 +1,7 @@
 package com.fluxtream.connectors.vos;
 
 import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -68,8 +69,12 @@ public abstract class AbstractFacetVO<T extends AbstractFacet> {
         final Connector connector = Connector.fromValue(facet.api);
         String facetName = String.format("%s.%s", connector.getName(), ObjectType.getObjectType(connector, facet.objectType));
         if (openGraphSharableFacets.contains(facetName)&&isShareable(facet)) {
-            ogLink = String.format("%sopenGraph/%s/%s/%s.html", settings.config.get("homeBaseUrl"),
-                                   facet.api, facet.objectType, String.valueOf(id));
+            String encryptedUrl = settings.config.encrypt(String.format("%s/%s/%s", facet.api, facet.objectType, String.valueOf(id)));
+            try {
+                encryptedUrl = URLEncoder.encode(encryptedUrl, "UTF-8");
+            } catch (UnsupportedEncodingException e) {}
+            ogLink = String.format("%sopenGraph/%s.html", settings.config.get("homeBaseUrl"),
+                                   encryptedUrl);
         }
 	}
 
