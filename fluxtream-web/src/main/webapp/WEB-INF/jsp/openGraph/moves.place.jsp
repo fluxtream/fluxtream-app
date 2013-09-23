@@ -13,7 +13,6 @@
     String latitude = null, longitude = null;
     String url = "https://foursquare.com/v/" + facetVO.foursquareId;
     final JSONObject foursquareVenue = metadataService.getFoursquareVenueJSON(facetVO.foursquareId);
-    System.out.println(foursquareVenue);
     if (foursquareVenue!=null) {
         final JSONObject jsonResponse = foursquareVenue.getJSONObject("response");
         if (jsonResponse!=null) {
