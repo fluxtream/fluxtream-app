@@ -1375,15 +1375,14 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                              '<textarea placeholder="type a comment..." rows="3"></textarea>' +
                              '<button class="btn btn-small save disabled" type="button"><i class="icon icon-save"/> Save</button>&nbsp;' +
                              '<button class="btn btn-small cancel" type="button"><i class="icon icon-undo"/> Cancel</button>&nbsp;' +
-                             '<button class="btn btn-link delete" type="button"><i class="icon icon-trash"/> Delete</button>' +
-                             '</div>';
-        facetDetails.append(commentDiv);
+                             '<button class="btn btn-link delete" type="button"><i class="icon icon-trash"/> Delete</button>';
+
         if (typeof(facet.ogLink)!="undefined") {
-            var sharingDiv =    '<div>' +
-                                '<button class="btn btn-link fbShare" onclick="App.apps[\'calendar\'].fbShare(\'' + facet.ogLink + '\');" type="button">Share on Facebook</button>' +
-                                '</div>'
-            facetDetails.append(sharingDiv);
+            commentDiv +=    '<a class="fbShare" title="Share on Facebook" onclick="App.apps[\'calendar\'].fbShare(\'' + facet.ogLink + '\');" type="button"><img src="/static/images/facetSharing/FB-f-Logo__blue_22.png"/></a>';
         }
+        commentDiv += '</div>';
+
+        facetDetails.append(commentDiv);
         var commentWarning = facetDetails.find(".commentWarning");
         commentWarning.removeClass("hidden");
         facetDetails.trigger("contentchange");
