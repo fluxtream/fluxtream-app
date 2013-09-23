@@ -15,6 +15,7 @@
     <% }
        if (facetVO.url!=null) { %>
     <meta property="og:url" content="<%=facetVO.url%>" />
+    <meta http-equiv="refresh" content="0; url=<%=facetVO.url%>">
     <% }
         if (facetVO.url!=null) { %>
     <meta property="og:image" content="<%=facetVO.imgUrls[0]%>" />

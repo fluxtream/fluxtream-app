@@ -47,6 +47,7 @@
     <% }
        if (url!=null) { %>
     <meta property="og:url" content="<%=url%>" />
+    <meta http-equiv="refresh" content="0; url=<%=url%>">
     <% }
        if (facetVO.comment!=null) { %>
     <meta property="og:description" content="<%=facetVO.comment%>"/>
@@ -55,6 +56,5 @@
     <meta property="og:latitude" content="<%=latitude%>"/>
     <meta property="og:longitude" content="<%=longitude%>"/>
     <% }%>
-
 </head>
 </html>
