@@ -169,6 +169,11 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         bodyTrackStorageService.storeInitialHistory(updateInfo.apiKey);
     }
 
+    public long getLastWeighingTime(final UpdateInfo updateInfo) {
+        final FitbitWeightFacet weightFacet = jpaDaoService.findOne("fitbit.weight.latest", FitbitWeightFacet.class, updateInfo.apiKey.getId());
+        return weightFacet.start;
+    }
+
 	public void updateCaloriesIntraday(FitbitTrackerActivityFacet facet, ApiKey apiKey)
 			throws RateLimitReachedException {
 		if (facet.date != null) {
@@ -501,6 +506,8 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             apiDataService.eraseApiData(updateInfo.apiKey, weightOT, Arrays.asList(dateString));
             try {
                 loadWeightDataForOneDay(updateInfo, date, userTimeZone, dateString);
+                guestService.setApiKeyAttribute(updateInfo.apiKey, "SCALE.lastSyncDate",
+                                                String.valueOf(getLastWeighingTime(updateInfo)));
             } catch (RuntimeException e) {
                 logger.warn("guestId=" + updateInfo.getGuestId() +
                             " connector=fitbit objectType=weight action=updateOneDayOfData exception="
@@ -521,8 +528,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                     " connector=fitbit action=loadWeightDataForOneDay json="
                     + json);
         if (json != null) {
-            apiDataService.cacheApiDataJSON(updateInfo, json, fromMidnight,
-                                            toMidnight, weightOT.value());
+            apiDataService.cacheApiDataJSON(updateInfo, json, fromMidnight, toMidnight, weightOT.value());
         } else
             apiDataService.cacheEmptyData(updateInfo, fromMidnight, toMidnight);
     }

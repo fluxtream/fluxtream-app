@@ -39,6 +39,10 @@ public class ApiKey extends AbstractEntity {
 
     transient FlxLogger logger = FlxLogger.getLogger(ApiKey.class);
 
+    public enum Status {
+        STATUS_UP, STATUS_DOWN, STATUS_BROKEN, STATUS_OVER_RATE_LIMIT
+    }
+
     @Expose
 	@Index(name="guestId_index")
 	private long guestId;
@@ -49,6 +53,11 @@ public class ApiKey extends AbstractEntity {
 	
 	@OneToMany(mappedBy="apiKey", orphanRemoval = true, fetch=FetchType.EAGER, cascade=CascadeType.ALL)
 	List<ApiKeyAttribute> attributes = new ArrayList<ApiKeyAttribute>();
+
+    public Status status;
+
+    @Lob
+    public String stackTrace;
 
     @Lob
     private byte[] settingsStorage;

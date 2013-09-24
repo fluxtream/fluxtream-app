@@ -52,7 +52,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
     function updateTimespan(currentTimespan,currentState) {
         Calendar.timespanState = currentState;
-        document.title = "Fluxtream Calendar | " + currentTimespan + " (" + Calendar.currentTabName + ")";
+        document.title = currentTimespan + " (" + Calendar.currentTabName + ")";
         $("#currentTimespanLabel span").html(currentTimespan);
     }
 
@@ -185,7 +185,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     }
 
     function setDocumentTitle() {
-        document.title = "Fluxtream Calendar | " + $("#currentTimespanLabel").text().trim() + " (" + Calendar.currentTabName + ")";
+        document.title = $("#currentTimespanLabel").text().trim() + " (" + Calendar.currentTabName + ")";
     }
 
 	Calendar.renderState = function(state, forceUpdate) {

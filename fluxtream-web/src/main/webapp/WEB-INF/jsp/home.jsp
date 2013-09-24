@@ -69,7 +69,7 @@
 						class="icon-bar"></span> <span class="icon-bar"></span>
 					</a>
                     <a class="brand" href="javascript:App.renderApp(App.state.defaultApp)"><img
-                            src="/${release}/images/header-logo-v4.png" width=94 height=20/></a>
+                            src="/${release}/images/${logoImage}" width=${logoWidth} height=${logoHeight} style="${logoStyle}"/></a>
 					<div class="nav-collapse">
 						<%--<form class="navbar-search" action="javascript:App.search()">--%>
 							<%--<input onkeypress="if(event.which==13) App.search()" autocorrect="off" autocapitalize="off" type="text"--%>

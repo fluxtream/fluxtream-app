@@ -68,14 +68,20 @@ public class RetinaController {
     private String retinaPath(final String path, final String realPath, final HttpServletRequest request) {
         boolean isRetinaClient = isRetinaClient(request);
         if (isRetinaClient) {
-            int mid= path.lastIndexOf(".");
-            String stemPath=path.substring(0,mid);
-            String ext=path.substring(mid+1, path.length());
-            String retinaPath = (new StringBuilder(stemPath).append("@2x.").append(ext)).toString();
-            String fullRetinaPath = ((new StringBuilder(realPath).append(retinaPath)).toString());
-            File retinaImageFile = new File(fullRetinaPath);
-            if (retinaImageFile.exists())
-                return retinaPath;
+            try {
+                int mid= path.lastIndexOf(".");
+                String stemPath=path.substring(0,mid);
+                String ext=path.substring(mid+1, path.length());
+                String retinaPath = (new StringBuilder(stemPath).append("@2x.").append(ext)).toString();
+                String fullRetinaPath = ((new StringBuilder(realPath).append(retinaPath)).toString());
+                File retinaImageFile = new File(fullRetinaPath);
+                if (retinaImageFile.exists())
+                    return retinaPath;
+            } catch (Exception e) {
+                System.out.println(String.format("Path '%s', realPath '%s': couldn't get retina image...", path, realPath));
+                e.printStackTrace();
+                return path;
+            }
         }
         return path;
     }

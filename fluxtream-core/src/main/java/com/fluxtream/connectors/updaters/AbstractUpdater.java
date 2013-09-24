@@ -72,9 +72,7 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 		ads.addUpdater(connector, this);
 	}
 
-	public final UpdateResult updateDataHistory(UpdateInfo updateInfo)
-			throws Exception {
-
+	public final UpdateResult updateDataHistory(UpdateInfo updateInfo) {
         try {
             logger.info("module=updateQueue component=updater action=updateDataHistory" +
                 " guestId=" + updateInfo.getGuestId() + " connector=" + updateInfo.apiKey.getConnector().getName());
@@ -117,7 +115,7 @@ public abstract class AbstractUpdater extends ApiClientSupport {
                     .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
                     .append(updateInfo.apiKey.getGuestId());
             logger.warn(sb.toString());
-            return UpdateResult.rateLimitReachedResult();
+            return UpdateResult.rateLimitReachedResult(e);
         } catch (Throwable t) {
             String stackTrace = stackTrace(t);
             StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=updateDataHistory")
@@ -164,43 +162,24 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 			throws Exception;
 
 	public final UpdateResult updateData(UpdateInfo updateInfo) {
-		if (hasReachedRateLimit(connector(), updateInfo.apiKey.getGuestId())) {
+		UpdateResult updateResult;
+        if (updateInfo.getUpdateType() == UpdateType.TIME_INTERVAL_UPDATE)
+            apiDataService.eraseApiData(updateInfo.apiKey, updateInfo.objectTypes,
+                    updateInfo.getTimeInterval());
+        try {
+            updateConnectorData(updateInfo);
+            updateResult = UpdateResult.successResult();
+        } catch (RateLimitReachedException e) {
+            updateResult = UpdateResult.rateLimitReachedResult(e);
+        } catch (Throwable e) {
+            final String stackTrace = Utils.stackTrace(e);
             StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=updateData")
-                               .append(" message=\"rate limit was reached\" connector=")
-                               .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
-                               .append(updateInfo.apiKey.getGuestId());
-			logger.warn(sb.toString());
-			return new UpdateResult(
-					UpdateResult.ResultType.HAS_REACHED_RATE_LIMIT);
-		}
-
-		UpdateResult updateResult = new UpdateResult();
-		try {
-			if (updateInfo.getUpdateType() == UpdateType.TIME_INTERVAL_UPDATE)
-				apiDataService.eraseApiData(updateInfo.apiKey, updateInfo.objectTypes,
-						updateInfo.getTimeInterval());
-            try {
-                updateConnectorData(updateInfo);
-                updateResult.type = UpdateResult.ResultType.UPDATE_SUCCEEDED;
-            } catch (Exception e) {
-                final String stackTrace = Utils.stackTrace(e);
-                StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=updateData")
-                        .append(" message=\"Unexpected exception\" connector=")
-                        .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=").append(updateInfo.apiKey.getGuestId())
-                        .append(" stackTrace=<![CDATA[").append(stackTrace).append("]]>")
-                        .append(updateInfo.apiKey.getGuestId());
-                logger.warn(sb.toString());
-                updateResult = new UpdateResult(
-                        UpdateResult.ResultType.UPDATE_FAILED);
-                updateResult.stackTrace = stackTrace;
-            }
-		} catch (Throwable t) {
-            StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=updateData")
-                    .append(" message=\"Couldn't update data\" connector=")
-                    .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
-                    .append(updateInfo.apiKey.getGuestId())
-                    .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(t)).append("]]>");
+                    .append(" message=\"Unexpected exception\" connector=")
+                    .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=").append(updateInfo.apiKey.getGuestId())
+                    .append(" stackTrace=<![CDATA[").append(stackTrace).append("]]>")
+                    .append(updateInfo.apiKey.getGuestId());
             logger.warn(sb.toString());
+            updateResult = UpdateResult.failedResult(stackTrace);
         }
 
 		return updateResult;

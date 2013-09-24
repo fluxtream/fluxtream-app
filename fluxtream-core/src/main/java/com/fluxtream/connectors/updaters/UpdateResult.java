@@ -2,13 +2,19 @@ package com.fluxtream.connectors.updaters;
 
 public class UpdateResult {
 
-	UpdateResult(ResultType resultType) {
+    RateLimitReachedException rateLimitReachedException;
+
+	private UpdateResult(ResultType resultType) {
 		type = resultType;
 	}
 
     public UpdateResult() {}
 
-	public ResultType type = ResultType.NO_RESULT;
+    public ResultType getType() {
+        return type;
+    }
+
+    private ResultType type = ResultType.NO_RESULT;
 
     public transient String stackTrace;
 
@@ -27,7 +33,9 @@ public class UpdateResult {
         return new UpdateResult(ResultType.UPDATE_SUCCEEDED);
 	}
 
-	public static UpdateResult rateLimitReachedResult() {
-        return new UpdateResult(ResultType.HAS_REACHED_RATE_LIMIT);
-	}
+	public static UpdateResult rateLimitReachedResult(RateLimitReachedException rateLimitReachedException) {
+        final UpdateResult updateResult = new UpdateResult(ResultType.HAS_REACHED_RATE_LIMIT);
+        updateResult.rateLimitReachedException = rateLimitReachedException;
+        return updateResult;
+    }
 }

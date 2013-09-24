@@ -26,7 +26,7 @@ public class ConnectorResponseModel {
 	public boolean hasSuccessResult() {
 		if (updateResults==null) return false;
 		for (UpdateResult updateResult : updateResults) {
-			if (updateResult.type==UpdateResult.ResultType.UPDATE_SUCCEEDED)
+			if (updateResult.getType()==UpdateResult.ResultType.UPDATE_SUCCEEDED)
 				return true;
 		}
 		return false;

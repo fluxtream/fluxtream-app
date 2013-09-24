@@ -20,6 +20,7 @@ function setAvatarImage() {
                 $("#profileIconCaret").css("margin-top", "10px");
                 $("#connectorsDropdownToggle").css("margin-top", "3px");
                 $("#appsMenuWrapper").css("margin-top", "4px");
+                $(".brand").css("margin-top", "3px");
             } else {
                 $("#profileIcon").replaceWith("<i class=\"icon-user icon-large\"></i>");
             }

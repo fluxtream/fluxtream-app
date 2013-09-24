@@ -58,22 +58,21 @@ class UpdateWorker implements Runnable {
                 .append(" apiKeyId=").append(task.apiKeyId);
 		logger.info(sb.toString());
 
-		Connector connector = Connector.getConnector(task.connectorName);
 		ApiKey apiKey = guestService.getApiKey(task.apiKeyId);
-		AbstractUpdater updater = connectorUpdateService.getUpdater(connector);
+		AbstractUpdater updater = connectorUpdateService.getUpdater(apiKey.getConnector());
 
         // TODO: check if this connector type is enabled and supportsSync before calling update.
         // If it is disabled and/or does not support sync, don't try to update it.
 
 		switch (task.updateType) {
 		case INITIAL_HISTORY_UPDATE:
-			updateDataHistory(connector, apiKey, updater);
+			updateDataHistory(apiKey, updater);
 			break;
 		case PUSH_TRIGGERED_UPDATE:
-			pushTriggeredUpdate(connector, apiKey, updater);
+			pushTriggeredUpdate(apiKey, updater);
 			break;
         case INCREMENTAL_UPDATE:
-            updateData(connector, apiKey, updater);
+            updateData(apiKey, updater);
             break;
         default:
             logger.warn("module=updateQueue component=worker message=\"UpdateType was not handled (" + task.updateType + ")\"");
@@ -95,89 +94,68 @@ class UpdateWorker implements Runnable {
         }
     }
 
-    private void pushTriggeredUpdate(Connector connector, ApiKey apiKey,
+    private void pushTriggeredUpdate(ApiKey apiKey,
 			AbstractUpdater updater) {
 		try {
             // TODO: check if this connector type is enabled and supportsSync before calling update.
             // If it is disabled and/or does not support sync, don't try to update it.
 
             logger.info("module=updateQueue component=worker action=pushTriggeredUpdate " +
-                        "connector=" + connector.getName() + " guestId=" + apiKey.getGuestId());
+                        "connector=" + apiKey.getConnector().getName() + " guestId=" + apiKey.getGuestId());
 			UpdateInfo updateInfo = UpdateInfo.pushTriggeredUpdateInfo(apiKey,
 					task.objectTypes, task.jsonParams);
 			UpdateResult updateResult = updater.updateData(updateInfo);
-			handleUpdateResult(connector, updateResult);
+			handleUpdateResult(apiKey, updateResult);
 		} catch (Throwable e) {
 			String stackTrace = stackTrace(e);
 			logger.warn("module=updateQueue component=worker action=pushTriggeredUpdate " +
                         "message=\"Unexpected Exception\" " +
                         "guestId=" + task.guestId + " objectType=" + task.objectTypes +
                         " stackTrace=<![CDATA[" + stackTrace + "]]>");
-			retry(connector, new UpdateWorkerTask.AuditTrailEntry(new Date(), "unexpected exception", "retry", stackTrace));
+			retry(apiKey, new UpdateWorkerTask.AuditTrailEntry(new Date(), "unexpected exception", "retry", stackTrace));
 		}
 	}
 
-	private void updateDataHistory(Connector connector, ApiKey apiKey,
+	private void updateDataHistory(ApiKey apiKey,
 			AbstractUpdater updater) {
-        try {
-            // TODO: check if this connector type is enabled and supportsSync before calling update.
-            // If it is disabled and/or does not support sync, don't try to update it.
-            logger.info("module=updateQueue component=worker action=updateDataHistory " +
-                        "connector=" + connector.getName() + " guestId=" + apiKey.getGuestId());
-            UpdateInfo updateInfo = UpdateInfo.initialHistoryUpdateInfo(apiKey,
-                    task.objectTypes);
-            UpdateResult updateResult = updater.updateDataHistory(updateInfo);
-            handleUpdateResult(connector, updateResult);
-        } catch (Exception e) {
-            String stackTrace = stackTrace(e);
-            logger.warn("module=updateQueue component=worker action=updateDataHistory" +
-                        " guestId=" + task.guestId + " action=updateDataHistory" +
-                        " message=\"Unexpected Exception\" connector=" +
-                        task.connectorName + " objectType=" + task.objectTypes +
-                        " stackTrace=<![CDATA[" + stackTrace + "]]>");
-            retry(connector, new UpdateWorkerTask.AuditTrailEntry(new Date(), "unexpected exception", "retry", stackTrace));
-        }
+        // TODO: check if this connector type is enabled and supportsSync before calling update.
+        // If it is disabled and/or does not support sync, don't try to update it.
+        logger.info("module=updateQueue component=worker action=updateDataHistory " +
+                    "connector=" + apiKey.getConnector().getName() + " guestId=" + apiKey.getGuestId());
+        UpdateInfo updateInfo = UpdateInfo.initialHistoryUpdateInfo(apiKey,
+                task.objectTypes);
+        UpdateResult updateResult = updater.updateDataHistory(updateInfo);
+        handleUpdateResult(apiKey, updateResult);
 	}
 
-    private void updateData(final Connector connector, final ApiKey apiKey, final AbstractUpdater updater) {
-        try
-        {
-            // TODO: check if this connector type is enabled and supportsSync before calling update.
-            // If it is disabled and/or does not support sync, don't try to update it.
-            logger.info("module=updateQueue component=worker action=\"updateData (incremental update)\"" +
-                        " connector=" + connector.getName() + " guestId=" + apiKey.getGuestId());
-            UpdateInfo updateInfo = UpdateInfo.IncrementalUpdateInfo(apiKey, task.objectTypes);
-            UpdateResult result = updater.updateData(updateInfo);
-            handleUpdateResult(connector, result);
-        } catch (Exception e){
-            String stackTrace = stackTrace(e);
-            logger.warn("module=updateQueue component=worker action=\"updateData (incremental update)\"" +
-                        " guestId=" + task.guestId
-                        + " message=\"Unexpected Exception\" connector="
-                        + task.connectorName + " objectType=" + task.objectTypes +
-                        " stackTrace=<![CDATA[" + stackTrace + "]]>");
-            retry(connector, new UpdateWorkerTask.AuditTrailEntry(new Date(), "unexpected exception", "retry", stackTrace));
-        }
+    private void updateData(final ApiKey apiKey, final AbstractUpdater updater) {
+        // TODO: check if this connector type is enabled and supportsSync before calling update.
+        // If it is disabled and/or does not support sync, don't try to update it.
+        logger.info("module=updateQueue component=worker action=\"updateData (incremental update)\"" +
+                    " connector=" + apiKey.getConnector().getName() + " guestId=" + apiKey.getGuestId());
+        UpdateInfo updateInfo = UpdateInfo.IncrementalUpdateInfo(apiKey, task.objectTypes);
+        UpdateResult result = updater.updateData(updateInfo);
+        handleUpdateResult(apiKey, result);
     }
 
-	private void handleUpdateResult(Connector connector,
+	private void handleUpdateResult(ApiKey apiKey,
 			UpdateResult updateResult) {
-		switch (updateResult.type) {
+		switch (updateResult.getType()) {
 		case DUPLICATE_UPDATE:
 			duplicateUpdate();
 			break;
 		case HAS_REACHED_RATE_LIMIT:
-			longReschedule(connector, new UpdateWorkerTask.AuditTrailEntry(new Date(), updateResult.type.toString(), "long reschedule"));
+			rescheduleAccordingToQuotaSpecifications(apiKey, new UpdateWorkerTask.AuditTrailEntry(new Date(), updateResult.getType().toString(), "long reschedule"));
 			break;
 		case UPDATE_SUCCEEDED:
-			success();
+			success(apiKey);
 			break;
 		case UPDATE_FAILED:
-            final UpdateWorkerTask.AuditTrailEntry failed = new UpdateWorkerTask.AuditTrailEntry(new Date(), updateResult.type.toString(), "failed");
+            final UpdateWorkerTask.AuditTrailEntry failed = new UpdateWorkerTask.AuditTrailEntry(new Date(), updateResult.getType().toString(), "failed");
             failed.stackTrace = updateResult.stackTrace;
             connectorUpdateService.addAuditTrail(task.getId(), failed);
-            final UpdateWorkerTask.AuditTrailEntry retry = new UpdateWorkerTask.AuditTrailEntry(new Date(), updateResult.type.toString(), "retry");
-            retry(connector, retry);
+            final UpdateWorkerTask.AuditTrailEntry retry = new UpdateWorkerTask.AuditTrailEntry(new Date(), updateResult.getType().toString(), "retry");
+            retry(apiKey, retry);
 			break;
 		case NO_RESULT:
 			abort();
@@ -185,17 +163,22 @@ class UpdateWorker implements Runnable {
 		}
 	}
 
-	private void duplicateUpdate() {
+    private void rescheduleAccordingToQuotaSpecifications(final ApiKey apiKey, final UpdateWorkerTask.AuditTrailEntry auditTrailEntry) {
+        longReschedule(apiKey, auditTrailEntry);
+    }
+
+    private void duplicateUpdate() {
 		logger.warn("module=updateQueue component=worker action=duplicateUpdate guestId=" + task.getGuestId() +
 				" connector=" + task.connectorName + " objectType="
                 + task.objectTypes);
 	}
 
-	private void success() {
+	private void success(ApiKey apiKey) {
 		StringBuilder stringBuilder = new StringBuilder("module=updateQueue component=worker action=success")
                 .append(" guestId=").append(task.getGuestId())
                 .append(" connector=").append(task.objectTypes);
 		logger.info(stringBuilder.toString());
+        guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_UP, null);
 		connectorUpdateService.setUpdateWorkerTaskStatus(task.getId(), Status.DONE);
 	}
 
@@ -208,7 +191,7 @@ class UpdateWorker implements Runnable {
 		connectorUpdateService.setUpdateWorkerTaskStatus(task.getId(), Status.FAILED);
 	}
 
-	private void retry(Connector connector, UpdateWorkerTask.AuditTrailEntry auditTrailEntry) {
+	private void retry(ApiKey apiKey, UpdateWorkerTask.AuditTrailEntry auditTrailEntry) {
 		StringBuilder stringBuilder = new StringBuilder("module=updateQueue component=worker action=retry")
                 .append(" guestId=").append(task.getGuestId())
                 .append(" connector=").append(task.connectorName)
@@ -221,31 +204,34 @@ class UpdateWorker implements Runnable {
 		logger.info(stringBuilder.toString());
 		int maxRetries = 0;
 		try {
-			maxRetries = getMaxRetries(connector);
+			maxRetries = getMaxRetries(apiKey.getConnector());
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
 		if (task.retries < maxRetries) {
             auditTrailEntry.nextAction = "short reschedule";
-            shortReschedule(connector, auditTrailEntry);
+            guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_BROKEN, null);
+            shortReschedule(apiKey, auditTrailEntry);
 		} else {
             auditTrailEntry.nextAction = "long reschedule";
-			longReschedule(connector, auditTrailEntry);
+            guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_DOWN, null);
+			longReschedule(apiKey, auditTrailEntry);
 		}
 	}
 
-	private void longReschedule(Connector connector, UpdateWorkerTask.AuditTrailEntry auditTrailEntry) {
+	private void longReschedule(ApiKey apiKey, UpdateWorkerTask.AuditTrailEntry auditTrailEntry) {
 		StringBuilder stringBuilder = new StringBuilder("module=updateQueue component=worker action=longReschedule")
                 .append(" guestId=").append(task.getGuestId())
                 .append(" connector=").append(task.connectorName)
                 .append(" objectType=").append(task.objectTypes);
 		logger.info(stringBuilder.toString());
+        guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_DOWN, auditTrailEntry.stackTrace);
 		// re-schedule when we are below rate limit again
-		connectorUpdateService.reScheduleUpdateTask(task.getId(), System.currentTimeMillis() + getLongRetryDelay(connector),
+		connectorUpdateService.reScheduleUpdateTask(task.getId(), System.currentTimeMillis() + getLongRetryDelay(apiKey.getConnector()),
                                                     false, auditTrailEntry);
 	}
 
-	private void shortReschedule(Connector connector, UpdateWorkerTask.AuditTrailEntry auditTrailEntry) {
+	private void shortReschedule(ApiKey apiKey, UpdateWorkerTask.AuditTrailEntry auditTrailEntry) {
 		StringBuilder sb = new StringBuilder("module=updateQueue component=worker action=shortReschedule")
                 .append(" guestId=").append(task.getGuestId())
                 .append(" connector=").append(task.connectorName)
@@ -253,7 +239,8 @@ class UpdateWorker implements Runnable {
                 .append(" retries=").append(String.valueOf(task.retries));
 		logger.info(sb.toString());
 		// schedule 1 minute later, typically
-		connectorUpdateService.reScheduleUpdateTask(task.getId(), System.currentTimeMillis() + getShortRetryDelay(connector),
+        guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_BROKEN, auditTrailEntry.stackTrace);
+		connectorUpdateService.reScheduleUpdateTask(task.getId(), System.currentTimeMillis() + getShortRetryDelay(apiKey.getConnector()),
                                                     true, auditTrailEntry);
 	}
 

@@ -15,7 +15,9 @@ import org.hibernate.search.annotations.Indexed;
 @ObjectTypeSpec(name = "weight", value = 8, extractor=FitbitWeightFacetExtractor.class, prettyname = "Weight", isDateBased = true)
 @NamedQueries({
       @NamedQuery(name = "fitbit.weight.byDate",
-                  query = "SELECT facet FROM Facet_FitbitWeight facet WHERE facet.apiKeyId=? AND facet.date=?")
+                  query = "SELECT facet FROM Facet_FitbitWeight facet WHERE facet.apiKeyId=? AND facet.date=?"),
+      @NamedQuery(name = "fitbit.weight.latest",
+                  query = "SELECT facet FROM Facet_FitbitWeight facet WHERE facet.apiKeyId=? ORDER BY facet.start DESC")
 })
 
 @Indexed
