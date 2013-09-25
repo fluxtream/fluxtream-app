@@ -16,7 +16,7 @@ import org.hibernate.annotations.Type;
     @NamedQuery(name = "connector.deleteAll", query = "DELETE FROM Connector")
 
 })
-public class ConnectorInfo extends AbstractEntity {
+public class ConnectorInfo extends AbstractEntity implements Comparable<ConnectorInfo> {
 
 	public String name;
 	public int count;
@@ -114,4 +114,8 @@ public class ConnectorInfo extends AbstractEntity {
 		return Connector.fromValue(api);
 	}
 
+    @Override
+    public int compareTo(final ConnectorInfo o) {
+        return connectorName.compareTo(o.connectorName);
+    }
 }

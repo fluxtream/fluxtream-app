@@ -1,4 +1,4 @@
-    <footer id="footer" class="container-fluid">
+<footer id="footer" class="container-fluid">
 <% int currentYear = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR); String until = ""; if (currentYear>2011) until = " - " + currentYear; %>
 <% String release = ""; if (request.getAttribute("release")!=null) release = request.getAttribute("release") + "";%>
 	<div>
@@ -6,7 +6,6 @@
 		<small class="flx-credits"><span title="<%=release%>">Fluxtream 1.0</span> <br> &copy; 2011<%=until %> The BodyTrack Team @ CMU CREATE Lab &amp; Candide Kemmler</small>
 	</div>
 
-    <%if (!(Boolean)request.getAttribute("noFeedback")) { %>
 	<div class="feedback-call">
 	   <div class="anne">
 	   </div>
@@ -23,6 +22,5 @@
 	   <div class="candide">
 	   </div>
 	</div>
-    <% } %>
 
 </footer>

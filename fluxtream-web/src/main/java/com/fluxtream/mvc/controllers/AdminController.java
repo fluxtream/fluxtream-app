@@ -1,17 +1,21 @@
 package com.fluxtream.mvc.controllers;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.fluxtream.Configuration;
+import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ApiUpdate;
+import com.fluxtream.domain.ConnectorInfo;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.UpdateWorkerTask;
 import com.fluxtream.mvc.models.admin.ConnectorInstanceModelFactory;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
+import com.fluxtream.services.SystemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Controller;
@@ -39,13 +43,28 @@ public class AdminController {
     @Autowired
     Configuration env;
 
+    @Autowired
+    SystemService systemService;
+
     @Secured({ "ROLE_ADMIN" })
     @RequestMapping(value = { "/admin" })
-    public ModelAndView admin() {
-        ModelAndView mav = new ModelAndView("admin/index");
-        final List<Guest> allGuests = guestService.getAllGuests();
-        mav.addObject("allGuests", allGuests);
-        mav.addObject("release", env.get("release"));
+    public ModelAndView admin() throws Exception {
+        final ModelAndView mav = getAdminModel();
+        final List<ConnectorInfo> connectors = systemService.getConnectors();
+        mav.addObject("subview", "connectorHealthDashboard");
+        mav.addObject("connectors", connectors);
+        final List<Guest> allGuests = (List<Guest>)mav.getModel().get("allGuests");
+        List<Map.Entry<Guest,List<List<ApiKey>>>> rows = new ArrayList<Map.Entry<Guest,List<List<ApiKey>>>>();
+        for (Guest guest : allGuests) {
+            List<List<ApiKey>> guestApiKeys = new ArrayList<List<ApiKey>>();
+            for (ConnectorInfo connector : connectors) {
+                final List<ApiKey> apiKeys = guestService.getApiKeys(guest.getId(), Connector.fromValue(connector.api));
+                guestApiKeys.add(apiKeys);
+            }
+            final Map.Entry<Guest, List<List<ApiKey>>> guestListEntry = new AbstractMap.SimpleEntry<Guest, List<List<ApiKey>>>(guest, guestApiKeys);
+            rows.add(guestListEntry);
+        }
+        mav.addObject("rows", rows);
         return mav;
     }
 
@@ -59,11 +78,19 @@ public class AdminController {
         return new ModelAndView(String.format("redirect:/admin/%s/%s", guestId, apiKeyId));
     }
 
+    public ModelAndView getAdminModel() {
+        ModelAndView mav = new ModelAndView("admin/index");
+        final List<Guest> allGuests = guestService.getAllGuests();
+        mav.addObject("allGuests", allGuests);
+        mav.addObject("release", env.get("release"));
+        return mav;
+    }
+
     @Secured({ "ROLE_ADMIN" })
     @RequestMapping("/admin/{guestId}/{apiKeyId}")
     public ModelAndView showConnectorInstanceDetails(@PathVariable("guestId") long guestId,
                                                      @PathVariable("apiKeyId") long apiKeyId) {
-        ModelAndView mav = admin();
+        ModelAndView mav = getAdminModel();
         mav.addObject("subview", "connectorDetails");
         final ApiKey apiKey = guestService.getApiKey(apiKeyId);
         final Map<String, Object> connectorInstanceModel = connectorInstanceModelFactory.createConnectorInstanceModel(apiKey);
@@ -94,7 +121,7 @@ public class AdminController {
     @Secured({ "ROLE_ADMIN" })
     @RequestMapping("/admin/{guestId}")
     public ModelAndView showUserApiKeys(@PathVariable("guestId") long guestId) {
-        ModelAndView mav = admin();
+        ModelAndView mav = getAdminModel();
         mav.addObject("subview", "allConnectors");
         final Guest guest = guestService.getGuestById(guestId);
         final List<ApiKey> apiKeys = guestService.getApiKeys(guest.getId());

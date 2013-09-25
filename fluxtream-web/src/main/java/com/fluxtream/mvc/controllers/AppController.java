@@ -152,7 +152,6 @@ public class AppController {
         Guest guest = guestService.getGuestById(guestId);
 
 		mav.addObject("fullname", guest.getGuestName());
-        addBrandingMetadata(mav);
 
         String release = env.get("release");
 		request.setAttribute("guestName", guest.getGuestName());
@@ -165,14 +164,6 @@ public class AppController {
 			mav.addObject("release", release);
 		return mav;
 	}
-
-    private void addBrandingMetadata(final ModelAndView mav) {
-        mav.addObject("logoImage", env.get("logo.image")!=null?env.get("logo.image"):"header-logo-v4.png");
-        mav.addObject("logoWidth", env.get("logo.width")!=null?env.get("logo.width"):"94");
-        mav.addObject("logoHeight", env.get("logo.height")!=null?env.get("logo.height"):"20");
-        mav.addObject("logoStyle", env.get("logo.style")!=null?env.get("logo.style"):"");
-        mav.addObject("noFeedback", env.get("noFeedback")==null?false:true);
-    }
 
     @RequestMapping(value = "/checkIn")
     public ModelAndView checkIn(HttpServletRequest request)

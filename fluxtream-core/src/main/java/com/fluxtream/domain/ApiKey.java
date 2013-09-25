@@ -150,4 +150,8 @@ public class ApiKey extends AbstractEntity {
     public void setConnector(final Connector connector) {
         this.api = connector.value();
     }
+
+    public Status getStatus() {
+        return status;
+    }
 }
