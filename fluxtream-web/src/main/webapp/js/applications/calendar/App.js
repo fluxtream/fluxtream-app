@@ -1418,7 +1418,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         });
         cancelButton.click(function(event) {
             event.stopPropagation();
-            facetDetails.find(".facet-comment").replaceWith('<div class="facet-comment-text">' + originalComment + '</div>');
+            if (hasComment)
+                facetDetails.find(".facet-comment").replaceWith('<div class="facet-comment-text">' + originalComment + '</div>');
+            else
+                facetDetails.find(".facet-comment").remove();
             commentWarning.addClass("hidden");
             facetDetails.trigger("contentchange");
         });
