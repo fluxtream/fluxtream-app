@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -89,8 +91,9 @@ public class BodyTrackHelper {
     private DataStoreExecutionResult executeDataStore(String commandName, Object[] parameters){
         try{
             Runtime rt = Runtime.getRuntime();
-            String launchCommand = env.targetEnvironmentProps.getString("btdatastore.exec.location") + "/" + commandName + " " +
-                                   env.targetEnvironmentProps.getString("btdatastore.db.location");
+            Path commandPath= Paths.get(env.targetEnvironmentProps.getString("btdatastore.exec.location"));
+            Path launchExecutable = commandPath.resolve(commandName);
+            String launchCommand = launchExecutable.toString()+ " " + env.targetEnvironmentProps.getString("btdatastore.db.location");
             for (Object param : parameters){
                 launchCommand += ' ';
                 String part = param.toString();
