@@ -515,7 +515,30 @@ td.syncStatus { vertical-align: middle;
         background:#ff3030;
     }
     .syncLED-waiting { border:0; width: 35px; height:35px; -webkit-box-shadow: none; -moz-box-shadow: none; box-shadow: none ;}
- }
+    .syncStatus-STATUS_UP {
+        background:#76d323;
+    }
+    .syncStatus-STATUS_PERMANENT_FAILURE {
+        background:#ff3030;
+    }
+    .syncStatus-STATUS_TRANSIENT_FAILURE {
+        background: #ff9226;
+    }
+    .syncStatus-STATUS_OVER_RATE_LIMIT {
+        background:#ff9226;
+        background-image: url(../static/images/clock.png);
+        background-size: 16px 16px;
+        background-position: 2px 2px;
+        background-repeat: no-repeat;
+    }
+    .syncStatus-NA {
+        background: #faff00;
+        background-image: url(../static/images/na.png);
+        background-size: 20px 20px;
+        background-repeat: no-repeat;
+    }
+}
+
 .syncStatus.small { span { width: 15px; height: 15px; } }
 td.connectors { text-align: center; padding:0;
     img { margin:0 auto; }

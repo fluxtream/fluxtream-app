@@ -210,12 +210,10 @@ class UpdateWorker implements Runnable {
 		}
 		if (task.retries < maxRetries) {
             auditTrailEntry.nextAction = "short reschedule";
-            guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_BROKEN, null);
             shortReschedule(apiKey, auditTrailEntry);
 		} else {
             auditTrailEntry.nextAction = "long reschedule";
-            guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_DOWN, null);
-			longReschedule(apiKey, auditTrailEntry);
+ 			longReschedule(apiKey, auditTrailEntry);
 		}
 	}
 
@@ -225,7 +223,7 @@ class UpdateWorker implements Runnable {
                 .append(" connector=").append(task.connectorName)
                 .append(" objectType=").append(task.objectTypes);
 		logger.info(stringBuilder.toString());
-        guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_DOWN, auditTrailEntry.stackTrace);
+        guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, auditTrailEntry.stackTrace);
 		// re-schedule when we are below rate limit again
 		connectorUpdateService.reScheduleUpdateTask(task.getId(), System.currentTimeMillis() + getLongRetryDelay(apiKey.getConnector()),
                                                     false, auditTrailEntry);
@@ -239,7 +237,7 @@ class UpdateWorker implements Runnable {
                 .append(" retries=").append(String.valueOf(task.retries));
 		logger.info(sb.toString());
 		// schedule 1 minute later, typically
-        guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_BROKEN, auditTrailEntry.stackTrace);
+        guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_TRANSIENT_FAILURE, auditTrailEntry.stackTrace);
 		connectorUpdateService.reScheduleUpdateTask(task.getId(), System.currentTimeMillis() + getShortRetryDelay(apiKey.getConnector()),
                                                     true, auditTrailEntry);
 	}

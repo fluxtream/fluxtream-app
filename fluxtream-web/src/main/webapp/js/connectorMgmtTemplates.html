@@ -28,7 +28,7 @@
                         {{#connectors}}
                         <tr id="connector-{{connectorName}}" {{#syncing}}class="nowSynchro"{{/syncing}}>
                             <td class="syncStatus" style="width: 55px; background:inherit">
-                                <span id="syncLED-{{connectorName}}" title="{{auditTrail}}" class="syncLED-{{^errors}}yes{{/errors}}{{#errors}}no{{/errors}}" {{#syncing}}style="display:none;"{{/syncing}}></span>
+                                <span id="syncLED-{{connectorName}}" title="{{auditTrail}}" class="syncStatus-{{status}}" {{#syncing}}style="display:none;"{{/syncing}}></span>
                                 {{#syncing}}
                                 <span class="syncLED-waiting">
                                     <i class="icon-refresh icon-spin" style="font-size:30px"></i>
@@ -78,11 +78,11 @@
 <template id="connectorSingleRow">
                         <tr id="connector-{{connectorName}}" {{#syncing}}class="nowSynchro"{{/syncing}}>
                             <td class="syncStatus" style="background:inherit">
-                                <span id="syncLED-{{connectorName}}" title="{{auditTrail}}" class="syncLED-{{^errors}}yes{{/errors}}{{#errors}}no{{/errors}}" {{#syncing}}style="display:none;"{{/syncing}}></span>
+                                <span id="syncLED-{{connectorName}}" title="{{auditTrail}}" class="syncStatus-{{status}}" {{#syncing}}style="display:none;"{{/syncing}}></span>
                                 {{#syncing}}
-                                                        <span class="syncLED-waiting">
-                                                            <i class="icon-refresh icon-spin" style="font-size:30px"></i>
-                                                        </span>
+                                <span class="syncLED-waiting">
+                                    <i class="icon-refresh icon-spin" style="font-size:30px"></i>
+                                </span>
                                 {{/syncing}}
                                 <br/>{{#supportsSync}}<a id="syncNow-{{connectorName}}" title="sync now" href="#" {{#syncing}}style="display:none;"{{/syncing}}><i class="icon-refresh"></i></a>{{/supportsSync}}
                                 {{#supportsFileUpload}}<a class="upload-{{connectorName}}" id="{{connectorName}}-{{apiKeyId}}" title="upload data" href="#"><i class="icon-arrow-up"></i></a> {{/supportsFileUpload}}
@@ -118,11 +118,11 @@
 <template id="connectorSingleRowNoImage">
     <tr id="connector-{{connectorName}}" {{#syncing}}class="nowSynchro"{{/syncing}}>
     <td class="syncStatus" style="background:inherit">
-        <span id="syncLED-{{connectorName}}" title="{{auditTrail}}" class="syncLED-{{^errors}}yes{{/errors}}{{#errors}}no{{/errors}}" {{#syncing}}style="display:none;"{{/syncing}}></span>
+        <span id="syncLED-{{connectorName}}" title="{{auditTrail}}" class="syncStatus-{{status}}" {{#syncing}}style="display:none;"{{/syncing}}></span>
         {{#syncing}}
-                                                        <span class="syncLED-waiting">
-                                                            <i class="icon-refresh icon-spin" style="font-size:30px"></i>
-                                                        </span>
+        <span class="syncLED-waiting">
+            <i class="icon-refresh icon-spin" style="font-size:30px"></i>
+        </span>
         {{/syncing}}
         <br/>{{#supportsSync}}<a id="syncNow-{{connectorName}}" title="sync now" href="#" {{#syncing}}style="display:none;"{{/syncing}}><i class="icon-refresh"></i></a>{{/supportsSync}}
         {{#supportsFileUpload}}<a class="upload-{{connectorName}}" id="{{connectorName}}-{{apiKeyId}}" title="upload data" href="#"><i class="icon-arrow-up"></i></a> {{/supportsFileUpload}}

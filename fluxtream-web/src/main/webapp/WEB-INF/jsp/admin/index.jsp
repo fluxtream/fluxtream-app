@@ -30,6 +30,7 @@
 
     <link rel="stylesheet" href="/static/css/font-awesome-3.2.1.css">
     <link href='//fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="/${release}/css/admin.css">
 
     <script
             src="https://maps-api-ssl.google.com/maps/api/js?libraries=geometry&v=3&sensor=false"

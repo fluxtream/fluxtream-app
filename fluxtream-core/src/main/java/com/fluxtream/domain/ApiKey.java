@@ -40,7 +40,7 @@ public class ApiKey extends AbstractEntity {
     transient FlxLogger logger = FlxLogger.getLogger(ApiKey.class);
 
     public enum Status {
-        STATUS_UP, STATUS_DOWN, STATUS_BROKEN, STATUS_OVER_RATE_LIMIT
+        STATUS_UP, STATUS_PERMANENT_FAILURE, STATUS_TRANSIENT_FAILURE, STATUS_OVER_RATE_LIMIT
     }
 
     @Expose

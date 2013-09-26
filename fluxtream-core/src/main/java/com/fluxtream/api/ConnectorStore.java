@@ -174,6 +174,7 @@ public class ConnectorStore {
                         }
                     }
                     connectorJson.accumulate("facetTypes", facetTypes);
+                    connectorJson.accumulate("status", apiKey.status!=null?apiKey.status.toString():"NA");
                     connectorJson.accumulate("name", connector.name);
                     connectorJson.accumulate("connectUrl", connector.connectUrl);
                     connectorJson.accumulate("image", connector.image);
