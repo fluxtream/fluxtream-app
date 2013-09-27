@@ -380,6 +380,8 @@ public class GuestServiceImpl implements GuestService {
         em.flush();
         JPAUtils.execute(em, "widgetSettings.delete.all", guest.getId());
         em.flush();
+        JPAUtils.execute(em, "dashboards.delete.all", guest.getId());
+        em.flush();
     }
 
     private void revokeFacebookPermissions(final Guest guest) {
