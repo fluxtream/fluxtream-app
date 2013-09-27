@@ -48,16 +48,22 @@
         });
 
         $(document).ready(function(){
-            FB.getLoginStatus(function(response) {
-                console.log("status:" + response.status);
-                if (response.status === 'not_authorized') {
-                    noPostingPopover();
-                } else if (response.status=='unknown') {
-                    notLoggedInPopover();
-                }
-            });
+            checkLoginStatus();
+            $("#fbLogin").click(checkLoginStatus);
         });
     };
+
+    function checkLoginStatus() {
+        $("#fbLogin").popover('destroy');
+        FB.getLoginStatus(function(response) {
+            console.log("status:" + response.status);
+            if (response.status === 'not_authorized') {
+                noPostingPopover();
+            } else if (response.status=='unknown') {
+                notLoggedInPopover();
+            }
+        });
+    }
 
     // Load the SDK asynchronously
     (function(d){
@@ -94,8 +100,6 @@
     // Here we run a very simple test of the Graph API after login is successful.
     // This testAPI() function is only called in those cases.
     function getIn(loginResponse) {
-        console.log("access_token: " + loginResponse.authResponse.accessToken);
-        console.log('Welcome!  Fetching your information.... ');
         $.ajax({
             url: "/api/facebook/login?access_token=" +loginResponse.authResponse.accessToken,
             type: "POST",
