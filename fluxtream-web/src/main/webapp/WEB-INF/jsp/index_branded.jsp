@@ -99,6 +99,7 @@
         $.ajax({
             url: "/api/facebook/login?access_token=" +loginResponse.authResponse.accessToken,
             type: "POST",
+
             success: function(status) {
                 if (status.result==="OK") {
                     location = "/signIn?autoLoginToken="+status.payload;
@@ -113,6 +114,15 @@
     }
 
     function fbLogin() {
+        var timezone = jstz.determine_timezone(),
+                d = new Date(),
+                currentDate = d.getDate(),
+                currentMonth = d.getMonth() + 1,
+                currentYear = d.getFullYear();
+
+        setCookie("timeZone", timezone.name(), 1);
+        setCookie("date", currentYear + "-" + currentMonth + "-" + currentDate, 1);
+
         FB.getLoginStatus(function(response) {
             if (response.status === 'connected') {
                 getIn(response);
@@ -121,7 +131,7 @@
                     if (loginResponse.authResponse) {
                         getIn(loginResponse);
                     }
-                });
+                },{scope: 'email'});
             }
         });
     }
