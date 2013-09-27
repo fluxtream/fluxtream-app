@@ -87,7 +87,7 @@
             trigger: "hover",
             html: true,
             title: "You are not logged in to Facebook!",
-            content: "Please log in to Facebook before using this button",
+            content: "Please <a href='http://www.facebook.com' target='_blank'>log in to Facebook</a> before using this button",
             animation: true
         });
     }
