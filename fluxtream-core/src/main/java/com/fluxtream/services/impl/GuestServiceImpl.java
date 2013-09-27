@@ -363,15 +363,23 @@ public class GuestServiceImpl implements GuestService {
         JPAUtils.execute(em, "visitedCities.delete.all", guest.getId());
         em.flush();
         JPAUtils.execute(em, "updateWorkerTasks.delete.all", guest.getId());
+        em.flush();
         JPAUtils.execute(em, "tags.delete.all", guest.getId());
         em.flush();
         JPAUtils.execute(em, "notifications.delete.all", guest.getId());
         em.flush();
         JPAUtils.execute(em, "coachingBuddies.delete.all", guest.getId());
-
-        // delete GrapherView
-        // delete WidgetSettings
-        // delete VisitedCities
+        em.flush();
+        JPAUtils.execute(em, "channelMapping.delete.all", guest.getId());
+        em.flush();
+        JPAUtils.execute(em, "connectorFilterState.delete.all", guest.getId());
+        em.flush();
+        JPAUtils.execute(em, "channelStyle.delete.all", guest.getId());
+        em.flush();
+        JPAUtils.execute(em, "grapherView.delete.all", guest.getId());
+        em.flush();
+        JPAUtils.execute(em, "widgetSettings.delete.all", guest.getId());
+        em.flush();
     }
 
     private void revokeFacebookPermissions(final Guest guest) {

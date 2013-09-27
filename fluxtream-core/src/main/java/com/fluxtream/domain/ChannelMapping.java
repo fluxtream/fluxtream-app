@@ -7,6 +7,8 @@ import org.hibernate.annotations.Index;
 
 @Entity(name="ChannelMapping")
 @NamedQueries({
+      @NamedQuery(name="channelMapping.delete.all",
+                  query="DELETE FROM ChannelMapping mapping WHERE mapping.guestId=?"),
       @NamedQuery(name="channelMapping.byApiKey",
                   query="SELECT mapping FROM ChannelMapping mapping WHERE mapping.guestId=? AND mapping.apiKeyId=?"),
       @NamedQuery(name="channelMapping.byApiKeyAndObjectType",
