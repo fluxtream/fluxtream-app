@@ -132,7 +132,8 @@ public class GuestServiceImpl implements GuestService {
 		guest.firstname = firstname;
 		guest.lastname = lastname;
         guest.registrationMethod = registrationMethod;
-		setPassword(guest, password);
+        if (password!=null)
+    		setPassword(guest, password);
 		em.persist(guest);
 
 		return guest;
@@ -333,7 +334,8 @@ public class GuestServiceImpl implements GuestService {
         Guest guest = getGuestById(id);
         if (guest == null)
             return;
-        if (guest.registrationMethod==Guest.RegistrationMethod.REGISTRATION_METHOD_FACEBOOK) {
+        if (guest.registrationMethod==Guest.RegistrationMethod.REGISTRATION_METHOD_FACEBOOK||
+            guest.registrationMethod==Guest.RegistrationMethod.REGISTRATION_METHOD_FACEBOOK_WITH_PASSWORD) {
             revokeFacebookPermissions(guest);
         }
         JPAUtils.execute(em, "updateWorkerTasks.delete.all", guest.getId());
@@ -359,6 +361,8 @@ public class GuestServiceImpl implements GuestService {
         JPAUtils.execute(em, "notifications.delete.all", guest.getId());
         em.flush();
         JPAUtils.execute(em, "settings.delete.all", guest.getId());
+        em.flush();
+        JPAUtils.execute(em, "location.delete.all", guest.getId());
         em.flush();
         JPAUtils.execute(em, "visitedCities.delete.all", guest.getId());
         em.flush();

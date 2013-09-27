@@ -18,15 +18,17 @@ import org.hibernate.annotations.Type;
 @Entity(name="Facet_Location")
 @ObjectTypeSpec(name = "location", value = 1, prettyname = "Location")
 @NamedQueries({
-		@NamedQuery(name = "location.lastSeen", query = "SELECT facet FROM " +
-				"Facet_Location facet WHERE " +
-				"facet.guestId=? AND facet.timestampMs<? " +
-				"ORDER BY facet.timestampMs DESC"),
-		@NamedQuery(name = "location.nextSeen", query = "SELECT facet FROM " +
-				"Facet_Location facet WHERE " +
-				"facet.guestId=? AND facet.timestampMs>? " +
-				"ORDER BY facet.timestampMs ASC"),
-        @NamedQuery(name = "location.newest", query = "SELECT facet FROM Facet_Location facet WHERE facet.guestId=? AND (facet.apiKeyId is null OR facet.apiKeyId=?) ORDER BY facet.timestampMs DESC")
+    @NamedQuery(name = "location.delete.all",
+                query = "DELETE FROM Facet_Location location WHERE location.guestId=?"),
+    @NamedQuery(name = "location.lastSeen", query = "SELECT facet FROM " +
+            "Facet_Location facet WHERE " +
+            "facet.guestId=? AND facet.timestampMs<? " +
+            "ORDER BY facet.timestampMs DESC"),
+    @NamedQuery(name = "location.nextSeen", query = "SELECT facet FROM " +
+            "Facet_Location facet WHERE " +
+            "facet.guestId=? AND facet.timestampMs>? " +
+            "ORDER BY facet.timestampMs ASC"),
+    @NamedQuery(name = "location.newest", query = "SELECT facet FROM Facet_Location facet WHERE facet.guestId=? AND (facet.apiKeyId is null OR facet.apiKeyId=?) ORDER BY facet.timestampMs DESC")
 })
 public class LocationFacet extends AbstractFacet implements Comparable<LocationFacet>, Serializable {
 
