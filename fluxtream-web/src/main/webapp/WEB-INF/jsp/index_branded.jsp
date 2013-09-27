@@ -41,7 +41,7 @@
     window.fbAsyncInit = function() {
         FB.init({
             appId      : '${facebookAppId}', // App ID
-            channelUrl : '//the-upgrade.org/channel.html', // Channel File
+            channelUrl : 'channel.html', // Channel File
             status     : true, // check login status
             cookie     : true, // enable cookies to allow the server to access the session
             xfbml      : true  // parse XFBML
@@ -52,6 +52,8 @@
                 console.log("status:" + response.status);
                 if (response.status === 'not_authorized') {
                     noPostingPopover();
+                } else if (response.status=='unknown') {
+                    notLoggedInPopover();
                 }
             });
         });
@@ -74,6 +76,18 @@
             html: true,
             title: "Don't worry:",
             content: "We will <strong>NEVER</strong> post on your behalf!!!",
+            animation: true
+        });
+    }
+
+    function notLoggedInPopover() {
+        $("#fbLogin").popover({
+            container: "body",
+            placement: "bottom",
+            trigger: "hover",
+            html: true,
+            title: "You are not logged in to Facebook!",
+            content: "Please log in to Facebook before using this button",
             animation: true
         });
     }
@@ -118,7 +132,7 @@
 
         <form method="post" action="signIn" id="loginForm">
             <label for="f_username">Username</label>
-                <input title="Username" autocorrect="off" autocapitalize="off" autocomplete="on" onkeypress="if(event.which==13) document.forms[0].submit();" id="f_username" name="f_username" placeholder="Username" value="<%=request.getParameter("username") != null ? request.getParameter("username") : ""%>" type="text">
+            <input title="Username" autocorrect="off" autocapitalize="off" autocomplete="on" onkeypress="if(event.which==13) document.forms[0].submit();" id="f_username" name="f_username" placeholder="Username" value="<%=request.getParameter("username") != null ? request.getParameter("username") : ""%>" type="text">
             <label for="f_password">Password</label>
             <input title="Password" value="" onkeypress="if(event.which==13) document.forms[0].submit();" id="f_password" name="f_password" placeholder="Password" type="password"/>
             <input type="submit" value="Submit" class="btn " />
@@ -160,14 +174,14 @@
         <div class="logo">
             <a href="#"><img src="/${release}/assets-home/img/logo-fulltext2.png"></a>
         </div>
-        
+
         <!-- register modal -->
-        
+
         <a role="button" style="cursor:pointer" id="registerShow" class="regLink">Register</a>
 
 
         <!-- end register modal -->
-        
+
         <div class="page-title-wrapper">
             <div class="page-title">
                 <h1>
@@ -293,7 +307,7 @@
         <h3>Thank You!</h3>
     </div>
     <div class="modal-body">
-            <strong>Thanks for subscribing!</strong> We'll send you an email when we (re-)open the doors to the website and you'll be among the first to know.
+        <strong>Thanks for subscribing!</strong> We'll send you an email when we (re-)open the doors to the website and you'll be among the first to know.
     </div>
     <div class="modal-footer">
         <a href="#" class="btn" data-dismiss="modal">Ok</a>
