@@ -581,32 +581,6 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         return weatherInfo;
     }
 
-    function showLocationBreakdownInfo(event) {
-        hideEventInfo();
-        var span = event.target;
-        //var target = $(event.target).parent().position();
-        var target = {top:0, left:0};
-        var tip_y = target.top + event.offsetY;
-        var tip_x = target.left + event.offsetX;
-        var offsetX = config.CLOCK_CENTER[0] - event.offsetX;
-        var offsetY = config.CLOCK_CENTER[1] - event.offsetY;
-
-        map.executeAfterReady(function(){
-            hideEventInfo();
-            map.highlightTimespan(span.item.start,span.item.end);
-
-            markers[0] = new google.maps.Marker({map:map, position:map.getLatLngOnGPSLine(event.timeTarget),clickable:false});
-            map.enhanceMarker(markers[0],event.timeTarget);
-            markers[0].showCircle();
-            if (span.item.start == span.item.end)
-                map.zoomOnMarker(markers[0]);
-            else
-                map.zoomOnTimespan(span.item.start,span.item.end);
-            showToolTip(tip_x,tip_y,offsetX,offsetY,span.item.address == null ? $("<span>You were out</span>") : $("<span>You were at " + span.item.address.address + "</span>"),event.minuteOfDay,$(event.target).attr("stroke"),$(event.target).parent().parent(),
-                markers[0] == null ? null : markers[0].getPosition(), true);
-        });
-    }
-	
 	function hideEventInfo() {
         if (map != null){
             map.executeAfterReady(function(){
@@ -683,126 +657,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         return minute;
     }
 
-    function mergeCollection(collection){
-        if (collection.lastMerge >= collection.length)
-            return;
-        var first = collection[collection.lastMerge];
-        var last = collection[collection.length - 1];
-        var mergedObject = {
-            start:first.start,
-            end:last.start,
-            type:first.type,
-            address:collection.address,
-            startMinute:first.startMinute,
-            endMinute:last.startMinute
-        };
-        collection.splice(collection.lastMerge,collection.length - collection.lastMerge,mergedObject);
-        collection.lastMerge++;
-    }
-
 	function locationBreakdown(positions, digest) {
-        if (!Calendar.connectorEnabled["clock"]["google_latitude"])
-            return;
-        var collections = [];
-        var currentCollection = null;
-        positions = MapUtils.filterGPSData(positions);
-        for (var i = 0; i < positions.length; i++){
-            if (positions[i].source == "OTHER")
-                continue;
-            var position = positions[i];
-            var pos1 = new google.maps.LatLng(position.position[0],position.position[1]);
-            var addressAt = null;
-            var matchStrength = 0;
-            for (var addressType in digest.addresses){
-                for (var j = 0; j < digest.addresses[addressType].length; j++){
-                    var address = digest.addresses[addressType][j];
-                    var pos2 = new google.maps.LatLng(address.latitude,address.longitude);
-                    var distance = google.maps.geometry.spherical.computeDistanceBetween(pos1,pos2);
-                    var strength = distance - address.radius - position.accuracy;
-                    if (strength < matchStrength){
-                        matchStrength = strength;
-                        addressAt = address;
-                    }
-                }
-            }
-            if (currentCollection == null || currentCollection.address != addressAt){
-                if (currentCollection != null){
-                    currentCollection[currentCollection.length] = position;
-                    mergeCollection(currentCollection);
-                }
-                currentCollection = null;
-                for (var j = 0; currentCollection == null && j < collections.length; j++){
-                    if (collections[j].address == addressAt)
-                        currentCollection = collections[j];
-                }
-                if (currentCollection == null){
-                    currentCollection = [];
-                    currentCollection.address = addressAt;
-                    currentCollection.lastMerge = 0;
-                    collections[collections.length] = currentCollection;
-                }
-            }
-            currentCollection[currentCollection.length] = position;//add to the current collection
-
-        }
-        for (var i = 0; i < collections.length ; i++){
-            mergeCollection(collections[i]);
-            drawCollection(collections[i]);
-        }
 	}
-    function drawCollection(collection){
-        for (var i = 0; i < collection.length; i++){
-            var timeSegment = collection[i];
-            var start  = timeSegment.startMinute;
-            var end = timeSegment.endMinute;
-            var color;
-            switch (collection.address == null ? "null" : collection.address.type){
-                case "ADDRESS_HOME":
-                    color = config.AT_HOME_CATEGORY.color;
-                    break;
-                case "ADDRESS_WORK":
-                    color = config.AT_WORK_CATEGORY.color;
-                    break;
-                default:
-                    color = config.OUTSIDE_CATEGORY.color;
-                    break;
-            }
-            var span = paintSpan(paper, start,(start<=end?end:1440), config.AT_HOME_CATEGORY.orbit, color, 1, config.STROKE_WIDTH, "butt",false);
-            span.node.item = timeSegment;
-            $(span.node).attr("notthide",true);
-            $(span.node).css("cursor", "pointer");
-            $(span.node).click(function(event) {
-                if (typeof(event.offsetX) == "undefined"){
-                    event.offsetX = event.originalEvent.layerX;
-                    event.offsetY = event.originalEvent.layerY;
-                }
-                event.timeTarget = getTimestampForPoint(event.offsetX,event.offsetY);
-                if (event.timeTarget < event.target.item.start)
-                    event.timeTarget = event.target.item.start;
-                if (event.timeTarget > event.target.item.end)
-                    event.timeTarget = event.target.item.end;
-                event.minuteOfDay = getMinuteOfDay(event.timeTarget);
-                showLocationBreakdownInfo(event);
-            });
-
-            if (clockCircleElements[span.node.item.type] == null)
-                clockCircleElements[span.node.item.type] = [];
-            clockCircleElements[span.node.item.type][clockCircleElements[span.node.item.type].length] = span.node;
-            for (var j = 0; j < selectedConnectors.length; j++){
-                var found = false;
-                for (var k = 0; !found && k < selectedConnectors[j].facetTypes.length; k++){
-                    found = span.node.item.type == selectedConnectors[j].facetTypes[k];
-                }
-                if (found){
-                    if (typeof(connectorEnabled[selectedConnectors[i]])!="undefined")
-                        span.node.style.display = connectorEnabled[selectedConnectors[i].connectorName] ? "inline" : "none";
-                    break;
-                }
-            }
-            config.clockCircles.push(span);
-        }
-
-    }
 
     function hideQTipMap(){
         document.getElementById("clockMapContainer").appendChild(document.getElementById("clockMap"));
