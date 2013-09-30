@@ -70,7 +70,7 @@
 	<beans:bean id="successHandler"
 		class="org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler">
 		<beans:property name="defaultTargetUrl" value="/checkIn" />
-		<beans:property name="alwaysUseDefaultTargetUrl" value="false" />
+		<beans:property name="alwaysUseDefaultTargetUrl" value="true" />
         <beans:property name="requestCache" ref="requestCache"/>
 	</beans:bean>
 

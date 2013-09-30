@@ -71,11 +71,15 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
 
     @Override
     public ConnectorInfo getConnectorInfo(final String connectorName) {
+        List<ConnectorInfo> all = JPAUtils.find(em, ConnectorInfo.class, "connectors.all", (Object[])null);
+        if (all.size() == 0) {
+            initializeConnectorList();
+        }
         final ConnectorInfo connectorInfo = JPAUtils.findUnique(em, ConnectorInfo.class, "connector.byName", connectorName);
         return connectorInfo;
     }
 
-    private void initializeConnectorList() throws Exception {
+    private void initializeConnectorList() {
 		ResourceBundle res = ResourceBundle.getBundle("messages/connectors");
         int order = 0;
 
@@ -86,7 +90,7 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
                                                                    res.getString("facebook"),
                                                                    "/facebook/token",
                                                                    Connector.getConnector("facebook"), order++, facebookKeys!=null,
-                                                                   false, true, facebookKeys);
+                                                                   false, false, facebookKeys);
         em.persist(facebookConnectorInfo);
         final String moves = "Moves";
         String[] movesKeys = checkKeysExist(moves, Arrays.asList("moves.client.id", "moves.client.secret", "moves.validRedirectURL", "foursquare.client.id", "foursquare.client.secret"));
