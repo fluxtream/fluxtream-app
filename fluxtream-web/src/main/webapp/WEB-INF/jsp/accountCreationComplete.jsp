@@ -13,7 +13,7 @@
 			value="<%=request.getAttribute("autoLoginToken")%>"
 		type="text"><br>
 	</form>
-	<script>setTimeout("document.getElementById('hiddenlogin').submit()", 2000)</script>
+	<script>setTimeout("document.getElementById('hiddenlogin').submit()", 100)</script>
 	<a href="javascript:document.getElementById('hiddenlogin').submit()" >continue</a>
 	
 	</div>
