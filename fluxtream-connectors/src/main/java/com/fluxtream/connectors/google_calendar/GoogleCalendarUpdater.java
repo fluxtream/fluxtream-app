@@ -55,7 +55,7 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
         notificationsService.addNotification(updateInfo.getGuestId(), Notification.Type.WARNING,
                                              "Heads Up. This server has recently been upgraded to a version that supports<br>" +
                                              "oauth 2 with Google APIs. Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
-                                             "head to the Google Calendar updater and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
+                                             "scroll to the Google Calendar connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
     }
 
     @Override

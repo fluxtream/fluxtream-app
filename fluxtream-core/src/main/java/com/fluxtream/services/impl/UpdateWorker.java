@@ -10,9 +10,11 @@ import com.fluxtream.connectors.updaters.UpdateResult;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.UpdateWorkerTask;
 import com.fluxtream.domain.UpdateWorkerTask.Status;
+import com.fluxtream.domain.ConnectorInfo;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
+import com.fluxtream.services.SystemService;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +41,9 @@ class UpdateWorker implements Runnable {
 	@Autowired
 	GuestService guestService;
 
+    @Autowired
+    SystemService systemService;
+
 	@Autowired
 	Configuration env;
 
@@ -59,24 +64,50 @@ class UpdateWorker implements Runnable {
 		logger.info(sb.toString());
 
 		ApiKey apiKey = guestService.getApiKey(task.apiKeyId);
-		AbstractUpdater updater = connectorUpdateService.getUpdater(apiKey.getConnector());
+        Connector conn = apiKey.getConnector();
 
-        // TODO: check if this connector type is enabled and supportsSync before calling update.
+        // Check if this connector type is enabled and supportsSync before calling update.
         // If it is disabled and/or does not support sync, don't try to update it.
+        boolean doUpdate = true;
 
-		switch (task.updateType) {
-		case INITIAL_HISTORY_UPDATE:
-			updateDataHistory(apiKey, updater);
-			break;
-		case PUSH_TRIGGERED_UPDATE:
-			pushTriggeredUpdate(apiKey, updater);
-			break;
-        case INCREMENTAL_UPDATE:
-            updateData(apiKey, updater);
-            break;
-        default:
-            logger.warn("module=updateQueue component=worker message=\"UpdateType was not handled (" + task.updateType + ")\"");
-            connectorUpdateService.setUpdateWorkerTaskStatus(task.getId(), Status.FAILED);
+        if (conn!=null) {
+            final ConnectorInfo connectorInfo = systemService.getConnectorInfo(apiKey.getConnector().getName());
+            // Make sure that this connector type supports sync and is enabled in this Fluxtream instance
+            if (!connectorInfo.supportsSync || !connectorInfo.enabled) {
+                doUpdate=false;
+            }
+        }
+        else {
+            doUpdate=false;
+        }
+
+        if(doUpdate) {
+            AbstractUpdater updater = connectorUpdateService.getUpdater(conn);
+            switch (task.updateType) {
+                case INITIAL_HISTORY_UPDATE:
+                    updateDataHistory(apiKey, updater);
+                    break;
+                case PUSH_TRIGGERED_UPDATE:
+                    pushTriggeredUpdate(apiKey, updater);
+                    break;
+                case INCREMENTAL_UPDATE:
+                    updateData(apiKey, updater);
+                    break;
+                default:
+                    logger.warn("module=updateQueue component=worker message=\"UpdateType was not handled (" + task.updateType + ")\"");
+                    connectorUpdateService.setUpdateWorkerTaskStatus(task.getId(), Status.FAILED);
+            }
+        }
+        else {
+            // This connector does not support update so mark the update task as done
+            connectorUpdateService.setUpdateWorkerTaskStatus(task.getId(), Status.DONE);
+
+            StringBuilder sb2 = new StringBuilder("module=updateQueue component=worker")
+                    .append(" guestId=").append(task.getGuestId())
+                    .append(" connector=").append(task.connectorName)
+                    .append(" apiKeyId=").append(task.apiKeyId)
+                    .append(" message=\"Connector does not support sync, skipping update\"");
+    		logger.info(sb2.toString());
         }
 	}
 

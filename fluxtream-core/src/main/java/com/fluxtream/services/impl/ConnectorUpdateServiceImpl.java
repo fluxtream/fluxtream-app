@@ -211,12 +211,15 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
         List<ScheduleResult> scheduleResults = new ArrayList<ScheduleResult>();
         final List<ApiKey> connectors = guestService.getApiKeys(guestId);
         for (ApiKey key : connectors) {
-            final ConnectorInfo connectorInfo = systemService.getConnectorInfo(key.getConnector().getName());
-            if (!connectorInfo.supportsSync||!connectorInfo.enabled)
-                continue;
+            // Make sure the connector is of a type which is still supported.  Otherwise
+            // skip trying to update it.
             if (key!=null && key.getConnector()!=null) {
-                List<ScheduleResult> updateRes = updateConnector(key, force);
-                scheduleResults.addAll(updateRes);
+                final ConnectorInfo connectorInfo = systemService.getConnectorInfo(key.getConnector().getName());
+                // Make sure that this connector type supports sync and is enabled in this Fluxtream instance
+                if (connectorInfo.supportsSync && connectorInfo.enabled) {
+                    List<ScheduleResult> updateRes = updateConnector(key, force);
+                    scheduleResults.addAll(updateRes);
+                }
             }
         }
         return scheduleResults;

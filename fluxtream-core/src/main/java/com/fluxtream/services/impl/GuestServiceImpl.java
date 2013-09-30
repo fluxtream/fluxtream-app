@@ -277,8 +277,20 @@ public class GuestServiceImpl implements GuestService {
 
     @Override
 	public List<ApiKey> getApiKeys(long guestId) {
-        return JPAUtils.find(em, ApiKey.class, "apiKeys.all",
-                guestId);
+        // rawKeys includes all the keys in the apiKeys table for a given guest.
+        // However, it's potentially the case that this could include keys which
+        // do not currently map to valid entries in the Connector table.
+        // We can test for that condition by checking if key.getConnector() returns
+        // null.  Include only the keys which return non-null in goodKeys and return.
+        List<ApiKey> rawKeys = JPAUtils.find(em, ApiKey.class, "apiKeys.all",
+                    guestId);
+        List<ApiKey> goodKeys = new ArrayList<ApiKey>();
+        for (ApiKey key : rawKeys){
+            if(key.getConnector()!=null) {
+                goodKeys.add(key);
+            }
+        }
+        return(goodKeys);
 	}
 
 	@Override
