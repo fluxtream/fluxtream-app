@@ -76,8 +76,9 @@ public class AppController {
         String release = env.get("release");
         if (release != null)
             mav.addObject("release", release);
-        if (env.get("facebook.appId")!=null) {
-            mav.addObject("facebookAppId", env.get("facebook.appId"));
+        final String facebookAppId = env.get("facebook.appId");
+        if (facebookAppId !=null&&!facebookAppId.equals("xxx")) {
+            mav.addObject("facebookAppId", facebookAppId);
             mav.addObject("supportsFBLogin", true);
         } else
             mav.addObject("supportsFBLogin", false);
