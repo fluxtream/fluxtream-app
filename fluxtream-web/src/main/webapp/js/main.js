@@ -3,10 +3,10 @@ require.config({
 });
 
 require(['App', 'Connectors'], function(App, Connectors) {
-	//document.body.onselectstart = function(event) { if ((event.target || event.srcElement).nodeName !== 'INPUT') return false; };
-	//document.body.style.MozUserSelect = "none";
-	//document.body.style.KhtmlUserSelect = "none";
-	//document.body.unselectable = "on";
+	document.body.onselectstart = function(event) { if ((event.target || event.srcElement).nodeName !== 'INPUT') return false; };
+	document.body.style.MozUserSelect = "none";
+	document.body.style.KhtmlUserSelect = "none";
+	document.body.unselectable = "on";
 	App.initialize();
     setAvatarImage();
 });
