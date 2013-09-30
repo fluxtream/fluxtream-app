@@ -5,8 +5,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+//import java.nio.file.Path;
+//import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -91,9 +91,12 @@ public class BodyTrackHelper {
     private DataStoreExecutionResult executeDataStore(String commandName, Object[] parameters){
         try{
             Runtime rt = Runtime.getRuntime();
-            Path commandPath= Paths.get(env.targetEnvironmentProps.getString("btdatastore.exec.location"));
-            Path launchExecutable = commandPath.resolve(commandName);
-            String launchCommand = launchExecutable.toString()+ " " + env.targetEnvironmentProps.getString("btdatastore.db.location");
+	    String launchCommand = env.targetEnvironmentProps.getString("btdatastore.exec.location") + "/" + commandName + " " +
+		                   env.targetEnvironmentProps.getString("btdatastore.db.location");
+
+	    //            Path commandPath= Paths.get(env.targetEnvironmentProps.getString("btdatastore.exec.location"));
+	    //            Path launchExecutable = commandPath.resolve(commandName);
+	    //            String launchCommand = launchExecutable.toString()+ " " + env.targetEnvironmentProps.getString("btdatastore.db.location");
             for (Object param : parameters){
                 launchCommand += ' ';
                 String part = param.toString();
@@ -300,7 +303,7 @@ public class BodyTrackHelper {
             }
 
             // create the respone
-            response = new SourcesResponse(infoResponse, coachee);
+            response = new SourcesResponse(infoResponse, guestId, coachee);
 
             //TODO: this is a hack to prevent double flickr photo channel showing up
             response.deleteSource("Flickr");
@@ -369,7 +372,7 @@ public class BodyTrackHelper {
 
             logger.error(sb.toString());
 
-            return gson.toJson(new SourcesResponse(null, coachee));
+            return gson.toJson(new SourcesResponse(null, guestId, coachee));
         }
     }
 
@@ -726,7 +729,7 @@ public class BodyTrackHelper {
     public class SourcesResponse {
         public ArrayList<Source> sources;
 
-        public SourcesResponse(ChannelInfoResponse infoResponse, CoachingBuddy coachee){
+        public SourcesResponse(ChannelInfoResponse infoResponse, Long guestId, CoachingBuddy coachee){
             sources = new ArrayList<Source>();
             if (infoResponse == null)
                 return;
@@ -753,7 +756,26 @@ public class BodyTrackHelper {
                         source.channels = new ArrayList<Channel>();
                         sources.add(source);
                     }
-                    source.channels.add(new Channel(objectTypeName,specs));
+
+                    Channel newChannel = new Channel(objectTypeName,specs);
+
+                    // Setup style settings
+                    newChannel.builtin_default_style = getDefaultStyle(guestId,source.name,newChannel.name);
+                    newChannel.style = newChannel.builtin_default_style;
+                    if (newChannel.style == null) newChannel.style = new ChannelStyle();
+
+                    ChannelStyle userStyle = getDefaultStyle(guestId,source.name,newChannel.name);
+                    if (userStyle != null)
+                        newChannel.style = userStyle;
+
+                    // Temporary hack: Until generic support is available for time_type, special case
+                    // devices named 'Zeo', 'Fitbit', or 'Flickr' to use time_type="local"
+                    if(source.name.equals("Zeo") || source.name.equals("Fitbit")  || source.name.equals("Flickr")) {
+                        newChannel.time_type="local";
+                    }
+
+                    // Add channel to source's channel list
+                    source.channels.add(newChannel);
                 }
             }
 
