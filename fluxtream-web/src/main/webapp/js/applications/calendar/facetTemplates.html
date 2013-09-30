@@ -620,7 +620,7 @@
             <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
                 <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
-                <div class="flx-tTime">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</div>
+                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</a></div>
                 {{#activities}}
                 <div class="flx-data">
                     {{activity}}
@@ -670,7 +670,7 @@
         <div class="facetDetails {{parentType}}-{{parentId}}" facettype="{{parentType}}" itemid="{{parentId}}">
             <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
             <div class="flx-data">{{activity}}{{#distance}} ({{distance}}){{/distance}}</div>
-            <div class="flx-tTime">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</div>
+            <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</a></div>
             {{#steps}}{{steps}} steps{{/steps}}{{^steps}}<br>{{/steps}}
             <div class="commentWarning hidden"><strong>Heads Up!</strong> This facet's comment is for moves data spanning {{#parentStartTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/parentStartTime}} - {{#parentEndTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/parentEndTime}}</div>
             {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
