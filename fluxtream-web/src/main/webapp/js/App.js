@@ -776,7 +776,7 @@ define(
                     container: "body",
                     placement: "bottom",
                     title: "Click here to add your first Connector!",
-                    content: "Connectors lets Fluxtream link up your data",
+                    content: "Connectors let Fluxtream link up your data",
                     animation: true
                 });
                 $("#connectorsDropdownToggle").popover("show");
@@ -786,15 +786,15 @@ define(
             var messages = [
                 {
                     element     : "bodytrackMenuButton",
-                    title       : "This is the Timeline Application",
-                    content     : "It lets you explore your data in a zoomable timeline, load and save different views,...",
+                    title       : "This is the BodyTrack Application",
+                    content     : "It lets you explore your data in a zoomable timeline, load and save different views.",
                     placement   : "bottom"
                 },{
                     element     : "calendarMenuButton",
                     title       : "This is the Calendar application",
                     content     : "This app gives you different aggregated views of your data: as a clock, a list, a map " +
                                   "or a photo gallery. It also provides a timeline, but it only shows the default channels " +
-                                  "for each connector and doesn't let you load and save views like the timeline app.",
+                                  "for each connector and doesn't let you load and save views like the BodyTrack app.",
                     placement   : "bottom"
                 }
             ];
