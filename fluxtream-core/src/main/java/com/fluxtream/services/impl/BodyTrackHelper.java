@@ -324,10 +324,13 @@ public class BodyTrackHelper {
                 channel.time_type = mapping.timeType.name();
                 source.channels.add(channel);
 
-                channel.builtin_default_style = getDefaultStyle(guestId,source.name,channel.name);
+                // Set builtin default style and style to a line by default
+                channel.builtin_default_style = ChannelStyle.getDefaultChannelStyle(channel.name);
                 channel.style = channel.builtin_default_style;
-                if (channel.style == null) channel.style = new ChannelStyle();
 
+                // getDefaultStyle checks for user-generated overrides in the database.
+                // If it returns non-null we set style to the user-generated value, otherwise we leave
+                // it as the builtin default
                 ChannelStyle userStyle = getDefaultStyle(guestId,source.name,channel.name);
                 if (userStyle != null)
                     channel.style = userStyle;
@@ -759,11 +762,9 @@ public class BodyTrackHelper {
 
                     Channel newChannel = new Channel(objectTypeName,specs);
 
-                    // Setup style settings
-                    newChannel.builtin_default_style = getDefaultStyle(guestId,source.name,newChannel.name);
-                    newChannel.style = newChannel.builtin_default_style;
-                    if (newChannel.style == null) newChannel.style = new ChannelStyle();
-
+                    // Setup style settings.  The Channel constructor sets builtin_default_style
+                    // and style to default line settings.  getDefaultStyle checks for user-generated overrides
+                    // in the database.  If it returns non-null we set style to the user-generated value.
                     ChannelStyle userStyle = getDefaultStyle(guestId,source.name,newChannel.name);
                     if (userStyle != null)
                         newChannel.style = userStyle;
