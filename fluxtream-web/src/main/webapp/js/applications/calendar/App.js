@@ -839,7 +839,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             '<li><a class="mapLink" href="javascript:void(0)">Show on Map</a></li>' +
                 '<li><a class="listLink" href="javascript:void(0)">Show in List</a></li>' +
             '<li><a class="timelineLink" href="javascript:void(0)">Show on Timeline</a></li>' +
-                '<li><a class="bodytrackLink" href="javascript:void(0)">Show in Bodytrack</a></li>' +
+                //'<li><a class="bodytrackLink" href="javascript:void(0)">Show in Bodytrack</a></li>' +
             '</ul>');
 
             var config = App.getFacetConfig(facet.type);
