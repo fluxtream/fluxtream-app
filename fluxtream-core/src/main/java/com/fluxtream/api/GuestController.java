@@ -15,8 +15,10 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.Configuration;
 import com.fluxtream.auth.AuthHelper;
+import com.fluxtream.auth.CoachRevokedException;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.CoachingBuddy;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.mvc.models.guest.GuestModel;
@@ -75,6 +77,12 @@ public class GuestController {
         JSONObject json = new JSONObject();
         String type = "none";
         String url;
+        try {
+            final CoachingBuddy coachee = AuthHelper.getCoachee();
+            if (coachee!=null)
+                guest = guestService.getGuestById(coachee.guestId);
+        }
+        catch (CoachRevokedException e) {}
         if (guest.registrationMethod == Guest.RegistrationMethod.REGISTRATION_METHOD_FACEBOOK||
             guest.registrationMethod == Guest.RegistrationMethod.REGISTRATION_METHOD_FACEBOOK_WITH_PASSWORD) {
             url = getFacebookAvatarImageURL(guest);

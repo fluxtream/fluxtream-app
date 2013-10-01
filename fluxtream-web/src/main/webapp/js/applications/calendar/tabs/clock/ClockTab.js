@@ -219,22 +219,14 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		for (i = 0; i < items.length; i++) {
 			try {
 				var item = items[i];
+                if (item.type==="google_calendar-entry"&&item.allDay)
+                    continue;
                 var color = getItemColor(item);
                 var strokeWidth = getStrokeWidth(item);
                 var strokeCap = getStrokeCap(item);
                 var outline = App.getFacetConfig(item.type).clockOutline;
                 var dayStart = dgst.metadata.mainCity.dayStart;
                 var dayEnd = dgst.metadata.mainCity.dayEnd;
-
-                if (item.type=="fitbit-sleep") {
-                    console.log("dayStart:" + new Date(dayStart));
-                    console.log("dayEnd:" + new Date(dayEnd));
-                    console.log("item.start:" + new Date(item.start));
-                    console.log("item.end:" + new Date(item.end));
-                    console.log("is item.start less then dayStart: " + (item.start <= dayStart));
-                    console.log("is item.end greater then dayEnd: " + (item.end >= dayEnd));
-                    console.log(item);
-                }
 
                 if (typeof(item.localTime)!="undefined"&&item.localTime) {
                     if (item.startMinute>item.endMinute)
@@ -260,7 +252,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 						if (instantaneous){
                             end = start+instantWidth;
                         }
-                        span = paintSpan(paper, start,/*(start<=end?end:1440)*/ end, orbit, color, .9, strokeWidth, strokeCap,outline);
+                        span = paintSpan(paper, start, end, orbit, color, .9, strokeWidth, strokeCap,outline);
 						span.node.item = item;
                         $(span.node).attr("class", item.type + "-" + item.id + " facet");
                         $(span.node).attr("notthide",true);
