@@ -59,7 +59,7 @@ public class BodymediaController {
         if (request.getParameter("apiKeyId") != null)
             oauthCallback += "?apiKeyId=" + request.getParameter("apiKeyId");
 
-		String apiKey = env.get("bodymediaConsumerKey");
+        String apiKey = env.get("bodymediaConsumerKey");
 		OAuthConsumer consumer = new DefaultOAuthConsumer(
 				apiKey,
 				env.get("bodymediaConsumerSecret"));
@@ -126,6 +126,12 @@ public class BodymediaController {
         guestService.setApiKeyAttribute(apiKey,
                 "tokenExpiration", provider.getResponseParameters().get("xoauth_token_expiration_time").first());
 
+        // Store the OAuth server keys used for the token upgrade, which are the ones currently in oauth.properties
+        // into ApiKeyAttributes.  The values in oauth.properties may change over time, so we need to preserve
+        // the values used for the token creation with the ApiKey itself.
+        guestService.setApiKeyAttribute(apiKey, "bodymediaConsumerKey", env.get("bodymediaConsumerKey"));
+        guestService.setApiKeyAttribute(apiKey, "bodymediaConsumerSecret", env.get("bodymediaConsumerSecret"));
+
         request.getSession().removeAttribute(BODYMEDIA_OAUTH_CONSUMER);
         request.getSession().removeAttribute(BODYMEDIA_OAUTH_PROVIDER);
 
@@ -157,24 +163,22 @@ public class BodymediaController {
 
         // We're not on a mirrored test server.  Try to swap the expired
         // access token for a fresh one.
-        String apiKey = guestService.getApiKeyAttribute(updateInfo.apiKey, "api_key");
 
-        // The api_key attribute will be the same as the env.get("bodymediaConsumerKey"), so
-        // in the case where apiKey is null default to the value from properties
-        if(apiKey==null) {
-            apiKey = env.get("bodymediaConsumerKey");
-        }
+        // First, retrieve the OAuth server keys used when this key was created.  These are automatically stored
+        // in the ApiKeyAttribute table at the time of creation based on the values present in
+        // oauth.properties.
+        String bodymediaConsumerKey = guestService.getApiKeyAttribute(updateInfo.apiKey, "bodymediaConsumerKey");
+        String bodymediaConsumerSecret = guestService.getApiKeyAttribute(updateInfo.apiKey, "bodymediaConsumerSecret");
 
-        // TODO: If apiKey is still null, we should report to the user since it means this instance isn't
-        // properly configured with OAuth host keys for BodyMedia
         OAuthConsumer consumer = new DefaultOAuthConsumer(
-                apiKey,
-                env.get("bodymediaConsumerSecret"));
+                bodymediaConsumerKey,
+                bodymediaConsumerSecret);
+
         String accessToken = guestService.getApiKeyAttribute(updateInfo.apiKey, "accessToken");
         consumer.setTokenWithSecret(accessToken,
                 guestService.getApiKeyAttribute(updateInfo.apiKey, "tokenSecret"));
         HttpParameters additionalParameter = new HttpParameters();
-        additionalParameter.put("api_key", apiKey);
+        additionalParameter.put("api_key", bodymediaConsumerKey);
         additionalParameter.put("oauth_token",
                                 accessToken);
         consumer.setAdditionalParameters(additionalParameter);
@@ -182,14 +186,12 @@ public class BodymediaController {
         HttpClient httpClient = env.getHttpClient();
 
         OAuthProvider provider = new CommonsHttpOAuthProvider(
-                "https://api.bodymedia.com/oauth/request_token?api_key="+apiKey,
-                "https://api.bodymedia.com/oauth/access_token?api_key="+apiKey,
-                "https://api.bodymedia.com/oauth/authorize?api_key="+apiKey, httpClient);
+                "https://api.bodymedia.com/oauth/request_token?api_key="+bodymediaConsumerKey,
+                "https://api.bodymedia.com/oauth/access_token?api_key="+bodymediaConsumerKey,
+                "https://api.bodymedia.com/oauth/authorize?api_key="+bodymediaConsumerKey, httpClient);
 
         provider.retrieveAccessToken(consumer, null);
 
-        guestService.setApiKeyAttribute(updateInfo.apiKey,
-                                        "api_key", env.get("bodymediaConsumerKey"));
         guestService.setApiKeyAttribute(updateInfo.apiKey,
                                         "accessToken", consumer.getToken());
         guestService.setApiKeyAttribute(updateInfo.apiKey,
