@@ -212,7 +212,6 @@ define(["core/grapher/BTCore",
         BodyTrack.SOURCES.getAvailableList(function(sources){
             var source = null;
             for (var i = 0; i < sources.length; i++){
-                console.log("source.name: " + sources[i].name + " <-> " + connector.name);
                 if (sources[i].name == connector.name){
                     source = sources[i];
                     break;
@@ -224,8 +223,6 @@ define(["core/grapher/BTCore",
                     displayName: source.name + "." + source.channels[i].name
                 };
             }
-            console.log("channelNames");
-            console.log(channelNames);
             App.loadMustacheTemplate("connectorMgmtTemplates.html","settings",function(template){
                 var config = App.getConnectorConfig(connector.connectorName);
                 config.hasTimelineSettings = typeof(config.hasTimelineSettings)!="undefined"&&config.hasTimelineSettings;
@@ -237,21 +234,21 @@ define(["core/grapher/BTCore",
                 }));
                 if (config.hasGeneralSettings) {
                     $("#generalSettingsLink").click(function(){
-                        showGeneralSettings(connector);
+                        showGeneralSettings(connector, source);
                         $("#generalSettingsLink").parent().toggleClass("active");
                         $("#timelineSettingsLink").parent().toggleClass("active");
                     });
-                    showGeneralSettings(connector);
+                    showGeneralSettings(connector, source);
                     $("#generalSettingsLink").parent().toggleClass("active");
                 }
                 if (config.hasTimelineSettings) {
                     $("#timelineSettingsLink").click(function(){
-                        showTimelineSettings(connector, channelNames);
+                        showTimelineSettings(connector, channelNames, source);
                         $("#generalSettingsLink").parent().toggleClass("active");
                         $("#timelineSettingsLink").parent().toggleClass("active");
                     });
                     if (!config.hasGeneralSettings) {
-                        showTimelineSettings(connector, channelNames);
+                        showTimelineSettings(connector, channelNames, source);
                         $("#timelineSettingsLink").parent().toggleClass("active");
                     }
                 }
@@ -259,8 +256,8 @@ define(["core/grapher/BTCore",
         });
     }
 
-    function showTimelineSettings(connector, channelNames) {
-        console.log("we should show timeline settings");
+    function showTimelineSettings(connector, channelNames, source) {
+        console.log(connector.channels);
         App.loadMustacheTemplate("connectorMgmtTemplates.html","channel-settings",function(template){
             var settingsHtml = template.render({
                 connectorName:connector.connectorName,
@@ -281,12 +278,15 @@ define(["core/grapher/BTCore",
 
             $("#" + connector.connectorName + "SettingsDialog input").click(function(event){
                 var channelList = "";
+                connector.channels = [];
                 for (var i = 0; source != null && i < source.channels.length; i++){
                     if ($("#" + source.name + source.channels[i].name + "-checkbox")[0].checked){
+                        connector.channels.push(source.name + "." + source.channels[i].name);
                         if (channelList == "")
                             channelList = source.name + "." + source.channels[i].name;
-                        else
+                        else {
                             channelList += "," + source.name + "." + source.channels[i].name;
+                        }
                     }
                 }
                 $.ajax({
@@ -300,7 +300,7 @@ define(["core/grapher/BTCore",
 
     }
 
-    function showGeneralSettings(connector) {
+    function showGeneralSettings(connector, source) {
         App.loadMustacheTemplate("connectorMgmtTemplates.html",connector.connectorName + "-settings",function(template){
             var settingsHandler = settingsHandlers[connector.connectorName];
             settingsHandler.loadSettings(connector.apiKeyId, connector, template);

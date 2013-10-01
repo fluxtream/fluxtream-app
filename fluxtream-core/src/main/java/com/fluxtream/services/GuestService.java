@@ -73,6 +73,8 @@ public interface GuestService {
 
 	public void saveUserProfile(long guestId, AbstractUserProfile userProfile);
 
+    public void setApiKeySettings(long apiKeyId, Object settings);
+
 	public ResetPasswordToken getToken(String token);
 
 	public ResetPasswordToken createToken(long guestId);

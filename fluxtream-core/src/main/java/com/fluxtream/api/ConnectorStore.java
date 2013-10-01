@@ -110,7 +110,7 @@ public class ConnectorStore {
     @Path("/settings/{apiKeyId}")
     @Produces({MediaType.APPLICATION_JSON})
     public StatusModel saveConnectorSettings(@PathParam("apiKeyId") long apiKeyId,
-                                        @FormParam("json") String json) {
+                                             @FormParam("json") String json) {
         final ApiKey apiKey = guestService.getApiKey(apiKeyId);
         final long guestId = AuthHelper.getGuestId();
         try {

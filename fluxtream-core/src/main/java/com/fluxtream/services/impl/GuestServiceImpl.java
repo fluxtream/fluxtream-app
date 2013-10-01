@@ -482,7 +482,15 @@ public class GuestServiceImpl implements GuestService {
 		em.persist(userProfile);
 	}
 
-	@Override
+    @Override
+    @Transactional(readOnly=false)
+    public void setApiKeySettings(final long apiKeyId, final Object settings) {
+        ApiKey apiKey = getApiKey(apiKeyId);
+        apiKey.setSettings(settings);
+        em.persist(apiKey);
+    }
+
+    @Override
 	public <T extends AbstractUserProfile> T getUserProfile(long guestId,
 			Class<T> clazz) {
 		CriteriaBuilder qb = em.getCriteriaBuilder();
