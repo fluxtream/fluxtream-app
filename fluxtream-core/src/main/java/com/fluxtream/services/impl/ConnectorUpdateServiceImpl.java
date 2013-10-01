@@ -216,7 +216,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
             if (key!=null && key.getConnector()!=null) {
                 final ConnectorInfo connectorInfo = systemService.getConnectorInfo(key.getConnector().getName());
                 // Make sure that this connector type supports sync and is enabled in this Fluxtream instance
-                if (connectorInfo.supportsSync && connectorInfo.enabled) {
+                if (connectorInfo.supportsSync && connectorInfo.enabled && key.getStatus()!=ApiKey.Status.STATUS_PERMANENT_FAILURE) {
                     List<ScheduleResult> updateRes = updateConnector(key, force);
                     scheduleResults.addAll(updateRes);
                 }
