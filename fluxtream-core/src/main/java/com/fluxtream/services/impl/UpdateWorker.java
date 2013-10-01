@@ -254,7 +254,7 @@ class UpdateWorker implements Runnable {
                 .append(" connector=").append(task.connectorName)
                 .append(" objectType=").append(task.objectTypes);
 		logger.info(stringBuilder.toString());
-        guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, auditTrailEntry.stackTrace);
+        guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_TRANSIENT_FAILURE, auditTrailEntry.stackTrace);
 		// re-schedule when we are below rate limit again
 		connectorUpdateService.reScheduleUpdateTask(task.getId(), System.currentTimeMillis() + getLongRetryDelay(apiKey.getConnector()),
                                                     false, auditTrailEntry);
