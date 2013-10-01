@@ -219,6 +219,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		for (i = 0; i < items.length; i++) {
 			try {
 				var item = items[i];
+                if (item.type==="google_calendar-entry"&&item.allDay)
+                    continue;
                 var color = getItemColor(item);
                 var strokeWidth = getStrokeWidth(item);
                 var strokeCap = getStrokeCap(item);
