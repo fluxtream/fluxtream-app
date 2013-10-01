@@ -35,6 +35,7 @@ public class MovesActivityVO {
     public TimeOfDayVO startTime, endTime;
     public String date;
     public final String type = "moves-move-activity";
+    public long start, end;
 
     public MovesActivityVO(MovesActivity activity, TimeZone timeZone,
                            long dateStart, long dateEnd,
@@ -42,6 +43,8 @@ public class MovesActivityVO {
         this.activity = activityDict.get(activity.activity);
         this.activityCode = activity.activity;
         this.date = activity.date;
+        this.start = activity.start;
+        this.end = activity.end;
 
         // Potentially trucate to fit within the date
         long truncStartMilli = activity.start;
