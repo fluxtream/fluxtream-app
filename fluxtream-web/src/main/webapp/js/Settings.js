@@ -1,7 +1,6 @@
 define(function() {
 
     function show(){
-        var mainSettingsTemplate;
         $.ajax("/api/settings",{
             success:function(settings){
                 App.loadAllMustacheTemplates("settingsTemplates.html",function(){
