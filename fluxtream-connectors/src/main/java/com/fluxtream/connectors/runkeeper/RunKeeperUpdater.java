@@ -1,6 +1,7 @@
 package com.fluxtream.connectors.runkeeper;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.TimeZone;
 import com.fluxtream.connectors.Connector;
@@ -91,6 +92,7 @@ public class RunKeeperUpdater  extends AbstractUpdater {
             countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, request.getCompleteUrl());
 
             getFitnessActivityFeed(updateInfo, service, token, activityFeedURL, 25, activities, since);
+            Collections.reverse(activities);
             getFitnessActivities(updateInfo, service, token, activities);
         } else {
             final RuntimeException e = new RuntimeException("Unexpected response code retrieving RK user object: " + response.getCode());
@@ -104,6 +106,8 @@ public class RunKeeperUpdater  extends AbstractUpdater {
     private void getFitnessActivities(final UpdateInfo updateInfo, final OAuthService service,
                                       final Token token, final List<String> activities) throws Exception {
         for (String activity : activities) {
+            if (guestService.getApiKey(updateInfo.apiKey.getId())==null)
+                break;
             String activityURL = DEFAULT_ENDPOINT + activity;
             OAuthRequest request = new OAuthRequest(Verb.GET, activityURL);
             request.addQuerystringParameter("oauth_token", token.getToken());
@@ -154,6 +158,7 @@ public class RunKeeperUpdater  extends AbstractUpdater {
                             // we need to know the user's location in order to figure out
                             // his timezone
                             final String start_time = jsonObject.getString("start_time");
+                            System.out.println("runkeeper activity start time: " + start_time + " (should be ascending)");
                             final TimeZone timeZone = metadataService.getTimeZone(locationFacet.latitude, locationFacet.longitude);
                             facet.start = timeFormatter.withZone(DateTimeZone.forTimeZone(timeZone)).parseMillis(start_time);
                             facet.timeZone = timeZone.getID();
@@ -221,7 +226,7 @@ public class RunKeeperUpdater  extends AbstractUpdater {
      * <code>yyyy-MM-DD</code> format, which obviously limits the boundary limits granularity to a day. Additionally, it is unclear
      * what timezone is used to filter the dataset (is it GMT, that is then converted to the local time, or is the
      * parameter given in local time?). Consequently, we use the <code>noEarlierThan</code> parameter with a one day padding and
-     * further filter the dataset using the list of activity that we already have data for (<code>uriList</code>).
+     * further filter the dataset using the list of activity that we already have data for (<code>activityIsAlreadyStored()</code>).
      * @param updateInfo
      * @param service
      * @param token

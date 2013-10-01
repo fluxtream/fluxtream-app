@@ -317,10 +317,12 @@ public class GuestServiceImpl implements GuestService {
     @Transactional(readOnly=false)
     public void setApiKeyStatus(final long apiKeyId, final ApiKey.Status status, final String stackTrace) {
         final ApiKey apiKey = getApiKey(apiKeyId);
-        apiKey.status = status;
-        if (stackTrace!=null)
-            apiKey.stackTrace = stackTrace;
-        em.persist(apiKey);
+        if (apiKey!=null) {
+            apiKey.status = status;
+            if (stackTrace!=null)
+                apiKey.stackTrace = stackTrace;
+            em.persist(apiKey);
+        }
     }
 
     @Override
