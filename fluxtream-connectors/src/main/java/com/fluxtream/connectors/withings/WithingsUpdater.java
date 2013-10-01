@@ -39,9 +39,9 @@ public class WithingsUpdater extends AbstractUpdater {
 
         String url = "http://wbsapi.withings.net/measure?action=getmeas";
         url += "&userid="
-               + updateInfo.apiKey.getAttributeValue("userid", env);
+               + guestService.getApiKeyAttribute(updateInfo.apiKey,"userid");
         url += "&publickey="
-               + updateInfo.apiKey.getAttributeValue("publickey", env);
+               + guestService.getApiKeyAttribute(updateInfo.apiKey,"publickey");
         url += "&startdate=0";
         url += "&enddate=" + System.currentTimeMillis() / 1000;
 
@@ -76,9 +76,9 @@ public class WithingsUpdater extends AbstractUpdater {
         long lastMeasurement = Math.max(lastBodyscaleMeasurement, lastBloodPresseureMeasurement);
 
         String url = "http://wbsapi.withings.net/measure?action=getmeas";
-        url += "&userid=" + updateInfo.apiKey.getAttributeValue("userid", env);
+        url += "&userid=" + guestService.getApiKeyAttribute(updateInfo.apiKey,"userid");
         url += "&publickey="
-               + updateInfo.apiKey.getAttributeValue("publickey", env);
+               + guestService.getApiKeyAttribute(updateInfo.apiKey,"publickey");
         url += "&startdate=" + lastMeasurement / 1000;
         url += "&enddate=" + System.currentTimeMillis() / 1000;
 

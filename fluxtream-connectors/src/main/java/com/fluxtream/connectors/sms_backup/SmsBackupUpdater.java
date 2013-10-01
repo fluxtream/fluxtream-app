@@ -63,8 +63,8 @@ public class SmsBackupUpdater extends AbstractUpdater {
 
 	@Override
 	public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
-        String email = updateInfo.apiKey.getAttributeValue("username", env);
-        String password = updateInfo.apiKey.getAttributeValue("password", env);
+        String email = guestService.getApiKeyAttribute(updateInfo.apiKey, "username");
+        String password = guestService.getApiKeyAttribute(updateInfo.apiKey,"password");
         for (ObjectType type : updateInfo.objectTypes()){
             Date since = getStartDate(updateInfo, type);
             if (type.name().equals("call_log")){

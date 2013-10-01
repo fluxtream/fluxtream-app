@@ -23,7 +23,7 @@ public class InstagramUpdater extends AbstractUpdater {
 	
 	@Override
 	public void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception {
-		String accessToken = updateInfo.apiKey.getAttributeValue("accessToken", env);
+		String accessToken = guestService.getApiKeyAttribute(updateInfo.apiKey, "accessToken");
 		
 		String feedUrl =
 				"https://api.instagram.com/v1/users/self/feed?access_token=" + accessToken;

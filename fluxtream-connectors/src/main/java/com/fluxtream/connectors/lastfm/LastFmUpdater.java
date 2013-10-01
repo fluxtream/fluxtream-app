@@ -80,7 +80,7 @@ public class LastFmUpdater extends AbstractUpdater {
 
     private JSONObject getTracks(UpdateInfo updateInfo, long from, long to, int page, String tracksType) throws Exception {
         String api_key = guestService.getApiKeyAttribute(updateInfo.apiKey, "lastfmConsumerKey");
-        String username = updateInfo.apiKey.getAttributeValue("username", env);
+        String username = guestService.getApiKeyAttribute(updateInfo.apiKey, "username");
         long then = System.currentTimeMillis();
 
         String query = String.format("http://ws.audioscrobbler.com/2.0/?method=user.get%s&user=%s&from=%s&to=%s&api_key=%s&limit=%s&format=%s&page=%s",

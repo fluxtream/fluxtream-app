@@ -158,7 +158,7 @@ public class BodymediaUpdater extends AbstractUpdater implements Autonomous {
                 String startPeriod = current.toString(formatter);
                 String endPeriod = current.plusDays(increment - 1).toString(formatter);
                 String minutesUrl = "http://api.bodymedia.com/v2/json/" + urlExtension + startPeriod + "/" + endPeriod +
-                                    "?api_key=" + updateInfo.apiKey.getAttributeValue("api_key", env);
+                                    "?api_key=" + guestService.getApiKeyAttribute(updateInfo.apiKey,"bodymediaConsumerKey");
                 //The following call may fail due to bodymedia's api. That is expected behavior
                 enforceRateLimits();
                 String json = signpostHelper.makeRestCall(updateInfo.apiKey, ot.value(), minutesUrl);
@@ -458,8 +458,8 @@ public class BodymediaUpdater extends AbstractUpdater implements Autonomous {
 
         OAuthConsumer consumer = new CommonsHttpOAuthConsumer(api_key, bodymediaConsumerSecret);
 
-        String accessToken = apiKey.getAttributeValue("accessToken", env);
-        String tokenSecret = apiKey.getAttributeValue("tokenSecret", env);
+        String accessToken = guestService.getApiKeyAttribute(apiKey,"accessToken");
+        String tokenSecret = guestService.getApiKeyAttribute(apiKey,"tokenSecret");
 
         consumer.setTokenWithSecret(accessToken, tokenSecret);
         return consumer;
