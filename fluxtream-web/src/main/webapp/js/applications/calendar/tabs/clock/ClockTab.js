@@ -252,7 +252,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 						if (instantaneous){
                             end = start+instantWidth;
                         }
-                        span = paintSpan(paper, start, end, orbit, color, .9, strokeWidth, strokeCap,outline);
+                        span = paintSpan(paper, start, end, orbit, color, .9, strokeWidth, strokeCap, outline);
 						span.node.item = item;
                         $(span.node).attr("class", item.type + "-" + item.id + " facet");
                         $(span.node).attr("notthide",true);
@@ -426,19 +426,6 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         ttpdiv.css("zIndex","100");
         var tail = ttpdiv.find(".flx-toolTipTail-" + orientation);
         parent.append(ttpdiv);
-
-        // WIP: have the map take all the available space when there is no weather info
-        //if (weatherInfo==null) {
-        //    $(".flx-toolTipWeather").hide();
-        //    $(".flx-toolTipLocation").css("width", "400px");
-        //    $("#clockMapContainer").css("width", "400px");
-        //    $("#clockMap").css("width", "400px");
-        //} else {
-        //    $(".flx-toolTipWeather").show();
-        //    $(".flx-toolTipLocation").css("width", "50%");
-        //    $("#clockMapContainer").css("width", "200px");
-        //    $("#clockMap").css("width", "200px");
-        //}
 
         var repositionTooltip = function(){
             var displayX = x;
@@ -617,8 +604,9 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 	}
 	
 	function paintSpan(paper, startTime, endTime, radius, color, opacity, strokeWidth, strokeCap, outline) {
-        if (outline){
-            paintSpan(paper,startTime,endTime,radius,"black",1,strokeWidth,strokeCap,false);
+        var shadow;
+        if (outline) {
+            shadow = paintSpan(paper,startTime,endTime,radius,"black",1,strokeWidth,strokeCap,false);
             strokeWidth -= 1;
         }
         var degreesPerPixel = 360 / (Math.PI * 2 * radius);
@@ -632,6 +620,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		path.attr("stroke-width", strokeWidth);
 		path.attr("stroke", color);
 		path.attr("opacity", opacity);
+        if (outline)
+            path.node.outline = shadow;
 		return path;
 	}
 
@@ -662,13 +652,23 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
     }
 
     function connectorToggled(connectorName,objectTypeNames,enabled){
-        for (var i = 0; i < objectTypeNames.length; i++){
-            if (clockCircleElements[objectTypeNames[i]] == null)
-                continue;
-            for (var j = 0; j < clockCircleElements[objectTypeNames[i]].length; j++)
-                clockCircleElements[objectTypeNames[i]][j].style.display = enabled ? "inline" : "none";
-        }
+        for (var i = 0; i < objectTypeNames.length; i++)
+            toggleConnectorObjectType(objectTypeNames[i], enabled);
+        if (connectorName==="moves")
+            toggleConnectorObjectType("moves-move-activity", enabled);
         updateDataDisplay(dgst.cachedData["google_latitude-location"], "google_latitude-location", dgst);
+    }
+
+    function toggleConnectorObjectType(objectTypeName, enabled) {
+        if (clockCircleElements[objectTypeName] == null)
+            return;
+        for (var j = 0; j < clockCircleElements[objectTypeName].length; j++) {
+            clockCircleElements[objectTypeName][j].style.display = enabled ? "inline" : "none";
+            if (typeof (clockCircleElements[objectTypeName][j].outline)!="undefined") {
+                console.log("toggling outline");
+                clockCircleElements[objectTypeName][j].outline.node.style.display = enabled ? "inline" : "none";
+            }
+        }
     }
 
     function connectorDisplayable(connector){
