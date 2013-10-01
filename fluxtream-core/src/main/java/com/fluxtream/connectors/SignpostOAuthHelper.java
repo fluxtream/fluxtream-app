@@ -33,8 +33,8 @@ public class SignpostOAuthHelper extends ApiClientSupport {
 					getConsumerKey(apiKey), getConsumerSecret(apiKey));
 	
 			consumer.setTokenWithSecret(
-					apiKey.getAttributeValue("accessToken", env),
-					apiKey.getAttributeValue("tokenSecret", env));
+                    guestService.getApiKeyAttribute(apiKey,"accessToken"),
+                    guestService.getApiKeyAttribute(apiKey,"tokenSecret"));
 
 			// sign the request (consumer is a Signpost DefaultOAuthConsumer)
 			try {

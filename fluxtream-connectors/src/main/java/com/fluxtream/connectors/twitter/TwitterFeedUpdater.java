@@ -56,8 +56,8 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 				twitterConsumerKey,
 				twitterConsumerSecret);
 
-		String accessToken = apiKey.getAttributeValue("accessToken", env);
-		String tokenSecret = apiKey.getAttributeValue("tokenSecret", env);
+		String accessToken = guestService.getApiKeyAttribute(apiKey,"accessToken");
+		String tokenSecret = guestService.getApiKeyAttribute(apiKey,"tokenSecret");
 		
 		consumer.setTokenWithSecret(accessToken,
 				tokenSecret);

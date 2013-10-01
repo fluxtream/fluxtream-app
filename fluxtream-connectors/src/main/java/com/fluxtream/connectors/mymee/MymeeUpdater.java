@@ -275,7 +275,7 @@ public class MymeeUpdater extends AbstractUpdater {
 
     // Returns root URL for mymee database, without trailing / (e.g. http://hostname/databasename)
     private String getRootURL(final UpdateInfo updateInfo) {
-        final String fetchURL = updateInfo.apiKey.getAttributeValue("fetchURL", env);
+        final String fetchURL = guestService.getApiKeyAttribute(updateInfo.apiKey,"fetchURL");
         return getBaseURL(fetchURL) +  "/" + getMainDir(fetchURL);
     }
 
@@ -406,7 +406,7 @@ public class MymeeUpdater extends AbstractUpdater {
                     // we assume that there's only one attachment and that it's an image
                     final JSONObject imageAttachment = valueObject.getJSONObject("_attachments");
                     final String imageName = (String) imageAttachment.names().get(0);
-                    final String fetchURL = updateInfo.apiKey.getAttributeValue("fetchURL", env);
+                    final String fetchURL = guestService.getApiKeyAttribute(updateInfo.apiKey, "fetchURL");
                     final String baseURL = getBaseURL(fetchURL);
                     final String mainDir = getMainDir(fetchURL);
                     if (baseURL!=null&&mainDir!=null) {

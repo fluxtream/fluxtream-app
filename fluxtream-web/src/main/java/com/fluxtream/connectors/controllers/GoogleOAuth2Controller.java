@@ -62,7 +62,7 @@ public class GoogleOAuth2Controller {
     public String renewToken(@PathVariable("apiKeyId") String apiKeyId, HttpServletRequest request) throws IOException, ServletException {
         request.getSession().setAttribute(APIKEYID_ATTRIBUTE, apiKeyId);
         final ApiKey apiKey = guestService.getApiKey(Long.valueOf(apiKeyId));
-        final String refreshTokenRemoveURL = apiKey.getAttributeValue("refreshTokenRemoveURL", env);
+        final String refreshTokenRemoveURL = guestService.getApiKeyAttribute(apiKey,"refreshTokenRemoveURL");
         oAuth2Helper.revokeRefreshToken(apiKey.getGuestId(), apiKey.getConnector(), refreshTokenRemoveURL);
         return getToken(request);
     }

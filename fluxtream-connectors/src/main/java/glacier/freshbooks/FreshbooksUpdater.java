@@ -49,8 +49,8 @@ public class FreshbooksUpdater extends AbstractUpdater {
 				env.get("freshbooksConsumerKey"),
 				env.get("freshbooksConsumerSecret"));
 		consumer.setMessageSigner(new PlainTextMessageSigner());
-		consumer.setTokenWithSecret(updateInfo.apiKey.getAttributeValue("accessToken", env),
-				updateInfo.apiKey.getAttributeValue("tokenSecret", env));
+		consumer.setTokenWithSecret(guestService.getApiKeyAttribute(updateInfo.apiKey,"accessToken"),
+                                    guestService.getApiKeyAttribute(updateInfo.apiKey,"tokenSecret"));
 
 		consumer.sign(request);
 		
