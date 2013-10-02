@@ -132,6 +132,16 @@ public class BodymediaController {
         guestService.setApiKeyAttribute(apiKey, "bodymediaConsumerKey", env.get("bodymediaConsumerKey"));
         guestService.setApiKeyAttribute(apiKey, "bodymediaConsumerSecret", env.get("bodymediaConsumerSecret"));
 
+        // If bodymediaRateDelayMs is specified in oauth.properties store it with the attributes
+        // This should be 1000/Calls per second for the associated key.  The default is 2 calls per second,
+        // which is bodymediaRateDelayMs=500
+        String bodymediaRateDelayMs = env.get("bodymediaRateDelayMs");
+
+        if(bodymediaRateDelayMs==null) {
+            bodymediaRateDelayMs="500";
+        }
+        guestService.setApiKeyAttribute(apiKey, "bodymediaRateDelayMs", bodymediaRateDelayMs);
+
         request.getSession().removeAttribute(BODYMEDIA_OAUTH_CONSUMER);
         request.getSession().removeAttribute(BODYMEDIA_OAUTH_PROVIDER);
 
