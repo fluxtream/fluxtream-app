@@ -8,6 +8,7 @@ import com.fluxtream.domain.metadata.City;
 import com.fluxtream.domain.metadata.FoursquareVenue;
 import com.fluxtream.domain.metadata.VisitedCity;
 import com.fluxtream.domain.metadata.WeatherInfo;
+import com.fluxtream.metadata.ArbitraryTimespanMetadata;
 import com.fluxtream.metadata.DayMetadata;
 import com.fluxtream.metadata.MonthMetadata;
 import com.fluxtream.metadata.WeekMetadata;
@@ -29,6 +30,8 @@ public interface MetadataService {
 	TimeZone getTimeZone(long guestId, long time);
 
 	TimeZone getTimeZone(long guestId, String date);
+
+    ArbitraryTimespanMetadata getArbitraryTimespanMetadata(long guestId, long start, long end);
 
 	DayMetadata getDayMetadata(long guestId, String date);
 

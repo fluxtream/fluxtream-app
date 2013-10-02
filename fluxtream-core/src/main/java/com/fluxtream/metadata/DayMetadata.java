@@ -3,11 +3,12 @@ package com.fluxtream.metadata;
 import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;
+import java.util.TreeMap;
 import com.fluxtream.TimeUnit;
+import com.fluxtream.TimezoneMap;
 import com.fluxtream.domain.metadata.VisitedCity;
 import org.joda.time.DateMidnight;
 import org.joda.time.DateTimeConstants;
-import org.joda.time.DateTimeZone;
 
 public class DayMetadata extends AbstractTimespanMetadata {
 
@@ -28,10 +29,12 @@ public class DayMetadata extends AbstractTimespanMetadata {
         this.startDate = this.endDate = this.date = forDate;
     }
 
-    public DayMetadata(List<VisitedCity> cities, VisitedCity consensusVisitedCity,
+    public DayMetadata(VisitedCity consensusVisitedCity,
                        VisitedCity previousInferredCity, VisitedCity nextInferredCity,
+                       TreeMap<String, TimeZone> consensusTimezones, TimezoneMap timezoneMap,
+                       List<VisitedCity> cities,
                        String date) {
-        super(cities, consensusVisitedCity, previousInferredCity, nextInferredCity);
+        super(consensusVisitedCity, previousInferredCity, nextInferredCity, consensusTimezones, timezoneMap, cities);
         this.start = getStartTimeForDate(consensusVisitedCity, date);
         this.end = start + DateTimeConstants.MILLIS_PER_DAY;
         this.startDate = this.endDate = this.date = date;

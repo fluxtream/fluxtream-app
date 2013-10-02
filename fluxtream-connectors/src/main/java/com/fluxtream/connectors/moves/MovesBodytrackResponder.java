@@ -18,6 +18,7 @@ import com.fluxtream.mvc.models.TimespanModel;
 import com.fluxtream.services.ApiDataService;
 
 public class MovesBodytrackResponder extends AbstractBodytrackResponder {
+
     @Override
     public List<TimespanModel> getTimespans(final long startMillis, final long endMillis, final ApiKey apiKey, final String channelName, final ApiDataService apiDataService) {
         List<TimespanModel> items = new ArrayList<TimespanModel>();

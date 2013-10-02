@@ -1,12 +1,17 @@
 package com.fluxtream;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TimeZone;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import com.fluxtream.utils.TimespanSegment;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
-
-import java.util.TreeSet;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 /**
  * <p>
@@ -16,15 +21,30 @@ import java.util.TreeSet;
  * @author Anne Wright (arwright@cmu.edu)
  */
 public class TimezoneMap {
-  public TreeSet<TimespanSegment<DateTimeZone>> spans = new TreeSet<TimespanSegment<DateTimeZone>>();
 
-  public TimezoneMap() {
-  }
-  
+    private static final DateTimeFormatter formatter = DateTimeFormat
+            .forPattern("yyyy-MM-dd");
+
+    public TreeSet<TimespanSegment<DateTimeZone>> spans = new TreeSet<TimespanSegment<DateTimeZone>>();
+
+    public TimezoneMap() {
+    }
+
+    public static TimezoneMap fromConsensusTimezoneMap(final TreeMap<String, TimeZone> consensusTimezoneMap) {
+        TimezoneMap timezoneMap = new TimezoneMap();
+        for (String date : consensusTimezoneMap.keySet()) {
+            final TimeZone timeZone = consensusTimezoneMap.get(date);
+            final DateTimeZone dateTimeZone = DateTimeZone.forTimeZone(timeZone);
+            final DateTime time = formatter.withZone(dateTimeZone).parseDateTime(date);
+            timezoneMap.add(time.getMillis(), time.getMillis()+DateTimeConstants.MILLIS_PER_DAY, dateTimeZone);
+        }
+        return timezoneMap;
+    }
+
     public boolean add(final long start, final long end, org.joda.time.DateTimeZone tz) {
-	    TimespanSegment<DateTimeZone> newSpan = new TimespanSegment<DateTimeZone>(start,end,tz);
+        TimespanSegment<DateTimeZone> newSpan = new TimespanSegment<DateTimeZone>(start, end, tz);
 
-        return(spans.add(newSpan));
+        return (spans.add(newSpan));
     }
 
     public TimespanSegment<DateTimeZone> queryPoint(long ts) {
@@ -35,21 +55,43 @@ public class TimezoneMap {
         TimespanSegment<DateTimeZone> querySeg = new TimespanSegment(ts, ts);
         TimespanSegment<DateTimeZone> retSeg = spans.lower(querySeg);
 
-        if(retSeg==null) {
+        if (retSeg == null) {
             // This time is earlier than the earliest segment, return the first
             return spans.first();
         }
         return retSeg;
     }
 
-    public DateTime getStartOfDate(LocalDate date)
-    {
-                // Get the milisecond time for the start of that date in UTC
+    public DateTimeZone getMainTimezone() {
+        Map<DateTimeZone, Long> timespentInTimezoneMap = new HashMap<DateTimeZone, Long>();
+        for (TimespanSegment<DateTimeZone> span : spans) {
+            long timeSpent = span.getEnd() - span.getStart();
+            if (timespentInTimezoneMap.containsKey(span.getValue())) {
+                final Long timeAlreadySpent = timespentInTimezoneMap.get(span.getValue());
+                timespentInTimezoneMap.put(span.getValue(), timeAlreadySpent + timeSpent);
+            }
+            else {
+                timespentInTimezoneMap.put(span.getValue(), timeSpent);
+            }
+        }
+        long maxTimespent = Long.MIN_VALUE;
+        DateTimeZone mainTimezone = null;
+        for (DateTimeZone dateTimeZone : timespentInTimezoneMap.keySet()) {
+            if (timespentInTimezoneMap.get(dateTimeZone) > maxTimespent) {
+                maxTimespent = timespentInTimezoneMap.get(dateTimeZone);
+                mainTimezone = dateTimeZone;
+            }
+        }
+        return mainTimezone;
+    }
+
+    public DateTime getStartOfDate(LocalDate date) {
+        // Get the milisecond time for the start of that date in UTC
         long utcStartMillis = date.toDateTimeAtStartOfDay(DateTimeZone.UTC).getMillis();
         // Lookup the timezone for that time - 12 and +12 hours since timezones range from
         // UTC-12h to UTC+12h so the real start time will be within that range
-        long minStartMillis = utcStartMillis - DateTimeConstants.MILLIS_PER_DAY/2;
-        long maxStartMillis = utcStartMillis + DateTimeConstants.MILLIS_PER_DAY/2;
+        long minStartMillis = utcStartMillis - DateTimeConstants.MILLIS_PER_DAY / 2;
+        long maxStartMillis = utcStartMillis + DateTimeConstants.MILLIS_PER_DAY / 2;
 
         TimespanSegment<DateTimeZone> minTimespan = this.queryPoint(minStartMillis);
         TimespanSegment<DateTimeZone> maxTimespan = this.queryPoint(maxStartMillis);
@@ -57,7 +99,7 @@ public class TimezoneMap {
         DateTime realDateStart = null;
 
         // Check if they agree
-        if(minTimespan==maxTimespan) {
+        if (minTimespan == maxTimespan) {
             // Ok, they agree so we're good, just use the consensus timezone
             realTz = minTimespan.getValue();
             realDateStart = date.toDateTimeAtStartOfDay(realTz);
@@ -70,25 +112,25 @@ public class TimezoneMap {
             // Does the earlier one fall within the timespan for the minTimezone
             long minTzStartMillis = minTzStartDT.getMillis();
             long maxTzStartMillis = maxTzStartDT.getMillis();
-            if(minTimespan.isTimeInSpan(minTzStartMillis)) {
+            if (minTimespan.isTimeInSpan(minTzStartMillis)) {
                 // First one works, keep it
-                realTz=minTimespan.getValue();
+                realTz = minTimespan.getValue();
                 realDateStart = minTzStartDT;
             }
-            else if(maxTimespan.isTimeInSpan(maxStartMillis)) {
+            else if (maxTimespan.isTimeInSpan(maxStartMillis)) {
                 // Last one works, keep it
-                realTz=maxTimespan.getValue();
+                realTz = maxTimespan.getValue();
                 realDateStart = maxTzStartDT;
             }
             else {
                 // Something weird is going on here, complain and return GMT
-                System.out.println("Cant figure out start of date "+date.toString()+", "+minTimespan + " does not contain " + minTzStartDT + " and "+ maxTimespan + " does not contain " + maxTzStartDT);
-                return(date.toDateTimeAtStartOfDay(DateTimeZone.UTC));
-             }
+                System.out.println("Cant figure out start of date " + date.toString() + ", " + minTimespan + " does not contain " + minTzStartDT + " and " + maxTimespan + " does not contain " + maxTzStartDT);
+                return (date.toDateTimeAtStartOfDay(DateTimeZone.UTC));
+            }
         }
 
         //System.out.println("Start of date "+date.toString()+", in "+realTz + ": " + realDateStart);
-        return(realDateStart);
+        return (realDateStart);
     }
 
     public static void main(final String[] args) {
@@ -102,7 +144,7 @@ public class TimezoneMap {
         //   } ]
         // Then extended to have a segment in Central time starting Wed, 22 May 2013 13:45:56 GMT and ending
         // Sat, 01 Jun 2013 00:00:00 GMT
-        tzMap.add(1292907600000L,1314064848000L, DateTimeZone.forID("America/New_York"));
+        tzMap.add(1292907600000L, 1314064848000L, DateTimeZone.forID("America/New_York"));
         tzMap.add(1314064848000L, 1316658559000L, DateTimeZone.forID("America/Los_Angeles"));
         tzMap.add(1316658559000L, 1369230356963L, DateTimeZone.forID("America/New_York"));
         tzMap.add(1369230356963L, 1370044800000L, DateTimeZone.forID("US/Central"));
@@ -121,7 +163,7 @@ public class TimezoneMap {
 
         // This should be Eastern
         LocalDate d3b = new LocalDate(2013, 5, 22);
-         tzMap.getStartOfDate(d3b);
+        tzMap.getStartOfDate(d3b);
 
         // This should be Central
         LocalDate d3c = new LocalDate(2013, 5, 23);
@@ -129,10 +171,10 @@ public class TimezoneMap {
 
         // Get from before the start of the map.  This should default to using the first item in the map and return
         // in America/New_York
-        LocalDate d4 = new LocalDate(2010,12,21);
+        LocalDate d4 = new LocalDate(2010, 12, 21);
         tzMap.getStartOfDate(d4);
 
-        LocalDate d5 = new LocalDate(2010,1,1);
+        LocalDate d5 = new LocalDate(2010, 1, 1);
         tzMap.getStartOfDate(d5);
 
         // Get from past the end of the map.  This should be Central
