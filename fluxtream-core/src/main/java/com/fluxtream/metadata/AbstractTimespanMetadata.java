@@ -21,6 +21,8 @@ import org.joda.time.format.DateTimeFormatter;
  */
 public abstract class AbstractTimespanMetadata {
 
+    private TimezoneMap timezoneMap;
+    private Map<String, TimeZone> consensusTimezones;
     private TimeInterval timeInterval;
     public long start, end;
 
@@ -46,7 +48,8 @@ public abstract class AbstractTimespanMetadata {
         this.consensusVisitedCity = consensusVisitedCity;
         this.nextInferredCity = nextInferredCity;
         this.previousInferredCity = previousInferredCity;
-        this.timeInterval = new TimezoneAwareTimeInterval(start, end, getTimespanTimeUnit(), consensusTimezones, timezoneMap);
+        this.consensusTimezones = consensusTimezones;
+        this.timezoneMap = timezoneMap;
         this.cities = cities;
     }
 
@@ -81,7 +84,9 @@ public abstract class AbstractTimespanMetadata {
     protected abstract TimeUnit getTimespanTimeUnit();
 
     public TimeInterval getTimeInterval() {
-        return timeInterval;
+        if (this.timeInterval==null)
+            this.timeInterval = new TimezoneAwareTimeInterval(start, end, getTimespanTimeUnit(), consensusTimezones, timezoneMap);
+        return this.timeInterval;
     }
 
     public List<VisitedCity> getCities() {

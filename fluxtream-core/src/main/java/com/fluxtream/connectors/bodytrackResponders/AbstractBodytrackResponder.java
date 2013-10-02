@@ -12,10 +12,23 @@ import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.mvc.models.TimespanModel;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.GuestService;
+import com.fluxtream.services.MetadataService;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
 public abstract class AbstractBodytrackResponder {
+
+    @Autowired
+    protected MetadataService metadataService;
+
+    @Autowired
+    protected ApiDataService apiDataService;
+
+    @Autowired
+    protected GuestService guestService;
 
     public static class Bounds{
         public double min;
@@ -26,7 +39,7 @@ public abstract class AbstractBodytrackResponder {
 
     protected static DateTimeFormatter dateFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
 
-    protected List<AbstractFacet> getFacetsInTimespan(ApiDataService apiDataService,TimeInterval timeInterval, ApiKey apiKey, ObjectType objectType){
+    protected List<AbstractFacet> getFacetsInTimespan(TimeInterval timeInterval, ApiKey apiKey, ObjectType objectType){
         /*if (objectType.isDateBased()){          //TODO: determine whether or not date based queries are necessary
             List<String> dates = new ArrayList<String>();
             DateTime start = new DateTime(timeInterval.getStart());
@@ -64,11 +77,11 @@ public abstract class AbstractBodytrackResponder {
     }
 
 
-    public abstract List<TimespanModel> getTimespans(long startMillis, long endMillis, ApiKey apiKey, String channelName, ApiDataService apiDataService);
+    public abstract List<TimespanModel> getTimespans(long startMillis, long endMillis, ApiKey apiKey, String channelName);
 
-    public abstract List<AbstractFacetVO<AbstractFacet>> getFacetVOs(ApiDataService apiDataService, GuestSettings guestSettings, ApiKey apiKey, String objectTypeName,long start,long end,String value);
+    public abstract List<AbstractFacetVO<AbstractFacet>> getFacetVOs(GuestSettings guestSettings, ApiKey apiKey, String objectTypeName,long start,long end,String value);
 
-    public Bounds getBounds(final ApiDataService apiDataService, final GuestService guestService, final ChannelMapping mapping) {
+    public Bounds getBounds(final ChannelMapping mapping) {
         Bounds bounds = new Bounds();
         switch (mapping.channelType){
             case photo:

@@ -429,7 +429,7 @@ public class ConnectorStore {
         ApiKey apiKey = guestService.getApiKeys(guest.getId(),Connector.getConnector(objectTypeNameParts[0])).get(0);
         Connector connector = apiKey.getConnector();
 
-        return gson.toJson(connector.getBodytrackResponder().getFacetVOs(apiDataService, settingsService.getSettings(guest.getId()), apiKey,objectTypeName,start,end,value));
+        return gson.toJson(connector.getBodytrackResponder(beanFactory).getFacetVOs(settingsService.getSettings(guest.getId()), apiKey,objectTypeName,start,end,value));
 
     }
 }
