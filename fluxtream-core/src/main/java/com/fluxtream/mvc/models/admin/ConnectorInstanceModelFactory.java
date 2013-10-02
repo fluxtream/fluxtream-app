@@ -41,7 +41,14 @@ public class ConnectorInstanceModelFactory {
             rateLimitString = (String) env.connectors.getProperty("rateLimit");
         model.put("rateLimitSpecs", rateLimitString);
         final String auditTrail = checkForErrors(apiKey);
-        model.put("errors", auditTrail!=null);
+        ApiKey.Status status = apiKey.getStatus();
+        // Treat status=null as STATUS_UP
+        if(status==null) {
+            status=ApiKey.Status.STATUS_UP;
+        }
+            model.put("status", status.toString());
+
+        model.put("errors", status != ApiKey.Status.STATUS_UP);
         model.put("auditTrail", auditTrail!=null?auditTrail:"");
         int quota = Integer.valueOf(rateLimitString.split("/")[0]);
         long numberOfUpdates = getNumberOfUpdatesOverSpecifiedTimePeriod(apiKey.getGuestId(), connector, rateLimitString,

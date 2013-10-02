@@ -13,8 +13,12 @@
 
 <h3 id="apiKey-<%=entry.getKey()%>" style="margin-bottom:10px">
     <%=connectorInstanceModel.get("connectorName")%>
-    <% if ((Boolean)connectorInstanceModel.get("errors")) { %>
+    <% if (connectorInstanceModel.get("status") == "STATUS_PERMANENT_FAILURE") { %>
     <span class="label label-important" style="vertical-align:middle">down</span>
+    <% } else if (connectorInstanceModel.get("status") == "STATUS_TRANSIENT_FAILURE") { %>
+    <span class="label label-warning" style="vertical-align:middle">transient</span>
+    <% } else if (connectorInstanceModel.get("status") == "STATUS_OVER_RATE_LIMIT") { %>
+    <span class="label label-info" style="vertical-align:middle">over limit</span>
     <% } else { %>
     <span class="label label-success" style="vertical-align:middle">up</span>
     <% } %>
