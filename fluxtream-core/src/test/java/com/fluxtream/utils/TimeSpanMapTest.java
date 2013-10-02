@@ -102,13 +102,13 @@ public class TimeSpanMapTest {
         //assertTrue(segment3.value.getDisplayName().equals("Europe/Brussels"));
     }
 
-    private TimespanSegment<TimeZone> get(final TimespanMap segmentMap, final int i) {
-        final Iterator<TimespanSegment<TimeZone>> iterator = segmentMap.iterator();
-        TimespanSegment<TimeZone> next = iterator.next();
-        for(int j=0; j<i; j++)
-            next = iterator.next();
-        return next;
-    }
+    //private TimespanSegment<TimeZone> get(final TimespanMap segmentMap, final int i) {
+    //    final Iterator<TimespanSegment<TimeZone>> iterator = segmentMap.iterator();
+    //    TimespanSegment<TimeZone> next = iterator.next();
+    //    for(int j=0; j<i; j++)
+    //        next = iterator.next();
+    //    return next;
+    //}
 
     private void testTreeSetLookup() {
         TreeSet<TimespanSegment<TimeZone>> spans = new TreeSet<TimespanSegment<TimeZone>>();
