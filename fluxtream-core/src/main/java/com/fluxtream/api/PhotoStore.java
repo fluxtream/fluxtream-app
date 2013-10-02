@@ -100,7 +100,7 @@ public class PhotoStore {
             DayMetadata dayMetaStart = metadataService.getDayMetadata(guest.getId(), year + "-01-01");
 
             DayMetadata dayMetaEnd = metadataService.getDayMetadata(guest.getId(), year + "-12-31");
-            return gson.toJson(getPhotos(guest, new SimpleTimeInterval(dayMetaStart.start,dayMetaEnd.end,TimeUnit.WEEK,dayMetaStart.getTimeInterval().getMainTimeZone())));
+            return gson.toJson(getPhotos(guest, new SimpleTimeInterval(dayMetaStart.start,dayMetaEnd.end,TimeUnit.YEAR,dayMetaStart.getTimeInterval().getMainTimeZone())));
         } catch (Exception e){
             StatusModel result = new StatusModel(false, "Could not get photos: " + e.getMessage());
             return gson.toJson(result);

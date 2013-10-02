@@ -59,7 +59,7 @@ public class SearchController {
 		List<AbstractFacetVO<? extends AbstractFacet>> facetVos = new ArrayList<AbstractFacetVO<? extends AbstractFacet>>();
 		TimeZone currentTimeZone = metadataService.getCurrentTimeZone(guestId);
 		TimeInterval timeInterval = new SimpleTimeInterval(new Date().getTime(),
-				System.currentTimeMillis(), TimeUnit.DAY, currentTimeZone);
+				System.currentTimeMillis(), TimeUnit.ARBITRARY, currentTimeZone);
 		
 		for (AbstractFacet facet : facets) {
 			Class<? extends AbstractFacetVO<AbstractFacet>> jsonFacetClass = AbstractFacetVO

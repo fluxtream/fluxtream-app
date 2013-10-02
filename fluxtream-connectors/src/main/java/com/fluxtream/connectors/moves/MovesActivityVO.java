@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.text.DecimalFormat;
 import com.fluxtream.OutsideTimeBoundariesException;
+import com.fluxtream.TimeUnit;
 import com.fluxtream.connectors.vos.AbstractTimedFacetVO;
 import com.fluxtream.connectors.vos.TimeOfDayVO;
 import com.fluxtream.domain.GuestSettings;
@@ -39,7 +40,7 @@ public class MovesActivityVO {
 
     public MovesActivityVO(MovesActivity activity, TimeZone timeZone,
                            long dateStart, long dateEnd,
-                           GuestSettings settings) throws OutsideTimeBoundariesException {
+                           GuestSettings settings, boolean doDateBoundsCheck) throws OutsideTimeBoundariesException {
         this.activity = activityDict.get(activity.activity);
         this.activityCode = activity.activity;
         this.date = activity.date;
@@ -51,22 +52,24 @@ public class MovesActivityVO {
         long truncEndMilli = activity.end;
         boolean timeTruncated = false;
 
-        // First check to see if this facet is entirely outside the time bounds of this date
-        // If so, throw an exception so this facet isn't returned
-        if(activity.end<dateStart || activity.start>dateEnd) {
-            throw new OutsideTimeBoundariesException();
-        }
+        // If we're doing date bounds checking, check if facet is entirely outside the time bounds of this date
+        // If so, throw an exception so this facet isn't returned.  Otherwise potentially trim the start and end times
+        if(doDateBoundsCheck) {
+            if (activity.end<dateStart || activity.start>dateEnd) {
+                throw new OutsideTimeBoundariesException();
+            }
 
-        // We know this facet overlaps the time bounds of date, check if it needs
-        // to be truncated.
-        if(activity.start<dateStart){
-            truncStartMilli = dateStart;
-            timeTruncated=true;
-        }
+            // We know this facet overlaps the time bounds of date, check if it needs
+            // to be truncated.
+            if(activity.start<dateStart){
+                truncStartMilli = dateStart;
+                timeTruncated=true;
+            }
 
-        if(activity.end>=dateEnd) {
-            truncEndMilli = dateEnd-1;
-            timeTruncated=true;
+            if(activity.end>=dateEnd) {
+                truncEndMilli = dateEnd-1;
+                timeTruncated=true;
+            }
         }
 
         // Calculate start/end Minute and Time based on truncated millisecond time

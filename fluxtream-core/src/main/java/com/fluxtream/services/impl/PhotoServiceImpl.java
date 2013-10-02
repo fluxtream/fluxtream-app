@@ -335,7 +335,7 @@ public class PhotoServiceImpl implements PhotoService {
 
             final TimeInterval actualTimeInterval;
             if (timeInterval == null) {
-                actualTimeInterval = new SimpleTimeInterval(facet.start, facet.start, TimeUnit.DAY, TimeZone.getTimeZone("UTC"));
+                actualTimeInterval = new SimpleTimeInterval(facet.start, facet.start, TimeUnit.ARBITRARY, TimeZone.getTimeZone("UTC"));
             }
             else {
                 actualTimeInterval = timeInterval;
@@ -366,7 +366,7 @@ public class PhotoServiceImpl implements PhotoService {
         final AbstractFacet newestFacet = photoFacetFinderStrategy.findLatest(apiKey, objectType);
 
         if (oldestFacet != null && newestFacet != null) {
-            return new SimpleTimeInterval(oldestFacet.start, newestFacet.start, TimeUnit.DAY, TimeZone.getTimeZone("UTC"));
+            return new SimpleTimeInterval(oldestFacet.start, newestFacet.start, TimeUnit.ARBITRARY, TimeZone.getTimeZone("UTC"));
         }
 
         return null;

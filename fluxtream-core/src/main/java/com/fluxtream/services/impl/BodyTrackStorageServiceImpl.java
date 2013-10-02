@@ -239,7 +239,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
         logger.info("module=updateQueue component=bodytrackStorageService action=storeInitialHistory" +
                     " guestId=" + apiKey.getGuestId() + " connector=" + apiKey.getConnector().getName());
 		TimeInterval timeInterval = new SimpleTimeInterval(0,
-				System.currentTimeMillis(), TimeUnit.DAY, TimeZone.getDefault());
+				System.currentTimeMillis(), TimeUnit.ARBITRARY, TimeZone.getDefault());
 		List<AbstractFacet> facets = apiDataService.getApiDataFacets(apiKey, null, timeInterval);
 		storeApiData(apiKey.getGuestId(), facets);
 	}

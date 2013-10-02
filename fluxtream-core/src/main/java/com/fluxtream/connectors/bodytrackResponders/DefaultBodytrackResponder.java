@@ -28,7 +28,7 @@ public class DefaultBodytrackResponder extends AbstractBodytrackResponder {
         }
         if (objectType != null){
             String objectTypeName = apiKey.getConnector().getName() + "-" + objectType.getName();
-            final TimeInterval timeInterval = new SimpleTimeInterval(startMillis, endMillis, TimeUnit.DAY, TimeZone.getTimeZone("UTC"));
+            final TimeInterval timeInterval = new SimpleTimeInterval(startMillis, endMillis, TimeUnit.ARBITRARY, TimeZone.getTimeZone("UTC"));
 
             List<AbstractFacet> facets = getFacetsInTimespan(apiDataService,timeInterval,apiKey,objectType);
 
@@ -54,7 +54,7 @@ public class DefaultBodytrackResponder extends AbstractBodytrackResponder {
         if (objectType == null)
             return new ArrayList<AbstractFacetVO<AbstractFacet>>();
 
-        TimeInterval timeInterval = new SimpleTimeInterval(start, end, TimeUnit.DAY, TimeZone.getTimeZone("UTC"));
+        TimeInterval timeInterval = new SimpleTimeInterval(start, end, TimeUnit.ARBITRARY, TimeZone.getTimeZone("UTC"));
 
         List<AbstractFacet> facets = getFacetsInTimespan(apiDataService,timeInterval,apiKey,objectType);
 

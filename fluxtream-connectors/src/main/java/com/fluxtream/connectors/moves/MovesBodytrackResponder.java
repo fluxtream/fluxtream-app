@@ -21,7 +21,7 @@ public class MovesBodytrackResponder extends AbstractBodytrackResponder {
     @Override
     public List<TimespanModel> getTimespans(final long startMillis, final long endMillis, final ApiKey apiKey, final String channelName, final ApiDataService apiDataService) {
         List<TimespanModel> items = new ArrayList<TimespanModel>();
-        final TimeInterval timeInterval = new SimpleTimeInterval(startMillis, endMillis, TimeUnit.DAY, TimeZone.getTimeZone("UTC"));
+        final TimeInterval timeInterval = new SimpleTimeInterval(startMillis, endMillis, TimeUnit.ARBITRARY, TimeZone.getTimeZone("UTC"));
         ObjectType[] objectTypes = apiKey.getConnector().objectTypes();
 
         for (ObjectType objectType : objectTypes){
@@ -61,7 +61,7 @@ public class MovesBodytrackResponder extends AbstractBodytrackResponder {
         if (objectType == null || (objectType.getName().equals("place") && !"place".equals(value)))
             return new ArrayList<AbstractFacetVO<AbstractFacet>>();
 
-        TimeInterval timeInterval = new SimpleTimeInterval(start, end, TimeUnit.DAY, TimeZone.getTimeZone("UTC"));
+        TimeInterval timeInterval = new SimpleTimeInterval(start, end, TimeUnit.ARBITRARY, TimeZone.getTimeZone("UTC"));
 
         List<AbstractFacet> facets = getFacetsInTimespan(apiDataService,timeInterval,apiKey,objectType);
 
