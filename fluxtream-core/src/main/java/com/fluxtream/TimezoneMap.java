@@ -1,10 +1,18 @@
 package com.fluxtream;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TimeZone;
+import java.util.TreeMap;
+import java.util.TreeSet;
+
 import com.fluxtream.utils.TimespanSegment;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 import java.util.TreeSet;
 
@@ -16,15 +24,57 @@ import java.util.TreeSet;
  * @author Anne Wright (arwright@cmu.edu)
  */
 public class TimezoneMap {
-  public TreeSet<TimespanSegment<DateTimeZone>> spans = new TreeSet<TimespanSegment<DateTimeZone>>();
+    protected static final DateTimeFormatter formatter = DateTimeFormat
+                .forPattern("yyyy-MM-dd");
 
-  public TimezoneMap() {
-  }
+    public TreeSet<TimespanSegment<DateTimeZone>> spans = new TreeSet<TimespanSegment<DateTimeZone>>();
+
+    public TimezoneMap() {
+    }
   
     public boolean add(final long start, final long end, org.joda.time.DateTimeZone tz) {
 	    TimespanSegment<DateTimeZone> newSpan = new TimespanSegment<DateTimeZone>(start,end,tz);
 
         return(spans.add(newSpan));
+    }
+
+    public static TimezoneMap fromConsensusTimezoneMap(final TreeMap<String, TimeZone> consensusTimezoneMap) {
+        TimezoneMap timezoneMap = new TimezoneMap();
+        Long holdStartMillis=null;
+        DateTimeZone holdDateTimezone=null;
+        Long lastEndMillis = null;
+
+        for (String date : consensusTimezoneMap.keySet()) {
+            final TimeZone timeZone = consensusTimezoneMap.get(date);
+            final DateTimeZone dateTimeZone = DateTimeZone.forTimeZone(timeZone);
+            final DateTime thisStartDateTime = formatter.withZone(dateTimeZone).parseDateTime(date);
+            final long thisStartMillis = thisStartDateTime.getMillis();
+
+            // Check if we need to flush a prior segment
+            if(holdStartMillis!=null && holdDateTimezone!=dateTimeZone) {
+                // Yes, this differs, end the previous segment with holdStartMillis as its
+                // start time and thisStartMillis-1 as its end time
+                timezoneMap.add(holdStartMillis, thisStartMillis-1, holdDateTimezone);
+                // Update holdStartMillis and holdDateTimezone for next time to be the start of this segment
+                holdStartMillis = thisStartMillis;
+                holdDateTimezone = dateTimeZone;
+            }
+            else if(holdStartMillis==null) {
+                // This is the first time through, hold onto holdStartMillis and holdDateTimezone
+                // for next time to be the start of the first  segment
+                holdStartMillis = thisStartMillis;
+                holdDateTimezone = dateTimeZone;
+            } else {
+                // Continue with the earlier timezone, no need to change anything
+            }
+            // Update lastEndMillis for closing up on the last segment
+            lastEndMillis = thisStartMillis + DateTimeConstants.MILLIS_PER_DAY;
+        }
+        // Flush the last segment (unless it's empty)
+        if(holdDateTimezone!=null) {
+            timezoneMap.add(holdStartMillis, lastEndMillis, holdDateTimezone);
+        }
+        return timezoneMap;
     }
 
     public TimespanSegment<DateTimeZone> queryPoint(long ts) {
@@ -141,5 +191,20 @@ public class TimezoneMap {
 
         LocalDate d7 = new LocalDate(2013, 8, 2);
         tzMap.getStartOfDate(d7);
+
+        // Try out fromConsensusTimezoneMap
+        TreeMap<String, TimeZone> ctm1 = new TreeMap<String, TimeZone>();
+
+        ctm1.put("2011-06-05",TimeZone.getTimeZone("America/New_York"));
+        TimezoneMap tzm1 = fromConsensusTimezoneMap(ctm1);
+        int tzm1S = tzm1.spans.size();// should be 1 covering 6/15/11
+
+        ctm1.put("2012-06-05",TimeZone.getTimeZone("America/New_York"));
+        TimezoneMap tzm2 = fromConsensusTimezoneMap(ctm1);
+        int tzm2S = tzm2.spans.size();// should be 1 covering 6/15/11 - 6/15/12
+
+        ctm1.put("2011-12-05",TimeZone.getTimeZone("US/Central"));
+        TimezoneMap tzm3 = fromConsensusTimezoneMap(ctm1);
+        int tzm3S = tzm3.spans.size();// should be 3 covering 6/15/11 - 2011-12-04, 2011-12-05 - 6/14/12, and 6/15/12
     }
 }
