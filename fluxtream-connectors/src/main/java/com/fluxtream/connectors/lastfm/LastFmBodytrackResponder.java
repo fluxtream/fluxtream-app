@@ -13,6 +13,7 @@ import com.fluxtream.connectors.vos.AbstractFacetVO;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.GuestSettings;
+import com.fluxtream.mvc.models.DurationModel;
 import com.fluxtream.mvc.models.TimespanModel;
 import com.fluxtream.services.ApiDataService;
 
@@ -31,14 +32,18 @@ public class LastFmBodytrackResponder extends AbstractBodytrackResponder {
         Connector connector = apiKey.getConnector();
         final ObjectType recent_track = ObjectType.getObjectType(connector, "recent_track");
 
-        String objectTypeName = recent_track.getName();
+        String objectTypeName = apiKey.getConnector().getName() + "-" + recent_track.getName();
         List<AbstractFacet> facets = getFacetsInTimespan(apiDataService,timeInterval,apiKey, recent_track);
+
+              // Sadly, the start and end times of track facets are the same.  Assume that the
+            // start time is correct and arbitrarily draw a box that's 3 mins or
+            // 1/256 of the tile width, whichever is larger.
+        long duration = Math.max((endMillis-startMillis)/256L, 180000L);
+
         for (AbstractFacet facet : facets){
             LastFmRecentTrackFacet trackFacet = (LastFmRecentTrackFacet) facet;
 
-            // Sadly, the start and end times of track facets are the same.  Assume that the
-            // start time is correct and arbitrarily draw a 3-min box.
-            items.add(new TimespanModel(trackFacet.start,trackFacet.start+180000,"on",objectTypeName));
+            items.add(new TimespanModel(trackFacet.start,trackFacet.start+duration,"on",objectTypeName));
         }
 
         return items;
