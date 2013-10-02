@@ -57,12 +57,11 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
 	public List<ConnectorInfo> getConnectors() throws Exception {
 		List<ConnectorInfo> all = JPAUtils.find(em, ConnectorInfo.class, "connectors.all", (Object[])null);
 		if (all.size() == 0) {
-			initializeConnectorList();
+			resetConnectorList();
 			all = JPAUtils.find(em, ConnectorInfo.class, "connectors.all",
 					(Object[]) null);
 		}
 		for (ConnectorInfo connectorInfo : all) {
-			em.detach(connectorInfo);
 			connectorInfo.image = "/" + env.get("release")
 					+ connectorInfo.image;
 		}
@@ -79,6 +78,7 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         return connectorInfo;
     }
 
+    @Transactional(readOnly = false)
     private void initializeConnectorList() {
 		ResourceBundle res = ResourceBundle.getBundle("messages/connectors");
         int order = 0;
@@ -277,13 +277,13 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
 	}
 
     @Transactional(readOnly = false)
-    public List<ConnectorInfo> resetConnectorList() throws Exception {
+    public void resetConnectorList() throws Exception {
         System.out.println("Resetting connector table");
         // Clear the existing data out of the Connector table
         JPAUtils.execute(em,"connector.deleteAll");
         // The following call will initialize the Connector table by calling
         // the initializeConnectorList function and return the result
-        return(getConnectors());
+        initializeConnectorList();
     }
 
     public boolean checkConnectorInstanceKeys(List<ConnectorInfo> connectors)
@@ -355,7 +355,8 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
     public void onApplicationEvent(final ContextRefreshedEvent event) {
         System.out.println("ApplicationContext started");
         try {
-            List<ConnectorInfo> connectors = resetConnectorList();
+            resetConnectorList();
+            List<ConnectorInfo> connectors = getConnectors();
             boolean missingKeys=checkConnectorInstanceKeys(connectors);
 
             if(missingKeys) {
