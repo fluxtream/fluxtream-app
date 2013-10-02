@@ -1,16 +1,12 @@
-package com.fluxtream.connectors.bodymedia;
+package com.fluxtream;
 
 import com.fluxtream.utils.TimespanSegment;
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeComparator;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 
-import java.util.Iterator;
 import java.util.TreeSet;
-import java.util.TimeZone;
-
 
 /**
  * <p>
