@@ -159,8 +159,14 @@ public class GuestServiceImpl implements GuestService {
     @Override
     @Transactional(readOnly=false)
     public ApiKey createApiKey(final long guestId, final Connector connector) {
-        final ConnectorInfo connectorInfo = systemService.getConnectorInfo(connector.getName());
-        if (!connectorInfo.enabled)
+        ConnectorInfo connectorInfo = null;
+
+        try {
+            connectorInfo = systemService.getConnectorInfo(connector.getName());
+        } catch (Throwable e) {
+            // Ignore this type of connector
+        }
+        if (connectorInfo == null || !connectorInfo.enabled)
             throw new RuntimeException("This connector is not enabled!");
         ApiKey apiKey = new ApiKey();
         apiKey.setGuestId(guestId);

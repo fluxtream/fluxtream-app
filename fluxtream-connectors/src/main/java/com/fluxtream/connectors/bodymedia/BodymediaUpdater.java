@@ -51,8 +51,7 @@ import org.springframework.stereotype.Component;
          defaultChannels = {"BodyMedia.mets", "BodyMedia.lying"})
 public class BodymediaUpdater extends AbstractUpdater implements Autonomous {
 
-    // TODO: make this configurable
-    private static final int RATE_DELAY = 500;
+    private static final long DEFAULT_RATE_DELAY = 500L;
     static FlxLogger logger = FlxLogger.getLogger(AbstractUpdater.class);
 
     @Autowired
@@ -146,6 +145,10 @@ public class BodymediaUpdater extends AbstractUpdater implements Autonomous {
         final int increment = maxIncrement.get(ot);
         DateTimeComparator comparator = DateTimeComparator.getDateOnlyInstance();
         DateTime current = start;
+
+        // Setup the rate delay if we haven't already
+        Long rateDelay = getRateDelay(updateInfo);
+
         try {
             //  Loop from start to end, incrementing by the max number of days you can
             //  specify for a given type of query.  This is 1 for burn and sleep, and 31 for steps.
@@ -161,7 +164,7 @@ public class BodymediaUpdater extends AbstractUpdater implements Autonomous {
                 String minutesUrl = "http://api.bodymedia.com/v2/json/" + urlExtension + startPeriod + "/" + endPeriod +
                                     "?api_key=" + guestService.getApiKeyAttribute(updateInfo.apiKey, "bodymediaConsumerKey");
                 //The following call may fail due to bodymedia's api. That is expected behavior
-                enforceRateLimits();
+                enforceRateLimits(rateDelay);
                 String json = signpostHelper.makeRestCall(updateInfo.apiKey, ot.value(), minutesUrl);
                 guestService.setApiKeyAttribute(updateInfo.apiKey, "timeOfLastCall", String.valueOf(System.currentTimeMillis()));
                 JSONObject bodymediaResponse = JSONObject.fromObject(json);
@@ -192,10 +195,11 @@ public class BodymediaUpdater extends AbstractUpdater implements Autonomous {
                 }
 
                 current = current.plusDays(increment);
+
+                // Update the stored value that controls when we will start updating next time
+                updateStartDate(updateInfo,ot,current);
             }
 
-            // Update the stored value that controls when we will start updating next time
-            updateStartDate(updateInfo,ot,current);
         }
         catch (Exception e) {
             StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=BodymediaUpdater.retrieveHistory")
@@ -215,11 +219,11 @@ public class BodymediaUpdater extends AbstractUpdater implements Autonomous {
     }
 
     /**
-     * make sure that there is at least RATE_DELAY ms between each API call. This works
+     * make sure that there is at least DEFAULT_RATE_DELAY ms between each API call. This works
      * because Updaters are singletons
      */
-    private void enforceRateLimits() {
-        long waitTime = getWaitTime();
+    private void enforceRateLimits(Long rateDelay) {
+        long waitTime = getWaitTime(rateDelay);
         if (waitTime>0) {
             try { Thread.currentThread().sleep(waitTime); }
             catch(Throwable e) {
@@ -230,11 +234,47 @@ public class BodymediaUpdater extends AbstractUpdater implements Autonomous {
         setCallTime();
     }
 
-    private long getWaitTime() {
+    private Long getRateDelay(UpdateInfo updateInfo) {
+        Long rateDelay = (Long)updateInfo.getContext("rateDelay");
+        if (rateDelay != null) {
+            return rateDelay;
+        }
+        // Rate delay not yet set, set to conservative default
+        rateDelay = (Long)DEFAULT_RATE_DELAY;
+
+        // Check if it's in attributes, and if so use that
+        try {
+            String rateDelayStr = guestService.getApiKeyAttribute(updateInfo.apiKey, "bodymediaRateDelayMs");
+            if(rateDelayStr==null) {
+                // Not in key attributes, check oauth.properties.  This is a hack because
+                // this parameter didn't used to be stored with BodyMedia keys.  This will cause
+                // problems in the case where there are connector instances low-rate keys stored
+                // without bodymediaRateDelayMs and bodymediaRateDelayMs is set lower in oauth.properties with
+                // a new higher-rate key, but this should only be a temporary issue for systems that have
+                // pre-0.9.0022 BodyMedia connector instances
+                rateDelayStr = env.get("bodymediaRateDelayMs");
+            }
+            if (rateDelayStr != null) {
+                rateDelay = Long.valueOf(rateDelayStr);
+            }
+        }
+        catch (Throwable e) {
+            // If it didn't parse right, just use the default
+        }
+        // Update the updateInfo context so we can just return the precomputed value next time
+        updateInfo.setContext("rateDelay", rateDelay);
+        return rateDelay;
+    }
+
+    private long getWaitTime(Long rateDelay) {
         final long millisSinceLastCall = getMillisSinceLastCall();
         if (millisSinceLastCall ==-1)
             return -1;
-        else return RATE_DELAY-millisSinceLastCall;
+        // This assumes that setupRateDelay has already been called and
+        // will die with a null pointer exception if that's not the case.
+        // Unfortunately we can't call setupRateDelay here since we
+        // don't have an apiKey
+        else return rateDelay -millisSinceLastCall;
     }
 
     /**
@@ -525,7 +565,7 @@ public class BodymediaUpdater extends AbstractUpdater implements Autonomous {
         HttpGet request = new HttpGet(requestUrl);
         consumer.sign(request);
         HttpClient client = env.getHttpClient();
-        enforceRateLimits();
+        enforceRateLimits(getRateDelay(updateInfo));
         HttpResponse response = client.execute(request);
         int statusCode = response.getStatusLine().getStatusCode();
         final String reasonPhrase = response.getStatusLine().getReasonPhrase();
@@ -589,7 +629,7 @@ public class BodymediaUpdater extends AbstractUpdater implements Autonomous {
         HttpGet request = new HttpGet(requestUrl);
         consumer.sign(request);
         HttpClient client = env.getHttpClient();
-        enforceRateLimits();
+        enforceRateLimits(getRateDelay(updateInfo));
         HttpResponse response = client.execute(request);
         final int statusCode = response.getStatusLine().getStatusCode();
         final String reasonPhrase = response.getStatusLine().getReasonPhrase();

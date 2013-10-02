@@ -87,7 +87,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
      * @return
      */
     @Override
-    public List<ScheduleResult> updateConnector(final ApiKey apiKey, boolean force){
+    public List<ScheduleResult> updateConnector(final ApiKey apiKey, boolean force) {
         List<ScheduleResult> scheduleResults = new ArrayList<ScheduleResult>();
         // TODO: check if this connector type is enabled and supportsSync before calling update.
         // If it is disabled and/or does not support sync, don't try to update it.
@@ -106,9 +106,17 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
                                                                              : UpdateType.INITIAL_HISTORY_UPDATE);
         } else {
             int[] objectTypeValues = apiKey.getConnector().objectTypeValues();
-            final ConnectorInfo connectorInfo = systemService.getConnectorInfo(apiKey.getConnector().getName());
-            if (!connectorInfo.enabled||!connectorInfo.supportsSync) {
-                logger.info("Not updating " + connectorInfo.connectorName);
+            ConnectorInfo connectorInfo = null;
+            String connectorName = "unknown";
+            try {
+                connectorInfo = systemService.getConnectorInfo(apiKey.getConnector().getName());
+                connectorName = connectorInfo.connectorName;
+            }
+            catch (Throwable e) {
+                // This connector is not in Connector info; skip it
+            }
+            if (connectorInfo==null || !connectorInfo.enabled ||!connectorInfo.supportsSync) {
+                logger.info("Not updating " + connectorName);
                 return scheduleResults;
             }
             for (int objectTypes : objectTypeValues) {
@@ -159,9 +167,16 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     private void scheduleObjectTypeUpdate(final ApiKey apiKey, int objectTypes,
                                           List<ScheduleResult> scheduleResults,
                                           UpdateType updateType) {
-        final ConnectorInfo connectorInfo = systemService.getConnectorInfo(apiKey.getConnector().getName());
-        if (!connectorInfo.supportsSync)
+        ConnectorInfo connectorInfo = null;
+        try {
+            connectorInfo = systemService.getConnectorInfo(apiKey.getConnector().getName());
+        }
+        catch (Throwable e) {
+            // This connector is not in Connector info; skip it
+        }
+        if (connectorInfo == null || !connectorInfo.supportsSync)
             return;
+
         UpdateWorkerTask updateWorkerTask = getUpdateWorkerTask(apiKey, objectTypes);
         if (updateWorkerTask != null)
             scheduleResults.add(new ScheduleResult(apiKey.getId(), apiKey.getConnector().getName(),
@@ -213,13 +228,18 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
         for (ApiKey key : connectors) {
             // Make sure the connector is of a type which is still supported.  Otherwise
             // skip trying to update it.
-            if (key!=null && key.getConnector()!=null) {
-                final ConnectorInfo connectorInfo = systemService.getConnectorInfo(key.getConnector().getName());
-                // Make sure that this connector type supports sync and is enabled in this Fluxtream instance
-                if (connectorInfo.supportsSync && connectorInfo.enabled && key.getStatus()!=ApiKey.Status.STATUS_PERMANENT_FAILURE) {
-                    List<ScheduleResult> updateRes = updateConnector(key, force);
-                    scheduleResults.addAll(updateRes);
+            try {
+                if (key != null && key.getConnector() != null) {
+                    final ConnectorInfo connectorInfo = systemService.getConnectorInfo(key.getConnector().getName());
+                    // Make sure that this connector type supports sync and is enabled in this Fluxtream instance
+                    if (connectorInfo.supportsSync && connectorInfo.enabled && key.getStatus() != ApiKey.Status.STATUS_PERMANENT_FAILURE) {
+                        List<ScheduleResult> updateRes = updateConnector(key, force);
+                        scheduleResults.addAll(updateRes);
+                    }
                 }
+            }
+            catch (Throwable e) {
+                // Ignore this connector
             }
         }
         return scheduleResults;

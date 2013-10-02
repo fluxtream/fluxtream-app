@@ -65,7 +65,7 @@ public class LastFmUpdater extends AbstractUpdater {
         List<ChannelMapping> mappings = bodyTrackHelper.getChannelMappings(updateInfo.apiKey);
         if (mappings.size() == 0){
             ChannelMapping mapping = new ChannelMapping();
-            mapping.deviceName = "LastFm";
+            mapping.deviceName = "lastfm";
             mapping.channelName = "tracks";
             mapping.timeType = ChannelMapping.TimeType.gmt;
             mapping.channelType = ChannelMapping.ChannelType.timespan;
@@ -90,7 +90,7 @@ public class LastFmUpdater extends AbstractUpdater {
             stylePart.borderColor = "#fd4938";
             channelStyle.timespanStyles.values.put("on",stylePart);
 
-            bodyTrackHelper.setBuiltinDefaultStyle(updateInfo.getGuestId(),"LastFm","tracks",channelStyle);
+            bodyTrackHelper.setBuiltinDefaultStyle(updateInfo.getGuestId(),"lastfm","tracks",channelStyle);
         }
     }
 

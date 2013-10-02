@@ -126,7 +126,7 @@ public class ConnectorStore {
     @POST
     @Path("/renew/{apiKeyId}")
     @Produces({MediaType.APPLICATION_JSON})
-    public String renewConnectorTokens(@PathParam("apiKeyId") long apiKeyId) {
+    public String renewConnectorTokens(@PathParam("apiKeyId") long apiKeyId) throws Exception {
         final ApiKey apiKey = guestService.getApiKey(apiKeyId);
         ConnectorInfo connectorInfo = sysService.getConnectorInfo(apiKey.getConnector().getName());
         JSONObject renewInfo = new JSONObject();
