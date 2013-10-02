@@ -71,10 +71,16 @@ class UpdateWorker implements Runnable {
         boolean doUpdate = true;
 
         if (conn!=null) {
-            final ConnectorInfo connectorInfo = systemService.getConnectorInfo(apiKey.getConnector().getName());
-            // Make sure that this connector type supports sync and is enabled in this Fluxtream instance
-            if (!connectorInfo.supportsSync || !connectorInfo.enabled) {
-                doUpdate=false;
+            try {
+                final ConnectorInfo connectorInfo = systemService.getConnectorInfo(apiKey.getConnector().getName());
+                // Make sure that this connector type supports sync and is enabled in this Fluxtream instance
+                if (!connectorInfo.supportsSync || !connectorInfo.enabled) {
+                    doUpdate = false;
+                }
+            }
+            catch (Throwable e) {
+                // Skip this connector
+                doUpdate = false;
             }
         }
         else {

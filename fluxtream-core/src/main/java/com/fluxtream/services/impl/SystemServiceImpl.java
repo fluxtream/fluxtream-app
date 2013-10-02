@@ -54,26 +54,30 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
     }
 
     @Override
-	public List<ConnectorInfo> getConnectors() throws Exception {
+    public List<ConnectorInfo> getConnectors() throws Exception {
 		List<ConnectorInfo> all = JPAUtils.find(em, ConnectorInfo.class, "connectors.all", (Object[])null);
-		if (all.size() == 0) {
-			resetConnectorList();
-			all = JPAUtils.find(em, ConnectorInfo.class, "connectors.all",
-					(Object[]) null);
-		}
-		for (ConnectorInfo connectorInfo : all) {
-			connectorInfo.image = "/" + env.get("release")
-					+ connectorInfo.image;
-		}
+        // Removed check for initializing the Connector table since this was causing
+        // duplication of the entries in the Connector table.  This means that we may
+        // end up returning an incomplete list of connectors if this is
+        // called during a thread other than the one in onApplicationEvent during startup
+		//if (all.size() == 0) {
+		//	resetConnectorList();
+		//	all = JPAUtils.find(em, ConnectorInfo.class, "connectors.all",
+		//			(Object[]) null);
+		//}
 		return all;
 	}
 
     @Override
-    public ConnectorInfo getConnectorInfo(final String connectorName) {
+    public ConnectorInfo getConnectorInfo(final String connectorName)  throws Exception  {
         List<ConnectorInfo> all = JPAUtils.find(em, ConnectorInfo.class, "connectors.all", (Object[])null);
-        if (all.size() == 0) {
-            initializeConnectorList();
-        }
+        // Removed check for initializing the Connector table since this was causing
+        // duplication of the entries in the Connector table.  This means that we may
+        // end up returning an incomplete list of connectors if this is
+        // called during a thread other than the one in onApplicationEvent during startup
+        //if (all.size() == 0) {
+        //    resetConnectorList();
+        //}
         final ConnectorInfo connectorInfo = JPAUtils.findUnique(em, ConnectorInfo.class, "connector.byName", connectorName);
         return connectorInfo;
     }
@@ -82,11 +86,12 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
     private void initializeConnectorList() {
 		ResourceBundle res = ResourceBundle.getBundle("messages/connectors");
         int order = 0;
+        String release = env.get("release");
 
         final String facebook = "Facebook";
         String[] facebookKeys = checkKeysExist(facebook, Arrays.asList("facebook.appId", "facebook.appSecret"));
         final ConnectorInfo facebookConnectorInfo = new ConnectorInfo(facebook,
-                                                                   "/images/connectors/connector-facebook.jpg",
+                                                                      "/" + release + "/images/connectors/connector-facebook.jpg",
                                                                    res.getString("facebook"),
                                                                    "/facebook/token",
                                                                    Connector.getConnector("facebook"), order++, facebookKeys!=null,
@@ -95,7 +100,7 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         final String moves = "Moves";
         String[] movesKeys = checkKeysExist(moves, Arrays.asList("moves.client.id", "moves.client.secret", "moves.validRedirectURL", "foursquare.client.id", "foursquare.client.secret"));
         final ConnectorInfo movesConnectorInfo = new ConnectorInfo(moves,
-                                                                   "/images/connectors/connector-moves.jpg",
+                                                                   "/" + release + "/images/connectors/connector-moves.jpg",
                                                                    res.getString("moves"),
                                                                    "/moves/oauth2/token",
                                                                    Connector.getConnector("moves"), order++, movesKeys!=null,
@@ -104,7 +109,7 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         final String latitude = "Google Latitude";
         String[] latitudeKeys = checkKeysExist(latitude, Arrays.asList("google.client.id", "google.client.secret"));
         final ConnectorInfo latitudeConnectorInfo = new ConnectorInfo(latitude,
-                                                                      "/images/connectors/connector-google_latitude.jpg",
+                                                                      "/" + release + "/images/connectors/connector-google_latitude.jpg",
                                                                       res.getString("google_latitude"),
                                                                       "upload:google_latitude",
                                                                       Connector.getConnector("google_latitude"), order++, latitudeKeys!=null,
@@ -122,7 +127,7 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         final String bodyMedia = "BodyMedia";
         String[] bodymediaKeys = checkKeysExist(bodyMedia, Arrays.asList("bodymediaConsumerKey", "bodymediaConsumerSecret"));
         final ConnectorInfo bodymediaConnectorInfo = new ConnectorInfo(bodyMedia,
-                                                                       "/images/connectors/connector-bodymedia.jpg",
+                                                                       "/" + release + "/images/connectors/connector-bodymedia.jpg",
                                                                        res.getString("bodymedia"),
                                                                        "/bodymedia/token",
                                                                        Connector.getConnector("bodymedia"), order++, bodymediaKeys!=null,
@@ -134,7 +139,7 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         final String withings = "Withings";
         String[] withingsKeys = checkKeysExist(withings, Arrays.<String>asList());
         em.persist(new ConnectorInfo(withings,
-                                     "/images/connectors/connector-withings.jpg",
+                                     "/" + release + "/images/connectors/connector-withings.jpg",
                                      res.getString("withings"),
                                      "ajax:/withings/enterCredentials",
                                      Connector.getConnector("withings"), order++, withingsKeys!=null,
@@ -144,14 +149,14 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         String[] zeoKeys = checkKeysExist(zeo, new ArrayList<String>());
         // Zeo no longer supports sync.  The myzeo servers were disabled due to bankruptcy in May/June 2013
         em.persist(new ConnectorInfo(zeo,
-                                     "/images/connectors/connector-zeo.jpg",
+                                     "/" + release + "/images/connectors/connector-zeo.jpg",
                                      res.getString("zeo"),
                                      "ajax:/zeo/enterCredentials",
                                      Connector.getConnector("zeo"), order++, zeoKeys!=null,
                                      false, false, zeoKeys));
         final String mymee = "Mymee";
         em.persist(new ConnectorInfo(mymee,
-                                     "/images/connectors/connector-mymee.jpg",
+                                     "/" + release + "/images/connectors/connector-mymee.jpg",
                                      res.getString("mymee"),
                                      "ajax:/mymee/enterFetchURL",
                                      Connector.getConnector("mymee"), order++, true,
@@ -159,7 +164,7 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         final String quantifiedMind = "QuantifiedMind";
         String[] quantifiedMindKeys = checkKeysExist(quantifiedMind, new ArrayList<String>());
         em.persist(new ConnectorInfo(quantifiedMind,
-                                     "/images/connectors/connector-quantifiedmind.jpg",
+                                     "/" + release + "/images/connectors/connector-quantifiedmind.jpg",
                                      res.getString("quantifiedmind"),
                                      "ajax:/quantifiedmind/getTokenDialog",
                                      Connector.getConnector("quantifiedmind"), order++, quantifiedMindKeys!=null,
@@ -167,7 +172,7 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         final String flickr = "Flickr";
         String[] flickrKeys = checkKeysExist(flickr, Arrays.asList("flickrConsumerKey", "flickrConsumerSecret", "flickr.validRedirectURL"));
         em.persist(new ConnectorInfo(flickr,
-                                     "/images/connectors/connector-flickr.jpg",
+                                     "/" + release + "/images/connectors/connector-flickr.jpg",
                                      res.getString("flickr"),
                                      "/flickr/token",
                                      Connector.getConnector("flickr"), order++, flickrKeys!=null,
@@ -176,7 +181,7 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         String[] googleCalendarKeys = checkKeysExist(googleCalendar, Arrays.asList("google.client.id", "google.client.secret"));
         final ConnectorInfo googleCalendarConnectorInfo =
                 new ConnectorInfo(googleCalendar,
-                                  "/images/connectors/connector-google_calendar.jpg",
+                                  "/" + release + "/images/connectors/connector-google_calendar.jpg",
                                   res.getString("google_calendar"),
                                   "/google/oauth2/token?scope=https://www.googleapis.com/auth/calendar.readonly",
                                   Connector.getConnector("google_calendar"),
@@ -187,7 +192,7 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         final String lastFm = "Last fm";
         String[] lastFmKeys = checkKeysExist(lastFm, Arrays.asList("lastfmConsumerKey", "lastfmConsumerSecret"));
         em.persist(new ConnectorInfo(lastFm,
-                                     "/images/connectors/connector-lastfm.jpg",
+                                     "/" + release + "/images/connectors/connector-lastfm.jpg",
                                      res.getString("lastfm"),
                                      "/lastfm/token",
                                      Connector.getConnector("lastfm"), order++, lastFmKeys!=null,
@@ -195,14 +200,14 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         final String twitter = "Twitter";
         String[] twitterKeys = checkKeysExist(twitter, Arrays.asList("twitterConsumerKey", "twitterConsumerSecret"));
         em.persist(new ConnectorInfo(twitter,
-                                     "/images/connectors/connector-twitter.jpg",
+                                     "/" + release + "/images/connectors/connector-twitter.jpg",
                                      res.getString("twitter"), "/twitter/token",
                                      Connector.getConnector("twitter"), order++, twitterKeys!=null,
                                      false, true, twitterKeys));
         final String fluxtreamCapture = "Fluxtream Capture";
         String[] fluxtreamCaptureKeys = checkKeysExist(fluxtreamCapture, new ArrayList<String>());
         em.persist(new ConnectorInfo(fluxtreamCapture,
-                                     "/images/connectors/connector-fluxtream_capture.png",
+                                     "/" + release + "/images/connectors/connector-fluxtream_capture.png",
                                      res.getString("fluxtream_capture"),
                                      "ajax:/fluxtream_capture/about",
                                      Connector.getConnector("fluxtream_capture"), order++, fluxtreamCaptureKeys!=null,
@@ -210,19 +215,20 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         String[] runkeeperKeys = checkKeysExist("Runkeeper", Arrays.asList("runkeeperConsumerKey", "runkeeperConsumerSecret"));
         final String runKeeper = "RunKeeper";
         em.persist(new ConnectorInfo(runKeeper,
-                                     "/images/connectors/connector-runkeeper.jpg",
+                                     "/" + release + "/images/connectors/connector-runkeeper.jpg",
                                      res.getString("runkeeper"),
                                      "/runkeeper/token",
                                      Connector.getConnector("runkeeper"), order++, runkeeperKeys!=null,
                                      false, true, runkeeperKeys));
         em.persist(new ConnectorInfo("SMS Backup",
-                                     "/images/connectors/connector-sms_backup.jpg",
+                                     "/" + release + "/images/connectors/connector-sms_backup.jpg",
                                      res.getString("sms_backup"),
                                      "ajax:/smsBackup/enterCredentials",
                                      Connector.getConnector("sms_backup"), order++, true,
 				     false,true,null));
 	}
 
+    @Transactional(readOnly = false)
     private String[] checkKeysExist(String connectorName, List<String> keys) {
         String[] checkedKeys = new String[keys.size()];
         int i=0;
@@ -286,6 +292,7 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         initializeConnectorList();
     }
 
+    @Transactional(readOnly = false)
     public boolean checkConnectorInstanceKeys(List<ConnectorInfo> connectors)
     {
         // For each connector type in connectorInfos which is enabled, make sure that all of the existing connector
