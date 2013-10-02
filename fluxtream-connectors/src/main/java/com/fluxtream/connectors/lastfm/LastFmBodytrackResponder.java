@@ -1,0 +1,57 @@
+package com.fluxtream.connectors.lastfm;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TimeZone;
+import com.fluxtream.SimpleTimeInterval;
+import com.fluxtream.TimeInterval;
+import com.fluxtream.TimeUnit;
+import com.fluxtream.connectors.Connector;
+import com.fluxtream.connectors.ObjectType;
+import com.fluxtream.connectors.bodytrackResponders.AbstractBodytrackResponder;
+import com.fluxtream.connectors.vos.AbstractFacetVO;
+import com.fluxtream.domain.AbstractFacet;
+import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.GuestSettings;
+import com.fluxtream.mvc.models.TimespanModel;
+import com.fluxtream.services.ApiDataService;
+
+/**
+ * <p>
+ * <code>LastFmBodytrackResponder</code> does something...
+ * </p>
+ *
+ * @author Anne Wright (anne.r.wright@gmail.com)
+ */
+public class LastFmBodytrackResponder extends AbstractBodytrackResponder {
+    @Override
+    public List<TimespanModel> getTimespans(final long startMillis, final long endMillis, final ApiKey apiKey, final String channelName, final ApiDataService apiDataService) {
+        List<TimespanModel> items = new ArrayList<TimespanModel>();
+        final TimeInterval timeInterval = new SimpleTimeInterval(startMillis, endMillis, TimeUnit.ARBITRARY, TimeZone.getTimeZone("UTC"));
+        Connector connector = apiKey.getConnector();
+        final ObjectType recent_track = ObjectType.getObjectType(connector, "recent_track");
+
+        String objectTypeName = recent_track.getName();
+        List<AbstractFacet> facets = getFacetsInTimespan(apiDataService,timeInterval,apiKey, recent_track);
+        for (AbstractFacet facet : facets){
+            LastFmRecentTrackFacet trackFacet = (LastFmRecentTrackFacet) facet;
+
+            // Sadly, the start and end times of track facets are the same.  Assume that the
+            // start time is correct and arbitrarily draw a 3-min box.
+            items.add(new TimespanModel(trackFacet.start,trackFacet.start+180000,"on",objectTypeName));
+        }
+
+        return items;
+    }
+
+    @Override
+    public List<AbstractFacetVO<AbstractFacet>> getFacetVOs(final ApiDataService apiDataService, final GuestSettings guestSettings, final ApiKey apiKey, final String objectTypeName, final long start, final long end, final String value) {
+        Connector connector = apiKey.getConnector();
+        TimeInterval timeInterval = new SimpleTimeInterval(start, end, TimeUnit.ARBITRARY, TimeZone.getTimeZone("UTC"));
+        final ObjectType recent_track = ObjectType.getObjectType(connector, "recent_track");
+
+        List<AbstractFacet> facets = getFacetsInTimespan(apiDataService, timeInterval, apiKey, recent_track);
+
+        return getFacetVOsForFacets(facets,timeInterval,guestSettings);
+    }
+}
