@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.TreeSet;
-
 import com.fluxtream.utils.TimespanSegment;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
@@ -13,8 +12,6 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-
-import java.util.TreeSet;
 
 /**
  * <p>
@@ -25,15 +22,15 @@ import java.util.TreeSet;
  */
 public class TimezoneMap {
     protected static final DateTimeFormatter formatter = DateTimeFormat
-                .forPattern("yyyy-MM-dd");
+            .forPattern("yyyy-MM-dd");
 
     public TreeSet<TimespanSegment<DateTimeZone>> spans = new TreeSet<TimespanSegment<DateTimeZone>>();
 
     public TimezoneMap() {
     }
-  
+
     public boolean add(final long start, final long end, org.joda.time.DateTimeZone tz) {
-	    TimespanSegment<DateTimeZone> newSpan = new TimespanSegment<DateTimeZone>(start,end,tz);
+        TimespanSegment<DateTimeZone> newSpan = new TimespanSegment<DateTimeZone>(start,end,tz);
 
         return(spans.add(newSpan));
     }
@@ -77,6 +74,29 @@ public class TimezoneMap {
         return timezoneMap;
     }
 
+    public DateTimeZone getMainTimezone() {
+        Map<DateTimeZone, Long> timespentInTimezoneMap = new HashMap<DateTimeZone, Long>();
+        for (TimespanSegment<DateTimeZone> span : spans) {
+            long timeSpent = span.getEnd() - span.getStart();
+            if (timespentInTimezoneMap.containsKey(span.getValue())) {
+                final Long timeAlreadySpent = timespentInTimezoneMap.get(span.getValue());
+                timespentInTimezoneMap.put(span.getValue(), timeAlreadySpent + timeSpent);
+            }
+            else {
+                timespentInTimezoneMap.put(span.getValue(), timeSpent);
+            }
+        }
+        long maxTimespent = Long.MIN_VALUE;
+        DateTimeZone mainTimezone = null;
+        for (DateTimeZone dateTimeZone : timespentInTimezoneMap.keySet()) {
+            if (timespentInTimezoneMap.get(dateTimeZone) > maxTimespent) {
+                maxTimespent = timespentInTimezoneMap.get(dateTimeZone);
+                mainTimezone = dateTimeZone;
+            }
+        }
+        return mainTimezone;
+    }
+
     public TimespanSegment<DateTimeZone> queryPoint(long ts) {
         // Create a segment for retrieving the segment in spans which
         // starts at a time <= ts.  The returned segment will be one in
@@ -94,7 +114,7 @@ public class TimezoneMap {
 
     public DateTime getStartOfDate(LocalDate date)
     {
-                // Get the milisecond time for the start of that date in UTC
+        // Get the milisecond time for the start of that date in UTC
         long utcStartMillis = date.toDateTimeAtStartOfDay(DateTimeZone.UTC).getMillis();
         // Lookup the timezone for that time - 12 and +12 hours since timezones range from
         // UTC-12h to UTC+12h so the real start time will be within that range
@@ -134,7 +154,7 @@ public class TimezoneMap {
                 // Something weird is going on here, complain and return GMT
                 System.out.println("Cant figure out start of date "+date.toString()+", "+minTimespan + " does not contain " + minTzStartDT + " and "+ maxTimespan + " does not contain " + maxTzStartDT);
                 return(date.toDateTimeAtStartOfDay(DateTimeZone.UTC));
-             }
+            }
         }
 
         //System.out.println("Start of date "+date.toString()+", in "+realTz + ": " + realDateStart);
@@ -171,7 +191,7 @@ public class TimezoneMap {
 
         // This should be Eastern
         LocalDate d3b = new LocalDate(2013, 5, 22);
-         tzMap.getStartOfDate(d3b);
+        tzMap.getStartOfDate(d3b);
 
         // This should be Central
         LocalDate d3c = new LocalDate(2013, 5, 23);

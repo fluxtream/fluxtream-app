@@ -11,12 +11,14 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.TimeZone;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import com.fluxtream.Configuration;
+import com.fluxtream.TimezoneMap;
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.connectors.vos.AbstractFacetVO;
@@ -26,6 +28,7 @@ import com.fluxtream.domain.metadata.City;
 import com.fluxtream.domain.metadata.FoursquareVenue;
 import com.fluxtream.domain.metadata.VisitedCity;
 import com.fluxtream.domain.metadata.WeatherInfo;
+import com.fluxtream.metadata.ArbitraryTimespanMetadata;
 import com.fluxtream.metadata.DayMetadata;
 import com.fluxtream.metadata.MonthMetadata;
 import com.fluxtream.metadata.WeekMetadata;
@@ -168,6 +171,47 @@ public class MetadataServiceImpl implements MetadataService {
     }
 
     @Override
+    public ArbitraryTimespanMetadata getArbitraryTimespanMetadata(final long guestId, final long start, final long end) {
+        final TreeSet<String> dates = getDatesBetween(start, end);
+        List<VisitedCity> cities = getVisitedCitiesForDates(guestId, dates);
+        VisitedCity previousInferredCity = null, nextInferredCity = null;
+        if (cities.size()==0) {
+            previousInferredCity = searchCityBeforeDate(guestId, dates.first());
+            nextInferredCity = searchCityAfterDate(guestId, dates.last());
+            if (previousInferredCity==null&&nextInferredCity==null) {
+                ArbitraryTimespanMetadata info = new ArbitraryTimespanMetadata(start, end);
+                return info;
+            }
+        }
+        final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities, previousInferredCity, nextInferredCity);
+        final TreeMap<String, TimeZone> consensusTimezoneMap = getConsensusTimezoneMap(guestId, dates);
+        TimezoneMap timezoneMap = TimezoneMap.fromConsensusTimezoneMap(consensusTimezoneMap);
+        ArbitraryTimespanMetadata info = new ArbitraryTimespanMetadata(consensusVisitedCity, previousInferredCity, nextInferredCity, consensusTimezoneMap, timezoneMap, cities, start, end);
+        return info;
+    }
+
+    TreeMap<String,TimeZone> getConsensusTimezoneMap(final long guestId, final TreeSet<String> dates) {
+        TreeMap<String, TimeZone> tzMap = new TreeMap<String, TimeZone>();
+        for (String date : dates) {
+            final DayMetadata dayMetadata = getDayMetadata(guestId, date);
+            tzMap.put(date, TimeZone.getTimeZone(dayMetadata.consensusVisitedCity.city.geo_timezone));
+        }
+        return tzMap;
+    }
+
+    TreeSet<String> getDatesBetween(long start, final long end) {
+        TreeSet<String> dates = new TreeSet<String>();
+        String startDate = formatter.print(start-DateTimeConstants.MILLIS_PER_DAY/2);
+        String endDate = formatter.print(end + DateTimeConstants.MILLIS_PER_DAY/2);
+        dates.add(startDate);
+        for(;!startDate.equals(endDate);start+=DateTimeConstants.MILLIS_PER_DAY) {
+            startDate = formatter.print(start);
+            dates.add(startDate);
+        }
+        return dates;
+    }
+
+    @Override
 	public DayMetadata getDayMetadata(long guestId, String date) {
         // get visited cities for a specific date . If we don't have any data for that date,
         // retrieve cities for the first date for which we do have data
@@ -182,7 +226,11 @@ public class MetadataServiceImpl implements MetadataService {
             }
         }
         final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities, previousInferredCity, nextInferredCity);
-        DayMetadata info = new DayMetadata(cities, consensusVisitedCity, previousInferredCity, nextInferredCity, date);
+        TreeMap<String, TimeZone> consensusTimezoneMap = new TreeMap<String, TimeZone>();
+        consensusTimezoneMap.put(date, TimeZone.getTimeZone(consensusVisitedCity.city.geo_timezone));
+        TimezoneMap timezoneMap = TimezoneMap.fromConsensusTimezoneMap(consensusTimezoneMap);
+
+        DayMetadata info = new DayMetadata(consensusVisitedCity, previousInferredCity, nextInferredCity, consensusTimezoneMap, timezoneMap, cities, date);
         return info;
     }
 
@@ -207,9 +255,9 @@ public class MetadataServiceImpl implements MetadataService {
             }
         }
         final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities, previousInferredCity, nextInferredCity);
-        final List<VisitedCity> consensusCities = getConsensusCities(guestId, dates);
-        WeekMetadata info = new WeekMetadata(year, week,
-                                             consensusCities, consensusVisitedCity, previousInferredCity, nextInferredCity);
+        final TreeMap<String, TimeZone> consensusTimezoneMap = getConsensusTimezoneMap(guestId, dates);
+        TimezoneMap timezoneMap = TimezoneMap.fromConsensusTimezoneMap(consensusTimezoneMap);
+        WeekMetadata info = new WeekMetadata(consensusVisitedCity, previousInferredCity, nextInferredCity, consensusTimezoneMap, timezoneMap, cities, year, week);
         return info;
     }
 
@@ -249,8 +297,9 @@ public class MetadataServiceImpl implements MetadataService {
             }
         }
         final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities, previousInferredCity, nextInferredCity);
-        final List<VisitedCity> consensusCities = getConsensusCities(guestId, dates);
-        MonthMetadata info = new MonthMetadata(consensusCities, consensusVisitedCity, previousInferredCity, nextInferredCity, year, month);
+        final TreeMap<String, TimeZone> consensusTimezoneMap = getConsensusTimezoneMap(guestId, dates);
+        TimezoneMap timezoneMap = TimezoneMap.fromConsensusTimezoneMap(consensusTimezoneMap);
+        MonthMetadata info = new MonthMetadata(consensusVisitedCity, previousInferredCity, nextInferredCity, consensusTimezoneMap, timezoneMap, cities, year, month);
         return info;
     }
 
@@ -418,7 +467,7 @@ public class MetadataServiceImpl implements MetadataService {
         return dayMetadata.getTimeInterval().getMainTimeZone();
 	}
 
-	@Override
+    @Override
 	public TimeZone getTimeZone(long guestId, long time) {
         String date = findClosestKnownDateForTime(guestId, time);
         return getTimeZone(guestId, date);
@@ -888,23 +937,24 @@ public class MetadataServiceImpl implements MetadataService {
     }
 
     public static void main(final String[] args) {
-        final DateTime dateTime = formatter.withZone(DateTimeZone.forID("Europe/Brussels")).parseDateTime("2013-06-03");
-        System.out.println(dateTime.getMillis());
-        System.out.println(dateTime.getMillis()+DateTimeConstants.MILLIS_PER_DAY);
-        Point2D.Double p1 = new Point2D.Double(0,0);
-        Point2D.Double p2 = new Point2D.Double(0,0.0089);
-        System.out.println(getMeterDistance(p1, p2));
-        p2 = new Point2D.Double(0.00904,0.00);
-        System.out.println(getMeterDistance(p1, p2));
-        p2 = new Point2D.Double(0.00639, 0.00629);
-        System.out.println(getMeterDistance(p1, p2));
-        p1 = new Point2D.Double(40.0, 0.0);
-        p2 = new Point2D.Double(40, 0.0117647);
-        System.out.println(getMeterDistance(p1, p2));
-        p2 = new Point2D.Double(40.00904, 0.0);
-        System.out.println(getMeterDistance(p1, p2));
-        p2 = new Point2D.Double(40.00639, 0.0083);
-        System.out.println(getMeterDistance(p1, p2));
+        long now = System.currentTimeMillis();
+        //final DateTime dateTime = formatter.withZone(DateTimeZone.forID("Europe/Brussels")).parseDateTime("2013-06-03");
+        //System.out.println(dateTime.getMillis());
+        //System.out.println(dateTime.getMillis()+DateTimeConstants.MILLIS_PER_DAY);
+        //Point2D.Double p1 = new Point2D.Double(0,0);
+        //Point2D.Double p2 = new Point2D.Double(0,0.0089);
+        //System.out.println(getMeterDistance(p1, p2));
+        //p2 = new Point2D.Double(0.00904,0.00);
+        //System.out.println(getMeterDistance(p1, p2));
+        //p2 = new Point2D.Double(0.00639, 0.00629);
+        //System.out.println(getMeterDistance(p1, p2));
+        //p1 = new Point2D.Double(40.0, 0.0);
+        //p2 = new Point2D.Double(40, 0.0117647);
+        //System.out.println(getMeterDistance(p1, p2));
+        //p2 = new Point2D.Double(40.00904, 0.0);
+        //System.out.println(getMeterDistance(p1, p2));
+        //p2 = new Point2D.Double(40.00639, 0.0083);
+        //System.out.println(getMeterDistance(p1, p2));
     }
 
 }

@@ -15,11 +15,13 @@ import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.mvc.models.TimespanModel;
-import com.fluxtream.services.ApiDataService;
+import org.springframework.stereotype.Component;
 
+@Component
 public class MovesBodytrackResponder extends AbstractBodytrackResponder {
+
     @Override
-    public List<TimespanModel> getTimespans(final long startMillis, final long endMillis, final ApiKey apiKey, final String channelName, final ApiDataService apiDataService) {
+    public List<TimespanModel> getTimespans(final long startMillis, final long endMillis, final ApiKey apiKey, final String channelName) {
         List<TimespanModel> items = new ArrayList<TimespanModel>();
         final TimeInterval timeInterval = new SimpleTimeInterval(startMillis, endMillis, TimeUnit.ARBITRARY, TimeZone.getTimeZone("UTC"));
         ObjectType[] objectTypes = apiKey.getConnector().objectTypes();
@@ -27,7 +29,7 @@ public class MovesBodytrackResponder extends AbstractBodytrackResponder {
         for (ObjectType objectType : objectTypes){
             String objectTypeName = apiKey.getConnector().getName() + "-" + objectType.getName();
             if (objectType.getName().equals("move")){
-                List<AbstractFacet> facets = getFacetsInTimespan(apiDataService,timeInterval,apiKey,objectType);
+                List<AbstractFacet> facets = getFacetsInTimespan(timeInterval,apiKey,objectType);
                 for (AbstractFacet facet : facets){
                     MovesMoveFacet moveFacet = (MovesMoveFacet) facet;
                     for (MovesActivity activity : moveFacet.getActivities()){
@@ -37,7 +39,7 @@ public class MovesBodytrackResponder extends AbstractBodytrackResponder {
 
             }
             else if (objectType.getName().equals("place")){
-                List<AbstractFacet> facets = getFacetsInTimespan(apiDataService,timeInterval,apiKey,objectType);
+                List<AbstractFacet> facets = getFacetsInTimespan(timeInterval,apiKey,objectType);
                 for (AbstractFacet facet : facets){
                     MovesPlaceFacet place = (MovesPlaceFacet) facet;
                     items.add(new TimespanModel(place.start,place.end,"place",objectTypeName));
@@ -48,7 +50,7 @@ public class MovesBodytrackResponder extends AbstractBodytrackResponder {
     }
 
     @Override
-    public List<AbstractFacetVO<AbstractFacet>> getFacetVOs(final ApiDataService apiDataService, final GuestSettings guestSettings, final ApiKey apiKey, final String objectTypeName, final long start, final long end, final String value) {
+    public List<AbstractFacetVO<AbstractFacet>> getFacetVOs(final GuestSettings guestSettings, final ApiKey apiKey, final String objectTypeName, final long start, final long end, final String value) {
         Connector connector = apiKey.getConnector();
         String[] objectTypeNameParts = objectTypeName.split("-");
         ObjectType objectType = null;
@@ -61,9 +63,9 @@ public class MovesBodytrackResponder extends AbstractBodytrackResponder {
         if (objectType == null || (objectType.getName().equals("place") && !"place".equals(value)))
             return new ArrayList<AbstractFacetVO<AbstractFacet>>();
 
-        TimeInterval timeInterval = new SimpleTimeInterval(start, end, TimeUnit.ARBITRARY, TimeZone.getTimeZone("UTC"));
+        TimeInterval timeInterval = metadataService.getArbitraryTimespanMetadata(apiKey.getGuestId(), start, end).getTimeInterval();
 
-        List<AbstractFacet> facets = getFacetsInTimespan(apiDataService,timeInterval,apiKey,objectType);
+        List<AbstractFacet> facets = getFacetsInTimespan(timeInterval,apiKey,objectType);
 
         if (objectType.getName().equals("move")){
             MovesMoveFacet move;
@@ -81,6 +83,31 @@ public class MovesBodytrackResponder extends AbstractBodytrackResponder {
             }
         }
 
-        return getFacetVOsForFacets(facets,timeInterval,guestSettings);
+        List<AbstractFacetVO<AbstractFacet>> facetVOsForFacets = getFacetVOsForFacets(facets, timeInterval, guestSettings);
+        facetVOsForFacets = dedup(facetVOsForFacets);
+        return facetVOsForFacets;
     }
+
+    private List<AbstractFacetVO<AbstractFacet>> dedup(final List<AbstractFacetVO<AbstractFacet>> facetVOs) {
+        List<AbstractFacetVO<AbstractFacet>> deduped = new ArrayList<AbstractFacetVO<AbstractFacet>>();
+
+        there: for (AbstractFacetVO<AbstractFacet> facetVO : facetVOs) {
+            AbstractMovesFacetVO f = (AbstractMovesFacetVO) facetVO;
+            for (AbstractFacetVO<AbstractFacet> uniqueFacet : deduped) {
+                AbstractMovesFacetVO u = (AbstractMovesFacetVO) uniqueFacet;
+                if (u.type.equals(f.type)&&u.start==f.start) {
+                    if (u.end>f.end)
+                        continue there;
+                    else {
+                        deduped.remove(u);
+                        deduped.add(f);
+                        continue there;
+                    }
+                }
+            }
+            deduped.add(f);
+        }
+        return deduped;
+    }
+
 }

@@ -5,13 +5,11 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
-//import java.nio.file.Path;
-//import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
@@ -40,9 +38,13 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+//import java.nio.file.Path;
+//import java.nio.file.Paths;
 
 /**
  *
@@ -83,6 +85,9 @@ public class BodyTrackHelper {
 
     @Autowired
     ApiDataService apiDataService;
+
+    @Autowired
+    BeanFactory beanFactory;
 
     // Create a Gson parser which handles ChannelBounds specially to avoid problems with +/- infinity
     Gson gson = new GsonBuilder().registerTypeAdapter(ChannelBounds.class, new ChannelBoundsDeserializer()).create();
@@ -337,7 +342,7 @@ public class BodyTrackHelper {
 
                 if (mapping.apiKeyId != null){
                     ApiKey api = guestService.getApiKey(mapping.apiKeyId);
-                    AbstractBodytrackResponder.Bounds bounds = api.getConnector().getBodytrackResponder().getBounds(apiDataService,guestService,mapping);
+                    AbstractBodytrackResponder.Bounds bounds = api.getConnector().getBodytrackResponder(beanFactory).getBounds(mapping);
                     channel.min_time = bounds.min_time;
                     channel.max_time = bounds.max_time;
                     channel.min = bounds.min;

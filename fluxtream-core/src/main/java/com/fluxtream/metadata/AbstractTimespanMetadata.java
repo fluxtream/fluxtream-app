@@ -1,13 +1,13 @@
 package com.fluxtream.metadata;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
-import com.fluxtream.OutsideTimeBoundariesException;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.TimeUnit;
+import com.fluxtream.TimezoneAwareTimeInterval;
+import com.fluxtream.TimezoneMap;
 import com.fluxtream.domain.metadata.VisitedCity;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
@@ -21,6 +21,9 @@ import org.joda.time.format.DateTimeFormatter;
  */
 public abstract class AbstractTimespanMetadata {
 
+    private TimezoneMap timezoneMap;
+    private Map<String, TimeZone> consensusTimezones;
+    private TimeInterval timeInterval;
     public long start, end;
 
     // startDate and endDate are in the date storage format: yyyy-MM-dd
@@ -35,107 +38,19 @@ public abstract class AbstractTimespanMetadata {
     protected static final DateTimeFormatter formatter = DateTimeFormat
             .forPattern("yyyy-MM-dd");
 
-    public List<VisitedCity> getCities() {
-        Collections.sort(cities, new Comparator<VisitedCity>() {
-            @Override
-            public int compare(final VisitedCity o1, final VisitedCity o2) {
-                return (int)(o1.start - o2.start);
-            }
-        });
-        return cities;
-    }
-
-    public void setCities(final List<VisitedCity> cities) {
-        this.cities = cities;
-    }
-
-    protected class TimespanTimeInterval implements TimeInterval {
-
-        @Override
-        public TimeZone getMainTimeZone() {
-            // Return the timezone for the consensus visited city.
-            // Note that there are strings in the geo_timezone column
-            // of the cities table which cause getTimeZone to throw an exception
-            if(consensusVisitedCity!=null && consensusVisitedCity.city!=null) {
-                try {
-                    return TimeZone.getTimeZone(consensusVisitedCity.city.geo_timezone);
-                }
-                catch (Exception e) {
-                    System.out.println("Failed to parse timezone for " + consensusVisitedCity.city.geo_timezone + ", returning UTC");
-                }
-            }
-            else {
-                System.out.println("Invalid consensusVisitedCity, returning UTC");
-            }
-            return TimeZone.getTimeZone("GMT");
-        }
-
-        @Override
-        public long getStart() { return start; };
-
-        @Override
-        public long getEnd() { return end; }
-
-        @Override
-        public TimeUnit getTimeUnit() { return getTimespanTimeUnit(); }
-
-        @Override
-        public TimeZone getTimeZone(final long time) throws OutsideTimeBoundariesException {
-            if (getTimeUnit()==TimeUnit.DAY)
-                return getMainTimeZone();
-
-            // This assumes that the cities array contains an entry for each date in the range, which
-            // is a false assumption.  TODO: fix this
-            for (VisitedCity city : getCities()) {
-                long dayStart = city.getDayStart();
-                long dayEnd = city.getDayEnd();
-                if (dayStart<=time&&dayEnd>time) {
-                    // Note that there are strings in the geo_timezone column
-                    // of the cities table which cause getTimeZone to throw an exception
-                    try {
-                        return TimeZone.getTimeZone(city.city.geo_timezone);
-                    }
-                    catch (Exception e) {
-                        System.out.println("Failed to parse timezone for " + city.city.geo_timezone + ", returning UTC");
-                        return TimeZone.getTimeZone("GMT");
-                    }
-                }
-            }
-            throw new OutsideTimeBoundariesException();
-        }
-
-        @Override
-        public TimeZone getTimeZone(final String date) throws OutsideTimeBoundariesException {
-            if (getTimeUnit()==TimeUnit.DAY)
-                return getMainTimeZone();
-            // This assumes that the cities array contains an entry for each date in the range, which
-            // is a false assumption.  TODO: fix this
-            for (VisitedCity city : getCities()) {
-                if (city.date.equals(date)) {
-                    // Note that there are strings in the geo_timezone column
-                    // of the cities table which cause getTimeZone to throw an exception
-                    try {
-                        return TimeZone.getTimeZone(city.city.geo_timezone);
-                    }
-                    catch (Exception e) {
-                        System.out.println("Failed to parse timezone for " + city.city.geo_timezone + ", returning UTC");
-                        return TimeZone.getTimeZone("GMT");
-                    }
-                }
-            }
-            throw new OutsideTimeBoundariesException();
-        }
-    }
-
     public AbstractTimespanMetadata() {}
 
     // This constructor does not set the time range (start, end, startDate, and endDate) and should only be called
     // by subclasses which are themselves going to set those parameters before return.
-    protected AbstractTimespanMetadata(List<VisitedCity> cities, VisitedCity consensusVisitedCity, VisitedCity previousInferredCity, VisitedCity nextInferredCity) {
-        this.setCities(cities);
+    protected AbstractTimespanMetadata(VisitedCity consensusVisitedCity, VisitedCity previousInferredCity, VisitedCity nextInferredCity,
+                                       Map<String, TimeZone> consensusTimezones,
+                                       TimezoneMap timezoneMap, List<VisitedCity> cities) {
         this.consensusVisitedCity = consensusVisitedCity;
         this.nextInferredCity = nextInferredCity;
         this.previousInferredCity = previousInferredCity;
+        this.consensusTimezones = consensusTimezones;
+        this.timezoneMap = timezoneMap;
+        this.cities = cities;
     }
 
     // Returns the millisecond time of the start of the given date in the given city.
@@ -159,8 +74,8 @@ public abstract class AbstractTimespanMetadata {
         }
 
        if(dateTimeZone==null) {
-            dateTimeZone = DateTimeZone.UTC;
-         }
+         dateTimeZone = DateTimeZone.UTC;
+       }
 
         long forDateTime = formatter.withZone(dateTimeZone).parseDateTime(forDate).getMillis();
         return forDateTime;
@@ -169,9 +84,14 @@ public abstract class AbstractTimespanMetadata {
     protected abstract TimeUnit getTimespanTimeUnit();
 
     public TimeInterval getTimeInterval() {
-        return new TimespanTimeInterval();
+        if (this.timeInterval==null)
+            this.timeInterval = new TimezoneAwareTimeInterval(start, end, getTimespanTimeUnit(), consensusTimezones, timezoneMap);
+        return this.timeInterval;
     }
 
+    public List<VisitedCity> getCities() {
+        return cities;
+    }
 
     // Return a list of dates starting with startDate and ending with endDate
     public List<String> getDateList() {

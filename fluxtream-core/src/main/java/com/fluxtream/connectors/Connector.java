@@ -406,11 +406,14 @@ public class Connector {
         return null;
     }
 
-    public AbstractBodytrackResponder getBodytrackResponder(){
+    public AbstractBodytrackResponder getBodytrackResponder(BeanFactory beanFactory){
         try{
-            return bodytrackResponder.newInstance();
+            final AbstractBodytrackResponder bean = beanFactory.getBean(bodytrackResponder);
+            return bean;
         }
         catch (Exception e){
+            System.out.println("COULD NOT INSTANTIATE RESPONDER: " + bodytrackResponder);
+            System.out.println("PLEASE CHECK THAT IT HAS THE @Component ANNOTATION!");
             return null;
         }
     }

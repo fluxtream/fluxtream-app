@@ -1,7 +1,10 @@
 package com.fluxtream.metadata;
 
 import java.util.List;
+import java.util.Map;
+import java.util.TimeZone;
 import com.fluxtream.TimeUnit;
+import com.fluxtream.TimezoneMap;
 import com.fluxtream.domain.metadata.VisitedCity;
 import com.fluxtream.utils.TimeUtils;
 import org.joda.time.DateTimeConstants;
@@ -25,10 +28,12 @@ public class MonthMetadata extends AbstractTimespanMetadata {
         this.end = lastDayOfMonth.toDateTimeAtStartOfDay().getMillis() + DateTimeConstants.MILLIS_PER_DAY;
     }
 
-    public MonthMetadata(final List<VisitedCity> cities, final VisitedCity consensusVisitedCity,
+    public MonthMetadata(final VisitedCity consensusVisitedCity,
                          VisitedCity previousInferredCity, VisitedCity nextInferredCity,
+                         Map<String, TimeZone> consensusTimezones, TimezoneMap timezoneMap,
+                         List<VisitedCity> cities,
                          final int year, final int month) {
-        super(cities, consensusVisitedCity, previousInferredCity, nextInferredCity);
+        super(consensusVisitedCity, previousInferredCity, nextInferredCity, consensusTimezones, timezoneMap, cities);
 
         // Calculate the calendar date at the beginning and end of this month.  Store as startDate and endDate.
         final LocalDate beginningOfMonth = TimeUtils.getBeginningOfMonth(year, month);
@@ -37,64 +42,12 @@ public class MonthMetadata extends AbstractTimespanMetadata {
         this.startDate = formatter.print(beginningOfMonth);
         this.endDate = formatter.print(endOfMonth);
 
-        // Calculate the timezone to use for the start and end of the month.  If cities is not emtpy, use the
-        // first city for start and the last city for end.  If cities is empty, use
-        // previousInferredCity (if any) for start and nextInferredCity (if any).  If either of those is empty,
-        // use consensusVisitedCity.  In case all those turn out to be null, start out with defaults in GMT.
-
-        // Even this really isn't right, because the consensus timezone for the first and last dates may not
-        // correspond to the contents of the start and end of the cities tables.  TODO: fix this
-        DateTimeZone startTz = DateTimeZone.UTC;
-        DateTimeZone endTz = DateTimeZone.UTC;
-
-        VisitedCity startCity=null;
-        VisitedCity endCity=null;
-
-        // Compute startCity and endCity
-        if(cities!=null && cities.size()>0) {
-            // We have some cities, use them
-            startCity = cities.get(0);
-            endCity = cities.get(cities.size()-1);
-        }
-        else {
-            if(previousInferredCity!=null) {
-                startCity = previousInferredCity;
-            }
-            else {
-                startCity = consensusVisitedCity;
-            }
-
-            if(nextInferredCity!=null) {
-                endCity = nextInferredCity;
-            }
-            else {
-                endCity = consensusVisitedCity;
-            }
-        }
-
-
-        // Use startCity and endCity to compute
-        if(startCity!=null) {
-            try {
-                startTz = DateTimeZone.forID(startCity.city.geo_timezone);
-            }
-            catch (Exception e) {
-                System.out.println("Failed to parse timezone for " + this.startDate + ": " + startCity.city.geo_timezone);
-            }
-        }
-
-        if(endCity!=null) {
-            try {
-                endTz = DateTimeZone.forID(endCity.city.geo_timezone);
-            }
-            catch (Exception e) {
-                System.out.println("Failed to parse timezone for " + this.endDate + ": " + endCity.city.geo_timezone);
-            }
-        }
+        final TimeZone startTz = consensusTimezones.get(this.startDate);
+        final TimeZone endTz = consensusTimezones.get(this.endDate);
 
         // Finally, calculate start and and using the start and end timezones
-        this.start = beginningOfMonth.toDateTimeAtStartOfDay(startTz).getMillis();
-        this.end = endOfMonth.toDateTimeAtStartOfDay(endTz).getMillis() + DateTimeConstants.MILLIS_PER_DAY;
+        this.start = beginningOfMonth.toDateTimeAtStartOfDay(DateTimeZone.forTimeZone(startTz)).getMillis();
+        this.end = endOfMonth.toDateTimeAtStartOfDay(DateTimeZone.forTimeZone(endTz)).getMillis() + DateTimeConstants.MILLIS_PER_DAY;
     }
 
     public static long getEndOfMonth(String timeZone, final int year, final int month) {
