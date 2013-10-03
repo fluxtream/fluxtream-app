@@ -96,7 +96,10 @@ $(document).ready(function() {
             }
         }
     }
-
+    if (typeof params["accessDenied"] != "undefined"){
+        $("#accessDeniedModal").modal();
+        $('#login').slideDown();
+    }
     if (typeof params["username"] != "undefined"){
         $("#loginFailedModal").modal();
     }

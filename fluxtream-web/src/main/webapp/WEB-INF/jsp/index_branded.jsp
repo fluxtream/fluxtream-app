@@ -299,6 +299,21 @@
     </div><!--end row-->
 </div><!--end container-->
 
+<div class="modal fade hide" id="accessDeniedModal">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h3>Login Failed</h3>
+    </div>
+    <div class="modal-body">
+        <div class="alert alert-error">
+            <strong>Not so fast, Hot Shot!</strong> Login is required before you access this resource.
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a href="#" class="btn" data-dismiss="modal">Ok</a>
+    </div>
+</div>
+
 <div class="modal fade hide" id="loginFailedModal">
     <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal">&times;</button>
