@@ -6,10 +6,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.Security;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import com.fluxtream.auth.AuthHelper;
@@ -20,22 +17,24 @@ import com.fluxtream.services.GuestService;
 import com.fluxtream.utils.HttpUtils;
 import com.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import net.sf.json.JSONObject;
+import org.apache.commons.httpclient.cookie.CookiePolicy;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.apache.http.NameValuePair;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.conn.params.ConnRoutePNames;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -107,12 +106,13 @@ public class MymeeConnectorController {
             return mav;
         }
         HttpClient client = new DefaultHttpClient();
+        CookieStore cookieStore = new BasicCookieStore();
+        HttpContext httpContext = new BasicHttpContext();
+        httpContext.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
+        client.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BROWSER_COMPATIBILITY);
         String payload;
         try {
-            CookieStore cookieStore = new BasicCookieStore();
-            HttpContext httpContext = new BasicHttpContext();
-            httpContext.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
-            boolean sessionEstablished = establishSession(username, password, client, httpContext);
+            boolean sessionEstablished = establishSession(client, httpContext, username, password);
             if (! sessionEstablished)
                 throw new RuntimeException("Could not establish a session with the couchdb server");
             String userSignature = encrypt(username+password+activationCode);
@@ -141,7 +141,7 @@ public class MymeeConnectorController {
     }
 
     private String getActivationInfo(final HttpClient client, final HttpContext httpContext, final String userSignature) throws IOException, UnexpectedHttpResponseCodeException {
-        HttpGet get = new HttpGet("https://mymee.iriscouch.com/activation/" + userSignature);
+        HttpGet get = new HttpGet("http://mymee.iriscouch.com/activation/" + userSignature);
         final HttpResponse response = client.execute(get, httpContext);
         final int statusCode = response.getStatusLine().getStatusCode();
         if (statusCode == HttpStatus.SC_OK) {
@@ -158,21 +158,17 @@ public class MymeeConnectorController {
         }
     }
 
-    private boolean establishSession(final String username, final String password, final HttpClient client, final HttpContext httpContext) throws IOException, UnexpectedHttpResponseCodeException {
+    private boolean establishSession(final HttpClient client, final HttpContext httpContext, final String username, final String password) throws IOException, UnexpectedHttpResponseCodeException {
         final String content;
-        Map<String,String> params = new HashMap<String,String>();
-        params.put("name", username);
-        params.put("password", password);
-        HttpPost post = new HttpPost("https://mymee.iriscouch.com/_session");
+        HttpPost post = new HttpPost("http://mymee.iriscouch.com/_session");
         post.addHeader("Content-Type", "application/json");
-        Iterator<Map.Entry<String, String>> iterator = params.entrySet().iterator();
-        List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(params.size());
-        while (iterator.hasNext()) {
-            Map.Entry<String, String> entry = iterator.next();
-            nameValuePairs.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
-        }
-        post.setEntity(new UrlEncodedFormEntity(nameValuePairs, "utf-8"));
-
+        post.addHeader("Accept", "*/*");
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("name", username);
+        jsonObject.put("password", password);
+        post.setEntity(new StringEntity(jsonObject.toString(),"utf-8"));
+        HttpHost proxy = new HttpHost("localhost",8899);
+        client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY,proxy);
         HttpResponse response = client.execute(post, httpContext);
 
         final int statusCode = response.getStatusLine().getStatusCode();
