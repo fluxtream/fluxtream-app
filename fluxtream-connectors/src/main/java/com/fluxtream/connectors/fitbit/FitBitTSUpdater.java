@@ -15,6 +15,7 @@ import com.fluxtream.connectors.annotations.JsonFacetCollection;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.RateLimitReachedException;
+import com.fluxtream.connectors.updaters.UnexpectedResponseCodeException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractLocalTimeFacet;
 import com.fluxtream.domain.ApiKey;
@@ -94,79 +95,94 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 
 	@Override
 	public void updateConnectorDataHistory(UpdateInfo updateInfo)
-			throws Exception {
-        // sleep
+			throws Exception, UnexpectedResponseCodeException {
+        try {
+            // sleep
 
-        loadTimeSeries("sleep/timeInBed", updateInfo.apiKey, sleepOT,
-                "timeInBed");
-        loadTimeSeries("sleep/startTime", updateInfo.apiKey, sleepOT,
-                "startTime");
-        loadTimeSeries("sleep/minutesAsleep", updateInfo.apiKey, sleepOT,
-                "minutesAsleep");
-        loadTimeSeries("sleep/minutesAwake", updateInfo.apiKey, sleepOT,
-                "minutesAwake");
-        loadTimeSeries("sleep/minutesToFallAsleep", updateInfo.apiKey,
-                sleepOT, "minutesToFallAsleep");
-        loadTimeSeries("sleep/minutesAfterWakeup", updateInfo.apiKey,
-                sleepOT, "minutesAfterWakeup");
-        loadTimeSeries("sleep/awakeningsCount", updateInfo.apiKey, sleepOT, "awakeningsCount");
+            loadTimeSeries("sleep/timeInBed", updateInfo.apiKey, sleepOT,
+                           "timeInBed");
+            loadTimeSeries("sleep/startTime", updateInfo.apiKey, sleepOT,
+                           "startTime");
+            loadTimeSeries("sleep/minutesAsleep", updateInfo.apiKey, sleepOT,
+                           "minutesAsleep");
+            loadTimeSeries("sleep/minutesAwake", updateInfo.apiKey, sleepOT,
+                           "minutesAwake");
+            loadTimeSeries("sleep/minutesToFallAsleep", updateInfo.apiKey,
+                           sleepOT, "minutesToFallAsleep");
+            loadTimeSeries("sleep/minutesAfterWakeup", updateInfo.apiKey,
+                           sleepOT, "minutesAfterWakeup");
+            loadTimeSeries("sleep/awakeningsCount", updateInfo.apiKey, sleepOT, "awakeningsCount");
 
-        // activities
+            // activities
 
-        loadTimeSeries("activities/tracker/calories", updateInfo.apiKey,
-                activityOT, "caloriesOut");
-        loadTimeSeries("activities/tracker/steps", updateInfo.apiKey,
-                activityOT, "steps");
-        loadTimeSeries("activities/tracker/distance", updateInfo.apiKey,
-                activityOT, "totalDistance");
+            loadTimeSeries("activities/tracker/calories", updateInfo.apiKey,
+                           activityOT, "caloriesOut");
+            loadTimeSeries("activities/tracker/steps", updateInfo.apiKey,
+                           activityOT, "steps");
+            loadTimeSeries("activities/tracker/distance", updateInfo.apiKey,
+                           activityOT, "totalDistance");
 
-        // The floors and elevation APIs report 400 errors if called on
-        // an account which has never been bound to a Fitbit device which
-        // has an altimeter, such as the Fitbit Ultra.  For now, disable
-        // reading these APIs.  In the future, perhaps check the device
-        // type and conditionally call these APIs.
-        loadTimeSeries("activities/tracker/floors", updateInfo.apiKey,
-                activityOT, "floors");
-        loadTimeSeries("activities/tracker/elevation", updateInfo.apiKey,
-                activityOT, "elevation");
-        loadTimeSeries("activities/tracker/minutesSedentary",
-                updateInfo.apiKey, activityOT, "sedentaryMinutes");
-        loadTimeSeries("activities/tracker/minutesLightlyActive",
-                updateInfo.apiKey, activityOT, "lightlyActiveMinutes");
-        loadTimeSeries("activities/tracker/minutesFairlyActive",
-                updateInfo.apiKey, activityOT, "fairlyActiveMinutes");
-        loadTimeSeries("activities/tracker/minutesVeryActive",
-                updateInfo.apiKey, activityOT, "veryActiveMinutes");
-        loadTimeSeries("activities/tracker/activeScore", updateInfo.apiKey,
-                activityOT, "activeScore");
-        loadTimeSeries("activities/tracker/activityCalories",
-                updateInfo.apiKey, activityOT, "activityCalories");
+            // The floors and elevation APIs report 400 errors if called on
+            // an account which has never been bound to a Fitbit device which
+            // has an altimeter, such as the Fitbit Ultra.  For now, disable
+            // reading these APIs.  In the future, perhaps check the device
+            // type and conditionally call these APIs.
+            loadTimeSeries("activities/tracker/floors", updateInfo.apiKey,
+                           activityOT, "floors");
+            loadTimeSeries("activities/tracker/elevation", updateInfo.apiKey,
+                           activityOT, "elevation");
+            loadTimeSeries("activities/tracker/minutesSedentary",
+                           updateInfo.apiKey, activityOT, "sedentaryMinutes");
+            loadTimeSeries("activities/tracker/minutesLightlyActive",
+                           updateInfo.apiKey, activityOT, "lightlyActiveMinutes");
+            loadTimeSeries("activities/tracker/minutesFairlyActive",
+                           updateInfo.apiKey, activityOT, "fairlyActiveMinutes");
+            loadTimeSeries("activities/tracker/minutesVeryActive",
+                           updateInfo.apiKey, activityOT, "veryActiveMinutes");
+            loadTimeSeries("activities/tracker/activeScore", updateInfo.apiKey,
+                           activityOT, "activeScore");
+            loadTimeSeries("activities/tracker/activityCalories",
+                           updateInfo.apiKey, activityOT, "activityCalories");
 
-        // weight
+            // weight
 
-        loadTimeSeries("body/weight", updateInfo.apiKey, weightOT,
-                       "weight");
-        loadTimeSeries("body/bmi", updateInfo.apiKey, weightOT,
-                       "bmi");
-        loadTimeSeries("body/fat", updateInfo.apiKey, weightOT,
-                       "fat");
+            loadTimeSeries("body/weight", updateInfo.apiKey, weightOT,
+                           "weight");
+            loadTimeSeries("body/bmi", updateInfo.apiKey, weightOT,
+                           "bmi");
+            loadTimeSeries("body/fat", updateInfo.apiKey, weightOT,
+                           "fat");
 
-        jpaDaoService.execute("DELETE FROM Facet_FitbitSleep sleep WHERE sleep.start=0");
-        final JSONArray deviceStatusesArray = getDeviceStatusesArray(updateInfo.apiKey);
-        final long trackerLastSyncDate = getLastSyncDate(deviceStatusesArray, "TRACKER");
-        final long scaleLastSyncDate = getLastSyncDate(deviceStatusesArray, "SCALE");
+            jpaDaoService.execute("DELETE FROM Facet_FitbitSleep sleep WHERE sleep.start=0");
+            final JSONArray deviceStatusesArray = getDeviceStatusesArray(updateInfo.apiKey);
+            final long trackerLastSyncDate = getLastSyncDate(deviceStatusesArray, "TRACKER");
+            final long scaleLastSyncDate = getLastSyncDate(deviceStatusesArray, "SCALE");
 
-        guestService.setApiKeyAttribute(updateInfo.apiKey, "TRACKER.lastSyncDate",
-                                        String.valueOf(trackerLastSyncDate));
-        guestService.setApiKeyAttribute(updateInfo.apiKey, "SCALE.lastSyncDate",
-                                        String.valueOf(scaleLastSyncDate));
+            guestService.setApiKeyAttribute(updateInfo.apiKey, "TRACKER.lastSyncDate",
+                                            String.valueOf(trackerLastSyncDate));
+            guestService.setApiKeyAttribute(updateInfo.apiKey, "SCALE.lastSyncDate",
+                                            String.valueOf(scaleLastSyncDate));
 
-        // Flush the initial fitbit history data to the datastore.
-        // This is handled automatically by the incremental updates because
-        // it uses the apiDataService.cacheApiDataJSON APIs.  However,
-        // the above code does not do that so we explicity send the
-        // Fitbit facet data to the datastore here.
-        bodyTrackStorageService.storeInitialHistory(updateInfo.apiKey);
+            // Flush the initial fitbit history data to the datastore.
+            // This is handled automatically by the incremental updates because
+            // it uses the apiDataService.cacheApiDataJSON APIs.  However,
+            // the above code does not do that so we explicity send the
+            // Fitbit facet data to the datastore here.
+            bodyTrackStorageService.storeInitialHistory(updateInfo.apiKey);
+        } catch (UnexpectedResponseCodeException e) {
+            // Check for response code 409 which is Fitbit's over rate limit error
+            if(e.responseCode == 409) {
+                throw new RateLimitReachedException();
+            }
+            else{
+                // Otherwise throw the same error that SignpostOAuthHelper used to throw
+                throw new RuntimeException(
+                        "Could not make REST call, got response code: "
+                        + e.responseCode + ", message: "
+                        + e.getMessage() + "\n+REST url: "
+                        + e.URL);
+            }
+        }
     }
 
     public long getLastWeighingTime(final UpdateInfo updateInfo) {
@@ -175,7 +191,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
     }
 
 	public void updateCaloriesIntraday(FitbitTrackerActivityFacet facet, ApiKey apiKey)
-			throws RateLimitReachedException {
+			throws RateLimitReachedException, UnexpectedResponseCodeException {
 		if (facet.date != null) {
 			if (facet.caloriesJson == null
 					|| isToday(facet.date, apiKey.getGuestId())) {
@@ -200,7 +216,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 	}
 
 	public void updateStepsIntraday(FitbitTrackerActivityFacet facet, ApiKey apiKey)
-			throws RateLimitReachedException {
+			throws RateLimitReachedException, UnexpectedResponseCodeException {
 		if (facet.date != null) {
 			String json = signpostHelper.makeRestCall(apiKey,
 					"activities/log/steps/date".hashCode(),
@@ -216,7 +232,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 
 	public void loadTimeSeries(String uri, ApiKey apiKey,
 			ObjectType objectType, String fieldName)
-			throws RateLimitReachedException {
+			throws RateLimitReachedException, UnexpectedResponseCodeException {
 
         String json = "";
         try {
@@ -415,7 +431,8 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         return dates;
     }
 
-    private JSONArray getDeviceStatusesArray(final ApiKey apiKey) throws RateLimitReachedException {
+    private JSONArray getDeviceStatusesArray(final ApiKey apiKey)
+            throws RateLimitReachedException, UnexpectedResponseCodeException {
         String urlString = "http://api.fitbit.com/1/user/-/devices.json";
 
         final ObjectType customObjectType = ObjectType.getCustomObjectType(GET_USER_DEVICES_CALL);
@@ -426,34 +443,49 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
     }
 
     public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
-        if (updateInfo.jsonParams!=null) {
-            JSONObject jsonParams = JSONObject.fromObject(updateInfo.jsonParams);
-            String dateString = jsonParams.getString("date");
-            final TimeZone timeZone = TimeZone.getTimeZone("UTC");
-            Date date = new Date(dateFormat.withZone(
-                    DateTimeZone.forTimeZone(timeZone)).parseMillis(dateString));
-            updateOneDayOfData(updateInfo, updateInfo.objectTypes(), timeZone, date, dateString);
-        } else {
-            final JSONArray deviceStatusesArray = getDeviceStatusesArray(updateInfo.apiKey);
-            final long trackerLastSyncDate = getLastSyncDate(deviceStatusesArray, "TRACKER");
-            final long scaleLastSyncDate = getLastSyncDate(deviceStatusesArray, "SCALE");
+        try {
+            if (updateInfo.jsonParams!=null) {
+                JSONObject jsonParams = JSONObject.fromObject(updateInfo.jsonParams);
+                String dateString = jsonParams.getString("date");
+                final TimeZone timeZone = TimeZone.getTimeZone("UTC");
+                Date date = new Date(dateFormat.withZone(
+                        DateTimeZone.forTimeZone(timeZone)).parseMillis(dateString));
+                updateOneDayOfData(updateInfo, updateInfo.objectTypes(), timeZone, date, dateString);
+            } else {
+                final JSONArray deviceStatusesArray = getDeviceStatusesArray(updateInfo.apiKey);
+                final long trackerLastSyncDate = getLastSyncDate(deviceStatusesArray, "TRACKER");
+                final long scaleLastSyncDate = getLastSyncDate(deviceStatusesArray, "SCALE");
 
-            if (trackerLastSyncDate>-1) {
-                final List<String> trackerDaysToSync = getDaysSinceLastSync(updateInfo.apiKey, "TRACKER", trackerLastSyncDate, scaleLastSyncDate);
-                if(trackerDaysToSync.size()>0) {
-                    updateListOfDays(updateInfo, Arrays.asList(sleepOT, activityOT), trackerDaysToSync);
-                    guestService.setApiKeyAttribute(updateInfo.apiKey, "TRACKER.lastSyncDate",
-                                                    String.valueOf(trackerLastSyncDate));
+                if (trackerLastSyncDate>-1) {
+                    final List<String> trackerDaysToSync = getDaysSinceLastSync(updateInfo.apiKey, "TRACKER", trackerLastSyncDate, scaleLastSyncDate);
+                    if(trackerDaysToSync.size()>0) {
+                        updateListOfDays(updateInfo, Arrays.asList(sleepOT, activityOT), trackerDaysToSync);
+                        guestService.setApiKeyAttribute(updateInfo.apiKey, "TRACKER.lastSyncDate",
+                                                        String.valueOf(trackerLastSyncDate));
+                    }
+                }
+                if (scaleLastSyncDate>-1) {
+                    final List<String> scaleDaysToSync = getDaysSinceLastSync(updateInfo.apiKey, "SCALE", trackerLastSyncDate, scaleLastSyncDate);
+                    if (scaleDaysToSync.size()>0) {
+                        updateListOfDays(updateInfo, Arrays.asList(weightOT), scaleDaysToSync);
+                        guestService.setApiKeyAttribute(updateInfo.apiKey, "SCALE.lastSyncDate",
+                                                        String.valueOf(scaleLastSyncDate));
+                    }
                 }
             }
-            if (scaleLastSyncDate>-1) {
-                final List<String> scaleDaysToSync = getDaysSinceLastSync(updateInfo.apiKey, "SCALE", trackerLastSyncDate, scaleLastSyncDate);
-                if (scaleDaysToSync.size()>0) {
-                    updateListOfDays(updateInfo, Arrays.asList(weightOT), scaleDaysToSync);
-                    guestService.setApiKeyAttribute(updateInfo.apiKey, "SCALE.lastSyncDate",
-                                                    String.valueOf(scaleLastSyncDate));
-                }
+        } catch (UnexpectedResponseCodeException e) {
+            // Check for response code 409 which is Fitbit's over rate limit error
+            if(e.responseCode == 409) {
+                throw new RateLimitReachedException();
             }
+            else{
+                // Otherwise throw the same error that SignpostOAuthHelper used to throw
+                throw new RuntimeException(
+                						"Could not make REST call, got response code: "
+                								+ e.responseCode + ", message: "
+                								+ e.getMessage() + "\n+REST url: "
+                								+ e.URL);
+               }
         }
 	}
 
@@ -576,7 +608,8 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 		}
 	}
 
-	private String getSleepData(UpdateInfo updateInfo, String formattedDate) throws RateLimitReachedException {
+	private String getSleepData(UpdateInfo updateInfo, String formattedDate)
+            throws RateLimitReachedException, UnexpectedResponseCodeException {
 		String urlString = "http://api.fitbit.com/1/user/-/sleep/date/"
 				+ formattedDate + ".json";
 
@@ -585,7 +618,8 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 		return json;
 	}
 
-    private String getWeightData(UpdateInfo updateInfo, String formattedDate) throws RateLimitReachedException {
+    private String getWeightData(UpdateInfo updateInfo, String formattedDate)
+            throws RateLimitReachedException, UnexpectedResponseCodeException {
         String urlString = "http://api.fitbit.com/1/user/-/body/log/weight/date/"
                            + formattedDate + ".json";
 
@@ -594,7 +628,8 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         return json;
     }
 
-    private String getBodyFatData(UpdateInfo updateInfo, String formattedDate) throws RateLimitReachedException {
+    private String getBodyFatData(UpdateInfo updateInfo, String formattedDate)
+            throws RateLimitReachedException, UnexpectedResponseCodeException {
         String urlString = "http://api.fitbit.com/1/user/-/body/log/fat/date/"
                            + formattedDate + ".json";
 
@@ -603,7 +638,8 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         return json;
     }
 
-    private String getActivityData(UpdateInfo updateInfo, String formattedDate) throws RateLimitReachedException {
+    private String getActivityData(UpdateInfo updateInfo, String formattedDate)
+            throws RateLimitReachedException, UnexpectedResponseCodeException {
 
 		String urlString = "http://api.fitbit.com/1/user/-/activities/date/"
 				+ formattedDate + ".json";

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import com.fluxtream.connectors.updaters.RateLimitReachedException;
+import com.fluxtream.connectors.updaters.UnexpectedResponseCodeException;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.services.GuestService;
 import oauth.signpost.OAuthConsumer;
@@ -19,7 +20,7 @@ public class SignpostOAuthHelper extends ApiClientSupport {
     GuestService guestService;
 
 	public final String makeRestCall(ApiKey apiKey,
-			int objectTypes, String urlString) throws RateLimitReachedException {
+			int objectTypes, String urlString) throws RateLimitReachedException, UnexpectedResponseCodeException {
 
 		if (hasReachedRateLimit(apiKey.getConnector(), apiKey.getGuestId()))
 			throw new RateLimitReachedException();
@@ -57,11 +58,9 @@ public class SignpostOAuthHelper extends ApiClientSupport {
 				connectorUpdateService.addApiUpdate(apiKey,
 						objectTypes, then, System.currentTimeMillis() - then,
 						urlString, false, httpResponseCode, httpResponseMessage);
-				throw new RuntimeException(
-						"Could not make REST call, got response code: "
-								+ httpResponseCode + ", message: "
-								+ httpResponseMessage + "\n+REST url: "
-								+ urlString);
+				throw new UnexpectedResponseCodeException(httpResponseCode,
+                                                          httpResponseMessage,
+                                                          urlString);
 			}
 		} catch (IOException e) {
 			throw new RuntimeException("IOException trying to make rest call: " + e.getMessage());
