@@ -158,7 +158,7 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         em.persist(new ConnectorInfo(mymee,
                                      "/" + release + "/images/connectors/connector-mymee.jpg",
                                      res.getString("mymee"),
-                                     "ajax:/mymee/enterFetchURL",
+                                     "ajax:/mymee/enterAuthInfo",
                                      Connector.getConnector("mymee"), order++, true,
                                      false, true, null));
         final String quantifiedMind = "QuantifiedMind";

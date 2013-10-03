@@ -19,6 +19,7 @@ public class UnexpectedHttpResponseCodeException extends Exception {
     private final String httpResponseMessage;
 
     public UnexpectedHttpResponseCodeException(Integer httpResponseCode, String httpResponseMessage) {
+        super("Unexpected HTTP Response Code: " + httpResponseCode);
         this.httpResponseCode = httpResponseCode;
         this.httpResponseMessage = httpResponseMessage;
     }
