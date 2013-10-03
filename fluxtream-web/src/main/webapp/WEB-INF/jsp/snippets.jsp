@@ -1076,7 +1076,7 @@
     </script>
     <g:compress>
         <script src="/static/js/jquery-ui-1.10.3.custom.min.js"></script>
-        <script src="/static/js/jquery.ui.sortable-1.8.2-bt-1.0.0.js"></script>
+        <script src="/static/js/jquery.ui.sortable-1.8.2-bt-1.0.1.js"></script>
         <script src="/static/tiny_mce/jquery.tinymce.js"></script>
         <script src="/static/js/json2-2011.10.19.js"></script>
         <script src="/static/js/hogan-2.0.0.js"></script>
