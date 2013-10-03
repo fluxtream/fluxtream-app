@@ -68,7 +68,7 @@
 	</beans:bean>
 
 	<beans:bean id="successHandler"
-		class="org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler">
+		class="com.fluxtream.auth.FlxSavedRequestAwareAuthenticationSuccessHandler">
 		<beans:property name="defaultTargetUrl" value="/checkIn" />
 		<beans:property name="alwaysUseDefaultTargetUrl" value="true" />
         <beans:property name="requestCache" ref="requestCache"/>

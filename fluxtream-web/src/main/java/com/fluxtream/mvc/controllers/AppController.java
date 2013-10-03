@@ -2,6 +2,8 @@ package com.fluxtream.mvc.controllers;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.NoSuchAlgorithmException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -167,12 +169,21 @@ public class AppController {
 	}
 
     @RequestMapping(value = "/checkIn")
-    public ModelAndView checkIn(HttpServletRequest request)
-            throws IOException, NoSuchAlgorithmException {
+    public ModelAndView checkIn(HttpServletRequest request,
+                                HttpServletResponse response) throws IOException, NoSuchAlgorithmException, URISyntaxException {
         if (!hasTimezoneCookie(request)|| AuthHelper.getGuest()==null)
             return new ModelAndView("redirect:/welcome");
         long guestId = AuthHelper.getGuestId();
         checkIn(request, guestId);
+        final HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
+        SavedRequest savedRequest =
+                requestCache.getRequest(request, response);
+        if (savedRequest!=null) {
+            final String redirectUrl = savedRequest.getRedirectUrl();
+            requestCache.removeRequest(request, response);
+            final URI uri = new URI(redirectUrl);
+            return new ModelAndView("redirect:" + uri.getPath());
+        }
         return new ModelAndView("redirect:/app");
     }
 
