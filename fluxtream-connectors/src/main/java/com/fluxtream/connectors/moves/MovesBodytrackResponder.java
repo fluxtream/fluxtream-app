@@ -84,19 +84,26 @@ public class MovesBodytrackResponder extends AbstractBodytrackResponder {
         }
 
         List<AbstractFacetVO<AbstractFacet>> facetVOsForFacets = getFacetVOsForFacets(facets, timeInterval, guestSettings);
-        facetVOsForFacets = dedupe(facetVOsForFacets);
+        facetVOsForFacets = dedup(facetVOsForFacets);
         return facetVOsForFacets;
     }
 
-    private List<AbstractFacetVO<AbstractFacet>> dedupe(final List<AbstractFacetVO<AbstractFacet>> facetVOs) {
+    private List<AbstractFacetVO<AbstractFacet>> dedup(final List<AbstractFacetVO<AbstractFacet>> facetVOs) {
         List<AbstractFacetVO<AbstractFacet>> deduped = new ArrayList<AbstractFacetVO<AbstractFacet>>();
 
         there: for (AbstractFacetVO<AbstractFacet> facetVO : facetVOs) {
             AbstractMovesFacetVO f = (AbstractMovesFacetVO) facetVO;
             for (AbstractFacetVO<AbstractFacet> uniqueFacet : deduped) {
                 AbstractMovesFacetVO u = (AbstractMovesFacetVO) uniqueFacet;
-                if (u.type.equals(f.type)&&u.start==f.start&&u.end==f.end)
-                    continue there;
+                if (u.type.equals(f.type)&&u.start==f.start) {
+                    if (u.end>f.end)
+                        continue there;
+                    else {
+                        deduped.remove(u);
+                        deduped.add(f);
+                        continue there;
+                    }
+                }
             }
             deduped.add(f);
         }
