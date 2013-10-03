@@ -210,8 +210,8 @@ class UpdateWorker implements Runnable {
 	}
 
     private void rescheduleAccordingToQuotaSpecifications(final ApiKey apiKey, final UpdateWorkerTask.AuditTrailEntry auditTrailEntry) {
-        guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_OVER_RATE_LIMIT, auditTrailEntry.stackTrace);
         longReschedule(apiKey, auditTrailEntry);
+        guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_OVER_RATE_LIMIT, auditTrailEntry.stackTrace);
     }
 
     private void duplicateUpdate() {
