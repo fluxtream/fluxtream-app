@@ -129,7 +129,7 @@ public abstract class AbstractUpdater extends ApiClientSupport {
                     .append(" data");
             if (t.getMessage()!=null) {
                sb .append(", error message: \"")
-                        .append(t.getMessage()).append("\")").toString();
+                        .append(t.getMessage()).toString();
             }
             notificationsService.addNotification(updateInfo.apiKey.getGuestId(),
                                                  Notification.Type.WARNING,
