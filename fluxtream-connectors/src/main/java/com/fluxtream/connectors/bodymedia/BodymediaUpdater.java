@@ -525,27 +525,6 @@ public class BodymediaUpdater extends AbstractUpdater implements Autonomous {
             String api_key = guestService.getApiKeyAttribute(updateInfo.apiKey, "bodymediaConsumerKey");
             updateStartDate = getUserRegistrationDate(updateInfo, api_key, consumer);
 
-            // This is a hack to deal with backward compatibility with systems containing data
-            // from earlier versions of this updater.  The algorighm for setting start and end times
-            // was flawed in earlier versions.  It used the inferred timezone from the metadata service
-            // rather than the timezone map from BodyMedia.  This means that the usual apiUpdateService
-            // method for dealing with duplicate facets won't work since it just matches on the basis
-            // of start and end times.
-
-            // When we are at this point in the code, this connector is either:
-            //   1) just created after the new version of the connector too effect, or
-            //   2) a legacy connector which has stale data lying around
-            // In the first case, it does no harm to delete all the facets in the objects facet
-            // table at this point, since we're about to import all the data starting from the
-            // registration date.  In the second case, we need to delete the existing data or we'll
-            // potentially end up with duplicates.
-            String sqlTableName=JPAUtils.getEntityName(ot.facetClass());
-
-            System.out.println("***** Detected first run of new BodymediaUpdater for guestId=" +
-                               updateInfo.getGuestId() + " objectType=" + ot.getName() + " apiKeyId="+ updateInfo.apiKey.getId());
-
-            jpaDaoService.execute("DELETE FROM " + sqlTableName + " WHERE apiKeyId=" + updateInfo.apiKey.getId());
-
             // Store in the apiKeyAttribute for next time
             guestService.setApiKeyAttribute(updateInfo.apiKey, updateKeyName, updateStartDate);
         }
