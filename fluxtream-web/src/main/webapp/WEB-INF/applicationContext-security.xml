@@ -55,7 +55,7 @@
 
 	<beans:bean id="loginUrlAuthenticationEntryPoint"
 		class="com.fluxtream.auth.FlxLoginUrlAuthenticationEntryPoint">
-		<beans:property name="loginFormUrl" value="/welcome?accessDenied" />
+		<beans:property name="loginFormUrl" value="/welcome" />
 	</beans:bean>
 
 	<beans:bean id="authFilter" class="com.fluxtream.auth.FlxAuthFilter">

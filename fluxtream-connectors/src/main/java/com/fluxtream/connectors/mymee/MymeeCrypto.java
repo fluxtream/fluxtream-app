@@ -9,4 +9,5 @@ public class MymeeCrypto extends Provider {
         super("MymeeCrypto", 0.1, "MyCrypto v0.1, implementing SHA-224");
         put("MessageDigest.SHA-224", "com.fluxtream.connectors.mymee.SHA224");
     }
+
 }
