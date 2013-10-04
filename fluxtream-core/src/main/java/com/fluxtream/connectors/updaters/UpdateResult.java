@@ -1,5 +1,7 @@
 package com.fluxtream.connectors.updaters;
 
+import com.fluxtream.utils.Utils;
+
 public class UpdateResult {
 
     RateLimitReachedException rateLimitReachedException;
@@ -42,6 +44,7 @@ public class UpdateResult {
 	public static UpdateResult rateLimitReachedResult(RateLimitReachedException rateLimitReachedException) {
         final UpdateResult updateResult = new UpdateResult(ResultType.HAS_REACHED_RATE_LIMIT);
         updateResult.rateLimitReachedException = rateLimitReachedException;
+        updateResult.stackTrace = Utils.stackTrace(rateLimitReachedException);
         return updateResult;
     }
 }

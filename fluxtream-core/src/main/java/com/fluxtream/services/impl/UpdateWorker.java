@@ -182,7 +182,9 @@ class UpdateWorker implements Runnable {
 			duplicateUpdate();
 			break;
 		case HAS_REACHED_RATE_LIMIT:
-			rescheduleAccordingToQuotaSpecifications(apiKey, new UpdateWorkerTask.AuditTrailEntry(new Date(), updateResult.getType().toString(), "long reschedule"));
+            final UpdateWorkerTask.AuditTrailEntry rateLimit = new UpdateWorkerTask.AuditTrailEntry(new Date(), updateResult.getType().toString(), "long reschedule");
+            rateLimit.stackTrace = updateResult.stackTrace;
+			rescheduleAccordingToQuotaSpecifications(apiKey, rateLimit);
 			break;
 		case UPDATE_SUCCEEDED:
 			success(apiKey);

@@ -263,6 +263,10 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
             return null;
         }
 
+        // Set the audit trail according to what just happened
+        updt.addAuditTrailEntry(auditTrailEntry);
+
+        // Spawn a duplicate entry in the UpdateWorker table to record this failure and the reason for it
         if (!incrementRetries) {
             UpdateWorkerTask failed = new UpdateWorkerTask(updt);
             failed.auditTrail = updt.auditTrail;
@@ -277,7 +281,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
         } else
             updt.retries += 1;
 
-        updt.addAuditTrailEntry(auditTrailEntry);
+        // Reschedule the original task
         updt.status = Status.SCHEDULED;
 
         // Reset serverUUID to UNCLAIMED to reflect the fact that this task is no longer in the process of being
