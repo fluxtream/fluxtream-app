@@ -24,7 +24,6 @@ import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.NotificationsService;
 import com.fluxtream.utils.TimeUtils;
-import com.fluxtream.utils.Utils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.joda.time.DateTime;
@@ -145,6 +144,9 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                            updateInfo.apiKey, activityOT, "activityCalories");
 
             // weight
+            // Store the time when we're asking about the weight in case this
+            // account doesn't have a hardware scale associated with it
+            long weightRequestMillis = System.currentTimeMillis();
 
             loadTimeSeries("body/weight", updateInfo.apiKey, weightOT,
                            "weight");
@@ -160,8 +162,18 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 
             guestService.setApiKeyAttribute(updateInfo.apiKey, "TRACKER.lastSyncDate",
                                             String.valueOf(trackerLastSyncDate));
-            guestService.setApiKeyAttribute(updateInfo.apiKey, "SCALE.lastSyncDate",
+
+            // In the case that the scale doesn't have a valid scaleLastSyncDate, store
+            // the timestamp for when we asked about the weight for use in doing incremental
+            // weight updates later on
+            if(scaleLastSyncDate == -1) {
+                guestService.setApiKeyAttribute(updateInfo.apiKey, "SCALE.lastSyncDate",
+                                                            String.valueOf(weightRequestMillis));
+            }
+            else {
+                guestService.setApiKeyAttribute(updateInfo.apiKey, "SCALE.lastSyncDate",
                                             String.valueOf(scaleLastSyncDate));
+            }
 
             // Flush the initial fitbit history data to the datastore.
             // This is handled automatically by the incremental updates because
@@ -172,7 +184,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         } catch (UnexpectedResponseCodeException e) {
             // Check for response code 409 which is Fitbit's over rate limit error
             if(e.responseCode == 409) {
-                throw new RateLimitReachedException();
+                throw new RateLimitReachedException(e);
             }
             else{
                 // Otherwise throw the same error that SignpostOAuthHelper used to throw
@@ -187,10 +199,15 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 
     public long getLastWeighingTime(final UpdateInfo updateInfo) {
         final FitbitWeightFacet weightFacet = jpaDaoService.findOne("fitbit.weight.latest", FitbitWeightFacet.class, updateInfo.apiKey.getId());
-        return weightFacet.start;
+        if(weightFacet!=null) {
+            return weightFacet.start;
+        }
+        else {
+            return -1;
+        }
     }
 
-	public void updateCaloriesIntraday(FitbitTrackerActivityFacet facet, ApiKey apiKey)
+    public void updateCaloriesIntraday(FitbitTrackerActivityFacet facet, ApiKey apiKey)
 			throws RateLimitReachedException, UnexpectedResponseCodeException {
 		if (facet.date != null) {
 			if (facet.caloriesJson == null
@@ -252,63 +269,57 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 		String resourceName = uri.replace('/', '-');
 		JSONArray timeSeriesArray = timeSeriesJson.getJSONArray(resourceName);
 		for (int i = 0; i < timeSeriesArray.size(); i++) {
-			try {
-				JSONObject entry = timeSeriesArray.getJSONObject(i);
-				String date = entry.getString("dateTime");
-				DayMetadata dayMetadata = metadataService.getDayMetadata(apiKey.getGuestId(), date);
-                logger.debug("dayMetadata: " + dayMetadata);
-                logger.debug("dayMetadataFacet's timezone: " + dayMetadata.getTimeInterval().getMainTimeZone().getID());
-				TimeInterval timeInterval = dayMetadata.getTimeInterval();
-                logger.debug("dayMetadataFacet's timeInterval: " + timeInterval);
+            JSONObject entry = timeSeriesArray.getJSONObject(i);
+            String date = entry.getString("dateTime");
+            DayMetadata dayMetadata = metadataService.getDayMetadata(apiKey.getGuestId(), date);
+            logger.debug("dayMetadata: " + dayMetadata);
+            logger.debug("dayMetadataFacet's timezone: " + dayMetadata.getTimeInterval().getMainTimeZone().getID());
+            TimeInterval timeInterval = dayMetadata.getTimeInterval();
+            logger.debug("dayMetadataFacet's timeInterval: " + timeInterval);
 
-				if (objectType == sleepOT) {
-					FitbitSleepFacet facet = getSleepFacet(apiKey.getId(),
-							date);
-					if (facet == null) {
-						facet = new FitbitSleepFacet(apiKey.getId());
-						facet.date = date;
-						facet.api = connector().value();
-						facet.guestId = apiKey.getGuestId();
-						facetDao.persist(facet);
-					}
-					addToSleepFacet(facet, entry, fieldName);
-				} else if (objectType == activityOT) {
-					FitbitTrackerActivityFacet facet = getActivityFacet(
-							apiKey.getId(), date);
-					if (facet == null) {
-						facet = new FitbitTrackerActivityFacet(apiKey.getId());
-						facet.date = date;
-						facet.api = connector().value();
-                        final DateTime dateTime = dateFormat.withZoneUTC().parseDateTime(date);
-
-                        facet.start = dateTime.getMillis();
-                        facet.end = dateTime.getMillis()+ DateTimeConstants.MILLIS_PER_DAY-1;
-
-                        facet.startTimeStorage = date + "T00:00:00.000";
-                        facet.endTimeStorage = date + "T23:59:59.999";
-
-						facet.guestId = apiKey.getGuestId();
-						facetDao.persist(facet);
-					}
-					addToActivityFacet(facet, entry, fieldName);
-				} else if (objectType == weightOT) {
-                    FitbitWeightFacet facet = getWeightFacet(apiKey.getId(), date);
-                    if (facet == null) {
-                        facet = new FitbitWeightFacet(apiKey.getId());
-                        facet.date = date;
-                        facet.api = connector().value();
-                        facet.guestId = apiKey.getGuestId();
-                        facet.start = dayMetadata.start;
-                        facet.end = dayMetadata.end;
-                        facetDao.persist(facet);
-                    }
-                    addToWeightFacet(facet, entry, fieldName);
+            if (objectType == sleepOT) {
+                FitbitSleepFacet facet = getSleepFacet(apiKey.getId(),
+                                                       date);
+                if (facet == null) {
+                    facet = new FitbitSleepFacet(apiKey.getId());
+                    facet.date = date;
+                    facet.api = connector().value();
+                    facet.guestId = apiKey.getGuestId();
+                    facetDao.persist(facet);
                 }
+                addToSleepFacet(facet, entry, fieldName);
+            } else if (objectType == activityOT) {
+                FitbitTrackerActivityFacet facet = getActivityFacet(
+                        apiKey.getId(), date);
+                if (facet == null) {
+                    facet = new FitbitTrackerActivityFacet(apiKey.getId());
+                    facet.date = date;
+                    facet.api = connector().value();
+                    final DateTime dateTime = dateFormat.withZoneUTC().parseDateTime(date);
 
-			} catch (Throwable t) {
-				t.printStackTrace();
-				continue;
-			}
+                    facet.start = dateTime.getMillis();
+                    facet.end = dateTime.getMillis()+ DateTimeConstants.MILLIS_PER_DAY-1;
+
+                    facet.startTimeStorage = date + "T00:00:00.000";
+                    facet.endTimeStorage = date + "T23:59:59.999";
+
+                    facet.guestId = apiKey.getGuestId();
+                    facetDao.persist(facet);
+                }
+                addToActivityFacet(facet, entry, fieldName);
+            } else if (objectType == weightOT) {
+                FitbitWeightFacet facet = getWeightFacet(apiKey.getId(), date);
+                if (facet == null) {
+                    facet = new FitbitWeightFacet(apiKey.getId());
+                    facet.date = date;
+                    facet.api = connector().value();
+                    facet.guestId = apiKey.getGuestId();
+                    facet.start = dayMetadata.start;
+                    facet.end = dayMetadata.end;
+                    facetDao.persist(facet);
+                }
+                addToWeightFacet(facet, entry, fieldName);
+            }
 		}
 	}
 
@@ -384,9 +395,10 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 		}
 	}
 
-    public List<String> getDaysToSync(ApiKey apiKey, final String deviceType, long trackerLastServerSyncMillis, long scaleLastServerSyncMillis)
+    public List<String> getDaysToSync(UpdateInfo updateInfo, final String deviceType, long trackerLastServerSyncMillis, long scaleLastServerSyncMillis)
             throws RateLimitReachedException
     {
+        ApiKey apiKey = updateInfo.apiKey;
         long lastStoredSyncMillis = 0;
         if (deviceType.equals("TRACKER")) {
             // TRACKER.lastSyncDate is actually used to record our progress in where we got to at the end of the last 
@@ -401,16 +413,38 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         if (deviceType.equals("TRACKER")&&lastStoredSyncMillis<= trackerLastServerSyncMillis) {
             // For the tracker, we only want to update if the device has really updated and we want to update
             // from the date corresponding to trackerLastStoredSyncMillis
-            // to the date of trackerLastServerSyncMillis
+            // to the date of scaleLastServerSyncMillis
             return getListOfDatesBetween(lastStoredSyncMillis, trackerLastServerSyncMillis);
         }
         else if (deviceType.equals("SCALE")) {
-            // As far as I can tell, the scale never returns a valid sync time, so just use the dates between the
-            // day before the last time we did an update and now, ignoring scaleLastServerSyncMillis.
-            // This means that we'll never get scale data that was delayed by more than a day, but that's the best
+            // In the case of an account without a hardware scale, the server never returns a valid scale sync time,
+            // so just use the dates between the day before the last time we did an update and now, ignoring scaleLastServerSyncMillis.
+            // This means that we'll never get account-linked scale data that was delayed by more than a day, but that's the best
             // we can do for now.
-            return getListOfDatesBetween(lastStoredSyncMillis-DateTimeConstants.MILLIS_PER_DAY,
-                                         System.currentTimeMillis());
+            long endMillis = scaleLastServerSyncMillis;
+            if(scaleLastServerSyncMillis==-1) {
+                // No hardware scale.  Check if lastStoredSyncMillis is also -1, which will happen for
+                // accounts last updated with a version prior to 0.9.0022 without a hardware scale.
+                // In that case, start from the date of the last stored weight data in the facet DB.
+                // This is a hack, but it's the best I can think of for now.
+                if(lastStoredSyncMillis == -1) {
+                    lastStoredSyncMillis = getLastWeighingTime(updateInfo);
+                }
+                if(lastStoredSyncMillis == -1) {
+                    // If we don't have any weight data at all, just start with yesterday.
+                    lastStoredSyncMillis = System.currentTimeMillis()-DateTimeConstants.MILLIS_PER_DAY;
+                }
+                // Use now as the end time, since we don't have better info from the server about when the
+                // most recent data point might be
+                endMillis = System.currentTimeMillis();
+            }
+            else if(scaleLastServerSyncMillis == lastStoredSyncMillis) {
+                // We have a hardware scale and it hasn't updated since last time, don't need to sync at all
+                return new ArrayList<String>();
+            }
+
+            return getListOfDatesBetween(lastStoredSyncMillis,
+                                         endMillis);
         }
         return new ArrayList<String>();
     }
@@ -464,20 +498,30 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             final long scaleLastServerSyncMillis = getLastServerSyncMillis(deviceStatusesArray, "SCALE");
 
             if (trackerLastServerSyncMillis > -1) {
-                final List<String> trackerDaysToSync = getDaysToSync(updateInfo.apiKey, "TRACKER", trackerLastServerSyncMillis, scaleLastServerSyncMillis);
+                final List<String> trackerDaysToSync = getDaysToSync(updateInfo, "TRACKER", trackerLastServerSyncMillis, scaleLastServerSyncMillis);
                 if (trackerDaysToSync.size() > 0) {
                     updateTrackerListOfDays(updateInfo, trackerDaysToSync, trackerLastServerSyncMillis);
                     guestService.setApiKeyAttribute(updateInfo.apiKey, "TRACKER.lastSyncDate", String.valueOf(trackerLastServerSyncMillis));
                 }
             }
-            // Disable scale for now
-            //if (scaleLastServerSyncMillis > -1) {
-            //    final List<String> scaleDaysToSync = getDaysToSync(updateInfo.apiKey, "SCALE", trackerLastServerSyncMillis, scaleLastServerSyncMillis);
-            //    if (scaleDaysToSync.size() > 0) {
-            //        updateScaleListOfDays(updateInfo, scaleDaysToSync, scaleLastServerSyncMillis);
-            //        guestService.setApiKeyAttribute(updateInfo.apiKey, "SCALE.lastSyncDate", String.valueOf(scaleLastServerSyncMillis));
-            //    }
-            //}
+            // Update the scale
+            final List<String> scaleDaysToSync = getDaysToSync(updateInfo, "SCALE", trackerLastServerSyncMillis, scaleLastServerSyncMillis);
+            if (scaleDaysToSync.size() > 0) {
+                long weightRequestMillis = System.currentTimeMillis();
+                updateScaleListOfDays(updateInfo, scaleDaysToSync, scaleLastServerSyncMillis);
+                // Update SCALE.lastSyncDate: In the case that the scale doesn't have a valid scaleLastSyncDate, store
+                // the timestamp for when we asked about the weight for use in doing incremental
+                // weight updates later on
+                if(scaleLastServerSyncMillis == -1) {
+                    guestService.setApiKeyAttribute(updateInfo.apiKey, "SCALE.lastSyncDate",
+                                                    String.valueOf(weightRequestMillis));
+                }
+                else {
+                    guestService.setApiKeyAttribute(updateInfo.apiKey, "SCALE.lastSyncDate",
+                                                    String.valueOf(scaleLastServerSyncMillis));
+                }
+            }
+
         } catch (UnexpectedResponseCodeException e) {
             // Check for response code 409 which is Fitbit's over rate limit error
             if(e.responseCode == 409) {
@@ -535,10 +579,10 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 
         loadActivityDataForOneDay(updateInfo, date, userTimeZone, dateString);
 
-        // If all that succeeded, record the minimum of the end of the day "date" and trackerLastServerSyncMillis
-        // as TRACKER.lastSyncDate.  If trackerLastServerSyncMillis> the end of the day "date" then we already know
+        // If all that succeeded, record the minimum of the end of the day "date" and scaleLastServerSyncMillis
+        // as TRACKER.lastSyncDate.  If scaleLastServerSyncMillis> the end of the day "date" then we already know
         // we have complete data for "date", and if we fail we should start with the day after that.
-        // If trackerLastServerSyncMillis < the end of the day "date" then we have incomplete data for today
+        // If scaleLastServerSyncMillis < the end of the day "date" then we have incomplete data for today
         // and will need to try it again next time.
 
         // Compute the start and end of that date in milliseconds for comparing
@@ -555,17 +599,33 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 
     private void updateOneDayOfScaleData(final UpdateInfo updateInfo,
                                            final TimeZone userTimeZone, final Date date,
-                                           final String dateString, final long trackerLastServerSyncMillis) throws Exception {
-        // Fix this later
-        //updateInfo.setContext("date", dateString);
-        //
-        //logger.info("guestId=" + updateInfo.getGuestId() + " objectType=weight" +
-        //            " connector=fitbit action=updateOneDayOfData date=" + dateString);
-        //apiDataService.eraseApiData(updateInfo.apiKey, weightOT, Arrays.asList(dateString));
-        //
-        //loadWeightDataForOneDay(updateInfo, date, userTimeZone, dateString);
-        //guestService.setApiKeyAttribute(updateInfo.apiKey, "SCALE.lastSyncDate",
-        //                                String.valueOf(getLastWeighingTime(updateInfo)));
+                                           final String dateString, final long scaleLastServerSyncMillis) throws Exception {
+        updateInfo.setContext("date", dateString);
+
+        logger.info("guestId=" + updateInfo.getGuestId() + " objectType=weight" +
+                    " connector=fitbit action=updateOneDayOfData date=" + dateString);
+        apiDataService.eraseApiData(updateInfo.apiKey, weightOT, Arrays.asList(dateString));
+
+        loadWeightDataForOneDay(updateInfo, date, userTimeZone, dateString);
+
+        // If that succeeded, update where to start next time.  If scaleLastServerSyncMillis is not -1,
+        // meaning we have a hardware scale, record the minimum of the end of the day "date" and scaleLastServerSyncMillis
+        // as SCALE.lastSyncDate.  If scaleLastServerSyncMillis> the end of the day "date" then we already know
+        // we have complete data for "date", and if we fail we should start with the day after that.
+        // If scaleLastServerSyncMillis < the end of the day "date" then we have incomplete data for today
+        // and will need to try it again next time.  If scaleLastServerSyncMillis is -1, we don't have a
+        // hardware scale.  Just record the min of the end of this date and when we just asked.
+
+        // Compute the start and end of that date in milliseconds for comparing
+        // and truncating start/end
+        DateTimeZone dateTimeZone = DateTimeZone.UTC;
+        LocalDate localDate = LocalDate.parse(dateString);
+        long dateEndMillis = localDate.toDateTimeAtStartOfDay(dateTimeZone).getMillis() + DateTimeConstants.MILLIS_PER_DAY;
+
+        if(scaleLastServerSyncMillis==-1 || dateEndMillis< scaleLastServerSyncMillis) {
+            guestService.setApiKeyAttribute(updateInfo.apiKey, "SCALE.lastSyncDate",
+                                            String.valueOf(dateEndMillis));
+        }
      }
 
     private void loadWeightDataForOneDay(UpdateInfo updateInfo, Date date, TimeZone timeZone, String formattedDate) throws Exception {
