@@ -476,17 +476,19 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 hasGeneralSettings = true;
             for (var i = 0; i < digest.cachedData[connectorId].length; i++){
                 var facet = digest.cachedData[connectorId][i];
-                if (hasGeneralSettings)
-                    config.applySettings(facet, digest.settings.connectorSettings);
                 if (typeof(config.isFilteredOut)!="undefined"&&config.isFilteredOut!=null) {
                     var filteredOut = config.isFilteredOut(facet, digest.settings.connectorSettings);
                     if (filteredOut) {
-                        facet.filteredOut=true;
-                        delete digest.cachedData[connectorId][i];
-                        delete facet;
+                        digest.cachedData[connectorId].splice(i, 1);
+                        i = -1;
                         continue;
                     }
                 }
+            }
+            for (var i = 0; i < digest.cachedData[connectorId].length; i++){
+                var facet = digest.cachedData[connectorId][i];
+                if (hasGeneralSettings)
+                    config.applySettings(facet, digest.settings.connectorSettings);
                 if (digest.cachedData[connectorId].hasImages){
                     switch (connectorId){
                         case "picasa-photo":

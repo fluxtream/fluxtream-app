@@ -204,6 +204,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		if ((typeof(payload)!="undefined")&&payload!=null) {
             if (typeof(payload[0])=="undefined") {
                 console.log("warning: null payload");
+                console.log(payload);
                 return;
             }
             if (typeof(payload.length)!="undefined"&&payload.length>0&&payload[0].type==="moves-move") {

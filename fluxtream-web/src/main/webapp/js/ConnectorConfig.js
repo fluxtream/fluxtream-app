@@ -64,6 +64,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
             facets:{}
         },
         lastfm:{
+            hasTimelineSettings: true,
             color: "rgb(253, 73, 56)",
             mapicon: {
                 url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/music.png",
