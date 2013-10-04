@@ -1,5 +1,7 @@
 package com.fluxtream.connectors.updaters;
 
+import com.fluxtream.utils.Utils;
+
 public class UpdateResult {
 
     RateLimitReachedException rateLimitReachedException;
@@ -20,11 +22,17 @@ public class UpdateResult {
 
     public enum ResultType {
 		NO_RESULT, UPDATE_SUCCEEDED, UPDATE_FAILED, HAS_REACHED_RATE_LIMIT,
-			DUPLICATE_UPDATE
+			DUPLICATE_UPDATE, UPDATE_FAILED_PERMANENTLY
 	}
 
-	public static UpdateResult failedResult(String stackTrace) {
-		UpdateResult updateResult = new UpdateResult(ResultType.UPDATE_FAILED);
+    // Failusre can either be transient or permanent.  Default to transient, but allow optional
+    // second arg to allow setting permanent if true
+    public static UpdateResult failedResult(String stackTrace) {
+        return(failedResult(stackTrace,false));
+    }
+	public static UpdateResult failedResult(String stackTrace, boolean permanentFailure) {
+        ResultType resultType = permanentFailure ? ResultType.UPDATE_FAILED_PERMANENTLY : ResultType.UPDATE_FAILED;
+		UpdateResult updateResult = new UpdateResult(resultType);
 		updateResult.stackTrace = stackTrace;
 		return updateResult;
 	}
@@ -36,6 +44,7 @@ public class UpdateResult {
 	public static UpdateResult rateLimitReachedResult(RateLimitReachedException rateLimitReachedException) {
         final UpdateResult updateResult = new UpdateResult(ResultType.HAS_REACHED_RATE_LIMIT);
         updateResult.rateLimitReachedException = rateLimitReachedException;
+        updateResult.stackTrace = Utils.stackTrace(rateLimitReachedException);
         return updateResult;
     }
 }

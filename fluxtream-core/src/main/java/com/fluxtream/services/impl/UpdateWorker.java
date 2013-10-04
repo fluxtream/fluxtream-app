@@ -182,26 +182,38 @@ class UpdateWorker implements Runnable {
 			duplicateUpdate();
 			break;
 		case HAS_REACHED_RATE_LIMIT:
-			rescheduleAccordingToQuotaSpecifications(apiKey, new UpdateWorkerTask.AuditTrailEntry(new Date(), updateResult.getType().toString(), "long reschedule"));
+            final UpdateWorkerTask.AuditTrailEntry rateLimit = new UpdateWorkerTask.AuditTrailEntry(new Date(), updateResult.getType().toString(), "long reschedule");
+            rateLimit.stackTrace = updateResult.stackTrace;
+			rescheduleAccordingToQuotaSpecifications(apiKey, rateLimit);
 			break;
 		case UPDATE_SUCCEEDED:
 			success(apiKey);
 			break;
 		case UPDATE_FAILED:
+        case UPDATE_FAILED_PERMANENTLY:
             final UpdateWorkerTask.AuditTrailEntry failed = new UpdateWorkerTask.AuditTrailEntry(new Date(), updateResult.getType().toString(), "failed");
             failed.stackTrace = updateResult.stackTrace;
             connectorUpdateService.addAuditTrail(task.getId(), failed);
             final UpdateWorkerTask.AuditTrailEntry retry = new UpdateWorkerTask.AuditTrailEntry(new Date(), updateResult.getType().toString(), "retry");
-            retry(apiKey, retry);
+            if(updateResult.getType()==UpdateResult.ResultType.UPDATE_FAILED) {
+                // This was a transient failure, so we should retry
+                retry(apiKey, retry);
+            }
+            else {
+                // This was a permanent failure, so we should set status to permanent failure and
+                // we should not retry
+                abort(apiKey,failed);
+            }
 			break;
 		case NO_RESULT:
-			abort();
+			abort(apiKey,null);
 			break;
 		}
 	}
 
     private void rescheduleAccordingToQuotaSpecifications(final ApiKey apiKey, final UpdateWorkerTask.AuditTrailEntry auditTrailEntry) {
         longReschedule(apiKey, auditTrailEntry);
+        guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_OVER_RATE_LIMIT, auditTrailEntry.stackTrace);
     }
 
     private void duplicateUpdate() {
@@ -219,12 +231,13 @@ class UpdateWorker implements Runnable {
 		connectorUpdateService.setUpdateWorkerTaskStatus(task.getId(), Status.DONE);
 	}
 
-	private void abort() {
+	private void abort(ApiKey apiKey, UpdateWorkerTask.AuditTrailEntry auditTrailEntry) {
 		StringBuilder stringBuilder = new StringBuilder("module=updateQueue component=worker action=abort")
                 .append(" guestId=").append(task.getGuestId())
                 .append(" connector=").append(task.connectorName)
                 .append(" objectType=").append(task.objectTypes);
 		logger.info(stringBuilder.toString());
+        guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, auditTrailEntry.stackTrace);
 		connectorUpdateService.setUpdateWorkerTaskStatus(task.getId(), Status.FAILED);
 	}
 

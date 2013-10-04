@@ -16,6 +16,8 @@ import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.SignpostOAuthHelper;
 import com.fluxtream.connectors.updaters.RateLimitReachedException;
+import com.fluxtream.connectors.updaters.UnexpectedResponseCodeException;
+
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
@@ -92,6 +94,9 @@ public class ApiCallController {
         catch (RateLimitReachedException e) {
             System.out.println(e.getMessage());
         }
+        catch (UnexpectedResponseCodeException e) {
+            System.out.println(e.getMessage());
+        }
         return "{\"message\":\"error\"}";
     }
 
@@ -111,6 +116,9 @@ public class ApiCallController {
             return json;
         }
         catch (RateLimitReachedException e) {
+            System.out.println(e.getMessage());
+        }
+        catch (UnexpectedResponseCodeException e) {
             System.out.println(e.getMessage());
         }
         return "{\"message\":\"error\"}";

@@ -300,6 +300,9 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             if (marker != null){
                 markerArray[markerArray.length] = marker;
             }
+            else {
+                //console.log("null marker for item " + i + " in addItemsToMap");
+            }
         }
         if (markerArray.length == 0)
             markerArray = null;
@@ -369,6 +372,10 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
 
     //creates a marker with extended functionality
     function addItemToMap(map,item,clickable){
+        if (item == null){
+            //console.log("ignoring null item in addItemToMap");
+            return null;
+        }
         var itemConfig = App.getFacetConfig(item.type);
         var start = item.start;
         var end = item.end;

@@ -59,9 +59,9 @@ public class FitbitTrackerActivityFacet extends AbstractLocalTimeFacet implement
 
 	@Override
 	public void update(AbstractUpdater updater, ApiKey apiKey) {
-		try {
-			((FitBitTSUpdater) updater).updateCaloriesIntraday(this, apiKey);
-		} catch (RateLimitReachedException exc) {}
+        //try {
+        //    ((FitBitTSUpdater) updater).updateCaloriesIntraday(this, apiKey);
+        //} catch (RateLimitReachedException exc) {}
 	}
 
 }
