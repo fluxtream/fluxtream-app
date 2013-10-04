@@ -7,9 +7,13 @@
     Set<Map.Entry<Long,Map<String,Object>>> connectorInstanceModelEntries = connectorInstanceModels.entrySet();
 %>
 
+<h3><%=username%></h3>
+
+
 <% if (connectorInstanceModels!=null) { for ( Map.Entry<Long,Map<String,Object>> entry : connectorInstanceModelEntries) {
     Map<String,Object> connectorInstanceModel = entry.getValue();
 %>
+
 
 <h3 id="apiKey-<%=entry.getKey()%>" style="margin-bottom:10px">
     <%=connectorInstanceModel.get("connectorName")%>

@@ -16,7 +16,9 @@
     <tbody>
         <c:forEach var="row" items="${rows}">
         <tr>
-            <td>${row.key.guestName}</td>
+            <td>
+                <a class="btn btn-link" href="/admin/${row.key.id}">${row.key.guestName}</a>
+            </td>
             <c:forEach var="connectorKeys" items="${row.value}">
             <td class="apiKeyStatus">
                 <c:if test="${empty connectorKeys}">
@@ -25,10 +27,14 @@
                 <c:forEach var="apiKey" items="${connectorKeys}">
                     <c:choose>
                         <c:when test="${empty apiKey.status}">
-                            <div title="${apiKey.status}" class="syncStatus-NA">&nbsp;</div>
+                            <a class="btn btn-link" href="/admin/${apiKey.getGuestId()}/${apiKey.id}">
+                               <div title="${apiKey.status}" class="syncStatus-NA">&nbsp;</div>
+                            </a>
                         </c:when>
                         <c:otherwise>
-                            <div title="${apiKey.status}" class="syncStatus-${apiKey.status}">&nbsp;</div>
+                            <a class="btn btn-link" href="/admin/${apiKey.getGuestId()}/${apiKey.id}">
+                               <div title="${apiKey.status}" class="syncStatus-${apiKey.status}">&nbsp;</div>
+                            </a>
                         </c:otherwise>
                     </c:choose>
                 </c:forEach>
