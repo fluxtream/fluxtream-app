@@ -25,6 +25,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                     return prevFacet != null && prevFacet.uri !== currentFacet.uri;
                 }
             }
+            case "none":
             default:
                 return function(){return false;};
         }
@@ -301,7 +302,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
                 markerArray[markerArray.length] = marker;
             }
             else {
-                //console.log("null marker for item " + i + " in addItemsToMap");
+                console.log("null marker for item " + i + " in addItemsToMap");
             }
         }
         if (markerArray.length == 0)
@@ -373,7 +374,7 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
     //creates a marker with extended functionality
     function addItemToMap(map,item,clickable){
         if (item == null){
-            //console.log("ignoring null item in addItemToMap");
+            console.log("ignoring null item in addItemToMap");
             return null;
         }
         var itemConfig = App.getFacetConfig(item.type);
