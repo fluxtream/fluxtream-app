@@ -50,7 +50,7 @@ public class SignpostOAuthHelper extends ApiClientSupport {
 				String json = IOUtils.toString(request.getInputStream());
 				connectorUpdateService.addApiUpdate(apiKey,
 						objectTypes, then, System.currentTimeMillis() - then,
-						urlString, true, null, null);
+						urlString, true, httpResponseCode, httpResponseMessage);
 				// logger.info(apiKey.getGuestId(), "REST call success: " +
 				// urlString);
 				return json;
