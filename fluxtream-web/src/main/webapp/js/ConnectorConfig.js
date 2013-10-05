@@ -244,7 +244,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
         google_latitude:{
             color: "rgb(92, 174, 92)",
             mapicon : {
-                url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",
+                url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/greendot.png",
                 anchor: new google.maps.Point(5,5)
             },
             mapshadow: null,
@@ -448,15 +448,16 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                     mapshadow: null
                 },
                 location:{
-                    color: "rgb(30, 30, 30)",
+                    color: "rgb(90, 90, 90)",
                     list:false,
                     photos:false,
                     map:true,
+                    gps:true,
                     mapicon : {
-                        url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",
+                        url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/greydot.png",
                         anchor: new google.maps.Point(5,5)
                     },
-                    mapshadow: null
+                    mapshadow: null,
                 }
             }
         },
