@@ -236,6 +236,8 @@ public class FluxtreamCaptureUpdater extends AbstractUpdater {
                 if(locationList.size()>=100) {
                     apiDataService.addGuestLocations(uid, locationList);
                     locationList.clear();
+                    // Update the stored value that controls when we will start updating next time
+                    updateStartTime(updateInfo,"Latitude",currentTime);
                 }
             }
         }
