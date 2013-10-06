@@ -457,7 +457,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                         url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/greydot.png",
                         anchor: new google.maps.Point(5,5)
                     },
-                    mapshadow: null,
+                    mapshadow: null
                 }
             }
         },
@@ -490,7 +490,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                     clock: ClockConfig.OUTSIDE_CATEGORY
                 },
                 "location":{
-                    color: "#000",
+                    color: "rgb(36, 77, 187)",
                     wlkColor: "#23ee70",
                     trpColor: "#8f8f8d",
                     cycColor: "#68abef",

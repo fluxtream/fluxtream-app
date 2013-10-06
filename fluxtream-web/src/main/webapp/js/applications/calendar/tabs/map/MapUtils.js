@@ -533,13 +533,26 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             accuracy = 0;
         marker.accuracy = accuracy;
         marker.showCircle = function(){
-            if (marker.circle != null)
+            // Only set a circle for this item if it has its own idea
+            // of accuracy.  Otherwise rely on the time marker circles.
+            if (marker.circle != null || marker.item == null || !("accuracy" in marker.item))
                 return;
+
+            // Generate a fill color for this kind of item
+            var fillColor = "#ff0000";
+            // Get the config for this type of item
+            if (marker.item && marker.item.type) {
+                var cfg = App.getFacetConfig(marker.item.type);
+                if(cfg!=null && cfg.color !=null) {
+                    fillColor = cfg.color;
+                }
+            }
+
             marker.circle = new google.maps.Circle({center:marker.getPosition(),
                 map:map,
                 radius:accuracy,
-                fillColor:"red",
-                fillOpacity:0.5,
+                fillColor:fillColor,
+                fillOpacity:0.4,
                 strokeOpacity:0,
                 clickable:false});
         }
@@ -1151,16 +1164,42 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             var newPosition = getPointForTimeOnLine(map,dataSource,time*1000,false);
             var newAccuracy = getGPSAccuracy(dataSource,time*1000);
             if (dataSource.dateMarker == null){
+                // Setup defaults for stroke and fill color to be red/red
+                var strokeColor = "#ff0000";
+                var fillColor = "#ff0000";
+
+                // Get the config for this type of item
+                var cfg = App.getFacetConfig(member);
+                if(cfg!=null) {
+                    // Check for strokeColor, and if set use it for the stroke
+                    if(cfg.strokeColor !=null) {
+                        strokeColor = cfg.strokeColor;
+                    }
+                    // Check for color, and if set use it for the fill
+                    if(cfg.color !=null) {
+                        fillColor = cfg.color;
+                    }
+                }
+
+                // Create a marker that's an inverted triangle with configurable colors
                 dataSource.dateMarker = new google.maps.Marker({
                     map: dataSource.gpsLines[0].line.getMap(),
                     position: newPosition,
-                    clickable:true
+                    clickable:true,
+                    zIndex: google.maps.Marker.MAX_ZINDEX,
+                    icon: {
+                        path: "M 0 0 L -8 -16 L 8 -16 z",
+                        fillColor: fillColor,
+                        strokeColor: strokeColor,
+                        strokeWeight: 2,
+                        fillOpacity: 1
+                    }
                 });
                 dataSource.dateMarker.circle = new google.maps.Circle({center:newPosition,
                     map:dataSource.gpsLines[0].line.getMap(),
                     radius:newAccuracy,
-                    fillColor:"red",
-                    fillOpacity:0.5,
+                    fillColor:fillColor,
+                    fillOpacity:0.4,
                     strokeOpacity:0,
                     clickable:false});
                 google.maps.event.addListener(dataSource.dateMarker, "click", function(){
