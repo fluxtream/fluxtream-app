@@ -368,6 +368,9 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
 
             if(missingKeys) {
                 String msg = "***** Exiting execution due to missing connector instance keys.\n  Check out fluxtream-admin-tools project, build, and execute 'java -jar target/flx-admin-tools.jar 5'";
+                List<ConnectorInfo> connectors2 = getConnectors();
+                System.out.println("List of Connector table: before=" + connectors.size() + ", after=" + connectors2.size());
+
                 logger.info(msg);
                 System.out.println(msg);
                 System.exit(-1);
