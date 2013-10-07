@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.persistence.PersistenceContext;
 import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.ApiKey;
@@ -66,6 +65,7 @@ public class AdminController {
             List<List<ApiKey>> guestApiKeys = new ArrayList<List<ApiKey>>();
             for (ConnectorInfo connector : connectors) {
                 final List<ApiKey> apiKeys = guestService.getApiKeys(guest.getId(), Connector.fromValue(connector.api));
+                System.out.println("retrieved api keys for guest " + guest.getGuestName() + "/" + connector.connectorName + ": " + apiKeys);
                 guestApiKeys.add(apiKeys);
             }
             final Map.Entry<Guest, List<List<ApiKey>>> guestListEntry = new AbstractMap.SimpleEntry<Guest, List<List<ApiKey>>>(guest, guestApiKeys);
@@ -116,7 +116,7 @@ public class AdminController {
         return synching;
     }
 
-    class ValueHolder {
+    public class ValueHolder {
         Map<Long,Integer> dict = new HashMap<Long,Integer>();
         public void put(Long l, Integer i) { dict.put(l, i); }
         public Integer get(Long l) { return dict.get(l); }
