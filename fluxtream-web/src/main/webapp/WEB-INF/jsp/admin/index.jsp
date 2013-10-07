@@ -38,6 +38,35 @@
     <script src="/static/js/hogan-2.0.0.js"></script>
 
     <link rel="shortcut icon" href="/favicon.ico">
+    <script
+            src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script>
+        window.jQuery
+        || document
+                .write('<script src="/static/js/jquery-1.10.2.min.js"><\/script>')
+    </script>
+
+    <script src="/static/js/bootstrap-2.3.2.min.js"></script>
+    <script src="/static/js/jquery-ui-1.10.3.custom.min.js"></script>
+    <script src="/static/js/jquery.ui.sortable-1.8.2-bt-1.0.1.js"></script>
+    <script src="/static/js/json2-2011.10.19.js"></script>
+    <script src="/static/js/jquery.autoGrowInput-1.0.0.js"></script>
+    <script src="/static/js/jquery.colorPicker-2012.01.27.js"></script>
+    <script src="/static/js/jquery.dd-2.37.5-uncompressed.js"></script>
+    <script src="/static/js/jquery.tagedit-1.2.1.js"></script>
+    <script src="/static/js/jquery.shorten-1.0.0.js"></script>
+    <script src="/static/js/underscore-1.3.3-min.js"></script>
+    <script src="/static/js/backbone-1.0.0-custom.1-min.js"></script>
+    <script src="/static/js/jquery.ba-dotimeout-1.0.0.min.js"></script>
+    <script src="/static/js/jquery.masonry-2.1.03.min.js"></script>
+    <script src="/static/js/jquery.xcolor-1.8.js"></script>
+    <script src="/static/js/jquery.outerHTML-1.0.0.js"></script>
+
+    <script>
+        window.FLX_RELEASE_NUMBER = "${release}";
+    </script>
+
+    <script data-main="/${release}/js/admin/main.js" src="/static/js/require-1.0.3.js"></script>
 
 </head>
 
@@ -81,34 +110,5 @@
 
 </div>
 
-<script
-        src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-<script>
-    window.jQuery
-    || document
-            .write('<script src="/static/js/jquery-1.10.2.min.js"><\/script>')
-</script>
-
-<script src="/static/js/bootstrap-2.3.2.min.js"></script>
-<script src="/static/js/jquery-ui-1.10.3.custom.min.js"></script>
-<script src="/static/js/jquery.ui.sortable-1.8.2-bt-1.0.1.js"></script>
-<script src="/static/js/json2-2011.10.19.js"></script>
-<script src="/static/js/jquery.autoGrowInput-1.0.0.js"></script>
-<script src="/static/js/jquery.colorPicker-2012.01.27.js"></script>
-<script src="/static/js/jquery.dd-2.37.5-uncompressed.js"></script>
-<script src="/static/js/jquery.tagedit-1.2.1.js"></script>
-<script src="/static/js/jquery.shorten-1.0.0.js"></script>
-<script src="/static/js/underscore-1.3.3-min.js"></script>
-<script src="/static/js/backbone-1.0.0-custom.1-min.js"></script>
-<script src="/static/js/jquery.ba-dotimeout-1.0.0.min.js"></script>
-<script src="/static/js/jquery.masonry-2.1.03.min.js"></script>
-<script src="/static/js/jquery.xcolor-1.8.js"></script>
-<script src="/static/js/jquery.outerHTML-1.0.0.js"></script>
-
-<script>
-    window.FLX_RELEASE_NUMBER = "${release}";
-</script>
-
-<script data-main="/${release}/js/admin/main.js" src="/static/js/require-1.0.3.js"></script>
 </body>
 </html>
