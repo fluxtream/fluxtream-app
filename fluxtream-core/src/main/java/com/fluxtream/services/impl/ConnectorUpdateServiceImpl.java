@@ -500,6 +500,23 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
 
     @Override
     @Transactional(readOnly = false)
+    public List<UpdateWorkerTask> getAllSynchingUpdateWorkerTasks() {
+        List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em, UpdateWorkerTask.class,
+                                                                "updateWorkerTasks.all.synching",
+                                                                getLiveServerUUIDs());
+        return updateWorkerTasks;
+    }
+
+    @Override
+    @Transactional(readOnly = false)
+    public List<UpdateWorkerTask> getAllScheduledUpdateWorkerTasks() {
+        List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em, UpdateWorkerTask.class,
+                                                                 "updateWorkerTasks.all.scheduled");
+        return updateWorkerTasks;
+    }
+
+    @Override
+    @Transactional(readOnly = false)
     public List<UpdateWorkerTask> getScheduledOrInProgressUpdateTasks(final ApiKey apiKey) {
         // Get the tasks that are currently scheduled or in progress and either have the active
         List<UpdateWorkerTask> updateWorkerTask = JPAUtils.find(em, UpdateWorkerTask.class,

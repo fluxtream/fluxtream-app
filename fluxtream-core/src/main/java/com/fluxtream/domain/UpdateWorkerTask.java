@@ -42,6 +42,12 @@ import org.hibernate.annotations.Index;
 		query = "SELECT updt FROM UpdateWorkerTask updt " +
                 "WHERE updt.status=?1 " +
                 "AND updt.timeScheduled<?2"),
+    @NamedQuery( name = "updateWorkerTasks.all.synching",
+                 query = "SELECT updt FROM UpdateWorkerTask updt " +
+                         "WHERE updt.status=1 AND updt.serverUUID IN (?1)"),
+    @NamedQuery( name = "updateWorkerTasks.all.scheduled",
+                 query = "SELECT updt FROM UpdateWorkerTask updt " +
+                         "WHERE updt.status=0"),
     @NamedQuery( name = "updateWorkerTasks.isScheduledOrInProgress",
         query = "SELECT updt FROM UpdateWorkerTask updt " +
                 "WHERE (updt.status=0 OR " +

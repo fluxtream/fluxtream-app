@@ -9,6 +9,7 @@ import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ApiUpdate;
 import com.fluxtream.domain.UpdateWorkerTask;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface ConnectorUpdateService {
 
@@ -102,4 +103,10 @@ public interface ConnectorUpdateService {
     public void addAuditTrail(long updateWorkerTaskId, UpdateWorkerTask.AuditTrailEntry auditTrailEntry);
 
     public void cleanupStaleData();
+
+    @Transactional(readOnly = false)
+    List<UpdateWorkerTask> getAllSynchingUpdateWorkerTasks();
+
+    @Transactional(readOnly = false)
+    List<UpdateWorkerTask> getAllScheduledUpdateWorkerTasks();
 }

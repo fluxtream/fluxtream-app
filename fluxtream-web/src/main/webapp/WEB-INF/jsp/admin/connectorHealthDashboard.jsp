@@ -49,6 +49,9 @@
                     &empty;
                 </c:if>
                 <c:forEach var="apiKey" items="${connectorKeys}">
+                    <c:set var="currentlySynching" value="${synching.get(apiKey.id)}"/>
+                    <c:set var="due" value="${tasksDue.get(apiKey.id)}"/>
+                    <c:set var="overdue" value="${tasksOverdue.get(apiKey.id)}"/>
                     <c:choose>
                         <c:when test="${empty apiKey.status}">
                             <a class="btn btn-link" href="/admin/${apiKey.getGuestId()}/${apiKey.id}">
@@ -61,6 +64,36 @@
                             </a>
                         </c:otherwise>
                     </c:choose>
+                    <c:if test="${currentlySynching>0}">
+                        <c:choose>
+                            <c:when test="${currentlySynching==1}">
+                                <i class="icon-refresh"></i>
+                            </c:when>
+                            <c:otherwise>
+                                <span style="white-space:nowrap">${currentlySynching}&nbsp;<i class="icon-refresh"></i></span>
+                            </c:otherwise>
+                        </c:choose>
+                    </c:if>
+                    <c:if test="${due>0}">
+                        <c:choose>
+                            <c:when test="${due==1}">
+                                <i class="icon-inbox" style="color:forestgreen"></i>
+                            </c:when>
+                            <c:otherwise>
+                                <span style="white-space:nowrap">${due}&nbsp;<i class="icon-inbox" style="color:forestgreen"></i></span>
+                            </c:otherwise>
+                        </c:choose>
+                    </c:if>
+                    <c:if test="${overdue>0}">
+                        <c:choose>
+                            <c:when test="${overdue==1}">
+                                <i class="icon-inbox" style="color:#ff0000"></i>
+                            </c:when>
+                            <c:otherwise>
+                                <span style="white-space:nowrap">${overdue}&nbsp;<i class="icon-inbox" style="color:#ff0000"></i></span>
+                            </c:otherwise>
+                        </c:choose>
+                    </c:if><br>
                 </c:forEach>
             </td>
             </c:forEach>
