@@ -553,7 +553,9 @@ public class MetadataServiceImpl implements MetadataService {
         final Query nativeQuery = em.createNativeQuery(String.format("SELECT DISTINCT apiKeyId FROM %s WHERE guestId=%s", entityName, guest.getId()));
         final List<BigInteger> resultList = nativeQuery.getResultList();
         for (BigInteger apiKeyId : resultList) {
-            rebuildMetadata(username, apiKeyId.longValue());
+	    if(apiKeyId!=null && apiKeyId.longValue()>0) {
+		rebuildMetadata(username, apiKeyId.longValue());
+	    }
         }
     }
 
