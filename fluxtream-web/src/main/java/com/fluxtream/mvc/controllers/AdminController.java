@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.persistence.PersistenceContext;
 import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.ApiKey;
@@ -46,6 +47,9 @@ public class AdminController {
     @Autowired
     SystemService systemService;
 
+    @Autowired
+    PersistenceContext em;
+
     @Secured({ "ROLE_ADMIN" })
     @RequestMapping(value = { "/admin" })
     public ModelAndView admin() throws Exception {
@@ -55,6 +59,12 @@ public class AdminController {
         mav.addObject("connectors", connectors);
         final List<Guest> allGuests = (List<Guest>)mav.getModel().get("allGuests");
         List<Map.Entry<Guest,List<List<ApiKey>>>> rows = new ArrayList<Map.Entry<Guest,List<List<ApiKey>>>>();
+        ValueHolder synching = getSynchingUpdateWorkerTasks();
+        final List<UpdateWorkerTask> tasks = connectorUpdateService.getAllScheduledUpdateWorkerTasks();
+        long consumerTriggerRepeatInterval = Long.valueOf(env.get("consumer.trigger.repeatInterval"));
+        ValueHolder due = getDueUpdateWorkerWorkerTasks(tasks, consumerTriggerRepeatInterval);
+        ValueHolder overdue = getOverdueUpdateWorkerWorkerTasks(tasks, consumerTriggerRepeatInterval);
+
         for (Guest guest : allGuests) {
             List<List<ApiKey>> guestApiKeys = new ArrayList<List<ApiKey>>();
             for (ConnectorInfo connector : connectors) {
@@ -64,8 +74,55 @@ public class AdminController {
             final Map.Entry<Guest, List<List<ApiKey>>> guestListEntry = new AbstractMap.SimpleEntry<Guest, List<List<ApiKey>>>(guest, guestApiKeys);
             rows.add(guestListEntry);
         }
+        mav.addObject("synching", synching);
+        mav.addObject("tasksDue", due);
+        mav.addObject("tasksOverdue", overdue);
         mav.addObject("rows", rows);
         return mav;
+    }
+
+    private ValueHolder getDueUpdateWorkerWorkerTasks(final List<UpdateWorkerTask> tasks, long consumerTriggerRepeatInterval) {
+        ValueHolder overdue = new ValueHolder();
+        for (UpdateWorkerTask task : tasks) {
+            if (task.timeScheduled>System.currentTimeMillis()-consumerTriggerRepeatInterval) {
+                if (overdue.get(task.apiKeyId)!=null)
+                    overdue.put(task.apiKeyId, overdue.get(task.apiKeyId)+1);
+                else
+                    overdue.put(task.apiKeyId, 1);
+            }
+        }
+        return overdue;
+    }
+
+    private ValueHolder getOverdueUpdateWorkerWorkerTasks(final List<UpdateWorkerTask> tasks, long consumerTriggerRepeatInterval) {
+        ValueHolder due = new ValueHolder();
+        for (UpdateWorkerTask task : tasks) {
+            if (task.timeScheduled<=System.currentTimeMillis()-consumerTriggerRepeatInterval) {
+                if (due.get(task.apiKeyId)!=null)
+                    due.put(task.apiKeyId, due.get(task.apiKeyId)+1);
+                else
+                    due.put(task.apiKeyId, 1);
+            }
+        }
+        return due;
+    }
+
+    private ValueHolder getSynchingUpdateWorkerTasks() {
+        ValueHolder synching = new ValueHolder();
+        final List<UpdateWorkerTask> tasks = connectorUpdateService.getAllSynchingUpdateWorkerTasks();
+        for (UpdateWorkerTask task : tasks) {
+            if (synching.get(task.apiKeyId)!=null)
+                synching.put(task.apiKeyId, synching.get(task.apiKeyId)+1);
+            else
+                synching.put(task.apiKeyId, 1);
+        }
+        return synching;
+    }
+
+    class ValueHolder {
+        Map<Long,Integer> dict = new HashMap<Long,Integer>();
+        public void put(Long l, Integer i) { dict.put(l, i); }
+        public Integer get(Long l) { return dict.get(l); }
     }
 
     @Secured({ "ROLE_ADMIN" })
