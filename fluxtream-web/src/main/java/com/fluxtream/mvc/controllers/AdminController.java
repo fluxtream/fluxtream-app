@@ -47,9 +47,6 @@ public class AdminController {
     @Autowired
     SystemService systemService;
 
-    @Autowired
-    PersistenceContext em;
-
     @Secured({ "ROLE_ADMIN" })
     @RequestMapping(value = { "/admin" })
     public ModelAndView admin() throws Exception {
