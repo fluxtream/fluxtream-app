@@ -548,14 +548,36 @@ public class MetadataServiceImpl implements MetadataService {
 
     @Override
     public void rebuildMetadata(final String username) {
-        final Guest guest = guestService.getGuest(username);
+        Guest guest = null;
+        // Accept guest ID as well as username
+        try {
+            guest = guestService.getGuest(username);
+            if(guest==null) {
+                // Try to treat arg as guestId
+                Long guestId = Long.valueOf(username);
+                if(guestId!=null) {
+                    guest = guestService.getGuestById(guestId);
+                }
+            }
+        }
+        catch (Exception e) {
+            // Might get exception if username doesn't exist and non-numeric
+            guest=null;
+        }
+        // Check if we succeeded, return.  This isn't really right because we don't get
+        // error reporting, but would take to long to fix error reporting right now.
+        // TODO: fix error reporting
+        if(guest==null) {
+            return;
+        }
+
         String entityName = JPAUtils.getEntityName(LocationFacet.class);
         final Query nativeQuery = em.createNativeQuery(String.format("SELECT DISTINCT apiKeyId FROM %s WHERE guestId=%s", entityName, guest.getId()));
         final List<BigInteger> resultList = nativeQuery.getResultList();
         for (BigInteger apiKeyId : resultList) {
-	    if(apiKeyId!=null && apiKeyId.longValue()>0) {
-		rebuildMetadata(username, apiKeyId.longValue());
-	    }
+            if(apiKeyId!=null && apiKeyId.longValue()>0) {
+                rebuildMetadata(guest.username, apiKeyId.longValue());
+            }
         }
     }
 
@@ -568,16 +590,59 @@ public class MetadataServiceImpl implements MetadataService {
         while(true) {
             facetsQuery.setFirstResult(i);
             facetsQuery.setMaxResults(1000);
-            final List<LocationFacet> locations = facetsQuery.getResultList();
-            System.out.println("retrieved " + locations.size() + " location datapoints (offset is " + i + ")");
-            if (locations.size()==0)
+            final List<LocationFacet> rawLocations = facetsQuery.getResultList();
+            //System.out.println(username + ": retrieved " + rawLocations.size() + " location datapoints (offset is " + i + ")");
+            if (rawLocations.size()==0)
                 break;
-            System.out.println(AbstractLocalTimeFacet.timeStorageFormat.withZoneUTC().print(locations.get(0).start));
+            //System.out.println(username + ":   " + AbstractLocalTimeFacet.timeStorageFormat.withZoneUTC().print(rawLocations.get(0).start));
+
             long then = System.currentTimeMillis();
-            updateLocationMetadata(guest.getId(), locations);
+            // Loop over the points to see if they're already included in visited cities entries
+            // it's important that the location points in the locations list are for a single apiKeyId
+            // and are in forward chronological order.  Only add locations that aren't already contained
+            // within a VisitedCity item to the newLocations list
+            List<LocationFacet> newLocations=new ArrayList<LocationFacet>();
+            VisitedCity existingVisitedCityRecord = null;
+
+            for (LocationFacet locationFacet : rawLocations) {
+                // Check to see if this location is in the current existingVisitedCityRecord (if any)
+                if(existingVisitedCityRecord !=null && locationFacet.start <=existingVisitedCityRecord.end) {
+                    // This location falls within the last fetched visited cities record, skip it
+                    continue;
+                }
+                // This location doesn't fall within the last fetched visited cities record (if any).
+                // See if it fits in a new one.  Note that this really assumes that locationFacet.start
+                // and locationFacet.end are the same and VisitedCity records are non-overlapping.
+                // It returns null if there are no visited city
+                // records overlapping the current point and non-null if there is one.
+                existingVisitedCityRecord = JPAUtils.findUnique(em, VisitedCity.class,
+                                                              "visitedCities.byApiAndTime",
+                                                              locationFacet.apiKeyId,
+                                                              locationFacet.start,
+                                                              locationFacet.end);
+                if(existingVisitedCityRecord == null) {
+                    // This is a new point, add it
+                    newLocations.add(locationFacet);
+                }
+                else {
+                    // This point is already covered, skip it
+                }
+            }
+
+            if(newLocations.size()>0) {
+                long start = newLocations.get(0).start;
+                System.out.println(username + ": processing " + newLocations.size() + " new " + entityName +
+                                   " datapoints (offset is " + i + ", start is " + start +
+                                   " = " + AbstractLocalTimeFacet.timeStorageFormat.withZoneUTC().print(start) + " UTC)");
+                updateLocationMetadata(guest.getId(), newLocations);
+            }
+            else {
+                System.out.println(username + ": no new " + entityName + " location datapoints (offset is " + i + ")");
+            }
+
             long now = System.currentTimeMillis();
-            System.out.println(String.format("updateLocationMetadata took %s ms to complete", (now-then)));
-            i+=locations.size();
+            System.out.println(String.format(username + ":   updateLocationMetadata took %s ms to complete", (now - then)));
+            i+=rawLocations.size();
         }
     }
 
