@@ -17,7 +17,7 @@ import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.SignpostOAuthHelper;
 import com.fluxtream.connectors.updaters.RateLimitReachedException;
 import com.fluxtream.connectors.updaters.UnexpectedResponseCodeException;
-
+import com.fluxtream.connectors.updaters.UpdateFailedException;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;

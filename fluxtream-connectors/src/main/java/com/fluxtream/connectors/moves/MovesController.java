@@ -11,6 +11,7 @@ import com.fluxtream.Configuration;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.controllers.ControllerSupport;
+import com.fluxtream.connectors.updaters.UpdateFailedException;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.Notification;
@@ -118,6 +119,10 @@ public class MovesController {
             notificationsService.addNotification(guest.getId(),
                                                  Notification.Type.ERROR,
                                                  errorCode);
+            // NOTE: In the future if we implement renew for the Moves connector
+            // we will potentially need to mark the connector as permanently failed.
+            // The way to do this is to get hold of the existing apiKey and do:
+            //  guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null);
             return "redirect:/app";
         }
 
@@ -135,6 +140,9 @@ public class MovesController {
         guestService.setApiKeyAttribute(apiKey,
                                         "refreshToken", refresh_token);
 
+        // Record that this connector is now up
+        guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_UP, null);
+
         return "redirect:/app/from/moves";
     }
 
@@ -146,7 +154,7 @@ public class MovesController {
         return guestService.getApiKeyAttribute(apiKey, "accessToken");
     }
 
-    private void refreshToken(final ApiKey apiKey) throws Exception {
+    private void refreshToken(final ApiKey apiKey) throws Exception, UpdateFailedException {
         // Check to see if we are running on a mirrored test instance
         // and should therefore refrain from swapping tokens lest we
         // invalidate an existing token instance
@@ -158,7 +166,18 @@ public class MovesController {
             			    .append(" message=\"").append(msg).append("\"");
             logger.info(sb2.toString());
             System.out.println(msg);
-            return;
+
+            // Notify the user that the tokens need to be manually renewed
+            notificationsService.addNotification(apiKey.getGuestId(), Notification.Type.WARNING,
+                                                 "Heads Up. This server cannot automatically refresh your Moves authentication tokens.<br>" +
+                                                 "Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
+                                                 "scroll to the Moves connector, delete the connector, and re-add<br>" +
+                                                 "<p>We apologize for the inconvenience</p>");
+
+            // Record permanent failure since this connector won't work again until
+            // it is reauthenticated
+            guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null);
+            throw new UpdateFailedException("requires token reauthorization",true);
         }
 
         // We're not on a mirrored test server.  Try to swap the expired
@@ -176,8 +195,20 @@ public class MovesController {
         String fetched;
         try {
             fetched = HttpUtils.fetch(swapTokenUrl, params);
+            // Record that this connector is now up
+            guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_UP, null);
         } catch (Exception e) {
-            throw e;
+            // Notify the user that the tokens need to be manually renewed
+            notificationsService.addNotification(apiKey.getGuestId(), Notification.Type.WARNING,
+                                                 "Heads Up. We failed in our attempt to automatically refresh your Moves authentication tokens.<br>" +
+                                                 "Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
+                                                 "scroll to the Moves connector, delete the connector, and re-add<br>" +
+                                                 "<p>We apologize for the inconvenience</p>");
+
+            // Record permanent update failure since this connector is never
+            // going to succeed
+            guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null);
+            throw new UpdateFailedException("refresh token attempt failed", e, true);
         }
 
         JSONObject token = JSONObject.fromObject(fetched);

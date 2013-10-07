@@ -191,12 +191,15 @@ class UpdateWorker implements Runnable {
 			break;
 		case UPDATE_FAILED:
         case UPDATE_FAILED_PERMANENTLY:
-            final UpdateWorkerTask.AuditTrailEntry failed = new UpdateWorkerTask.AuditTrailEntry(new Date(), updateResult.getType().toString(), "failed");
+            final UpdateWorkerTask.AuditTrailEntry failed = new UpdateWorkerTask.AuditTrailEntry(new Date(), updateResult.getType().toString(), "abort");
             failed.stackTrace = updateResult.stackTrace;
             connectorUpdateService.addAuditTrail(task.getId(), failed);
             final UpdateWorkerTask.AuditTrailEntry retry = new UpdateWorkerTask.AuditTrailEntry(new Date(), updateResult.getType().toString(), "retry");
-            if(updateResult.getType()==UpdateResult.ResultType.UPDATE_FAILED) {
-                // This was a transient failure, so we should retry
+            // Consider this a transient failure and retry if the failure type was not permanent
+            // and the current status of the connector instance is not already STATUS_PERMANENT_FAILURE.
+            //
+            if(updateResult.getType()==UpdateResult.ResultType.UPDATE_FAILED &&
+               apiKey.getStatus()!=ApiKey.Status.STATUS_PERMANENT_FAILURE) {
                 retry(apiKey, retry);
             }
             else {

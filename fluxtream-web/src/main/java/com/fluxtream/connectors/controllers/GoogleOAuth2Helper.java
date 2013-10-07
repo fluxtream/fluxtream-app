@@ -5,10 +5,14 @@ import java.util.HashMap;
 import java.util.Map;
 import com.fluxtream.Configuration;
 import com.fluxtream.aspects.FlxLogger;
+import com.fluxtream.connectors.updaters.UpdateFailedException;
 import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.Notification;
 import com.fluxtream.services.GuestService;
+import com.fluxtream.services.NotificationsService;
 import com.fluxtream.utils.HttpUtils;
 import com.fluxtream.utils.UnexpectedHttpResponseCodeException;
+import com.fluxtream.utils.Utils;
 import net.sf.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -24,10 +28,13 @@ public class GoogleOAuth2Helper {
     GuestService guestService;
 
     @Autowired
+	protected NotificationsService notificationsService;
+
+    @Autowired
     Configuration env;
     FlxLogger logger = FlxLogger.getLogger(GoogleOAuth2Helper.class);
 
-    public String getAccessToken(final ApiKey apiKey) throws IOException, UnexpectedHttpResponseCodeException {
+    public String getAccessToken(final ApiKey apiKey) throws IOException, UnexpectedHttpResponseCodeException, UpdateFailedException {
         final String expiresString = guestService.getApiKeyAttribute(apiKey, "tokenExpires");
         long expires = Long.valueOf(expiresString);
         if (expires<System.currentTimeMillis())
@@ -35,7 +42,7 @@ public class GoogleOAuth2Helper {
         return guestService.getApiKeyAttribute(apiKey, "accessToken");
     }
 
-    private void refreshToken(final ApiKey apiKey) throws IOException, UnexpectedHttpResponseCodeException {
+    private void refreshToken(final ApiKey apiKey) throws IOException, UnexpectedHttpResponseCodeException, UpdateFailedException {
         // Check to see if we are running on a mirrored test instance
         // and should therefore refrain from swapping tokens lest we
         // invalidate an existing token instance
@@ -47,7 +54,17 @@ public class GoogleOAuth2Helper {
             			    .append(" message=\"").append(msg).append("\"");
             logger.info(sb2.toString());
             System.out.println(msg);
-            return;
+
+            // Notify the user that the tokens need to be manually renewed
+            notificationsService.addNotification(apiKey.getGuestId(), Notification.Type.WARNING,
+                                                 "Heads Up. This server cannot automatically refresh your authentication tokens.<br>" +
+                                                 "Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
+                                                 "scroll to the " + apiKey.getConnector().getName() + " connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
+
+            // Record permanent failure since this connector won't work again until
+            // it is reauthenticated
+            guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null);
+            throw new UpdateFailedException("requires token reauthorization",true);
         }
 
         // We're not on a mirrored test server.  Try to swap the expired
@@ -69,12 +86,21 @@ public class GoogleOAuth2Helper {
                         + apiKey.getConnector().getName()
                         + " guestId=" + apiKey.getGuestId()
                         + " status=success");
+            // Record that this connector is now up
+            guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_UP, null);
         } catch (IOException e) {
             logger.warn("component=background_updates action=refreshToken" +
-                        " connector=" + apiKey.getConnector().getName()
-                        + " guestId=" + apiKey.getGuestId()
-                        + " status=failed");
-            throw e;
+                        " connector=" + apiKey.getConnector().getName() + " guestId=" + apiKey.getGuestId() + " status=failed");
+            // Notify the user that the tokens need to be manually renewed
+            notificationsService.addNotification(apiKey.getGuestId(), Notification.Type.WARNING,
+                                                 "Heads Up. We failed in our attempt to automatically refresh your authentication tokens.<br>" +
+                                                 "Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
+                                                 "scroll to the " + apiKey.getConnector().getName() + " connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
+
+            // Record permanent update failure since this connector is never
+            // going to succeed
+            guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, Utils.stackTrace(e));
+            throw new UpdateFailedException("refresh token attempt failed", e, true);
         }
 
         JSONObject token = JSONObject.fromObject(fetched);

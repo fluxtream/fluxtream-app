@@ -11,6 +11,7 @@ import com.fluxtream.domain.Notification;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.JPADaoService;
 import com.fluxtream.services.SettingsService;
+import com.fluxtream.connectors.updaters.UpdateFailedException;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
@@ -40,10 +41,11 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
     SettingsService settingsService;
 
     @Override
-    protected void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception {
+    protected void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception, UpdateFailedException {
         // if we're coming from an older install and this user has oauth 1 keys,
         // suggest renewing the tokens in the manage connectors dialog
-        if (guestService.getApiKeyAttribute(updateInfo.apiKey, "googleConsumerKey")!=null) {
+        if (guestService.getApiKeyAttribute(updateInfo.apiKey, "googleConsumerKey")!=null||
+                    guestService.getApiKeyAttribute(updateInfo.apiKey, "refreshToken")==null) {
             sendOauth2UpgradeWarning(updateInfo);
         } else {
             loadHistory(updateInfo, false);
@@ -51,15 +53,17 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
         }
     }
 
-    private void sendOauth2UpgradeWarning(final UpdateInfo updateInfo) {
+    private void sendOauth2UpgradeWarning(final UpdateInfo updateInfo) throws UpdateFailedException {
         notificationsService.addNotification(updateInfo.getGuestId(), Notification.Type.WARNING,
                                              "Heads Up. This server has recently been upgraded to a version that supports<br>" +
                                              "oauth 2 with Google APIs. Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
                                              "scroll to the Google Calendar connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
+        // Report this connector as having failed permanently
+        throw new UpdateFailedException("requires token reauthorization", true);
     }
 
     @Override
-    public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
+    public void updateConnectorData(UpdateInfo updateInfo) throws Exception, UpdateFailedException {
         // if we're coming from an older install and this user has oauth 1 keys,
         // suggest renewing the tokens in the manage connectors dialog
         if (guestService.getApiKeyAttribute(updateInfo.apiKey, "googleConsumerKey")!=null||
