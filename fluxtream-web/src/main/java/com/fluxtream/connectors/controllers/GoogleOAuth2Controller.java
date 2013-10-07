@@ -108,12 +108,13 @@ public class GoogleOAuth2Controller {
 		Guest guest = AuthHelper.getGuest();
 
         if (!token.has("refresh_token")) {
-            String message = (new StringBuilder("<p>We couldn't get your oauth2 refresh token.</p>"))
-                    .append("<p>Obviously, something went wrong.</p>")
+            String message = (new StringBuilder("<p>We couldn't get your oauth2 refresh token.  "))
+                    .append("Something went wrong.</p>")
                     .append("<p>You'll have to surf to your ")
-                    .append("<a target='_new'  href='https://accounts.google.com/b/0/IssuedAuthSubTokens'>token mgmt page at Google's</a> ")
+                    .append("<a target='_new'  href='https://accounts.google.com/b/0/IssuedAuthSubTokens'>token mgmt page at Google</a> ")
                     .append("and hit \"Revoke Access\" next to \"fluxtream — ").append(getGooglePrettyName(scopedApi)).append("\"</p>")
-                    .append("<p>Then please, add the Google Latitude connector again.</p>")
+		.append("<p>Then please, head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a> ")
+		.append("and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)</p>")
                     .append("<p>We apologize for the inconvenience</p>").toString();
             notificationsService.addNotification(guest.getId(),
                                                  Notification.Type.ERROR,

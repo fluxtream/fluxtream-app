@@ -71,15 +71,23 @@ public class GoogleLatitudeUpdater extends AbstractUpdater implements FileUpload
 
     @Override
     public int importFile(final ApiKey apiKey, final File f) throws Exception {
-        ZipFile zipFile = new ZipFile(f);
-        final Enumeration<? extends ZipEntry> entries = zipFile.entries();
-        while (entries.hasMoreElements()) {
-            final ZipEntry zipEntry = entries.nextElement();
-            if (zipEntry.isDirectory()) continue;
-            if (zipEntry.getName().endsWith("LocationHistory.json"))
-                return parseLocations(apiKey, zipFile.getInputStream(zipEntry));
+        try {
+            ZipFile zipFile = new ZipFile(f);
+            final Enumeration<? extends ZipEntry> entries = zipFile.entries();
+            while (entries.hasMoreElements()) {
+                final ZipEntry zipEntry = entries.nextElement();
+                if (zipEntry.isDirectory()) continue;
+                if (zipEntry.getName().endsWith("LocationHistory.json"))
+                    return parseLocations(apiKey, zipFile.getInputStream(zipEntry));
+            }
+            throw new RuntimeException("Couldn't find LocationHistory.json in the uploaded zip file");
         }
-        throw new RuntimeException("Couldn't find LocationHistory.json in the uploaded zip file");
+        catch (Exception e) {
+            notificationsService.addNotification(apiKey.getGuestId(), Notification.Type.WARNING,
+                                                 "Failed to import Google Latitude zip file, error is:<br>" +
+                                                 e.getMessage());
+            throw (e);
+        }
     }
 
     private int parseLocations(final ApiKey apiKey, final InputStream inputStream) throws IOException {
@@ -109,19 +117,22 @@ public class GoogleLatitudeUpdater extends AbstractUpdater implements FileUpload
     }
 
     private void getToLocationData(final JsonParser jParser) throws IOException {
-        // get to the first object
+        // The start of the LocationHistory.json file looks like this:
+        // {
+        //  "somePointsHidden" : true,
+        //  "locations" : [ {
+        //    "timestampMs" : "1380841104348",
+
+        // Get to the first open brace
         while (jParser.nextToken()!=JsonToken.START_OBJECT);
+        // Go forward until currentName is set
         String currentName;
         while ((currentName=jParser.getCurrentName())==null)
             jParser.nextToken();
-        // if it's one of the location fields, we're good
-        if (Arrays.asList("timestampMs", "accuracy", "latitudeE7", "longitudeE7").contains(currentName))
-            return;
-        // else skip everything until we reach the "locations" array
+
+        // Go forward until we reach the "locations" array
         while (!jParser.getCurrentName().equals("locations"))
             jParser.nextToken();
-        // this recursion should only happen once
-        getToLocationData(jParser);
     }
 
     void parseLocation(final ApiKey apiKey, final JsonParser jParser, final List<LocationFacet> locations) throws IOException {
@@ -145,12 +156,21 @@ public class GoogleLatitudeUpdater extends AbstractUpdater implements FileUpload
             } else if (fieldName.equals("accuracy")) {
                 int accuracy = jParser.getIntValue();
                 locationFacet.accuracy = accuracy;
+            } else if (fieldName.equals("altitude")) {
+                int altitude = jParser.getIntValue();
+                locationFacet.altitude = altitude;
+            } else if (fieldName.equals("heading")) {
+                int heading = jParser.getIntValue();
+                locationFacet.heading = heading;
             } else if (fieldName.equals("latitudeE7")) {
                 int lat = jParser.getIntValue();
                 locationFacet.latitude = lat/1E7f;
             } else if (fieldName.equals("longitudeE7")) {
                 int lon = jParser.getIntValue();
                 locationFacet.longitude = lon/1E7f;
+            } else if (fieldName.equals("velocity")) {
+                int speed = jParser.getIntValue();
+                locationFacet.speed = speed;
             }
         } while (jParser.nextToken() != JsonToken.END_OBJECT);
         locations.add(locationFacet);

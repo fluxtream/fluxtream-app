@@ -642,6 +642,7 @@ public class ApiDataServiceImpl implements ApiDataService {
                     .append(" guestId=").append(locationResource.guestId)
                     .append(" source=").append(locationResource.source.toString())
                     .append(" apiKeyId=").append(locationResource.apiKeyId)
+                    .append(" start=").append(locationResource.start)
                     .append(" latitude=").append(locationResource.latitude)
                     .append(" longitude=").append(locationResource.longitude)
                     .append(" message=\"ignoring duplicate locationFacet\"");
