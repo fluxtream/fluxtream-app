@@ -62,7 +62,8 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
     public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
         // if we're coming from an older install and this user has oauth 1 keys,
         // suggest renewing the tokens in the manage connectors dialog
-        if (guestService.getApiKeyAttribute(updateInfo.apiKey, "googleConsumerKey")!=null) {
+        if (guestService.getApiKeyAttribute(updateInfo.apiKey, "googleConsumerKey")!=null||
+            guestService.getApiKeyAttribute(updateInfo.apiKey, "refreshToken")==null) {
             sendOauth2UpgradeWarning(updateInfo);
         } else {
             loadHistory(updateInfo, true);

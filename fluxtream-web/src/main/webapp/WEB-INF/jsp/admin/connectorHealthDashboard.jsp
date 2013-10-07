@@ -11,21 +11,36 @@
         position: fixed;
         top: 0px; display:none;
         background-color:white;
+        padding-right: 40px;
     }
+    .guestName-column {
+        width: 120px;
+    }
+    .apiKeyStatus {
+        width: 25px;
+    }
+    #dashboardTable, #header-fixed {
+        table-layout: fixed;
+    }
+
+    th, td {
+        overflow: hidden;
+    }
+
 </style>
 <table class="table table-bordered" id="header-fixed"></table>
 
 <table class="table table-bordered" id="dashboardTable">
     <thead>
-        <th>Guest Name</th>
+        <th class="guestName-column">Guest Name</th>
         <c:forEach var="connectorInfo" items="${connectors}">
-        <th>${connectorInfo.name}</th>
+        <th class="apiKeyStatus">${connectorInfo.name}</th>
         </c:forEach>
     </thead>
     <tbody>
         <c:forEach var="row" items="${rows}">
         <tr>
-            <td>
+            <td class="guestName-column">
                 <a class="btn btn-link" href="/admin/${row.key.id}">${row.key.guestName}</a>
             </td>
             <c:forEach var="connectorKeys" items="${row.value}">
@@ -58,6 +73,10 @@
     var tableOffset = $("#dashboardTable").offset().top;
     var $header = $("#dashboardTable > thead").clone();
     var $fixedHeader = $("#header-fixed").append($header);
+
+    var $body = $("#dashboardTable > tbody").clone();
+    var $fixedBody = $("#header-fixed").append($body);
+    $body.hide();
 
     $(window).bind("scroll", function() {
         var offset = $(this).scrollTop();
