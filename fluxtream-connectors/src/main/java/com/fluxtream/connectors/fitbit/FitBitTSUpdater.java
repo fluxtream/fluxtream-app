@@ -645,14 +645,14 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             apiDataService.cacheEmptyData(updateInfo, fromMidnight, toMidnight);
     }
 
-    private String mergeWeightInfos(final JSONObject jsonWeight, final JSONObject jsonFat) {
+    private static String mergeWeightInfos(final JSONObject jsonWeight, final JSONObject jsonFat) {
         JSONArray weightArray = jsonWeight.getJSONArray("weight");
         JSONArray fatArray = jsonFat.getJSONArray("fat");
         for(int i=0; i<weightArray.size(); i++) {
             JSONObject weightJSON = weightArray.getJSONObject(i);
             long logId = weightJSON.getLong("logId");
             for(int j=0; j<fatArray.size(); j++) {
-                JSONObject fatJSON = fatArray.getJSONObject(i);
+                JSONObject fatJSON = fatArray.getJSONObject(j);
                 long otherLogId = fatJSON.getLong("logId");
                 if (otherLogId==logId) {
                     double fat = fatJSON.getDouble("fat");
@@ -800,4 +800,9 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 	//	}
 	//}
 
+    public static void main(final String[] args) {
+        String weightStr = "{\"weight\":[{\"bmi\":30.37,\"date\":\"2013-06-09\",\"logId\":1370775582000,\"time\":\"10:59:42\",\"weight\":101.6},{\"bmi\":31,\"date\":\"2013-06-09\",\"logId\":1370822399000,\"time\":\"23:59:59\",\"weight\":103.7}]}";
+        String fatStr = "{\"fat\":[{\"date\":\"2013-06-09\",\"fat\":27.63,\"logId\":1370775582000,\"time\":\"10:59:42\"}]}";
+        mergeWeightInfos(JSONObject.fromObject(weightStr), JSONObject.fromObject(fatStr));
+    }
 }
