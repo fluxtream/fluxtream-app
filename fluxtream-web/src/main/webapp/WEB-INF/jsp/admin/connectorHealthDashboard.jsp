@@ -6,7 +6,16 @@
 
 <h3>Connector Health Dashboard</h3>
 
-<table class="table table-bordered">
+<style>
+    #header-fixed {
+        position: fixed;
+        top: 0px; display:none;
+        background-color:white;
+    }
+</style>
+<table class="table table-bordered" id="header-fixed"></table>
+
+<table class="table table-bordered" id="dashboardTable">
     <thead>
         <th>Guest Name</th>
         <c:forEach var="connectorInfo" items="${connectors}">
@@ -44,3 +53,20 @@
         </c:forEach>
     </tbody>
 </table>
+
+<script>
+    var tableOffset = $("#dashboardTable").offset().top;
+    var $header = $("#dashboardTable > thead").clone();
+    var $fixedHeader = $("#header-fixed").append($header);
+
+    $(window).bind("scroll", function() {
+        var offset = $(this).scrollTop();
+
+        if (offset >= tableOffset && $fixedHeader.is(":hidden")) {
+            $fixedHeader.show();
+        }
+        else if (offset < tableOffset) {
+            $fixedHeader.hide();
+        }
+    });
+</script>
