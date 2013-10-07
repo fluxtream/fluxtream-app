@@ -11,6 +11,7 @@ import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
+import com.fluxtream.connectors.updaters.UpdateFailedException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.AbstractLocalTimeFacet;
@@ -65,7 +66,7 @@ public class MovesUpdater extends AbstractUpdater {
     JPADaoService jpaDaoService;
 
     @Override
-    protected void updateConnectorDataHistory(final UpdateInfo updateInfo) throws Exception {
+    protected void updateConnectorDataHistory(final UpdateInfo updateInfo) throws Exception, UpdateFailedException {
         // Get Moves data for the range of dates starting the first profile date.  We don't need to
         // do any fixup since we're already doing a full update for the full range of days.
         String userRegistrationDate = getUserRegistrationDate(updateInfo);
@@ -76,7 +77,7 @@ public class MovesUpdater extends AbstractUpdater {
     // Get/update moves data for the range of dates starting from the stored date of the last update.
     // Do a maximum of 7 days of fixup on earlier dates to pickup user-initiated changes
     @Override
-    protected void updateConnectorData(final UpdateInfo updateInfo) throws Exception {
+    protected void updateConnectorData(final UpdateInfo updateInfo) throws Exception, UpdateFailedException {
         // Get the date for starting the update.  This will either be a stored date from a previous run
         // of the updater or the user's registration date.
         String updateStartDate = getUpdateStartDate(updateInfo);
@@ -84,7 +85,7 @@ public class MovesUpdater extends AbstractUpdater {
         updateMovesData(updateInfo, updateStartDate, 7);
     }
 
-    public String getUserRegistrationDate(UpdateInfo updateInfo) throws Exception {
+    public String getUserRegistrationDate(UpdateInfo updateInfo) throws Exception, UpdateFailedException {
         // Check first if we already have a user registration date stored in apiKeyAttributes as userRegistrationDate.
         // userRegistrationDate is stored in storage format (yyyy-mm-dd)
         String userRegistrationKeyName = "userRegistrationDate";
@@ -126,6 +127,11 @@ public class MovesUpdater extends AbstractUpdater {
 
                 countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, currentTime, query, Utils.stackTrace(e),
                                    e.getHttpResponseCode(), e.getHttpResponseMessage());
+
+                // The update failed.  We don't know if this is permanent or temporary.
+                // Throw the appropriate exception.
+                throw new UpdateFailedException(e);
+
             } catch (IOException e) {
                 // Couldn't get user registration date
                 StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=MovesUpdater.getUserRegistrationDate")
@@ -136,6 +142,10 @@ public class MovesUpdater extends AbstractUpdater {
                 logger.info(sb.toString());
 
                 reportFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, currentTime, query, Utils.stackTrace(e), "I/O");
+
+                // The update failed.  We don't know if this is permanent or temporary.
+                // Throw the appropriate exception.
+                throw new UpdateFailedException(e);
             }
         }
         return userRegistrationDate;
@@ -271,8 +281,16 @@ public class MovesUpdater extends AbstractUpdater {
         } catch (UnexpectedHttpResponseCodeException e) {
             countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, fetchUrl, Utils.stackTrace(e),
                                e.getHttpResponseCode(), e.getHttpResponseMessage());
+
+            // The update failed.  We don't know if this is permanent or temporary.
+            // Throw the appropriate exception.
+            throw new UpdateFailedException(e);
         } catch (IOException e) {
             reportFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, fetchUrl, Utils.stackTrace(e), "I/O");
+
+            // The update failed.  We don't know if this is permanent or temporary.
+            // Throw the appropriate exception.
+            throw new UpdateFailedException(e);
         }
         return fetched;
     }
@@ -320,7 +338,8 @@ public class MovesUpdater extends AbstractUpdater {
         return dates;
     }
 
-    private String createOrUpdateData(List<String> dates, UpdateInfo updateInfo, boolean withTrackpoints) throws Exception {
+    private String createOrUpdateData(List<String> dates, UpdateInfo updateInfo, boolean withTrackpoints)
+            throws Exception, UpdateFailedException {
         // Create or update the data for a list of dates.  Returns the date of the latest day with non-empty data,
         // or null if no dates had data
 
@@ -338,28 +357,38 @@ public class MovesUpdater extends AbstractUpdater {
 
                 if(fetched!=null) {
                     final JSONArray segments = getSegments(fetched);
-                    boolean dateHasData=createOrUpdateDataForDate(updateInfo, segments, date);
+                    if(segments!=null && segments.size()>0) {
+                        boolean dateHasData=createOrUpdateDataForDate(updateInfo, segments, date);
 
-                    if(dateHasData && (maxDateWithData==null || maxDateWithData.compareTo(date)<0)) {
-                        maxDateWithData = date;
+                        if(dateHasData && (maxDateWithData==null || maxDateWithData.compareTo(date)<0)) {
+                            maxDateWithData = date;
+                        }
                     }
                 }
             }
         }
+        catch (UpdateFailedException e) {
+            // The update failed and whoever threw the error knew enough to have all the details.
+            // Rethrow the error
+            throw e;
+        }
         catch (Exception e) {
-            // Couldn't get user registration date
             StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=MovesUpdater.getUserRegistrationDate")
-                    .append(" message=\"exception while retrieving UserRegistrationDate\" connector=")
+                    .append(" message=\"exception while in createOrUpdateData\" connector=")
                     .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
                     .append(updateInfo.apiKey.getGuestId())
                     .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");;
             logger.info(sb.toString());
+
+            // The update failed.  We don't know if this is permanent or temporary.
+            // Throw the appropriate exception.
+            throw new UpdateFailedException(e);
         }
         return(maxDateWithData);
     }
 
     private boolean createOrUpdateDataForDate(final UpdateInfo updateInfo, final JSONArray segments,
-                                           final String date) {
+                                           final String date) throws UpdateFailedException {
         // For a given date, iterate over the JSON array of segments returned by a call to the Moves API and
         // reconcile them with any previously persisted move and place facets for that date.
         // A given segment may be either of type move or place.  Either type has an overall
@@ -387,7 +416,8 @@ public class MovesUpdater extends AbstractUpdater {
     }
 
     // For a given date and move segment JSON, either create or update the data for a move corresponding to that segment
-    private MovesMoveFacet createOrUpdateMovesMoveFacet(final String date,final JSONObject segment, final UpdateInfo updateInfo) {
+    private MovesMoveFacet createOrUpdateMovesMoveFacet(final String date,final JSONObject segment, final UpdateInfo updateInfo)
+        throws UpdateFailedException {
         try {
             final DateTime startTime = timeStorageFormat.withZoneUTC().parseDateTime(segment.getString("startTime"));
             long start = startTime.getMillis();
@@ -433,7 +463,8 @@ public class MovesUpdater extends AbstractUpdater {
                                                            }, updateInfo.apiKey.getId());
             return ret;
 
-        } catch (Throwable e) {
+        }
+        catch (Throwable e) {
             // Couldn't makes sense of the move's JSON
             StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=MovesUpdater.createOrUpdateMovesMoveFacet")
                     .append(" message=\"exception while processing move segment\" connector=")
@@ -442,12 +473,15 @@ public class MovesUpdater extends AbstractUpdater {
                     .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");;
             logger.info(sb.toString());
 
-            return null;
+            // The update failed.  We don't know if this is permanent or temporary.
+            // Throw the appropriate exception.
+            throw new UpdateFailedException(e);
         }
     }
 
     // For a given date and place segment JSON, either create or update the data for a place corresponding to that segment
-    private MovesPlaceFacet createOrUpdateMovesPlaceFacet(final String date,final JSONObject segment, final UpdateInfo updateInfo) {
+    private MovesPlaceFacet createOrUpdateMovesPlaceFacet(final String date,final JSONObject segment, final UpdateInfo updateInfo)
+        throws UpdateFailedException{
         try {
             final DateTime startTime = timeStorageFormat.withZoneUTC().parseDateTime(segment.getString("startTime"));
             final long start = startTime.getMillis();
@@ -499,7 +533,9 @@ public class MovesUpdater extends AbstractUpdater {
                     .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");;
             logger.info(sb.toString());
 
-            return null;
+            // The update failed.  We don't know if this is permanent or temporary.
+            // Throw the appropriate exception.
+            throw new UpdateFailedException(e);
         }
     }
 
@@ -741,9 +777,17 @@ public class MovesUpdater extends AbstractUpdater {
     }
 
     private JSONArray getSegments(final String json) {
-        JSONArray jsonArray = JSONArray.fromObject(json);
-        JSONObject dayFacetData = jsonArray.getJSONObject(0);
-        JSONArray segments = dayFacetData.getJSONArray("segments");
+        JSONArray segments = null;
+        try {
+            JSONArray jsonArray = JSONArray.fromObject(json);
+            JSONObject dayFacetData = jsonArray.getJSONObject(0);
+            segments = dayFacetData.getJSONArray("segments");
+        } catch (Throwable t) {
+            // The above code may fail in the case where a day has
+            // no segments.  That's a legitimate result.
+            // In that case, return null.
+        }
+
         return segments;
     }
 

@@ -2,6 +2,8 @@ package com.fluxtream.connectors.updaters;
 
 import com.fluxtream.utils.Utils;
 
+import static com.fluxtream.utils.Utils.stackTrace;
+
 public class UpdateResult {
 
     RateLimitReachedException rateLimitReachedException;
@@ -30,6 +32,11 @@ public class UpdateResult {
     public static UpdateResult failedResult(String stackTrace) {
         return(failedResult(stackTrace,false));
     }
+
+    public static UpdateResult failedResult(UpdateFailedException e) {
+        return failedResult(stackTrace(e),e.isPermanent);
+    }
+
 	public static UpdateResult failedResult(String stackTrace, boolean permanentFailure) {
         ResultType resultType = permanentFailure ? ResultType.UPDATE_FAILED_PERMANENTLY : ResultType.UPDATE_FAILED;
 		UpdateResult updateResult = new UpdateResult(resultType);

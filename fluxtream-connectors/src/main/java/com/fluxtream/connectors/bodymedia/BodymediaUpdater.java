@@ -11,6 +11,7 @@ import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.SignpostOAuthHelper;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
+import com.fluxtream.connectors.updaters.UpdateFailedException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
@@ -88,7 +89,8 @@ public class BodymediaUpdater extends AbstractUpdater implements Autonomous {
         maxIncrement.put(steps, 31);
     }
 
-    public void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception {
+    public void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception,
+                                                                         UpdateFailedException {
         if (guestService.getApiKey(updateInfo.apiKey.getId())==null) {
             logger.info("Not updating BodyMedia connector instance with a deleted apiKeyId");
             return;
@@ -98,7 +100,8 @@ public class BodymediaUpdater extends AbstractUpdater implements Autonomous {
         updateConnectorData(updateInfo);
     }
 
-    public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
+    public void updateConnectorData(UpdateInfo updateInfo) throws Exception,
+                                                                  UpdateFailedException {
         if (guestService.getApiKey(updateInfo.apiKey.getId())==null) {
             logger.info("Not updating BodyMedia connector instance with a deleted apiKeyId");
             return;
@@ -125,7 +128,8 @@ public class BodymediaUpdater extends AbstractUpdater implements Autonomous {
     private void checkAndReplaceOauthToken(UpdateInfo updateInfo) throws OAuthExpectationFailedException,
                                                                          OAuthMessageSignerException,
                                                                          OAuthNotAuthorizedException,
-                                                                         OAuthCommunicationException {
+                                                                         OAuthCommunicationException,
+                                                                         UpdateFailedException {
         String time = guestService.getApiKeyAttribute(updateInfo.apiKey, "tokenExpiration");
         if(time==null || Long.parseLong(time) < System.currentTimeMillis()/1000)
             bodymediaController.replaceToken(updateInfo);

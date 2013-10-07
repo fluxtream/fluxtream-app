@@ -9,6 +9,7 @@ import com.fluxtream.Configuration;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.controllers.ControllerSupport;
+import com.fluxtream.connectors.updaters.UpdateFailedException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
@@ -88,6 +89,10 @@ public class BodymediaController {
                                                  Notification.Type.ERROR,
                                                  "Oops. There was an error with the BodyMedia API. " +
                                                  "Hang tight, we are working on it.");
+            // TODO: Should we record permanent failure since an existing connector won't work again until
+            // it is reauthenticated?  We would need to get hold of the apiKey and do:
+            //  guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null);
+
             return "redirect:/app/";
         }
 		
@@ -156,7 +161,8 @@ public class BodymediaController {
 	}
 
     public void replaceToken(UpdateInfo updateInfo) throws OAuthExpectationFailedException, OAuthMessageSignerException,
-                                                           OAuthCommunicationException, OAuthNotAuthorizedException {
+                                                           OAuthCommunicationException, OAuthNotAuthorizedException,
+                                                           UpdateFailedException {
         // Check to see if we are running on a mirrored test instance
         // and should therefore refrain from swapping tokens lest we
         // invalidate an existing token instance
@@ -168,7 +174,17 @@ public class BodymediaController {
             			    .append(" message=\"").append(msg).append("\"");
             logger.info(sb2.toString());
             System.out.println(msg);
-            return;
+
+             // Notify the user that the tokens need to be manually renewed
+            notificationsService.addNotification(updateInfo.getGuestId(), Notification.Type.WARNING,
+                                                 "Heads Up. This server cannot automatically refresh your authentication tokens.<br>" +
+                                                 "Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
+                                                 "scroll to the BodyMedia connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
+
+            // Record permanent failure since this connector won't work again until
+            // it is reauthenticated
+            guestService.setApiKeyStatus(updateInfo.apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null);
+            throw new UpdateFailedException("requires token reauthorization",true);
         }
 
         // We're not on a mirrored test server.  Try to swap the expired
@@ -200,13 +216,25 @@ public class BodymediaController {
                 "https://api.bodymedia.com/oauth/access_token?api_key="+bodymediaConsumerKey,
                 "https://api.bodymedia.com/oauth/authorize?api_key="+bodymediaConsumerKey, httpClient);
 
-        provider.retrieveAccessToken(consumer, null);
+        try {
+            provider.retrieveAccessToken(consumer, null);
 
-        guestService.setApiKeyAttribute(updateInfo.apiKey,
-                                        "accessToken", consumer.getToken());
-        guestService.setApiKeyAttribute(updateInfo.apiKey,
-                                        "tokenSecret", consumer.getTokenSecret());
-        guestService.setApiKeyAttribute(updateInfo.apiKey,
-                                        "tokenExpiration", provider.getResponseParameters().get("xoauth_token_expiration_time").first());
+            guestService.setApiKeyAttribute(updateInfo.apiKey,
+                                            "accessToken", consumer.getToken());
+            guestService.setApiKeyAttribute(updateInfo.apiKey,
+                                            "tokenSecret", consumer.getTokenSecret());
+            guestService.setApiKeyAttribute(updateInfo.apiKey,
+                                            "tokenExpiration", provider.getResponseParameters().get("xoauth_token_expiration_time").first());
+        } catch (Throwable t) {
+            // Notify the user that the tokens need to be manually renewed
+            notificationsService.addNotification(updateInfo.getGuestId(), Notification.Type.WARNING,
+                                                 "Heads Up. We failed in our attempt to automatically refresh your authentication tokens.<br>" +
+                                                 "Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
+                                                 "scroll to the BodyMedia connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
+            // Record permanent failure since this connector won't work again until
+            // it is reauthenticated
+            guestService.setApiKeyStatus(updateInfo.apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null);
+            throw new UpdateFailedException("refresh token attempt failed", t, true);
+        }
     }
 }

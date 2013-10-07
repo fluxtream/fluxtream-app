@@ -116,6 +116,13 @@ public abstract class AbstractUpdater extends ApiClientSupport {
                     .append(updateInfo.apiKey.getGuestId());
             logger.warn(sb.toString());
             return UpdateResult.rateLimitReachedResult(e);
+        } catch (UpdateFailedException e) {
+            StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=updateDataHistory")
+                    .append(" message=\"update failed\" connector=")
+                    .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
+                    .append(updateInfo.apiKey.getGuestId());
+            logger.warn(sb.toString());
+            return UpdateResult.failedResult(e);
         } catch (Throwable t) {
             String stackTrace = stackTrace(t);
             StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=updateDataHistory")
@@ -171,6 +178,16 @@ public abstract class AbstractUpdater extends ApiClientSupport {
             updateResult = UpdateResult.successResult();
         } catch (RateLimitReachedException e) {
             updateResult = UpdateResult.rateLimitReachedResult(e);
+        } catch (UpdateFailedException e) {
+            final String stackTrace = Utils.stackTrace(e);
+            StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=updateData")
+                    .append(" message=\"Update failed exception\" connector=")
+                    .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=").append(updateInfo.apiKey.getGuestId())
+                    .append(" isPermanent=").append(e.isPermanent)
+                    .append(" stackTrace=<![CDATA[").append(stackTrace).append("]]>")
+                    .append(updateInfo.apiKey.getGuestId());
+            logger.warn(sb.toString());
+            updateResult = UpdateResult.failedResult(e);
         } catch (Throwable e) {
             final String stackTrace = Utils.stackTrace(e);
             StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=updateData")
