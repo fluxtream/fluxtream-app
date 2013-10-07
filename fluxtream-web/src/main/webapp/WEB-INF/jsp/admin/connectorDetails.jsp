@@ -1,7 +1,10 @@
-<%@ page pageEncoding="utf-8" contentType="text/html; charset=UTF-8"%><%@ page import="java.util.List"
-%><%@ page import="java.util.Map"
-%><%@ page import="com.fluxtream.connectors.Connector"
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page pageEncoding="utf-8" contentType="text/html; charset=UTF-8"%><%@ page import="java.util.ArrayList"
+%><%@ page import="java.util.Arrays"
+%><%@ page import="java.util.List"
 %>
+<%@ page import="java.util.Map" %>
+<%@ page import="com.fluxtream.connectors.Connector" %>
 <%@ page import="com.fluxtream.connectors.ObjectType" %>
 <%@ page import="com.fluxtream.domain.ApiKey" %>
 <%@ page import="com.fluxtream.domain.ApiUpdate" %>
@@ -14,9 +17,19 @@
     List<ApiUpdate> lastUpdates = (List<ApiUpdate>) request.getAttribute("lastUpdates");
     List<UpdateWorkerTask> scheduledTasks = (List<UpdateWorkerTask>)request.getAttribute("scheduledTasks");
     ApiKey apiKey = (ApiKey)request.getAttribute("apiKey");
+    final int[] values = apiKey.getConnector().objectTypeValues();
+    final List<Integer> connectorObjectTypes = new ArrayList<Integer>();
+    for (int value : values)
+        connectorObjectTypes.add(value);
 %>
 
 <h3><%=guest.getGuestName()%>/<%=apiKey.getConnector().prettyName()%></h3>
+
+<h4>Force Update</h4>
+
+<%for (Integer objectTypes : connectorObjectTypes) { %>
+<a class="btn btn-primary" href="/admin/<%=guest.getId()%>/<%=apiKey.getId()%>/${objectTypes}/refresh">Update <%=ObjectType.getObjectTypes(apiKey.getConnector(), objectTypes)%> facets Now!</a>
+<% } %>
 
 <% if ((Boolean)connectorInstanceModel.get("errors")) {
     String errors = (String) connectorInstanceModel.get("auditTrail");
@@ -25,16 +38,15 @@
     <div class="alert alert-error"><%=errors%></div>
 <% } %>
 
-<% if (scheduledTasks.size()>0) {
-    System.out.println(scheduledTasks);%>
-<h4>Next Scheduled Tasks</h4>
+<% if (scheduledTasks.size()>0) {%>
+<h4>Worker Tasks</h4>
 
 <table class="table">
     <thead>
     <tr>
-        <th></th>
         <th>Time</th>
         <th>Object Types</th>
+        <th>Status</th>
     </tr>
     </thead>
     <tbody>
@@ -43,11 +55,33 @@
         System.out.println(task.timeScheduled);
         final String time = DateTimeFormat.mediumDateTime().print(task.timeScheduled);
         final List<ObjectType> objectTypes = ObjectType.getObjectTypes(Connector.getConnector(task.connectorName), task.objectTypes);
+        String color, status;
+        switch (task.status) {
+            case FAILED:
+                status = "thumbs-down";
+                color = "red";
+                break;
+            case DONE:
+                status = "thumbs-up";
+                color = "green";
+                break;
+            case IN_PROGRESS:
+                status = "refresh";
+                color = "black";
+                break;
+            case SCHEDULED:
+                status = "inbox";
+                color = "green";
+                break;
+            default:
+                status = "thumbs-down";
+                color = "black";
+        };
     %>
     <tr>
-        <td style="width:120px"><a class="btn btn-primary" href="/admin/<%=guest.getId()%>/<%=apiKey.getId()%>/<%=task.objectTypes%>/refresh">Update Now!</a></td>
         <td style="width:200px;vertical-align: middle"><%=time%></td>
-        <td style="vertical-align: middle"><%=objectTypes%></td>
+        <td style="width:200px;vertical-align: middle"><%=objectTypes!=null&&objectTypes.size()>0?objectTypes:"N/A"%></td>
+        <td style="width:30px;vertical-align: middle; color:<%=color%>" title="<%=task.auditTrail%>"><i class="icon-<%=status%>"></i></td>
     </tr>
     <% } %>
     </tbody>

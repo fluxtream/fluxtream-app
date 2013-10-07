@@ -2,6 +2,8 @@ package com.fluxtream.mvc.controllers;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,7 +67,6 @@ public class AdminController {
             List<List<ApiKey>> guestApiKeys = new ArrayList<List<ApiKey>>();
             for (ConnectorInfo connector : connectors) {
                 final List<ApiKey> apiKeys = guestService.getApiKeys(guest.getId(), Connector.fromValue(connector.api));
-                System.out.println("retrieved api keys for guest " + guest.getGuestName() + "/" + connector.connectorName + ": " + apiKeys);
                 guestApiKeys.add(apiKeys);
             }
             final Map.Entry<Guest, List<List<ApiKey>>> guestListEntry = new AbstractMap.SimpleEntry<Guest, List<List<ApiKey>>>(guest, guestApiKeys);
@@ -164,11 +165,22 @@ public class AdminController {
     private List<UpdateWorkerTask> getScheduledTasks(final ApiKey apiKey) {
         final int[] objectTypeValues = apiKey.getConnector().objectTypeValues();
         List<UpdateWorkerTask> scheduledTasks = new ArrayList<UpdateWorkerTask>();
-        for (int objectTypeValue : objectTypeValues) {
-            final UpdateWorkerTask updateWorkerTask = connectorUpdateService.getUpdateWorkerTask(apiKey, objectTypeValue);
-            if (updateWorkerTask!=null)
-                scheduledTasks.add(updateWorkerTask);
+        if (apiKey.getConnector().isAutonomous()) {
+            final List<UpdateWorkerTask> updateWorkerTasks = connectorUpdateService.getUpdateWorkerTasks(apiKey, 0, 10);
+            scheduledTasks.addAll(updateWorkerTasks);
+        } else {
+            for (int objectTypeValue : objectTypeValues) {
+                final List<UpdateWorkerTask> updateWorkerTasks = connectorUpdateService.getUpdateWorkerTasks(apiKey, objectTypeValue, 10);
+                scheduledTasks.addAll(updateWorkerTasks);
+            }
         }
+        Collections.sort(scheduledTasks, new Comparator<UpdateWorkerTask>() {
+
+            @Override
+            public int compare(final UpdateWorkerTask o1, final UpdateWorkerTask o2) {
+                return (int)(o2.timeScheduled - o1.timeScheduled);
+            }
+        });
         return scheduledTasks;
     }
 

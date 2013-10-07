@@ -179,8 +179,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
 
         UpdateWorkerTask updateWorkerTask = getUpdateWorkerTask(apiKey, objectTypes);
         if (updateWorkerTask != null)
-            scheduleResults.add(new ScheduleResult(apiKey.getId(), apiKey.getConnector().getName(),
-                                                   objectTypes, ScheduleResult.ResultType.ALREADY_SCHEDULED, updateWorkerTask.timeScheduled));
+            scheduleResults.add(new ScheduleResult(apiKey.getId(), apiKey.getConnector().getName(), objectTypes, ScheduleResult.ResultType.ALREADY_SCHEDULED, updateWorkerTask.timeScheduled));
         else {
             final ScheduleResult scheduleResult = scheduleUpdate(apiKey, objectTypes, updateType, System.currentTimeMillis());
             scheduleResults.add(scheduleResult);
@@ -483,7 +482,12 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     }
 
     @Override
-    @Transactional(readOnly = false)
+    public List<UpdateWorkerTask> getUpdateWorkerTasks(final ApiKey apiKey, int objectTypes, int max) {
+        final List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.findWithLimit(em, UpdateWorkerTask.class, "updateWorkerTasks.withObjectTypes", 0, max, objectTypes, apiKey.getId());
+        return updateWorkerTasks;
+    }
+
+    @Override
     public UpdateWorkerTask getUpdateWorkerTask(final ApiKey apiKey, int objectTypes) {
         UpdateWorkerTask updateWorkerTask = JPAUtils.findUnique(em,
                                                                 UpdateWorkerTask.class, "updateWorkerTasks.withObjectTypes.isScheduled",
@@ -499,16 +503,12 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     }
 
     @Override
-    @Transactional(readOnly = false)
     public List<UpdateWorkerTask> getAllSynchingUpdateWorkerTasks() {
-        List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em, UpdateWorkerTask.class,
-                                                                "updateWorkerTasks.all.synching",
-                                                                getLiveServerUUIDs());
+        List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em, UpdateWorkerTask.class, "updateWorkerTasks.all.synching", getLiveServerUUIDs());
         return updateWorkerTasks;
     }
 
     @Override
-    @Transactional(readOnly = false)
     public List<UpdateWorkerTask> getAllScheduledUpdateWorkerTasks() {
         List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em, UpdateWorkerTask.class,
                                                                  "updateWorkerTasks.all.scheduled");
@@ -516,7 +516,6 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     }
 
     @Override
-    @Transactional(readOnly = false)
     public List<UpdateWorkerTask> getScheduledOrInProgressUpdateTasks(final ApiKey apiKey) {
         // Get the tasks that are currently scheduled or in progress and either have the active
         List<UpdateWorkerTask> updateWorkerTask = JPAUtils.find(em, UpdateWorkerTask.class,

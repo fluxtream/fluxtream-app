@@ -9,7 +9,6 @@ import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ApiUpdate;
 import com.fluxtream.domain.UpdateWorkerTask;
-import org.springframework.transaction.annotation.Transactional;
 
 public interface ConnectorUpdateService {
 
@@ -104,9 +103,9 @@ public interface ConnectorUpdateService {
 
     public void cleanupStaleData();
 
-    @Transactional(readOnly = false)
     List<UpdateWorkerTask> getAllSynchingUpdateWorkerTasks();
 
-    @Transactional(readOnly = false)
     List<UpdateWorkerTask> getAllScheduledUpdateWorkerTasks();
+
+    List<UpdateWorkerTask> getUpdateWorkerTasks(ApiKey apiKey, int objectTypes, int max);
 }
