@@ -55,7 +55,9 @@ import org.hibernate.annotations.Index;
                 "AND updt.apiKeyId=?2"),
     @NamedQuery( name = "updateWorkerTasks.withObjectTypes",
                  query = "SELECT updt FROM UpdateWorkerTask updt " +
-                         "WHERE updt.objectTypes=?1 AND updt.apiKeyId=?2 " +
+                         "WHERE updt.objectTypes=?1 AND updt.apiKeyId=?2 AND" +
+                         "(updt.status in (0,2,3) OR " +
+                         "(updt.status=1 AND updt.serverUUID IN (?3)))" +
                          "ORDER BY updt.timeScheduled DESC"),
     @NamedQuery( name = "updateWorkerTasks.withObjectTypes.isScheduled",
 		query = "SELECT updt FROM UpdateWorkerTask updt " +
