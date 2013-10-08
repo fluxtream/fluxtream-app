@@ -273,8 +273,8 @@
                         <a href="http://quantifiedself.com/" target="_blank"><img class="img" src="/${release}/assets-home/img/qs.png"></a>
                     </div>
                     <div class="bd">
-                        <h3>Quantified Self 2012</h3>
-                        <p>We presented an Ignite Plus talk at the Quantified Self Conference in Stanford : "Data aggregation and exploration with Fluxtream/BodyTrack"</p>
+                        <h3>Quantified Self 2013</h3>
+                        <p>We presented an Ignite Plus talk at Quantified Self Conferences in both Amsterdam and San Francisco: "Data aggregation and exploration with Fluxtream/BodyTrack"</p>
                     </div>
                 </div>
             </div>
