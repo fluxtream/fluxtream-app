@@ -221,10 +221,11 @@
         <br><br>
         <div class="span6">
             <div style="padding:0 10px;">
-                <h2>Documentation</h2>
+                <h2>Documents</h2>
                 <div class="dividerHoriBot">
                     <ul>
                         <li><a href="https://github.com/fluxtream/fluxtream-app/wiki" target="_blank">Build instructions</a></li>
+                        <li><a href="${release}/html/privacyPolicy.html">Privacy Policy</a></li>
                     </ul>
                 </div>
                 <h2>Stay in the loop</h2>

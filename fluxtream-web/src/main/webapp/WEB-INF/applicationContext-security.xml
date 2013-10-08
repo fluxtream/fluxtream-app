@@ -9,6 +9,7 @@
 	<http pattern="/support/*" security="none" />
 	<http pattern="/**/notify" security="none" />
 	<http pattern="/${release}/js/**" security="none" />
+    <http pattern="/${release}/html/**" security="none" />
 	<http pattern="/${release}/css/**" security="none" />
     <http pattern="/${release}/assets-home/**" security="none" />
     <http pattern="/static/**" security="none" />
