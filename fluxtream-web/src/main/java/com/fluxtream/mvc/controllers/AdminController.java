@@ -142,6 +142,14 @@ public class AdminController {
     }
 
     @Secured({ "ROLE_ADMIN" })
+    @RequestMapping(value = "/admin/{guestId}/{apiKeyId}/setToPermanentFail")
+    public ModelAndView setToPermanentFail(@PathVariable("guestId") long guestId,
+                                           @PathVariable("apiKeyId") long apiKeyId) throws Exception {
+        guestService.setApiKeyStatus(apiKeyId, ApiKey.Status.STATUS_PERMANENT_FAILURE, null);
+        return new ModelAndView(String.format("redirect:/admin/%s/%s", guestId, apiKeyId));
+    }
+
+    @Secured({ "ROLE_ADMIN" })
     @RequestMapping("/admin/{guestId}/{apiKeyId}")
     public ModelAndView showConnectorInstanceDetails(@PathVariable("guestId") long guestId,
                                                      @PathVariable("apiKeyId") long apiKeyId) {

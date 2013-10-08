@@ -11,6 +11,7 @@
 <%@ page import="com.fluxtream.domain.Guest" %>
 <%@ page import="com.fluxtream.domain.UpdateWorkerTask" %>
 <%@ page import="org.joda.time.format.DateTimeFormat" %>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
 <%
     Guest guest = (Guest)request.getAttribute("guest");
     Map<String,Object> connectorInstanceModel = (Map<String,Object>) request.getAttribute("connectorInstanceModel");
@@ -21,9 +22,22 @@
     final List<Integer> connectorObjectTypes = new ArrayList<Integer>();
     for (int value : values)
         connectorObjectTypes.add(value);
+    String errors = (String) connectorInstanceModel.get("auditTrail");
 %>
 
-<h3><%=guest.getGuestName()%>/<%=apiKey.getConnector().prettyName()%></h3>
+<h3><%=guest.getGuestName()%>/<%=apiKey.getConnector().prettyName()%>
+    <% if (connectorInstanceModel.get("status").equals("STATUS_PERMANENT_FAILURE")) { %>
+    <span class="label label-important" style="vertical-align:middle">down</span>
+    <% } else if (connectorInstanceModel.get("status").equals("STATUS_TRANSIENT_FAILURE")) { %>
+    <span class="label label-warning" style="vertical-align:middle">transient</span>
+    <% } else if (connectorInstanceModel.get("status").equals("STATUS_OVER_RATE_LIMIT")) { %>
+    <span class="label label-info" style="vertical-align:middle">over limit</span>
+    <% } else { %>
+    <span class="label label-success" style="vertical-align:middle">up</span>
+    <% } if (!connectorInstanceModel.get("status").equals("STATUS_PERMANENT_FAILURE")) {%>
+    <a class="btn btn-link" style="vertical-align: bottom" href="/admin/<%=apiKey.getGuestId()%>/<%=apiKey.getId()%>/setToPermanentFail">Set to permanent fail</a>
+    <% } %>
+</h3>
 
 <h4>Force Update</h4>
 
@@ -35,8 +49,7 @@
 <a class="btn btn-primary" href="/admin/<%=guest.getId()%>/<%=apiKey.getId()%>/0/refresh">Update Now!</a>
 <% } %>
 
-<% if ((Boolean)connectorInstanceModel.get("errors")) {
-    String errors = (String) connectorInstanceModel.get("auditTrail");
+<% if ((Boolean)connectorInstanceModel.get("errors")&&StringUtils.isNotEmpty(errors)) {
 %>
     <h4>Stack trace</h4>
     <div class="alert alert-error"><%=errors%></div>

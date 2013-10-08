@@ -83,7 +83,7 @@
                    data-target=".nav-collapse"> <span class="icon-bar"></span> <span
                         class="icon-bar"></span> <span class="icon-bar"></span>
                 </a>
-                <a class="brand" href="javascript:App.renderApp(App.state.defaultApp)"><img
+                <a class="brand" href="/admin"><img
                         src="/${release}/images/header-logo-v4.png" width=94 height=20/></a>
             </div>
         </div>
