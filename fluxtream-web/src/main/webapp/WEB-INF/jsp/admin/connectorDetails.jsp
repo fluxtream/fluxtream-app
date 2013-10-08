@@ -27,8 +27,12 @@
 
 <h4>Force Update</h4>
 
-<%for (Integer objectTypes : connectorObjectTypes) { %>
-<a class="btn btn-primary" href="/admin/<%=guest.getId()%>/<%=apiKey.getId()%>/${objectTypes}/refresh">Update <%=ObjectType.getObjectTypes(apiKey.getConnector(), objectTypes)%> facets Now!</a>
+<% if (!apiKey.getConnector().isAutonomous()) {
+     for (Integer objectTypes : connectorObjectTypes) { %>
+         <a class="btn btn-primary" href="/admin/<%=guest.getId()%>/<%=apiKey.getId()%>/<%=objectTypes%>/refresh">Update <%=ObjectType.getObjectTypes(apiKey.getConnector(), objectTypes)%> facets Now!</a>
+<%   }
+   } else { %>
+<a class="btn btn-primary" href="/admin/<%=guest.getId()%>/<%=apiKey.getId()%>/0/refresh">Update Now!</a>
 <% } %>
 
 <% if ((Boolean)connectorInstanceModel.get("errors")) {
