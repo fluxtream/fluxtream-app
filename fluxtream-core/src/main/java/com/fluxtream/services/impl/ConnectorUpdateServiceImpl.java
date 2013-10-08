@@ -483,7 +483,10 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
 
     @Override
     public List<UpdateWorkerTask> getUpdateWorkerTasks(final ApiKey apiKey, int objectTypes, int max) {
-        final List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.findWithLimit(em, UpdateWorkerTask.class, "updateWorkerTasks.withObjectTypes", 0, max, objectTypes, apiKey.getId());
+        final List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.findWithLimit(em, UpdateWorkerTask.class,
+                                                                                "updateWorkerTasks.withObjectTypes", 0,
+                                                                                max, objectTypes, apiKey.getId(),
+                                                                                getLiveServerUUIDs());
         return updateWorkerTasks;
     }
 
