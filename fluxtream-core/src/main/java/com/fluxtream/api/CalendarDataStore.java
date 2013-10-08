@@ -26,6 +26,7 @@ import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.auth.CoachRevokedException;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
+import com.fluxtream.connectors.updaters.UpdateFailedException;
 import com.fluxtream.connectors.vos.AbstractFacetVO;
 import com.fluxtream.connectors.vos.AbstractTimedFacetVO;
 import com.fluxtream.connectors.vos.ImageVOCollection;
@@ -467,7 +468,7 @@ public class CalendarDataStore {
 
 	@SuppressWarnings("rawtypes")
 	private void setCachedData(DigestModel digest, List<ApiKey> userKeys, GuestSettings settings, final Map<Long, Object> connectorSettings, List<ApiKey> apiKeySelection, AbstractTimespanMetadata timespanMetadata)
-            throws InstantiationException, IllegalAccessException, ClassNotFoundException, OutsideTimeBoundariesException
+            throws InstantiationException, IllegalAccessException, ClassNotFoundException, OutsideTimeBoundariesException, UpdateFailedException
     {
 		for (ApiKey apiKey : userKeys) {
 			Connector connector = apiKey.getConnector();
