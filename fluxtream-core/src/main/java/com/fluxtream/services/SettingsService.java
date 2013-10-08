@@ -2,6 +2,7 @@ package com.fluxtream.services;
 
 import java.util.List;
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.connectors.updaters.UpdateFailedException;
 import com.fluxtream.domain.GuestAddress;
 import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.domain.GuestSettings.DistanceMeasureUnit;
@@ -64,7 +65,7 @@ public interface SettingsService {
 
     public String getConnectorFilterState(long guestId);
 
-    public Object getConnectorSettings(long apiKeyId, boolean refresh);
+    public Object getConnectorSettings(long apiKeyId, boolean refresh) throws UpdateFailedException;
 
     public void saveConnectorSettings(long apiKeyId, String json);
 

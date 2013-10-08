@@ -117,10 +117,12 @@ public abstract class AbstractUpdater extends ApiClientSupport {
             logger.warn(sb.toString());
             return UpdateResult.rateLimitReachedResult(e);
         } catch (UpdateFailedException e) {
+            String stackTrace = stackTrace(e);
             StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=updateDataHistory")
                     .append(" message=\"update failed\" connector=")
                     .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
-                    .append(updateInfo.apiKey.getGuestId());
+                    .append(updateInfo.apiKey.getGuestId())
+                    .append(" stackTrace=<![CDATA[" + stackTrace + "]]>");
             logger.warn(sb.toString());
             return UpdateResult.failedResult(e);
         } catch (Throwable t) {

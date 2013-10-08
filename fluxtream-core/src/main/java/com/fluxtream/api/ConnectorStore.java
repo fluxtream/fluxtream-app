@@ -19,6 +19,7 @@ import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
+import com.fluxtream.connectors.updaters.UpdateFailedException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
@@ -96,7 +97,7 @@ public class ConnectorStore {
     @GET
     @Path("/settings/{apiKeyId}")
     @Produces({MediaType.APPLICATION_JSON})
-    public String getConnectorSettings(@PathParam("apiKeyId") long apiKeyId) {
+    public String getConnectorSettings(@PathParam("apiKeyId") long apiKeyId) throws UpdateFailedException {
         final ApiKey apiKey = guestService.getApiKey(apiKeyId);
         final long guestId = AuthHelper.getGuestId();
         if (apiKey.getGuestId()!=guestId)

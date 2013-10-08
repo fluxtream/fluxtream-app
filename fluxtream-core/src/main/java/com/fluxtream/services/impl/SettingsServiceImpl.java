@@ -9,6 +9,7 @@ import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.SettingsAwareAbstractUpdater;
+import com.fluxtream.connectors.updaters.UpdateFailedException;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ConnectorChannelSet;
 import com.fluxtream.domain.ConnectorFilterState;
@@ -140,7 +141,7 @@ public class SettingsServiceImpl implements SettingsService {
 
     @Override
     @Transactional(readOnly = false)
-    public Object getConnectorSettings(final long apiKeyId, final boolean refresh) {
+    public Object getConnectorSettings(final long apiKeyId, final boolean refresh) throws UpdateFailedException {
         ApiKey apiKey = guestService.getApiKey(apiKeyId);
         final Class<? extends AbstractUpdater> updaterClass = apiKey.getConnector().getUpdaterClass();
         Object settings;
