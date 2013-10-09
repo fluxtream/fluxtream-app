@@ -324,7 +324,7 @@ define(["core/grapher/BTCore",
     }
 
     function handleSubmitForm(template, connector) {
-        connector.uploadMessage= "We support json-formatted input as generated from <a target=\"_blank\" href=\"https://www.google.com/takeout/#custom:latitude\"> Google Takeout </a>";
+        connector.uploadMessage= "We support upload of zip encoded json-formatted location history files as generated from <a target=\"_blank\" href=\"https://www.google.com/takeout/#custom:latitude\"> Google Takeout </a>";
         var html = template.render({connector:connector});
         App.makeModal(html);
         var submitFileUploadForm = $("#submitFileUploadForm");

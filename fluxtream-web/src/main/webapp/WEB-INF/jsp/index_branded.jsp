@@ -225,7 +225,7 @@
                 <div class="dividerHoriBot">
                     <ul>
                         <li><a href="https://github.com/fluxtream/fluxtream-app/wiki" target="_blank">Build instructions</a></li>
-                        <li><a href="${release}/html/privacyPolicy.html">Privacy Policy</a></li>
+                        <li><a href="${release}/html/privacyPolicy.html">Privacy Policy and Terms of Use</a></li>
                     </ul>
                 </div>
                 <h2>Stay in the loop</h2>
