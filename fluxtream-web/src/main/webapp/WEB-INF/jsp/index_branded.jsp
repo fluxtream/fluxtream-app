@@ -258,23 +258,23 @@
             <div style="padding:0 10px;">
                 <h2>Recent events</h2>
 
-                <div class="media ">
+                <div class="media">
+                    <div class="img">
+                        <a href="http://quantifiedself.com/" target="_blank"><img class="img" src="/${release}/assets-home/img/qs.png"></a>
+                    </div>
+                    <div class="bd">
+                        <h3>Quantified Self 2013</h3>
+                        <p>We presented an Ignite Plus talk at Quantified Self Conferences in both Amsterdam and San Francisco: "Data aggregation and exploration with Fluxtream/BodyTrack"</p>
+                    </div>
+                </div>
+
+                <div class="media dividerHoriTop">
                     <div class="img">
                         <a href="http://www.oscon.com/" target="_blank"><img class="img" src="/${release}/assets-home/img/oscon2012.png"></a>
                     </div>
                     <div class="bd">
                         <h3>OScon 2012</h3>
                         <p>We presented the new combined Fluxtream/BodyTrack tool set at OSCon in Portland, Oregon on July 18, 2012.</p>
-                    </div>
-                </div>
-
-                <div class="media dividerHoriTop">
-                    <div class="img">
-                        <a href="http://quantifiedself.com/" target="_blank"><img class="img" src="/${release}/assets-home/img/qs.png"></a>
-                    </div>
-                    <div class="bd">
-                        <h3>Quantified Self 2012</h3>
-                        <p>We presented an Ignite Plus talk at the Quantified Self Conference in Stanford : "Data aggregation and exploration with Fluxtream/BodyTrack"</p>
                     </div>
                 </div>
             </div>
