@@ -13,9 +13,9 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
 	var tabs = {
         "fullList":["clock","dashboards","map","photos","list","timeline"],
         "date":["clock", "dashboards", "map", "photos", "list", "timeline"],
-        "week":["dashboards", "map", "photos", "list", "timeline"],
-        "month":["dashboards", "map", "photos", "list", "timeline"],
-        "year":["dashboards", "photos", "list", "timeline"]
+        "week":["list", "map", "photos", "dashboards", "timeline"],
+        "month":["list", "map", "photos", "dashboards", "timeline"],
+        "year":["list", "photos", "dashboards", "timeline"]
 	};
     tabInterface.setTabVisibility(tabs.fullList,true);
 
