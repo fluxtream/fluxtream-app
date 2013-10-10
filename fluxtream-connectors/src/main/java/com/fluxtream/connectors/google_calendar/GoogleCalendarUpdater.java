@@ -287,11 +287,35 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
             try {
                 list = calendarListCall.execute();
                 countSuccessfulApiCall(apiKey, 0xffffff, then, uriTemplate);
+            } catch (com.google.api.client.googleapis.json.GoogleJsonResponseException e) {
+                // Get status code
+                int statusCode = e.getStatusCode();
+                // Check for permanent failure or not
+                boolean errorIsPermanent = false;
+
+                if(statusCode == 401) { // Unauthorized
+                    errorIsPermanent = true;
+                }
+
+                if(errorIsPermanent) {
+                    logger.warn("component=background_updates action=GoogleCalendarUpdater.refreshSettings" +
+                                " connector=" + apiKey.getConnector().getName() + " guestId=" + apiKey.getGuestId() + " status=permanentFailure"+
+                                " error=<![CDATA[" + e.getMessage() + "]]> "
+                    );
+                    // Notify the user that the tokens need to be manually renewed
+                    notificationsService.addNotification(apiKey.getGuestId(), Notification.Type.WARNING,
+                                                         "Heads Up. Your Google Calendar connector has suffered a permanent authentication failure.<br>" +
+                                                         "Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
+                                                         "scroll to the Google Calendar connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
+
+                    // Throwing the UpdateFailedException with isPermanent set to true
+                    // will mark this connector as permenently failed
+                }
+                throw new UpdateFailedException("GoogleCalendar refreshSettings failed", e, errorIsPermanent);
             } catch (Throwable t) {
                 countFailedApiCall(apiKey, 0xffffff, then, uriTemplate, ExceptionUtils.getStackTrace(t),
                                    calendarListCall.getLastStatusCode(), calendarListCall.getLastStatusMessage());
-                t.printStackTrace();
-                throw new RuntimeException("Can't refresh calendar list");
+                throw new UpdateFailedException("GoogleCalendar refreshSettings failed", t);
             }
             final List<CalendarListEntry> items = list.getItems();
             for (CalendarListEntry calendarListEntry : items) {
@@ -311,7 +335,7 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
             }
         }
         catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new UpdateFailedException("Can't refresh calendar list", e);
         }
     }
 

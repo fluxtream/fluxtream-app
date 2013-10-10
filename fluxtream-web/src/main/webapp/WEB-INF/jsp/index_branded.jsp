@@ -225,7 +225,7 @@
                 <div class="dividerHoriBot">
                     <ul>
                         <li><a href="https://github.com/fluxtream/fluxtream-app/wiki" target="_blank">Build instructions</a></li>
-                        <li><a href="${release}/html/privacyPolicy.html">Privacy Policy</a></li>
+                        <li><a href="${release}/html/privacyPolicy.html">Privacy Policy and Terms of Use</a></li>
                     </ul>
                 </div>
                 <h2>Stay in the loop</h2>
@@ -264,7 +264,7 @@
                     </div>
                     <div class="bd">
                         <h3>Quantified Self 2013</h3>
-                        <p>We presented an Ignite Plus talk at Quantified Self Conferences in both Amsterdam and San Francisco: "Data aggregation and exploration with Fluxtream/BodyTrack"</p>
+                        <p>We will be participating in the Quantified Self 2013 Conference in San Francisco on Friday, October 10, 2013.  Join us for the "Quantified Self APIs" QS Conversation at 10:30 am and Office Hours at 1:30 pm.</p>  
                     </div>
                 </div>
 
