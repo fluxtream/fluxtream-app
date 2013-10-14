@@ -9,6 +9,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.Configuration;
 import com.fluxtream.auth.AuthHelper;
@@ -209,6 +210,17 @@ public class AdminController {
         final ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector(connectorName));
         connectorUpdateService.flushUpdateWorkerTasks(apiKey, true);
         return new StatusModel(true, "reset controller " + connectorName);
+    }
+
+    @POST
+    @Path("/{username}/password")
+    @Secured({ "ROLE_ADMIN" })
+    @Produces({MediaType.APPLICATION_JSON})
+    public StatusModel setPassword(@PathParam("username") String username,
+                                   @QueryParam("password") String password){
+        final long guestId = guestService.getGuest(username).getId();
+        guestService.setPassword(guestId, password);
+        return new StatusModel(true, "set password for user " + username);
     }
 
     @POST
