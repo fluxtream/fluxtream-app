@@ -229,19 +229,8 @@
                         <li><a href="${release}/html/privacyPolicy.html">Privacy Policy and Terms of Use</a></li>
                     </ul>
                 </div>
-                <h2>Stay in the loop</h2>
-                <div class="">
-
-
-                    <div id="mc_embed_signup">
-                        <p>Leave us your email below, and we'll notify you the minute we (re-)open the doors.</p>
-                        <form action="http://fluxtream.createsend.com/t/j/s/ydtkyk/"  method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate form-inline">
-                            <input type="email" name="cm-ydtkyk-ydtkyk" id="ydtkyk-ydtkyk" name="EMAIL" class="span3 input-large email" id="mce-EMAIL" placeholder="Just type your email address and..."/>
-                            <input type="submit" id="mc-embedded-subscribe" class="btn btn-success btn-large" value="Request an invite" />
-                        </form>
-                    </div>
-
-                    <div class="media dividerHoriTop">
+                <div>
+                    <div class="media">
                         <div class="img">
                             <div class="footericon img"><a href="https://twitter.com/fluxtream"><i class="icon-twitter-sign"></i></a></div>
                         </div>
