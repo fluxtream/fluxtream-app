@@ -224,6 +224,7 @@
                 <h2>Documents</h2>
                 <div class="dividerHoriBot">
                     <ul>
+                        <li><a href="${release}/html/QuickStartGuide.pdf">Quick Start Guide [PDF]</a></li>
                         <li><a href="https://github.com/fluxtream/fluxtream-app/wiki" target="_blank">Build instructions</a></li>
                         <li><a href="${release}/html/privacyPolicy.html">Privacy Policy and Terms of Use</a></li>
                     </ul>
