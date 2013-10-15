@@ -144,7 +144,7 @@
     <div class="cont cf">
 
         <form method="post" action="signIn" id="loginForm">
-            <label for="f_username">Username</label>
+            <label for="f_username">Username/email</label>
             <input title="Username" autocorrect="off" autocapitalize="off" autocomplete="on" onkeypress="if(event.which==13) document.forms[0].submit();" id="f_username" name="f_username" placeholder="Username" value="<%=request.getParameter("username") != null ? request.getParameter("username") : ""%>" type="text">
             <label for="f_password">Password</label>
             <input title="Password" value="" onkeypress="if(event.which==13) document.forms[0].submit();" id="f_password" name="f_password" placeholder="Password" type="password"/>

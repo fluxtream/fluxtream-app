@@ -19,23 +19,23 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 public class FlxAuthFilter extends UsernamePasswordAuthenticationFilter {
 
-	FlxLogger logger = FlxLogger
-			.getLogger(UsernamePasswordAuthenticationFilter.class);
+    FlxLogger logger = FlxLogger
+            .getLogger(UsernamePasswordAuthenticationFilter.class);
 
-	@Autowired
-	GuestService guestService;
-	
-	@Autowired
-	Configuration env;
+    @Autowired
+    GuestService guestService;
+
+    @Autowired
+    Configuration env;
 
     @Autowired
     JPADaoService jpaDaoService;
 
-	@Override
-	public Authentication attemptAuthentication(
-			javax.servlet.http.HttpServletRequest request,
-			javax.servlet.http.HttpServletResponse response)
-			throws AuthenticationException {
+    @Override
+    public Authentication attemptAuthentication(
+            javax.servlet.http.HttpServletRequest request,
+            javax.servlet.http.HttpServletResponse response)
+            throws AuthenticationException {
         final String autoLoginToken = request.getParameter("autoLoginToken");
         if (autoLoginToken !=null) {
             final Guest one = jpaDaoService.findOne("guest.byAutoLoginToken", Guest.class, autoLoginToken);
@@ -53,9 +53,42 @@ public class FlxAuthFilter extends UsernamePasswordAuthenticationFilter {
             } else
                 throw new RuntimeException("No such autologin token: " + autoLoginToken);
         }
-		Authentication authentication = super.attemptAuthentication(request, response);
-		return authentication;
-	}
+        Authentication authentication = null;
+        try { authentication = super.attemptAuthentication(request, response);}
+        catch (AuthenticationException failed) {
+            authentication = attemptAuthenticationWithEmailAddress(request);
+        }
+        return authentication;
+    }
+
+    public Authentication attemptAuthenticationWithEmailAddress(HttpServletRequest request) throws AuthenticationException {
+
+        String email = obtainUsername(request);
+        String password = obtainPassword(request);
+
+        final Guest guest = guestService.getGuestByEmail(email);
+        String username = null;
+        if (guest!=null) {
+            username = guest.username;
+        }
+
+        if (username == null) {
+            username = "";
+        }
+
+        if (password == null) {
+            password = "";
+        }
+
+        username = username.trim();
+
+        UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(username, password);
+
+        // Allow subclasses to set the "details" property
+        setDetails(request, authRequest);
+
+        return this.getAuthenticationManager().authenticate(authRequest);
+    }
 
     private Collection<? extends GrantedAuthority> getAuthorities(final Guest one) {
         final List<String> userRoles = one.getUserRoles();
@@ -66,13 +99,13 @@ public class FlxAuthFilter extends UsernamePasswordAuthenticationFilter {
     }
 
     @Override
-	protected String obtainPassword(HttpServletRequest request) {
-		return request.getParameter("f_password");
-	}
+    protected String obtainPassword(HttpServletRequest request) {
+        return request.getParameter("f_password");
+    }
 
-	@Override
-	protected String obtainUsername(HttpServletRequest request) {
-		return request.getParameter("f_username");
-	}
+    @Override
+    protected String obtainUsername(HttpServletRequest request) {
+        return request.getParameter("f_username");
+    }
 
 }
