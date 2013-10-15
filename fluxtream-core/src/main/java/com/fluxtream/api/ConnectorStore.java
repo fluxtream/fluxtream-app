@@ -1,7 +1,6 @@
 package com.fluxtream.api;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.ResourceBundle;
 import javax.ws.rs.DELETE;
@@ -26,7 +25,6 @@ import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ApiUpdate;
 import com.fluxtream.domain.ConnectorInfo;
 import com.fluxtream.domain.Guest;
-import com.fluxtream.domain.UpdateWorkerTask;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.ConnectorUpdateService;
@@ -254,53 +252,12 @@ public class ConnectorStore {
 
     private boolean checkIfSyncInProgress(long guestId, Connector connector){
         final ApiKey apiKey = guestService.getApiKey(guestId, connector);
-        return (checkIfSyncInProgress(apiKey));
+        return (apiKey.synching);
     }
 
-    private boolean checkIfSyncInProgress(ApiKey apiKey) {
-        final Collection<UpdateWorkerTask> scheduledUpdates = connectorUpdateService.getUpdatingUpdateTasks(apiKey);
-        return (scheduledUpdates.size() != 0);
-    }
-
-    /**
-     * Returns whether there was an error in the last update of the connector
-     * @param guestId The id of the guest whose connector is being checked
-     * @param connector the connector being checked
-     * @return a stackTrace if there were errors, null otherwise
-     */
-    private String checkForErrors(long guestId, Connector connector){
-        final ApiKey apiKey = guestService.getApiKey(guestId, connector);
-
-        return checkForErrors(apiKey);
-    }
 
     private String checkForErrors(ApiKey apiKey) {
-        Collection<UpdateWorkerTask> update = connectorUpdateService.getLastFinishedUpdateTasks(apiKey);
-        if (update.size() < 1) {
-            return null;
-        }
-        for (UpdateWorkerTask workerTask : update) {
-            if (workerTask == null || workerTask.status != UpdateWorkerTask.Status.DONE) {
-                if (workerTask.auditTrail != null) {
-                    return workerTask.auditTrail;
-                }
-                else {
-                    return "no audit trail";
-                }
-            }
-        }
-        return null;
-    }
-
-    private long getLastSync(long guestId, Connector connector){
-        final ApiKey apiKey = guestService. getApiKey(guestId, connector);
-        return getLastSync(apiKey);
-
-    }
-
-    private long getLatestData(long guestId, Connector connector){
-        final ApiKey apiKey = guestService.getApiKey(guestId, connector);
-        return getLatestData(apiKey);
+        return apiKey.stackTrace;
     }
 
     private long getLastSync(ApiKey apiKey) {

@@ -57,6 +57,8 @@ public interface GuestService {
 
     public void setApiKeyStatus(long apiKeyId, ApiKey.Status status, String stackTrace);
 
+    public void setApiKeyToSynching(long apiKeyId, boolean synching);
+
     /**
      * Multiple apiKeys per connector per user are now allowed. This call is maintained for
      * backward compatibility, and we will hopefully soon be able to completely get rid of it

@@ -64,6 +64,7 @@ public class SyncController {
         try{
             final long guestId = AuthHelper.getGuestId();
             final ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector(connectorName));
+            guestService.setApiKeyToSynching(apiKey.getId(), true);
             if (apiKey==null) {
                 return gson.toJson(new StatusModel(false, "we don't have an ApiKey for this connector"));
             }

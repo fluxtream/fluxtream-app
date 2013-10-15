@@ -16,6 +16,7 @@ import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.Connector;
 import com.google.gson.annotations.Expose;
 import org.hibernate.annotations.Index;
+import org.hibernate.annotations.Type;
 import org.springframework.util.SerializationUtils;
 
 @Entity(name="ApiKey")
@@ -46,6 +47,9 @@ public class ApiKey extends AbstractEntity {
     @Expose
 	@Index(name="guestId_index")
 	private long guestId;
+
+    @Type(type="yes_no")
+    public boolean synching;
 
     @Expose
 	@Index(name="api_index")

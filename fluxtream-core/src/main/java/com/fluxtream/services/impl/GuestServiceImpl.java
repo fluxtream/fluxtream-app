@@ -332,6 +332,14 @@ public class GuestServiceImpl implements GuestService {
     }
 
     @Override
+    @Transactional(readOnly=false)
+    public void setApiKeyToSynching(final long apiKeyId, final boolean synching) {
+        final ApiKey apiKey = getApiKey(apiKeyId);
+        apiKey.synching = synching;
+        em.persist(apiKey);
+    }
+
+    @Override
     @Deprecated
     public ApiKey getApiKey(long guestId, Connector api) {
         List<ApiKey> apiKeys = getApiKeys(guestId, api);
