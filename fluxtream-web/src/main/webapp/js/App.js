@@ -796,6 +796,12 @@ define(
                                   "or a photo gallery. It also provides a timeline, but it only shows the default channels " +
                                   "for each connector and doesn't let you load and save views like the BodyTrack app.",
                     placement   : "bottom"
+                },{
+                    element     : "timelineRuler",
+                    title       : "Pan & Zoom",
+                    content     : "If you have a trackpad, go up/down to Zoom in and out, left/right to pan.\n" +
+                                  "If you have a mouse, use the scrollwheel to zoom in and out and drag the ruler left and right to pan.",
+                    placement   : "top"
                 }
             ];
             for (var i=0; i<messages.length; i++) {
