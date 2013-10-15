@@ -15,7 +15,7 @@
 	           <span class="tail"></span>
 	       </div>
 	       <div class="bubble2">
-	           <p>Pls send us <a href="mailto:candide@fluxtream.com">your feedback</a></p>
+	           <p>Pls send us <a href="mailto:candide+feedback@fluxtream.org">your feedback</a></p>
 	           <span class="tail"></span>
 	       </div>
 	   </div>
