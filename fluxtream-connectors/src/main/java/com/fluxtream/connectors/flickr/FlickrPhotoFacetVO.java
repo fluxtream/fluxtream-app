@@ -30,6 +30,7 @@ public class FlickrPhotoFacetVO extends
 	@Override
 	public void fromFacet(FlickrPhotoFacet facet, TimeInterval timeInterval,
 			GuestSettings settings) {
+        this.date = facet.date;
         start = facet.datetaken;
         Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
         c.setTimeInMillis(start);
