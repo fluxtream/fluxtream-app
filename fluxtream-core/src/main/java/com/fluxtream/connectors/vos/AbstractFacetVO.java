@@ -35,7 +35,7 @@ public abstract class AbstractFacetVO<T extends AbstractFacet> {
 
     public transient int api;
     public transient int objectType;
-    protected DateTimeFormatter dateFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
+    protected transient DateTimeFormatter dateFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
 
 	/**
 	 * Thread-safe cache for vo classes
