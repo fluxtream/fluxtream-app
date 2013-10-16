@@ -62,9 +62,13 @@ import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.NotificationsService;
 import com.fluxtream.services.SettingsService;
 import com.fluxtream.utils.Utils;
+import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.gson.Gson;
 import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
 import com.luckycatlabs.sunrisesunset.dto.Location;
+import org.codehaus.jackson.annotate.JsonAutoDetect;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.plexus.util.ExceptionUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
@@ -102,6 +106,8 @@ public class CalendarDataStore {
 
     @Autowired
     Configuration env;
+
+    JacksonFactory jacksonFactory = new JacksonFactory();
 
     protected static final DateTimeFormatter formatter = DateTimeFormat
             .forPattern("yyyy-MM-dd");
@@ -154,8 +160,7 @@ public class CalendarDataStore {
 
             Map<Long,Object> connectorSettings = new HashMap<Long,Object>();
 
-            setCachedData(digest, allApiKeys, settings, connectorSettings, apiKeySelection,
-                          weekMetadata);
+            setCachedData(digest, allApiKeys, settings, connectorSettings, apiKeySelection, weekMetadata);
 
             setNotifications(digest, AuthHelper.getGuestId());
             setCurrentAddress(digest, guestId, weekMetadata.start);
@@ -170,7 +175,16 @@ public class CalendarDataStore {
 
             digest.generationTimestamp = new java.util.Date().getTime();
 
-            return gson.toJson(digest);
+            long t1 = System.currentTimeMillis();
+            final ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
+            objectMapper.setVisibilityChecker(
+                    objectMapper.getSerializationConfig().getDefaultVisibilityChecker().
+                            withFieldVisibility(JsonAutoDetect.Visibility.NON_PRIVATE));
+            final String s = objectMapper.writeValueAsString(digest);
+            //final String s = gson.toJson(digest);
+            System.out.println("serialization time: " + (System.currentTimeMillis()-t1));
+            return s;
         }
         catch (Exception e){
             StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getAllConnectorsWeekData")
@@ -225,8 +239,7 @@ public class CalendarDataStore {
             GuestSettings settings = settingsService.getSettings(AuthHelper.getGuestId());
 
             Map<Long,Object> connectorSettings = new HashMap<Long,Object>();
-            setCachedData(digest, allApiKeys, settings, connectorSettings, apiKeySelection,
-                          monthMetadata);
+            setCachedData(digest, allApiKeys, settings, connectorSettings, apiKeySelection, monthMetadata);
 
             setNotifications(digest, AuthHelper.getGuestId());
             setCurrentAddress(digest, guestId, monthMetadata.start);
@@ -241,7 +254,16 @@ public class CalendarDataStore {
 
             digest.generationTimestamp = new java.util.Date().getTime();
 
-            return gson.toJson(digest);
+            long t1 = System.currentTimeMillis();
+            //final String s = gson.toJson(digest);
+            final ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
+            objectMapper.setVisibilityChecker(
+                    objectMapper.getSerializationConfig().getDefaultVisibilityChecker().
+                            withFieldVisibility(JsonAutoDetect.Visibility.NON_PRIVATE));
+            final String s = objectMapper.writeValueAsString(digest);
+            System.out.println("serialization time: " + (System.currentTimeMillis()-t1));
+            return s;
         }
         catch (Exception e){
             StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getAllConnectorsMonthData")
@@ -353,8 +375,7 @@ public class CalendarDataStore {
             GuestSettings settings = settingsService.getSettings(AuthHelper.getGuestId());
 
             Map<Long,Object> connectorSettings = new HashMap<Long,Object>();
-            setCachedData(digest, allApiKeys, settings, connectorSettings, apiKeySelection,
-                    dayMetadata);
+            setCachedData(digest, allApiKeys, settings, connectorSettings, apiKeySelection, dayMetadata);
 
             setNotifications(digest, AuthHelper.getGuestId());
             setCurrentAddress(digest, guestId, dayMetadata.start);
@@ -368,7 +389,16 @@ public class CalendarDataStore {
 
             digest.generationTimestamp = new java.util.Date().getTime();
 
-            return gson.toJson(digest);
+            long t1 = System.currentTimeMillis();
+            //final String s = gson.toJson(digest);
+            final ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
+            objectMapper.setVisibilityChecker(
+                    objectMapper.getSerializationConfig().getDefaultVisibilityChecker().
+                            withFieldVisibility(JsonAutoDetect.Visibility.NON_PRIVATE));
+            final String s = objectMapper.writeValueAsString(digest);
+            System.out.println("serialization time: " + (System.currentTimeMillis()-t1));
+            return s;
         }
         catch (Exception e){
             StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getAllConnectorsDayData")
