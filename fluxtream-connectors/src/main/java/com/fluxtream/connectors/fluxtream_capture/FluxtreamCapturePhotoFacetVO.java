@@ -13,6 +13,7 @@ import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.vos.AbstractPhotoFacetVO;
 import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.images.ImageOrientation;
+import com.fluxtream.mvc.models.DimensionModel;
 
 /**
  * @author Chris Bartley (bartley@cmu.edu)
@@ -55,10 +56,10 @@ public class FluxtreamCapturePhotoFacetVO extends AbstractPhotoFacetVO<Fluxtream
     }
 
     @Override
-    public List<Dimension> getThumbnailSizes() {
-        List<Dimension> sizes = new ArrayList<Dimension>();
+    public List<DimensionModel> getThumbnailSizes() {
+        List<DimensionModel> sizes = new ArrayList<DimensionModel>();
         for (final Dimension dimension : thumbnailSizes.values()) {
-            sizes.add(new Dimension(dimension)); // create a copy so the caller can't modify this instance
+            sizes.add(new DimensionModel(dimension.width, dimension.height)); // create a copy so the caller can't modify this instance
         }
         return sizes;
     }

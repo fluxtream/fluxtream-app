@@ -11,6 +11,7 @@ import java.util.TreeMap;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.vos.AbstractPhotoFacetVO;
 import com.fluxtream.domain.GuestSettings;
+import com.fluxtream.mvc.models.DimensionModel;
 
 public class FlickrPhotoFacetVO extends
 		AbstractPhotoFacetVO<FlickrPhotoFacet> {
@@ -88,7 +89,7 @@ public class FlickrPhotoFacetVO extends
 	}
 
 	@Override
-	public List<Dimension> getThumbnailSizes() {
+	public List<DimensionModel> getThumbnailSizes() {
 		// TODO...
 		return null;
 	}

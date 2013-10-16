@@ -1,12 +1,12 @@
 package com.fluxtream.connectors.mymee;
 
-import java.awt.Dimension;
 import java.util.Date;
 import java.util.List;
 import com.fluxtream.OutsideTimeBoundariesException;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.vos.AbstractPhotoFacetVO;
 import com.fluxtream.domain.GuestSettings;
+import com.fluxtream.mvc.models.DimensionModel;
 
 /**
  *
@@ -63,7 +63,7 @@ public class MymeeObservationFacetVO extends AbstractPhotoFacetVO<MymeeObservati
     }
 
     @Override
-    public List<Dimension> getThumbnailSizes() {
+    public List<DimensionModel> getThumbnailSizes() {
         // TODO
         return null;
     }

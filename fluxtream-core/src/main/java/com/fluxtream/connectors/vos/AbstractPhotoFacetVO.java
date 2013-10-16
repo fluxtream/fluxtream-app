@@ -1,9 +1,9 @@
 package com.fluxtream.connectors.vos;
 
-import java.awt.Dimension;
 import java.util.List;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.images.ImageOrientation;
+import com.fluxtream.mvc.models.DimensionModel;
 
 public abstract class AbstractPhotoFacetVO<T extends AbstractFacet> extends
 		AbstractInstantFacetVO<T> {
@@ -16,7 +16,7 @@ public abstract class AbstractPhotoFacetVO<T extends AbstractFacet> extends
 	
 	public abstract String getPhotoUrl();
 	public abstract String getThumbnail(int index);
-	public abstract List<Dimension> getThumbnailSizes();
+	public abstract List<DimensionModel> getThumbnailSizes();
 
 
     /**
