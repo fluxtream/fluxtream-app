@@ -44,7 +44,9 @@ public abstract class AbstractFacetVO<T extends AbstractFacet> {
         objectTypeNames = new Hashtable<Class<? extends AbstractFacet>, String>();
 	}
 
-	public void extractValues(T facet, TimeInterval timeInterval, GuestSettings settings) throws OutsideTimeBoundariesException {
+    public String date;
+
+    public void extractValues(T facet, TimeInterval timeInterval, GuestSettings settings) throws OutsideTimeBoundariesException {
 		getType(facet);
 		this.id = facet.getId();
         this.api = facet.api;

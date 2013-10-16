@@ -19,6 +19,7 @@ public class BodymediaBurnFacetVO extends AbstractInstantFacetVO<BodymediaBurnFa
         this.totalCalories = facet.totalCalories;
         this.estimatedCalories = facet.estimatedCalories;
         this.predictedCalories = facet.predictedCalories;
+        this.date = facet.date;
         this.burnJson = facet.getJson();
     }
 }

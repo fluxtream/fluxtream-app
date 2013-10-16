@@ -578,15 +578,24 @@ define(
 
 
         App.getFacetCity = function(facet, citiesList){
-            var time = (facet.start + (facet.end != null ? facet.end : facet.start)) / 2
-            if (time < citiesList[0].dayStart)
-                return citiesList[0];
-            for (var i= 0, li = citiesList.length; i < li; i++) {
-                var city = citiesList[i];
-                if ((city.dayStart<=time && time<city.dayEnd) || (city.dayStart<=facet.start && facet.start<city.dayEnd))
-                    return city;
+            if (typeof(facet.date)!="undefined") {
+                for (var i= 0, li = citiesList.length; i < li; i++) {
+                    var city = citiesList[i];
+                    if (city.date===facet.date)
+                        return city;
+                }
+                return citiesList[citiesList.length-1];
+            } else {
+                var time = (facet.start + (facet.end != null ? facet.end : facet.start)) / 2
+                if (time < citiesList[0].dayStart)
+                    return citiesList[0];
+                for (var i= 0, li = citiesList.length; i < li; i++) {
+                    var city = citiesList[i];
+                    if ((city.dayStart<=time && time<city.dayEnd) || (city.dayStart<=facet.start && facet.start<city.dayEnd))
+                        return city;
+                }
+                return citiesList[citiesList.length-1];
             }
-            return citiesList[citiesList.length-1];
         }
 
         App.prettyDateFormat = function(dateString) {

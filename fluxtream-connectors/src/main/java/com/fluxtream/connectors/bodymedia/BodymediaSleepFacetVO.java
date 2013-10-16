@@ -16,6 +16,7 @@ public class BodymediaSleepFacetVO extends AbstractTimedFacetVO<BodymediaSleepFa
 
     @Override
     protected void fromFacet(final BodymediaSleepFacet facet, final TimeInterval timeInterval, final GuestSettings settings) {
+        this.date = facet.date;
         this.efficiency = facet.efficiency;
         this.totalSleeping = new DurationModel(facet.totalSleeping*60);
         this.totalLying = new DurationModel(facet.totalLying*60);
