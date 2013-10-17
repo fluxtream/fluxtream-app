@@ -65,7 +65,6 @@ import com.fluxtream.utils.Utils;
 import com.google.gson.Gson;
 import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
 import com.luckycatlabs.sunrisesunset.dto.Location;
-import com.newrelic.api.agent.NewRelic;
 import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
@@ -138,7 +137,7 @@ public class CalendarDataStore {
             //this implementation is just a dirt hacky way to make it work and some aspects (weather info) don't work
 
             WeekMetadata weekMetadata = metadataService.getWeekMetadata(guestId, year, week);
-            NewRelic.recordMetric("weekMetadataConstructionTime", System.currentTimeMillis()-then);
+            System.out.println("weekMetadataConstructionTime: " + (System.currentTimeMillis()-then));
             DigestModel digest = new DigestModel(TimeUnit.WEEK, weekMetadata, env);
 
             if (filter == null) {
@@ -218,7 +217,7 @@ public class CalendarDataStore {
         try{
             long then = System.currentTimeMillis();
             MonthMetadata monthMetadata = metadataService.getMonthMetadata(guestId, year, month);
-            NewRelic.recordMetric("monthMetadataConstructionTime", System.currentTimeMillis()-then);
+            System.out.println("monthMetadataConstructionTime: " + (System.currentTimeMillis()-then));
             DigestModel digest = new DigestModel(TimeUnit.MONTH, monthMetadata, env);
 
             digest.metadata.timeUnit = "MONTH";
@@ -352,7 +351,7 @@ public class CalendarDataStore {
         try{
             long then = System.currentTimeMillis();
             DayMetadata dayMetadata = metadataService.getDayMetadata(guestId, date);
-            NewRelic.recordMetric("dayMetadataConstructionTime", System.currentTimeMillis()-then);
+            System.out.println("dayMetadataConstructionTime: " + (System.currentTimeMillis()-then));
             DigestModel digest = new DigestModel(TimeUnit.DAY, dayMetadata, env);
 
             digest.metadata.timeUnit = "DAY";

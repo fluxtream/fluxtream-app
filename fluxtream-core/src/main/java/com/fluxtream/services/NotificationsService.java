@@ -6,6 +6,8 @@ import com.fluxtream.domain.Notification;
 
 public interface NotificationsService {
 
+    public void addNamedNotification(long guestId, Notification.Type type, String name, String message);
+
 	public void addNotification(long guestId, Notification.Type type, String message);
 
     public void addNotification(long guestId, Notification.Type type, String message,

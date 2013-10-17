@@ -213,7 +213,7 @@ public class AppController {
 	@RequestMapping(value = "/app/from/{connectorName}")
 	public String home(@PathVariable("connectorName") String connectorName) {
         final Connector connector = Connector.getConnector(connectorName);
-        String message = "You have successfully added a new connector: "
+        String message = "<img class=\"loading-animation\" src=\"/static/img/loading.gif\"/>You have successfully added a new connector: "
                          + connector.prettyName()
                          + ". Your data is now being retrieved. "
                          + "It may take a little while until it becomes visible.";
@@ -223,7 +223,7 @@ public class AppController {
     public String welcomeBack(String connectorName, String message) {
         long guestId = AuthHelper.getGuestId();
         final Connector connector = Connector.getConnector(connectorName);
-        notificationsService.addNotification(guestId, Type.INFO, message);
+        notificationsService.addNamedNotification(guestId, Type.INFO, connectorName + ".status", message);
         ApiKey apiKey = guestService.getApiKey(guestId, connector);
         connectorUpdateService.updateConnector(apiKey, true);
         return "redirect:/app";

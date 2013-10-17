@@ -8,12 +8,14 @@ import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.connectors.updaters.UpdateResult;
 import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.ConnectorInfo;
+import com.fluxtream.domain.Notification;
 import com.fluxtream.domain.UpdateWorkerTask;
 import com.fluxtream.domain.UpdateWorkerTask.Status;
-import com.fluxtream.domain.ConnectorInfo;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
+import com.fluxtream.services.NotificationsService;
 import com.fluxtream.services.SystemService;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
@@ -43,6 +45,9 @@ class UpdateWorker implements Runnable {
 
     @Autowired
     SystemService systemService;
+
+    @Autowired
+    NotificationsService notificationsService;
 
 	@Autowired
 	Configuration env;
@@ -143,7 +148,7 @@ class UpdateWorker implements Runnable {
 			UpdateInfo updateInfo = UpdateInfo.pushTriggeredUpdateInfo(apiKey,
 					task.objectTypes, task.jsonParams);
 			UpdateResult updateResult = updater.updateData(updateInfo);
-			handleUpdateResult(apiKey, updateResult);
+			handleUpdateResult(apiKey, updateInfo, updateResult);
 		} catch (Throwable e) {
 			String stackTrace = stackTrace(e);
 			logger.warn("module=updateQueue component=worker action=pushTriggeredUpdate " +
@@ -163,7 +168,7 @@ class UpdateWorker implements Runnable {
         UpdateInfo updateInfo = UpdateInfo.initialHistoryUpdateInfo(apiKey,
                 task.objectTypes);
         UpdateResult updateResult = updater.updateDataHistory(updateInfo);
-        handleUpdateResult(apiKey, updateResult);
+        handleUpdateResult(apiKey, updateInfo, updateResult);
 	}
 
     private void updateData(final ApiKey apiKey, final AbstractUpdater updater) {
@@ -173,11 +178,10 @@ class UpdateWorker implements Runnable {
                     " connector=" + apiKey.getConnector().getName() + " guestId=" + apiKey.getGuestId());
         UpdateInfo updateInfo = UpdateInfo.IncrementalUpdateInfo(apiKey, task.objectTypes);
         UpdateResult result = updater.updateData(updateInfo);
-        handleUpdateResult(apiKey, result);
+        handleUpdateResult(apiKey, updateInfo, result);
     }
 
-	private void handleUpdateResult(ApiKey apiKey,
-			UpdateResult updateResult) {
+	private void handleUpdateResult(ApiKey apiKey, final UpdateInfo updateInfo, UpdateResult updateResult) {
         guestService.setApiKeyToSynching(apiKey.getId(), false);
 		switch (updateResult.getType()) {
 		case DUPLICATE_UPDATE:
@@ -189,6 +193,10 @@ class UpdateWorker implements Runnable {
 			rescheduleAccordingToQuotaSpecifications(apiKey, rateLimit);
 			break;
 		case UPDATE_SUCCEEDED:
+            if (updateInfo.getUpdateType()== UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE)
+                notificationsService.addNamedNotification(apiKey.getGuestId(), Notification.Type.INFO,
+                                                          apiKey.getConnector().getName() + ".status",
+                                                          "<i class=\"icon-ok\" style=\"margin-right:7px\"/>Your " + apiKey.getConnector().getPrettyName() + " data was successfully imported.");
 			success(apiKey);
 			break;
 		case UPDATE_FAILED:
@@ -209,6 +217,10 @@ class UpdateWorker implements Runnable {
                 // we should not retry
                 abort(apiKey,failed);
             }
+            if (updateInfo.getUpdateType()== UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE)
+                notificationsService.addNamedNotification(apiKey.getGuestId(), Notification.Type.ERROR,
+                                                          apiKey.getConnector().getName() + ".status",
+                                                          "<i class=\"icon-remove-sign\" style=\"color:red;margin-right:7px\"/>There was a problem while importing your " + apiKey.getConnector().getPrettyName() + " data. We will try again later.");
 			break;
 		case NO_RESULT:
 			abort(apiKey,null);
