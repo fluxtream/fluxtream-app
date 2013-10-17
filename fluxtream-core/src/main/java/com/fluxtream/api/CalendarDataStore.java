@@ -137,7 +137,6 @@ public class CalendarDataStore {
             //this implementation is just a dirt hacky way to make it work and some aspects (weather info) don't work
 
             WeekMetadata weekMetadata = metadataService.getWeekMetadata(guestId, year, week);
-            System.out.println("weekMetadataConstructionTime: " + (System.currentTimeMillis()-then));
             DigestModel digest = new DigestModel(TimeUnit.WEEK, weekMetadata, env);
 
             if (filter == null) {
@@ -173,15 +172,12 @@ public class CalendarDataStore {
 
             digest.generationTimestamp = new java.util.Date().getTime();
 
-            long t1 = System.currentTimeMillis();
             final ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
             objectMapper.setVisibilityChecker(
                     objectMapper.getSerializationConfig().getDefaultVisibilityChecker().
                             withFieldVisibility(JsonAutoDetect.Visibility.NON_PRIVATE));
             final String s = objectMapper.writeValueAsString(digest);
-            //final String s = gson.toJson(digest);
-            System.out.println("serialization time: " + (System.currentTimeMillis()-t1));
             return s;
         }
         catch (Exception e){
@@ -217,7 +213,6 @@ public class CalendarDataStore {
         try{
             long then = System.currentTimeMillis();
             MonthMetadata monthMetadata = metadataService.getMonthMetadata(guestId, year, month);
-            System.out.println("monthMetadataConstructionTime: " + (System.currentTimeMillis()-then));
             DigestModel digest = new DigestModel(TimeUnit.MONTH, monthMetadata, env);
 
             digest.metadata.timeUnit = "MONTH";
@@ -253,7 +248,6 @@ public class CalendarDataStore {
 
             digest.generationTimestamp = new java.util.Date().getTime();
 
-            long t1 = System.currentTimeMillis();
             //final String s = gson.toJson(digest);
             final ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
@@ -261,7 +255,6 @@ public class CalendarDataStore {
                     objectMapper.getSerializationConfig().getDefaultVisibilityChecker().
                             withFieldVisibility(JsonAutoDetect.Visibility.NON_PRIVATE));
             final String s = objectMapper.writeValueAsString(digest);
-            System.out.println("serialization time: " + (System.currentTimeMillis()-t1));
             return s;
         }
         catch (Exception e){
@@ -351,7 +344,6 @@ public class CalendarDataStore {
         try{
             long then = System.currentTimeMillis();
             DayMetadata dayMetadata = metadataService.getDayMetadata(guestId, date);
-            System.out.println("dayMetadataConstructionTime: " + (System.currentTimeMillis()-then));
             DigestModel digest = new DigestModel(TimeUnit.DAY, dayMetadata, env);
 
             digest.metadata.timeUnit = "DAY";
@@ -389,15 +381,12 @@ public class CalendarDataStore {
 
             digest.generationTimestamp = new java.util.Date().getTime();
 
-            long t1 = System.currentTimeMillis();
-            //final String s = gson.toJson(digest);
             final ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
             objectMapper.setVisibilityChecker(
                     objectMapper.getSerializationConfig().getDefaultVisibilityChecker().
                             withFieldVisibility(JsonAutoDetect.Visibility.NON_PRIVATE));
             final String s = objectMapper.writeValueAsString(digest);
-            System.out.println("serialization time: " + (System.currentTimeMillis()-t1));
             return s;
         }
         catch (Exception e){
