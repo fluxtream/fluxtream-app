@@ -578,13 +578,13 @@ define(
 
 
         App.getFacetCity = function(facet, citiesList){
-            //if (facet.date!=null) {
-            //    for (var i= 0, li = citiesList.length; i < li; i++) {
-            //        var city = citiesList[i];
-            //        if (city.date===facet.date)
-            //            return city;
-            //    }
-            //}
+            if (facet.type.indexOf("photo")!=-1) {
+                for (var i= 0, li = citiesList.length; i < li; i++) {
+                    var city = citiesList[i];
+                    if (city.date===facet.date)
+                        return city;
+                }
+            }
             var time = (facet.start + (facet.end != null ? facet.end : facet.start)) / 2
             if (time < citiesList[0].dayStart)
                 return citiesList[0];

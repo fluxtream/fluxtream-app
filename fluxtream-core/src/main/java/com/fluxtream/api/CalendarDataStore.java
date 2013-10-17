@@ -592,10 +592,11 @@ public class CalendarDataStore {
                 objectType,
                 firstDate(timespanMetadata), lastDate(timespanMetadata));
         final Collection<AbstractFacetVO<AbstractFacet>> vos = expandToFacetVOs(settings, timespanMetadata, objectTypeFacets, timeInterval);
-        return filterByDate(timespanMetadata, vos);
+        return filterByDate(connector, timespanMetadata, vos);
     }
 
-    private Collection<AbstractFacetVO<AbstractFacet>> filterByDate(AbstractTimespanMetadata timespanMetadata, final Collection<AbstractFacetVO<AbstractFacet>> vos) {
+    private Collection<AbstractFacetVO<AbstractFacet>> filterByDate(Connector connector, AbstractTimespanMetadata timespanMetadata, final Collection<AbstractFacetVO<AbstractFacet>> vos) {
+        if (connector.getName().equals("moves")) return vos;
         final List<String> dateList = timespanMetadata.getDateList();
         final List<AbstractFacetVO<AbstractFacet>> filtered = new ArrayList<AbstractFacetVO<AbstractFacet>>();
         for (AbstractFacetVO<AbstractFacet> vo : vos) {
@@ -619,7 +620,7 @@ public class CalendarDataStore {
                 objectType,
                 dates);
         final Collection<AbstractFacetVO<AbstractFacet>> vos = getAbstractFacetVOs(settings, objectTypeFacets, timeInterval);
-        return filterByDate(timespanMetadata, vos);
+        return filterByDate(connector, timespanMetadata, vos);
     }
 
     private Collection<AbstractFacetVO<AbstractFacet>> expandToFacetVOs(final GuestSettings settings, final AbstractTimespanMetadata timespanMetadata, final List<AbstractRepeatableFacet> objectTypeFacets, TimeInterval timeInterval)
