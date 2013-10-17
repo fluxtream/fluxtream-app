@@ -10,7 +10,7 @@ public class BodymediaSleepFacetVO extends AbstractTimedFacetVO<BodymediaSleepFa
     double efficiency;
     DurationModel totalLying;
     DurationModel totalSleeping;
-    String sleepJson;
+//    String sleepJson;
 
     public boolean allDay = true;
 
@@ -20,7 +20,7 @@ public class BodymediaSleepFacetVO extends AbstractTimedFacetVO<BodymediaSleepFa
         this.efficiency = facet.efficiency;
         this.totalSleeping = new DurationModel(facet.totalSleeping*60);
         this.totalLying = new DurationModel(facet.totalLying*60);
-        this.sleepJson = facet.json;
+//        this.sleepJson = facet.json;
     }
 
 }
