@@ -508,6 +508,9 @@ public class CalendarDataStore {
             ObjectType[] objectTypes = connector.objectTypes();
             if (objectTypes != null) {
                 for (ObjectType objectType : objectTypes) {
+                    // skip location data at the day and month levels
+                    if (timespanMetadata.getTimeInterval().getTimeUnit()!=TimeUnit.DAY && objectType!=null&&objectType.getName().equals("location"))
+                        continue;
                     Collection<AbstractFacetVO<AbstractFacet>> facetCollection = null;
                     if (objectType.isMixedType()) {
                         facetCollection = getFacetVos(timespanMetadata, settings, connector, objectType);
