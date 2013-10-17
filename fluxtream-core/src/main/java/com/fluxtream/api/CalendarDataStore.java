@@ -458,7 +458,7 @@ public class CalendarDataStore {
                 for (ObjectType objectType : objectTypes) {
                     Collection<AbstractFacetVO<AbstractFacet>> facetCollection;
                     if (objectType.isDateBased())
-                        facetCollection = getFacetVos(Arrays.asList(date), settings, connector, objectType, dayMetadata.getTimeInterval());
+                        facetCollection = getFacetVos(dayMetadata, Arrays.asList(date), settings, connector, objectType, dayMetadata.getTimeInterval());
                     else
                         facetCollection = getFacetVos(dayMetadata, settings, connector, objectType);
                     if (facetCollection.size() > 0) {
@@ -514,7 +514,8 @@ public class CalendarDataStore {
                         facetCollection.addAll(getFacetVOs(timespanMetadata, settings, connector, objectType, timespanMetadata.getTimeInterval()));
                     }
                     else if (objectType.isDateBased())
-                        facetCollection = getFacetVos(toDates(timespanMetadata),
+                        facetCollection = getFacetVos(timespanMetadata,
+                                                      toDates(timespanMetadata),
                                                       settings,
                                                       connector,
                                                       objectType,
@@ -590,11 +591,23 @@ public class CalendarDataStore {
                 connector,
                 objectType,
                 firstDate(timespanMetadata), lastDate(timespanMetadata));
-        return expandToFacetVOs(settings, timespanMetadata, objectTypeFacets, timeInterval);
+        final Collection<AbstractFacetVO<AbstractFacet>> vos = expandToFacetVOs(settings, timespanMetadata, objectTypeFacets, timeInterval);
+        return filterByDate(timespanMetadata, vos);
+    }
+
+    private Collection<AbstractFacetVO<AbstractFacet>> filterByDate(AbstractTimespanMetadata timespanMetadata, final Collection<AbstractFacetVO<AbstractFacet>> vos) {
+        final List<String> dateList = timespanMetadata.getDateList();
+        final List<AbstractFacetVO<AbstractFacet>> filtered = new ArrayList<AbstractFacetVO<AbstractFacet>>();
+        for (AbstractFacetVO<AbstractFacet> vo : vos) {
+            if (dateList.contains(vo.date))
+                filtered.add(vo);
+        }
+        return filtered;
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    private Collection<AbstractFacetVO<AbstractFacet>> getFacetVos(List<String> dates,
+    private Collection<AbstractFacetVO<AbstractFacet>> getFacetVos(AbstractTimespanMetadata timespanMetadata,
+                                                                   List<String> dates,
                                                                    GuestSettings settings,
                                                                    Connector connector,
                                                                    ObjectType objectType,
@@ -605,7 +618,8 @@ public class CalendarDataStore {
                 connector,
                 objectType,
                 dates);
-        return getAbstractFacetVOs(settings, objectTypeFacets, timeInterval);
+        final Collection<AbstractFacetVO<AbstractFacet>> vos = getAbstractFacetVOs(settings, objectTypeFacets, timeInterval);
+        return filterByDate(timespanMetadata, vos);
     }
 
     private Collection<AbstractFacetVO<AbstractFacet>> expandToFacetVOs(final GuestSettings settings, final AbstractTimespanMetadata timespanMetadata, final List<AbstractRepeatableFacet> objectTypeFacets, TimeInterval timeInterval)
