@@ -202,7 +202,9 @@ class UpdateWorker implements Runnable {
             if (updateInfo.getUpdateType()== UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE)
                 notificationsService.addNamedNotification(apiKey.getGuestId(), Notification.Type.INFO,
                                                           apiKey.getConnector().getName() + ".status",
-                                                          "<i class=\"icon-ok\" style=\"margin-right:7px\"/>Your " + apiKey.getConnector().getPrettyName() + " data was successfully imported.");
+                                                          "<i class=\"icon-ok\" style=\"margin-right:7px\"/>Your " + apiKey.getConnector().getPrettyName() + " data was successfully imported.  " +
+                                                          "See <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a> dialog for details."
+                );
 			success(apiKey);
 			break;
 		case UPDATE_FAILED:
@@ -226,7 +228,9 @@ class UpdateWorker implements Runnable {
             if (updateInfo.getUpdateType()== UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE)
                 notificationsService.addNamedNotification(apiKey.getGuestId(), Notification.Type.ERROR,
                                                           apiKey.getConnector().getName() + ".status",
-                                                          "<i class=\"icon-remove-sign\" style=\"color:red;margin-right:7px\"/>There was a problem while importing your " + apiKey.getConnector().getPrettyName() + " data. We will try again later.");
+                                                          "<i class=\"icon-remove-sign\" style=\"color:red;margin-right:7px\"/>There was a problem while importing your " + apiKey.getConnector().getPrettyName() + " data. We will try again later.  " +
+                                                          "See <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a> dialog for details."
+                );
 			break;
 		case NO_RESULT:
 			abort(apiKey,null);
