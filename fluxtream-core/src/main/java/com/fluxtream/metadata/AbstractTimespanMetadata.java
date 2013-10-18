@@ -34,6 +34,7 @@ public abstract class AbstractTimespanMetadata {
     public VisitedCity previousInferredCity;
 
     private List<VisitedCity> cities;
+    private List<VisitedCity> consensusCities;
 
     protected static final DateTimeFormatter formatter = DateTimeFormat
             .forPattern("yyyy-MM-dd");
@@ -44,13 +45,15 @@ public abstract class AbstractTimespanMetadata {
     // by subclasses which are themselves going to set those parameters before return.
     protected AbstractTimespanMetadata(VisitedCity consensusVisitedCity, VisitedCity previousInferredCity, VisitedCity nextInferredCity,
                                        Map<String, TimeZone> consensusTimezones,
-                                       TimezoneMap timezoneMap, List<VisitedCity> cities) {
+                                       TimezoneMap timezoneMap, List<VisitedCity> cities,
+                                       List<VisitedCity> consensusCities) {
         this.consensusVisitedCity = consensusVisitedCity;
         this.nextInferredCity = nextInferredCity;
         this.previousInferredCity = previousInferredCity;
         this.consensusTimezones = consensusTimezones;
         this.timezoneMap = timezoneMap;
         this.cities = cities;
+        this.consensusCities = consensusCities;
     }
 
     // Returns the millisecond time of the start of the given date in the given city.
@@ -91,6 +94,10 @@ public abstract class AbstractTimespanMetadata {
 
     public List<VisitedCity> getCities() {
         return cities;
+    }
+
+    public List<VisitedCity> getConsensusCities() {
+        return consensusCities;
     }
 
     // Return a list of dates starting with startDate and ending with endDate

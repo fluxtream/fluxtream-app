@@ -32,9 +32,9 @@ public class DayMetadata extends AbstractTimespanMetadata {
     public DayMetadata(VisitedCity consensusVisitedCity,
                        VisitedCity previousInferredCity, VisitedCity nextInferredCity,
                        TreeMap<String, TimeZone> consensusTimezones, TimezoneMap timezoneMap,
-                       List<VisitedCity> cities,
+                       List<VisitedCity> cities, List<VisitedCity> consensusCities,
                        String date) {
-        super(consensusVisitedCity, previousInferredCity, nextInferredCity, consensusTimezones, timezoneMap, cities);
+        super(consensusVisitedCity, previousInferredCity, nextInferredCity, consensusTimezones, timezoneMap, cities, consensusCities);
         this.start = getStartTimeForDate(consensusVisitedCity, date);
         this.end = start + DateTimeConstants.MILLIS_PER_DAY;
         this.startDate = this.endDate = this.date = date;

@@ -16,8 +16,8 @@ public class ArbitraryTimespanMetadata extends AbstractTimespanMetadata {
 
     public ArbitraryTimespanMetadata(final VisitedCity consensusVisitedCity, final VisitedCity previousInferredCity, final VisitedCity nextInferredCity,
                                      final TreeMap<String, TimeZone> consensusTimezones, final TimezoneMap timezoneMap,
-                                     final List<VisitedCity> cities, final long start, final long end) {
-        super(consensusVisitedCity, previousInferredCity, nextInferredCity, consensusTimezones, timezoneMap, cities);
+                                     final List<VisitedCity> cities, List<VisitedCity> consensusCities, final long start, final long end) {
+        super(consensusVisitedCity, previousInferredCity, nextInferredCity, consensusTimezones, timezoneMap, cities, consensusCities);
         this.start = start;
         this.end = end;
     }

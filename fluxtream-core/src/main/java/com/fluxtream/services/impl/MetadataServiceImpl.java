@@ -184,19 +184,36 @@ public class MetadataServiceImpl implements MetadataService {
             }
         }
         final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities, previousInferredCity, nextInferredCity);
-        final TreeMap<String, TimeZone> consensusTimezoneMap = getConsensusTimezoneMap(guestId, dates);
+        final List<DayMetadata> dayMetadataForDates = getDayMetadataForDates(guestId, dates);
+        final TreeMap<String, TimeZone> consensusTimezoneMap = getConsensusTimezoneMap(dayMetadataForDates);
+        final List<VisitedCity> consensusCities = extractConsensusCities(dayMetadataForDates);
         TimezoneMap timezoneMap = TimezoneMap.fromConsensusTimezoneMap(consensusTimezoneMap);
-        ArbitraryTimespanMetadata info = new ArbitraryTimespanMetadata(consensusVisitedCity, previousInferredCity, nextInferredCity, consensusTimezoneMap, timezoneMap, cities, start, end);
+        ArbitraryTimespanMetadata info = new ArbitraryTimespanMetadata(consensusVisitedCity, previousInferredCity, nextInferredCity, consensusTimezoneMap, timezoneMap, cities, consensusCities, start, end);
         return info;
     }
 
-    TreeMap<String,TimeZone> getConsensusTimezoneMap(final long guestId, final TreeSet<String> dates) {
+    TreeMap<String,TimeZone> getConsensusTimezoneMap(List<DayMetadata> metadata) {
         TreeMap<String, TimeZone> tzMap = new TreeMap<String, TimeZone>();
+        for (DayMetadata dayMetadata : metadata)
+            tzMap.put(dayMetadata.date, TimeZone.getTimeZone(dayMetadata.consensusVisitedCity.city.geo_timezone));
+        return tzMap;
+    }
+
+    List<DayMetadata> getDayMetadataForDates(final long guestId, final TreeSet<String> dates) {
+        List<DayMetadata> metadata = new ArrayList<DayMetadata>();
         for (String date : dates) {
             final DayMetadata dayMetadata = getDayMetadata(guestId, date);
-            tzMap.put(date, TimeZone.getTimeZone(dayMetadata.consensusVisitedCity.city.geo_timezone));
+            metadata.add(dayMetadata);
         }
-        return tzMap;
+        return metadata;
+    }
+
+    List<VisitedCity> extractConsensusCities(List<DayMetadata> metadata) {
+        List<VisitedCity> visitedCities = new ArrayList<VisitedCity>();
+        for (DayMetadata dayMetadata : metadata) {
+            visitedCities.add(dayMetadata.consensusVisitedCity);
+        }
+        return visitedCities;
     }
 
     TreeSet<String> getDatesBetween(long start, final long end) {
@@ -229,8 +246,8 @@ public class MetadataServiceImpl implements MetadataService {
         TreeMap<String, TimeZone> consensusTimezoneMap = new TreeMap<String, TimeZone>();
         consensusTimezoneMap.put(date, TimeZone.getTimeZone(consensusVisitedCity.city.geo_timezone));
         TimezoneMap timezoneMap = TimezoneMap.fromConsensusTimezoneMap(consensusTimezoneMap);
-
-        DayMetadata info = new DayMetadata(consensusVisitedCity, previousInferredCity, nextInferredCity, consensusTimezoneMap, timezoneMap, cities, date);
+        List<VisitedCity> consensusVisitedCities = Arrays.asList(consensusVisitedCity);
+        DayMetadata info = new DayMetadata(consensusVisitedCity, previousInferredCity, nextInferredCity, consensusTimezoneMap, timezoneMap, cities, consensusVisitedCities, date);
         return info;
     }
 
@@ -255,9 +272,11 @@ public class MetadataServiceImpl implements MetadataService {
             }
         }
         final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities, previousInferredCity, nextInferredCity);
-        final TreeMap<String, TimeZone> consensusTimezoneMap = getConsensusTimezoneMap(guestId, dates);
+        final List<DayMetadata> dayMetadataForDates = getDayMetadataForDates(guestId, dates);
+        final TreeMap<String, TimeZone> consensusTimezoneMap = getConsensusTimezoneMap(dayMetadataForDates);
+        final List<VisitedCity> consensusCities = extractConsensusCities(dayMetadataForDates);
         TimezoneMap timezoneMap = TimezoneMap.fromConsensusTimezoneMap(consensusTimezoneMap);
-        WeekMetadata info = new WeekMetadata(consensusVisitedCity, previousInferredCity, nextInferredCity, consensusTimezoneMap, timezoneMap, cities, year, week);
+        WeekMetadata info = new WeekMetadata(consensusVisitedCity, previousInferredCity, nextInferredCity, consensusTimezoneMap, timezoneMap, cities, consensusCities, year, week);
         return info;
     }
 
@@ -297,9 +316,11 @@ public class MetadataServiceImpl implements MetadataService {
             }
         }
         final VisitedCity consensusVisitedCity = getConsensusVisitedCity(cities, previousInferredCity, nextInferredCity);
-        final TreeMap<String, TimeZone> consensusTimezoneMap = getConsensusTimezoneMap(guestId, dates);
+        final List<DayMetadata> dayMetadataForDates = getDayMetadataForDates(guestId, dates);
+        final TreeMap<String, TimeZone> consensusTimezoneMap = getConsensusTimezoneMap(dayMetadataForDates);
+        final List<VisitedCity> consensusCities = extractConsensusCities(dayMetadataForDates);
         TimezoneMap timezoneMap = TimezoneMap.fromConsensusTimezoneMap(consensusTimezoneMap);
-        MonthMetadata info = new MonthMetadata(consensusVisitedCity, previousInferredCity, nextInferredCity, consensusTimezoneMap, timezoneMap, cities, year, month);
+        MonthMetadata info = new MonthMetadata(consensusVisitedCity, previousInferredCity, nextInferredCity, consensusTimezoneMap, timezoneMap, cities, consensusCities, year, month);
         return info;
     }
 

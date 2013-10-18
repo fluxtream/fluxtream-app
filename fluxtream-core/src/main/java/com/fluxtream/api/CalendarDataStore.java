@@ -7,7 +7,6 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
@@ -425,14 +424,18 @@ public class CalendarDataStore {
         digest.metadata.mainCity = new VisitedCityModel(dayMetadata.consensusVisitedCity, env,dates[0]);
         List<VisitedCityModel> cityModels = new ArrayList<VisitedCityModel>();
         TreeSet<VisitedCity> orderedCities = new TreeSet<VisitedCity>(dayMetadata.getCities());
-        final Iterator<VisitedCity> cityIterator = orderedCities.iterator();
-        int count = 0;
-        while (cityIterator.hasNext()) {
-            VisitedCity city = cityIterator.next();
+        for (VisitedCity city : orderedCities) {
             VisitedCityModel cityModel = new VisitedCityModel(city, env);
             cityModels.add(cityModel);
         }
         digest.metadata.cities = cityModels;
+        List<VisitedCityModel> consensusCityModels = new ArrayList<VisitedCityModel>();
+        TreeSet<VisitedCity> orderedConsensusCities = new TreeSet<VisitedCity>(dayMetadata.getConsensusCities());
+        for (VisitedCity city : orderedConsensusCities) {
+            VisitedCityModel cityModel = new VisitedCityModel(city, env);
+            consensusCityModels.add(cityModel);
+        }
+        digest.metadata.consensusCities = consensusCityModels;
     }
 
 	private List<ApiKey> removeConnectorsWithoutFacets(List<ApiKey> allApiKeys, CoachingBuddy coachee) {

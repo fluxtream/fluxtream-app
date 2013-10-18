@@ -48,6 +48,7 @@ public class DigestModel {
 
         public String timeUnit;
         public List<VisitedCityModel> cities = new ArrayList<VisitedCityModel>();
+        public List<VisitedCityModel> consensusCities = new ArrayList<VisitedCityModel>();
         public VisitedCityModel previousInferredCity;
         public VisitedCityModel nextInferredCity;
         public VisitedCityModel mainCity;

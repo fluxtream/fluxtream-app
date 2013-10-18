@@ -85,7 +85,7 @@ define(["core/Tab", "applications/calendar/tabs/list/ListUtils"], function(Tab, 
 
                     }
 
-                    var itemCity = App.getFacetCity(item.facet, digest.getCitiesList());
+                    var itemCity = App.getFacetCity(item.facet, digest.getConsensusCitiesList());
                     if (itemCity==null)
                         continue;
                     for (var j = 0; j <= items.length; j++){
@@ -93,7 +93,7 @@ define(["core/Tab", "applications/calendar/tabs/list/ListUtils"], function(Tab, 
                             items[j] = item;
                             break;
                         }
-                        var facetCity = App.getFacetCity(items[j].facet, digest.getCitiesList());
+                        var facetCity = App.getFacetCity(items[j].facet, digest.getConsensusCitiesList());
                         if (facetCity==null)
                             continue there;
                         if (items[j].facet.start + facetCity.tzOffset > item.facet.start + itemCity.tzOffset || item.facet.start + itemCity.tzOffset == null){
@@ -171,7 +171,7 @@ define(["core/Tab", "applications/calendar/tabs/list/ListUtils"], function(Tab, 
            }
         }
 
-        list.empty().append(ListUtils.buildList(facetsToShow,dgst.getCitiesList()));
+        list.empty().append(ListUtils.buildList(facetsToShow,dgst.getConsensusCitiesList()));
 
 
 

@@ -431,11 +431,16 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         if (typeof(digest.settings.messageDisplayCounters)!="undefined") {
             App.setupBeginnersFriendlyUI(digest.settings.messageDisplayCounters, digest.nApis);
         }
+        digest.getConsensusCitiesList = function(){
+            if (digest.metadata.timeUnit === "DAY")
+                return [digest.metadata.mainCity];
+            return digest.metadata.consensusCities;
+        };
         digest.getCitiesList = function(){
             if (digest.metadata.timeUnit === "DAY")
                 return [digest.metadata.mainCity];
             return digest.metadata.cities;
-        }
+        };
         var templatePath = "applications/calendar/facetTemplates.html";
         function loadTemplate(name) {
             App.loadMustacheTemplate(templatePath, name, function(template){
@@ -739,7 +744,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 }
             }
             if (showDate){
-                var facetCity = App.getFacetCity(data, Calendar.digest.getCitiesList());
+                var facetCity = App.getFacetCity(data, Calendar.digest.getConsensusCitiesList());
                 newFacet.displayDate = App.formatDate(data.start + facetCity.tzOffset,false,true);
             }
         }

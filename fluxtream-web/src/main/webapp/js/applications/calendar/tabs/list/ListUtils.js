@@ -32,6 +32,11 @@ define(["applications/calendar/tabs/photos/PhotoUtils"],function(PhotoUtils){
             var prevDate = null;
             var list = $("<div></div>");
 
+            facets.sort(function(a,b){
+                if (a.date== b.date) return a.start- b.start;
+                return a.date> b.date?1 : -1;
+            });
+
             for (var i = 0, li = facets.length; i < li; i++){
                 var facet = facets[i];
                 var facetCity = App.getFacetCity(facet, citiesList);

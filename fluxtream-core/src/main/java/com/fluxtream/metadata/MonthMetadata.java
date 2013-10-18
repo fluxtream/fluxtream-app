@@ -31,9 +31,9 @@ public class MonthMetadata extends AbstractTimespanMetadata {
     public MonthMetadata(final VisitedCity consensusVisitedCity,
                          VisitedCity previousInferredCity, VisitedCity nextInferredCity,
                          Map<String, TimeZone> consensusTimezones, TimezoneMap timezoneMap,
-                         List<VisitedCity> cities,
+                         List<VisitedCity> cities, List<VisitedCity> consensusCities,
                          final int year, final int month) {
-        super(consensusVisitedCity, previousInferredCity, nextInferredCity, consensusTimezones, timezoneMap, cities);
+        super(consensusVisitedCity, previousInferredCity, nextInferredCity, consensusTimezones, timezoneMap, cities, consensusCities);
 
         // Calculate the calendar date at the beginning and end of this month.  Store as startDate and endDate.
         final LocalDate beginningOfMonth = TimeUtils.getBeginningOfMonth(year, month);

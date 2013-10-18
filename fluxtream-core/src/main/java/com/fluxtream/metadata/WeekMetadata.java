@@ -32,9 +32,9 @@ public class WeekMetadata extends AbstractTimespanMetadata {
     public WeekMetadata(final VisitedCity consensusVisitedCity,
                         VisitedCity previousInferredCity, VisitedCity nextInferredCity,
                         Map<String, TimeZone> consensusTimezones, TimezoneMap timezoneMap,
-                        List<VisitedCity> cities,
+                        List<VisitedCity> cities,List<VisitedCity> consensusCities,
                         final int year, final int week) {
-        super(consensusVisitedCity, previousInferredCity, nextInferredCity, consensusTimezones, timezoneMap, cities);
+        super(consensusVisitedCity, previousInferredCity, nextInferredCity, consensusTimezones, timezoneMap, cities, consensusCities);
 
         // Calculate the calendar date at the beginning and end of this week.  Store as startDate and endDate.
         final LocalDate beginningOfWeek = TimeUtils.getBeginningOfWeek(year, week);
