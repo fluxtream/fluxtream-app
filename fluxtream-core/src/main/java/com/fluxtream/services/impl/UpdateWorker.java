@@ -161,6 +161,12 @@ class UpdateWorker implements Runnable {
 
 	private void updateDataHistory(ApiKey apiKey,
 			AbstractUpdater updater) {
+        String message = "<img class=\"loading-animation\" src=\"/static/img/loading.gif\"/>You have successfully added a new connector: "
+                         + apiKey.getConnector().prettyName()
+                         + ". Your data is now being retrieved. "
+                         + "It may take a little while until it becomes visible.";
+        notificationsService.addNamedNotification(apiKey.getGuestId(), Notification.Type.INFO,
+                                                  apiKey.getConnector().getName() + ".status", message);
         // TODO: check if this connector type is enabled and supportsSync before calling update.
         // If it is disabled and/or does not support sync, don't try to update it.
         logger.info("module=updateQueue component=worker action=updateDataHistory " +

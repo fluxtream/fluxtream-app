@@ -34,6 +34,7 @@ public class NotificationsServiceImpl implements NotificationsService {
             notification.name = name;
             em.persist(notification);
         } else {
+            previousNotification.deleted = false;
             previousNotification.type = type;
             previousNotification.message = message;
             em.merge(previousNotification);
