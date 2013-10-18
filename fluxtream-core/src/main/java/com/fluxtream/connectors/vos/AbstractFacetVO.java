@@ -69,6 +69,12 @@ public abstract class AbstractFacetVO<T extends AbstractFacet> {
                 tags.addAll(facet.getTagsAsStrings());
             }
         }
+
+        // Set default date which subclasses can overwrite if they want to
+        DateTimeZone zone = DateTimeZone.forTimeZone(timeInterval.getTimeZone(facet.start));
+        this.date = dateFormatter.withZone(zone).print(facet.start);
+
+
         fromFacet(facet, timeInterval, settings);
         ResourceBundle res = ResourceBundle.getBundle("facetSharing");
         final ArrayList<String> openGraphSharableFacets = new ArrayList(Arrays.asList(res.getString("opengraph").split(",")));
@@ -82,8 +88,6 @@ public abstract class AbstractFacetVO<T extends AbstractFacet> {
             ogLink = String.format("%sopenGraph/%s.html", settings.config.get("homeBaseUrl"),
                                    encryptedUrl);
         }
-        DateTimeZone zone = DateTimeZone.forTimeZone(timeInterval.getTimeZone(facet.start));
-        this.date = dateFormatter.withZone(zone).print(facet.start);
 	}
 
     protected boolean isShareable(T facet) {

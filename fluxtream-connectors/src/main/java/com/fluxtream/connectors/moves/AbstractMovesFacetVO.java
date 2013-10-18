@@ -33,6 +33,9 @@ public abstract class AbstractMovesFacetVO<T extends MovesFacet> extends Abstrac
         // but oh well...
         TimeZone timeZone = timeInterval.getTimeZone(facet.date);
 
+        // Overwrite the default date with the date returned by Moves for this facet
+        this.date = facet.date;
+
         // We need the real timezone; The ARBITRARY time intervals used by SimpleTimeInterval don't know it.
         // We could either create a more general TimerInterval which knows the timezone info, or do a hack like this:
         //if(timeInterval.getTimeUnit()!= TimeUnit.ARBITRARY) {
