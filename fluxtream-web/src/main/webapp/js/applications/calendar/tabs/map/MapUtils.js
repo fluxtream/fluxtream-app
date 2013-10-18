@@ -1,4 +1,5 @@
-define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
+define(["applications/calendar/tabs/map/MapConfig",
+        "applications/calendar/App"], function(Config, Calendar) {
     var config = Config.getConfig();
     google.maps.visualRefresh = true;
 
@@ -1436,7 +1437,6 @@ define(["applications/calendar/tabs/map/MapConfig"], function(Config) {
             map.setDigest = function(digest){
                 this.digest = digest;
             }
-
 
             map.addGPSData = function(gpsData,config,clickable){addGPSData(map,gpsData, config,clickable)};
             map.addData = function(connectorData, connectorInfoId,clickable){return addData(map,connectorData, connectorInfoId,clickable)};

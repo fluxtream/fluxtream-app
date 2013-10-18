@@ -1445,5 +1445,9 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         });
     };
 
+    Calendar.startLoading = startLoading;
+    Calendar.stopLoading = stopLoading;
+    Calendar.handleError = handleError;
+
 	return Calendar;
 });

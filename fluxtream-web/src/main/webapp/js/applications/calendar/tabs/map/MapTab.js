@@ -45,7 +45,7 @@ define(["core/Tab",
         }
     });
 
-    function setup(digest, calendarState,connectorEnabled,doneLoading, tbounds) {
+    function setup(digest, calendarState, connectorEnabled, doneLoading, tbounds) {
         digestData  = digest;
         App.fullHeight();
         $("#mapFit").unbind("click");
@@ -71,41 +71,52 @@ define(["core/Tab",
             map.reset();
             map.setMaxTimeBounds(maxTimeBounds);
         }
-        map.setDigest(digest);
-        $("#mapFit").click(function(){
-            map.fitBounds(map.gpsBounds);
-        });
+        if (typeof(digest.locationFetched)=="undefined"){
+            Calendar.startLoading();
+            $.ajax({
+                url: "/api/calendar/location/" + Calendar.tabState,
+                success: function(locationDigest) {
+                    for (name in locationDigest.cachedData) {
+                        digest.cachedData[name] = locationDigest.cachedData[name];
+                    }
+                    digest.locationFetched = true;
 
-        map.executeAfterReady(function(){
-            showData(connectorEnabled,bounds,function(bounds){
-                if (bounds != null){
-                    map.fitBounds(bounds,map.isPreserveViewChecked());
+                    map.setDigest(digest);
+                    $("#mapFit").click(function(){
+                        map.fitBounds(map.gpsBounds);
+                    });
+
+                    map.executeAfterReady(function(){
+                        showData(connectorEnabled,bounds,function(bounds){
+                            if (bounds != null){
+                                map.fitBounds(bounds,map.isPreserveViewChecked());
+                            }
+                            else{
+                                map.setCenter(new google.maps.LatLng(digest.metadata.mainCity.latitude,digest.metadata.mainCity.longitude));
+                                map.setZoom(14);
+                            }
+                            map.preserveViewCheckboxChanged = function(){
+                                preserveView = map.isPreserveViewChecked();
+                            }
+                            if (itemToShow != null){
+                                map.zoomOnItemAndClick(itemToShow);
+                            }
+
+                            if (cursorPos != null)
+                                map.setCursorPosition(cursorPos);
+
+                            $("#mapwrapper .noDataOverlay").css("display", map.hasAnyData() ? "none" : "block");
+                            doneLoading();
+
+                        });
+                    });
+                    photoCarouselHTML = PhotoUtils.getCarouselHTML(digest);
+                },
+                error: function(status) {
+                    Calendar.handleError(status.message);
                 }
-                else{
-                    map.setCenter(new google.maps.LatLng(digest.metadata.mainCity.latitude,digest.metadata.mainCity.longitude));
-                    map.setZoom(14);
-                }
-                map.preserveViewCheckboxChanged = function(){
-                    preserveView = map.isPreserveViewChecked();
-                }
-                if (itemToShow != null){
-                    map.zoomOnItemAndClick(itemToShow);
-                }
-
-                if (cursorPos != null)
-                    map.setCursorPosition(cursorPos);
-
-                $("#mapwrapper .noDataOverlay").css("display", map.hasAnyData() ? "none" : "block");
-
-                doneLoading();
-
             });
-        });
-
-
-        photoCarouselHTML = PhotoUtils.getCarouselHTML(digest);
-
-
+        }
 	}
 
     function showData(connectorEnabled,bounds,doneLoading){

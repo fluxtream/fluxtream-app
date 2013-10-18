@@ -1,5 +1,6 @@
 package com.fluxtream.api;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -111,13 +112,28 @@ public class CalendarDataStore {
 
 	Gson gson = new Gson();
 
-	@GET
-	@Path("/all/week/{year}/{week}")
-	@Produces({ MediaType.APPLICATION_JSON })
-	public String getAllConnectorsWeekData(@PathParam("year") final int year,
-			@PathParam("week") final int week, @QueryParam("filter") String filter)
-			throws InstantiationException, IllegalAccessException,
-			ClassNotFoundException {
+    @GET
+    @Path("/location/week/{year}/{week}")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String getLocationConnectorsWeekData(@PathParam("year") final int year,
+                                                @PathParam("week") final int week,
+                                                @QueryParam("filter") String filter) {
+        return getWeekData(year, week, filter, true);
+    }
+
+    @GET
+    @Path("/all/week/{year}/{week}")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String getAllConnectorsWeekData(@PathParam("year") final int year,
+                                           @PathParam("week") final int week,
+                                           @QueryParam("filter") String filter) {
+        return getWeekData(year, week, filter, false);
+    }
+
+	public String getWeekData(final int year,
+			                  final int week,
+                              String filter,
+                              boolean locationDataOnly) {
         Guest guest = AuthHelper.getGuest();
         long guestId = guest.getId();
         CoachingBuddy coachee = null;
@@ -157,7 +173,7 @@ public class CalendarDataStore {
 
             Map<Long,Object> connectorSettings = new HashMap<Long,Object>();
 
-            setCachedData(digest, allApiKeys, settings, connectorSettings, apiKeySelection, weekMetadata);
+            setCachedData(digest, allApiKeys, settings, connectorSettings, apiKeySelection, weekMetadata, locationDataOnly);
 
             setNotifications(digest, AuthHelper.getGuestId());
             setCurrentAddress(digest, guestId, weekMetadata.start);
@@ -172,12 +188,7 @@ public class CalendarDataStore {
 
             digest.generationTimestamp = new java.util.Date().getTime();
 
-            final ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
-            objectMapper.setVisibilityChecker(
-                    objectMapper.getSerializationConfig().getDefaultVisibilityChecker().
-                            withFieldVisibility(JsonAutoDetect.Visibility.NON_PRIVATE));
-            final String s = objectMapper.writeValueAsString(digest);
+            final String s = toJacksonJson(digest);
             return s;
         }
         catch (Exception e){
@@ -191,13 +202,25 @@ public class CalendarDataStore {
         }
 	}
 
-	@GET
-	@Path("/all/month/{year}/{month}")
-	@Produces({ MediaType.APPLICATION_JSON })
-	public String getAllConnectorsMonthData(@PathParam("year") final int year,
-			@PathParam("month") final int month,
-			@QueryParam("filter") String filter) throws InstantiationException,
-			IllegalAccessException, ClassNotFoundException {
+    @GET
+    @Path("/location/month/{year}/{month}")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String getLocationConnectorsMonthData(@PathParam("year") final int year,
+                                                 @PathParam("month") final int month,
+                                                 @QueryParam("filter") String filter) {
+        return getMonthData(year, month, filter, true);
+    }
+
+    @GET
+    @Path("/all/month/{year}/{month}")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String getAllConnectorsMonthData(@PathParam("year") final int year,
+                                            @PathParam("month") final int month,
+                                            @QueryParam("filter") String filter) {
+        return getMonthData(year, month, filter, false);
+    }
+
+    private String getMonthData(final int year, final int month, String filter, boolean locationDataOnly) {
         Guest guest = AuthHelper.getGuest();
         long guestId = guest.getId();
         CoachingBuddy coachee;
@@ -233,7 +256,7 @@ public class CalendarDataStore {
             GuestSettings settings = settingsService.getSettings(AuthHelper.getGuestId());
 
             Map<Long,Object> connectorSettings = new HashMap<Long,Object>();
-            setCachedData(digest, allApiKeys, settings, connectorSettings, apiKeySelection, monthMetadata);
+            setCachedData(digest, allApiKeys, settings, connectorSettings, apiKeySelection, monthMetadata, locationDataOnly);
 
             setNotifications(digest, AuthHelper.getGuestId());
             setCurrentAddress(digest, guestId, monthMetadata.start);
@@ -248,13 +271,7 @@ public class CalendarDataStore {
 
             digest.generationTimestamp = new java.util.Date().getTime();
 
-            //final String s = gson.toJson(digest);
-            final ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
-            objectMapper.setVisibilityChecker(
-                    objectMapper.getSerializationConfig().getDefaultVisibilityChecker().
-                            withFieldVisibility(JsonAutoDetect.Visibility.NON_PRIVATE));
-            final String s = objectMapper.writeValueAsString(digest);
+            final String s = toJacksonJson(digest);
             return s;
         }
         catch (Exception e){
@@ -266,7 +283,7 @@ public class CalendarDataStore {
             logger.warn(sb.toString());
             return gson.toJson(new StatusModel(false,"Failed to get digest: " + e.getMessage()));
         }
-	}
+    }
 
     @GET
     @Path("/weather/date/{date}")
@@ -367,7 +384,7 @@ public class CalendarDataStore {
             GuestSettings settings = settingsService.getSettings(AuthHelper.getGuestId());
 
             Map<Long,Object> connectorSettings = new HashMap<Long,Object>();
-            setCachedData(digest, allApiKeys, settings, connectorSettings, apiKeySelection, dayMetadata);
+            setCachedData(digest, allApiKeys, settings, connectorSettings, apiKeySelection, dayMetadata, false);
 
             setNotifications(digest, AuthHelper.getGuestId());
             setCurrentAddress(digest, guestId, dayMetadata.start);
@@ -381,12 +398,7 @@ public class CalendarDataStore {
 
             digest.generationTimestamp = new java.util.Date().getTime();
 
-            final ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
-            objectMapper.setVisibilityChecker(
-                    objectMapper.getSerializationConfig().getDefaultVisibilityChecker().
-                            withFieldVisibility(JsonAutoDetect.Visibility.NON_PRIVATE));
-            final String s = objectMapper.writeValueAsString(digest);
+            final String s = toJacksonJson(digest);
             return s;
         }
         catch (Exception e){
@@ -399,6 +411,15 @@ public class CalendarDataStore {
             return gson.toJson(src);
         }
 	}
+
+    private String toJacksonJson(final DigestModel digest) throws IOException {
+        final ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
+        objectMapper.setVisibilityChecker(
+                objectMapper.getSerializationConfig().getDefaultVisibilityChecker().
+                        withFieldVisibility(JsonAutoDetect.Visibility.NON_PRIVATE));
+        return objectMapper.writeValueAsString(digest);
+    }
 
     private void setMetadata(final DigestModel digest, final AbstractTimespanMetadata dayMetadata, String[] dates) {
         digest.metadata.mainCity = new VisitedCityModel(dayMetadata.consensusVisitedCity, env,dates[0]);
@@ -486,7 +507,13 @@ public class CalendarDataStore {
 	}
 
 	@SuppressWarnings("rawtypes")
-	private void setCachedData(DigestModel digest, List<ApiKey> userKeys, GuestSettings settings, final Map<Long, Object> connectorSettings, List<ApiKey> apiKeySelection, AbstractTimespanMetadata timespanMetadata)
+	private void setCachedData(DigestModel digest,
+                               List<ApiKey> userKeys,
+                               GuestSettings settings,
+                               final Map<Long, Object> connectorSettings,
+                               List<ApiKey> apiKeySelection,
+                               AbstractTimespanMetadata timespanMetadata,
+                               boolean locationDataOnly)
             throws InstantiationException, IllegalAccessException, ClassNotFoundException, OutsideTimeBoundariesException, UpdateFailedException
     {
 		for (ApiKey apiKey : userKeys) {
@@ -497,10 +524,16 @@ public class CalendarDataStore {
             ObjectType[] objectTypes = connector.objectTypes();
             if (objectTypes != null) {
                 for (ObjectType objectType : objectTypes) {
-                    // skip location data at the day and month levels
-                    if (timespanMetadata.getTimeInterval().getTimeUnit()!=TimeUnit.DAY && objectType!=null&&objectType.getName().equals("location"))
-                        continue;
-                    Collection<AbstractFacetVO<AbstractFacet>> facetCollection = null;
+                    final TimeUnit timeUnit = timespanMetadata.getTimeInterval().getTimeUnit();
+                    if (timeUnit !=TimeUnit.DAY) {
+                        if (!locationDataOnly&&objectType!=null&&objectType.getName().equals("location"))
+                            continue;
+                        else if (locationDataOnly &&
+                                 ((objectType==null)||(objectType!=null&&!objectType.getName().equals("location")))){
+                            continue;
+                        }
+                    }
+                    Collection<AbstractFacetVO<AbstractFacet>> facetCollection;
                     if (objectType.isMixedType()) {
                         facetCollection = getFacetVos(timespanMetadata, settings, connector, objectType);
                         facetCollection.addAll(getFacetVOs(timespanMetadata, settings, connector, objectType, timespanMetadata.getTimeInterval()));
@@ -579,10 +612,7 @@ public class CalendarDataStore {
                                                                    final GuestSettings settings, final Connector connector,
                                                                    final ObjectType objectType, final TimeInterval timeInterval)
             throws ClassNotFoundException, OutsideTimeBoundariesException, InstantiationException, IllegalAccessException {
-        List<AbstractRepeatableFacet> objectTypeFacets = calendarDataHelper.getFacets(
-                connector,
-                objectType,
-                firstDate(timespanMetadata), lastDate(timespanMetadata));
+        List<AbstractRepeatableFacet> objectTypeFacets = calendarDataHelper.getFacets(connector, objectType, firstDate(timespanMetadata), lastDate(timespanMetadata));
         final Collection<AbstractFacetVO<AbstractFacet>> vos = expandToFacetVOs(settings, timespanMetadata, objectTypeFacets, timeInterval);
         return filterByDate(connector, timespanMetadata, vos);
     }
