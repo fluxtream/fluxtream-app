@@ -102,6 +102,10 @@ public class VisitedCity extends AbstractLocalTimeFacet implements Comparable<Vi
 
     @Override
     public int compareTo(final VisitedCity o) {
-        return (int)(start-o.start);
+        int dateComparison = this.date.compareTo(o.date);
+        if (dateComparison==0) {
+            return (int)(start-o.start);
+        } else
+            return dateComparison;
     }
 }
