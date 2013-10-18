@@ -98,7 +98,7 @@ define(["core/Tab",
         var facetCity = null;
         var currentCity = null;
         for (var i = 0; i < data.length; i++){
-           facetCity = App.getPhotoFacetCity(data[i], digest.getCitiesList());
+           facetCity = App.getFacetCity(data[i], digest.getConsensusCitiesList());
            if (facetCity==null)
                continue;
            var date = App.formatDate(data[i].start + facetCity.tzOffset,false,true);
