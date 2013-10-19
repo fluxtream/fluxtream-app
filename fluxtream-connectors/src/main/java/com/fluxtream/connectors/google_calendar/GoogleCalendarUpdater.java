@@ -112,11 +112,9 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
             BodyTrackHelper.TimespanStyle stylePart = new BodyTrackHelper.TimespanStyle();
 
             final int rowsFromTop = (i+1) * 2 - 1;
-            final int rowsFromBottom = 2*n-rowsFromTop;
-            System.out.println(rowsFromTop+"/"+rowsFromBottom);
 
             stylePart.top = (double)rowsFromTop*rowHeight;
-            stylePart.bottom = (double)rowsFromBottom*rowHeight;
+            stylePart.bottom = stylePart.top+rowHeight;
             stylePart.fillColor = calendarEntry.getBackgroundColor();
             stylePart.borderColor = calendarEntry.getBackgroundColor();
             channelStyle.timespanStyles.values.put(calendarEntry.getId(), stylePart);
