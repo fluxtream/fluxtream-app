@@ -1,17 +1,21 @@
 package com.fluxtream.connectors.google_calendar;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.SettingsAwareAbstractUpdater;
+import com.fluxtream.connectors.updaters.UpdateFailedException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.ChannelMapping;
 import com.fluxtream.domain.Notification;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.JPADaoService;
 import com.fluxtream.services.SettingsService;
-import com.fluxtream.connectors.updaters.UpdateFailedException;
+import com.fluxtream.services.impl.BodyTrackHelper;
 import com.fluxtream.utils.Utils;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.http.HttpTransport;
@@ -29,7 +33,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-@Updater(prettyName = "Calendar", value = 0, objectTypes={GoogleCalendarEventFacet.class}, settings=GoogleCalendarConnectorSettings.class)
+@Updater(prettyName = "Calendar", value = 0, objectTypes={GoogleCalendarEventFacet.class},
+         settings=GoogleCalendarConnectorSettings.class, bodytrackResponder = GoogleCalendarBodytrackResponder.class,
+         defaultChannels = {"google_calendar.events"})
 public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
 
     private static final FlxLogger logger = FlxLogger.getLogger(GoogleCalendarUpdater.class);
@@ -40,6 +46,9 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
 
     @Autowired
     SettingsService settingsService;
+
+    @Autowired
+    BodyTrackHelper bodyTrackHelper;
 
     @Override
     protected void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception, UpdateFailedException {
@@ -75,12 +84,54 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
         }
     }
 
+    private void initChannelMapping(UpdateInfo updateInfo, final List<CalendarListEntry> remoteCalendars) {
+        bodyTrackHelper.deleteChannelMappings(updateInfo.apiKey);
+        ChannelMapping mapping = new ChannelMapping();
+        mapping.deviceName = "google_calendar";
+        mapping.channelName = "events";
+        mapping.timeType = ChannelMapping.TimeType.gmt;
+        mapping.channelType = ChannelMapping.ChannelType.timespan;
+        mapping.guestId = updateInfo.getGuestId();
+        mapping.apiKeyId = updateInfo.apiKey.getId();
+        bodyTrackHelper.persistChannelMapping(mapping);
+
+        BodyTrackHelper.ChannelStyle channelStyle = new BodyTrackHelper.ChannelStyle();
+        channelStyle.timespanStyles = new BodyTrackHelper.MainTimespanStyle();
+        channelStyle.timespanStyles.defaultStyle = new BodyTrackHelper.TimespanStyle();
+        channelStyle.timespanStyles.defaultStyle.fillColor = "#92da46";
+        channelStyle.timespanStyles.defaultStyle.borderColor = "#92da46";
+        channelStyle.timespanStyles.defaultStyle.borderWidth = 2;
+        channelStyle.timespanStyles.defaultStyle.top = 1.0;
+        channelStyle.timespanStyles.defaultStyle.bottom = 1.0;
+        channelStyle.timespanStyles.values = new HashMap();
+
+        final int n = remoteCalendars.size();
+        double rowHeight = 1.f/(n *2+1);
+        for (int i=0; i< n; i++) {
+            final CalendarListEntry calendarEntry = remoteCalendars.get(i);
+            BodyTrackHelper.TimespanStyle stylePart = new BodyTrackHelper.TimespanStyle();
+
+            final int rowsFromTop = (i+1) * 2 - 1;
+            final int rowsFromBottom = 2*n-rowsFromTop;
+            System.out.println(rowsFromTop+"/"+rowsFromBottom);
+
+            stylePart.top = (double)rowsFromTop*rowHeight;
+            stylePart.bottom = (double)rowsFromBottom*rowHeight;
+            stylePart.fillColor = calendarEntry.getBackgroundColor();
+            stylePart.borderColor = calendarEntry.getBackgroundColor();
+            channelStyle.timespanStyles.values.put(calendarEntry.getId(), stylePart);
+        }
+
+        bodyTrackHelper.setBuiltinDefaultStyle(updateInfo.getGuestId(),"google_calendar","events",channelStyle);
+    }
+
     private void loadHistory(UpdateInfo updateInfo, boolean incremental) throws Exception {
         Calendar calendar = getCalendar(updateInfo.apiKey);
         String pageToken = null;
         long apiKeyId = updateInfo.apiKey.getId();
         settingsService.getConnectorSettings(updateInfo.apiKey.getId(), true);
         List<String> existingCalendarIds = getExistingCalendarIds(apiKeyId);
+        List<CalendarListEntry> remoteCalendars = new ArrayList<CalendarListEntry>();
         do {
             final long then = System.currentTimeMillis();
             final Calendar.CalendarList.List list = calendar.calendarList().list().setPageToken(pageToken);
@@ -97,10 +148,13 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
             List<CalendarListEntry> items = calendarList.getItems();
             for (CalendarListEntry item : items) {
                 existingCalendarIds.remove(item.getId());
-                loadCalendarHistory(calendar, item, updateInfo, incremental);
+                remoteCalendars.add(item);
             }
             pageToken = calendarList.getNextPageToken();
         } while (pageToken != null);
+        initChannelMapping(updateInfo, remoteCalendars);
+        for (CalendarListEntry remoteCalendar : remoteCalendars)
+            loadCalendarHistory(calendar, remoteCalendar, updateInfo, incremental);
         deleteCalendars(apiKeyId, existingCalendarIds);
     }
 

@@ -529,15 +529,15 @@ public class BodyTrackHelper {
         try{
             if (guestId == null)
                 throw new IllegalArgumentException();
-            com.fluxtream.domain.ChannelStyle savedStyle = JPAUtils.findUnique(em, com.fluxtream.domain.ChannelStyle.class, "channelStyle.byDeviceNameAndChannelName", guestId, deviceName, channelName);
-            if (savedStyle==null) {
-                savedStyle = new com.fluxtream.domain.ChannelStyle();
-                savedStyle.guestId = guestId;
-                savedStyle.channelName = channelName;
-                savedStyle.deviceName = deviceName;
-                savedStyle.json = style;
-                em.persist(savedStyle);
-            }
+            //com.fluxtream.domain.ChannelStyle savedStyle = JPAUtils.findUnique(em, com.fluxtream.domain.ChannelStyle.class, "channelStyle.byDeviceNameAndChannelName", guestId, deviceName, channelName);
+            //if (savedStyle==null) {
+            com.fluxtream.domain.ChannelStyle savedStyle = new com.fluxtream.domain.ChannelStyle();
+            savedStyle.guestId = guestId;
+            savedStyle.channelName = channelName;
+            savedStyle.deviceName = deviceName;
+            savedStyle.json = style;
+            em.persist(savedStyle);
+            //}
         }
         catch (Exception e){
 

@@ -18,6 +18,7 @@ import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
+import com.fluxtream.connectors.bodytrackResponders.AbstractBodytrackResponder;
 import com.fluxtream.connectors.updaters.UpdateFailedException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
@@ -387,7 +388,8 @@ public class ConnectorStore {
         ApiKey apiKey = guestService.getApiKeys(guest.getId(),Connector.getConnector(objectTypeNameParts[0])).get(0);
         Connector connector = apiKey.getConnector();
 
-        return gson.toJson(connector.getBodytrackResponder(beanFactory).getFacetVOs(settingsService.getSettings(guest.getId()), apiKey,objectTypeName,start,end,value));
+        final AbstractBodytrackResponder bodytrackResponder = connector.getBodytrackResponder(beanFactory);
+        return gson.toJson(bodytrackResponder.getFacetVOs(settingsService.getSettings(guest.getId()), apiKey, objectTypeName, start, end, value));
 
     }
 }
