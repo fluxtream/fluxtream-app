@@ -9,6 +9,7 @@ import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
+import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.JPADaoService;
 import com.fluxtream.services.MetadataService;
@@ -34,7 +35,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Updater(prettyName = "RunKeeper", value = 35, updateStrategyType = Connector.UpdateStrategyType.INCREMENTAL,
-         objectTypes = {RunKeeperFitnessActivityFacet.class, LocationFacet.class})
+         objectTypes = {LocationFacet.class, RunKeeperFitnessActivityFacet.class})
 public class RunKeeperUpdater  extends AbstractUpdater {
 
     final String DEFAULT_ENDPOINT= "https://api.runkeeper.com";
@@ -197,25 +198,42 @@ public class RunKeeperUpdater  extends AbstractUpdater {
                 if (jsonObject.has("total_climb"))
                     facet.total_climb = jsonObject.getDouble("total_climb");
 
-
                 if (jsonObject.has("heart_rate")) {
-                    final JSONArray heart_rateArray = jsonObject.getJSONArray("heart_rate");
-                    HeartRateMeasure heartRateMeasure = new HeartRateMeasure();
-                    facet.heart_rate = new ArrayList<HeartRateMeasure>(heart_rateArray.size());
-                    for (int i=0; i<heart_rateArray.size(); i++) {
-                        final JSONObject heartRateTuple = heart_rateArray.getJSONObject(i);
-                        heartRateMeasure.timestamp = heartRateTuple.getDouble("timestamp");
-                        heartRateMeasure.heartRate = heartRateTuple.getDouble("heart_rate");
-                        facet.heart_rate.add(heartRateMeasure);
+                    final JSONArray heartRateArray = jsonObject.getJSONArray("heart_rate");
+                    double totalHeartRate = 0d;
+                    double totalTime = 0d;
+                    double lastTimestamp = 0d;
+                    for (int i=0; i<heartRateArray.size(); i++) {
+                        JSONObject record = heartRateArray.getJSONObject(i);
+                        double timestamp = record.getDouble("timestamp");
+                        final double lap = timestamp - lastTimestamp;
+                        totalHeartRate += record.getInt("heart_rate") * lap;
+                        lastTimestamp = timestamp;
+                        totalTime += lap;
                     }
+                    facet.averageHeartRate = (int) (totalHeartRate/totalTime);
+                    facet.heartRateStorage = heartRateArray.toString();
                 }
                 if (jsonObject.has("calories")) {
-                    // ignore calories for now
+                    final JSONArray caloriesArray = jsonObject.getJSONArray("calories");
+                    for (int i=0; i<caloriesArray.size(); i++) {
+                        JSONObject record = caloriesArray.getJSONObject(i);
+                        facet.totalCalories += record.getDouble("calories");
+                    }
+                    facet.caloriesStorage = caloriesArray.toString();
+                }
+                if (jsonObject.has("distance")) {
+                    final JSONArray distanceArray = jsonObject.getJSONArray("distance");
+                    facet.distanceStorage = distanceArray.toString();
                 }
                 return facet;
             }
         };
-        apiDataService.createOrReadModifyWrite(RunKeeperFitnessActivityFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
+        final RunKeeperFitnessActivityFacet newFacet = apiDataService.createOrReadModifyWrite(RunKeeperFitnessActivityFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
+        List<AbstractFacet> newFacets = new ArrayList<AbstractFacet>();
+        newFacets.add(newFacet);
+        bodyTrackStorageService.storeApiData(updateInfo.apiKey.getGuestId(), newFacets);
+
     }
 
     /**
