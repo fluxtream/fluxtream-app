@@ -113,8 +113,8 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
 
             final int rowsFromTop = (i+1) * 2 - 1;
 
-            stylePart.top = (double)rowsFromTop*rowHeight;
-            stylePart.bottom = stylePart.top+rowHeight;
+            stylePart.top = (double)rowsFromTop*rowHeight-(rowHeight*0.25);
+            stylePart.bottom = stylePart.top+rowHeight+(rowHeight*0.25);
             stylePart.fillColor = calendarEntry.getBackgroundColor();
             stylePart.borderColor = calendarEntry.getBackgroundColor();
             channelStyle.timespanStyles.values.put(calendarEntry.getId(), stylePart);

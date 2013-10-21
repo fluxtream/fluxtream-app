@@ -38,7 +38,11 @@ public class GoogleCalendarBodytrackResponder extends AbstractBodytrackResponder
     }
 
     @Override
-    public List<AbstractFacetVO<AbstractFacet>> getFacetVOs(final GuestSettings guestSettings, final ApiKey apiKey, final String objectTypeName, final long start, final long end, final String value) {
+    public List<AbstractFacetVO<AbstractFacet>> getFacetVOs(final GuestSettings guestSettings,
+                                                            final ApiKey apiKey,
+                                                            final String objectTypeName,
+                                                            final long start, final long end,
+                                                            final String value) {
         Connector connector = apiKey.getConnector();
         String[] objectTypeNameParts = objectTypeName.split("-");
         ObjectType objectType = null;
