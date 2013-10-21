@@ -335,8 +335,10 @@ public class GuestServiceImpl implements GuestService {
     @Transactional(readOnly=false)
     public void setApiKeyToSynching(final long apiKeyId, final boolean synching) {
         final ApiKey apiKey = getApiKey(apiKeyId);
-        apiKey.synching = synching;
-        em.persist(apiKey);
+        if (apiKey!=null) {
+            apiKey.synching = synching;
+            em.persist(apiKey);
+        }
     }
 
     @Override
