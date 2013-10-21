@@ -55,7 +55,7 @@ define(["core/Application", "core/FlxState", "core/TabInterface"], function(Appl
         tabInterface.setRenderParamsFunction(function(){
             return state;
         });
-        document.title = "Fluxtream BodyTrack" + " (" + state.tabName + ")";
+        document.title = "Fluxtream BodyTrack App";
         App.state.saveState("bodytrack",getStateString(state));
         tabInterface.setActiveTab(state.tabName);
     };
