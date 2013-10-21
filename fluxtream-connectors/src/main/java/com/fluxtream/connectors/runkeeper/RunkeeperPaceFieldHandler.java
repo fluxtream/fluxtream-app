@@ -31,26 +31,29 @@ public class RunkeeperPaceFieldHandler implements FieldHandler {
         JSONArray distanceJson = JSONArray.fromObject(activityFacet.distanceStorage);
         List<List<Object>> data = new ArrayList<List<Object>>();
         double lastTimestamp = 0d;
+        double lastDistance = 0d;
         for(int i=0; i<distanceJson.size(); i++) {
             JSONObject record = distanceJson.getJSONObject(i);
-            final double distance = record.getInt("distance");
+            final double totalDistance = record.getInt("distance");
             final double timestamp = record.getInt("timestamp");
             final double lap = timestamp - lastTimestamp;
+            final double distance = totalDistance - lastDistance;
             lastTimestamp = timestamp;
+            lastDistance = totalDistance;
             if (distance==0||lap==0)
                 continue;
-            final double paceInKmsPerHour = ((distance/1000d)/lap)*3600d;
+            final double minutesPerKilometer = ((1000d/distance)*lap)/60d;
             long when = (facet.start/1000) + (long)timestamp;
             for (int j=0; j<(int)lap; j++) {
                 when += j;
                 List<Object> siRecord = new ArrayList<Object>();
                 siRecord.add(when);
-                siRecord.add(paceInKmsPerHour);
-                siRecord.add(paceInKmsPerHour*.621371192d);
+                siRecord.add(minutesPerKilometer);
+                siRecord.add(minutesPerKilometer/.621371192d);
                 data.add(siRecord);
             }
         }
-        final List<String> channelNames = Arrays.asList("paceInKmsPerHour", "paceInMilesPerHour");
+        final List<String> channelNames = Arrays.asList("minutesPerKilometer", "minutesPerMile");
 
         // TODO: check the status code in the BodyTrackUploadResult
         bodyTrackHelper.uploadToBodyTrack(guestId, "Runkeeper", channelNames, data);
