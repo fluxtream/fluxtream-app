@@ -142,6 +142,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
         runkeeper:{
             color: "#8c2ebb",
             mapshadow: null,
+            hasTimelineSettings: true,
             facets:{
                 fitnessActivity:{
                     mapicon: {

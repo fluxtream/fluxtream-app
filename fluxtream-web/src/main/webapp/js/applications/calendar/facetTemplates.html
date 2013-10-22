@@ -175,7 +175,7 @@
                 <div class="flx-data">
                     <div>
                         <span class="flx-dataLabel">{{activityType}}</span>
-                        <span class="flx-text">{{duration.hours}} <span class="flx-dataLabel">h</span> {{duration.minutes}} <span class="flx-dataLabel">min</span> {{duration.seconds}} <span class="flx-dataLabel">sec</span></span>
+                        {{#duration.hours}}<span class="flx-text">{{duration.hours}} <span class="flx-dataLabel">h</span>{{/duration.hours}}{{duration.minutes}} <span class="flx-dataLabel">min</span> {{duration.seconds}} <span class="flx-dataLabel">sec</span></span>
                     </div>
                     {{#showHeartRate}}<div>
                         <span class="flx-dataLabel">Avg. Heart Rate</span>
@@ -187,7 +187,7 @@
                     </div>{{/showClimb}}
                     <div>
                         <span class="flx-dataLabel">Calories Burned</span>
-                        <span class="flx-text">{{totalCalories}} <span class="flx-dataLabel">m</span></span>
+                        <span class="flx-text">{{totalCalories}} <span class="flx-dataLabel">kcal</span></span>
                     </div>
                 </div>
                 {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}

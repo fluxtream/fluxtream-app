@@ -35,7 +35,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Updater(prettyName = "RunKeeper", value = 35, updateStrategyType = Connector.UpdateStrategyType.INCREMENTAL,
-         objectTypes = {LocationFacet.class, RunKeeperFitnessActivityFacet.class})
+         objectTypes = {LocationFacet.class, RunKeeperFitnessActivityFacet.class}, defaultChannels = {"runkeeper.totalCalories"})
 public class RunKeeperUpdater  extends AbstractUpdater {
 
     final String DEFAULT_ENDPOINT= "https://api.runkeeper.com";
@@ -222,6 +222,8 @@ public class RunKeeperUpdater  extends AbstractUpdater {
                     }
                     facet.caloriesStorage = caloriesArray.toString();
                 }
+                if (jsonObject.has("total_calories"))
+                    facet.totalCalories = jsonObject.getDouble("total_calories");
                 if (jsonObject.has("distance")) {
                     final JSONArray distanceArray = jsonObject.getJSONArray("distance");
                     facet.distanceStorage = distanceArray.toString();

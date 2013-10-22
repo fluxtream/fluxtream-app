@@ -29,9 +29,8 @@ import com.fluxtream.domain.AbstractFacet;
     @Lob
     public String caloriesStorage;
 
-    public float averagePace;
-    public int averageHeartRate;
-    public int totalCalories;
+    public Integer averageHeartRate;
+    public Double totalCalories;
 
     public double total_climb;
     public String source;

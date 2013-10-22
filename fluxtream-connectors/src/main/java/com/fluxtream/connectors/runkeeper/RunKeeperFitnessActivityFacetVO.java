@@ -13,17 +13,19 @@ import com.fluxtream.mvc.models.DurationModel;
  */
 public class RunKeeperFitnessActivityFacetVO extends AbstractTimedFacetVO<RunKeeperFitnessActivityFacet> {
 
-    public int averageHeartRate;
+    public Integer averageHeartRate;
     public double total_distance;
-    public double total_climb;
+    public Double total_climb;
     public String activityType;
+    public Double totalCalories;
 
     @Override
     protected void fromFacet(final RunKeeperFitnessActivityFacet facet, final TimeInterval timeInterval, final GuestSettings settings) {
         TimeZone timeZone = TimeZone.getTimeZone(facet.timeZone);
         this.startMinute = toMinuteOfDay(new Date(facet.start), timeZone);
         this.endMinute = toMinuteOfDay(new Date(facet.end), timeZone);
-        averageHeartRate = facet.averageHeartRate;
+        this.totalCalories = facet.totalCalories;
+        this.averageHeartRate = facet.averageHeartRate>0?facet.averageHeartRate:null;
         this.total_distance = facet.total_distance;
         this.duration = new DurationModel(facet.duration);
         this.total_climb = facet.total_climb;
