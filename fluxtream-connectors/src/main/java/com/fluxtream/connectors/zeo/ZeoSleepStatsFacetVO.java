@@ -19,7 +19,7 @@ public class ZeoSleepStatsFacetVO extends AbstractLocalTimeTimedFacetVO<ZeoSleep
 	public int morningFeel;
 	public String sleepGraph;
     public String s, e;
-    DateTimeFormatter zeoTimeFormat = DateTimeFormat.forPattern("yyyyMMddHHmm");
+    transient DateTimeFormatter zeoTimeFormat = DateTimeFormat.forPattern("yyyyMMddHHmm");
 
     @Override
 	public void fromFacet(ZeoSleepStatsFacet facet, TimeInterval timeInterval, GuestSettings settings) {
