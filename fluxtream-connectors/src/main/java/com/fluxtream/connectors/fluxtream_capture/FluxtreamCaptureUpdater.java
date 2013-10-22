@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -46,6 +47,28 @@ public class FluxtreamCaptureUpdater extends AbstractUpdater {
     protected void updateConnectorData(final UpdateInfo updateInfo) throws Exception {
          updateLocationData(updateInfo);
 
+    }
+
+    // Had trouble with conversion to BigDecimal in updateLocationData.
+    // Copied this function from
+    //    http://www.java2s.com/Code/Java/Data-Type/ConvertObjecttoBigDecimal.htm
+    // to try to deal with the issue.
+    public static BigDecimal getBigDecimal( Object value ) {
+        BigDecimal ret = null;
+        if( value != null ) {
+            if( value instanceof BigDecimal ) {
+                ret = (BigDecimal) value;
+            } else if( value instanceof String ) {
+                ret = new BigDecimal( (String) value );
+            } else if( value instanceof BigInteger ) {
+                ret = new BigDecimal( (BigInteger) value );
+            } else if( value instanceof Number ) {
+                ret = new BigDecimal( ((Number)value).doubleValue() );
+            } else {
+                throw new ClassCastException("Not possible to coerce ["+value+"] from class "+value.getClass()+" into a BigDecimal.");
+            }
+        }
+        return ret;
     }
 
     protected void updateLocationData(final UpdateInfo updateInfo) throws Exception {
@@ -136,7 +159,7 @@ public class FluxtreamCaptureUpdater extends AbstractUpdater {
                     // Scan forward in the list of datapoints for this tile to find the first index we're interested in
                     for(int i=0;i<tile.data.length; i++) {
                         Object [] row = tile.data[i];
-                        if(row.length >= 2 && ((BigDecimal)(row[0])).doubleValue() >= currentTime) {
+                        if(row.length >= 2 && (getBigDecimal(row[0]).doubleValue() >= currentTime)) {
                             nextIndex.put(chName,i);
                             break;
                         }
