@@ -44,6 +44,7 @@ import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.Tag;
 import com.fluxtream.domain.TagFilter;
 import com.fluxtream.images.ImageOrientation;
+import com.fluxtream.mvc.models.DimensionModel;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.mvc.models.TimespanModel;
 import com.fluxtream.services.ApiDataService;
@@ -994,10 +995,10 @@ public class BodyTrackController {
             this.object_type_name = photo.getObjectType().getName();
             this.time_type = photoFacetVO.timeType;
             this.channel_name = PhotoService.DEFAULT_PHOTOS_CHANNEL_NAME;   // photo channels are always named the same
-            final List<Dimension> thumbnailSizes = photoFacetVO.getThumbnailSizes();
+            final List<DimensionModel> thumbnailSizes = photoFacetVO.getThumbnailSizes();
             if ((thumbnailSizes != null) && (!thumbnailSizes.isEmpty())) {
                 int i = 0;
-                for (final Dimension thumbnailDimension : thumbnailSizes) {
+                for (final DimensionModel thumbnailDimension : thumbnailSizes) {
                     final String url = photoFacetVO.getThumbnail(i);
                     thumbnails.add(new PhotoItemThumbnail(url, thumbnailDimension.width, thumbnailDimension.height));
                     i++;
