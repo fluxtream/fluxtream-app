@@ -256,4 +256,6 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 	protected abstract void updateConnectorData(UpdateInfo updateInfo)
 			throws Exception;
 
+    public void connectorSettingsChanged(final long apiKeyId, final Object settings){}
+
 }

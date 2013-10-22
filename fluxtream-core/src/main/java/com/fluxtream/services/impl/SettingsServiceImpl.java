@@ -181,6 +181,8 @@ public class SettingsServiceImpl implements SettingsService {
         try {
             final Object settings = gson.fromJson(json, updaterAnnotation.settings());
             guestService.setApiKeySettings(apiKeyId, settings);
+            final AbstractUpdater updater = beanFactory.getBean(apiKey.getConnector().getUpdaterClass());
+            updater.connectorSettingsChanged(apiKeyId, settings);
         }
         catch (Exception e) {
             logger.warn(sb.append(" message=\"unexpected exception when saving connector settings for connector \"" + apiKey.getConnector().getName()));

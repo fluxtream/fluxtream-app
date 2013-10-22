@@ -84,15 +84,22 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
         }
     }
 
-    private void initChannelMapping(UpdateInfo updateInfo, final List<CalendarListEntry> remoteCalendars) {
-        bodyTrackHelper.deleteChannelMappings(updateInfo.apiKey);
+    @Override
+    public void connectorSettingsChanged(final long apiKeyId, final Object settings) {
+        final GoogleCalendarConnectorSettings connectorSettings = (GoogleCalendarConnectorSettings)settings;
+        final ApiKey apiKey = guestService.getApiKey(apiKeyId);
+        initChannelMapping(apiKey, connectorSettings.calendars);
+    }
+
+    private void initChannelMapping(ApiKey apiKey, final List<CalendarConfig> calendarConfigs) {
+        bodyTrackHelper.deleteChannelMappings(apiKey);
         ChannelMapping mapping = new ChannelMapping();
         mapping.deviceName = "google_calendar";
         mapping.channelName = "events";
         mapping.timeType = ChannelMapping.TimeType.gmt;
         mapping.channelType = ChannelMapping.ChannelType.timespan;
-        mapping.guestId = updateInfo.getGuestId();
-        mapping.apiKeyId = updateInfo.apiKey.getId();
+        mapping.guestId = apiKey.getGuestId();
+        mapping.apiKeyId = apiKey.getId();
         bodyTrackHelper.persistChannelMapping(mapping);
 
         BodyTrackHelper.ChannelStyle channelStyle = new BodyTrackHelper.ChannelStyle();
@@ -105,22 +112,38 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
         channelStyle.timespanStyles.defaultStyle.bottom = 1.0;
         channelStyle.timespanStyles.values = new HashMap();
 
-        final int n = remoteCalendars.size();
+        GoogleCalendarConnectorSettings connectorSettings = null;
+        try {
+            connectorSettings =
+                    (GoogleCalendarConnectorSettings)settingsService.getConnectorSettings(apiKey.getId(), false);
+        } catch (UpdateFailedException e) { }
+        int n = calendarConfigs.size();
+        if (connectorSettings!=null) {
+            n = 0;
+            for (CalendarConfig calendar : connectorSettings.calendars) {
+                if (!calendar.hidden)
+                    n++;
+            }
+        }
         double rowHeight = 1.f/(n *2+1);
-        for (int i=0; i< n; i++) {
-            final CalendarListEntry calendarEntry = remoteCalendars.get(i);
+        int i=0;
+        for (CalendarConfig config: calendarConfigs) {
+            if (connectorSettings!=null && config.hidden)
+                continue;
+
             BodyTrackHelper.TimespanStyle stylePart = new BodyTrackHelper.TimespanStyle();
 
             final int rowsFromTop = (i+1) * 2 - 1;
 
             stylePart.top = (double)rowsFromTop*rowHeight-(rowHeight*0.25);
             stylePart.bottom = stylePart.top+rowHeight+(rowHeight*0.25);
-            stylePart.fillColor = calendarEntry.getBackgroundColor();
-            stylePart.borderColor = calendarEntry.getBackgroundColor();
-            channelStyle.timespanStyles.values.put(calendarEntry.getId(), stylePart);
+            stylePart.fillColor = config.backgroundColor;
+            stylePart.borderColor = config.backgroundColor;
+            channelStyle.timespanStyles.values.put(config.id, stylePart);
+            i++;
         }
 
-        bodyTrackHelper.setBuiltinDefaultStyle(updateInfo.getGuestId(),"google_calendar","events",channelStyle);
+        bodyTrackHelper.setDefaultStyle(apiKey.getGuestId(), "google_calendar", "events", channelStyle);
     }
 
     private void loadHistory(UpdateInfo updateInfo, boolean incremental) throws Exception {
@@ -130,6 +153,7 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
         settingsService.getConnectorSettings(updateInfo.apiKey.getId(), true);
         List<String> existingCalendarIds = getExistingCalendarIds(apiKeyId);
         List<CalendarListEntry> remoteCalendars = new ArrayList<CalendarListEntry>();
+        List<CalendarConfig> configs = new ArrayList<CalendarConfig>();
         do {
             final long then = System.currentTimeMillis();
             final Calendar.CalendarList.List list = calendar.calendarList().list().setPageToken(pageToken);
@@ -147,13 +171,26 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
             for (CalendarListEntry item : items) {
                 existingCalendarIds.remove(item.getId());
                 remoteCalendars.add(item);
+                configs.add(entry2Config(item));
             }
             pageToken = calendarList.getNextPageToken();
         } while (pageToken != null);
-        initChannelMapping(updateInfo, remoteCalendars);
+        initChannelMapping(updateInfo.apiKey, configs);
         for (CalendarListEntry remoteCalendar : remoteCalendars)
             loadCalendarHistory(calendar, remoteCalendar, updateInfo, incremental);
         deleteCalendars(apiKeyId, existingCalendarIds);
+    }
+
+    private CalendarConfig entry2Config(CalendarListEntry entry) {
+        CalendarConfig config = new CalendarConfig();
+        config.id = entry.getId();
+        config.foregroundColor = entry.getForegroundColor();
+        config.backgroundColor = entry.getBackgroundColor();
+        config.summary = entry.getSummary();
+        config.summaryOverride = entry.getSummaryOverride();
+        config.description = entry.getDescription();
+        config.primary = entry.getPrimary()!=null?entry.getPrimary():false;
+        return config;
     }
 
     private void deleteCalendars(final long apiKeyId, final List<String> existingCalendarIds) {
@@ -370,21 +407,24 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
                 throw new UpdateFailedException("GoogleCalendar refreshSettings failed", t);
             }
             final List<CalendarListEntry> items = list.getItems();
+            final List<CalendarConfig> configs = new ArrayList<CalendarConfig>();
             for (CalendarListEntry calendarListEntry : items) {
                 final String calendarId = calendarListEntry.getId();
                 CalendarConfig config = settings.getCalendar(calendarId);
                 if (config==null) {
-                    config = new CalendarConfig();
-                    config.id = calendarId;
+                    config = entry2Config(calendarListEntry);
                     settings.addCalendarConfig(config);
+                } else {
+                    config.foregroundColor = calendarListEntry.getForegroundColor();
+                    config.backgroundColor = calendarListEntry.getBackgroundColor();
+                    config.summary = calendarListEntry.getSummary();
+                    config.summaryOverride = calendarListEntry.getSummaryOverride();
+                    config.description = calendarListEntry.getDescription();
+                    config.primary = calendarListEntry.getPrimary()!=null?calendarListEntry.getPrimary():false;
                 }
-                config.foregroundColor = calendarListEntry.getForegroundColor();
-                config.backgroundColor = calendarListEntry.getBackgroundColor();
-                config.summary = calendarListEntry.getSummary();
-                config.summaryOverride = calendarListEntry.getSummaryOverride();
-                config.description = calendarListEntry.getDescription();
-                config.primary = calendarListEntry.getPrimary()!=null?calendarListEntry.getPrimary():false;
+                configs.add(config);
             }
+            initChannelMapping(apiKey, configs);
         }
         catch (IOException e) {
             throw new UpdateFailedException("Can't refresh calendar list", e);

@@ -11,7 +11,6 @@ define(["core/ConnectorSettingsHandler"], function(ConnectorSettingsHandler) {
             calendarCheckbox.click(function(e){
                 var input = $(e.target);
                 var isChecked = e.target.checked;
-                console.log("isChecked " + isChecked);
                 var calendarId = input.val();
                 setCalendarChecked(calendarId, isChecked, settings);
                 saveSettings(apiKeyId, settings);
