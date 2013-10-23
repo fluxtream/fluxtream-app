@@ -176,7 +176,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
         for (AbstractFacet deviceFacet : deviceFacets) {
             Iterator<String> eachFieldName = dailyDataChannelNames.iterator();
             List<Object> values = new ArrayList<Object>();
-            values.add(deviceFacet.start / 1000);
+            values.add(deviceFacet.start / 1000.0);
             while (eachFieldName.hasNext()) {
                 String fieldName = eachFieldName.next();
                 try {
