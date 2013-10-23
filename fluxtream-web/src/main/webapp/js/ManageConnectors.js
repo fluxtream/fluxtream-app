@@ -212,7 +212,20 @@ define(["core/grapher/BTCore",
         BodyTrack.SOURCES.getAvailableList(function(sources){
             var source = null;
             for (var i = 0; i < sources.length; i++){
-                if (sources[i].name == connector.name){
+                // Here is where we decide whether a given device name from the
+                // datastore (sources name) belongs to this connector or not
+                // This is a nasty hack, but for the time being consider any
+                // device name to be a match if it matches either connector name
+                // or connector.connectorName.  This is to work around the problem
+                // that lowercase device names need to be used for the timerange channels
+                // to work, and connector.name fields are mostly camelcase. In the future we need to be
+                // able to be more general about this.  A current example where this
+                // is a problem is that FluxtreamCapture also includes PolarStrap.
+                // We will need to make modifications to respect items in the ChannelMapping table
+                // for mapping device names to their connectors and make multiple instances of
+                // a given connector type work.
+                if (sources[i].name == connector.name ||
+                    sources[i].name == connector.connectorName){
                     source = sources[i];
                     break;
                 }
