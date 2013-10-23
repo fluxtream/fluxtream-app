@@ -655,9 +655,12 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             console.warn("hey, no template found for " + facets[0].type + ".");
             return $("");
         }
-        var params = {color:App.getFacetConfig(facets[0].type).color,facets:[],sent:facets[0].sent,callType:facets[0].callType,smsType:facets[0].smsType};
+        var facetConfig = App.getFacetConfig(facets[0].type);
+        var params = {color:facetConfig.color,facets:[],sent:facets[0].sent,callType:facets[0].callType,smsType:facets[0].smsType};
         for (var i = 0; i < facets.length; i++){
             var data = facets[i];
+            if (typeof(facetConfig.applySettings)!="undefined")
+                facetConfig.applySettings(data, Calendar.digest.settings.connectorSettings);
             var newFacet = {};
             params.facets[i] = newFacet;
             for (var member in data){
