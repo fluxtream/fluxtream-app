@@ -17,6 +17,20 @@
 					<skip>true</skip><!-- Avoids installing the POM file to the local Maven repository -->
 				</configuration>
 				<executions>
+                    <execution>
+                        <id>install-json-lib</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                        <configuration>
+                            <groupId>net.sf.json-lib</groupId>
+                            <artifactId>json-lib</artifactId>
+                            <version>2.4.1</version>
+                            <packaging>jar</packaging>
+                            <file>json-lib-2.4.1.jar</file>
+                        </configuration>
+                    </execution>
 					<execution>
 						<id>install-gdata-core</id>
 						<phase>initialize</phase>
