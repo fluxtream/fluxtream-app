@@ -14,6 +14,7 @@ import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ConnectorInfo;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
+import com.fluxtream.services.JPADaoService;
 import com.fluxtream.services.SystemService;
 import com.fluxtream.updaters.quartz.Consumer;
 import com.fluxtream.updaters.quartz.Producer;
@@ -51,6 +52,9 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
 
     @Autowired
     Consumer consumer;
+
+    @Autowired
+    JPADaoService jpaDaoService;
 
 	static Map<String, Connector> scopedApis = new Hashtable<String, Connector>();
 
@@ -372,6 +376,7 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         if (event.getApplicationContext().getDisplayName().equals("Root WebApplicationContext")) {
             try {
                 resetConnectorList();
+                resetSynchingApiKeys();
                 List<ConnectorInfo> connectors = getConnectors();
                 boolean missingKeys=checkConnectorInstanceKeys(connectors);
 
@@ -392,4 +397,9 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
             }
         }
     }
+
+    private void resetSynchingApiKeys() {
+        jpaDaoService.execute("UPDATE ApiKey apiKey SET apiKey.synching=false");
+    }
+
 }
