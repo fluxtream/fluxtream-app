@@ -22,6 +22,8 @@ public class RunkeeperPaceFieldHandler implements FieldHandler {
     @Autowired
     BodyTrackHelper bodyTrackHelper;
 
+    public final static double MAX_MINUTES_PER_KM = 20.0;
+
     @Override
     public void handleField ( final long guestId, AbstractFacet facet) {
         RunKeeperFitnessActivityFacet activityFacet = (RunKeeperFitnessActivityFacet) facet;
@@ -40,10 +42,30 @@ public class RunkeeperPaceFieldHandler implements FieldHandler {
             final double distance = totalDistance - lastDistance;
             lastTimestamp = timestamp;
             lastDistance = totalDistance;
+
+            // Ignore datapoints where either the time delta or
+            // the distance is 0
             if (distance==0||lap==0)
                 continue;
             final double minutesPerKilometer = ((1000d/distance)*lap)/60d;
-            long when = (facet.start/1000) + (long)timestamp;
+
+            // Also ignore datapoints where the minutesPerKilometer
+            // is over a threshold.  This happens when you've been stopped
+            // for a while during the time interval. If we include
+            // those datapoints then they dominate and can cause the
+            // real data we care about to be too small to see.
+            // We chose the limit of 20 min/km based on wikipedia's
+            // claims about human walking pace and on comparing
+            // unfiltered graphs against the graphs that runkeeper
+            // generates.
+            if(minutesPerKilometer > MAX_MINUTES_PER_KM)
+                continue;
+
+            // Set the time to be the center of the interval
+            // between the earlier and later of the readings
+            // used to generate this datapoint
+            double when = (((double)facet.start)/1000.0d) + timestamp - lap/2.0d;
+
             List<Object> siRecord = new ArrayList<Object>();
             siRecord.add(when);
             siRecord.add(minutesPerKilometer);
