@@ -63,12 +63,17 @@ public class RunKeeperUpdater  extends AbstractUpdater {
                 "SELECT facet from " + entityName + " facet WHERE facet.apiKeyId=? ORDER BY facet.start DESC",
                 1,
                 RunKeeperFitnessActivityFacet.class, updateInfo.apiKey.getId());
+        // If there are existing runkeeper facets, start just after the end of the most recent one.
+        // If there are no existing runkeeper facets, start at 0 just like we would for an
+        // initial history update.
         long lastUpdated = 0;
-        if (newest.size()>0)
+        if (newest.size()>0) {
             lastUpdated = newest.get(0).end;
-        else
-            throw new Exception("Unexpected Error: no existing facets with an incremental update");
-        System.out.println("Runkeeper's was last updated" + timeFormatter.print(lastUpdated));
+            System.out.println("Runkeeper: starting update from " + timeFormatter.print(lastUpdated) + ", guestId=" + updateInfo.getGuestId());
+        }
+        else {
+            System.out.println("Runkeeper has no existing facets.  Starting update from time=0, guestId=" + updateInfo.getGuestId());
+        }
         updateData(updateInfo, lastUpdated);
     }
 
@@ -159,7 +164,7 @@ public class RunKeeperUpdater  extends AbstractUpdater {
                             // we need to know the user's location in order to figure out
                             // his timezone
                             final String start_time = jsonObject.getString("start_time");
-                            System.out.println("runkeeper activity start time: " + start_time + " (should be ascending)");
+                            System.out.println("runkeeper activity start time: " + start_time + " (should be ascending), guestId=" + updateInfo.getGuestId());
                             final TimeZone timeZone = metadataService.getTimeZone(locationFacet.latitude, locationFacet.longitude);
                             facet.start = timeFormatter.withZone(DateTimeZone.forTimeZone(timeZone)).parseMillis(start_time);
                             facet.timeZone = timeZone.getID();
