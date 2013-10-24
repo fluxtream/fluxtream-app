@@ -265,17 +265,17 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         return checkedKeys;
     }
 
-    private String singlyAuthorizeUrl(final String service) {
-        return (new StringBuilder("https://api.singly.com/oauth/authorize?client_id=")
-            .append(env.get("singly.client.id"))
-            .append("&redirect_uri=")
-            .append(env.get("homeBaseUrl"))
-            .append("singly/")
-                    .append(service)
-                    .append("/callback")
-            .append("&service=")
-            .append(service)).toString();
-    }
+    //private String singlyAuthorizeUrl(final String service) {
+    //    return (new StringBuilder("https://api.singly.com/oauth/authorize?client_id=")
+    //        .append(env.get("singly.client.id"))
+    //        .append("&redirect_uri=")
+    //        .append(env.get("homeBaseUrl"))
+    //        .append("singly/")
+    //                .append(service)
+    //                .append("/callback")
+    //        .append("&service=")
+    //        .append(service)).toString();
+    //}
 
     @Override
 	public Connector getApiFromGoogleScope(String scope) {
