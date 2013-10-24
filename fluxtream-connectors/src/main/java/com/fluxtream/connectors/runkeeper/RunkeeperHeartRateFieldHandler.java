@@ -29,21 +29,15 @@ public class RunkeeperHeartRateFieldHandler implements FieldHandler {
         }
         JSONArray heartRateJson = JSONArray.fromObject(activityFacet.heartRateStorage);
         List<List<Object>> data = new ArrayList<List<Object>>();
-        double lastTimestamp = 0d;
         for(int i=0; i<heartRateJson.size(); i++) {
             JSONObject record = heartRateJson.getJSONObject(i);
             final double heartRate = record.getInt("heart_rate");
             final double timestamp = record.getInt("timestamp");
-            final double lap = timestamp - lastTimestamp;
             long when = (facet.start/1000) + (long)timestamp;
-            for (int j=0; j<(int)lap; j++) {
-                when += j;
-                List<Object> hrRecord = new ArrayList<Object>();
-                hrRecord.add(when);
-                hrRecord.add(heartRate);
-                data.add(hrRecord);
-            }
-            lastTimestamp = timestamp;
+            List<Object> hrRecord = new ArrayList<Object>();
+            hrRecord.add(when);
+            hrRecord.add(heartRate);
+            data.add(hrRecord);
         }
         final List<String> channelNames = Arrays.asList("heartRate");
 

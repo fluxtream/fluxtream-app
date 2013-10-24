@@ -44,14 +44,11 @@ public class RunkeeperPaceFieldHandler implements FieldHandler {
                 continue;
             final double minutesPerKilometer = ((1000d/distance)*lap)/60d;
             long when = (facet.start/1000) + (long)timestamp;
-            for (int j=0; j<(int)lap; j++) {
-                when += j;
-                List<Object> siRecord = new ArrayList<Object>();
-                siRecord.add(when);
-                siRecord.add(minutesPerKilometer);
-                siRecord.add(minutesPerKilometer/.621371192d);
-                data.add(siRecord);
-            }
+            List<Object> siRecord = new ArrayList<Object>();
+            siRecord.add(when);
+            siRecord.add(minutesPerKilometer);
+            siRecord.add(minutesPerKilometer/.621371192d);
+            data.add(siRecord);
         }
         final List<String> channelNames = Arrays.asList("minutesPerKilometer", "minutesPerMile");
 
