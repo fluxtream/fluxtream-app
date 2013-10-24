@@ -15,6 +15,8 @@ import com.fluxtream.domain.ConnectorInfo;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.SystemService;
+import com.fluxtream.updaters.quartz.Consumer;
+import com.fluxtream.updaters.quartz.Producer;
 import com.fluxtream.utils.JPAUtils;
 import net.sf.json.JSONArray;
 import org.apache.log4j.Logger;
@@ -43,6 +45,12 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
 
 	@PersistenceContext
 	EntityManager em;
+
+    @Autowired
+    Producer producer;
+
+    @Autowired
+    Consumer consumer;
 
 	static Map<String, Connector> scopedApis = new Hashtable<String, Connector>();
 
@@ -361,24 +369,27 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
     @Override
     public void onApplicationEvent(final ContextRefreshedEvent event) {
         System.out.println("ApplicationContext started");
-        try {
-            resetConnectorList();
-            List<ConnectorInfo> connectors = getConnectors();
-            boolean missingKeys=checkConnectorInstanceKeys(connectors);
+        if (event.getApplicationContext().getDisplayName().equals("Root WebApplicationContext")) {
+            try {
+                resetConnectorList();
+                List<ConnectorInfo> connectors = getConnectors();
+                boolean missingKeys=checkConnectorInstanceKeys(connectors);
 
-            if(missingKeys) {
-                String msg = "***** Exiting execution due to missing connector instance keys.\n  Check out fluxtream-admin-tools project, build, and execute 'java -jar target/flx-admin-tools.jar 5'";
-                List<ConnectorInfo> connectors2 = getConnectors();
-                System.out.println("List of Connector table: before=" + connectors.size() + ", after=" + connectors2.size());
+                if(missingKeys) {
+                    String msg = "***** Exiting execution due to missing connector instance keys.\n  Check out fluxtream-admin-tools project, build, and execute 'java -jar target/flx-admin-tools.jar 5'";
+                    List<ConnectorInfo> connectors2 = getConnectors();
+                    System.out.println("List of Connector table: before=" + connectors.size() + ", after=" + connectors2.size());
 
-                logger.info(msg);
-                System.out.println(msg);
-                System.exit(-1);
+                    logger.info(msg);
+                    System.out.println(msg);
+                    System.exit(-1);
+                }
+                consumer.setContextStarted();
+                producer.setContextStarted();
             }
-
-        }
-        catch (Exception e) {
-            e.printStackTrace();
+            catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 }

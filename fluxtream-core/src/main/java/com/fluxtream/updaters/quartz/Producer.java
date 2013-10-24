@@ -29,10 +29,20 @@ public class Producer {
     @Autowired
     private GuestService guestService;
 
+    private boolean contextStarted = false;
+
+    public void setContextStarted() {
+        contextStarted = true;
+    }
+
     /**
      * bluntly go through the list of all guests and attempt to update all of their connectors
      */
-    public void scheduleIncrementalUpdates() {
+    public void scheduleIncrementalUpdates() throws InterruptedException {
+        while (!contextStarted) {
+            Thread.sleep(1000);
+            System.out.println("Context not started, delaying queue consumption...");
+        }
         logger.debug("module=updateQueue component=producer action=scheduleIncrementalUpdates");
         List<String> roles = new ArrayList<String>();
         roles.add("ROLE_ADMIN");

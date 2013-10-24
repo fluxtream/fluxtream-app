@@ -119,8 +119,7 @@ public class SyncController {
     @POST
     @Path("/producerTest")
     @Produces({MediaType.APPLICATION_JSON})
-    public String TestUpdate()
-    {
+    public String TestUpdate() throws InterruptedException {
         Producer p = new Producer();
         p.scheduleIncrementalUpdates();
         return gson.toJson(null);
