@@ -30,7 +30,10 @@
     </div>
     <div class='thumbnailGroup'>
         {{#photos}}
-        <img id="photo-{{id}}" src="{{photoUrl}}" class="photoThumbnail">
+        <div class="photoThumbnail">
+            <span style="float:left;color:lightgray;position:absolute;top:3px;right:3px;background-color:#000;">{{time}} {{ampm}}</span>
+            <img id="photo-{{id}}" src="{{photoUrl}}">
+        </div>
         {{/photos}}
     </div>
 </template>
