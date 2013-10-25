@@ -42,7 +42,7 @@ define(["core/Application", "core/FlxState", "core/TabInterface"], function(Appl
     };
 
     function getStateString(state){
-        return state.tabName + state.stateParts.join("/");
+        return state.tabName + "/" + state.stateParts.join("/");
     }
 
     BodyTrack.renderDefaultState = function() {
