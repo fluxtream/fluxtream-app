@@ -17,6 +17,7 @@ public class FlickrPhotoFacetVO extends
 		AbstractPhotoFacetVO<FlickrPhotoFacet> {
 
 	public String photoUrl;
+    public String thumbnailUrl;
     public Map<Integer, String> thumbnailUrls = new HashMap<Integer, String>();
     public SortedMap<Integer, Dimension> thumbnailSizes = new TreeMap<Integer, Dimension>();
 
@@ -40,7 +41,9 @@ public class FlickrPhotoFacetVO extends
         thumbnailUrls.put(i, String.format("http://farm%s.static.flickr.com/%s/%s_%s_s.jpg", facet.farm, facet.server, facet.flickrId, facet.secret));
         thumbnailSizes.put(i, new Dimension(75, 75));
         i++;
-        thumbnailUrls.put(i, String.format("http://farm%s.static.flickr.com/%s/%s_%s_q.jpg", facet.farm, facet.server, facet.flickrId, facet.secret));
+        final String thumbnailUrl = String.format("http://farm%s.static.flickr.com/%s/%s_%s_q.jpg", facet.farm, facet.server, facet.flickrId, facet.secret);
+        this.thumbnailUrl = thumbnailUrl;
+        thumbnailUrls.put(i, thumbnailUrl);
         thumbnailSizes.put(i, new Dimension(150, 150));
         i++;
 
