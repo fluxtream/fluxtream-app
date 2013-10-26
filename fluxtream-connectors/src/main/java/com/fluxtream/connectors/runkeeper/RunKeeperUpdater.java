@@ -13,6 +13,7 @@ import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.JPADaoService;
 import com.fluxtream.services.MetadataService;
+import com.fluxtream.services.impl.BodyTrackHelper;
 import com.fluxtream.utils.JPAUtils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -46,8 +47,19 @@ public class RunKeeperUpdater  extends AbstractUpdater {
     @Autowired
     JPADaoService jpaDaoService;
 
+    @Autowired
+    BodyTrackHelper bodytrackHelper;
+
     final DateTimeFormatter timeFormatter = DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss");
 
+    final String barsStyle = "{\"styles\":[{\"type\":\"line\",\"show\":false,\"lineWidth\":1}," +
+                                     "{\"radius\":0,\"fill\":false,\"type\":\"lollipop\",\"show\":true,\"lineWidth\":4}," +
+                                     "{\"radius\":2,\"fill\":true,\"type\":\"point\",\"show\":false,\"lineWidth\":1}," +
+                                     "{\"marginWidth\":5,\"verticalOffset\":7," +
+                                     "\"numberFormat\":\"###,##0\",\"type\":\"value\",\"show\":false}]," +
+                                     "\"comments\":" +
+                                     "{\"styles\":[{\"radius\":3,\"fill\":true,\"type\":\"point\",\"show\":true,\"lineWidth\":1}]," +
+                                     "\"verticalMargin\":4,\"show\":true}}";
     @Autowired
     MetadataService metadataService;
 
@@ -78,6 +90,14 @@ public class RunKeeperUpdater  extends AbstractUpdater {
     }
 
     private void updateData(final UpdateInfo updateInfo, final long since) throws Exception {
+        // Set the channel defaults for the Runkeeper datastore channels.  It is a bit of a hack
+        // to do this here, but it's convenient to do so since we know that this function is
+        // going to be run for both existing and new connectors.  Set most of the channels to
+        // default to show as bars rather than lines
+        bodytrackHelper.setBuiltinDefaultStyle(updateInfo.getGuestId(), "runkeeper", "minutesPerKilometer", barsStyle);
+        bodytrackHelper.setBuiltinDefaultStyle(updateInfo.getGuestId(), "runkeeper", "minutesPerMile", barsStyle);
+        bodytrackHelper.setBuiltinDefaultStyle(updateInfo.getGuestId(), "runkeeper", "totalCalories", barsStyle);
+
         String url = DEFAULT_ENDPOINT+"/user?oauth_token=";
         final String accessToken = guestService.getApiKeyAttribute(updateInfo.apiKey, "accessToken");
         final Token token = new Token(accessToken, guestService.getApiKeyAttribute(updateInfo.apiKey, "runkeeperConsumerSecret"));
