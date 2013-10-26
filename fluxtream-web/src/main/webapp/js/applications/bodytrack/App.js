@@ -42,7 +42,14 @@ define(["core/Application", "core/FlxState", "core/TabInterface"], function(Appl
     };
 
     function getStateString(state){
-        return state.tabName + "/" + state.stateParts.join("/");
+        if(state!=null && state.tabName!=null) {
+            return state.tabName + "/" + state.stateParts.join("/");
+        }
+        else {
+            // I'm not sure why state is sometimes null, but return "grapher" in that case
+            // so we go to the default state for the BodyTrack app
+            return "grapher";
+        }
     }
 
     BodyTrack.renderDefaultState = function() {
@@ -50,8 +57,13 @@ define(["core/Application", "core/FlxState", "core/TabInterface"], function(Appl
     };
 
     BodyTrack.renderState = function(state) {
-        if (typeof state == "string")
+        if (typeof state == "string") {
             state = BodyTrack.parseState(state);
+        }
+        if(state == null) {
+            // Default to "grapher" if state is null
+            state = BodyTrack.parseState("grapher");
+        }
         tabInterface.setRenderParamsFunction(function(){
             return state;
         });
