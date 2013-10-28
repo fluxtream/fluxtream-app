@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
 import com.fluxtream.TimeInterval;
@@ -19,10 +20,12 @@ import com.fluxtream.connectors.updaters.UnexpectedResponseCodeException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractLocalTimeFacet;
 import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.ChannelMapping;
 import com.fluxtream.metadata.DayMetadata;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.NotificationsService;
+import com.fluxtream.services.impl.BodyTrackHelper;
 import com.fluxtream.utils.TimeUtils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -48,7 +51,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Updater(prettyName = "Fitbit", value = 7, objectTypes = {
 		FitbitTrackerActivityFacet.class, FitbitLoggedActivityFacet.class,
 		FitbitSleepFacet.class, FitbitWeightFacet.class },
-           defaultChannels = {"Fitbit.steps","Fitbit.caloriesOut"})
+        bodytrackResponder = FitbitBodytrackResponder.class,
+        defaultChannels = {"Fitbit.steps","Fitbit.caloriesOut"})
 @JsonFacetCollection(FitbitFacetVOCollection.class)
 public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 
@@ -65,6 +69,9 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 
     @Autowired
     NotificationsService notificationsService;
+
+    @Autowired
+    BodyTrackHelper bodyTrackHelper;
 
 	private static final DateTimeFormatter dateFormat = DateTimeFormat
 			.forPattern("yyyy-MM-dd");
@@ -91,6 +98,40 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 	public FitBitTSUpdater() {
 		super();
 	}
+
+    private void initChannelMapping(UpdateInfo updateInfo) {
+        List<ChannelMapping> mappings = bodyTrackHelper.getChannelMappings(updateInfo.apiKey);
+        if (mappings.size() == 0){
+            ChannelMapping mapping = new ChannelMapping();
+            mapping.deviceName = "fitbit";
+            mapping.channelName = "sleep";
+            mapping.timeType = ChannelMapping.TimeType.gmt;
+            mapping.channelType = ChannelMapping.ChannelType.timespan;
+            mapping.guestId = updateInfo.getGuestId();
+            mapping.apiKeyId = updateInfo.apiKey.getId();
+            mapping.objectTypeId = ObjectType.getObjectType(updateInfo.apiKey.getConnector(), "sleep").value();
+            bodyTrackHelper.persistChannelMapping(mapping);
+
+            BodyTrackHelper.ChannelStyle channelStyle = new BodyTrackHelper.ChannelStyle();
+            channelStyle.timespanStyles = new BodyTrackHelper.MainTimespanStyle();
+            channelStyle.timespanStyles.defaultStyle = new BodyTrackHelper.TimespanStyle();
+            channelStyle.timespanStyles.defaultStyle.fillColor = "#21b5cf";
+            channelStyle.timespanStyles.defaultStyle.borderColor = "#21b5cf";
+            channelStyle.timespanStyles.defaultStyle.borderWidth = 2;
+            channelStyle.timespanStyles.defaultStyle.top = 0.0;
+            channelStyle.timespanStyles.defaultStyle.bottom = 1.0;
+            channelStyle.timespanStyles.values = new HashMap();
+
+            BodyTrackHelper.TimespanStyle stylePart = new BodyTrackHelper.TimespanStyle();
+            stylePart.top = 0.25;
+            stylePart.bottom = 0.75;
+            stylePart.fillColor = "#21b5cf";
+            stylePart.borderColor = "#21b5cf";
+            channelStyle.timespanStyles.values.put("on",stylePart);
+
+            bodyTrackHelper.setBuiltinDefaultStyle(updateInfo.getGuestId(),"fitbit","sleep",channelStyle);
+        }
+    }
 
 	@Override
 	public void updateConnectorDataHistory(UpdateInfo updateInfo)
@@ -181,6 +222,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             // the above code does not do that so we explicity send the
             // Fitbit facet data to the datastore here.
             bodyTrackStorageService.storeInitialHistory(updateInfo.apiKey);
+            initChannelMapping(updateInfo);
         } catch (UnexpectedResponseCodeException e) {
             // Check for response code 409 which is Fitbit's over rate limit error
             if(e.responseCode == 409) {
@@ -521,7 +563,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                                                     String.valueOf(scaleLastServerSyncMillis));
                 }
             }
-
+            initChannelMapping(updateInfo);
         } catch (UnexpectedResponseCodeException e) {
             // Check for response code 409 which is Fitbit's over rate limit error
             if(e.responseCode == 409) {
