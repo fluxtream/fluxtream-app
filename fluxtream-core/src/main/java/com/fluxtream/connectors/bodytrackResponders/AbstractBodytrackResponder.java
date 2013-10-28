@@ -40,7 +40,7 @@ public abstract class AbstractBodytrackResponder {
     protected static DateTimeFormatter dateFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
 
     protected List<AbstractFacet> getFacetsInTimespan(TimeInterval timeInterval, ApiKey apiKey, ObjectType objectType){
-        if (objectType.isDateBased()){
+        if (objectType!=null&&objectType.isDateBased()){
             List<String> dates = new ArrayList<String>();
             org.joda.time.DateTime start = new org.joda.time.DateTime(timeInterval.getStart());
             org.joda.time.DateTime end = new org.joda.time.DateTime(timeInterval.getEnd());
