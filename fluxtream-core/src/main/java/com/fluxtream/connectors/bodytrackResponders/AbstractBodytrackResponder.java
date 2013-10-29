@@ -40,23 +40,24 @@ public abstract class AbstractBodytrackResponder {
     protected static DateTimeFormatter dateFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
 
     protected List<AbstractFacet> getFacetsInTimespan(TimeInterval timeInterval, ApiKey apiKey, ObjectType objectType){
-        if (objectType!=null&&objectType.isDateBased()){
-            List<String> dates = new ArrayList<String>();
-            org.joda.time.DateTime start = new org.joda.time.DateTime(timeInterval.getStart());
-            org.joda.time.DateTime end = new org.joda.time.DateTime(timeInterval.getEnd());
-            while (start.isBefore(end)){
-                dates.add(dateFormatter.print(start));
-                start = start.plusDays(1);
-            }
-            String endDate = dateFormatter.print(end);
-            if (!dates.contains(endDate)) dates.add(endDate);
-
-            return apiDataService.getApiDataFacets(apiKey,objectType,dates);
-
-        }
-        else {
+        //TODO: determine whether or not date based queries are necessary
+        //if (objectType!=null&&objectType.isDateBased()){
+        //    List<String> dates = new ArrayList<String>();
+        //    org.joda.time.DateTime start = new org.joda.time.DateTime(timeInterval.getStart());
+        //    org.joda.time.DateTime end = new org.joda.time.DateTime(timeInterval.getEnd());
+        //    while (start.isBefore(end)){
+        //        dates.add(dateFormatter.print(start));
+        //        start = start.plusDays(1);
+        //    }
+        //    String endDate = dateFormatter.print(end);
+        //    if (!dates.contains(endDate)) dates.add(endDate);
+        //
+        //    return apiDataService.getApiDataFacets(apiKey,objectType,dates);
+        //
+        //}
+        //else {
             return apiDataService.getApiDataFacets(apiKey,objectType,timeInterval);
-        }
+        //}
     }
 
     protected List<AbstractFacetVO<AbstractFacet>> getFacetVOsForFacets(List<AbstractFacet> facets,TimeInterval timeInterval, GuestSettings guestSettings){

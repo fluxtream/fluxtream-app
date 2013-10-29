@@ -10,7 +10,7 @@ import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.domain.AbstractFacet;
 
 @Entity(name="Facet_TwitterMention")
-@ObjectTypeSpec(name = "mention", value = 4, extractor=TwitterFacetExtractor.class, parallel=false, prettyname = "Mentions")
+@ObjectTypeSpec(name = "mention", value = 4, extractor=TwitterFacetExtractor.class, parallel=true, prettyname = "Mentions")
 //@Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
 @NamedQueries({
 		@NamedQuery(name = "twitter.mention.oldest", query = "SELECT facet FROM Facet_TwitterMention facet WHERE facet.guestId=? ORDER BY facet.start ASC"),

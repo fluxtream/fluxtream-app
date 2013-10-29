@@ -74,8 +74,13 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 	}
 
     private void initChannelMapping(UpdateInfo updateInfo) {
+        // since this updater runs in parallel,
+        // this is for making sure that we initiate default styles only once,
+        // namely when the updater is updating tweets for the first time.
+        if (updateInfo.objectTypes().get(0)!=ObjectType.getObjectType(updateInfo.apiKey.getConnector(), "tweet"))
+            return;
         List<ChannelMapping> mappings = bodyTrackHelper.getChannelMappings(updateInfo.apiKey);
-        if (mappings.size() == 0){
+        if (mappings==null||mappings.size() == 0){
             ChannelMapping mapping = new ChannelMapping();
             mapping.deviceName = "twitter";
             mapping.channelName = "activity";
@@ -91,8 +96,8 @@ public class TwitterFeedUpdater extends AbstractUpdater {
             channelStyle.timespanStyles.defaultStyle.fillColor = "#92EF75";
             channelStyle.timespanStyles.defaultStyle.borderColor = "#92EF75";
             channelStyle.timespanStyles.defaultStyle.borderWidth = 2;
-            channelStyle.timespanStyles.defaultStyle.top = 0.0;
-            channelStyle.timespanStyles.defaultStyle.bottom = 1.0;
+            channelStyle.timespanStyles.defaultStyle.top = 0.25;
+            channelStyle.timespanStyles.defaultStyle.bottom = 0.75;
             channelStyle.timespanStyles.values = new HashMap();
 
             BodyTrackHelper.TimespanStyle stylePart = new BodyTrackHelper.TimespanStyle();

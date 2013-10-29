@@ -4,7 +4,6 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
 import com.fluxtream.TimeInterval;
@@ -20,7 +19,6 @@ import com.fluxtream.connectors.updaters.UnexpectedResponseCodeException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractLocalTimeFacet;
 import com.fluxtream.domain.ApiKey;
-import com.fluxtream.domain.ChannelMapping;
 import com.fluxtream.metadata.DayMetadata;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.MetadataService;
@@ -100,37 +98,38 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 	}
 
     private void initChannelMapping(UpdateInfo updateInfo) {
-        List<ChannelMapping> mappings = bodyTrackHelper.getChannelMappings(updateInfo.apiKey);
-        if (mappings.size() == 0){
-            ChannelMapping mapping = new ChannelMapping();
-            mapping.deviceName = "fitbit";
-            mapping.channelName = "sleep";
-            mapping.timeType = ChannelMapping.TimeType.gmt;
-            mapping.channelType = ChannelMapping.ChannelType.timespan;
-            mapping.guestId = updateInfo.getGuestId();
-            mapping.apiKeyId = updateInfo.apiKey.getId();
-            mapping.objectTypeId = ObjectType.getObjectType(updateInfo.apiKey.getConnector(), "sleep").value();
-            bodyTrackHelper.persistChannelMapping(mapping);
-
-            BodyTrackHelper.ChannelStyle channelStyle = new BodyTrackHelper.ChannelStyle();
-            channelStyle.timespanStyles = new BodyTrackHelper.MainTimespanStyle();
-            channelStyle.timespanStyles.defaultStyle = new BodyTrackHelper.TimespanStyle();
-            channelStyle.timespanStyles.defaultStyle.fillColor = "#21b5cf";
-            channelStyle.timespanStyles.defaultStyle.borderColor = "#21b5cf";
-            channelStyle.timespanStyles.defaultStyle.borderWidth = 2;
-            channelStyle.timespanStyles.defaultStyle.top = 0.0;
-            channelStyle.timespanStyles.defaultStyle.bottom = 1.0;
-            channelStyle.timespanStyles.values = new HashMap();
-
-            BodyTrackHelper.TimespanStyle stylePart = new BodyTrackHelper.TimespanStyle();
-            stylePart.top = 0.25;
-            stylePart.bottom = 0.75;
-            stylePart.fillColor = "#21b5cf";
-            stylePart.borderColor = "#21b5cf";
-            channelStyle.timespanStyles.values.put("on",stylePart);
-
-            bodyTrackHelper.setBuiltinDefaultStyle(updateInfo.getGuestId(),"fitbit","sleep",channelStyle);
-        }
+        //TODO: figure out how to support date-based facets in the timeline
+        //List<ChannelMapping> mappings = bodyTrackHelper.getChannelMappings(updateInfo.apiKey);
+        //if (mappings.size() == 0){
+        //    ChannelMapping mapping = new ChannelMapping();
+        //    mapping.deviceName = "fitbit";
+        //    mapping.channelName = "sleep";
+        //    mapping.timeType = ChannelMapping.TimeType.gmt;
+        //    mapping.channelType = ChannelMapping.ChannelType.timespan;
+        //    mapping.guestId = updateInfo.getGuestId();
+        //    mapping.apiKeyId = updateInfo.apiKey.getId();
+        //    mapping.objectTypeId = ObjectType.getObjectType(updateInfo.apiKey.getConnector(), "sleep").value();
+        //    bodyTrackHelper.persistChannelMapping(mapping);
+        //
+        //    BodyTrackHelper.ChannelStyle channelStyle = new BodyTrackHelper.ChannelStyle();
+        //    channelStyle.timespanStyles = new BodyTrackHelper.MainTimespanStyle();
+        //    channelStyle.timespanStyles.defaultStyle = new BodyTrackHelper.TimespanStyle();
+        //    channelStyle.timespanStyles.defaultStyle.fillColor = "#21b5cf";
+        //    channelStyle.timespanStyles.defaultStyle.borderColor = "#21b5cf";
+        //    channelStyle.timespanStyles.defaultStyle.borderWidth = 2;
+        //    channelStyle.timespanStyles.defaultStyle.top = 0.0;
+        //    channelStyle.timespanStyles.defaultStyle.bottom = 1.0;
+        //    channelStyle.timespanStyles.values = new HashMap();
+        //
+        //    BodyTrackHelper.TimespanStyle stylePart = new BodyTrackHelper.TimespanStyle();
+        //    stylePart.top = 0.25;
+        //    stylePart.bottom = 0.75;
+        //    stylePart.fillColor = "#21b5cf";
+        //    stylePart.borderColor = "#21b5cf";
+        //    channelStyle.timespanStyles.values.put("on",stylePart);
+        //
+        //    bodyTrackHelper.setBuiltinDefaultStyle(updateInfo.getGuestId(),"fitbit","sleep",channelStyle);
+        //}
     }
 
 	@Override
