@@ -1,5 +1,6 @@
 	package com.fluxtream.connectors.twitter;
 
+    import java.util.HashMap;
     import java.util.List;
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.ObjectType;
@@ -8,7 +9,9 @@ import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
-import net.sf.json.JSONArray;
+    import com.fluxtream.domain.ChannelMapping;
+    import com.fluxtream.services.impl.BodyTrackHelper;
+    import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.commonshttp.CommonsHttpOAuthConsumer;
@@ -17,19 +20,24 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicResponseHandler;
-import org.springframework.stereotype.Component;
+    import org.springframework.beans.factory.annotation.Autowired;
+    import org.springframework.stereotype.Component;
 
 
 @Component
 @Updater(prettyName = "Twitter", value = 12,
 updateStrategyType=com.fluxtream.connectors.Connector.UpdateStrategyType.INCREMENTAL,
+bodytrackResponder = TwitterBodytrackResponder.class,
 objectTypes={TweetFacet.class,
 	TwitterDirectMessageFacet.class, TwitterMentionFacet.class})
 @JsonFacetCollection(TwitterFacetVOCollection.class)
 public class TwitterFeedUpdater extends AbstractUpdater {
 
 	FlxLogger logger = FlxLogger.getLogger(TwitterFeedUpdater.class);
-	
+
+    @Autowired
+    BodyTrackHelper bodyTrackHelper;
+
 	public TwitterFeedUpdater() {
 		super();
 	}
@@ -56,7 +64,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 				twitterConsumerKey,
 				twitterConsumerSecret);
 
-		String accessToken = guestService.getApiKeyAttribute(apiKey,"accessToken");
+		String accessToken = guestService.getApiKeyAttribute(apiKey, "accessToken");
 		String tokenSecret = guestService.getApiKeyAttribute(apiKey,"tokenSecret");
 		
 		consumer.setTokenWithSecret(accessToken,
@@ -65,8 +73,61 @@ public class TwitterFeedUpdater extends AbstractUpdater {
         return consumer;
 	}
 
-	@Override
+    private void initChannelMapping(UpdateInfo updateInfo) {
+        // since this updater runs in parallel,
+        // this is for making sure that we initiate default styles only once,
+        // namely when the updater is updating tweets for the first time.
+        if (updateInfo.objectTypes().get(0)!=ObjectType.getObjectType(updateInfo.apiKey.getConnector(), "tweet"))
+            return;
+        List<ChannelMapping> mappings = bodyTrackHelper.getChannelMappings(updateInfo.apiKey);
+        if (mappings==null||mappings.size() == 0){
+            ChannelMapping mapping = new ChannelMapping();
+            mapping.deviceName = "twitter";
+            mapping.channelName = "activity";
+            mapping.timeType = ChannelMapping.TimeType.gmt;
+            mapping.channelType = ChannelMapping.ChannelType.timespan;
+            mapping.guestId = updateInfo.getGuestId();
+            mapping.apiKeyId = updateInfo.apiKey.getId();
+            bodyTrackHelper.persistChannelMapping(mapping);
+
+            BodyTrackHelper.ChannelStyle channelStyle = new BodyTrackHelper.ChannelStyle();
+            channelStyle.timespanStyles = new BodyTrackHelper.MainTimespanStyle();
+            channelStyle.timespanStyles.defaultStyle = new BodyTrackHelper.TimespanStyle();
+            channelStyle.timespanStyles.defaultStyle.fillColor = "#92EF75";
+            channelStyle.timespanStyles.defaultStyle.borderColor = "#92EF75";
+            channelStyle.timespanStyles.defaultStyle.borderWidth = 2;
+            channelStyle.timespanStyles.defaultStyle.top = 0.25;
+            channelStyle.timespanStyles.defaultStyle.bottom = 0.75;
+            channelStyle.timespanStyles.values = new HashMap();
+
+            BodyTrackHelper.TimespanStyle stylePart = new BodyTrackHelper.TimespanStyle();
+            stylePart.top = 0.25;
+            stylePart.bottom = 0.75;
+            stylePart.fillColor = "#92EF75";
+            stylePart.borderColor = "#92EF75";
+            channelStyle.timespanStyles.values.put("tweet",stylePart);
+
+            stylePart = new BodyTrackHelper.TimespanStyle();
+            stylePart.top = 0.25;
+            stylePart.bottom = 0.75;
+            stylePart.fillColor = "#92EF75";
+            stylePart.borderColor = "#92EF75";
+            channelStyle.timespanStyles.values.put("dm",stylePart);
+
+            stylePart = new BodyTrackHelper.TimespanStyle();
+            stylePart.top = 0.25;
+            stylePart.bottom = 0.75;
+            stylePart.fillColor = "#92EF75";
+            stylePart.borderColor = "#92EF75";
+            channelStyle.timespanStyles.values.put("mention",stylePart);
+
+            bodyTrackHelper.setBuiltinDefaultStyle(updateInfo.getGuestId(), "twitter", "activity", channelStyle);
+        }
+    }
+
+    @Override
 	public void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception {
+        initChannelMapping(updateInfo);
         final OAuthConsumer consumer = setupConsumer(updateInfo.apiKey);
 
         if (guestService.getApiKeyAttribute(updateInfo.apiKey, "screen_name")==null)
@@ -87,6 +148,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 
 	@Override
 	public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
+        initChannelMapping(updateInfo);
         final OAuthConsumer consumer = setupConsumer(updateInfo.apiKey);
         String screen_name = guestService.getApiKeyAttribute(updateInfo.apiKey, "screen_name");
 		

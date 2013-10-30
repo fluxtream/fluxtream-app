@@ -313,7 +313,8 @@ public class BodyTrackHelper {
             //TODO: this is a hack to prevent double flickr photo channel showing up
             response.deleteSource("Flickr");
 
-            for (ChannelMapping mapping : getChannelMappings(guestId)){
+            final List<ChannelMapping> channelMappings = getChannelMappings(guestId);
+            for (ChannelMapping mapping : channelMappings){
                 Source source = response.hasSource(mapping.deviceName);
                 if (source == null){
                     source = new Source();
@@ -342,7 +343,8 @@ public class BodyTrackHelper {
 
                 if (mapping.apiKeyId != null){
                     ApiKey api = guestService.getApiKey(mapping.apiKeyId);
-                    AbstractBodytrackResponder.Bounds bounds = api.getConnector().getBodytrackResponder(beanFactory).getBounds(mapping);
+                    final AbstractBodytrackResponder bodytrackResponder = api.getConnector().getBodytrackResponder(beanFactory);
+                    AbstractBodytrackResponder.Bounds bounds = bodytrackResponder.getBounds(mapping);
                     channel.min_time = bounds.min_time;
                     channel.max_time = bounds.max_time;
                     channel.min = bounds.min;
@@ -362,7 +364,8 @@ public class BodyTrackHelper {
                     source.min_time = source.max_time = 0.0;
             }
 
-            return gson.toJson(response);
+            final String jsonResponse = gson.toJson(response);
+            return jsonResponse;
         }
         catch(Exception e){
             StringBuilder sb = new StringBuilder("module=bodytrackHelper component=listSources action=listSources")

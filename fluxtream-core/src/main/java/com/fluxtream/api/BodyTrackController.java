@@ -1,6 +1,5 @@
 package com.fluxtream.api;
 
-import java.awt.Dimension;
 import java.lang.reflect.Type;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -34,6 +33,7 @@ import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
+import com.fluxtream.connectors.bodytrackResponders.AbstractBodytrackResponder;
 import com.fluxtream.connectors.fluxtream_capture.FluxtreamCapturePhoto;
 import com.fluxtream.connectors.fluxtream_capture.FluxtreamCapturePhotoStore;
 import com.fluxtream.connectors.vos.AbstractPhotoFacetVO;
@@ -638,7 +638,6 @@ public class BodyTrackController {
 
             List<ApiKey> keys = guestService.getApiKeys(uid);
             ApiKey api = null;
-            ObjectType objectType = null;
 
             for (ApiKey key : keys){
                 Connector connector = key.getConnector();
@@ -656,7 +655,9 @@ public class BodyTrackController {
             final long startTimeMillis = (long)(LevelOffsetHelper.offsetAtLevelToUnixTime(level, offset) * 1000);
             final long endTimeMillis = (long)(LevelOffsetHelper.offsetAtLevelToUnixTime(level, offset + 1) * 1000);
 
-            TimespanTileResponse response = new TimespanTileResponse(api.getConnector().getBodytrackResponder(beanFactory).getTimespans(startTimeMillis,endTimeMillis,api,objectTypeName));
+            final AbstractBodytrackResponder bodytrackResponder = api.getConnector().getBodytrackResponder(beanFactory);
+            final List<TimespanModel> timespans = bodytrackResponder.getTimespans(startTimeMillis, endTimeMillis, api, objectTypeName);
+            TimespanTileResponse response = new TimespanTileResponse(timespans);
             return gson.toJson(response);
 
         }

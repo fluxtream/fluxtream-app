@@ -40,7 +40,7 @@ public class TwitterOAuthController {
 	Configuration env;
 	private static final String TWITTER_OAUTH_CONSUMER = "twitterOAuthConsumer";
 	private static final String TWITTER_OAUTH_PROVIDER = "twitterOAuthProvider";
-	
+
 	@RequestMapping(value = "/token")
 	public String getToken(HttpServletRequest request)
             throws IOException, ServletException, OAuthMessageSignerException,
@@ -86,7 +86,7 @@ public class TwitterOAuthController {
 
 		guestService.setApiKeyAttribute(apiKey,  "accessToken", consumer.getToken());
 		guestService.setApiKeyAttribute(apiKey,  "tokenSecret", consumer.getTokenSecret());
-		
+
 		return "redirect:/app/from/"+connector.getName();
 	}
 

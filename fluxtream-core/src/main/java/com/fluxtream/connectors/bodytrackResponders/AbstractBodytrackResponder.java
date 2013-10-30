@@ -40,21 +40,22 @@ public abstract class AbstractBodytrackResponder {
     protected static DateTimeFormatter dateFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
 
     protected List<AbstractFacet> getFacetsInTimespan(TimeInterval timeInterval, ApiKey apiKey, ObjectType objectType){
-        /*if (objectType.isDateBased()){          //TODO: determine whether or not date based queries are necessary
-            List<String> dates = new ArrayList<String>();
-            DateTime start = new DateTime(timeInterval.getStart());
-            DateTime end = new DateTime(timeInterval.getEnd());
-            while (start.isBefore(end)){
-                dates.add(dateFormatter.print(start));
-                start = start.plusDays(1);
-            }
-            String endDate = dateFormatter.print(end);
-            if (!dates.contains(endDate)) dates.add(endDate);
-
-            return apiDataService.getApiDataFacets(apiKey,objectType,dates);
-
-        }
-        else{  */
+        //TODO: determine whether or not date based queries are necessary
+        //if (objectType!=null&&objectType.isDateBased()){
+        //    List<String> dates = new ArrayList<String>();
+        //    org.joda.time.DateTime start = new org.joda.time.DateTime(timeInterval.getStart());
+        //    org.joda.time.DateTime end = new org.joda.time.DateTime(timeInterval.getEnd());
+        //    while (start.isBefore(end)){
+        //        dates.add(dateFormatter.print(start));
+        //        start = start.plusDays(1);
+        //    }
+        //    String endDate = dateFormatter.print(end);
+        //    if (!dates.contains(endDate)) dates.add(endDate);
+        //
+        //    return apiDataService.getApiDataFacets(apiKey,objectType,dates);
+        //
+        //}
+        //else {
             return apiDataService.getApiDataFacets(apiKey,objectType,timeInterval);
         //}
     }
@@ -99,20 +100,27 @@ public abstract class AbstractBodytrackResponder {
             bounds.max_time = Double.MIN_VALUE;
             for (ObjectType objectType : apiKey.getConnector().objectTypes()){
                 AbstractFacet facet = apiDataService.getOldestApiDataFacet(apiKey,objectType);
-                bounds.min_time = Math.min(bounds.min_time,facet.start / 1000.0);
+                if (facet!=null) {
+                    bounds.min_time = Math.min(bounds.min_time,facet.start / 1000.0);
+                }
                 facet = apiDataService.getLatestApiDataFacet(apiKey,objectType);
-                bounds.max_time = Math.max(bounds.max_time,facet.end / 1000.0);
-
+                if (facet!=null) {
+                    bounds.max_time = Math.max(bounds.max_time,facet.end / 1000.0);
+                }
             }
             if (bounds.max_time < bounds.min_time){
                 bounds.min_time = bounds.max_time = 0;
             }
         }
-        else{
+        else {
             AbstractFacet facet = apiDataService.getOldestApiDataFacet(apiKey,ObjectType.getObjectType(apiKey.getConnector(),mapping.objectTypeId));
-            bounds.min_time = facet.start / 1000.0;
+            if (facet!=null) {
+                bounds.min_time = facet.start / 1000.0;
+            }
             facet = apiDataService.getLatestApiDataFacet(apiKey,ObjectType.getObjectType(apiKey.getConnector(),mapping.objectTypeId));
-            bounds.max_time = facet.end / 1000.0;
+            if (facet!=null) {
+                bounds.max_time = facet.end / 1000.0;
+            }
         }
         return bounds;
     }
