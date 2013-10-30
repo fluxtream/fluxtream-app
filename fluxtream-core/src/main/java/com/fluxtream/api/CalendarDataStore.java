@@ -673,6 +673,9 @@ public class CalendarDataStore {
                         // for a date differs from the date used by a given service to return the data.
                         // Don't print a stack trace.
                         //e.printStackTrace();
+                    } catch(Throwable e) {
+                        // An unexpected error happened generating the VO for this facet.  Skip it.
+                        e.printStackTrace();
                     }
                 }
 
@@ -700,6 +703,9 @@ public class CalendarDataStore {
                     // for a date differs from the date used by a given service to return the data.
                     // Don't print a stack trace.
                     //e.printStackTrace();
+                } catch(Throwable e) {
+                    // An unexpected error happened generating the VO for this facet.  Skip it.
+                    e.printStackTrace();
                 }
 
             }

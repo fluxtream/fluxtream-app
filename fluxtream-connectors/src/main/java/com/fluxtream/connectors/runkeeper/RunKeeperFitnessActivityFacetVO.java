@@ -25,7 +25,7 @@ public class RunKeeperFitnessActivityFacetVO extends AbstractTimedFacetVO<RunKee
         this.startMinute = toMinuteOfDay(new Date(facet.start), timeZone);
         this.endMinute = toMinuteOfDay(new Date(facet.end), timeZone);
         this.totalCalories = facet.totalCalories;
-        this.averageHeartRate = facet.averageHeartRate>0?facet.averageHeartRate:null;
+        this.averageHeartRate = (facet.averageHeartRate!=null && facet.averageHeartRate>0)?facet.averageHeartRate:null;
         this.total_distance = facet.total_distance;
         this.duration = new DurationModel(facet.duration);
         this.total_climb = facet.total_climb;
