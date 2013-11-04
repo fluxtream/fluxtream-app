@@ -29,7 +29,8 @@ import org.apache.http.impl.client.BasicResponseHandler;
 updateStrategyType=com.fluxtream.connectors.Connector.UpdateStrategyType.INCREMENTAL,
 bodytrackResponder = TwitterBodytrackResponder.class,
 objectTypes={TweetFacet.class,
-	TwitterDirectMessageFacet.class, TwitterMentionFacet.class})
+	TwitterDirectMessageFacet.class, TwitterMentionFacet.class},
+    defaultChannels = {"twitter.activity"})
 @JsonFacetCollection(TwitterFacetVOCollection.class)
 public class TwitterFeedUpdater extends AbstractUpdater {
 

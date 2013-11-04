@@ -169,6 +169,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
         },
         twitter:{
             color: "rgb(146, 51, 239)",
+            hasTimelineSettings: true,
             mapicon: {
                 url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/tweet.png",
                 size: new google.maps.Size(32,37)
