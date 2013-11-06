@@ -61,6 +61,9 @@ define(["core/FlxState"], function(FlxState) {
             url += "/" + state;
         }
         FlxState.router.navigate(url, {trigger: true});
+        if (typeof(ga)!="undefined") {
+            ga("send", "pageview", url);
+        }
         FlxState.saveState(this.name, state);
     }
 

@@ -98,13 +98,13 @@
 									<li id="coachingDivider" class="divider"></li><%
                                     if (coachees.size()>0) {
                                         for (Guest guest : coachees) {%>
-                                    <li><a href="javascript:App.as('<%=guest.username%>')">View <%=guest.getGuestName()%>'s data</a></li>
+                                    <li><a onclick="if (typeof(ga)!='undefined') {ga('send', 'event', 'menuitem', 'click', 'viewBuddyData', 1);}" href="javascript:App.as('<%=guest.username%>')">View <%=guest.getGuestName()%>'s data</a></li>
                                         <%  } %>
-                                    <li><a href="javascript:App.as('self')">View My data</a></li>
+                                    <li><a onclick="if (typeof(ga)!='undefined') {ga('send', 'event', 'menuitem', 'click', 'viewMyData', 1);}" href="javascript:App.as('self')">View My data</a></li>
                                     <% } %>
-                                    <li><a href="javascript:App.sharingDialog.show()"><i class="mainmenu-icon icon-share icon-large pull-right"></i>Share your data...</a></li>
+                                    <li><a href="javascript:App.sharingDialog.show();if (typeof(ga)!='undefined') {ga('send', 'event', 'menuitem', 'click', 'sharingDialog', 1);}"><i class="mainmenu-icon icon-share icon-large pull-right"></i>Share your data...</a></li>
                                     <li class="divider"></li>
-									<li><a href="/logout"><i class="mainmenu-icon icon-off icon-large pull-right"></i>Logout</a></li>
+									<li><a href="/logout" onclick="if (typeof(ga)!='undefined') {ga('send', 'event', 'menuitem', 'click', 'logout', 1);}"><i class="mainmenu-icon icon-off icon-large pull-right"></i>Logout</a></li>
 								</ul></li>
                             </ul>
 					</div>

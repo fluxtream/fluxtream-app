@@ -377,6 +377,9 @@ define(
         }
 
         App.eraseEverything = function() {
+            if (typeof(ga)!="undefined") {
+                ga('send', 'event', 'button', 'click', 'eraseEverything', 1);
+            }
             var confirmed = confirm("Are you sure?");
             if (confirmed) {
                 $.ajax({
@@ -419,10 +422,12 @@ define(
         };
 
         App.removeConnector = function(api) {
+            if (typeof(ga)!='undefined') {ga('send', 'event', 'button', 'click', 'removeConnector', 1);}
             var c = confirm("If you wrote comments on events related to this connector, "
                                 + "you will lose them forever.\n"
                                 + "Are your sure you want to continue?");
             if (c) {
+                if (typeof(ga)!='undefined') {ga('send', 'event', 'button', 'click', 'removeConnectorConfirmed', 1);}
                 $.ajax({
                            url : "/connectors/removeConnector?api=" + api,
                            dataType : "json",
@@ -543,6 +548,7 @@ define(
                 $(".addConnectorsMain").append(loading);
                 setTimeout("window.location='" + url + "'", 500);
             }
+            if (typeof(ga)!='undefined') {ga('send', 'event', 'button', 'click', 'addConnector', 1);}
         };
 
         App.showConnectorsPage = function(page) {
@@ -907,6 +913,7 @@ define(
                 theta += 360;
             return [r,theta];
         }
+
 
 
         App.getUsername = getUsername;

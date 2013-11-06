@@ -100,6 +100,7 @@
     // Here we run a very simple test of the Graph API after login is successful.
     // This testAPI() function is only called in those cases.
     function getIn(loginResponse) {
+        if (typeof(ga)!='undefined') {ga('send', 'event', 'button', 'click', 'facebookLogin', 1);}
         $.ajax({
             url: "/api/facebook/login?access_token=" +loginResponse.authResponse.accessToken,
             type: "POST",
@@ -153,8 +154,9 @@
 
         <form method="post" action="support/sendResetRequest" style="display:none" id="recoverForm">
 
-            <label for="recover_email">Enter your email</label>      	<input title="Enter your email" type="text" name="recover[email]" id="recover_email" />
-            <input type="submit" class="btn" value="Submit">
+            <label for="recover_email">Enter your email</label>
+            <input title="Enter your email" type="text" name="recover[email]" id="recover_email" />
+            <input type="submit" class="btn" value="Submit" onclick="if (typeof(ga)!='undefined') {ga('send', 'event', 'button', 'click', 'simpleLogin', 1);}">
             <input type="hidden" name="recover[_csrf_token]" value="ebb981ef2ee1ad730d0e676d2af2336c" id="recover__csrf_token" />
         </form>
         <p id="recoverPasswordFeedback" style="display:none;" class="sysInfo">A confirmation link has been emailed to you_XXX</p>
