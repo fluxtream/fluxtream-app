@@ -22,6 +22,7 @@ import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.domain.AbstractUserProfile;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ApiKeyAttribute;
+import com.fluxtream.domain.CoachingBuddy;
 import com.fluxtream.domain.ConnectorInfo;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.ResetPasswordToken;
@@ -402,7 +403,9 @@ public class GuestServiceImpl implements GuestService {
         em.flush();
         JPAUtils.execute(em, "notifications.delete.all", guest.getId());
         em.flush();
-        JPAUtils.execute(em, "coachingBuddies.delete.all", guest.getId());
+        final List<CoachingBuddy> coachingBuddies = JPAUtils.find(em, CoachingBuddy.class, "coachingBuddies.byGuestId", guest.getId());
+        for (CoachingBuddy coachingBuddy : coachingBuddies)
+            em.remove(coachingBuddy);
         em.flush();
         JPAUtils.execute(em, "channelMapping.delete.all", guest.getId());
         em.flush();
